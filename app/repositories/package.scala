@@ -251,8 +251,8 @@ package object repositories {
     Macros.handler[AnalysisAndDecisionMakingScores]
   implicit val leadingAndCommunicatingScoresHandler: BSONHandler[BSONDocument, LeadingAndCommunicatingScores] =
     Macros.handler[LeadingAndCommunicatingScores]
-  implicit val strategicApproachToObjectivesScoresHandler: BSONHandler[BSONDocument, StrategicApproachToObjectivesScores] =
-    Macros.handler[StrategicApproachToObjectivesScores]
+  implicit val strategicApproachToObjectivesScoresHandler: BSONHandler[BSONDocument, SeeingTheBigPictureScores] =
+    Macros.handler[SeeingTheBigPictureScores]
   implicit val competencyAverageResultHandler: BSONHandler[BSONDocument, CompetencyAverageResult] =
     Macros.handler[CompetencyAverageResult]
   implicit val flagCandidateHandler: BSONHandler[BSONDocument, FlagCandidate] = Macros.handler[FlagCandidate]

@@ -36,7 +36,7 @@ object AssessmentScoresExerciseExamples {
 
     AssessmentScoresExercise(
       attended = true,
-      Some(StrategicApproachToObjectivesScores(strategicScore, strategicScore, strategicScore, strategicScore, strategicScore)),
+      Some(SeeingTheBigPictureScores(strategicScore, strategicScore, strategicScore, strategicScore, strategicScore)),
       Some(AnalysisAndDecisionMakingScores(analysisScore, analysisScore, analysisScore, analysisScore, analysisScore)),
       Some(LeadingAndCommunicatingScores(leadingScore, leadingScore, leadingScore, leadingScore, leadingScore)),
       Some(BuildingProductiveRelationshipsScores(buildingScore, buildingScore,

@@ -130,12 +130,12 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
         analysisExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          strategicApproachToObjectivesAverage = Some(2.345)
+          seeingTheBigPictureAverage = Some(2.345)
         )),
         leadershipExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          strategicApproachToObjectivesAverage = Some(3.231)
+          seeingTheBigPictureAverage = Some(3.231)
         ))
       )
 
@@ -157,7 +157,7 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
         analysisExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          strategicApproachToObjectivesAverage = Some(5.544),
+          seeingTheBigPictureAverage = Some(5.544),
           analysisAndDecisionMakingAverage = Some(5.544),
           leadingAndCommunicatingAverage = Some(5.544),
           buildingProductiveRelationshipsAverage = Some(5.544)
@@ -165,7 +165,7 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
         groupExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          strategicApproachToObjectivesAverage = Some(5.544),
+          seeingTheBigPictureAverage = Some(5.544),
           analysisAndDecisionMakingAverage = Some(5.544),
           leadingAndCommunicatingAverage = Some(5.544),
           buildingProductiveRelationshipsAverage = Some(5.544)
@@ -173,7 +173,7 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
         leadershipExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          strategicApproachToObjectivesAverage = Some(5.544),
+          seeingTheBigPictureAverage = Some(5.544),
           analysisAndDecisionMakingAverage = Some(5.544),
           leadingAndCommunicatingAverage = Some(5.544),
           buildingProductiveRelationshipsAverage = Some(5.544)

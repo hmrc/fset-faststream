@@ -44,9 +44,9 @@ trait AssessmentCentreScoresEnteredStatusGenerator extends ConstructiveGenerator
     attended = true,
     analysisAndDecisionMakingAverage = Some(5.0),
     leadingAndCommunicatingAverage = Some(4.0),
-    strategicApproachToObjectivesAverage = Some(4.0),
+    seeingTheBigPictureAverage = Some(4.0),
     updatedBy = updatedBy,
-    strategicApproachToObjectivesScores = Some(StrategicApproachToObjectivesScores(
+    seeingTheBigPictureScores = Some(SeeingTheBigPictureScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     analysisAndDecisionMakingScores = Some(AnalysisAndDecisionMakingScores(
@@ -55,7 +55,7 @@ trait AssessmentCentreScoresEnteredStatusGenerator extends ConstructiveGenerator
     leadingAndCommunicatingScores = Some(LeadingAndCommunicatingScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    strategicApproachToObjectivesFeedback = Some("Strategic approach feedback " + assessorOrReviewer),
+    seeingTheBigPictureFeedback = Some("Strategic approach feedback " + assessorOrReviewer),
     analysisAndDecisionMakingFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
     leadingAndCommunicatingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
   )
@@ -82,7 +82,7 @@ trait AssessmentCentreScoresEnteredStatusGenerator extends ConstructiveGenerator
     attended = true,
     buildingProductiveRelationshipsAverage = Some(4.0),
     leadingAndCommunicatingAverage = Some(4.0),
-    strategicApproachToObjectivesAverage = Some(4.0),
+    seeingTheBigPictureAverage = Some(4.0),
     updatedBy = updatedBy,
     buildingProductiveRelationshipsScores = Some(BuildingProductiveRelationshipsScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
@@ -90,12 +90,12 @@ trait AssessmentCentreScoresEnteredStatusGenerator extends ConstructiveGenerator
     leadingAndCommunicatingScores = Some(LeadingAndCommunicatingScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    strategicApproachToObjectivesScores = Some(StrategicApproachToObjectivesScores(
+    seeingTheBigPictureScores = Some(SeeingTheBigPictureScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     buildingProductiveRelationshipsFeedback = Some("Building Productive feedback " + assessorOrReviewer),
     leadingAndCommunicatingFeedback = Some("Leading and communicating feedback " + assessorOrReviewer),
-    strategicApproachToObjectivesFeedback = Some("Strategic approach feedback " + assessorOrReviewer)
+    seeingTheBigPictureFeedback = Some("Strategic approach feedback " + assessorOrReviewer)
   )
   def finalFeedbackSample(assessorOrReviewer: String) = AssessmentScoresFinalFeedback(
     "final feedback for " + assessorOrReviewer, updatedBy, DateTime.now(DateTimeZone.UTC)

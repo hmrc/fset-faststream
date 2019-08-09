@@ -23,27 +23,27 @@ import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 import repositories._
 
 case class AssessmentScoresExercise(
-  attended: Boolean,
-  //assessmentIncomplete: Boolean,
+                                     attended: Boolean,
+                                     //assessmentIncomplete: Boolean,
 
-  strategicApproachToObjectivesScores: Option[StrategicApproachToObjectivesScores] = None,
-  analysisAndDecisionMakingScores: Option[AnalysisAndDecisionMakingScores] = None,
-  leadingAndCommunicatingScores: Option[LeadingAndCommunicatingScores] = None,
-  buildingProductiveRelationshipsScores: Option[BuildingProductiveRelationshipsScores] = None,
+                                     seeingTheBigPictureScores: Option[SeeingTheBigPictureScores] = None,
+                                     analysisAndDecisionMakingScores: Option[AnalysisAndDecisionMakingScores] = None,
+                                     leadingAndCommunicatingScores: Option[LeadingAndCommunicatingScores] = None,
+                                     buildingProductiveRelationshipsScores: Option[BuildingProductiveRelationshipsScores] = None,
 
-  strategicApproachToObjectivesFeedback: Option[String] = None,
-  analysisAndDecisionMakingFeedback: Option[String] = None,
-  leadingAndCommunicatingFeedback: Option[String] = None,
-  buildingProductiveRelationshipsFeedback: Option[String] = None,
+                                     seeingTheBigPictureFeedback: Option[String] = None,
+                                     analysisAndDecisionMakingFeedback: Option[String] = None,
+                                     leadingAndCommunicatingFeedback: Option[String] = None,
+                                     buildingProductiveRelationshipsFeedback: Option[String] = None,
 
-  strategicApproachToObjectivesAverage: Option[Double] = None,
-  analysisAndDecisionMakingAverage: Option[Double] = None,
-  leadingAndCommunicatingAverage: Option[Double] = None,
-  buildingProductiveRelationshipsAverage: Option[Double] = None,
-  updatedBy: UniqueIdentifier,
-  savedDate: Option[DateTime] = None,
-  submittedDate: Option[DateTime] = None,
-  version: Option[String] = None
+                                     seeingTheBigPictureAverage: Option[Double] = None,
+                                     analysisAndDecisionMakingAverage: Option[Double] = None,
+                                     leadingAndCommunicatingAverage: Option[Double] = None,
+                                     buildingProductiveRelationshipsAverage: Option[Double] = None,
+                                     updatedBy: UniqueIdentifier,
+                                     savedDate: Option[DateTime] = None,
+                                     submittedDate: Option[DateTime] = None,
+                                     version: Option[String] = None
 ) extends AssessmentScoresSection {
   def isSubmitted = submittedDate.isDefined
 }
