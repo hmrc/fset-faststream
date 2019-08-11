@@ -24,22 +24,23 @@ import repositories._
 
 case class AssessmentScoresExercise(
                                      attended: Boolean,
-                                     //assessmentIncomplete: Boolean,
 
                                      seeingTheBigPictureScores: Option[SeeingTheBigPictureScores] = None,
-                                     analysisAndDecisionMakingScores: Option[AnalysisAndDecisionMakingScores] = None,
-                                     leadingAndCommunicatingScores: Option[LeadingAndCommunicatingScores] = None,
-                                     buildingProductiveRelationshipsScores: Option[BuildingProductiveRelationshipsScores] = None,
-
+                                     seeingTheBigPictureAverage: Option[Double] = None,
                                      seeingTheBigPictureFeedback: Option[String] = None,
-                                     analysisAndDecisionMakingFeedback: Option[String] = None,
+
+                                     makingEffectiveDecisionsScores: Option[MakingEffectiveDecisionsScores] = None,
+                                     makingEffectiveDecisionsAverage: Option[Double] = None,
+                                     makingEffectiveDecisionsFeedback: Option[String] = None,
+
+                                     leadingAndCommunicatingScores: Option[LeadingAndCommunicatingScores] = None,
+                                     leadingAndCommunicatingAverage: Option[Double] = None,
                                      leadingAndCommunicatingFeedback: Option[String] = None,
+
+                                     buildingProductiveRelationshipsScores: Option[BuildingProductiveRelationshipsScores] = None,
+                                     buildingProductiveRelationshipsAverage: Option[Double] = None,
                                      buildingProductiveRelationshipsFeedback: Option[String] = None,
 
-                                     seeingTheBigPictureAverage: Option[Double] = None,
-                                     analysisAndDecisionMakingAverage: Option[Double] = None,
-                                     leadingAndCommunicatingAverage: Option[Double] = None,
-                                     buildingProductiveRelationshipsAverage: Option[Double] = None,
                                      updatedBy: UniqueIdentifier,
                                      savedDate: Option[DateTime] = None,
                                      submittedDate: Option[DateTime] = None,

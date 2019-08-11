@@ -42,30 +42,30 @@ trait AssessmentCentreScoresEnteredStatusGenerator extends ConstructiveGenerator
   // The scores awarded to the candidate by assessor/reviewer
   def analysisExerciseSample(assessorOrReviewer: String) = AssessmentScoresExercise(
     attended = true,
-    analysisAndDecisionMakingAverage = Some(5.0),
+    makingEffectiveDecisionsAverage = Some(5.0),
     leadingAndCommunicatingAverage = Some(4.0),
     seeingTheBigPictureAverage = Some(4.0),
     updatedBy = updatedBy,
     seeingTheBigPictureScores = Some(SeeingTheBigPictureScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    analysisAndDecisionMakingScores = Some(AnalysisAndDecisionMakingScores(
+    makingEffectiveDecisionsScores = Some(MakingEffectiveDecisionsScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     leadingAndCommunicatingScores = Some(LeadingAndCommunicatingScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     seeingTheBigPictureFeedback = Some("Strategic approach feedback " + assessorOrReviewer),
-    analysisAndDecisionMakingFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
+    makingEffectiveDecisionsFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
     leadingAndCommunicatingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
   )
   def groupExerciseSample(assessorOrReviewer: String) = AssessmentScoresExercise(
     attended = true,
-    analysisAndDecisionMakingAverage = Some(5.0),
+    makingEffectiveDecisionsAverage = Some(5.0),
     buildingProductiveRelationshipsAverage = Some(2.0),
     leadingAndCommunicatingAverage = Some(4.0),
     updatedBy = updatedBy,
-    analysisAndDecisionMakingScores = Some(AnalysisAndDecisionMakingScores(
+    makingEffectiveDecisionsScores = Some(MakingEffectiveDecisionsScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     buildingProductiveRelationshipsScores = Some(BuildingProductiveRelationshipsScores(
@@ -74,7 +74,7 @@ trait AssessmentCentreScoresEnteredStatusGenerator extends ConstructiveGenerator
     leadingAndCommunicatingScores = Some(LeadingAndCommunicatingScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    analysisAndDecisionMakingFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
+    makingEffectiveDecisionsFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
     buildingProductiveRelationshipsFeedback = Some("Building Productive feedback" + assessorOrReviewer),
     leadingAndCommunicatingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
   )

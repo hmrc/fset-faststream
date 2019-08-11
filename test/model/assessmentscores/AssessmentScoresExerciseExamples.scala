@@ -32,17 +32,23 @@ object AssessmentScoresExerciseExamples {
     val analysisScore = Some(baseValue + 0.1)
     val leadingScore = Some(baseValue + 0.2)
     val buildingScore = Some(baseValue + 0.3)
-    val otherScore = Some(baseValue + 0.4)
+    val averageScore = Some(baseValue + 0.4)
 
     AssessmentScoresExercise(
       attended = true,
       Some(SeeingTheBigPictureScores(strategicScore, strategicScore, strategicScore, strategicScore, strategicScore)),
-      Some(AnalysisAndDecisionMakingScores(analysisScore, analysisScore, analysisScore, analysisScore, analysisScore)),
+      averageScore,
+      Some("feedback1"),
+      Some(MakingEffectiveDecisionsScores(analysisScore, analysisScore, analysisScore, analysisScore, analysisScore)),
+      averageScore,
+      Some("feedback2"),
       Some(LeadingAndCommunicatingScores(leadingScore, leadingScore, leadingScore, leadingScore, leadingScore)),
+      averageScore,
+      Some("feedback3"),
       Some(BuildingProductiveRelationshipsScores(buildingScore, buildingScore,
         buildingScore,buildingScore,buildingScore,buildingScore,buildingScore)),
-      Some("feedback1"), Some("feedback2"), Some("feedback3"), Some("feedback4"),
-      otherScore, otherScore, otherScore, otherScore,
+      averageScore,
+      Some("feedback4"),
       updatedBy,
       Some(dateTimeNow),
       Some(dateTimeNow),

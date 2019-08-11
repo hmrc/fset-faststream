@@ -38,7 +38,7 @@ case class AssessmentScoresAllExercises(
   }
 
    def analysisAndDecisionMakingAvg: Double = {
-    average(List(analysisExercise, groupExercise).flatMap(_.flatMap(_.analysisAndDecisionMakingAverage)), 2)
+    average(List(analysisExercise, groupExercise).flatMap(_.flatMap(_.makingEffectiveDecisionsAverage)), 2)
   }
 
    def leadingAndCommunicatingAvg: Double = {

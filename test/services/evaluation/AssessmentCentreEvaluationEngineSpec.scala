@@ -46,7 +46,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
     analysisExercise = Some(
       AssessmentScoresExercise(
         attended = true,
-        analysisAndDecisionMakingAverage = Some(5.0),
+        makingEffectiveDecisionsAverage = Some(5.0),
         leadingAndCommunicatingAverage = Some(4.0),
         seeingTheBigPictureAverage = Some(4.0),
         updatedBy = updatedBy
@@ -54,7 +54,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
     groupExercise = Some(
       AssessmentScoresExercise(
         attended = true,
-        analysisAndDecisionMakingAverage = Some(5.0),
+        makingEffectiveDecisionsAverage = Some(5.0),
         buildingProductiveRelationshipsAverage = Some(2.0),
         leadingAndCommunicatingAverage = Some(4.0),
         updatedBy = updatedBy
@@ -131,11 +131,11 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
       val config = AssessmentEvaluationMinimumCompetencyLevel(enabled = true, Some(2.75))
       val candidateScores = AssessmentScoresAllExercises(applicationId,
         analysisExercise = Some(
-          AssessmentScoresExercise(analysisAndDecisionMakingAverage = Some(2.5), leadingAndCommunicatingAverage = Some(3.5),
+          AssessmentScoresExercise(makingEffectiveDecisionsAverage = Some(2.5), leadingAndCommunicatingAverage = Some(3.5),
             seeingTheBigPictureAverage = Some(4.0), updatedBy = updatedBy, attended = true
           )),
         groupExercise = Some(
-          AssessmentScoresExercise(analysisAndDecisionMakingAverage = Some(3.0), buildingProductiveRelationshipsAverage = Some(4.5),
+          AssessmentScoresExercise(makingEffectiveDecisionsAverage = Some(3.0), buildingProductiveRelationshipsAverage = Some(4.5),
             leadingAndCommunicatingAverage = Some(3.5), updatedBy = updatedBy, attended = true
           )),
         leadershipExercise = Some(
