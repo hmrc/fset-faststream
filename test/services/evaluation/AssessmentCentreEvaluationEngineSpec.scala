@@ -47,7 +47,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
       AssessmentScoresExercise(
         attended = true,
         makingEffectiveDecisionsAverage = Some(5.0),
-        leadingAndCommunicatingAverage = Some(4.0),
+        communicatingAndInfluencingAverage = Some(4.0),
         seeingTheBigPictureAverage = Some(4.0),
         updatedBy = updatedBy
       )),
@@ -56,14 +56,14 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
         attended = true,
         makingEffectiveDecisionsAverage = Some(5.0),
         buildingProductiveRelationshipsAverage = Some(2.0),
-        leadingAndCommunicatingAverage = Some(4.0),
+        communicatingAndInfluencingAverage = Some(4.0),
         updatedBy = updatedBy
       )),
     leadershipExercise = Some(
       AssessmentScoresExercise(
         attended = true,
         buildingProductiveRelationshipsAverage = Some(4.0),
-        leadingAndCommunicatingAverage = Some(4.0),
+        communicatingAndInfluencingAverage = Some(4.0),
         seeingTheBigPictureAverage = Some(4.0),
         updatedBy = updatedBy
       ))
@@ -131,15 +131,15 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
       val config = AssessmentEvaluationMinimumCompetencyLevel(enabled = true, Some(2.75))
       val candidateScores = AssessmentScoresAllExercises(applicationId,
         analysisExercise = Some(
-          AssessmentScoresExercise(makingEffectiveDecisionsAverage = Some(2.5), leadingAndCommunicatingAverage = Some(3.5),
+          AssessmentScoresExercise(makingEffectiveDecisionsAverage = Some(2.5), communicatingAndInfluencingAverage = Some(3.5),
             seeingTheBigPictureAverage = Some(4.0), updatedBy = updatedBy, attended = true
           )),
         groupExercise = Some(
           AssessmentScoresExercise(makingEffectiveDecisionsAverage = Some(3.0), buildingProductiveRelationshipsAverage = Some(4.5),
-            leadingAndCommunicatingAverage = Some(3.5), updatedBy = updatedBy, attended = true
+            communicatingAndInfluencingAverage = Some(3.5), updatedBy = updatedBy, attended = true
           )),
         leadershipExercise = Some(
-          AssessmentScoresExercise(buildingProductiveRelationshipsAverage = Some(3.0), leadingAndCommunicatingAverage = Some(3.5),
+          AssessmentScoresExercise(buildingProductiveRelationshipsAverage = Some(3.0), communicatingAndInfluencingAverage = Some(3.5),
             seeingTheBigPictureAverage = Some(4.0), updatedBy = updatedBy, attended = true
           ))
       )

@@ -159,7 +159,7 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
           updatedBy = updatedBy,
           seeingTheBigPictureAverage = Some(5.544),
           makingEffectiveDecisionsAverage = Some(5.544),
-          leadingAndCommunicatingAverage = Some(5.544),
+          communicatingAndInfluencingAverage = Some(5.544),
           buildingProductiveRelationshipsAverage = Some(5.544)
         )),
         groupExercise = Some(AssessmentScoresExercise(
@@ -167,7 +167,7 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
           updatedBy = updatedBy,
           seeingTheBigPictureAverage = Some(5.544),
           makingEffectiveDecisionsAverage = Some(5.544),
-          leadingAndCommunicatingAverage = Some(5.544),
+          communicatingAndInfluencingAverage = Some(5.544),
           buildingProductiveRelationshipsAverage = Some(5.544)
         )),
         leadershipExercise = Some(AssessmentScoresExercise(
@@ -175,7 +175,7 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
           updatedBy = updatedBy,
           seeingTheBigPictureAverage = Some(5.544),
           makingEffectiveDecisionsAverage = Some(5.544),
-          leadingAndCommunicatingAverage = Some(5.544),
+          communicatingAndInfluencingAverage = Some(5.544),
           buildingProductiveRelationshipsAverage = Some(5.544)
         ))
       )

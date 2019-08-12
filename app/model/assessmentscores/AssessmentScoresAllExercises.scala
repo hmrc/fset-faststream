@@ -42,7 +42,7 @@ case class AssessmentScoresAllExercises(
   }
 
    def leadingAndCommunicatingAvg: Double = {
-    average(List(analysisExercise, groupExercise, leadershipExercise).flatMap(_.flatMap(_.leadingAndCommunicatingAverage)), 3)
+    average(List(analysisExercise, groupExercise, leadershipExercise).flatMap(_.flatMap(_.communicatingAndInfluencingAverage)), 3)
   }
 
   private def average(list: List[Double], mandatoryNumberOfElements: Int): Double = {

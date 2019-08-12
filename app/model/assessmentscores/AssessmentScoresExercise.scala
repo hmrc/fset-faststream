@@ -33,9 +33,9 @@ case class AssessmentScoresExercise(
                                      makingEffectiveDecisionsAverage: Option[Double] = None,
                                      makingEffectiveDecisionsFeedback: Option[String] = None,
 
-                                     leadingAndCommunicatingScores: Option[LeadingAndCommunicatingScores] = None,
-                                     leadingAndCommunicatingAverage: Option[Double] = None,
-                                     leadingAndCommunicatingFeedback: Option[String] = None,
+                                     communicatingAndInfluencingScores: Option[CommunicatingAndInfluencingScores] = None,
+                                     communicatingAndInfluencingAverage: Option[Double] = None,
+                                     communicatingAndInfluencingFeedback: Option[String] = None,
 
                                      buildingProductiveRelationshipsScores: Option[BuildingProductiveRelationshipsScores] = None,
                                      buildingProductiveRelationshipsAverage: Option[Double] = None,

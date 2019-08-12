@@ -43,7 +43,7 @@ trait AssessmentCentreScoresEnteredStatusGenerator extends ConstructiveGenerator
   def analysisExerciseSample(assessorOrReviewer: String) = AssessmentScoresExercise(
     attended = true,
     makingEffectiveDecisionsAverage = Some(5.0),
-    leadingAndCommunicatingAverage = Some(4.0),
+    communicatingAndInfluencingAverage = Some(4.0),
     seeingTheBigPictureAverage = Some(4.0),
     updatedBy = updatedBy,
     seeingTheBigPictureScores = Some(SeeingTheBigPictureScores(
@@ -52,18 +52,18 @@ trait AssessmentCentreScoresEnteredStatusGenerator extends ConstructiveGenerator
     makingEffectiveDecisionsScores = Some(MakingEffectiveDecisionsScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    leadingAndCommunicatingScores = Some(LeadingAndCommunicatingScores(
+    communicatingAndInfluencingScores = Some(CommunicatingAndInfluencingScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     seeingTheBigPictureFeedback = Some("Strategic approach feedback " + assessorOrReviewer),
     makingEffectiveDecisionsFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
-    leadingAndCommunicatingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
+    communicatingAndInfluencingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
   )
   def groupExerciseSample(assessorOrReviewer: String) = AssessmentScoresExercise(
     attended = true,
     makingEffectiveDecisionsAverage = Some(5.0),
     buildingProductiveRelationshipsAverage = Some(2.0),
-    leadingAndCommunicatingAverage = Some(4.0),
+    communicatingAndInfluencingAverage = Some(4.0),
     updatedBy = updatedBy,
     makingEffectiveDecisionsScores = Some(MakingEffectiveDecisionsScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
@@ -71,30 +71,30 @@ trait AssessmentCentreScoresEnteredStatusGenerator extends ConstructiveGenerator
     buildingProductiveRelationshipsScores = Some(BuildingProductiveRelationshipsScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    leadingAndCommunicatingScores = Some(LeadingAndCommunicatingScores(
+    communicatingAndInfluencingScores = Some(CommunicatingAndInfluencingScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     makingEffectiveDecisionsFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
     buildingProductiveRelationshipsFeedback = Some("Building Productive feedback" + assessorOrReviewer),
-    leadingAndCommunicatingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
+    communicatingAndInfluencingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
   )
   def leadershipExerciseSample(assessorOrReviewer: String) = AssessmentScoresExercise(
     attended = true,
     buildingProductiveRelationshipsAverage = Some(4.0),
-    leadingAndCommunicatingAverage = Some(4.0),
+    communicatingAndInfluencingAverage = Some(4.0),
     seeingTheBigPictureAverage = Some(4.0),
     updatedBy = updatedBy,
     buildingProductiveRelationshipsScores = Some(BuildingProductiveRelationshipsScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    leadingAndCommunicatingScores = Some(LeadingAndCommunicatingScores(
+    communicatingAndInfluencingScores = Some(CommunicatingAndInfluencingScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     seeingTheBigPictureScores = Some(SeeingTheBigPictureScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     buildingProductiveRelationshipsFeedback = Some("Building Productive feedback " + assessorOrReviewer),
-    leadingAndCommunicatingFeedback = Some("Leading and communicating feedback " + assessorOrReviewer),
+    communicatingAndInfluencingFeedback = Some("Leading and communicating feedback " + assessorOrReviewer),
     seeingTheBigPictureFeedback = Some("Strategic approach feedback " + assessorOrReviewer)
   )
   def finalFeedbackSample(assessorOrReviewer: String) = AssessmentScoresFinalFeedback(

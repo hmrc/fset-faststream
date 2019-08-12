@@ -42,7 +42,7 @@ object AssessmentScoresExerciseExamples {
       Some(MakingEffectiveDecisionsScores(analysisScore, analysisScore, analysisScore, analysisScore, analysisScore)),
       averageScore,
       Some("feedback2"),
-      Some(LeadingAndCommunicatingScores(leadingScore, leadingScore, leadingScore, leadingScore, leadingScore)),
+      Some(CommunicatingAndInfluencingScores(leadingScore, leadingScore, leadingScore, leadingScore, leadingScore)),
       averageScore,
       Some("feedback3"),
       Some(BuildingProductiveRelationshipsScores(buildingScore, buildingScore,
