@@ -23,7 +23,7 @@ case class MakingEffectiveDecisionsScores(
                                            analysesFinancialData: Option[Double] = None,
                                            analysesProsAndCons: Option[Double] = None,
                                            considersCriticalAndImportantIssues: Option[Double] = None,
-                                           acceptingResponsibility: Option[Double] = None
+                                           demonstratesMentalResilience: Option[Double] = None
 )
 
 object MakingEffectiveDecisionsScores {
