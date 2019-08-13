@@ -45,7 +45,7 @@ object AssessmentScoresExerciseExamples {
       Some(CommunicatingAndInfluencingScores(leadingScore, leadingScore, leadingScore, leadingScore, leadingScore)),
       averageScore,
       Some("feedback3"),
-      Some(BuildingProductiveRelationshipsScores(buildingScore, buildingScore,
+      Some(WorkingTogetherDevelopingSelfAndOtherScores(buildingScore, buildingScore,
         buildingScore,buildingScore,buildingScore,buildingScore,buildingScore)),
       averageScore,
       Some("feedback4"),

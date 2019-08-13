@@ -245,8 +245,8 @@ package object repositories {
   implicit val assistanceDetailsHandler: BSONHandler[BSONDocument, AssistanceDetails] = Macros.handler[AssistanceDetails]
   implicit val answerHandler: BSONHandler[BSONDocument, QuestionnaireAnswer] = Macros.handler[QuestionnaireAnswer]
   implicit val buildingProductiveRelationshipsScoresHandler
-  : BSONHandler[BSONDocument, BuildingProductiveRelationshipsScores] =
-    Macros.handler[BuildingProductiveRelationshipsScores]
+  : BSONHandler[BSONDocument, WorkingTogetherDevelopingSelfAndOtherScores] =
+    Macros.handler[WorkingTogetherDevelopingSelfAndOtherScores]
   implicit val analysisAndDecisionMakingScoresHandler: BSONHandler[BSONDocument, MakingEffectiveDecisionsScores] =
     Macros.handler[MakingEffectiveDecisionsScores]
   implicit val leadingAndCommunicatingScoresHandler: BSONHandler[BSONDocument, CommunicatingAndInfluencingScores] =

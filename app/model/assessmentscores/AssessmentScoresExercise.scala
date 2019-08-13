@@ -37,9 +37,9 @@ case class AssessmentScoresExercise(
                                      communicatingAndInfluencingAverage: Option[Double] = None,
                                      communicatingAndInfluencingFeedback: Option[String] = None,
 
-                                     buildingProductiveRelationshipsScores: Option[BuildingProductiveRelationshipsScores] = None,
-                                     buildingProductiveRelationshipsAverage: Option[Double] = None,
-                                     buildingProductiveRelationshipsFeedback: Option[String] = None,
+                                     workingTogetherDevelopingSelfAndOthersScores: Option[WorkingTogetherDevelopingSelfAndOtherScores] = None,
+                                     workingTogetherDevelopingSelfAndOthersAverage: Option[Double] = None,
+                                     workingTogetherDevelopingSelfAndOthersFeedback: Option[String] = None,
 
                                      updatedBy: UniqueIdentifier,
                                      savedDate: Option[DateTime] = None,
