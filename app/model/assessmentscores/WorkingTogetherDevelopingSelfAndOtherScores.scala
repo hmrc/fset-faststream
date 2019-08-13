@@ -22,10 +22,10 @@ case class WorkingTogetherDevelopingSelfAndOtherScores(
                                                         formsEffectiveWorkingRelationships: Option[Double] = None,
                                                         inclusiveApproach: Option[Double] = None,
                                                         encouragesCollaboration: Option[Double] = None,
-                                                        establishingRelationships: Option[Double] = None,
-                                                        seekingHelpFromOutsideTeam: Option[Double] = None,
-                                                        identifyingOpportunitiesForOthers: Option[Double] = None,
-                                                        keepingSkillSetUpToDate: Option[Double] = None
+                                                        handlesChallengingConversations: Option[Double] = None,
+                                                        encouragesTeamwork: Option[Double] = None,
+                                                        understandsPerspectives: Option[Double] = None,
+                                                        improvesOwnPerformance: Option[Double] = None
                                                 )
 
 object WorkingTogetherDevelopingSelfAndOtherScores {
