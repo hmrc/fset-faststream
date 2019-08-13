@@ -22,9 +22,9 @@ case class CommunicatingAndInfluencingScores(
                                               isAnInfluencer: Option[Double] = None,
                                               presentingArguments: Option[Double] = None,
                                               explainsIdeasClearly: Option[Double] = None,
-                                              communicatingSuccinctly: Option[Double] = None,
-                                              defendingOwnView: Option[Double] = None,
-                                              conveyingPurposeAndDirection: Option[Double] = None
+                                              communicatesClearly: Option[Double] = None,
+                                              defendsOwnView: Option[Double] = None,
+                                              conveysPurposeAndDirection: Option[Double] = None
 )
 
 object CommunicatingAndInfluencingScores {
