@@ -18,7 +18,7 @@ package model
 
 import model.PersistedObjects.CandidateTestReport
 import model.exchange.passmarksettings.Phase1PassMarkSettings
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 
 object OnlineTestCommands {
 
@@ -59,7 +59,7 @@ object OnlineTestCommands {
   case class PsiTestResult(status: String, tScore: Double, raw: Double)
 
   object PsiTestResult {
-    implicit val psiTestFormat = Json.format[PsiTestResult]
+    implicit val psiTestResultFormat: OFormat[PsiTestResult] = Json.format[PsiTestResult]
   }
 
   object Implicits {
