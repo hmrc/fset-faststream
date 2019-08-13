@@ -31,15 +31,16 @@ import services.testdata.faker.DataFaker.Random
 object CreateCandidateData {
 
   case class AssistanceDetails(
-    hasDisability: String = Random.yesNoPreferNotToSay,
-    hasDisabilityDescription: String = Random.hasDisabilityDescription,
+    hasDisability: String = "No",
+    hasDisabilityDescription: String = "",
     setGis: Boolean = false,
-    onlineAdjustments: Boolean = Random.bool,
-    onlineAdjustmentsDescription: String = Random.onlineAdjustmentsDescription,
-    assessmentCentreAdjustments: Boolean = Random.bool,
-    assessmentCentreAdjustmentsDescription: String = Random.assessmentCentreAdjustmentDescription,
-    phoneAdjustments: Boolean = Random.bool,
-    phoneAdjustmentsDescription: String = Random.phoneAdjustmentsDescription
+    onlineAdjustments: Boolean = false,
+    onlineAdjustmentsDescription: String = "",
+    assessmentCentreAdjustments: Boolean = false,
+    assessmentCentreAdjustmentsDescription: String = "",
+    phoneAdjustments: Boolean = false,
+    phoneAdjustmentsDescription: String = ""
+
   )
 
   object AssistanceDetails {
@@ -161,14 +162,14 @@ object CreateCandidateData {
   ) extends CreateTestData
 
   object CreateCandidateData {
-    def apply(psiUrlFromConfig: String, o: CreateCandidateRequest)(generatorId: Int): CreateCandidateData = {
+    def apply(psiUrlFromConfig: String, request: CreateCandidateRequest)(generatorId: Int): CreateCandidateData = {
 
-      val statusData = StatusData(o.statusData)
+      val statusData = StatusData(request.statusData)
 
-      val isCivilServant = o.isCivilServant.getOrElse(Random.bool)
-      val hasFastPass = o.hasFastPass.getOrElse(false)
+      val isCivilServant = request.isCivilServant.getOrElse(Random.bool)
+      val hasFastPass = request.hasFastPass.getOrElse(false)
       val internshipTypes = if (hasFastPass) {
-        o.internshipTypes.map(internshipTypes =>
+        request.internshipTypes.map(internshipTypes =>
           internshipTypes.map(internshipType => InternshipType.withName(internshipType)))
           .getOrElse(List(InternshipType.SDIPCurrentYear))
       } else {
@@ -176,12 +177,16 @@ object CreateCandidateData {
       }
       val fastPassCertificateNumber = if (hasFastPass) Some(Random.number().toString) else None
 
-      val progressStatusMaybe = o.statusData.progressStatus.map(ProgressStatuses.nameToProgressStatus)
-        .orElse(Some(translateApplicationStatusToProgressStatus(o.statusData.applicationStatus)))
+      val progressStatusMaybe = request.statusData.progressStatus.map(ProgressStatuses.nameToProgressStatus)
+        .orElse(Some(translateApplicationStatusToProgressStatus(request.statusData.applicationStatus)))
 
       val schemeTypes = progressStatusMaybe.map(progressStatus => {
         if (ProgressStatuses.ProgressStatusOrder.isEqualOrAfter(progressStatus, ProgressStatuses.SCHEME_PREFERENCES).getOrElse(false)) {
-          o.schemeTypes.getOrElse(List(SchemeId("Commercial"), SchemeId("Finance")))
+          request.statusData.applicationRoute match {
+            case Some("Sdip") => List(SchemeId("Sdip"))
+            case Some("Edip") => List(SchemeId("Edip"))
+            case _ => request.schemeTypes.getOrElse(List(SchemeId("Commercial"), SchemeId("Finance")))
+          }
         } else {
           Nil
         }
@@ -189,22 +194,22 @@ object CreateCandidateData {
 
       CreateCandidateData(
         statusData = statusData,
-        personalData = o.personalData.map(PersonalData(_, generatorId)).getOrElse(PersonalData()),
-        diversityDetails = o.diversityDetails.map(DiversityDetails(_)).getOrElse(DiversityDetails()),
-        assistanceDetails = o.assistanceDetails.map(AssistanceDetails.apply).getOrElse(AssistanceDetails()),
+        personalData = request.personalData.map(PersonalData(_, generatorId)).getOrElse(PersonalData()),
+        diversityDetails = request.diversityDetails.map(DiversityDetails(_)).getOrElse(DiversityDetails()),
+        assistanceDetails = request.assistanceDetails.map(AssistanceDetails.apply).getOrElse(AssistanceDetails()),
         psiUrl = psiUrlFromConfig,
         schemeTypes = Some(schemeTypes),
         isCivilServant = isCivilServant,
         hasFastPass = hasFastPass,
         internshipTypes = internshipTypes,
         fastPassCertificateNumber = fastPassCertificateNumber,
-        hasDegree = o.hasDegree.getOrElse(Random.bool),
-        region = o.region,
-        phase1TestData = Phase1TestData.build(o, schemeTypes),
-        phase2TestData = Phase2TestData(o, schemeTypes),
-        phase3TestData = Phase3TestData(o, schemeTypes),
-        fsbTestGroupData = o.fsbTestGroupData,
-        adjustmentInformation = o.adjustmentInformation
+        hasDegree = request.hasDegree.getOrElse(Random.bool),
+        region = request.region,
+        phase1TestData = Phase1TestData.build(request, schemeTypes),
+        phase2TestData = Phase2TestData(request, schemeTypes),
+        phase3TestData = Phase3TestData(request, schemeTypes),
+        fsbTestGroupData = request.fsbTestGroupData,
+        adjustmentInformation = request.adjustmentInformation
       )
     }
 
