@@ -22,8 +22,8 @@ case class SeeingTheBigPictureScores(
                                       strategicOutlook: Option[Double] = None,
                                       understandsHowOptionsMeetDiverseNeedsOfStakeholders: Option[Double] = None,
                                       suggestsWaysToImproveAcceptance: Option[Double] = None,
-                                      challengingProposals: Option[Double] = None,
-                                      identifyingBarriersAndDevelopingSolutions: Option[Double] = None
+                                      respondsAppropriately: Option[Double] = None,
+                                      alternativeSolutions: Option[Double] = None
                                     )
 
 object SeeingTheBigPictureScores {
