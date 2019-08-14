@@ -26,12 +26,6 @@ object CreateCandidateRequestValidator extends CreateCandidateRequestValidator
 
 trait CreateCandidateRequestValidator {
   def validate(request: CreateCandidateRequest): ValidatorResult = {
-    val route = request.statusData.applicationRoute.map(ApplicationRoute.withName(_))
-    val status = ApplicationStatus.withName(request.statusData.applicationStatus)
-    val progressStatus = request.statusData.progressStatus
-    val hasFastPass = request.hasFastPass
-    val isCivilServant = request.isCivilServant
-    val internshipTypes = request.internshipTypes
 
     if (!validateGis(request)) {
       ValidatorResult(false, Some("Request contains incompatible values for Gis"))

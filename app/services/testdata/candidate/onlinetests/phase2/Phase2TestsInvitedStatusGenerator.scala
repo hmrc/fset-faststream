@@ -57,7 +57,7 @@ trait Phase2TestsInvitedStatusGenerator extends ConstructiveGenerator {
         invitationDate = generatorConfig.phase2TestData.flatMap(_.start).getOrElse(DateTime.now()).plusDays(-1),
         resultsReadyToDownload = false,
         invigilatedAccessCode = generatorConfig.adjustmentInformation.flatMap { adjustments =>
-          if (isInvigilated(adjustments)) {
+          if (isInvigilated(Adjustments(adjustments))) {
             Some(Random.accessCode)
           } else {
             None
