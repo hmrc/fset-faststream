@@ -26,14 +26,11 @@ case class Adjustments(
   video: Option[AdjustmentDetail]
 )
 object Adjustments {
+  def apply(data: AdjustmentsData): Adjustments = {
+    Adjustments(data.adjustments, data.adjustmentsConfirmed, data.etray.map(AdjustmentDetail(_)),
+      data.video.map(AdjustmentDetail(_)))
+  }
   implicit val adjustmentsFormat: OFormat[Adjustments] = Json.format[Adjustments]
-  implicit def fromAdjustmentsData(data: AdjustmentsData) = {
-    Adjustments(data.adjustments, data.adjustmentsConfirmed, data.etray.map(AdjustmentDetail.fromAdjustmentDetailData(_)),
-      data.video.map(AdjustmentDetail.fromAdjustmentDetailData(_)))
-  }
-  implicit def fromAdjustmentsDataOpt(dataOpt: Option[AdjustmentsData]): Option[Adjustments] = {
-    dataOpt.map(Adjustments.fromAdjustmentsData(_))
-  }
 }
 
 case class AdjustmentDetail(
@@ -43,13 +40,10 @@ case class AdjustmentDetail(
   invigilatedInfo: Option[String] = None
 )
 object AdjustmentDetail {
-  implicit val adjustmentDetailFormat: OFormat[AdjustmentDetail] = Json.format[AdjustmentDetail]
-  implicit def fromAdjustmentDetailData(data: AdjustmentDetailData) = {
+  def apply(data: AdjustmentDetailData): AdjustmentDetail = {
     AdjustmentDetail(data.timeNeeded, data.percentage, data.otherInfo, data.invigilatedInfo)
   }
-  implicit def fromAdjustmentDetailDataOpt(dataOpt: Option[AdjustmentDetailData]): Option[AdjustmentDetail] = {
-    dataOpt.map(AdjustmentDetail.fromAdjustmentDetailData(_))
-  }
+  implicit val adjustmentDetailFormat: OFormat[AdjustmentDetail] = Json.format[AdjustmentDetail]
 }
 
 case class TestAdjustment(percentage: Int)

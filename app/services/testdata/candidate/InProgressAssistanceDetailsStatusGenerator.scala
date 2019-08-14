@@ -52,13 +52,13 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
       appId = candidateInPreviousStatus.applicationId.get
       _ <- adRepository.update(appId, candidateInPreviousStatus.userId, assistanceDetails)
       _ <- if (adjustmentsDataOpt.exists(_.adjustmentsConfirmed.getOrElse(false))) {
-        adjustmentsManagementService.confirmAdjustment(appId, adjustmentsDataOpt.get)
+        adjustmentsManagementService.confirmAdjustment(appId, Adjustments(adjustmentsDataOpt.get))
       } else {
         Future.successful(())
       }
     } yield {
       candidateInPreviousStatus.copy(assistanceDetails = Some(assistanceDetails),
-        adjustmentInformation = adjustmentsDataOpt)
+        adjustmentInformation = adjustmentsDataOpt.map(Adjustments(_)))
     }
   }
 
