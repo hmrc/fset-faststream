@@ -185,9 +185,11 @@
     }
 }
 
+@generatePsiTestId(psiTestPage: PsiTestPage) = {@Messages(psiTestPage.testNameKey).replace(" ", "").concat("LinkResultsReport")}
+
 @displayTestPageLink(testPage: PsiTestPage) = {
     @testPage.testReportUrl.map { reportUrl =>
-        <a href="@reportUrl" target="_blank">Results report</a>
+        <a href="@reportUrl" target="_blank" id="@generatePsiTestId(testPage)">Results report</a>
     }
 }
 

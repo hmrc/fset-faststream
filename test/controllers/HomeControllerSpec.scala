@@ -104,11 +104,15 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       content must include("Phase 1 results")
       content must include("<div>FS Work Style Questionnaire Part 1</div>")
-      content must include("<a href=\"http:phase1Test1Url.com\" target=\"_blank\">Results report</a>")
+      content must include("<a href=\"http:phase1Test1Url.com\"" +
+        " target=\"_blank\" id=\"FSWorkStyleQuestionnairePart1LinkResultsReport\">Results report</a>")
       content must include("Phase 2 results")
       content must include("<div>FS Case Study Assessment</div>")
-      content must include("<a href=\"http:phase2Test1Url.com\" target=\"_blank\">Results report</a>")
+      content must include("<a href=\"http:phase2Test1Url.com\"" +
+        " target=\"_blank\" id=\"FSCaseStudyAssessmentLinkResultsReport\">Results report</a>")
       content must include("Phase 3 results")
+      content must include("<a href=\"/fset-fast-stream/online-tests/phase3/feedback-report\"" +
+        " target=\"_blank\" id=\"phase3ResultsReportLink\" alt=\"Phase 3 Results report\">")
     }
 
     "display home page" in new TestFixture {
