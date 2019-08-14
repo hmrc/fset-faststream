@@ -36,12 +36,12 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
         analysisExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          analysisAndDecisionMakingAverage = Some(3.231)
+          makingEffectiveDecisionsAverage = Some(3.231)
         )),
         groupExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          analysisAndDecisionMakingAverage = Some(2.345)
+          makingEffectiveDecisionsAverage = Some(2.345)
         )),
         leadershipExercise = None
       )
@@ -67,12 +67,12 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
         groupExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          buildingProductiveRelationshipsAverage = Some(2.345)
+          workingTogetherDevelopingSelfAndOthersAverage = Some(2.345)
         )),
         leadershipExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          buildingProductiveRelationshipsAverage = Some(3.231)
+          workingTogetherDevelopingSelfAndOthersAverage = Some(3.231)
         ))
       )
 
@@ -96,17 +96,17 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
         analysisExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          buildingProductiveRelationshipsAverage = Some(2.345)
+          workingTogetherDevelopingSelfAndOthersAverage = Some(2.345)
         )),
         groupExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          buildingProductiveRelationshipsAverage = Some(2.366)
+          workingTogetherDevelopingSelfAndOthersAverage = Some(2.366)
         )),
         leadershipExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          buildingProductiveRelationshipsAverage = Some(3.231)
+          workingTogetherDevelopingSelfAndOthersAverage = Some(3.231)
         ))
       )
 
@@ -130,12 +130,12 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
         analysisExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          strategicApproachToObjectivesAverage = Some(2.345)
+          seeingTheBigPictureAverage = Some(2.345)
         )),
         leadershipExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          strategicApproachToObjectivesAverage = Some(3.231)
+          seeingTheBigPictureAverage = Some(3.231)
         ))
       )
 
@@ -157,26 +157,26 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
         analysisExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          strategicApproachToObjectivesAverage = Some(5.544),
-          analysisAndDecisionMakingAverage = Some(5.544),
-          leadingAndCommunicatingAverage = Some(5.544),
-          buildingProductiveRelationshipsAverage = Some(5.544)
+          seeingTheBigPictureAverage = Some(5.544),
+          makingEffectiveDecisionsAverage = Some(5.544),
+          communicatingAndInfluencingAverage = Some(5.544),
+          workingTogetherDevelopingSelfAndOthersAverage = Some(5.544)
         )),
         groupExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          strategicApproachToObjectivesAverage = Some(5.544),
-          analysisAndDecisionMakingAverage = Some(5.544),
-          leadingAndCommunicatingAverage = Some(5.544),
-          buildingProductiveRelationshipsAverage = Some(5.544)
+          seeingTheBigPictureAverage = Some(5.544),
+          makingEffectiveDecisionsAverage = Some(5.544),
+          communicatingAndInfluencingAverage = Some(5.544),
+          workingTogetherDevelopingSelfAndOthersAverage = Some(5.544)
         )),
         leadershipExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          strategicApproachToObjectivesAverage = Some(5.544),
-          analysisAndDecisionMakingAverage = Some(5.544),
-          leadingAndCommunicatingAverage = Some(5.544),
-          buildingProductiveRelationshipsAverage = Some(5.544)
+          seeingTheBigPictureAverage = Some(5.544),
+          makingEffectiveDecisionsAverage = Some(5.544),
+          communicatingAndInfluencingAverage = Some(5.544),
+          workingTogetherDevelopingSelfAndOthersAverage = Some(5.544)
         ))
       )
 

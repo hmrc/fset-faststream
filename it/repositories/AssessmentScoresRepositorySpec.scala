@@ -61,7 +61,7 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
 
       val ScoresModified =
         Scores.copy(leadershipExercise = Scores.leadershipExercise.map(
-          _.copy(leadingAndCommunicatingAverage = Some(3.7192))))
+          _.copy(communicatingAndInfluencingAverage = Some(3.7192))))
       repository.save(ScoresModified).futureValue
       val ScoresModifiedRead = repository.find(ApplicationId).futureValue
 

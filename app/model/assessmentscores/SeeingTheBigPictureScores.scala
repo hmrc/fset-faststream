@@ -18,14 +18,14 @@ package model.assessmentscores
 
 import play.api.libs.json.Json
 
-case class AnalysisAndDecisionMakingScores(
-                                            identifyingCriticalIssues: Option[Double] = None,
-                                            analysingBenefitsAndRisks: Option[Double] = None,
-                                            integratingInformation: Option[Double] = None,
-                                            deliveringValueForMoney: Option[Double] = None,
-                                            acceptingResponsibility: Option[Double] = None
-)
+case class SeeingTheBigPictureScores(
+                                      strategicOutlook: Option[Double] = None,
+                                      understandsHowOptionsMeetDiverseNeedsOfStakeholders: Option[Double] = None,
+                                      suggestsWaysToImproveAcceptance: Option[Double] = None,
+                                      respondsAppropriately: Option[Double] = None,
+                                      alternativeSolutions: Option[Double] = None
+                                    )
 
-object AnalysisAndDecisionMakingScores {
-  implicit val analysisAndDecisionMakingScoresFormat = Json.format[AnalysisAndDecisionMakingScores]
+object SeeingTheBigPictureScores {
+  implicit val seeingTheBigPictureScoresFormat = Json.format[SeeingTheBigPictureScores]
 }
