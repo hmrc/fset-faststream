@@ -55,7 +55,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
           CivilServiceExperienceDetails(applicable = true,
             civilServiceExperienceType = if (generatorConfig.isCivilServant) Some(CivilServiceExperienceType.CivilServant) else None,
             internshipTypes = Some(generatorConfig.internshipTypes),
-            fastPassReceived = Some(generatorConfig.hasFastPass), fastPassAccepted = Some(false),
+            fastPassReceived = Some(generatorConfig.hasFastPass), fastPassAccepted = None,
             certificateNumber = generatorConfig.fastPassCertificateNumber
           )
         } else {

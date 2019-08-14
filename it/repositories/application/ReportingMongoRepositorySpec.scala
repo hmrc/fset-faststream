@@ -17,15 +17,15 @@
 package repositories.application
 
 import _root_.services.testdata.TestDataGeneratorService
-import factories.{ ITDateTimeFactoryMock, UUIDFactory }
-import model.ProgressStatuses.{ PHASE3_TESTS_INVITED, PHASE3_TESTS_PASSED_NOTIFIED, PREVIEW, SUBMITTED, PHASE1_TESTS_PASSED => _ }
+import factories.{ITDateTimeFactoryMock, UUIDFactory}
+import model.ProgressStatuses.{PHASE3_TESTS_INVITED, PHASE3_TESTS_PASSED_NOTIFIED, PREVIEW, SUBMITTED, PHASE1_TESTS_PASSED => _}
 import model._
-import model.report.{ AdjustmentReportItem, CandidateProgressReportItem }
+import model.report.{AdjustmentReportItem, CandidateProgressReportItem}
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
-import model.ApplicationRoute.{ apply => _ }
-import model.command.testdata.CreateCandidateRequest.{ AssistanceDetailsRequest, CreateCandidateRequest, StatusDataRequest }
-import model.command.{ ProgressResponse, WithdrawApplication }
+import model.ApplicationRoute.{apply => _}
+import model.command.testdata.CreateCandidateRequest.{AdjustmentsRequest, AssistanceDetailsRequest, CreateCandidateRequest, StatusDataRequest}
+import model.command.{ProgressResponse, WithdrawApplication}
 import model.persisted._
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import reactivemongo.bson.BSONDocument
@@ -230,7 +230,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
           onlineAdjustments = Some(false),
           setGis = Some(false)
         )),
-        adjustmentInformation = Some(Adjustments(
+        adjustmentInformation = Some(AdjustmentsRequest(
           adjustments = Some(List("other adjustments")),
           adjustmentsConfirmed = Some(true),
           etray = None,
@@ -266,7 +266,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
           phoneAdjustments = Some(true),
           setGis = Some(false)
         )),
-        adjustmentInformation = Some(Adjustments(
+        adjustmentInformation = Some(AdjustmentsRequest(
           adjustments = Some(List("phone interview")),
           adjustmentsConfirmed = Some(true),
           etray = None,

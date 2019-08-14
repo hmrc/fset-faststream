@@ -27,6 +27,7 @@ import model.testdata.CreateTestData
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
 import services.testdata.faker.DataFaker.Random
+import model.Adjustments._
 
 object CreateCandidateData {
 
@@ -140,6 +141,34 @@ object CreateCandidateData {
     }
   }
 
+  case class AdjustmentsData(
+    adjustments: Option[List[String]] = None,
+    adjustmentsConfirmed: Option[Boolean] = None,
+    etray: Option[AdjustmentDetailData] = None,
+    video: Option[AdjustmentDetailData] = None
+  )
+
+  object AdjustmentsData {
+    def apply(o: AdjustmentsRequest): AdjustmentsData = {
+      AdjustmentsData(adjustments = o.adjustments, adjustmentsConfirmed = o.adjustmentsConfirmed,
+        etray = o.etray.map(AdjustmentDetailData(_)), video = o.video.map(AdjustmentDetailData(_))
+      )
+    }
+  }
+
+  case class AdjustmentDetailData(
+    timeNeeded: Option[Int] = None,
+    percentage: Option[Int] = None,
+    otherInfo: Option[String] = None,
+    invigilatedInfo: Option[String] = None
+  )
+
+  object AdjustmentDetailData {
+    def apply(o: AdjustmentDetailRequest): AdjustmentDetailData = {
+      AdjustmentDetailData(o.timeNeeded, o.percentage, otherInfo = o.otherInfo, invigilatedInfo = o.invigilatedInfo)
+    }
+  }
+
   case class CreateCandidateData(statusData: StatusData,
     personalData: PersonalData = PersonalData(),
     diversityDetails: DiversityDetails = DiversityDetails(),
@@ -156,7 +185,7 @@ object CreateCandidateData {
     phase2TestData: Option[Phase2TestData] = None,
     phase3TestData: Option[Phase3TestData] = None,
     fsbTestGroupData: Option[FsbTestGroupDataRequest] = None,
-    adjustmentInformation: Option[Adjustments] = None,
+    adjustmentInformation: Option[AdjustmentsData] = None,
     assessorDetails: Option[AssessorData] = None
   ) extends CreateTestData
 
@@ -204,7 +233,7 @@ object CreateCandidateData {
         phase2TestData = Phase2TestData(o, schemeTypes),
         phase3TestData = Phase3TestData(o, schemeTypes),
         fsbTestGroupData = o.fsbTestGroupData,
-        adjustmentInformation = o.adjustmentInformation
+        adjustmentInformation = o.adjustmentInformation.map(AdjustmentsData(_))
       )
     }
 
@@ -220,4 +249,5 @@ object CreateCandidateData {
       }
     }
   }
+
 }
