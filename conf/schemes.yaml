@@ -14,7 +14,6 @@
   degree:
     required: Degree_22
     specificRequirement: false
-  siftRequirement: FORM
   siftEvaluationRequired: false
   fsbType: DAT FSB
   schemeGuide: https://www.faststream.gov.uk/media/1230/dat-guide.pdf
