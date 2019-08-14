@@ -244,14 +244,14 @@ package object repositories {
   implicit val assistanceDetailsHandler: BSONHandler[BSONDocument, AssistanceDetails] = Macros.handler[AssistanceDetails]
   implicit val answerHandler: BSONHandler[BSONDocument, QuestionnaireAnswer] = Macros.handler[QuestionnaireAnswer]
   implicit val buildingProductiveRelationshipsScoresHandler
-  : BSONHandler[BSONDocument, BuildingProductiveRelationshipsScores] =
-    Macros.handler[BuildingProductiveRelationshipsScores]
-  implicit val analysisAndDecisionMakingScoresHandler: BSONHandler[BSONDocument, AnalysisAndDecisionMakingScores] =
-    Macros.handler[AnalysisAndDecisionMakingScores]
-  implicit val leadingAndCommunicatingScoresHandler: BSONHandler[BSONDocument, LeadingAndCommunicatingScores] =
-    Macros.handler[LeadingAndCommunicatingScores]
-  implicit val strategicApproachToObjectivesScoresHandler: BSONHandler[BSONDocument, StrategicApproachToObjectivesScores] =
-    Macros.handler[StrategicApproachToObjectivesScores]
+  : BSONHandler[BSONDocument, WorkingTogetherDevelopingSelfAndOtherScores] =
+    Macros.handler[WorkingTogetherDevelopingSelfAndOtherScores]
+  implicit val analysisAndDecisionMakingScoresHandler: BSONHandler[BSONDocument, MakingEffectiveDecisionsScores] =
+    Macros.handler[MakingEffectiveDecisionsScores]
+  implicit val leadingAndCommunicatingScoresHandler: BSONHandler[BSONDocument, CommunicatingAndInfluencingScores] =
+    Macros.handler[CommunicatingAndInfluencingScores]
+  implicit val strategicApproachToObjectivesScoresHandler: BSONHandler[BSONDocument, SeeingTheBigPictureScores] =
+    Macros.handler[SeeingTheBigPictureScores]
   implicit val competencyAverageResultHandler: BSONHandler[BSONDocument, CompetencyAverageResult] =
     Macros.handler[CompetencyAverageResult]
   implicit val flagCandidateHandler: BSONHandler[BSONDocument, FlagCandidate] = Macros.handler[FlagCandidate]

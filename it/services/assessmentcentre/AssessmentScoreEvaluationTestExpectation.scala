@@ -6,30 +6,35 @@ import model.persisted.SchemeEvaluationResult
 import model.{ ProgressStatuses, SchemeId }
 
 case class AssessmentScoreEvaluationTestExpectation(
-  applicationStatus: Option[ApplicationStatus],
-  progressStatus: Option[ProgressStatuses.ProgressStatus],
-  passmarkVersion: Option[String],
-  passedMinimumCompetencyLevel: Option[Boolean],
-  analysisAndDecisionMakingAverage: Option[Double],
-  buildingProductiveRelationshipsAverage: Option[Double],
-  leadingAndCommunicatingAverage: Option[Double],
-  strategicApproachToObjectivesAverage: Option[Double],
-  overallScore: Option[Double],
-  schemesEvaluation: Option[String]
+                                                     applicationStatus: Option[ApplicationStatus],
+                                                     progressStatus: Option[ProgressStatuses.ProgressStatus],
+                                                     passmarkVersion: Option[String],
+                                                     passedMinimumCompetencyLevel: Option[Boolean],
+                                                     makingEffectiveDecisionsAverage: Option[Double],
+                                                     workingTogetherDevelopingSelfAndOthersAverage: Option[Double],
+                                                     communicatingAndInfluencingAverage: Option[Double],
+                                                     seeingTheBigPictureAverage: Option[Double],
+                                                     overallScore: Option[Double],
+                                                     schemesEvaluation: Option[String]
 ) {
 
   def competencyAverage: Option[CompetencyAverageResult] = {
-    val allResults = List(analysisAndDecisionMakingAverage, buildingProductiveRelationshipsAverage,
-      leadingAndCommunicatingAverage, strategicApproachToObjectivesAverage, overallScore)
+    val allResults = List(makingEffectiveDecisionsAverage, workingTogetherDevelopingSelfAndOthersAverage,
+      communicatingAndInfluencingAverage, seeingTheBigPictureAverage, overallScore)
 
-    require(allResults.forall(_.isDefined) || allResults.forall(_.isEmpty), "all competencies or none of them must be defined")
+    val data = s"makingEffectiveDecisionsAverage=$makingEffectiveDecisionsAverage, " +
+      s"workingTogetherDevelopingSelfAndOthersAverage=$workingTogetherDevelopingSelfAndOthersAverage, " +
+      s"communicatingAndInfluencingAverage=$communicatingAndInfluencingAverage, " +
+      s"seeingTheBigPictureAverage=$seeingTheBigPictureAverage, " +
+      s"overallScore=$overallScore"
+    require(allResults.forall(_.isDefined) || allResults.forall(_.isEmpty), s"all competencies or none of them must be defined - $data")
 
     if (allResults.forall(_.isDefined)) {
       Some(CompetencyAverageResult(
-        analysisAndDecisionMakingAverage.get,
-        buildingProductiveRelationshipsAverage.get,
-        leadingAndCommunicatingAverage.get,
-        strategicApproachToObjectivesAverage.get,
+        makingEffectiveDecisionsAverage.get,
+        workingTogetherDevelopingSelfAndOthersAverage.get,
+        communicatingAndInfluencingAverage.get,
+        seeingTheBigPictureAverage.get,
         overallScore.get))
     } else {
       None
