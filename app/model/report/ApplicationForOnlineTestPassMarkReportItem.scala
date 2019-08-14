@@ -21,7 +21,7 @@ import model.SchemeId
 import model.assessmentscores.AssessmentScoresAllExercises
 import model.persisted.fsb.ScoresAndFeedback
 import model.persisted.{ ApplicationForOnlineTestPassMarkReport, SchemeEvaluationResult }
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 
 case class ApplicationForOnlineTestPassMarkReportItem(
                                                        progress: String,
@@ -35,7 +35,8 @@ case class ApplicationForOnlineTestPassMarkReportItem(
                                                        currentSchemeStatus: List[SchemeEvaluationResult])
 
 object ApplicationForOnlineTestPassMarkReportItem {
-  implicit val applicationForOnlineTestReportItemFormat = Json.format[ApplicationForOnlineTestPassMarkReportItem]
+  implicit val applicationForOnlineTestReportItemFormat: OFormat[ApplicationForOnlineTestPassMarkReportItem] =
+    Json.format[ApplicationForOnlineTestPassMarkReportItem]
 
   // If you add a custom apply() to a case class companion object then Json.reads and Json.writes fail
   def create(a: ApplicationForOnlineTestPassMarkReport,

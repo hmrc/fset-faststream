@@ -18,22 +18,22 @@ package model.persisted
 
 import model.ApplicationRoute._
 import model.SchemeId
-import play.api.libs.json.Json
 import model.report.TestResultsForOnlineTestPassMarkReportItem
+import play.api.libs.json.{ Json, OFormat }
 
-case class ApplicationForOnlineTestPassMarkReport(
-                                                   userId: String,
-                                                   applicationId: String,
-                                                   progress: String,
-                                                   applicationRoute: ApplicationRoute,
-                                                   schemes: List[SchemeId],
-                                                   disability: Option[String],
-                                                   gis: Option[Boolean],
-                                                   onlineAdjustments: Option[String],
-                                                   assessmentCentreAdjustments: Option[String],
-                                                   testResults: TestResultsForOnlineTestPassMarkReportItem,
-                                                   currentSchemeStatus: List[SchemeEvaluationResult])
+case class ApplicationForOnlineTestPassMarkReport(userId: String,
+                                                  applicationId: String,
+                                                  progress: String,
+                                                  applicationRoute: ApplicationRoute,
+                                                  schemes: List[SchemeId],
+                                                  disability: Option[String],
+                                                  gis: Option[Boolean],
+                                                  onlineAdjustments: Option[String],
+                                                  assessmentCentreAdjustments: Option[String],
+                                                  testResults: TestResultsForOnlineTestPassMarkReportItem,
+                                                  currentSchemeStatus: List[SchemeEvaluationResult])
 
 object ApplicationForOnlineTestPassMarkReport {
-  implicit val applicationForOnlineTestReportFormat = Json.format[ApplicationForOnlineTestPassMarkReport]
+  implicit val applicationForOnlineTestReportFormat: OFormat[ApplicationForOnlineTestPassMarkReport] =
+    Json.format[ApplicationForOnlineTestPassMarkReport]
 }
