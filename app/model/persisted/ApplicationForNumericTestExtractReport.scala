@@ -18,27 +18,27 @@ package model.persisted
 
 import model.ApplicationRoute._
 import model.SchemeId
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 import model.report.TestResultsForOnlineTestPassMarkReportItem
 import reactivemongo.bson.Macros
 
-case class ApplicationForNumericTestExtractReport(
-  userId: String,
-  applicationId: String,
-  applicationRoute: ApplicationRoute,
-  firstName: String,
-  lastName: String,
-  preferredName: String,
-  progress: String,
-  schemes: List[SchemeId],
-  disability: Option[String],
-  gis: Option[Boolean],
-  onlineAdjustments: Option[String],
-  assessmentCentreAdjustments: Option[String],
-  testResults: TestResultsForOnlineTestPassMarkReportItem,
-  currentSchemeStatus: List[SchemeEvaluationResult]
-)
+case class ApplicationForNumericTestExtractReport(userId: String,
+                                                  applicationId: String,
+                                                  applicationRoute: ApplicationRoute,
+                                                  firstName: String,
+                                                  lastName: String,
+                                                  preferredName: String,
+                                                  progress: String,
+                                                  schemes: List[SchemeId],
+                                                  disability: Option[String],
+                                                  gis: Option[Boolean],
+                                                  onlineAdjustments: Option[String],
+                                                  assessmentCentreAdjustments: Option[String],
+                                                  testResults: TestResultsForOnlineTestPassMarkReportItem,
+                                                  currentSchemeStatus: List[SchemeEvaluationResult]
+                                                 )
 
 object ApplicationForNumericTestExtractReport {
-  implicit val applicationForNumericTestExtractReportFormat = Json.format[ApplicationForNumericTestExtractReport]
+  implicit val applicationForNumericTestExtractReportFormat: OFormat[ApplicationForNumericTestExtractReport] =
+    Json.format[ApplicationForNumericTestExtractReport]
 }
