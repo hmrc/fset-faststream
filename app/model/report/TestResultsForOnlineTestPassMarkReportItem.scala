@@ -16,24 +16,22 @@
 
 package model.report
 
-import model.OnlineTestCommands.TestResult
-import play.api.libs.json.Json
-import model.OnlineTestCommands.Implicits._
+import model.OnlineTestCommands.PsiTestResult
+import play.api.libs.json.{ Format, Json, OFormat }
 import model.assessmentscores.AssessmentScoresAllExercises
 import model.persisted.fsb.ScoresAndFeedback
 
-case class TestResultsForOnlineTestPassMarkReportItem(
-                                                      behavioural: Option[TestResult],
-                                                      situational: Option[TestResult],
-                                                      etray: Option[TestResult],
+case class TestResultsForOnlineTestPassMarkReportItem(phase1: Seq[Option[PsiTestResult]],
+                                                      phase2: Seq[Option[PsiTestResult]],
                                                       videoInterview: Option[VideoInterviewTestResult],
-                                                      siftTestResult: Option[TestResult],
+                                                      siftTestResult: Option[PsiTestResult],
                                                       fsac: Option[AssessmentScoresAllExercises],
                                                       overallFsacScore: Option[Double],
                                                       sift: Option[SiftPhaseReportItem],
-                                                      fsb: Option[ScoresAndFeedback]
-                                                     )
+                                                      fsb: Option[ScoresAndFeedback])
 
 object TestResultsForOnlineTestPassMarkReportItem {
-  implicit val testResultsForOnlineTestPassMarkReportItemFormat = Json.format[TestResultsForOnlineTestPassMarkReportItem]
+  implicit val optionPsiTestResultFormat: Format[Option[PsiTestResult]] = Format.optionWithNull[PsiTestResult]
+  implicit val testResultsForOnlineTestPassMarkReportItemFormat: OFormat[TestResultsForOnlineTestPassMarkReportItem] =
+    Json.format[TestResultsForOnlineTestPassMarkReportItem]
 }

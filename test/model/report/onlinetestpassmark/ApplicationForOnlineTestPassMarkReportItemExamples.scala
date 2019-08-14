@@ -16,6 +16,7 @@
 
 package model.report.onlinetestpassmark
 
+import model.OnlineTestCommands.PsiTestResult
 import model.persisted.SchemeEvaluationResult
 import model.{ ApplicationRoute, EvaluationResults, SchemeId }
 import model.report.{ ApplicationForOnlineTestPassMarkReportItem, TestResultsForOnlineTestPassMarkReportItem }
@@ -26,10 +27,12 @@ object ApplicationForOnlineTestPassMarkReportItemExamples {
   lazy val application1 = newApplicationForOnlineTestPassMarkReportItem(TestResultsForOnlineTestPassMarkReportItemExamples.testResults1)
   lazy val application2 = newApplicationForOnlineTestPassMarkReportItem(TestResultsForOnlineTestPassMarkReportItemExamples.testResults2)
 
+  def emptyTests(n: Int): Seq[Option[PsiTestResult]] = Seq.fill[Option[PsiTestResult]](n)(None)
+
   lazy val applicationWithNoTestResult1 = newApplicationForOnlineTestPassMarkReportItem(
-    TestResultsForOnlineTestPassMarkReportItem(None, None, None, None, None, None, None, None, None))
+    TestResultsForOnlineTestPassMarkReportItem(emptyTests(4), emptyTests(2), None, None, None, None, None, None))
   lazy val applicationWithNoTestResult2 = newApplicationForOnlineTestPassMarkReportItem(
-    TestResultsForOnlineTestPassMarkReportItem(None, None, None, None, None, None, None, None, None))
+    TestResultsForOnlineTestPassMarkReportItem(emptyTests(4), emptyTests(2), None, None, None, None, None, None))
 
   def newApplicationForOnlineTestPassMarkReportItem(testsResult: TestResultsForOnlineTestPassMarkReportItem) =
     ApplicationForOnlineTestPassMarkReportItem(
