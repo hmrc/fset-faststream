@@ -142,6 +142,30 @@ object CreateCandidateRequest {
     implicit def statusDataFormat: OFormat[StatusDataRequest] = Json.format[StatusDataRequest]
   }
 
+  case class AdjustmentsRequest(
+    adjustments: Option[List[String]],
+    adjustmentsConfirmed: Option[Boolean],
+    etray: Option[AdjustmentDetailRequest],
+    video: Option[AdjustmentDetailRequest]
+  )
+
+  object AdjustmentsRequest {
+    implicit val adjustmentsRequestFormat: OFormat[AdjustmentsRequest] =
+      Json.format[AdjustmentsRequest]
+  }
+
+  case class AdjustmentDetailRequest(
+    timeNeeded: Option[Int] = None,
+    percentage: Option[Int] = None,
+    otherInfo: Option[String] = None,
+    invigilatedInfo: Option[String] = None
+  )
+
+  object AdjustmentDetailRequest {
+    implicit val adjustmentDetailRequestFormat: OFormat[AdjustmentDetailRequest] =
+      Json.format[AdjustmentDetailRequest]
+  }
+
   case class CreateCandidateRequest(
     statusData: StatusDataRequest = new StatusDataRequest,
     personalData: Option[PersonalDataRequest],
@@ -160,7 +184,7 @@ object CreateCandidateRequest {
     phase2TestData: Option[Phase2TestDataRequest],
     phase3TestData: Option[Phase3TestDataRequest],
     fsbTestGroupData: Option[FsbTestGroupDataRequest],
-    adjustmentInformation: Option[Adjustments] = None
+    adjustmentInformation: Option[AdjustmentsRequest] = None
   ) extends CreateTestDataRequest
 
   object CreateCandidateRequest {
@@ -193,5 +217,4 @@ object CreateCandidateRequest {
       )
     }
   }
-
 }
