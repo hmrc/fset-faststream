@@ -516,10 +516,10 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
       "1", DateTime.now(), "user")
 
     val competencyAverageResult = CompetencyAverageResult(
-      analysisAndDecisionMakingAverage = 4.0,
-      buildingProductiveRelationshipsAverage = 4.0,
-      leadingAndCommunicatingAverage = 4.0,
-      strategicApproachToObjectivesAverage = 4.0,
+      makingEffectiveDecisionsAverage = 4.0,
+      workingTogetherDevelopingSelfAndOthersAverage = 4.0,
+      communicatingAndInfluencingAverage = 4.0,
+      seeingTheBigPictureAverage = 4.0,
       overallScore = 16.0
     )
   }

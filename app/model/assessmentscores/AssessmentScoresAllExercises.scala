@@ -29,19 +29,19 @@ case class AssessmentScoresAllExercises(
                                          finalFeedback: Option[AssessmentScoresFinalFeedback] = None
                                        ) {
 
-  def strategicApproachToObjectivesAvg: Double = {
+  def seeingTheBigPictureAvg: Double = {
     average(List(analysisExercise, leadershipExercise).flatMap(_.flatMap(_.seeingTheBigPictureAverage)), 2)
   }
 
-  def buildingProductiveRelationshipsAvg: Double = {
+  def workingTogetherDevelopingSelfAndOthersAvg: Double = {
     average(List(groupExercise, leadershipExercise).flatMap(_.flatMap(_.workingTogetherDevelopingSelfAndOthersAverage)), 2)
   }
 
-   def analysisAndDecisionMakingAvg: Double = {
+   def makingEffectiveDecisionsAvg: Double = {
     average(List(analysisExercise, groupExercise).flatMap(_.flatMap(_.makingEffectiveDecisionsAverage)), 2)
   }
 
-   def leadingAndCommunicatingAvg: Double = {
+   def communicatingAndInfluencingAvg: Double = {
     average(List(analysisExercise, groupExercise, leadershipExercise).flatMap(_.flatMap(_.communicatingAndInfluencingAverage)), 3)
   }
 

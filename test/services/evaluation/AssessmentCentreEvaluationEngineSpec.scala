@@ -92,10 +92,10 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
       )
 
       val expectedCompetencyAverage = CompetencyAverageResult(
-        analysisAndDecisionMakingAverage = 5.0,
-        buildingProductiveRelationshipsAverage = 3.0,
-        leadingAndCommunicatingAverage = 4.0,
-        strategicApproachToObjectivesAverage = 4.0,
+        makingEffectiveDecisionsAverage = 5.0,
+        workingTogetherDevelopingSelfAndOthersAverage = 3.0,
+        communicatingAndInfluencingAverage = 4.0,
+        seeingTheBigPictureAverage = 4.0,
         overallScore = 16.0
       )
       result.competencyAverageResult mustBe expectedCompetencyAverage
@@ -155,10 +155,10 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
       )
 
       val expectedCompetencyAverage = CompetencyAverageResult(
-        analysisAndDecisionMakingAverage = 2.75,
-        buildingProductiveRelationshipsAverage = 3.75,
-        leadingAndCommunicatingAverage = 3.5,
-        strategicApproachToObjectivesAverage = 4.0,
+        makingEffectiveDecisionsAverage = 2.75,
+        workingTogetherDevelopingSelfAndOthersAverage = 3.75,
+        communicatingAndInfluencingAverage = 3.5,
+        seeingTheBigPictureAverage = 4.0,
         overallScore = 14.0
       )
       result.competencyAverageResult mustBe expectedCompetencyAverage
