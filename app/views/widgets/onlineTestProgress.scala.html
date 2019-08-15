@@ -269,7 +269,7 @@
                             </div>
                         </li>
                     }
-                     case (_, false, true, _, Some(phase1TestsPage)) => {
+                     case (_, false, true, Some(phase2TestsPage), _) => {
                         <li id="phase2TestsSection">
                             <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
                                 E-tray</p>
@@ -277,10 +277,7 @@
                                 <p>Unfortunately we've assessed your results and you've been unsuccessful this time.</p>
                                 <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
                                     site for more opportunities with us.</p>
-                                @phase1TestsPage.tests.map { test =>
-                                    <div>@Messages(test.testNameKey)</div>
-                                    <div>@displayTestPageLink(test)</div>
-                                }
+                                @displayPhase2TestResultsLinks()
                             </div>
                         </li>
                     }
@@ -308,10 +305,7 @@
                                             You've completed this section, we'll send you an email when we have your results.
                                             Make sure you check your junk inbox.
                                         </p>
-                                        @phase2TestsPage.tests.map { test =>
-                                            <div>@Messages(test.testNameKey)</div>
-                                            <div>@displayTestPageLink(test)</div>
-                                        }
+                                        @displayPhase2TestResultsLinks()
                                     </div>
                                 </li>
                             } else {
