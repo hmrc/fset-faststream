@@ -46,6 +46,8 @@ import java.util.UUID
 
 import connectors.ReferenceDataExamples.Schemes
 import connectors.exchange.candidateevents.CandidateAllocationWithEvent
+import models.ApplicationData.ApplicationStatus
+import models.CachedDataExample.SubmittedApplication
 import models.events.AllocationStatuses
 import org.joda.time.DateTime
 import play.api.test.{ FakeHeaders, FakeRequest }
@@ -63,13 +65,6 @@ class HomeControllerSpec extends BaseControllerSpec {
 
   "present" should {
     "display the expected test result urls in the post online tests page" in new TestFixture {
-      val applicationRouteState = new ApplicationRouteState {
-        val newAccountsStarted = true
-        val newAccountsEnabled = true
-        val applicationsSubmitEnabled = true
-        val applicationsStartDate = None
-      }
-
       val sift = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.SiftApplication.copy(userId = ActiveCandidate.user.userID))
       when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
@@ -86,33 +81,186 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       mockPostOnlineTestsDashboardCalls()
 
-      val phase1Test1InventoryId = "45c7aee3-4d23-45c7-a09d-276df7db3e4c"
-      val phase1Test1 = PsiTest(inventoryId = phase1Test1InventoryId, usedForResults = true,
-        testUrl = "http://testurl.com", orderId = UniqueIdentifier(UUID.randomUUID()),
-        invitationDate = DateTime.now, testResult = Some(PsiTestResult(testReportUrl = Some("http:phase1Test1Url.com"))))
-
-      val phase2Test1InventoryId = "60b423e5-75d6-4d31-b02c-97b8686e22e6"
-      val phase2Test1 = PsiTest(inventoryId = phase2Test1InventoryId, usedForResults = true,
-        testUrl = "http://testurl.com", orderId = UniqueIdentifier(UUID.randomUUID()),
-        invitationDate = DateTime.now, testResult = Some(PsiTestResult(testReportUrl = Some("http:phase2Test1Url.com"))))
-
       mockPhaseOneTwoThreeData(List(phase1Test1), List(phase2Test1))
 
-      val result = controller(sift, applicationRouteState).present()(fakeRequest)
+      val result = controller(sift, commonApplicationRouteState).present()(fakeRequest)
+      status(result) mustBe OK
+      val content = contentAsString(result)
+      checkAllResultsTitlesAndLinks(content)
+    }
+
+    "display the expected test result urls in the online test progress page when candidate has failed P1 tests" in new TestFixture {
+      val candidateState = CachedDataWithApp(ActiveCandidate.user,
+        CachedDataExample.Phase1TestsFailedApplication.copy(userId = ActiveCandidate.user.userID))
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+        ReferenceDataExamples.Schemes.Dip
+      ))
+      when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
+      when(mockApplicationClient.getSiftResults(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
+      when(mockSiftClient.getSiftAnswersStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturnAsync(None)
+      when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
+      when(mockUserService.refreshCachedUser(eqTo(ActiveCandidate.user.userID))(any[HeaderCarrier], any[Request[_]]))
+        .thenReturn(Future.successful(ActiveCandidate))
+      when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier])).thenReturnAsync(None)
+
+      mockPostOnlineTestsDashboardCalls()
+
+      mockPhaseOneTwoThreeData(List(phase1Test1))
+
+      val result = controller(candidateState, commonApplicationRouteState).present()(fakeRequest)
       status(result) mustBe OK
       val content = contentAsString(result)
 
-      content must include("Phase 1 results")
-      content must include("<div>FS Work Style Questionnaire Part 1</div>")
-      content must include("<a href=\"http:phase1Test1Url.com\"" +
-        " target=\"_blank\" id=\"FSWorkStyleQuestionnairePart1LinkResultsReport\">Results report</a>")
-      content must include("Phase 2 results")
-      content must include("<div>FS Case Study Assessment</div>")
-      content must include("<a href=\"http:phase2Test1Url.com\"" +
-        " target=\"_blank\" id=\"FSCaseStudyAssessmentLinkResultsReport\">Results report</a>")
-      content must include("Phase 3 results")
-      content must include("<a href=\"/fset-fast-stream/online-tests/phase3/feedback-report\"" +
-        " target=\"_blank\" id=\"phase3ResultsReportLink\" alt=\"Phase 3 Results report\">")
+      checkPhase1ResultsLinks(content)
+      content must not include phase2Test1ResultsReportLink
+      content must not include phase3ResultsReportLink
+    }
+
+    "display the expected test result urls in the online test progress page when candidate has passed P1 tests" in new TestFixture {
+      val candidateState = CachedDataWithApp(ActiveCandidate.user,
+        CachedDataExample.Phase1TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+        ReferenceDataExamples.Schemes.Dip
+      ))
+      when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
+      when(mockApplicationClient.getSiftResults(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
+      when(mockSiftClient.getSiftAnswersStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturnAsync(None)
+      when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
+      when(mockUserService.refreshCachedUser(eqTo(ActiveCandidate.user.userID))(any[HeaderCarrier], any[Request[_]]))
+        .thenReturn(Future.successful(ActiveCandidate))
+      when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier])).thenReturnAsync(None)
+
+      mockPostOnlineTestsDashboardCalls()
+
+      mockPhaseOneTwoThreeData(List(phase1Test1))
+
+      val result = controller(candidateState, commonApplicationRouteState).present()(fakeRequest)
+      status(result) mustBe OK
+      val content = contentAsString(result)
+
+      checkPhase1ResultsLinks(content)
+      content must not include phase2Test1ResultsReportLink
+      content must not include phase3ResultsReportLink
+    }
+
+    "display the expected test result urls in the online test progress page when candidate has failed P2 tests" in new TestFixture {
+      val candidateState = CachedDataWithApp(ActiveCandidate.user,
+        CachedDataExample.Phase2TestsFailedApplication.copy(userId = ActiveCandidate.user.userID))
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+        ReferenceDataExamples.Schemes.Dip
+      ))
+      when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
+      when(mockApplicationClient.getSiftResults(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
+      when(mockSiftClient.getSiftAnswersStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturnAsync(None)
+      when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
+      when(mockUserService.refreshCachedUser(eqTo(ActiveCandidate.user.userID))(any[HeaderCarrier], any[Request[_]]))
+        .thenReturn(Future.successful(ActiveCandidate))
+      when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier])).thenReturnAsync(None)
+
+      mockPostOnlineTestsDashboardCalls()
+
+      mockPhaseOneTwoThreeData(List(phase1Test1), List(phase2Test1))
+
+      val result = controller(candidateState, commonApplicationRouteState).present()(fakeRequest)
+      status(result) mustBe OK
+      val content = contentAsString(result)
+
+      checkPhase1ResultsLinks(content)
+      checkPhase2ResultsLinks(content)
+      content must not include phase3ResultsReportLink
+    }
+
+    "display the expected test result urls in the online test progress page when candidate has passed P2 tests" in new TestFixture {
+      val candidateState = CachedDataWithApp(ActiveCandidate.user,
+        CachedDataExample.Phase2TestsFailedApplication.copy(userId = ActiveCandidate.user.userID))
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+        ReferenceDataExamples.Schemes.Dip
+      ))
+      when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
+      when(mockApplicationClient.getSiftResults(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
+      when(mockSiftClient.getSiftAnswersStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturnAsync(None)
+      when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
+      when(mockUserService.refreshCachedUser(eqTo(ActiveCandidate.user.userID))(any[HeaderCarrier], any[Request[_]]))
+        .thenReturn(Future.successful(ActiveCandidate))
+      when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier])).thenReturnAsync(None)
+
+      mockPostOnlineTestsDashboardCalls()
+
+      mockPhaseOneTwoThreeData(List(phase1Test1), List(phase2Test1))
+
+      val result = controller(candidateState, commonApplicationRouteState).present()(fakeRequest)
+      status(result) mustBe OK
+      val content = contentAsString(result)
+
+      checkPhase1ResultsLinks(content)
+      checkPhase2ResultsLinks(content)
+      content must not include phase3ResultsReportLink
+    }
+
+    "display the expected test result urls in the online test progress page when candidate has failed P3 tests" in new TestFixture {
+      val phase3TestsFailedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.PHASE3_TESTS_FAILED,
+        progress = ProgressExamples.Phase3TestsFailedCumulative)
+
+      val candidateState = CachedDataWithApp(ActiveCandidate.user,
+        phase3TestsFailedApplication.copy(userId = ActiveCandidate.user.userID))
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+        ReferenceDataExamples.Schemes.Dip
+      ))
+      when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
+      when(mockApplicationClient.getSiftResults(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
+      when(mockSiftClient.getSiftAnswersStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturnAsync(None)
+      when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
+      when(mockUserService.refreshCachedUser(eqTo(ActiveCandidate.user.userID))(any[HeaderCarrier], any[Request[_]]))
+        .thenReturn(Future.successful(ActiveCandidate))
+      when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier])).thenReturnAsync(None)
+
+      mockPostOnlineTestsDashboardCalls()
+
+      mockPhaseOneTwoThreeData(List(phase1Test1), List(phase2Test1))
+
+      val result = controller(candidateState, commonApplicationRouteState).present()(fakeRequest)
+      status(result) mustBe OK
+      val content = contentAsString(result)
+
+      checkPhase1ResultsLinks(content)
+      checkPhase2ResultsLinks(content)
+      checkPhase3ResultsLink(content)
+    }
+
+    "display the expected test result urls in the online test progress page when candidate has passed P3 tests" in new TestFixture {
+      val phase3TestsFailedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.PHASE3_TESTS_PASSED,
+        progress = ProgressExamples.Phase3TestsPassedCumulative)
+
+      val candidateState = CachedDataWithApp(ActiveCandidate.user,
+        phase3TestsFailedApplication.copy(userId = ActiveCandidate.user.userID))
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+        ReferenceDataExamples.Schemes.Dip
+      ))
+      when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
+      when(mockApplicationClient.getSiftResults(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
+      when(mockSiftClient.getSiftAnswersStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturnAsync(None)
+      when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
+      when(mockUserService.refreshCachedUser(eqTo(ActiveCandidate.user.userID))(any[HeaderCarrier], any[Request[_]]))
+        .thenReturn(Future.successful(ActiveCandidate))
+      when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier])).thenReturnAsync(None)
+
+      mockPostOnlineTestsDashboardCalls()
+
+      mockPhaseOneTwoThreeData(List(phase1Test1), List(phase2Test1))
+
+      val result = controller(candidateState, commonApplicationRouteState).present()(fakeRequest)
+      status(result) mustBe OK
+      val content = contentAsString(result)
+
+      checkPhase1ResultsLinks(content)
+      checkPhase2ResultsLinks(content)
+      checkPhase3ResultsLink(content)
     }
 
     "display home page" in new TestFixture {
@@ -153,13 +301,6 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     "display post online tests page" in new TestFixture {
-      val applicationRouteState = new ApplicationRouteState {
-        val newAccountsStarted = true
-        val newAccountsEnabled = true
-        val applicationsSubmitEnabled = true
-        val applicationsStartDate = None
-      }
-
       val sift = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.SiftApplication.copy(userId = ActiveCandidate.user.userID))
       when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
@@ -178,7 +319,7 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       mockPhaseOneTwoThreeData()
 
-      val result = controller(sift, applicationRouteState).present()(fakeRequest)
+      val result = controller(sift, commonApplicationRouteState).present()(fakeRequest)
       status(result) mustBe OK
       val content = contentAsString(result)
 
@@ -187,12 +328,6 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     "display faststream final results page for withdrawn application" in new TestFixture {
-      val applicationRouteState = new ApplicationRouteState {
-        val newAccountsStarted = true
-        val newAccountsEnabled = true
-        val applicationsSubmitEnabled = true
-        val applicationsStartDate = None }
-
       when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
       when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
       when(mockApplicationClient.getSiftResults(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
@@ -211,7 +346,7 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       mockPhaseOneTwoThreeData()
 
-      val result = controller(withdrawnSiftApp, applicationRouteState).present()(fakeRequest)
+      val result = controller(withdrawnSiftApp, commonApplicationRouteState).present()(fakeRequest)
       status(result) mustBe OK
       val content = contentAsString(result)
 
@@ -260,12 +395,6 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     "display fast pass rejected message" in new TestFixture {
-      val applicationRouteState = new ApplicationRouteState {
-        val newAccountsStarted = true
-        val newAccountsEnabled = true
-        val applicationsSubmitEnabled = true
-        val applicationsStartDate = None }
-
       val fastPassRejectedInvitedToPhase1Application = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.fastPassRejectedInvitedToPhase1Application.copy(userId = ActiveCandidate.user.userID))
 
@@ -273,7 +402,7 @@ class HomeControllerSpec extends BaseControllerSpec {
         .applicationId)
       )(any[HeaderCarrier])).thenReturn(Future.failed(new OnlineTestNotFound))
 
-      val result = controller(fastPassRejectedInvitedToPhase1Application, applicationRouteState).present()(fakeRequest)
+      val result = controller(fastPassRejectedInvitedToPhase1Application, commonApplicationRouteState).present()(fakeRequest)
       status(result) mustBe OK
       val content = contentAsString(result)
 
@@ -281,19 +410,13 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     "not display fast pass rejected message when phase1 tests are started" in new TestFixture {
-      val applicationRouteState = new ApplicationRouteState {
-        val newAccountsStarted = true
-        val newAccountsEnabled = true
-        val applicationsSubmitEnabled = true
-        val applicationsStartDate = None }
-
       val fastPassRejectedPhase1StartedApplication = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.fastPassRejectedPhase1StartedApplication.copy(userId = ActiveCandidate.user.userID))
 
       when(mockApplicationClient.getPhase1TestProfile2(eqTo(fastPassRejectedPhase1StartedApplication.application.applicationId)
       )(any[HeaderCarrier])).thenReturn(Future.failed(new OnlineTestNotFound))
 
-      val result = controller(fastPassRejectedPhase1StartedApplication, applicationRouteState).present()(fakeRequest)
+      val result = controller(fastPassRejectedPhase1StartedApplication, commonApplicationRouteState).present()(fakeRequest)
       status(result) mustBe OK
       val content = contentAsString(result)
 
@@ -303,12 +426,6 @@ class HomeControllerSpec extends BaseControllerSpec {
 
   "present with sdip eligibility info" should {
     "display eligibility information when faststream application is withdrawn" in new TestFixture {
-      val applicationRouteState = new ApplicationRouteState {
-        val newAccountsStarted = true
-        val newAccountsEnabled = true
-        val applicationsSubmitEnabled = true
-        val applicationsStartDate = None }
-
       when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new OnlineTestNotFound))
       when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
@@ -317,7 +434,7 @@ class HomeControllerSpec extends BaseControllerSpec {
         .thenReturn(Future.successful(AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments))
 
       val withdrawnApplication = currentCandidateWithApp.copy(application = CachedDataExample.WithdrawApplication)
-      val result = controller(withdrawnApplication, applicationRouteState).present(true)(fakeRequest)
+      val result = controller(withdrawnApplication, commonApplicationRouteState).present(true)(fakeRequest)
 
       val content = contentAsString(result)
 
@@ -325,12 +442,6 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     "display eligibility information when faststream application is not submitted" in new TestFixture {
-      val applicationRouteState = new ApplicationRouteState {
-        val newAccountsStarted = true
-        val newAccountsEnabled = true
-        val applicationsSubmitEnabled = true
-        val applicationsStartDate = None }
-
       when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new OnlineTestNotFound))
       when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
@@ -339,7 +450,7 @@ class HomeControllerSpec extends BaseControllerSpec {
         .thenReturn(Future.successful(AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments))
 
       val inProgressApp = currentCandidateWithApp.copy(application = CachedDataExample.InProgressInAssistanceDetailsApplication)
-      val result = controller(inProgressApp, applicationRouteState).present(true)(fakeRequest)
+      val result = controller(inProgressApp, commonApplicationRouteState).present(true)(fakeRequest)
 
       val content = contentAsString(result)
 
@@ -347,12 +458,6 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     "display eligibility information when faststream application is phase1 tests expired" in new TestFixture {
-      val applicationRouteState = new ApplicationRouteState {
-        val newAccountsStarted = true
-        val newAccountsEnabled = true
-        val applicationsSubmitEnabled = true
-        val applicationsStartDate = None }
-
       when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new OnlineTestNotFound))
       when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
@@ -361,7 +466,7 @@ class HomeControllerSpec extends BaseControllerSpec {
         .thenReturn(Future.successful(AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments))
 
       val phase1TestsExpiredCandidate = currentCandidateWithApp.copy(application = CachedDataExample.Phase1TestsExpiredApplication)
-      val result = controller(phase1TestsExpiredCandidate, applicationRouteState).present(true)(fakeRequest)
+      val result = controller(phase1TestsExpiredCandidate, commonApplicationRouteState).present(true)(fakeRequest)
 
       val content = contentAsString(result)
 
@@ -369,12 +474,6 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     "not display eligibility information when application route is not faststream" in new TestFixture {
-      val applicationRouteState = new ApplicationRouteState {
-        val newAccountsStarted = true
-        val newAccountsEnabled = true
-        val applicationsSubmitEnabled = true
-        val applicationsStartDate = None }
-
       when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new OnlineTestNotFound))
       when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
@@ -382,7 +481,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments))
 
-      val result = controller(currentCandidateWithEdipApp, applicationRouteState).present(true)(fakeRequest)
+      val result = controller(currentCandidateWithEdipApp, commonApplicationRouteState).present(true)(fakeRequest)
 
       val content = contentAsString(result)
 
@@ -390,12 +489,6 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     "not display eligibility information when faststream application is submitted" in new TestFixture {
-      val applicationRouteState = new ApplicationRouteState {
-        val newAccountsStarted = true
-        val newAccountsEnabled = true
-        val applicationsSubmitEnabled = true
-        val applicationsStartDate = None }
-
       when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new OnlineTestNotFound))
       when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
@@ -404,7 +497,7 @@ class HomeControllerSpec extends BaseControllerSpec {
         .thenReturn(Future.successful(AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments))
 
       val submittedCandidate = currentCandidateWithApp.copy(application = CachedDataExample.SubmittedApplication)
-      val result = controller(submittedCandidate, applicationRouteState).present(true)(fakeRequest)
+      val result = controller(submittedCandidate, commonApplicationRouteState).present(true)(fakeRequest)
 
       val content = contentAsString(result)
 
@@ -414,7 +507,6 @@ class HomeControllerSpec extends BaseControllerSpec {
 
   "submitAnalysisExercise" should {
     "show a too big message when file is too large" in new TestFixture {
-
       mockPostOnlineTestsDashboardCalls()
       fileUploadMocks(10000000)
 
@@ -475,6 +567,13 @@ class HomeControllerSpec extends BaseControllerSpec {
 
     val anyContentMock = mock[AnyContent]
 
+    val commonApplicationRouteState = new ApplicationRouteState {
+      val newAccountsStarted = true
+      val newAccountsEnabled = true
+      val applicationsSubmitEnabled = true
+      val applicationsStartDate = None
+    }
+
     def multipartFormData(contentType: String, key: String = "analysisExerciseFile") = MultipartFormData[Files.TemporaryFile](
       dataParts = Map(),
       files = Seq(
@@ -531,6 +630,60 @@ class HomeControllerSpec extends BaseControllerSpec {
       when(mockApplicationClient.getPhase3TestGroup(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(Phase3TestGroup(expirationDate = DateTime.now, tests = Nil)))
     }
+
+    // There are titles in the postOnlineTestsDashboard template
+    def checkAllResultsTitlesAndLinks(content: String) = {
+      checkPhase1ResultsTitleAndLinks(content)
+      checkPhase2ResultsTitleAndLinks(content)
+      checkPhase3ResultsTitleAndLinks(content)
+    }
+
+    val phase1Test1ResultsReportLink = "<a href=\"http:phase1Test1Url.com\"" +
+      " target=\"_blank\" id=\"FSWorkStyleQuestionnairePart1LinkResultsReport\">Results report</a>"
+
+    def checkPhase1ResultsTitleAndLinks(content: String) = {
+      content must include("Phase 1 results")
+      checkPhase1ResultsLinks(content)
+    }
+
+    def checkPhase1ResultsLinks(content: String) = {
+      content must include("<div>FS Work Style Questionnaire Part 1</div>")
+      content must include(phase1Test1ResultsReportLink)
+    }
+
+    val phase2Test1ResultsReportLink = "<a href=\"http:phase2Test1Url.com\"" +
+      " target=\"_blank\" id=\"FSCaseStudyAssessmentLinkResultsReport\">Results report</a>"
+
+    def checkPhase2ResultsTitleAndLinks(content: String) = {
+      content must include("Phase 2 results")
+      checkPhase2ResultsLinks(content)
+    }
+
+    def checkPhase2ResultsLinks(content: String) = {
+      content must include("<div>FS Case Study Assessment</div>")
+      content must include(phase2Test1ResultsReportLink)
+    }
+
+    val phase3ResultsReportLink = "<a href=\"/fset-fast-stream/online-tests/phase3/feedback-report\"" +
+      " target=\"_blank\" id=\"phase3ResultsReportLink\" alt=\"Phase 3 results report\">"
+    def checkPhase3ResultsTitleAndLinks(content: String) = {
+      content must include("Phase 3 results")
+      checkPhase3ResultsLink(content)
+    }
+
+    def checkPhase3ResultsLink(content: String) = {
+      content must include(phase3ResultsReportLink)
+    }
+
+    val phase1Test1InventoryId = "45c7aee3-4d23-45c7-a09d-276df7db3e4c"
+    val phase1Test1 = PsiTest(inventoryId = phase1Test1InventoryId, usedForResults = true,
+      testUrl = "http://testurl.com", orderId = UniqueIdentifier(UUID.randomUUID()),
+      invitationDate = DateTime.now, testResult = Some(PsiTestResult(testReportUrl = Some("http:phase1Test1Url.com"))))
+
+    val phase2Test1InventoryId = "60b423e5-75d6-4d31-b02c-97b8686e22e6"
+    val phase2Test1 = PsiTest(inventoryId = phase2Test1InventoryId, usedForResults = true,
+      testUrl = "http://testurl.com", orderId = UniqueIdentifier(UUID.randomUUID()),
+      invitationDate = DateTime.now, testResult = Some(PsiTestResult(testReportUrl = Some("http:phase2Test1Url.com"))))
 
     class TestableHomeController extends HomeController(mockApplicationClient, mockRefDataClient, mockSiftClient, mockSchemeClient)
       with TestableSecureActions {

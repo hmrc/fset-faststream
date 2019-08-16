@@ -89,7 +89,7 @@ class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks with Ins
               step4,
               isApplicationSubmittedAndNotWithdrawn,
               isApplicationWithdrawn,
-              false,
+              isFastPassApproved = false,
               isApplicationInProgress,
               isUserWithNoApplication,
               isPhase1TestsPassed,
