@@ -122,7 +122,7 @@
 }
 
 @displayPhase3TestResultsLinks() = {
-        <a href="@routes.Phase3FeedbackController.present" target="_blank" id="phase3ResultsReportLink" alt="Phase 3 results report">Results report</a>
+    <a href="@routes.Phase3FeedbackController.present" target="_blank" id="phase3ResultsReportLink" alt="Phase 3 results report">Results report</a>
 }
 
 @(dashboardPage.isTestGroupExpired, dashboardPage.isPhase1TestFailed, dashboardPage.phase1TestsPage) match {
@@ -214,13 +214,14 @@
                             @if(phase1Test.completed) {
                                 <li>
                                     <i class="fa fa-check the-icon"></i>
-                                    <div>@Messages(phase1Test.testNameKey) (untimed)</div>
+                                    <div>@Messages(phase1Test.testNameKey)</div>
                                     <div>@displayTestPageLink(phase1Test)</div>
                                 </li>
                             } else {
                                 <li>
                                     <i class="fa fa-minus the-icon"></i>
-                                    @Messages(phase1Test.testNameKey) (untimed)
+                                    <div>@Messages(phase1Test.testNameKey)</div>
+                                    <div>@displayTestPageLink(phase1Test)</div>
                                 </li>
                             }
                         }

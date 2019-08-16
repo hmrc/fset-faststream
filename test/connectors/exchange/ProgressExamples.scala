@@ -48,12 +48,35 @@ object ProgressExamples {
     phase1TestProgress = Phase1TestProgress(phase1TestsInvited = true, phase1TestsStarted = true, phase1TestsFailed = true)
   )
 
+  val Phase2TestsPassed = SubmittedProgress.copy(
+    phase1TestProgress = Phase1TestProgress(phase1TestsInvited = true, phase1TestsStarted = true,
+      phase1TestsCompleted = true, phase1TestsPassed = true),
+    phase2TestProgress = Phase2TestProgress(phase2TestsInvited = true, phase2TestsStarted = true,
+      phase2TestsCompleted = true, phase2TestsPassed = true)
+  )
+
   val Phase2TestsFailed = SubmittedProgress.copy(
     phase2TestProgress = Phase2TestProgress(phase2TestsInvited = true, phase2TestsStarted = true, phase2TestsFailed = true)
   )
 
   val Phase3TestsFailed = SubmittedProgress.copy(
     phase3TestProgress = Phase3TestProgress(phase3TestsInvited = true, phase3TestsStarted = true, phase3TestsFailed = true)
+  )
+
+  val Phase3TestsFailedCumulative = SubmittedProgress.copy(
+    phase1TestProgress = Phase1TestProgress(phase1TestsInvited = true, phase1TestsStarted = true,
+      phase1TestsCompleted = true, phase1TestsPassed = true),
+    phase2TestProgress = Phase2TestProgress(phase2TestsInvited = true, phase2TestsStarted = true,
+      phase2TestsCompleted = true, phase2TestsPassed = true),
+    phase3TestProgress = Phase3TestProgress(phase3TestsInvited = true, phase3TestsStarted = true, phase3TestsFailed = true)
+  )
+
+  val Phase3TestsPassedCumulative = SubmittedProgress.copy(
+    phase1TestProgress = Phase1TestProgress(phase1TestsInvited = true, phase1TestsStarted = true,
+      phase1TestsCompleted = true, phase1TestsPassed = true),
+    phase2TestProgress = Phase2TestProgress(phase2TestsInvited = true, phase2TestsStarted = true,
+      phase2TestsCompleted = true, phase2TestsPassed = true),
+    phase3TestProgress = Phase3TestProgress(phase3TestsInvited = true, phase3TestsStarted = true, phase3TestsPassed = true)
   )
 
   val FullProgress = Progress(
@@ -95,7 +118,7 @@ object ProgressExamples {
       phase3TestsResultsReceived = true,
       phase3TestsPassed = true
     ),
-    exported = true,
+    exported = true, // TODO: redundant
     assessmentCentre = AssessmentCentre(
       scoresEntered = true,
       scoresAccepted = true,
@@ -103,8 +126,6 @@ object ProgressExamples {
       passed = true
     )
   )
-
-
 
   val Phase3TestsPassed = Progress(
     personalDetails = true,
@@ -151,12 +172,11 @@ object ProgressExamples {
       siftEntered = true,
       siftCompleted = true
     ),
-    exported = false,
-    updateExported = false,
+    exported = false, // TODO: redundant
+    updateExported = false, // TODO: redundant
     assessmentCentre = AssessmentCentre(scoresEntered = true, scoresAccepted = true, awaitingReevaluation = true,
       passed = true)
   )
-
 
   val PersonalDetailsProgress = InitialProgress.copy(personalDetails = true)
   val SchemePreferencesProgress = PersonalDetailsProgress.copy(schemePreferences = true)
@@ -170,5 +190,4 @@ object ProgressExamples {
   val SiftEntered = Phase3TestsPassed.copy(
     siftProgress = SiftProgress( siftEntered = true )
   )
-
 }
