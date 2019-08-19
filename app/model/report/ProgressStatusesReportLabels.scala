@@ -80,7 +80,7 @@ trait ProgressStatusesReportLabels {
     (progress.phase3ProgressResponse.phase3TestsFailedSdipGreen, 366, Phase3TestsFailedSdipGreen),
     (progress.phase3ProgressResponse.phase3TestsPassedWithAmber, 370, Phase3TestsPassedWithAmber),
     (progress.phase3ProgressResponse.phase3TestsPassed, 380, Phase3TestsPassed),
-    (progress.phase3ProgressResponse.phase3TestsSuccessNotified, 385, Phase3TestsPassedNotified),
+    (progress.phase3ProgressResponse.phase3TestsPassedNotified, 385, Phase3TestsPassedNotified),
     (progress.phase3ProgressResponse.phase3TestsFailed, 390, Phase3TestsFailed),
     (progress.phase3ProgressResponse.phase3TestsFailedNotified, 395, Phase3TestsFailedNotified),
 
