@@ -338,8 +338,8 @@
                     }
                     case _ => {}
                 }
-                @(dashboardPage.isPhase3TestGroupExpired, dashboardPage.isPhase3TestFailed, dashboardPage.phase3TestsPage, dashboardPage.phase2TestsPage, dashboardPage.phase1TestsPage) match {
-                    case (true, _, Some(phase3TestsPage), _, _) => {
+                @(dashboardPage.isPhase3TestGroupExpired, dashboardPage.isPhase3TestFailed, dashboardPage.shouldDisplayPhase3TestFeedbackReport, dashboardPage.phase3TestsPage, dashboardPage.phase2TestsPage, dashboardPage.phase1TestsPage) match {
+                    case (true, _, _, Some(phase3TestsPage), _, _) => {
                         <li id="phase3TestsSection">
                             <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
                                 Video interview</p>
@@ -353,20 +353,31 @@
                         </li>
                     }
 
-                    case (_, true, Some(phase3TestsPage), _, _) => {
+                    case (_, true, _, Some(phase3TestsPage), _, _) => {
                         <li id="phase3TestsSection">
                             <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
                                 Video interview</p>
                             @displayPhase3TestResultsLinks
-                            <div id="phase3TestFailed">
-                                <p>Unfortunately we've assessed your results and you've been unsuccessful this time.</p>
-                                <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
-                                    site for more opportunities with us.</p>
-                            </div>
+                                <div id="phase3TestFailed">
+                                    <p>Unfortunately we've assessed your results and you've been unsuccessful this time.</p>
+                                    <p>
+                                        Visit the
+                                        <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
+                                        site for more opportunities with us.
+                                    </p>
+                                </div>
                         </li>
                     }
 
-                    case (_, _, None, _, Some(_)) => {
+                    case (_, _, true, Some(phase3TestsPage), _, _) => {
+                        <li id="phase3TestsSection">
+                            <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
+                                Video interview</p>
+                            @displayPhase3TestResultsLinks
+                        </li>
+                    }
+
+                    case (_, _, _, None, _, Some(_)) => {
                         <li id="phase3TestsSection">
                             <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon"></i>Video interview
                                 <span class="font-xsmall">- locked</span>
@@ -374,7 +385,7 @@
                             <p>Unlocked if you're successful in the e-tray</p>
                         </li>
                     }
-                    case (false, false, Some(phase3TestsPage), _, _) => {
+                    case (false, false, _, Some(phase3TestsPage), _, _) => {
                         @if(phase3TestsPage.isCompleted) {
                             <li id="phase3TestsSection">
                                 <p class="med-btm-margin" id="videoHeading"><i class="fa the-icon fa-check"></i>Video interview</p>

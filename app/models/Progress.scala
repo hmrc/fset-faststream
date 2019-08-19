@@ -59,8 +59,13 @@ case class Phase3TestProgress(
     phase3TestsCompleted: Boolean = false,
     phase3TestsExpired: Boolean = false,
     phase3TestsResultsReceived: Boolean = false,
+    phase3TestsPassedWithAmber: Boolean = false,
     phase3TestsPassed: Boolean = false,
-    phase3TestsFailed: Boolean = false
+    phase3TestsPassedNotified: Boolean = false,
+    phase3TestsFailed: Boolean = false,
+    phase3TestsFailedNotified: Boolean = false,
+    phase3TestsFailedSdipAmber: Boolean = false,
+    phase3TestsFailedSdipGreen: Boolean = false
 )
 
 case class SiftProgress(
@@ -199,10 +204,20 @@ object Progress {
           progressResponse.phase3ProgressResponse.phase3TestsExpired,
         phase3TestsResultsReceived =
           progressResponse.phase3ProgressResponse.phase3TestsResultsReceived,
+        phase3TestsPassedWithAmber =
+          progressResponse.phase3ProgressResponse.phase3TestsPassedWithAmber,
         phase3TestsPassed =
           progressResponse.phase3ProgressResponse.phase3TestsPassed,
+        phase3TestsPassedNotified =
+          progressResponse.phase3ProgressResponse.phase3TestsPassedNotified,
         phase3TestsFailed =
-          progressResponse.phase3ProgressResponse.phase3TestsFailed
+          progressResponse.phase3ProgressResponse.phase3TestsFailed,
+        phase3TestsFailedNotified =
+          progressResponse.phase3ProgressResponse.phase3TestsFailedNotified,
+        phase3TestsFailedSdipAmber =
+          progressResponse.phase3ProgressResponse.phase3TestsFailedSdipAmber,
+        phase3TestsFailedSdipGreen =
+          progressResponse.phase3ProgressResponse.phase3TestsFailedSdipGreen
       ),
       siftProgress = SiftProgress(
         siftEntered = progressResponse.siftProgressResponse.siftEntered,

@@ -42,6 +42,7 @@ case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
   isPhase1TestFailed: Boolean,
   isPhase2TestFailed: Boolean,
   isPhase3TestFailed: Boolean,
+  shouldDisplayPhase3TestFeedbackReport: Boolean,
   fullName: String,
   phase1TestsPage: Option[Phase1TestsPage2],
   phase2TestsPage: Option[Phase2TestsPage2],
@@ -85,6 +86,7 @@ object DashboardPage {
       isPhase1TestFailed(user),
       isPhase2TestFailed(user),
       isPhase3TestFailed(user),
+      shouldDisplayPhase3TestFeedbackReport(user),
       user.user.firstName + " " + user.user.lastName,
       phase1TestGroup,
       phase2TestGroup,
@@ -190,6 +192,9 @@ object DashboardPage {
 
   private def isPhase3TestFailed(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
     Phase3TestFailedRole.isAuthorized(user)
+
+  private def shouldDisplayPhase3TestFeedbackReport(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+    Phase3TestDisplayFeedbackRole.isAuthorized(user)
 
   private def getAssessmentInProgressStatus(user: CachedData)
   (implicit request: RequestHeader, lang: Lang): AssessmentStageStatus = {

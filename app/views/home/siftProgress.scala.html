@@ -250,7 +250,7 @@
  <section class="text">
     <ol class="step-by-step-coloured" id="nextStepsList">
         <li class="first-step">
-            @if(isInPhase3PassedOrNotified(page.userDataWithSchemes.toCachedData)) {
+            @if(isInPhase3PassedOrPassedNotified(page.userDataWithSchemes.toCachedData)) {
                 <p>Depending on your chosen schemes, you may need to answer some additional questions.</p>
             } else {
                 @if(page.userDataWithSchemes.application.isSiftExpired) {

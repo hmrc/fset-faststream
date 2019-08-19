@@ -183,7 +183,8 @@ object Roles {
 
   object Phase3TestDisplayFeedbackRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
-      isPhase3TestsFailed(user) || isPhase3TestsPassed(user)
+      isInPhase3PassedOrPassedNotified(user) || isPhase3TestsFailed(user) || isPhase3TestsFailedNotified(user) ||
+        isPhase3TestsFailedSdipGreen(user)
   }
 
   object DisplayOnlineTestSectionRole extends CsrAuthorization {
@@ -326,16 +327,30 @@ object RoleUtils {
 
   def isPhase3TestsStarted(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsStarted)
 
+
+  def isPhase3TestsPassedWithAmber(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsPassedWithAmber)
+
   def isPhase3TestsPassed(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsPassed)
+
+  def isPhase3TestsPassedNotified(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsPassedNotified)
+
+  def isInPhase3PassedOrPassedNotified(implicit user: CachedData) = user.application.exists(cachedData =>
+    cachedData.applicationStatus == ApplicationStatus.PHASE3_TESTS_PASSED ||
+      cachedData.applicationStatus == ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED
+  )
+
 
   def isPhase3TestsFailed(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsFailed)
 
+  def isPhase3TestsFailedNotified(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsFailedNotified)
+
+  def isPhase3TestsFailedSdipAmber(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsFailedSdipAmber)
+
+  def isPhase3TestsFailedSdipGreen(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsFailedSdipGreen)
+
+
   def isPhase3TestsExpired(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsExpired)
 
-  def isInPhase3PassedOrNotified(implicit user: CachedData) = user.application.exists(cachedData =>
-      cachedData.applicationStatus == ApplicationStatus.PHASE3_TESTS_PASSED ||
-      cachedData.applicationStatus == ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED
-  )
 
   def isInSiftPhase(implicit user: CachedData): Boolean = user.application.exists { app =>
     app.applicationStatus == ApplicationStatus.SIFT
@@ -348,6 +363,7 @@ object RoleUtils {
   def isSiftReady(implicit user: CachedData) = user.application.exists(_.progress.siftProgress.siftReady)
 
   def isSiftComplete(implicit user: CachedData) = user.application.exists(_.progress.siftProgress.siftCompleted)
+
 
   def isAwaitingAllocation(implicit user: CachedData) = user.application.exists(_.progress.assessmentCentre.awaitingAllocation)
 
@@ -370,8 +386,10 @@ object RoleUtils {
   }
 
   def isEdip(implicit user: CachedData): Boolean = user.application exists (_.applicationRoute == ApplicationRoute.Edip)
+  def isEdip(implicit user: Option[CachedData]): Boolean = user.exists(isEdip(_))
 
   def isSdip(implicit user: CachedData): Boolean = user.application exists (_.applicationRoute == ApplicationRoute.Sdip)
+  def isSdip(implicit user: Option[CachedData]): Boolean = user.exists(isSdip(_))
 
   def isSdipFaststream(implicit user: CachedData): Boolean = user.application exists (_.applicationRoute == ApplicationRoute.SdipFaststream)
 
@@ -389,9 +407,6 @@ object RoleUtils {
 
   def isFaststream(implicit user: Option[CachedData]): Boolean = user.forall(u => isFaststream(u))
 
-  def isEdip(implicit user: Option[CachedData]): Boolean = user.exists(isEdip(_))
-
-  def isSdip(implicit user: Option[CachedData]): Boolean = user.exists(isSdip(_))
 }
 
 // scalastyle:on
