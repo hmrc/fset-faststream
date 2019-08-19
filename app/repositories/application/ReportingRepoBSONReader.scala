@@ -18,11 +18,11 @@ package repositories.application
 
 import config.MicroserviceAppConfig._
 import _root_.config.PsiTestIds
-import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewSectionQuestionRequest
+import connectors.launchpadgateway.exchangeobjects.in.reviewed.{ ReviewSectionQuestionRequest, ReviewedCallbackRequest }
 import model._
 import model.ApplicationRoute.ApplicationRoute
-import model.ApplicationStatus.{apply => _}
-import model.CivilServiceExperienceType.{CivilServiceExperienceType, apply => _}
+import model.ApplicationStatus.{ apply => _ }
+import model.CivilServiceExperienceType.{ CivilServiceExperienceType, apply => _ }
 import model.Commands._
 import model.InternshipType.{ InternshipType, apply => _ }
 import model.OnlineTestCommands.{ PsiTestResult, TestResult }
@@ -341,12 +341,15 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
   }
 
   private[application] def toPhase3TestResults(testGroupsDoc: Option[BSONDocument]): Option[VideoInterviewTestResult] = {
-    val callsbacksDocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE3))
-      .flatMap(_.getAs[BSONArray]("tests")).flatMap(_.getAs[BSONDocument](0))
+    val reviewedDocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE3))
+      .flatMap(_.getAs[BSONArray]("tests"))
+      .flatMap(_.getAs[BSONDocument](0))
       .flatMap(_.getAs[BSONDocument]("callbacks"))
+      .flatMap(_.getAs[List[BSONDocument]]("reviewed"))
 
-    val callsbacksOpt = callsbacksDocOpt.map(LaunchpadTestCallbacks.bsonHandler.read)
-    val latestReviewedOpt = callsbacksOpt.flatMap(_.getLatestReviewed)
+    val latestReviewedOpt = reviewedDocOpt
+      .map(_.map(ReviewedCallbackRequest.bsonHandler.read))
+      .flatMap(ReviewedCallbackRequest.getLatestReviewed)
 
     latestReviewedOpt.map { latestReviewed =>
       VideoInterviewTestResult(
