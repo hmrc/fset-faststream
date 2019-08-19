@@ -93,9 +93,9 @@ case class Phase3ProgressResponse(phase3TestsInvited: Boolean = false,
   phase3TestsResultsReceived: Boolean = false,
   phase3TestsPassedWithAmber: Boolean = false,
   phase3TestsPassed: Boolean = false,
+  phase3TestsPassedNotified: Boolean = false,
   phase3TestsFailed: Boolean = false,
   phase3TestsFailedNotified: Boolean = false,
-  phase3TestsSuccessNotified: Boolean = false,
   phase3TestsFailedSdipAmber: Boolean = false,
   phase3TestsFailedSdipGreen: Boolean = false
 )

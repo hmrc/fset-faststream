@@ -177,7 +177,7 @@
   name: Summer Diversity Internship Programme
   civilServantEligible: true
   siftRequirement: FORM
-  siftEvaluationRequired: true
+  siftEvaluationRequired: false
   fsbType: SDIP - Telephone interview
   schemeGuide: https://www.faststream.gov.uk/media/1244/sdip-guide.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/1253/scheme-questions-sdip.rtf
