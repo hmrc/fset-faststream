@@ -40,10 +40,10 @@ object Phase1TestsPassedStatusGenerator extends TestsPassedStatusGenerator {
   val evaluationRepository: Phase1EvaluationMongoRepository = faststreamPhase1EvaluationRepository
   val passedStatus = PHASE1_TESTS_PASSED
 
-  def passmarkEvaluation(generatorConfig: CreateCandidateData, dgr: CreateCandidateResponse): PassmarkEvaluation = {
+  def passmarkEvaluation(generatorConfig: CreateCandidateData, candidateResponse: CreateCandidateResponse): PassmarkEvaluation = {
     generatorConfig.phase1TestData.flatMap(_.passmarkEvaluation)
       .getOrElse {
-        val schemeEvaluation = dgr.schemePreferences.map(_.schemes.map(scheme =>
+        val schemeEvaluation = candidateResponse.schemePreferences.map(_.schemes.map(scheme =>
           SchemeEvaluationResult(scheme, EvaluationResults.Green.toString))
         ).getOrElse(Nil)
         val passmarkVersion = UUIDFactory.generateUUID().toString
@@ -62,16 +62,16 @@ object Phase2TestsPassedStatusGenerator extends TestsPassedStatusGenerator {
   val evaluationRepository: Phase2EvaluationMongoRepository = faststreamPhase2EvaluationRepository
   val passedStatus = PHASE2_TESTS_PASSED
 
-  def passmarkEvaluation(generatorConfig: CreateCandidateData, dgr: CreateCandidateResponse): PassmarkEvaluation =
+  def passmarkEvaluation(generatorConfig: CreateCandidateData, candidateResponse: CreateCandidateResponse): PassmarkEvaluation =
     generatorConfig.phase2TestData.flatMap(_.passmarkEvaluation)
       .getOrElse {
-        val schemeEvaluation = dgr.schemePreferences.map(_.schemes.map(scheme => SchemeEvaluationResult(scheme,
+        val schemeEvaluation = candidateResponse.schemePreferences.map(_.schemes.map(scheme => SchemeEvaluationResult(scheme,
           EvaluationResults.Green.toString
         ))).getOrElse(Nil)
         val passmarkVersion = UUIDFactory.generateUUID().toString
         val resultVersion = UUIDFactory.generateUUID().toString
-        PassmarkEvaluation(passmarkVersion, dgr.phase1TestGroup.flatMap(_.schemeResult.map(_.passmarkVersion)),
-          schemeEvaluation, resultVersion, dgr.phase1TestGroup.flatMap(_.schemeResult.map(_.resultVersion)))
+        PassmarkEvaluation(passmarkVersion, candidateResponse.phase1TestGroup.flatMap(_.schemeResult.map(_.passmarkVersion)),
+          schemeEvaluation, resultVersion, candidateResponse.phase1TestGroup.flatMap(_.schemeResult.map(_.resultVersion)))
       }
 
   def updateGenerationResponse(dgr: CreateCandidateResponse, pme: PassmarkEvaluation): CreateCandidateResponse = dgr.copy(
@@ -85,16 +85,16 @@ object Phase3TestsPassedStatusGenerator extends TestsPassedStatusGenerator {
   val appRepository: GeneralApplicationMongoRepository = applicationRepository
   val passedStatus = PHASE3_TESTS_PASSED
 
-  def passmarkEvaluation(generatorConfig: CreateCandidateData, dgr: CreateCandidateResponse): PassmarkEvaluation =
+  def passmarkEvaluation(generatorConfig: CreateCandidateData, candidateResponse: CreateCandidateResponse): PassmarkEvaluation =
     generatorConfig.phase3TestData.flatMap(_.passmarkEvaluation)
       .getOrElse {
-        val schemeEvaluation = dgr.schemePreferences.map(_.schemes.map(scheme => SchemeEvaluationResult(scheme,
+        val schemeEvaluation = candidateResponse.schemePreferences.map(_.schemes.map(scheme => SchemeEvaluationResult(scheme,
           EvaluationResults.Green.toString
         ))).getOrElse(Nil)
         val passmarkVersion = UUIDFactory.generateUUID().toString
         val resultVersion = UUIDFactory.generateUUID().toString
-        PassmarkEvaluation(passmarkVersion, dgr.phase2TestGroup.flatMap(_.schemeResult.map(_.passmarkVersion)),
-          schemeEvaluation, resultVersion, dgr.phase2TestGroup.flatMap(_.schemeResult.map(_.resultVersion)))
+        PassmarkEvaluation(passmarkVersion, candidateResponse.phase2TestGroup.flatMap(_.schemeResult.map(_.passmarkVersion)),
+          schemeEvaluation, resultVersion, candidateResponse.phase2TestGroup.flatMap(_.schemeResult.map(_.resultVersion)))
       }
 
   def updateGenerationResponse(dgr: CreateCandidateResponse, pme: PassmarkEvaluation): CreateCandidateResponse = {
@@ -112,10 +112,10 @@ trait TestsPassedStatusGenerator extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
-    previousStatusGenerator.generate(generationId, generatorConfig).flatMap { candidate =>
-      val evaluation = passmarkEvaluation(generatorConfig, candidate)
-      evaluationRepository.savePassmarkEvaluation(candidate.applicationId.getOrElse(""), evaluation, Some(passedStatus)).map { _ =>
-        updateGenerationResponse(candidate, evaluation)
+    previousStatusGenerator.generate(generationId, generatorConfig).flatMap { candidateResponse =>
+      val evaluation = passmarkEvaluation(generatorConfig, candidateResponse)
+      evaluationRepository.savePassmarkEvaluation(candidateResponse.applicationId.getOrElse(""), evaluation, Some(passedStatus)).map { _ =>
+        updateGenerationResponse(candidateResponse, evaluation)
       }
     }
   }
