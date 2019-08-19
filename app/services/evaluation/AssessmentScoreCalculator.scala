@@ -25,20 +25,20 @@ trait AssessmentScoreCalculator {
 
   def countAverage(scores: AssessmentScoresAllExercises): CompetencyAverageResult = {
     val overallScores = List(
-      scores.analysisAndDecisionMakingAvg,
-      scores.buildingProductiveRelationshipsAvg,
-      scores.leadingAndCommunicatingAvg,
-      scores.strategicApproachToObjectivesAvg
+      scores.makingEffectiveDecisionsAvg,
+      scores.workingTogetherDevelopingSelfAndOthersAvg,
+      scores.communicatingAndInfluencingAvg,
+      scores.seeingTheBigPictureAvg
     ).map{ avg =>
       val bd = BigDecimal.apply(avg)
       bd.setScale(2, BigDecimal.RoundingMode.HALF_UP)
     }.sum
 
     CompetencyAverageResult(
-      scores.analysisAndDecisionMakingAvg,
-      scores.buildingProductiveRelationshipsAvg,
-      scores.leadingAndCommunicatingAvg,
-      scores.strategicApproachToObjectivesAvg,
+      scores.makingEffectiveDecisionsAvg,
+      scores.workingTogetherDevelopingSelfAndOthersAvg,
+      scores.communicatingAndInfluencingAvg,
+      scores.seeingTheBigPictureAvg,
       overallScores.toDouble)
   }
 }
