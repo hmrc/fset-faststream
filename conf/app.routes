@@ -53,6 +53,8 @@ POST        /application/schemes                                    controllers.
 GET         /application/assistance-details                         controllers.AssistanceDetailsController.present
 POST        /application/assistance-details                         controllers.AssistanceDetailsController.submit
 
+GET         /application/testResults                                controllers.TestResultsController.present
+
 GET         /application/preview                                    controllers.PreviewApplicationController.present
 POST        /application/preview                                    controllers.PreviewApplicationController.submit
 GET         /application/submit                                     controllers.SubmitApplicationController.present

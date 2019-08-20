@@ -92,7 +92,7 @@
 
     <section class="section-border">
         <ol class="step-by-step-coloured @disableDashboardMayBe" id="sixSteps">
-            <li class="step text first-step @activateByStep(dashboardPage.firstStepVisibility)">
+            <p class="step text first-step @activateByStep(dashboardPage.firstStepVisibility)">
                 <h2 class='@if(dashboardPage.isApplicationInProgress) {heading-large} else {heading-medium} '>
                     1. Fill in your application form</h2>
                 @if(!dashboardPage.isApplicationWithdrawn) {
@@ -112,7 +112,9 @@
 
                 @if(dashboardPage.isApplicationWithdrawn) {
                     <a class="" id="view-withdrawn-application" href="@routes.PreviewApplicationController.present()">
-                     View your withdrawn application</a>
+                        View your withdrawn application</a>
+                    <a class="" id="view-test-results" href="@routes.TestResultsController.present()">
+                        View your test results</a>
                 }
 
                 @if(dashboardPage.isApplicationInProgress) {
