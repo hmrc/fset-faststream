@@ -638,7 +638,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       checkPhase3ResultsTitleAndLinks(content)
     }
 
-    val phase1Test1ResultsReportLink = "<a href=\"http:phase1Test1Url.com\"" +
+    val phase1Test1ResultsReportLink = "<a href=\"http://phase1Test1Url.com\"" +
       " target=\"_blank\" id=\"FSWorkStyleQuestionnairePart1LinkResultsReport\">Results report</a>"
 
     def checkPhase1ResultsTitleAndLinks(content: String) = {
@@ -651,7 +651,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       content must include(phase1Test1ResultsReportLink)
     }
 
-    val phase2Test1ResultsReportLink = "<a href=\"http:phase2Test1Url.com\"" +
+    val phase2Test1ResultsReportLink = "<a href=\"http://phase2Test1Url.com\"" +
       " target=\"_blank\" id=\"FSCaseStudyAssessmentLinkResultsReport\">Results report</a>"
 
     def checkPhase2ResultsTitleAndLinks(content: String) = {
@@ -678,12 +678,12 @@ class HomeControllerSpec extends BaseControllerSpec {
     val phase1Test1InventoryId = "45c7aee3-4d23-45c7-a09d-276df7db3e4c"
     val phase1Test1 = PsiTest(inventoryId = phase1Test1InventoryId, usedForResults = true,
       testUrl = "http://testurl.com", orderId = UniqueIdentifier(UUID.randomUUID()),
-      invitationDate = DateTime.now, testResult = Some(PsiTestResult(testReportUrl = Some("http:phase1Test1Url.com"))))
+      invitationDate = DateTime.now, testResult = Some(PsiTestResult(testReportUrl = Some("http://phase1Test1Url.com"))))
 
     val phase2Test1InventoryId = "60b423e5-75d6-4d31-b02c-97b8686e22e6"
     val phase2Test1 = PsiTest(inventoryId = phase2Test1InventoryId, usedForResults = true,
       testUrl = "http://testurl.com", orderId = UniqueIdentifier(UUID.randomUUID()),
-      invitationDate = DateTime.now, testResult = Some(PsiTestResult(testReportUrl = Some("http:phase2Test1Url.com"))))
+      invitationDate = DateTime.now, testResult = Some(PsiTestResult(testReportUrl = Some("http://phase2Test1Url.com"))))
 
     class TestableHomeController extends HomeController(mockApplicationClient, mockRefDataClient, mockSiftClient, mockSchemeClient)
       with TestableSecureActions {

@@ -1,0 +1,74 @@
+@*
+ * Copyright 2019 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import models.page.TestResultsPage
+@import models.page.PsiTestPage
+
+@(page: TestResultsPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+
+@generatePsiTestId(psiTestPage: PsiTestPage) = {@Messages(psiTestPage.testNameKey).replace(" ", "").concat("LinkResultsReport")}
+
+@displayTestPageLink(testPage: PsiTestPage) = {
+    @testPage.testReportUrl.map { reportUrl =>
+        <a href="@reportUrl" target="_blank" id="@generatePsiTestId(testPage)">Results report</a>
+    }
+}
+
+@displayPhase1TestResultLinks = {
+    @page.phase1DataOpt.map { phase1Tests =>
+        <h3 class="bold-small">Phase 1 results</h3>
+        @phase1Tests.tests.map { psiTestPage =>
+            <div>@Messages(psiTestPage.testNameKey)</div>
+            <div>@displayTestPageLink(psiTestPage)</div>
+        }
+    }
+}
+
+@displayPhase2TestResultLinks = {
+    @page.phase2DataOpt.map { phase2Tests =>
+        <h3 class="bold-small">Phase 2 results</h3>
+        @phase2Tests.tests.map { psiTestPage =>
+            <div>@Messages(psiTestPage.testNameKey)</div>
+            <div>@displayTestPageLink(psiTestPage)</div>
+        }
+    }
+}
+
+@displayPhase3TestResultLink = {
+    @page.phase3DataOpt.map { phase3Tests =>
+        <h3 class="bold-small">Phase 3 results</h3>
+        <div><a href="@routes.Phase3FeedbackController.present" target="_blank" id="phase3ResultsReportLink" alt="Phase 3 results report">Results report</a></div>
+    }
+}
+
+@displayTestResultLinks = {
+    @if(page.noDataFound) {
+        <p>No data found</p>
+    } else {
+        <p>@displayPhase1TestResultLinks</p>
+        <p>@displayPhase2TestResultLinks</p>
+        <p>@displayPhase3TestResultLink</p>
+    }
+}
+
+@main_template(title = "Online test results | Apply for the Civil Service Fast Stream") {
+
+    <div class="text">
+        <h2 class="heading-large">Online test results</h2>
+
+        <div>@displayTestResultLinks</div>
+    </div>
+}
