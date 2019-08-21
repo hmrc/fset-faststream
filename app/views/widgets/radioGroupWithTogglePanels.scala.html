@@ -20,9 +20,8 @@
 @(field: play.api.data.Field, options: Seq[(String,String)], args: (Symbol,Any)*)(togglePanels:Html)(implicit messages: Messages)
 
 @helper.input(field, args:_*) { (id, name, value, htmlArgs) =>
-    <fieldset>
-        <h2 class="form-label">@args.map(x => if(x._1 == '_label) x._2 )</h2>
-        <legend class="visuallyhidden">@args.map(x => if(x._1 == '_label) x._2 )</legend>
+    <fieldset class="form-group">
+        <legend><h2 class="form-label">@args.map(x => if(x._1 == '_label) x._2 )</h2></legend>
         <div class="form-group">
         @options.map { v =>
             <div>
