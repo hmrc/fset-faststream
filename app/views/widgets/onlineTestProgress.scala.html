@@ -100,15 +100,15 @@
 @displayPhase1TestResultsLinks(testsPage: Phase1TestsPage2) = {
     @testsPage.tests.map { psiTestPage =>
         <div>@Messages(psiTestPage.testNameKey)</div>
-        <div>@displayTestPageLink(psiTestPage)</div>
+        <div>@displayTestPageLink(psiTestPage, Messages(psiTestPage.testNameKey))</div>
     }
 }
 
 @generatePsiTestId(psiTestPage: PsiTestPage) = {@Messages(psiTestPage.testNameKey).replace(" ", "").concat("LinkResultsReport")}
 
-@displayTestPageLink(testPage: PsiTestPage) = {
+@displayTestPageLink(testPage: PsiTestPage, testName: String) = {
     @testPage.testReportUrl.map { reportUrl =>
-        <a href="@reportUrl" target="_blank" id="@generatePsiTestId(testPage)">Results report</a>
+        <a href="@reportUrl" target="_blank" id="@generatePsiTestId(testPage)">Results report <span class="visuallyhidden">for @testName</span></a>
     }
 }
 
@@ -116,13 +116,15 @@
     @dashboardPage.phase2TestsPage.map { testsPage =>
         @testsPage.tests.map { psiTestPage =>
             <div>@Messages(psiTestPage.testNameKey)</div>
-            <div>@displayTestPageLink(psiTestPage)</div>
+            <div>@displayTestPageLink(psiTestPage, Messages(psiTestPage.testNameKey))</div>
         }
     }
 }
 
 @displayPhase3TestResultsLinks() = {
-    <a href="@routes.Phase3FeedbackController.present" target="_blank" id="phase3ResultsReportLink" alt="Phase 3 results report">Results report</a>
+    <a href="@routes.Phase3FeedbackController.present" target="_blank" id="phase3ResultsReportLink" alt="Phase 3 results report">
+        Results report <span class="visuallyhidden">for video interview</span>
+    </a>
 }
 
 @(dashboardPage.isTestGroupExpired, dashboardPage.isPhase1TestFailed, dashboardPage.phase1TestsPage) match {
@@ -215,13 +217,13 @@
                                 <li>
                                     <i class="fa fa-check the-icon"></i>
                                     <div>@Messages(phase1Test.testNameKey)</div>
-                                    <div>@displayTestPageLink(phase1Test)</div>
+                                    <div>@displayTestPageLink(phase1Test, Messages(phase1Test.testNameKey))</div>
                                 </li>
                             } else {
                                 <li>
                                     <i class="fa fa-minus the-icon"></i>
                                     <div>@Messages(phase1Test.testNameKey)</div>
-                                    <div>@displayTestPageLink(phase1Test)</div>
+                                    <div>@displayTestPageLink(phase1Test, Messages(phase1Test.testNameKey))</div>
                                 </li>
                             }
                         }
@@ -320,7 +322,7 @@
                                                 <li>
                                                     <i class="fa fa-check the-icon"></i>
                                                     <div>@Messages(phase2Test.testNameKey)</div>
-                                                    <div>@displayTestPageLink(phase2Test)</div>
+                                                    <div>@displayTestPageLink(phase2Test, Messages(phase2Test.testNameKey))</div>
                                                 </li>
                                             } else {
                                                 <li>
