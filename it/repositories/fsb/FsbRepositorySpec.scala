@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package repositories.application
+package repositories.fsb
 
 import factories.UUIDFactory
-import model.EvaluationResults.{ Green, Red }
+import model.EvaluationResults.{Green, Red}
 import model.command.ApplicationForProgression
 import model.persisted._
-import model.{ ApplicationStatus, ProgressStatuses, SchemeId }
+import model.{ApplicationStatus, ProgressStatuses, SchemeId}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers
-import repositories.{ CollectionNames, CommonRepository }
+import repositories.{CollectionNames, CommonRepository}
 import testkit.MongoRepositorySpec
 
-class FsbMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonRepository {
+class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonRepository {
 
   import ImplicitBSONHandlers._
 

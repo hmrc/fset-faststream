@@ -32,9 +32,9 @@ import testkit.ScalaMockUnitSpec
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
-class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSpec {
+class ProgressionToFsbOrOfferServiceSpec extends ScalaMockUnitSpec {
 
-  "progress candidates to fsb or job offer" must {
+  "progressApplicationsToFsbOrJobOffer" must {
     "Progress candidates to FSB when their first residual preference is green, and requires an FSB" in new TestFixture {
 
       applicationsToProgressToFsb.map { expectedApplication =>
@@ -67,7 +67,7 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
           .returningAsync
       }
 
-      whenReady(service.progressApplicationsToFsbOrJobOffer(applicationsToProgressToFsb)(hc)) {
+      whenReady(progressionToFsbOrOfferService.progressApplicationsToFsbOrJobOffer(applicationsToProgressToFsb)(hc)) {
         results =>
           val failedApplications = Seq()
           val passedApplications = applicationsToProgressToFsb
@@ -94,7 +94,7 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
           .returning(Future.successful(())).once
       }
 
-      whenReady(service.progressApplicationsToFsbOrJobOffer(applicationsToProgressToJobOffer)(hc)) {
+      whenReady(progressionToFsbOrOfferService.progressApplicationsToFsbOrJobOffer(applicationsToProgressToJobOffer)(hc)) {
         results =>
           val failedApplications = Seq()
           val passedApplications = applicationsToProgressToJobOffer
@@ -125,7 +125,7 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
           .returning(Future.successful(())).never
       }
 
-      whenReady(service.progressApplicationsToFsbOrJobOffer(applicationsNotToProgress)(hc)) {
+      whenReady(progressionToFsbOrOfferService.progressApplicationsToFsbOrJobOffer(applicationsNotToProgress)(hc)) {
         results =>
           val failedApplications = Seq()
           val passedApplications = applicationsNotToProgress
@@ -141,7 +141,7 @@ class AssessmentCentreToFsbOrOfferProgressionServiceSpec extends ScalaMockUnitSp
     val mockEmailClient = mock[EmailClient]
     val mockSchemePreferencesService = mock[SchemePreferencesService]
 
-    val service: AssessmentCentreToFsbOrOfferProgressionService = new AssessmentCentreToFsbOrOfferProgressionService() {
+    val progressionToFsbOrOfferService: ProgressionToFsbOrOfferService = new ProgressionToFsbOrOfferService() {
       val fsbRepo = mockFsbRepository
       val applicationRepo = mockApplicationRepository
       val fsbRequiredSchemeIds: Seq[SchemeId] = Seq(SchemeId("DigitalAndTechnology"),

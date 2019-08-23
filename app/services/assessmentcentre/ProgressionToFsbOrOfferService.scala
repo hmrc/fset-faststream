@@ -36,7 +36,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
-object AssessmentCentreToFsbOrOfferProgressionService extends AssessmentCentreToFsbOrOfferProgressionService {
+object ProgressionToFsbOrOfferService extends ProgressionToFsbOrOfferService {
   val fsbRequiredSchemeIds: Seq[SchemeId] = SchemeYamlRepository.fsbSchemeIds
   val applicationRepo: GeneralApplicationRepository = repositories.applicationRepository
   val contactDetailsRepo: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
@@ -45,7 +45,7 @@ object AssessmentCentreToFsbOrOfferProgressionService extends AssessmentCentreTo
   val schemePreferencesService: SchemePreferencesService = SchemePreferencesService
 }
 
-trait AssessmentCentreToFsbOrOfferProgressionService extends CurrentSchemeStatusHelper {
+trait ProgressionToFsbOrOfferService extends CurrentSchemeStatusHelper {
 
   def fsbRequiredSchemeIds: Seq[SchemeId]
 

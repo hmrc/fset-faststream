@@ -20,28 +20,28 @@ import config.WaitingScheduledJobConfig
 import play.api.Logger
 import scheduler.ProgressToFsbOrOfferJobConfig.conf
 import scheduler.clustering.SingleInstanceScheduledJob
-import services.assessmentcentre.AssessmentCentreToFsbOrOfferProgressionService
+import services.assessmentcentre.ProgressionToFsbOrOfferService
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 
 object ProgressToFsbOrOfferJob extends ProgressToFsbOrOfferJob {
-  val assessmentCentreToFsbOrOfferService = AssessmentCentreToFsbOrOfferProgressionService
+  val progressionToFsbOrOfferService = ProgressionToFsbOrOfferService
   val config = ProgressToFsbOrOfferJobConfig
 }
 
 trait ProgressToFsbOrOfferJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
-  val assessmentCentreToFsbOrOfferService: AssessmentCentreToFsbOrOfferProgressionService
+  val progressionToFsbOrOfferService: ProgressionToFsbOrOfferService
 
   val batchSize: Int = conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc = HeaderCarrier()
-    assessmentCentreToFsbOrOfferService.nextApplicationsForFsbOrJobOffer(batchSize).flatMap {
+    progressionToFsbOrOfferService.nextApplicationsForFsbOrJobOffer(batchSize).flatMap {
       case Nil =>
         Logger.info("Progress to fsb or job offer complete - no candidates found")
         Future.successful(())
-      case applications => assessmentCentreToFsbOrOfferService.progressApplicationsToFsbOrJobOffer(applications).map { result =>
+      case applications => progressionToFsbOrOfferService.progressApplicationsToFsbOrJobOffer(applications).map { result =>
         Logger.info(
           s"Progress to fsb or job offer complete - ${result.successes.size} processed successfully and ${result.failures.size} failed to update"
         )
