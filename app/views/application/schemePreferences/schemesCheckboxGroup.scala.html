@@ -44,7 +44,11 @@
                         @if(degree.specificRequirement){
                             <a class="font-xsmall inl-block"
                                href='https://www.faststream.gov.uk/@Messages("scheme."+scheme.id.value+".link")'
-                               rel="external" target="_blank">(Specific requirements)</a>
+                               rel="external" target="_blank">
+                                (Specific requirements<span class="visuallyhidden"> for @scheme.name, external website
+                                opens
+                                new window</span>)
+                            </a>
                         }
                     }
                     </span>
