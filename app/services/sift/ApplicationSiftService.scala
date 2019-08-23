@@ -302,7 +302,6 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   }
 
   private def maybeSetProgressStatus(siftedSchemes: Set[SchemeId], candidatesSiftableSchemes: Set[SchemeId]) = {
-    // TODO: cuando los siftedSchemes alcanzan los siftable schemes. En la practica tienen que ser iguales.
     if (candidatesSiftableSchemes subsetOf siftedSchemes) {
       progressStatusOnlyBSON(ProgressStatuses.SIFT_COMPLETED)
     } else {
