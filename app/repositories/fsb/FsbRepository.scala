@@ -135,6 +135,20 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
         "applicationStatus" -> ApplicationStatus.SIFT,
         s"progress-status.${ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN}" -> true
       ),
+      // All faststream schemes failed before SIFT, i.e. PHASE3, for SDIP we have submitted form and still green in SIFT
+      BSONDocument(
+        "applicationRoute" -> ApplicationRoute.SdipFaststream,
+        "applicationStatus" -> ApplicationStatus.SIFT,
+        s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> true,
+        BSONDocument(s"currentSchemeStatus" -> BSONDocument("$not" -> BSONDocument("$elemMatch" ->
+          BSONDocument("schemeId" -> BSONDocument("$nin" -> BSONArray("Sdip")),
+            "result" -> EvaluationResults.Green.toString)
+        ))),
+        BSONDocument(s"currentSchemeStatus" -> BSONDocument("$elemMatch" ->
+          BSONDocument("schemeId" -> BSONDocument("$in" -> BSONArray("Sdip")),
+            "result" -> EvaluationResults.Green.toString)
+        ))
+      ),
       xdipQuery(ApplicationRoute.Sdip),
       xdipQuery(ApplicationRoute.Edip)
     ))

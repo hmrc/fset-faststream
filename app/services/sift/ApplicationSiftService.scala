@@ -44,20 +44,18 @@ import scala.concurrent.Future
 import scala.language.postfixOps
 
 object ApplicationSiftService extends ApplicationSiftService {
+  val SiftExpiryWindowInDays: Int = 7
   val applicationSiftRepo: ApplicationSiftMongoRepository = repositories.applicationSiftRepository
   val applicationRepo: GeneralApplicationMongoRepository = repositories.applicationRepository
   val contactDetailsRepo: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
   val schemeRepo: SchemeRepository = SchemeYamlRepository
   val dateTimeFactory: DateTimeFactory = DateTimeFactory
   val emailClient: CSREmailClient = CSREmailClient
-  val SiftExpiryWindowInDays: Int = 7
 }
 
 // scalastyle:off number.of.methods
 trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDocuments {
-
   val SiftExpiryWindowInDays: Int
-
   def applicationSiftRepo: ApplicationSiftRepository
   def applicationRepo: GeneralApplicationRepository
   def contactDetailsRepo: ContactDetailsRepository
@@ -294,7 +292,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     Seq(currentSchemeStatusBSON(newSchemeStatus),
       maybeSetProgressStatus(siftedSchemes.toSet, candidatesSiftableSchemes.toSet),
       maybeFailSdip(result),
-      maybeSetSdipFaststreamProgressStatus(newSchemeStatus, siftedSchemes)
+      maybeSetSdipFaststreamProgressStatus(newSchemeStatus, siftedSchemes, candidatesSiftableSchemes)
     ).foldLeft(Seq.empty[BSONDocument]) { (acc, doc) =>
       doc match {
         case _ @BSONDocument.empty => acc
@@ -325,18 +323,20 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
 
   // we need to consider that all siftable schemes have been sifted with a fail or the candidate has withdrawn from them
   // and sdip has been sifted with a pass
-  private def maybeSetSdipFaststreamProgressStatus(newSchemeStatus: Seq[SchemeEvaluationResult], siftedSchemes: Seq[SchemeId]) = {
+  private def maybeSetSdipFaststreamProgressStatus(newSchemeEvaluationResult: Seq[SchemeEvaluationResult],
+    siftedSchemes: Seq[SchemeId], candidatesSiftableSchemes: Seq[SchemeId]) = {
 
     // Sdip has been sifted and it passed
-    val SdipPassed = SchemeEvaluationResult(Scheme.SdipId, Green.toString)
-    val sdipPassedSift = siftedSchemes.contains(Scheme.SdipId) && newSchemeStatus.contains(SdipPassed)
+    val SdipEvaluationResultPassed = SchemeEvaluationResult(Scheme.SdipId, Green.toString)
+    val sdipNeededSiftEvaluation = candidatesSiftableSchemes.map(_.value).contains("Sdip")
+    val sdipPassedSift = siftedSchemes.contains(Scheme.SdipId) && newSchemeEvaluationResult.contains(SdipEvaluationResultPassed)
 
-    val schemesExcludingSdip = newSchemeStatus.filterNot( s => s.schemeId == Scheme.SdipId)
+    val schemesExcludingSdip = newSchemeEvaluationResult.filterNot( s => s.schemeId == Scheme.SdipId)
     val faststreamSchemesRedOrWithdrawn = schemesExcludingSdip.forall{ s =>
       s.result == Red.toString || s.result == Withdrawn.toString
     }
 
-    if (sdipPassedSift && faststreamSchemesRedOrWithdrawn) {
+    if ((!sdipNeededSiftEvaluation || sdipPassedSift) && faststreamSchemesRedOrWithdrawn) {
       progressStatusOnlyBSON(ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN)
     } else {
       BSONDocument.empty
