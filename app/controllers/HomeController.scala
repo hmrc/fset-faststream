@@ -281,5 +281,4 @@ abstract class HomeController(
     } else {
       Future.successful(None)
     }
-
 }
