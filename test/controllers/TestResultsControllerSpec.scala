@@ -157,7 +157,7 @@ class TestResultsControllerSpec extends BaseControllerSpec {
     }
 
     val phase1Test1ResultsReportLink = "<a href=\"http://phase1Test1Url.com\"" +
-      " target=\"_blank\" id=\"FSWorkStyleQuestionnairePart1LinkResultsReport\">Results report</a>"
+      " target=\"_blank\" id=\"FSWorkStyleQuestionnairePart1LinkResultsReport\">Results report"
     def checkPhase1ResultsLinks(content: String) = {
       content must include("<div>FS Work Style Questionnaire Part 1</div>")
       content must include(phase1Test1ResultsReportLink)
@@ -169,7 +169,7 @@ class TestResultsControllerSpec extends BaseControllerSpec {
     }
 
     val phase2Test1ResultsReportLink = "<a href=\"http://phase2Test1Url.com\"" +
-      " target=\"_blank\" id=\"FSCaseStudyAssessmentLinkResultsReport\">Results report</a>"
+      " target=\"_blank\" id=\"FSCaseStudyAssessmentLinkResultsReport\">Results report"
     def checkPhase2ResultsLinks(content: String) = {
       content must include("<div>FS Case Study Assessment</div>")
       content must include(phase2Test1ResultsReportLink)

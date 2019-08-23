@@ -187,9 +187,9 @@
 
 @generatePsiTestId(psiTestPage: PsiTestPage) = {@Messages(psiTestPage.testNameKey).replace(" ", "").concat("LinkResultsReport")}
 
-@displayTestPageLink(testPage: PsiTestPage) = {
+@displayTestPageLink(testPage: PsiTestPage, testName: String) = {
     @testPage.testReportUrl.map { reportUrl =>
-        <a href="@reportUrl" target="_blank" id="@generatePsiTestId(testPage)">Results report</a>
+        <a href="@reportUrl" target="_blank" id="@generatePsiTestId(testPage)">Results report <span class="visuallyhidden">for @testName</span></a>
     }
 }
 
@@ -198,7 +198,7 @@
         <h3 class="bold-small">Phase 1 results</h3>
         @phase1Tests.tests.map { psiTestPage =>
             <div>@Messages(psiTestPage.testNameKey)</div>
-            <div>@displayTestPageLink(psiTestPage)</div>
+            <div>@displayTestPageLink(psiTestPage, Messages(psiTestPage.testNameKey))</div>
         }
     }
 }
@@ -208,7 +208,7 @@
         <h3 class="bold-small">Phase 2 results</h3>
         @phase2Tests.tests.map { psiTestPage =>
             <div>@Messages(psiTestPage.testNameKey)</div>
-            <div>@displayTestPageLink(psiTestPage)</div>
+            <div>@displayTestPageLink(psiTestPage, Messages(psiTestPage.testNameKey))</div>
         }
     }
 }
@@ -216,7 +216,11 @@
 @displayPhase3TestResultLink = {
     @page.phase3DataOpt.map { phase3Tests =>
         <h3 class="bold-small">Phase 3 results</h3>
-            <div><a href="@routes.Phase3FeedbackController.present" target="_blank" id="phase3ResultsReportLink" alt="Phase 3 results report">Results report</a></div>
+            <div>
+                <a href="@routes.Phase3FeedbackController.present" target="_blank" id="phase3ResultsReportLink" alt="Phase 3 results report">
+                    Results report <span class="visuallyhidden">for video interview</span>
+                </a>
+            </div>
     }
 }
 
