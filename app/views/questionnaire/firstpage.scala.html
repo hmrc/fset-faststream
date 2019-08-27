@@ -38,8 +38,7 @@
         @helper.CSRF.formField
         <section>
             <fieldset class="form-group">
-                <h2 class="form-label" id="gender-ques">@Messages("gender.question")</h2>
-                <legend class="visuallyhidden">@Messages("gender.question")</legend>
+                <legend><h2 class="form-label" id="gender-ques">@Messages("gender.question")</h2></legend>
                 @radioBoxVertical(questionnaireForm("gender"), options = models.view.questionnaire.Genders.list, optionTrigger = "gender-describe")
                 <div class="toggle-content form-group form-group-compound" id="gender-describe">
                 @helper.inputText(questionnaireForm("other_gender"),
@@ -54,8 +53,7 @@
 
         <section>
             <fieldset class="form-group">
-                <h2 class="form-label" id="orientation-ques">@Messages("sexOrientation.question")</h2>
-                <legend class="visuallyhidden">@Messages("sexOrientation.question")</legend>
+                <legend><h2 class="form-label" id="orientation-ques">@Messages("sexOrientation.question")</h2></legend>
                 @radioBoxVertical(questionnaireForm("sexOrientation"), options = models.view.questionnaire.SexOrientations.list, optionTrigger = "orientation-describe")
                 <div class="toggle-content form-group form-group-compound" id="orientation-describe">
                 @helper.inputText(questionnaireForm("other_sexOrientation"),

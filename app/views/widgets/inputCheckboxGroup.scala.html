@@ -40,8 +40,7 @@
 
 @helper.input(field, args.map{ x => if(x._1 == '_label) '_name -> x._2 else x }:_*) { (id, name, value, htmlArgs) =>
     <fieldset>
-        <h2 class="form-label" id="setLabel-@id">@args.map(x => if(x._1 == '_label) x._2 )</h2>
-        <legend class="visuallyhidden">@args.map(x => if(x._1 == '_label) x._2 )</legend>
+        <legend><h2 class="form-label" id="setLabel-@id">@args.map(x => if(x._1 == '_label) x._2 )</h2></legend>
         <div class="buttonset" id="@id">
         @defining(field.indexes.map( i => field("[%s]".format(i)).value ).flatten.toSet) { values =>
             @options.map { v =>
@@ -51,7 +50,7 @@
                         @v._2
                     </label>
                 </div>
-        
+
             }
         }
         </div>
