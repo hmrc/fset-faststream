@@ -27,8 +27,7 @@
 @helper.input(field, args:_*) { (id, name, value, _) =>
     <fieldset>
         @if(args.toMap.exists(_._1 == '_label)){
-            <h2 class="form-label">@args.toMap.getOrElse('_label, "")</h2>
-            <legend class="visuallyhidden">@args.toMap.getOrElse('_label, "")</legend>
+            <legend><h2 class="form-label">@args.toMap.getOrElse('_label, "")</h2></legend>
         }
         @if(args.toMap.exists(_._1 == '_help)){
             <p class="form-hint text">@args.toMap.getOrElse('_help, "")</p>
