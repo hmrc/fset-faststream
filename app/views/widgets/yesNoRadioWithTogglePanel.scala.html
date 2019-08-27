@@ -36,11 +36,11 @@
             <p class="form-hint text">@args.toMap.getOrElse('_help, "")</p>
         }
         <div class="form-group">
-            <label data-target="@formatId(id)-panel-yes" for="@formatId(id)-yes" class="block-label visuallyhidden">
+            <label data-target="@formatId(id)-panel-yes" for="@formatId(id)-yes" class="block-label">
                 <input name="@name" type="radio" id="@formatId(id)-yes" aria-controls="@formatId(id)-panel-yes"
                        aria-expanded="false" value="true" @selectRadio(value, "yes")>Yes
             </label>
-            <label data-target="@formatId(id)-panel-no" for="@formatId(id)-no" class="block-label visuallyhidden">
+            <label data-target="@formatId(id)-panel-no" for="@formatId(id)-no" class="block-label">
                 <input name="@name" type="radio" id="@formatId(id)-no" aria-controls="@formatId(id)-panel-no"
                        aria-expanded="false" value="false" @selectRadio(value, "no")>No
             </label>
