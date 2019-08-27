@@ -60,38 +60,24 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
   }
 
   "Unallocate candidate" must {
-    "unallocate candidates" in new TestFixture {
-      val eventId = "E1"
-      val sessionId = "S1"
-      val appId = "app1"
-      val userId = "userId"
-      val candidateAllocations = CandidateAllocations("v1", eventId, sessionId, Seq(CandidateAllocation(appId, AllocationStatuses.UNCONFIRMED)))
-      val persistedAllocations: Seq[persisted.CandidateAllocation] = model.persisted.CandidateAllocation.fromCommand(candidateAllocations)
-      val allocation: persisted.CandidateAllocation = persistedAllocations.head
-
-      when(mockCandidateAllocationRepository.isAllocationExists(any[String], any[String], any[String], any[Option[String]]))
-        .thenReturnAsync(true)
-      when(mockCandidateAllocationRepository.removeCandidateAllocation(any[persisted.CandidateAllocation])).thenReturnAsync()
-      when(mockAppRepo.resetApplicationAllocationStatus(any[String], any[EventType])).thenReturnAsync()
-
-      when(mockEventsService.getEvent(eventId)).thenReturnAsync(EventExamples.e1)
-      when(mockAppRepo.find(List(appId))).thenReturnAsync(CandidateExamples.NewCandidates)
-      when(mockPersonalDetailsRepo.find(any[String])).thenReturnAsync(PersonalDetailsExamples.JohnDoe)
-      when(mockContactDetailsRepo.find(any[String])).thenReturnAsync(ContactDetailsExamples.ContactDetailsUK)
-
-      when(mockEmailClient.sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturnAsync()
-
-      service.unAllocateCandidates(persistedAllocations.toList).futureValue
-
+    "unallocate candidate who is eligible for reallocation" in new TestFixture {
+      commonUnallocateCandidates(eligibleForReallocation = true)
       verify(mockCandidateAllocationRepository).removeCandidateAllocation(any[model.persisted.CandidateAllocation])
       verify(mockAppRepo).resetApplicationAllocationStatus(any[String], any[EventType])
+      verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier])
+    }
+
+    "unallocate candidate who is not eligible for reallocation" in new TestFixture {
+      commonUnallocateCandidates(eligibleForReallocation = false)
+
+      verify(mockCandidateAllocationRepository).removeCandidateAllocation(any[model.persisted.CandidateAllocation])
+      verify(mockAppRepo, never()).resetApplicationAllocationStatus(any[String], any[EventType])
       verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier])
     }
   }
 
   "find eligible candidates" must {
     "return all candidates except no-shows" in new TestFixture {
-
       private val fsacIndicator = model.FSACIndicator("","")
       private val c1 = CandidateEligibleForEvent("app1", "", "", needsAdjustment = true, fsbScoresAndFeedbackSubmitted = false,
         fsacIndicator, DateTime.now())
@@ -174,6 +160,31 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
           Candidate("Bob " + uid, "Smith", None, "bob@mailinator.com", None, uid, List("candidate"))
         )
       )
+    }
+
+    def commonUnallocateCandidates(eligibleForReallocation: Boolean) = {
+      val eventId = "E1"
+      val sessionId = "S1"
+      val appId = "app1"
+      val userId = "userId"
+      val candidateAllocations = CandidateAllocations("v1", eventId, sessionId, Seq(CandidateAllocation(appId, AllocationStatuses.UNCONFIRMED)))
+      val persistedAllocations: Seq[persisted.CandidateAllocation] = model.persisted.CandidateAllocation.fromCommand(candidateAllocations)
+
+      when(mockCandidateAllocationRepository.isAllocationExists(any[String], any[String], any[String], any[Option[String]]))
+        .thenReturnAsync(true)
+      when(mockCandidateAllocationRepository.removeCandidateAllocation(any[persisted.CandidateAllocation])).thenReturnAsync()
+      when(mockAppRepo.resetApplicationAllocationStatus(any[String], any[EventType])).thenReturnAsync()
+
+      when(mockEventsService.getEvent(eventId)).thenReturnAsync(EventExamples.e1)
+      when(mockAppRepo.find(List(appId))).thenReturnAsync(CandidateExamples.NewCandidates)
+      when(mockPersonalDetailsRepo.find(any[String])).thenReturnAsync(PersonalDetailsExamples.JohnDoe)
+      when(mockContactDetailsRepo.find(any[String])).thenReturnAsync(ContactDetailsExamples.ContactDetailsUK)
+
+      when(mockEmailClient.sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturnAsync()
+
+      service.unAllocateCandidates(persistedAllocations.toList, eligibleForReallocation).futureValue
+
+      verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier])
     }
   }
 }
