@@ -21,18 +21,22 @@
 
 <section>
     <div class="form-group form-group-compound">
-        <label class="form-label" for="postcodeQ">@Messages("postcode.question")</label>
-        <span class="form-hint text">The areas candidates lived in the UK at the age of 14 are used in our research to understand socio-economic background</span>
         @if(questionnaireForm("preferNotSay_postcodeQ").value.getOrElse("false")=="true") {
-            @helper.inputText(questionnaireForm("postcodeQ"),
-                '_label -> "",
+            @helper.input(questionnaireForm("postcodeQ"),
+                '_label -> Messages("postcode.question"),
                 'class -> "form-control",
                 '_showConstraints -> false,
                 'disabled -> "disabled"
-            )
+            ) {(id, name, value, args) =>
+                <label class="form-label" for="postcodeQ">@Messages("postcode.question")</label>
+                <span class="form-hint text">
+                    The areas candidates lived in the UK at the age of 14 are used in our research to understand socio-economic background
+                </span>
+                <input id="@{id}" name="@{name}" type="text" class="form-control" value="@value" @{ if(questionnaireForm("postcodeQ").value.contains("true")) "disabled='disabled'" }>
+            }
         } else {
             @helper.inputText(questionnaireForm("postcodeQ"),
-                '_label -> "",
+                '_label -> Messages("postcode.question"),
                 'class -> "form-control",
                 '_showConstraints -> false
             )

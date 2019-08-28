@@ -21,8 +21,7 @@
 
 <section>
     <fieldset class="form-group">
-        <h2 class="form-label">Do you consider yourself to have a disability?</h2>
-        <legend class="visuallyhidden">Do you consider yourself to have a disability?</legend>
+        <legend><h2 class="form-label">Do you consider yourself to have a disability?</h2></legend>
         @radioBoxHorizontal(form("hasDisability"), options = List(("yes", "Yes", true), ("no", "No", false),
             ("preferNotToSay", "I don't know/prefer not to say", false)), optionTrigger = "hasDisability-describe")
         <div class="toggle-content form-group form-group-compound" id="hasDisability-describe">
@@ -38,8 +37,7 @@
             </div>
             <div class="clearfix">
                 <fieldset>
-                    <h2 class="form-label">Would you like to apply under the guaranteed interview scheme?</h2>
-                    <legend class="visuallyhidden">Would you like to apply under the guaranteed interview scheme?</legend>
+                    <legend><h2 class="form-label">Would you like to apply under the guaranteed interview scheme?</h2></legend>
                     <p class="form-hint">Find out <a href="https://www.gov.uk/government/publications/civil-service-fast-stream-promoting-diversity-and-inclusion/civil-service-fast-stream-promoting-diversity-and-inclusion"
                     rel="external" target="_blank">more about this scheme</a></p>
                     @radioBox(form("guaranteedInterview"), options = Seq("Yes" -> "Yes", "No" -> "No"))

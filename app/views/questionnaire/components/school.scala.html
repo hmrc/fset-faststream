@@ -25,17 +25,16 @@
     </div>
     <section>
         <div class="form-group form-group-compound">
-            <h2 class="form-label text">@Messages("schoolName14to16.question")</h2>
-            <legend class="visuallyhidden">@Messages("schoolName14to16.question")</legend>
+            <legend> <h2 class="form-label text">@Messages("schoolName14to16.question")</h2></legend>
             @if(questionnaireForm("preferNotSay_schoolName14to16").value.getOrElse("false") == "true") {
                 @helper.inputText(questionnaireForm("schoolName14to16"),
-                    '_label -> "",
+                    '_label -> Messages("schoolName14to16.question"),
                     'class -> "form-control",
                     '_showConstraints -> false,
                     'disabled -> "disabled")
             } else {
                 @helper.inputText(questionnaireForm("schoolName14to16"),
-                    '_label -> "",
+                    '_label -> Messages("schoolName14to16.question"),
                     'class -> "form-control",
                     '_showConstraints -> false)
             }
@@ -53,17 +52,16 @@
     </section>
     <section>
         <div class="form-group form-group-compound">
-            <h2 class="form-label text">@Messages("schoolName16to18.question")</h2>
-            <legend class="visuallyhidden">@Messages("schoolName16to18.question")</legend>
+            <legend><h2 class="form-label text">@Messages("schoolName16to18.question")</h2></legend>
             @if(questionnaireForm("preferNotSay_schoolName16to18").value.getOrElse("false") == "true") {
                 @helper.inputText(questionnaireForm("schoolName16to18"),
-                    '_label -> "",
+                    '_label -> Messages("schoolName16to18.question"),
                     'class -> "form-control",
                     '_showConstraints -> false,
                     'disabled -> "disabled")
             } else {
                 @helper.inputText(questionnaireForm("schoolName16to18"),
-                    '_label -> "",
+                    '_label -> Messages("schoolName16to18.question"),
                     'class -> "form-control",
                     '_showConstraints -> false)
             }
@@ -77,8 +75,7 @@
     </section>
     <section>
         <div class="text">
-            <h2 class="form-label text">@Messages("freeSchoolMeals.question")</h2>
-            <legend class="visuallyhidden">@Messages("freeSchoolMeals.question")</legend>
+            <legend><h2 class="form-label text">@Messages("freeSchoolMeals.question")</h2></legend>
             <span class="form-hint">We ask this as another key indicator of socio-economic background</span>
             @radioBox(questionnaireForm("freeSchoolMeals"), options = Seq("Yes" -> "Yes", "No" -> "No",
                 "Unknown/prefer not to say" -> "I don't know/prefer not to say"))

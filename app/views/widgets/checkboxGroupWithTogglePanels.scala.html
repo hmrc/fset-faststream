@@ -21,8 +21,7 @@
 
 @helper.input(field, args:_*) { (id, name, value, htmlArgs) =>
     <fieldset>
-        <h2 class="form-label">@args.map(x => if(x._1 == '_label) x._2 )</h2>
-        <legend class="visuallyhidden">@args.map(x => if(x._1 == '_label) x._2 )</legend>
+        <legend><h2 class="form-label">@args.map(x => if(x._1 == '_label) x._2 )</h2></legend>
         <div class="form-group">
             @defining(field.indexes.flatMap(i => field("[%s]".format(i)).value).toSet) { values =>
             @options.map { v =>

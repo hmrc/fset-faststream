@@ -25,8 +25,7 @@
 
 @helper.input(field, '_class -> "inline") { (id, name, value, _) =>
     <fieldset>
-        <h2 class="form-label">@question</h2>
-        <legend class="visuallyhidden">@question</legend>
+        <legend><h2 class="form-label">@question</h2></legend>
         @if(description.isDefined) {
             <p>@Html(description.get)</p>
         }
