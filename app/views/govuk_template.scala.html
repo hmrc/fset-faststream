@@ -112,37 +112,33 @@
                 </main>
             </div>
                 <!-- Footer -->
-            <footer class="gov-border" role="contentinfo">
-                <div class="footer__wrapper">
-                    <div class="footer__meta">
-                        <ul class="footer__nav" role="navigation">
-                            <li class="small-btm-margin">
-                                <div>
-                                    <a id="contactUs" class="footer__link bold-medium" href="@routes.ApplicationController.helpdesk()" target="_blank">Contact us</a>
-                                    <a class="footer__link bold-medium" href="@feedbackUrl" target="_blank" rel="external">Give feedback</a>
-                                </div>
-                            </li>
-                            <li class="footer__link"><a href="@routes.ApplicationController.privacy()">Privacy Notice</a>
-                            </li>
-                            <li class="footer__link"><a href="@routes.ApplicationController.cookies()">Cookies</a>
-                            </li>
-                            <li class="footer__link"><a href="@routes.ApplicationController.terms()">Terms and conditions</a>
-                            </li>
-                            <li class="footer__link">Built by <a href="https://www.gov.uk/government/organisations/civil-service-resourcing"
-                            target="_blank">Civil Service Resourcing</a>
-                            </li>
-                            <li class="footer__ogl hide-print"><a href="http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3"
-                            class="ir ogl-logo" target="_blank">OGL</a>
-                                All content is available under the <a href="http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3" target="_blank">Open Government Licence v3.0</a>
-                                ,
-                                except where otherwise stated
-                            </li>
-                        </ul>
-                        <a class="footer__copyright" href="http://www.nationalarchives.gov.uk/information-management/our-services/crown-copyright.htm"
-                        target="_blank">
-                            <img src='@routes.Assets.versioned("img/govuk-crest-2x.png")' width="125" height="102" alt="Crown copyright logo">
-                            <p>&copy; Crown copyright</p>
-                        </a>
+            <footer class="footer" role="contentinfo">
+                <div class="footer-wrapper">
+                    <div class="footer-meta">
+                        <div class="footer-meta__inner">
+                            <nav class="footer-nav" role="navigation">
+                                <h2 class="visuallyhidden">Support links</h2>
+
+                                <ul class="footer-meta__list footer-meta__list--condensed">
+                                    <li class="footer-meta__list-item"><a class="bold-medium" href="@routes.ApplicationController.helpdesk()">Contact us</a></li>
+                                    <li class="footer-meta__list-item"><a class="bold-medium" href="@feedbackUrl" rel="external">Give feedback</a></li>
+                                </ul>
+
+                                <ul class="footer-meta__list footer-meta__list--short">
+                                    <li class="footer-meta__list-item"><a href="@routes.ApplicationController.privacy()">Privacy Notice</a></li>
+                                    <li class="footer-meta__list-item"><a href="@routes.ApplicationController.cookies()">Cookies</a></li>
+                                    <li class="footer-meta__list-item"><a href="/faststream/terms.html">Terms and conditions</a></li>
+                                    <li class="footer-meta__list-item">Built by <a href="@routes.ApplicationController.terms()" target="_blank">Civil Service Resourcing</a></li>
+                                </ul>
+
+                                <div class="footer__ogl hide-print"><a href="http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3" class="ir ogl-logo">OGL</a>All content is available under the <a href="http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3">Open Government Licence v3.0</a>, except where otherwise stated</div>
+                            </nav>
+
+                            <a class="footer__copyright" href="http://www.nationalarchives.gov.uk/information-management/our-services/crown-copyright.htm" target="_blank">
+                                <img src='@routes.Assets.versioned("img/govuk-crest-2x.png")' width="125" height="102" alt="Crown copyright logo">
+                                <p>&copy; Crown copyright</p>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </footer> <!-- end of footer -->
@@ -165,7 +161,7 @@
             }
             <script src='@routes.Assets.versioned("js/vendor/fastclick-1.0.6.min.js")'></script>
             <script src='@routes.Assets.versioned("js/scripts.js")'></script>
-            
+
         </body>
     </html>
 
