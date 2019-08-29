@@ -23,18 +23,18 @@
 
         <h1 id="accountCreated" class="heading-xlarge">Activate your account</h1>
         <p class="text">
-            We've sent an email to <b>@email</b> with a <span class="inl-block">7-character</span> code you'll need to activate your account.
+            We've sent an email to <b class="break-word">@email</b> with a <span class="inl-block">7-character</span> code you'll need to activate your account.
         </p>
 
         @helper.form(action = routes.ActivationController.activateForm(), 'id -> "activateForm", 'novalidate -> "novalidate") {
             @helper.CSRF.formField
-            @helper.inputText(activationForm("activation"), 
-            '_label -> "Activation code", 
+            @helper.inputText(activationForm("activation"),
+            '_label -> "Activation code",
             '_hasLink -> true,
             'autofocus -> true,
             'autocapitalize -> "characters",
             'autocorrect -> "off",
-            'class -> "form-control", 
+            'class -> "form-control",
             '_showConstraints -> false)
             <p class="hide-nojs"><a class="hide-nojs" id="resend" href="#" onclick="$('#resendForm').submit()">Resend code</a></p>
             <div class="form-group">
