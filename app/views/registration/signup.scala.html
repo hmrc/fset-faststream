@@ -118,11 +118,13 @@
                         <div id="confirmpwd_field" class="form-group">
                             <label for="confirmpwd" class="form-label">Confirm password</label>
                             <input id="confirmpwd" name="confirmpwd" type="password" class="form-control confirm-password">
-                            <div id="matchingHint" class="invisible">
-                                <p class="form-hint">Password matching:
-                                    <span id="pass_match" class="strength-weak"></span>
-                                </p>
-                            </div>
+@*                            Removing this as it's causes duplicate elements which fails accessibility test. It is *@
+@*                            dynamically added via javascript*@
+@*                            <div id="matchingHint" class="invisible">*@
+@*                                <p class="form-hint">Password matching:*@
+@*                                    <span id="pass_match" class="strength-weak"></span>*@
+@*                                </p>*@
+@*                            </div>*@
                         </div>
                     </div>
                     <div class="panel-danger hidden" id="errorPassword" role="alert">
