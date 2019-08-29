@@ -27,8 +27,9 @@
             optionTrigger = "needsSupportAtVenue-describe")
         <div id="needsSupportAtVenue-describe" class="toggle-content" aria-hidden="true">
             <div class="form-group">
+                <label for="needsSupportAtVenueDescription" class="form-label">What adjustments will you need <span class='visuallyhidden'>at the assessment centre?</span></label>
                 @helper.textarea(form("needsSupportAtVenueDescription"),
-                    '_label -> "What adjustments will you need?",
+                    '_label -> "",
                     'class -> "form-control",
                     'rows -> 4,
                     'dataValLengthMax -> "2048",

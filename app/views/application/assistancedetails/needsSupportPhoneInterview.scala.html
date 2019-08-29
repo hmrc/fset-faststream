@@ -28,8 +28,9 @@
             optionTrigger = "needsSupportForOnlineAssessment-describe")
         <div id="needsSupportForOnlineAssessment-describe" class="toggle-content" aria-hidden="true">
             <div class="form-group">
+                <label for="needsSupportForPhoneInterviewDescription" class="form-label">What adjustments will you need <span class='visuallyhidden'>for your phone interview?</span></label>
                 @helper.textarea(form("needsSupportForPhoneInterviewDescription"),
-                    '_label -> "What adjustments will you need?",
+                    '_label -> "",
                     'class -> "form-control",
                     'rows -> 4,
                     'dataValLengthMax -> "2048",
