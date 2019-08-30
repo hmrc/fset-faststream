@@ -14,7 +14,7 @@
  * limitations under the License.
  *@
 
-@(title: String, user: Option[CachedData] = None, additionalJavascriptFilenames: List[String] = Nil)(mainContent: Html)(implicit request: Request[_], feedbackUrl: String)
+@(title: String, user: Option[CachedData] = None, additionalJavascriptFilenames: List[String] = Nil, idElementFirstError: Option[String] = None)(mainContent: Html)(implicit request: Request[_], feedbackUrl: String)
 
 @import config.FrontendAppConfig
 @import views.html.template.userDetails
@@ -66,7 +66,7 @@
                 routes.javascript.SchoolsController.getSchools
             )
         </head>
-        <body>
+            <body @idElementFirstError.map{id => onload="document.getElementById('@id'+'_field').focus()"}>
             @if(!CookiePolicy.bannerSeen(request)) {
                 <div id="global-cookie-message" class="cookie-banner">
                     <div class="content-container" role="alert">

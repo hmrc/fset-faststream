@@ -18,12 +18,12 @@
 
 @defining(forms.flatMap(_.errors)) { errors =>
   @if(errors.nonEmpty) {
-      <div id="validation-summary" class="form-group validation-summary-errors toggle-content" role="alert" style="display: block;" >
-          <h1 class="heading-small">Check and amend the following errors:</h1>
+      <div id="validation-summary" class="form-group validation-summary-errors toggle-content" role="alert" style="display: block;" aria-labelledby="error-summary-title">
+          <h1 id="error-summary-title" class="heading-small">There is a problem:</h1>
           <ul>
           @for(error <- errors) {
               <li>
-                  <a href="#@{error.key}_field">
+                  <a id="@{error.key}_field" href="#@{error.key}_field">
                   @Messages(error.messages.head, error.args: _*)
                   </a>
               </li>
