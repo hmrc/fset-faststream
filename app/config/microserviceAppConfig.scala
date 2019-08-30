@@ -97,6 +97,7 @@ case class TestIntegrationGatewayConfig(url: String,
                                     emailDomain: String
 )
 
+//TODO these should not be optional
 case class PsiTestIds(inventoryId: String, assessmentId: Option[String],
                       reportId: Option[String], normId: Option[String])
 
