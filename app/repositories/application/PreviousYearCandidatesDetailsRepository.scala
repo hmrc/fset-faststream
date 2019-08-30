@@ -16,7 +16,7 @@
 
 package repositories.application
 
-import config.NumericalTestsConfig
+import config.{ NumericalTestsConfig, PsiTestIds }
 import connectors.launchpadgateway.exchangeobjects.in.reviewed._
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
@@ -72,7 +72,8 @@ trait PreviousYearCandidatesDetailsRepository {
     "FSB_RESULT_ENTERED,FSB_PASSED,FSB_FAILED,ALL_FSBS_AND_FSACS_FAILED,ALL_FSBS_AND_FSACS_FAILED_NOTIFIED," +
     "ELIGIBLE_FOR_JOB_OFFER,ELIGIBLE_FOR_JOB_OFFER_NOTIFIED,WITHDRAWN,"
 
-  val fsacCompetencyHeaders = "FSAC passedMinimumCompetencyLevel,analysisAndDecisionMakingAverage,buildingProductiveRelationshipsAverage,leadingAndCommunicatingAverage,strategicApproachToObjectivesAverage,overallScore,"
+  val fsacCompetencyHeaders = "FSAC passedMinimumCompetencyLevel," +
+    "makingEffectiveDecisionsAverage,workingTogetherDevelopingSelfAndOthersAverage,communicatingAndInfluencingAverage,seeingTheBigPictureAverage,overallScore,"
 
   private def appTestResults(numOfSchemes: Int) = {
     val otherColumns = "result," * (numOfSchemes - 2) + "result"
@@ -89,28 +90,31 @@ trait PreviousYearCandidatesDetailsRepository {
     appTestResults(numOfSchemes) +
     ",FSAC Indicator area,FSAC Indicator Assessment Centre"
 
+  def testTitles(testName: String) = s"$testName inventoryId,orderId,normId,reportId,assessmentId,testUrl,invitationDate,startedDateTime," +
+    s"completedDateTime,tScore,rawScore,testReportUrl,"
+
+  val assistanceDetailsHeaders = "Do you have a disability,Provide more info,GIS,Extra support online tests," +
+    "What adjustments will you need,Extra support f2f,What adjustments will you need,Extra support phone interview,What adjustments will you need," +
+    "E-Tray time extension,E-Tray invigilated,E-Tray invigilated notes,E-Tray other notes,Video time extension,Video invigilated,Video invigilated notes," +
+    "Video other notes,Additional comments,Adjustments confirmed,"
 
   def applicationDetailsHeader(numOfSchemes: Int) = "applicationId,userId,Framework ID,Application Status,Route,First name,Last name,Preferred Name,Date of Birth," +
     "Are you eligible,Terms and Conditions," +
     "Currently a Civil Servant done SDIP or EDIP,Currently Civil Servant,Currently Civil Service via Fast Track," +
     "EDIP,SDIP,Eligible for Fast Pass,Fast Pass No,Scheme preferences,Scheme names,Are you happy with order,Are you eligible," +
-    "Do you want to defer,Deferal selections,Do you have a disability,Provide more info,GIS,Extra support online tests," +
-    "What adjustments will you need,Extra support f2f,What adjustments will you need,Extra support phone interview,What adjustments will you need," +
-    "E-Tray time extension,E-Tray invigilated,E-Tray invigilated notes,E-Tray other notes,Video time extension,Video invigilated,Video invigilated notes," +
-    "Video other notes,Additional comments,Adjustments confirmed,I understand this wont affect application," +
-    "PHASE1 tests behavioural scheduleId,cubiksUserId,Cubiks token," +
-    "Behavioural testUrl,invitationDate,participantScheduleId,startedDateTime,completedDateTime,reportId,reportLinkURL," +
-    "Behavioural T-score," +
-    "Behavioural Percentile,Behavioural Raw,Behavioural STEN,Situational scheduleId,cubiksUserId,Cubiks token," +
-    "Situational testUrl,invitationDate,participantScheduleId,startedDateTime,completedDateTime,reportId," +
-    "reportLinkURL," +
-    "Situational T-score,Situational Percentile,Situational Raw,Situational STEN," +
-    "PHASE_2 scheduleId,cubiksUserId,token,testUrl,invitationDate,participantScheduleId,startedDateTime,completedDateTime,reportLinkURL,reportId," +
-    "e-Tray T-score,e-Tray Raw," +
+    assistanceDetailsHeaders +
+    "I understand this wont affect application," +
+    testTitles("Phase1 test1") +
+    testTitles("Phase1 test2") +
+    testTitles("Phase1 test3") +
+    testTitles("Phase1 test4") +
+    testTitles("Phase2 test1") +
+    testTitles("Phase2 test2") +
+    // Phase 3 test columns
     "PHASE_3 interviewId,token,candidateId,customCandidateId,comment,PHASE_3 last reviewed callback,Q1 Capability,Q1 Engagement,Q2 Capability,Q2 Engagement,Q3 Capability," +
     "Q3 Engagement,Q4 Capability,Q4 Engagement,Q5 Capability,Q5 Engagement,Q6 Capability,Q6 Engagement,Q7 Capability," +
     "Q7 Engagement,Q8 Capability,Q8 Engagement,Overall total," +
-    "Sift scheduleId,cubiksUserId,token,testUrl,invitationDate,participantScheduleId,startedDateTime,completedDateTime,reportId,Sift tScore,Sift raw," +
+    testTitles("Sift") +
     "Fsb overall score,Fsb feedback," +
     appTestStatuses +
     fsacCompetencyHeaders +
@@ -137,19 +141,18 @@ trait PreviousYearCandidatesDetailsRepository {
     "undergrad degree name,classification,graduationYear,moduleDetails," +
     "postgrad degree name,classification,graduationYear,moduleDetails," + allSchemes.mkString(",")
 
-
   val dataAnalystSiftAnswersHeader: String = "Nationality,Undergrad degree name,Classification,Graduation year"
 
   val assessmentScoresNumericFields = Seq(
-    "analysisExercise" -> "analysisAndDecisionMakingAverage,leadingAndCommunicatingAverage,strategicApproachToObjectivesAverage",
-    "leadershipExercise" -> "buildingProductiveRelationshipsAverage,leadingAndCommunicatingAverage,strategicApproachToObjectivesAverage",
-    "groupExercise" -> "analysisAndDecisionMakingAverage,leadingAndCommunicatingAverage,buildingProductiveRelationshipsAverage"
+    "analysisExercise" -> "makingEffectiveDecisionsAverage,communicatingAndInfluencingAverage,seeingTheBigPictureAverage",
+    "leadershipExercise" -> "workingTogetherDevelopingSelfAndOthersAverage,communicatingAndInfluencingAverage,seeingTheBigPictureAverage",
+    "groupExercise" -> "makingEffectiveDecisionsAverage,communicatingAndInfluencingAverage,workingTogetherDevelopingSelfAndOthersAverage"
   )
 
   val assessmentScoresFeedbackFields = Seq(
-    "analysisExercise" -> "analysisAndDecisionMakingFeedback,leadingAndCommunicatingFeedback,strategicApproachToObjectivesFeedback",
-    "leadershipExercise" -> "buildingProductiveRelationshipsFeedback,leadingAndCommunicatingFeedback,strategicApproachToObjectivesFeedback",
-    "groupExercise" -> "analysisAndDecisionMakingFeedback,leadingAndCommunicatingFeedback,buildingProductiveRelationshipsFeedback"
+    "analysisExercise" -> "makingEffectiveDecisionsFeedback,communicatingAndInfluencingFeedback,seeingTheBigPictureFeedback",
+    "leadershipExercise" -> "workingTogetherDevelopingSelfAndOthersFeedback,communicatingAndInfluencingFeedback,seeingTheBigPictureFeedback",
+    "groupExercise" -> "makingEffectiveDecisionsFeedback,communicatingAndInfluencingFeedback,workingTogetherDevelopingSelfAndOthersFeedback"
   )
 
   val assessmentScoresNumericFieldsMap: Map[String, String] = assessmentScoresNumericFields.toMap
@@ -275,18 +278,23 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
             civilServiceExperienceCheckInternshipType(civilServiceInternshipTypes, InternshipType.EDIP.toString) :::
             civilServiceExperienceCheckInternshipType(civilServiceInternshipTypes, InternshipType.SDIPPreviousYear.toString) :::
             civilServiceExperienceCheckInternshipType(civilServiceInternshipTypes, InternshipType.SDIPCurrentYear.toString) :::
-            List(fastPassCertificateNo) :::
-            List(schemePrefsAsString) :::
-            List(schemesYesNoAsString) :::
-            List(progressResponseReachedYesNo(progressResponse.schemePreferences)) :::
-            List(progressResponseReachedYesNo(progressResponse.schemePreferences)) :::
+            List(fastPassCertificateNo) ::: //Fast Pass No
+            List(schemePrefsAsString) ::: //Scheme preferences
+            List(schemesYesNoAsString) ::: //Scheme names
+            List(progressResponseReachedYesNo(progressResponse.schemePreferences)) ::: //Are you happy with order
+            List(progressResponseReachedYesNo(progressResponse.schemePreferences)) ::: //Are you eligible
             assistanceDetails(doc) :::
-            List(progressResponseReachedYesNo(progressResponse.questionnaire.nonEmpty)) :::
-            onlineTestResults("bq") :::
-            onlineTestResults("sjq") :::
-            onlineTestResults("etray") :::
+            List(progressResponseReachedYesNo(progressResponse.questionnaire.nonEmpty)) ::: //I understand this wont affect application
+
+            onlineTestResults(Tests.Phase1Test1.toString) :::
+            onlineTestResults(Tests.Phase1Test2.toString) :::
+            onlineTestResults(Tests.Phase1Test3.toString) :::
+            onlineTestResults(Tests.Phase1Test4.toString) :::
+            onlineTestResults(Tests.Phase2Test1.toString) :::
+            onlineTestResults(Tests.Phase2Test2.toString) :::
             videoInterview(doc) :::
-            onlineTestResults("sift") :::
+            onlineTestResults(Tests.SiftTest.toString) :::
+
             fsbScoresAndFeedback(doc) :::
             progressStatusTimestamps(doc) :::
             fsacCompetency(doc) :::
@@ -1058,118 +1066,152 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     val testSection = testGroups.getAs[BSONDocument]("FSAC")
     val testsEvaluation = testSection.getAs[BSONDocument]("evaluation")
 
-
     val passedMin = testsEvaluation.getAs[Boolean]("passedMinimumCompetencyLevel").map(_.toString)
     val competencyAvg = testsEvaluation.getAs[BSONDocument]("competency-average")
     passedMin :: List(
-      "analysisAndDecisionMakingAverage",
-      "buildingProductiveRelationshipsAverage",
-      "leadingAndCommunicatingAverage",
-      "strategicApproachToObjectivesAverage",
+      "makingEffectiveDecisionsAverage",
+      "workingTogetherDevelopingSelfAndOthersAverage",
+      "communicatingAndInfluencingAverage",
+      "seeingTheBigPictureAverage",
       "overallScore"
     ).map { f => competencyAvg.getAs[Double](f) map (_.toString) }
   }
 
   private def onlineTests(doc: BSONDocument): Map[String, List[Option[String]]] = {
+
+    def getInventoryId(config: Map[String, PsiTestIds], testName: String, phase: String) =
+      config.getOrElse(testName, throw new Exception(s"No inventoryId found for $phase $testName")).inventoryId
+
+    def extractDataFromTest(test: Option[BSONDocument]) = {
+      val testResults = test.flatMap ( _.getAs[BSONDocument]("testResult") )
+
+      List(
+        test.getAsStr[String]("inventoryId"),
+        test.getAsStr[String]("orderId"),
+        test.getAsStr[String]("normId"),
+        test.getAsStr[String]("reportId"),
+        test.getAsStr[String]("assessmentId"),
+        test.getAsStr[String]("testUrl"),
+        test.getAsStr[DateTime]("invitationDate"),
+        test.getAsStr[DateTime]("startedDateTime"),
+        test.getAsStr[DateTime]("completedDateTime"),
+        testResults.getAsStr[Double]("tScore"),
+        testResults.getAsStr[Double]("rawScore"),
+        testResults.getAsStr[String]("testReportUrl")
+      )
+    }
+
     val testGroups = doc.getAs[BSONDocument]("testGroups")
-    val onlineTestSection = testGroups.flatMap(_.getAs[BSONDocument]("PHASE1"))
-    val onlineTests = onlineTestSection.flatMap(_.getAs[List[BSONDocument]]("tests"))
-    val etrayTestSection = testGroups.flatMap(_.getAs[BSONDocument]("PHASE2"))
-    val etrayTests = etrayTestSection.flatMap(_.getAs[List[BSONDocument]]("tests"))
 
-    val bqTest = onlineTests.flatMap(_.find(test => test.getAs[Int]("scheduleId").get == onlineTestsGatewayConfig.phase1Tests.scheduleIds("bq") && test.getAs[Boolean]("usedForResults").getOrElse(false)))
-    val bqTestResults = bqTest.flatMap {
-      _.getAs[BSONDocument]("testResult")
-    }
+    // Phase1 data
+    val phase1TestSection = testGroups.flatMap(_.getAs[BSONDocument]("PHASE1"))
+    val phase1Tests = phase1TestSection.flatMap(_.getAs[List[BSONDocument]]("tests"))
 
-    val sjqTest = onlineTests.flatMap(_.find(test => test.getAs[Int]("scheduleId").get == onlineTestsGatewayConfig.phase1Tests.scheduleIds("sjq") && test.getAs[Boolean]("usedForResults").getOrElse(false)))
-    val sjqTestResults = sjqTest.flatMap {
-      _.getAs[BSONDocument]("testResult")
-    }
+    val phase1TestConfig = testIntegrationGatewayConfig.phase1Tests.tests
 
-    val validEtrayScheduleIds = onlineTestsGatewayConfig.phase2Tests.schedules.values.map(_.scheduleId).toList
+    val test1InventoryId = getInventoryId(phase1TestConfig, "test1", "phase1")
+    val test2InventoryId = getInventoryId(phase1TestConfig, "test2", "phase1")
+    val test3InventoryId = getInventoryId(phase1TestConfig, "test3", "phase1")
+    val test4InventoryId = getInventoryId(phase1TestConfig, "test4", "phase1")
 
-    val etrayTest = etrayTests.flatMap(_.find(test => validEtrayScheduleIds.contains(test.getAs[Int]("scheduleId").get) && test.getAs[Boolean]("usedForResults").getOrElse(false)))
+    val phase1Test1 = phase1Tests.flatMap( tests =>
+      tests.find { test =>
+        test.getAs[String]("inventoryId").get == test1InventoryId && test.getAs[Boolean]("usedForResults").getOrElse(false)
+      }
+    )
+    val phase1Test2 = phase1Tests.flatMap( tests =>
+      tests.find { test =>
+        test.getAs[String]("inventoryId").get == test2InventoryId && test.getAs[Boolean]("usedForResults").getOrElse(false)
+      }
+    )
+    val phase1Test3 = phase1Tests.flatMap( tests =>
+      tests.find { test =>
+        test.getAs[String]("inventoryId").get == test3InventoryId && test.getAs[Boolean]("usedForResults").getOrElse(false)
+      }
+    )
+    val phase1Test4 = phase1Tests.flatMap( tests =>
+      tests.find { test =>
+        test.getAs[String]("inventoryId").get == test4InventoryId && test.getAs[Boolean]("usedForResults").getOrElse(false)
+      }
+    )
 
-    val etrayResults = etrayTest.flatMap {
-      _.getAs[BSONDocument]("testResult")
-    }
+    // Phase2 data
+    val phase2TestConfig = testIntegrationGatewayConfig.phase2Tests.tests
+
+    val phase2Test1InventoryId = getInventoryId(phase2TestConfig, "test1", "phase2")
+    val phase2Test2InventoryId = getInventoryId(phase2TestConfig, "test2", "phase2")
+
+    val phase2TestSection = testGroups.flatMap(_.getAs[BSONDocument]("PHASE2"))
+    val phase2Tests = phase2TestSection.flatMap(_.getAs[List[BSONDocument]]("tests"))
+
+    val phase2Test1 = phase2Tests.flatMap( tests =>
+      tests.find { test =>
+        test.getAs[String]("inventoryId").get == phase2Test1InventoryId && test.getAs[Boolean]("usedForResults").getOrElse(false)
+      }
+    )
+    val phase2Test2 = phase2Tests.flatMap( tests =>
+      tests.find { test =>
+        test.getAs[String]("inventoryId").get == phase2Test2InventoryId && test.getAs[Boolean]("usedForResults").getOrElse(false)
+      }
+    )
+
+    // Sift data
+    val siftTestConfig = testIntegrationGatewayConfig.numericalTests.tests
+
+    val siftTestInventoryId = getInventoryId(siftTestConfig, "test1", "sift")
 
     val siftTestSection = testGroups.flatMap(_.getAs[BSONDocument]("SIFT_PHASE"))
     val siftTests = siftTestSection.flatMap(_.getAs[List[BSONDocument]]("tests"))
 
-    val siftTest = siftTests.flatMap(_.find(test => test.getAs[Int]("scheduleId").get ==
-      onlineTestsGatewayConfig.numericalTests.schedules(NumericalTestsConfig.numericalTestScheduleName).scheduleId
-      && test.getAs[Boolean]("usedForResults").getOrElse(false)))
-    val siftTestResults = siftTest.flatMap {
-      _.getAs[BSONDocument]("testResult")
-    }
+    val siftTest = siftTests.flatMap( tests =>
+      tests.find { test =>
+        test.getAs[String]("inventoryId").get == siftTestInventoryId && test.getAs[Boolean]("usedForResults").getOrElse(false)
+      }
+    )
 
     Map(
-      "bq" ->
-        List(
-          bqTest.getAsStr[Int]("scheduleId"),
-          bqTest.getAsStr[Int]("cubiksUserId"),
-          bqTest.getAsStr[String]("token"),
-          bqTest.getAsStr[String]("testUrl"),
-          bqTest.getAsStr[DateTime]("invitationDate"),
-          bqTest.getAsStr[Int]("participantScheduleId"),
-          bqTest.getAsStr[DateTime]("startedDateTime"),
-          bqTest.getAsStr[DateTime]("completedDateTime"),
-          bqTest.getAsStr[Int]("reportId"),
-          bqTest.getAsStr[String]("reportLinkURL"),
-          bqTestResults.getAsStr[Double]("tScore"),
-          bqTestResults.getAsStr[Double]("percentile"),
-          bqTestResults.getAsStr[Double]("raw"),
-          bqTestResults.getAsStr[Double]("sten")
-        ),
-      "sjq" ->
-        List(
-          sjqTest.getAsStr[Int]("scheduleId"),
-          sjqTest.getAsStr[Int]("cubiksUserId"),
-          sjqTest.getAsStr[String]("token"),
-          sjqTest.getAsStr[String]("testUrl"),
-          sjqTest.getAsStr[DateTime]("invitationDate"),
-          sjqTest.getAsStr[Int]("participantScheduleId"),
-          sjqTest.getAsStr[DateTime]("startedDateTime"),
-          sjqTest.getAsStr[DateTime]("completedDateTime"),
-          sjqTest.getAsStr[Int]("reportId"),
-          sjqTest.getAsStr[String]("reportLinkURL"),
-          sjqTestResults.getAsStr[Double]("tScore"),
-          sjqTestResults.getAsStr[Double]("percentile"),
-          sjqTestResults.getAsStr[Double]("raw"),
-          sjqTestResults.getAsStr[Double]("sten")
-        ),
-      "etray" ->
-        List(
-          etrayTest.getAsStr[Int]("scheduleId"),
-          etrayTest.getAsStr[Int]("cubiksUserId"),
-          etrayTest.getAsStr[String]("token"),
-          etrayTest.getAsStr[String]("testUrl"),
-          etrayTest.getAsStr[DateTime]("invitationDate"),
-          etrayTest.getAsStr[Int]("participantScheduleId"),
-          etrayTest.getAsStr[DateTime]("startedDateTime"),
-          etrayTest.getAsStr[DateTime]("completedDateTime"),
-          etrayTest.getAsStr[Int]("reportId"),
-          etrayTest.getAsStr[String]("reportLinkURL"),
-          etrayResults.getAsStr[Double]("tScore"),
-          etrayResults.getAsStr[Double]("raw")
-        ),
-      "sift" ->
-        List(
-          siftTest.getAsStr[Int]("scheduleId"),
-          siftTest.getAsStr[Int]("cubiksUserId"),
-          siftTest.getAsStr[String]("token"),
-          siftTest.getAsStr[String]("testUrl"),
-          siftTest.getAsStr[DateTime]("invitationDate"),
-          siftTest.getAsStr[Int]("participantScheduleId"),
-          siftTest.getAsStr[DateTime]("startedDateTime"),
-          siftTest.getAsStr[DateTime]("completedDateTime"),
-          siftTest.getAsStr[Int]("reportId"),
-          siftTestResults.getAsStr[Double]("tScore"),
-          siftTestResults.getAsStr[Double]("raw")
-        )
+      Tests.Phase1Test1.toString -> extractDataFromTest(phase1Test1),
+      Tests.Phase1Test2.toString -> extractDataFromTest(phase1Test2),
+      Tests.Phase1Test3.toString -> extractDataFromTest(phase1Test3),
+      Tests.Phase1Test4.toString -> extractDataFromTest(phase1Test4),
+      Tests.Phase2Test1.toString -> extractDataFromTest(phase2Test1),
+      Tests.Phase2Test2.toString -> extractDataFromTest(phase2Test2),
+      Tests.SiftTest.toString -> extractDataFromTest(siftTest)
     )
+  }
+
+  object Tests {
+    sealed abstract class Test {
+      def name: String
+    }
+
+    case object Phase1Test1 extends Test {
+      override def name = "phase1test1"
+    }
+
+    case object Phase1Test2 extends Test {
+      override def name = "phase1test2"
+    }
+
+    case object Phase1Test3 extends Test {
+      override def name = "phase1test3"
+    }
+
+    case object Phase1Test4 extends Test {
+      override def name = "phase1test4"
+    }
+
+    case object Phase2Test1 extends Test {
+      override def name = "phase2test1"
+    }
+
+    case object Phase2Test2 extends Test {
+      override def name = "phase2test2"
+    }
+
+    case object SiftTest extends Test {
+      override def name = "siftTest"
+    }
   }
 
   private def assistanceDetails(doc: BSONDocument): List[Option[String]] = {
