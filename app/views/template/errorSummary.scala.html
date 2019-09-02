@@ -23,7 +23,7 @@
           <ul>
           @for(error <- errors) {
               <li>
-                  <a id="@{error.key}_field" href="#@{error.key}_field">
+                  <a id="@{error.key}_errorSummaryItem" href="#@{error.key}_field">
                   @Messages(error.messages.head, error.args: _*)
                   </a>
               </li>

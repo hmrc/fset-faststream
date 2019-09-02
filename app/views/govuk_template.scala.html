@@ -66,7 +66,7 @@
                 routes.javascript.SchoolsController.getSchools
             )
         </head>
-            <body @idElementFirstError.map{id => onload="document.getElementById('@id'+'_field').focus()"}>
+            <body @idElementFirstError.map{id => onload="document.getElementById('@id'+'_errorSummaryItem').focus()"}>
             @if(!CookiePolicy.bannerSeen(request)) {
                 <div id="global-cookie-message" class="cookie-banner">
                     <div class="content-container" role="alert">
