@@ -15,13 +15,14 @@
  *@
 
 @import security.RoleUtils._
-@(questionnaireForm: Form[_root_.forms.EducationQuestionnaireForm.Data])(implicit user: Option[CachedData], messages: Messages)
+@(form: Form[_root_.forms.EducationQuestionnaireForm.Data])(implicit user: Option[CachedData], messages: Messages)
 
 @import views.html.widgets.checkbox
-@import helpers.CSRSkinnyFieldConstructor._
+@import helpers.TemplateHelper._
 
 <section>
-    @helper.input(questionnaireForm("universityAttended"),
+
+    @helper.input(form("universityAttended"),
         '_label -> "",
         'class -> "form-control",
         '_showConstraints -> false
@@ -34,11 +35,14 @@
                 @Messages("edip.university.question")
             }}
         </label>
-        <input id="@{id}" name="@{name}" type="text" class="form-control" value="@value" @{ if (questionnaireForm("preferNotSay_university").value.contains("true")) "disabled='disabled'" }>
+        <div id="university_field" class="form-group @if(form("university").hasErrors) {has-an-error input-validation-error}">
+        <span class="has-error">@maybeDisplayError(form("university"))</span>
+        <input id="@{id}" name="@{name}" type="text" class="form-control" value="@value" @{ if (form("preferNotSay_university").value.contains("true")) "disabled='disabled'" }>
+        </div>
     }
 
     <div class="form-group">
-    @helper.input(questionnaireForm("university"),
+    @helper.input(form("university"),
         '_label -> "",
         'class -> "form-control",
         '_showConstraints -> false
@@ -48,7 +52,7 @@
     </div>
 
     <div class="form-group">
-    @checkbox(questionnaireForm("preferNotSay_university"), Some("universityAttended")) {
+    @checkbox(form("preferNotSay_university"), Some("universityAttended")) {
         I don't know/prefer not to say
     }
     </div>

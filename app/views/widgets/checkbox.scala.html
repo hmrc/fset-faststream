@@ -17,8 +17,7 @@
 @(field : play.api.data.Field, data: Option[String] = None)(labelContent: Html)(implicit messages: Messages)
 
 @import helpers.CSRSkinnyFieldConstructor._
-
-@createId(id:String)=@{id.replace(" ", "_").replace("/", "_")}
+@import models.FieldNameHelpers._
 
 @helper.input(field) { (id, name, value, args) =>
     <label for="@createId(id)" class="block-label" data-distarget='@data.getOrElse("")'>

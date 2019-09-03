@@ -17,8 +17,7 @@
 @(field : play.api.data.Field, options: Seq[(String, String, String)], isCompound: Boolean = false)(implicit messages: Messages)
 
 @import helpers.CSRSkinnyFieldConstructor._
-
-@createId(id: String, key: String)= @{id + "-" + key.replace(" ", "_").replace("/", "_")}
+@import models.FieldNameHelpers._
 
 @helper.input(field, '_class -> (if(isCompound) "form-group-compound" else "no-btm-margin")) { (id, name, value, args) =>
     @for((key, displayText, shouldTrigger)  <- options){

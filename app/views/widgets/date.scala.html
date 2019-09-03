@@ -26,6 +26,12 @@
             1990
         </span>
 
+        <span class="has-error">@if(errors.nonEmpty){
+            <span class='visuallyhidden'>Error: </span>
+            @errors.map(k => Messages(k.message)).headOption
+        }
+        </span>
+
         <div class="form-group form-group-compound @if(errors.nonEmpty) {has-an-error input-validation-error}">
             <label class="date-hint" for="@form(s"$fieldNamespace.day").id" id="dobDayLabel">Day</label>
             <input type="tel"
@@ -53,8 +59,6 @@
                 name="@form(s"$fieldNamespace.year").name"
                 value="@form(s"$fieldNamespace.year").value">
         </div>
-
-        <span class="has-error">@errors.map(k => Messages(k.message)).headOption</span>
     </fieldset>
 
 }

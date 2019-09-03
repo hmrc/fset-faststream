@@ -14,14 +14,16 @@
  * limitations under the License.
  *@
 
-@import helpers.CSRSkinnyFieldConstructor._
+@import helpers.CSRNoErrorFieldConstructor._
 @import FieldNameHelpers._
+@import helpers.TemplateHelper._
 
 @(field: play.api.data.Field, options: Seq[(String,String)], args: (Symbol,Any)*)(togglePanels:Html)(implicit messages: Messages)
 
 @helper.input(field, args:_*) { (id, name, value, htmlArgs) =>
     <fieldset>
         <legend><h2 class="form-label">@args.map(x => if(x._1 == '_label) x._2 )</h2></legend>
+        <span class="has-error">@maybeDisplayError(field)</span>
         <div class="form-group">
             @defining(field.indexes.flatMap(i => field("[%s]".format(i)).value).toSet) { values =>
             @options.map { v =>
