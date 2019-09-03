@@ -14,22 +14,22 @@
  * limitations under the License.
  *@
 
-@(questionnaireForm: Form[_root_.forms.EducationQuestionnaireForm.Data])(implicit messages: Messages)
+@(form: Form[_root_.forms.EducationQuestionnaireForm.Data])(implicit messages: Messages)
 
 @import views.html.questionnaire.components.universityDegreeCategoryDetails
 @import views.html.widgets.{ checkbox, selectValueDifferentFromDisplayedText }
 
 <section>
     @selectValueDifferentFromDisplayedText(
-        questionnaireForm("universityDegreeCategory"),
+        form("universityDegreeCategory"),
         models.view.questionnaire.UniversityDegreeCategories.seq.toList,
-        '_disabled -> (questionnaireForm("preferNotSay_universityDegreeCategory").value.getOrElse("false"))
+        '_disabled -> (form("preferNotSay_universityDegreeCategory").value.getOrElse("false"))
     )(
         "Select one") {
         @Messages("universityDegreeCategory.question")
     }
     <div class="form-group">
-    @checkbox(questionnaireForm("preferNotSay_universityDegreeCategory"), Some("universityDegreeCategory")) {
+    @checkbox(form("preferNotSay_universityDegreeCategory"), Some("universityDegreeCategory")) {
         I don't know/prefer not to say
     }
     </div>

@@ -16,12 +16,21 @@
 
 package models
 
+import _root_.connectors.exchange.referencedata.Scheme
+
 object FieldNameHelpers {
 
-  def createId(id: String, v: (String, String)) = id + "_" + v._1.replace(" ", "_").replace("/", "_").replace("'", "_")
+  def createId(id: String, v: (String, String)) = { id + "_" + v._1.replace(" ", "_").replace("/", "_").replace("'", "_") }
+  def createId(id: String, key: String) = { id + "-" + key.replace(" ", "_").replace("/", "_") }
+  def createId(id: String, scheme: Scheme) = { id + "_" + scheme.id.value.replace(" ", "_").replace("/", "_").replace("'", "_") }
+  def createId(id: String) = { id.replace(" ", "_").replace("/", "_") }
 
-  def formatId(id:String, v:(String,String)) =
+
+  def createDesc(id:String, label:String) = { id + "-" + label.replace(" ", "_").replace("/", "_") + "-description" }
+
+  def formatId(id:String, v:(String,String)) = {
     createId(id.replace(" ", "_").replace("/", "_").replace("'", "_").replace(".", "_"), v)
+  }
 
-  def formatId(id:String) = id.replace(" ", "_").replace("/", "_").replace("'", "_").replace(".", "_")
+  def formatId(id:String) = { id.replace(" ", "_").replace("/", "_").replace("'", "_").replace(".", "_") }
 }

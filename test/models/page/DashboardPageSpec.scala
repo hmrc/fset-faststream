@@ -77,8 +77,8 @@ class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks with Ins
          isPhase2TestFailed: Boolean,
          isPhase3TestFailed: Boolean,
          fullName: String,
-         testProfile: Option[Phase1TestsPage],
-         phase2TestProfile: Option[Phase2TestsPage],
+         testProfile: Option[Phase1TestsPage2],
+         phase2TestProfile: Option[Phase2TestsPage2],
          phase3TestGroup: Option[Phase3TestsPage],
          assessmentInProgressStatus: AssessmentStageStatus
         ) => {
@@ -89,7 +89,7 @@ class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks with Ins
               step4,
               isApplicationSubmittedAndNotWithdrawn,
               isApplicationWithdrawn,
-              false,
+              isFastPassApproved = false,
               isApplicationInProgress,
               isUserWithNoApplication,
               isPhase1TestsPassed,
@@ -100,6 +100,7 @@ class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks with Ins
               isPhase1TestFailed,
               isPhase2TestFailed,
               isPhase3TestFailed,
+              false,
               fullName,
               testProfile,
               phase2TestProfile,
@@ -175,8 +176,8 @@ class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks with Ins
          isPhase2TestFailed: Boolean,
          isPhase3TestFailed: Boolean,
          fullName: String,
-         testProfile: Option[Phase1TestsPage],
-         phase2TestProfile: Option[Phase2TestsPage],
+         testProfile: Option[Phase1TestsPage2],
+         phase2TestProfile: Option[Phase2TestsPage2],
          phase3TestGroup: Option[Phase3TestsPage],
          assessmentInProgressStatus: AssessmentStageStatus
         ) => {
@@ -199,6 +200,7 @@ class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks with Ins
               isPhase1TestFailed,
               isPhase2TestFailed,
               isPhase3TestFailed,
+              false,
               fullName,
               testProfile,
               phase2TestProfile,

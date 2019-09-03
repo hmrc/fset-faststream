@@ -25,6 +25,8 @@
 @(page: models.page.PostOnlineTestsPage)(implicit request: Request[_])
 @{implicit val cachedData = page.userDataWithSchemes.toCachedData}
 
+@generateId(siftableScheme: String) = {siftSchemeQuestions@siftableScheme}
+
 @renderSchemeForm = {
     <section class="inner-block-padr" id="schemeForms">
         <h2 class='heading-medium'>Extra information</h2>
@@ -33,15 +35,15 @@
             <p>At least one of your scheme preferences require you to answer some additional questions.</p>
             <p>You should complete this within 7 days from the date of your email. Failure to do this will cause your application to expire.</p>
             <ul class="list-text list-withicons" data-extrainfolist>
-                <li><i class="fa fa-minus the-icon"></i><a href="@routes.SiftQuestionsController.presentGeneralQuestions()">Nationality and higher education</a></li>
+                <li><i class="fa fa-minus the-icon"></i><a href="@routes.SiftQuestionsController.presentGeneralQuestions()" id="siftGeneralQuestions">Nationality and higher education</a></li>
                 @for(curSiftableScheme <- page.userDataWithSchemes.schemesForSiftForms) {
                 <li><i class="fa fa-minus the-icon"></i>
-                    <a href="@routes.SiftQuestionsController.presentSchemeForm(curSiftableScheme.id)">@{
+                    <a href="@routes.SiftQuestionsController.presentSchemeForm(curSiftableScheme.id)" id="@generateId(curSiftableScheme.id.value)">@{
                         curSiftableScheme.name
                         }</a>
                     <span class="font-xsmall">(in this section, you'll be assessed with one or more questions)</span></li>
                 }
-                <li><i class="fa fa-minus the-icon"></i><a href="@routes.SiftQuestionsController.presentPreview()">Preview before you submit</a></li>
+                <li><i class="fa fa-minus the-icon"></i><a href="@routes.SiftQuestionsController.presentPreview()" id="previewSiftQuestions">Preview before you submit</a></li>
             </ul>
         } else {
             <div data-extrainfopanel=""><p>You've submitted all the required information.</p></div>
@@ -72,7 +74,7 @@
             @if(page.isSiftTestCompleted) {
                 <p><strong>You have completed your numerical test.</strong></p>
             } else {
-                @helper.form(action = routes.CubiksTestController.startSiftNumericTest(), 'novalidate -> "novalidate") {
+                @helper.form(action = routes.PsiTestController.startSiftNumericTest(), 'novalidate -> "novalidate") {
                     @helper.CSRF.formField
                     @if(!page.isSiftTestStarted) {
                         <button id="submit_sift_test" type="submit" value="submit" class="button">Start test</button>
@@ -101,7 +103,7 @@
 @renderCompletedSectionOne = {
     <div class="inner-block-padr" id="schemeForms">
         <h2 class='heading-medium'>Extra information</h2>
-        <p>You've completed this section</p>
+        <p id="siftCompletedMessage">You've completed this section</p>
         <ul class="list-text list-withicons" data-extrainfolist=""><li><i class="fa fa-check the-icon"></i><a href="@routes.SiftQuestionsController.presentPreview()">View your submitted answers</a></li></ul>
     </div><br />
 }
@@ -250,7 +252,7 @@
  <section class="text">
     <ol class="step-by-step-coloured" id="nextStepsList">
         <li class="first-step">
-            @if(isInPhase3PassedOrNotified(page.userDataWithSchemes.toCachedData)) {
+            @if(isInPhase3PassedOrPassedNotified(page.userDataWithSchemes.toCachedData)) {
                 <p>Depending on your chosen schemes, you may need to answer some additional questions.</p>
             } else {
                 @if(page.userDataWithSchemes.application.isSiftExpired) {
@@ -320,4 +322,3 @@
         </li>
     </ol>
  </section>
-

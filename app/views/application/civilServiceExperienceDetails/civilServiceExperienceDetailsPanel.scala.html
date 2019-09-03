@@ -20,13 +20,12 @@
 @import views.html.widgets.{checkbox, yesNoRadioWithTogglePanel}
 
 <section class="clearfix" id="civilServantQuestion">
-    <div class="text">
-        <h2 class="heading-medium">Are you a civil servant, or have you been on a diversity internship, or the Fast Track?</h2>
-    </div>
     @yesNoRadioWithTogglePanel(form("civilServiceExperienceDetails.applicable"),
         'id -> "civilServiceExperienceDetails.applicable",
+        '_label -> "Are you a civil servant, or have you been on a diversity internship, or the Fast Track?",
+        '_legendClass -> "text heading-medium",
         '_help -> """The internships that apply are the Summer Diversity Internship Programme
         (SDIP) or the Early Diversity Internship Programme (EDIP)""") {
-        @civilServiceExperienceTypesPanel(form, schemesRequiringQualifications)
     }
+    @civilServiceExperienceTypesPanel(form, schemesRequiringQualifications)
 </section>

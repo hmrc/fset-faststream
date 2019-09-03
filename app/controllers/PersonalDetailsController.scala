@@ -90,7 +90,7 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient,
         gd.civilServiceExperienceDetails,
         gd.edipCompleted.map(_.toString)
       ))
-      Future.successful(Ok(views.html.application.generalDetails(form, continueToTheNextStep, schemesRequiringQualifications)))
+      Future.successful(Ok(views.html.application.personalDetails(form, continueToTheNextStep, schemesRequiringQualifications)))
     }).recover {
       case _: PersonalDetailsNotFound =>
         getCivilServantSchemeNamesRequiringQualifications.map{ schemesRequiringQualifications =>
@@ -107,7 +107,7 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient,
             civilServiceExperienceDetails = EmptyCivilServiceExperienceDetails,
             edipCompleted = None
           ))
-          Ok(views.html.application.generalDetails(formFromUser, continueToTheNextStep, schemesRequiringQualifications))
+          Ok(views.html.application.personalDetails(formFromUser, continueToTheNextStep, schemesRequiringQualifications))
         }
     }.flatMap( identity )
   }
@@ -139,7 +139,7 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient,
 
     val handleFormWithErrors = (errorForm:Form[PersonalDetailsForm.Data]) => {
       getCivilServantSchemeNamesRequiringQualifications.map { schemesRequiringQualifications =>
-        Ok(views.html.application.generalDetails(
+        Ok(views.html.application.personalDetails(
           personalDetailsForm.bind(errorForm.data.cleanupFastPassFields), continuetoTheNextStep(onSuccess),
           schemesRequiringQualifications)
         )

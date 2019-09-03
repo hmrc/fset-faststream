@@ -41,6 +41,7 @@ import security.Roles._
 import scala.concurrent.Future
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
+import play.api.i18n.Messages
 import uk.gov.hmrc.http.HeaderCarrier
 
 object HomeController extends HomeController(
@@ -79,7 +80,7 @@ abstract class HomeController(
             case _ if !isSiftEntered && !isSiftReady && !isPhase3TestsPassed && !isAllocatedToAssessmentCentre => {
               dashboardWithOnlineTests.recoverWith(dashboardWithoutOnlineTests)
             }
-            case _ => displayPostOnlineTestsPage
+            case _ => displayPostOnlineTestsDashboard
           }
         }.getOrElse {
           dashboardWithoutApplication
@@ -115,7 +116,17 @@ abstract class HomeController(
       }
   }
 
-  private def displayPostOnlineTestsPage(implicit application: ApplicationData, cachedData: CachedData,
+  // If the candidate is fast pass then there will be no P1 data
+  private def getPhase1DataIfCandidateIsNotFastPass(implicit application: ApplicationData, cachedData: CachedData,
+                                                    request: Request[_], hc: HeaderCarrier) = {
+    if (hasFastPassBeenApproved(cachedData)) {
+      Future.successful(None)
+    } else {
+      applicationClient.getPhase1TestProfile2(application.applicationId).map(Some(_))
+    }
+  }
+
+  private def displayPostOnlineTestsDashboard(implicit application: ApplicationData, cachedData: CachedData,
     request: Request[_], hc: HeaderCarrier) = {
     for {
       allSchemes <- refDataClient.allSchemes()
@@ -127,14 +138,24 @@ abstract class HomeController(
       siftEvaluation <- applicationClient.getSiftResults(application.applicationId)
       schemePreferences <- schemeClient.getSchemePreferences(application.applicationId)
       siftState <- applicationClient.getSiftState(application.applicationId)
+      phase1TestsWithNames <- getPhase1DataIfCandidateIsNotFastPass
+      phase2TestsWithNames <- getPhase2Test
+      phase3Tests <- getPhase3Test
     } yield {
+      val phase1DataOpt = phase1TestsWithNames.map(Phase1TestsPage(_))
+      val phase2DataOpt = phase2TestsWithNames.map(Phase2TestsPage2(_, None))
+      val phase3DataOpt = phase3Tests.map(Phase3TestsPage(_, None))
+
       val page = PostOnlineTestsPage(
         CachedUserWithSchemeData(cachedData.user, application, schemePreferences, allSchemes, phase3Evaluation, siftEvaluation, schemeStatus),
         allocationWithEvents,
         siftAnswersStatus,
         hasWrittenAnalysisExercise,
         allSchemes,
-        siftState
+        siftState,
+        phase1DataOpt,
+        phase2DataOpt,
+        phase3DataOpt
       )
       Ok(views.html.home.postOnlineTestsDashboard(page))
     }
@@ -187,17 +208,23 @@ abstract class HomeController(
     for {
       adjustmentsOpt <- getAdjustments
       assistanceDetailsOpt <- getAssistanceDetails
-      phase1TestsWithNames <- applicationClient.getPhase1TestProfile(application.applicationId)
+      phase1TestsWithNames <- applicationClient.getPhase1TestProfile2(application.applicationId)
       phase2TestsWithNames <- getPhase2Test
       phase3Tests <- getPhase3Test
       updatedData <- env.userService.refreshCachedUser(cachedData.user.userID)(hc, request)
     } yield {
-      val dashboardPage = DashboardPage(updatedData, Some(Phase1TestsPage(phase1TestsWithNames)),
-        phase2TestsWithNames.map(Phase2TestsPage(_, adjustmentsOpt)),
+      val dashboardPage = DashboardPage(
+        updatedData,
+        Some(Phase1TestsPage(phase1TestsWithNames)),
+        phase2TestsWithNames.map(Phase2TestsPage2(_, adjustmentsOpt)),
         phase3Tests.map(Phase3TestsPage(_, adjustmentsOpt))
       )
-      Ok(views.html.home.dashboard(updatedData, dashboardPage, assistanceDetailsOpt, adjustmentsOpt,
-        submitApplicationsEnabled = true, displaySdipEligibilityInfo))
+      Ok(
+        views.html.home.dashboard(
+          updatedData, dashboardPage, assistanceDetailsOpt,
+          adjustmentsOpt, submitApplicationsEnabled = true, displaySdipEligibilityInfo
+        )
+      )
     }
   }
 
@@ -229,7 +256,7 @@ abstract class HomeController(
   }
 
   private def getPhase2Test(implicit application: ApplicationData, hc: HeaderCarrier) = if (application.isPhase2) {
-    applicationClient.getPhase2TestProfile(application.applicationId).map(Some(_))
+    applicationClient.getPhase2TestProfile2(application.applicationId).map(Some(_))
   } else {
     Future.successful(None)
   }
@@ -254,5 +281,4 @@ abstract class HomeController(
     } else {
       Future.successful(None)
     }
-
 }

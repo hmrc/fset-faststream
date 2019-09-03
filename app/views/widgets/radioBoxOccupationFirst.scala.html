@@ -17,8 +17,7 @@
 @(field : play.api.data.Field, isCompound: Boolean = false)(implicit messages: Messages)
 
 @import helpers.CSRSkinnyFieldConstructor._
-
-@createId(id:String, v:(String,String))=@{id + "-"+v._1.replace(" ", "_").replace("/", "_")}
+@import models.FieldNameHelpers._
 
 @helper.input(field) { (id, name, value, args) =>
     <div>
@@ -39,7 +38,7 @@
                 @(if(value.contains("Unemployed")) "checked" else "")>No, unemployed and not seeking work
         </label>
     </div>
-    
+
     <div>
         <label for="occupation-unknown" class="block-label">
             <input type="radio" name="@name" id="occupation-unknown" value="Unknown" class="hidesContent hidesOccupations"

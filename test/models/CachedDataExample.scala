@@ -72,19 +72,30 @@ object CachedDataExample {
   val InProgressInPreviewApplication = InProgressInQuestionnaireApplication.copy(progress = ProgressExamples.PreviewProgress)
   val SubmittedApplication = InProgressInPreviewApplication.copy(applicationStatus = ApplicationStatus.SUBMITTED,
     progress = ProgressExamples.SubmittedProgress)
-  val WithdrawApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.WITHDRAWN,
-    progress = ProgressExamples.WithdrawnAfterSubmitProgress)
   val EdipPhase1TestsPassedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.PHASE1_TESTS_PASSED,
     progress = ProgressExamples.Phase3TestsPassed, applicationRoute = ApplicationRoute.Edip)
   val SdipPhase1TestsPassedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.PHASE1_TESTS_PASSED,
     progress = ProgressExamples.Phase3TestsPassed, applicationRoute = ApplicationRoute.Sdip)
+  val Phase1TestsPassedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.PHASE1_TESTS_PASSED,
+    progress = ProgressExamples.Phase1TestsPassed)
+
+  val Phase1TestsFailedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.PHASE1_TESTS_FAILED,
+    progress = ProgressExamples.Phase1TestsFailed)
+  val Phase1TestsExpiredApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.PHASE1_TESTS,
+    progress = ProgressExamples.SubmittedProgress.copy(phase1TestProgress = Phase1TestProgress(phase1TestsExpired = true)))
+  val Phase2TestsFailedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.PHASE2_TESTS_FAILED,
+    progress = ProgressExamples.Phase2TestsFailed)
+  val Phase2TestsPassedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.PHASE2_TESTS_PASSED,
+    progress = ProgressExamples.Phase2TestsPassed)
   val Phase3TestsPassedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.PHASE3_TESTS_PASSED,
     progress = ProgressExamples.Phase3TestsPassed)
+  val Phase3TestsFailedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.PHASE3_TESTS_FAILED,
+    progress = ProgressExamples.Phase3TestsFailed)
 
   val SiftApplication = Phase3TestsPassedApplication.copy(applicationStatus = ApplicationStatus.SIFT, progress = ProgressExamples.SiftEntered)
 
-  val Phase1TestsExpiredApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.PHASE1_TESTS,
-    progress = ProgressExamples.SubmittedProgress.copy(phase1TestProgress = Phase1TestProgress(phase1TestsExpired = true)))
+  val WithdrawApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.WITHDRAWN,
+    progress = ProgressExamples.WithdrawnAfterSubmitProgress)
   val EdipWithdrawnPhase1TestsPassedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.WITHDRAWN,
     progress = ProgressExamples.Phase3TestsPassed, applicationRoute = ApplicationRoute.Edip)
   val SdipWithdrawnPhase1TestsPassedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.WITHDRAWN,

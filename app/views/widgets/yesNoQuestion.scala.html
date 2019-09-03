@@ -16,7 +16,8 @@
 
 @(field: play.api.data.Field, question: String, noMessage: Option[String], description: Option[String] = None)(implicit messages: Messages)
 
-@import helpers.CSRSkinnyFieldConstructor._
+@import helpers.CSREmptyFieldConstructor._
+@import helpers.TemplateHelper._
 
 @selectRadio(currentValue: Option[String], questionType: String) = @{(currentValue, questionType) match {
     case (Some("true"), "yes") | (Some("false"), "no") => "checked=\"checked\""
@@ -25,11 +26,13 @@
 
 @helper.input(field, '_class -> "inline") { (id, name, value, _) =>
     <fieldset>
-        <h2 class="form-label">@question</h2>
-        <legend class="visuallyhidden">@question</legend>
+        <legend><h2 class="form-label">@question</h2></legend>
         @if(description.isDefined) {
             <p>@Html(description.get)</p>
         }
+        <div id="@{id}_field" class="form-group inline @if(field.hasErrors) {has-an-error input-validation-error}">
+
+        <span class="has-error">@maybeDisplayError(field)</span>
         <div class="form-group">
             <label for="@id-yes" class="block-label">
                 <input name="@name" type="radio" id="@id-yes" value="true" @selectRadio(value, "yes")>Yes
@@ -45,6 +48,7 @@
                     aria-expanded="false" value="false" @selectRadio(value, "no")>No
                 </label>
             }
+        </div>
         </div>
         @if(noMessage.isDefined) {
             <div id="@name-panel" class="toggle-content">

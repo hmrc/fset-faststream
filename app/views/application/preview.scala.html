@@ -34,10 +34,12 @@
 @user.user.firstName @user.user.lastName
 }
 
-@edit_link(id: String, navigation: play.api.mvc.Call) = {
+@edit_link(id: String, title: String, navigation: play.api.mvc.Call) = {
     @if(!ApplicationData.isReadOnly(user.get.application.get.applicationStatus)) {
-        <a id="@id" class="icon-with-text" href="@navigation"><i class="the-icon fa fa-pencil"></i><span class="the-text">
-            Edit <span class="visuallyhidden editSection"></span> section</span></a>
+        <a id="@id" class="icon-with-text" href="@navigation">
+            <i class="the-icon fa fa-pencil"></i>
+            <span class="the-text">Edit <span class="visuallyhidden editSection"></span>@title section</span>
+        </a>
     }
 }
 
@@ -61,20 +63,20 @@
       </div>
     </div>
 
-    @personalDetailsViewSection(generalDetails)(edit_link("editPersonalDetails", routes.PersonalDetailsController.presentAndContinue()))
+    @personalDetailsViewSection(generalDetails)(edit_link("editPersonalDetails", "Personal Details", routes.PersonalDetailsController.presentAndContinue()))
 
     @if(isFaststream(user)) {
-        @schemePreferencesViewSection(schemePreferences)(edit_link("editSchemePreferences", routes.SchemePreferencesController.present()))
+        @schemePreferencesViewSection(schemePreferences)(edit_link("editSchemePreferences", "Scheme Preferences", routes.SchemePreferencesController.present()))
     }
 
-    @assistanceDetailsViewSection(assistanceDetails)(edit_link("editAssistanceDetails", routes.AssistanceDetailsController.present()))
+    @assistanceDetailsViewSection(assistanceDetails)(edit_link("editAssistanceDetails", "Assistance Details", routes.AssistanceDetailsController.present()))
 
     @diversityQuestionnaireViewSection()
 
     @if(ApplicationData.isReadOnly(user.get.application.get.applicationStatus)) {
         <section class="section-border">
             <div class="form-group">
-                <a href="@routes.HomeController.present()" class="button">Return to home</a>
+                <a href="@routes.HomeController.present()" class="button" id="returnToHome">Return to home</a>
             </div>
         </section>
     }

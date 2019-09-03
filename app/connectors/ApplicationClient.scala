@@ -212,6 +212,40 @@ trait ApplicationClient {
       case Upstream4xxResponse(_, FORBIDDEN, _, _) => throw new TestForTokenExpiredException()
     }
 
+  // psi code start
+
+  def getPhase1Tests(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Seq[PsiTest]] = {
+    http.GET(s"$apiBaseUrl/phase1-tests/$appId").map { response =>
+      response.json.as[Seq[PsiTest]]
+    } recover {
+      case _: NotFoundException => throw new OnlineTestNotFound()
+    }
+  }
+
+  def getPhase1TestProfile2(appId: UniqueIdentifier)
+                           (implicit hc: HeaderCarrier): Future[Phase1TestGroupWithNames2] = {
+    http.GET(s"$apiBaseUrl/online-test/psi/phase1/candidate/$appId").map { response =>
+      response.json.as[Phase1TestGroupWithNames2]
+    } recover {
+      case _: NotFoundException => throw new OnlineTestNotFound()
+    }
+  }
+
+  def getPhase2TestProfile2(appId: UniqueIdentifier)
+                           (implicit hc: HeaderCarrier): Future[Phase2TestGroupWithActiveTest2] = {
+    http.GET(s"$apiBaseUrl/online-test/phase2/candidate/$appId").map { response =>
+      response.json.as[Phase2TestGroupWithActiveTest2]
+    } recover {
+      case _: NotFoundException => throw new OnlineTestNotFound()
+    }
+  }
+
+  def completeTestByOrderId(orderId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.PUT(s"$apiBaseUrl/psi/$orderId/complete", "").map(_ => ())
+  }
+
+  // psi code end
+
   def getPhase1TestProfile(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase1TestGroupWithNames] = {
     http.GET(s"$apiBaseUrl/online-test/phase1/candidate/$appId").map { response =>
       response.json.as[Phase1TestGroupWithNames]
@@ -247,6 +281,14 @@ trait ApplicationClient {
   def getSiftTestGroup(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[SiftTestGroupWithActiveTest] = {
     http.GET(s"$apiBaseUrl/sift-test-group/$appId").map { response =>
       response.json.as[SiftTestGroupWithActiveTest]
+    } recover {
+      case _: NotFoundException => throw new SiftTestNotFound(s"No sift test group found for $appId")
+    }
+  }
+
+  def getSiftTestGroup2(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[SiftTestGroupWithActiveTest2] = {
+    http.GET(s"$apiBaseUrl/psi/sift-test-group/$appId").map { response =>
+      response.json.as[SiftTestGroupWithActiveTest2]
     } recover {
       case _: NotFoundException => throw new SiftTestNotFound(s"No sift test group found for $appId")
     }
@@ -288,8 +330,16 @@ trait ApplicationClient {
     http.PUT(s"$apiBaseUrl/cubiks/$cubiksUserId/start", "").map(_ => ())
   }
 
+  def startTest(orderId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.PUT(s"$apiBaseUrl/psi/$orderId/start", "").map(_ => ())
+  }
+
   def startSiftTest(cubiksUserId: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
     http.PUT(s"$apiBaseUrl/sift-test/$cubiksUserId/start", "").map(_ => ())
+  }
+
+  def startSiftTest(orderId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.PUT(s"$apiBaseUrl/psi/sift-test/$orderId/start", "").map(_ => ())
   }
 
   def completeTestByToken(token: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {

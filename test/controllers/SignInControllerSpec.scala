@@ -62,7 +62,7 @@ class SignInControllerSpec extends BaseControllerSpec {
 
       status(result) mustBe OK
       val content = contentAsString(result)
-      content must include ("<title>Sign in | Apply for the Civil Service Fast Stream")
+      content must include ("<title>Error: Sign in | Apply for the Civil Service Fast Stream")
       content must include ("Enter your email")
       content must include ("Enter your password")
     }
@@ -76,7 +76,7 @@ class SignInControllerSpec extends BaseControllerSpec {
 
       status(result) mustBe OK
       val content = contentAsString(result)
-      content must include ("<title>Sign in | Apply for the Civil Service Fast Stream")
+      content must include ("<title>Error: Sign in | Apply for the Civil Service Fast Stream")
       content must include ("Enter your password")
     }
 

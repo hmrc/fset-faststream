@@ -19,10 +19,12 @@
         optionTrigger: String,
         defaultChoice: String = "-- Choose One --")(labelContent: Html)(implicit messages: Messages)
 
-@import helpers.CSRSkinnyFieldConstructor._
+@import helpers.CSRNoErrorFieldConstructor._
+@import helpers.TemplateHelper._
 
 @helper.input(field) { (id, name, value, args) =>
     <label for="@id" class="form-label">@labelContent</label>
+    <span class="has-error">@maybeDisplayError(field)</span>
     <select name="@name" id="@id" class="selectWithOptionTrigger">
         <option value="">@defaultChoice</option>
         @for( key <- options) {

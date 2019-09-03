@@ -19,12 +19,17 @@
 @defining(form.errors.filter(f => f.key.startsWith(s"$fieldNamespace.") || f.key == fieldNamespace)) { errors =>
 
     <fieldset id="@{fieldNamespace}_field" class="form-group inline-fixed @if(errors.nonEmpty) {has-an-error input-validation-error}">
-        <h2 class="form-label" id="dobMainLabel">@labelContent</h2>
-        <legend class="visuallyhidden">@labelContent</legend>
+        <legend><h2 class="form-label" id="dobMainLabel">@labelContent</h2></legend>
         <span class="form-hint">For example,
             <span class="small-right-margin">21</span>
             <span class="small-right-margin">6</span>
             1990
+        </span>
+
+        <span class="has-error">@if(errors.nonEmpty){
+            <span class='visuallyhidden'>Error: </span>
+            @errors.map(k => Messages(k.message)).headOption
+        }
         </span>
 
         <div class="form-group form-group-compound @if(errors.nonEmpty) {has-an-error input-validation-error}">
@@ -54,8 +59,6 @@
                 name="@form(s"$fieldNamespace.year").name"
                 value="@form(s"$fieldNamespace.year").value">
         </div>
-
-        <span class="has-error">@errors.map(k => Messages(k.message)).headOption</span>
     </fieldset>
 
 }

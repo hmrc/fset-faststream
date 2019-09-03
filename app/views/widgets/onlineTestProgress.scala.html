@@ -14,11 +14,15 @@
  * limitations under the License.
  *@
 
+@import models.page.Phase1TestsPage2
+@import models.page.Phase2TestsPage2
+@import models.page.PsiTestPage
+
 @(cachedUserData: CachedData,
         dashboardPage: models.page.DashboardPage,
         assistanceDetails: Option[_root_.connectors.exchange.AssistanceDetails] = None,
         adjustments: Option[Adjustments] = None)(
-        implicit request: Request[_])
+        implicit request: Request[_], messages: Messages)
 
 @import security.RoleUtils._
 @import models.page.Phase2TestsPage
@@ -46,7 +50,7 @@
     dashboardPage.phase3TestsPage.exists(_.isInvigilatedVideoApproved)
 }
 
-@eTraySection(phase2Test: Phase2TestsPage) = {
+@phase2Section(phase2Test: Phase2TestsPage2) = {
     <div id="etrayBlurb">
         @if(requiresInvigilatedETray) {
             @invigilatedETraySection()
@@ -59,14 +63,18 @@
                 It expires at <strong id="etrayExpiryTime">@{ phase2Test.getExpireTimeLondon }</strong> (London) on <strong id="etrayExpiryDate">@{ phase2Test.getExpireDateLondon }</strong>.
             </p>
             <div id="etrayTestButton">
-                @helper.form(action = routes.CubiksTestController.startPhase2Tests(), 'novalidate -> "novalidate") {
+                @helper.form(action = routes.PsiTestController.startPhase2Tests(), 'novalidate -> "novalidate") {
                     @helper.CSRF.formField
-                    @if(!phase2Test.isStarted) {
-                        <button id="etrayButton" type="submit" value="submit" class="button">
-                            Start section</button>
-                    } else {
-                        <button id="etrayButton" type="submit" value="submit" class="button">
-                            Continue section</button>
+                    @{
+                        if(!phase2Test.areStarted) {
+                            <button id="etrayButton" type="submit" value="submit" class="button">
+                                Start section
+                            </button>
+                        } else {
+                            <button id="etrayButton" type="submit" value="submit" class="button">
+                                Continue section
+                            </button>
+                        }
                     }
                 }
                 <p>(You'll have 80 minutes to finish) <br> If we've agreed you require extra time, this will be added to the 80 minutes.</p>
@@ -75,7 +83,7 @@
     </div>
 }
 
-@eTraySectionBeforeOnlineExercisesFinishes() = {
+@phase2SectionBeforeOnlineExercisesFinishes() = {
     <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-lock the-icon"></i>E-tray
         <span class="font-xsmall">- locked</span>
     </p>
@@ -89,11 +97,40 @@
     <p>Before you take the e-tray we need to contact you to confirm your requested extra support.</p>
 }
 
+@displayPhase1TestResultsLinks(testsPage: Phase1TestsPage2) = {
+    @testsPage.tests.map { psiTestPage =>
+        <div>@Messages(psiTestPage.testNameKey)</div>
+        <div>@displayTestPageLink(psiTestPage, Messages(psiTestPage.testNameKey))</div>
+    }
+}
+
+@generatePsiTestId(psiTestPage: PsiTestPage) = {@Messages(psiTestPage.testNameKey).replace(" ", "").concat("LinkResultsReport")}
+
+@displayTestPageLink(testPage: PsiTestPage, testName: String) = {
+    @testPage.testReportUrl.map { reportUrl =>
+        <a href="@reportUrl" target="_blank" id="@generatePsiTestId(testPage)">Results report <span class="visuallyhidden">for @testName</span></a>
+    }
+}
+
+@displayPhase2TestResultsLinks() = {
+    @dashboardPage.phase2TestsPage.map { testsPage =>
+        @testsPage.tests.map { psiTestPage =>
+            <div>@Messages(psiTestPage.testNameKey)</div>
+            <div>@displayTestPageLink(psiTestPage, Messages(psiTestPage.testNameKey))</div>
+        }
+    }
+}
+
+@displayPhase3TestResultsLinks() = {
+    <a href="@routes.Phase3FeedbackController.present" target="_blank" id="phase3ResultsReportLink" alt="Phase 3 results report">
+        Results report <span class="visuallyhidden">for video interview</span>
+    </a>
+}
 
 @(dashboardPage.isTestGroupExpired, dashboardPage.isPhase1TestFailed, dashboardPage.phase1TestsPage) match {
-    case (true, _, _) => {
+    case (true, _, Some(testsPage)) => {
         <ul class="list-text list-withicons">
-            <li>
+            <li id="phase1TestsSection">
                 <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
                     Online exercises</p>
                 <div id="groupTestExpired">
@@ -102,19 +139,21 @@
                         .</p>
                     <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
                         site for more opportunities with us.</p>
+                    @displayPhase1TestResultsLinks(testsPage)
                 </div>
             </li>
         </ul>
     }
-    case (_, true, _) => {
+    case (_, true, Some(testsPage)) => {
         <ul class="list-text list-withicons">
-            <li>
+            <li id="phase1TestsSection">
                 <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
                     Online exercises</p>
                 <div id="phase1TestFailed">
                     <p>Unfortunately we've assessed your results and you've been unsuccessful this time.</p>
                     <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
                         site for more opportunities with us.</p>
+                    @displayPhase1TestResultsLinks(testsPage)
                 </div>
             </li>
         </ul>
@@ -122,17 +161,17 @@
     case (_, _, None) => {
         @if(isFaststream(cachedUserData)) {
             <ul class="list-text list-withicons" id="testsIndividual">
-                <li>
+                <li id="phase1TestsSection">
                     <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>Online exercises
                         <span class="font-xsmall">- locked</span>
                     </p>
                 </li>
-                <li>
+                <li id="phase2TestsSection">
                     <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>E-tray
                         <span class="font-xsmall">- locked</span>
                     </p>
                 </li>
-                <li>
+                <li id="phase3TestsSection">
                     <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>Video interview
                         <span class="font-xsmall">- locked</span>
                     </p>
@@ -140,14 +179,8 @@
             </ul>
         } else { @if(isEdip(cachedUserData) || isSdip(cachedUserData)) {
                 <ul class="list-text list-withicons" id="testsIndividual">
-                    <li>
-                        <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>
-                            Situational judgement questionnaire
-                            <span class="font-xsmall">- locked</span>
-                        </p>
-                    </li>
-                    <li>
-                        <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>Behavioural questionnaire
+                    <li id="phase1TestsSection">
+                        <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>Online exercises
                             <span class="font-xsmall">- locked</span>
                         </p>
                     </li>
@@ -156,71 +189,56 @@
             }
         }
     }
-    case (_, _, Some(tests)) if cachedUserData.application.isDefined => {
+    case (_, _, Some(phase1TestsPage)) if cachedUserData.application.isDefined => {
         <ul class="list-text list-withicons">
-            @if(tests.allCompleted) {
-                <li>
+            @if(phase1TestsPage.allCompleted) {
+                <li id="phase1TestsSection">
                     <p class="med-btm-margin" id="testsHeading"><i class="fa fa-check the-icon"></i>
                         Online exercises</p>
                     <div>
                     @if(dashboardPage.isPhase1TestsPassed) {
-                        <p>Congratulations, you've passed this section and can now
-                            continue to the next section.</p>
+                        <p>Congratulations, you've passed this section and can now continue to the next section.</p>
+                        @displayPhase1TestResultsLinks(phase1TestsPage)
                     } else {
                         <p>You've completed this section, we'll send you an email when we have your results.
                             Make sure you check your junk inbox.</p>
+                        @displayPhase1TestResultsLinks(phase1TestsPage)
                     }
                     </div>
                 </li>
 
             } else {
-                <li>
+                <li id="phase1TestsSection">
                     <p class="med-btm-margin" id="testsHeading"><i class="fa fa-minus the-icon"></i>
                         Online exercises</p>
                     <ul class="list-text list-withicons" id="testsIndividual">
-                        @{
-                            tests.sjq.map { sjq =>
-                                if(sjq.completed) {
-                                        <li>
-                                        <i class="fa fa-check the-icon"></i>
-                                        Situational judgement questionnaire (untimed)
-                                        </li>
-                                } else {
-                                        <li>
-                                        <i class="fa fa-minus the-icon"></i>
-                                        Situational judgement questionnaire (untimed)
-                                        </li>
-                                }
-                            }
-                        }
-                        @{
-                            tests.bq.map { bq =>
-                                if(bq.completed) {
-                                        <li>
-                                        <i class="fa fa-check the-icon"></i>
-                                        Behavioural questionnaire (untimed)
-                                        </li>
-                                } else {
-                                        <li>
-                                        <i class="fa fa-minus the-icon"></i>
-                                        Behavioural questionnaire (untimed)
-                                        </li>
-                                }
+                        @phase1TestsPage.tests.map { phase1Test =>
+                            @if(phase1Test.completed) {
+                                <li>
+                                    <i class="fa fa-check the-icon"></i>
+                                    <div>@Messages(phase1Test.testNameKey)</div>
+                                    <div>@displayTestPageLink(phase1Test, Messages(phase1Test.testNameKey))</div>
+                                </li>
+                            } else {
+                                <li>
+                                    <i class="fa fa-minus the-icon"></i>
+                                    <div>@Messages(phase1Test.testNameKey)</div>
+                                    <div>@displayTestPageLink(phase1Test, Messages(phase1Test.testNameKey))</div>
+                                </li>
                             }
                         }
                     </ul>
                     <p id="testsTime">You have <strong>@{
-                        tests.getDuration
+                        phase1TestsPage.getDuration
                     }</strong> to finish the online exercises</p>
                     <div id="testsButtonContainer">
-
-                        @helper.form(action = routes.CubiksTestController.startPhase1Tests(), 'novalidate -> "novalidate") {
+                        @helper.form(action = routes.PsiTestController.startPhase1Tests(), 'novalidate -> "novalidate") {
                             @helper.CSRF.formField
                             @{
-                                if(!tests.areStarted) {
-                                        <button id="submit_online_tests" type="submit" value="submit" class="button">Start section</button>
+                                if(!phase1TestsPage.areStarted) {
+                                    <button id="submit_online_tests" type="submit" value="submit" class="button">Start section</button>
                                 } else {
-                                        <button id="submit_online_tests" type="submit" value="submit" class="button">Continue section</button>
+                                    <button id="submit_online_tests" type="submit" value="submit" class="button">Continue section</button>
                                 }
                             }
                         }
@@ -231,16 +249,17 @@
             @if(isFaststream(cachedUserData)) {
                 @(dashboardPage.isPhase2TestGroupExpired, dashboardPage.isPhase2TestsPassed, dashboardPage.isPhase2TestFailed, dashboardPage.phase2TestsPage, dashboardPage.phase1TestsPage) match {
                     case (_, true, _, _, _) => {
-                        <li id="etraySection">
+                        <li id="phase2TestsSection">
                             <p class="med-btm-margin" id="etrayHeading"><i class="fa the-icon fa-check"></i>E-tray</p>
                             <div id="etrayBlurb">
                                 <p>Congratulations, you've passed this section and can now
                                     continue to the next section.</p>
+                                @displayPhase2TestResultsLinks()
                             </div>
                         </li>
                     }
-                    case (true, false, _, Some(phase2Test), _) => {
-                        <li id="etraySection">
+                    case (true, false, _, Some(phase2TestsPage), _) => {
+                        <li id="phase2TestsSection">
                             <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
                                 E-tray</p>
                             <div id="groupTestExpired">
@@ -249,53 +268,81 @@
                                     .</p>
                                 <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
                                     site for more opportunities with us.</p>
+                                @displayPhase2TestResultsLinks()
                             </div>
                         </li>
                     }
-                     case (_, false, true, _, _) => {
-                        <li id="etraySection">
+                     case (_, false, true, Some(phase2TestsPage), _) => {
+                        <li id="phase2TestsSection">
                             <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
                                 E-tray</p>
                             <div id="phase2TestFailed">
                                 <p>Unfortunately we've assessed your results and you've been unsuccessful this time.</p>
                                 <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
                                     site for more opportunities with us.</p>
+                                @displayPhase2TestResultsLinks()
                             </div>
                         </li>
                     }
-                    case (_, false, _, None, Some(tests)) => {
-                        <li id="etraySection">
+                    case (_, false, _, None, Some(phase1TestsPage)) => {
+                        <li id="phase2TestsSection">
                             @if(dashboardPage.isPhase1TestsPassed && hasUnconfirmedAdjustments) {
                                 @onlineExercisesForUnconfirmedAdjustments()
                             } else { @if(dashboardPage.isPhase1TestsPassed && requiresInvigilatedETray) {
                                 <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-minus the-icon"></i>E-tray</p>
                                 @invigilatedETraySection
                             } else {
-                                @eTraySectionBeforeOnlineExercisesFinishes()
+                                @phase2SectionBeforeOnlineExercisesFinishes()
                             }}
                         </li>
                     }
-                    case (false, false, false, Some(phase2Test), _) => {
-                        @if(phase2Test.isCompleted) {
-                            <li id="etraySection">
-                                <p class="med-btm-margin" id="etrayHeading"><i class="fa the-icon fa-check"></i>E-tray</p>
-                                <div id="etrayBlurb">
-                                    <p>You've completed this section, we'll send you an email when we have your results.
-                                    Make sure you check your junk inbox.</p>
-                                </div>
-                            </li>
-                        } else {
-                            <li id="etraySection">
-                                <p class="med-btm-margin" id="etrayHeading"><i class="fa the-icon fa-minus"></i>E-tray </p>
-                                @eTraySection(phase2Test)
-                            </li>
-                        }
+                    case (false, false, false, Some(phase2TestsPage), _) => {
+                        <ul class="list-text list-withicons">
+                            @if(phase2TestsPage.allCompleted) {
+                                <li id="phase2TestsSection">
+                                    <p class="med-btm-margin" id="etrayHeading">
+                                        <i class="fa the-icon fa-check"></i>E-tray
+                                    </p>
+                                    <div id="etrayBlurb">
+                                        <p>
+                                            You've completed this section, we'll send you an email when we have your results.
+                                            Make sure you check your junk inbox.
+                                        </p>
+                                        @displayPhase2TestResultsLinks()
+                                    </div>
+                                </li>
+                            } else {
+                                <li id="phase2TestsSection">
+                                    <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-minus the-icon"></i>E-tray
+                                        Exercises
+                                    </p>
+                                    <ul class="list-text list-withicons" id="testsIndividual">
+                                        @phase2TestsPage.tests.map { phase2Test =>
+                                            @if(phase2Test.completed) {
+                                                <li>
+                                                    <i class="fa fa-check the-icon"></i>
+                                                    <div>@Messages(phase2Test.testNameKey)</div>
+                                                    <div>@displayTestPageLink(phase2Test, Messages(phase2Test.testNameKey))</div>
+                                                </li>
+                                            } else {
+                                                <li>
+                                                    <i class="fa fa-minus the-icon"></i>
+                                                    @Messages(phase2Test.testNameKey)
+                                                </li>
+                                            }
+                                        }
+                                    </ul>
+                                    @{phase2Section(phase2TestsPage)}
+                                </li>
+                            }
+                        </ul>
+
                     }
                     case _ => {}
                 }
-                @(dashboardPage.isPhase3TestGroupExpired, dashboardPage.isPhase3TestFailed, dashboardPage.phase3TestsPage, dashboardPage.phase2TestsPage, dashboardPage.phase1TestsPage) match {
-                    case (true, _, Some(phase3Test), _, _) => {
-                        <li id="videoSection">
+                @(dashboardPage.isPhase3TestGroupExpired, dashboardPage.isPhase3TestFailed, dashboardPage.shouldDisplayPhase3TestFeedbackReport, dashboardPage.phase3TestsPage, dashboardPage.phase2TestsPage, dashboardPage.phase1TestsPage) match {
+                    case (true, _, _, Some(phase3TestsPage), _, _) => {
+                        <li id="phase3TestsSection">
                             <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
                                 Video interview</p>
                             <div id="groupTestExpired">
@@ -308,29 +355,41 @@
                         </li>
                     }
 
-                    case (_, true, Some(phase3Test), _, _) => {
-                        <li id="videoSection">
+                    case (_, true, _, Some(phase3TestsPage), _, _) => {
+                        <li id="phase3TestsSection">
                             <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
                                 Video interview</p>
-                            <div id="phase3TestFailed">
-                                <p>Unfortunately we've assessed your results and you've been unsuccessful this time.</p>
-                                <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
-                                    site for more opportunities with us.</p>
-                            </div>
+                            @displayPhase3TestResultsLinks
+                                <div id="phase3TestFailed">
+                                    <p>Unfortunately we've assessed your results and you've been unsuccessful this time.</p>
+                                    <p>
+                                        Visit the
+                                        <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
+                                        site for more opportunities with us.
+                                    </p>
+                                </div>
                         </li>
                     }
 
-                    case (_, _, None, _, Some(_)) => {
-                        <li id="videoSection">
+                    case (_, _, true, Some(phase3TestsPage), _, _) => {
+                        <li id="phase3TestsSection">
+                            <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
+                                Video interview</p>
+                            @displayPhase3TestResultsLinks
+                        </li>
+                    }
+
+                    case (_, _, _, None, _, Some(_)) => {
+                        <li id="phase3TestsSection">
                             <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon"></i>Video interview
                                 <span class="font-xsmall">- locked</span>
                             </p>
                             <p>Unlocked if you're successful in the e-tray</p>
                         </li>
                     }
-                    case (false, false, Some(phase3Test), _, _) => {
-                        @if(phase3Test.isCompleted) {
-                            <li id="videoSection">
+                    case (false, false, _, Some(phase3TestsPage), _, _) => {
+                        @if(phase3TestsPage.isCompleted) {
+                            <li id="phase3TestsSection">
                                 <p class="med-btm-margin" id="videoHeading"><i class="fa the-icon fa-check"></i>Video interview</p>
                                 <div id="videoBlurb">
                                     <p>You've completed this section, we'll send you an email when we have your results.
@@ -338,7 +397,7 @@
                                 </div>
                             </li>
                         } else {
-                            <li id="videoSection">
+                            <li id="phase3TestsSection">
                                 <p class="med-btm-margin" id="videoHeading"><i class="fa the-icon fa-minus"></i>
                                     Video interview </p>
                                 <div id="videoBlurb">
@@ -349,14 +408,14 @@
                                         <p id="videoDescription" class="">Each of your answers is timed, although you can take a
                                             break in-between questions if needed.</p>
                                         <p id="videoTime" class="">You have <strong>@{
-                                            phase3Test.getDuration
+                                            phase3TestsPage.getDuration
                                         }</strong> to finish
                                             the video interview</p>
 
                                         <div id="videoTestButton">
                                             @helper.form(action = routes.LaunchpadTestController.startPhase3Tests(), 'novalidate -> "novalidate") {
                                                 @helper.CSRF.formField
-                                                @if(!phase3Test.isStarted) {
+                                                @if(!phase3TestsPage.isStarted) {
                                                     <button id="videoButton" type="submit" value="submit" class="button">
                                                         Start section</button>
                                                 } else {
@@ -381,4 +440,3 @@
     <p id="testsFindOutMore"><a href="https://www.faststream.gov.uk/faqs/" rel="external" target="_blank">
         Find out more about the online tests</a></p>
 }
-

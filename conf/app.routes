@@ -53,6 +53,8 @@ POST        /application/schemes                                    controllers.
 GET         /application/assistance-details                         controllers.AssistanceDetailsController.present
 POST        /application/assistance-details                         controllers.AssistanceDetailsController.submit
 
+GET         /application/testResults                                controllers.TestResultsController.present
+
 GET         /application/preview                                    controllers.PreviewApplicationController.present
 POST        /application/preview                                    controllers.PreviewApplicationController.submit
 GET         /application/submit                                     controllers.SubmitApplicationController.present
@@ -71,6 +73,11 @@ GET         /questionnaire/page/3                                   controllers.
 POST        /questionnaire/page/3                                   controllers.QuestionnaireController.submitThirdPage
 GET         /schools                                                controllers.SchoolsController.getSchools(item: String)
 
+POST        /online-tests/psi/phase1/start                          controllers.PsiTestController.startPhase1Tests
+GET         /online-tests/psi/phase1/complete/:orderId              controllers.PsiTestController.completePhase1Tests(orderId: UniqueIdentifier)
+POST        /online-tests/psi/phase2/start                          controllers.PsiTestController.startPhase2Tests
+GET         /online-tests/psi/phase2/complete/:orderId              controllers.PsiTestController.completePhase2Tests(orderId: UniqueIdentifier)
+
 # Online Test
 POST        /online-tests/phase1/start                              controllers.CubiksTestController.startPhase1Tests
 POST        /online-tests/phase2/start                              controllers.CubiksTestController.startPhase2Tests
@@ -81,6 +88,8 @@ GET         /online-tests/phase2/complete/:token                    controllers.
 GET         /online-tests/phase3/complete/:token                    controllers.LaunchpadTestController.completePhase3TestsByToken(token: String)
 GET         /online-tests/complete/:token                           controllers.CubiksTestController.completeTestByToken(token: UniqueIdentifier)
 GET         /sift-test/complete/:token                              controllers.CubiksTestController.completeSiftTestByToken(token: UniqueIdentifier)
+GET         /psi/sift-test/complete/:orderId                        controllers.PsiTestController.completeSiftTest(orderId: UniqueIdentifier)
+GET         /online-tests/phase3/feedback-report                    controllers.Phase3FeedbackController.present
 
 # Invigilated e-tray
 GET         /invigilated-etray                                      controllers.InvigilatedController.present
@@ -105,4 +114,4 @@ GET         /additional-questions/:schemeId                         controllers.
 POST        /additional-questions/generalQuestions                  controllers.SiftQuestionsController.saveGeneralQuestions
 POST        /additional-questions/:schemeId                         controllers.SiftQuestionsController.saveSchemeForm(schemeId: connectors.exchange.referencedata.SchemeId)
 
-POST        /sift/numeric-test/start                                controllers.CubiksTestController.startSiftNumericTest
+POST        /sift/numeric-test/start                                controllers.PsiTestController.startSiftNumericTest

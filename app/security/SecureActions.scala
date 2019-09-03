@@ -78,6 +78,9 @@ trait SecureActions {
     }
   }
 
+  /**
+   * CSRSecureAction that contains ApplicationData
+   **/
   def CSRSecureAppAction(role: CsrAuthorization)
                         (block: SecuredRequest[_,_] => CachedDataWithApp => Future[Result]): Action[AnyContent] = {
     silhouette.SecuredAction.async { secondRequest =>
