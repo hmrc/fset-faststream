@@ -24,7 +24,7 @@ import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.exchange.testdata.CreateEventResponse.CreateEventResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import model.testdata.CreateAdminData.CreateAdminData
-import model.exchange.testdata.{ CreateCandidateAllocationResponse, CreateTestDataResponse }
+import model.exchange.testdata.{CreateCandidateAllocationResponse, CreateTestDataResponse}
 import model.testdata.CreateAssessorAllocationData.CreateAssessorAllocationData
 import model.testdata.CreateEventData.CreateEventData
 import model.testdata.{ CreateCandidateAllocationData, CreateTestData }
@@ -36,8 +36,8 @@ import reactivemongo.api.DB
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.collection.JSONCollection
 import services.testdata.admin.AdminUserBaseGenerator
-import services.testdata.allocation.{ AssessorAllocationGenerator, CandidateAllocationGenerator }
-import services.testdata.candidate.{ BaseGenerator, CandidateRemover, RegisteredStatusGenerator }
+import services.testdata.allocation.{AssessorAllocationGenerator, CandidateAllocationGenerator}
+import services.testdata.candidate.{BaseGenerator, CandidateRemover, RegisteredStatusGenerator}
 import services.testdata.event.EventGenerator
 import services.testdata.faker.DataFaker._
 
@@ -45,7 +45,7 @@ import scala.collection.parallel.ForkJoinTaskSupport
 import scala.collection.parallel.immutable.ParRange
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
 import uk.gov.hmrc.http.HeaderCarrier
 
