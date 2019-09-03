@@ -25,7 +25,6 @@
     </div>
     <section>
         <div class="form-group form-group-compound">
-            <legend> <h2 class="form-label text">@Messages("schoolName14to16.question")</h2></legend>
             @if(questionnaireForm("preferNotSay_schoolName14to16").value.getOrElse("false") == "true") {
                 @helper.inputText(questionnaireForm("schoolName14to16"),
                     '_label -> Messages("schoolName14to16.question"),
@@ -52,7 +51,6 @@
     </section>
     <section>
         <div class="form-group form-group-compound">
-            <legend><h2 class="form-label text">@Messages("schoolName16to18.question")</h2></legend>
             @if(questionnaireForm("preferNotSay_schoolName16to18").value.getOrElse("false") == "true") {
                 @helper.inputText(questionnaireForm("schoolName16to18"),
                     '_label -> Messages("schoolName16to18.question"),
