@@ -16,7 +16,8 @@
 
 package model
 
-import play.api.libs.json.{ Json, OFormat }
+import model.testdata.candidate.CreateCandidateData.{AdjustmentDetailData, AdjustmentsData}
+import play.api.libs.json.{Json, OFormat}
 
 case class Adjustments(
   adjustments: Option[List[String]],
@@ -24,14 +25,31 @@ case class Adjustments(
   etray: Option[AdjustmentDetail],
   video: Option[AdjustmentDetail]
 )
-object Adjustments { implicit val adjustmentsFormat: OFormat[Adjustments] = Json.format[Adjustments] }
+object Adjustments {
+  def apply(data: AdjustmentsData): Adjustments = {
+    Adjustments(data.adjustments, data.adjustmentsConfirmed, data.etray.map(AdjustmentDetail(_)),
+      data.video.map(AdjustmentDetail(_)))
+  }
+  implicit val adjustmentsFormat: OFormat[Adjustments] = Json.format[Adjustments]
+}
 
 case class AdjustmentDetail(
   timeNeeded: Option[Int] = None,
-  invigilatedInfo: Option[String] = None,
-  otherInfo: Option[String] = None
+  percentage: Option[Int] = None,
+  otherInfo: Option[String] = None,
+  invigilatedInfo: Option[String] = None
 )
-object AdjustmentDetail { implicit val adjustmentDetailFormat: OFormat[AdjustmentDetail] = Json.format[AdjustmentDetail] }
+object AdjustmentDetail {
+  def apply(data: AdjustmentDetailData): AdjustmentDetail = {
+    AdjustmentDetail(data.timeNeeded, data.percentage, data.otherInfo, data.invigilatedInfo)
+  }
+  implicit val adjustmentDetailFormat: OFormat[AdjustmentDetail] = Json.format[AdjustmentDetail]
+}
+
+case class TestAdjustment(percentage: Int)
+object TestAdjustment {
+  implicit val testAdjustmentFormat: OFormat[TestAdjustment] = Json.format[TestAdjustment]
+}
 
 case class AdjustmentsComment(
   comment: String

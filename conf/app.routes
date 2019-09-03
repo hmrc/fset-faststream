@@ -10,9 +10,6 @@ POST        /fast-pass-evaluation/:userId/:applicationId                 control
 GET         /scheme-preferences/:applicationId                           controllers.SchemePreferencesController.find(applicationId: String)
 PUT         /scheme-preferences/:applicationId                           controllers.SchemePreferencesController.update(applicationId: String)
 
-GET         /partner-graduate-programmes/:applicationId                  controllers.PartnerGraduateProgrammesController.find(applicationId: String)
-PUT         /partner-graduate-programmes/:applicationId                  controllers.PartnerGraduateProgrammesController.update(applicationId: String)
-
 PUT         /assistance-details/:userId/:applicationId                   controllers.AssistanceDetailsController.update(userId: String, applicationId: String)
 GET         /assistance-details/:userId/:applicationId                   controllers.AssistanceDetailsController.find(userId: String, applicationId: String)
 
@@ -81,7 +78,6 @@ GET         /report/pre-submitted-candidates/:frameworkId                control
 GET         /report/online-test-pass-mark-fs-p1-failed/:frameworkId      controllers.ReportingController.onlineTestPassMarkReportFsPhase1Failed(frameworkId: String)
 GET         /report/online-test-pass-mark-fs-not-p1-failed/:frameworkId  controllers.ReportingController.onlineTestPassMarkReportFsNotPhase1Failed(frameworkId: String)
 GET         /report/online-test-pass-mark-nonfs/:frameworkId             controllers.ReportingController.onlineTestPassMarkReportNonFs(frameworkId: String)
-GET         /report/candidate-deferral/:frameworkId                      controllers.ReportingController.candidateDeferralReport(frameworkId: String)
 GET         /report/internship/:frameworkId                              controllers.ReportingController.internshipReport(frameworkId: String)
 GET         /report/analytical-schemes/:frameworkId                      controllers.ReportingController.analyticalSchemesReport(frameworkId: String)
 GET         /report/numeric-test-extract                                 controllers.ReportingController.numericTestExtractReport()
@@ -178,21 +174,30 @@ GET         /diagnostic/progress-candidate-to-fsb-or-offer-job                  
 GET         /diagnostic/progress-candidate-failed-at-fsb                                               controllers.fixdata.FixDataConsistencyController.progressCandidateFailedAtFsb(applicationId: String)
 
 
+GET         /online-test/psi/phase1/candidate/:applicationId             controllers.OnlineTestController.getPhase1OnlineTest2(applicationId: String)
+
 GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)
 GET         /online-test/phase3/candidate/:applicationId                 controllers.OnlineTestController.getPhase3OnlineTest(applicationId: String)
 POST        /online-test/candidate/:userId/status                        controllers.OnlineTestController.onlineTestStatusUpdate(userId: String)
-POST        /online-test/phase1/reset/:applicationId                     controllers.OnlineTestController.resetPhase1OnlineTests(applicationId: String)
+POST        /online-test/psi/phase1/reset/:applicationId                 controllers.OnlineTestController.resetPhase1OnlineTests(applicationId: String)
 POST        /online-test/phase2/reset/:applicationId                     controllers.OnlineTestController.resetPhase2OnlineTest(applicationId: String)
+POST        /online-test/psi/phase2/reset/:applicationId                 controllers.OnlineTestController.resetPhase2OnlineTest(applicationId: String)
 POST        /online-test/phase3/reset/:applicationId                     controllers.OnlineTestController.resetPhase3OnlineTest(applicationId: String)
 
 POST        /online-test/phase2/verifyAccessCode                         controllers.OnlineTestController.verifyAccessCode()
+
+PUT         /psi/:orderId/complete                                       controllers.PsiTestsController.completeTestByOrderId(orderId: String)
+PUT         /psi/:orderId/real-time-results                              controllers.PsiTestsController.realTimeResults(orderId: String)
 
 PUT         /cubiks/:cubiksUserId/start                                  controllers.CubiksTestsController.start(cubiksUserId: Int)
 PUT         /cubiks/:cubiksUserId/complete                               controllers.CubiksTestsController.complete(cubiksUserId: Int)
 PUT         /cubiks/complete-by-token/:token                             controllers.CubiksTestsController.completeTestByToken(token: String)
 PUT         /cubiks/:cubiksUserId/results-ready                          controllers.CubiksTestsController.markResultsReady(cubiksUserId: Int)
 
+PUT         /psi/:orderId/start                                          controllers.PsiTestsController.start(orderId: String)
+
+GET         /phase1-tests/:applicationId                                 controllers.Phase1TestGroupController.getTests(applicationId: String)
 POST        /phase1-test-group/extend/:applicationId                     controllers.Phase1TestGroupController.extend(applicationId: String)
 POST        /phase2-test-group/extend/:applicationId                     controllers.Phase2TestGroupController.extend(applicationId: String)
 POST        /phase3-test-group/extend/:applicationId                     controllers.Phase3TestGroupController.extend(applicationId: String)
@@ -297,8 +302,10 @@ GET         /sift-answers/:applicationId                                 control
 POST        /sift-candidate/extend/:applicationId                        controllers.SiftCandidateController.extend(applicationId: String)
 GET         /sift-candidate/state/:applicationId                         controllers.SiftCandidateController.getSiftState(applicationId: String)
 GET         /sift-test-group/:applicationId                              controllers.SiftCandidateController.getSiftTestGroup(applicationId: String)
+GET         /psi/sift-test-group/:applicationId                          controllers.SiftCandidateController.getSiftTestGroup2(applicationId: String)
 
 PUT         /sift-test/:cubiksUserId/start                               controllers.SiftCandidateController.startTest(cubiksUserId: Int)
+PUT         /psi/sift-test/:orderId/start                                controllers.SiftCandidateController.startTest2(orderId: String)
 
 # Reference data
 GET         /reference/skills                                            controllers.reference.SkillTypeController.allSkills

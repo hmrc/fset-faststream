@@ -30,7 +30,7 @@ import model._
 import model.command.ProgressResponse
 import model.stc.StcEventTypes.StcEventType
 import model.stc.{ AuditEvents, DataStoreEvents }
-import model.exchange.Phase3TestGroupWithActiveTest
+import model.exchange.{ Phase3TestGroupWithActiveTest, PsiRealTimeResults }
 import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
 import model.persisted.{ NotificationExpiringOnlineTest, Phase3TestGroupWithAppId }
 import org.joda.time.{ DateTime, LocalDate }
@@ -101,6 +101,11 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     }
   }
 
+  // Redirect the impl to the P3 specific version
+  override def registerAndInvite(applications: List[OnlineTestApplication])
+                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = registerAndInviteForTestGroup(applications)
+
+
   override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
                                             (implicit hc: HeaderCarrier,
                                              rh: RequestHeader): Future[Unit] =
@@ -115,6 +120,10 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
                                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     registerAndInviteForTestGroup(application, getInterviewIdForApplication(application), phase3TestGroup)
   }
+
+  // New PSI based method should not be implemented by launchpad based class
+  override def storeRealTimeResults(orderId: String, results: PsiRealTimeResults)
+                                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
 
   override def nextTestGroupWithReportReady: Future[Option[Phase3TestGroupWithAppId]] =
     Future.successful(None)

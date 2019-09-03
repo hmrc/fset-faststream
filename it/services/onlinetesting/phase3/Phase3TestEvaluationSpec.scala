@@ -1,6 +1,6 @@
 package services.onlinetesting.phase3
 
-import config.{ CubiksGatewayConfig, LaunchpadGatewayConfig, Phase2TestsConfig, Phase3TestsConfig }
+import config.{ OnlineTestsGatewayConfig, LaunchpadGatewayConfig, Phase2TestsConfig, Phase3TestsConfig }
 import model.ApplicationStatus.{ apply => _, _ }
 import model.EvaluationResults.{ Amber, _ }
 import model.Exceptions.PassMarkEvaluationNotFound
@@ -23,7 +23,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
   def phase3TestEvaluationService(verifyAllScoresArePresent: Boolean = true) = new EvaluatePhase3ResultService {
     val evaluationRepository: Phase3EvaluationMongoRepository = phase3EvaluationRepo
-    val gatewayConfig: CubiksGatewayConfig = mockGatewayConfig
+    val gatewayConfig: OnlineTestsGatewayConfig = mockGatewayConfig
     val passMarkSettingsRepo: Phase3PassMarkSettingsMongoRepository = phase3PassMarkSettingRepo
     val phase = Phase.PHASE3
     val phase3TestsConfigMock: Phase2TestsConfig = mock[Phase2TestsConfig]

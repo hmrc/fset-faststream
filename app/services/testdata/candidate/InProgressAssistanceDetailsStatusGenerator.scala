@@ -16,20 +16,20 @@
 
 package services.testdata.candidate
 
-import model.ApplicationRoute
 import model.persisted.AssistanceDetails
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
+import model.{Adjustments, ApplicationRoute, ApplicationStatus}
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.assistancedetails.AssistanceDetailsRepository
 import services.adjustmentsmanagement.AdjustmentsManagementService
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 object InProgressAssistanceDetailsStatusGenerator extends InProgressAssistanceDetailsStatusGenerator {
-  val previousStatusGenerator = InProgressPartnerGraduateProgrammesStatusGenerator
+  val previousStatusGenerator = InProgressSchemePreferencesStatusGenerator
   val adRepository = faststreamAssistanceDetailsRepository
   val adjustmentsManagementService = AdjustmentsManagementService
 }
@@ -39,21 +39,26 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
   val adRepository: AssistanceDetailsRepository
   val adjustmentsManagementService: AdjustmentsManagementService
 
+  override def getPreviousStatusGenerator(generatorConfig: CreateCandidateData) = {
+    (ApplicationStatus.IN_PROGRESS, InProgressSchemePreferencesStatusGenerator)
+  }
+
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     val assistanceDetails = getAssistanceDetails(generatorConfig)
-    val maybeAdjustments = generatorConfig.adjustmentInformation
+    val adjustmentsDataOpt = generatorConfig.adjustmentInformation
 
     for {
-      candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
+      candidateInPreviousStatus <- getPreviousStatusGenerator(generatorConfig)._2.generate(generationId, generatorConfig)
       appId = candidateInPreviousStatus.applicationId.get
       _ <- adRepository.update(appId, candidateInPreviousStatus.userId, assistanceDetails)
-      _ <- if (maybeAdjustments.exists(_.adjustmentsConfirmed.getOrElse(false))) {
-        adjustmentsManagementService.confirmAdjustment(appId, maybeAdjustments.get)
+      _ <- if (adjustmentsDataOpt.exists(_.adjustmentsConfirmed.getOrElse(false))) {
+        adjustmentsManagementService.confirmAdjustment(appId, Adjustments(adjustmentsDataOpt.get))
       } else {
         Future.successful(())
       }
     } yield {
-      candidateInPreviousStatus.copy(assistanceDetails = Some(assistanceDetails), adjustmentInformation = maybeAdjustments)
+      candidateInPreviousStatus.copy(assistanceDetails = Some(assistanceDetails),
+        adjustmentInformation = adjustmentsDataOpt.map(Adjustments(_)))
     }
   }
 
@@ -68,7 +73,9 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
       }
     val gisFinalValue = if (hasDisabilityFinalValue == "Yes" && config.assistanceDetails.setGis) {
       Some(true)
-    } else { Some(false) }
+    } else {
+      Some(false)
+    }
 
     val onlineAdjustmentsFinalValue = config.assistanceDetails.onlineAdjustments
     val onlineAdjustmentsDescriptionFinalValue =
@@ -85,7 +92,11 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
         None
       }
     val phoneAdjustmentsFinalValue = if (config.statusData.applicationRoute == ApplicationRoute.Edip ||
-      config.statusData.applicationRoute == ApplicationRoute.Sdip) { config.assistanceDetails.phoneAdjustments } else { false }
+      config.statusData.applicationRoute == ApplicationRoute.Sdip) {
+      config.assistanceDetails.phoneAdjustments
+    } else {
+      false
+    }
     val phoneAdjustmentsDescriptionFinalValue =
       if (phoneAdjustmentsFinalValue) {
         Some(config.assistanceDetails.phoneAdjustmentsDescription)

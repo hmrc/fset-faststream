@@ -112,18 +112,24 @@ trait CandidateAllocationService extends EventSink {
     Future.sequence(checkedAllocs).flatMap { allocations =>
       Future.sequence(allocations.map { allocation =>
         eventsService.getEvent(allocation.eventId).flatMap { event =>
-        candidateAllocationRepo.removeCandidateAllocation(allocation).flatMap { _ =>
-          ( allocation.removeReason.flatMap { rr => CandidateRemoveReason.find(rr).map(_.failApp) } match {
-            case Some(true) =>
-              applicationRepo.setFailedToAttendAssessmentStatus(allocation.id, event.eventType)
-            case _ if eligibleForReallocation =>
-              applicationRepo.resetApplicationAllocationStatus(allocation.id, event.eventType)
-          } ).flatMap { _ =>
-            notifyCandidateUnallocated(allocation.eventId, model.command.CandidateAllocation.fromPersisted(allocation))
+          candidateAllocationRepo.removeCandidateAllocation(allocation).flatMap { _ =>
+            processCandidateAllocation(allocation, eligibleForReallocation, event.eventType)
           }
-        }}
+        }
       })
     }.map(_ => ())
+  }
+
+  private def processCandidateAllocation(allocation: model.persisted.CandidateAllocation,
+                                         eligibleForReallocation: Boolean, eventType: EventType)(implicit hc: HeaderCarrier) = {
+    ( allocation.removeReason.flatMap { rr => CandidateRemoveReason.find(rr).map(_.failApp) } match {
+      case Some(true) => applicationRepo.setFailedToAttendAssessmentStatus(allocation.id, eventType)
+      case _ if eligibleForReallocation => applicationRepo.resetApplicationAllocationStatus(allocation.id, eventType)
+      // Do nothing in this scenario
+      case _ => Future.successful(())
+    } ).flatMap { _ =>
+      notifyCandidateUnallocated(allocation.eventId, model.command.CandidateAllocation.fromPersisted(allocation))
+    }
   }
 
   def confirmCandidateAllocation(

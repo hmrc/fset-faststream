@@ -22,12 +22,12 @@ import model.exchange.testdata.CreateAdminResponse.CreateAdminResponse
 import model.exchange.testdata.CreateAssessorAllocationResponse.CreateAssessorAllocationResponse
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.exchange.testdata.CreateEventResponse.CreateEventResponse
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import model.testdata.CreateAdminData.CreateAdminData
 import model.exchange.testdata.{CreateCandidateAllocationResponse, CreateTestDataResponse}
 import model.testdata.CreateAssessorAllocationData.CreateAssessorAllocationData
 import model.testdata.CreateEventData.CreateEventData
-import model.testdata.{CreateCandidateAllocationData, CreateTestData}
+import model.testdata.{ CreateCandidateAllocationData, CreateTestData }
 import play.api.Logger
 import play.api.Play.current
 import play.api.mvc.RequestHeader

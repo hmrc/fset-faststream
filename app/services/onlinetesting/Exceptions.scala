@@ -24,4 +24,6 @@ object Exceptions {
   case class NoActiveTestException(m: String) extends Exception(m)
   case class CannotResetPhase2Tests() extends NotFoundException
   case class ResetLimitExceededException() extends Exception
+  case class TestRegistrationException(m: String) extends Exception(m)
+  case class TestCancellationException(m: String) extends Exception(m)
 }

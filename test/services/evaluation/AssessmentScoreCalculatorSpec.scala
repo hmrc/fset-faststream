@@ -28,20 +28,20 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
   val updatedBy = UniqueIdentifier.randomUniqueIdentifier
 
   "Assessment score calculator" should {
-    // Calculated as the average of analysisAndDecisionMakingAverage field in analysis exercise and group exercise
-    "correctly calculate analysis and decision making average" in {
+    // Calculated as the average of makingEffectiveDecisionsAverage field in analysis exercise and group exercise
+    "correctly calculate makingEffectiveDecisions" in {
 
       val assessmentScores = AssessmentScoresAllExercises(
         applicationId = UniqueIdentifier.randomUniqueIdentifier,
         analysisExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          analysisAndDecisionMakingAverage = Some(3.231)
+          makingEffectiveDecisionsAverage = Some(3.231)
         )),
         groupExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          analysisAndDecisionMakingAverage = Some(2.345)
+          makingEffectiveDecisionsAverage = Some(2.345)
         )),
         leadershipExercise = None
       )
@@ -49,17 +49,17 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
       val result = AssessmentScoreCalculatorUnderTest.countAverage(assessmentScores)
 
       val expected = CompetencyAverageResult(
-        analysisAndDecisionMakingAverage = 2.788,
-        buildingProductiveRelationshipsAverage = 0,
-        leadingAndCommunicatingAverage = 0,
-        strategicApproachToObjectivesAverage = 0,
+        makingEffectiveDecisionsAverage = 2.788,
+        workingTogetherDevelopingSelfAndOthersAverage = 0,
+        communicatingAndInfluencingAverage = 0,
+        seeingTheBigPictureAverage = 0,
         overallScore = 2.79)
 
       result mustBe expected
     }
 
-    // Calculated as the average of buildingProductiveRelationshipsAverage field in group exercise and leadership exercise
-    "correctly calculate building relationships average" in {
+    // Calculated as the average of workingTogetherDevelopingSelfAndOthers field in group exercise and leadership exercise
+    "correctly calculate workingTogetherDevelopingSelfAndOthersAverage" in {
 
       val assessmentScores = AssessmentScoresAllExercises(
         applicationId = UniqueIdentifier.randomUniqueIdentifier,
@@ -67,85 +67,85 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
         groupExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          buildingProductiveRelationshipsAverage = Some(2.345)
+          workingTogetherDevelopingSelfAndOthersAverage = Some(2.345)
         )),
         leadershipExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          buildingProductiveRelationshipsAverage = Some(3.231)
+          workingTogetherDevelopingSelfAndOthersAverage = Some(3.231)
         ))
       )
 
       val result = AssessmentScoreCalculatorUnderTest.countAverage(assessmentScores)
 
       val expected = CompetencyAverageResult(
-        analysisAndDecisionMakingAverage = 0,
-        buildingProductiveRelationshipsAverage = 2.788,
-        leadingAndCommunicatingAverage = 0,
-        strategicApproachToObjectivesAverage = 0,
+        makingEffectiveDecisionsAverage = 0,
+        workingTogetherDevelopingSelfAndOthersAverage = 2.788,
+        communicatingAndInfluencingAverage = 0,
+        seeingTheBigPictureAverage = 0,
         overallScore = 2.79)
 
       result mustBe expected
     }
 
-    // Calculated as the average of leadingAndCommunicatingAverage field in analysis exercise, group exercise and leadership exercise
-    "correctly calculate leading and communicating average" in {
+    // Calculated as the average of communicatingAndInfluencingAverage field in analysis exercise, group exercise and leadership exercise
+    "correctly calculate communicatingAndInfluencingAverage" in {
 
       val assessmentScores = AssessmentScoresAllExercises(
         applicationId = UniqueIdentifier.randomUniqueIdentifier,
         analysisExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          buildingProductiveRelationshipsAverage = Some(2.345)
+          communicatingAndInfluencingAverage = Some(2.345)
         )),
         groupExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          buildingProductiveRelationshipsAverage = Some(2.366)
+          communicatingAndInfluencingAverage = Some(2.345)
         )),
         leadershipExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          buildingProductiveRelationshipsAverage = Some(3.231)
+          communicatingAndInfluencingAverage = Some(2.345)
         ))
       )
 
       val result = AssessmentScoreCalculatorUnderTest.countAverage(assessmentScores)
 
       val expected = CompetencyAverageResult(
-        analysisAndDecisionMakingAverage = 0,
-        buildingProductiveRelationshipsAverage = 2.7985,
-        leadingAndCommunicatingAverage = 0,
-        strategicApproachToObjectivesAverage = 0,
-        overallScore = 2.8)
+        makingEffectiveDecisionsAverage = 0,
+        workingTogetherDevelopingSelfAndOthersAverage = 0,
+        communicatingAndInfluencingAverage = 2.345,
+        seeingTheBigPictureAverage = 0,
+        overallScore = 2.35)
 
       result mustBe expected
     }
 
-    // Calculated as the average of strategicApproachToObjectivesAverage field in analysis exercise and leadership exercise
-    "correctly calculate strategic approach to objectives average" in {
+    // Calculated as the average of seeingTheBigPictureAverage field in analysis exercise and leadership exercise
+    "correctly calculate seeingTheBigPictureAverage" in {
 
       val assessmentScores = AssessmentScoresAllExercises(
         applicationId = UniqueIdentifier.randomUniqueIdentifier,
         analysisExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          strategicApproachToObjectivesAverage = Some(2.345)
+          seeingTheBigPictureAverage = Some(2.345)
         )),
         leadershipExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          strategicApproachToObjectivesAverage = Some(3.231)
+          seeingTheBigPictureAverage = Some(3.231)
         ))
       )
 
       val result = AssessmentScoreCalculatorUnderTest.countAverage(assessmentScores)
 
       val expected = CompetencyAverageResult(
-        analysisAndDecisionMakingAverage = 0,
-        buildingProductiveRelationshipsAverage = 0,
-        leadingAndCommunicatingAverage = 0,
-        strategicApproachToObjectivesAverage = 2.788,
+        makingEffectiveDecisionsAverage = 0,
+        workingTogetherDevelopingSelfAndOthersAverage = 0,
+        communicatingAndInfluencingAverage = 0,
+        seeingTheBigPictureAverage = 2.788,
         overallScore = 2.79)
 
       result mustBe expected
@@ -157,36 +157,36 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
         analysisExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          strategicApproachToObjectivesAverage = Some(5.544),
-          analysisAndDecisionMakingAverage = Some(5.544),
-          leadingAndCommunicatingAverage = Some(5.544),
-          buildingProductiveRelationshipsAverage = Some(5.544)
+          seeingTheBigPictureAverage = Some(5.544),
+          makingEffectiveDecisionsAverage = Some(5.544),
+          communicatingAndInfluencingAverage = Some(5.544),
+          workingTogetherDevelopingSelfAndOthersAverage = Some(5.544)
         )),
         groupExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          strategicApproachToObjectivesAverage = Some(5.544),
-          analysisAndDecisionMakingAverage = Some(5.544),
-          leadingAndCommunicatingAverage = Some(5.544),
-          buildingProductiveRelationshipsAverage = Some(5.544)
+          seeingTheBigPictureAverage = Some(5.544),
+          makingEffectiveDecisionsAverage = Some(5.544),
+          communicatingAndInfluencingAverage = Some(5.544),
+          workingTogetherDevelopingSelfAndOthersAverage = Some(5.544)
         )),
         leadershipExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
-          strategicApproachToObjectivesAverage = Some(5.544),
-          analysisAndDecisionMakingAverage = Some(5.544),
-          leadingAndCommunicatingAverage = Some(5.544),
-          buildingProductiveRelationshipsAverage = Some(5.544)
+          seeingTheBigPictureAverage = Some(5.544),
+          makingEffectiveDecisionsAverage = Some(5.544),
+          communicatingAndInfluencingAverage = Some(5.544),
+          workingTogetherDevelopingSelfAndOthersAverage = Some(5.544)
         ))
       )
 
       val result = AssessmentScoreCalculatorUnderTest.countAverage(assessmentScores)
 
       val expected = CompetencyAverageResult(
-        analysisAndDecisionMakingAverage = 5.544,
-        buildingProductiveRelationshipsAverage = 5.544,
-        leadingAndCommunicatingAverage = 5.544,
-        strategicApproachToObjectivesAverage = 5.544,
+        makingEffectiveDecisionsAverage = 5.544,
+        workingTogetherDevelopingSelfAndOthersAverage = 5.544,
+        communicatingAndInfluencingAverage = 5.544,
+        seeingTheBigPictureAverage = 5.544,
         overallScore = 22.16)
 
       result mustBe expected

@@ -17,21 +17,19 @@
 package services.testdata.candidate.sift
 
 import common.FutureEx
-import model.{ ApplicationStatus, EvaluationResults, SiftRequirement }
-import model.command.ApplicationForSift
-import model.exchange.sift.GeneralQuestionsAnswers
-import model.exchange.testdata.CreateCandidateResponse.{ CreateCandidateResponse, SiftForm, TestGroupResponse }
-import model.exchange.sift.SchemeSpecificAnswer
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.{ApplicationRoute, SiftRequirement}
+import model.exchange.sift.{GeneralQuestionsAnswers, SchemeSpecificAnswer}
+import model.exchange.testdata.CreateCandidateResponse.{CreateCandidateResponse, TestGroupResponse, TestGroupResponse2}
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
-import repositories.{ SchemeRepository, SchemeYamlRepository }
-import services.sift.{ ApplicationSiftService, SiftAnswersService }
+import repositories.{SchemeRepository, SchemeYamlRepository}
+import services.sift.SiftAnswersService
 import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.faker.DataFaker
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 object SiftFormsSubmittedStatusGenerator extends SiftFormsSubmittedStatusGenerator {
   val previousStatusGenerator = SiftEnteredStatusGenerator
@@ -52,26 +50,66 @@ trait SiftFormsSubmittedStatusGenerator extends ConstructiveGenerator {
 
   def generateSchemeAnswers = SchemeSpecificAnswer(DataFaker.loremIpsum)
 
-  def saveSchemeAnswers(appId: String, p3: TestGroupResponse): Future[List[Unit]] = {
-    p3.schemeResult.map { sr =>
+  def saveSchemeAnswersFromFastPass(appId: String, createCandidateData: CreateCandidateData): Future[List[Unit]] = {
+    createCandidateData.schemeTypes.map(schemeTypes =>
+      FutureEx.traverseSerial(schemeTypes) { schemeType =>
+        schemeRepo.schemes.find(_.id == schemeType).map { scheme =>
+          if (scheme.siftRequirement.contains(SiftRequirement.FORM)) {
+            siftService.addSchemeSpecificAnswer(appId, scheme.id, generateSchemeAnswers)
+          } else {
+            Future()
+          }
+        }.getOrElse(Future())
+      }
+    ).getOrElse(Future.successful(Nil))
+  }
+
+  // TODO: Once phase3TestData is converted into TestGroupResponse2, merge this method with saveSchemeAnswersFromPhase3TestData
+  def saveSchemeAnswersFromPhase1TestData(appId: String, phase1TestData: TestGroupResponse2): Future[List[Unit]] = {
+    phase1TestData.schemeResult.map { sr =>
       FutureEx.traverseSerial(sr.result) { result =>
-          schemeRepo.schemes.find(_.id == result.schemeId).map { scheme =>
-            if (scheme.siftRequirement.contains(SiftRequirement.FORM)) {
-              siftService.addSchemeSpecificAnswer(appId, scheme.id, generateSchemeAnswers)
-            } else {
-              Future()
-            }
-          }.getOrElse(Future())
-        }
-      }.getOrElse(Future.successful(Nil))
+        schemeRepo.schemes.find(_.id == result.schemeId).map { scheme =>
+          if (scheme.siftRequirement.contains(SiftRequirement.FORM)) {
+            siftService.addSchemeSpecificAnswer(appId, scheme.id, generateSchemeAnswers)
+          } else {
+            Future()
+          }
+        }.getOrElse(Future())
+      }
+    }.getOrElse(Future.successful(Nil))
+  }
+
+  def saveSchemeAnswersFromPhase3TestData(appId: String, phase3TestData: TestGroupResponse): Future[List[Unit]] = {
+    phase3TestData.schemeResult.map { sr =>
+      FutureEx.traverseSerial(sr.result) { result =>
+        schemeRepo.schemes.find(_.id == result.schemeId).map { scheme =>
+          if (scheme.siftRequirement.contains(SiftRequirement.FORM)) {
+            siftService.addSchemeSpecificAnswer(appId, scheme.id, generateSchemeAnswers)
+          } else {
+            Future()
+          }
+        }.getOrElse(Future())
+      }
+    }.getOrElse(Future.successful(Nil))
+  }
+
+  def saveSchemeAnswers(generatorConfig: CreateCandidateData, candidateInPreviousStatus: CreateCandidateResponse) = {
+    if (generatorConfig.hasFastPass) {
+      saveSchemeAnswersFromFastPass(candidateInPreviousStatus.applicationId.get,
+        generatorConfig)
+    } else if (List(ApplicationRoute.Sdip, ApplicationRoute.Edip).contains(generatorConfig.statusData.applicationRoute)) {
+      saveSchemeAnswersFromPhase1TestData(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.phase1TestGroup.get)
+    } else {
+      saveSchemeAnswersFromPhase3TestData(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.phase3TestGroup.get)
     }
+  }
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- siftService.addGeneralAnswers(candidateInPreviousStatus.applicationId.get, generateGeneralAnswers)
-      _ <- saveSchemeAnswers(candidateInPreviousStatus.applicationId.get, candidateInPreviousStatus.phase3TestGroup.get)
+      - <- saveSchemeAnswers(generatorConfig, candidateInPreviousStatus)
       _ <- siftService.submitAnswers(candidateInPreviousStatus.applicationId.get)
     } yield {
       candidateInPreviousStatus

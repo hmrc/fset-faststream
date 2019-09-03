@@ -19,13 +19,13 @@ package model
 import model.OnlineTestCommands.OnlineTestApplication
 
 object OnlineTestApplicationExamples {
-  val OnlineTest = OnlineTestApplication("appId", ApplicationStatus.PHASE3_TESTS, "userId",
+  val OnlineTest = OnlineTestApplication("appId", ApplicationStatus.PHASE3_TESTS, "userId", "testAccountId",
     guaranteedInterview = false, needsOnlineAdjustments = false, needsAtVenueAdjustments = false, "name", "lastname",
     None, None)
-  val InvigilatedETrayCandidate = OnlineTestApplication("appId", ApplicationStatus.PHASE3_TESTS, "userId",
+  val InvigilatedETrayCandidate = OnlineTestApplication("appId", ApplicationStatus.PHASE3_TESTS, "userId", "testAccountId",
     guaranteedInterview = false, needsOnlineAdjustments = true, needsAtVenueAdjustments = false, "name", "lastname",
     Some(AdjustmentDetail(invigilatedInfo = Some("invigilated e-tray"))), None)
-  val VideoInterviewWithAdjustments = OnlineTestApplication("appId", ApplicationStatus.PHASE3_TESTS,
-    "userId", guaranteedInterview = false, needsOnlineAdjustments = true, needsAtVenueAdjustments = false, "name", "lastname",
+  val VideoInterviewWithAdjustments = OnlineTestApplication("appId", ApplicationStatus.PHASE3_TESTS, "userId", "testAccountId",
+    guaranteedInterview = false, needsOnlineAdjustments = true, needsAtVenueAdjustments = false, "name", "lastname",
     None, Some(AdjustmentDetail(timeNeeded = Some(33))))
 }

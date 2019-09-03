@@ -17,7 +17,7 @@
 package model.persisted
 
 import org.joda.time.DateTime
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class Phase2TestGroup(expirationDate: DateTime,
@@ -29,4 +29,15 @@ object Phase2TestGroup {
   import repositories.BSONDateTimeHandler
   implicit val bsonHandler: BSONHandler[BSONDocument, Phase2TestGroup] = Macros.handler[Phase2TestGroup]
   implicit val phase2TestProfileFormat = Json.format[Phase2TestGroup]
+}
+
+
+case class Phase2TestGroup2(expirationDate: DateTime,
+                           tests: List[PsiTest],
+                           evaluation: Option[PassmarkEvaluation] = None) extends PsiTestProfile
+
+object Phase2TestGroup2 {
+  import repositories.BSONDateTimeHandler
+  implicit val bsonHandler: BSONHandler[BSONDocument, Phase2TestGroup2] = Macros.handler[Phase2TestGroup2]
+  implicit val phase2TestProfileFormat: OFormat[Phase2TestGroup2] = Json.format[Phase2TestGroup2]
 }

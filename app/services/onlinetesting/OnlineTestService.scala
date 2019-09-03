@@ -18,11 +18,10 @@ package services.onlinetesting
 
 import connectors.OnlineTestEmailClient
 import factories.{ DateTimeFactory, UUIDFactory }
-import model.Exceptions.UnexpectedException
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model.stc.DataStoreEvents
-import model.exchange.CubiksTestResultReady
+import model.exchange.{ CubiksTestResultReady, PsiRealTimeResults }
 import model.persisted._
 import model._
 import org.joda.time.DateTime
@@ -62,16 +61,23 @@ trait OnlineTestService extends TimeExtension with EventSink {
   def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]]
   def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
+  def registerAndInvite(applications: List[OnlineTestApplication])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
+  def storeRealTimeResults(orderId: String, results: PsiRealTimeResults)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest, emailAddress: String, reminder: ReminderNotice)
                                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def nextTestGroupWithReportReady: Future[Option[RichTestGroup]]
   def retrieveTestResult(testProfile: RichTestGroup)(implicit hc: HeaderCarrier): Future[Unit]
 
-  def processNextTestForNotification(notificationType: NotificationTestType)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def processNextTestForNotification(notificationType: NotificationTestType, phase: String, operation: String)
+                                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
     appRepository.findTestForNotification(notificationType).flatMap {
-      case Some(test) => processTestForNotification(test, notificationType)
-      case None => Future.successful(())
+      case Some(test) =>
+        Logger.info(s"Candidate found to notify they successfully $operation tests in $phase - appId=${test.applicationId}")
+        processTestForNotification(test, notificationType)
+      case None =>
+        Logger.info(s"No candidate found to notify they successfully $operation tests in $phase")
+        Future.successful(())
     }
   }
 

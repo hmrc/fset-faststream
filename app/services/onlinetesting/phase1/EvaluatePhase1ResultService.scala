@@ -30,7 +30,7 @@ import scala.concurrent.Future
 object EvaluatePhase1ResultService extends EvaluatePhase1ResultService {
   val evaluationRepository = repositories.faststreamPhase1EvaluationRepository
   val passMarkSettingsRepo = phase1PassMarkSettingsRepository
-  val gatewayConfig = cubiksGatewayConfig
+  val gatewayConfig = onlineTestsGatewayConfig
   val phase = Phase.PHASE1
 }
 

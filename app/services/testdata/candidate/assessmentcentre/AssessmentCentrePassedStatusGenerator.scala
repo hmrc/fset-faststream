@@ -20,7 +20,7 @@ import model.UniqueIdentifier
 import model.assessmentscores.AssessmentScoresFinalFeedback
 import model.exchange.passmarksettings._
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.mvc.RequestHeader
 import repositories.SchemeYamlRepository

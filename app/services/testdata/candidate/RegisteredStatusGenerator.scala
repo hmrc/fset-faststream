@@ -24,7 +24,7 @@ import model.persisted.Media
 import model.persisted.assessor.AssessorStatus
 import model.persisted.eventschedules.SkillType
 import model.testdata.CreateAdminData.AssessorData
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
 import services.testdata.admin.AssessorCreatedStatusGenerator
@@ -64,7 +64,9 @@ trait RegisteredStatusGenerator extends BaseGenerator {
       _ <- medRepository.create(Media(user.userId, mediaReferrer.getOrElse("")))
 
     } yield {
-      CreateCandidateResponse(generationId, user.userId, None, email, firstName, lastName, mediaReferrer = mediaReferrer)
+      CreateCandidateResponse(
+        generationId, user.userId, None, None, email, firstName,
+        lastName, mediaReferrer = mediaReferrer)
     }
 
   }
@@ -79,7 +81,7 @@ trait RegisteredStatusGenerator extends BaseGenerator {
       token <- authProviderClient.getToken(email)
       _ <- authProviderClient.activate(email, token)
     } yield {
-      CreateCandidateResponse(generationId, user.userId.toString, None, email, firstName, lastName)
+      CreateCandidateResponse(generationId, user.userId.toString, None, None, email, firstName, lastName)
     }
 
     val assessorRoles = List(AuthProviderClient.AssessorRole, AuthProviderClient.QacRole)

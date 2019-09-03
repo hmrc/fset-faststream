@@ -20,7 +20,8 @@ import model.{ AdjustmentDetail, Adjustments }
 
 object AdjustmentsExamples {
   val InvigilatedETrayAdjustments = Adjustments(
-    Some(List("etrayInvigilated")), Some(true), Some(AdjustmentDetail(invigilatedInfo = Some("invigilated e-tray approved"))), None
+    Some(List("etrayInvigilated")), Some(true), Some(AdjustmentDetail(invigilatedInfo = Some("invigilated e-tray " +
+      "approved"), percentage = Some(50))), None
   )
   val ETrayTimeExtensionAdjustments = Adjustments(
     Some(List("etrayTimeExtension")), Some(true), Some(AdjustmentDetail(invigilatedInfo = Some("time extension info"))), None
@@ -28,7 +29,8 @@ object AdjustmentsExamples {
   val EmptyAdjustments = Adjustments(None, adjustmentsConfirmed = Some(true), etray = None, video = None)
 
   val ETrayTimeAdjustments = Adjustments(
-    adjustments = Some(List("etrayTimeExtension")), adjustmentsConfirmed = None, etray = Some(AdjustmentDetail(timeNeeded = Some(10))),
+    adjustments = Some(List("etrayTimeExtension")), adjustmentsConfirmed = None,
+    etray = Some(AdjustmentDetail(timeNeeded = Some(10), percentage = Some(50))),
     video = None
   )
 }

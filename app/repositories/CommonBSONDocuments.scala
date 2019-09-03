@@ -100,7 +100,6 @@ trait CommonBSONDocuments extends BaseBSONReader {
         ProgressResponse(
           applicationId,
           personalDetails = getProgress(ProgressStatuses.PERSONAL_DETAILS.key),
-          partnerGraduateProgrammes = getProgress(ProgressStatuses.PARTNER_GRADUATE_PROGRAMMES.key),
           schemePreferences = getProgress(ProgressStatuses.SCHEME_PREFERENCES.key),
           assistanceDetails = getProgress(ProgressStatuses.ASSISTANCE_DETAILS.key),
           preview = getProgress(ProgressStatuses.PREVIEW.key),
@@ -157,7 +156,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
             phase3TestsResultsReceived = getProgress(ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED.toString),
             phase3TestsPassedWithAmber = getProgress(ProgressStatuses.PHASE3_TESTS_PASSED_WITH_AMBER.toString),
             phase3TestsPassed = getProgress(ProgressStatuses.PHASE3_TESTS_PASSED.toString),
-            phase3TestsSuccessNotified = getProgress(ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED.key),
+            phase3TestsPassedNotified = getProgress(ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED.key),
             phase3TestsFailed = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED.toString),
             phase3TestsFailedNotified = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED.key),
             phase3TestsFailedSdipAmber = getProgress(ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_AMBER.key),

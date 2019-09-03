@@ -16,6 +16,15 @@
 
 package services.testdata.candidate
 
+import model.ApplicationStatus
+import model.ApplicationStatus.ApplicationStatus
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
+
 trait ConstructiveGenerator extends BaseGenerator {
   val previousStatusGenerator: BaseGenerator
+
+  def getPreviousStatusGenerator(generatorConfig: CreateCandidateData): (ApplicationStatus, BaseGenerator) = {
+    // TODO: Review if SUBMITTED is the best default previous status
+    (generatorConfig.statusData.previousApplicationStatus.getOrElse(ApplicationStatus.SUBMITTED), previousStatusGenerator)
+  }
 }

@@ -79,14 +79,32 @@ object WaitingScheduledJobConfig {
   }
 }
 
-case class CubiksGatewayConfig(url: String,
-  phase1Tests: Phase1TestsConfig,
-  phase2Tests: Phase2TestsConfig,
-  numericalTests: NumericalTestsConfig,
-  reportConfig: ReportConfig,
-  candidateAppUrl: String,
-  emailDomain: String
+case class OnlineTestsGatewayConfig(url: String,
+                                    phase1Tests: Phase1TestsConfig,
+                                    phase2Tests: Phase2TestsConfig,
+                                    numericalTests: NumericalTestsConfig,
+                                    reportConfig: ReportConfig,
+                                    candidateAppUrl: String,
+                                    emailDomain: String
 )
+
+case class TestIntegrationGatewayConfig(url: String,
+                                    phase1Tests: Phase1TestsConfig2,
+                                    phase2Tests: Phase2TestsConfig2,
+                                    numericalTests: NumericalTestsConfig2,
+                                    reportConfig: ReportConfig,
+                                    candidateAppUrl: String,
+                                    emailDomain: String
+)
+
+//TODO these should not be optional
+case class PsiTestIds(inventoryId: String, assessmentId: Option[String],
+                      reportId: Option[String], normId: Option[String])
+
+case class Phase1TestsConfig2(expiryTimeInDays: Int,
+                              tests: Map[String, PsiTestIds],
+                              standard: List[String],
+                              gis: List[String])
 
 case class Phase1TestsConfig(expiryTimeInDays: Int,
                              scheduleIds: Map[String, Int],
@@ -94,6 +112,11 @@ case class Phase1TestsConfig(expiryTimeInDays: Int,
                              gis: List[String])
 
 case class Phase2Schedule(scheduleId: Int, assessmentId: Int)
+
+case class Phase2TestsConfig2(expiryTimeInDays: Int,
+                              expiryTimeInDaysForInvigilatedETray: Int,
+                              tests: Map[String, PsiTestIds],
+                              standard: List[String])
 
 case class Phase2TestsConfig(expiryTimeInDays: Int,
                              expiryTimeInDaysForInvigilatedETray: Int,
@@ -122,6 +145,8 @@ case class NumericalTestsConfig(schedules: Map[String, NumericalTestSchedule])
 case object NumericalTestsConfig {
   val numericalTestScheduleName = "numericalTest"
 }
+
+case class NumericalTestsConfig2(tests: Map[String, PsiTestIds], standard: List[String])
 
 trait CubiksGatewayAssessment {
   val assessmentId: Int
@@ -165,7 +190,9 @@ trait MicroserviceAppConfig extends ServicesConfig {
   lazy val schemeConfig = underlyingConfiguration.as[SchemeConfig]("microservice.schemes")
   lazy val eventsConfig = underlyingConfiguration.as[EventsConfig]("microservice.events")
   lazy val userManagementConfig = underlyingConfiguration.as[UserManagementConfig]("microservice.services.user-management")
-  lazy val cubiksGatewayConfig = underlyingConfiguration.as[CubiksGatewayConfig]("microservice.services.cubiks-gateway")
+  lazy val onlineTestsGatewayConfig = underlyingConfiguration.as[OnlineTestsGatewayConfig]("microservice.services.cubiks-gateway")
+  lazy val testIntegrationGatewayConfig = underlyingConfiguration
+    .as[TestIntegrationGatewayConfig]("microservice.services.test-integration-gateway")
   lazy val launchpadGatewayConfig = underlyingConfiguration.as[LaunchpadGatewayConfig]("microservice.services.launchpad-gateway")
   lazy val disableSdipFaststreamForSift = underlyingConfiguration.as[Boolean]("microservice.services.disableSdipFaststreamForSift")
   lazy val maxNumberOfDocuments = underlyingConfiguration.as[Int]("maxNumberOfDocuments")
@@ -175,7 +202,6 @@ trait MicroserviceAppConfig extends ServicesConfig {
 
   val AllLocations = Location("All")
   val AllVenues = Venue("ALL_VENUES", "All venues")
-
 
   lazy val assessmentEvaluationMinimumCompetencyLevelConfig =
     underlyingConfiguration
@@ -190,18 +216,4 @@ trait MicroserviceAppConfig extends ServicesConfig {
   override def mode = Play.current.mode
 
   override def runModeConfiguration = Play.current.configuration
-
-  private val secretsFileCubiksUrlKey = "microservice.services.cubiks-gateway.testdata.url"
-  lazy val testDataGeneratorCubiksSecret = app.configuration.getString(secretsFileCubiksUrlKey).
-    getOrElse(fetchSecretConfigKeyFromFile("cubiks.url"))
-
-  private def fetchSecretConfigKeyFromFile(key: String): String = {
-    val path = System.getProperty("user.home") + "/.csr/.secrets"
-    val testConfig = ConfigFactory.parseFile(new File(path))
-    if (testConfig.isEmpty) {
-      throw new IllegalArgumentException(s"No key found at '$secretsFileCubiksUrlKey' and .secrets file does not exist.")
-    } else {
-      testConfig.getString(s"testdata.$key")
-    }
-  }
 }

@@ -24,7 +24,7 @@ import model.Exceptions.{ SiftResultsAlreadyExistsException, UnexpectedException
 import model.ProgressStatuses.SIFT_ENTERED
 import model._
 import model.command.{ ApplicationForSift, ApplicationForSiftExpiry }
-import model.exchange.sift.{ SiftState, SiftTestGroupWithActiveTest }
+import model.exchange.sift.{ SiftState, SiftTestGroupWithActiveTest, SiftTestGroupWithActiveTest2 }
 import model.persisted.SchemeEvaluationResult
 import model.persisted.sift.NotificationExpiringSift
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered, SiftReminderNotice }
@@ -44,20 +44,18 @@ import scala.concurrent.Future
 import scala.language.postfixOps
 
 object ApplicationSiftService extends ApplicationSiftService {
+  val SiftExpiryWindowInDays: Int = 7
   val applicationSiftRepo: ApplicationSiftMongoRepository = repositories.applicationSiftRepository
   val applicationRepo: GeneralApplicationMongoRepository = repositories.applicationRepository
   val contactDetailsRepo: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
   val schemeRepo: SchemeRepository = SchemeYamlRepository
   val dateTimeFactory: DateTimeFactory = DateTimeFactory
   val emailClient: CSREmailClient = CSREmailClient
-  val SiftExpiryWindowInDays: Int = 7
 }
 
 // scalastyle:off number.of.methods
 trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDocuments {
-
   val SiftExpiryWindowInDays: Int
-
   def applicationSiftRepo: ApplicationSiftRepository
   def applicationRepo: GeneralApplicationRepository
   def contactDetailsRepo: ContactDetailsRepository
@@ -76,7 +74,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     applicationSiftRepo.nextApplicationForSecondSiftReminder(timeInHours)
   }
 
-  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int) : Future[Seq[NumericalTestApplication]] = {
+  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int) : Future[Seq[NumericalTestApplication2]] = {
     val numericalSchemeIds = schemeRepo.numericTestSiftRequirementSchemeIds
     applicationSiftRepo.nextApplicationsReadyForNumericTestsInvitation(batchSize, numericalSchemeIds)
   }
@@ -210,10 +208,32 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     }
   }
 
+  def getTestGroup2(applicationId: String): Future[Option[SiftTestGroupWithActiveTest2]] = {
+    for {
+      siftOpt <- applicationSiftRepo.getTestGroup2(applicationId)
+    } yield siftOpt.map { sift =>
+      val test = sift.tests.getOrElse(throw UnexpectedException(s"No tests found for $applicationId in SIFT"))
+        .find(_.usedForResults)
+        .getOrElse(throw NoActiveTestException(s"No active sift test found for $applicationId"))
+      SiftTestGroupWithActiveTest2(
+        sift.expirationDate,
+        test
+      )
+    }
+  }
+
   def markTestAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone): Future[Unit] = {
     for {
       _ <- applicationSiftRepo.updateTestStartTime(cubiksUserId, startedTime)
       appId <- applicationSiftRepo.getApplicationIdForCubiksId(cubiksUserId)
+      - <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_TEST_STARTED)
+    } yield {}
+  }
+
+  def markTestAsStarted2(orderId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone): Future[Unit] = {
+    for {
+      _ <- applicationSiftRepo.updateTestStartTime(orderId, startedTime)
+      appId <- applicationSiftRepo.getApplicationIdForOrderId(orderId)
       - <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_TEST_STARTED)
     } yield {}
   }
@@ -272,7 +292,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     Seq(currentSchemeStatusBSON(newSchemeStatus),
       maybeSetProgressStatus(siftedSchemes.toSet, candidatesSiftableSchemes.toSet),
       maybeFailSdip(result),
-      maybeSetSdipFaststreamProgressStatus(newSchemeStatus, siftedSchemes)
+      maybeSetSdipFaststreamProgressStatus(newSchemeStatus, siftedSchemes, candidatesSiftableSchemes)
     ).foldLeft(Seq.empty[BSONDocument]) { (acc, doc) =>
       doc match {
         case _ @BSONDocument.empty => acc
@@ -303,18 +323,20 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
 
   // we need to consider that all siftable schemes have been sifted with a fail or the candidate has withdrawn from them
   // and sdip has been sifted with a pass
-  private def maybeSetSdipFaststreamProgressStatus(newSchemeStatus: Seq[SchemeEvaluationResult], siftedSchemes: Seq[SchemeId]) = {
+  private def maybeSetSdipFaststreamProgressStatus(newSchemeEvaluationResult: Seq[SchemeEvaluationResult],
+    siftedSchemes: Seq[SchemeId], candidatesSiftableSchemes: Seq[SchemeId]) = {
 
     // Sdip has been sifted and it passed
-    val SdipPassed = SchemeEvaluationResult(Scheme.SdipId, Green.toString)
-    val sdipPassedSift = siftedSchemes.contains(Scheme.SdipId) && newSchemeStatus.contains(SdipPassed)
+    val SdipEvaluationResultPassed = SchemeEvaluationResult(Scheme.SdipId, Green.toString)
+    val sdipNeededSiftEvaluation = candidatesSiftableSchemes.map(_.value).contains("Sdip")
+    val sdipPassedSift = siftedSchemes.contains(Scheme.SdipId) && newSchemeEvaluationResult.contains(SdipEvaluationResultPassed)
 
-    val schemesExcludingSdip = newSchemeStatus.filterNot( s => s.schemeId == Scheme.SdipId)
+    val schemesExcludingSdip = newSchemeEvaluationResult.filterNot( s => s.schemeId == Scheme.SdipId)
     val faststreamSchemesRedOrWithdrawn = schemesExcludingSdip.forall{ s =>
       s.result == Red.toString || s.result == Withdrawn.toString
     }
 
-    if (sdipPassedSift && faststreamSchemesRedOrWithdrawn) {
+    if ((!sdipNeededSiftEvaluation || sdipPassedSift) && faststreamSchemesRedOrWithdrawn) {
       progressStatusOnlyBSON(ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN)
     } else {
       BSONDocument.empty

@@ -22,21 +22,21 @@ import play.api.Logger
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
-import services.onlinetesting.phase1.Phase1TestService
-import services.onlinetesting.phase2.Phase2TestService
+import services.onlinetesting.phase1.Phase1TestService2
+import services.onlinetesting.phase2.Phase2TestService2
 import services.onlinetesting.phase3.Phase3TestService
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 
 object SendPhase1InvitationJob extends SendInvitationJob {
-  val onlineTestingService = Phase1TestService
+  val onlineTestingService = Phase1TestService2
   val config = SendPhase1InvitationJobConfig
   val phase = "PHASE1"
 }
 
 object SendPhase2InvitationJob extends SendInvitationJob {
-  val onlineTestingService = Phase2TestService
+  val onlineTestingService = Phase2TestService2
   val config = SendPhase2InvitationJobConfig
   val phase = "PHASE2"
 }
@@ -61,7 +61,8 @@ trait SendInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[Schedu
         Logger.info(s"Inviting the following candidates to phase $phase: $applicationIds")
         implicit val hc = HeaderCarrier()
         implicit val rh = EmptyRequestHeader
-        onlineTestingService.registerAndInviteForTestGroup(applications)
+//        onlineTestingService.registerAndInviteForTestGroup(applications)
+        onlineTestingService.registerAndInvite(applications)
     }
   }
 }

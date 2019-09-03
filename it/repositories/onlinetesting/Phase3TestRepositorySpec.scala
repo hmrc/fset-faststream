@@ -189,11 +189,11 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   "Next application ready for online testing" should {
 
     "exclude applications with SDIP or EDIP application routes" in {
-      createApplicationWithAllFields("userId0", "appId0", "frameworkId", "PHASE2_TESTS_PASSED",
+      createApplicationWithAllFields("userId0", "appId0","testAccountId", "frameworkId", "PHASE2_TESTS_PASSED",
         additionalProgressStatuses = List((PHASE2_TESTS_PASSED, true)), applicationRoute = "Sdip").futureValue
-      createApplicationWithAllFields("userId1", "appId1", "frameworkId", "PHASE2_TESTS_PASSED",
+      createApplicationWithAllFields("userId1", "appId1","testAccountId", "frameworkId", "PHASE2_TESTS_PASSED",
         additionalProgressStatuses = List((PHASE2_TESTS_PASSED, true)), applicationRoute = "Edip").futureValue
-      createApplicationWithAllFields("userId2", "appId2", "frameworkId", "PHASE2_TESTS_PASSED",
+      createApplicationWithAllFields("userId2", "appId2", "testAccountId","frameworkId", "PHASE2_TESTS_PASSED",
        additionalProgressStatuses = List((PHASE2_TESTS_PASSED, true))).futureValue
 
       val results = phase3TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
@@ -204,7 +204,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "return one application if there is only one" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE2_TESTS_PASSED",
+      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "PHASE2_TESTS_PASSED",
         additionalProgressStatuses = List((model.ProgressStatuses.PHASE2_TESTS_PASSED, true))
       ).futureValue
 
@@ -218,7 +218,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
   "Insert a phase 3 test" should {
     "correctly insert a test" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE2_TESTS_PASSED").futureValue
+      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "PHASE2_TESTS_PASSED").futureValue
 
       phase3TestRepo.insertOrUpdateTestGroup("appId", TestGroup).futureValue
 
@@ -231,7 +231,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
   "Remove a phase 3 test" should {
     "remove test when requested" in {
-      createApplicationWithAllFields("userId", "appId", "frameworkId", "PHASE3",
+      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "PHASE3",
         additionalProgressStatuses = List((ProgressStatuses.PHASE3_TESTS_INVITED, true))
       ).futureValue
 
@@ -251,7 +251,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       "there is an application in PHASE3_TESTS and is about to expire in the next 72 hours" in {
         val date = DateTime.now().plusHours(Phase3FirstReminder.hoursBeforeReminder - 1).plusMinutes(55)
         val testGroup = Phase3TestGroup(expirationDate = date, tests = List(phase3Test))
-        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
+        createApplicationWithAllFields(UserId, AppId, TestAccountId,"frameworkId", "SUBMITTED").futureValue
         phase3TestRepo.insertOrUpdateTestGroup(AppId, testGroup).futureValue
         val notification = phase3TestRepo.nextTestForReminder(Phase3FirstReminder).futureValue
         notification.isDefined mustBe true
@@ -266,7 +266,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       "there is an application in PHASE3_TESTS and is about to expire in the next 24 hours" in {
         val date = DateTime.now().plusHours(Phase3SecondReminder.hoursBeforeReminder - 1).plusMinutes(55)
         val testGroup = Phase3TestGroup(expirationDate = date, tests = List(phase3Test))
-        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
+        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase3TestRepo.insertOrUpdateTestGroup(AppId, testGroup).futureValue
         val notification = phase3TestRepo.nextTestForReminder(Phase3SecondReminder).futureValue
         notification.isDefined mustBe true
@@ -281,14 +281,14 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       val date = DateTime.now().plusHours(22)
       val testProfile = Phase3TestGroup(expirationDate = date, tests = List(phase3Test))
       "there are no applications in PHASE3_TESTS" in {
-        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
+        createApplicationWithAllFields(UserId, AppId, TestAccountId,"frameworkId", "SUBMITTED").futureValue
         phase3TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS), AppId).futureValue
         phase3TestRepo.nextTestForReminder(Phase3FirstReminder).futureValue mustBe None
       }
 
       "the expiration date is in 26h but we send the second reminder only after 24h" in {
-        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
+        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase3TestRepo.insertOrUpdateTestGroup(
           AppId,
           Phase3TestGroup(expirationDate = new DateTime().plusHours(30), tests = List(phase3Test))).futureValue
@@ -297,7 +297,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
       "the test is expired" in {
         import repositories.BSONDateTimeHandler
-        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
+        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase3TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE3_TESTS_EXPIRED.applicationStatus,
@@ -309,7 +309,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
       "the test is completed" in {
         import repositories.BSONDateTimeHandler
-        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
+        createApplicationWithAllFields(UserId, AppId, TestAccountId,"frameworkId", "SUBMITTED").futureValue
         phase3TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE3_TESTS_COMPLETED.applicationStatus,
@@ -320,7 +320,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       }
 
       "we already sent a second reminder" in {
-        createApplicationWithAllFields(UserId, AppId, "frameworkId", "SUBMITTED").futureValue
+        createApplicationWithAllFields(UserId, AppId, TestAccountId,"frameworkId", "SUBMITTED").futureValue
         phase3TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("$set" -> BSONDocument(
           s"progress-status.$PHASE3_TESTS_SECOND_REMINDER" -> true
@@ -332,7 +332,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
   "reset progress statuses" should {
     "reset PHASE3_TESTS status for an application at PHASE3_TESTS_RESULTS_RECEIVED" in {
-      createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE3_TESTS,
+      createApplicationWithAllFields("userId", "appId", "testAccountId", appStatus = ApplicationStatus.PHASE3_TESTS,
         additionalProgressStatuses = List(
           ProgressStatuses.PHASE3_TESTS_INVITED -> true,
           ProgressStatuses.PHASE3_TESTS_STARTED -> true,
@@ -347,7 +347,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "reset PHASE3_TESTS_PASSED status" in {
-      createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE3_TESTS_PASSED,
+      createApplicationWithAllFields("userId", "appId", "testAccountId", appStatus = ApplicationStatus.PHASE3_TESTS_PASSED,
         additionalProgressStatuses = List(
           ProgressStatuses.PHASE3_TESTS_INVITED -> true,
           ProgressStatuses.PHASE3_TESTS_STARTED -> true,
@@ -363,7 +363,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "reset PHASE3_TESTS_FAILED status at PHASE3_TESTS_FAILED_NOTIFIED" in {
-      createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE3_TESTS_FAILED,
+      createApplicationWithAllFields("userId", "appId", "testAccountId", appStatus = ApplicationStatus.PHASE3_TESTS_FAILED,
         additionalProgressStatuses = List(
           ProgressStatuses.PHASE3_TESTS_INVITED -> true,
           ProgressStatuses.PHASE3_TESTS_STARTED -> true,
@@ -380,7 +380,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "reset PHASE3_TESTS_PASSED_WITH_AMBER status" in {
-      createApplicationWithAllFields("userId", "appId", appStatus = ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER,
+      createApplicationWithAllFields("userId", "appId", "testAccountId", appStatus = ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER,
         additionalProgressStatuses = List(
           ProgressStatuses.PHASE3_TESTS_INVITED -> true,
           ProgressStatuses.PHASE3_TESTS_STARTED -> true,
@@ -394,7 +394,6 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
       assertResetPhase3ApplicationAndProgressStatus(app)
     }
-
   }
 
   trait CallbackFixture {

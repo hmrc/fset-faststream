@@ -17,60 +17,33 @@
 package services.testdata.candidate.onlinetests.phase2
 
 import common.FutureEx
-import model.OnlineTestCommands.TestResult
-import model.ProgressStatuses
-import model.exchange.CubiksTestResultReady
-import model.persisted.CubiksTest
-import model.testdata.CreateCandidateData.CreateCandidateData
-import org.joda.time.{ DateTime, DateTimeZone }
+import model.exchange.PsiRealTimeResults
+import model.testdata.candidate.CreateCandidateData.{CreateCandidateData}
+import model.testdata.candidate.Phase2TestData
 import play.api.mvc.RequestHeader
-import repositories._
-import repositories.onlinetesting.Phase2TestRepository
-import services.onlinetesting.phase2.Phase2TestService
+import services.onlinetesting.phase2.Phase2TestService2
 import services.testdata.candidate.ConstructiveGenerator
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 object Phase2TestsResultsReceivedStatusGenerator extends Phase2TestsResultsReceivedStatusGenerator {
   val previousStatusGenerator = Phase2TestsCompletedStatusGenerator
-  val otRepository = phase2TestRepository
-  val otService = Phase2TestService
+  val otService = Phase2TestService2
 }
 
 trait Phase2TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
-  val otRepository: Phase2TestRepository
-  val otService: Phase2TestService
+  val otService: Phase2TestService2
 
-
-    def insertTests(applicationId: String, testResults: List[(TestResult, CubiksTest)]): Future[Unit] = {
-      Future.sequence(testResults.map {
-        case (result, phase2Test) => otRepository.insertTestResult(applicationId,
-          phase2Test, model.persisted.TestResult.fromCommandObject(result)
-        )
-      }).map(_ => ())
-    }
-
-    val now = DateTime.now().withZone(DateTimeZone.UTC)
-    def getPhase2Test(cubiksUserId: Int) = CubiksTest(0, usedForResults = true, cubiksUserId, "", "", "", now, 0)
-    def getTestResult(tscore: Option[Double]) = TestResult("completed", "norm", tscore.orElse(Some(10.0)), Some(20.0), Some(30.0), Some(40.0))
-
-
-    def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
-      for {
-        candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
-        _ <- FutureEx.traverseSerial(candidate.phase2TestGroup.get.tests) { test =>
-          val id = test.testId
-          val result = CubiksTestResultReady(Some(id * 123), "Ready", Some(s"http://fakeurl.com/report$id"))
-          otService.markAsReportReadyToDownload(id, result)
-        }
-        cubiksUserIds <- Future.successful(candidate.phase2TestGroup.get.tests.map(_.testId))
-        testResults <- Future.successful(cubiksUserIds.map { id => {
-          (getTestResult(generatorConfig.phase2TestData.flatMap(_.tscore)), getPhase2Test(id))}
-        })
-        _ <- insertTests(candidate.applicationId.get, testResults)
-        _ <- otRepository.updateProgressStatus(candidate.applicationId.get, ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED)
-      } yield candidate
-    }
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+    for {
+      candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
+      scores <- Future.successful(generatorConfig.phase2TestData.getOrElse(
+        Phase2TestData(scores = List(11.0, 22.0))).scores)
+      _ <- FutureEx.traverseSerial(candidate.phase2TestGroup.get.tests zip scores) { case (test, score) =>
+        otService.storeRealTimeResults(test.orderId, PsiRealTimeResults(score, score, Some("http://localhost/testReport")))
+      }
+    } yield candidate
   }
+}

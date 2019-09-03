@@ -17,18 +17,17 @@
 package controllers
 
 import model.ApplicationStatus._
-import model.Commands
 import model.Exceptions.ExpiredTestForTokenException
 import model.OnlineTestCommands.OnlineTestApplication
-import model.command.{ InvigilatedTestUrl, ResetOnlineTest, VerifyAccessCode }
+import model.command.{ InvigilatedTestUrl, ResetOnlineTest, ResetOnlineTest2, VerifyAccessCode }
 import org.joda.time.DateTime
 import play.api.Logger
-import play.api.libs.json.{ Json, OFormat }
+import play.api.libs.json.{ JsValue, Json, OFormat }
 import play.api.mvc._
 import repositories._
 import repositories.application.GeneralApplicationRepository
-import services.onlinetesting.phase1.Phase1TestService
-import services.onlinetesting.phase2.Phase2TestService
+import services.onlinetesting.phase1.{ Phase1TestService, Phase1TestService2 }
+import services.onlinetesting.phase2.{ Phase2TestService, Phase2TestService2 }
 import services.onlinetesting.Exceptions.{ CannotResetPhase2Tests, ResetLimitExceededException }
 import services.onlinetesting.phase3.Phase3TestService
 import services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
@@ -82,14 +81,18 @@ object UserIdWrapper {
 object OnlineTestController extends OnlineTestController {
   override val appRepository: GeneralApplicationRepository = applicationRepository
   override val phase1TestService = Phase1TestService
+  override val phase1TestService2 = Phase1TestService2
   override val phase2TestService = Phase2TestService
+  override val phase2TestService2 = Phase2TestService2
   override val phase3TestService = Phase3TestService
 }
 
 trait OnlineTestController extends BaseController {
   val appRepository: GeneralApplicationRepository
   val phase1TestService: Phase1TestService
+  val phase1TestService2: Phase1TestService2
   val phase2TestService: Phase2TestService
+  val phase2TestService2: Phase2TestService2
   val phase3TestService: Phase3TestService
 
   def getPhase1OnlineTest(applicationId: String) = Action.async { implicit request =>
@@ -100,8 +103,20 @@ trait OnlineTestController extends BaseController {
     }
   }
 
+  //TODO: remove this
+  def getPhase1OnlineTest2(applicationId: String) = Action.async { implicit request =>
+    phase1TestService2.getTestGroup2(applicationId) map {
+      case Some(phase1TestProfileWithNames) =>
+        val response = Json.toJson(phase1TestProfileWithNames)
+        Logger.debug(s"**** getPhase1OnlineTest2 response=$response")
+        Ok(response)
+      case None => Logger.debug(s"No phase 1 tests found for applicationId '$applicationId'")
+        NotFound
+    }
+  }
+
   def getPhase2OnlineTest(applicationId: String) = Action.async { implicit request =>
-    phase2TestService.getTestGroup(applicationId) map {
+    phase2TestService2.getTestGroup(applicationId) map {
       case Some(phase2TestGroupWithNames) => Ok(Json.toJson(phase2TestGroupWithNames))
       case None => Logger.debug(s"No phase 2 tests found for applicationId '$applicationId'")
         NotFound
@@ -122,32 +137,31 @@ trait OnlineTestController extends BaseController {
     }
   }
 
-  def resetPhase1OnlineTests(applicationId: String) = Action.async(parse.json) { implicit request =>
-    withJsonBody[ResetOnlineTest] { resetOnlineTest =>
-      play.api.Logger.debug(s"resetPhase1OnlineTests - request=${play.api.libs.json.Json.toJson(resetOnlineTest).toString}")
+  def resetPhase1OnlineTests(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[ResetOnlineTest2] { resetOnlineTest =>
+      Logger.debug(s"resetPhase1OnlineTest - $resetOnlineTest")
       appRepository.getOnlineTestApplication(applicationId).flatMap {
-        case Some(onlineTestApp) => phase1TestService.resetTests(onlineTestApp, resetOnlineTest.tests, resetOnlineTest.actionTriggeredBy)
-          .map ( _ => Ok )
+        case Some(onlineTestApp) =>
+          phase1TestService2.resetTest(onlineTestApp, resetOnlineTest.orderId, resetOnlineTest.actionTriggeredBy)
+            .map ( _ => Ok )
         case _ => Future.successful(NotFound)
       }
     }
   }
 
-  def resetPhase2OnlineTest(applicationId: String) = Action.async(parse.json) { implicit request =>
-    withJsonBody[ResetOnlineTest] { resetOnlineTest =>
-      play.api.Logger.debug(s"resetPhase2OnlineTests - request=${play.api.libs.json.Json.toJson(resetOnlineTest).toString}")
-      def reset(onlineTestApp: OnlineTestApplication, actionTriggeredBy: String) =
-        phase2TestService.resetTests(onlineTestApp, actionTriggeredBy)
-          .map(_ => Ok)
-          .recover {
-            case _: ResetLimitExceededException =>
-              Locked
-            case _: CannotResetPhase2Tests =>
-              NotFound
-          }
-
+  def resetPhase2OnlineTest(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[ResetOnlineTest2] { resetOnlineTest =>
+      Logger.debug(s"resetPhase2OnlineTests - $resetOnlineTest")
       appRepository.getOnlineTestApplication(applicationId).flatMap {
-        case Some(onlineTestApp) => reset(onlineTestApp, resetOnlineTest.actionTriggeredBy)
+        case Some(onlineTestApp) =>
+          phase2TestService2.resetTest(onlineTestApp, resetOnlineTest.orderId, resetOnlineTest.actionTriggeredBy)
+            .map(_ => Ok)
+            .recover {
+              case _: ResetLimitExceededException =>
+                Locked
+              case _: CannotResetPhase2Tests =>
+                NotFound
+            }
         case _ => Future.successful(NotFound)
       }
     }

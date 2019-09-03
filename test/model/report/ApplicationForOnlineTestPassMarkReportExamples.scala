@@ -17,6 +17,7 @@
 package model.report
 
 import factories.UUIDFactory
+import model.OnlineTestCommands.PsiTestResult
 import model.persisted.{ ApplicationForOnlineTestPassMarkReport, SchemeEvaluationResult }
 import model.report.onlinetestpassmark.TestResultsForOnlineTestPassMarkReportItemExamples
 import model.{ ApplicationRoute, EvaluationResults, SchemeId }
@@ -27,10 +28,12 @@ object ApplicationForOnlineTestPassMarkReportExamples {
   lazy val application1 = newApplicationForOnlineTestPassMarkReport(TestResultsForOnlineTestPassMarkReportItemExamples.testResults1)
   lazy val application2 = newApplicationForOnlineTestPassMarkReport(TestResultsForOnlineTestPassMarkReportItemExamples.testResults2)
 
+  def emptyTests(n: Int): Seq[Option[PsiTestResult]] = Seq.fill[Option[PsiTestResult]](n)(None)
+
   lazy val applicationWithNoTestResult1 = newApplicationForOnlineTestPassMarkReport(
-    TestResultsForOnlineTestPassMarkReportItem(None, None, None, None, None, None, None, None, None))
+    TestResultsForOnlineTestPassMarkReportItem(emptyTests(4), emptyTests(2), None, None, None, None, None, None))
   lazy val applicationWithNoTestResult2 = newApplicationForOnlineTestPassMarkReport(
-    TestResultsForOnlineTestPassMarkReportItem(None, None, None, None, None, None, None, None, None))
+    TestResultsForOnlineTestPassMarkReportItem(emptyTests(4), emptyTests(2), None, None, None, None, None, None))
 
   def newApplicationForOnlineTestPassMarkReport(testsResult: TestResultsForOnlineTestPassMarkReportItem) =
     ApplicationForOnlineTestPassMarkReport(

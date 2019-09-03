@@ -30,7 +30,7 @@ class FlagCandidateMongoRepositorySpec extends MongoRepositorySpec with UUIDFact
 
   val collectionName = CollectionNames.APPLICATION
   def repository = new FlagCandidateMongoRepository
-  def helperRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, cubiksGatewayConfig)
+  def helperRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, onlineTestsGatewayConfig)
 
   "Flag Candidate repository" should {
     "create and get an issue for the candidate" in {

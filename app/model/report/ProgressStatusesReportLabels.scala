@@ -28,7 +28,6 @@ trait ProgressStatusesReportLabels {
   private def statusMaps(progress: ProgressResponse) = Seq(
     (progress.personalDetails, 10, PersonalDetailsCompletedProgress),
     (progress.schemePreferences, 20, SchemePreferencesCompletedProgress),
-    (progress.partnerGraduateProgrammes, 25, PartnerGraduateProgrammesCompletedProgress),
     (progress.assistanceDetails, 30, AssistanceDetailsCompletedProgress),
     (progress.questionnaire.contains("start_questionnaire"), 40, StartDiversityQuestionnaireProgress),
     (progress.questionnaire.contains("diversity_questionnaire"), 50, DiversityQuestionsCompletedProgress),
@@ -81,7 +80,7 @@ trait ProgressStatusesReportLabels {
     (progress.phase3ProgressResponse.phase3TestsFailedSdipGreen, 366, Phase3TestsFailedSdipGreen),
     (progress.phase3ProgressResponse.phase3TestsPassedWithAmber, 370, Phase3TestsPassedWithAmber),
     (progress.phase3ProgressResponse.phase3TestsPassed, 380, Phase3TestsPassed),
-    (progress.phase3ProgressResponse.phase3TestsSuccessNotified, 385, Phase3TestsPassedNotified),
+    (progress.phase3ProgressResponse.phase3TestsPassedNotified, 385, Phase3TestsPassedNotified),
     (progress.phase3ProgressResponse.phase3TestsFailed, 390, Phase3TestsFailed),
     (progress.phase3ProgressResponse.phase3TestsFailedNotified, 395, Phase3TestsFailedNotified),
 
@@ -161,7 +160,6 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val RegisteredProgress = "registered"
   val PersonalDetailsCompletedProgress = "personal_details_completed"
   val SchemePreferencesCompletedProgress = "scheme_preferences_completed"
-  val PartnerGraduateProgrammesCompletedProgress = "partner_graduate_programmes_completed"
   val AssistanceDetailsCompletedProgress = "assistance_details_completed"
   val PreviewCompletedProgress = "preview_completed"
   val StartDiversityQuestionnaireProgress = "start_diversity_questionnaire"

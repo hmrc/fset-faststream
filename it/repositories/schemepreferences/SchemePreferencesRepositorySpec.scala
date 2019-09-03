@@ -18,12 +18,13 @@ class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
   val collectionName: String = CollectionNames.APPLICATION
 
   def repository = new SchemePreferencesMongoRepository
-  def applicationRepository = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, cubiksGatewayConfig)
+  def applicationRepository = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, onlineTestsGatewayConfig)
 
   "save and find" should {
     "save and return scheme preferences" in {
       val (persistedSchemes, application) = (for {
-        _ <- insert(BSONDocument("applicationId" -> AppId, "userId" -> UserId, "applicationStatus" -> CREATED, "frameworkId" -> FrameworkId))
+        _ <- insert(BSONDocument("applicationId" -> AppId, "userId" -> UserId, "testAccountId" -> TestAccountId,
+          "applicationStatus" -> CREATED, "frameworkId" -> FrameworkId))
         _ <- repository.save(AppId, TwoSchemes)
         appResponse <- applicationRepository.findByUserId(UserId, FrameworkId)
         schemes <- repository.find(AppId)

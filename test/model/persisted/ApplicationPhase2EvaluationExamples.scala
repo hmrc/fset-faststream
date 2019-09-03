@@ -23,4 +23,12 @@ object ApplicationPhase2EvaluationExamples {
   def faststreamApplication(implicit now: DateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE2_TESTS,
     ApplicationRoute.Faststream, isGis = false, activeCubiksTests = Phase1TestProfileExamples.profile.activeTests,
     activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
+
+  def faststreamPsiApplication(implicit now: DateTime) = ApplicationReadyForEvaluation2("app1", ApplicationStatus.PHASE2_TESTS,
+    ApplicationRoute.Faststream, isGis = false, activePsiTests = Phase2TestProfileExamples.profile2.activeTests,
+    activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
+
+  def sdipFaststreamPsiApplication(implicit now: DateTime) = ApplicationReadyForEvaluation2("app1", ApplicationStatus.PHASE2_TESTS,
+    ApplicationRoute.SdipFaststream, isGis = false, activePsiTests = Phase2TestProfileExamples.profile2.activeTests,
+    activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
 }

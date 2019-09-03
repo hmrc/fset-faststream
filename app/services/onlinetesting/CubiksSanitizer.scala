@@ -16,6 +16,7 @@
 
 package services.onlinetesting
 
+//TODO rename to TextSanitizer
 object CubiksSanitizer {
   def sanitizeFreeText(value: String): String =
     value

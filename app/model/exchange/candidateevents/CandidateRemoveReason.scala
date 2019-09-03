@@ -34,5 +34,4 @@ object CandidateRemoveReason {
   )
 
   def find(key: String): Option[CandidateRemoveReason] = Values.find(_.key == key)
-
 }

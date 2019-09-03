@@ -105,19 +105,19 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     ).map(_ => ())
 
   // scalastyle:off parameter.number
-  def createApplicationWithAllFields(userId: String, appId: String, frameworkId: String,
+  def createApplicationWithAllFields(userId: String, appId: String, testAccountId: String, frameworkId: String,
     appStatus: ApplicationStatus = ApplicationStatus.IN_PROGRESS, hasDisability: String = "Yes",
     needsSupportForOnlineAssessment: Boolean = false,
     needsSupportAtVenue: Boolean = false, guaranteedInterview: Boolean = false, lastName: Option[String] = None,
     firstName: Option[String] = None, preferredName: Option[String] = None,
     additionalProgressStatuses: List[(ProgressStatus, Boolean)] = Nil,
     additionalDoc: BSONDocument = BSONDocument.empty,
-    applicationRoute: Option[ApplicationRoute] = None,
-    partnerProgrammes: List[String] = Nil
+    applicationRoute: Option[ApplicationRoute] = None
   ) = {
     import repositories.BSONLocalDateHandler
     val document = BSONDocument(
       "applicationId" -> appId,
+      "testAccountId" -> testAccountId,
       "applicationStatus" -> appStatus,
       "applicationRoute" -> applicationRoute,
       "userId" -> userId,
@@ -144,7 +144,6 @@ class TestDataMongoRepository(implicit mongo: () => DB)
         "needsSupportAtVenue" -> needsSupportAtVenue,
         "guaranteedInterview" -> guaranteedInterview
       ),
-      "partner-graduate-programmes" -> deferral(partnerProgrammes),
       "issue" -> "this candidate has changed the email",
       "progress-status" -> progressStatus(additionalProgressStatuses),
       "progress-status-dates" -> BSONDocument(
@@ -155,21 +154,11 @@ class TestDataMongoRepository(implicit mongo: () => DB)
   }
   // scalastyle:on parameter.number
 
-  def deferral(args: List[String] = Nil): BSONDocument = args match {
-    case Nil => BSONDocument()
-
-    case _ :: _ => BSONDocument(
-      "interested" -> true,
-      "partnerGraduateProgrammes" -> args
-    )
-  }
-
   def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {
     val baseDoc = BSONDocument(
       "personal-details" -> true,
       "in_progress" -> true,
       "scheme-preferences" -> true,
-      "partner-graduate-programmes" -> true,
       "assistance-details" -> true,
       "questionnaire" -> BSONDocument(
         "start_questionnaire" -> true,

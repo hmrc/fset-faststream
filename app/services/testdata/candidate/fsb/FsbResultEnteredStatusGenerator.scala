@@ -21,7 +21,7 @@ import model.Exceptions.{ InvalidApplicationStatusAndProgressStatusException, Sc
 import model.command.testdata.CreateCandidateRequest.FsbTestGroupDataRequest
 import model.exchange.testdata.CreateCandidateResponse.{ CreateCandidateResponse, FsbTestGroupResponse }
 import model.persisted.SchemeEvaluationResult
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import services.application.FsbService
 import services.testdata.candidate.{ BaseGenerator, ConstructiveGenerator }

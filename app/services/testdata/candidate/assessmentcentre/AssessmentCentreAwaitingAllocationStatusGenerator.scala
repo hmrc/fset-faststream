@@ -21,7 +21,7 @@ import model.EvaluationResults.Green
 import model.command.ApplicationForProgression
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.persisted.SchemeEvaluationResult
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import services.assessmentcentre.AssessmentCentreService
 import services.testdata.candidate.ConstructiveGenerator

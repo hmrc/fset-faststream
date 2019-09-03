@@ -40,8 +40,6 @@ object Exceptions {
 
   case class CannotUpdateSchemePreferences(applicationId: String) extends Exception(applicationId)
 
-  case class CannotUpdatePartnerGraduateProgrammes(applicationId: String) extends Exception(applicationId)
-
   case class CannotUpdateAssistanceDetails(userId: String) extends Exception(userId)
 
   case class CannotUpdatePreview(applicationId: String) extends Exception(applicationId)
@@ -64,8 +62,6 @@ object Exceptions {
   case class SchemePreferencesNotFound(applicationId: String) extends Exception(applicationId)
 
   case class PassMarkEvaluationNotFound(applicationId: String) extends Exception(applicationId)
-
-  case class PartnerGraduateProgrammesNotFound(applicationId: String) extends Exception(applicationId)
 
   case class AssistanceDetailsNotFound(id: String) extends Exception(id)
 
@@ -105,7 +101,15 @@ object Exceptions {
 
   case class CannotFindTestByCubiksId(message: String) extends NotFoundException(message)
 
+  case class CannotFindTestGroupByApplicationIdException(message: String) extends NotFoundException(message)
+
+  case class CannotFindTestByOrderIdException(message: String) extends NotFoundException(message)
+
+  case class CannotFindTestByInventoryIdException(message: String) extends NotFoundException(message)
+
   case class CannotFindApplicationByCubiksId(message: String) extends NotFoundException(message)
+
+  case class CannotFindApplicationByOrderIdException(message: String) extends NotFoundException(message)
 
   case class AdjustmentsCommentNotFound(applicationId: String) extends Exception(applicationId)
 

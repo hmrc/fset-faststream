@@ -18,9 +18,12 @@ package model.persisted
 
 import org.joda.time.DateTime
 
-abstract class CubiksTestProfile(
-) extends TestProfile[CubiksTest] {
-  def hasNotResultReadyToDownloadForAllTestsYet =  activeTests.exists(!_.resultsReadyToDownload)
+abstract class CubiksTestProfile() extends TestProfile[CubiksTest] {
+  def hasNotResultReadyToDownloadForAllTestsYet: Boolean = activeTests.exists(!_.resultsReadyToDownload)
+}
+
+abstract class PsiTestProfile() extends TestProfile[PsiTest] {
+  def hasNotResultReadyToDownloadForAllTestsYet: Boolean = activeTests.exists(!_.resultsReadyToDownload)
 }
 
 trait TestProfile[T <: Test] {
@@ -32,10 +35,10 @@ trait TestProfile[T <: Test] {
   def evaluation: Option[PassmarkEvaluation]
 }
 
+//TODO: look to see if we still need all members of this trait
 trait Test {
   def usedForResults: Boolean
   def testProvider: String
-  def token: String
   def startedDateTime: Option[DateTime]
   def completedDateTime: Option[DateTime]
   def invigilatedAccessCode: Option[String]

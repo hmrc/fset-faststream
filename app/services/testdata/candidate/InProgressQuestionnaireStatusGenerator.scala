@@ -18,7 +18,7 @@ package services.testdata.candidate
 
 import model.exchange.testdata.CreateCandidateResponse
 import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
-import model.testdata.CreateCandidateData.{ CreateCandidateData, DiversityDetails }
+import model.testdata.candidate.CreateCandidateData.{ CreateCandidateData, DiversityDetails }
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.{ DiversityQuestionsText, GeneralApplicationMongoRepository, GeneralApplicationRepository }

@@ -17,7 +17,7 @@
 package repositories.application
 
 import config.MicroserviceAppConfig._
-import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest._
+import _root_.config.PsiTestIds
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.{ ReviewSectionQuestionRequest, ReviewedCallbackRequest }
 import model._
 import model.ApplicationRoute.ApplicationRoute
@@ -25,16 +25,15 @@ import model.ApplicationStatus.{ apply => _ }
 import model.CivilServiceExperienceType.{ CivilServiceExperienceType, apply => _ }
 import model.Commands._
 import model.InternshipType.{ InternshipType, apply => _ }
-import model.OnlineTestCommands.TestResult
-import model.assessmentscores.AssessmentScoresAllExercises
+import model.OnlineTestCommands.{ PsiTestResult, TestResult }
 import model.command._
 import model.persisted._
-import model.persisted.sift.SiftTestGroup
+import model.persisted.phase3tests.LaunchpadTestCallbacks
+import model.persisted.sift.SiftTestGroup2
 import model.report._
 import play.api.Logger
-import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, _ }
-import repositories.{ BaseBSONReader, CommonBSONDocuments, CurrentSchemeStatusHelper }
+import repositories.{ BaseBSONReader, CommonBSONDocuments }
 
 trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
@@ -105,9 +104,11 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val adDoc = doc.getAs[BSONDocument]("assistance-details")
       val guaranteedInterviewScheme = adDoc.flatMap(_.getAs[Boolean]("guaranteedInterview"))
 
-      val testResults: TestResultsForOnlineTestPassMarkReportItem = toTestResultsForOnlineTestPassMarkReportItem(doc, applicationId)
-      val behaviouralTScore = testResults.behavioural.flatMap(_.tScore)
-      val situationalTScore = testResults.situational.flatMap(_.tScore)
+      val testResults: TestResultsForOnlineTestPassMarkReportItem =
+        toTestResultsForOnlineTestPassMarkReportItem(doc, applicationId)
+      // TODO: Fix this when updating this report. We now hve list of tests
+      val behaviouralTScore = None // testResults.behavioural.flatMap(_.tScore)
+      val situationalTScore = None //testResults.situational.flatMap(_.tScore)
 
       // FDH to only return the statuses relevant to SDIP for an SdipFaststream candidate.
       val modifiedProgressResponse = progressResponse.copy(phase2ProgressResponse = Phase2ProgressResponse(),
@@ -147,10 +148,12 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val adDoc = doc.getAs[BSONDocument]("assistance-details")
       val guaranteedInterviewScheme = adDoc.flatMap(_.getAs[Boolean]("guaranteedInterview"))
 
-      val testResults: TestResultsForOnlineTestPassMarkReportItem = toTestResultsForOnlineTestPassMarkReportItem(doc, applicationId)
-      val behaviouralTScore = testResults.behavioural.flatMap(_.tScore)
-      val situationalTScore = testResults.situational.flatMap(_.tScore)
-      val etrayTScore = testResults.etray.flatMap(_.tScore)
+      val testResults: TestResultsForOnlineTestPassMarkReportItem =
+        toTestResultsForOnlineTestPassMarkReportItem(doc, applicationId)
+      //TODO: Fix this when fixing this report
+      val behaviouralTScore = None //testResults.behavioural.flatMap(_.tScore)
+      val situationalTScore = None //testResults.situational.flatMap(_.tScore)
+      val etrayTScore = None // testResults.etray.flatMap(_.tScore)
       val overallVideoScore = testResults.videoInterview.map(_.overallTotal)
 
       ApplicationForAnalyticalSchemesReport(
@@ -294,62 +297,59 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
   }
 
   private[application] def toTestResultsForOnlineTestPassMarkReportItem(
-    appDoc: BSONDocument, applicationId: String):
-  TestResultsForOnlineTestPassMarkReportItem = {
+    appDoc: BSONDocument, applicationId: String): TestResultsForOnlineTestPassMarkReportItem = {
 
     val testGroupsDoc = appDoc.getAs[BSONDocument]("testGroups")
-    val (behaviouralTestResult, situationalTestResult) = toPhase1TestResults(testGroupsDoc)
-    val etrayTestResult = toPhase2TestResults(applicationId, testGroupsDoc)
+    val p1Tests = toPhase1TestResults(testGroupsDoc)
+    val p2Tests = toPhase2TestResults(testGroupsDoc)
     val videoInterviewResults = toPhase3TestResults(testGroupsDoc)
     val siftTestResults = toSiftTestResults(applicationId, testGroupsDoc)
 
     TestResultsForOnlineTestPassMarkReportItem(
-      behaviouralTestResult,
-      situationalTestResult,
-      etrayTestResult,
+      p1Tests,
+      p2Tests,
       videoInterviewResults,
       siftTestResults,
       None, None, None, None)
   }
 
-  private[application] def toPhase1TestResults(testGroupsDoc: Option[BSONDocument]): (Option[TestResult], Option[TestResult]) = {
+  private[application] def toPhase1TestResults(testGroupsDoc: Option[BSONDocument]): Seq[Option[PsiTestResult]] = {
     testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE1)).map { phase1Doc =>
-      val phase1TestProfile = Phase1TestProfile.bsonHandler.read(phase1Doc)
-
-      val situationalScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("sjq")
-      val behaviouralScheduleId = cubiksGatewayConfig.phase1Tests.scheduleIds("bq")
-
-      def getTestResult(phase1TestProfile: Phase1TestProfile, scheduleId: Int) = {
-        phase1TestProfile.activeTests.find(_.scheduleId == scheduleId).flatMap { phase1Test =>
-          phase1Test.testResult.map { tr => toTestResult(tr) }
-        }
-      }
-
-      (getTestResult(phase1TestProfile, behaviouralScheduleId), getTestResult(phase1TestProfile, situationalScheduleId))
-    }.getOrElse((None, None))
+      val phase1TestProfile = Phase1TestProfile2.bsonHandler.read(phase1Doc)
+      val p1TestIds = testIntegrationGatewayConfig.phase1Tests.tests.valuesIterator.toSeq
+      toPhaseXTestResults(phase1TestProfile.activeTests, p1TestIds)
+    }.getOrElse(Seq.fill(4)(None))
   }
 
-  private[application] def toPhase2TestResults(applicationId: String, testGroupsDoc: Option[BSONDocument]): Option[TestResult] = {
-    val phase2DocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE2))
-    phase2DocOpt.flatMap { phase2Doc =>
-      val phase2TestProfile = Phase2TestGroup.bsonHandler.read(phase2Doc)
-      phase2TestProfile.activeTests.size match {
-        case 1 => phase2TestProfile.activeTests.head.testResult.map { tr => toTestResult(tr) }
-        case 0 => None
-        case s if s > 1 =>
-          Logger.error(s"There are $s active tests which is invalid for application id [$applicationId]")
-          None
+  private[application] def toPhase2TestResults(testGroupsDoc: Option[BSONDocument]): Seq[Option[PsiTestResult]] = {
+    testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE2)).map { phase2Doc =>
+      val phase2TestProfile = Phase2TestGroup2.bsonHandler.read(phase2Doc)
+      val p2TestIds = testIntegrationGatewayConfig.phase2Tests.tests.valuesIterator.toSeq
+      toPhaseXTestResults(phase2TestProfile.activeTests, p2TestIds)
+    }.getOrElse(Seq.fill(2)(None))
+  }
+
+  private[application] def toPhaseXTestResults(activeTests: Seq[PsiTest],
+                                               allTestIds: Seq[PsiTestIds]): Seq[Option[PsiTestResult]] = {
+      def getTestResult(inventoryId: String): Option[PsiTestResult] = {
+        activeTests.find(_.inventoryId == inventoryId).flatMap { psiTest =>
+          // TODO: What is status?
+          psiTest.testResult.map { tr => PsiTestResult(status = "", tScore = tr.tScore, raw = tr.rawScore) }
+        }
       }
-    }
+    allTestIds.map{ testIds => getTestResult(testIds.inventoryId) }
   }
 
   private[application] def toPhase3TestResults(testGroupsDoc: Option[BSONDocument]): Option[VideoInterviewTestResult] = {
     val reviewedDocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE3))
-      .flatMap(_.getAs[BSONArray]("tests")).flatMap(_.getAs[BSONDocument](0))
-      .flatMap(_.getAs[BSONDocument]("callbacks")).flatMap(_.getAs[List[BSONDocument]]("reviewed"))
+      .flatMap(_.getAs[BSONArray]("tests"))
+      .flatMap(_.getAs[BSONDocument](0))
+      .flatMap(_.getAs[BSONDocument]("callbacks"))
+      .flatMap(_.getAs[List[BSONDocument]]("reviewed"))
 
-    val reviewed = reviewedDocOpt.map (_.map(ReviewedCallbackRequest.bsonHandler.read))
-    val latestReviewedOpt = reviewed.flatMap(getLatestReviewed)
+    val latestReviewedOpt = reviewedDocOpt
+      .map(_.map(ReviewedCallbackRequest.bsonHandler.read))
+      .flatMap(ReviewedCallbackRequest.getLatestReviewed)
 
     latestReviewedOpt.map { latestReviewed =>
       VideoInterviewTestResult(
@@ -376,12 +376,13 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     TestResult(status = tr.status, norm = tr.norm, tScore = tr.tScore, raw = tr.raw, percentile = tr.percentile, sten = tr.sten)
   }
 
-  private[application] def toSiftTestResults(applicationId: String, testGroupsDoc: Option[BSONDocument]): Option[TestResult] = {
+  private[application] def toSiftTestResults(applicationId: String,
+                                             testGroupsDoc: Option[BSONDocument]): Option[PsiTestResult] = {
     val siftDocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument]("SIFT_PHASE"))
     siftDocOpt.flatMap { siftDoc =>
-      val siftTestProfile = SiftTestGroup.bsonHandler.read(siftDoc)
+      val siftTestProfile = SiftTestGroup2.bsonHandler.read(siftDoc)
       siftTestProfile.activeTests.size match {
-        case 1 => siftTestProfile.activeTests.head.testResult.map { tr => toTestResult(tr) }
+        case 1 => siftTestProfile.activeTests.head.testResult.map { tr => PsiTestResult("", tr.tScore, tr.rawScore) }
         case 0 => None
         case s if s > 1 =>
           Logger.error(s"There are $s active sift tests which is invalid for application id [$applicationId]")

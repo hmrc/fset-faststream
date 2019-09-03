@@ -18,10 +18,11 @@ package connectors
 
 import java.util.UUID
 
-import connectors.AuthProviderClient.UserRole
+import model.TestAdjustment
 import org.joda.time.{ DateTime, LocalDate }
-import play.api.libs.json.{ Format, Json, OFormat }
+import play.api.libs.json._
 
+// scalastyle:off
 object ExchangeObjects {
 
   val frameworkId = "FastStream-2016"
@@ -50,10 +51,31 @@ object ExchangeObjects {
                           lastAttempt: Option[List[String]], failedAttempts: Option[Int])
   object UserAuthInfo { implicit val format: OFormat[UserAuthInfo] = Json.format[UserAuthInfo] }
 
+  // PSI gateway requests
+  case class RegisterCandidateRequest(inventoryId: String, // Read from config to identify the test we are registering for
+                                      orderId: String, // Identifier we generate to uniquely identify the test
+                                      accountId: String, // Candidate's account across all tests
+                                      preferredName: String,
+                                      lastName: String,
+                                      redirectionUrl: String,
+                                      assessmentId: Option[String] = None,
+                                      reportId: Option[String] = None,
+                                      normId: Option[String] = None,
+                                      adjustment: Option[TestAdjustment] = None)
+
+  object RegisterCandidateRequest {
+    implicit val registerCandidateRequest: OFormat[RegisterCandidateRequest] = Json.format[RegisterCandidateRequest]
+  }
+
+  case class CancelCandidateTestRequest(orderId: String)
+
+  object CancelCandidateTestRequest {
+    implicit val cancelCandidateTestRequestFormat: OFormat[CancelCandidateTestRequest] = Json.format[CancelCandidateTestRequest]
+  }
+
   // Cubiks Gateway Requests
   case class RegisterApplicant(firstName: String, lastName: String, email: String)
   object RegisterApplicant { implicit val registerApplicantFormat: OFormat[RegisterApplicant] = Json.format[RegisterApplicant] }
-
 
   case class TimeAdjustments(assessmentId: Int,
     sectionId: Int,
@@ -103,4 +125,38 @@ object ExchangeObjects {
     Json.format[FindByFirstNameLastNameRequest]
   }
 
+  case class AssessmentOrderAcknowledgement(customerId: String,
+                                            receiptId: String,
+                                            orderId: String,
+                                            testLaunchUrl: String,
+                                            status: String,
+                                            statusDetails: String,
+                                            statusDate: LocalDate)
+
+  object AssessmentOrderAcknowledgement {
+    val acknowledgedStatus = "Acknowledged"
+    val errorStatus = "Error"
+    implicit val assessmentOrderAcknowledgementFormat: Format[AssessmentOrderAcknowledgement] =
+      Json.format[AssessmentOrderAcknowledgement]
+
+  }
+
+  case class AssessmentCancelAcknowledgementResponse(status: String, details: String, statusDate: LocalDate)
+  object AssessmentCancelAcknowledgementResponse {
+    val completedStatus = "Completed"
+    val errorStatus = "Error"
+
+    implicit val assessmentCancelAcknowledgementResponseFormat: OFormat[AssessmentCancelAcknowledgementResponse] =
+      Json.format[AssessmentCancelAcknowledgementResponse]
+  }
+
+  object Implicits {
+
+    implicit val localDateFormat: Format[LocalDate] = new Format[LocalDate] {
+      override def reads(json: JsValue): JsResult[LocalDate] =
+        json.validate[String].map(LocalDate.parse)
+
+      override def writes(o: LocalDate): JsValue = Json.toJson(o.toString)
+    }
+  }
 }

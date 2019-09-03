@@ -19,7 +19,7 @@ package services.testdata.candidate.assessmentcentre
 import model.UniqueIdentifier
 import model.assessmentscores._
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.mvc.RequestHeader
 import services.assessmentscores.{ AssessmentScoresService, AssessorAssessmentScoresService }
@@ -42,60 +42,60 @@ trait AssessmentCentreScoresEnteredStatusGenerator extends ConstructiveGenerator
   // The scores awarded to the candidate by assessor/reviewer
   def analysisExerciseSample(assessorOrReviewer: String) = AssessmentScoresExercise(
     attended = true,
-    analysisAndDecisionMakingAverage = Some(5.0),
-    leadingAndCommunicatingAverage = Some(4.0),
-    strategicApproachToObjectivesAverage = Some(4.0),
+    makingEffectiveDecisionsAverage = Some(5.0),
+    communicatingAndInfluencingAverage = Some(4.0),
+    seeingTheBigPictureAverage = Some(4.0),
     updatedBy = updatedBy,
-    strategicApproachToObjectivesScores = Some(StrategicApproachToObjectivesScores(
+    seeingTheBigPictureScores = Some(SeeingTheBigPictureScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    analysisAndDecisionMakingScores = Some(AnalysisAndDecisionMakingScores(
+    makingEffectiveDecisionsScores = Some(MakingEffectiveDecisionsScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    leadingAndCommunicatingScores = Some(LeadingAndCommunicatingScores(
+    communicatingAndInfluencingScores = Some(CommunicatingAndInfluencingScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    strategicApproachToObjectivesFeedback = Some("Strategic approach feedback " + assessorOrReviewer),
-    analysisAndDecisionMakingFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
-    leadingAndCommunicatingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
+    seeingTheBigPictureFeedback = Some("Strategic approach feedback " + assessorOrReviewer),
+    makingEffectiveDecisionsFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
+    communicatingAndInfluencingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
   )
   def groupExerciseSample(assessorOrReviewer: String) = AssessmentScoresExercise(
     attended = true,
-    analysisAndDecisionMakingAverage = Some(5.0),
-    buildingProductiveRelationshipsAverage = Some(2.0),
-    leadingAndCommunicatingAverage = Some(4.0),
+    makingEffectiveDecisionsAverage = Some(5.0),
+    workingTogetherDevelopingSelfAndOthersAverage = Some(2.0),
+    communicatingAndInfluencingAverage = Some(4.0),
     updatedBy = updatedBy,
-    analysisAndDecisionMakingScores = Some(AnalysisAndDecisionMakingScores(
+    makingEffectiveDecisionsScores = Some(MakingEffectiveDecisionsScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    buildingProductiveRelationshipsScores = Some(BuildingProductiveRelationshipsScores(
+    workingTogetherDevelopingSelfAndOthersScores = Some(WorkingTogetherDevelopingSelfAndOtherScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    leadingAndCommunicatingScores = Some(LeadingAndCommunicatingScores(
+    communicatingAndInfluencingScores = Some(CommunicatingAndInfluencingScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    analysisAndDecisionMakingFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
-    buildingProductiveRelationshipsFeedback = Some("Building Productive feedback" + assessorOrReviewer),
-    leadingAndCommunicatingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
+    makingEffectiveDecisionsFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
+    workingTogetherDevelopingSelfAndOthersFeedback = Some("Building Productive feedback" + assessorOrReviewer),
+    communicatingAndInfluencingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
   )
   def leadershipExerciseSample(assessorOrReviewer: String) = AssessmentScoresExercise(
     attended = true,
-    buildingProductiveRelationshipsAverage = Some(4.0),
-    leadingAndCommunicatingAverage = Some(4.0),
-    strategicApproachToObjectivesAverage = Some(4.0),
+    workingTogetherDevelopingSelfAndOthersAverage = Some(4.0),
+    communicatingAndInfluencingAverage = Some(4.0),
+    seeingTheBigPictureAverage = Some(4.0),
     updatedBy = updatedBy,
-    buildingProductiveRelationshipsScores = Some(BuildingProductiveRelationshipsScores(
+    workingTogetherDevelopingSelfAndOthersScores = Some(WorkingTogetherDevelopingSelfAndOtherScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    leadingAndCommunicatingScores = Some(LeadingAndCommunicatingScores(
+    communicatingAndInfluencingScores = Some(CommunicatingAndInfluencingScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    strategicApproachToObjectivesScores = Some(StrategicApproachToObjectivesScores(
+    seeingTheBigPictureScores = Some(SeeingTheBigPictureScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    buildingProductiveRelationshipsFeedback = Some("Building Productive feedback " + assessorOrReviewer),
-    leadingAndCommunicatingFeedback = Some("Leading and communicating feedback " + assessorOrReviewer),
-    strategicApproachToObjectivesFeedback = Some("Strategic approach feedback " + assessorOrReviewer)
+    workingTogetherDevelopingSelfAndOthersFeedback = Some("Building Productive feedback " + assessorOrReviewer),
+    communicatingAndInfluencingFeedback = Some("Leading and communicating feedback " + assessorOrReviewer),
+    seeingTheBigPictureFeedback = Some("Strategic approach feedback " + assessorOrReviewer)
   )
   def finalFeedbackSample(assessorOrReviewer: String) = AssessmentScoresFinalFeedback(
     "final feedback for " + assessorOrReviewer, updatedBy, DateTime.now(DateTimeZone.UTC)

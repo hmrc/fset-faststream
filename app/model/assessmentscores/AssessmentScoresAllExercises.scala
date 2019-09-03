@@ -29,20 +29,20 @@ case class AssessmentScoresAllExercises(
                                          finalFeedback: Option[AssessmentScoresFinalFeedback] = None
                                        ) {
 
-  def strategicApproachToObjectivesAvg: Double = {
-    average(List(analysisExercise, leadershipExercise).flatMap(_.flatMap(_.strategicApproachToObjectivesAverage)), 2)
+  def seeingTheBigPictureAvg: Double = {
+    average(List(analysisExercise, leadershipExercise).flatMap(_.flatMap(_.seeingTheBigPictureAverage)), 2)
   }
 
-  def buildingProductiveRelationshipsAvg: Double = {
-    average(List(groupExercise, leadershipExercise).flatMap(_.flatMap(_.buildingProductiveRelationshipsAverage)), 2)
+  def workingTogetherDevelopingSelfAndOthersAvg: Double = {
+    average(List(groupExercise, leadershipExercise).flatMap(_.flatMap(_.workingTogetherDevelopingSelfAndOthersAverage)), 2)
   }
 
-   def analysisAndDecisionMakingAvg: Double = {
-    average(List(analysisExercise, groupExercise).flatMap(_.flatMap(_.analysisAndDecisionMakingAverage)), 2)
+   def makingEffectiveDecisionsAvg: Double = {
+    average(List(analysisExercise, groupExercise).flatMap(_.flatMap(_.makingEffectiveDecisionsAverage)), 2)
   }
 
-   def leadingAndCommunicatingAvg: Double = {
-    average(List(analysisExercise, groupExercise, leadershipExercise).flatMap(_.flatMap(_.leadingAndCommunicatingAverage)), 3)
+   def communicatingAndInfluencingAvg: Double = {
+    average(List(analysisExercise, groupExercise, leadershipExercise).flatMap(_.flatMap(_.communicatingAndInfluencingAverage)), 3)
   }
 
   private def average(list: List[Double], mandatoryNumberOfElements: Int): Double = {

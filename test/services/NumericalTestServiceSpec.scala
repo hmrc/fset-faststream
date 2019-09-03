@@ -16,9 +16,9 @@
 
 package services
 
-import config.{ CubiksGatewayConfig, NumericalTestSchedule, NumericalTestsConfig }
+import config.{ OnlineTestsGatewayConfig, NumericalTestSchedule, NumericalTestsConfig }
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
-import connectors.{ CubiksGatewayClient, EmailClient }
+import connectors.{ OnlineTestsGatewayClient, EmailClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.EvaluationResults.Green
 import model.Exceptions.UnexpectedException
@@ -51,11 +51,11 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
     val mockContactDetailsRepo: ContactDetailsRepository = mock[ContactDetailsRepository]
     val mockEmailClient: EmailClient = mock[EmailClient]
 
-    val mockCubiksGatewayConfig = mock[CubiksGatewayConfig]
-    when(mockCubiksGatewayConfig.candidateAppUrl).thenReturn("localhost")
+    val mockOnlineTestsGatewayConfig = mock[OnlineTestsGatewayConfig]
+    when(mockOnlineTestsGatewayConfig.candidateAppUrl).thenReturn("localhost")
     val mockNumericalTestsConfig = NumericalTestsConfig(Map(NumericalTestsConfig.numericalTestScheduleName -> NumericalTestSchedule(1, 1)))
 
-    val mockCubiksGatewayClient: CubiksGatewayClient = mock[CubiksGatewayClient]
+    val mockOnlineTestsGatewayClient: OnlineTestsGatewayClient = mock[OnlineTestsGatewayClient]
     val mockDateTimeFactory: DateTimeFactory = mock[DateTimeFactory]
 
     val mockSchemeRepo = new SchemeRepository {
@@ -73,9 +73,9 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
       override def applicationRepo: GeneralApplicationRepository = mockAppRepo
       override def applicationSiftRepo: ApplicationSiftRepository = mockSiftRepo
       val tokenFactory: UUIDFactory = UUIDFactory
-      val gatewayConfig: CubiksGatewayConfig = mockCubiksGatewayConfig
+      val gatewayConfig: OnlineTestsGatewayConfig = mockOnlineTestsGatewayConfig
       override def testConfig: NumericalTestsConfig = mockNumericalTestsConfig
-      val cubiksGatewayClient: CubiksGatewayClient = mockCubiksGatewayClient
+      val onlineTestsGatewayClient: OnlineTestsGatewayClient = mockOnlineTestsGatewayClient
       val dateTimeFactory: DateTimeFactory = mockDateTimeFactory
       override def schemeRepository: SchemeRepository = mockSchemeRepo
       val eventService = eventServiceMock
@@ -102,13 +102,13 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
   "NumericalTestService.registerAndInviteForTests" must {
     "handle an empty list of applications" in new TestFixture {
       service.registerAndInviteForTests(Nil).futureValue
-      verifyZeroInteractions(service.cubiksGatewayClient)
+      verifyZeroInteractions(service.onlineTestsGatewayClient)
     }
 
     "throw an exception if no SIFT_PHASE test group is found" in new TestFixture {
-      when(mockCubiksGatewayClient.registerApplicants(any[Int])).thenReturnAsync(List(Registration(userId = 1)))
+      when(mockOnlineTestsGatewayClient.registerApplicants(any[Int])).thenReturnAsync(List(Registration(userId = 1)))
 
-      when(mockCubiksGatewayClient.inviteApplicants(any[List[InviteApplicant]])).thenReturnAsync(List(invite))
+      when(mockOnlineTestsGatewayClient.inviteApplicants(any[List[InviteApplicant]])).thenReturnAsync(List(invite))
 
       when(mockSiftRepo.getTestGroup(any[String])).thenReturnAsync(None) // This will result in exception being thrown
 
@@ -119,9 +119,9 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
 
     //TODO: take a closer look at the NotImplementedError
     "throw an exception if no SIFT_PHASE test group is found and the tests have already been populated" in new TestFixture {
-      when(mockCubiksGatewayClient.registerApplicants(any[Int])).thenReturnAsync(List(Registration(userId = 1)))
+      when(mockOnlineTestsGatewayClient.registerApplicants(any[Int])).thenReturnAsync(List(Registration(userId = 1)))
 
-      when(mockCubiksGatewayClient.inviteApplicants(any[List[InviteApplicant]])).thenReturnAsync(List(invite))
+      when(mockOnlineTestsGatewayClient.inviteApplicants(any[List[InviteApplicant]])).thenReturnAsync(List(invite))
 
       val cubiksTest = CubiksTest(
         scheduleId = 1,
@@ -142,9 +142,9 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
     }
 
     "throw an exception if no notification expiring sift details are found" in new TestFixture {
-      when(mockCubiksGatewayClient.registerApplicants(any[Int])).thenReturnAsync(List(Registration(userId = 1)))
+      when(mockOnlineTestsGatewayClient.registerApplicants(any[Int])).thenReturnAsync(List(Registration(userId = 1)))
 
-      when(mockCubiksGatewayClient.inviteApplicants(any[List[InviteApplicant]])).thenReturnAsync(List(invite))
+      when(mockOnlineTestsGatewayClient.inviteApplicants(any[List[InviteApplicant]])).thenReturnAsync(List(invite))
 
       when(mockSiftRepo.getTestGroup(any[String])).thenReturnAsync(Some(siftTestGroupNoTests))
       when(mockSiftRepo.insertNumericalTests(any[String], any[List[CubiksTest]])).thenReturnAsync()
@@ -159,9 +159,9 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
     }
 
     "successfully process a candidate" in new TestFixture {
-      when(mockCubiksGatewayClient.registerApplicants(any[Int])).thenReturnAsync(List(Registration(userId = 1)))
+      when(mockOnlineTestsGatewayClient.registerApplicants(any[Int])).thenReturnAsync(List(Registration(userId = 1)))
 
-      when(mockCubiksGatewayClient.inviteApplicants(any[List[InviteApplicant]])).thenReturnAsync(List(invite))
+      when(mockOnlineTestsGatewayClient.inviteApplicants(any[List[InviteApplicant]])).thenReturnAsync(List(invite))
 
       when(mockSiftRepo.getTestGroup(any[String])).thenReturnAsync(Some(siftTestGroupNoTests))
       when(mockSiftRepo.insertNumericalTests(any[String], any[List[CubiksTest]])).thenReturnAsync()

@@ -63,7 +63,6 @@ package object repositories {
   lazy val faststreamContactDetailsRepository = new contactdetails.ContactDetailsMongoRepository()
   lazy val schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository
   lazy val civilServiceExperienceDetailsRepository = new CivilServiceExperienceDetailsMongoRepository()
-  lazy val faststreamPartnerGraduateProgrammesRepository = new partnergraduateprogrammes.PartnerGraduateProgrammesMongoRepository()
   lazy val faststreamAssistanceDetailsRepository = new assistancedetails.AssistanceDetailsMongoRepository()
   lazy val faststreamPhase1EvaluationRepository = new onlinetesting.Phase1EvaluationMongoRepository(DateTimeFactory)
   lazy val faststreamPhase2EvaluationRepository = new onlinetesting.Phase2EvaluationMongoRepository(DateTimeFactory)
@@ -73,10 +72,12 @@ package object repositories {
   lazy val fsacIndicatorRepository = new FSACIndicatorMongoRepository
   lazy val questionnaireRepository = new QuestionnaireMongoRepository(new SocioEconomicScoreCalculator {})
   lazy val mediaRepository = new MediaMongoRepository()
-  lazy val applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactory, cubiksGatewayConfig)
+  lazy val applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactory, onlineTestsGatewayConfig)
   lazy val reportingRepository = new ReportingMongoRepository(timeZoneService, DateTimeFactory)
   lazy val phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
+  lazy val phase1TestRepository2 = new Phase1TestMongoRepository2(DateTimeFactory)
   lazy val phase2TestRepository = new Phase2TestMongoRepository(DateTimeFactory)
+  lazy val phase2TestRepository2 = new Phase2TestMongoRepository2(DateTimeFactory)
   lazy val phase3TestRepository = new Phase3TestMongoRepository(DateTimeFactory)
   lazy val phase1PassMarkSettingsRepository = new Phase1PassMarkSettingsMongoRepository()
   lazy val phase2PassMarkSettingsRepository = new Phase2PassMarkSettingsMongoRepository()
@@ -242,15 +243,15 @@ package object repositories {
   implicit val cdHandler: BSONHandler[BSONDocument, ContactDetails] = Macros.handler[ContactDetails]
   implicit val assistanceDetailsHandler: BSONHandler[BSONDocument, AssistanceDetails] = Macros.handler[AssistanceDetails]
   implicit val answerHandler: BSONHandler[BSONDocument, QuestionnaireAnswer] = Macros.handler[QuestionnaireAnswer]
-  implicit val buildingProductiveRelationshipsScoresHandler
-  : BSONHandler[BSONDocument, BuildingProductiveRelationshipsScores] =
-    Macros.handler[BuildingProductiveRelationshipsScores]
-  implicit val analysisAndDecisionMakingScoresHandler: BSONHandler[BSONDocument, AnalysisAndDecisionMakingScores] =
-    Macros.handler[AnalysisAndDecisionMakingScores]
-  implicit val leadingAndCommunicatingScoresHandler: BSONHandler[BSONDocument, LeadingAndCommunicatingScores] =
-    Macros.handler[LeadingAndCommunicatingScores]
-  implicit val strategicApproachToObjectivesScoresHandler: BSONHandler[BSONDocument, StrategicApproachToObjectivesScores] =
-    Macros.handler[StrategicApproachToObjectivesScores]
+  implicit val workingTogetherDevelopingSelfAndOthersScoresHandler
+  : BSONHandler[BSONDocument, WorkingTogetherDevelopingSelfAndOtherScores] =
+    Macros.handler[WorkingTogetherDevelopingSelfAndOtherScores]
+  implicit val makingEffectiveDecisionsScoresHandler: BSONHandler[BSONDocument, MakingEffectiveDecisionsScores] =
+    Macros.handler[MakingEffectiveDecisionsScores]
+  implicit val communicatingAndInfluencingScoresHandler: BSONHandler[BSONDocument, CommunicatingAndInfluencingScores] =
+    Macros.handler[CommunicatingAndInfluencingScores]
+  implicit val seeingTheBigPictureScoresHandler: BSONHandler[BSONDocument, SeeingTheBigPictureScores] =
+    Macros.handler[SeeingTheBigPictureScores]
   implicit val competencyAverageResultHandler: BSONHandler[BSONDocument, CompetencyAverageResult] =
     Macros.handler[CompetencyAverageResult]
   implicit val flagCandidateHandler: BSONHandler[BSONDocument, FlagCandidate] = Macros.handler[FlagCandidate]
@@ -260,6 +261,7 @@ package object repositories {
     val applicationId = doc.getAs[String]("applicationId").get
     val applicationStatus = doc.getAs[String]("applicationStatus").get
     val userId = doc.getAs[String]("userId").get
+    val testAccountId = doc.getAs[String]("testAccountId").get
 
     val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
     val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
@@ -273,7 +275,10 @@ package object repositories {
     val etrayAdjustments = assistanceDetailsRoot.getAs[AdjustmentDetail]("etray")
     val videoInterviewAdjustments = assistanceDetailsRoot.getAs[AdjustmentDetail]("video")
 
-    OnlineTestApplication(applicationId, applicationStatus, userId, guaranteedInterview, needsAdjustmentForOnlineTests,
-      needsAdjustmentsAtVenue, preferredName, lastName, etrayAdjustments, videoInterviewAdjustments)
+    OnlineTestApplication(
+      applicationId, applicationStatus, userId, testAccountId, guaranteedInterview,
+      needsAdjustmentForOnlineTests, needsAdjustmentsAtVenue, preferredName, lastName,
+      etrayAdjustments, videoInterviewAdjustments
+    )
   }
 }

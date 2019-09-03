@@ -16,14 +16,15 @@
 
 package services.testdata
 
-import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
-import model.testdata.CreateCandidateData
+import model.persisted.{QuestionnaireAnswer, QuestionnaireQuestion}
+import model.testdata.candidate.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
-import services.testdata.candidate.{ ConstructiveGenerator, InProgressAssistanceDetailsStatusGenerator }
+import services.testdata.candidate.{ConstructiveGenerator, InProgressAssistanceDetailsStatusGenerator}
 import services.testdata.faker.DataFaker._
 import uk.gov.hmrc.http.HeaderCarrier
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object InProgressQuestionnaireStatusGenerator extends InProgressQuestionnaireStatusGenerator {

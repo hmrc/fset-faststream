@@ -17,17 +17,17 @@
 package repositories.application
 
 import _root_.services.testdata.TestDataGeneratorService
-import factories.{ ITDateTimeFactoryMock, UUIDFactory }
-import model.ProgressStatuses.{ PHASE3_TESTS_INVITED, PHASE3_TESTS_PASSED_NOTIFIED, PREVIEW, SUBMITTED, PHASE1_TESTS_PASSED => _ }
+import factories.{ITDateTimeFactoryMock, UUIDFactory}
+import model.ProgressStatuses.{PHASE3_TESTS_INVITED, PHASE3_TESTS_PASSED_NOTIFIED, PREVIEW, SUBMITTED, PHASE1_TESTS_PASSED => _}
 import model._
-import model.report.{ AdjustmentReportItem, ApplicationDeferralPartialItem, CandidateProgressReportItem }
+import model.report.{AdjustmentReportItem, CandidateProgressReportItem}
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
-import model.ApplicationRoute.{ apply => _ }
-import model.command.testdata.CreateCandidateRequest.{ AssistanceDetailsRequest, CreateCandidateRequest, StatusDataRequest }
-import model.command.{ ProgressResponse, WithdrawApplication }
+import model.ApplicationRoute.{apply => _}
+import model.command.testdata.CreateCandidateRequest.{AdjustmentsRequest, AssistanceDetailsRequest, CreateCandidateRequest, StatusDataRequest}
+import model.command.{ProgressResponse, WithdrawApplication}
 import model.persisted._
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.CollectionNames
@@ -45,7 +45,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
   def repository = new ReportingMongoRepository(GBTimeZoneService, ITDateTimeFactoryMock)
 
-  def applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, cubiksGatewayConfig)
+  def applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, onlineTestsGatewayConfig)
 
   def testDataRepo = new TestDataMongoRepository()
 
@@ -57,7 +57,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
     "for an application with all fields" in {
       val userId = generateUUID()
       val appId = generateUUID()
-      testDataRepo.createApplicationWithAllFields(userId, appId, "FastStream-2016").futureValue
+      val testAccountId = generateUUID()
+      testDataRepo.createApplicationWithAllFields(userId, appId, testAccountId, "FastStream-2016").futureValue
 
       val result = repository.candidateProgressReport("FastStream-2016").futureValue
 
@@ -82,27 +83,6 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
     }
   }
 
-  "Candidate deferral report" must {
-    "not return candidates who have not deferred" in {
-      testDataRepo.createApplicationWithAllFields("userId", "appId", "frameworkId").futureValue
-
-      val result = repository.candidateDeferralReport("frameworkId").futureValue
-
-      result mustBe Nil
-    }
-
-    "extract the correct information for candidates" in {
-      val programmes = List("TeachFirst", "Police Now")
-      testDataRepo.createApplicationWithAllFields("userId", "appId", "frameworkId", firstName = Some("Bob"),
-        lastName = Some("Bobson"), preferredName = Some("prefBob"), partnerProgrammes = programmes).futureValue
-
-      val result = repository.candidateDeferralReport("frameworkId").futureValue
-
-      result.size mustBe 1
-      result.head mustBe ApplicationDeferralPartialItem("userId", "Bob", "Bobson", "prefBob", programmes)
-    }
-  }
-
   "Diversity Report" must {
     "for the minimum application" in {
       val userId = generateUUID()
@@ -123,11 +103,14 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       val appId1 = generateUUID()
       val appId2 = generateUUID()
       val appId3 = generateUUID()
+      val testAccountId1 = generateUUID()
+      val testAccountId2 = generateUUID()
+      val testAccountId3 = generateUUID()
 
-      testDataRepo.createApplicationWithAllFields(userId1, appId1, "FastStream-2016", guaranteedInterview = true,
+      testDataRepo.createApplicationWithAllFields(userId1, appId1, testAccountId1,"FastStream-2016", guaranteedInterview = true,
         needsSupportForOnlineAssessment = true).futureValue
-      testDataRepo.createApplicationWithAllFields(userId2, appId2, "FastStream-2016", hasDisability = "No").futureValue
-      testDataRepo.createApplicationWithAllFields(userId3, appId3, "FastStream-2016", needsSupportAtVenue = true).futureValue
+      testDataRepo.createApplicationWithAllFields(userId2, appId2, testAccountId2,"FastStream-2016", hasDisability = "No").futureValue
+      testDataRepo.createApplicationWithAllFields(userId3, appId3, testAccountId3,"FastStream-2016", needsSupportAtVenue = true).futureValue
 
       val result = repository.diversityReport("FastStream-2016").futureValue
 
@@ -247,7 +230,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
           onlineAdjustments = Some(false),
           setGis = Some(false)
         )),
-        adjustmentInformation = Some(Adjustments(
+        adjustmentInformation = Some(AdjustmentsRequest(
           adjustments = Some(List("other adjustments")),
           adjustmentsConfirmed = Some(true),
           etray = None,
@@ -283,7 +266,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
           phoneAdjustments = Some(true),
           setGis = Some(false)
         )),
-        adjustmentInformation = Some(Adjustments(
+        adjustmentInformation = Some(AdjustmentsRequest(
           adjustments = Some(List("phone interview")),
           adjustmentsConfirmed = Some(true),
           etray = None,

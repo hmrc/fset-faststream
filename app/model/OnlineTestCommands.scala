@@ -18,13 +18,14 @@ package model
 
 import model.PersistedObjects.CandidateTestReport
 import model.exchange.passmarksettings.Phase1PassMarkSettings
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 
 object OnlineTestCommands {
 
   case class OnlineTestApplication(applicationId: String,
                                    applicationStatus: String,
                                    userId: String,
+                                   testAccountId: String,
                                    guaranteedInterview: Boolean,
                                    needsOnlineAdjustments: Boolean,
                                    needsAtVenueAdjustments: Boolean,
@@ -55,6 +56,12 @@ object OnlineTestCommands {
   case class TestResult(status: String, norm: String,
                         tScore: Option[Double], percentile: Option[Double], raw: Option[Double], sten: Option[Double])
 
+  case class PsiTestResult(status: String, tScore: Double, raw: Double)
+
+  object PsiTestResult {
+    implicit val psiTestResultFormat: OFormat[PsiTestResult] = Json.format[PsiTestResult]
+  }
+
   object Implicits {
     implicit val TimeAdjustmentsOnlineTestApplicationFormats = Json.format[TimeAdjustmentsOnlineTestApplication]
     implicit val ApplicationForOnlineTestingFormats = Json.format[OnlineTestApplication]
@@ -62,5 +69,4 @@ object OnlineTestCommands {
     implicit val OnlineTestReportIdMRAFormats = Json.format[OnlineTestReportAvailability]
     implicit val testFormat = Json.format[TestResult]
   }
-
 }

@@ -16,35 +16,34 @@
 
 package services.testdata.candidate.onlinetests
 
-import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE2_TESTS_EXPIRED, PHASE3_TESTS_EXPIRED, ProgressStatus }
-import model.testdata.CreateCandidateData
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.ProgressStatuses.{PHASE1_TESTS_EXPIRED, PHASE2_TESTS_EXPIRED, PHASE3_TESTS_EXPIRED, ProgressStatus}
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.onlinetesting.OnlineTestRepository
 import services.onlinetesting.OnlineTestService
-import services.onlinetesting.phase1.Phase1TestService
-import services.onlinetesting.phase2.Phase2TestService
+import services.onlinetesting.phase1.Phase1TestService2
+import services.onlinetesting.phase2.Phase2TestService2
 import services.onlinetesting.phase3.Phase3TestService
 import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.candidate.onlinetests.phase1.Phase1TestsStartedStatusGenerator
 import services.testdata.candidate.onlinetests.phase2.Phase2TestsStartedStatusGenerator
 import services.testdata.candidate.onlinetests.phase3.Phase3TestsStartedStatusGenerator
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import uk.gov.hmrc.http.HeaderCarrier
 
 object Phase1TestsExpiredFromStartedStatusGenerator extends TestsExpiredFromStartedStatusGenerator {
   override val previousStatusGenerator = Phase1TestsStartedStatusGenerator
-  override val otRepository = phase1TestRepository
-  override val otService = Phase1TestService
+  override val otRepository = phase1TestRepository2
+  override val otService = Phase1TestService2
   override val expiredStatus = PHASE1_TESTS_EXPIRED
 }
 
 object Phase2TestsExpiredFromStartedStatusGenerator extends TestsExpiredFromStartedStatusGenerator {
   override val previousStatusGenerator = Phase2TestsStartedStatusGenerator
-  override val otRepository = phase2TestRepository
-  override val otService = Phase2TestService
+  override val otRepository = phase2TestRepository2
+  override val otService = Phase2TestService2
   override val expiredStatus = PHASE2_TESTS_EXPIRED
 }
 

@@ -21,35 +21,38 @@ import config.ScheduledJobConfig
 import model.Phase
 import model.Phase.Phase
 import model.exchange.passmarksettings.{ PassMarkSettings, Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings }
-import model.persisted.ApplicationReadyForEvaluation
+import model.persisted.ApplicationReadyForEvaluation2
 import play.api.Logger
 import play.api.libs.json.Format
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import scheduler.onlinetesting.EvaluatePhase3ResultJobConfig.conf
-import services.onlinetesting.phase1.EvaluatePhase1ResultService
-import services.onlinetesting.phase2.EvaluatePhase2ResultService
-import services.onlinetesting.phase3.EvaluatePhase3ResultService
+import services.onlinetesting.phase1.{ EvaluatePhase1ResultService, EvaluatePhase1ResultService2 }
+import services.onlinetesting.phase2.{ EvaluatePhase2ResultService, EvaluatePhase2ResultService2 }
+import services.onlinetesting.phase3.{ EvaluatePhase3ResultService, EvaluatePhase3ResultService2 }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
 
 object EvaluatePhase1ResultJob extends EvaluateOnlineTestResultJob[Phase1PassMarkSettings] {
   val evaluateService = EvaluatePhase1ResultService
+  val evaluateService2 = EvaluatePhase1ResultService2
   val phase = Phase.PHASE1
   val config = EvaluatePhase1ResultJobConfig
 }
 
 object EvaluatePhase2ResultJob extends EvaluateOnlineTestResultJob[Phase2PassMarkSettings] {
   val evaluateService = EvaluatePhase2ResultService
+  val evaluateService2 = EvaluatePhase2ResultService2
   val phase = Phase.PHASE2
   val config = EvaluatePhase2ResultJobConfig
 }
 
 object EvaluatePhase3ResultJob extends EvaluateOnlineTestResultJob[Phase3PassMarkSettings] {
   val evaluateService = EvaluatePhase3ResultService
+  val evaluateService2 = EvaluatePhase3ResultService2
   val phase = Phase.PHASE3
-  override val errorLog = (app: ApplicationReadyForEvaluation) =>
+  override val errorLog = (app: ApplicationReadyForEvaluation2) =>
     s"${app.applicationId}, Launchpad test Id: ${app.activeLaunchpadTest.map(_.token)}"
   val config = EvaluatePhase3ResultJobConfig
 }
@@ -58,11 +61,12 @@ abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettings](implicit jsonF
   SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
 
   val evaluateService: EvaluateOnlineTestResultService[T]
+  val evaluateService2: EvaluateOnlineTestResultService2[T]
   val phase: Phase
   val batchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    evaluateService.nextCandidatesReadyForEvaluation(batchSize) flatMap {
+    evaluateService2.nextCandidatesReadyForEvaluation(batchSize) flatMap {
       case Some((apps, passmarkSettings)) =>
         evaluateInBatch(apps, passmarkSettings)
       case None =>
@@ -71,14 +75,14 @@ abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettings](implicit jsonF
     }
   }
 
-  val errorLog = (app: ApplicationReadyForEvaluation) =>
-    s"${app.applicationId}, cubiks Ids: ${app.activeCubiksTests.map(_.cubiksUserId).mkString(",")}"
+  val errorLog = (app: ApplicationReadyForEvaluation2) =>
+    s"${app.applicationId}, psi order ids: ${app.activePsiTests.map(_.orderId).mkString(",")}"
 
-  private def evaluateInBatch(apps: List[ApplicationReadyForEvaluation],
+  private def evaluateInBatch(apps: List[ApplicationReadyForEvaluation2],
                               passmarkSettings: T)(implicit ec: ExecutionContext): Future[Unit] = {
     Logger.info(s"Evaluate $phase Job found ${apps.size} application(s), the passmarkVersion=${passmarkSettings.version}")
     val evaluationResultsFut = FutureEx.traverseToTry(apps) { app =>
-      Try(evaluateService.evaluate(app, passmarkSettings)) match {
+      Try(evaluateService2.evaluate(app, passmarkSettings)) match {
         case Success(fut) => fut
         case Failure(e) => Future.failed(e)
       }

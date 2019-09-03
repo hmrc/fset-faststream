@@ -23,27 +23,28 @@ import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 import repositories._
 
 case class AssessmentScoresExercise(
-  attended: Boolean,
-  //assessmentIncomplete: Boolean,
+                                     attended: Boolean,
 
-  strategicApproachToObjectivesScores: Option[StrategicApproachToObjectivesScores] = None,
-  analysisAndDecisionMakingScores: Option[AnalysisAndDecisionMakingScores] = None,
-  leadingAndCommunicatingScores: Option[LeadingAndCommunicatingScores] = None,
-  buildingProductiveRelationshipsScores: Option[BuildingProductiveRelationshipsScores] = None,
+                                     seeingTheBigPictureScores: Option[SeeingTheBigPictureScores] = None,
+                                     seeingTheBigPictureAverage: Option[Double] = None,
+                                     seeingTheBigPictureFeedback: Option[String] = None,
 
-  strategicApproachToObjectivesFeedback: Option[String] = None,
-  analysisAndDecisionMakingFeedback: Option[String] = None,
-  leadingAndCommunicatingFeedback: Option[String] = None,
-  buildingProductiveRelationshipsFeedback: Option[String] = None,
+                                     makingEffectiveDecisionsScores: Option[MakingEffectiveDecisionsScores] = None,
+                                     makingEffectiveDecisionsAverage: Option[Double] = None,
+                                     makingEffectiveDecisionsFeedback: Option[String] = None,
 
-  strategicApproachToObjectivesAverage: Option[Double] = None,
-  analysisAndDecisionMakingAverage: Option[Double] = None,
-  leadingAndCommunicatingAverage: Option[Double] = None,
-  buildingProductiveRelationshipsAverage: Option[Double] = None,
-  updatedBy: UniqueIdentifier,
-  savedDate: Option[DateTime] = None,
-  submittedDate: Option[DateTime] = None,
-  version: Option[String] = None
+                                     communicatingAndInfluencingScores: Option[CommunicatingAndInfluencingScores] = None,
+                                     communicatingAndInfluencingAverage: Option[Double] = None,
+                                     communicatingAndInfluencingFeedback: Option[String] = None,
+
+                                     workingTogetherDevelopingSelfAndOthersScores: Option[WorkingTogetherDevelopingSelfAndOtherScores] = None,
+                                     workingTogetherDevelopingSelfAndOthersAverage: Option[Double] = None,
+                                     workingTogetherDevelopingSelfAndOthersFeedback: Option[String] = None,
+
+                                     updatedBy: UniqueIdentifier,
+                                     savedDate: Option[DateTime] = None,
+                                     submittedDate: Option[DateTime] = None,
+                                     version: Option[String] = None
 ) extends AssessmentScoresSection {
   def isSubmitted = submittedDate.isDefined
 }

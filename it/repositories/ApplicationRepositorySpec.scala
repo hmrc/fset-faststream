@@ -16,7 +16,7 @@
 
 package repositories
 
-import config.MicroserviceAppConfig.cubiksGatewayConfig
+import config.MicroserviceAppConfig.onlineTestsGatewayConfig
 import factories.ITDateTimeFactoryMock
 import model.ApplicationStatus._
 import model.{ ApplicationRoute, ProgressStatuses }
@@ -38,7 +38,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
   val collectionName = CollectionNames.APPLICATION
 
-  def applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, cubiksGatewayConfig)
+  def applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, onlineTestsGatewayConfig)
 
   def assistanceRepo = new AssistanceDetailsMongoRepository()
 

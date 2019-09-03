@@ -19,7 +19,6 @@ package services.onlinetesting.phase3
 import _root_.services.passmarksettings.PassMarkSettingsService
 import config.LaunchpadGatewayConfig
 import config.MicroserviceAppConfig.launchpadGatewayConfig
-import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest._
 import model.Phase
 import model.exchange.passmarksettings.Phase3PassMarkSettings
@@ -28,7 +27,7 @@ import play.api.Logger
 import repositories._
 import repositories.onlinetesting.OnlineTestEvaluationRepository
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
-import services.onlinetesting.{ApplicationStatusCalculator, CurrentSchemeStatusHelper}
+import services.onlinetesting.{ ApplicationStatusCalculator, CurrentSchemeStatusHelper }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -54,7 +53,7 @@ trait EvaluatePhase3ResultService extends EvaluateOnlineTestResultService[Phase3
     require(optLaunchpadTest.isDefined, "Active launchpad test not found")
     require(application.prevPhaseEvaluation.isDefined, "Phase2 results required to evaluate Phase3")
 
-    val optLatestReviewed = optLaunchpadTest.map(_.callbacks.reviewed).flatMap(getLatestReviewed)
+    val optLatestReviewed = optLaunchpadTest.flatMap(_.callbacks.getLatestReviewed)
 
     val allQuestionsReviewed = optLatestReviewed.exists(_.allQuestionsReviewed)
 

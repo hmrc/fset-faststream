@@ -18,8 +18,7 @@ package services.testdata.candidate.onlinetests
 
 import model.ProgressStatuses._
 import model.exchange.testdata.CreateCandidateResponse
-import model.testdata.CreateCandidateData
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository

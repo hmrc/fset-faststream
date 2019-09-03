@@ -51,23 +51,30 @@ trait SearchForApplicantsController extends BaseController {
     appRepository.findByUserId(userId, frameworkId).flatMap { application =>
       psRepository.find(application.applicationId).flatMap { pd =>
         cdRepository.find(userId).map { cd =>
-          Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, Some(pd.firstName),
+          Ok(Json.toJson(Candidate(userId, Some(application.applicationId), Option(application.testAccountId), None, Some(pd
+            .firstName),
             Some(pd.lastName), Some(pd.preferredName), Some(pd.dateOfBirth), Some(cd.address), cd.postCode, None,
             Some(application.applicationRoute), Some(application.applicationStatus))))
         }.recover {
-          case _: ContactDetailsNotFound => Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, Some(pd.firstName),
+          case _: ContactDetailsNotFound => Ok(Json.toJson(Candidate(userId, Some(application.applicationId),
+            Option(application.testAccountId), None, Some(pd.firstName),
             Some(pd.lastName), Some(pd.preferredName), Some(pd.dateOfBirth), None, None, None,
             Some(application.applicationRoute), Some(application.applicationStatus))))
         }
       }.recover {
         case _: PersonalDetailsNotFound =>
-          Ok(Json.toJson(Candidate(userId, Some(application.applicationId), None, None, None, None, None, None, None, None,
+          Ok(Json.toJson(Candidate(userId, Some(application.applicationId), Option(application.testAccountId),
+            None, None, None, None, None, None, None, None,
             Some(application.applicationRoute), Some(application.applicationStatus))))
       }
     }.recover {
       // when application is not found, the application route is set to Faststream for backward compatibility
-      case _: ApplicationNotFound => Ok(Json.toJson(Candidate(userId, None, None, None, None, None, None, None, None, None,
-        Some(ApplicationRoute.Faststream), None)))
+      case _: ApplicationNotFound =>
+        Ok(
+          Json.toJson(
+            Candidate(userId, None, None, None, None, None, None, None, None, None, None, Some(ApplicationRoute
+              .Faststream), None))
+        )
     }
   }
 

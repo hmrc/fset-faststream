@@ -51,6 +51,9 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       insertApplicationWithPhase1TestNotifiedResults("appId7",
         List(SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString)), appRoute = ApplicationRoute.Sdip).futureValue
 
+      insertApplicationWithPhase3TestNotifiedResults("appId8",
+        List(SchemeEvaluationResult(DigitalAndTechnology, EvaluationResults.Green.toString))).futureValue
+
       /* FSET-1803 - temporarily disabled
       insertApplicationWithPhase3TestNotifiedResults("appId8",
         List(

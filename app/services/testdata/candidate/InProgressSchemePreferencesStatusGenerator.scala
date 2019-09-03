@@ -17,7 +17,7 @@
 package services.testdata.candidate
 
 import model._
-import model.testdata.CreateCandidateData.CreateCandidateData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.schemepreferences.SchemePreferencesRepository
@@ -41,6 +41,8 @@ trait InProgressSchemePreferencesStatusGenerator extends ConstructiveGenerator {
        Future.successful(
          generatorConfig.schemeTypes.map { schemeTypesList =>
            generatorConfig.statusData.applicationRoute match {
+             case ApplicationRoute.Edip => SelectedSchemes(List(model.SchemeId("Edip")), orderAgreed = true, eligible = true)
+             case ApplicationRoute.Sdip => SelectedSchemes(List(SchemeId("Sdip")), orderAgreed = true, eligible = true)
              case ApplicationRoute.SdipFaststream => SelectedSchemes(schemeTypesList :+ model.SchemeId("Sdip"),
                orderAgreed = true, eligible = true)
              case _ => SelectedSchemes(schemeTypesList, orderAgreed = true, eligible = true)
