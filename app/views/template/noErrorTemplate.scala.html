@@ -14,15 +14,8 @@
  * limitations under the License.
  *@
 
-@(field : play.api.data.Field, options: Seq[(String, String)], isCompound: Boolean = false)(implicit messages: Messages)
+@(elements: helper.FieldElements)
 
-@import helpers.CSRSkinnyFieldConstructor._
-@import models.FieldNameHelpers._
-
-@helper.input(field, '_class -> (if(isCompound) "form-group-compound" else "inline")) { (id, name, value, args) =>
-    @for(v <- options) {
-        <label for="@createId(id,v)" class="block-label">
-            <input name="@name" type="radio" id="@createId(id,v)" value="@{v._1}" @(if(value.contains(v._1)) "checked" else "")>@{v._2}
-        </label>
-    }
-}
+<div id="@{elements.id}_field" class="form-group @elements.args.get('_class) @if(elements.hasErrors) {has-an-error input-validation-error}">
+@elements.input
+</div>

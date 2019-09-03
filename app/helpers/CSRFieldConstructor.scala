@@ -51,3 +51,40 @@ object CSRSkinnyFieldConstructor {
   import views.html.helper.FieldConstructor
   implicit val myFields = FieldConstructor(views.html.template.skinnyTemplate.f)
 }
+
+/**
+ * Use this implicit only in the case you will provide your error div and span in the component itself
+ *
+ * usage:
+ *
+ *    Add this on top of your view:
+ *
+ *    @import helpers.CSRNoErrorFieldConstructor._
+ *
+ *    ...
+ *    @helpers.input(.....)
+ *
+ */
+object CSRNoErrorFieldConstructor {
+  import views.html.helper.FieldConstructor
+  implicit val myFields = FieldConstructor(views.html.template.noErrorTemplate.f)
+}
+
+/**
+ * Use this implicit only in you do not want to add anything but you still need a Field Constructor to
+ * override the default one
+ *
+ * usage:
+ *
+ *    Add this on top of your view:
+ *
+ *    @import helpers.CSRNoErrorFieldConstructor._
+ *
+ *    ...
+ *    @helpers.input(.....)
+ *
+ */
+object CSREmptyFieldConstructor {
+  import views.html.helper.FieldConstructor
+  implicit val myFields = FieldConstructor(views.html.template.emptyTemplate.f)
+}

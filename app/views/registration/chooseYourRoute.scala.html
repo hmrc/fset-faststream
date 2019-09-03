@@ -20,7 +20,7 @@
 @(form: Form[_root_.forms.SignUpForm.Data], appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState], validAfterDeadlineSubmissionCode: Boolean)(implicit messages: Messages)
 
 @import models.ApplicationRoute
-@import views.html.widgets.{radioBoxVerticalMultiToggle, yesNoQuestion, yesNoRadioWithNestedTogglePanel}
+@import views.html.widgets.{radioBoxVerticalMultiToggle, yesNoQuestion, yesNoRadioWithTogglePanel}
 
 @faststreamOpen = @{ appRouteConfigMap.get(Faststream).forall(_.newAccountsEnabled) || validAfterDeadlineSubmissionCode }
 @edipOpen = @{ (appRouteConfigMap.get(Edip).forall(_.newAccountsStarted) && appRouteConfigMap.get(Edip).forall(_.newAccountsEnabled)) || validAfterDeadlineSubmissionCode }
@@ -67,7 +67,7 @@
                 </div>
 
 
-                @yesNoRadioWithNestedTogglePanel(form("sdipFastStreamConsider"),
+                @yesNoRadioWithTogglePanel(form("sdipFastStreamConsider"),
                                                  '_label -> "Do you want to be considered for SDIP?") {
 
                 <div id="sdipFastStreamConsider-panel-yes" class="toggle-content">

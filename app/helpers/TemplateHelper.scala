@@ -1,4 +1,4 @@
-@*
+/*
  * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,17 +12,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *@
+ */
 
-@(field : play.api.data.Field, options: Seq[(String, String)], isCompound: Boolean = false)(implicit messages: Messages)
+package helpers
 
-@import helpers.CSRSkinnyFieldConstructor._
-@import models.FieldNameHelpers._
+import play.twirl.api.Html
 
-@helper.input(field, '_class -> (if(isCompound) "form-group-compound" else "inline")) { (id, name, value, args) =>
-    @for(v <- options) {
-        <label for="@createId(id,v)" class="block-label">
-            <input name="@name" type="radio" id="@createId(id,v)" value="@{v._1}" @(if(value.contains(v._1)) "checked" else "")>@{v._2}
-        </label>
+object TemplateHelper {
+  def maybeDisplayError(field: play.api.data.Field): Html = {
+    if(field.hasErrors) {
+      Html(field.errors.map(_.messages.map("<span class='visuallyhidden'>Error: </span>" + _).mkString(", ")).mkString(", "))
+    } else {
+      Html("")
     }
+  }
 }
