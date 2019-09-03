@@ -2,14 +2,15 @@
 
 error_reporting(E_ALL);
 
-//$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2018-2019v8/newcastle.csv'));
-$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2018-2019v8/london.csv'));
+$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2019-2020/newcastle.csv'));
+//$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2019-2020/london.csv'));
 
 // This file reads input csv and generates yaml, which can be bulk uploaded into the system to create calendar events
+// Run the file from the location you find it in the fset-faststream repo. All the paths are relative to its current location
 // Use LibreOffice to open the Excel spreadsheet from the business, which contains 2 tabs: newcastle and london
 // Save the newcastle tab as newcastle.csv and the london tab as london.csv
 // Use LibreOffice so the correct Unix line endings are generated when saving as csv
-// if you need to debug do the following:
+// if you need to debug set the following on line 43:
 // $debug = true;
 //
 // you usually need to check that all the skills specified in the spreadsheet are handled by the converter
@@ -89,6 +90,9 @@ function checkVirtualLocation($lineCount, $venueName, $locationName) {
 function allSessionsEmpty($sessions) {
     for ($i = 0; $i < count($sessions); $i++) {
         $oneSession = $sessions[$i];
+        $sessionNumber = $i + 1;
+        console("Session $sessionNumber:  $oneSession[0], $oneSession[1], $oneSession[2], $oneSession[3], $oneSession[4]");
+        // If a single session has some data then all sessions are not empty
         if (!($oneSession[0] == "" && $oneSession[1] == "" && $oneSession[2] == 0 && $oneSession[3] == 0 && $oneSession[4] == 0)) {
            return false;
         }
@@ -114,7 +118,8 @@ $ignoreFirst = true;
 
 console("Conversion started");
 
-$lineCount = 1;
+// Set this to 2 to allow for the first row being the column headings and to match the spreadsheet row numbers
+$lineCount = 2;
 foreach ($csv as $line) {
 
     if ($ignoreFirst) {
@@ -122,7 +127,7 @@ foreach ($csv as $line) {
         continue;
     }
 
-    console("Processing line number: $lineCount");
+    console("Processing line number: $lineCount (line 1 contains the column headers)");
     if ($debug) {
         print_r($line);
     }
@@ -139,6 +144,9 @@ foreach ($csv as $line) {
         }
         $eventLocation = $line[$i++];
         $eventVenue = $line[$i++];
+        if (venueNameToToken($eventVenue) == "") {
+            console("ERROR - line number: $lineCount has an invalid venue specified <<$eventVenue>>");
+        }
         checkVirtualLocation($lineCount, $eventVenue, $eventLocation);
         $eventDate = $line[$i++];
         $eventStartTime = formatTime($line[$i++]);

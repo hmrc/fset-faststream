@@ -1,0 +1,44 @@
+- eventType: FSB
+  description: EDIP - Telephone interview
+  location: Virtual
+  venue: VIRTUAL
+  date: 2019-10-23
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:00
+  endTime: 17:30
+  skillRequirements:
+    EDIP_ASSESSOR: 10
+    EDIP_QAC: 1
+  sessions:
+    - description: Session 1
+      capacity: 5
+      minViableAttendees: 3
+      attendeeSafetyMargin: 1
+      startTime: 09:00
+      endTime: 10:00
+    - description: Session 2
+      capacity: 5
+      minViableAttendees: 3
+      attendeeSafetyMargin: 1
+      startTime: 10:30
+      endTime: 11:30
+    - description: Session 3
+      capacity: 5
+      minViableAttendees: 3
+      attendeeSafetyMargin: 1
+      startTime: 13:00
+      endTime: 14:00
+    - description: Session 4
+      capacity: 5
+      minViableAttendees: 3
+      attendeeSafetyMargin: 1
+      startTime: 14:30
+      endTime: 15:30
+    - description: Session 5
+      capacity: 5
+      minViableAttendees: 3
+      attendeeSafetyMargin: 1
+      startTime: 16:00
+      endTime: 17:00
