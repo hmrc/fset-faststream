@@ -18,15 +18,14 @@ package connectors.exchange.candidatescores
 
 import play.api.libs.json.Json
 
-case class LeadingAndCommunicatingScores(
-  explainingIdeas: Option[Double] = None,
-  presentingArguments: Option[Double] = None,
-  influencingOthers: Option[Double] = None,
-  communicatingSuccinctly: Option[Double] = None,
-  defendingOwnView: Option[Double] = None,
-  conveyingPurposeAndDirection: Option[Double] = None
+case class MakingEffectiveDecisionsScores(
+                                           decisiveAndMakesClearRecommendation: Option[Double] = None,
+                                           analysesFinancialData: Option[Double] = None,
+                                           analysesProsAndCons: Option[Double] = None,
+                                           considersCriticalAndImportantIssues: Option[Double] = None,
+                                           demonstratesMentalResilience: Option[Double] = None
 )
 
-object LeadingAndCommunicatingScores {
-  implicit val leadingAndCommunicatingScoresFormat = Json.format[LeadingAndCommunicatingScores]
+object MakingEffectiveDecisionsScores {
+  implicit val makingEffectiveDecisionsScoresFormat = Json.format[MakingEffectiveDecisionsScores]
 }

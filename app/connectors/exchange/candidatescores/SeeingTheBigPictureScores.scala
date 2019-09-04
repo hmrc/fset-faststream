@@ -18,14 +18,14 @@ package connectors.exchange.candidatescores
 
 import play.api.libs.json.Json
 
-case class StrategicApproachToObjectivesScores(
-  seeingTheBigPicture: Option[Double] = None,
-  bringingTogetherViewsAndPerspectives: Option[Double] = None,
-  takingManagedRisks: Option[Double] = None,
-  challengingProposals: Option[Double] = None,
-  identifyingBarriersAndDevelopingSolutions: Option[Double] = None
+case class SeeingTheBigPictureScores(
+                                      strategicOutlook: Option[Double] = None,
+                                      understandsHowOptionsMeetDiverseNeedsOfStakeholders: Option[Double] = None,
+                                      suggestsWaysToImproveAcceptance: Option[Double] = None,
+                                      respondsAppropriately: Option[Double] = None,
+                                      alternativeSolutions: Option[Double] = None
 )
 
-object StrategicApproachToObjectivesScores {
-  implicit val strategicApproachToObjectivesScoresFormat = Json.format[StrategicApproachToObjectivesScores]
+object SeeingTheBigPictureScores {
+  implicit val seeingTheBigPictureScoresFormat = Json.format[SeeingTheBigPictureScores]
 }
