@@ -68,10 +68,10 @@ class AssessmentFeedbackControllerSpec extends BaseControllerSpec {
       )
 
       val competencyAverageResult = CompetencyAverageResult(
-        analysisAndDecisionMakingAverage = 1.0,
-        buildingProductiveRelationshipsAverage = 1.0,
-        leadingAndCommunicatingAverage = 1.0,
-        strategicApproachToObjectivesAverage = 1.0,
+        makingEffectiveDecisionsAverage = 1.0,
+        workingTogetherDevelopingSelfAndOthersAverage = 1.0,
+        communicatingAndInfluencingAverage = 1.0,
+        seeingTheBigPictureAverage = 1.0,
         overallScore = 4.0)
 
       val generalDetails = GeneralDetails(

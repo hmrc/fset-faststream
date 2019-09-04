@@ -19,15 +19,15 @@ package connectors.exchange.candidatescores
 import play.api.libs.json.Json
 
 case class CompetencyAverageResult(
-  analysisAndDecisionMakingAverage: Double,
-  buildingProductiveRelationshipsAverage: Double,
-  leadingAndCommunicatingAverage: Double,
-  strategicApproachToObjectivesAverage: Double,
-  overallScore: Double) {
+                                    makingEffectiveDecisionsAverage: Double,
+                                    workingTogetherDevelopingSelfAndOthersAverage: Double,
+                                    communicatingAndInfluencingAverage: Double,
+                                    seeingTheBigPictureAverage: Double,
+                                    overallScore: Double) {
 
   def competencyAverageScores = List(
-    analysisAndDecisionMakingAverage, buildingProductiveRelationshipsAverage,
-    leadingAndCommunicatingAverage, strategicApproachToObjectivesAverage
+    makingEffectiveDecisionsAverage, workingTogetherDevelopingSelfAndOthersAverage,
+    communicatingAndInfluencingAverage, seeingTheBigPictureAverage
   )
 }
 
