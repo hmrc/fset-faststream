@@ -130,9 +130,9 @@
     EXERCISE_MARKER: 2
   sessions:
     - description: Session 1
-      capacity: 12
-      minViableAttendees: 6
-      attendeeSafetyMargin: 6
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
       startTime: 08:00
       endTime: 12:50
 
@@ -150,9 +150,9 @@
     QUALITY_ASSURANCE_COORDINATOR: 1
   sessions:
     - description: Session 1
-      capacity: 12
-      minViableAttendees: 6
-      attendeeSafetyMargin: 6
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
       startTime: 08:00
       endTime: 12:50
 
@@ -288,9 +288,9 @@
     EXERCISE_MARKER: 2
   sessions:
     - description: Session 1
-      capacity: 12
-      minViableAttendees: 6
-      attendeeSafetyMargin: 6
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
       startTime: 08:00
       endTime: 12:50
 
@@ -308,9 +308,9 @@
     QUALITY_ASSURANCE_COORDINATOR: 1
   sessions:
     - description: Session 1
-      capacity: 12
-      minViableAttendees: 6
-      attendeeSafetyMargin: 6
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
       startTime: 08:00
       endTime: 12:50
 
@@ -475,9 +475,9 @@
     QUALITY_ASSURANCE_COORDINATOR: 1
   sessions:
     - description: Session 1
-      capacity: 12
-      minViableAttendees: 6
-      attendeeSafetyMargin: 6
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
       startTime: 08:00
       endTime: 12:50
 
@@ -495,9 +495,9 @@
     QUALITY_ASSURANCE_COORDINATOR: 1
   sessions:
     - description: Session 1
-      capacity: 12
-      minViableAttendees: 6
-      attendeeSafetyMargin: 6
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
       startTime: 08:00
       endTime: 12:50
 
@@ -683,9 +683,9 @@
     QUALITY_ASSURANCE_COORDINATOR: 3
   sessions:
     - description: Session 1
-      capacity: 12
-      minViableAttendees: 6
-      attendeeSafetyMargin: 6
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
       startTime: 08:00
       endTime: 12:50
 
@@ -2180,9 +2180,9 @@
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
     - description: Session 1
-      capacity: 12
-      minViableAttendees: 6
-      attendeeSafetyMargin: 6
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
       startTime: 08:00
       endTime: 12:50
 
@@ -2875,9 +2875,9 @@
     QUALITY_ASSURANCE_COORDINATOR: 4
   sessions:
     - description: Session 1
-      capacity: 12
-      minViableAttendees: 6
-      attendeeSafetyMargin: 6
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
       startTime: 08:00
       endTime: 12:50
 
@@ -2985,9 +2985,9 @@
     QUALITY_ASSURANCE_COORDINATOR: 2
   sessions:
     - description: Session 1
-      capacity: 12
-      minViableAttendees: 6
-      attendeeSafetyMargin: 6
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
       startTime: 08:00
       endTime: 12:50
 
@@ -3952,7 +3952,7 @@
   startTime: 09:00
   endTime: 18:00
   skillRequirements:
-    ASSESSOR: 99
+    FCO_ASSESSOR: 1
   sessions:
     - description: Session 1
       capacity: 5
@@ -4164,7 +4164,7 @@
   startTime: 09:00
   endTime: 18:00
   skillRequirements:
-    ASSESSOR: 99
+    FCO_ASSESSOR: 1
   sessions:
     - description: Session 1
       capacity: 5
@@ -5804,7 +5804,7 @@
   startTime: 09:00
   endTime: 18:00
   skillRequirements:
-    ASSESSOR: 99
+    FCO_ASSESSOR: 1
   sessions:
     - description: Session 1
       capacity: 5
@@ -6016,7 +6016,7 @@
   startTime: 09:00
   endTime: 18:00
   skillRequirements:
-    ASSESSOR: 99
+    FCO_ASSESSOR: 1
   sessions:
     - description: Session 1
       capacity: 5
@@ -6986,6 +6986,27 @@
       attendeeSafetyMargin: 1
       startTime: 15:45
       endTime: 16:15
+
+- eventType: FSAC
+  description: Fast Stream Assessment Centre
+  location: London
+  venue: LONDON_FSAC
+  date: 2020-02-10
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:30
+  endTime: 15:05
+  skillRequirements:
+    EXERCISE_MARKER: 3
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
+      startTime: 08:00
+      endTime: 12:50
 
 - eventType: FSB
   description: SRAC
@@ -7131,6 +7152,26 @@
       startTime: 15:45
       endTime: 16:15
 
+- eventType: FSAC
+  description: Fast Stream Assessment Centre
+  location: London
+  venue: LONDON_FSAC
+  date: 2020-02-11
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:30
+  endTime: 15:05
+  skillRequirements:
+    QUALITY_ASSURANCE_COORDINATOR: 2
+  sessions:
+    - description: Session 1
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
+      startTime: 08:00
+      endTime: 12:50
+
 - eventType: FSB
   description: DS
   location: London
@@ -7142,7 +7183,7 @@
   startTime: 09:00
   endTime: 18:00
   skillRequirements:
-    ASSESSOR: 99
+    FCO_ASSESSOR: 1
   sessions:
     - description: Session 1
       capacity: 5
@@ -7318,7 +7359,7 @@
   startTime: 09:00
   endTime: 18:00
   skillRequirements:
-    ASSESSOR: 99
+    FCO_ASSESSOR: 1
   sessions:
     - description: Session 1
       capacity: 5
@@ -8442,7 +8483,7 @@
   startTime: 09:00
   endTime: 18:00
   skillRequirements:
-    ASSESSOR: 99
+    FCO_ASSESSOR: 1
   sessions:
     - description: Session 1
       capacity: 5
@@ -8574,7 +8615,7 @@
   startTime: 09:00
   endTime: 18:00
   skillRequirements:
-    ASSESSOR: 99
+    FCO_ASSESSOR: 1
   sessions:
     - description: Session 1
       capacity: 5
@@ -8706,7 +8747,7 @@
   startTime: 09:00
   endTime: 18:00
   skillRequirements:
-    ASSESSOR: 99
+    EAC_DS_ASSESSOR: 1
   sessions:
     - description: Session 1
       capacity: 5
@@ -10933,11 +10974,1716 @@
       startTime: 15:45
       endTime: 16:15
 
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-10-24
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 8
+    EXERCISE_MARKER: 1
+    QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - description: Session 1
+      capacity: 12
+      minViableAttendees: 6
+      attendeeSafetyMargin: 6
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 12
+      minViableAttendees: 6
+      attendeeSafetyMargin: 6
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-10-25
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    EXERCISE_MARKER: 2
+  sessions:
+    - description: Session 1
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
+      startTime: 07:45
+      endTime: 12:50
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-10-26
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - description: Session 1
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
+      startTime: 07:45
+      endTime: 12:50
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-10-31
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 8
+    EXERCISE_MARKER: 1
+    QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - description: Session 1
+      capacity: 12
+      minViableAttendees: 6
+      attendeeSafetyMargin: 6
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 12
+      minViableAttendees: 6
+      attendeeSafetyMargin: 6
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-11-01
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    EXERCISE_MARKER: 2
+  sessions:
+    - description: Session 1
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
+      startTime: 07:45
+      endTime: 12:50
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-11-04
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - description: Session 1
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
+      startTime: 07:45
+      endTime: 12:50
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-11-06
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 8
+    EXERCISE_MARKER: 1
+    QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - description: Session 1
+      capacity: 12
+      minViableAttendees: 6
+      attendeeSafetyMargin: 6
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 12
+      minViableAttendees: 6
+      attendeeSafetyMargin: 6
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-11-07
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 8
+    EXERCISE_MARKER: 2
+  sessions:
+    - description: Session 1
+      capacity: 12
+      minViableAttendees: 6
+      attendeeSafetyMargin: 6
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 12
+      minViableAttendees: 6
+      attendeeSafetyMargin: 6
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-11-08
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    EXERCISE_MARKER: 2
+    QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - description: Session 1
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
+      startTime: 07:45
+      endTime: 12:50
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-11-11
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - description: Session 1
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
+      startTime: 07:45
+      endTime: 12:50
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-11-13
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 16
+    EXERCISE_MARKER: 1
+    QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - description: Session 1
+      capacity: 24
+      minViableAttendees: 12
+      attendeeSafetyMargin: 12
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 24
+      minViableAttendees: 12
+      attendeeSafetyMargin: 12
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-11-14
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 16
+    EXERCISE_MARKER: 4
+    QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - description: Session 1
+      capacity: 24
+      minViableAttendees: 12
+      attendeeSafetyMargin: 12
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 24
+      minViableAttendees: 12
+      attendeeSafetyMargin: 12
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-11-15
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 15:05
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 4
+    QUALITY_ASSURANCE_COORDINATOR: 3
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 08:00
+      endTime: 14:25
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-11-18
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    EXERCISE_MARKER: 3
+    QUALITY_ASSURANCE_COORDINATOR: 3
+  sessions:
+    - description: Session 1
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
+      startTime: 07:45
+      endTime: 12:50
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-11-19
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 13:30
+  skillRequirements:
+    ASSESSOR: 16
+    EXERCISE_MARKER: 1
+    QUALITY_ASSURANCE_COORDINATOR: 3
+  sessions:
+    - description: Session 1
+      capacity: 24
+      minViableAttendees: 12
+      attendeeSafetyMargin: 12
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 24
+      minViableAttendees: 12
+      attendeeSafetyMargin: 12
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-11-20
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 16
+    EXERCISE_MARKER: 4
+    QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - description: Session 1
+      capacity: 24
+      minViableAttendees: 12
+      attendeeSafetyMargin: 12
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 24
+      minViableAttendees: 12
+      attendeeSafetyMargin: 12
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-11-21
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 16
+    EXERCISE_MARKER: 4
+    QUALITY_ASSURANCE_COORDINATOR: 3
+  sessions:
+    - description: Session 1
+      capacity: 24
+      minViableAttendees: 12
+      attendeeSafetyMargin: 12
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 24
+      minViableAttendees: 12
+      attendeeSafetyMargin: 12
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-11-22
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 15:05
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 4
+    QUALITY_ASSURANCE_COORDINATOR: 3
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 08:00
+      endTime: 14:25
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-11-25
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 3
+    QUALITY_ASSURANCE_COORDINATOR: 3
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-11-26
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 2
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-11-27
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-11-28
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-11-29
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 15:05
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 4
+    QUALITY_ASSURANCE_COORDINATOR: 3
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 08:00
+      endTime: 14:25
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-12-02
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 3
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-12-03
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 2
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-12-04
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-12-05
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-12-06
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 15:05
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 08:00
+      endTime: 14:25
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-12-09
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 3
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-12-10
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 2
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-12-11
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-12-12
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-12-13
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 13:30
+  skillRequirements:
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
+      startTime: 07:45
+      endTime: 12:50
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-12-16
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 1
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-12-17
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-12-18
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-12-19
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-12-20
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 15:05
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 08:00
+      endTime: 14:25
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-12-23
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    EXERCISE_MARKER: 3
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 1
+      minViableAttendees: 1
+      attendeeSafetyMargin: 1
+      startTime: 07:45
+      endTime: 12:50
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2019-12-24
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    QUALITY_ASSURANCE_COORDINATOR: 2
+  sessions:
+    - description: Session 1
+      capacity: 1
+      minViableAttendees: 1
+      attendeeSafetyMargin: 1
+      startTime: 07:45
+      endTime: 12:50
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-01-07
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 1
+    QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-01-08
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 1
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-01-09
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-01-10
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 15:05
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 08:00
+      endTime: 14:25
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-01-13
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 3
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-01-14
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 2
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-01-15
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-01-16
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-01-17
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 15:05
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 08:00
+      endTime: 14:25
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-01-20
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 3
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-01-21
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 2
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-01-22
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-01-23
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-01-24
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 15:05
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 08:00
+      endTime: 14:25
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-01-27
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 3
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-01-28
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 2
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-01-29
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-01-30
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-01-31
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 15:05
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 08:00
+      endTime: 14:25
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-02-03
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    ASSESSOR: 22
+    EXERCISE_MARKER: 3
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 07:45
+      endTime: 12:50
+    - description: Session 2
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 12:15
+      endTime: 17:35
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-02-04
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    EXERCISE_MARKER: 6
+    QUALITY_ASSURANCE_COORDINATOR: 2
+  sessions:
+    - description: Session 1
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
+      startTime: 07:45
+      endTime: 12:50
+
+- eventType: FSB
+  description: EAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-02-04
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:30
+  endTime: 17:20
+  skillRequirements:
+    EAC_ASSESSOR: 24
+  sessions:
+    - description: Session 1
+      capacity: 12
+      minViableAttendees: 6
+      attendeeSafetyMargin: 6
+      startTime: 08:30
+      endTime: 11:35
+    - description: Session 2
+      capacity: 12
+      minViableAttendees: 6
+      attendeeSafetyMargin: 6
+      startTime: 10:15
+      endTime: 13:35
+    - description: Session 3
+      capacity: 12
+      minViableAttendees: 6
+      attendeeSafetyMargin: 6
+      startTime: 12:00
+      endTime: 15:20
+    - description: Session 4
+      capacity: 12
+      minViableAttendees: 6
+      attendeeSafetyMargin: 6
+      startTime: 13:50
+      endTime: 17:05
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-02-05
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
+      startTime: 07:45
+      endTime: 12:50
+
+- eventType: FSB
+  description: EAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-02-05
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:30
+  endTime: 17:20
+  skillRequirements:
+    EAC_ASSESSOR: 24
+  sessions:
+    - description: Session 1
+      capacity: 12
+      minViableAttendees: 6
+      attendeeSafetyMargin: 6
+      startTime: 08:30
+      endTime: 11:35
+    - description: Session 2
+      capacity: 12
+      minViableAttendees: 6
+      attendeeSafetyMargin: 6
+      startTime: 10:15
+      endTime: 13:35
+    - description: Session 3
+      capacity: 12
+      minViableAttendees: 6
+      attendeeSafetyMargin: 6
+      startTime: 12:00
+      endTime: 15:20
+    - description: Session 4
+      capacity: 12
+      minViableAttendees: 6
+      attendeeSafetyMargin: 6
+      startTime: 13:50
+      endTime: 17:05
+
+- eventType: FSB
+  description: EAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-02-06
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:30
+  endTime: 17:20
+  skillRequirements:
+    EAC_ASSESSOR: 24
+  sessions:
+    - description: Session 1
+      capacity: 12
+      minViableAttendees: 6
+      attendeeSafetyMargin: 6
+      startTime: 08:30
+      endTime: 11:35
+    - description: Session 2
+      capacity: 12
+      minViableAttendees: 6
+      attendeeSafetyMargin: 6
+      startTime: 10:15
+      endTime: 13:35
+    - description: Session 3
+      capacity: 12
+      minViableAttendees: 6
+      attendeeSafetyMargin: 6
+      startTime: 12:00
+      endTime: 15:20
+    - description: Session 4
+      capacity: 12
+      minViableAttendees: 6
+      attendeeSafetyMargin: 6
+      startTime: 13:50
+      endTime: 17:05
+
 - eventType: FSB
   description: ORAC
-  location: London
-  venue: LONDON_FSAC
-  date: 2019-01-16
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-02-06
   capacity: 36
   minViableAttendees: 12
   attendeeSafetyMargin: 2
@@ -10967,11 +12713,52 @@
       startTime: 11:30
       endTime: 16:15
 
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-02-07
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 15:05
+  skillRequirements:
+    ASSESSOR: 22
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 36
+      minViableAttendees: 18
+      attendeeSafetyMargin: 18
+      startTime: 08:00
+      endTime: 14:25
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-02-10
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    EXERCISE_MARKER: 6
+  sessions:
+    - description: Session 1
+      capacity: 0
+      minViableAttendees: 0
+      attendeeSafetyMargin: 0
+      startTime: 07:45
+      endTime: 12:50
+
 - eventType: FSB
   description: SAC
-  location: London
-  venue: LONDON_FSAC
-  date: 2019-01-24
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-02-10
   capacity: 36
   minViableAttendees: 12
   attendeeSafetyMargin: 2
@@ -10996,41 +12783,131 @@
       endTime: 13:35
     - description: Session 3
       capacity: 8
+      minViableAttendees: 4
+      attendeeSafetyMargin: 4
+      startTime: 12:50
+      endTime: 16:05
+
+- eventType: FSAC
+  description: FSAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-02-11
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 08:30
+  endTime: 18:15
+  skillRequirements:
+    QUALITY_ASSURANCE_COORDINATOR: 4
+  sessions:
+    - description: Session 1
+      capacity: 0
       minViableAttendees: 0
       attendeeSafetyMargin: 0
+      startTime: 07:45
+      endTime: 12:50
+
+- eventType: FSB
+  description: SAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-02-11
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 09:30
+  endTime: 17:00
+  skillRequirements:
+    SAC_ASSESSOR: 16
+    SAC_EM_ASSESSOR: 2
+    SAC_SAM_ASSESSOR: 2
+  sessions:
+    - description: Session 1
+      capacity: 8
+      minViableAttendees: 4
+      attendeeSafetyMargin: 4
+      startTime: 08:10
+      endTime: 11:25
+    - description: Session 2
+      capacity: 8
+      minViableAttendees: 4
+      attendeeSafetyMargin: 4
+      startTime: 10:20
+      endTime: 13:35
+    - description: Session 3
+      capacity: 8
+      minViableAttendees: 4
+      attendeeSafetyMargin: 4
       startTime: 12:50
       endTime: 16:05
 
 - eventType: FSB
-  description: DAT FSB
-  location: London
-  venue: LONDON_FSAC
-  date: 2018-12-13
+  description: SAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-02-12
   capacity: 36
   minViableAttendees: 12
   attendeeSafetyMargin: 2
-  startTime: 08:55
+  startTime: 09:30
   endTime: 17:00
   skillRequirements:
-    ASSESSOR: 99
+    SAC_ASSESSOR: 16
+    SAC_EM_ASSESSOR: 2
+    SAC_SAM_ASSESSOR: 2
   sessions:
     - description: Session 1
-      capacity: 4
-      minViableAttendees: 2
-      attendeeSafetyMargin: 2
-      startTime: 08:00
-      endTime: 11:00
+      capacity: 8
+      minViableAttendees: 4
+      attendeeSafetyMargin: 4
+      startTime: 08:10
+      endTime: 11:25
     - description: Session 2
-      capacity: 4
-      minViableAttendees: 2
-      attendeeSafetyMargin: 2
+      capacity: 8
+      minViableAttendees: 4
+      attendeeSafetyMargin: 4
       startTime: 10:20
-      endTime: 13:10
+      endTime: 13:35
     - description: Session 3
-      capacity: 4
-      minViableAttendees: 2
-      attendeeSafetyMargin: 2
-      startTime: 12:55
-      endTime: 15:40
+      capacity: 8
+      minViableAttendees: 4
+      attendeeSafetyMargin: 4
+      startTime: 12:50
+      endTime: 16:05
+
+- eventType: FSB
+  description: ORAC
+  location: Newcastle
+  venue: NEWCASTLE_FSAC
+  date: 2020-02-13
+  capacity: 36
+  minViableAttendees: 12
+  attendeeSafetyMargin: 2
+  startTime: 10:05
+  endTime: 17:30
+  skillRequirements:
+    ORAC_ASSESSOR: 20
+    ORAC_EM_ASSESSOR: 4
+    ORAC_QAC: 2
+  sessions:
+    - description: Session 1
+      capacity: 10
+      minViableAttendees: 5
+      attendeeSafetyMargin: 5
+      startTime: 08:10
+      endTime: 12:55
+    - description: Session 2
+      capacity: 10
+      minViableAttendees: 5
+      attendeeSafetyMargin: 5
+      startTime: 10:15
+      endTime: 15:00
+    - description: Session 3
+      capacity: 10
+      minViableAttendees: 5
+      attendeeSafetyMargin: 5
+      startTime: 11:30
+      endTime: 16:15
 
 

@@ -2,8 +2,8 @@
 
 error_reporting(E_ALL);
 
-$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2019-2020/newcastle.csv'));
-//$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2019-2020/london.csv'));
+$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2019-2020v4/newcastle.csv'));
+//$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2019-2020v4/london.csv'));
 
 // This file reads input csv and generates yaml, which can be bulk uploaded into the system to create calendar events
 // Run the file from the location you find it in the fset-faststream repo. All the paths are relative to its current location
@@ -191,10 +191,10 @@ foreach ($csv as $line) {
         $session5 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
         $session6 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
 // 7 & 8 are needed for london not newcastle
-        $session7 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
-        $session8 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
-        $sessions = array($session1,$session2,$session3,$session4,$session5,$session6,$session7,$session8);
-//        $sessions = array($session1,$session2,$session3,$session4,$session5,$session6);
+//        $session7 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
+//        $session8 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
+//        $sessions = array($session1,$session2,$session3,$session4,$session5,$session6,$session7,$session8);
+        $sessions = array($session1,$session2,$session3,$session4,$session5,$session6);
 
         if (allSessionsEmpty($sessions)) {
             console("ERROR - line number: $lineCount has no sessions specified - bulk upload will not accept this");
