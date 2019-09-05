@@ -22,14 +22,14 @@ import connectors.exchange.SchemeEvaluationResultWithFailureDetails
 import connectors.exchange.candidateevents.CandidateAllocationWithEvent
 import connectors.exchange.referencedata.Scheme
 import connectors.exchange.sift.SiftAnswersStatus.SiftAnswersStatus
-import connectors.exchange.sift.{ SiftAnswersStatus, SiftState }
-import helpers.{ CachedUserWithSchemeData, Timezones }
+import connectors.exchange.sift.{SiftAnswersStatus, SiftState}
+import helpers.{CachedUserWithSchemeData, Timezones}
 import models.events.EventType
 import models.page.DashboardPage.Flags
-import models.page.DashboardPage.Flags.{ ProgressActive, ProgressInactiveDisabled }
-import models.{ ApplicationRoute, SchemeStatus }
-import org.joda.time.{ DateTime, LocalTime }
-import security.RoleUtils
+import models.page.DashboardPage.Flags.{ProgressActive, ProgressInactiveDisabled}
+import models.{ApplicationRoute, SchemeStatus}
+import org.joda.time.{DateTime, LocalTime}
+import security.{ProgressStatusRoleUtils, RoleUtils}
 
 import scala.util.Try
 
@@ -121,13 +121,13 @@ case class PostOnlineTestsPage(
     }
 
   def isFinalSuccess =
-    RoleUtils.isEligibleForJobOffer(userDataWithSchemes.toCachedData)
+    ProgressStatusRoleUtils.isEligibleForJobOffer(userDataWithSchemes.toCachedData)
 
   def isFinalFailure =
     RoleUtils.isFastStreamFailed(userDataWithSchemes.toCachedData)
 
   def isFailedFaststreamGreenSdip =
-    RoleUtils.isFastStreamFailedGreenSdip(userDataWithSchemes.toCachedData)
+    ProgressStatusRoleUtils.isFastStreamFailedGreenSdip(userDataWithSchemes.toCachedData)
 
   def haveAdditionalQuestionsBeenSubmitted =
     additionalQuestionsStatus.contains(SiftAnswersStatus.SUBMITTED)

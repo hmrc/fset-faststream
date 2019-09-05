@@ -16,10 +16,12 @@
 
 @(field : play.api.data.Field, options: Seq[String])(labelContent: Html)(implicit messages: Messages)
 
-@import helpers.CSRSkinnyFieldConstructor._
+@import helpers.CSRNoErrorFieldConstructor._
+@import helpers.TemplateHelper._
 
 @helper.input(field, '_class -> "form-group-compound grid-2-3") { (id, name, value, args) =>
     <label for="@id" class="bold-medium form-label">@labelContent</label>
+    <span class="has-error">@maybeDisplayError(field)</span>
     <select name="@name" id="@id" class="chosen-select" data-placeholder="Choose from list or begin typing">
         <option value=""></option>
         @for(option <- options) {

@@ -30,6 +30,7 @@ import uk.gov.hmrc.play.HeaderCarrierConverter
 object Roles {
 
   import RoleUtils._
+  import ProgressStatusRoleUtils._
 
   trait CsrAuthorization {
     def isAuthorized(user: CachedData)(implicit request: RequestHeader): Boolean
@@ -183,7 +184,7 @@ object Roles {
 
   object Phase3TestDisplayFeedbackRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
-      isInPhase3PassedOrPassedNotified(user) || isPhase3TestsFailed(user) || isPhase3TestsFailedNotified(user) ||
+      isPhase3TestsPassed(user) || isPhase3TestsPassedNotified(user) || isPhase3TestsFailed(user) || isPhase3TestsFailedNotified(user) ||
         isPhase3TestsFailedSdipGreen(user)
   }
 
@@ -235,6 +236,9 @@ object Roles {
 
 object RoleUtils {
 
+
+  import ProgressStatusRoleUtils._
+
   implicit def hc(implicit request: RequestHeader): HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
   def activeUserWithActiveApp(user: CachedData)(implicit request: RequestHeader) =
@@ -243,36 +247,6 @@ object RoleUtils {
 
   def statusIn(user: CachedData)(status: ApplicationStatus*)(implicit request: RequestHeader) =
     user.application.isDefined && status.contains(user.application.get.applicationStatus)
-
-  def progress(implicit user: CachedData): Progress = user.application.get.progress
-
-  def hasPersonalDetails(implicit user: CachedData) = progress.personalDetails
-
-  def hasSchemes(implicit user: CachedData) = user.application.isDefined && progress.schemePreferences
-
-  def hasAssistanceDetails(implicit user: CachedData) = user.application.isDefined && progress.assistanceDetails
-
-  def hasStartedQuest(implicit user: CachedData) = progress.startedQuestionnaire
-
-  def hasDiversity(implicit user: CachedData) = progress.diversityQuestionnaire
-
-  def hasEducation(implicit user: CachedData) = progress.educationQuestionnaire
-
-  def hasOccupation(implicit user: CachedData) = progress.occupationQuestionnaire
-
-  def hasPreview(implicit user: CachedData) = progress.preview
-
-  def isSubmitted(implicit user: CachedData) = progress.submitted
-
-  def hasFastPassBeenApproved(user: CachedData)(implicit request: RequestHeader) = {
-    val isApproved = for {
-      app <- user.application
-      csed <- app.civilServiceExperienceDetails
-      accepted <- csed.fastPassAccepted
-    } yield accepted
-
-    isApproved.getOrElse(false)
-  }
 
   def isCivilServant(user: CachedData)(implicit request: RequestHeader) =
     user.application
@@ -299,6 +273,74 @@ object RoleUtils {
 
     fastPassReceived && !fastPassAccepted && isPhase1TestsInvited(user) && !isPhase1TestsStarted(user)
   }
+
+  def hasFastPassBeenApproved(user: CachedData)(implicit request: RequestHeader) = {
+    val isApproved = for {
+      app <- user.application
+      csed <- app.civilServiceExperienceDetails
+      accepted <- csed.fastPassAccepted
+    } yield accepted
+
+    isApproved.getOrElse(false)
+  }
+
+  def isFaststream(implicit user: CachedDataWithApp) = user.application.applicationRoute == ApplicationRoute.Faststream
+
+  def isEdip(implicit user: CachedDataWithApp) = user.application.applicationRoute == ApplicationRoute.Edip
+
+  def isSdip(implicit user: CachedDataWithApp) = user.application.applicationRoute == ApplicationRoute.Sdip
+
+  def isFaststream(implicit user: CachedData): Boolean = user.application.forall { app =>
+    app.applicationRoute == ApplicationRoute.Faststream || app.applicationRoute == ApplicationRoute.SdipFaststream
+  }
+
+  def isFaststreamOnly(implicit user: CachedData): Boolean = user.application.forall { app =>
+    app.applicationRoute == ApplicationRoute.Faststream
+  }
+
+  def isEdip(implicit user: CachedData): Boolean = user.application exists (_.applicationRoute == ApplicationRoute.Edip)
+
+  def isEdip(implicit user: Option[CachedData]): Boolean = user.exists(isEdip(_))
+
+  def isSdip(implicit user: CachedData): Boolean = user.application exists (_.applicationRoute == ApplicationRoute.Sdip)
+
+  def isSdip(implicit user: Option[CachedData]): Boolean = user.exists(isSdip(_))
+
+  def isSdipFaststream(implicit user: CachedData): Boolean = user.application exists (_.applicationRoute == ApplicationRoute.SdipFaststream)
+
+  def isFastStreamFailed(implicit user: CachedData): Boolean = isFailedAtSift || isAllFsbFailed || isAssessmentCentreFailed
+
+  def isInPhase3PassedOrPassedNotified(implicit user: CachedData) = user.application.exists(cachedData =>
+    cachedData.applicationStatus == ApplicationStatus.PHASE3_TESTS_PASSED ||
+      cachedData.applicationStatus == ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED
+  )
+
+  def isInSiftPhase(implicit user: CachedData): Boolean = user.application.exists { app =>
+    app.applicationStatus == ApplicationStatus.SIFT
+  }
+
+  def isFaststream(implicit user: Option[CachedData]): Boolean = user.forall(u => isFaststream(u))
+}
+
+object ProgressStatusRoleUtils {
+
+  def hasPersonalDetails(implicit user: CachedData) = user.application.exists(_.progress.personalDetails)
+
+  def hasSchemes(implicit user: CachedData) = user.application.isDefined && user.application.exists(_.progress.schemePreferences)
+
+  def hasAssistanceDetails(implicit user: CachedData) = user.application.isDefined && user.application.exists(_.progress.assistanceDetails)
+
+  def hasStartedQuest(implicit user: CachedData) = user.application.exists(_.progress.startedQuestionnaire)
+
+  def hasDiversity(implicit user: CachedData) = user.application.exists(_.progress.diversityQuestionnaire)
+
+  def hasEducation(implicit user: CachedData) = user.application.exists(_.progress.educationQuestionnaire)
+
+  def hasOccupation(implicit user: CachedData) = user.application.exists(_.progress.occupationQuestionnaire)
+
+  def hasPreview(implicit user: CachedData) = user.application.exists(_.progress.preview)
+
+  def isSubmitted(implicit user: CachedData) = user.application.exists(_.progress.submitted)
 
 
   def isPhase1TestsInvited(implicit user: CachedData) = user.application.exists(_.progress.phase1TestProgress.phase1TestsInvited)
@@ -334,11 +376,6 @@ object RoleUtils {
 
   def isPhase3TestsPassedNotified(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsPassedNotified)
 
-  def isInPhase3PassedOrPassedNotified(implicit user: CachedData) = user.application.exists(cachedData =>
-    cachedData.applicationStatus == ApplicationStatus.PHASE3_TESTS_PASSED ||
-      cachedData.applicationStatus == ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED
-  )
-
 
   def isPhase3TestsFailed(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsFailed)
 
@@ -351,10 +388,6 @@ object RoleUtils {
 
   def isPhase3TestsExpired(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsExpired)
 
-
-  def isInSiftPhase(implicit user: CachedData): Boolean = user.application.exists { app =>
-    app.applicationStatus == ApplicationStatus.SIFT
-  }
 
   def isSiftEntered(implicit user: CachedData) = user.application.exists(_.progress.siftProgress.siftEntered)
 
@@ -371,27 +404,6 @@ object RoleUtils {
 
   def assessmentCentreFailedToAttend(implicit user: CachedData) = user.application.exists(_.progress.assessmentCentre.failedToAttend)
 
-  def isFaststream(implicit user: CachedDataWithApp) = user.application.applicationRoute == ApplicationRoute.Faststream
-
-  def isEdip(implicit user: CachedDataWithApp) = user.application.applicationRoute == ApplicationRoute.Edip
-
-  def isSdip(implicit user: CachedDataWithApp) = user.application.applicationRoute == ApplicationRoute.Sdip
-
-  def isFaststream(implicit user: CachedData): Boolean = user.application.forall { app =>
-    app.applicationRoute == ApplicationRoute.Faststream || app.applicationRoute == ApplicationRoute.SdipFaststream
-  }
-
-  def isFaststreamOnly(implicit user: CachedData): Boolean = user.application.forall { app =>
-    app.applicationRoute == ApplicationRoute.Faststream
-  }
-
-  def isEdip(implicit user: CachedData): Boolean = user.application exists (_.applicationRoute == ApplicationRoute.Edip)
-  def isEdip(implicit user: Option[CachedData]): Boolean = user.exists(isEdip(_))
-
-  def isSdip(implicit user: CachedData): Boolean = user.application exists (_.applicationRoute == ApplicationRoute.Sdip)
-  def isSdip(implicit user: Option[CachedData]): Boolean = user.exists(isSdip(_))
-
-  def isSdipFaststream(implicit user: CachedData): Boolean = user.application exists (_.applicationRoute == ApplicationRoute.SdipFaststream)
 
   def isEligibleForJobOffer(implicit user: CachedData): Boolean = user.application.exists(_.progress.jobOffer.eligible)
 
@@ -401,11 +413,8 @@ object RoleUtils {
 
   def isFailedAtSift(implicit user: CachedData): Boolean = user.application.exists(_.progress.siftProgress.failedAtSift)
 
-  def isFastStreamFailed(implicit user: CachedData): Boolean = isFailedAtSift || isAllFsbFailed || isAssessmentCentreFailed
 
   def isFastStreamFailedGreenSdip(implicit user: CachedData): Boolean = user.application.exists(_.progress.assessmentCentre.failedSdipGreen)
-
-  def isFaststream(implicit user: Option[CachedData]): Boolean = user.forall(u => isFaststream(u))
 
 }
 

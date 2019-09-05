@@ -16,10 +16,12 @@
 
 @(field : play.api.data.Field, options: Seq[String])(defaultChoice: String = "-- Choose method --")(labelContent: Html)(implicit messages: Messages)
 
-@import helpers.CSRSkinnyFieldConstructor._
+@import helpers.CSRNoErrorFieldConstructor._
+@import helpers.TemplateHelper._
 
 @helper.input(field) { (id, name, value, args) =>
     <label for="@id" class="form-label">@labelContent</label>
+    <span class="has-error">@maybeDisplayError(field)</span>
     <select name="@name" id="@id">
         <option value="">@defaultChoice</option>
         @for(option <- options) {

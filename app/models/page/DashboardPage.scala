@@ -23,6 +23,7 @@ import org.joda.time.LocalDate
 import play.api.i18n.Lang
 import play.api.mvc.RequestHeader
 import security.RoleUtils
+import security.ProgressStatusRoleUtils
 import security.Roles._
 
 case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
@@ -78,8 +79,8 @@ object DashboardPage {
       RoleUtils.hasFastPassBeenApproved(user),
       isApplicationInProgress(user),
       isUserWithNoApplication(user),
-      RoleUtils.isPhase1TestsPassed(user),
-      RoleUtils.isPhase2TestsPassed(user),
+      ProgressStatusRoleUtils.isPhase1TestsPassed(user),
+      ProgressStatusRoleUtils.isPhase2TestsPassed(user),
       isTestGroupExpired(user),
       isPhase2TestGroupExpired(user),
       isPhase3TestGroupExpired(user),

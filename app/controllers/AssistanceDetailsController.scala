@@ -20,7 +20,8 @@ import _root_.forms.AssistanceDetailsForm
 import connectors.ApplicationClient
 import connectors.ApplicationClient.AssistanceDetailsNotFound
 import models.CachedData
-import security.{ RoleUtils, SilhouetteComponent }
+import security.{ SilhouetteComponent }
+import security.ProgressStatusRoleUtils._
 import security.Roles.AssistanceDetailsRole
 
 import scala.concurrent.Future
@@ -52,7 +53,7 @@ abstract class AssistanceDetailsController(applicationClient: ApplicationClient)
         data => {
           applicationClient.updateAssistanceDetails(user.application.applicationId, user.user.userID,
             data.sanitizeData.exchange).map { _ =>
-            if (RoleUtils.hasOccupation(CachedData(user.user, Some(user.application)))) {
+            if (hasOccupation(CachedData(user.user, Some(user.application)))) {
               Redirect(routes.PreviewApplicationController.present())
             } else {
               Redirect(routes.QuestionnaireController.presentStartOrContinue())

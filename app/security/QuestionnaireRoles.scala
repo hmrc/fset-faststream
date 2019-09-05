@@ -20,6 +20,7 @@ import models.ApplicationData.ApplicationStatus._
 import models.CachedData
 import play.api.i18n.Lang
 import play.api.mvc.RequestHeader
+import security.ProgressStatusRoleUtils._
 
 object QuestionnaireRoles {
 

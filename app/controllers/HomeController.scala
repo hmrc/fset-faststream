@@ -35,6 +35,7 @@ import models.events.EventType
 import play.api.Logger
 import play.api.mvc.{ Action, AnyContent, Request, Result }
 import security.RoleUtils._
+import security.ProgressStatusRoleUtils._
 import security.{ Roles, SecurityEnvironment, SilhouetteComponent }
 import security.Roles._
 
