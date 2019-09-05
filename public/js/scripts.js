@@ -1,8 +1,195 @@
-$(function() {
+$(function () {
+  'use strict';
 
-  // Variable used to track if there are any outstanding actions that webdriver should wait for during
-  // the acceptance test runs
-  window.csrActive = 0;
+  var ENTER_KEY = 13;
+  var BAD_REQUEST = 400;
+  var NOT_FOUND = 404;
+  var addressLookupUrlBase = '/fset-fast-stream/address-search/';
+
+  var _this = this; // scope
+  _this.$addressLine1 = $('#address\\.line1');
+  _this.$addressLine2 = $('#address_line2');
+  _this.$addressLine3 = $('#address_line3');
+  _this.$addressLine4 = $('#address_line4');
+  _this.$addressSelect = $('#addressSelect');
+  _this.$addressManualInput = $('#addressManualInput');
+  _this.$findAddressBtn = $('#findAddressBtn');
+  _this.$addressManualLink = $('#addressManualLink');
+  _this.$postCode = $('#postCode');
+  _this.$country = $('#country');
+  _this.$postCodeErrorWrapper = $('#postCodeErrorWrapper');
+  _this.$postCodeError = $('#postCodeError');
+  _this.addressesFound = $('#addressesFound');
+  _this.$postCodeEntry = $('#postCodeEntry');
+  _this.$addressesSelectorContainer = $('#addressSelectorContainer');
+  _this.$postCodeSearch = $('#post-code-search');
+
+  function sanitisePostcode(postcode) {
+    return postcode.toUpperCase().replace(/ /g, '');
+  }
+
+  function addressSearchByPostcode(postcode) {
+    var url = addressLookupUrlBase + '?postcode=' + sanitisePostcode(postcode);
+
+    $.getJSON(url, function (result) {
+      _this.$addressSelect.append(
+          '<option value=\'void\'>' + result.length + ' results found</option>'
+      );
+
+      $.map(result, function (lookupReply) {
+        var address = lookupReply.address.lines[0] + ' ' + lookupReply.address.town;
+        _this.$addressSelect.append(
+            '<option value=\'' + lookupReply.id + '\'>' + address + '</option>'
+        );
+      });
+      var addressSelector = _this.$addressesSelectorContainer;
+      addressSelector.removeClass('toggle-content');
+      addressSelector.slideDown('slow');
+
+    }).fail(postCodeSearchFailHander);
+  }
+
+  function showResultsLink(num) {
+    var link = _this.$addressesFound;
+    if (num === 1) {
+      link.text(num + ' result found');
+    } else {
+      link.text(num + ' results found');
+    }
+
+    link.removeClass('hidden');
+  }
+
+  function hideResultsLink() {
+    var link = _this.addressesFound;
+    link.text('');
+    link.addClass('hidden');
+  }
+
+  function postCodeSearchFailHander(xhr, textStauts, error) {
+    hideResultsLink();
+    if (xhr.status === BAD_REQUEST) {
+      showPostCodeError('Post code is not valid');
+    } else if (xhr.status === NOT_FOUND) {
+      showPostCodeError('No addresses found');
+    }
+  }
+
+  function getAddressById(id, successFunction) {
+    $.getJSON(addressLookupUrlBase + id,  successFunction).fail(postCodeSearchFailHander);
+  }
+
+  function showPostCodeError(text) {
+    _this.$postCodeError.text(text);
+    _this.$postCodeEntry.addClass('has-an-error input-validation-error');
+    _this.$postCodeErrorWrapper.slideDown(300);
+  }
+
+  function hidePostCodeError() {
+    _this.$postCodeEntry.removeClass('has-an-error input-validation-error');
+    _this.$postCodeErrorWrapper.slideUp(300);
+  }
+
+  function populateAddressFields(addressRecord) {
+    _this.$addressManualInput.removeClass('disabled');
+
+    var addressLines = addressRecord.address.lines.slice(0, 3);
+    addressLines.push(addressRecord.address.town);
+
+    // the escaping here is because of the way we render the Ids from the Play field constructor.
+    // In order for the 'jump to error' links on the page to work there is a dot in the Id, which is
+    // interpreted as a class selector here.
+    _this.$addressLine1.val(addressLines[0]);
+    _this.$addressLine2.val(addressLines[1] || '');
+    _this.$addressLine3.val(addressLines[2] || '');
+    _this.$addressLine4.val(addressLines[3] || '');
+    _this.$postCode.val(addressRecord.address.postcode);
+
+    $('html, body').animate({
+      scrollTop: _this.$addressManualInput.offset().top
+    }, 400);
+
+  }
+
+  if (_this.$postCodeSearch != null) {
+    $('#outsideUk').on('change', function() {
+      _this.$addressLine1.val('');
+      _this.$addressLine2.val('');
+      _this.$addressLine3.val('');
+      _this.$addressLine4.val('');
+      _this.$postCode.val('');
+      _this.$country.val('');
+
+      if($(this).is(':checked')) {
+        _this.$addressManualInput.removeClass('disabled');
+        _this.$postCode.closest('.form-group').addClass('toggle-content');
+        _this.$country.closest('.form-group').removeClass('toggle-content');
+        _this.$addressLine1.focus();
+      } else {
+        _this.$postCode.closest('.form-group').removeClass('toggle-content');
+        _this.$country.closest('.form-group').addClass('toggle-content');
+      }
+    });
+
+    _this.$addressManualLink.on('click', function(e) {
+      e.preventDefault();
+
+      _this.$addressManualInput.removeClass('disabled');
+      _this.$addressLine1.focus();
+    });
+
+    _this.$findAddressBtn.on('click', function (event) {
+      event.preventDefault();
+      _this.$addressSelect.empty();
+
+      hidePostCodeError();
+      _this.$postCodeError.text('');
+
+      if (_this.$postCodeSearch.val().length) {
+        addressSearchByPostcode(_this.$postCodeSearch.val());
+      } else {
+        showPostCodeError('Post code is not valid');
+      }
+
+      return false;
+    });
+
+    _this.$addressSelect.on('change', function (event) {
+      event.preventDefault();
+
+      if ($(this).val() != 'void') {
+        $('#outsideUk:checked').trigger('click');
+        var selectedAddressID = $($(this).find('option')[this.selectedIndex]).val();
+        getAddressById(selectedAddressID, populateAddressFields);
+      }
+    });
+
+    _this.$postCodeSearch.on('keydown', function (event) {
+      if (event.keyCode === 13) {
+        event.preventDefault();
+        _this.$findAddressBtn.trigger('click');
+        return false;
+      }
+    });
+  }
+});;/*
+ * Copyright 2016 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
+
+$(function() {
 
   var isMobile = {
     Android: function() {
@@ -33,24 +220,13 @@ $(function() {
 
   function isAndroid() {
     var nua = navigator.userAgent,
-      isAndroid = (nua.indexOf('Mozilla/5.0') > -1 && nua.indexOf('Android ') > -1 && nua.indexOf('AppleWebKit') > -1 && nua.indexOf('Chrome') === -1);
+        isAndroid = (nua.indexOf('Mozilla/5.0') > -1 && nua.indexOf('Android ') > -1 && nua.indexOf('AppleWebKit') > -1 && nua.indexOf('Chrome') === -1);
     if (isAndroid) {
       $('html').addClass('android-browser');
     }
   }
 
   isAndroid();
-
-  // Fixes intermittent bug where a form submitted with errors sometimes takes the user back
-  // to last place on page rather than to error summary
-  if($('#validation-summary').is(':visible')) {
-    window.csrActive++;
-    setTimeout(function()
-    {
-      window.scrollTo(0, 0);
-      window.csrActive--;
-    }, 200);
-  }
 
   $('.nav-menu__trigger').on('click', function() {
     $(this).next('.nav-menu__items').toggleClass('toggle-content');
@@ -72,7 +248,7 @@ $(function() {
 
   $('.button-toggler').on('click', function() {
     var $this = $(this),
-      $target = $this.attr('data-target');
+        $target = $this.attr('data-target');
 
     $('#' + $target).toggleClass('toggle-content');
 
@@ -112,74 +288,52 @@ $(function() {
         $target = $this.parent().attr('data-target'),
         $siblingArray = [],
         $siblingTarget = '',
-        $disTarget = $.trim($this.parent().attr('data-distarget')).split(" "),
-        $theTargetControl = '';
+        $disTarget = $this.parent().attr('data-distarget'),
+        $theTargetControl = $('#' + $disTarget);
 
     $this.closest('.form-group').find('.block-label').not($this.parent()).each(function() {
       $siblingArray.push('#' + $(this).attr('data-target'));
       $siblingTarget = $siblingArray.join(", ");
     });
 
-    if($disTarget.length > 1) {
-      var multipleTargets = $($disTarget.join(", "));
-      $theTargetControl = multipleTargets;
-    } else {
-      $theTargetControl = $('#' + $disTarget);
-    }
-
     $('input:not(:checked)').parent().removeClass('selected');
     $('input:checked').parent().addClass('selected');
 
-    if($this.is('input[type=checkbox]')) {
-      if($this.is(':checked')) {
-        $('#' + $target).show();
-      } else {
-        $('#' + $target).hide();
-      }
+    if($target == undefined) {
+      $this.closest('.form-group').siblings('.toggle-content').hide().attr('aria-hidden', true);
+      $this.closest('.form-group').find('[aria-expanded]').attr('aria-expanded', false);
     } else {
-      if($target == undefined) {
-        $this.closest('.form-group').siblings('.toggle-content').hide().attr('aria-hidden', true);
-        $this.closest('.form-group').find('[aria-expanded]').attr('aria-expanded', false);
-      } else {
-        $('#' + $target).show();
-        $($siblingTarget).hide().attr('aria-hidden', true);
+      $('#' + $target).show();
+      $($siblingTarget).hide().attr('aria-hidden', true);
 
-        if($this.closest('.form-group').hasClass('blocklabel-single')) {
+      if($this.closest('.form-group').hasClass('blocklabel-single')) {
 
-          $this.closest('.blocklabel-single-container').find('.blocklabel-content').not('#' + $target).hide();
-        }
+        $this.closest('.blocklabel-single-container').find('.blocklabel-content').not('#' + $target).hide();
       }
     }
 
-    if($disTarget && $this.is(':checked')) {
+    if($disTarget && !$theTargetControl.attr('disabled')) {
       $theTargetControl.attr('disabled', true);
       if($theTargetControl.attr('type') == 'text') {
         $theTargetControl.val('');
       } else if($theTargetControl.is('select')) {
         $theTargetControl.find('> option:first-of-type').attr('selected', true);
       }
-    } else if($disTarget && !$this.is(':checked')) {
+    } else if($disTarget && $theTargetControl.attr('disabled')) {
       $theTargetControl.attr('disabled', false);
     }
 
   });
 
-  function toggleTargetDisplayOnOptionSelection(selectBox){
-    var optionTrigger = selectBox.find('.optionTrigger'),
-          optionTarget = $('#' + optionTrigger.attr('data-optiontrigger'));
+  $('.selectWithOptionTrigger').on('change', function() {
+    var optionTrigger = $(this).find('.optionTrigger'),
+        optionTarget = $('#' + optionTrigger.attr('data-optiontrigger'));
+
     if(optionTrigger.is(':selected')) {
       optionTarget.show();
     } else {
       optionTarget.hide();
     }
-  }
-
-  $('.selectWithOptionTrigger').on('change', function() {
-       toggleTargetDisplayOnOptionSelection($(this))
-  });
-
-  $('.selectWithOptionTrigger').ready(function() {
-       toggleTargetDisplayOnOptionSelection($(this))
   });
 
   $('.amend-answers').on('click', function() {
@@ -201,8 +355,8 @@ $(function() {
 
   $('.inpage-focus').on('click', function() {
     var $this      = $(this),
-      $target    = $this.attr('href'),
-      $targetFor = $($target).attr('for');
+        $target    = $this.attr('href'),
+        $targetFor = $($target).attr('for');
 
     $('#' + $targetFor).focus();
   });
@@ -226,14 +380,14 @@ $(function() {
 
   function characterCount(that) {
     var $this         = $(that),
-      $maxLength    = $this.attr('data-val-length-max'),
-      $enteredText  = $this.val(),
-      $lineBreaks   = ($enteredText.match(/\n/g) || []).length,
-      $lengthOfText = $enteredText.length + $lineBreaks,
-      $characterCount = Math.abs($maxLength - $lengthOfText),
-      $charCountEl  = $this.closest('.form-group').find('.maxchar-count'),
-      $charTextEl   = $this.closest('.form-group').find('.maxchar-text'),
-      $thisAria     = $this.closest('.form-group').find('.aria-limit');
+        $maxLength    = $this.attr('data-val-length-max'),
+        $enteredText  = $this.val(),
+        $lineBreaks   = ($enteredText.match(/\n/g) || []).length,
+        $lengthOfText = $enteredText.length + $lineBreaks,
+        $characterCount = Math.abs($maxLength - $lengthOfText),
+        $charCountEl  = $this.closest('.form-group').find('.maxchar-count'),
+        $charTextEl   = $this.closest('.form-group').find('.maxchar-text'),
+        $thisAria     = $this.closest('.form-group').find('.aria-limit');
 
     if($maxLength) {
       $charCountEl.text($characterCount);
@@ -264,7 +418,7 @@ $(function() {
 
   $('[aria-expanded]').on('click', function() {
     var $this = $(this),
-      $controls = $(this).attr('aria-controls');
+        $controls = $(this).attr('aria-controls');
 
     if(!$this.parent().hasClass('selected')) {
       if($this.is('[aria-expanded="false"]')) {
@@ -291,10 +445,10 @@ $(function() {
 
   $('.select-inject').on('change', function () {
     var $this = $(this),
-      $selectedOption = $this.find('option:selected'),
-      $thisOptionText = $selectedOption.text(),
-      $theInput = $this.closest('.form-group').find('.select-injected'),
-      $selectedVal = $selectedOption.val();
+        $selectedOption = $this.find('option:selected'),
+        $thisOptionText = $selectedOption.text(),
+        $theInput = $this.closest('.form-group').find('.select-injected'),
+        $selectedVal = $selectedOption.val();
 
     $theInput.val($thisOptionText);
 
@@ -320,45 +474,34 @@ $(function() {
 
   if($('.new-password').length) {
     var minChars = 9,
-      upperCase = new RegExp('[A-Z]'),
-      lowerCase = new RegExp('[a-z]'),
-      numbers = new RegExp('[0-9]'),
-      passInput = $('.new-password'),
-      confirmPass = $('.confirm-password'),
-      requiresUppercase = $('#includesUppercase'),
-      requiresLowercase = $('#includesLowercase'),
-      requiresNumber = $('#includesNumber'),
-      requires9Characters = $('#includes9Characters'),
-      upperIcon = requiresUppercase.find('.the-icon'),
-      lowerIcon = requiresLowercase.find('.the-icon'),
-      numberIcon = requiresNumber.find('.the-icon'),
-      char9Icon = requires9Characters.find('.the-icon');
+        upperCase = new RegExp('[A-Z]'),
+        lowerCase = new RegExp('[a-z]'),
+        numbers = new RegExp('[0-9]'),
+        passInput = $('.new-password'),
+        confirmPass = $('.confirm-password'),
+        requiresUppercase = $('#includesUppercase'),
+        requiresLowercase = $('#includesLowercase'),
+        requiresNumber = $('#includesNumber'),
+        requires9Characters = $('#includes9Characters'),
+        upperIcon = requiresUppercase.find('.the-icon'),
+        lowerIcon = requiresLowercase.find('.the-icon'),
+        numberIcon = requiresNumber.find('.the-icon'),
+        char9Icon = requires9Characters.find('.the-icon');
 
     // passInput.after('<p class="form-hint text strength-indicator hide-nojs">Password validation: <span id="pass_meter"></span></p>');
-    confirmPass.after('<div id="matchingHint" class="invisible"><p class="form-hint">&nbsp;<span id="pass_match" aria-live="polite"></span></p></div>');
+    confirmPass.after('<div id="matchingHint" class="invisible"><p class="form-hint">&nbsp;<span id="pass_match"></span></p></div>');
 
     confirmPass.on('blur', function() {
-      var currentConfirmPassword = $(this).val();
-      var originalPassword = passInput.val();
-      if(currentConfirmPassword || originalPassword) {
-        $('#matchingHint').removeClass('invisible');
-        if(currentConfirmPassword === originalPassword) {
-          $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html("<i class='fa fa-check'></i>Your passwords match");
-        } else {
-          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times'></i>Your passwords don't match");
-        }
-      }
-      if($('#pass_match').hasClass('strength-weak') || $('#passwordRequirements li').hasClass('strength-weak')) {
+      $('#matchingHint').removeClass('invisible');
+      if($('#pass_match').hasClass('strength-weak')) {
         $('#errorPassword').removeClass('hidden');
-      } else {
-        $('#errorPassword').addClass('hidden');
       }
     });
 
     passInput.keyup(function () {
       var passVal = $(this).val(),
-        passMeter = $("#pass_meter"),
-        matchVal = confirmPass.val();
+          passMeter = $("#pass_meter"),
+          matchVal = confirmPass.val();
 
       if(passVal.match(upperCase)) {
         requiresUppercase.addClass('strength-strong');
@@ -400,20 +543,20 @@ $(function() {
         char9Icon.addClass('fa-minus');
       }
 
+      if($('#passwordRequirements').find('.fa-minus').length === 0) {
+        $('#errorPassword').addClass('hidden');
+      }
+
       if(matchVal.length >= minChars) {
         if(matchVal.length == passVal.length) {
           if(matchVal === passVal) {
-            $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html("<i class='fa fa-check'></i>Your passwords match");
+            $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html('<i class="fa fa-check"></i>Your passwords match');
           } else {
-            $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times'></i>Your passwords don't match");
+            $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html('<i class="fa fa-times"></i>Your passwords don\'t match');
           }
         } else {
-          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times'></i>Your passwords don't match");
+          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html('<i class="fa fa-times"></i>Your passwords don\'t match');
         }
-      }
-
-      if(!$('#pass_match').hasClass('strength-weak') || !$('#passwordRequirements li').hasClass('strength-weak')) {
-        $('#errorPassword').addClass('hidden');
       }
     });
 
@@ -421,55 +564,38 @@ $(function() {
       $('#passwordRequirements li').each(function() {
         if(!$(this).hasClass('strength-strong')) {
           $(this).addClass('strength-weak').find('.the-icon').removeClass('fa-minus').addClass('fa-times');
+
         }
       });
+
+      if($('#passwordRequirements').find('.fa-times').length === 0) {
+        if(!$('#pass_match').hasClass('strength-weak')) {
+          $('#errorPassword').addClass('hidden');
+        }
+      } else {
+        $('#errorPassword').removeClass('hidden');
+      }
     });
 
     confirmPass.keyup(function() {
       var passVal = passInput.val(),
-        matchVal = $(this).val();
+          matchVal = $(this).val();
 
       if(matchVal.length == passVal.length) {
-        if(matchVal === passVal) {
-          $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html("<i class='fa fa-check'></i>Your passwords match");
+        if(matchVal === passVal && $('#passwordRequirements').find('.fa-times').length === 0) {
+          $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html('<i class="fa fa-check"></i>Your passwords match');
+          $('#errorPassword').addClass('hidden');
         } else {
-          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times'></i>Your passwords don't match");
+          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html('<i class="fa fa-times"></i>Your passwords don\'t match');
         }
-      } else if(matchVal.length !== 0 ) {
-        $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times'></i>Your passwords don't match");
+      } else {
+        $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html('<i class="fa fa-times"></i>Your passwords don\'t match');
       }
 
     });
   }
 
-  //------- Set personal details
 
-  $('#addressManualLink').on('click', function(e) {
-    e.preventDefault();
-
-    $('#addressManualInput').removeClass('disabled');
-    $('#address\\.line1').focus();
-  });
-
-  $('#outsideUk').on('change', function() {
-
-    $('#address\\.line1').val("");
-    $('#address_line2').val("");
-    $('#address_line3').val("");
-    $('#address_line4').val("");
-    $('#postCode').val("");
-    $('#country').val("");
-
-    if($(this).is(':checked')) {
-      $('#addressManualInput').removeClass('disabled');
-      $('#postCode').closest('.form-group').addClass('toggle-content');
-      $('#country').closest('.form-group').removeClass('toggle-content');
-      $('#address\\.line1').focus();
-    } else {
-      $('#postCode').closest('.form-group').removeClass('toggle-content');
-      $('#country').closest('.form-group').addClass('toggle-content');
-    }
-  });
 
   //------- Inline details toggle
 
@@ -489,12 +615,29 @@ $(function() {
   //   });
   // }
 
-});;$(function() {
+});;/*
+ * Copyright 2016 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
+
+$(function() {
   if($('#choosePrefLocFramHeading').length ) {
     var $selectedRegion = '',
-      $selectedRegionName = '',
-      $firstSchemeVal = $('#schemePref1').attr('data-scheme'),
-      $secondSchemeVal = $('#schemePref2').attr('data-scheme');
+        $selectedRegionName = '',
+        $firstSchemeVal = $('#schemePref1').attr('data-scheme'),
+        $secondSchemeVal = $('#schemePref2').attr('data-scheme');
 
     if(!$('.map-legend-container').hasClass('disabled') && !$('#regionSelect option[selected]').length) {
       // Animate map after 2 seconds
@@ -515,7 +658,7 @@ $(function() {
     // On hover highlight the region on the map and show region name
     $('.region-container').not($selectedRegion).hover(function() {
       var $this = $(this),
-        $regionName = $this.attr('id');
+          $regionName = $this.attr('id');
 
       $('.map-legend').show().removeClass('disabled');
       $('#hoveredRegionName').text($regionName);
@@ -541,7 +684,7 @@ $(function() {
     // Clicking region will fire the region selection panel
     $('.region-container').on('click', function(e) {
       var $this = $(this),
-        regionName = $this.attr('id');
+          regionName = $this.attr('id');
       regionObject = availableLocationsAndSchemes[regionName];
 
       var locationsInRegion = $.map(regionObject, function(value, key) {
@@ -554,7 +697,7 @@ $(function() {
       e.preventDefault();
 
       $('#regionSelect').html('<option value="null">-- Choose a location in ' + regionName + ' --</option>')
-        .append('<optgroup id="regionOptGroup" class="' + regionName + '" data-optregion="' + regionName + '" label="' + regionName + '"/>');
+          .append('<optgroup id="regionOptGroup" class="' + regionName + '" data-optregion="' + regionName + '" label="' + regionName + '"/>');
 
       $.each(locationsInRegion, function(i) {
         locationName = locationsInRegion[i];
@@ -566,14 +709,14 @@ $(function() {
       $('#regionOptGroup').find('[value="'+ disabledLocation +'"]').attr('disabled', 'disabled');
 
       $('#selectLocationBlurb, #selectSecondLocationBlurb, #locationSelectedText, #locationSelectedContainer, #choiceSave')
-        .addClass('toggle-content').attr('aria-hidden', true);
+          .addClass('toggle-content').attr('aria-hidden', true);
 
       $("#schemePref1 option, #schemePref2 option").attr('selected', false);
 
       $('#chosenRegionBlurb')
-        .removeClass('toggle-content')
-        .attr('aria-hidden', false)
-        .find('b').text(regionName);
+          .removeClass('toggle-content')
+          .attr('aria-hidden', false)
+          .find('b').text(regionName);
 
       $('#listOfLocationsContainer').removeClass('toggle-content');
 
@@ -583,8 +726,8 @@ $(function() {
       $selectedRegionName = regionName;
 
       $('.region-container')
-        .not($selectedRegion)
-        .attr('class', 'region-container');
+          .not($selectedRegion)
+          .attr('class', 'region-container');
 
       if($(window).width() <= 650) {
         scrollToTop();
@@ -631,9 +774,9 @@ $(function() {
     $("#regionSelect").on('change', function() {
       if($(this).val() != "null"){
         var selectedLocation = $(this).val(),
-          selectedRegion = $(this).find('option:selected').parent().attr('data-optregion'),
-          schemesInLocation = availableLocationsAndSchemes[selectedRegion][selectedLocation.split(";")[1]],
-          schemeOptionsAvailable = '<option value="" class="placeholder-option">Choose a scheme</option>'
+            selectedRegion = $(this).find('option:selected').parent().attr('data-optregion'),
+            schemesInLocation = availableLocationsAndSchemes[selectedRegion][selectedLocation.split(";")[1]],
+            schemeOptionsAvailable = '<option value="" class="placeholder-option">Choose a scheme</option>'
 
         //if first option is no longer available reset both scheme options
         if($.inArray($firstSchemeVal, schemesInLocation) == -1){
@@ -671,12 +814,12 @@ $(function() {
         }
       } else {
         $('#selectLocationBlurb, #selectSecondLocationBlurb, #locationSelectedText, #locationSelectedContainer, #choiceSave')
-          .addClass('toggle-content').attr('aria-hidden', true);
+            .addClass('toggle-content').attr('aria-hidden', true);
 
         $('#chosenRegionBlurb')
-          .removeClass('toggle-content')
-          .attr('aria-hidden', false)
-          .find('b').text(regionName);
+            .removeClass('toggle-content')
+            .attr('aria-hidden', false)
+            .find('b').text(regionName);
       }
 
 
@@ -684,7 +827,7 @@ $(function() {
 
     if($('#schemePref1 option[selected]').length) {
       var $selectedPref1 = $('#schemePref1').val(),
-        $selectedPref2 = $('#schemePref2').val();
+          $selectedPref2 = $('#schemePref2').val();
 
       $('#schemePref1').find('option[value="' + $selectedPref2 + '"]').attr('disabled', true);
       $('#schemePref2').find('option[value="' + $selectedPref1 + '"]').attr('disabled', true);
@@ -772,7 +915,24 @@ $(function() {
   $('.showsOccupations').on('change', function(){
     $('.hidingOccupations').show()
   });
-});;$(function() {
+});;/*
+ * Copyright 2016 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
+
+$(function() {
 
   //-- Faking details behaviour
 
@@ -783,85 +943,4 @@ $(function() {
     }
   });
 
-  // Accessibility fixes
-
-  $('input, select').not('[optional], [data-optional] *, [type="hidden"]').attr('required', true);
-
-  $('#password').attr('aria-labelledby', 'firstPassLabel hiddenPasswordRequirements');
-
-  $('label[for="address_line2"]').text('Address line 2').addClass('visuallyhidden');
-  $('label[for="address_line3"]').text('Address line 3').addClass('visuallyhidden');
-  $('label[for="address_line4"]').text('Address line 4').addClass('visuallyhidden');
-
-  if($('#civilServantQuestion').length) {
-    var $civilServantSection = $('#civilServantQuestion'),
-        legendText = $civilServantSection.find('h2').text();
-
-    $civilServantSection.find('fieldset:eq(0)').prepend('<legend class="visuallyhidden">' + legendText + '</legend>');
-  }
-
-  if($('.editSection').length) {
-    $('.editSection').each(function() {
-      var sectionName = $(this).closest('h2').find('.sectionTitle').text();
-
-      $(this).text(sectionName);
-    });
-  }
-
-  $('#printLink').on('click', function(e) {
-    e.preventDefault();
-
-    window.print();
-  });
-
-  function addSchoolsDropdown(selector, idSelector) {
-    $(selector).keypress(function(){
-        $(idSelector).val("");
-    });
-    $(selector).autocomplete({
-        source: function( request, response ) {
-          var r = jsRoutes.controllers.SchoolsController.getSchools(request.term)
-          r.ajax({
-            success : function(data) {
-              $(selector).removeClass('ui-autocomplete-loading');
-
-              response( $.map( data, function(item) {
-                item.label = item.label
-                item.value = item.name
-                return item
-              }));
-            },
-            error: function(data) {
-              $(selector).removeClass('ui-autocomplete-loading');
-            }
-          });
-        },
-        minLength: 3,
-        change: function(event, ui) {},
-        open: function() {},
-        close: function() {},
-        focus: function(event,ui) {},
-        select: function(event, ui) {
-           $(idSelector).val(ui.item.id);
-        },
-        create: function () {
-           $(this).data("ui-autocomplete")._renderItem = function (ul, item) {
-              if(item.value ==''){
-                return $('<li class="ui-menu-item ui-state-disabled">&nbsp;&nbsp;'+item.label+'</li>').appendTo(ul);
-              }else{
-                return $("<li>")
-                .append("<a>" + item.label + "</a>")
-                .appendTo(ul);
-              }
-          };
-        }
-    });
-  }
-
-  $('#schoolName14to16').ready(function() {
-       addSchoolsDropdown("#schoolName14to16", "#schoolId14to16");
-  });
-  $('#schoolName16to18').ready(function() {
-       addSchoolsDropdown("#schoolName16to18", "#schoolId16to18");
-  });
 });

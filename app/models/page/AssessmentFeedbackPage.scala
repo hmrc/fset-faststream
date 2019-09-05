@@ -31,36 +31,41 @@ case class AssessmentFeedbackPage(
 }
 
 case object AssessmentFeedbackPage {
+  val seeingTheBigPictureCompetency = "Seeing the Big Picture"
+  val makingEffectiveDecisionsCompetency = "Making Effective Decisions"
+  val communicatingAndInfluencingCompetency = "Communicating and Influencing"
+  val workingTogetherDevelopingSelfAndOthersCompetency = "Working Together Developing Self and Others"
+
   def apply(assessmentScores: AssessmentScoresAllExercises, evaluatedAverageResults: CompetencyAverageResult,
     candidateName: String): AssessmentFeedbackPage = {
     val analysisExercise = ExerciseFeedback("Analysis exercise",
       Seq(
-        CompetencyFeedback("Strategic Approach to Objectives",
-          assessmentScores.analysisExercise.flatMap{ s => s.strategicApproachToObjectivesFeedback}.getOrElse("")),
-        CompetencyFeedback("Analysis and Decision-making",
-          assessmentScores.analysisExercise.flatMap{ s => s.analysisAndDecisionMakingFeedback}.getOrElse("")),
-        CompetencyFeedback("Leading and Communicating",
-          assessmentScores.analysisExercise.flatMap{ s => s.leadingAndCommunicatingFeedback}.getOrElse(""))
+        CompetencyFeedback(seeingTheBigPictureCompetency,
+          assessmentScores.analysisExercise.flatMap{ s => s.seeingTheBigPictureFeedback}.getOrElse("")),
+        CompetencyFeedback(makingEffectiveDecisionsCompetency,
+          assessmentScores.analysisExercise.flatMap{ s => s.makingEffectiveDecisionsFeedback}.getOrElse("")),
+        CompetencyFeedback(communicatingAndInfluencingCompetency,
+          assessmentScores.analysisExercise.flatMap{ s => s.communicatingAndInfluencingFeedback}.getOrElse(""))
       )
     )
     val groupExercise = ExerciseFeedback("Group exercise",
       Seq(
-        CompetencyFeedback("Analysis and Decision-making",
-          assessmentScores.groupExercise.flatMap{ s => s.analysisAndDecisionMakingFeedback}.getOrElse("")),
-        CompetencyFeedback("Building Productive Relationships",
-          assessmentScores.groupExercise.flatMap{ s => s.buildingProductiveRelationshipsFeedback}.getOrElse("")),
-        CompetencyFeedback("Leading and Communicating",
-          assessmentScores.groupExercise.flatMap{ s => s.leadingAndCommunicatingFeedback}.getOrElse(""))
+        CompetencyFeedback(makingEffectiveDecisionsCompetency,
+          assessmentScores.groupExercise.flatMap{ s => s.makingEffectiveDecisionsFeedback}.getOrElse("")),
+        CompetencyFeedback(workingTogetherDevelopingSelfAndOthersCompetency,
+          assessmentScores.groupExercise.flatMap{ s => s.workingTogetherDevelopingSelfAndOthersFeedback}.getOrElse("")),
+        CompetencyFeedback(communicatingAndInfluencingCompetency,
+          assessmentScores.groupExercise.flatMap{ s => s.communicatingAndInfluencingFeedback}.getOrElse(""))
       )
     )
     val leadershipExercise = ExerciseFeedback("Leadership exercise",
       Seq(
-        CompetencyFeedback("Building Productive Relationships",
-          assessmentScores.leadershipExercise.flatMap{ s => s.buildingProductiveRelationshipsFeedback}.getOrElse("")),
-        CompetencyFeedback("Leading and Communicating",
-          assessmentScores.leadershipExercise.flatMap{ s => s.leadingAndCommunicatingFeedback}.getOrElse("")),
-        CompetencyFeedback("Strategic Approach to Objectives",
-          assessmentScores.leadershipExercise.flatMap{ s => s.strategicApproachToObjectivesFeedback}.getOrElse(""))
+        CompetencyFeedback(workingTogetherDevelopingSelfAndOthersCompetency,
+          assessmentScores.leadershipExercise.flatMap{ s => s.workingTogetherDevelopingSelfAndOthersFeedback}.getOrElse("")),
+        CompetencyFeedback(communicatingAndInfluencingCompetency,
+          assessmentScores.leadershipExercise.flatMap{ s => s.communicatingAndInfluencingFeedback}.getOrElse("")),
+        CompetencyFeedback(seeingTheBigPictureCompetency,
+          assessmentScores.leadershipExercise.flatMap{ s => s.seeingTheBigPictureFeedback}.getOrElse(""))
       )
     )
     val finalFeedback = assessmentScores.finalFeedback.map{ s => s.feedback}.getOrElse("")

@@ -28,27 +28,27 @@
 
 <section @if(!isLastSection){ class="section-border" } >
     <h2 class="heading-medium">Contact details</h2>
-
-        <div id="postCodeEntry" class="form-group form-group-compound">
-            <label for="post-code-search" class="form-label">Enter your postcode</label>
-            <input type="text" id="post-code-search" class="form-control form-control-large">
-            <div id="postCodeErrorWrapper" style="display: none">
-                <p id="postCodeError" class="no-btm-margin"></p>
-            </div>
+    <div id="postCodeEntry" class="form-group form-group-compound">
+        <label for="post-code-search" class="form-label">Enter your postcode</label>
+        <input type="text" id="post-code-search" class="form-control form-control-large" required="required">
+        <div id="postCodeErrorWrapper" style="display: none" aria-live="assertive">
+            <p id="postCodeError" class="no-btm-margin"></p>
         </div>
-        <div class="form-group">
-            <button href="#" class="button" id="findAddressBtn">Find address</button>
-            <a href="#addressSelectorContainer" id="addressesFound" class="link-unimp hidden">
-                <i class="fa fa-long-arrow-down icon-onright"></i>
-            </a>
-            <p><a href="#" id="addressManualLink">Or enter address manually</a></p>
-        </div>
-
+    </div>
+    <div class="form-group">
+        <button href="#" class="button" id="findAddressBtn">Find address</button>
+        <a href="#addressSelectorContainer" id="addressesFound" class="link-unimp hidden">
+            <i class="fa fa-long-arrow-down icon-onright"></i>
+        </a>
+        <p><a href="#" id="addressManualLink">Or enter address manually</a></p>
+    </div>
     <div class="form-group toggle-content" id="addressSelectorContainer" style="display: none">
-        <h3 class="heading-small">Select your address</h3>
-        <div class="scrolling-panel max-height-6ish text">
-            <ul class="list-text" id="addressSelectorList">
-            </ul>
+        <div class="scrolling-panel max-height-6ish">
+            <div id="addressSelectContainer" class="form-group toggle-content hide-nojs" style="display: block;">
+                <label for="addressSelect" class="form-label">Select your address</label>
+                    <!-- Fill up with results using JS -->
+                <select name="addressSelect" id="addressSelect" class="select select--half-width"></select>
+            </div>
         </div>
     </div>
 
