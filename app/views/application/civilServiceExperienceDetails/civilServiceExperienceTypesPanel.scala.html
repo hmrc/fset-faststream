@@ -23,8 +23,8 @@
     @radioGroupWithTogglePanels(form("civilServiceExperienceDetails.civilServiceExperienceType"), FastPassForm.CivilServiceExperienceTypes,
         'id -> "civilServiceExperienceDetails.civilServiceExperienceType",
         '_label -> "Which of these applies?") {
+        @civilServantsContent(schemesRequiringQualifications)
+        @fastTrackContent(schemesRequiringQualifications)
+        @internshipTypesPanel(form)
     }
-    @civilServantsContent(schemesRequiringQualifications)
-    @fastTrackContent(schemesRequiringQualifications)
-    @internshipTypesPanel(form)
 </div>
