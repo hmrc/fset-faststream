@@ -68,12 +68,12 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
     newProgressStatus: Option[ProgressStatus]): Future[Unit] = {
     Logger.info(s"applicationId = $applicationId - now saving progressStatus as $newProgressStatus")
 
-    val query = BSONDocument("$and" -> BSONArray(
+    val selectQuery = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> applicationId),
       BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses))
     ))
 
-    val passMarkEvaluation = BSONDocument("$set" -> BSONDocument(
+    val updateQuery = BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phase.evaluation" -> evaluation
     ).add(
       newProgressStatus.map(applicationStatusBSON).getOrElse(BSONDocument.empty)
@@ -82,7 +82,7 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
     ))
     val validator = singleUpdateValidator(applicationId, actionDesc = s"saving passmark evaluation during $phase evaluation")
 
-    collection.update(query, passMarkEvaluation) map validator
+    collection.update(selectQuery, updateQuery) map validator
   }
 
   def addSchemeResultToPassmarkEvaluation(applicationId: String,

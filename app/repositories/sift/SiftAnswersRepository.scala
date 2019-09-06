@@ -131,12 +131,20 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
 
   override def submitAnswers(applicationId: String, requiredSchemes: Set[SchemeId]): Future[Unit] = {
     failWithSubmitted(applicationId) {
-      val query = BSONDocument("$and" -> BSONArray(
+      val queryAndArray  =  BSONArray(
         BSONDocument("applicationId" -> applicationId),
         BSONDocument("generalAnswers" -> BSONDocument("$exists" -> true))
-      ).add(BSONDocument("$and" -> BSONArray(requiredSchemes map { schemeId =>
-        BSONDocument(s"schemeAnswers.$schemeId" -> BSONDocument("$exists" -> true))
-      } toSeq))))
+      )
+      val queryAndArrayWithMaybeSchemes = if (requiredSchemes.isEmpty) {
+        queryAndArray
+      } else {
+        queryAndArray.add(BSONDocument("$and" -> BSONArray(requiredSchemes map { schemeId =>
+          BSONDocument(s"schemeAnswers.$schemeId" -> BSONDocument("$exists" -> true))
+        } toSeq)))
+      }
+
+      val query = BSONDocument("$and" -> queryAndArrayWithMaybeSchemes)
+
       val validator = singleUpdateValidator(applicationId, actionDesc = "Submitting sift answers",
         SiftAnswersIncomplete(
           s"Additional questions missing general or scheme specific " +

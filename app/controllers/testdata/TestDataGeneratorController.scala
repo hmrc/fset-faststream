@@ -36,6 +36,7 @@ import model.testdata.CreateCandidateAllocationData
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import model.testdata.CreateEventData.CreateEventData
 import org.joda.time.{LocalDate, LocalTime}
+import play.api.Logger
 import play.api.libs.json.{JsObject, JsString, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, RequestHeader}
 import repositories.events.{LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository}
@@ -352,12 +353,17 @@ trait TestDataGeneratorController extends BaseController {
         Ok(Json.toJson(candidates))
       }
     } catch {
-      case _: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
-        JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
-      case ex: Throwable =>
-        ex.printStackTrace()
+      case etex: EmailTakenException => {
+        Logger.error("TDG: Email has been already taken. Try with another one by changing the emailPrefix parameter.")
+        Logger.error(etex.getStackTrace.toString)
         Future.successful(Conflict(JsObject(List(("message",
-          JsString(s"There was an exception creating the candidate. Message=[${ex.getMessage}]"))))))
+          JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
+      }
+      case ex: Throwable =>
+        Logger.error(s"TDG: There was an exception creating the candidate. Message=[${ex.getMessage}].")
+        Logger.error(ex.getStackTrace.toString);
+        Future.successful(Conflict(JsObject(List(("message",
+          JsString(s"There was an exception creating the candidate. Message=[${ex1.getMessage}]"))))))
     }
   }
 

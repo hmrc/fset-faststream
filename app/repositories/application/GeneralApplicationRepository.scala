@@ -883,9 +883,9 @@ class GeneralApplicationMongoRepository(
     val query = BSONDocument("applicationId" -> applicationId)
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating progress and app status")
 
-    collection.update(query, BSONDocument("$set" ->
-      applicationStatusBSON(progressStatus))
-    ) map validator
+      collection.update(query, BSONDocument("$set" ->
+        applicationStatusBSON(progressStatus))
+      ) map validator
   }
 
   override def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
