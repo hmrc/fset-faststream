@@ -363,7 +363,7 @@ trait TestDataGeneratorController extends BaseController {
         Logger.error(s"TDG: There was an exception creating the candidate. Message=[${ex.getMessage}].")
         Logger.error(ex.getStackTrace.toString);
         Future.successful(Conflict(JsObject(List(("message",
-          JsString(s"There was an exception creating the candidate. Message=[${ex1.getMessage}]"))))))
+          JsString(s"There was an exception creating the candidate. Message=[${ex.getMessage}]"))))))
     }
   }
 
