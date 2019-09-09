@@ -33,8 +33,7 @@ object InvigilatedController extends InvigilatedController(ApplicationClient) {
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
-abstract class InvigilatedController(applicationClient: ApplicationClient)
-  extends BaseController {
+abstract class InvigilatedController(applicationClient: ApplicationClient) extends BaseController {
 
   def present = CSRUserAwareAction { implicit request =>
     implicit user =>

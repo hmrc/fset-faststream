@@ -91,9 +91,9 @@ GET         /sift-test/complete/:token                              controllers.
 GET         /psi/sift-test/complete/:orderId                        controllers.PsiTestController.completeSiftTest(orderId: UniqueIdentifier)
 GET         /online-tests/phase3/feedback-report                    controllers.Phase3FeedbackController.present
 
-# Invigilated e-tray
-GET         /invigilated-etray                                      controllers.InvigilatedController.present
-POST        /invigilated-etray                                      controllers.InvigilatedController.verifyToken
+# Invigilated phase 2 tests
+GET         /invigilated-phase2-tests                               controllers.InvigilatedController.present
+POST        /invigilated-phase2-tests                               controllers.InvigilatedController.verifyToken
 
 GET         /consider-for-sdip                                      controllers.ConsiderForSdipController.present
 POST        /consider-for-sdip                                      controllers.ConsiderForSdipController.submit

@@ -32,41 +32,43 @@ import scala.concurrent.Future
 class InvigilatedControllerSpec extends BaseControllerSpec {
 
   "present" should {
-    "display the Start invigilated e-tray page" in new TestFixture {
+    "display the Start invigilated phase 2 tests page" in new TestFixture {
       val result = underTest.present()(fakeRequest)
       status(result) must be(OK)
       val content = contentAsString(result)
-      content must include("Start invigilated e-tray")
+      content must include("Start invigilated phase 2 tests")
     }
   }
 
   "verifyToken" should {
     "redirect to test url upon successful token validation" in new TestFixture {
       val Request = fakeRequest.withFormUrlEncodedBody("email" -> "test@test.com", "token" -> "KI6U8T")
-      when(mockApplicationClient.verifyInvigilatedToken(eqTo("test@test.com"), eqTo("KI6U8T"))(any())).thenReturn(succesfulValidationResponse)
+      when(mockApplicationClient.verifyInvigilatedToken(eqTo("test@test.com"), eqTo("KI6U8T"))(any())).thenReturn(successfulValidationResponse)
 
       val result = underTest.verifyToken()(Request)
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(testUrl))
     }
-    "display the Start invigilated e-tray page with an error message when the validation is not successful" in new TestFixture {
+
+    "display the Start invigilated phase 2 tests page with an error message when the validation is not successful" in new TestFixture {
       val Request = fakeRequest.withFormUrlEncodedBody("email" -> "test@test.com", "token" -> "KI6U8T")
       when(mockApplicationClient.verifyInvigilatedToken(eqTo("test@test.com"), eqTo("KI6U8T"))(any())).thenReturn(failedValidationResponse)
 
       val result = underTest.verifyToken()(Request)
       status(result) must be(OK)
       val content = contentAsString(result)
-      content must include("Start invigilated e-tray")
+      content must include("Start invigilated phase 2 tests")
       content must include("Invalid email or access code")
     }
-    "display the Start invigilated e-tray page with an error message when the test is expired" in new TestFixture {
+
+    "display the Start invigilated phase 2 tests page with an error message when the test is expired" in new TestFixture {
       val Request = fakeRequest.withFormUrlEncodedBody("email" -> "test@test.com", "token" -> "KI6U8T")
       when(mockApplicationClient.verifyInvigilatedToken(eqTo("test@test.com"), eqTo("KI6U8T"))(any())).thenReturn(testExpiredResponse)
 
       val result = underTest.verifyToken()(Request)
       status(result) must be(OK)
       val content = contentAsString(result)
-      content must include("Start invigilated e-tray")
+      content must include("Start invigilated phase 2 tests")
       content must include("Test is expired")
     }
   }
@@ -75,8 +77,8 @@ class InvigilatedControllerSpec extends BaseControllerSpec {
     val mockApplicationClient = mock[ApplicationClient]
     val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
 
-    val testUrl = "http://localhost:9284/fset-fast-stream/invigilated-etray"
-    val succesfulValidationResponse = Future.successful(InvigilatedTestUrl(testUrl))
+    val testUrl = "http://localhost:9284/fset-fast-stream/invigilated-phase2-tests"
+    val successfulValidationResponse = Future.successful(InvigilatedTestUrl(testUrl))
     val failedValidationResponse = Future.failed(new TokenEmailPairInvalidException())
     val testExpiredResponse = Future.failed(new TestForTokenExpiredException())
 
@@ -88,5 +90,4 @@ class InvigilatedControllerSpec extends BaseControllerSpec {
 
     val underTest = new TestableInvigilatedController
   }
-
 }
