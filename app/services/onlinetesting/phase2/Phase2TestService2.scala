@@ -105,10 +105,22 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
     }
   }
 
+  def getTestGroupByOrderId(orderId: String): Future[Option[Phase2TestGroupWithActiveTest2]] = {
+    for {
+      phase2Opt <- testRepository2.getTestGroupByOrderId(orderId)
+    } yield phase2Opt.map { phase2 =>
+      Phase2TestGroupWithActiveTest2(
+        phase2.expirationDate,
+        phase2.activeTests,
+        resetAllowed = true
+      )
+    }
+  }
+
   def verifyAccessCode(email: String, accessCode: String): Future[String] = for {
     userId <- cdRepository.findUserIdByEmail(email)
     testGroupOpt <- testRepository2.getTestGroupByUserId(userId)
-    testUrl <- Future.fromTry(processEtrayToken(testGroupOpt, accessCode))
+    testUrl <- Future.fromTry(processInvigilatedEtrayAccessCode(testGroupOpt, accessCode))
   } yield testUrl
 
   override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] = {
@@ -243,21 +255,20 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
     }.map(_ => ())
   }
 
-  private def processEtrayToken(phase: Option[Phase2TestGroup2], accessCode: String): Try[String] = {
+  private def processInvigilatedEtrayAccessCode(phase: Option[Phase2TestGroup2], accessCode: String): Try[String] = {
     phase.fold[Try[String]](Failure(new NotFoundException(Some("No Phase2TestGroup found")))){
-      group => {
-        val eTrayTest = group.activeTests.head
-        val accessCodeOpt = eTrayTest.invigilatedAccessCode
+      phase2TestGroup => {
 
-        if (accessCodeOpt.contains(accessCode)) {
-          if(group.expirationDate.isBefore(dateTimeFactory.nowLocalTimeZone)) {
-            Failure(ExpiredTestForTokenException("Test expired for token"))
+        val psiTestOpt = phase2TestGroup.activeTests.find( _.invigilatedAccessCode == Option(accessCode) )
+
+        psiTestOpt.map { psiTest =>
+          if(phase2TestGroup.expirationDate.isBefore(dateTimeFactory.nowLocalTimeZone)) {
+            Failure(ExpiredTestForTokenException("Phase 2 test expired for invigilated access code"))
           } else {
-            Success(eTrayTest.testUrl)
+            Success(psiTest.testUrl)
           }
-        } else {
-          Failure(InvalidTokenException("Token mismatch"))
-        }
+
+        }.getOrElse(Failure(InvalidTokenException("Invigilated access code not found")))
       }
     }
   }

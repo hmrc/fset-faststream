@@ -123,6 +123,14 @@ trait OnlineTestController extends BaseController {
     }
   }
 
+  def getPhase2OnlineTestByOrderId(orderId: String) = Action.async { implicit request =>
+    phase2TestService2.getTestGroupByOrderId(orderId) map {
+      case Some(phase2TestGroupWithNames) => Ok(Json.toJson(phase2TestGroupWithNames))
+      case None => Logger.debug(s"No phase 2 tests found for orderId '$orderId'")
+        NotFound
+    }
+  }
+
   def getPhase3OnlineTest(applicationId: String) = Action.async { implicit request =>
     phase3TestService.getTestGroupWithActiveTest(applicationId) map {
       case Some(phase3TestGroup) => Ok(Json.toJson(phase3TestGroup))
@@ -186,7 +194,7 @@ trait OnlineTestController extends BaseController {
 
   def verifyAccessCode() = Action.async(parse.json) { implicit request =>
     withJsonBody[VerifyAccessCode] { verifyAccessCode =>
-      phase2TestService.verifyAccessCode(verifyAccessCode.email, verifyAccessCode.accessCode).map {
+      phase2TestService2.verifyAccessCode(verifyAccessCode.email, verifyAccessCode.accessCode).map {
         invigilatedTestUrl => Ok(Json.toJson(InvigilatedTestUrl(invigilatedTestUrl)))
       }.recover {
         case _: ExpiredTestForTokenException => Forbidden
