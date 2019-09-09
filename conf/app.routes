@@ -29,6 +29,9 @@ POST        /password/forgot                                        controllers.
 GET         /password/reset                                         controllers.PasswordResetController.presentReset
 POST        /password/reset                                         controllers.PasswordResetController.submitReset
 
+# Session timeout extension
+GET         /extendIdleTimeout                                      controllers.SessionController.extendIdleTimeout
+
 # Application pages
 GET         /dashboard                                              controllers.HomeController.present(displaySdipEligibilityInfo: Boolean ?= false)
 GET         /assessment-feedback                                    controllers.AssessmentFeedbackController.present(applicationId: UniqueIdentifier)

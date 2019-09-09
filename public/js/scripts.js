@@ -948,3 +948,36 @@ $(function() {
   });
 
 });
+
+var extendTimeoutInterval;
+
+$(document).ready(function () {
+  /* TODO: Ideally we need a better way of checking if the user is signed-in and only in that case, extend the idle timeout, we can
+   use cookies, url, etc. */
+  renewSession()
+});
+
+function renewSession() {
+  $.ajax({
+    type: "GET",
+    url: "/fset-fast-stream/extendIdleTimeout",
+    cache: false,
+    async: true,
+    complete: function(xhr, status) {
+      // When user is logged-in
+      if (xhr.status !== 404) {
+        // TODO: If we do not answer the pop up, it will keep asking the question anyway
+        // We will probably not use pop ups for this anyway, therefore there maybe a trick to find out
+        // if the new "pop-up" is displayed or not and therefore make decissions based on that.
+        extendTimeoutInterval = setInterval(shouldRenewSession, 20000);
+      }
+    }
+  });
+
+function shouldRenewSession() {
+  if (confirm('Do you want to renew the session?')) {
+    renewSession()
+  } else {
+    clearInterval(extendTimeoutInterval);
+  }
+}
