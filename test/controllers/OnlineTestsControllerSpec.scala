@@ -162,7 +162,7 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
       val fakeRequest = verifyAccessCodeRequest(json)
 
       val invigilatedTestUrl = "invigilated.test.url"
-      when(mockPhase2TestService.verifyAccessCode(any[String], any[String]))
+      when(mockPhase2TestService2.verifyAccessCode(any[String], any[String]))
         .thenReturn(Future.successful(invigilatedTestUrl))
 
       val response = controller.verifyAccessCode()(fakeRequest)
@@ -180,7 +180,7 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
       val fakeRequest = verifyAccessCodeRequest(json)
       val noUserFound = Future.failed(ContactDetailsNotFoundForEmail())
 
-      when(mockPhase2TestService.verifyAccessCode(any[String], any[String])).thenReturn(noUserFound)
+      when(mockPhase2TestService2.verifyAccessCode(any[String], any[String])).thenReturn(noUserFound)
 
       val response = controller.verifyAccessCode()(fakeRequest)
       status(response) mustBe NOT_FOUND
@@ -194,7 +194,7 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
       val fakeRequest = verifyAccessCodeRequest(json)
       val tokenExpired = Future.failed(ExpiredTestForTokenException(""))
 
-      when(mockPhase2TestService.verifyAccessCode(any[String], any[String])).thenReturn(tokenExpired)
+      when(mockPhase2TestService2.verifyAccessCode(any[String], any[String])).thenReturn(tokenExpired)
 
       val response = controller.verifyAccessCode()(fakeRequest)
       status(response) mustBe FORBIDDEN

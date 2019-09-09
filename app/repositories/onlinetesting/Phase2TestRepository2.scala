@@ -44,6 +44,8 @@ trait Phase2TestRepository2 extends OnlineTestRepository with Phase2TestConcern2
 
   def getTestGroupByUserId(userId: String): Future[Option[Phase2TestGroup2]]
 
+  def getTestGroupByOrderId(orderId: String): Future[Option[Phase2TestGroup2]]
+
   def getTestProfileByOrderId(orderId: String): Future[Phase2TestGroupWithAppId2]
 
   def insertOrUpdateTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup2): Future[Unit]
@@ -89,6 +91,19 @@ class Phase2TestMongoRepository2(dateTime: DateTimeFactory)(implicit mongo: () =
   override def getTestGroupByUserId(userId: String): Future[Option[Phase2TestGroup2]] = {
     val query = BSONDocument("userId" -> userId)
     val projection = BSONDocument(s"testGroups.PHASE2" -> 1, "_id" -> 0)
+
+    collection.find(query, projection).one[BSONDocument] map { optDocument =>
+      optDocument.flatMap {_.getAs[BSONDocument]("testGroups")}
+        .flatMap {_.getAs[BSONDocument]("PHASE2")}
+        .map {x => bsonHandler.read(x)}
+    }
+  }
+
+  override def getTestGroupByOrderId(orderId: String): Future[Option[Phase2TestGroup2]] = {
+    val query = BSONDocument(s"testGroups.$phaseName.tests" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("orderId" -> orderId)
+    ))
+    val projection = BSONDocument("applicationId" -> 1, s"testGroups.$phaseName" -> 1, "_id" -> 0)
 
     collection.find(query, projection).one[BSONDocument] map { optDocument =>
       optDocument.flatMap {_.getAs[BSONDocument]("testGroups")}
