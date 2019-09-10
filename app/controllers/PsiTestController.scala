@@ -16,13 +16,13 @@
 
 package controllers
 
-import config.CSRHttp
 import connectors.ApplicationClient
 import connectors.exchange.PsiTest
 import models.UniqueIdentifier
-import play.api.i18n.Messages.Implicits._
+import play.api.Logger
 import play.api.Play.current
 import play.api.i18n.Messages
+import play.api.i18n.Messages.Implicits._
 import play.api.mvc.{ Action, AnyContent }
 import security.Roles.{ OnlineTestInvitedRole, Phase2TestInvitedRole, SiftNumericTestRole }
 import security.SilhouetteComponent
@@ -31,7 +31,6 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.Future
 
 object PsiTestController extends PsiTestController(ApplicationClient) {
-  val http = CSRHttp
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
@@ -94,17 +93,12 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
       }
   }
 
+  // Note that we do not work with the applicationId in the cached user data because if we are dealing with an
+  // invigilated phase 2 candidate, the candidate may not already be logged in so the cached data is missing
   def completePhase2Tests(orderId: UniqueIdentifier): Action[AnyContent] = CSRUserAwareAction { implicit request =>
     implicit user =>
-
-      val appId = user.flatMap { data =>
-        data.application.map { application =>
-          application.applicationId
-        }
-      }.getOrElse(throw new Exception("Unable to find applicationId for this candidate."))
-
       applicationClient.completeTestByOrderId(orderId).flatMap { _ =>
-        applicationClient.getPhase2TestProfile2(appId).map { testGroup =>
+        applicationClient.getPhase2TestProfile2ByOrderId(orderId).map { testGroup =>
           val testCompleted = testGroup.activeTests.find(_.orderId == orderId)
             .getOrElse(throw new Exception(s"Active Test not found for OrderId $orderId"))
           val testCompletedName = Messages(s"tests.inventoryid.name.${testCompleted.inventoryId}")
@@ -115,8 +109,13 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
             Ok(views.html.application.onlineTests.etrayTestsComplete())
           }
         }
-      }
+      }.recover {
+        case ex: Throwable =>
+          Logger.warn("Exception when completing phase 2 tests", ex)
+          InternalServerError(s"Unable to complete phase 2 test for orderId=$orderId because ${ex.getMessage}")
   }
+
+}
 
   def completeSiftTest(orderId: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
     implicit user =>

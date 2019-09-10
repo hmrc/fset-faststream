@@ -49,7 +49,6 @@ class AssessmentFeedbackControllerSpec extends BaseControllerSpec {
     val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
     val applicationId = UniqueIdentifier(UUID.randomUUID().toString)
 
-
     class TestableHomeController extends AssessmentFeedbackController(mockAssessmentScoresClient, mockApplicationClient)
       with TestableSecureActions {
       val http: CSRHttp = CSRHttp

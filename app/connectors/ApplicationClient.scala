@@ -240,6 +240,15 @@ trait ApplicationClient {
     }
   }
 
+  def getPhase2TestProfile2ByOrderId(orderId: UniqueIdentifier)
+                           (implicit hc: HeaderCarrier): Future[Phase2TestGroupWithActiveTest2] = {
+    http.GET(s"$apiBaseUrl/online-test/phase2/candidate/orderId/$orderId").map { response =>
+      response.json.as[Phase2TestGroupWithActiveTest2]
+    } recover {
+      case _: NotFoundException => throw new OnlineTestNotFound()
+    }
+  }
+
   def completeTestByOrderId(orderId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
     http.PUT(s"$apiBaseUrl/psi/$orderId/complete", "").map(_ => ())
   }
