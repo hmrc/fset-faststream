@@ -969,7 +969,7 @@ function renewSession() {
         // TODO: If we do not answer the pop up, it will keep asking the question anyway
         // We will probably not use pop ups for this anyway, therefore there maybe a trick to find out
         // if the new "pop-up" is displayed or not and therefore make decissions based on that.
-        extendTimeoutInterval = setInterval(shouldRenewSession, 20000);
+        extendTimeoutInterval = setInterval(shouldRenewSession, 1680000);
       }
     }
   });
