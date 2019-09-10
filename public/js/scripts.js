@@ -963,7 +963,7 @@ function renewSession() {
     url: "/fset-fast-stream/extendIdleTimeout",
     cache: false,
     async: true,
-    complete: function(xhr, status) {
+    complete: function (xhr, status) {
       // When user is logged-in
       if (xhr.status !== 404) {
         // TODO: If we do not answer the pop up, it will keep asking the question anyway
@@ -973,6 +973,7 @@ function renewSession() {
       }
     }
   });
+}
 
 function shouldRenewSession() {
   if (confirm('Do you want to renew the session?')) {
