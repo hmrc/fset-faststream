@@ -21,11 +21,9 @@
 
 <div id="civilServiceExperienceDetails_civilServiceExperienceType-DiversityInternship-panel" class="toggle-content" aria-hidden="true">
     <h3 class="heading-medium">Summer/Early Diversity Internship Programme</h3>
-    <fieldset>
-        @checkboxGroupWithTogglePanels(form("civilServiceExperienceDetails.internshipTypes"), FastPassForm.InternshipTypes,
-        'id -> "civilServiceExperienceDetails.internshipTypes",
-        '_label -> "Which internship programmes did you do (select all that apply)?") {
-            @fastPassCertificatePanel(form)
-        }
-    </fieldset>
+    @checkboxGroupWithTogglePanels(form("civilServiceExperienceDetails.internshipTypes"), FastPassForm.InternshipTypes,
+    'id -> "civilServiceExperienceDetails.internshipTypes",
+    '_label -> "Which internship programmes did you do (select all that apply)?") {
+        @fastPassCertificatePanel(form)
+    }
 </div>
