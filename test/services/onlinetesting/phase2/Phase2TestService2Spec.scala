@@ -135,7 +135,8 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
       result.failed.futureValue mustBe an[CannotFindTestByOrderIdException]
     }
 
-    "not register candidate if cancellation request fails" in new Phase2TestServiceFixture {
+    // we are not sending a cancellation request anymore so this test should be ignored for now
+    "not register candidate if cancellation request fails" ignore new Phase2TestServiceFixture {
       when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile))
       when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest]))
         .thenReturnAsync(acaError)
@@ -179,7 +180,7 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
       verify(emailClientMock, times(0))
         .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(any[HeaderCarrier])
 
-      verify(auditServiceMock, times(1)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
+      verify(auditServiceMock, times(0)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
       verify(auditServiceMock, times(0)).logEventNoRequest("UserRegisteredForPhase2Test", auditDetails)
       verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
       verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvited", auditDetails)
@@ -202,7 +203,7 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
       verify(emailClientMock, times(0))
         .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(any[HeaderCarrier])
 
-      verify(auditServiceMock, times(1)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
+      verify(auditServiceMock, times(0)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("UserRegisteredForPhase2Test", auditDetails)
       verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
       verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvited", auditDetails)
@@ -225,7 +226,7 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
       verify(emailClientMock, times(1))
         .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(onlineTestApplication.preferredName), eqTo(expirationDate))(any[HeaderCarrier])
 
-      verify(auditServiceMock, times(1)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
+      verify(auditServiceMock, times(0)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("UserRegisteredForPhase2Test", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
     }

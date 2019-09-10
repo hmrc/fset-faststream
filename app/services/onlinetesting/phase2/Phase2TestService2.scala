@@ -157,9 +157,6 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
         .getOrElse(throw CannotFindTestByOrderIdException(s"OrderId - $orderIdToReset"))
       _ = Logger.info(s"testToReset -- $testToReset")
 
-      // Send cancellation request
-      _ <- cancelPsiTest(application.applicationId, application.userId, orderIdToReset)
-
       // Create PsiIds to use for re-invitation
       psiIds = integrationGatewayConfig.phase2Tests.tests.find {
         case (_, ids) => ids.inventoryId == testToReset.inventoryId
