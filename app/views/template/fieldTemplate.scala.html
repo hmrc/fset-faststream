@@ -20,7 +20,7 @@
     <div id="@{elements.id}_field" class="form-group @elements.args.get('_class) @linkClass @if(elements.hasErrors) {has-an-error input-validation-error}">
         <label for="@elements.id" class="@elements.args.getOrElse('_labelClass,"form-label")">@elements.label</label>
         <span class="form-hint text">@elements.infos.mkString(", ")</span>
-        <span class="has-error"><span class="visuallyhidden">Error: </span>@elements.errors.mkString(", ")</span>
+        <span class="has-error">@if(elements.errors.nonEmpty){<span class="visuallyhidden">Error: </span>}@elements.errors.mkString(", ")</span>
         @elements.input
     </div>
 }
