@@ -108,7 +108,7 @@
 
 @displayTestPageLink(testPage: PsiTestPage, testName: String) = {
     @testPage.testReportUrl.map { reportUrl =>
-        <a href="@reportUrl" target="_blank" id="@generatePsiTestId(testPage)">Results report <span class="visuallyhidden">for @testName</span></a>
+        <a href="@reportUrl" target="_blank" id="@generatePsiTestId(testPage)">Results report <span class="visuallyhidden">for @testName (opens pdf document in a new window)</span></a>
     }
 }
 
@@ -123,7 +123,7 @@
 
 @displayPhase3TestResultsLinks() = {
     <a href="@routes.Phase3FeedbackController.present" target="_blank" id="phase3ResultsReportLink" alt="Phase 3 results report">
-        Results report <span class="visuallyhidden">for video interview</span>
+        Results report <span class="visuallyhidden">for video interview (opens in a new window)</span>
     </a>
 }
 
