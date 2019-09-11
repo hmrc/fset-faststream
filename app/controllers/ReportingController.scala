@@ -565,7 +565,6 @@ trait ReportingController extends BaseController {
           questionnairesByAppId.get(appId),
           mediasByUserId.get(userId).map(m => MediaReportItem(m.media))
         )
-
         val onlineTestResults = applicationsForOnlineTest.find(_.userId == userId)
         val siftResult = siftResults.find(_.applicationId == appId)
         val fsacResult = fsacResults.find(_.applicationId.toString() == appId)
