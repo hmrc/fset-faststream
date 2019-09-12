@@ -2,8 +2,8 @@
 
 error_reporting(E_ALL);
 
-$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2019-2020v4/newcastle.csv'));
-//$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2019-2020v4/london.csv'));
+$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2019-2020v5/newcastle.csv'));
+//$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2019-2020v5/london.csv'));
 
 // This file reads input csv and generates yaml, which can be bulk uploaded into the system to create calendar events
 // Run the file from the location you find it in the fset-faststream repo. All the paths are relative to its current location
