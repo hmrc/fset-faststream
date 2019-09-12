@@ -119,7 +119,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
       val result = controller.submit()(Request)
 
       status(result) must be(SEE_OTHER)
-      redirectLocation(result) must be(Some(routes.SubmitApplicationController.present().url))
+      redirectLocation(result) must be(Some(routes.SubmitApplicationController.presentSubmit().url))
     }
   }
 

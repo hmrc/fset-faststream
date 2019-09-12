@@ -79,7 +79,7 @@ class SubmitApplicationControllerSpec extends BaseControllerSpec {
       val result = controller(currentCandidateWithEdipApp, applicationRouteState).submit()(fakeRequest)
 
       status(result) mustBe SEE_OTHER
-      redirectLocation(result) must be(Some(routes.SubmitApplicationController.success().url))
+      redirectLocation(result) must be(Some(routes.SubmitApplicationController.presentSubmitted().url))
       verify(mockApplicationClient).submitApplication(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier])
     }
     "redirect to home page" in new TestFixture {
