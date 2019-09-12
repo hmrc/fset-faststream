@@ -20,7 +20,7 @@
 @import helpers.CSREmptyFieldConstructor._
 @import FieldNameHelpers._
 
-    @selectRadio(currentValue: Option[String], questionType: String) = @{(currentValue, questionType) match {
+@selectRadio(currentValue: Option[String], questionType: String) = @{(currentValue, questionType) match {
     case (Some("true"), "yes") | (Some("false"), "no") => "checked=\"checked\""
     case _ => ""
 }}

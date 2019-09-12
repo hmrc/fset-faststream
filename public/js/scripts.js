@@ -232,6 +232,17 @@ $(function() {
 
   isAndroid();
 
+  // Fixes intermittent bug where a form submitted with errors sometimes takes the user back
+  // to last place on page rather than to error summary
+  if($('#validation-summary').is(':visible')) {
+    window.csrActive++;
+    setTimeout(function()
+    {
+      window.scrollTo(0, 0);
+      window.csrActive--;
+    }, 200);
+  }
+
   $('.nav-menu__trigger').on('click', function() {
     $(this).next('.nav-menu__items').toggleClass('toggle-content');
     $(this).toggleClass('triggered');
@@ -292,52 +303,74 @@ $(function() {
         $target = $this.parent().attr('data-target'),
         $siblingArray = [],
         $siblingTarget = '',
-        $disTarget = $this.parent().attr('data-distarget'),
-        $theTargetControl = $('#' + $disTarget);
+        $disTarget = $.trim($this.parent().attr('data-distarget')).split(" "),
+        $theTargetControl = '';
 
     $this.closest('.form-group').find('.block-label').not($this.parent()).each(function() {
       $siblingArray.push('#' + $(this).attr('data-target'));
       $siblingTarget = $siblingArray.join(", ");
     });
 
+    if($disTarget.length > 1) {
+      var multipleTargets = $($disTarget.join(", "));
+      $theTargetControl = multipleTargets;
+    } else {
+      $theTargetControl = $('#' + $disTarget);
+    }
+
     $('input:not(:checked)').parent().removeClass('selected');
     $('input:checked').parent().addClass('selected');
 
-    if($target == undefined) {
-      $this.closest('.form-group').siblings('.toggle-content').hide().attr('aria-hidden', true);
-      $this.closest('.form-group').find('[aria-expanded]').attr('aria-expanded', false);
+    if($this.is('input[type=checkbox]')) {
+      if($this.is(':checked')) {
+        $('#' + $target).show();
+      } else {
+        $('#' + $target).hide();
+      }
     } else {
-      $('#' + $target).show();
-      $($siblingTarget).hide().attr('aria-hidden', true);
+      if($target == undefined) {
+        $this.closest('.form-group').siblings('.toggle-content').hide().attr('aria-hidden', true);
+        $this.closest('.form-group').find('[aria-expanded]').attr('aria-expanded', false);
+      } else {
+        $('#' + $target).show();
+        $($siblingTarget).hide().attr('aria-hidden', true);
 
-      if($this.closest('.form-group').hasClass('blocklabel-single')) {
+        if($this.closest('.form-group').hasClass('blocklabel-single')) {
 
-        $this.closest('.blocklabel-single-container').find('.blocklabel-content').not('#' + $target).hide();
+          $this.closest('.blocklabel-single-container').find('.blocklabel-content').not('#' + $target).hide();
+        }
       }
     }
 
-    if($disTarget && !$theTargetControl.attr('disabled')) {
+    if($disTarget && $this.is(':checked')) {
       $theTargetControl.attr('disabled', true);
       if($theTargetControl.attr('type') == 'text') {
         $theTargetControl.val('');
       } else if($theTargetControl.is('select')) {
         $theTargetControl.find('> option:first-of-type').attr('selected', true);
       }
-    } else if($disTarget && $theTargetControl.attr('disabled')) {
+    } else if($disTarget && !$this.is(':checked')) {
       $theTargetControl.attr('disabled', false);
     }
 
   });
 
-  $('.selectWithOptionTrigger').on('change', function() {
-    var optionTrigger = $(this).find('.optionTrigger'),
+  function toggleTargetDisplayOnOptionSelection(selectBox){
+    var optionTrigger = selectBox.find('.optionTrigger'),
         optionTarget = $('#' + optionTrigger.attr('data-optiontrigger'));
-
     if(optionTrigger.is(':selected')) {
       optionTarget.show();
     } else {
       optionTarget.hide();
     }
+  }
+
+  $('.selectWithOptionTrigger').on('change', function() {
+       toggleTargetDisplayOnOptionSelection($(this))
+  });
+
+  $('.selectWithOptionTrigger').ready(function() {
+       toggleTargetDisplayOnOptionSelection($(this))
   });
 
   $('.amend-answers').on('click', function() {
@@ -493,12 +526,23 @@ $(function() {
         char9Icon = requires9Characters.find('.the-icon');
 
     // passInput.after('<p class="form-hint text strength-indicator hide-nojs">Password validation: <span id="pass_meter"></span></p>');
-    confirmPass.after('<div id="matchingHint" class="invisible"><p class="form-hint">&nbsp;<span id="pass_match"></span></p></div>');
+    confirmPass.after('<div id="matchingHint" class="invisible"><p class="form-hint">&nbsp;<span id="pass_match" aria-live="polite"></span></p></div>');
 
     confirmPass.on('blur', function() {
+      var currentConfirmPassword = $(this).val();
+      var originalPassword = passInput.val();
+      if(currentConfirmPassword || originalPassword) {
       $('#matchingHint').removeClass('invisible');
-      if($('#pass_match').hasClass('strength-weak')) {
+        if(currentConfirmPassword === originalPassword) {
+          $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html("<i class='fa fa-check'></i>Your passwords match");
+        } else {
+          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times'></i>Your passwords don't match");
+        }
+      }
+      if($('#pass_match').hasClass('strength-weak') || $('#passwordRequirements li').hasClass('strength-weak')) {
         $('#errorPassword').removeClass('hidden');
+      } else {
+        $('#errorPassword').addClass('hidden');
       }
     });
 
@@ -547,20 +591,20 @@ $(function() {
         char9Icon.addClass('fa-minus');
       }
 
-      if($('#passwordRequirements').find('.fa-minus').length === 0) {
-        $('#errorPassword').addClass('hidden');
-      }
-
       if(matchVal.length >= minChars) {
         if(matchVal.length == passVal.length) {
           if(matchVal === passVal) {
-            $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html('<i class="fa fa-check"></i>Your passwords match');
+            $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html("<i class='fa fa-check'></i>Your passwords match");
           } else {
-            $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html('<i class="fa fa-times"></i>Your passwords don\'t match');
+            $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times'></i>Your passwords don't match");
           }
         } else {
-          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html('<i class="fa fa-times"></i>Your passwords don\'t match');
+          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times'></i>Your passwords don't match");
         }
+      }
+
+      if(!$('#pass_match').hasClass('strength-weak') || !$('#passwordRequirements li').hasClass('strength-weak')) {
+        $('#errorPassword').addClass('hidden');
       }
     });
 
@@ -568,17 +612,8 @@ $(function() {
       $('#passwordRequirements li').each(function() {
         if(!$(this).hasClass('strength-strong')) {
           $(this).addClass('strength-weak').find('.the-icon').removeClass('fa-minus').addClass('fa-times');
-
         }
       });
-
-      if($('#passwordRequirements').find('.fa-times').length === 0) {
-        if(!$('#pass_match').hasClass('strength-weak')) {
-          $('#errorPassword').addClass('hidden');
-        }
-      } else {
-        $('#errorPassword').removeClass('hidden');
-      }
     });
 
     confirmPass.keyup(function() {
@@ -586,20 +621,46 @@ $(function() {
           matchVal = $(this).val();
 
       if(matchVal.length == passVal.length) {
-        if(matchVal === passVal && $('#passwordRequirements').find('.fa-times').length === 0) {
-          $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html('<i class="fa fa-check"></i>Your passwords match');
-          $('#errorPassword').addClass('hidden');
+        if(matchVal === passVal) {
+          $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html("<i class='fa fa-check'></i>Your passwords match");
         } else {
-          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html('<i class="fa fa-times"></i>Your passwords don\'t match');
+          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times'></i>Your passwords don't match");
         }
-      } else {
-        $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html('<i class="fa fa-times"></i>Your passwords don\'t match');
-      }
+      } else if(matchVal.length !== 0 ) {
+        $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times'></i>Your passwords don't match");
+        }
 
     });
   }
 
+  //------- Set personal details
 
+  $('#addressManualLink').on('click', function(e) {
+    e.preventDefault();
+
+    $('#addressManualInput').removeClass('disabled');
+    $('#address\\.line1').focus();
+  });
+
+  $('#outsideUk').on('change', function() {
+
+    $('#address\\.line1').val("");
+    $('#address_line2').val("");
+    $('#address_line3').val("");
+    $('#address_line4').val("");
+    $('#postCode').val("");
+    $('#country').val("");
+
+    if($(this).is(':checked')) {
+      $('#addressManualInput').removeClass('disabled');
+      $('#postCode').closest('.form-group').addClass('toggle-content');
+      $('#country').closest('.form-group').removeClass('toggle-content');
+      $('#address\\.line1').focus();
+      } else {
+      $('#postCode').closest('.form-group').removeClass('toggle-content');
+      $('#country').closest('.form-group').addClass('toggle-content');
+      }
+    });
 
   //------- Inline details toggle
 
@@ -619,24 +680,7 @@ $(function() {
   //   });
   // }
 
-});;/*
- * Copyright 2016 HM Revenue & Customs
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
-*/
-
-
-$(function() {
+});;$(function() {
   if($('#choosePrefLocFramHeading').length ) {
     var $selectedRegion = '',
         $selectedRegionName = '',
@@ -919,24 +963,7 @@ $(function() {
   $('.showsOccupations').on('change', function(){
     $('.hidingOccupations').show()
   });
-});;/*
- * Copyright 2016 HM Revenue & Customs
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
-*/
-
-
-$(function() {
+});;$(function() {
 
   //-- Faking details behaviour
 
@@ -947,7 +974,89 @@ $(function() {
     }
   });
 
+  // Accessibility fixes
+
+  $('input, select').not('[optional], [data-optional] *, [type="hidden"]').attr('required', true);
+
+  $('#password').attr('aria-labelledby', 'firstPassLabel hiddenPasswordRequirements');
+
+  $('label[for="address_line2"]').text('Address line 2').addClass('visuallyhidden');
+  $('label[for="address_line3"]').text('Address line 3').addClass('visuallyhidden');
+  $('label[for="address_line4"]').text('Address line 4').addClass('visuallyhidden');
+
+  if($('#civilServantQuestion').length) {
+    var $civilServantSection = $('#civilServantQuestion'),
+        legendText = $civilServantSection.find('h2').text();
+
+    $civilServantSection.find('fieldset:eq(0)').prepend('<legend class="visuallyhidden">' + legendText + '</legend>');
+  }
+
+  if($('.editSection').length) {
+    $('.editSection').each(function() {
+      var sectionName = $(this).closest('h2').find('.sectionTitle').text();
+
+      $(this).text(sectionName);
 });
+  }
+
+  $('#printLink').on('click', function(e) {
+    e.preventDefault();
+
+    window.print();
+  });
+
+  function addSchoolsDropdown(selector, idSelector) {
+    $(selector).keypress(function(){
+      $(idSelector).val("");
+    });
+    $(selector).autocomplete({
+      source: function( request, response ) {
+        var r = jsRoutes.controllers.SchoolsController.getSchools(request.term)
+        r.ajax({
+          success : function(data) {
+            $(selector).removeClass('ui-autocomplete-loading');
+
+            response( $.map( data, function(item) {
+              item.label = item.label
+              item.value = item.name
+              return item
+            }));
+          },
+          error: function(data) {
+            $(selector).removeClass('ui-autocomplete-loading');
+          }
+        });
+      },
+      minLength: 3,
+      change: function(event, ui) {},
+      open: function() {},
+      close: function() {},
+      focus: function(event,ui) {},
+      select: function(event, ui) {
+        $(idSelector).val(ui.item.id);
+      },
+      create: function () {
+        $(this).data("ui-autocomplete")._renderItem = function (ul, item) {
+          if(item.value ==''){
+            return $('<li class="ui-menu-item ui-state-disabled">&nbsp;&nbsp;'+item.label+'</li>').appendTo(ul);
+          }else{
+            return $("<li>")
+                .append("<a>" + item.label + "</a>")
+                .appendTo(ul);
+          }
+        };
+      }
+    });
+  }
+
+  $('#schoolName14to16').ready(function() {
+    addSchoolsDropdown("#schoolName14to16", "#schoolId14to16");
+  });
+  $('#schoolName16to18').ready(function() {
+    addSchoolsDropdown("#schoolName16to18", "#schoolId16to18");
+  });
+});
+
 
 var extendTimeoutInterval;
 
