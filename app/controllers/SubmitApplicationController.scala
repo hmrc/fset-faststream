@@ -34,7 +34,9 @@ object SubmitApplicationController extends SubmitApplicationController(Applicati
 abstract class SubmitApplicationController(applicationClient: ApplicationClient)
   extends BaseController with CampaignAwareController {
 
-  def present = CSRSecureAppAction(SubmitApplicationRole) { implicit request =>
+  implicit val marketingTrackingEnabled = config.FrontendAppConfig.marketingTrackingEnabled
+
+  def presentSubmit = CSRSecureAppAction(SubmitApplicationRole) { implicit request =>
     implicit user =>
       if (canApplicationBeSubmitted(user.application.overriddenSubmissionDeadline)(user.application.applicationRoute)) {
         Future.successful(Ok(views.html.application.submit()))
@@ -43,16 +45,16 @@ abstract class SubmitApplicationController(applicationClient: ApplicationClient)
       }
   }
 
-  def success = CSRSecureAppAction(AbleToWithdrawApplicationRole) { implicit request =>
+  def presentSubmitted = CSRSecureAppAction(AbleToWithdrawApplicationRole) { implicit request =>
     implicit user =>
-      Future.successful(Ok(views.html.application.success()))
+      Future.successful(Ok(views.html.application.submitted(marketingTrackingEnabled)))
   }
 
   def submit = CSRSecureAppAction(SubmitApplicationRole) { implicit request =>
     implicit user =>
       if (canApplicationBeSubmitted(user.application.overriddenSubmissionDeadline)(user.application.applicationRoute)) {
         applicationClient.submitApplication(user.user.userID, user.application.applicationId).map { _ =>
-            Redirect(routes.SubmitApplicationController.success())
+            Redirect(routes.SubmitApplicationController.presentSubmitted())
         }.recover {
           case _: CannotSubmit => Redirect(routes.PreviewApplicationController.present()).flashing(danger("error.cannot.submit"))
         }

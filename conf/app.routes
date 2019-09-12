@@ -17,7 +17,7 @@ POST        /signup                                                 controllers.
 
 GET         /activation                                             controllers.ActivationController.present
 POST        /activation/resend                                      controllers.ActivationController.resendCode
-POST        /activation                                             controllers.ActivationController.activateForm
+POST        /activation                                             controllers.ActivationController.submit
 
 # User sign in
 GET         /signin                                                 controllers.SignInController.present
@@ -60,9 +60,9 @@ GET         /application/testResults                                controllers.
 
 GET         /application/preview                                    controllers.PreviewApplicationController.present
 POST        /application/preview                                    controllers.PreviewApplicationController.submit
-GET         /application/submit                                     controllers.SubmitApplicationController.present
+GET         /application/submit                                     controllers.SubmitApplicationController.presentSubmit
 POST        /application/submit                                     controllers.SubmitApplicationController.submit
-GET         /application/success                                    controllers.SubmitApplicationController.success
+GET         /application/success                                    controllers.SubmitApplicationController.presentSubmitted
 
 # Questionnaire
 GET         /questionnaire/start                                    controllers.QuestionnaireController.presentStartOrContinue

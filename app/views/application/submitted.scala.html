@@ -14,9 +14,13 @@
  * limitations under the License.
  *@
 
-@()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+@(marketingTrackingEnabled: Boolean = false)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
 
 @main_template(title = "Application submitted") {
+
+    @if(marketingTrackingEnabled) {
+            <img src="https://ad.doubleclick.net/ddm/activity/src=8127677;type=atsew0;cat=1909-00;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;npa=;ord=1?" width="1" height="1" alt=""/>
+    }
 
     <div class="success-banner">
         <h1 class="heading-large no-btm-margin"><i class="fa fa-check"></i>Application submitted</h1>

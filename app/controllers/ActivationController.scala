@@ -37,15 +37,18 @@ abstract class ActivationController(val applicationClient: ApplicationClient,
                                     userManagementClient: UserManagementClient) extends
   BaseController with SignInService {
 
+  implicit val marketingTrackingEnabled = config.FrontendAppConfig.marketingTrackingEnabled
+
   def present = CSRSecureAction(NoRole) { implicit request =>
     implicit user => if (user.user.isActive) {
       Future.successful(Redirect(routes.HomeController.present()).flashing(warning("activation.already")))
     } else {
-      Future.successful(Ok(views.html.registration.activation(user.user.email, ActivateAccountForm.form)))
+      Future.successful(Ok(views.html.registration.activation(user.user.email, ActivateAccountForm.form,
+        marketingTrackingEnabled = marketingTrackingEnabled)))
     }
   }
 
-  def activateForm = CSRSecureAction(ActivationRole) { implicit request =>
+  def submit = CSRSecureAction(ActivationRole) { implicit request =>
     implicit user =>
       ActivateAccountForm.form.bindFromRequest.fold(
         invalidForm =>

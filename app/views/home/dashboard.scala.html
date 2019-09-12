@@ -77,7 +77,7 @@
     @renderProgressElement(showLink = AssistanceDetailsRole.isAuthorized(usr) || hasAssistanceDetails(usr), checked = hasAssistanceDetails(usr), "assistanceDetailsStep")(routes.AssistanceDetailsController.present()) { Disability and health conditions }
     @renderProgressElement(showLink = QuestionnaireInProgressRole.isAuthorized(usr), checked = PreviewApplicationRole.isAuthorized(usr), "questionnaireStep")(routes.QuestionnaireController.presentStartOrContinue()) { Fill in the diversity questions }
     @renderProgressElement(showLink = PreviewApplicationRole.isAuthorized(usr), checked = SubmitApplicationRole.isAuthorized(usr), "previewStep")(routes.PreviewApplicationController.present()) { Check your application }
-    @renderProgressElement(showLink = SubmitApplicationRole.isAuthorized(usr), checked = AbleToWithdrawApplicationRole.isAuthorized(usr), "submitStep")(routes.SubmitApplicationController.present()) { Submit }
+    @renderProgressElement(showLink = SubmitApplicationRole.isAuthorized(usr), checked = AbleToWithdrawApplicationRole.isAuthorized(usr), "submitStep")(routes.SubmitApplicationController.presentSubmit()) { Submit }
 }
 
 @main_template(title = "Home") {

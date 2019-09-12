@@ -15,18 +15,21 @@
  *@
 
 @(email: String, activationForm: Form[_root_.forms.ActivateAccountForm.Data],
-        notification: Option[(helpers.NotificationType, String)] = None)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+        notification: Option[(helpers.NotificationType, String)] = None, marketingTrackingEnabled: Boolean = false)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
 
     @import helpers.CSRFieldConstructor._
 
     @main_template(title = "Activate your account", pageForms = Seq(activationForm), notification = notification) {
 
+    @if(marketingTrackingEnabled) {
+        <img src="https://ad.doubleclick.net/ddm/activity/src=8127677;type=atsew0;cat=1909-0;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;npa=;ord=1?" width="1" height="1" alt=""/>
+    }
         <h1 id="accountCreated" class="heading-xlarge">Activate your account</h1>
         <p class="text">
             We've sent an email to <b class="break-word">@email</b> with a <span class="inl-block">7-character</span> code you'll need to activate your account.
         </p>
 
-        @helper.form(action = routes.ActivationController.activateForm(), 'id -> "activateForm", 'novalidate -> "novalidate") {
+        @helper.form(action = routes.ActivationController.submit(), 'id -> "activateForm", 'novalidate -> "novalidate") {
             @helper.CSRF.formField
             @helper.inputText(activationForm("activation"),
             '_label -> "Activation code",

@@ -80,6 +80,8 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
 
   val feedbackUrl = configuration.getString("feedback.url").getOrElse("")
 
+  val marketingTrackingEnabled = configuration.getBoolean("marketing.trackingEnabled").getOrElse(false)
+
   override lazy val analyticsToken = loadConfig("microservice.services.google-analytics.token")
   override lazy val analyticsHost = loadConfig("microservice.services.google-analytics.host")
 

@@ -36,7 +36,7 @@ class SubmitApplicationControllerSpec extends BaseControllerSpec {
   override def currentCandidateWithApp: CachedDataWithApp = CachedDataWithApp(ActiveCandidate.user,
     CachedDataExample.InProgressInPreviewApplication.copy(userId = ActiveCandidate.user.userID))
 
-  "present" should {
+  "present submit" should {
     "display submit application page when application submission is enabled" in new TestFixture {
       val applicationRouteState =  new ApplicationRouteState {
         val newAccountsStarted = true
@@ -44,7 +44,7 @@ class SubmitApplicationControllerSpec extends BaseControllerSpec {
         val applicationsSubmitEnabled = true
         val applicationsStartDate = None
       }
-      val result = controller(currentCandidateWithEdipApp, applicationRouteState).present()(fakeRequest)
+      val result = controller(currentCandidateWithEdipApp, applicationRouteState).presentSubmit()(fakeRequest)
       status(result) mustBe OK
       val content = contentAsString(result)
       content must include("Submit application")
@@ -56,14 +56,14 @@ class SubmitApplicationControllerSpec extends BaseControllerSpec {
         val applicationsSubmitEnabled = false
         val applicationsStartDate = None
       }
-      val result = controller(currentCandidateWithEdipApp, applicationRouteState).present()(fakeRequest)
+      val result = controller(currentCandidateWithEdipApp, applicationRouteState).presentSubmit()(fakeRequest)
       status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.HomeController.present().url))
     }
   }
 
   "submit" should {
-    "redirect to submit success page" in new TestFixture {
+    "redirect to submitted page" in new TestFixture {
       val applicationRouteState =  new ApplicationRouteState {
         val newAccountsStarted = true
         val newAccountsEnabled = true

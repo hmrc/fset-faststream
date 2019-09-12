@@ -68,7 +68,7 @@ class ActivationControllerSpec extends BaseControllerSpec {
     }
   }
 
-  "Activation Controller activate form" should {
+  "Activation Controller submit" should {
     "activate user when activation form is valid" in {
       val Request = fakeRequest.withFormUrlEncodedBody("activation" -> ValidToken)
       when(mockUserManagementClient.activate(eqTo(currentEmail), eqTo(ValidToken))(any())).thenReturn(Future.successful(()))
@@ -78,7 +78,7 @@ class ActivationControllerSpec extends BaseControllerSpec {
         any[Result])(any[Request[_]])
       ).thenReturn(Future.successful(Results.Redirect(routes.HomeController.present())))
 
-      val result = controller.activateForm()(Request)
+      val result = controller.submit()(Request)
 
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.HomeController.present().url))
@@ -88,7 +88,7 @@ class ActivationControllerSpec extends BaseControllerSpec {
       val TooShortToken = "A"
       val Request = fakeRequest.withFormUrlEncodedBody("activation" -> TooShortToken)
 
-      val result = controller.activateForm()(Request)
+      val result = controller.submit()(Request)
 
       status(result) must be(OK)
       contentAsString(result) must include("The activation code must have 7 characters")
@@ -99,7 +99,7 @@ class ActivationControllerSpec extends BaseControllerSpec {
       when(mockUserManagementClient.activate(eqTo(currentEmail), eqTo(ValidToken))(any()))
         .thenReturn(Future.failed(new TokenExpiredException))
 
-      val result = controller.activateForm()(Request)
+      val result = controller.submit()(Request)
 
       status(result) must be(OK)
       contentAsString(result) must include("This activation code has expired")
@@ -110,7 +110,7 @@ class ActivationControllerSpec extends BaseControllerSpec {
       when(mockUserManagementClient.activate(eqTo(ActiveCandidateUser.email), eqTo(ValidToken))(any()))
         .thenReturn(Future.failed(new TokenEmailPairInvalidException))
 
-      val result = controller.activateForm()(Request)
+      val result = controller.submit()(Request)
 
       status(result) must be(OK)
       contentAsString(result) must include("Enter a correct activation code")

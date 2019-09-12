@@ -97,7 +97,7 @@ abstract class QuestionnaireController(applicationClient: ApplicationClient)
         Future.successful {
           (DiversityQuestionnaireCompletedRole.isAuthorized(user), EducationQuestionnaireCompletedRole.isAuthorized(user),
             ParentalOccupationQuestionnaireCompletedRole.isAuthorized(user)) match {
-            case (_, _, true) => Redirect(routes.SubmitApplicationController.present())
+            case (_, _, true) => Redirect(routes.SubmitApplicationController.presentSubmit())
             case (_, true, _) => Redirect(routes.QuestionnaireController.presentThirdPage())
             case (true, _, _) => Redirect(routes.QuestionnaireController.presentSecondPage())
             case (_, _, _) => Redirect(routes.QuestionnaireController.presentFirstPage())
