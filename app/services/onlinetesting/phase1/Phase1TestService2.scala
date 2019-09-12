@@ -137,9 +137,6 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
         .getOrElse(throw CannotFindTestByOrderIdException(s"OrderId - $orderIdToReset"))
       _ = Logger.info(s"testToReset -- $testToReset")
 
-      // Send cancellation request
-      _ <- cancelPsiTest(application.applicationId, application.userId, orderIdToReset)
-
       // Create PsiIds to use for re-invitation
       psiIds = integrationGatewayConfig.phase1Tests.tests.find {
         case (_, ids) => ids.inventoryId == testToReset.inventoryId
@@ -233,7 +230,7 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
                             orderId: String): Future[AssessmentCancelAcknowledgementResponse] = {
     val req = CancelCandidateTestRequest(orderId)
     onlineTestsGatewayClient.psiCancelTest(req).map { response =>
-      Logger.debug(s"Response from cancellation for orderId=$orderId")
+      Logger.debug(s"Response from cancellation for orderId=$orderId is $response")
       if (response.status != AssessmentCancelAcknowledgementResponse.completedStatus) {
         Logger.debug(s"Cancellation failed with errors: ${response.details}")
         throw TestCancellationException(s"appId=$appId, orderId=$orderId")
