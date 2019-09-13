@@ -22,7 +22,7 @@
     if(isEdip(user)) {
         "Will you need any support?"
     } else {
-        "Will you need any support for your e-tray, video interview or numerical test?"
+        "Will you need any support for your work based scenarios, video interview or numerical test?"
     }
 }
 
@@ -52,7 +52,7 @@
     </section>
     @assistanceDetails.needsSupportForOnlineAssessment.map { needsSupportForOnlineAssessment =>
         <section>
-            <h3 class="heading-small">Will you need any support for your e-tray, video interview or numerical test?</h3>
+            <h3 class="heading-small">Will you need any support for your work based scenarios, video interview or numerical test?</h3>
             @needsSupportForOnlineAssessment match {
                 case true => {
                     <p id="needsSupportForOnlineAssessment">Yes</p>

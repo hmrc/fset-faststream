@@ -146,7 +146,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
     val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
 
     val phoneText = "Will you need any support for your phone interview?"
-    val onlineTestText = "Will you need any support for your e-tray, video interview or numerical test?"
+    val onlineTestText = "Will you need any support for your work based scenarios, video interview or numerical test?"
 
     class TestableAssistanceDetailsController extends AssistanceDetailsController(mockApplicationClient)
       with TestableSecureActions {

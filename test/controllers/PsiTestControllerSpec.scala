@@ -96,7 +96,7 @@ class PsiTestControllerSpec extends BaseControllerSpec {
       status(result) mustBe OK
       val content = contentAsString(result)
 
-      content must include("E-tray complete")
+      content must include("Work based scenarios complete")
     }
 
   }

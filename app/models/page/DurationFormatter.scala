@@ -38,9 +38,12 @@ trait DurationFormatter {
       .printZeroAlways()
       .appendDays()
       .appendSuffix(" day", " days")
-      .appendSeparator(" and ")
+      .appendSeparator(", ")
       .appendHours()
       .appendSuffix(" hour", " hours")
+      .appendSeparator(" and ")
+      .appendMinutes()
+      .appendSuffix(" minute", " minutes")
       .toFormatter
 
     periodFormat print period

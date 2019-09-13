@@ -639,7 +639,7 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     val phase1Test1ResultsReportLink = "<a href=\"http://phase1Test1Url.com\"" +
-      " target=\"_blank\" id=\"FSWorkStyleQuestionnairePart1LinkResultsReport\">Results report"
+      " target=\"_blank\" id=\"FSWorkStyleQuestionnairePart1LinkResultsReport\">Feedback report"
 
     def checkPhase1ResultsTitleAndLinks(content: String) = {
       content must include("Phase 1 results")
@@ -647,12 +647,12 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     def checkPhase1ResultsLinks(content: String) = {
-      content must include("<div>FS Work Style Questionnaire Part 1</div>")
+      content must include("<div>Work Style Questionnaire Part 1</div>")
       content must include(phase1Test1ResultsReportLink)
     }
 
     val phase2Test1ResultsReportLink = "<a href=\"http://phase2Test1Url.com\"" +
-      " target=\"_blank\" id=\"FSCaseStudyAssessmentLinkResultsReport\">Results report"
+      " target=\"_blank\" id=\"FSCaseStudyAssessmentLinkResultsReport\">Feedback report"
 
     def checkPhase2ResultsTitleAndLinks(content: String) = {
       content must include("Phase 2 results")
@@ -660,14 +660,14 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     def checkPhase2ResultsLinks(content: String) = {
-      content must include("<div>FS Case Study Assessment</div>")
+      content must include("<div>Case Study Assessment</div>")
       content must include(phase2Test1ResultsReportLink)
     }
 
     val phase3ResultsReportLink = "<a href=\"/fset-fast-stream/online-tests/phase3/feedback-report\"" +
-      " target=\"_blank\" id=\"phase3ResultsReportLink\" alt=\"Phase 3 results report\">"
+      " target=\"_blank\" id=\"phase3ResultsReportLink\" alt=\"Phase 3 feedback report\">"
     def checkPhase3ResultsTitleAndLinks(content: String) = {
-      content must include("Phase 3 results")
+      content must include("Phase 3 feedback")
       checkPhase3ResultsLink(content)
     }
 

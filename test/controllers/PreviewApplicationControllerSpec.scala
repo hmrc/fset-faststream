@@ -125,7 +125,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
 
   trait TestFixture {
     val phoneText = "Will you need any support for your phone interview?"
-    val onlineTestText = "Will you need any support for your e-tray, video interview or numerical test?"
+    val onlineTestText = "Will you need any support for your work based scenarios, video interview or numerical test?"
 
     val mockApplicationClient = mock[ApplicationClient]
     val mockSchemeClient = mock[SchemeClient]

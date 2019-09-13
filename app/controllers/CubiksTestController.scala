@@ -67,7 +67,7 @@ abstract class CubiksTestController(applicationClient: ApplicationClient)
   def completePhase2TestsByToken(token: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
     implicit user =>
       applicationClient.completeTestByToken(token).map { _ =>
-        Ok(views.html.application.onlineTests.etrayTestsComplete())
+        Ok(views.html.application.onlineTests.workBasedScenariosTestsComplete())
       }
   }
 

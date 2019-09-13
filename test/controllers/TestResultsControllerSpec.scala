@@ -39,7 +39,7 @@ class TestResultsControllerSpec extends BaseControllerSpec {
 
 
   "test results controller" should {
-    "display results links for the first 3 phases when the candidate has been invited to all 3 phases" in new TestFixture {
+    "display feedback report links for the first 3 phases when the candidate has been invited to all 3 phases" in new TestFixture {
       mockPhaseOneTwoThreeData(List(phase1Test1), List(phase2Test1))
 
       val appStatus = candWithApp.application.progress.copy(
@@ -52,7 +52,7 @@ class TestResultsControllerSpec extends BaseControllerSpec {
       checkAllResultsTitlesAndLinks(content)
     }
 
-    "display results links for the first 2 phases when the candidate has been invited to the first 2 phases" in new TestFixture {
+    "display feedback report links for the first 2 phases when the candidate has been invited to the first 2 phases" in new TestFixture {
       mockPhaseOneTwoThreeData(List(phase1Test1), List(phase2Test1))
 
       val appStatus = candWithApp.application.progress.copy(
@@ -67,7 +67,7 @@ class TestResultsControllerSpec extends BaseControllerSpec {
       content must not include phase3ResultsReportLink
     }
 
-    "display results links for the first phase when the candidate has only been invited to the first phase" in new TestFixture {
+    "display feedback report links for the first phase when the candidate has only been invited to the first phase" in new TestFixture {
       mockPhaseOneTwoThreeData(List(phase1Test1))
 
       val appStatus = candWithApp.application.progress
@@ -81,7 +81,7 @@ class TestResultsControllerSpec extends BaseControllerSpec {
       content must not include phase3ResultsReportLink
     }
 
-    "not display results links for the first phase when the candidate has not completed any tests" in new TestFixture {
+    "not display feedback report links for the first phase when the candidate has not completed any tests" in new TestFixture {
       mockPhaseOneTwoThreeData(List(phase1Test1NoResults))
 
       val appStatus = candWithApp.application.progress
@@ -90,7 +90,7 @@ class TestResultsControllerSpec extends BaseControllerSpec {
       status(result) mustBe OK
 
       content must include("Phase 1 results")
-      content must include("<div>FS Work Style Questionnaire Part 1</div>")
+      content must include("<div>Work Style Questionnaire Part 1</div>")
       content must not include phase1Test1ResultsReportLink
       content must not include "Phase 2 results"
       content must not include phase2Test1ResultsReportLink
@@ -109,10 +109,10 @@ class TestResultsControllerSpec extends BaseControllerSpec {
 
       content must include("No data found")
       content must not include "Phase 1 results"
-      content must not include "<div>FS Work Style Questionnaire Part 1</div>"
+      content must not include "<div>Work Style Questionnaire Part 1</div>"
       content must not include phase1Test1ResultsReportLink
       content must not include "Phase 2 results"
-      content must not include "<div>FS Case Study Assessment</div>"
+      content must not include "<div>Case Study Assessment</div>"
       content must not include phase2Test1ResultsReportLink
       content must not include "Phase 3 results"
       content must not include phase3ResultsReportLink
@@ -157,9 +157,9 @@ class TestResultsControllerSpec extends BaseControllerSpec {
     }
 
     val phase1Test1ResultsReportLink = "<a href=\"http://phase1Test1Url.com\"" +
-      " target=\"_blank\" id=\"FSWorkStyleQuestionnairePart1LinkResultsReport\">Results report"
+      " target=\"_blank\" id=\"FSWorkStyleQuestionnairePart1LinkResultsReport\">Feedback report"
     def checkPhase1ResultsLinks(content: String) = {
-      content must include("<div>FS Work Style Questionnaire Part 1</div>")
+      content must include("<div>Work Style Questionnaire Part 1</div>")
       content must include(phase1Test1ResultsReportLink)
     }
 
@@ -169,9 +169,9 @@ class TestResultsControllerSpec extends BaseControllerSpec {
     }
 
     val phase2Test1ResultsReportLink = "<a href=\"http://phase2Test1Url.com\"" +
-      " target=\"_blank\" id=\"FSCaseStudyAssessmentLinkResultsReport\">Results report"
+      " target=\"_blank\" id=\"FSCaseStudyAssessmentLinkResultsReport\">Feedback report"
     def checkPhase2ResultsLinks(content: String) = {
-      content must include("<div>FS Case Study Assessment</div>")
+      content must include("<div>Case Study Assessment</div>")
       content must include(phase2Test1ResultsReportLink)
     }
 
@@ -181,7 +181,7 @@ class TestResultsControllerSpec extends BaseControllerSpec {
     }
 
     val phase3ResultsReportLink = "<a href=\"/fset-fast-stream/online-tests/phase3/feedback-report\"" +
-      " target=\"_blank\" id=\"phase3ResultsReportLink\" alt=\"Phase 3 results report\">"
+      " target=\"_blank\" id=\"phase3ResultsReportLink\" alt=\"Phase 3 feedback report\">"
     def checkPhase3ResultsLink(content: String) = {
       content must include(phase3ResultsReportLink)
     }

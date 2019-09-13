@@ -21,15 +21,15 @@ import controllers.UnitSpec
 class AdjustmentsSpec extends UnitSpec {
 
   "Adjustments" should {
-    "be invigilated e-tray when it is approved" in {
+    "be invigilated Work based scenarios when it is approved" in {
       Adjustments(Some(List("etrayInvigilated")), Some(true)).isInvigilatedETrayApproved mustBe true
     }
 
-    "be not invigilated e-tray when it is not approved" in {
+    "be not invigilated Work based scenarios when it is not approved" in {
       Adjustments(Some(List("etrayInvigilated")), Some(false)).isInvigilatedETrayApproved mustBe false
     }
 
-    "be not invigilated e-tray when it is not present on the adjustments list" in {
+    "be not invigilated Work based scenarios when it is not present on the adjustments list" in {
       Adjustments(Some(List()), Some(true)).isInvigilatedETrayApproved mustBe false
     }
   }

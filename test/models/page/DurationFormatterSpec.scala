@@ -23,33 +23,33 @@ class DurationFormatterSpec extends PlaySpec {
 
   "Duration formatter" should {
     "return years, months, days and hours" in new TestFixture {
-      val futureDate = now.plusYears(50).plusMonths(7).plusDays(12).plusHours(1).plusMinutes(34)
+      val futureDate = now.plusYears(50).plusMonths(7).plusDays(12).plusHours(1).plusMinutes(34).plusSeconds(10)
       val result = durationFormatter.durationFromNow(futureDate)
-      result mustBe "50 years, 7 months, 12 days and 1 hour"
+      result mustBe "50 years, 7 months, 12 days, 1 hour and 34 minutes"
     }
 
     "return months, days and hours" in new TestFixture {
-      val futureDate = now.plusMonths(2).plusDays(3).plusHours(5).plusMinutes(59)
+      val futureDate = now.plusMonths(2).plusDays(3).plusHours(5).plusMinutes(59).plusSeconds(10)
       val result = durationFormatter.durationFromNow(futureDate)
-      result mustBe "2 months, 3 days and 5 hours"
+      result mustBe "2 months, 3 days, 5 hours and 59 minutes"
     }
 
     "return days and hours" in new TestFixture {
-      val futureDate = now.plusDays(10).plusHours(12).plusMinutes(30)
+      val futureDate = now.plusDays(10).plusHours(12).plusMinutes(30).plusSeconds(10)
       val result = durationFormatter.durationFromNow(futureDate)
-      result mustBe "10 days and 12 hours"
+      result mustBe "10 days, 12 hours and 30 minutes"
     }
 
     "return only hours" in new TestFixture {
-      val futureDate = now.plusHours(2).plusMinutes(30)
+      val futureDate = now.plusHours(2).plusMinutes(30).plusSeconds(10)
       val result = durationFormatter.durationFromNow(futureDate)
-      result mustBe "0 days and 2 hours"
+      result mustBe "0 days, 2 hours and 30 minutes"
     }
 
     "return 0 days and hours if there is less than 1 day" in new TestFixture {
-      val futureDate = now.plusMinutes(4)
+      val futureDate = now.plusMinutes(4).plusSeconds(10)
       val result = durationFormatter.durationFromNow(futureDate)
-      result mustBe "0 days and 0 hours"
+      result mustBe "0 days, 0 hours and 4 minutes"
     }
   }
 

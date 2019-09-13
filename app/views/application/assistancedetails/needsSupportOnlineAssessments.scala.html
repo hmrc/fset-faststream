@@ -21,13 +21,13 @@
 
 <section>
     <fieldset class="form-group">
-        <legend><h2 class="form-label">Will you need any support for your e-tray, video interview or numerical test?</h2></legend>
+        <legend><h2 class="form-label">Will you need any support for your work based scenarios, video interview or numerical test?</h2></legend>
         <p class="form-hint text">For example, a request for reasonable adjustments such as extra time for those with dyslexia</p>
         @radioBoxHorizontal(form("needsSupportForOnlineAssessment"), options = List(("yes", "Yes", true), ("no", "No", false)),
         optionTrigger = "needsSupportForOnlineAssessment-describe")
         <div id="needsSupportForOnlineAssessment-describe" class="toggle-content" aria-hidden="true">
             <div class="form-group">
-                <label for="needsSupportForOnlineAssessmentDescription" class="form-label">What adjustments will you need <span class='visuallyhidden'>for your e-tray, video interview or numerical test</span>?</label>
+                <label for="needsSupportForOnlineAssessmentDescription" class="form-label">What adjustments will you need <span class='visuallyhidden'>for your work based scenarios, video interview or numerical test</span>?</label>
                 @helper.textarea(form("needsSupportForOnlineAssessmentDescription"),
                 '_label -> "",
                 'class -> "form-control",

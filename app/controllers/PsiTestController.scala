@@ -106,7 +106,7 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
           if(incompleteTestsExists(testGroup.activeTests)) {
             Ok(views.html.application.onlineTests.continueTests(testCompletedName))
           } else {
-            Ok(views.html.application.onlineTests.etrayTestsComplete())
+            Ok(views.html.application.onlineTests.workBasedScenariosTestsComplete())
           }
         }
       }.recover {
