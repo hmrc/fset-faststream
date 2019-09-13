@@ -55,7 +55,7 @@
         @if(requiresInvigilatedETray) {
             @invigilatedETraySection()
         } else {
-            <p id="etrayDescription" class="">This section is timed, after starting the section you'll have 80 minutes to complete it. If we've agreed you require extra time, this will be added to the 80 minutes.</p>
+            <p id="etrayDescription" class="">These tests are both timed, after starting each one, you will have 90 minutes to complete that test. If we've agreed you require extra time, this will be added to the 90 minutes for each test.</p>
             <p id="etrayTime" class="no-btm-margin">
                 You have <strong>@{ phase2Test.getDuration }</strong> to finish the e-tray.
             </p>
@@ -77,7 +77,6 @@
                         }
                     }
                 }
-                <p>(You'll have 80 minutes to finish) <br> If we've agreed you require extra time, this will be added to the 80 minutes.</p>
             </div>
         }
     </div>
@@ -97,18 +96,18 @@
     <p>Before you take the e-tray we need to contact you to confirm your requested extra support.</p>
 }
 
+@generatePsiTestId(psiTestPage: PsiTestPage) = {@Messages(psiTestPage.testNameKey).replace(" ", "").concat("LinkResultsReport")}
+
+@displayTestPageLink(psiTestPage: PsiTestPage, testName: String) = {
+    @psiTestPage.testReportUrl.map { reportUrl =>
+        <a href="@reportUrl" target="_blank" id="@generatePsiTestId(psiTestPage)">Results report <span class="visuallyhidden">for @testName (opens pdf document in a new window)</span></a>
+    }
+}
+
 @displayPhase1TestResultsLinks(testsPage: Phase1TestsPage2) = {
     @testsPage.tests.map { psiTestPage =>
         <div>@Messages(psiTestPage.testNameKey)</div>
         <div>@displayTestPageLink(psiTestPage, Messages(psiTestPage.testNameKey))</div>
-    }
-}
-
-@generatePsiTestId(psiTestPage: PsiTestPage) = {@Messages(psiTestPage.testNameKey).replace(" ", "").concat("LinkResultsReport")}
-
-@displayTestPageLink(testPage: PsiTestPage, testName: String) = {
-    @testPage.testReportUrl.map { reportUrl =>
-        <a href="@reportUrl" target="_blank" id="@generatePsiTestId(testPage)">Results report <span class="visuallyhidden">for @testName (opens pdf document in a new window)</span></a>
     }
 }
 
@@ -223,6 +222,7 @@
                                 <li>
                                     <i class="fa fa-minus the-icon"></i>
                                     <div>@Messages(phase1Test.testNameKey)</div>
+                                    <div>@Messages(phase1Test.testDescriptionKey)</div>
                                     <div>@displayTestPageLink(phase1Test, Messages(phase1Test.testNameKey))</div>
                                 </li>
                             }
@@ -242,7 +242,6 @@
                                 }
                             }
                         }
-                        <p>(Should take about an hour to finish both exercises)</p>
                     </div>
                 </li>
             }

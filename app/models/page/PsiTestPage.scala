@@ -24,6 +24,7 @@ case class PsiTestPage(orderId: String,
                        started: Boolean = false,
                        completed: Boolean = false) {
   def testNameKey = s"tests.inventoryid.name.$inventoryId"
+  def testDescriptionKey = s"tests.inventoryid.description.$inventoryId"
 }
 
 object PsiTestPage {
