@@ -27,6 +27,7 @@ import model.{ ApplicationStatus, _ }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.Format
+import reactivemongo.api.Cursor.FailOnError
 import reactivemongo.api.{ DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONDocumentReader, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -41,6 +42,8 @@ import scala.concurrent.Future
 
 trait ReportingRepository {
   def adjustmentReport(frameworkId: String): Future[List[AdjustmentReportItem]]
+
+  def fastPassAwaitingAcceptanceReport: Future[List[(String, String)]]
 
   def candidateProgressReport(frameworkId: String): Future[List[CandidateProgressReportItem]]
 
@@ -75,6 +78,8 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
     CreateApplicationRequest.createApplicationRequestFormat, ReactiveMongoFormats.objectIdFormats) with ReportingRepository
     with RandomSelection with CommonBSONDocuments with ReportingRepoBSONReader with ReactiveRepositoryHelpers {
+
+  private val unlimitedMaxDocs = -1
 
   override def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReportItem]] =
     candidateProgressReport(BSONDocument("$and" -> BSONArray(
@@ -263,6 +268,30 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     )
 
     reportQueryWithProjectionsBSON[ApplicationForOnlineTestPassMarkReport](query, projection)
+  }
+
+  override def fastPassAwaitingAcceptanceReport: Future[List[(String, String)]] = {
+    val query = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationStatus" -> BSONDocument("$eq" -> ApplicationStatus.SUBMITTED)),
+      BSONDocument("civil-service-experience-details.fastPassReceived" -> BSONDocument("$eq" -> true)),
+      BSONDocument("civil-service-experience-details.fastPassAccepted" -> BSONDocument("$exists" -> false))
+    ))
+
+    val projection = BSONDocument(
+      "applicationId" -> true,
+      "civil-service-experience-details.certificateNumber" -> true
+    )
+
+    collection.find(query, projection).cursor[BSONDocument]()
+      .collect[List](unlimitedMaxDocs, FailOnError[List[BSONDocument]]()).map { docList =>
+      docList.map { doc =>
+        val app = doc.getAs[String]("applicationId").get
+        val cert = doc.getAs[BSONDocument]("civil-service-experience-details").map { doc =>
+          doc.getAs[String]("certificateNumber").get
+        }.getOrElse("Not found")
+        app -> cert // Tuple
+      }
+    }
   }
 
   //scalastyle:off method.length
