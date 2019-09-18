@@ -494,6 +494,21 @@ trait ReportingController extends BaseController {
     }
   }
 
+  def fastPassAwaitingAcceptanceReport(): Action[AnyContent] = Action.async { implicit request =>
+    val reports =
+      for {
+        data <- reportingRepository.fastPassAwaitingAcceptanceReport
+      } yield {
+        data.map {
+          case (appId, cert) => FastPassAwaitingAcceptanceReportItem(appId, cert)
+        }
+      }
+
+    reports.map { list =>
+      Ok(Json.toJson(list))
+    }
+  }
+
   def candidateProgressReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     val candidatesFut: Future[List[CandidateProgressReportItem]] = reportingRepository.candidateProgressReport(frameworkId)
 
