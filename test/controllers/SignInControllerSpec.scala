@@ -130,7 +130,8 @@ class SignInControllerSpec extends BaseControllerSpec {
 
       status(result) mustBe OK
       val content = contentAsString(result)
-      content must include ("You don't have access to this application.")
+      val apostropheEncoded = "&#x27;"
+      content must include (s"You don${apostropheEncoded}t have access to this application.")
     }
 
     "show invalid credentials message if invalid credentials are passed" in new TestFixture {
