@@ -171,7 +171,7 @@ class EvaluatePhase1ResultService2Spec extends BaseServiceSpec {
     val fourTests = twoTests :+ thirdPsiTest :+ fourthPsiTest
 
     def testIds(idx: Int): PsiTestIds =
-      PsiTestIds(s"inventory-id-$idx", Option(s"assessment-id-$idx"), Option(s"report-id-$idx"), Option(s"norm-id-$idx"))
+      PsiTestIds(s"inventory-id-$idx", s"assessment-id-$idx", s"report-id-$idx", s"norm-id-$idx")
 
     val tests = Map[String, PsiTestIds](
       "test1" -> testIds(1),

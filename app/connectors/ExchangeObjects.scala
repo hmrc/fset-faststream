@@ -58,9 +58,9 @@ object ExchangeObjects {
                                       preferredName: String,
                                       lastName: String,
                                       redirectionUrl: String,
-                                      assessmentId: Option[String] = None,
-                                      reportId: Option[String] = None,
-                                      normId: Option[String] = None,
+                                      assessmentId: String, // Read from config to identify the test we are registering for
+                                      reportId: String, // Read from config to identify the test we are registering for
+                                      normId: String, // Read from config to identify the test we are registering for
                                       adjustment: Option[TestAdjustment] = None)
 
   object RegisterCandidateRequest {

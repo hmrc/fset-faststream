@@ -137,7 +137,7 @@ class EvaluatePhase2ResultService2Spec extends BaseServiceSpec {
     val mockTestIntegrationGatewayConfig = mock[TestIntegrationGatewayConfig]
 
     def testIds(idx: Int): PsiTestIds =
-      PsiTestIds(s"inventoryId$idx", Option(s"assessmentId$idx"), Option(s"reportId$idx"), Option(s"normId$idx"))
+      PsiTestIds(s"inventoryId$idx", s"assessmentId$idx", s"reportId$idx", s"normId$idx")
 
     val tests = Map[String, PsiTestIds](
       "test1" -> testIds(5),

@@ -43,11 +43,18 @@ trait Phase2TestsInvitedStatusGenerator extends ConstructiveGenerator {
   val otRepository: Phase2TestRepository2
   val onlineTestGatewayConfig: TestIntegrationGatewayConfig
 
+  //scalastyle:off method.length
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
     val psiTests = onlineTestGatewayConfig.phase2Tests.standard.map { testName =>
-      (testName, onlineTestGatewayConfig.phase2Tests.tests(testName).inventoryId)
-    }.map { case (testName, inventoryId) =>
+      (
+        testName,
+        onlineTestGatewayConfig.phase2Tests.tests(testName).inventoryId,
+        onlineTestGatewayConfig.phase2Tests.tests(testName).assessmentId,
+        onlineTestGatewayConfig.phase2Tests.tests(testName).reportId,
+        onlineTestGatewayConfig.phase2Tests.tests(testName).normId
+      )
+    }.map { case (testName, inventoryId, assessmentId, reportId, normId) =>
       val orderId = java.util.UUID.randomUUID.toString
       val test = PsiTest(
         inventoryId = inventoryId,
@@ -62,7 +69,10 @@ trait Phase2TestsInvitedStatusGenerator extends ConstructiveGenerator {
           } else {
             None
           }
-        }
+        },
+        assessmentId = assessmentId,
+        reportId = reportId,
+        normId = normId
       )
       test
     }
@@ -86,6 +96,7 @@ trait Phase2TestsInvitedStatusGenerator extends ConstructiveGenerator {
       ), accessCode = onePsiTest.invigilatedAccessCode)
     }
   }
+  //scalastyle:on
 
   def isInvigilated(adjustments: Adjustments) = {
     val isConfirmed = adjustments.adjustmentsConfirmed.contains(true)
