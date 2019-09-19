@@ -44,6 +44,9 @@ object Phase2TestProfileExamples {
     PsiTest(
       inventoryId = "inventoryId5",
       orderId = "orderId5",
+      assessmentId = "assessmentId5",
+      reportId = "reportId5",
+      normId = "normId5",
       usedForResults = true,
       testUrl = "http://localhost",
       invitationDate = now,

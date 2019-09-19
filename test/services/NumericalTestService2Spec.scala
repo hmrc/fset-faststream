@@ -58,7 +58,7 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
     val now: DateTime = DateTime.now
     val inventoryIds: Map[String, String] = Map[String, String]("test1" -> "test1-uuid")
     def testIds(idx: Int): PsiTestIds =
-      PsiTestIds(s"inventory-id-$idx", Option(s"assessment-id-$idx"), Option(s"report-id-$idx"), Option(s"norm-id-$idx"))
+      PsiTestIds(s"inventory-id-$idx", s"assessment-id-$idx", s"report-id-$idx", s"norm-id-$idx")
 
     val tests: Map[String, PsiTestIds] = Map[String, PsiTestIds](
       "test1" -> testIds(1),
@@ -159,7 +159,8 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
 
     //TODO: take a closer look at the NotImplementedError
     "throw an exception if no SIFT_PHASE test group is found and the tests have already been populated" in new TestFixture {
-      val test = PsiTest(inventoryId = "inventoryUuid", orderId = "inventoryUuid", usedForResults = true,
+      val test = PsiTest(inventoryId = "inventoryUuid", orderId = "orderUuid", assessmentId = "assessmentUuid",
+        reportId = "reportUuid", normId = "normUuid", usedForResults = true,
         testUrl = authenticateUrl, invitationDate = DateTimeFactory.nowLocalTimeZone)
 
       val siftTestGroup = SiftTestGroup2(expirationDate = DateTime.now(), tests = Some(List(test)))
@@ -282,7 +283,8 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
     "handle not finding the test group when checking to update the progress status" in new TestFixture {
       when(mockSiftRepo.getApplicationIdForOrderId(any[String])).thenReturnAsync(appId)
 
-      val numericTestCompleted = PsiTest(inventoryId = uuid, orderId = orderId, usedForResults = true,
+      val numericTestCompleted = PsiTest(inventoryId = uuid, orderId = orderId, assessmentId = uuid, reportId = uuid,
+        normId = uuid, usedForResults = true,
         testUrl = authenticateUrl, invitationDate = DateTime.parse("2016-05-11"), completedDateTime = Some(DateTime.now))
 
       val maybeSiftTestGroupWithAppId2 = MaybeSiftTestGroupWithAppId2(
@@ -307,7 +309,8 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
     "process the real time results and update the progress status" in new TestFixture {
       when(mockSiftRepo.getApplicationIdForOrderId(any[String])).thenReturnAsync(appId)
 
-      val numericTestCompletedWithScores = PsiTest(inventoryId = uuid, orderId = orderId, usedForResults = true,
+      val numericTestCompletedWithScores = PsiTest(inventoryId = uuid, orderId = orderId, assessmentId = uuid, reportId = uuid,
+        normId = uuid, usedForResults = true,
         testUrl = authenticateUrl, invitationDate = DateTime.parse("2016-05-11"), completedDateTime = Some(now),
         testResult = Some(PsiTestResult(tScore = 20.0, rawScore = 40.0, testReportUrl = None))
       )
@@ -334,7 +337,8 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
     "process the real time results, mark the test as completed and update the progress status" in new TestFixture {
       when(mockSiftRepo.getApplicationIdForOrderId(any[String])).thenReturnAsync(appId)
 
-      val numericTestNotCompletedWithScores = PsiTest(inventoryId = uuid, orderId = orderId, usedForResults = true,
+      val numericTestNotCompletedWithScores = PsiTest(inventoryId = uuid, orderId = orderId, assessmentId = uuid, reportId = uuid,
+        normId = uuid, usedForResults = true,
         testUrl = authenticateUrl, invitationDate = DateTime.parse("2016-05-11"),
         testResult = Some(PsiTestResult(tScore = 20.0, rawScore = 40.0, testReportUrl = None))
       )
@@ -344,7 +348,8 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
         expirationDate = now,
         tests = Some(List(numericTestNotCompletedWithScores)))
 
-      val numericTestCompletedWithScores = PsiTest(inventoryId = uuid, orderId = orderId, usedForResults = true,
+      val numericTestCompletedWithScores = PsiTest(inventoryId = uuid, orderId = orderId, assessmentId = uuid, reportId = uuid,
+        normId = uuid, usedForResults = true,
         testUrl = authenticateUrl, invitationDate = DateTime.parse("2016-05-11"), completedDateTime = Some(now),
         testResult = Some(PsiTestResult(tScore = 20.0, rawScore = 40.0, testReportUrl = None))
       )

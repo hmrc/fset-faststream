@@ -37,6 +37,9 @@ object Phase1TestExamples {
     PsiTest(
       inventoryId = "inventoryId1",
       orderId = "orderId1",
+      assessmentId = "assessmentId1",
+      reportId = "reportId1",
+      normId = "normId1",
       usedForResults = true,
       testUrl = "http://localhost",
       invitationDate = now,

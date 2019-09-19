@@ -60,7 +60,7 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
   "test4"->"test4-uuid")
 
   def testIds(idx: Int): PsiTestIds =
-    PsiTestIds(s"inventory-id-$idx", Option(s"assessment-id-$idx"), Option(s"report-id-$idx"), Option(s"norm-id-$idx"))
+    PsiTestIds(s"inventory-id-$idx", s"assessment-id-$idx", s"report-id-$idx", s"norm-id-$idx")
 
   val tests = Map[String, PsiTestIds](
     "test1" -> testIds(1),
@@ -117,8 +117,8 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
   val startedDate = invitationDate.plusDays(1)
   val expirationDate = invitationDate.plusDays(5)
 
-  val phase1Test = PsiTest(inventoryId = uuid, orderId = uuid, usedForResults = true,
-  testUrl = authenticateUrl, invitationDate = invitationDate)
+  val phase1Test = PsiTest(inventoryId = uuid, orderId = uuid, assessmentId = uuid, reportId = uuid, normId = uuid,
+    usedForResults = true, testUrl = authenticateUrl, invitationDate = invitationDate)
 
   val phase1TestProfile = Phase1TestProfile2(expirationDate, List(phase1Test))
 
