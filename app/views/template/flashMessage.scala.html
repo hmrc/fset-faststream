@@ -22,6 +22,14 @@ This template will render a panel on the top of the screen to show some notifica
 on the key of the notification. To create a notification you need to pass a tuple ok key -> value e.g.
 *@
 
+@displayMessage(message: String) = {
+    @if(message.toLowerCase.contains("<script>")) {
+        @{message} @*Use the twirl encoding mechanism to escape the xss attempt*@
+    } else {
+        @Html(message) @*No script tags so do not escape the html and render it as is*@
+    }
+}
+
 @renderMsg(notificationType: NotificationType, message: String) = {
     @if( message == "feedback") {
         <div class="panel-@notificationType.key">
@@ -33,7 +41,7 @@ on the key of the notification. To create a notification you need to pass a tupl
         </div>
     } else {
         <div class="panel-@notificationType.key">
-            <p id="panel-@notificationType.key" class="text">@{message}</p>
+            <p id="panel-@notificationType.key" class="text">@displayMessage(message)</p>
         </div>
     }
 }
