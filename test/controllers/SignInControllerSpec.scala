@@ -130,8 +130,27 @@ class SignInControllerSpec extends BaseControllerSpec {
 
       status(result) mustBe OK
       val content = contentAsString(result)
+      content must include ("You don't have access to this application.")
+    }
+
+    "handle cross site scripting xss attempt in the flash cookie" in new TestFixture {
+      when(mockCredentialsProvider.authenticate(any())(any())).thenReturn(Future.successful(Left(InvalidRole)))
+
+      val signInRequestWithXssFlashCookie = signInRequest.withFlash(
+        "danger" -> "Some text<script>alert('XSS within PLAY_FLASH cookie')</script>)"
+      )
+
+      val result = signInController.signIn(signInRequestWithXssFlashCookie)
+
+      status(result) mustBe OK
+      val content = contentAsString(result)
+      content must include ("You don't have access to this application.")
       val apostropheEncoded = "&#x27;"
-      content must include (s"You don${apostropheEncoded}t have access to this application.")
+      val lessThanEncoded = "&lt;"
+      val greaterThanEncoded = "&gt;"
+      val expectedEscapedText = s"Some text${lessThanEncoded}script${greaterThanEncoded}" +
+        s"alert(${apostropheEncoded}XSS within PLAY_FLASH cookie${apostropheEncoded})${lessThanEncoded}/script${greaterThanEncoded})"
+      content must include (expectedEscapedText)
     }
 
     "show invalid credentials message if invalid credentials are passed" in new TestFixture {
