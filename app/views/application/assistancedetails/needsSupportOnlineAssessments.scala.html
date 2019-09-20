@@ -20,21 +20,21 @@
 @import views.html.widgets.radioBoxHorizontal
 
 <section>
-    <fieldset class="form-group">
+    <fieldset>
         <legend><h2 class="form-label">Will you need any support for your work based scenarios, video interview or numerical test?</h2></legend>
         <p class="form-hint text">For example, a request for reasonable adjustments such as extra time for those
             with dyslexia. Please note that work based scenarios and numerical tests are untimed tests.</p>
         @radioBoxHorizontal(form("needsSupportForOnlineAssessment"), options = List(("yes", "Yes", true), ("no", "No", false)),
-        optionTrigger = "needsSupportForOnlineAssessment-describe")
+            optionTrigger = "needsSupportForOnlineAssessment-describe", isCompound = true)
         <div id="needsSupportForOnlineAssessment-describe" class="toggle-content" aria-hidden="true">
             <div class="form-group">
                 <label for="needsSupportForOnlineAssessmentDescription" class="form-label">What adjustments will you need <span class='visuallyhidden'>for your work based scenarios, video interview or numerical test</span>?</label>
                 @helper.textarea(form("needsSupportForOnlineAssessmentDescription"),
-                '_label -> "",
-                'class -> "form-control",
-                'rows -> 4,
-                'dataValLengthMax -> "2048",
-                '_showConstraints -> false)
+                    '_label -> "",
+                    'class -> "form-control",
+                    'rows -> 4,
+                    'dataValLengthMax -> "2048",
+                    '_showConstraints -> false)
                 <span class="visuallyhidden aria-limit" aria-live="polite"></span>
             </div>
             <div class="panel-indent text">

@@ -20,30 +20,32 @@
 @import views.html.widgets.{radioBox, radioBoxHorizontal}
 
 <section>
-    <fieldset class="form-group">
+    <fieldset>
         <legend><h2 class="form-label">Do you consider yourself to have a disability?</h2></legend>
         @radioBoxHorizontal(form("hasDisability"), options = List(("yes", "Yes", true), ("no", "No", false),
             ("preferNotToSay", "I don't know/prefer not to say", false)), optionTrigger = "hasDisability-describe")
-        <div class="toggle-content form-group form-group-compound" id="hasDisability-describe">
-            @helper.textarea(form("hasDisabilityDescription"),
-            '_label -> "Provide more information (optional)",
-            '_labelClass -> "form-hint",
-            'class -> "form-control",
-            'rows -> 4,
-            'dataValLengthMax -> "2048",
-            '_showConstraints -> false)
-            <div class="panel-indent text">
-              <p>If you require any assistance or reasonable adjustments, for example access ramps or extra time, use the extra support sections to list them out.</p>
-            </div>
-            <div class="clearfix">
-                <fieldset>
-                    <legend><h2 class="form-label">Would you like to apply under the guaranteed interview scheme?</h2></legend>
-                    <p class="form-hint">Find out <a href="https://www.gov.uk/government/publications/civil-service-fast-stream-promoting-diversity-and-inclusion/civil-service-fast-stream-promoting-diversity-and-inclusion"
-                    rel="external" target="_blank">more about this <span class="visuallyhidden">guaranteed interview </span> scheme (link opens new
-                        window)</a></p>
-                    @radioBox(form("guaranteedInterview"), options = Seq("Yes" -> "Yes", "No" -> "No"))
-                </fieldset>
-            </div>
+        <div id="hasDisability-describe" class="toggle-content" aria-hidden="true">
+            <div class="form-group">
+                @helper.textarea(form("hasDisabilityDescription"),
+                    '_label -> "Provide more information (optional)",
+                    '_labelClass -> "form-hint",
+                    'class -> "form-control",
+                    'rows -> 4,
+                    'dataValLengthMax -> "2048",
+                    '_showConstraints -> false)
+                </div>
+                <div class="panel-indent text">
+                  <p>If you require any assistance or reasonable adjustments, for example access ramps or extra time, use the extra support sections to list them out.</p>
+                </div>
+                <div>
+                    <fieldset>
+                        <legend><h2 class="form-label">Would you like to apply under the guaranteed interview scheme?</h2></legend>
+                        <p class="form-hint">Find out <a href="https://www.gov.uk/government/publications/civil-service-fast-stream-promoting-diversity-and-inclusion/civil-service-fast-stream-promoting-diversity-and-inclusion"
+                        rel="external" target="_blank">more about this <span class="visuallyhidden">guaranteed interview </span> scheme (link opens new
+                            window)</a></p>
+                        @radioBox(form("guaranteedInterview"), options = Seq("Yes" -> "Yes", "No" -> "No"))
+                    </fieldset>
+                </div>
         </div>
     </fieldset>
 </section>

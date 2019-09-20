@@ -22,7 +22,7 @@
 @import views.html.widgets.radioBoxHorizontal
 
 <section>
-    <fieldset class="form-group">
+    <fieldset>
         <legend><h2 class="form-label">Will you need any support for your phone interview?</h2></legend>
         @radioBoxHorizontal(form("needsSupportForPhoneInterview"), options = List(("yes", "Yes", true), ("no", "No", false)),
             optionTrigger = "needsSupportForOnlineAssessment-describe")

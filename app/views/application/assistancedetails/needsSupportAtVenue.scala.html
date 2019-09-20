@@ -20,11 +20,11 @@
 @import views.html.widgets.radioBoxHorizontal
 
 <section>
-    <fieldset class="form-group">
+    <fieldset>
         <legend><h2 class="form-label">Will you need any support at the assessment centre?</h2></legend>
         <p class="form-hint text">For example, a request for reasonable adjustments such as a qualified signer for those with hearing difficulties</p>
         @radioBoxHorizontal(form("needsSupportAtVenue"), options = List(("yes", "Yes", true), ("no", "No", false)),
-            optionTrigger = "needsSupportAtVenue-describe")
+            optionTrigger = "needsSupportAtVenue-describe", isCompound = true)
         <div id="needsSupportAtVenue-describe" class="toggle-content" aria-hidden="true">
             <div class="form-group">
                 <label for="needsSupportAtVenueDescription" class="form-label">What adjustments will you need <span
