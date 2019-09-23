@@ -26,8 +26,8 @@
 @edipOpen = @{ (appRouteConfigMap.get(Edip).forall(_.newAccountsStarted) && appRouteConfigMap.get(Edip).forall(_.newAccountsEnabled)) || validAfterDeadlineSubmissionCode }
 @sdipOpen = @{ (appRouteConfigMap.get(Sdip).forall(_.newAccountsStarted) && appRouteConfigMap.get(Sdip).forall(_.newAccountsEnabled)) || validAfterDeadlineSubmissionCode }
 
-@edipUrl = @{ "https://www.faststream.gov.uk/media/1310/edip-eligibility-pdf.pdf" }
-@sdipUrl = @{ "https://www.faststream.gov.uk/media/1311/sdip-eligibility-pdf.pdf" }
+@edipUrl = @{ "https://www.faststream.gov.uk/edip-am-i-eligible" }
+@sdipUrl = @{ "https://www.faststream.gov.uk/sdip-am-i-eligible" }
 
 <section class="section-border clearfix" id="routeElig">
     <div class="text">
@@ -63,7 +63,7 @@
                     You can also apply to be considered for the
                     <a href="@sdipUrl" target="_blank">
                         Summer Diversity Internship Programme (SDIP)
-                        <span class="visuallyhidden">.pdf (link opens new window)</span>
+                        <span class="visuallyhidden">(link opens new window)</span>
                     </a>,
                     if you're eligible.
                 </div>
@@ -80,7 +80,7 @@
                         <li>I'm in the final 2 years at university</li>
                         <li>I qualify to apply according to the
                             <a href="@sdipUrl" rel="external" target="_blank">
-                                eligibility requirements<span class="visuallyhidden"> for SDIP.pdf (link opens new window)</span>
+                                eligibility requirements<span class="visuallyhidden"> for SDIP (link opens new window)</span>
                             </a>
                         </li>
                     </ul>
@@ -113,7 +113,7 @@
                     <li>
                         I qualify to apply according to the
                             <a href="@edipUrl" rel="external" target="_blank">
-                                eligibility requirements<span class="visuallyhidden"> for EDIP.pdf (link opens new window)
+                                eligibility requirements<span class="visuallyhidden"> for EDIP (link opens new window)
                             </a>
                     </li>
                 </ul>
@@ -135,7 +135,7 @@
                     <li>I'm in the final 2 years at university</li>
                     <li>I qualify to apply according to the
                         <a href="@sdipUrl" rel="external" target="_blank">
-                            eligibility requirements<span class="visuallyhidden"> for SDIP.pdf (link opens new window)</span>
+                            eligibility requirements<span class="visuallyhidden"> for SDIP (link opens new window)</span>
                         </a>
                     </li>
                 </ul>
