@@ -31,7 +31,6 @@ abstract class SessionController extends BaseController {
   def extendIdleTimeout: Action[AnyContent] = CSRUserAwareAction {
     implicit request =>
       implicit user =>
-        val result = user.map(_ => Ok).getOrElse(NotFound)
-        Future.successful(result)
+        Future.successful(Ok)
   }
 }
