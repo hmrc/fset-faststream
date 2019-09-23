@@ -109,6 +109,25 @@
 
                 <main role="main" id="main">
                     @mainContent
+                    <div class="modal" id="modal" role="alert">
+                        <div class="modal__box">
+                            <div class="modal__header"></div>
+                            <div class="modal__body">
+                                <div class="govuk-warning-text">
+                                    <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+                                    <strong class="govuk-warning-text__text">
+                                        <span class="govuk-warning-text__assistive">Warning</span>
+                                        <p>Your secure session will expire in <br> <b class="modal__time-left">5 minutes</b>.</p>
+                                    </strong>
+                                </div>
+                                <p class="centred-on-desktop">Would you like to remain logged on?</p>
+                                <div class="modal__buttons">
+                                    <button class="button button--modal-yes">Yes</button>
+                                    <button class="button button--modal-no">No</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </main>
             </div>
                 <!-- Footer -->

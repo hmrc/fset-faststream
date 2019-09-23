@@ -1057,37 +1057,96 @@ $(function() {
   });
 });
 
+$(function () {
+  'use strict';
 
-var extendTimeoutInterval;
+  var TIMES = [{
+    message: '1 minute', // time left until expiry
+    delay: 1740000 // 29 mins in milliseconds
+  }, {
+    message: 'RELOAD',
+    delay: 70000
+  }];
 
-$(document).ready(function () {
-  /* TODO: Ideally we need a better way of checking if the user is signed-in and only in that case, extend the idle timeout, we can
-   use cookies, url, etc. */
-  renewSession()
-});
+  var messageTimes = window.MODAL_TIMES || TIMES;
+  var timerIndex = 0;
+  var isShown = false;
+  var timer = null;
 
-function renewSession() {
-  $.ajax({
-    type: "GET",
-    url: "/fset-fast-stream/extendIdleTimeout",
-    cache: false,
-    async: true,
-    complete: function (xhr, status) {
-      // When user is logged-in
-      if (xhr.status !== 404) {
-        // TODO: If we do not answer the pop up, it will keep asking the question anyway
-        // We will probably not use pop ups for this anyway, therefore there maybe a trick to find out
-        // if the new "pop-up" is displayed or not and therefore make decissions based on that.
-        extendTimeoutInterval = setInterval(shouldRenewSession, 1680000);
-      }
-    }
+  var $el = document.querySelector('#modal');
+  var $yesButton = $el.querySelector('.button--modal-yes');
+  var $noButton = $el.querySelector('.button--modal-no');
+  var $timeLeft = $el.querySelector('.modal__time-left');
+  var $htmlEl = document.querySelector('html');
+
+  $($noButton).on('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    hide();
   });
-}
 
-function shouldRenewSession() {
-  if (confirm('Do you want to renew the session?')) {
-    renewSession()
-  } else {
-    clearInterval(extendTimeoutInterval);
+  $($yesButton).on('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    hide();
+
+    extendSession();
+  });
+
+  function hide() {
+    $htmlEl.className = $htmlEl.className.replace(' show-modal', ' ');
+    isShown = false;
   }
-}
+
+  function show() {
+    if ($htmlEl.className.indexOf('show-modal') < 0) {
+      $htmlEl.className += ' show-modal';
+    }
+    isShown = true;
+  }
+
+  function handleTimer() {
+    if (timerIndex + 1 < messageTimes.length) {
+      $timeLeft.innerText = messageTimes[timerIndex].message;
+      show();
+
+      startTimer(messageTimes[++timerIndex].delay);
+    } else {
+      location.reload(true);
+    }
+  }
+
+  function startTimer(delay) {
+    if (timer) {
+      clearTimer(timer);
+    }
+
+    timer = window.setTimeout(handleTimer, delay);
+  }
+
+  function clearTimer(timer) {
+    if (timer) {
+      window.clearTimeout(timer);
+    }
+  }
+
+  function extendSession() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/fset-fast-stream/extendIdleTimeout', true);
+
+    $(xhr).on('readystatechange', function() {
+      if (xhr.readyState !== 4) {
+        return;
+      }
+
+      if (xhr.status === 200) {
+        timerIndex = 0;
+        startTimer(messageTimes[timerIndex].delay);
+      }
+    });
+
+    xhr.send();
+  }
+
+  startTimer(messageTimes[timerIndex].delay);
+});
