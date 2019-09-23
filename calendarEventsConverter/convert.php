@@ -10,8 +10,8 @@ $csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2019-
 // Use LibreOffice to open the Excel spreadsheet from the business, which contains 2 tabs: newcastle and london
 // Save the newcastle tab as newcastle.csv and the london tab as london.csv
 // Use LibreOffice so the correct Unix line endings are generated when saving as csv
-// if you need to debug set the following on line 43:
-// $debug = true;
+// if you need to debug run as follows:
+// convert.php debug
 //
 // you usually need to check that all the skills specified in the spreadsheet are handled by the converter
 // if any line has no skills specified we report an error to stdout eg.
@@ -41,7 +41,7 @@ $csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2019-
 // hit the backend directly:
 // http POST :8101/candidate-application/events/save
 
-$debug = false;
+$debug = $argc == 2 && strtolower($argv[1]) == "debug";
 
 function venueNameToToken($venueName) {
     if ($venueName == 'Tyne View Park Newcastle') {
