@@ -37,7 +37,7 @@
         <section>
             <div class="text">
                 <fieldset>
-                    <legend> <h2 class="form-label">@Messages("socioEconomic.question")</h2></legend>
+                    <legend><h2 class="form-label">@Messages("socioEconomic.question")</h2></legend>
                     @radioBoxHorizontal(questionnaireForm("socioEconomicBackground"), options = SimpleAnswerOptions.list)
                 </fieldset>
             </div>
@@ -66,28 +66,28 @@
 
         <section class="hidingContent initiallyHidden" id="employedContent" data-requiredifshown data-optional>
             <section>
-                <fieldset>
-                    <legend><h2 class="form-label">@Messages("employee.question")</h2></legend>
+                    <fieldset>
+                        <legend><h2 class="form-label">@Messages("employee.question")</h2></legend>
                     <div class="form-group inline">
                         @radioBoxVertical(questionnaireForm("employee"), options = models.view.questionnaire.Employees.list)
                     </div>
-                </fieldset>
+                    </fieldset>
             </section>
 
             <section>
-                <fieldset>
-                    <legend><h2 class="form-label">@Messages("organizationSize.question")</h2></legend>
+                    <fieldset>
+                        <legend><h2 class="form-label">@Messages("organizationSize.question")</h2></legend>
                     <div class="form-group inline">
                         @radioBoxVertical(questionnaireForm("organizationSize"), options = models.view.questionnaire.OrganizationSizes.list)
                     </div>
-                </fieldset>
+                    </fieldset>
             </section>
 
             <section>
-                <fieldset>
-                    <legend><h2 class="form-label">@Messages("supervise.question")</h2></legend>
+                    <fieldset>
+                        <legend><h2 class="form-label">@Messages("supervise.question")</h2></legend>
                     @radioBoxHorizontal(questionnaireForm("supervise"), options = SimpleAnswerOptions.list)
-                </fieldset>
+                    </fieldset>
             </section>
 
         </section>

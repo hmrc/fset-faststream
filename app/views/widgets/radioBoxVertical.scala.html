@@ -21,8 +21,10 @@
 
 @helper.input(field, '_class -> (if(isCompound) "form-group-compound" else "no-btm-margin")) { (id, name, value, args) =>
     @for((key, displayText, shouldTrigger)  <- options){
+        <div>
             <label for="@createId(id, key)" class="block-label" @if(shouldTrigger){ data-target="@optionTrigger"}>
                 <input name="@name" type="radio" id="@createId(id, key)" value="@displayText" @(if(value.contains(displayText)) "checked" else "")>@displayText
             </label>
+        </div>
     }
 }

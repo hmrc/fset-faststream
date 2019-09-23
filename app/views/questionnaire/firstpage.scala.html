@@ -38,17 +38,17 @@
         @helper.CSRF.formField
         <section>
             <fieldset class="form-group">
-                <legend><h2 class="form-label" id="gender-ques">@Messages("gender.question")</h2></legend>
-                @radioBoxVertical(questionnaireForm("gender"), options = models.view.questionnaire.Genders.list, optionTrigger = "gender-describe")
-                <div class="toggle-content form-group form-group-compound" id="gender-describe">
-                @helper.inputText(questionnaireForm("other_gender"),
-                    '_label -> "Provide more information (optional)",
-                    '_labelClass -> "form-hint",
-                    'class -> "form-control",
-                    '_showConstraints -> false,
-                    'optional -> "")
-                </div>
-            </fieldset>
+                    <legend><h2 class="form-label" id="gender-ques">@Messages("gender.question")</h2></legend>
+                    @radioBoxVertical(questionnaireForm("gender"), options = models.view.questionnaire.Genders.list, optionTrigger = "gender-describe")
+                    <div class="toggle-content form-group form-group-compound" id="gender-describe">
+                    @helper.inputText(questionnaireForm("other_gender"),
+                        '_label -> "Provide more information (optional)",
+                        '_labelClass -> "form-hint",
+                        'class -> "form-control",
+                        '_showConstraints -> false,
+                        'optional -> "")
+                    </div>
+                </fieldset>
         </section>
 
         <section>
