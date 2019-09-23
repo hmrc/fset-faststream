@@ -1074,24 +1074,27 @@ $(function () {
   var timer = null;
 
   var $el = document.querySelector('#modal');
-  var $yesButton = $el.querySelector('.button--modal-yes');
-  var $noButton = $el.querySelector('.button--modal-no');
-  var $timeLeft = $el.querySelector('.modal__time-left');
-  var $htmlEl = document.querySelector('html');
+  if ($el) {
+    var $yesButton = $el.querySelector('.button--modal-yes');
+    var $noButton = $el.querySelector('.button--modal-no');
+    var $timeLeft = $el.querySelector('.modal__time-left');
+    var $htmlEl = document.querySelector('html');
 
-  $($noButton).on('click', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    hide();
-  });
+    startTimer(messageTimes[timerIndex].delay);
 
-  $($yesButton).on('click', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    hide();
+    $($noButton).on('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      hide();
+    });
+    $($yesButton).on('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      hide();
 
-    extendSession();
-  });
+      extendSession();
+    });
+  }
 
   function hide() {
     $htmlEl.className = $htmlEl.className.replace(' show-modal', ' ');
