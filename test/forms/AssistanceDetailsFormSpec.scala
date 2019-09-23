@@ -40,7 +40,7 @@ class AssistanceDetailsFormSpec extends UnitWithAppSpec {
 
     "be invalid when the form is invalid" in new Fixture {
       assertFormError(Seq(
-        "Tell us if you wish to apply under the Guaranteed interview scheme"
+        "Tell us if you wish to apply under the Disability Confident scheme"
       ), AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsMap - "guaranteedInterview")
     }
 
