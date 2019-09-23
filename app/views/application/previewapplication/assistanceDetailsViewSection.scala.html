@@ -34,10 +34,10 @@
     <section>
         <h3 class="heading-small">Do you consider yourself to have a disability?</h3>
         <p id="hasDisability">@assistanceDetails.hasDisability</p>
-        @if(assistanceDetails.hasDisability)  {
+        @if(assistanceDetails.hasDisability) {
         <p id="hasDisabilityDescription">@assistanceDetails.hasDisabilityDescription</p>
         @assistanceDetails.guaranteedInterview.map { gis =>
-        <h3 class="heading-small">Would you like to apply under the guaranteed interview scheme?</h3>
+        <h3 class="heading-small">Would you like to apply under the Disability Confident scheme?</h3>
         <p id="guaranteedInterview">
             @{
                 if(gis) {

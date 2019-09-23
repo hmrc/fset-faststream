@@ -119,7 +119,7 @@ error.needsEdipCompleted.required = Tell us if you have completed EDIP
 #assistance
 error.hasDisability.required=Tell us if you consider yourself to have a disability
 error.hasDisabilityDescription.required=
-error.guaranteedInterview.required = Tell us if you wish to apply under the Guaranteed interview scheme
+error.guaranteedInterview.required = Tell us if you wish to apply under the Disability Confident scheme
 error.needsSupportForOnlineAssessment.required = Tell us if you will need any support for your online tests
 error.needsSupportForOnlineAssessmentDescription.required = Tell us what adjustments you need for your online tests
 error.needsSupportForOnlineAssessmentDescription.maxLength = You have exceeded the maximum number of characters allowed (2048) for extra online tests support description
