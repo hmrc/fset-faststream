@@ -18,7 +18,7 @@ package repositories
 
 object CollectionNames {
 
-  val suffixForThisCampaign = "20test"
+  val suffixForThisCampaign = "20"
 
   val APPLICATION = s"application$suffixForThisCampaign"
   val ASSESSOR_ASSESSMENT_SCORES = s"assessor-assessment-scores$suffixForThisCampaign"
