@@ -12642,44 +12642,6 @@
       endTime: 17:05
 
 - eventType: FSB
-  description: EAC
-  location: Newcastle
-  venue: NEWCASTLE_FSAC
-  date: 2020-02-06
-  capacity: 36
-  minViableAttendees: 12
-  attendeeSafetyMargin: 2
-  startTime: 09:30
-  endTime: 17:20
-  skillRequirements:
-    EAC_ASSESSOR: 24
-  sessions:
-    - description: Session 1
-      capacity: 12
-      minViableAttendees: 6
-      attendeeSafetyMargin: 6
-      startTime: 08:30
-      endTime: 11:35
-    - description: Session 2
-      capacity: 12
-      minViableAttendees: 6
-      attendeeSafetyMargin: 6
-      startTime: 10:15
-      endTime: 13:35
-    - description: Session 3
-      capacity: 12
-      minViableAttendees: 6
-      attendeeSafetyMargin: 6
-      startTime: 12:00
-      endTime: 15:20
-    - description: Session 4
-      capacity: 12
-      minViableAttendees: 6
-      attendeeSafetyMargin: 6
-      startTime: 13:50
-      endTime: 17:05
-
-- eventType: FSB
   description: ORAC
   location: Newcastle
   venue: NEWCASTLE_FSAC
