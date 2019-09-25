@@ -47,90 +47,35 @@
     </fieldset>
 
     <div class="toggle-content form-group form-group-compound" id="faststream-elig-describe">
-            @if(faststreamOpen) {
-                <div class="text">
-                    <h3 class="heading-medium">Confirm the following statements are true</h3>
-                </div>
-                <ul class="para-btm-margin text">
-                    <li>I'm <a href="https://www.faststream.gov.uk/faqs/" target="_blank" rel="external">eligible to work in the UK(link opens new window)</a></li>
-                    <li>I have a relevant degree or qualify as a current civil servant</li>
-                    <li>I meet my schemes eligibility requirements</li>
-                </ul>
-                @yesNoQuestion(form("faststreamEligible"), question = "Are you eligible to apply for the Civil Service Fast Stream?",
-                noMessage = Some("You must be eligible to apply for the Civil Service Fast Stream."))
+        @if(faststreamOpen) {
+            <div class="text">
+                <h3 class="heading-medium">Confirm the following statements are true</h3>
+            </div>
+            <ul class="para-btm-margin text">
+                <li>I'm <a href="https://www.faststream.gov.uk/faqs/" target="_blank" rel="external">eligible to work in the UK(link opens new window)</a></li>
+                <li>I have a relevant degree or qualify as a current civil servant</li>
+                <li>I meet my schemes eligibility requirements</li>
+            </ul>
+            @yesNoQuestion(form("faststreamEligible"), question = "Are you eligible to apply for the Civil Service Fast Stream?",
+            noMessage = Some("You must be eligible to apply for the Civil Service Fast Stream."))
 
-                <div class="panel-indent text">
-                    You can also apply to be considered for the
-                    <a href="@sdipUrl" target="_blank">
-                        Summer Diversity Internship Programme (SDIP)
-                        <span class="visuallyhidden">(link opens new window)</span>
-                    </a>,
-                    if you're eligible.
-                </div>
+            <div class="panel-indent text">
+                You can also apply to be considered for the
+                <a href="@sdipUrl" target="_blank">
+                    Summer Diversity Internship Programme (SDIP)
+                    <span class="visuallyhidden">(link opens new window)</span>
+                </a>,
+                if you're eligible.
+            </div>
 
 
-                @yesNoRadioWithTogglePanel(form("sdipFastStreamConsider"),
-                                                 '_label -> "Do you want to be considered for SDIP?") {
+            @yesNoRadioWithTogglePanel(form("sdipFastStreamConsider"),
+                                             '_label -> "Do you want to be considered for SDIP?") {
 
-                <div id="sdipFastStreamConsider-panel-yes" class="toggle-content">
-                @if(appRouteConfigMap.get(Sdip).forall(_.newAccountsStarted) && appRouteConfigMap.get(Sdip).forall(_.newAccountsEnabled)) {
-                    <h3 class="heading-medium">To be considered for SDIP, confirm the following statements are true</h3>
-                    <ul id="sdipFaststream-eligibility-list" class="para-btm-margin text">
-                        <li>I'm either from a Black, Asian and Minority Ethnic (BAME) or socially/economically disadvantaged background, or have a disability</li>
-                        <li>I'm in the final 2 years at university</li>
-                        <li>I qualify to apply according to the
-                            <a href="@sdipUrl" rel="external" target="_blank">
-                                eligibility requirements<span class="visuallyhidden"> for SDIP (link opens new window)</span>
-                            </a>
-                        </li>
-                    </ul>
-
-                        @yesNoQuestion(form("sdipFastStreamEligible"), question = "Are you eligible to apply for the Summer Diversity Internship Programme (SDIP)?",
-                                       noMessage = Some("You must be eligible to apply for the Summer Diversity Internship Programme."))
-
-                    } else {
-                        <div class="panel-info standard-panel">
-                            <p class="text">Unfortunately, applications for the Summer Diversity Internship Programme are now closed.</p>
-                        </div>
-                    }
-                    </div>
-                }
-
-            } else {
-                <div class="panel-info standard-panel">
-                    <p class="text">Unfortunately, applications for the Civil Service Fast Stream are now closed.</p>
-                </div>
-            }
-        </div>
-        <div class="toggle-content form-group form-group-compound" id="edip-elig-describe">
-            @if(edipOpen) {
-                <div class="text">
-                    <h2 class="heading-medium">Confirm the following statements are true</h2>
-                </div>
-                <ul id="edip-eligibility-list" class="para-btm-margin text">
-                    <li>I'm either from a Black, Asian and Minority Ethnic (BAME) or socially/economically disadvantaged background, or have a disability</li>
-                    <li>I'm in the first year at university</li>
-                    <li>
-                        I qualify to apply according to the
-                            <a href="@edipUrl" rel="external" target="_blank">
-                                eligibility requirements<span class="visuallyhidden"> for EDIP (link opens new window)
-                            </a>
-                    </li>
-                </ul>
-                @yesNoQuestion(form("edipEligible"), question = "Are you eligible to apply for the Early Diversity Internship Programme (EDIP)?",
-                    noMessage = Some("You must be eligible to apply for the Early Diversity Internship Programme."))
-            } else {
-                <div class="panel-info standard-panel">
-                    <p class="text">Unfortunately, applications for the Early Diversity Internship Programme are now closed.</p>
-                </div>
-            }
-        </div>
-        <div class="toggle-content form-group form-group-compound" id="sdip-elig-describe">
-            @if(sdipOpen) {
-                <div class="text">
-                    <h2 class="heading-medium">Confirm the following statements are true</h2>
-                </div>
-                <ul id="sdip-eligibility-list" class="para-btm-margin text">
+            <div id="sdipFastStreamConsider-panel-yes" class="toggle-content">
+            @if(appRouteConfigMap.get(Sdip).forall(_.newAccountsStarted) && appRouteConfigMap.get(Sdip).forall(_.newAccountsEnabled)) {
+                <h3 class="heading-medium">To be considered for SDIP, confirm the following statements are true</h3>
+                <ul id="sdipFaststream-eligibility-list" class="para-btm-margin text">
                     <li>I'm either from a Black, Asian and Minority Ethnic (BAME) or socially/economically disadvantaged background, or have a disability</li>
                     <li>I'm in the final 2 years at university</li>
                     <li>I qualify to apply according to the
@@ -139,12 +84,66 @@
                         </a>
                     </li>
                 </ul>
-                    @yesNoQuestion(form("sdipEligible"), question = "Are you eligible to apply for the Summer Diversity Internship Programme (SDIP)?",
+
+                    @yesNoQuestion(form("sdipFastStreamEligible"), question = "Are you eligible to apply for the Summer Diversity Internship Programme (SDIP)?",
                                    noMessage = Some("You must be eligible to apply for the Summer Diversity Internship Programme."))
-            } else {
-                <div class="panel-info standard-panel">
-                    <p class="text">Unfortunately, applications for the Summer Diversity Internship Programme are now closed.</p>
+
+                } else {
+                    <div class="panel-info standard-panel">
+                        <p class="text">Unfortunately, applications for the Summer Diversity Internship Programme are now closed.</p>
+                    </div>
+                }
                 </div>
             }
+        } else {
+            <div class="panel-info standard-panel">
+                <p class="text">Unfortunately, applications for the Civil Service Fast Stream are now closed.</p>
+            </div>
+        }
+    </div>
+    <div class="toggle-content form-group form-group-compound" id="edip-elig-describe">
+        @if(edipOpen) {
+            <div class="text">
+                <h2 class="heading-medium">Confirm the following statements are true</h2>
+            </div>
+            <ul id="edip-eligibility-list" class="para-btm-margin text">
+                <li>I'm either from a Black, Asian and Minority Ethnic (BAME) or socially/economically disadvantaged background, or have a disability</li>
+                <li>I'm in the first year at university</li>
+                <li>
+                    I qualify to apply according to the
+                        <a href="@edipUrl" rel="external" target="_blank">
+                            eligibility requirements<span class="visuallyhidden"> for EDIP (link opens new window)
+                        </a>
+                </li>
+            </ul>
+            @yesNoQuestion(form("edipEligible"), question = "Are you eligible to apply for the Early Diversity Internship Programme (EDIP)?",
+                noMessage = Some("You must be eligible to apply for the Early Diversity Internship Programme."))
+        } else {
+            <div class="panel-info standard-panel">
+                <p class="text">Unfortunately, applications for the Early Diversity Internship Programme are now closed.</p>
+            </div>
+        }
+    </div>
+    <div class="toggle-content form-group form-group-compound" id="sdip-elig-describe">
+        @if(sdipOpen) {
+            <div class="text">
+                <h2 class="heading-medium">Confirm the following statements are true</h2>
+            </div>
+            <ul id="sdip-eligibility-list" class="para-btm-margin text">
+                <li>I'm either from a Black, Asian and Minority Ethnic (BAME) or socially/economically disadvantaged background, or have a disability</li>
+                <li>I'm in the final 2 years at university</li>
+                <li>I qualify to apply according to the
+                    <a href="@sdipUrl" rel="external" target="_blank">
+                        eligibility requirements<span class="visuallyhidden"> for SDIP (link opens new window)</span>
+                    </a>
+                </li>
+            </ul>
+                @yesNoQuestion(form("sdipEligible"), question = "Are you eligible to apply for the Summer Diversity Internship Programme (SDIP)?",
+                               noMessage = Some("You must be eligible to apply for the Summer Diversity Internship Programme."))
+        } else {
+            <div class="panel-info standard-panel">
+                <p class="text">Unfortunately, applications for the Summer Diversity Internship Programme are now closed.</p>
+            </div>
+        }
     </div>
 </section>
