@@ -42,7 +42,7 @@
 }
 
 @invigilatedETraySection() = {
-    <p>We're arranging for you to come in and take an invigilated Work based scenarios.</p>
+    <p>We're arranging for you to come in and take an invigilated work based scenarios.</p>
     <p>You'll be contacted by a member of our team with further details.</p>
 }
 
@@ -56,7 +56,7 @@
             @invigilatedETraySection()
         } else {
             <p id="etrayTime" class="no-btm-margin">
-                You have <strong>@{ phase2Test.getDuration }</strong> to finish the Work based scenarios.
+                You have <strong>@{ phase2Test.getDuration }</strong> to finish the work based scenarios.
             </p>
             <p id="etrayExpires">
                 They expire at <strong id="etrayExpiryTime">@{ phase2Test.getExpireTimeLondon }</strong> on <strong id="etrayExpiryDate">
@@ -228,7 +228,7 @@
                             }
                         }
                     </ul>
-                    <p id="testsTime">You have <strong>@{ phase1TestsPage.getDuration }</strong> to finish the online exercises</p>
+                    <p id="testsTime">You have <strong>@{ phase1TestsPage.getDuration }</strong> to finish the online exercises.</p>
                     <p id="testsExpire">
                         They expire at <strong id="onlineTestExpiryTime">@{ phase1TestsPage.getExpireTimeLondon }</strong> on
                             <strong id="onlineTestExpiryDate">@{ phase1TestsPage.getExpireDateLondon }</strong>.
@@ -409,7 +409,7 @@
                                         <p id="videoDescription" class="">Each of your answers is timed, although you can take a
                                             break in-between questions if needed.</p>
                                         <p id="videoTime" class="">You have <strong>@{ phase3TestsPage.getDuration }</strong> to finish
-                                            the video interview
+                                            the video interview.
                                         </p>
                                         <p id="videoExpires">
                                             It expires at <strong id="videoExpiryTime">@{ phase3TestsPage.getExpireTimeLondon }</strong> on
