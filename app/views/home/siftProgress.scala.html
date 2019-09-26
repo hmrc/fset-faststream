@@ -41,10 +41,10 @@
                 <li><i class="fa fa-minus the-icon"></i>
                     <a href="@routes.SiftQuestionsController.presentSchemeForm(curSiftableScheme.id)" id="@generateId(curSiftableScheme.id.value)">@{
                         curSiftableScheme.name
-                        }</a>
+                        } <span class="visuallyhidden"> additional questions </span></a>
                     <span class="font-xsmall">(in this section, you'll be assessed with one or more questions)</span></li>
                 }
-                <li><i class="fa fa-minus the-icon"></i><a href="@routes.SiftQuestionsController.presentPreview()" id="previewSiftQuestions">Preview before you submit</a></li>
+                <li><i class="fa fa-minus the-icon"></i><a href="@routes.SiftQuestionsController.presentPreview()" id="previewSiftQuestions">Preview<span class="visuallyhidden"> additional questions</span> before you submit</a></li>
             </ul>
         } else {
             <div data-extrainfopanel=""><p>You've submitted all the required information.</p></div>

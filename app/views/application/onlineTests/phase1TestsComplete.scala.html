@@ -32,9 +32,9 @@
             </div>
         </div>
     @if(user.isDefined){
-        <a href="@routes.HomeController.present()" class="button">Continue</a>
+        <a href="@routes.HomeController.present()" class="button">Continue<span class="visuallyhidden"> to the home page</span></a>
     } else {
-        <a href="@routes.SignInController.signIn" class="button">Continue</a>
+        <a href="@routes.SignInController.signIn" class="button">Continue<span class="visuallyhidden"> to the sign in page</span></a>
     }
     </section>
 }

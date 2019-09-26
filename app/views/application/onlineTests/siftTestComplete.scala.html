@@ -29,7 +29,7 @@
                 <p>Once we have assessed your results we'll send you an email letting you know
                     the outcome. Make sure you check your junk inbox.</p>
                 @if(user.isDefined) {
-                    <a href="@routes.HomeController.present()" class="button">Continue</a>
+                    <a href="@routes.HomeController.present()" class="button">Continue<span class="visuallyhidden"> to the home page</span></a>
                     <p>Finished with the service? <a href="@routes.SignInController.signOut">Sign out</a></p>
                 } else {
                     <p>You've been signed out. <a href="@routes.SignInController.signIn">Sign in</a>
