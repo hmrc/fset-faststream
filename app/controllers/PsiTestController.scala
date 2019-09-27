@@ -72,14 +72,8 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
 
   def completePhase1Tests(orderId: UniqueIdentifier): Action[AnyContent] = CSRUserAwareAction { implicit request =>
     implicit user =>
-      val appId = user.flatMap { data =>
-        data.application.map { application =>
-          application.applicationId
-        }
-      }.getOrElse(throw new Exception("Unable to find applicationId for this candidate."))
-
       applicationClient.completeTestByOrderId(orderId).flatMap { _ =>
-        applicationClient.getPhase1TestProfile2(appId).map { testGroup =>
+        applicationClient.getPhase1TestGroupWithNames2ByOrderId(orderId).map { testGroup =>
           val testCompleted = testGroup.activeTests.find(_.orderId == orderId)
             .getOrElse(throw new Exception(s"Test not found for OrderId $orderId"))
           val testCompletedName = Messages(s"tests.inventoryid.name.${testCompleted.inventoryId}")
@@ -90,6 +84,10 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
             Ok(views.html.application.onlineTests.phase1TestsComplete())
           }
         }
+      }.recover {
+        case ex: Throwable =>
+          Logger.warn("Exception when completing phase 1 tests", ex)
+          InternalServerError(s"Unable to complete phase 1 test for orderId=$orderId because ${ex.getMessage}")
       }
   }
 
@@ -113,8 +111,7 @@ abstract class PsiTestController(applicationClient: ApplicationClient) extends B
         case ex: Throwable =>
           Logger.warn("Exception when completing phase 2 tests", ex)
           InternalServerError(s"Unable to complete phase 2 test for orderId=$orderId because ${ex.getMessage}")
-  }
-
+      }
 }
 
   def completeSiftTest(orderId: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
