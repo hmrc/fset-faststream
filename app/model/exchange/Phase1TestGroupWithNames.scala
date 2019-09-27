@@ -26,6 +26,7 @@ object Phase1TestGroupWithNames {
   implicit val phase1TestGroupWithNamesFormat = Json.format[Phase1TestGroupWithNames]
 }
 
+//TODO: Isn't this Phase1ActiveTests?
 case class Phase1TestGroupWithNames2(expirationDate: DateTime, activeTests: Seq[PsiTest])
 
 object Phase1TestGroupWithNames2 {
