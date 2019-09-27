@@ -282,6 +282,16 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     }
   }
 
+  def getTestGroupByOrderId(orderId: String): Future[Phase1TestGroupWithNames2] = {
+    for {
+      phase1 <- testRepository2.getTestGroupByOrderId(orderId)
+    } yield
+      Phase1TestGroupWithNames2(
+        phase1.testGroup.expirationDate,
+        phase1.testGroup.tests
+      )
+  }
+
   //TODO: these 2 methods need optimising (just copied across from cubiks impl)
   def markAsCompleted2(orderId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     testRepository2.getTestProfileByOrderId(orderId).flatMap { p =>

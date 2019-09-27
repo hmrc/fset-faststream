@@ -17,7 +17,7 @@
 package controllers
 
 import model.ApplicationStatus._
-import model.Exceptions.ExpiredTestForTokenException
+import model.Exceptions.{ CannotFindTestByOrderIdException, ExpiredTestForTokenException }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.command.{ InvigilatedTestUrl, ResetOnlineTest, ResetOnlineTest2, VerifyAccessCode }
 import org.joda.time.DateTime
@@ -123,9 +123,19 @@ trait OnlineTestController extends BaseController {
     }
   }
 
+  def getPhase1OnlineTestByOrderId(orderId: String) = Action.async { implicit request =>
+    phase1TestService2.getTestGroupByOrderId(orderId).map { phase1TestGroupWithNames =>
+      Ok(Json.toJson(phase1TestGroupWithNames))
+    }.recover {
+      case _: CannotFindTestByOrderIdException =>
+        Logger.debug(s"No phase 1 tests found for orderId '$orderId'")
+        NotFound
+    }
+  }
+
   def getPhase2OnlineTestByOrderId(orderId: String) = Action.async { implicit request =>
     phase2TestService2.getTestGroupByOrderId(orderId) map {
-      case Some(phase2TestGroupWithNames) => Ok(Json.toJson(phase2TestGroupWithNames))
+      case Some(phase2TestGroupWithActiveTest) => Ok(Json.toJson(phase2TestGroupWithActiveTest))
       case None => Logger.debug(s"No phase 2 tests found for orderId '$orderId'")
         NotFound
     }
