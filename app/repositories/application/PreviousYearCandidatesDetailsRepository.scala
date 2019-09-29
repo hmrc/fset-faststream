@@ -97,7 +97,7 @@ trait PreviousYearCandidatesDetailsRepository {
     "E-Tray time extension,E-Tray invigilated,E-Tray invigilated notes,E-Tray other notes,Video time extension,Video invigilated,Video invigilated notes," +
     "Video other notes,Additional comments,Adjustments confirmed,"
 
-  def applicationDetailsHeader(numOfSchemes: Int) = "applicationId,userId,Framework ID,Application Status,Route,First name,Last name,Preferred Name,Date of Birth," +
+  def applicationDetailsHeader(numOfSchemes: Int) = "applicationId,userId,testAccountId,Framework ID,Application Status,Route,First name,Last name,Preferred Name,Date of Birth," +
     "Are you eligible,Terms and Conditions," +
     "Currently a Civil Servant done SDIP or EDIP,Currently Civil Servant,Currently Civil Service via Fast Track," +
     "EDIP,SDIP,Eligible for Fast Pass,Fast Pass No,Scheme preferences,Scheme names,Are you happy with order,Are you eligible," +
@@ -265,6 +265,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
         val csvContent = makeRow(
           List(applicationIdOpt) :::
             List(doc.getAs[String]("userId")) :::
+            List(doc.getAs[String]("testAccountId")) :::
             List(doc.getAs[String]("frameworkId")) :::
             List(doc.getAs[String]("applicationStatus")) :::
             List(doc.getAs[String]("applicationRoute")) :::
