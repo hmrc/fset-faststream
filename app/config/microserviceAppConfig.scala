@@ -101,6 +101,7 @@ case class PsiTestIds(inventoryId: String, assessmentId: String,
                       reportId: String, normId: String)
 
 case class Phase1TestsConfig2(expiryTimeInDays: Int,
+                              testRegistrationDelayInSecs: Int,
                               tests: Map[String, PsiTestIds],
                               standard: List[String],
                               gis: List[String])

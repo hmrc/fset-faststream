@@ -181,7 +181,8 @@ class EvaluatePhase1ResultService2Spec extends BaseServiceSpec {
     )
 
     val mockPhase1TestConfig = Phase1TestsConfig2(
-      5, tests, List("test1", "test2", "test2", "test4"), List("test1", "test4")
+      expiryTimeInDays = 5, testRegistrationDelayInSecs = 1, tests, standard = List("test1", "test2", "test3", "test4"),
+      gis = List("test1", "test4")
     )
     when(mockTestIntegrationGatewayConfig.phase1Tests).thenReturn(mockPhase1TestConfig)
 
