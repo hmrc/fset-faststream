@@ -68,10 +68,12 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
     )
 
     val mockPhase1TestConfig = Phase1TestsConfig2(
-      5, tests, List("test1", "test2", "test3", "test4"), List("test1", "test4")
+      expiryTimeInDays = 5, testRegistrationDelayInSecs = 1, tests, standard = List("test1", "test2", "test3", "test4"),
+      gis = List("test1", "test4")
     )
+
     val mockPhase2TestConfig = Phase2TestsConfig2(
-      5, 90, tests, List("test1", "test4")
+      expiryTimeInDays = 5, expiryTimeInDaysForInvigilatedETray = 90, tests, standard = List("test1", "test2")
     )
 
     val mockNumericalTestsConfig2 = NumericalTestsConfig2(tests, List("test1"))

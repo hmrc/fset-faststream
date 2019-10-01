@@ -71,7 +71,6 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
   val testRepository2: Phase1TestRepository2
   val onlineTestsGatewayClient: OnlineTestsGatewayClient
   val integrationGatewayConfig: TestIntegrationGatewayConfig
-  val delaySecsBetweenRegistrations = 1
 
   override def registerAndInvite(applications: List[OnlineTestApplication])
                                 (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
@@ -101,7 +100,7 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     val registerCandidate = FutureEx.traverseToTry(scheduleNames.zipWithIndex) {
       case (testName, delayModifier) =>
         val testIds = testIdsByName(testName)
-      val delay = (delayModifier * delaySecsBetweenRegistrations).second
+      val delay = (delayModifier * integrationGatewayConfig.phase1Tests.testRegistrationDelayInSecs).second
         akka.pattern.after(delay, actor.scheduler) {
           Logger.debug(s"Phase1TestService - about to call registerPsiApplicant with testIds - $testIds")
           registerPsiApplicant(application, testIds, invitationDate)
