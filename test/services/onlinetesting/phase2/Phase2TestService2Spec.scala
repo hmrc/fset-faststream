@@ -19,7 +19,7 @@ package services.onlinetesting.phase2
 import akka.actor.ActorSystem
 import config._
 import connectors.ExchangeObjects.{ toString => _, _ }
-import connectors.{ CSREmailClient, OnlineTestsGatewayClient }
+import connectors.{ CSREmailClient, OnlineTestEmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Commands.PostCode
 import model.Exceptions._
@@ -103,7 +103,7 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
   }
 
   "Invite applicants to PHASE 2" must {
-    "save tests for a candidate after registration" in new Phase2TestServiceFixture {
+    "save tests for a candidate after registration and send no email" in new Phase2TestServiceFixture {
       when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile))
       when(otRepositoryMock2.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup2])).thenReturnAsync()
       when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
@@ -113,6 +113,22 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
 
       verify(otRepositoryMock2, times(4)).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup2])
       verify(onlineTestsGatewayClientMock, times(4)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      verify(emailClientMock, never()).sendOnlineTestInvitation(anyString(), anyString(), any[DateTime])(any[HeaderCarrier])
+      verify(auditServiceMock, never()).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
+    }
+
+    "save tests for a candidate after registration and send emails" in new Phase2TestServiceFixture {
+      when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfileWithNoTest))
+      when(otRepositoryMock2.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup2])).thenReturnAsync()
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+        .thenReturnAsync(aoa)
+
+      phase2TestService.registerAndInvite(List(onlineTestApplication)).futureValue
+
+      verify(otRepositoryMock2, times(2)).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup2])
+      verify(onlineTestsGatewayClientMock, times(2)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      verify(emailClientMock, atLeastOnce()).sendOnlineTestInvitation(anyString(), anyString(), any[DateTime])(any[HeaderCarrier])
+      verify(auditServiceMock, atLeastOnce()).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
     }
   }
 
@@ -231,7 +247,6 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
     }
   }
-
 
   "mark as started" should {
     "change progress to started" in new Phase2TestServiceFixture {
@@ -500,6 +515,7 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
     val otRepositoryMock2 = mock[Phase2TestRepository2]
     val onlineTestsGatewayClientMock = mock[OnlineTestsGatewayClient]
     val emailClientMock = mock[CSREmailClient]
+    val otEmailClientMock = mock[OnlineTestEmailClient]
     val auditServiceMock = mock[AuditService]
     val tokenFactoryMock = mock[UUIDFactory]
     val phase3TestServiceMock = mock[Phase3TestService]
@@ -535,6 +551,8 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
     val phase2TestProfile = Phase2TestGroup2(expirationDate,
       List(phase2Test, phase2Test.copy(inventoryId = uuid))
     )
+
+    val phase2TestProfileWithNoTest = Phase2TestGroup2(expirationDate, Nil)
 
     val phase2CompletedTestGroupWithAppId: Phase2TestGroupWithAppId2 = Phase2TestGroupWithAppId2(
       applicationId,
