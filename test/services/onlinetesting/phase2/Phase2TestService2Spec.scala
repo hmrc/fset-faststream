@@ -19,7 +19,7 @@ package services.onlinetesting.phase2
 import akka.actor.ActorSystem
 import config._
 import connectors.ExchangeObjects.{ toString => _, _ }
-import connectors.{ CSREmailClient, OnlineTestsGatewayClient }
+import connectors.{ CSREmailClient, OnlineTestEmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Commands.PostCode
 import model.Exceptions._
@@ -551,6 +551,7 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
     val otRepositoryMock2 = mock[Phase2TestRepository2]
     val onlineTestsGatewayClientMock = mock[OnlineTestsGatewayClient]
     val emailClientMock = mock[CSREmailClient]
+    val otEmailClientMock = mock[OnlineTestEmailClient]
     val auditServiceMock = mock[AuditService]
     val tokenFactoryMock = mock[UUIDFactory]
     val phase3TestServiceMock = mock[Phase3TestService]
@@ -586,6 +587,8 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
     val phase2TestProfile = Phase2TestGroup2(expirationDate,
       List(phase2Test, phase2Test.copy(inventoryId = uuid))
     )
+
+    val phase2TestProfileWithNoTest = Phase2TestGroup2(expirationDate, Nil)
 
     val phase2CompletedTestGroupWithAppId: Phase2TestGroupWithAppId2 = Phase2TestGroupWithAppId2(
       applicationId,
