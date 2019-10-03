@@ -117,8 +117,10 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
       verify(auditServiceMock, never()).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
     }
 
-    "save tests for a candidate after registration and send emails" in new Phase2TestServiceFixture {
-      when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfileWithNoTest))
+    "save tests for a candidate after registration and send ONE email" in new Phase2TestServiceFixture {
+      when(otRepositoryMock2.getTestGroup(any[String]))
+        .thenReturnAsync(Some(phase2TestProfileWithNoTest))
+        .thenReturnAsync(Some(phase2TestProfile))
       when(otRepositoryMock2.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup2])).thenReturnAsync()
       when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
         .thenReturnAsync(aoa)
@@ -127,8 +129,8 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
 
       verify(otRepositoryMock2, times(2)).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup2])
       verify(onlineTestsGatewayClientMock, times(2)).psiRegisterApplicant(any[RegisterCandidateRequest])
-      verify(emailClientMock, atLeastOnce()).sendOnlineTestInvitation(anyString(), anyString(), any[DateTime])(any[HeaderCarrier])
-      verify(auditServiceMock, atLeastOnce()).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
+      verify(emailClientMock, times(1)).sendOnlineTestInvitation(anyString(), anyString(), any[DateTime])(any[HeaderCarrier])
+      verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
     }
   }
 
