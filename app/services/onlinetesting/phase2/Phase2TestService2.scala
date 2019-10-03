@@ -289,10 +289,23 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
       case _ => calcOnlineTestDates(expiryTimeInDays)
     }
 
+    def maybeEmailCandidate(cond: Boolean)
+                           (emailFunc: OnlineTestApplication => Future[Unit],
+                            application: OnlineTestApplication): Future[Unit] = {
+      if(cond) {
+        Future.successful(())
+      } else {
+        emailFunc(application)
+      }
+    }
+
     for {
       registeredApplicant <- registerPsiApplicant(application, testIds, invitationDate)
+      testGroupOpt <- getTestGroup(application.applicationId)
       _ <- insertPhase2TestGroups(registeredApplicant)(invitationDate, expirationDate, hc)
-      _ <- emailInviteToApplicant(application)(hc, rh, invitationDate, expirationDate)
+      testExist = testGroupOpt.exists(_.activeTests.nonEmpty)
+      emailFunc = emailInviteToApplicant(_: OnlineTestApplication)(hc, rh, invitationDate, expirationDate)
+      _ <- maybeEmailCandidate(testExist)(emailFunc, application)
     } yield {
       application
     }
@@ -401,7 +414,8 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
   }
 
 
-  def buildInviteApplication(application: OnlineTestApplication, token: String, userId: Int, schedule: Phase2Schedule) = {
+  def buildInviteApplication(application: OnlineTestApplication, token: String,
+                             userId: Int, schedule: Phase2Schedule): InviteApplicant = {
     val scheduleCompletionBaseUrl = s"${integrationGatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/phase2"
 
     InviteApplicant(schedule.scheduleId,
@@ -580,7 +594,7 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
   }
   //scalastyle:on
 
-  def buildTimeAdjustments(assessmentId: Int, application: OnlineTestApplication) = {
+  def buildTimeAdjustments(assessmentId: Int, application: OnlineTestApplication): List[TimeAdjustments] = {
     application.eTrayAdjustments.flatMap(_.timeNeeded).map { _ =>
       List(TimeAdjustments(assessmentId, sectionId = 1, absoluteTime = calculateAbsoluteTimeWithAdjustments(application)))
     }.getOrElse(Nil)
@@ -595,7 +609,8 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
   }
 
   private def emailInviteToApplicant(candidate: OnlineTestApplication)
-                                    (implicit hc: HeaderCarrier, rh: RequestHeader,
+                                    (implicit hc: HeaderCarrier,
+                                     rh: RequestHeader,
                                      invitationDate: DateTime,
                                      expirationDate: DateTime): Future[Unit] = {
     if (candidate.isInvigilatedETray) {

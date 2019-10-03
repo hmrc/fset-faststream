@@ -84,7 +84,7 @@ trait OnlineTestsGatewayClient {
 
     http.GET(url = s"$url/$root/faststream/psi-cancel-assessment/${request.orderId}").map { response =>
       if (response.status == OK) {
-        Logger.debug(s"psiRegisterApplicant response - ${response.json.toString}")
+        Logger.debug(s"psiCancelAssessment response - ${response.json.toString}")
         response.json.as[AssessmentCancelAcknowledgementResponse]
       } else {
         throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
