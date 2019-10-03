@@ -25,8 +25,8 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.Exceptions._
 import model.OnlineTestCommands._
 import model._
-import model.exchange.{ Phase1TestGroupWithNames2, PsiRealTimeResults, PsiTestResultReady }
-import model.persisted.{ CubiksTest, Phase1TestProfile, PsiTestResult => _, TestResult => _, _ }
+import model.exchange.{ Phase1TestGroupWithNames2, PsiRealTimeResults }
+import model.persisted.{ Phase1TestProfile, PsiTestResult => _, TestResult => _, _ }
 import model.stc.{ AuditEvents, DataStoreEvents }
 import org.joda.time.DateTime
 import play.api.Logger
