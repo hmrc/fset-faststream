@@ -94,12 +94,13 @@ trait CampaignManagementService {
     } yield ()
   }
 
-  private def verifyPhase1TestScoreData(tScoreRequest: SetTScoreRequest): Future[Boolean] = {
+  private def verifyPhase1TestScoreData(tScoreRequest: SetTScoreRequest, isGis: Boolean): Future[Boolean] = {
     for {
       phase1TestProfileOpt <- phase1TestRepo2.getTestGroup(tScoreRequest.applicationId)
     } yield {
       val testsPresentWithResultsSaved = phase1TestProfileOpt.exists { phase1TestProfile =>
-        val allTestsPresent = phase1TestProfile.activeTests.size == 4
+        val expectedNumberOfTests = if (isGis) { 2 } else { 4 }
+        val allTestsPresent = phase1TestProfile.activeTests.size == expectedNumberOfTests
         val allTestsHaveATestResult = phase1TestProfile.activeTests.forall(_.testResult.isDefined)
         allTestsPresent && allTestsHaveATestResult
       }
@@ -144,7 +145,8 @@ trait CampaignManagementService {
 
   def setPhase1TScore(tScoreRequest: SetTScoreRequest): Future[Unit] = {
     (for {
-      dataIsValid <- verifyPhase1TestScoreData(tScoreRequest)
+      isGis <- appRepo.gisByApplication(tScoreRequest.applicationId)
+      dataIsValid <- verifyPhase1TestScoreData(tScoreRequest, isGis)
     } yield {
       val msg = "Phase1 data is not in the correct state to set tScores"
       if (dataIsValid) {
