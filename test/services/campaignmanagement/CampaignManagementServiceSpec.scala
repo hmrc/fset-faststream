@@ -121,6 +121,32 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
       response mustBe unit
     }
 
+    "successfully process a request when updating the full set of active tests with test results for a gis candidate" in new TestFixture {
+      val phase1TestProfile = Phase1TestProfile2(expirationDate = DateTime.now(),
+        tests = List(firstPsiTest, fourthPsiTest), evaluation = None)
+      when(mockApplicationRepository.gisByApplication(any[String])).thenReturnAsync(true)
+      when(mockPhase1TestRepository2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
+
+      when(mockPhase1TestRepository2.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile2])).thenReturnAsync()
+
+      val request = SetTScoreRequest(applicationId = "appId", inventoryId = None, phase = phase1, tScore = 20.0)
+      val response = service.setPhase1TScore(request).futureValue
+      response mustBe unit
+    }
+
+    "throw an exception when updating tests for a gis candidate and the number of tests is not as expected" in new TestFixture {
+      val phase1TestProfile = Phase1TestProfile2(expirationDate = DateTime.now(),
+        tests = List(firstPsiTest, secondPsiTest, thirdPsiTest, fourthPsiTest), evaluation = None)
+      when(mockApplicationRepository.gisByApplication(any[String])).thenReturnAsync(true)
+      when(mockPhase1TestRepository2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
+
+      when(mockPhase1TestRepository2.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile2])).thenReturnAsync()
+
+      val request = SetTScoreRequest(applicationId = "appId", inventoryId = None, phase = phase1, tScore = 20.0)
+      val exception = service.setPhase1TScore(request).failed.futureValue
+      exception mustBe an[IllegalStateException]
+    }
+
     "successfully process a request when updating a single active test" in new TestFixture {
       val phase1TestProfile = Phase1TestProfile2(expirationDate = DateTime.now(),
                                     tests = List(firstPsiTest, secondPsiTest, thirdPsiTest, fourthPsiTest),
@@ -228,5 +254,7 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
 
     val phase1 = "PHASE1"
     val phase2 = "PHASE2"
+
+    when(mockApplicationRepository.gisByApplication(any[String])).thenReturnAsync(false)
   }
 }
