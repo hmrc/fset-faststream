@@ -73,7 +73,7 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
     "handle not finding a test profile" in new TestFixture {
       when(mockPhase1TestRepository2.getTestGroup(any[String])).thenReturnAsync(None)
 
-      val request = SetTScoreRequest(applicationId = "appId", phase = "PHASE1", tScore = 20.0)
+      val request = SetTScoreRequest(applicationId = "appId", inventoryId = None, phase = "PHASE1", tScore = 20.0)
       val response = service.setPhase1TScore(request)
 
       val exception = response.failed.futureValue
@@ -87,7 +87,7 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
 
       when(mockPhase1TestRepository2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
 
-      val request = SetTScoreRequest(applicationId = "appId", phase = phase1, tScore = 20.0)
+      val request = SetTScoreRequest(applicationId = "appId", inventoryId = None, phase = phase1, tScore = 20.0)
       val response = service.setPhase1TScore(request)
 
       val exception = response.failed.futureValue
@@ -101,7 +101,7 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
 
       when(mockPhase1TestRepository2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
 
-      val request = SetTScoreRequest(applicationId = "appId", phase = phase1, tScore = 20.0)
+      val request = SetTScoreRequest(applicationId = "appId", inventoryId = None, phase = phase1, tScore = 20.0)
       val response = service.setPhase1TScore(request)
 
       val exception = response.failed.futureValue
@@ -116,9 +116,35 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
 
       when(mockPhase1TestRepository2.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile2])).thenReturnAsync()
 
-      val request = SetTScoreRequest(applicationId = "appId", phase = phase1, tScore = 20.0)
+      val request = SetTScoreRequest(applicationId = "appId", inventoryId = None, phase = phase1, tScore = 20.0)
       val response = service.setPhase1TScore(request).futureValue
       response mustBe unit
+    }
+
+    "successfully process a request when updating a single active test" in new TestFixture {
+      val phase1TestProfile = Phase1TestProfile2(expirationDate = DateTime.now(),
+                                    tests = List(firstPsiTest, secondPsiTest, thirdPsiTest, fourthPsiTest),
+                                    evaluation = None)
+      when(mockPhase1TestRepository2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
+
+      when(mockPhase1TestRepository2.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile2])).thenReturnAsync()
+
+      val request = SetTScoreRequest(applicationId = "appId", inventoryId = Some("inventoryId4"), phase = phase1, tScore = 20.0)
+      val response = service.setPhase1TScore(request).futureValue
+      response mustBe unit
+    }
+
+    "handle an incorrect inventory id when processing a request to updating a single active test" in new TestFixture {
+      val phase1TestProfile = Phase1TestProfile2(expirationDate = DateTime.now(),
+                                    tests = List(firstPsiTest, secondPsiTest, thirdPsiTest, fourthPsiTest),
+                                    evaluation = None)
+      when(mockPhase1TestRepository2.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
+
+      when(mockPhase1TestRepository2.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile2])).thenReturnAsync()
+
+      val request = SetTScoreRequest(applicationId = "appId", inventoryId = Some("will-not-find"), phase = phase1, tScore = 20.0)
+      val exception = service.setPhase1TScore(request).failed.futureValue
+      exception mustBe a[Exception]
     }
   }
 
@@ -126,7 +152,7 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
     "handle not finding a test profile" in new TestFixture {
       when(mockPhase2TestRepository2.getTestGroup(any[String])).thenReturnAsync(None)
 
-      val request = SetTScoreRequest(applicationId = "appId", phase = phase2, tScore = 20.0)
+      val request = SetTScoreRequest(applicationId = "appId", inventoryId = None, phase = phase2, tScore = 20.0)
       val response = service.setPhase2TScore(request)
 
       val exception = response.failed.futureValue
@@ -140,7 +166,7 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
 
       when(mockPhase2TestRepository2.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile))
 
-      val request = SetTScoreRequest(applicationId = "appId", phase = phase2, tScore = 20.0)
+      val request = SetTScoreRequest(applicationId = "appId", inventoryId = None, phase = phase2, tScore = 20.0)
       val response = service.setPhase2TScore(request)
 
       val exception = response.failed.futureValue
@@ -154,7 +180,7 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
 
       when(mockPhase2TestRepository2.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile))
 
-      val request = SetTScoreRequest(applicationId = "appId", phase = phase2, tScore = 20.0)
+      val request = SetTScoreRequest(applicationId = "appId", inventoryId = None, phase = phase2, tScore = 20.0)
       val response = service.setPhase2TScore(request)
 
       val exception = response.failed.futureValue
@@ -169,7 +195,7 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
 
       when(mockPhase2TestRepository2.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup2])).thenReturnAsync()
 
-      val request = SetTScoreRequest(applicationId = "appId", phase = phase2, tScore = 20.0)
+      val request = SetTScoreRequest(applicationId = "appId", inventoryId = None, phase = phase2, tScore = 20.0)
       val response = service.setPhase2TScore(request).futureValue
       response mustBe unit
     }

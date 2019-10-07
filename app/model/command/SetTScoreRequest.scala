@@ -19,6 +19,8 @@ package model.command
 import play.api.libs.json.{ Format, Json }
 
 case class SetTScoreRequest(applicationId: String,
+                            // If you do not specify the inventory id then all the tests will be updated
+                            inventoryId: Option[String],
                             phase: String,
                             tScore: Double
                            )
