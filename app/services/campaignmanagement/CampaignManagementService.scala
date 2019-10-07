@@ -108,13 +108,35 @@ trait CampaignManagementService {
   }
 
   private def updatePhase1TestProfile(tScoreRequest: SetTScoreRequest, phase1TestProfile: Phase1TestProfile2): Phase1TestProfile2 = {
-    phase1TestProfile.copy(tests = updateTests(tScoreRequest, phase1TestProfile.tests))
+    tScoreRequest.inventoryId match {
+      case Some(_) =>
+        phase1TestProfile.copy(tests = updateTest(tScoreRequest, phase1TestProfile.tests))
+      case None =>
+        phase1TestProfile.copy(tests = updateTests(tScoreRequest, phase1TestProfile.tests))
+    }
   }
 
   private def updateTests(tScoreRequest: SetTScoreRequest, tests: List[PsiTest]) :List[PsiTest] = {
     tests.map { test =>
       val testResultOpt = test.testResult.map { testResult =>
         testResult.copy(tScore = tScoreRequest.tScore)
+      }
+      test.copy(testResult = testResultOpt)
+    }
+  }
+
+  private def updateTest(tScoreRequest: SetTScoreRequest, tests: List[PsiTest]) :List[PsiTest] = {
+    if (tests.count(t => tScoreRequest.inventoryId.contains(t.inventoryId)) != 1) {
+      throw new Exception(s"No test found with applicationId=${tScoreRequest.applicationId},inventoryId=${tScoreRequest.inventoryId} " +
+        s"in phase ${tScoreRequest.phase}")
+    }
+    tests.map { test =>
+      val testResultOpt = test.testResult.map { testResult =>
+        if (tScoreRequest.inventoryId.contains(test.inventoryId)) {
+          testResult.copy(tScore = tScoreRequest.tScore)
+        } else {
+          testResult
+        }
       }
       test.copy(testResult = testResultOpt)
     }
