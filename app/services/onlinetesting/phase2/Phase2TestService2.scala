@@ -238,27 +238,17 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
 
   override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
                                             (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    //scalastyle:off
-    println(s"**** start")
     val firstApplication = applications.head
     val applicationsWithTheSameType = applications filter (_.isInvigilatedETray == firstApplication.isInvigilatedETray)
 
     val standardTests = integrationGatewayConfig.phase2Tests.standard // use this for the order of tests
 
-    println(s"**** applications=$applications")
-
     FutureEx.traverseSerial(applicationsWithTheSameType) { application =>
-      println(s"**** processing application=$application")
-
       registerCandidateForTests(application, standardTests).recover {
         case e: Exception =>
           Logger.error(s"Error occurred registering candidate ${application.applicationId} with phase 2 tests - ${e.getMessage}")
       }
-    }.map { _ =>
-      println(s"**** end")
-      //scalastyle:on
-      ()
-    }
+    }.map { _ => () }
   }
 
   // Register a single candidate with all the phase 2 tests. If any of the registrations failed
@@ -280,12 +270,7 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
 
     val processFailedRegistrations = candidateRegistrations.flatMap { phase2TestsRegistrations =>
       phase2TestsRegistrations.collect {
-        case Failure(e) =>
-          //scalastyle:off
-          println(s"**** processing the failed registrations error=$e")
-          //scalastyle:on
-
-          throw e
+        case Failure(e) => throw e
       }
       Future.successful(())
     }
