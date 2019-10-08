@@ -67,11 +67,12 @@ trait EvaluatePhase1ResultService2 extends EvaluateOnlineTestResultService2[Phas
         evaluateForNonGis(getSchemesToEvaluate(application),
           test1.testResult.get, test2.testResult.get, test3.testResult.get, test4.testResult.get, passmark)
       case _ =>
-        val testCount = List(test1Opt, test2Opt, test3Opt, test4Opt).count( _.isDefined )
+        val testCount = List(test1Opt, test2Opt, test3Opt, test4Opt).count(test => test.isDefined && test.get.testResult.isDefined)
         val gis = if (application.isGis) {
-          s"This application is GIS so expecting ${gatewayConfig.phase1Tests.gis.size} tests in phase1 but found $testCount"
+          s"This application is GIS so expecting ${gatewayConfig.phase1Tests.gis.size} tests with results in phase1 but found $testCount"
         } else {
-          s"This application is not GIS so expecting ${gatewayConfig.phase1Tests.standard.size} tests in phase1 but found $testCount"
+          s"This application is not GIS so expecting ${gatewayConfig.phase1Tests.standard.size} tests " +
+            s"with results in phase1 but found $testCount"
         }
         val msg = s"Illegal number of active tests with results for this application: ${application.applicationId}. $gis"
         throw new IllegalStateException(msg)
