@@ -1006,6 +1006,13 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def removePhase1TestEvaluation(applicationId: String): Future[Unit] = {
+    for {
+      _ <- phase1TestRepository.removeTestGroupEvaluation(applicationId)
+      _ <- appRepository.removeCurrentSchemeStatus(applicationId)
+    } yield ()
+  }
+
   def removePhase3TestEvaluation(applicationId: String): Future[Unit] = {
     for {
       _ <- phase3TestRepository.removeTestGroupEvaluation(applicationId)

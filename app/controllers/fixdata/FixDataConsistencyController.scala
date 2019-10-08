@@ -550,6 +550,16 @@ trait FixDataConsistencyController extends BaseController with MinimumCompetency
       }
     }
 
+  def removePhase1TestEvaluation(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.removePhase1TestEvaluation(applicationId).map(_ =>
+        Ok(s"Successfully removed P1 test evaluation and css for candidate $applicationId")
+      ).recover {
+        case ex: Throwable =>
+          BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
+      }
+    }
+
   def removePhase3TestEvaluation(applicationId: String): Action[AnyContent] =
     Action.async { implicit request =>
       applicationService.removePhase3TestEvaluation(applicationId).map(_ =>
