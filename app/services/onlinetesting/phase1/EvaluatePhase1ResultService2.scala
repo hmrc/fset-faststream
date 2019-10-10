@@ -39,10 +39,10 @@ trait EvaluatePhase1ResultService2 extends EvaluateOnlineTestResultService2[Phas
 
   def evaluate(implicit application: ApplicationReadyForEvaluation2, passmark: Phase1PassMarkSettings): Future[Unit] = {
     if (application.isSdipFaststream && !passmark.schemes.exists(_.schemeId == SchemeId("Sdip"))) {
-      Logger.info(s"Evaluating Phase1 Sdip Faststream candidate with no Sdip passmarks set, so skipping - appId=${application.applicationId}")
+      Logger.warn(s"Evaluating Phase1 Sdip Faststream candidate with no Sdip passmarks set, so skipping - appId=${application.applicationId}")
       Future.successful(())
     } else {
-      Logger.info(s"Evaluating Phase1 appId=${application.applicationId}")
+      Logger.warn(s"Evaluating Phase1 appId=${application.applicationId}")
 
       val activeTests = application.activePsiTests
       require(activeTests.nonEmpty && (activeTests.length == 2 || activeTests.length == 4), "Allowed active number of tests is 2 or 4")
