@@ -66,7 +66,8 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
 
   def savePassmarkEvaluation(applicationId: String, evaluation: PassmarkEvaluation,
     newProgressStatus: Option[ProgressStatus]): Future[Unit] = {
-    Logger.info(s"applicationId = $applicationId - now saving progressStatus as $newProgressStatus")
+    // Warn level so we see it in prod logs
+    Logger.warn(s"applicationId = $applicationId - now saving progressStatus as $newProgressStatus")
 
     val selectQuery = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> applicationId),

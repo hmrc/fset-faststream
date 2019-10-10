@@ -80,7 +80,10 @@ abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettings](implicit jsonF
 
   private def evaluateInBatch(apps: List[ApplicationReadyForEvaluation2],
                               passmarkSettings: T)(implicit ec: ExecutionContext): Future[Unit] = {
-    Logger.info(s"Evaluate $phase Job found ${apps.size} application(s), the passmarkVersion=${passmarkSettings.version}")
+    // Warn level so we see it in the prod logs
+    val applicationIds = apps.map ( _.applicationId ).mkString(",")
+    Logger.warn(s"Evaluate $phase job found ${apps.size} application(s), applicationIds=$applicationIds, " +
+      s"passmarkVersion=${passmarkSettings.version}")
     val evaluationResultsFut = FutureEx.traverseToTry(apps) { app =>
       Try(evaluateService2.evaluate(app, passmarkSettings)) match {
         case Success(fut) => fut
