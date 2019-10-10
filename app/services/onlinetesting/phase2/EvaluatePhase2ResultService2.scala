@@ -41,7 +41,7 @@ trait EvaluatePhase2ResultService2 extends EvaluateOnlineTestResultService2[Phas
   with Phase2TestEvaluation2 with PassMarkSettingsService[Phase2PassMarkSettings] with CurrentSchemeStatusHelper2 {
 
   def evaluate(implicit application: ApplicationReadyForEvaluation2, passmark: Phase2PassMarkSettings): Future[Unit] = {
-    Logger.debug(s"Evaluating phase2 appId=${application.applicationId}")
+    Logger.warn(s"Evaluating phase2 appId=${application.applicationId}")
 
     val activeTests = application.activePsiTests
     require(activeTests.nonEmpty && activeTests.length == 2, s"Allowed active number of tests for phase2 is 2 - found ${activeTests.size}")

@@ -46,7 +46,7 @@ trait EvaluatePhase3ResultService2 extends EvaluateOnlineTestResultService2[Phas
   val launchpadGWConfig: LaunchpadGatewayConfig
 
   def evaluate(implicit application: ApplicationReadyForEvaluation2, passmark: Phase3PassMarkSettings): Future[Unit] = {
-    Logger.debug(s"Evaluating Phase3 appId=${application.applicationId}")
+    Logger.warn(s"Evaluating Phase3 appId=${application.applicationId}")
 
     val optLaunchpadTest = application.activeLaunchpadTest
     require(optLaunchpadTest.isDefined, "Active launchpad test not found")
