@@ -10,8 +10,15 @@ $csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2019-
 // Use LibreOffice to open the Excel spreadsheet from the business, which contains 2 tabs: newcastle and london
 // Save the newcastle tab as newcastle.csv and the london tab as london.csv
 // Use LibreOffice so the correct Unix line endings are generated when saving as csv
+// By default it assumes we are processing London data
 // if you need to debug run as follows:
-// convert.php debug
+// php convert.php debug
+//
+// Debug Newcastle:
+// php convert.php debug newcastle
+//
+// Debug London:
+// php convert.php debug london
 //
 // you usually need to check that all the skills specified in the spreadsheet are handled by the converter
 // if any line has no skills specified we report an error to stdout eg.
@@ -23,11 +30,11 @@ $csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2019-
 // EDIP -> EDIP - Telephone interview
 // SDIP -> SDIP - Telephone interview
 
-// Once you are happy with the output turn off the debugging
+// Once you are happy with the output run without the debugging
 // and run the following commands so you generate the files for newcastle and london:
 //
-// php convert.php > ../../fs-calendar-events/output/newcastle.yaml
-// php convert.php > ../../fs-calendar-events/output/london.yaml
+// php convert.php nodebug newcastle > ../../fs-calendar-events/output/newcastle.yaml
+// php convert.php nodebug london > ../../fs-calendar-events/output/london.yaml
 //
 // cd ../../fs-calendar-events/output
 // cat newcastle.yaml london.yaml > event-schedule.yaml
@@ -41,7 +48,15 @@ $csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2019-
 // hit the backend directly:
 // http POST :8101/candidate-application/events/save
 
-$debug = $argc == 2 && strtolower($argv[1]) == "debug";
+$debug = $argc >= 2 && strtolower($argv[1]) == "debug";
+
+$processingNewcastle = $argc == 3 && strtolower($argv[2]) == "newcastle";
+
+if ($processingNewcastle) {
+    console("Processing Newcastle data...");
+} else {
+    console( "Processing London data...");
+}
 
 function venueNameToToken($venueName) {
     if ($venueName == 'Tyne View Park Newcastle') {
@@ -105,6 +120,32 @@ function allSkillsZero($skillValues) {
         if ($skillValues[$i] != 0) return false;
     }
     return true;
+}
+
+function getSessionData($line, $i, $processingNewcastle) {
+    if ($processingNewcastle) {
+        $session1 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
+        $session2 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
+        $session3 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
+        $session4 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
+        $session5 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
+        $session6 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
+        $sessions = array($session1,$session2,$session3,$session4,$session5,$session6);
+        return $sessions;
+    } else {
+
+        $session1 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
+        $session2 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
+        $session3 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
+        $session4 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
+        $session5 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
+        $session6 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
+        // 7 & 8 are needed for london only not newcastle
+        $session7 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
+        $session8 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
+        $sessions = array($session1,$session2,$session3,$session4,$session5,$session6,$session7,$session8);
+        return $sessions;
+    }
 }
 
 function console($text) {
@@ -184,17 +225,7 @@ foreach ($csv as $line) {
         $chairAssessors = zeroOrValue($line[$i++]);
         $sifterAssessors = zeroOrValue($line[$i++]);
 
-        $session1 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
-        $session2 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
-        $session3 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
-        $session4 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
-        $session5 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
-        $session6 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
-// 7 & 8 are needed for london not newcastle
-        $session7 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
-        $session8 = array(formatTime($line[$i++]), formatTime($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]), zeroOrValue($line[$i++]));
-        $sessions = array($session1,$session2,$session3,$session4,$session5,$session6,$session7,$session8);
-//        $sessions = array($session1,$session2,$session3,$session4,$session5,$session6);
+        $sessions = getSessionData($line, $i, $processingNewcastle);
 
         if (allSessionsEmpty($sessions)) {
             console("ERROR - line number: $lineCount has no sessions specified - bulk upload will not accept this");
@@ -238,4 +269,3 @@ foreach ($csv as $line) {
 }
 
 ?>
-
