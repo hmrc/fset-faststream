@@ -2,17 +2,13 @@
 
 error_reporting(E_ALL);
 
-//$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2019-2020v6/newcastle.csv'));
-$csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2019-2020v6/london.csv'));
-
 // This file reads input csv and generates yaml, which can be bulk uploaded into the system to create calendar events
 // Run the file from the location you find it in the fset-faststream repo. All the paths are relative to its current location
 // Use LibreOffice to open the Excel spreadsheet from the business, which contains 2 tabs: newcastle and london
 // Save the newcastle tab as newcastle.csv and the london tab as london.csv
 // Use LibreOffice so the correct Unix line endings are generated when saving as csv
-// By default it assumes we are processing London data
-// if you need to debug run as follows:
-// php convert.php debug
+//
+// If you need to debug run as follows for the 2 cities:
 //
 // Debug Newcastle:
 // php convert.php debug newcastle
@@ -48,14 +44,26 @@ $csv = array_map('str_getcsv', file('../../fs-calendar-events/spreadsheets/2019-
 // hit the backend directly:
 // http POST :8101/candidate-application/events/save
 
+if ($argc != 3 )
+{
+    exit( "Usage: php convert.php debug/nodebug newcastle/london\n" );
+}
+
 $debug = $argc >= 2 && strtolower($argv[1]) == "debug";
 
 $processingNewcastle = $argc == 3 && strtolower($argv[2]) == "newcastle";
 
+$city = $processingNewcastle ? "newcastle" : "london";
+
+$csvRoot = "../../fs-calendar-events/spreadsheets/2019-2020v6";
+$csvFilename = "${csvRoot}/${city}.csv";
+
+$csv = array_map('str_getcsv', file($csvFilename));
+
 if ($processingNewcastle) {
-    console("Processing Newcastle data...");
+    console("Processing Newcastle data in file ${csvFilename}...");
 } else {
-    console( "Processing London data...");
+    console( "Processing London data in file ${csvFilename}...");
 }
 
 function venueNameToToken($venueName) {
