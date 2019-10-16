@@ -70,7 +70,7 @@ abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettings](implicit jsonF
       case Some((apps, passmarkSettings)) =>
         evaluateInBatch(apps, passmarkSettings)
       case None =>
-        Logger.info(s"Passmark settings or an application to evaluate $phase result not found")
+        Logger.warn(s"Passmark settings or an application to evaluate $phase result not found")
         Future.successful(())
     }
   }
@@ -103,6 +103,8 @@ abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettings](implicit jsonF
         Logger.error(s"There were ${errors.size} errors in batch $phase evaluation:\n$errorMsg")
         Future.failed(errors.head)
       } else {
+        Logger.warn(s"Evaluate $phase job successfully evaluated ${apps.size} application(s), applicationIds=$applicationIds, " +
+          s"passmarkVersion=${passmarkSettings.version}")
         Future.successful(())
       }
     }
