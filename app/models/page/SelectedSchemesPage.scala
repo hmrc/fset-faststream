@@ -40,5 +40,4 @@ case class SelectedSchemesPage(allSchemes: Seq[Scheme]) {
       .map {case (_, value) => value }
       .distinct
   }
-
 }
