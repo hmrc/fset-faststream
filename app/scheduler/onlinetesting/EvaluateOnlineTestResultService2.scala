@@ -20,6 +20,7 @@ import factories.UUIDFactory
 import model.Phase
 import model.exchange.passmarksettings.PassMarkSettings
 import model.persisted.{ ApplicationReadyForEvaluation2, PassmarkEvaluation, SchemeEvaluationResult }
+import play.api.Logger
 import play.api.libs.json.Format
 import repositories.onlinetesting.OnlineTestEvaluationRepository
 import services.onlinetesting.ApplicationStatusCalculator
@@ -37,6 +38,7 @@ trait EvaluateOnlineTestResultService2[T <: PassMarkSettings] extends Applicatio
 
   def nextCandidatesReadyForEvaluation(batchSize: Int)(implicit jsonFormat: Format[T]):
   Future[Option[(List[ApplicationReadyForEvaluation2], T)]] = {
+    Logger.warn(s"Looking for candidates for $phase evaluation. Batch size=$batchSize")
     getLatestPassMarkSettings flatMap {
       case Some(passmark) =>
         evaluationRepository.nextApplicationsReadyForEvaluation2(passmark.version, batchSize) map { candidates =>
