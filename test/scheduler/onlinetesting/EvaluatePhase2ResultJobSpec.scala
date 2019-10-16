@@ -83,7 +83,7 @@ class EvaluatePhase2ResultJobSpec extends UnitWithAppSpec {
       val phase = Phase.PHASE2
       val evaluateService = mockEvaluateService
       val evaluateService2 = mockEvaluateService2
-      override val batchSize = 1
+      override lazy val batchSize = 1
       override val lockId = "1"
       override val forceLockReleaseAfter: Duration = mock[Duration]
       override implicit val ec: ExecutionContext = mock[ExecutionContext]
