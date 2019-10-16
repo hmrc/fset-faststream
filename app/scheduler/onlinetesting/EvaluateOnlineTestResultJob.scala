@@ -63,7 +63,7 @@ abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettings](implicit jsonF
   val evaluateService: EvaluateOnlineTestResultService[T]
   val evaluateService2: EvaluateOnlineTestResultService2[T]
   val phase: Phase
-  val batchSize = conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
+  lazy val batchSize = config.conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     evaluateService2.nextCandidatesReadyForEvaluation(batchSize) flatMap {
