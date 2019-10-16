@@ -29,11 +29,12 @@ import scala.language.implicitConversions
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
 
-class SelectedSchemesForm(allSchemes: Seq[Scheme]) {
+class SelectedSchemesForm(allSchemes: Seq[Scheme], isSdipFaststream: Boolean) {
 
   private val page = SelectedSchemesPage(allSchemes)
 
-  private val maxSchemes = 4
+  private val maxFaststreamSchemes = 4
+  private val maxSdipFaststreamSchemes = maxFaststreamSchemes + 1 // Sdip FS candidates are automatically given the Sdip scheme so + 1
 
   def form = {
     Form(
@@ -44,21 +45,29 @@ class SelectedSchemesForm(allSchemes: Seq[Scheme]) {
       )(SchemePreferences.apply)(SchemePreferences.unapply))
   }
 
+  //scalastyle:off cyclomatic.complexity
   def schemeFormatter(formKey: String) = new Formatter[List[String]] {
     def bind(key: String, data: Map[String, String]): Either[Seq[FormError], List[String]] = {
       page.getSchemesByPriority(data) match {
-        case selectedSchemes if selectedSchemes.isEmpty => Left(List(FormError(formKey, Messages("schemes.required"))))
-        case selectedSchemes if selectedSchemes.size > maxSchemes => Left(List(FormError(formKey, Messages("schemes.tooMany"))))
-        case selectedSchemes if selectedSchemes.size > allSchemes.size => Left(List(FormError(formKey, Messages("schemes.required"))))
-        case selectedSchemes if page.getInvalidSchemes(selectedSchemes).nonEmpty => Left(List(FormError(formKey, Messages("schemes.required"))))
-        case selectedSchemes => Right(selectedSchemes)
+        case selectedSchemes if selectedSchemes.isEmpty || (isSdipFaststream && selectedSchemes == Seq("Sdip")) =>
+          Left(List(FormError(formKey, Messages("schemes.required"))))
+        case selectedSchemes if isSdipFaststream && selectedSchemes.size > maxSdipFaststreamSchemes =>
+          Left(List(FormError(formKey, Messages("schemes.tooMany"))))
+        case selectedSchemes if !isSdipFaststream && selectedSchemes.size > maxFaststreamSchemes =>
+          Left(List(FormError(formKey, Messages("schemes.tooMany"))))
+        case selectedSchemes if selectedSchemes.size > allSchemes.size =>
+          Left(List(FormError(formKey, Messages("schemes.required"))))
+        case selectedSchemes if page.getInvalidSchemes(selectedSchemes).nonEmpty =>
+          Left(List(FormError(formKey, Messages("schemes.required"))))
+        case selectedSchemes =>
+          Right(selectedSchemes)
       }
     }
 
     def unbind(key: String, value: List[String]): Map[String, String] = {
       value.map(key => key -> Messages("scheme." + key + ".description")).toMap
     }
-  }
+  } //scalastyle:on
 }
 
 object SelectedSchemesForm {
@@ -76,5 +85,4 @@ object SelectedSchemesForm {
     schemePreferences.orderAgreed,
     schemePreferences.eligible
   )
-
 }

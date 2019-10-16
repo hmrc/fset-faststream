@@ -40,12 +40,12 @@ abstract class SchemePreferencesController(
 
 
   def present = CSRSecureAppAction(SchemesRole) { implicit request =>
-    implicit user =>
+    implicit cachedData =>
       referenceDataClient.allSchemes().flatMap { schemes =>
         val page = SelectedSchemesPage(schemes)
-        val formObj = new SelectedSchemesForm(schemes)
-        val civilServant = user.application.civilServiceExperienceDetails.exists(_.isCivilServant)
-        schemeClient.getSchemePreferences(user.application.applicationId).map { selectedSchemes =>
+        val formObj = new SelectedSchemesForm(schemes, cachedData.application.isSdipFaststream)
+        val civilServant = cachedData.application.civilServiceExperienceDetails.exists(_.isCivilServant)
+        schemeClient.getSchemePreferences(cachedData.application.applicationId).map { selectedSchemes =>
           Ok(views.html.application.schemePreferences.schemeSelection(page, civilServant, formObj.form.fill(selectedSchemes)))
         }.recover {
           case e: SchemePreferencesNotFound =>
@@ -58,7 +58,7 @@ abstract class SchemePreferencesController(
     implicit cachedData =>
       referenceDataClient.allSchemes().flatMap { schemes =>
         val isCivilServant = cachedData.application.civilServiceExperienceDetails.exists(_.isCivilServant)
-        new SelectedSchemesForm(schemes).form.bindFromRequest.fold(
+        new SelectedSchemesForm(schemes, cachedData.application.isSdipFaststream).form.bindFromRequest.fold(
           invalidForm => {
             val page = SelectedSchemesPage(schemes)
             Future.successful(Ok(views.html.application.schemePreferences.schemeSelection(page, isCivilServant, invalidForm)))

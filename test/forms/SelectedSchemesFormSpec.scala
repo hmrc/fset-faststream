@@ -21,18 +21,19 @@ import testkit.UnitWithAppSpec
 
 class SelectedSchemesFormSpec extends UnitWithAppSpec {
 
-  def selectedSchemesForm = new SelectedSchemesForm(ReferenceDataExamples.Schemes.AllSchemes).form
+  def selectedSchemesForm(isSdipFaststream: Boolean = false) =
+    new SelectedSchemesForm(ReferenceDataExamples.Schemes.AllSchemes, isSdipFaststream).form
 
   "Selected Schemes form" should {
     "be valid when required values are supplied" in {
-       val form = selectedSchemesForm.bind(Map("scheme_0" -> "Finance", "orderAgreed" -> "true",
+       val form = selectedSchemesForm().bind(Map("scheme_0" -> "Finance", "orderAgreed" -> "true",
          "eligible" -> "true"))
        form.hasErrors mustBe false
        form.hasGlobalErrors mustBe false
     }
 
     "be valid when multiple schemes are selected" in {
-      val form = selectedSchemesForm.bind(Map(
+      val form = selectedSchemesForm().bind(Map(
         "scheme_0" -> "Finance",
         "scheme_1" -> "GovernmentEconomicsService",
         "scheme_2" -> "Commercial",
@@ -44,14 +45,14 @@ class SelectedSchemesFormSpec extends UnitWithAppSpec {
     }
 
     "be invalid when schemes are not supplied" in {
-      val form = selectedSchemesForm.bind(Map("orderAgreed" -> "true",
+      val form = selectedSchemesForm().bind(Map("orderAgreed" -> "true",
         "eligible" -> "true"))
       form.hasErrors mustBe true
       form.hasGlobalErrors mustBe false
     }
 
     "be invalid when invalid schemes are supplied" in {
-      val form = selectedSchemesForm.bind(Map(
+      val form = selectedSchemesForm().bind(Map(
         "scheme_0" -> "InvalidScheme",
         "orderAgreed" -> "true",
         "eligible" -> "true"))
@@ -60,27 +61,63 @@ class SelectedSchemesFormSpec extends UnitWithAppSpec {
     }
 
     "be invalid when scheme order is not agreed by the candidate" in {
-      val form = selectedSchemesForm.bind(Map("scheme_0" -> "Finance", "orderAgreed" -> "false",
+      val form = selectedSchemesForm().bind(Map("scheme_0" -> "Finance", "orderAgreed" -> "false",
         "eligible" -> "true"))
       form.hasErrors mustBe true
       form.hasGlobalErrors mustBe false
     }
 
     "be invalid when eligibility criteria is not met by the candidate for selected scheme" in {
-      val form = selectedSchemesForm.bind(Map("scheme_0" -> "Finance", "orderAgreed" -> "true",
+      val form = selectedSchemesForm().bind(Map("scheme_0" -> "Finance", "orderAgreed" -> "true",
         "eligible" -> "false"))
       form.hasErrors mustBe true
       form.hasGlobalErrors mustBe false
     }
 
     "be invalid when schemes exceed the maximum" in {
-      val form = selectedSchemesForm.bind(Map(
+      val form = selectedSchemesForm().bind(Map(
         "scheme_0" -> "Finance",
         "scheme_1" -> "GovernmentEconomicsService",
         "scheme_2" -> "Commercial",
         "scheme_3" -> "DigitalAndTechnology",
         "scheme_4" -> "GovernmentDiplomaticService",
         "scheme_5" -> "GovernmentDiplomaticServiceEconomicsService",
+        "orderAgreed" -> "true",
+        "eligible" -> "true"))
+      form.hasErrors mustBe true
+      form.hasGlobalErrors mustBe false
+    }
+
+    "be invalid when sdip faststream candidate has no faststream schemes" in {
+      val form = selectedSchemesForm(isSdipFaststream = true).bind(Map(
+        "scheme_0" -> "Sdip",
+        "orderAgreed" -> "true",
+        "eligible" -> "true"))
+      form.hasErrors mustBe true
+      form.hasGlobalErrors mustBe false
+    }
+
+    "be valid when sdip faststream candidate has the max number of faststream schemes" in {
+      val form = selectedSchemesForm(isSdipFaststream = true).bind(Map(
+        "scheme_0" -> "Finance",
+        "scheme_1" -> "GovernmentEconomicsService",
+        "scheme_2" -> "Commercial",
+        "scheme_3" -> "DigitalAndTechnology",
+        "scheme_4" -> "Sdip",
+        "orderAgreed" -> "true",
+        "eligible" -> "true"))
+      form.hasErrors mustBe false
+      form.hasGlobalErrors mustBe false
+    }
+
+    "be invalid when sdip faststream candidate exceeds the max number of schemes" in {
+      val form = selectedSchemesForm(isSdipFaststream = true).bind(Map(
+        "scheme_0" -> "Finance",
+        "scheme_1" -> "GovernmentEconomicsService",
+        "scheme_2" -> "Commercial",
+        "scheme_3" -> "DigitalAndTechnology",
+        "scheme_4" -> "GovernmentDiplomaticService",
+        "scheme_5" -> "Sdip",
         "orderAgreed" -> "true",
         "eligible" -> "true"))
       form.hasErrors mustBe true
