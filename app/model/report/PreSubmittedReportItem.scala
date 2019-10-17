@@ -17,6 +17,7 @@
 package model.report
 
 import connectors.ExchangeObjects.Candidate
+import model.Commands.PhoneNumber
 import model.persisted.ApplicationIdsAndStatus
 import play.api.libs.json.{ Json, OFormat }
 
@@ -24,6 +25,7 @@ case class PreSubmittedReportItem(firstName: String,
                                   lastName: String,
                                   preferredName: Option[String],
                                   email: String,
+                                  phoneNumber: Option[PhoneNumber],
                                   applicationStatus: String,
                                   applicationRoute: String,
                                   progressStatus: Option[String])
@@ -31,9 +33,10 @@ case class PreSubmittedReportItem(firstName: String,
 object PreSubmittedReportItem {
   implicit val format: OFormat[PreSubmittedReportItem] = Json.format[PreSubmittedReportItem]
 
-  def apply(user: Candidate, preferredName: Option[String], app: ApplicationIdsAndStatus): PreSubmittedReportItem = {
+  def apply(user: Candidate, preferredName: Option[String], phoneNumber: Option[PhoneNumber],
+            app: ApplicationIdsAndStatus): PreSubmittedReportItem = {
     PreSubmittedReportItem(
-      user.firstName, user.lastName, preferredName, user.email, app.applicationStatus, app.applicationRoute, app.progressStatus
+      user.firstName, user.lastName, preferredName, user.email, phoneNumber, app.applicationStatus, app.applicationRoute, app.progressStatus
     )
   }
 }
