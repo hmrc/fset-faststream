@@ -73,10 +73,10 @@ trait OnlineTestService extends TimeExtension with EventSink {
 
     appRepository.findTestForNotification(notificationType).flatMap {
       case Some(test) =>
-        Logger.info(s"Candidate found to notify they successfully $operation tests in $phase - appId=${test.applicationId}")
+        Logger.warn(s"Candidate found to notify they successfully $operation tests in $phase - appId=${test.applicationId}")
         processTestForNotification(test, notificationType)
       case None =>
-        Logger.info(s"No candidate found to notify they successfully $operation tests in $phase")
+        Logger.warn(s"No candidate found to notify they successfully $operation tests in $phase")
         Future.successful(())
     }
   }
