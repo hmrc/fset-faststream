@@ -522,13 +522,20 @@ trait ReportingController extends BaseController {
       val batchedApplications = allApplications.grouped(500)
       Future.sequence(batchedApplications.map { applications =>
         authProviderClient.findByUserIds(applications.map(_.userId)).flatMap { authDetails =>
-          personalDetailsRepository.findByIds(applications.map(_.applicationId)).map { appPersonalDetailsTuple =>
-            applications.map { application =>
-              val user = authDetails.find(_.userId == application.userId)
-                .getOrElse(throw new NotFoundException(s"Unable to find auth details for user ${application.userId}"))
-              val (_, pd) = appPersonalDetailsTuple.find(_._1 == application.applicationId)
-                .getOrElse(throw UnexpectedException(s"Invalid applicationId ${application.applicationId}"))
-              PreSubmittedReportItem(user, pd.map(_.preferredName), application)
+
+          faststreamContactDetailsRepository.findByUserIds(applications.map(_.userId)).flatMap { contactDetails =>
+            val contactDetailsMap = contactDetailsToMap(contactDetails)
+
+            personalDetailsRepository.findByIds(applications.map(_.applicationId)).map { appPersonalDetailsTuple =>
+              applications.map { application =>
+                val user = authDetails.find(_.userId == application.userId)
+                  .getOrElse(throw new NotFoundException(s"Unable to find auth details for user ${application.userId}"))
+                val (_, pd) = appPersonalDetailsTuple.find(_._1 == application.applicationId)
+                  .getOrElse(throw UnexpectedException(s"Invalid applicationId ${application.applicationId}"))
+                val phoneNumberOpt = contactDetailsMap.get(application.userId).flatMap ( _.phone )
+
+                PreSubmittedReportItem(user, pd.map(_.preferredName), phoneNumberOpt, application)
+              }
             }
           }
         }
