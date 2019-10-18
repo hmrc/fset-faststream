@@ -498,7 +498,7 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
 
   private def maybeMarkAsStarted(appId: String): Future[Unit] = {
     appRepository.getProgressStatusTimestamps(appId).map { timestamps =>
-      val hasStarted = timestamps.exists(_._1 == PHASE2_TESTS_STARTED.key)
+      val hasStarted = timestamps.exists { case (progressStatus, _) => progressStatus == PHASE2_TESTS_STARTED.key }
       if (hasStarted) {
         Future.successful(())
       } else {
