@@ -490,8 +490,19 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
   def markAsStarted2(orderId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     updatePhase2Test2(orderId, testRepository2.updateTestStartTime(_: String, startedTime)).flatMap { u =>
-      testRepository2.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_STARTED) map { _ =>
+      maybeMarkAsStarted(u.applicationId).map { _ =>
         DataStoreEvents.ETrayStarted(u.applicationId) :: Nil
+      }
+    }
+  }
+
+  private def maybeMarkAsStarted(appId: String): Future[Unit] = {
+    appRepository.getProgressStatusTimestamps(appId).map { timestamps =>
+      val hasStarted = timestamps.exists(_._1 == PHASE2_TESTS_STARTED.key)
+      if (hasStarted) {
+        Future.successful(())
+      } else {
+        testRepository2.updateProgressStatus(appId, PHASE2_TESTS_STARTED)
       }
     }
   }
