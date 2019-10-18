@@ -257,9 +257,25 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
         .thenReturnAsync(Phase2TestGroupWithAppId2("appId123", phase2TestProfile))
       when(otRepositoryMock2.updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_STARTED))
         .thenReturnAsync()
+      when(appRepositoryMock.getProgressStatusTimestamps(anyString())).thenReturnAsync(Nil)
+
       phase2TestService.markAsStarted2(orderId).futureValue
 
-      verify(otRepositoryMock2).updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_STARTED)
+      verify(otRepositoryMock2, times(1)).updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_STARTED)
+    }
+
+    "not change progress to started if status exists" in new Phase2TestServiceFixture {
+      when(otRepositoryMock2.updateTestStartTime(any[String], any[DateTime])).thenReturnAsync()
+      when(otRepositoryMock2.getTestProfileByOrderId(orderId))
+        .thenReturnAsync(Phase2TestGroupWithAppId2("appId123", phase2TestProfile))
+      when(otRepositoryMock2.updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_STARTED))
+        .thenReturnAsync()
+      when(appRepositoryMock.getProgressStatusTimestamps(anyString()))
+        .thenReturnAsync(List(("FAKE_STATUS", DateTime.now()), ("PHASE2_TESTS_STARTED", DateTime.now())))
+
+      phase2TestService.markAsStarted2(orderId).futureValue
+
+      verify(otRepositoryMock2, never()).updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_STARTED)
     }
   }
 

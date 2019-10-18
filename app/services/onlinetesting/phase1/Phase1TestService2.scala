@@ -24,9 +24,10 @@ import connectors.{ CSREmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Exceptions._
 import model.OnlineTestCommands._
+import model.ProgressStatuses.PHASE1_TESTS_STARTED
 import model._
-import model.exchange.{ Phase1TestGroupWithNames2, PsiRealTimeResults, PsiTestResultReady }
-import model.persisted.{ CubiksTest, Phase1TestProfile, PsiTestResult => _, TestResult => _, _ }
+import model.exchange.{ Phase1TestGroupWithNames2, PsiRealTimeResults }
+import model.persisted.{ Phase1TestProfile, PsiTestResult => _, TestResult => _, _ }
 import model.stc.{ AuditEvents, DataStoreEvents }
 import org.joda.time.DateTime
 import play.api.Logger
@@ -319,8 +320,19 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
   def markAsStarted2(orderId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     updatePhase1Test2(orderId, testRepository2.updateTestStartTime(_: String, startedTime)) flatMap { u =>
-      testRepository2.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED) map { _ =>
+      maybeMarkAsStarted(u.applicationId).map { _ =>
         DataStoreEvents.OnlineExerciseStarted(u.applicationId) :: Nil
+      }
+    }
+  }
+
+  private def maybeMarkAsStarted(appId: String): Future[Unit] = {
+    appRepository.getProgressStatusTimestamps(appId).map { timestamps =>
+      val hasStarted = timestamps.exists(_._1 == PHASE1_TESTS_STARTED.key)
+      if (hasStarted) {
+        Future.successful(())
+      } else {
+        testRepository2.updateProgressStatus(appId, PHASE1_TESTS_STARTED)
       }
     }
   }
