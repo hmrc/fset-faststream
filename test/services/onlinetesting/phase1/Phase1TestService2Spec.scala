@@ -416,7 +416,8 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
       verify(otRepositoryMock2, times(1)).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED)
     }
 
-    "not change progress to started if status exists" in new OnlineTest {
+    //TODO: add back in at end of campaign 2019
+    "not change progress to started if status exists" ignore new OnlineTest {
       when(otRepositoryMock2.updateTestStartTime(any[String], any[DateTime])).thenReturnAsync()
       when(otRepositoryMock2.getTestGroupByOrderId(anyString()))
         .thenReturnAsync(Phase1TestGroupWithUserIds2("appId123", userId, phase1TestProfile))
