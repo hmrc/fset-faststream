@@ -320,7 +320,9 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
   def markAsStarted2(orderId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     updatePhase1Test2(orderId, testRepository2.updateTestStartTime(_: String, startedTime)) flatMap { u =>
-      maybeMarkAsStarted(u.applicationId).map { _ =>
+      //TODO: remove the next line and comment in the following line at end of campaign 2019
+      testRepository2.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED) map { _ =>
+//      maybeMarkAsStarted(u.applicationId).map { _ =>
         DataStoreEvents.OnlineExerciseStarted(u.applicationId) :: Nil
       }
     }
