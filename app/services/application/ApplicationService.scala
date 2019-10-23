@@ -1097,7 +1097,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
-  def setUsedForResults(applicationId: String, newUsedForResults: Boolean, token: String): Future[Unit] = {
+  def setPhase3UsedForResults(applicationId: String, newUsedForResults: Boolean, token: String): Future[Unit] = {
     for {
       phase3TestGroupOpt <- phase3TestRepository.getTestGroup(applicationId)
       phase3TestGroup = phase3TestGroupOpt.getOrElse(throw UnexpectedException(s"Unable to find PHASE3 TestGroup for $applicationId"))
@@ -1105,6 +1105,22 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
         if(test.token == token) test.copy(usedForResults = newUsedForResults) else test }
       newPhase3TestGroup = phase3TestGroup.copy(tests = newTests)
       _ <- phase3TestRepository.insertOrUpdateTestGroup(applicationId, newPhase3TestGroup)
+    } yield ()
+  }
+
+  def setPhase2UsedForResults(applicationId: String, inventoryId: String, orderId: String, newUsedForResults: Boolean): Future[Unit] = {
+    for {
+      phase2TestGroupOpt <- phase2TestRepository2.getTestGroup(applicationId)
+      phase2TestGroup = phase2TestGroupOpt.getOrElse(throw UnexpectedException(s"Unable to find PHASE2 TestGroup for $applicationId"))
+
+      _ = if (!phase2TestGroup.tests.exists( t => t.inventoryId == inventoryId && t.orderId == orderId)) {
+        throw UnexpectedException(s"Unable to find PHASE2 test for appId=$applicationId,inventoryId=$inventoryId,orderId=$orderId")
+      }
+
+      updatedTests = phase2TestGroup.tests.map { test =>
+        if (test.inventoryId == inventoryId && test.orderId == orderId) test.copy(usedForResults = newUsedForResults) else test }
+      newPhase2TestGroup = phase2TestGroup.copy(tests = updatedTests)
+      _ <- phase2TestRepository2.insertOrUpdateTestGroup(applicationId, newPhase2TestGroup)
     } yield ()
   }
 
