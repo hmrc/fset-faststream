@@ -26,6 +26,7 @@ import model.CivilServiceExperienceType.{ CivilServiceExperienceType, apply => _
 import model.Commands._
 import model.InternshipType.{ InternshipType, apply => _ }
 import model.OnlineTestCommands.{ PsiTestResult, TestResult }
+import model.Phase.Phase
 import model.command._
 import model.persisted._
 import model.persisted.phase3tests.LaunchpadTestCallbacks
@@ -275,6 +276,26 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
         toTestResultsForOnlineTestPassMarkReportItem(doc, applicationId),
         currentSchemeStatus
       )
+    }
+  }
+
+  implicit val toApplicationForOnlineActiveTestCountReport: BSONDocumentReader[ApplicationForOnlineActiveTestCountReport]
+  = bsonReader {
+    (doc: BSONDocument) => {
+      val userId = doc.getAs[String]("userId").getOrElse("")
+      val applicationId = doc.getAs[String]("applicationId").getOrElse("")
+      val testGroupsDoc = doc.getAs[BSONDocument]("testGroups")
+
+      val tests = (phase: Phase, bsonReader: BSONDocument => PsiTestProfile) =>
+        testGroupsDoc.flatMap(_.getAs[BSONDocument](phase)).map { phaseDoc =>
+        val profile = bsonReader(phaseDoc)
+        profile.activeTests.length
+      }
+
+      val p1TestsCount = tests(Phase.PHASE1, Phase1TestProfile2.bsonHandler.read _).getOrElse(0)
+      val p2TestsCount = tests(Phase.PHASE2, Phase2TestGroup2.bsonHandler.read _).getOrElse(0)
+
+      ApplicationForOnlineActiveTestCountReport(userId,applicationId, p1TestsCount, p2TestsCount)
     }
   }
 

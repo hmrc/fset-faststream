@@ -59,6 +59,8 @@ trait ReportingRepository {
 
   def numericTestExtractReport: Future[List[ApplicationForNumericTestExtractReport]]
 
+  def onlineActiveTestCountReport: Future[List[ApplicationForOnlineActiveTestCountReport]]
+
   def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReportItem]]
 
   def allApplicationAndUserIds(frameworkId: String): Future[List[PersonalDetailsAdded]]
@@ -197,6 +199,22 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     )
 
     reportQueryWithProjectionsBSON[ApplicationForNumericTestExtractReport](query, projection)
+  }
+
+  def onlineActiveTestCountReport: Future[List[ApplicationForOnlineActiveTestCountReport]] = {
+    val query = BSONDocument("$or" -> BSONArray(
+      BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> BSONDocument("$exists" -> true)),
+      BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_INVITED}" -> BSONDocument("$exists" -> true))
+    ))
+
+    val projection = BSONDocument(
+      "userId" -> "1",
+      "applicationId" -> "1",
+      "testGroups.PHASE1" -> "1",
+      "testGroups.PHASE2" -> "1"
+    )
+
+    reportQueryWithProjectionsBSON[ApplicationForOnlineActiveTestCountReport](query, projection)
   }
 
   override def onlineTestPassMarkReportFsPhase1Failed: Future[List[ApplicationForOnlineTestPassMarkReport]] = {
