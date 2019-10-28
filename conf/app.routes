@@ -75,6 +75,7 @@ GET         /report/successful-candidates/:frameworkId                   control
 GET         /report/adjustments/:frameworkId                             controllers.ReportingController.adjustmentReport(frameworkId: String)
 GET         /report/candidate-progress/:frameworkId                      controllers.ReportingController.candidateProgressReport(frameworkId: String)
 GET         /report/pre-submitted-candidates/:frameworkId                controllers.ReportingController.preSubmittedCandidatesReport(frameworkId: String)
+GET         /report/online-active-test-count                             controllers.ReportingController.onlineActiveTestsCountReport
 GET         /report/online-test-pass-mark-fs-p1-failed/:frameworkId      controllers.ReportingController.onlineTestPassMarkReportFsPhase1Failed(frameworkId: String)
 GET         /report/online-test-pass-mark-fs-not-p1-failed/:frameworkId  controllers.ReportingController.onlineTestPassMarkReportFsNotPhase1Failed(frameworkId: String)
 GET         /report/online-test-pass-mark-nonfs/:frameworkId             controllers.ReportingController.onlineTestPassMarkReportNonFs(frameworkId: String)

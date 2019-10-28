@@ -21,7 +21,7 @@ import connectors.{ AuthProviderClient, ExchangeObjects }
 import model.EvaluationResults.Green
 import model.Exceptions.{ NotFoundException, UnexpectedException }
 import model.command.{ CandidateDetailsReportItem, CsvExtract }
-import model.persisted.{ ApplicationForOnlineTestPassMarkReport, ContactDetailsWithId }
+import model.persisted.{ ApplicationForOnlineActiveTestCountReport, ApplicationForOnlineTestPassMarkReport, ContactDetailsWithId }
 import model.persisted.eventschedules.Event
 import model.report._
 import model._
@@ -634,6 +634,12 @@ trait ReportingController extends BaseController {
       } yield OnlineTestPassMarkReportItem(
         ApplicationForOnlineTestPassMarkReportItem.create(application, fsac, overallFsacScoreOpt, sift, fsb), q
       )
+    }
+  }
+
+  def onlineActiveTestsCountReport: Action[AnyContent] = Action.async { implicit request =>
+    reportingRepository.onlineActiveTestCountReport.map { apps =>
+      Ok(Json.toJson(apps))
     }
   }
 
