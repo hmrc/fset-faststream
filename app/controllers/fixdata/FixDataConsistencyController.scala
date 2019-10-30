@@ -29,6 +29,7 @@ import services.application.{ ApplicationService, FsbService }
 import services.assessmentcentre.{ AssessmentCentreService, ProgressionToFsbOrOfferService }
 import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAssessmentScoreEvaluationException
 import services.fastpass.FastPassService
+import services.onlinetesting.phase2.Phase2TestService2
 import services.sift.ApplicationSiftService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -43,6 +44,7 @@ object FixDataConsistencyController extends FixDataConsistencyController {
   override val assessmentCentreService = AssessmentCentreService
   override val progressionToFsbOrOfferService = ProgressionToFsbOrOfferService
   override val fsbService = FsbService
+  override val phase2TestService = Phase2TestService2
 }
 
 // scalastyle:off number.of.methods
@@ -53,6 +55,7 @@ trait FixDataConsistencyController extends BaseController with MinimumCompetency
   val assessmentCentreService: AssessmentCentreService
   val progressionToFsbOrOfferService: ProgressionToFsbOrOfferService
   val fsbService: FsbService
+  val phase2TestService: Phase2TestService2
 
   def undoFullWithdraw(applicationId: String, newApplicationStatus: ApplicationStatus) = Action.async { implicit request =>
     applicationService.undoFullWithdraw(applicationId, newApplicationStatus).map { _ =>
@@ -682,6 +685,19 @@ trait FixDataConsistencyController extends BaseController with MinimumCompetency
         } else {
           Ok(msg)
         }
+      }
+    }
+
+  def inviteP2CandidateToMissingTest(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      implicit val hc = HeaderCarrier()
+      phase2TestService.inviteP2CandidateToMissingTest(applicationId).map { _ =>
+        Ok(s"Successfully added missing P2 test for candidate $applicationId")
+      }.recover {
+        case e: Exception =>
+          val msg = s"Failed to add missing P2 test to candidate $applicationId because ${e.getMessage}"
+          Logger.warn(msg)
+          BadRequest(msg)
       }
     }
 }
