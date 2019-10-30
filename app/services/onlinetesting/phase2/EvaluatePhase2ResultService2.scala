@@ -44,7 +44,8 @@ trait EvaluatePhase2ResultService2 extends EvaluateOnlineTestResultService2[Phas
     Logger.warn(s"Evaluating phase2 appId=${application.applicationId}")
 
     val activeTests = application.activePsiTests
-    require(activeTests.nonEmpty && activeTests.length == 2, s"Allowed active number of tests for phase2 is 2 - found ${activeTests.size}")
+    require(activeTests.nonEmpty && activeTests.length == 2,
+      s"Allowed active number of tests for phase2 is 2 - found ${activeTests.size} for AppId=${application.applicationId}")
     require(application.prevPhaseEvaluation.isDefined, "Phase1 results are required before we can evaluate phase2")
 
     val test1ResultOpt = findFirstTest1Test(activeTests).flatMap(_.testResult)
