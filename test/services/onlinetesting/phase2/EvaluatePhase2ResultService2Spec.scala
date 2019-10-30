@@ -45,7 +45,7 @@ class EvaluatePhase2ResultService2Spec extends BaseServiceSpec {
         val application = createAppWithTestGroup(Nil).copy(applicationStatus = ApplicationStatus.PHASE1_TESTS_PASSED)
         service.evaluate(application, passmarkSettings).futureValue
       }
-      thrown.getMessage mustBe "requirement failed: Allowed active number of tests for phase2 is 2 - found 0"
+      thrown.getMessage startsWith "requirement failed: Allowed active number of tests for phase2 is 2 - found 0"
     }
 
     "throw an exception if there is no previous phase evaluation" in new TestFixture {
