@@ -63,6 +63,7 @@ trait Phase2TestRepository2 extends OnlineTestRepository with Phase2TestConcern2
 
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
 
+  def applicationReadyForOnlineTesting(applicationId: String): Future[Option[OnlineTestApplication]]
 }
 
 class Phase2TestMongoRepository2(dateTime: DateTimeFactory)(implicit mongo: () => DB)
@@ -109,6 +110,15 @@ class Phase2TestMongoRepository2(dateTime: DateTimeFactory)(implicit mongo: () =
       optDocument.flatMap {_.getAs[BSONDocument]("testGroups")}
         .flatMap {_.getAs[BSONDocument]("PHASE2")}
         .map {x => bsonHandler.read(x)}
+    }
+  }
+
+  override def applicationReadyForOnlineTesting(applicationId: String): Future[Option[OnlineTestApplication]] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val projection = BSONDocument.empty
+
+    collection.find(query, projection).one[BSONDocument] map { optDocument =>
+      optDocument.map { doc => repositories.bsonDocToOnlineTestApplication(doc) }
     }
   }
 

@@ -176,7 +176,7 @@ GET         /diagnostic/fsac/removeEvaluation                                   
 GET         /diagnostic/fsac/evaluateCandidate                                                         controllers.fixdata.FixDataConsistencyController.fsacEvaluateCandidate(applicationId: String)
 GET         /diagnostic/progress-candidate-to-fsb-or-offer-job                                         controllers.fixdata.FixDataConsistencyController.progressCandidateToFsbOrOfferJob(applicationId: String)
 GET         /diagnostic/progress-candidate-failed-at-fsb                                               controllers.fixdata.FixDataConsistencyController.progressCandidateFailedAtFsb(applicationId: String)
-
+GET         /diagnostic/inviteP2CandidateToMissingTest                                                 controllers.fixdata.FixDataConsistencyController.inviteP2CandidateToMissingTest(applicationId: String)
 
 GET         /online-test/psi/phase1/candidate/:applicationId             controllers.OnlineTestController.getPhase1OnlineTest2(applicationId: String)
 

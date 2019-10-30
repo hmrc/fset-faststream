@@ -252,6 +252,65 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
     }.map(_ => ())
   }
 
+  //scalastyle:off method.length
+  def inviteP2CandidateToMissingTest(applicationId: String): Future[Unit] = {
+
+    def allInventoryIds = {
+      val standardTests = integrationGatewayConfig.phase2Tests.standard
+      standardTests.map { testName =>
+        integrationGatewayConfig.phase2Tests.tests.getOrElse(testName, throw new Exception(s"Unable to find inventoryId for $testName"))
+      }.map(_.inventoryId).toSet
+    }
+
+    def getPsiTestsIds(inventoryId: String) = {
+      integrationGatewayConfig.phase2Tests.tests.values.filter( _.inventoryId == inventoryId ).head
+    }
+
+    def getCurrentlyRegisteredInventoryIds(phase2TestGroupOpt: Option[Phase2TestGroup2]) = {
+      phase2TestGroupOpt.map { phase2TestGroup =>
+        phase2TestGroup.tests.map( _.inventoryId )
+      }.getOrElse(Nil).toSet
+    }
+
+    def identifyInventoryIdsCandidateIsMissing(registeredIds: Set[String], allIds: Set[String]) = allIds.diff(registeredIds)
+
+    def registerCandidateForMissingTest(applicationId: String, psiTestIds: PsiTestIds) = {
+      Logger.warn(s"Candidate $applicationId needs to register for inventoryId:${psiTestIds.inventoryId}")
+      implicit val hc = HeaderCarrier()
+      for {
+        onlineTestApplicationOpt <- testRepository2.applicationReadyForOnlineTesting(applicationId)
+        application = onlineTestApplicationOpt.getOrElse(throw new Exception(s"No application found for $applicationId"))
+        invitationDate = dateTimeFactory.nowLocalTimeZone
+        registeredApplicant <- registerPsiApplicant(application, psiTestIds, invitationDate)
+
+        currentTestGroupOpt <- testRepository2.getTestGroup(applicationId)
+        currentTestGroup = currentTestGroupOpt.getOrElse(throw new Exception(s"No existing p2 test group found for $applicationId"))
+
+        _ <- insertPhase2TestGroups(registeredApplicant)(invitationDate, currentTestGroup.expirationDate, hc)
+      } yield ()
+    }
+
+    Logger.warn(s"Attempting to invite candidate $applicationId to missing P2 tests")
+    Logger.warn(s"Candidate $applicationId - the full set of inventoryIds=${allInventoryIds.mkString(",")}")
+    for {
+      status <- appRepository.findStatus(applicationId)
+      _ = if (ApplicationStatus.PHASE2_TESTS.toString != status.status) {
+        throw new Exception(s"Candidate $applicationId application status is ${status.status}. Expecting ${ApplicationStatus.PHASE2_TESTS}")
+      }
+      phase2TestGroupOpt <- testRepository2.getTestGroup(applicationId)
+      registeredInventoryIds = getCurrentlyRegisteredInventoryIds(phase2TestGroupOpt)
+      _ = Logger.warn(s"Candidate $applicationId is currently registered with tests whose inventory ids=${registeredInventoryIds.mkString(",")}")
+      idsToRegisterFor = identifyInventoryIdsCandidateIsMissing(registeredInventoryIds, allInventoryIds)
+      _ = if (idsToRegisterFor.size != 1) {
+        val idsToRegisterForText = if (idsToRegisterFor.isEmpty){ "empty" } else { idsToRegisterFor.mkString(",") }
+        val msg = s"Candidate $applicationId has incorrect number of tests to register for (should be 1). " +
+          s"InventoryIds to register for = $idsToRegisterForText"
+        throw new Exception(msg)
+      }
+      _ <- registerCandidateForMissingTest(applicationId, getPsiTestsIds(idsToRegisterFor.head))
+    } yield ()
+  } //scalastyle:on
+
   private def processInvigilatedEtrayAccessCode(phase: Option[Phase2TestGroup2], accessCode: String): Try[String] = {
     phase.fold[Try[String]](Failure(new NotFoundException(Some("No Phase2TestGroup found")))){
       phase2TestGroup => {
@@ -359,7 +418,7 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
     registerApplicant2(application, testIds).map { aoa =>
       if (aoa.status != AssessmentOrderAcknowledgement.acknowledgedStatus) {
         val msg = s"Received response status of ${aoa.status} when registering candidate " +
-          s"${application.applicationId} to phase1 tests with Ids=$testIds"
+          s"${application.applicationId} to phase2 tests with Ids=$testIds"
         Logger.warn(msg)
         throw TestRegistrationException(msg)
       } else {
