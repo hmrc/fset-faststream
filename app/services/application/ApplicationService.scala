@@ -1124,6 +1124,22 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield ()
   }
 
+  def setPhase1UsedForResults(applicationId: String, inventoryId: String, orderId: String, newUsedForResults: Boolean): Future[Unit] = {
+    for {
+      phase1TestProfileOpt <- phase1TestRepository2.getTestGroup(applicationId)
+      phase1TestProfile = phase1TestProfileOpt.getOrElse(throw UnexpectedException(s"Unable to find PHASE1 TestProfile for $applicationId"))
+
+      _ = if (!phase1TestProfile.tests.exists( t => t.inventoryId == inventoryId && t.orderId == orderId)) {
+        throw UnexpectedException(s"Unable to find PHASE1 test for appId=$applicationId,inventoryId=$inventoryId,orderId=$orderId")
+      }
+
+      updatedTests = phase1TestProfile.tests.map { test =>
+        if (test.inventoryId == inventoryId && test.orderId == orderId) test.copy(usedForResults = newUsedForResults) else test }
+      newPhase1TestProfile = phase1TestProfile.copy(tests = updatedTests)
+      _ <- phase1TestRepository2.insertOrUpdateTestGroup(applicationId, newPhase1TestProfile)
+    } yield ()
+  }
+
   private def rollbackAppAndProgressStatus(applicationId: String,
                                            applicationStatus: ApplicationStatus,
                                            statuses: Seq[ProgressStatuses.ProgressStatus]): Future[Unit] = {

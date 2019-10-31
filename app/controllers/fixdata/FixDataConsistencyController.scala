@@ -181,6 +181,16 @@ trait FixDataConsistencyController extends BaseController with MinimumCompetency
       }
   }
 
+  def setPhase1UsedForResults(applicationId: String, inventoryId: String, orderId: String,
+                              newUsedForResults: Boolean): Action[AnyContent] = Action.async {
+    applicationService.setPhase1UsedForResults(applicationId, inventoryId, orderId, newUsedForResults)
+      .map { _ =>
+        val msg = s"Successfully updated PHASE1 test usedForResults value to $newUsedForResults for " +
+          s"applicationId=$applicationId,inventoryId=$inventoryId,orderId=$orderId"
+        Ok(msg)
+      }
+  }
+
   def findUsersStuckInAssessmentScoresAccepted(): Action[AnyContent] = Action.async {
     assessmentCentreService.findUsersStuckInAssessmentScoresAccepted.map(resultList =>
       if (resultList.isEmpty) {
