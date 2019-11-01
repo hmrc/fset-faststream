@@ -15,7 +15,6 @@
     required: Degree_22
     specificRequirement: false
   siftEvaluationRequired: false
-  fsbType: DAT FSB
   schemeGuide: https://www.faststream.gov.uk/media/1230/dat-guide.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/1261/scheme-questions-ddat.rtf
 - id: DiplomaticService
