@@ -39,6 +39,7 @@ import services.reporting.SocioEconomicCalculator
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+//scalastyle:off
 trait PreviousYearCandidatesDetailsRepository {
 
   implicit class RichOptionBSONDocument(doc: Option[BSONDocument]) {
@@ -51,8 +52,6 @@ trait PreviousYearCandidatesDetailsRepository {
       doc.flatMap(_.getAs[T](key).orElse(Some(default))).map(_.toString)
     }
   }
-
-  // scalastyle:off
 
   private val appTestStatuses = "personal-details,IN_PROGRESS,scheme-preferences,assistance-details,start_questionnaire,diversity_questionnaire,education_questionnaire,occupation_questionnaire,preview,SUBMITTED,FAST_PASS_ACCEPTED,PHASE1_TESTS_INVITED,PHASE1_TESTS_FIRST_REMINDER,PHASE1_TESTS_SECOND_REMINDER,PHASE1_TESTS_STARTED,PHASE1_TESTS_COMPLETED,PHASE1_TESTS_EXPIRED,PHASE1_TESTS_RESULTS_READY," +
     "PHASE1_TESTS_RESULTS_RECEIVED,PHASE1_TESTS_PASSED,PHASE1_TESTS_PASSED_NOTIFIED,PHASE1_TESTS_FAILED,PHASE1_TESTS_FAILED_NOTIFIED,PHASE1_TESTS_FAILED_SDIP_AMBER,PHASE1_TESTS_FAILED_SDIP_GREEN," +
@@ -72,7 +71,8 @@ trait PreviousYearCandidatesDetailsRepository {
     "ELIGIBLE_FOR_JOB_OFFER,ELIGIBLE_FOR_JOB_OFFER_NOTIFIED,WITHDRAWN,"
 
   val fsacCompetencyHeaders = "FSAC passedMinimumCompetencyLevel," +
-    "makingEffectiveDecisionsAverage,workingTogetherDevelopingSelfAndOthersAverage,communicatingAndInfluencingAverage,seeingTheBigPictureAverage,overallScore,"
+    "makingEffectiveDecisionsAverage,workingTogetherDevelopingSelfAndOthersAverage,communicatingAndInfluencingAverage," +
+    "seeingTheBigPictureAverage,overallScore,"
 
   private def appTestResults(numOfSchemes: Int) = {
     val otherColumns = "result," * (numOfSchemes - 2) + "result"
@@ -168,20 +168,23 @@ trait PreviousYearCandidatesDetailsRepository {
 
   def dataAnalystApplicationDetailsStreamPt1(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem]
   def dataAnalystApplicationDetailsStreamPt2: Enumerator[CandidateDetailsReportItem]
+  def dataAnalystApplicationDetailsStream(numOfSchemes: Int, applicationIds: Seq[String]): Enumerator[CandidateDetailsReportItem]
 
   def findApplicationsFor(appRoutes: Seq[ApplicationRoute]): Future[List[Candidate]]
   def findApplicationsFor(appRoutes: Seq[ApplicationRoute],
                           appStatuses: Seq[ApplicationStatus]): Future[List[Candidate]]
 
   def findDataAnalystContactDetails: Future[CsvExtract[String]]
-  def findContactDetails(applicationIds: Seq[String]): Future[CsvExtract[String]]
+  def findDataAnalystContactDetails(userIds: Seq[String]): Future[CsvExtract[String]]
+  def findContactDetails(userIds: Seq[String]): Future[CsvExtract[String]]
 
   def findQuestionnaireDetails: Future[CsvExtract[String]]
   def findQuestionnaireDetails(applicationIds: Seq[String]): Future[CsvExtract[String]]
   def findDataAnalystQuestionnaireDetails: Future[CsvExtract[String]]
+  def findDataAnalystQuestionnaireDetails(applicationIds: Seq[String]): Future[CsvExtract[String]]
 
   def findMediaDetails: Future[CsvExtract[String]]
-  def findMediaDetails(applicationIds: Seq[String]): Future[CsvExtract[String]]
+  def findMediaDetails(userIds: Seq[String]): Future[CsvExtract[String]]
 
   def findAssessorAssessmentScores: Future[CsvExtract[String]]
   def findAssessorAssessmentScores(applicationIds: Seq[String]): Future[CsvExtract[String]]
@@ -195,6 +198,7 @@ trait PreviousYearCandidatesDetailsRepository {
   def findSiftAnswers: Future[CsvExtract[String]]
   def findSiftAnswers(applicationIds: Seq[String]): Future[CsvExtract[String]]
   def findDataAnalystSiftAnswers: Future[CsvExtract[String]]
+  def findDataAnalystSiftAnswers(applicationIds: Seq[String]): Future[CsvExtract[String]]
 }
 
 class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
@@ -403,7 +407,42 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
   }
 
   override def dataAnalystApplicationDetailsStreamPt1(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem] = {
-    val query = BSONDocument()
+    val query = BSONDocument.empty
+    commonDataAnalystApplicationDetailsStream(numOfSchemes, query)
+  }
+
+  // Just fetch the applicationId and userId for Pt2 report
+  override def dataAnalystApplicationDetailsStreamPt2: Enumerator[CandidateDetailsReportItem] = {
+    val query = BSONDocument.empty
+    val projection = Json.obj("_id" -> 0)
+
+    applicationDetailsCollection.find(query, projection)
+      .cursor[BSONDocument](ReadPreference.nearest)
+      .enumerate().map { doc =>
+
+      try {
+        val applicationIdOpt = doc.getAs[String]("applicationId")
+        val csvContent = makeRow(
+          List(applicationIdOpt): _*
+        )
+        CandidateDetailsReportItem(
+          doc.getAs[String]("applicationId").getOrElse(""),
+          doc.getAs[String]("userId").getOrElse(""), csvContent
+        )
+      } catch {
+        case ex: Throwable =>
+          Logger.error("Data analyst Previous year candidate report generation exception", ex)
+          CandidateDetailsReportItem("", "", "ERROR LINE " + ex.getMessage)
+      }
+    }
+  }
+
+  override def dataAnalystApplicationDetailsStream(numOfSchemes: Int, applicationIds: Seq[String]): Enumerator[CandidateDetailsReportItem] = {
+    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    commonDataAnalystApplicationDetailsStream(numOfSchemes, query)
+  }
+
+  private def commonDataAnalystApplicationDetailsStream(numOfSchemes: Int, query: BSONDocument): Enumerator[CandidateDetailsReportItem] = {
     val projection = Json.obj("_id" -> 0)
 
     applicationDetailsCollection.find(query, projection)
@@ -441,32 +480,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
         )
       } catch {
         case ex: Throwable =>
-          Logger.error("Data analyst Previous year candidate report generation exception", ex)
-          CandidateDetailsReportItem("", "", "ERROR LINE " + ex.getMessage)
-      }
-    }
-  }
-
-  override def dataAnalystApplicationDetailsStreamPt2: Enumerator[CandidateDetailsReportItem] = {
-    val query = BSONDocument()
-    val projection = Json.obj("_id" -> 0)
-
-    applicationDetailsCollection.find(query, projection)
-      .cursor[BSONDocument](ReadPreference.nearest)
-      .enumerate().map { doc =>
-
-      try {
-        val applicationIdOpt = doc.getAs[String]("applicationId")
-        val csvContent = makeRow(
-          List(applicationIdOpt): _*
-        )
-        CandidateDetailsReportItem(
-          doc.getAs[String]("applicationId").getOrElse(""),
-          doc.getAs[String]("userId").getOrElse(""), csvContent
-        )
-      } catch {
-        case ex: Throwable =>
-          Logger.error("Data analyst Previous year candidate report generation exception", ex)
+          Logger.error("Data analyst streamed candidate report generation exception", ex)
           CandidateDetailsReportItem("", "", "ERROR LINE " + ex.getMessage)
       }
     }
@@ -622,7 +636,16 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
   }
 
   override def findDataAnalystContactDetails: Future[CsvExtract[String]] = {
-    val query = Json.obj()
+    val query = BSONDocument.empty
+    commonFindDataAnalystContactDetails(query)
+  }
+
+  override def findDataAnalystContactDetails(userIds: Seq[String]): Future[CsvExtract[String]] = {
+    val query = BSONDocument("userId" -> BSONDocument("$in" -> userIds))
+    commonFindDataAnalystContactDetails(query)
+  }
+
+  private def commonFindDataAnalystContactDetails(query: BSONDocument): Future[CsvExtract[String]] = {
     val projection = Json.obj("_id" -> 0)
 
     contactDetailsCollection.find(query, projection)
@@ -668,7 +691,14 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
   }
 
   override def findDataAnalystQuestionnaireDetails: Future[CsvExtract[String]] = {
-    val query = BSONDocument()
+    val query = BSONDocument.empty
+    val projection = Json.obj("_id" -> false)
+
+    commonFindQuestionnaireDetails(query, projection)
+  }
+
+  override def findDataAnalystQuestionnaireDetails(applicationIds: Seq[String]): Future[CsvExtract[String]] = {
+    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
     val projection = Json.obj("_id" -> false)
 
     commonFindQuestionnaireDetails(query, projection)
@@ -786,7 +816,16 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
   }
 
   override def findDataAnalystSiftAnswers: Future[CsvExtract[String]] = {
-    val query = BSONDocument()
+    val query = BSONDocument.empty
+    commonFindDataAnalystSiftAnswers(query)
+  }
+
+  override def findDataAnalystSiftAnswers(applicationIds: Seq[String]): Future[CsvExtract[String]] = {
+    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    commonFindDataAnalystSiftAnswers(query)
+  }
+
+  private def commonFindDataAnalystSiftAnswers(query: BSONDocument): Future[CsvExtract[String]] = {
     val projection = Json.obj("_id" -> 0)
 
     siftAnswersCollection.find(query, projection)

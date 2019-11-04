@@ -96,8 +96,19 @@ GET         /report/fs-p1-failed-candidates-details-stream/previous-year    cont
 GET         /report/fs-p1-not-failed-candidates-details-stream/previous-year controllers.ReportingController.streamPreviousYearFaststreamP1NotFailedCandidatesDetailsReport()
 GET         /report/nonfs-candidates-details-stream/previous-year           controllers.ReportingController.streamPreviousYearNonFaststreamCandidatesDetailsReport()
 
+# Data analyst reports start
 GET         /report/streamed/data-analyst-report-pt1                        controllers.ReportingController.streamDataAnalystReportPt1()
 GET         /report/streamed/data-analyst-report-pt2                        controllers.ReportingController.streamDataAnalystReportPt2()
+
+GET         /report/streamed/data-analyst-fs-presubmitted                   controllers.ReportingController.streamDataAnalystFaststreamPresubmittedCandidatesDetailsReport()
+GET         /report/streamed/data-analyst-fs-p1                             controllers.ReportingController.streamDataAnalystFaststreamP1CandidatesDetailsReport()
+GET         /report/streamed/data-analyst-fs-p2-p3                          controllers.ReportingController.streamDataAnalystFaststreamP2P3CandidatesDetailsReport()
+
+GET         /report/streamed/data-analyst-fs-sift                           controllers.ReportingController.streamDataAnalystFaststreamSIFTCandidatesDetailsReport()
+GET         /report/streamed/data-analyst-fs-fsac                           controllers.ReportingController.streamDataAnalystFaststreamFSACCandidatesDetailsReport()
+GET         /report/streamed/data-analyst-fs-fsb                            controllers.ReportingController.streamDataAnalystFaststreamFSBCandidatesDetailsReport()
+GET         /report/streamed/data-analyst-nonfs                             controllers.ReportingController.streamDataAnalystNonFaststreamCandidatesDetailsReport()
+# Data analyst reports end
 
 GET         /report/assessor-allocation                                     controllers.ReportingController.assessorAllocationReport()
 GET         /report/candidate-acceptance                                    controllers.ReportingController.candidateAcceptanceReport()
