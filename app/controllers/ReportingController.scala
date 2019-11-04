@@ -296,6 +296,139 @@ trait ReportingController extends BaseController {
   // +1 to handle SdipFastStream candidates who automatically get the Sdip schemes in addition to the 4 selectable schemes
   private def maxSchemes = schemeRepo.maxNumberOfSelectableSchemes + 1
 
+  //====
+  // Pt1 Includes data from the following collections: application, contact-details and media
+  // Pt2 Includes data from the following collections: application, questionnaire and sift-answers
+  def streamDataAnalystFaststreamPresubmittedCandidatesDetailsReport: Action[AnyContent] = {
+    streamDataAnalystReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.CREATED, ApplicationStatus.IN_PROGRESS,
+        ApplicationStatus.SUBMITTED, ApplicationStatus.WITHDRAWN,
+        ApplicationStatus.ELIGIBLE_FOR_JOB_OFFER
+      )
+    )
+  }
+
+  def streamDataAnalystFaststreamP1CandidatesDetailsReport: Action[AnyContent] = {
+    streamDataAnalystReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_FAILED,
+        ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED)
+    )
+  }
+
+  def streamDataAnalystFaststreamP2P3CandidatesDetailsReport: Action[AnyContent] = {
+    streamDataAnalystReport(
+      Seq(Faststream),
+      Seq(
+        ApplicationStatus.PHASE2_TESTS, ApplicationStatus.PHASE2_TESTS_PASSED,
+        ApplicationStatus.PHASE2_TESTS_FAILED, ApplicationStatus.PHASE3_TESTS,
+        ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER, ApplicationStatus.PHASE3_TESTS_PASSED,
+        ApplicationStatus.PHASE3_TESTS_FAILED, ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED
+      )
+    )
+  }
+
+  def streamDataAnalystFaststreamSIFTCandidatesDetailsReport: Action[AnyContent] = {
+    streamDataAnalystReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.SIFT, ApplicationStatus.FAILED_AT_SIFT)
+    )
+  }
+
+  def streamDataAnalystFaststreamFSACCandidatesDetailsReport: Action[AnyContent] = {
+    streamDataAnalystReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.ASSESSMENT_CENTRE)
+    )
+  }
+
+  def streamDataAnalystFaststreamFSBCandidatesDetailsReport: Action[AnyContent] = {
+    streamDataAnalystReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.FSB)
+    )
+  }
+
+  def streamDataAnalystNonFaststreamCandidatesDetailsReport: Action[AnyContent] = {
+    streamDataAnalystReport(
+      Seq(SdipFaststream, Sdip, Edip),
+      _ => true
+    )
+  }
+
+  private def streamDataAnalystReport(applicationRoutes: Seq[ApplicationRoute],
+                                        applicationStatuses: Seq[ApplicationStatus]
+                                       ): Action[AnyContent] = Action.async { implicit request =>
+    prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes, applicationStatuses).flatMap { candidates =>
+      val appIds = candidates.flatMap(_.applicationId)
+      val userIds = candidates.map(_.userId)
+      commonEnrichDataAnalystReport(appIds, userIds)
+    }
+  }
+
+  private def streamDataAnalystReport(applicationRoutes: Seq[ApplicationRoute],
+                                filter: Candidate => Boolean): Action[AnyContent] = Action.async { implicit request =>
+
+    prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes).flatMap { candidates =>
+      val appIds = candidates.collect { case c if filter(c) => c.applicationId }.flatten
+      val userIds = candidates.collect { case c if filter(c) => c.userId }
+      commonEnrichDataAnalystReport(appIds, userIds)
+    }
+  }
+
+  private def commonEnrichDataAnalystReport(appIds: Seq[String], userIds: Seq[String]) = {
+    enrichDataAnalystReport(appIds, userIds) {
+      (numOfSchemes, contactDetails, mediaDetails, questionnaireDetails, siftDetails) => {
+
+        val applicationDetailsStream = prevYearCandidatesDetailsRepository.dataAnalystApplicationDetailsStream(numOfSchemes, appIds).map { app =>
+          createDataAnalystRecord(app, contactDetails, mediaDetails, questionnaireDetails, siftDetails) + "\n"
+        }
+
+        val header = Enumerator(
+          (prevYearCandidatesDetailsRepository.dataAnalystApplicationDetailsHeader(numOfSchemes) ::
+            prevYearCandidatesDetailsRepository.dataAnalystContactDetailsHeader ::
+            prevYearCandidatesDetailsRepository.mediaHeader ::
+            prevYearCandidatesDetailsRepository.questionnaireDetailsHeader ::
+            prevYearCandidatesDetailsRepository.dataAnalystSiftAnswersHeader ::
+            Nil).mkString(",") + "\n"
+        )
+        Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(applicationDetailsStream))))
+      }
+    }
+  }
+
+  type DataAnalystReportBlockType = (Int, CsvExtract[String], CsvExtract[String], CsvExtract[String], CsvExtract[String]) => Result
+
+  // We include all the columns from both parts 1 and 2 of data analyst report
+  private def enrichDataAnalystReport(applicationIds: Seq[String], userIds: Seq[String] = Nil)(block: DataAnalystReportBlockType) = {
+    for {
+      // pt1 data analyst report
+      contactDetails <- prevYearCandidatesDetailsRepository.findDataAnalystContactDetails(userIds)
+      mediaDetails <- prevYearCandidatesDetailsRepository.findMediaDetails(userIds)
+      // pt2 data analyst report
+      questionnaireDetails <- prevYearCandidatesDetailsRepository.findDataAnalystQuestionnaireDetails(applicationIds)
+      siftDetails <- prevYearCandidatesDetailsRepository.findDataAnalystSiftAnswers(applicationIds)
+    } yield {
+      block(maxSchemes, contactDetails, mediaDetails, questionnaireDetails, siftDetails)
+    }
+  }
+
+  private def createDataAnalystRecord(candidateDetails: CandidateDetailsReportItem,
+                                        contactDetails: CsvExtract[String],
+                                        mediaDetails: CsvExtract[String],
+                                        questionnaireDetails: CsvExtract[String],
+                                        siftDetails: CsvExtract[String]
+                                       ) = {
+    (candidateDetails.csvRecord ::
+      contactDetails.records.getOrElse(candidateDetails.userId, contactDetails.emptyRecord) ::
+      mediaDetails.records.getOrElse(candidateDetails.userId, mediaDetails.emptyRecord) ::
+      questionnaireDetails.records.getOrElse(candidateDetails.appId, questionnaireDetails.emptyRecord) ::
+      siftDetails.records.getOrElse(candidateDetails.appId, siftDetails.emptyRecord) ::
+      Nil).mkString(",")
+  }
+  //====
+
   // Includes data from the following collections: application, contact-details and media
   def streamDataAnalystReportPt1: Action[AnyContent] = Action.async { implicit request =>
     enrichDataAnalystReportPt1(
