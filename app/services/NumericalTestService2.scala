@@ -477,7 +477,8 @@ trait NumericalTestService2 extends EventSink {
           markAsCompletedByOrderId(orderId)
         }
         else {
-          Logger.info(s"Processing real time sift results - completed date is already set on psi test whose orderId=$orderId")
+          Logger.info(s"Processing real time sift results - completed date is already set on psi test whose orderId=$orderId " +
+            s"so will not mark as complete")
           Future.successful(())
         }
       }).getOrElse(throw CannotFindTestByOrderIdException(s"Processing real time sift results - test not found for orderId=$orderId"))

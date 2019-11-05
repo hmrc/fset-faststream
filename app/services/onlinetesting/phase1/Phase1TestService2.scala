@@ -372,7 +372,8 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
           markAsCompleted22(orderId)
         }
         else {
-          Logger.info(s"Processing real time results - completed date is already set on psi test whose orderId=$orderId")
+          Logger.info(s"Processing real time results - completed date is already set on psi test whose orderId=$orderId " +
+            s"so will not mark as complete")
           Future.successful(())
         }
       }.getOrElse(throw CannotFindTestByOrderIdException(s"Test not found for orderId=$orderId"))
