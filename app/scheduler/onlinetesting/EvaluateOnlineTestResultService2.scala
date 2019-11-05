@@ -60,6 +60,8 @@ trait EvaluateOnlineTestResultService2[T <: PassMarkSettings] extends Applicatio
         determineApplicationStatus(application.applicationRoute, application.applicationStatus, schemeResults, phase)
       )
     } else {
+      Logger.warn(s"AppId=${application.applicationId} has no schemeResults so will not evaluate. " +
+        s"Have all pass marks been set including Edip/Sdip?")
       Future.successful(())
     }
   }
