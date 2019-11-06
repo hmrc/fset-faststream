@@ -48,7 +48,8 @@ case class ApplicationRouteStateImpl(config: ApplicationRouteFrontendConfig) ext
 
   def isAfterNow(date: Option[LocalDateTime]) = {
     val result = date forall (_.isAfter(now))
-    Logger.debug(s"isAfterNow check: checking if given closing date($date) is after now($now) - result=$result (false indicates we are closed)")
+    Logger.warn(s"isAfterNow check: checking if given closing date($date) in timezone($zoneId) is after now($now) - " +
+      s"result=$result (false indicates we are closed)")
     result
   }
 

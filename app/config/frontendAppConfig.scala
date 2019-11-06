@@ -107,11 +107,11 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
     val startNewAccountsDate = configuration.getString(s"applicationRoute.$routeKey.startNewAccountsDate")
     val blockNewAccountsDate = configuration.getString(s"applicationRoute.$routeKey.blockNewAccountsDate")
     val blockApplicationsDate = configuration.getString(s"applicationRoute.$routeKey.blockApplicationsDate")
-    Logger.debug(s"Reading campaign closing times for routeKey=$routeKey...")
-    Logger.debug(s"timeZone=$timeZone")
-    Logger.debug(s"startNewAccountsDate=$startNewAccountsDate")
-    Logger.debug(s"blockNewAccountsDate=$blockNewAccountsDate")
-    Logger.debug(s"blockApplicationsDate=$blockApplicationsDate")
+    Logger.warn(s"Reading campaign closing times timeZone=$timeZone")
+    Logger.warn(s"Reading campaign closing times for routeKey=$routeKey...")
+    Logger.warn(s"routeKey=$routeKey - startNewAccountsDate=$startNewAccountsDate")
+    Logger.warn(s"routeKey=$routeKey - blockNewAccountsDate=$blockNewAccountsDate")
+    Logger.warn(s"routeKey=$routeKey - blockApplicationsDate=$blockApplicationsDate")
 
     ApplicationRouteStateImpl(
       ApplicationRouteFrontendConfig.read(
