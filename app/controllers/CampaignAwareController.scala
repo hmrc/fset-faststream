@@ -22,6 +22,7 @@ import java.time.format.DateTimeFormatter
 import config.ApplicationRouteFrontendConfig
 import models.ApplicationRoute._
 import org.joda.time.DateTime
+import play.api.Logger
 
 trait ApplicationRouteState {
   def newAccountsStarted: Boolean
@@ -45,7 +46,11 @@ case class ApplicationRouteStateImpl(config: ApplicationRouteFrontendConfig) ext
 
   def now = LocalDateTime.now(zoneId)
 
-  def isAfterNow(date: Option[LocalDateTime]) = date forall (_.isAfter(now))
+  def isAfterNow(date: Option[LocalDateTime]) = {
+    val result = date forall (_.isAfter(now))
+    Logger.debug(s"isAfterNow check: checking if given closing date($date) is after now($now) - result=$result (false indicates we are closed)")
+    result
+  }
 
   def isBeforeNow(date: Option[LocalDateTime]) = date forall (_.isBefore(now))
 }
