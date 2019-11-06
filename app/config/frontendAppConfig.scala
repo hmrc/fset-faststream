@@ -25,7 +25,7 @@ import models.ApplicationRoute._
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import play.api.Mode.Mode
-import play.api.{ Configuration, Play }
+import play.api.{ Configuration, Logger, Play }
 import play.api.Play.{ configuration, current }
 import uk.gov.hmrc.play.config.ServicesConfig
 
@@ -102,14 +102,26 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
     SdipFaststream -> loadAppRouteConfig("faststream")
   )
 
-  def loadAppRouteConfig(routeKey: String) = ApplicationRouteStateImpl(
-    ApplicationRouteFrontendConfig.read(
-      timeZone = configuration.getString("applicationRoute.timeZone"),
-      startNewAccountsDate = configuration.getString(s"applicationRoute.$routeKey.startNewAccountsDate"),
-      blockNewAccountsDate = configuration.getString(s"applicationRoute.$routeKey.blockNewAccountsDate"),
-      blockApplicationsDate = configuration.getString(s"applicationRoute.$routeKey.blockApplicationsDate")
+  def loadAppRouteConfig(routeKey: String) = {
+    val timeZone = configuration.getString("applicationRoute.timeZone")
+    val startNewAccountsDate = configuration.getString(s"applicationRoute.$routeKey.startNewAccountsDate")
+    val blockNewAccountsDate = configuration.getString(s"applicationRoute.$routeKey.blockNewAccountsDate")
+    val blockApplicationsDate = configuration.getString(s"applicationRoute.$routeKey.blockApplicationsDate")
+    Logger.debug(s"Reading campaign closing times for routeKey=$routeKey...")
+    Logger.debug(s"timeZone=$timeZone")
+    Logger.debug(s"startNewAccountsDate=$startNewAccountsDate")
+    Logger.debug(s"blockNewAccountsDate=$blockNewAccountsDate")
+    Logger.debug(s"blockApplicationsDate=$blockApplicationsDate")
+
+    ApplicationRouteStateImpl(
+      ApplicationRouteFrontendConfig.read(
+        timeZone = configuration.getString("applicationRoute.timeZone"),
+        startNewAccountsDate = configuration.getString(s"applicationRoute.$routeKey.startNewAccountsDate"),
+        blockNewAccountsDate = configuration.getString(s"applicationRoute.$routeKey.blockNewAccountsDate"),
+        blockApplicationsDate = configuration.getString(s"applicationRoute.$routeKey.blockApplicationsDate")
+      )
     )
-  )
+  }
 
   // Whitelist Configuration
   private def whitelistConfig(key: String): Seq[String] = Some(
