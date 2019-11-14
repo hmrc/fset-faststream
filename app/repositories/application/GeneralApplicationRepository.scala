@@ -1047,10 +1047,7 @@ class GeneralApplicationMongoRepository(
 
     val updateQuery = BSONDocument(
       "$unset" -> BSONDocument(statusesToRemove),
-      "$set" -> BSONDocument(
-        s"progress-status.${newStatus.key}" -> true,
-        s"progress-status-timestamp.${newStatus.key}" -> dateTimeFactory.nowLocalTimeZone
-      )
+      "$set" -> BSONDocument(s"progress-status.${newStatus.key}" -> true)
     )
     collection.update(query, updateQuery).map(_ => ())
   }
