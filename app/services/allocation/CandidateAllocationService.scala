@@ -123,11 +123,7 @@ trait CandidateAllocationService extends EventSink {
   private def processCandidateAllocation(allocation: model.persisted.CandidateAllocation,
                                          eligibleForReallocation: Boolean, eventType: EventType)(implicit hc: HeaderCarrier) = {
     ( allocation.removeReason.flatMap { rr => CandidateRemoveReason.find(rr).map(_.failApp) } match {
-      case Some(true) =>
-        for {
-          _ <- applicationRepo.setFailedToAttendAssessmentStatus(allocation.id, eventType)
-          _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(allocation.id, ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED)
-        } yield ()
+      case Some(true) => applicationRepo.setFailedToAttendAssessmentStatus(allocation.id, eventType)
       case _ if eligibleForReallocation => applicationRepo.resetApplicationAllocationStatus(allocation.id, eventType)
       // Do nothing in this scenario
       case _ => Future.successful(())
