@@ -593,6 +593,15 @@ trait FixDataConsistencyController extends BaseController with MinimumCompetency
       }
     }
 
+  def removePhase3TestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+    applicationService.removePhase3TestGroup(applicationId).map { _ =>
+      Ok(s"Successfully removed phase 3 test group for $applicationId")
+    } recover {
+      case ex: Throwable =>
+        BadRequest(s"Could not phase 3 test group for $applicationId - message: ${ex.getMessage}")
+    }
+  }
+
   def removeSiftTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     applicationService.removeSiftTestGroup(applicationId).map(_ => Ok(s"Successfully removed SIFT test group for $applicationId"))
   }

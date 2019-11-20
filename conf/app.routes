@@ -150,6 +150,8 @@ GET         /diagnostic/sift/markSiftSchemeAsRed/:schemeId                      
 GET         /diagnostic/sift/markSiftSchemeAsGreen/:schemeId                                           controllers.fixdata.FixDataConsistencyController.markSiftSchemeAsGreen(applicationId: String, schemeId: model.SchemeId)
 GET         /diagnostic/sift/createSiftStructure                                                       controllers.fixdata.FixDataConsistencyController.createSiftStructure(applicationId: String)
 
+GET         /diagnostic/phase3/removeTestGroup                                                         controllers.fixdata.FixDataConsistencyController.removePhase3TestGroup(applicationId: String)
+
 GET         /diagnostic/fsb/markFsbSchemeAsRed/:schemeId                                               controllers.fixdata.FixDataConsistencyController.markFsbSchemeAsRed(applicationId: String, schemeId: model.SchemeId)
 GET         /diagnostic/fsb/markFsbSchemeAsGreen/:schemeId                                             controllers.fixdata.FixDataConsistencyController.markFsbSchemeAsGreen(applicationId: String, schemeId: model.SchemeId)
 GET         /diagnostic/fsb/removeTestGroup                                                            controllers.fixdata.FixDataConsistencyController.removeFsbTestGroup(applicationId: String)
