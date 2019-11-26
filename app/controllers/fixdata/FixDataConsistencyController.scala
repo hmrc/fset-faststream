@@ -606,9 +606,9 @@ trait FixDataConsistencyController extends BaseController with MinimumCompetency
     applicationService.markPhase3SchemeAsRed(applicationId, schemeId).map { _ =>
       Ok(s"Successfully marked ${schemeId.value} as red for $applicationId")
     } recover {
-      case _: ApplicationNotFound => NotFound
+      case _: ApplicationNotFound => NotFound(s"No candidate found for $applicationId, scheme:$schemeId")
       case ex: Throwable =>
-        BadRequest(s"Could not phase 3 test group for $applicationId - message: ${ex.getMessage}")
+        BadRequest(s"Could not update phase 3 test group for $applicationId - message: ${ex.getMessage}")
     }
   }
 
@@ -616,9 +616,9 @@ trait FixDataConsistencyController extends BaseController with MinimumCompetency
     applicationService.markPhase3SchemeAsGreen(applicationId, schemeId).map { _ =>
       Ok(s"Successfully marked ${schemeId.value} as green for $applicationId")
     } recover {
-      case _: ApplicationNotFound => NotFound
+      case _: ApplicationNotFound => NotFound(s"No candidate found for $applicationId, scheme:$schemeId")
       case ex: Throwable =>
-        BadRequest(s"Could not phase 3 test group for $applicationId - message: ${ex.getMessage}")
+        BadRequest(s"Could not update phase 3 test group for $applicationId - message: ${ex.getMessage}")
     }
   }
 
