@@ -23,7 +23,7 @@ import model.Exceptions.{ ApplicationNotFound, NotFoundException, TokenNotFound 
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model.persisted.phase3tests.Phase3TestGroup
-import model.persisted.{ NotificationExpiringOnlineTest, PassmarkEvaluation, Phase3TestGroupWithAppId }
+import model.persisted.{ NotificationExpiringOnlineTest, PassmarkEvaluation, Phase3TestGroupWithAppId, SchemeEvaluationResult }
 import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
 import org.joda.time.DateTime
 import play.api.Logger
@@ -70,6 +70,8 @@ trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
   def markTestAsActive(token: String): Future[Unit]
 
   def updateExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit]
+
+  def updateResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
 }
 
 class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
@@ -90,6 +92,35 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   }
 
   override implicit val bsonHandler: BSONHandler[BSONDocument, Phase3TestGroup] = Phase3TestGroup.bsonHandler
+
+  override def updateResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
+    val phase3TestGroupEvaluation = s"testGroups.$phaseName.evaluation"
+    val saveEvaluationResultsDoc = BSONDocument(s"$phase3TestGroupEvaluation.result" -> result)
+    val removeDoc = BSONDocument(
+      "$pull" -> BSONDocument(s"$phase3TestGroupEvaluation.result" -> BSONDocument("schemeId" -> result.schemeId.value))
+    )
+    val setDoc = BSONDocument("$addToSet" -> saveEvaluationResultsDoc)
+
+    val removePredicate = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationId" -> applicationId),
+      BSONDocument(
+        s"$phase3TestGroupEvaluation.result.schemeId" -> BSONDocument("$in" -> BSONArray(result.schemeId.value))
+      )
+    ))
+    val setPredicate = BSONDocument("$and" -> BSONArray(
+      BSONDocument("applicationId" -> applicationId),
+      BSONDocument(
+        s"$phase3TestGroupEvaluation.result.schemeId" -> BSONDocument("$nin" -> BSONArray(result.schemeId.value))
+      )
+    ))
+
+    val validator = singleUpdateValidator(applicationId, s"Fixing phase3 results for ${result.schemeId}", ApplicationNotFound(applicationId))
+
+    for {
+      _ <- collection.update(removePredicate, removeDoc) map validator
+      _ <- collection.update(setPredicate, setDoc) map validator
+    } yield ()
+  }
 
   override def appendCallback[A](token: String, callbacksKey: String, callback: A)
                                 (implicit handler: BSONHandler[BSONDocument, A]): Future[Unit] = {

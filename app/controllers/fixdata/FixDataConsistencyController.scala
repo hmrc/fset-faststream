@@ -602,6 +602,26 @@ trait FixDataConsistencyController extends BaseController with MinimumCompetency
     }
   }
 
+  def markPhase3SchemeAsRed(applicationId: String, schemeId: model.SchemeId): Action[AnyContent] = Action.async {
+    applicationService.markPhase3SchemeAsRed(applicationId, schemeId).map { _ =>
+      Ok(s"Successfully marked ${schemeId.value} as red for $applicationId")
+    } recover {
+      case _: ApplicationNotFound => NotFound(s"No candidate found for $applicationId, scheme:$schemeId")
+      case ex: Throwable =>
+        BadRequest(s"Could not update phase 3 test group for $applicationId - message: ${ex.getMessage}")
+    }
+  }
+
+  def markPhase3SchemeAsGreen(applicationId: String, schemeId: model.SchemeId): Action[AnyContent] = Action.async {
+    applicationService.markPhase3SchemeAsGreen(applicationId, schemeId).map { _ =>
+      Ok(s"Successfully marked ${schemeId.value} as green for $applicationId")
+    } recover {
+      case _: ApplicationNotFound => NotFound(s"No candidate found for $applicationId, scheme:$schemeId")
+      case ex: Throwable =>
+        BadRequest(s"Could not update phase 3 test group for $applicationId - message: ${ex.getMessage}")
+    }
+  }
+
   def removeSiftTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     applicationService.removeSiftTestGroup(applicationId).map(_ => Ok(s"Successfully removed SIFT test group for $applicationId"))
   }

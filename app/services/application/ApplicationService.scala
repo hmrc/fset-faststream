@@ -732,7 +732,14 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)
       _ <- amendOneSchemeInCurrentSchemeStatus(applicationId, currentSchemeStatus, schemeId, Red.toString)
     } yield ()
+  }
 
+  def markPhase3SchemeAsRed(applicationId: String, schemeId: SchemeId): Future[Unit] = {
+    phase3TestRepository.updateResult(applicationId, SchemeEvaluationResult(schemeId, Red.toString)).map(_ => ())
+  }
+
+  def markPhase3SchemeAsGreen(applicationId: String, schemeId: SchemeId): Future[Unit] = {
+    phase3TestRepository.updateResult(applicationId, SchemeEvaluationResult(schemeId, Green.toString)).map(_ => ())
   }
 
   def markSiftSchemeAsGreen(applicationId: String, schemeId: SchemeId): Future[Unit] = {
