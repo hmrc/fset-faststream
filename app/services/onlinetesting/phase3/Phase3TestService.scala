@@ -406,6 +406,24 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
     }
   }
 
+  def extendTestGroupExpiryTime(applicationId: String, extraDays: Int)
+                               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    val progressFut = appRepository.findProgress(applicationId)
+    val phase3TestGroup = testRepository.getTestGroup(applicationId)
+      .map(tg => tg.getOrElse(throw new IllegalStateException(s"Phase 3 tests expiration date for app id: '$applicationId' " +
+        "cannot be extended. Test group not found.")))
+
+    for {
+      progress <- progressFut
+      phase3 <- phase3TestGroup
+      isAlreadyExpired = progress.phase3ProgressResponse.phase3TestsExpired
+      // If the candidate has expired then the days are added to today otherwise they are added to the current expiry date
+      extendDays = extendTime(isAlreadyExpired, phase3.expirationDate)
+      newExpiryDate = extendDays(extraDays)
+      _ <- testRepository.updateGroupExpiryTime(applicationId, newExpiryDate, testRepository.phaseName)
+    } yield ()
+  }
+
   private def registerApplicant(application: OnlineTestApplication, emailAddress: String,
                                 customCandidateId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[String] = {
     val registerApplicant = RegisterApplicantRequest(emailAddress, customCandidateId, application.preferredName, application.lastName)

@@ -151,6 +151,7 @@ GET         /diagnostic/sift/markSiftSchemeAsGreen/:schemeId                    
 GET         /diagnostic/sift/createSiftStructure                                                       controllers.fixdata.FixDataConsistencyController.createSiftStructure(applicationId: String)
 
 GET         /diagnostic/phase3/removeTestGroup                                                         controllers.fixdata.FixDataConsistencyController.removePhase3TestGroup(applicationId: String)
+GET         /diagnostic/phase3/extendTestGroup                                                         controllers.fixdata.FixDataConsistencyController.extendPhase3TestGroup(applicationId: String, extraDays: Int)
 GET         /diagnostic/phase3/markSchemeAsRed/:schemeId                                               controllers.fixdata.FixDataConsistencyController.markPhase3SchemeAsRed(applicationId: String, schemeId: model.SchemeId)
 GET         /diagnostic/phase3/markSchemeAsGreen/:schemeId                                             controllers.fixdata.FixDataConsistencyController.markPhase3SchemeAsGreen(applicationId: String, schemeId: model.SchemeId)
 
