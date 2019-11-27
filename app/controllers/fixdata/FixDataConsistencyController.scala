@@ -30,6 +30,7 @@ import services.assessmentcentre.{ AssessmentCentreService, ProgressionToFsbOrOf
 import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAssessmentScoreEvaluationException
 import services.fastpass.FastPassService
 import services.onlinetesting.phase2.Phase2TestService2
+import services.onlinetesting.phase3.Phase3TestService
 import services.sift.ApplicationSiftService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -45,6 +46,7 @@ object FixDataConsistencyController extends FixDataConsistencyController {
   override val progressionToFsbOrOfferService = ProgressionToFsbOrOfferService
   override val fsbService = FsbService
   override val phase2TestService = Phase2TestService2
+  override val phase3TestService = Phase3TestService
 }
 
 // scalastyle:off number.of.methods
@@ -56,6 +58,7 @@ trait FixDataConsistencyController extends BaseController with MinimumCompetency
   val progressionToFsbOrOfferService: ProgressionToFsbOrOfferService
   val fsbService: FsbService
   val phase2TestService: Phase2TestService2
+  val phase3TestService: Phase3TestService
 
   def undoFullWithdraw(applicationId: String, newApplicationStatus: ApplicationStatus) = Action.async { implicit request =>
     applicationService.undoFullWithdraw(applicationId, newApplicationStatus).map { _ =>
@@ -592,6 +595,16 @@ trait FixDataConsistencyController extends BaseController with MinimumCompetency
           BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
       }
     }
+
+  def extendPhase3TestGroup(applicationId: String, extraDays: Int): Action[AnyContent] =
+    Action.async { implicit request =>
+      phase3TestService.extendTestGroupExpiryTime(applicationId, extraDays).map( _ =>
+        Ok(s"Successfully extended P3 test group by $extraDays day(s) for candidate $applicationId")
+      ).recover {
+        case ex: Throwable =>
+          BadRequest(s"Could not extend P3 test group by $extraDays for $applicationId - message: ${ex.getMessage}")
+      }
+  }
 
   def removePhase3TestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     applicationService.removePhase3TestGroup(applicationId).map { _ =>

@@ -247,7 +247,7 @@ class GeneralApplicationMongoRepository(
 
     collection.find(query, projection).one[BSONDocument] map {
       case Some(document) => toProgressResponse(applicationId).read(document)
-      case None => throw ApplicationNotFound(applicationId)
+      case None => throw ApplicationNotFound(s"No application found for $applicationId")
     }
   }
 
