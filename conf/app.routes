@@ -149,6 +149,8 @@ GET         /diagnostic/sift/fixUserSiftedWithAFailToSiftCompleted              
 GET         /diagnostic/sift/markSiftSchemeAsRed/:schemeId                                             controllers.fixdata.FixDataConsistencyController.markSiftSchemeAsRed(applicationId: String, schemeId: model.SchemeId)
 GET         /diagnostic/sift/markSiftSchemeAsGreen/:schemeId                                           controllers.fixdata.FixDataConsistencyController.markSiftSchemeAsGreen(applicationId: String, schemeId: model.SchemeId)
 GET         /diagnostic/sift/createSiftStructure                                                       controllers.fixdata.FixDataConsistencyController.createSiftStructure(applicationId: String)
+GET         /diagnostic/sift/extend                                                                    controllers.fixdata.FixDataConsistencyController.extendSiftCandidate(applicationId: String, extraDays: Int)
+GET         /diagnostic/sift/removeEvaluation                                                          controllers.fixdata.FixDataConsistencyController.removeSiftEvaluation(applicationId: String)
 
 GET         /diagnostic/phase3/removeTestGroup                                                         controllers.fixdata.FixDataConsistencyController.removePhase3TestGroup(applicationId: String)
 GET         /diagnostic/phase3/extendTestGroup                                                         controllers.fixdata.FixDataConsistencyController.extendPhase3TestGroup(applicationId: String, extraDays: Int)

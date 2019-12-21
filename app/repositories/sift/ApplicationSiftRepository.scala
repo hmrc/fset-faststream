@@ -92,6 +92,7 @@ trait ApplicationSiftRepository {
   def insertPsiTestResult(appId: String, psiTest: PsiTest, testResult: PsiTestResult): Future[Unit]
   def nextApplicationWithResultsReceived: Future[Option[String]]
   def getNotificationExpiringSift(applicationId: String): Future[Option[NotificationExpiringSift]]
+  def removeEvaluation(applicationId: String): Future[Unit]
 }
 
 class ApplicationSiftMongoRepository(
@@ -836,5 +837,20 @@ class ApplicationSiftMongoRepository(
       s"testGroups.$phaseName.tests" -> BSONDocument("$elemMatch" -> BSONDocument("orderId" -> orderId))
     )
     getTestGroupWithAppIdByQuery2(query)
+  }
+
+  override def removeEvaluation(applicationId: String): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val updateOp = bsonCollection.updateModifier(
+      BSONDocument(
+        "$unset" -> BSONDocument(s"testGroups.$phaseName.evaluation" -> "")
+      )
+    )
+
+    bsonCollection.findAndModify(query, updateOp).map{ result =>
+      if (result.value.isEmpty) { throw new NotFoundException(s"Failed to match a document to fix for id $applicationId") }
+      else { () }
+    }
   }
 }
