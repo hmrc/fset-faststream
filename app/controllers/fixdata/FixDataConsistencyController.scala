@@ -351,6 +351,23 @@ trait FixDataConsistencyController extends BaseController with MinimumCompetency
     }
   }
 
+  def extendSiftCandidate(applicationId: String, extraDays: Int): Action[AnyContent] = Action.async { implicit request =>
+      siftService.extendSiftCandidateFailedByMistake(applicationId, extraDays).map { _ =>
+        Ok
+      }.recover {
+        case e: ApplicationNotFound => NotFound(s"Cannot extend sift candidate $applicationId because no candidate found")
+      }
+  }
+
+  def removeSiftEvaluation(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      siftService.removeEvaluation(applicationId).map { _ =>
+        Ok(s"Successfully removed evaluation for sift candidate $applicationId")
+      } recover {
+        case _: NotFoundException => NotFound
+      }
+    }
+
   def findSdipFaststreamFailedFaststreamInPhase1ExpiredPhase2InvitedToSift: Action[AnyContent] = Action.async {
     applicationService.findSdipFaststreamFailedFaststreamInPhase1ExpiredPhase2InvitedToSift.map { resultList =>
       if (resultList.isEmpty) {

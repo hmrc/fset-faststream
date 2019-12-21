@@ -461,5 +461,17 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
       _ <- applicationRepo.updateApplicationStatusOnly(applicationId, ApplicationStatus.SIFT)
     } yield ()
   }
+
+  def extendSiftCandidateFailedByMistake(applicationId: String, extraDays: Int): Future[Unit] = {
+    for {
+      _ <- applicationSiftRepo.updateExpiryTime(applicationId, dateTimeFactory.nowLocalTimeZone.plusDays(extraDays))
+    } yield ()
+  }
+
+  def removeEvaluation(applicationId: String): Future[Unit] = {
+    for {
+      _ <- applicationSiftRepo.removeEvaluation(applicationId)
+    } yield ()
+  }
 }
 // scalastyle:off
