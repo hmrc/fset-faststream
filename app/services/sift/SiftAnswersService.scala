@@ -17,6 +17,7 @@
 package services.sift
 
 import model._
+import model.persisted.sift.SiftAnswersStatus.SiftAnswersStatus
 import play.api.Logger
 import repositories.application.GeneralApplicationRepository
 import repositories.{ SchemeRepository, SchemeYamlRepository }
@@ -56,6 +57,12 @@ trait SiftAnswersService {
     siftAnswersRepo.findSiftAnswersStatus(applicationId).map(persisted => persisted.map(
       psas => model.exchange.sift.SiftAnswersStatus.withName(psas.toString)
     ))
+  }
+
+  def setSiftAnswersStatus(applicationId: String, status: SiftAnswersStatus): Future[Unit] = {
+    for {
+      _ <- siftAnswersRepo.setSiftAnswersStatus(applicationId, status)
+    } yield ()
   }
 
   def findSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId): Future[Option[model.exchange.sift.SchemeSpecificAnswer]] = {

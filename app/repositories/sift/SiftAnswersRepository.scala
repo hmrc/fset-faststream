@@ -16,7 +16,7 @@
 
 package repositories.sift
 
-import model.Exceptions.{ SiftAnswersIncomplete, SiftAnswersSubmitted }
+import model.Exceptions.{ NotFoundException, SiftAnswersIncomplete, SiftAnswersSubmitted }
 import model.SchemeId
 import model.persisted.sift.SiftAnswersStatus.SiftAnswersStatus
 import model.persisted.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswers, SiftAnswersStatus }
@@ -41,6 +41,7 @@ trait SiftAnswersRepository {
   def findSiftAnswersStatus(applicationId: String): Future[Option[SiftAnswersStatus.Value]]
   def submitAnswers(applicationId: String, requiredSchemes: Set[SchemeId]): Future[Unit]
   def removeSiftAnswers(applicationId: String): Future[Unit]
+  def setSiftAnswersStatus(applicationId: String, status: SiftAnswersStatus.SiftAnswersStatus): Future[Unit]
 }
 
 class SiftAnswersMongoRepository()(implicit mongo: () => DB)
@@ -155,6 +156,22 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
         BSONDocument("$set" -> BSONDocument("status" -> SiftAnswersStatus.SUBMITTED))
       ) map validator
     }
+  }
+
+  override def setSiftAnswersStatus(applicationId: String, status: SiftAnswersStatus): Future[Unit] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+
+    val validator = singleUpdateValidator(applicationId,
+      actionDesc = s"Setting sift answers status to $status",
+      notFound = new NotFoundException(
+        s"Failed to match a sift answers document to set status to $status for id $applicationId"
+      )
+    )
+
+    collection.update(
+      query,
+      BSONDocument("$set" -> BSONDocument("status" -> status))
+    ) map validator
   }
 
   override def removeSiftAnswers(applicationId: String): Future[Unit] = {

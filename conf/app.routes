@@ -151,6 +151,8 @@ GET         /diagnostic/sift/markSiftSchemeAsGreen/:schemeId                    
 GET         /diagnostic/sift/createSiftStructure                                                       controllers.fixdata.FixDataConsistencyController.createSiftStructure(applicationId: String)
 GET         /diagnostic/sift/extend                                                                    controllers.fixdata.FixDataConsistencyController.extendSiftCandidate(applicationId: String, extraDays: Int)
 GET         /diagnostic/sift/removeEvaluation                                                          controllers.fixdata.FixDataConsistencyController.removeSiftEvaluation(applicationId: String)
+GET         /diagnostic/sift/setSiftAnswersStatusToDraft                                                controllers.fixdata.FixDataConsistencyController.setSiftAnswersStatusToDraft(applicationId: String)
+GET         /diagnostic/sift/setSiftAnswersStatusToSubmitted                                            controllers.fixdata.FixDataConsistencyController.setSiftAnswersStatusToSubmitted(applicationId: String)
 
 GET         /diagnostic/phase3/removeTestGroup                                                         controllers.fixdata.FixDataConsistencyController.removePhase3TestGroup(applicationId: String)
 GET         /diagnostic/phase3/extendTestGroup                                                         controllers.fixdata.FixDataConsistencyController.extendPhase3TestGroup(applicationId: String, extraDays: Int)
