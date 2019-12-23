@@ -20,18 +20,19 @@ import factories.UUIDFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.{ ApplicationNotFound, NotFoundException }
 import model.ProgressStatuses.{ ASSESSMENT_CENTRE_PASSED, _ }
-import model.{ ProgressStatuses, SchemeId }
+import model.SchemeId
 import model.command.FastPassPromotion
+import model.persisted.sift.SiftAnswersStatus
 import play.api.Logger
 import play.api.mvc.{ Action, AnyContent, Result }
 import scheduler.assessment.MinimumCompetencyLevelConfig
 import services.application.{ ApplicationService, FsbService }
-import services.assessmentcentre.{ AssessmentCentreService, ProgressionToFsbOrOfferService }
 import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAssessmentScoreEvaluationException
+import services.assessmentcentre.{ AssessmentCentreService, ProgressionToFsbOrOfferService }
 import services.fastpass.FastPassService
 import services.onlinetesting.phase2.Phase2TestService2
 import services.onlinetesting.phase3.Phase3TestService
-import services.sift.ApplicationSiftService
+import services.sift.{ ApplicationSiftService, SiftAnswersService }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 
@@ -42,6 +43,7 @@ object FixDataConsistencyController extends FixDataConsistencyController {
   override val applicationService = ApplicationService
   override val fastPassService = FastPassService
   override val siftService = ApplicationSiftService
+  override val siftAnswersService = SiftAnswersService
   override val assessmentCentreService = AssessmentCentreService
   override val progressionToFsbOrOfferService = ProgressionToFsbOrOfferService
   override val fsbService = FsbService
@@ -54,6 +56,7 @@ trait FixDataConsistencyController extends BaseController with MinimumCompetency
   val applicationService: ApplicationService
   val fastPassService: FastPassService
   val siftService: ApplicationSiftService
+  val siftAnswersService: SiftAnswersService
   val assessmentCentreService: AssessmentCentreService
   val progressionToFsbOrOfferService: ProgressionToFsbOrOfferService
   val fsbService: FsbService
@@ -367,6 +370,24 @@ trait FixDataConsistencyController extends BaseController with MinimumCompetency
         case _: NotFoundException => NotFound
       }
     }
+
+  def setSiftAnswersStatusToDraft(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      commonSetSiftAnswersStatus(applicationId, SiftAnswersStatus.DRAFT)
+    }
+
+  def setSiftAnswersStatusToSubmitted(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      commonSetSiftAnswersStatus(applicationId, SiftAnswersStatus.SUBMITTED)
+    }
+
+  private def commonSetSiftAnswersStatus(applicationId: String, status: SiftAnswersStatus.SiftAnswersStatus) = {
+    siftAnswersService.setSiftAnswersStatus(applicationId, status).map { _ =>
+      Ok(s"Successfully set sift answers status to $status for $applicationId")
+    } recover {
+      case nfe: NotFoundException => NotFound(nfe.getMessage)
+    }
+  }
 
   def findSdipFaststreamFailedFaststreamInPhase1ExpiredPhase2InvitedToSift: Action[AnyContent] = Action.async {
     applicationService.findSdipFaststreamFailedFaststreamInPhase1ExpiredPhase2InvitedToSift.map { resultList =>
