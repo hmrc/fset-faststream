@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,18 @@
 package controllers
 
 import akka.stream.scaladsl.Source
+import common.Joda._
 import connectors.{ AuthProviderClient, ExchangeObjects }
+import model.ApplicationRoute.{ ApplicationRoute, Edip, Faststream, Sdip, SdipFaststream }
+import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
 import model.Exceptions.{ NotFoundException, UnexpectedException }
-import model.command.{ CandidateDetailsReportItem, CsvExtract }
-import model.persisted.{ ApplicationForOnlineActiveTestCountReport, ApplicationForOnlineTestPassMarkReport, ContactDetailsWithId }
-import model.persisted.eventschedules.Event
-import model.report._
 import model._
+import model.assessmentscores.AssessmentScoresExercise
+import model.command.{ CandidateDetailsReportItem, CsvExtract }
+import model.persisted.eventschedules.Event
+import model.persisted.{ ApplicationForOnlineTestPassMarkReport, ContactDetailsWithId }
+import model.report._
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
 import play.api.libs.streams.Streams
@@ -42,9 +46,6 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 import scala.collection.breakOut
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import common.Joda._
-import model.ApplicationRoute.{ ApplicationRoute, Edip, Faststream, Sdip, SdipFaststream }
-import model.ApplicationStatus.ApplicationStatus
 
 object ReportingController extends ReportingController {
   val reportingRepository: ReportingMongoRepository = repositories.reportingRepository
@@ -85,6 +86,30 @@ trait ReportingController extends BaseController {
   val candidateAllocationRepo: CandidateAllocationRepository
   val fsbRepository: FsbRepository
   val applicationRepository: GeneralApplicationRepository
+
+
+  def fsacScores(): Action[AnyContent] = Action.async { implicit request =>
+    def removeFeedback(assessmentScoresExercise: AssessmentScoresExercise) =
+      assessmentScoresExercise.copy(seeingTheBigPictureFeedback = None, makingEffectiveDecisionsFeedback = None,
+        communicatingAndInfluencingFeedback = None, workingTogetherDevelopingSelfAndOthersFeedback = None)
+
+    val reports = for {
+      fsacResults <- assessmentScoresRepository.findAll
+    } yield {
+      fsacResults.map{ data =>
+        FsacScoresReportItem(
+          data.applicationId.toString(),
+          data.analysisExercise.map( removeFeedback ),
+          data.groupExercise.map( removeFeedback ),
+          data.leadershipExercise.map( removeFeedback )
+        )
+      }
+    }
+
+    reports.map { list =>
+      Ok(Json.toJson(list))
+    }
+  }
 
   def internshipReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     for {

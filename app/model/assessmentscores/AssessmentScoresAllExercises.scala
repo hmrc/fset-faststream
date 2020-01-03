@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,11 +37,11 @@ case class AssessmentScoresAllExercises(
     average(List(groupExercise, leadershipExercise).flatMap(_.flatMap(_.workingTogetherDevelopingSelfAndOthersAverage)), 2)
   }
 
-   def makingEffectiveDecisionsAvg: Double = {
+  def makingEffectiveDecisionsAvg: Double = {
     average(List(analysisExercise, groupExercise).flatMap(_.flatMap(_.makingEffectiveDecisionsAverage)), 2)
   }
 
-   def communicatingAndInfluencingAvg: Double = {
+  def communicatingAndInfluencingAvg: Double = {
     average(List(analysisExercise, groupExercise, leadershipExercise).flatMap(_.flatMap(_.communicatingAndInfluencingAverage)), 3)
   }
 

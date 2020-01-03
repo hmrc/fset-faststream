@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package factories
+package model.report
 
-import org.joda.time.{ DateTime, LocalDate }
+import model.assessmentscores.AssessmentScoresExercise
+import play.api.libs.json.{ Json, OFormat }
 
-trait DateTimeFactory {
-  def nowLocalTimeZone: DateTime // Uses `DateTimeZone.getDefault` (the timezone of the current machine).
+case class FsacScoresReportItem(applicationId: String,
+                                analysisExercise: Option[AssessmentScoresExercise],
+                                groupExercise: Option[AssessmentScoresExercise],
+                                leadershipExercise: Option[AssessmentScoresExercise]
+                               )
 
-  def nowLocalDate: LocalDate
-}
-
-object DateTimeFactory extends DateTimeFactory {
-  def nowLocalTimeZone = DateTime.now // Uses `DateTimeZone.getDefault` (the timezone of the current machine).
-
-  def nowLocalDate = LocalDate.now
+object FsacScoresReportItem {
+  implicit val format: OFormat[FsacScoresReportItem] = Json.format[FsacScoresReportItem]
 }
