@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,6 +98,11 @@ object EvaluationResults {
       makingEffectiveDecisionsAverage, workingTogetherDevelopingSelfAndOthersAverage,
       communicatingAndInfluencingAverage, seeingTheBigPictureAverage
     )
+    override def toString = s"makingEffectiveDecisionsAverage=$makingEffectiveDecisionsAverage," +
+      s"workingTogetherDevelopingSelfAndOthersAverage=$workingTogetherDevelopingSelfAndOthersAverage," +
+      s"communicatingAndInfluencingAverage=$communicatingAndInfluencingAverage," +
+      s"seeingTheBigPictureAverage=$seeingTheBigPictureAverage," +
+      s"overallScore=$overallScore"
   }
 
   object CompetencyAverageResult {
