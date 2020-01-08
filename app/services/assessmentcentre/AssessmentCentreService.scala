@@ -19,10 +19,12 @@ package services.assessmentcentre
 import common.FutureEx
 import config.AssessmentEvaluationMinimumCompetencyLevel
 import model.EvaluationResults.{ AssessmentEvaluationResult, CompetencyAverageResult, Green }
+import model.Exceptions.NoResultsReturned
 import model.ProgressStatuses._
 import model._
-import model.assessmentscores.FixUserStuckInScoresAccepted
+import model.assessmentscores.{ AssessmentScoresExercise, FixUserStuckInScoresAccepted }
 import model.command.ApplicationForProgression
+import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
 import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
@@ -142,6 +144,84 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
       }
     }
   }
+
+  //scalastyle:off method.length cyclomatic.complexity
+  def setFsacAverageScore(applicationId: UniqueIdentifier, version: String, averageScoreName: String, averageScore: Double): Future[Unit] = {
+    val prefix = s"AssessmentCentreService (applicationId=$applicationId)"
+    for {
+      // Get the reviewer entered scores for the candidate
+      assessmentCentreScoresOpt <- assessmentScoresRepo.find(applicationId)
+    } yield {
+      if (assessmentCentreScoresOpt.isEmpty) {
+        throw NoResultsReturned(s"No reviewed assessment scores found for applicationId:$applicationId")
+      } else {
+        assessmentCentreScoresOpt.foreach { scores =>
+          Logger.debug(s"$prefix - found AssessmentScoresAllExercises data for applicationId=$applicationId")
+          // Find the exercise, which matches the version
+          Logger.debug(s"$prefix - looking for an exercise whose version=$version")
+          val analysisExercise = scores.analysisExercise.filter { e => e.version.contains(version) }
+          val groupExercise = scores.groupExercise.filter { e => e.version.contains(version) }
+          val leadershipExercise = scores.leadershipExercise.filter { e => e.version.contains(version) }
+
+          val assessmentScoresSectionType =
+            if (analysisExercise.isDefined) {
+              Logger.debug(s"$prefix - found analysisExercise for version=$version")
+              AssessmentScoresSectionType.analysisExercise
+            } else if (groupExercise.isDefined) {
+              Logger.debug(s"$prefix - found groupExercise for version=$version")
+              AssessmentScoresSectionType.groupExercise
+            } else if (leadershipExercise.isDefined) {
+              Logger.debug(s"$prefix - found leadershipExercise for version=$version")
+              AssessmentScoresSectionType.leadershipExercise
+            } else {
+              Logger.debug(s"$prefix - found no exercise for version=$version")
+              throw new Exception(s"No exercise found whose version=$version")
+            }
+
+          // Remove the empty options
+          val singleExerciseOpt = List(analysisExercise, groupExercise, leadershipExercise).flatten.headOption
+
+          def getAssessmentScoresExercise(singleExerciseOpt: Option[AssessmentScoresExercise]) =  singleExerciseOpt.getOrElse(
+            throw new Exception(s"Failed to find AssessmentScoresExercise in which to set $averageScoreName")
+          )
+
+          def saveData(newAssessmentScores: AssessmentScoresExercise) =
+            assessmentScoresRepo.saveExercise(applicationId, assessmentScoresSectionType, newAssessmentScores, Some(version)).map( _ =>
+              Logger.debug(s"$prefix - new value has been saved for $averageScoreName")
+            )
+
+          averageScoreName match {
+            case "seeingTheBigPictureAverage" =>
+              Logger.debug(s"$prefix - matched score name: $averageScoreName")
+              val oldAssessmentScores = getAssessmentScoresExercise(singleExerciseOpt)
+              val newAssessmentScores = oldAssessmentScores.copy(seeingTheBigPictureAverage = Some(averageScore))
+              saveData(newAssessmentScores)
+
+            case "makingEffectiveDecisionsAverage" =>
+              Logger.debug(s"$prefix - matched score name: $averageScoreName")
+              val oldAssessmentScores = getAssessmentScoresExercise(singleExerciseOpt)
+              val newAssessmentScores = oldAssessmentScores.copy(makingEffectiveDecisionsAverage = Some(averageScore))
+              saveData(newAssessmentScores)
+
+            case "communicatingAndInfluencingAverage" =>
+              Logger.debug(s"$prefix - matched score name: $averageScoreName")
+              val oldAssessmentScores = getAssessmentScoresExercise(singleExerciseOpt)
+              val newAssessmentScores = oldAssessmentScores.copy(communicatingAndInfluencingAverage = Some(averageScore))
+              saveData(newAssessmentScores)
+
+            case "workingTogetherDevelopingSelfAndOthersAverage" =>
+              Logger.debug(s"$prefix - matched score name: $averageScoreName")
+              val oldAssessmentScores = getAssessmentScoresExercise(singleExerciseOpt)
+              val newAssessmentScores = oldAssessmentScores.copy(workingTogetherDevelopingSelfAndOthersAverage = Some(averageScore))
+              saveData(newAssessmentScores)
+
+            case _ => throw new Exception(s"The given averageScoreName ($averageScoreName) does not exist")
+          }
+        }
+      }
+    }
+  }
+  //scalastyle:on
 
   def evaluateAssessmentCandidate(assessmentPassMarksSchemesAndScores: AssessmentPassMarksSchemesAndScores,
     config: AssessmentEvaluationMinimumCompetencyLevel): Future[Unit] = {
