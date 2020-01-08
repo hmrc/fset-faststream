@@ -47,6 +47,26 @@ case class AssessmentScoresExercise(
                                      version: Option[String] = None
 ) extends AssessmentScoresSection {
   def isSubmitted = submittedDate.isDefined
+
+  override def toString: String = {
+    s"attended:$attended," +
+    s"seeingTheBigPictureScores:$seeingTheBigPictureScores," +
+    s"seeingTheBigPictureAverage:$seeingTheBigPictureAverage," +
+    s"seeingTheBigPictureFeedback:$seeingTheBigPictureFeedback," +
+    s"makingEffectiveDecisionsScores:$makingEffectiveDecisionsScores," +
+    s"makingEffectiveDecisionsAverage:$makingEffectiveDecisionsAverage," +
+    s"makingEffectiveDecisionsFeedback:$makingEffectiveDecisionsFeedback," +
+    s"communicatingAndInfluencingScores:$communicatingAndInfluencingScores," +
+    s"communicatingAndInfluencingAverage:$communicatingAndInfluencingAverage," +
+    s"communicatingAndInfluencingFeedback:$communicatingAndInfluencingFeedback," +
+    s"workingTogetherDevelopingSelfAndOthersScores:$workingTogetherDevelopingSelfAndOthersScores," +
+    s"workingTogetherDevelopingSelfAndOthersAverage:$workingTogetherDevelopingSelfAndOthersAverage," +
+    s"workingTogetherDevelopingSelfAndOthersFeedback:$workingTogetherDevelopingSelfAndOthersFeedback," +
+    s"updatedBy:$updatedBy," +
+    s"savedDate:$savedDate," +
+    s"submittedDate:$submittedDate," +
+    s"version:$version"
+  }
 }
 
 object AssessmentScoresExercise {

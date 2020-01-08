@@ -196,6 +196,7 @@ GET         /diagnostic/fsac/resetFastPassCandidate                             
 GET         /diagnostic/fsac/rollbackWithdraw                                                          controllers.fixdata.FixDataConsistencyController.fsacRollbackWithdraw(applicationId: String)
 GET         /diagnostic/fsac/removeEvaluation                                                          controllers.fixdata.FixDataConsistencyController.fsacRemoveEvaluation(applicationId: String)
 GET         /diagnostic/fsac/evaluateCandidate                                                         controllers.fixdata.FixDataConsistencyController.fsacEvaluateCandidate(applicationId: String)
+GET         /diagnostic/fsac/setAverageScore/application/:applicationId/version/:version/averageScoreName/:averageScoreName  controllers.fixdata.FixDataConsistencyController.fsacSetAverageScore(applicationId: String, version: String, averageScoreName: String, averageScore: Double)
 GET         /diagnostic/progress-candidate-to-fsb-or-offer-job                                         controllers.fixdata.FixDataConsistencyController.progressCandidateToFsbOrOfferJob(applicationId: String)
 GET         /diagnostic/progress-candidate-failed-at-fsb                                               controllers.fixdata.FixDataConsistencyController.progressCandidateFailedAtFsb(applicationId: String)
 GET         /diagnostic/inviteP2CandidateToMissingTest                                                 controllers.fixdata.FixDataConsistencyController.inviteP2CandidateToMissingTest(applicationId: String)

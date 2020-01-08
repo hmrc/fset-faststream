@@ -20,7 +20,7 @@ import factories.UUIDFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.{ ApplicationNotFound, NotFoundException }
 import model.ProgressStatuses.{ ASSESSMENT_CENTRE_PASSED, _ }
-import model.SchemeId
+import model.{ SchemeId, UniqueIdentifier }
 import model.command.FastPassPromotion
 import model.persisted.sift.SiftAnswersStatus
 import play.api.Logger
@@ -741,6 +741,19 @@ trait FixDataConsistencyController extends BaseController with MinimumCompetency
               case ex: Throwable => BadRequest(ex.getMessage)
             }
         }
+      }
+    }
+
+  def fsacSetAverageScore(applicationId: String, version: String, averageScoreName: String, averageScore: Double): Action[AnyContent] =
+    Action.async { implicit request =>
+      assessmentCentreService.setFsacAverageScore(UniqueIdentifier(applicationId), version, averageScoreName, averageScore).map { ss =>
+        Ok(s"Successfully updated applicationId:$applicationId averageScoreName:$averageScoreName in exercise whose version=$version " +
+          s"to averageScore:$averageScore")
+      }.recover {
+        case e: Throwable =>
+          Logger.warn(s"Error occurred whilst trying to set Fsac average score: " +
+            s"applicationId=$applicationId,version=$version,averageScoreName=$averageScoreName,averageScore=$averageScore,error=${e.getMessage}")
+          BadRequest(e.getMessage)
       }
     }
 
