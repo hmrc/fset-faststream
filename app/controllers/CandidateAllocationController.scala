@@ -20,6 +20,7 @@ import model.Exceptions.OptimisticLockException
 import model.persisted.CandidateAllocation
 import model.persisted.eventschedules.EventType.EventType
 import model.{ command, exchange }
+import play.api.Logger
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
 import services.allocation.CandidateAllocationService
@@ -53,6 +54,13 @@ trait CandidateAllocationController extends BaseController {
         _ => Ok
       }.recover {
         case e: OptimisticLockException => Conflict(e.getMessage)
+        case e =>
+          // Log the data we are trying to save as this operation may perform a deletion first and there is no rollback
+          val data = candidateAllocations.allocations.map( ca => s"[applicationId=${ca.id},status=${ca.status}]").mkString(",")
+          Logger.error(
+            s"Error occurred trying to allocate candidates to eventId:$eventId, sessionId:$sessionId. Data=$data. Error=${e.getMessage}"
+          )
+          throw e // Will result in internal server error for the operation
       }
     }
   }
