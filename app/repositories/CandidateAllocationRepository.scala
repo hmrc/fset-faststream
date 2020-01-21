@@ -22,12 +22,11 @@ import model.Exceptions.{ TooManyEventIdsException, TooManySessionIdsException }
 import model.persisted.CandidateAllocation
 import org.joda.time.LocalDate
 import play.api.libs.json.OFormat
-import reactivemongo.api.DB
+import reactivemongo.api.{ Cursor, DB }
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
-import repositories.BSONDateTimeHandler
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -56,6 +55,7 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
   ) with CandidateAllocationRepository with ReactiveRepositoryHelpers {
   val format: OFormat[CandidateAllocation] = CandidateAllocation.candidateAllocationFormat
   val projection = BSONDocument("_id" -> false)
+  private val unlimitedMaxDocs = -1
 
   def find(id: String, status: Option[AllocationStatus] = None): Future[Seq[CandidateAllocation]] = {
     val query = List(
@@ -63,7 +63,8 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
       status.map(s => BSONDocument("status" -> s))
     ).flatten.fold(BSONDocument.empty)(_ ++ _)
 
-    collection.find(query, projection).cursor[CandidateAllocation]().collect[Seq]()
+    collection.find(query, projection).cursor[CandidateAllocation]()
+      .collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]())
   }
 
   def save(allocations: Seq[CandidateAllocation]): Future[Unit] = {
@@ -75,7 +76,7 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
 
   def findAllAllocations(applications: Seq[String]): Future[Seq[CandidateAllocation]] = {
     collection.find(BSONDocument("id" -> BSONDocument("$in" -> applications)), projection)
-      .cursor[CandidateAllocation]().collect[Seq]()
+      .cursor[CandidateAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]())
   }
 
   def findAllUnconfirmedAllocated(days: Int): Future[Seq[CandidateAllocation]] = {
@@ -85,16 +86,15 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
       "status" -> AllocationStatuses.UNCONFIRMED,
       "reminderSent" -> false
     ), projection)
-      .cursor[CandidateAllocation]().collect[Seq]()
+      .cursor[CandidateAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]())
   }
-
 
   def activeAllocationsForEvent(eventId: String): Future[Seq[CandidateAllocation]] = {
     collection.find(BSONDocument(
       "eventId" -> eventId,
       "status" -> BSONDocument("$ne" -> AllocationStatuses.REMOVED)
     ), projection)
-      .cursor[CandidateAllocation]().collect[Seq]()
+      .cursor[CandidateAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]())
   }
 
 
@@ -110,7 +110,7 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
       ).flatten.fold(BSONDocument.empty)(_ ++ _)
 
     collection.find(query, projection)
-      .cursor[CandidateAllocation]().collect[Seq]().map(_.nonEmpty)
+      .cursor[CandidateAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]()).map(_.nonEmpty)
   }
 
   def activeAllocationsForSession(eventId: String, sessionId: String): Future[Seq[CandidateAllocation]] = {
@@ -119,14 +119,14 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
       "sessionId" -> sessionId,
       "status" -> BSONDocument("$ne" -> AllocationStatuses.REMOVED)
     ), projection)
-      .cursor[CandidateAllocation]().collect[Seq]()
+      .cursor[CandidateAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]())
   }
 
   def allocationsForApplication(applicationId: String): Future[Seq[CandidateAllocation]] = {
     collection.find(BSONDocument(
       "id" -> applicationId,
       "status" -> BSONDocument("$ne" -> AllocationStatuses.REMOVED)
-    ), projection).cursor[CandidateAllocation]().collect[Seq]()
+    ), projection).cursor[CandidateAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]())
   }
 
   def removeCandidateAllocation(allocation: CandidateAllocation): Future[Unit] = {
@@ -214,6 +214,7 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
   }
 
   def allAllocationUnconfirmed: Future[Seq[CandidateAllocation]] = {
-    collection.find(BSONDocument("status" -> AllocationStatuses.UNCONFIRMED), projection).cursor[CandidateAllocation]().collect[Seq]()
+    collection.find(BSONDocument("status" -> AllocationStatuses.UNCONFIRMED), projection).cursor[CandidateAllocation]()
+      .collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]())
   }
 }

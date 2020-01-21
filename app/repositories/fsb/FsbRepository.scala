@@ -26,7 +26,7 @@ import model.command.ApplicationForProgression
 import model.persisted.fsb.ScoresAndFeedback
 import model.persisted.{ FsbSchemeResult, FsbTestGroup, SchemeEvaluationResult }
 import org.joda.time.DateTime
-import reactivemongo.api.{ DB, ReadPreference }
+import reactivemongo.api.{ Cursor, DB, ReadPreference }
 import reactivemongo.bson.{ BSON, BSONArray, BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
@@ -64,6 +64,7 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
 
   private val APPLICATION_ID = "applicationId"
   private val FSB_TEST_GROUPS = "testGroups.FSB"
+  private val unlimitedMaxDocs = -1
 
   override def nextApplicationReadyForFsbEvaluation: Future[Option[UniqueIdentifier]] = {
     val query =
@@ -258,7 +259,8 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
 
     implicit val reader = bsonReader(docToReport)
     val queryResult = bsonCollection.find(query)
-      .cursor[(String, Option[ScoresAndFeedback])](ReadPreference.nearest).collect[List]()
+      .cursor[(String, Option[ScoresAndFeedback])](ReadPreference.nearest)
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[(String, Option[ScoresAndFeedback])]]())
     queryResult.map(_.toMap)
   }
 
@@ -361,7 +363,8 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
     val query = BSONDocument(APPLICATION_ID -> BSONDocument("$in" -> applicationIdFilter))
     val projection = BSONDocument(FSB_TEST_GROUPS -> 1, APPLICATION_ID -> 1)
 
-    collection.find(query, projection).cursor[BSONDocument]().collect[List]().map { documents =>
+    collection.find(query, projection).cursor[BSONDocument]()
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { documents =>
       documents.foldLeft(List[FsbSchemeResult]())((list, document) => {
         BSON.readDocument[Option[FsbSchemeResult]](document) match {
           case Some(fsbSchemeResult) =>

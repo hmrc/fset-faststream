@@ -40,7 +40,7 @@ import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.Logger
 import play.api.libs.json.{ Format, JsNumber, JsObject, Json }
-import reactivemongo.api.{ DB, DefaultDB, QueryOpts, ReadPreference }
+import reactivemongo.api.{ DB, DefaultDB, Cursor, QueryOpts, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, document, _ }
 import reactivemongo.play.json.collection.JSONBatchCommands.JSONCountCommand
 import reactivemongo.play.json.collection.JSONCollection
@@ -198,6 +198,8 @@ class GeneralApplicationMongoRepository(
     ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
     with GeneralApplicationRepoBSONReader with ReactiveRepositoryHelpers with CurrentSchemeStatusHelper {
 
+  private val unlimitedMaxDocs = -1
+
   override def getApplicationStatusForCandidates(applicationIds: Seq[String]): Future[Seq[(String, ApplicationStatus)]] = {
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
     val projection = BSONDocument(
@@ -236,7 +238,8 @@ class GeneralApplicationMongoRepository(
   def findAllFileInfo: Future[List[CandidateFileInfo]] = {
     val query = BSONDocument("testGroups.FSAC.tests.analysisExercise" -> BSONDocument("$exists" -> true))
     val projection = BSONDocument("_id" -> 0, "applicationId" -> 1, "testGroups.FSAC.tests.analysisExercise" -> 1)
-    bsonCollection.find(query, projection).cursor[BSONDocument]().collect[List]().map { docs =>
+    bsonCollection.find(query, projection).cursor[BSONDocument]()
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
       docs.map { doc =>
         val testGroups = doc.getAs[BSONDocument]("testGroups")
         val fsac = testGroups.flatMap(_.getAs[BSONDocument]("FSAC"))
@@ -258,7 +261,7 @@ class GeneralApplicationMongoRepository(
 
   def find(applicationIds: Seq[String]): Future[List[Candidate]] = {
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
-    bsonCollection.find(query).cursor[Candidate]().collect[List]()
+    bsonCollection.find(query).cursor[Candidate]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
   }
 
   override def findProgress(applicationId: String): Future[ProgressResponse] = {
@@ -302,15 +305,15 @@ class GeneralApplicationMongoRepository(
         val applicationRoute = document.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
         val progressStatusTimeStampDoc = document.getAs[BSONDocument]("progress-status-timestamp")
         val latestProgressStatus = progressStatusTimeStampDoc.flatMap { timestamps =>
-          val relevantProgressStatuses = timestamps.elements.filter(_._1.startsWith(applicationStatus))
-          val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element => timestamps.getAs[DateTime](element._1).get)
-          Try(ProgressStatuses.nameToProgressStatus(latestRelevantProgressStatus._1)).toOption
+          val relevantProgressStatuses = timestamps.elements.filter(_.name.startsWith(applicationStatus))
+          val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element => timestamps.getAs[DateTime](element.name).get)
+          Try(ProgressStatuses.nameToProgressStatus(latestRelevantProgressStatus.name)).toOption
         }
 
         val progressStatusTimeStamp = progressStatusTimeStampDoc.flatMap { timestamps =>
-          val relevantProgressStatuses = timestamps.elements.filter(_._1.startsWith(applicationStatus))
-          val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element => timestamps.getAs[DateTime](element._1).get)
-            timestamps.getAs[DateTime](latestRelevantProgressStatus._1)
+          val relevantProgressStatuses = timestamps.elements.filter(_.name.startsWith(applicationStatus))
+          val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element => timestamps.getAs[DateTime](element.name).get)
+            timestamps.getAs[DateTime](latestRelevantProgressStatus.name)
         }
           .orElse(
             progressStatusDateFallback(applicationStatus, document)
@@ -376,7 +379,7 @@ class GeneralApplicationMongoRepository(
     val projection = BSONDocument("userId" -> true, "applicationId" -> true, "applicationRoute" -> true,
     "applicationStatus" -> true, "personal-details" -> true)
 
-    bsonCollection.find(query, projection).cursor[Candidate]().collect[List]()
+    bsonCollection.find(query, projection).cursor[Candidate]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
   }
 
   override def findApplicationIdsByLocation(location: String): Future[List[String]] = {
@@ -394,7 +397,8 @@ class GeneralApplicationMongoRepository(
 
     val projection = BSONDocument("applicationId" -> 1)
 
-    collection.find(query, projection).cursor[BSONDocument]().collect[List]().map { docList =>
+    collection.find(query, projection).cursor[BSONDocument]()
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docList =>
       docList.map { doc =>
         doc.getAs[String]("applicationId").get
       }
@@ -410,7 +414,7 @@ class GeneralApplicationMongoRepository(
     val projection = BSONDocument("userId" -> true, "applicationId" -> true, "applicationRoute" -> true,
       "applicationStatus" -> true, "personal-details" -> true)
 
-    bsonCollection.find(query, projection).cursor[Candidate]().collect[List]()
+    bsonCollection.find(query, projection).cursor[Candidate]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
   }
 
   override def findSdipFaststreamExpiredPhase2InvitedToSift: Future[Seq[Candidate]] = {
@@ -426,7 +430,7 @@ class GeneralApplicationMongoRepository(
     val projection = BSONDocument("userId" -> true, "applicationId" -> true, "applicationRoute" -> true,
       "applicationStatus" -> true, "personal-details" -> true)
 
-    bsonCollection.find(query, projection).cursor[Candidate]().collect[List]()
+    bsonCollection.find(query, projection).cursor[Candidate]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
   }
 
   override def findSdipFaststreamExpiredPhase3InvitedToSift: Future[Seq[Candidate]] = {
@@ -442,7 +446,7 @@ class GeneralApplicationMongoRepository(
     val projection = BSONDocument("userId" -> true, "applicationId" -> true, "applicationRoute" -> true,
       "applicationStatus" -> true, "personal-details" -> true)
 
-    bsonCollection.find(query, projection).cursor[Candidate]().collect[List]()
+    bsonCollection.find(query, projection).cursor[Candidate]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
   }
 
   override def submit(applicationId: String): Future[Unit] = {
@@ -461,7 +465,7 @@ class GeneralApplicationMongoRepository(
     val query = BSONDocument("applicationId" -> applicationId)
     val applicationBSON = BSONDocument("$set" -> BSONDocument(
       "withdraw" -> reason
-      ).add(
+      ).merge(
         applicationStatusBSON(WITHDRAWN)
       )
     )
@@ -486,7 +490,7 @@ class GeneralApplicationMongoRepository(
 
     val update = BSONDocument("$set" -> BSONDocument(
       s"withdraw.schemes.${withdrawScheme.schemeId}" -> withdrawScheme.reason
-    ).add(currentSchemeStatusBSON(schemeStatus)))
+    ).merge(currentSchemeStatusBSON(schemeStatus)))
 
     val predicate = BSONDocument(
       "applicationId" -> applicationId
@@ -955,7 +959,7 @@ class GeneralApplicationMongoRepository(
       BSONDocument(
         "originalUserId" -> originalUserId,
         "userId" -> userIdToArchiveWith
-      ).add(
+      ).merge(
         applicationStatusBSON(ProgressStatuses.APPLICATION_ARCHIVED)
       )
     )
@@ -977,7 +981,7 @@ class GeneralApplicationMongoRepository(
       "testGroups.FSB.scoresAndFeedback" -> true
     )
 
-    collection.find(query, projection).cursor[BSONDocument]().collect[List]()
+    collection.find(query, projection).cursor[BSONDocument]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]())
       .map { docList =>
         docList.map { doc =>
           bsonDocToCandidatesEligibleForEvent(doc)
@@ -1007,7 +1011,7 @@ class GeneralApplicationMongoRepository(
       BSONDocument(s"progress-status.$confirmedAllocation" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"progress-status.$unconfirmedAllocation" -> BSONDocument("$exists" -> false))
     ))
-    collection.runCommand(JSONCountCommand.Count(query)).flatMap { c =>
+    collection.runCommand(JSONCountCommand.Count(query), ReadPreference.nearest).flatMap { c =>
       val count = c.count
       if (count == 0) {
         Future.successful(CandidatesEligibleForEventResponse(List.empty, 0))
@@ -1024,7 +1028,8 @@ class GeneralApplicationMongoRepository(
         val ascending = JsNumber(1)
         // Eligible candidates should be sorted based on when they passed PHASE 3
         val sort = new JsObject(Map(s"progress-status-timestamp.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> ascending))
-        collection.find(query, projection).sort(sort).cursor[BSONDocument]().collect[List](eventsConfig.maxNumberOfCandidates)
+        collection.find(query, projection).sort(sort).cursor[BSONDocument]()
+          .collect[List](eventsConfig.maxNumberOfCandidates, Cursor.FailOnError[List[BSONDocument]]())
           .map { docList =>
             docList.map { doc =>
               bsonDocToCandidatesEligibleForEvent(doc)
@@ -1124,11 +1129,12 @@ class GeneralApplicationMongoRepository(
     val projection = BSONDocument("_id" -> false, "progress-status-timestamp" -> 2)
     val query = BSONDocument()
 
-    collection.find(query, projection).cursor[BSONDocument]().collect[List]().map { doc =>
+    collection.find(query, projection).cursor[BSONDocument]()
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { doc =>
       doc.flatMap { item =>
         item.getAs[BSONDocument]("progress-status-timestamp").map {
           _.elements.toList.map { progressStatus =>
-            progressStatus._1 -> progressStatus._2.toString
+            progressStatus.name -> progressStatus.value.toString
           }.sortBy(tup => tup._2).reverse.head._1
         }
       }
@@ -1189,7 +1195,8 @@ class GeneralApplicationMongoRepository(
 
     val projection = BSONDocument("applicationId" -> 1)
 
-    collection.find(query, projection).cursor[BSONDocument]().collect[List]().map { docList =>
+    collection.find(query, projection).cursor[BSONDocument]()
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docList =>
       docList.map { doc =>
         doc.getAs[String]("applicationId").get
       }
@@ -1201,7 +1208,7 @@ class GeneralApplicationMongoRepository(
   }
 
   override def removeCollection(name: String): Future[Unit] = {
-    mongo().collection[JSONCollection](name).drop()
+    mongo().collection[JSONCollection](name).drop(failIfNotFound = true).map(_ => {})
   }
 
   override def removeCandidate(applicationId: String): Future[Unit] = {

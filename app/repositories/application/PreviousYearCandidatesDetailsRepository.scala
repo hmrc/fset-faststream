@@ -229,6 +229,8 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
 
   private var adsCounter = 0
 
+  private val unlimitedMaxDocs = -1
+
   override def applicationDetailsStream(numOfSchemes: Int, applicationIds: Seq[String])
   : Enumerator[CandidateDetailsReportItem] = {
     adsCounter = 0
@@ -637,7 +639,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
 
   override def findApplicationsFor(appRoutes: Seq[ApplicationRoute]): Future[List[Candidate]] = {
     val query = BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes))
-    applicationDetailsCollection.find(query).cursor[Candidate]().collect[List](-1, Cursor.FailOnError[List[Candidate]]())
+    applicationDetailsCollection.find(query).cursor[Candidate]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
   }
 
   override def findApplicationsFor(appRoutes: Seq[ApplicationRoute],
@@ -646,7 +648,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
       BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses))
     ))
-    applicationDetailsCollection.find(query).cursor[Candidate]().collect[List](-1, Cursor.FailOnError[List[Candidate]]())
+    applicationDetailsCollection.find(query).cursor[Candidate]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
   }
 
   override def findDataAnalystContactDetails: Future[CsvExtract[String]] = {
@@ -664,7 +666,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
 
     contactDetailsCollection.find(query, projection)
       .cursor[BSONDocument](ReadPreference.nearest)
-      .collect[List](-1, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
       val csvRecords = docs.map { doc =>
         val contactDetails = doc.getAs[BSONDocument]("contact-details")
         val csvRecord = makeRow(
@@ -683,7 +685,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
 
     contactDetailsCollection.find(query, projection)
       .cursor[BSONDocument](ReadPreference.nearest)
-      .collect[List](-1, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
       val csvRecords = docs.map { doc =>
         val contactDetails = doc.getAs[BSONDocument]("contact-details")
         val address = contactDetails.flatMap(_.getAs[BSONDocument]("address"))
@@ -747,7 +749,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
 
     questionnaireCollection.find(query, projection)
       .cursor[BSONDocument](ReadPreference.nearest)
-      .collect[List](-1, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
       val csvRecords = docs.map { doc =>
         val questionsDoc = doc.getAs[BSONDocument]("questions")
         val universityNameAnswer = getAnswer("What is the name of the university you received your degree from?", questionsDoc)
@@ -796,7 +798,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
 
     siftAnswersCollection.find(query, projection)
       .cursor[BSONDocument](ReadPreference.nearest)
-      .collect[List](-1, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
       val csvRecords = docs.map { doc =>
         val schemeAnswers = doc.getAs[BSONDocument]("schemeAnswers")
         val schemeTextAnswers = allSchemes.map { s =>
@@ -844,7 +846,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
 
     siftAnswersCollection.find(query, projection)
       .cursor[BSONDocument](ReadPreference.nearest)
-      .collect[List](-1, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
       val csvRecords = docs.map { doc =>
 
         val generalAnswers = doc.getAs[BSONDocument]("generalAnswers")
@@ -874,7 +876,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
 
     val allEventsFut = eventCollection.find(query, projection)
       .cursor[BSONDocument](ReadPreference.nearest)
-      .collect[List](-1, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
       docs.map { doc =>
         val id = doc.getAs[String]("id")
         id.getOrElse("") ->
@@ -892,7 +894,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     allEventsFut.flatMap { allEvents =>
       candidateAllocationCollection.find(Json.obj(), projection)
         .cursor[BSONDocument](ReadPreference.nearest)
-        .collect[List](-1, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
+        .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
         val csvRecords = docs.map { doc =>
           val eventId = doc.getAs[String]("eventId").getOrElse("-")
           val csvRecord = makeRow(
@@ -931,7 +933,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
   private def commonFindMediaDetails(query: BSONDocument, projection: JsObject) = {
     mediaCollection.find(query, projection)
       .cursor[BSONDocument](ReadPreference.nearest)
-      .collect[List](-1, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
       val csvRecords = docs.map { doc =>
         val csvRecord = makeRow(
           doc.getAs[String]("media")
@@ -961,7 +963,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
 
     col.find(query, projection)
       .cursor[BSONDocument](ReadPreference.nearest)
-      .collect[List](-1, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
       val csvRecords = docs.map { doc =>
         val csvStr = exerciseSections.flatMap { s =>
           val section = doc.getAs[BSONDocument](s)

@@ -26,7 +26,7 @@ import model.assessmentscores.FixUserStuckInScoresAccepted
 import model.command.{ ApplicationForProgression, ApplicationForSift }
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.AssessmentCentreTests
-import reactivemongo.api.DB
+import reactivemongo.api.{ Cursor, DB }
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
@@ -210,9 +210,9 @@ class AssessmentCentreMongoRepository (
     val passMarkEvaluation = BSONDocument("$set" ->
       BSONDocument(
         "testGroups.FSAC.evaluation" -> BSONDocument("passmarkVersion" -> evaluation.passmarkVersion)
-          .add(BSONDocument("competency-average" -> evaluation.evaluationResult.competencyAverageResult))
-          .add(BSONDocument("schemes-evaluation" -> evaluation.evaluationResult.schemesEvaluation))
-      ).add(currentSchemeStatusBSON(currentSchemeStatus)))
+          .merge(BSONDocument("competency-average" -> evaluation.evaluationResult.competencyAverageResult))
+          .merge(BSONDocument("schemes-evaluation" -> evaluation.evaluationResult.schemesEvaluation))
+      ).merge(currentSchemeStatusBSON(currentSchemeStatus)))
 
     collection.update(query, passMarkEvaluation, upsert = false) map { _ => () }
   }
@@ -326,7 +326,8 @@ class AssessmentCentreMongoRepository (
     )
     val projection = BSONDocument("testGroups.FSAC.evaluation" -> 1, "applicationId" -> 1, "_id" -> 0)
 
-    collection.find(query, projection).cursor[BSONDocument]().collect[Seq]().map { docList =>
+    collection.find(query, projection).cursor[BSONDocument]()
+      .collect[Seq](maxDocs = -1, Cursor.FailOnError[Seq[BSONDocument]]()).map { docList =>
       docList.flatMap { doc =>
         val evaluationSection = doc.getAs[BSONDocument]("testGroups")
           .flatMap(_.getAs[BSONDocument]("FSAC"))

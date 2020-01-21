@@ -19,7 +19,7 @@ package repositories
 import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
 import model.report.QuestionnaireReportItem
 import play.api.libs.json._
-import reactivemongo.api.{ DB, ReadPreference }
+import reactivemongo.api.{ Cursor, DB, ReadPreference }
 import reactivemongo.bson.Producer.nameValue2Producer
 import reactivemongo.bson._
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -106,7 +106,8 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
   protected def findAllAsReportItem(query: BSONDocument): Future[Map[String, QuestionnaireReportItem]] = {
     implicit val reader = bsonReader(docToReport)
     val queryResult = bsonCollection.find(query)
-      .cursor[(String, QuestionnaireReportItem)](ReadPreference.nearest).collect[List]()
+      .cursor[(String, QuestionnaireReportItem)](ReadPreference.nearest)
+      .collect[List](maxDocs = -1, Cursor.FailOnError[List[(String, QuestionnaireReportItem)]]())
     queryResult.map(_.toMap)
   }
 

@@ -21,7 +21,7 @@ import model.Exceptions.CannotAddMedia
 import model.persisted.Media
 import model.persisted.Media._
 import reactivemongo.api.commands.WriteResult
-import reactivemongo.api.{ DB, ReadPreference }
+import reactivemongo.api.{ Cursor, DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -61,7 +61,7 @@ class MediaMongoRepository(implicit mongo: () => DB)
     val query = BSONDocument.empty
     implicit val reader = bsonReader(docToMedia)
     val queryResult = bsonCollection.find(query)
-      .cursor[(String, Media)](ReadPreference.nearest).collect[List]()
+      .cursor[(String, Media)](ReadPreference.nearest).collect[List](maxDocs = -1, Cursor.FailOnError[List[(String, Media)]]())
     queryResult.map(_.toMap)
   }
 
