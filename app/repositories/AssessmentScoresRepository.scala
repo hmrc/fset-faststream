@@ -21,7 +21,7 @@ import model.Exceptions.NotFoundException
 import model.UniqueIdentifier
 import model.assessmentscores._
 import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
-import reactivemongo.api.{ DB, ReadPreference }
+import reactivemongo.api.{ Cursor, DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -161,7 +161,7 @@ abstract class AssessmentScoresMongoRepository(collectionName: String)(implicit 
 
   private def findByQuery(query: BSONDocument): Future[List[AssessmentScoresAllExercises]] = {
     collection.find(query).cursor[BSONDocument](ReadPreference.nearest)
-      .collect[List]().map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
+      .collect[List](maxDocs = -1, Cursor.FailOnError[List[BSONDocument]]()).map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
   }
 
   def resetExercise(applicationId: UniqueIdentifier, exercisesToRemove: List[String]): Future[Unit] = {

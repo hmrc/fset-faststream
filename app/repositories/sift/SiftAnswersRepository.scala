@@ -139,7 +139,7 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
       val queryAndArrayWithMaybeSchemes = if (requiredSchemes.isEmpty) {
         queryAndArray
       } else {
-        queryAndArray.add(BSONDocument("$and" -> BSONArray(requiredSchemes map { schemeId =>
+        queryAndArray.merge(BSONDocument("$and" -> BSONArray(requiredSchemes map { schemeId =>
           BSONDocument(s"schemeAnswers.$schemeId" -> BSONDocument("$exists" -> true))
         } toSeq)))
       }

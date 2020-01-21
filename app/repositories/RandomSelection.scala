@@ -16,7 +16,7 @@
 
 package repositories
 
-import reactivemongo.api.QueryOpts
+import reactivemongo.api.{ Cursor, QueryOpts, ReadPreference }
 import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson.{ BSONDocument, BSONDocumentReader }
 import reactivemongo.play.json.collection.JSONBatchCommands.JSONCountCommand
@@ -44,7 +44,7 @@ trait RandomSelection {
   protected def selectRandom[T](query: BSONDocument, batchSize: Int = 1, projection: BSONDocument = BSONDocument.empty)(
     implicit reader: BSONDocumentReader[T], ec: ExecutionContext): Future[List[T]] = {
 
-    collection.runCommand(JSONCountCommand.Count(query)).flatMap { c =>
+    collection.runCommand(JSONCountCommand.Count(query), ReadPreference.nearest).flatMap { c =>
       val count = c.count
       if (count == 0) {
         Future.successful(Nil)
@@ -55,7 +55,7 @@ trait RandomSelection {
 
         bsonCollection.find(query, projection)
           .options(QueryOpts(skipN = randomIndex, batchSizeN = newBatchSize))
-          .cursor[T]().collect[List](newBatchSize)
+          .cursor[T]().collect[List](newBatchSize, Cursor.FailOnError[List[T]]())
       }
     }
   }

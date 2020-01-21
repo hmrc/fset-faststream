@@ -17,7 +17,7 @@
 package repositories.testdata
 
 import model.CreateApplicationRequest
-import reactivemongo.api.DB
+import reactivemongo.api.{ Cursor, DB }
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
@@ -44,7 +44,7 @@ class ApplicationRemovalMongoRepository (implicit mongo: () => DB)
       "userId" -> true
     )
 
-    collection.find(query, projection).cursor[BSONDocument]().collect[List]().map {
+    collection.find(query, projection).cursor[BSONDocument]().collect[List](maxDocs = -1, Cursor.FailOnError[List[BSONDocument]]()).map {
       docList => docList.map { doc => doc.getAs[String]("userId").get }
     }.map { userIds =>
       collection.remove(query).map(_.n)

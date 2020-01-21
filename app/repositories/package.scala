@@ -185,7 +185,7 @@ package object repositories {
     override def read(bson: BSONDocument): Map[String, Int] = {
       val elements = bson.elements.map { tuple =>
         // assume that all values in the document are BSONDocuments
-        tuple._1 -> tuple._2.seeAsTry[Int].get
+        tuple.name -> tuple.value.seeAsTry[Int].get
       }
       elements.toMap
     }
@@ -202,20 +202,19 @@ package object repositories {
     override def read(bson: BSONDocument): Map[String, String] = {
       val elements = bson.elements.map { tuple =>
         // assume that all values in the document are BSONDocuments
-        tuple._1 -> tuple._2.seeAsTry[String].get
+        tuple.name -> tuple.value.seeAsTry[String].get
       }
       elements.toMap
     }
   }
 
-  //TODO: Ian mongo 3.2 -> 3.4
   implicit object BSONMapOfListOfLocalDateHandler extends BSONHandler[BSONDocument, Map[String, List[LocalDate]]] {
     import Producer._
 
     override def write(map: Map[String, List[LocalDate]]): BSONDocument = {
       val elements = map.map {
         case (key, value) =>
-          nameValue2Producer(key -> value)
+          element2Producer(key -> value)
       }.toSeq
 
       BSONDocument(elements:_*)

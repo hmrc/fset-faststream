@@ -20,7 +20,7 @@ import factories.DateTimeFactory
 import model.ApplicationStatus
 import model.Exceptions.PersonalDetailsNotFound
 import model.persisted.PersonalDetails
-import reactivemongo.api.DB
+import reactivemongo.api.{ Cursor, DB }
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.{ CollectionNames, CommonBSONDocuments, ReactiveRepositoryHelpers }
@@ -57,7 +57,7 @@ class PersonalDetailsMongoRepository(val dateTimeFactory: DateTimeFactory)(impli
       BSONDocument(
         "progress-status.personal-details" -> true,
         PersonalDetailsCollection -> personalDetails
-      ).add(
+      ).merge(
         applicationStatusBSON(newApplicationStatus)
       )
     )
@@ -102,7 +102,7 @@ class PersonalDetailsMongoRepository(val dateTimeFactory: DateTimeFactory)(impli
       PersonalDetailsCollection -> 1, "_id" -> 0
     )
 
-    collection.find(query, projection).cursor[BSONDocument]().collect[List]().map { docs =>
+    collection.find(query, projection).cursor[BSONDocument]().collect[List](maxDocs = -1, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
       docs.map { doc =>
         val appId = doc.getAs[String]("applicationId").get
         val personalDetailsOpt = doc.getAs[PersonalDetails](PersonalDetailsCollection)

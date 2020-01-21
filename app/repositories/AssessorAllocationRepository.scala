@@ -19,10 +19,8 @@ package repositories
 import model.AllocationStatuses.AllocationStatus
 import model.Exceptions.TooManyEventIdsException
 import model.persisted.AssessorAllocation
-import model.persisted.eventschedules.Event
-import play.api.libs.json.{ JsObject, OFormat }
-import reactivemongo.api.{ DB, ReadPreference }
-import reactivemongo.api.commands.MultiBulkWriteResult
+import play.api.libs.json.OFormat
+import reactivemongo.api.{ Cursor, DB, ReadPreference }
 import reactivemongo.bson._
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -51,13 +49,15 @@ class AssessorAllocationMongoRepository(implicit mongo: () => DB)
 
   val projection = BSONDocument("_id" -> false)
 
+  private val unlimitedMaxDocs = -1
+
   def find(id: String, status: Option[AllocationStatus] = None): Future[Seq[AssessorAllocation]] = {
     val query = List(
       Some(BSONDocument("id" -> id)),
       status.map(s => BSONDocument("status" -> s))
     ).flatten.fold(BSONDocument.empty)(_ ++ _)
 
-    collection.find(query, projection).cursor[AssessorAllocation]().collect[Seq]()
+    collection.find(query, projection).cursor[AssessorAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[AssessorAllocation]]())
   }
 
   def findAllocations(assessorIds: Seq[String], status: Option[AllocationStatus] = None): Future[Seq[AssessorAllocation]] = {
@@ -65,7 +65,7 @@ class AssessorAllocationMongoRepository(implicit mongo: () => DB)
       Some(BSONDocument("id" -> BSONDocument("$in" -> assessorIds))),
       status.map(s => BSONDocument("status" -> s))
     ).flatten.fold(BSONDocument.empty)(_ ++ _)
-    collection.find(query, projection).cursor[AssessorAllocation]().collect[Seq]()
+    collection.find(query, projection).cursor[AssessorAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[AssessorAllocation]]())
   }
 
   def find(id: String, eventId: String): Future[Option[AssessorAllocation]] = {
@@ -98,7 +98,8 @@ class AssessorAllocationMongoRepository(implicit mongo: () => DB)
   }
 
   def allocationsForEvent(eventId: String): Future[Seq[AssessorAllocation]] = {
-    collection.find(BSONDocument("eventId" -> eventId), projection).cursor[AssessorAllocation]().collect[Seq]()
+    collection.find(BSONDocument("eventId" -> eventId), projection).cursor[AssessorAllocation]()
+      .collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[AssessorAllocation]]())
   }
 
   def updateAllocationStatus(id: String, eventId: String, newStatus: AllocationStatus): Future[Unit] = {

@@ -24,7 +24,7 @@ import model.persisted.{ ContactDetails, ContactDetailsWithId, UserIdWithEmail }
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
-import reactivemongo.api.{ DB, ReadPreference }
+import reactivemongo.api.{ Cursor, DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
@@ -62,6 +62,8 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
 
   val ContactDetailsDocumentKey = "contact-details"
 
+  private val unlimitedMaxDocs = -1
+
   override def update(userId: String, contactDetails: ContactDetails): Future[Unit] = {
     val query = BSONDocument("userId" -> userId)
     val contactDetailsBson = BSONDocument("$set" -> BSONDocument(ContactDetailsDocumentKey -> contactDetails))
@@ -96,7 +98,8 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
   override def findAll: Future[List[ContactDetailsWithId]] = {
     val query = BSONDocument()
 
-    collection.find(query).cursor[BSONDocument]().collect[List](MicroserviceAppConfig.maxNumberOfDocuments).map(_.map { doc =>
+    collection.find(query).cursor[BSONDocument]()
+      .collect[List](MicroserviceAppConfig.maxNumberOfDocuments, Cursor.FailOnError[List[BSONDocument]]()).map(_.map { doc =>
       val id = doc.getAs[String]("userId").get
       val root = doc.getAs[BSONDocument]("contact-details").get
       val outsideUk = root.getAs[Boolean]("outsideUk").getOrElse(false)
@@ -116,7 +119,8 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
       (JsPath \ "userId").read[String] and
         (JsPath \ "contact-details" \ "postCode").read[String]
       )((_, _))
-    val result = collection.find(query, projection).cursor[(String, String)](ReadPreference.nearest).collect[List]()
+    val result = collection.find(query, projection).cursor[(String, String)](ReadPreference.nearest)
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[(String, String)]]())
     result.map(_.toMap)
   }
 
@@ -124,7 +128,7 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
 
     val query = BSONDocument("contact-details.postCode" -> postCode)
 
-    collection.find(query).cursor[BSONDocument]().collect[List]().map(_.map { doc =>
+    collection.find(query).cursor[BSONDocument]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map(_.map { doc =>
       val id = doc.getAs[String]("userId").get
       val root = doc.getAs[BSONDocument]("contact-details").get
       val outsideUk = root.getAs[Boolean]("outsideUk").getOrElse(false)
@@ -140,7 +144,7 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
   override def findByUserIds(userIds: List[String]): Future[List[ContactDetailsWithId]] = {
     val query = BSONDocument("userId" -> BSONDocument("$in" -> userIds))
 
-    collection.find(query).cursor[BSONDocument]().collect[List]().map(_.map { doc =>
+    collection.find(query).cursor[BSONDocument]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map(_.map { doc =>
       val id = doc.getAs[String]("userId").get
       val root = doc.getAs[BSONDocument]("contact-details").getOrElse(throw new Exception(s"Contact details not found for $id"))
       val outsideUk = root.getAs[Boolean]("outsideUk").getOrElse(throw new Exception(s"Outside UK not found for $id"))
@@ -173,7 +177,8 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
       "_id" -> 0
     )
 
-    collection.find(query, projection).cursor[BSONDocument]().collect[List]().map(_.map { doc =>
+    collection.find(query, projection).cursor[BSONDocument]()
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map(_.map { doc =>
       val id = doc.getAs[String]("userId").get
       val root = doc.getAs[BSONDocument]("contact-details").get
       val email = root.getAs[String]("email").get
