@@ -207,7 +207,7 @@ class GeneralApplicationMongoRepository(
       "applicationStatus" -> true
     )
 
-    collection.find(query, projection).cursor[BSONDocument]().collect[List]()
+    collection.find(query, Some(projection)).cursor[BSONDocument]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]())
       .map { docList =>
         docList.map { doc =>
           val applicationId = doc.getAs[String]("applicationId").get

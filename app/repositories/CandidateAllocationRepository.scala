@@ -69,8 +69,7 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
 
   def save(allocations: Seq[CandidateAllocation]): Future[Unit] = {
     delete(allocations, ignoreMissed = true).flatMap { _ =>
-      val jsObjects = allocations.map(format.writes)
-      collection.bulkInsert(jsObjects.toStream, ordered = false)
+      collection.insert(ordered = false).many(allocations)
     } map ( _ => () )
   }
 
@@ -96,7 +95,6 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
     ), projection)
       .cursor[CandidateAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]())
   }
-
 
   def isAllocationExists(applicationId: String, eventId: String, sessionId: String, version: Option[String]): Future[Boolean] = {
     val query = List(

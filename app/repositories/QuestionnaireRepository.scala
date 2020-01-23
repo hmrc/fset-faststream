@@ -20,7 +20,6 @@ import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
 import model.report.QuestionnaireReportItem
 import play.api.libs.json._
 import reactivemongo.api.{ Cursor, DB, ReadPreference }
-import reactivemongo.bson.Producer.nameValue2Producer
 import reactivemongo.bson._
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import services.reporting.SocioEconomicScoreCalculator

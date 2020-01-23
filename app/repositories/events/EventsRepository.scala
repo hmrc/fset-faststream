@@ -23,7 +23,7 @@ import model.persisted.eventschedules.SkillType.SkillType
 import model.persisted.eventschedules.{ Event, EventType, Location, Venue }
 import org.joda.time.DateTime
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{ JsValue, Json }
+import play.api.libs.json.{ JsObject, JsValue, Json }
 import reactivemongo.api.{ Cursor, DB, ReadPreference }
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -57,7 +57,7 @@ class EventsMongoRepository(implicit mongo: () => DB)
   private val unlimitedMaxDocs = -1
 
   def save(events: List[Event]): Future[Unit] = {
-    collection.bulkInsert(ordered = false)(events.map(implicitly[collection.ImplicitlyDocumentProducer](_)): _*)
+    collection.insert(ordered = false).many(events)
       .map(_ => ())
   }
 
@@ -107,12 +107,13 @@ class EventsMongoRepository(implicit mongo: () => DB)
       buildDescriptionFilter(description)
     ).flatten.fold(BSONDocument.empty)(_ ++ _)
 
-    collection.find(query).cursor[Event]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Event]]())
+    collection.find(query, projection = Option.empty[JsObject])
+      .cursor[Event]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Event]]())
   }
 
   def getEventsManuallyCreatedAfter(dateTime: DateTime): Future[Seq[Event]] = {
     val query = BSONDocument("createdAt" -> BSONDocument("$gte" -> dateTime.getMillis), "wasBulkUploaded" -> false)
-    collection.find(query).cursor[Event]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[Event]]())
+    collection.find(query, projection = Option.empty[JsObject]).cursor[Event]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[Event]]())
   }
 
   private def buildEventTypeFilter(eventType: Option[EventType]) =
@@ -124,7 +125,8 @@ class EventsMongoRepository(implicit mongo: () => DB)
       Option(BSONDocument("id" -> BSONDocument("$in" -> eventIds)))
     ).flatten.fold(BSONDocument.empty)(_ ++ _)
 
-    collection.find(query).cursor[Event]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Event]]())
+    collection.find(query, projection = Option.empty[JsObject])
+      .cursor[Event]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Event]]())
   }
 
   def updateStructure(): Future[Unit] = {
@@ -132,11 +134,12 @@ class EventsMongoRepository(implicit mongo: () => DB)
     collection.update(BSONDocument.empty, updateQuery, multi = true).map(_ => ())
   }
 
-  def findAllForExtract(): Enumerator[JsValue] = {
+  def findAllForExtract(): play.api.libs.iteratee.Enumerator[JsValue] = {
+    import reactivemongo.play.iteratees.cursorProducer
     val projection = Json.obj("_id" -> false)
 
-    collection.find(Json.obj(), projection)
+    collection.find(BSONDocument.empty, Some(projection))
       .cursor[JsValue](ReadPreference.primaryPreferred)
-      .enumerate()
+      .enumerator()
   }
 }

@@ -238,9 +238,10 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
     val projection = Json.obj("_id" -> 0)
 
-    applicationDetailsCollection.find(query, projection)
+    import reactivemongo.play.iteratees.cursorProducer
+    applicationDetailsCollection.find(query, Some(projection))
       .cursor[BSONDocument](ReadPreference.nearest)
-      .enumerate().map { doc =>
+      .enumerator().map { doc =>
 
       try {
         val applicationId = doc.getAs[String]("applicationId").get
@@ -418,9 +419,10 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     val query = BSONDocument.empty
     val projection = Json.obj("_id" -> 0)
 
-    applicationDetailsCollection.find(query, projection)
+    import reactivemongo.play.iteratees.cursorProducer
+    applicationDetailsCollection.find(query, Some(projection))
       .cursor[BSONDocument](ReadPreference.nearest)
-      .enumerate().map { doc =>
+      .enumerator().map { doc =>
 
       try {
         val applicationIdOpt = doc.getAs[String]("applicationId")
@@ -460,9 +462,10 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       isSdipFaststream && sdipPresent && sdipNotFailed && fsSchemesPresentAndAllFailed
     }
 
-    applicationDetailsCollection.find(query, projection)
+    import reactivemongo.play.iteratees.cursorProducer
+    applicationDetailsCollection.find(query, Some(projection))
       .cursor[BSONDocument](ReadPreference.nearest)
-      .enumerate().map { doc =>
+      .enumerator().map { doc =>
 
       try {
         val (civilServiceExperienceType, civilServiceInternshipTypes, fastPassCertificateNo) = civilServiceExperience(doc)
