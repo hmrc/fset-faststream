@@ -29,9 +29,7 @@ private object Versions {
   val hmrcTestVersion                  = "2.3.0"
   val ficus                            = "1.1.2"
   val playConfigVersion                = "7.2.0"
-  val playReactivemongoVersion         = "6.7.0"
-//  val hmrcSimpleReactivemongoVersion   = "7.22.0-play-25"
-
+  val hmrcSimpleReactivemongoVersion   = "7.22.0-play-25"
   val mockito                          = "2.2.17"
   val scalatestplus                    = "2.0.1"
  }
@@ -41,9 +39,12 @@ private object AppDependencies {
   import play.core.PlayVersion
 
   val compile = Seq(
-    "uk.gov.hmrc" %% "play-reactivemongo" % playReactivemongoVersion,
-//    "uk.gov.hmrc" %% "simple-reactivemongo" % hmrcSimpleReactivemongoVersion,
+    "uk.gov.hmrc" %% "simple-reactivemongo" % hmrcSimpleReactivemongoVersion,
     "uk.gov.hmrc" %% "microservice-bootstrap" % hmrcMicroserviceBootstrapVersion,
+    // Needed to get an Enumerator of documents from ReactiveMongo
+    "org.reactivemongo" %% "reactivemongo-iteratees" % "0.18.8",
+    "com.typesafe.play" %% "play-iteratees" % "2.5.19",
+
     "uk.gov.hmrc" %% "play-scheduling" % hmrcScheduler,
     "org.webjars" %% "webjars-play" % "2.3.0",
     "org.webjars" % "bootstrap" % "3.1.1",

@@ -20,8 +20,8 @@ import model.Exceptions.{ NotFoundException, SiftAnswersIncomplete, SiftAnswersS
 import model.SchemeId
 import model.persisted.sift.SiftAnswersStatus.SiftAnswersStatus
 import model.persisted.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswers, SiftAnswersStatus }
+import play.api.libs.json.JsObject
 import reactivemongo.api.DB
-import reactivemongo.bson.Producer.nameValue2Producer
 import reactivemongo.bson._
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.{ BaseBSONReader, CollectionNames, ReactiveRepositoryHelpers }
@@ -91,7 +91,7 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
 
   override def findSiftAnswers(applicationId: String): Future[Option[SiftAnswers]] = {
     val query = BSONDocument("applicationId" -> applicationId)
-    collection.find(query).one[SiftAnswers]
+    collection.find(query, projection = Option.empty[JsObject]).one[SiftAnswers]
   }
 
   override def findSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId): Future[Option[SchemeSpecificAnswer]] = {
@@ -100,7 +100,7 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
       BSONDocument(s"schemeAnswers.$schemeId" -> BSONDocument("$exists" -> true))
     ))
     val projection = BSONDocument(s"schemeAnswers.$schemeId" -> 1, "_id" -> 0)
-    collection.find(query, projection).one[BSONDocument].map(_.flatMap { doc =>
+    collection.find(query, Some(projection)).one[BSONDocument].map(_.flatMap { doc =>
         doc.getAs[BSONDocument]("schemeAnswers").flatMap { sa =>
           sa.getAs[SchemeSpecificAnswer](s"$schemeId")
         }
@@ -113,7 +113,7 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
       BSONDocument(s"generalAnswers" -> BSONDocument("$exists" -> true))
     ))
     val projection = BSONDocument(s"generalAnswers" -> 1, "_id" -> 0)
-    collection.find(query, projection).one[BSONDocument].map {
+    collection.find(query, Some(projection)).one[BSONDocument].map {
       result => result.flatMap { outer =>
         outer.getAs[BSONDocument]("generalAnswers").map(a => GeneralQuestionsAnswers.generalQuestionsAnswersHandler.read(a))
       }
@@ -123,7 +123,7 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
   override def findSiftAnswersStatus(applicationId: String): Future[Option[SiftAnswersStatus]] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("status" -> 1, "_id" -> 0)
-    collection.find(query, projection).one[BSONDocument].map {
+    collection.find(query, Some(projection)).one[BSONDocument].map {
       result => result.flatMap { outer =>
         outer.getAs[BSONString]("status").map(a => SiftAnswersStatus.SiftAnswersStatusHandler.read(a))
       }

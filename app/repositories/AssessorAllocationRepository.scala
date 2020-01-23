@@ -74,8 +74,7 @@ class AssessorAllocationMongoRepository(implicit mongo: () => DB)
   }
 
   def save(allocations: Seq[AssessorAllocation]): Future[Unit] = {
-    val jsObjects = allocations.map(format.writes)
-    collection.bulkInsert(jsObjects.toStream, ordered = false) map (_ => ())
+    collection.insert(ordered = false).many(allocations) map (_ => ())
   }
 
   def delete(allocations: Seq[AssessorAllocation]): Future[Unit] = {

@@ -60,7 +60,7 @@ class DiagnosticReportingMongoRepository(implicit mongo: () => DB)
   def findByApplicationId(userId: String): Future[List[JsObject]] = {
     val projection = defaultExclusions
 
-    val results = collection.find(Json.obj("applicationId" -> userId), projection)
+    val results = collection.find(Json.obj("applicationId" -> userId), Some(projection))
       .cursor[JsObject](ReadPreference.primaryPreferred)
       .collect[List](maxDocs = -1, Cursor.FailOnError[List[JsObject]]())
 
@@ -71,9 +71,10 @@ class DiagnosticReportingMongoRepository(implicit mongo: () => DB)
   }
 
   def findAll(): Enumerator[JsValue] = {
+    import reactivemongo.play.iteratees.cursorProducer
     val projection = defaultExclusions ++ largeFields
-    collection.find(Json.obj(), projection)
+    collection.find(Json.obj(), Some(projection))
       .cursor[JsValue](ReadPreference.primaryPreferred)
-      .enumerate()
+      .enumerator()
   }
 }
