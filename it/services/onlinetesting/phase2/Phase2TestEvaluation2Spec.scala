@@ -147,7 +147,7 @@ class Phase2TestEvaluation2Spec extends MongoRepositorySpec with CommonRepositor
     val appCollection: JSONCollection = mongo().collection[JSONCollection](collectionName)
 
     def createUser(userId: String, appId: String) = {
-      appCollection.insert(BSONDocument("applicationId" -> appId, "userId" -> userId, "applicationStatus" -> CREATED))
+      appCollection.insert(ordered = false).one(BSONDocument("applicationId" -> appId, "userId" -> userId, "applicationStatus" -> CREATED))
     }
 
     Future.sequence(List(

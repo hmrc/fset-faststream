@@ -53,7 +53,7 @@ trait RandomSelection {
         // `None` is returned by the method instead of a Some[BSONDocument].
         val (randomIndex, newBatchSize) = RandomSelection.calculateBatchSize(batchSize, count)
 
-        bsonCollection.find(query, projection)
+        bsonCollection.find(query, Some(projection))
           .options(QueryOpts(skipN = randomIndex, batchSizeN = newBatchSize))
           .cursor[T]().collect[List](newBatchSize, Cursor.FailOnError[List[T]]())
       }

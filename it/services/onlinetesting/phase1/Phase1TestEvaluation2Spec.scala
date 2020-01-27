@@ -176,7 +176,7 @@ trait Phase1TestEvaluation2Spec extends MongoRepositorySpec with CommonRepositor
     val appCollection = mongo().collection[JSONCollection](collectionName)
 
     def createUser(userId: String, appId: String) = {
-      appCollection.insert(BSONDocument("applicationId" -> appId, "userId" -> userId,
+      appCollection.insert(ordered = false).one(BSONDocument("applicationId" -> appId, "userId" -> userId,
         "applicationStatus" -> ApplicationStatus.CREATED))
     }
 

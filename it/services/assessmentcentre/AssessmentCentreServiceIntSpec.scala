@@ -197,7 +197,7 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
       throw new IllegalStateException(msg)
     case Failure(_) =>
       Logger.info(s"$prefix creating db application")
-      applicationRepository.collection.insert(
+      applicationRepository.collection.insert(ordered = false).one(
         BSONDocument(
           "applicationId" -> appId,
           "userId" -> ("user" + appId)
