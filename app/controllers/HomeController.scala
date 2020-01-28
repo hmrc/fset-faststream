@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -146,7 +146,9 @@ abstract class HomeController(
       val phase1DataOpt = phase1TestsWithNames.map(Phase1TestsPage(_))
       val phase2DataOpt = phase2TestsWithNames.map(Phase2TestsPage2(_, None))
       val phase3DataOpt = phase3Tests.map(Phase3TestsPage(_, None))
-
+//scalastyle:off
+      println(">>>>>>>> displayPostOnlineTestsDashboard")
+//scalastyle:on
       val page = PostOnlineTestsPage(
         CachedUserWithSchemeData(cachedData.user, application, schemePreferences, allSchemes, phase3Evaluation, siftEvaluation, schemeStatus),
         allocationWithEvents,

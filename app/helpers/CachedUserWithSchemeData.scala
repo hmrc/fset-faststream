@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,9 @@ class CachedUserWithSchemeData(
 
   private val rawSchemeStatusAllGreen = rawSchemesStatus.map(schemeResult =>
     SchemeEvaluationResult(schemeResult.schemeId, SchemeStatus.Green.toString))
+
+  lazy val greenSchemesForDisplay: Seq[CurrentSchemeStatus] =
+    currentSchemesStatus.filter(_.status == SchemeStatus.Green)
 
   lazy val greenAndAmberSchemesForDisplay: Seq[CurrentSchemeStatus] =
     currentSchemesStatus
