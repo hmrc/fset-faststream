@@ -109,7 +109,6 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       val result = phase1TestRepo.getTestProfileByCubiksId(CubiksUserId).futureValue
       result mustBe Phase1TestGroupWithUserIds("appId", "userId", TestProfile)
     }
-
   }
 
   "Next application ready for online testing" should {
@@ -158,7 +157,6 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
   "Next SdipFasttream test ready for SDIP progression" should {
     "return an SdipFaststream application that already has SDIP scores evaluated to Green/Red" in {
-
       val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString),
         SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
       )
@@ -175,7 +173,6 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "do not return an SdipFaststream application that has SDIP scores evaluated to Ambers" in {
-
       val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString),
         SchemeEvaluationResult(SchemeId("Sdip"), Amber.toString)
       )

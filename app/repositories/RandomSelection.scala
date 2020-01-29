@@ -16,6 +16,8 @@
 
 package repositories
 
+import play.api.libs.json.JsObject
+import reactivemongo.api.Cursor.FailOnError
 import reactivemongo.api.{ Cursor, QueryOpts, ReadPreference }
 import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson.{ BSONDocument, BSONDocumentReader }
@@ -44,8 +46,14 @@ trait RandomSelection {
   protected def selectRandom[T](query: BSONDocument, batchSize: Int = 1, projection: BSONDocument = BSONDocument.empty)(
     implicit reader: BSONDocumentReader[T], ec: ExecutionContext): Future[List[T]] = {
 
-    collection.runCommand(JSONCountCommand.Count(query), ReadPreference.nearest).flatMap { c =>
-      val count = c.count
+    def countDocuments = {
+      val unlimitedMaxDocs = -1
+      collection.find(query, projection = Option.empty[JsObject]).cursor[BSONDocument]()
+        .collect[List](unlimitedMaxDocs, FailOnError[List[BSONDocument]]())
+        .map( _.size )
+    }
+
+    countDocuments.flatMap{ count =>
       if (count == 0) {
         Future.successful(Nil)
       } else {

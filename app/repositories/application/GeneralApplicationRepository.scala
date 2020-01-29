@@ -40,7 +40,8 @@ import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.Logger
 import play.api.libs.json.{ Format, JsNumber, JsObject, Json }
-import reactivemongo.api.{ DB, DefaultDB, Cursor, QueryOpts, ReadPreference }
+import reactivemongo.api.Cursor.FailOnError
+import reactivemongo.api.{ Cursor, DB, DefaultDB, QueryOpts, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, document, _ }
 import reactivemongo.play.json.collection.JSONBatchCommands.JSONCountCommand
 import reactivemongo.play.json.collection.JSONCollection
@@ -971,6 +972,12 @@ class GeneralApplicationMongoRepository(
     }
   }
 
+  private def countDocuments(query: BSONDocument) = {
+    val unlimitedMaxDocs = -1
+    collection.find(query, projection = Option.empty[JsObject]).cursor[BSONDocument]()
+      .collect[List](unlimitedMaxDocs, FailOnError[List[BSONDocument]]())
+      .map( _.size )
+  }
 
   override def findCandidatesEligibleForEventAllocation(
     locations: List[String],
@@ -991,8 +998,7 @@ class GeneralApplicationMongoRepository(
       BSONDocument(s"progress-status.$confirmedAllocation" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"progress-status.$unconfirmedAllocation" -> BSONDocument("$exists" -> false))
     ))
-    collection.runCommand(JSONCountCommand.Count(query), ReadPreference.nearest).flatMap { c =>
-      val count = c.count
+    countDocuments(query).flatMap { count =>
       if (count == 0) {
         Future.successful(CandidatesEligibleForEventResponse(List.empty, 0))
       } else {
@@ -1008,7 +1014,7 @@ class GeneralApplicationMongoRepository(
         val ascending = JsNumber(1)
         // Eligible candidates should be sorted based on when they passed PHASE 3
         val sort = new JsObject(Map(s"progress-status-timestamp.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> ascending))
-        collection.find(query, projection).sort(sort).cursor[BSONDocument]()
+        collection.find(query, Some(projection)).sort(sort).cursor[BSONDocument]()
           .collect[List](maxDocs = 50, Cursor.FailOnError[List[BSONDocument]]())
           .map { docList =>
             docList.map { doc =>
@@ -1028,7 +1034,6 @@ class GeneralApplicationMongoRepository(
   override def setFailedToAttendAssessmentStatus(applicationId: String, eventType: EventType): Future[Unit] = {
     replaceAllocationStatus(applicationId, EventProgressStatuses.get(eventType.applicationStatus).failedToAttend)
   }
-
 
   import ProgressStatuses._
   private val progressStatuses = Map(
@@ -1109,7 +1114,8 @@ class GeneralApplicationMongoRepository(
     val projection = BSONDocument("_id" -> false, "progress-status-timestamp" -> 2)
     val query = BSONDocument()
 
-    collection.find(query, projection).cursor[BSONDocument]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { doc =>
+    collection.find(query, Some(projection)).cursor[BSONDocument]()
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { doc =>
       doc.flatMap { item =>
         item.getAs[BSONDocument]("progress-status-timestamp").map {
           _.elements.toList.map { progressStatus =>

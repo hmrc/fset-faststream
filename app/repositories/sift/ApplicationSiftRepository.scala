@@ -30,6 +30,7 @@ import model.persisted._
 import model.report.SiftPhaseReportItem
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered }
 import org.joda.time.DateTime
+import play.api.libs.json.JsObject
 import reactivemongo.api.{ Cursor, DB }
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -248,7 +249,7 @@ class ApplicationSiftMongoRepository(
     ))
     val projection = BSONDocument("applicationId" -> true)
 
-    collection.find(query, projection).one[BSONDocument] map {
+    collection.find(query, Some(projection)).one[BSONDocument] map {
       case Some(doc) => doc.getAs[String]("applicationId").get
       case _ => throw CannotFindApplicationByCubiksId(s"Cannot find application by cubiks Id: $cubiksUserId")
     }
@@ -260,7 +261,7 @@ class ApplicationSiftMongoRepository(
     ))
     val projection = BSONDocument("applicationId" -> true)
 
-    collection.find(query, projection).one[BSONDocument] map {
+    collection.find(query, Some(projection)).one[BSONDocument] map {
       case Some(doc) => doc.getAs[String]("applicationId").get
       case _ => throw CannotFindApplicationByOrderIdException(s"Cannot find application by orderId Id: $orderId")
     }
@@ -355,7 +356,7 @@ class ApplicationSiftMongoRepository(
 
   def getNotificationExpiringSift(applicationId: String): Future[Option[NotificationExpiringSift]] = {
     val query = BSONDocument("applicationId" -> applicationId)
-    collection.find(query).one[BSONDocument] map {
+    collection.find(query, projection = Option.empty[JsObject]).one[BSONDocument] map {
       _.map(doc => NotificationExpiringSift.fromBson(doc, phaseName))
     }
   }
@@ -385,7 +386,7 @@ class ApplicationSiftMongoRepository(
       "_id" -> 0, "applicationId" -> 1,
       s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> 1
     )
-    collection.find(query, projection).one[BSONDocument].map {
+    collection.find(query, Some(projection)).one[BSONDocument].map {
       case Some(doc) =>
         val siftExpiredStatus = doc.getAs[BSONDocument]("progress-status")
           .flatMap(_.getAs[Boolean](ProgressStatuses.SIFT_EXPIRED.toString))
@@ -456,7 +457,8 @@ class ApplicationSiftMongoRepository(
       currentSchemeStatusGreen(schemeId),
       notSiftedOnScheme
     ))
-    bsonCollection.find(query).cursor[Candidate]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
+    bsonCollection.find(query, projection = Option.empty[JsObject]).cursor[Candidate]()
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
   }
 
   def findAllResults: Future[Seq[SiftPhaseReportItem]] = {
@@ -476,7 +478,7 @@ class ApplicationSiftMongoRepository(
       s"testGroups.$phaseName.evaluation.result" -> 1
     )
 
-    collection.find(query, projection).cursor[BSONDocument]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[BSONDocument]]()).map {
+    collection.find(query, Some(projection)).cursor[BSONDocument]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[BSONDocument]]()).map {
       _.map { doc =>
         val appId = doc.getAs[String]("applicationId").get
         val phaseDoc = doc.getAs[BSONDocument](s"testGroups")
@@ -518,7 +520,7 @@ class ApplicationSiftMongoRepository(
     val predicate = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("_id" -> 0, s"testGroups.$phaseName.evaluation.result" -> 1)
 
-    collection.find(predicate, projection).one[BSONDocument].map(
+    collection.find(predicate, Some(projection)).one[BSONDocument].map(
        _.flatMap { _.getAs[BSONDocument]("testGroups") }
         .flatMap { _.getAs[BSONDocument](phaseName) }
         .flatMap { _.getAs[BSONDocument]("evaluation") }
@@ -572,7 +574,7 @@ class ApplicationSiftMongoRepository(
       "currentSchemeStatus" -> 1
     )
 
-    collection.find(query, projection).cursor[BSONDocument]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]())
+    collection.find(query, Some(projection)).cursor[BSONDocument]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]())
       .map(_.map { doc =>
       val siftEvaluation = doc.getAs[BSONDocument]("testGroups")
         .flatMap { _.getAs[BSONDocument](phaseName) }
@@ -610,7 +612,7 @@ class ApplicationSiftMongoRepository(
       "currentSchemeStatus" -> 1
     )
 
-    collection.find(query, projection).cursor[BSONDocument]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]())
+    collection.find(query, Some(projection)).cursor[BSONDocument]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]())
       .map(_.map { doc =>
       val css = doc.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").get
       val applicationId = doc.getAs[String]("applicationId").get
@@ -700,7 +702,7 @@ class ApplicationSiftMongoRepository(
 
   private def getTestGroupByQuery(query: BSONDocument): Future[Option[SiftTestGroup]] = {
     val projection = BSONDocument(s"testGroups.$phaseName" -> 1, "_id" -> 0)
-    collection.find(query, projection).one[BSONDocument] map { optDocument =>
+    collection.find(query, Some(projection)).one[BSONDocument] map { optDocument =>
       optDocument.flatMap { _.getAs[BSONDocument]("testGroups") }
         .flatMap { _.getAs[BSONDocument](phaseName) }
         .map { SiftTestGroup.bsonHandler.read }
@@ -709,7 +711,7 @@ class ApplicationSiftMongoRepository(
 
   private def getTestGroupByQuery2(query: BSONDocument): Future[Option[SiftTestGroup2]] = {
     val projection = BSONDocument(s"testGroups.$phaseName" -> 1, "_id" -> 0)
-    collection.find(query, projection).one[BSONDocument] map { optDocument =>
+    collection.find(query, Some(projection)).one[BSONDocument] map { optDocument =>
       optDocument.flatMap { _.getAs[BSONDocument]("testGroups") }
         .flatMap { _.getAs[BSONDocument](phaseName) }
         .map { SiftTestGroup2.bsonHandler.read }
@@ -720,7 +722,7 @@ class ApplicationSiftMongoRepository(
     val projection = BSONDocument("applicationId" -> 1, s"testGroups.$phaseName" -> 1, "_id" -> 0)
 
     val ex = CannotFindTestByCubiksId(s"Cannot find test group for query: ${BSONDocument.pretty(query)}")
-    collection.find(query, projection).one[BSONDocument] map {
+    collection.find(query, Some(projection)).one[BSONDocument] map {
       case Some(doc) =>
         val appId = doc.getAs[String]("applicationId").get
         val siftDocOpt = doc.getAs[BSONDocument]("testGroups").map(_.getAs[BSONDocument](phaseName).get)
@@ -734,7 +736,7 @@ class ApplicationSiftMongoRepository(
     val projection = BSONDocument("applicationId" -> 1, s"testGroups.$phaseName" -> 1, "_id" -> 0)
 
     val ex = CannotFindTestByOrderIdException(s"Cannot find test group for query: ${BSONDocument.pretty(query)}")
-    collection.find(query, projection).one[BSONDocument] map {
+    collection.find(query, Some(projection)).one[BSONDocument] map {
       case Some(doc) =>
         val appId = doc.getAs[String]("applicationId").get
         val siftDocOpt = doc.getAs[BSONDocument]("testGroups").map(_.getAs[BSONDocument](phaseName).get)
