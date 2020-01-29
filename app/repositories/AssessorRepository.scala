@@ -36,7 +36,7 @@ trait AssessorRepository {
   def findByIds(userIds: Seq[String]): Future[Seq[Assessor]]
   def findAll(readPreference: ReadPreference = ReadPreference.primaryPreferred)(implicit ec: ExecutionContext): Future[List[Assessor]]
   def save(settings: Assessor): Future[Unit]
-  def countSubmittedAvailability: Future[Int]
+  def countSubmittedAvailability: Future[Long]
   def findAvailabilitiesForLocationAndDate(location: Location, date: LocalDate, skills: Seq[SkillType]): Future[Seq[Assessor]]
   def findAssessorsForEvent(eventId: String): Future[Seq[Assessor]]
   def findUnavailableAssessors(skills: Seq[SkillType], location: Location, date: LocalDate): Future[Seq[Assessor]]
@@ -95,9 +95,9 @@ class AssessorMongoRepository(implicit mongo: () => DB)
     collection.find(query).cursor[Assessor]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[Assessor]]())
   }
 
-  def countSubmittedAvailability: Future[Int] = {
+  def countSubmittedAvailability: Future[Long] = {
     val query = Json.obj(Seq("status" -> Json.toJsFieldJsValueWrapper(AssessorStatus.AVAILABILITIES_SUBMITTED.toString)): _*)
-    collection.count(Some(query))
+    collection.count(Some(query), limit = Some(0), skip = 0, hint = None, readConcern = reactivemongo.api.ReadConcern.Local)
   }
 
   def findUnavailableAssessors(skills: Seq[SkillType], location: Location, date: LocalDate): Future[Seq[Assessor]] = {
@@ -114,6 +114,6 @@ class AssessorMongoRepository(implicit mongo: () => DB)
 
   def remove(userId: UniqueIdentifier): Future[Unit] = {
     val validator = singleRemovalValidator(userId.toString, actionDesc = "deleting assessor")
-    collection.remove(BSONDocument("userId" -> userId)) map validator
+    collection.delete().one(BSONDocument("userId" -> userId)) map validator
   }
 }

@@ -234,7 +234,7 @@ trait AssessorService {
     }
   }
 
-  def countSubmittedAvailability(): Future[Int] = {
+  def countSubmittedAvailability(): Future[Long] = {
     assessorRepository.countSubmittedAvailability
   }
 

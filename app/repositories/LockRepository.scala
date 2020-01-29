@@ -62,7 +62,6 @@ class LockMongoRepository(implicit mongo: () => DB)
 
   // When starting check indexes exist
   Await.result(Future.sequence(List(
-    collection.indexesManager.create(Index(Seq((id, Ascending)), unique = true)),
     collection.indexesManager.create(Index(Seq((owner, Ascending)), unique = false)),
     collection.indexesManager.create(Index(Seq((timeCreated, Ascending)), unique = false)),
     collection.indexesManager.create(Index(Seq((expiryTime, Ascending)), unique = false))
