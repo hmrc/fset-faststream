@@ -40,10 +40,9 @@ trait FileUploadRepository {
   def retrieve(fileId: String): Future[FileUpload]
 }
 
-class FileUploadMongoRepository(implicit mongo: () => DB) extends FileUploadRepository {
+class FileUploadMongoRepository(implicit mongo: () => DB with DBMetaCommands) extends FileUploadRepository {
 
-  lazy val gridFS = new GridFS[BSONSerializationPack.type](
-    DefaultDB(mongo.apply.name, mongo.apply.connection, FailoverStrategy.default), CollectionNames.FILE_UPLOAD)
+  lazy val gridFS = new GridFS[BSONSerializationPack.type](mongo.apply(), CollectionNames.FILE_UPLOAD)
 
   def add(contentType: String, fileContents: Array[Byte]): Future[String] = {
     val newId = UUID.randomUUID().toString
