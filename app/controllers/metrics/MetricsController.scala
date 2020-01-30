@@ -19,22 +19,12 @@ package controllers.metrics
 import model.ApplicationStatus
 import play.api.libs.json.Json
 import play.api.mvc.Action
+import repositories._
 import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.play.microservice.controller.BaseController
-import repositories._
 
 import scala.collection.immutable.SortedMap
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-
-case class ProgressStatusMetrics(
-  SUBMITTED: Int,
-  PHASE1_TESTS_INVITED: Int
-)
-
-object ProgressStatusMetrics {
-  implicit val progressStatusMetricsFormat = Json.format[ProgressStatusMetrics]
-}
 
 object MetricsController extends MetricsController {
   override val applicationRepo = applicationRepository
