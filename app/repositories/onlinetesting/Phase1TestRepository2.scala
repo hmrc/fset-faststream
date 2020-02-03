@@ -97,7 +97,7 @@ class Phase1TestMongoRepository2(dateTime: DateTimeFactory)(implicit mongo: () =
     getTestGroup(applicationId, phaseName)
   }
 
-  override def insertOrUpdateTestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile2) = {
+  override def insertOrUpdateTestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile2): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
 
     val update = BSONDocument("$set" -> (applicationStatusBSON(PHASE1_TESTS_INVITED) ++
@@ -105,7 +105,7 @@ class Phase1TestMongoRepository2(dateTime: DateTimeFactory)(implicit mongo: () =
     )
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "inserting test group")
-    collection.update(query, update) map validator
+    collection.update(ordered = false).one(query, update) map validator
   }
 
   override def getTestProfileByOrderId(orderId: String): Future[Phase1TestProfile2] = {
@@ -118,7 +118,7 @@ class Phase1TestMongoRepository2(dateTime: DateTimeFactory)(implicit mongo: () =
     ))
     val projection = BSONDocument("applicationId" -> 1, "userId" -> 1, s"testGroups.$phaseName" -> 1, "_id" -> 0)
 
-    collection.find(query, projection).one[BSONDocument] map {
+    collection.find(query, Some(projection)).one[BSONDocument] map {
       case Some(doc) =>
         val applicationId = doc.getAs[String]("applicationId").get
         val userId = doc.getAs[String]("userId").get

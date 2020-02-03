@@ -18,6 +18,7 @@ package repositories.campaignmanagement
 
 import model.persisted.CampaignManagementAfterDeadlineCode
 import org.joda.time.DateTime
+import play.api.libs.json.JsObject
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -46,13 +47,13 @@ class CampaignManagementAfterDeadlineSignupCodeMongoRepository(implicit mongo: (
       "expires" -> BSONDocument("$gte" -> DateTime.now.getMillis)
     )
 
-    collection.find(query).one[CampaignManagementAfterDeadlineCode]
+    collection.find(query, projection = Option.empty[JsObject]).one[CampaignManagementAfterDeadlineCode]
   }
 
   def markSignupCodeAsUsed(code: String, applicationId: String): Future[Unit] = {
     val updateValidator = singleUpdateValidator(applicationId, actionDesc = s"marking signup code $code as used")
 
-    collection.update(
+    collection.update(ordered = false).one(
       BSONDocument(
         "code" -> code,
         "usedByApplicationId" -> BSONDocument("$exists" -> false)
@@ -66,6 +67,6 @@ class CampaignManagementAfterDeadlineSignupCodeMongoRepository(implicit mongo: (
   }
 
   def save(code: CampaignManagementAfterDeadlineCode): Future[Unit] = {
-    collection.insert(code).map(_ => ())
+    collection.insert(ordered = false).one(code).map(_ => ())
   }
 }

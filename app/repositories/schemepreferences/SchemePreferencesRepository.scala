@@ -47,7 +47,7 @@ class SchemePreferencesMongoRepository(implicit mongo: () => DB)
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument(SchemePreferencesDocumentKey -> 1, "_id" -> 0)
 
-    collection.find(query, projection).one[BSONDocument] map {
+    collection.find(query, Some(projection)).one[BSONDocument] map {
       case Some(document) if document.getAs[BSONDocument](SchemePreferencesDocumentKey).isDefined =>
         document.getAs[SelectedSchemes](SchemePreferencesDocumentKey).get
       case _ => throw SchemePreferencesNotFound(applicationId)
@@ -64,7 +64,7 @@ class SchemePreferencesMongoRepository(implicit mongo: () => DB)
     val validator = singleUpdateValidator(applicationId, actionDesc = "saving scheme preferences",
       CannotUpdateSchemePreferences(applicationId))
 
-    collection.update(query, preferencesBSON) map validator
+    collection.update(ordered = false).one(query, preferencesBSON) map validator
   }
 
   def add(applicationId: String, newScheme: SchemeId): Future[Unit] = {
@@ -77,6 +77,6 @@ class SchemePreferencesMongoRepository(implicit mongo: () => DB)
 
     val validator = singleUpdateValidator(applicationId, actionDesc = s"inserting sdip scheme")
 
-    collection.update(query, update) map validator
+    collection.update(ordered = false).one(query, update) map validator
   }
 }

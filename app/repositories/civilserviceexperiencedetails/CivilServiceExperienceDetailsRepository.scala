@@ -54,14 +54,14 @@ class CivilServiceExperienceDetailsMongoRepository(implicit mongo: () => DB) ext
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating civil service details",
       CannotUpdateCivilServiceExperienceDetails(applicationId))
 
-    collection.update(query, updateBSON) map validator
+    collection.update(ordered = false).one(query, updateBSON) map validator
   }
 
   override def find(applicationId: String): Future[Option[CivilServiceExperienceDetails]] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument(CivilServiceExperienceDetailsDocumentKey -> 1, "_id" -> 0)
 
-    collection.find(query, projection).one[BSONDocument] map {
+    collection.find(query, Some(projection)).one[BSONDocument] map {
       case Some(document) if document.getAs[BSONDocument](CivilServiceExperienceDetailsDocumentKey).isDefined =>
         document.getAs[CivilServiceExperienceDetails](CivilServiceExperienceDetailsDocumentKey)
       case _ => None
@@ -81,6 +81,6 @@ class CivilServiceExperienceDetailsMongoRepository(implicit mongo: () => DB) ext
     val validator = singleUpdateValidator(applicationId, actionDesc = "evaluating fast pass candidate",
       CannotUpdateCivilServiceExperienceDetails(applicationId))
 
-    collection.update(query, updateBSON) map validator
+    collection.update(ordered = false).one(query, updateBSON) map validator
   }
 }

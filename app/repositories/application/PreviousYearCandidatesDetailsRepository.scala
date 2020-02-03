@@ -642,7 +642,8 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
 
   override def findApplicationsFor(appRoutes: Seq[ApplicationRoute]): Future[List[Candidate]] = {
     val query = BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes))
-    applicationDetailsCollection.find(query).cursor[Candidate]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
+    applicationDetailsCollection.find(query, projection = Option.empty[JsObject]).cursor[Candidate]()
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
   }
 
   override def findApplicationsFor(appRoutes: Seq[ApplicationRoute],
@@ -651,7 +652,8 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
       BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses))
     ))
-    applicationDetailsCollection.find(query).cursor[Candidate]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
+    applicationDetailsCollection.find(query, projection = Option.empty[JsObject]).cursor[Candidate]()
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
   }
 
   override def findDataAnalystContactDetails: Future[CsvExtract[String]] = {
@@ -667,7 +669,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
   private def commonFindDataAnalystContactDetails(query: BSONDocument): Future[CsvExtract[String]] = {
     val projection = Json.obj("_id" -> 0)
 
-    contactDetailsCollection.find(query, projection)
+    contactDetailsCollection.find(query, Some(projection))
       .cursor[BSONDocument](ReadPreference.nearest)
       .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
       val csvRecords = docs.map { doc =>
@@ -686,7 +688,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     val projection = Json.obj("_id" -> 0)
     val query = BSONDocument("userId" -> BSONDocument("$in" -> userIds))
 
-    contactDetailsCollection.find(query, projection)
+    contactDetailsCollection.find(query, Some(projection))
       .cursor[BSONDocument](ReadPreference.nearest)
       .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
       val csvRecords = docs.map { doc =>
@@ -750,7 +752,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       }
     }
 
-    questionnaireCollection.find(query, projection)
+    questionnaireCollection.find(query, Some(projection))
       .cursor[BSONDocument](ReadPreference.nearest)
       .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
       val csvRecords = docs.map { doc =>
@@ -799,7 +801,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     val projection = Json.obj("_id" -> 0)
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
 
-    siftAnswersCollection.find(query, projection)
+    siftAnswersCollection.find(query, Some(projection))
       .cursor[BSONDocument](ReadPreference.nearest)
       .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
       val csvRecords = docs.map { doc =>
@@ -847,7 +849,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
   private def commonFindDataAnalystSiftAnswers(query: BSONDocument): Future[CsvExtract[String]] = {
     val projection = Json.obj("_id" -> 0)
 
-    siftAnswersCollection.find(query, projection)
+    siftAnswersCollection.find(query, Some(projection))
       .cursor[BSONDocument](ReadPreference.nearest)
       .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
       val csvRecords = docs.map { doc =>
@@ -877,7 +879,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     val projection = Json.obj("_id" -> 0)
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
 
-    val allEventsFut = eventCollection.find(query, projection)
+    val allEventsFut = eventCollection.find(query, Some(projection))
       .cursor[BSONDocument](ReadPreference.nearest)
       .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
       docs.map { doc =>
@@ -895,7 +897,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     }
 
     allEventsFut.flatMap { allEvents =>
-      candidateAllocationCollection.find(Json.obj(), projection)
+      candidateAllocationCollection.find(Json.obj(), Some(projection))
         .cursor[BSONDocument](ReadPreference.nearest)
         .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
         val csvRecords = docs.map { doc =>
@@ -934,7 +936,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
   }
 
   private def commonFindMediaDetails(query: BSONDocument, projection: JsObject) = {
-    mediaCollection.find(query, projection)
+    mediaCollection.find(query, Some(projection))
       .cursor[BSONDocument](ReadPreference.nearest)
       .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
       val csvRecords = docs.map { doc =>
@@ -964,7 +966,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     val projection = Json.obj("_id" -> 0)
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
 
-    col.find(query, projection)
+    col.find(query, Some(projection))
       .cursor[BSONDocument](ReadPreference.nearest)
       .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
       val csvRecords = docs.map { doc =>

@@ -55,7 +55,7 @@ trait PassMarkSettingsRepository[T <: PassMarkSettings] {
   implicit val oFormats = OFormatHelper.oFormat(domainFormatImplicit)
 
   def create(passMarkSettings: T)(implicit jsonFormat: Format[T]): Future[PassMarkSettingsCreateResponse] = {
-    collection.insert(passMarkSettings) flatMap { _ =>
+    collection.insert(ordered = false).one(passMarkSettings) flatMap { _ =>
       getLatestVersion.map(createResponse =>
         PassMarkSettingsCreateResponse(
           createResponse.map(_.version).get,
@@ -69,6 +69,6 @@ trait PassMarkSettingsRepository[T <: PassMarkSettings] {
     val query = BSONDocument.empty
     val descending = -1
     val sort = JsObject(Seq("createDate" -> JsNumber(descending)))
-    collection.find(query).sort(sort).one[T]
+    collection.find(query, projection = Option.empty[JsObject]).sort(sort).one[T]
   }
 }

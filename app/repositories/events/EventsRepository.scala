@@ -63,11 +63,11 @@ class EventsMongoRepository(implicit mongo: () => DB)
 
   def updateEvent(updatedEvent: Event): Future[Unit] = {
     val query = BSONDocument("id" -> updatedEvent.id)
-    collection.update(query, updatedEvent).map(_ => ())
+    collection.update(ordered = false).one(query, updatedEvent).map(_ => ())
   }
 
   def getEvent(id: String): Future[Event] = {
-    collection.find(BSONDocument("id" -> id), BSONDocument("_id" -> false)).one[Event] map {
+    collection.find(BSONDocument("id" -> id), Some(BSONDocument("_id" -> false))).one[Event] map {
       case Some(event) => event
       case None => throw EventNotFoundException(s"No event found with id $id")
     }
@@ -131,7 +131,7 @@ class EventsMongoRepository(implicit mongo: () => DB)
 
   def updateStructure(): Future[Unit] = {
     val updateQuery = BSONDocument("$set" -> BSONDocument("wasBulkUploaded" -> false, "createdAt" -> DateTime.now.getMillis))
-    collection.update(BSONDocument.empty, updateQuery, multi = true).map(_ => ())
+    collection.update(ordered = false).one(BSONDocument.empty, updateQuery, multi = true).map(_ => ())
   }
 
   def findAllForExtract(): play.api.libs.iteratee.Enumerator[JsValue] = {

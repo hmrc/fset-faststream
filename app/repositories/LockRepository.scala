@@ -18,7 +18,7 @@ package repositories
 
 import org.joda.time.{ DateTime, Duration }
 import play.api.Logger
-import play.api.libs.json.{ Format, JsValue, Json }
+import play.api.libs.json.{ Format, JsObject, JsValue, Json }
 import reactivemongo.api.DB
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
@@ -26,8 +26,8 @@ import reactivemongo.core.errors.DatabaseException
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
-import scala.concurrent.duration._
 
+import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext, Future }
 import language.postfixOps
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -77,7 +77,8 @@ class LockMongoRepository(implicit mongo: () => DB)
         Logger.info(s"Removed ${writeResult.n} expired locks for $reqLockId")
       }
 
-      collection.insert(Json.obj(id -> reqLockId, owner -> reqOwner, timeCreated -> now, expiryTime -> now.plus(forceReleaseAfter)))
+      collection.insert(ordered = false).one(
+        Json.obj(id -> reqLockId, owner -> reqOwner, timeCreated -> now, expiryTime -> now.plus(forceReleaseAfter)))
         .map { _ =>
           Logger.debug(s"Took lock '$reqLockId' for '$reqOwner' at $now.  Expires at: ${now.plus(forceReleaseAfter)}")
           true
@@ -91,7 +92,10 @@ class LockMongoRepository(implicit mongo: () => DB)
   }
 
   def isLocked(reqLockId: String, reqOwner: String)(implicit ec: ExecutionContext) = withCurrentTime { now =>
-    collection.find(Json.obj(id -> reqLockId, owner -> reqOwner, expiryTime -> Json.obj("$gt" -> now))).one[JsValue].map(_.isDefined)
+    collection.find(
+      Json.obj(id -> reqLockId, owner -> reqOwner, expiryTime -> Json.obj("$gt" -> now)),
+      projection = Option.empty[JsObject])
+    .one[JsValue].map(_.isDefined)
   }
 
   def releaseLock(reqLockId: String, reqOwner: String)(implicit ec: ExecutionContext) = {
