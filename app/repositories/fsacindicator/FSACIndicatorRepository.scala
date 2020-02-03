@@ -18,7 +18,6 @@ package repositories.fsacindicator
 
 import model.Exceptions.{ FSACIndicatorNotFound, CannotUpdateFSACIndicator }
 import model.persisted.FSACIndicator
-import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -46,7 +45,7 @@ class FSACIndicatorMongoRepository(implicit mongo: () => DB)
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument(FSACIndicatorDocumentKey -> 1, "_id" -> 0)
 
-    collection.find(query, projection).one[BSONDocument] map {
+    collection.find(query, Some(projection)).one[BSONDocument] map {
       case Some(document) if document.getAs[BSONDocument](FSACIndicatorDocumentKey).isDefined =>
         document.getAs[FSACIndicator](FSACIndicatorDocumentKey).get
       case _ => throw FSACIndicatorNotFound(applicationId)
@@ -62,6 +61,6 @@ class FSACIndicatorMongoRepository(implicit mongo: () => DB)
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating fsac indicator",
       CannotUpdateFSACIndicator(userId))
 
-    collection.update(query, updateBSON) map validator
+    collection.update(ordered = false).one(query, updateBSON) map validator
   }
 }

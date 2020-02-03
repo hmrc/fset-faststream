@@ -18,7 +18,6 @@ package repositories.assistancedetails
 
 import model.Exceptions.{ AssistanceDetailsNotFound, CannotUpdateAssistanceDetails }
 import model.persisted.AssistanceDetails
-import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -52,14 +51,14 @@ class AssistanceDetailsMongoRepository(implicit mongo: () => DB)
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating assistance details",
       CannotUpdateAssistanceDetails(userId))
 
-    collection.update(query, updateBSON) map validator
+    collection.update(ordered = false).one(query, updateBSON) map validator
   }
 
   override def find(applicationId: String): Future[AssistanceDetails] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument(AssistanceDetailsDocumentKey -> 1, "_id" -> 0)
 
-    collection.find(query, projection).one[BSONDocument] map {
+    collection.find(query, Some(projection)).one[BSONDocument] map {
       case Some(document) if document.getAs[BSONDocument](AssistanceDetailsDocumentKey).isDefined =>
         document.getAs[AssistanceDetails](AssistanceDetailsDocumentKey).get
       case _ => throw AssistanceDetailsNotFound(applicationId)

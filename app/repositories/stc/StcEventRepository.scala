@@ -38,6 +38,6 @@ class StcEventMongoRepository(implicit mongo: () => DB)
 
   def create(event: StcEvent): Future[Unit] = {
     val doc = StcEvent.eventHandler.write(event)
-    collection.insert[BSONDocument](doc) map (_ => ())
+    collection.insert(ordered = false).one(doc) map (_ => ())
   }
 }

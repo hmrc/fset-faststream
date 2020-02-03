@@ -209,7 +209,7 @@ class GeneralApplicationMongoRepository(
       "applicationStatus" -> CREATED,
       "applicationRoute" -> route
     )
-    collection.insert(applicationBSON) flatMap { _ =>
+    collection.insert(ordered = false).one(applicationBSON) flatMap { _ =>
       findProgress(applicationId).map { p =>
         ApplicationResponse(applicationId, CREATED, route, userId, testAccountId, p, None, None)
       }
@@ -440,7 +440,7 @@ class GeneralApplicationMongoRepository(
     val validator = singleUpdateValidator(applicationId, actionDesc = "submitting",
       new IllegalStateException(s"Already submitted $applicationId"))
 
-    collection.update(query, updateBSON) map validator
+    collection.update(ordered = false).one(query, updateBSON) map validator
   }
 
   override def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit] = {
@@ -454,7 +454,7 @@ class GeneralApplicationMongoRepository(
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "withdrawing")
 
-    collection.update(query, applicationBSON) map validator
+    collection.update(ordered = false).one(query, applicationBSON) map validator
   }
 
   override def removeWithdrawReason(applicationId: String): Future[Unit] = {
@@ -465,7 +465,7 @@ class GeneralApplicationMongoRepository(
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "removing withdrawal reason")
 
-    collection.update(query, update) map validator
+    collection.update(ordered = false).one(query, update) map validator
   }
 
   override def withdrawScheme(applicationId: String, withdrawScheme: WithdrawScheme, schemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = {
@@ -478,7 +478,7 @@ class GeneralApplicationMongoRepository(
       "applicationId" -> applicationId
     )
 
-    collection.update(predicate, update).map(_ => ())
+    collection.update(ordered = false).one(predicate, update).map(_ => ())
   }
 
   override def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit] = {
@@ -489,7 +489,7 @@ class GeneralApplicationMongoRepository(
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "update questionnaire status")
 
-    collection.update(query, progressStatusBSON) map validator
+    collection.update(ordered = false).one(query, progressStatusBSON) map validator
   }
 
   override def preview(applicationId: String): Future[Unit] = {
@@ -501,7 +501,7 @@ class GeneralApplicationMongoRepository(
     val validator = singleUpdateValidator(applicationId, actionDesc = "preview",
       CannotUpdatePreview(s"preview $applicationId"))
 
-    collection.update(query, progressStatusBSON) map validator
+    collection.update(ordered = false).one(query, progressStatusBSON) map validator
   }
 
   override def findTestForNotification(notificationType: NotificationTestType): Future[Option[TestResultNotification]] = {
@@ -745,8 +745,8 @@ class GeneralApplicationMongoRepository(
     val resetValidator = singleUpdateValidator(applicationId, actionDesc = "reset")
     val adjustmentValidator = singleUpdateValidator(applicationId, actionDesc = "updateAdjustments")
 
-    collection.update(query, resetExerciseAdjustmentsBSON).map(resetValidator).flatMap { _ =>
-      collection.update(query, adjustmentsConfirmationBSON) map adjustmentValidator
+    collection.update(ordered = false).one(query, resetExerciseAdjustmentsBSON).map(resetValidator).flatMap { _ =>
+      collection.update(ordered = false).one(query, adjustmentsConfirmationBSON) map adjustmentValidator
     }
   }
 
@@ -780,7 +780,7 @@ class GeneralApplicationMongoRepository(
       actionDesc = "remove adjustments comment",
       notFound = CannotRemoveAdjustmentsComment(applicationId))
 
-    collection.update(query, removeBSON) map validator
+    collection.update(ordered = false).one(query, removeBSON) map validator
   }
 
   def updateAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit] = {
@@ -794,7 +794,7 @@ class GeneralApplicationMongoRepository(
       actionDesc = "save adjustments comment",
       notFound = CannotUpdateAdjustmentsComment(applicationId))
 
-    collection.update(query, updateBSON) map validator
+    collection.update(ordered = false).one(query, updateBSON) map validator
   }
 
   def findAdjustmentsComment(applicationId: String): Future[AdjustmentsComment] = {
@@ -828,7 +828,7 @@ class GeneralApplicationMongoRepository(
       actionDesc = "remove adjustments comment",
       notFound = CannotRemoveAdjustmentsComment(applicationId))
 
-    collection.update(query, adjustmentRejection) map validator
+    collection.update(ordered = false).one(query, adjustmentRejection) map validator
   }
 
   def gisByApplication(applicationId: String): Future[Boolean] = {
@@ -863,21 +863,22 @@ class GeneralApplicationMongoRepository(
     val query = BSONDocument("applicationId" -> applicationId)
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating status")
 
-    collection.update(query, BSONDocument("$set" -> applicationStatusBSON(applicationStatus))) map validator
+    collection.update(ordered = false).one(query, BSONDocument("$set" -> applicationStatusBSON(applicationStatus))) map validator
   }
 
   def updateApplicationStatusOnly(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
+    val updateOp = BSONDocument("$set" -> BSONDocument("applicationStatus" -> applicationStatus.toString))
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating application status")
 
-    collection.update(query, BSONDocument("$set" -> BSONDocument("applicationStatus" -> applicationStatus.toString))) map validator
+    collection.update(ordered = false).one(query, updateOp) map validator
   }
 
   def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating submission deadline")
 
-    collection.update(query, BSONDocument("$set" -> BSONDocument("submissionDeadline" -> newDeadline))) map validator
+    collection.update(ordered = false).one(query, BSONDocument("$set" -> BSONDocument("submissionDeadline" -> newDeadline))) map validator
   }
 
   override def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = {
@@ -891,7 +892,7 @@ class GeneralApplicationMongoRepository(
     val query = BSONDocument("applicationId" -> applicationId)
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating progress and app status")
 
-      collection.update(query, BSONDocument("$set" ->
+      collection.update(ordered = false).one(query, BSONDocument("$set" ->
         applicationStatusBSON(progressStatus))
       ) map validator
   }
@@ -913,7 +914,7 @@ class GeneralApplicationMongoRepository(
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "removing progress and app status")
 
-    collection.update(query, unsetDoc) map validator
+    collection.update(ordered = false).one(query, unsetDoc) map validator
   }
 
   override def updateApplicationRoute(appId: String, appRoute:ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit] = {
@@ -927,7 +928,7 @@ class GeneralApplicationMongoRepository(
     ))
 
     val validator = singleUpdateValidator(appId, actionDesc = "updating application route")
-    collection.update(query, updateAppRoute) map validator
+    collection.update(ordered = false).one(query, updateAppRoute) map validator
   }
 
   override def archive(appId: String, originalUserId: String, userIdToArchiveWith: String,
@@ -947,7 +948,7 @@ class GeneralApplicationMongoRepository(
     )
 
     val validator = singleUpdateValidator(appId, actionDesc = "archiving application")
-    collection.update(query, updateWithArchiveUserId) map validator
+    collection.update(ordered = false).one(query, updateWithArchiveUserId) map validator
   }
 
   override def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse] = {
@@ -1060,7 +1061,7 @@ class GeneralApplicationMongoRepository(
       "$unset" -> BSONDocument(statusesToRemove),
       "$set" -> BSONDocument(s"progress-status.${newStatus.key}" -> true)
     )
-    collection.update(query, updateQuery).map(_ => ())
+    collection.update(ordered = false).one(query, updateQuery).map(_ => ())
   }
 
   private def bsonDocToCandidatesEligibleForEvent(doc: BSONDocument) = {
@@ -1163,7 +1164,7 @@ class GeneralApplicationMongoRepository(
     val updateBSON = BSONDocument("$set" -> currentSchemeStatusBSON(results))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = s"Saving currentSchemeStatus for $applicationId")
-    collection.update(query, updateBSON).map(validator)
+    collection.update(ordered = false).one(query, updateBSON).map(validator)
   }
 
   override def removeCurrentSchemeStatus(applicationId: String): Future[Unit] = {
@@ -1171,7 +1172,7 @@ class GeneralApplicationMongoRepository(
     val update = BSONDocument("$unset" -> BSONDocument(s"currentSchemeStatus" -> ""))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = s"removing current scheme status for $applicationId")
-    collection.update(query, update).map(validator)
+    collection.update(ordered = false).one(query, update).map(validator)
   }
 
   def findEligibleForJobOfferCandidatesWithFsbStatus: Future[Seq[String]] = {

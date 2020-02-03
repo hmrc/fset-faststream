@@ -16,7 +16,6 @@
 
 package repositories
 
-import model.Exceptions.CannotUpdateContactDetails
 import model.Preferences
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
@@ -50,13 +49,13 @@ class FrameworkPreferenceMongoRepository(implicit mongo: () => DB)
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "deleting allocation")
 
-    collection.update(query, preferencesBSON) map validator
+    collection.update(ordered = false).one(query, preferencesBSON) map validator
   }
 
   override def tryGetPreferences(applicationId: String): Future[Option[Preferences]] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("framework-preferences" -> 1, "_id" -> 0)
-    collection.find(query, projection).one[BSONDocument].map { rootDocument =>
+    collection.find(query, Some(projection)).one[BSONDocument].map { rootDocument =>
       rootDocument.flatMap(_.getAs[Preferences]("framework-preferences"))
     }
   }

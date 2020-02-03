@@ -36,7 +36,6 @@ import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.application.GeneralApplicationRepoBSONReader
 import repositories.{ BSONDateTimeHandler, CollectionNames, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers }
-import repositories.adjustmentDetailHandler
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -120,7 +119,7 @@ class ApplicationSiftMongoRepository(
     ApplicationForSift(applicationId, userId, appStatus, currentSchemeStatus)
   }
 
-  def updateTestStartTime(cubiksUserId: Int, startedTime: DateTime) = {
+  def updateTestStartTime(cubiksUserId: Int, startedTime: DateTime): Future[Unit] = {
     val query = BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phaseName.tests.$$.startedDateTime" -> Some(startedTime)
     ))
@@ -134,10 +133,10 @@ class ApplicationSiftMongoRepository(
     val validator = singleUpdateValidator(cubiksUserId.toString, actionDesc = s"updating $phaseName tests",
       CannotFindTestByCubiksId(s"Cannot find sift test group by cubiks Id: $cubiksUserId"))
 
-    collection.update(find, query) map validator
+    collection.update(ordered = false).one(find, query) map validator
   }
 
-  def updateTestStartTime(orderId: String, startedTime: DateTime) = {
+  def updateTestStartTime(orderId: String, startedTime: DateTime): Future[Unit] = {
     val query = BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phaseName.tests.$$.startedDateTime" -> Some(startedTime)
     ))
@@ -151,7 +150,7 @@ class ApplicationSiftMongoRepository(
     val validator = singleUpdateValidator(orderId, actionDesc = s"updating $phaseName tests",
       CannotFindTestByCubiksId(s"Cannot find sift test group by order Id: $orderId"))
 
-    collection.update(find, query) map validator
+    collection.update(ordered = false).one(find, query) map validator
   }
 
   def updateTestReportReady(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit] = {
@@ -170,7 +169,7 @@ class ApplicationSiftMongoRepository(
     val validator = singleUpdateValidator(cubiksUserId.toString, actionDesc = s"updating $phaseName tests",
       CannotFindTestByCubiksId(s"Cannot find test group by cubiks Id: $cubiksUserId"))
 
-    collection.update(find, update) map validator
+    collection.update(ordered = false).one(find, update) map validator
   }
 
   def insertCubiksTestResult(appId: String, cubiksTest: CubiksTest, testResult: TestResult): Future[Unit] = {
@@ -187,7 +186,7 @@ class ApplicationSiftMongoRepository(
 
     val validator = singleUpdateValidator(appId, actionDesc = "inserting cubiks test results")
 
-    collection.update(query, update) map validator
+    collection.update(ordered = false).one(query, update) map validator
   }
 
   def insertPsiTestResult(appId: String, psiTest: PsiTest, testResult: PsiTestResult): Future[Unit] = {
@@ -204,7 +203,7 @@ class ApplicationSiftMongoRepository(
 
     val validator = singleUpdateValidator(appId, actionDesc = s"inserting $phaseName test results")
 
-    collection.update(query, update) map validator
+    collection.update(ordered = false).one(query, update) map validator
   }
 
   def nextTestGroupWithReportReady: Future[Option[SiftTestGroupWithAppId]] = {
@@ -513,7 +512,7 @@ class ApplicationSiftMongoRepository(
         s"testGroups.$phaseName.evaluation.result.schemeId" -> BSONDocument("$nin" -> BSONArray(result.schemeId.value))
       )
     ))
-    collection.update(predicate, update).map(_ => ())
+    collection.update(ordered = false).one(predicate, update).map(_ => ())
   }
 
   def getSiftEvaluations(applicationId: String): Future[Seq[SchemeEvaluationResult]] = {
@@ -534,7 +533,7 @@ class ApplicationSiftMongoRepository(
 
   def update(applicationId: String, predicate: BSONDocument, update: BSONDocument, action: String): Future[Unit] = {
     val validator = singleUpdateValidator(applicationId, action)
-    collection.update(predicate, update) map validator
+    collection.update(ordered = false).one(predicate, update) map validator
   }
 
   def saveSiftExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit] = {
@@ -544,7 +543,7 @@ class ApplicationSiftMongoRepository(
     val validator = singleUpdateValidator(applicationId,
       actionDesc = s"inserting expiry date during $phaseName", ApplicationNotFound(applicationId))
 
-    collection.update(query, update) map validator
+    collection.update(ordered = false).one(query, update) map validator
   }
 
   def removeTestGroup(applicationId: String): Future[Unit] = {
@@ -554,7 +553,7 @@ class ApplicationSiftMongoRepository(
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "removing test group")
 
-    collection.update(query, update) map validator
+    collection.update(ordered = false).one(query, update) map validator
   }
 
   def findAllUsersInSiftReady: Future[Seq[FixStuckUser]] = {
@@ -685,8 +684,8 @@ class ApplicationSiftMongoRepository(
     val validator = singleUpdateValidator(applicationId, s"fixing sift results for ${result.schemeId}", ApplicationNotFound(applicationId))
 
     for {
-      _ <- collection.update(removePredicate, removeDoc) map validator
-      _ <- collection.update(setPredicate, setDoc) map validator
+      _ <- collection.update(ordered = false).one(removePredicate, removeDoc) map validator
+      _ <- collection.update(ordered = false).one(setPredicate, setDoc) map validator
     } yield ()
   }
 
@@ -752,7 +751,7 @@ class ApplicationSiftMongoRepository(
     val validator = singleUpdateValidator(applicationId, actionDesc = s"updating test group expiration date in $phaseName",
       ApplicationNotFound(applicationId))
 
-    collection.update(query, BSONDocument("$set" -> BSONDocument(
+    collection.update(ordered = false).one(query, BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phaseName.expirationDate" -> expiryDateTime
     ))) map validator
   }
@@ -764,7 +763,7 @@ class ApplicationSiftMongoRepository(
     )
 
     val validator = singleUpdateValidator(applicationId, actionDesc = s"inserting tests during $phaseName", ApplicationNotFound(applicationId))
-    collection.update(query, update) map validator
+    collection.update(ordered = false).one(query, update) map validator
   }
 
   def insertNumericalTests2(applicationId: String, tests: List[PsiTest]): Future[Unit] = {
@@ -774,7 +773,7 @@ class ApplicationSiftMongoRepository(
     )
 
     val validator = singleUpdateValidator(applicationId, actionDesc = s"inserting tests during $phaseName", ApplicationNotFound(applicationId))
-    collection.update(query, update) map validator
+    collection.update(ordered = false).one(query, update) map validator
   }
 
   def findAndUpdateTest(cubiksUserId: Int, update: BSONDocument, ignoreNotFound: Boolean): Future[Unit] = {
@@ -790,7 +789,7 @@ class ApplicationSiftMongoRepository(
         CannotFindTestByCubiksId(s"Cannot find test group by cubiks Id: $cubiksUserId")
       )
     }
-    collection.update(query, update) map validator
+    collection.update(ordered = false).one(query, update) map validator
   }
 
   def findAndUpdateTest(orderId: String, update: BSONDocument, ignoreNotFound: Boolean): Future[Unit] = {
@@ -806,7 +805,7 @@ class ApplicationSiftMongoRepository(
         CannotFindTestByCubiksId(s"Cannot find test group by order Id: $orderId")
       )
     }
-    collection.update(query, update) map validator
+    collection.update(ordered = false).one(query, update) map validator
   }
 
   def updateTestCompletionTime(cubiksUserId: Int, completedTime: DateTime): Future[Unit] = {

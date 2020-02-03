@@ -26,7 +26,9 @@ import model.assessmentscores.FixUserStuckInScoresAccepted
 import model.command.{ ApplicationForProgression, ApplicationForSift }
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.AssessmentCentreTests
-import reactivemongo.api.{ Cursor, DB }
+import reactivemongo.api.collections.bson.BSONBatchCommands.FindAndModifyCommand
+import reactivemongo.api.commands.Collation
+import reactivemongo.api.{ Cursor, DB, WriteConcern }
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
@@ -36,6 +38,7 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.concurrent.duration.FiniteDuration
 import scala.language.implicitConversions
 
 object AssessmentCentreRepository {
@@ -172,7 +175,7 @@ class AssessmentCentreMongoRepository (
         )
       )
 
-    collection.find(query, projection).one[BSONDocument].map {
+    collection.find(query, Some(projection)).one[BSONDocument].map {
       case Some(doc) => List(doc.getAs[UniqueIdentifier]("applicationId").get)
       case _ => Nil
     }
@@ -182,7 +185,7 @@ class AssessmentCentreMongoRepository (
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("testGroups.FSAC.evaluation" -> 1, "_id" -> 0)
 
-    collection.find(query, projection).one[BSONDocument].map { docOpt =>
+    collection.find(query, Some(projection)).one[BSONDocument].map { docOpt =>
       docOpt.flatMap { doc =>
         doc.getAs[BSONDocument]("testGroups")
           .flatMap(_.getAs[BSONDocument](fsacKey)
@@ -216,7 +219,8 @@ class AssessmentCentreMongoRepository (
           .merge(BSONDocument("schemes-evaluation" -> evaluation.evaluationResult.schemesEvaluation))
       ).merge(currentSchemeStatusBSON(currentSchemeStatus)))
 
-    collection.update(query, passMarkEvaluation, upsert = false) map { _ => () }
+//    collection.update(query, passMarkEvaluation, upsert = false) map { _ => () }
+    collection.update(ordered = false).one(query, passMarkEvaluation) map { _ => () }
   }
 
   private def booleanToBSON(schemeName: String, result: Option[Boolean]): BSONDocument = result match {
@@ -226,18 +230,17 @@ class AssessmentCentreMongoRepository (
 
   def progressToAssessmentCentre(application: ApplicationForProgression, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {
     val query = BSONDocument("applicationId" -> application.applicationId)
+    val update =  BSONDocument("$set" -> applicationStatusBSON(progressStatus))
     val validator = singleUpdateValidator(application.applicationId, actionDesc = "progressing to assessment centre")
 
-    collection.update(query, BSONDocument("$set" ->
-      applicationStatusBSON(progressStatus)
-    )) map validator
+    collection.update(ordered = false).one(query, update) map validator
   }
 
   def getTests(applicationId: String): Future[AssessmentCentreTests] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("_id" -> 0, s"testGroups.$fsacKey.tests" -> 2)
 
-    collection.find(query, projection).one[BSONDocument].map {
+    collection.find(query, Some(projection)).one[BSONDocument].map {
       case Some(bsonTests) => (for {
         testGroups <- bsonTests.getAs[BSONDocument]("testGroups")
         fsac <- testGroups.getAs[BSONDocument](fsacKey)
@@ -252,7 +255,7 @@ class AssessmentCentreMongoRepository (
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("_id" -> false, s"testGroups.$fsacKey.evaluation.competency-average" -> true)
 
-    collection.find(query, projection).one[BSONDocument] map {
+    collection.find(query, Some(projection)).one[BSONDocument] map {
       case Some(document) =>
         for {
           testGroups <- document.getAs[BSONDocument]("testGroups")
@@ -268,7 +271,7 @@ class AssessmentCentreMongoRepository (
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("_id" -> false, s"testGroups.$fsacKey.evaluation.schemes-evaluation" -> true)
 
-    collection.find(query, projection).one[BSONDocument] map {
+    collection.find(query, Some(projection)).one[BSONDocument] map {
       case Some(document) =>
         for {
           testGroups <- document.getAs[BSONDocument]("testGroups")
@@ -285,9 +288,16 @@ class AssessmentCentreMongoRepository (
     val update = BSONDocument("$set" -> BSONDocument(s"testGroups.$fsacKey.tests" -> tests))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "Updating assessment centre tests")
-
-    collection.update(query, update) map validator
+    collection.update(ordered = false).one(query, update) map validator
   }
+
+  // Wrap the findAndModify method to provide all the defaults
+  private def findAndModify(query: BSONDocument, updateOp: FindAndModifyCommand.Update) =
+    bsonCollection.findAndModify(
+      query, updateOp, sort = None, fields = None, bypassDocumentValidation = false,
+      writeConcern = WriteConcern.Default, maxTime = Option.empty[FiniteDuration], collation = Option.empty[Collation],
+      arrayFilters = Seq.empty[BSONDocument]
+    )
 
   override def removeFsacTestGroup(applicationId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
@@ -298,7 +308,7 @@ class AssessmentCentreMongoRepository (
       )
     )
 
-    bsonCollection.findAndModify(query, updateOp).map{ result =>
+    findAndModify(query, updateOp). map { result =>
       if (result.value.isEmpty) { throw new NotFoundException(s"Failed to match a document to fix for id $applicationId") }
       else { () }
     }
@@ -313,7 +323,7 @@ class AssessmentCentreMongoRepository (
       )
     )
 
-    bsonCollection.findAndModify(query, updateOp).map{ result =>
+    findAndModify(query, updateOp).map{ result =>
       if (result.value.isEmpty) { throw new NotFoundException(s"Failed to match a document to fix for id $applicationId") }
       else { () }
     }
@@ -328,7 +338,7 @@ class AssessmentCentreMongoRepository (
     )
     val projection = BSONDocument("testGroups.FSAC.evaluation" -> 1, "applicationId" -> 1, "_id" -> 0)
 
-    collection.find(query, projection).cursor[BSONDocument]()
+    collection.find(query, Some(projection)).cursor[BSONDocument]()
       .collect[Seq](maxDocs = -1, Cursor.FailOnError[Seq[BSONDocument]]()).map { docList =>
       docList.flatMap { doc =>
         val evaluationSection = doc.getAs[BSONDocument]("testGroups")

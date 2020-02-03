@@ -60,7 +60,7 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
           case _ => SiftAnswers(applicationId, SiftAnswersStatus.DRAFT, None, Map(schemeId.value -> answer))
         }
 
-        collection.update(
+        collection.update(ordered = false).one(
           query,
           BSONDocument("$set" -> updatedSiftAnswers),
           upsert = true
@@ -80,7 +80,7 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
           case _ => SiftAnswers(applicationId, SiftAnswersStatus.DRAFT, Some(answers), Map.empty)
         }
 
-        collection.update(
+        collection.update(ordered = false).one(
           query,
           BSONDocument("$set" -> updatedSiftAnswers),
           upsert = true
@@ -151,7 +151,7 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
           s"Additional questions missing general or scheme specific " +
              s"(${requiredSchemes.map(_.value).mkString(", ")}) answers for $applicationId"))
 
-      collection.update(
+      collection.update(ordered = false).one(
         query,
         BSONDocument("$set" -> BSONDocument("status" -> SiftAnswersStatus.SUBMITTED))
       ) map validator
@@ -168,7 +168,7 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
       )
     )
 
-    collection.update(
+    collection.update(ordered = false).one(
       query,
       BSONDocument("$set" -> BSONDocument("status" -> status))
     ) map validator
