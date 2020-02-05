@@ -18,9 +18,15 @@ package repositories
 
 import model.Exceptions.{ CannotUpdateRecord, NotFoundException, TooManyEntries }
 import play.api.Logger
+import reactivemongo.api.WriteConcern
+import reactivemongo.api.collections.bson.BSONBatchCommands.FindAndModifyCommand
 import reactivemongo.api.collections.bson.BSONCollection
-import reactivemongo.api.commands.{ UpdateWriteResult, WriteResult }
+import reactivemongo.api.commands.{ Collation, UpdateWriteResult, WriteResult }
+import reactivemongo.bson.BSONDocument
 import uk.gov.hmrc.mongo.ReactiveRepository
+
+import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.ExecutionContext.Implicits.global
 
 trait ReactiveRepositoryHelpers {
   this: ReactiveRepository[_, _] =>
@@ -48,7 +54,6 @@ trait ReactiveRepositoryHelpers {
 
     singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, notFound, upsert = true)
   }
-
 
   def multipleRemoveValidator(expected: Int, actionDesc: String): WriteResult => Unit = (result: WriteResult) => {
     if (result.ok) {
@@ -106,4 +111,12 @@ trait ReactiveRepositoryHelpers {
       throw CannotUpdateRecord(msg)
     }
   }
+
+  // Wrap the findAndModify method to provide all the defaults
+  def findAndModify(query: BSONDocument, updateOp: FindAndModifyCommand.Update) =
+    bsonCollection.findAndModify(
+      query, updateOp, sort = None, fields = None, bypassDocumentValidation = false,
+      writeConcern = WriteConcern.Default, maxTime = Option.empty[FiniteDuration], collation = Option.empty[Collation],
+      arrayFilters = Seq.empty[BSONDocument]
+    )
 }
