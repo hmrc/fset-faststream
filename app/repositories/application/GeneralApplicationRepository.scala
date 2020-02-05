@@ -159,11 +159,16 @@ trait GeneralApplicationRepository {
 
   def getLatestProgressStatuses: Future[List[String]]
 
-  def countByStatus(applicationStatus: ApplicationStatus): Future[Int]
+  def countByStatus(applicationStatus: ApplicationStatus): Future[Long]
 
   def getProgressStatusTimestamps(applicationId: String): Future[List[(String, DateTime)]]
 
+  // Implemented by Hmrc ReactiveRepository class - don't use until it gets fixed. Use countLong instead
+  @deprecated("At runtime throws a JsResultException: errmsg=readConcern.level must be either 'local', 'majority' or 'linearizable'", "")
   def count(implicit ec: scala.concurrent.ExecutionContext) : Future[Int]
+
+  // Implemented in ReactiveRespositoryHelpers
+  def countLong(implicit ec: scala.concurrent.ExecutionContext) : Future[Long]
 
   def updateCurrentSchemeStatus(applicationId: String, results: Seq[SchemeEvaluationResult]): Future[Unit]
 
@@ -212,6 +217,17 @@ class GeneralApplicationMongoRepository(
         }
       }
   }
+
+/*
+  override def countLong(implicit ec: ExecutionContext): Future[Long] =
+    collection.withReadPreference(ReadPreference.primary).count(
+      selector = Option.empty[JsObject],
+      limit = None,
+      skip = 0,
+      hint =  None,
+      readConcern = ReadConcern.Local
+    )
+*/
 
   override def create(userId: String, frameworkId: String, route: ApplicationRoute): Future[ApplicationResponse] = {
     val applicationId = UUID.randomUUID().toString
@@ -1143,12 +1159,14 @@ class GeneralApplicationMongoRepository(
     }
   }
 
-  override def countByStatus(applicationStatus: ApplicationStatus): Future[Int] = {
+  override def countByStatus(applicationStatus: ApplicationStatus): Future[Long] = {
     val query = Json.obj("applicationStatus" -> applicationStatus.toString)
-
-// Returns Long
-//    collection.count(selector = Some(query), limit = Some(0), skip = 0, hint = None, readConcern = reactivemongo.api.ReadConcern.Local)
-    collection.count(Some(query)) // returns Int
+    collection.count(
+      selector = Some(query),
+      limit = None,
+      skip = 0,
+      hint = None,
+      readConcern = reactivemongo.api.ReadConcern.Local)
   }
 
   def getProgressStatusTimestamps(applicationId: String): Future[List[(String, DateTime)]] = {

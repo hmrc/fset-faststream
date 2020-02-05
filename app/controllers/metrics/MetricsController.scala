@@ -34,17 +34,17 @@ trait MetricsController extends BaseController {
   val applicationRepo: GeneralApplicationRepository
 
   def progressStatusCounts = Action.async {
-    applicationRepo.count.flatMap { allApplications =>
-      applicationRepo.countByStatus(ApplicationStatus.CREATED).flatMap { createdCount =>
-        applicationRepo.getLatestProgressStatuses.map { list =>
-          val listWithCounts = SortedMap[String, Int]() ++ list.groupBy(identity).mapValues(_.size)
-          Ok(Json.toJson(
-            listWithCounts ++
-              Map("TOTAL_APPLICATION_COUNT" -> allApplications) ++
-              Map("CREATED" -> createdCount)
-          ))
-        }
-      }
+    for {
+      allApplications <- applicationRepo.countLong
+      createdCount <- applicationRepo.countByStatus(ApplicationStatus.CREATED)
+      list <- applicationRepo.getLatestProgressStatuses
+    } yield {
+      val listWithCounts = SortedMap[String, Long]() ++ list.groupBy(identity).mapValues(_.size.toLong)
+      Ok(Json.toJson(
+        listWithCounts ++
+          Map("TOTAL_APPLICATION_COUNT" -> allApplications.toLong) ++
+          Map("CREATED" -> createdCount)
+      ))
     }
   }
 }
