@@ -24,11 +24,9 @@ import config.OnlineTestsGatewayConfig
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
-import model.Commands._
-import model.EvaluationResults._
 import model.Exceptions._
 import model.OnlineTestCommands.OnlineTestApplication
-import model.ProgressStatuses.{ EventProgressStatuses, PREVIEW, ProgressStatus }
+import model.ProgressStatuses.{ EventProgressStatuses, PREVIEW }
 import model.command._
 import model.exchange.{ CandidateEligibleForEvent, CandidatesEligibleForEventResponse }
 import model.persisted._
@@ -38,25 +36,24 @@ import model.persisted.fsb.ScoresAndFeedback
 import model.{ ApplicationStatus, _ }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
-import play.api.Logger
-import play.api.libs.json.{ Format, JsNumber, JsObject, Json }
+import play.api.libs.json.{ JsNumber, JsObject, Json }
 import reactivemongo.api.Cursor.FailOnError
-import reactivemongo.api.{ Cursor, DB, DefaultDB, QueryOpts, ReadPreference }
-import reactivemongo.bson.{ BSONDocument, document, _ }
-import reactivemongo.play.json.collection.JSONBatchCommands.JSONCountCommand
-import reactivemongo.play.json.collection.JSONCollection
+import reactivemongo.api.collections.bson.BSONBatchCommands.FindAndModifyCommand
+import reactivemongo.api.commands.Collation
+import reactivemongo.api._
+import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
-import repositories._
-import repositories.BSONDateTimeHandler
+import reactivemongo.play.json.collection.JSONCollection
+import repositories.{ BSONDateTimeHandler, _ }
 import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ AddMissingPhase2ResultReceived, PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted }
-import services.TimeZoneService
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future }
-import scala.util.{ Success, Try }
+import scala.util.Try
 
 // TODO FAST STREAM
 // This is far too large an interface - we should look at splitting up based on
@@ -596,7 +593,7 @@ class GeneralApplicationMongoRepository(
           BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_INVITED}" -> true)
         ))
         val updateOp = bsonCollection.updateModifier(BSONDocument("$set" -> BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS)))
-        bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
+        findAndModify(query, updateOp).map(_.result[Candidate])
       case PassToPhase1TestPassed =>
         val query = BSONDocument("$and" -> BSONArray(
           BSONDocument("applicationId" -> application.applicationId),
@@ -606,7 +603,7 @@ class GeneralApplicationMongoRepository(
         ))
         val updateOp = bsonCollection.updateModifier(BSONDocument("$set" ->
           BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED)))
-        bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
+        findAndModify(query, updateOp).map(_.result[Candidate])
       case ResetPhase1TestInvitedSubmitted =>
         val query = BSONDocument("$and" -> BSONArray(
           BSONDocument("applicationId" -> application.applicationId),
@@ -617,7 +614,7 @@ class GeneralApplicationMongoRepository(
           BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> "",
           s"progress-status-timestamp.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> "",
           "testGroups" -> "")))
-        bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
+        findAndModify(query, updateOp).map(_.result[Candidate])
       case AddMissingPhase2ResultReceived =>
         val query = BSONDocument("$and" -> BSONArray(
           BSONDocument("applicationId" -> application.applicationId),
@@ -631,8 +628,7 @@ class GeneralApplicationMongoRepository(
             s"progress-status-timestamp.${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}" -> DateTime.now()
           )))
 
-        bsonCollection.findAndModify(query, updateOp).map(_.result[Candidate])
-
+        findAndModify(query, updateOp).map(_.result[Candidate])
     }
   }
 
@@ -672,7 +668,7 @@ class GeneralApplicationMongoRepository(
       )
     )
 
-    bsonCollection.findAndModify(query, updateOp).map(_ => ())
+    findAndModify(query, updateOp).map(_ => ())
   }
 
   def fixDataByRemovingVideoInterviewFailed(appId: String): Future[Unit] = {
@@ -695,7 +691,7 @@ class GeneralApplicationMongoRepository(
       )
     )
 
-    bsonCollection.findAndModify(query, updateOp).map(_ => ())
+    findAndModify(query, updateOp).map(_ => ())
   }
 
   def fixDataByRemovingProgressStatus(appId: String, progressStatus: String): Future[Unit] = {
@@ -708,8 +704,16 @@ class GeneralApplicationMongoRepository(
       "$unset" -> BSONDocument(s"progress-status-timestamp.$progressStatus" -> "")
     ))
 
-    bsonCollection.findAndModify(query, updateOp).map(_ => ())
+    findAndModify(query, updateOp).map(_ => ())
   }
+
+  // Wrap the findAndModify method to provide all the defaults
+  private def findAndModify(query: BSONDocument, updateOp: FindAndModifyCommand.Update) =
+    bsonCollection.findAndModify(
+      query, updateOp, sort = None, fields = None, bypassDocumentValidation = false,
+      writeConcern = WriteConcern.Default, maxTime = Option.empty[FiniteDuration], collation = Option.empty[Collation],
+      arrayFilters = Seq.empty[BSONDocument]
+    )
 
   private[application] def isNonSubmittedStatus(progress: ProgressResponse): Boolean = {
     val isNotSubmitted = !progress.submitted
@@ -717,7 +721,7 @@ class GeneralApplicationMongoRepository(
     isNotWithdrawn && isNotSubmitted
   }
 
-  def extract(key: String)(root: Option[BSONDocument]) = root.flatMap(_.getAs[String](key))
+  def extract(key: String)(root: Option[BSONDocument]): Option[String] = root.flatMap(_.getAs[String](key))
 
   /*private def getAdjustmentsConfirmed(assistance: Option[BSONDocument]): Option[String] = {
     assistance.flatMap(_.getAs[Boolean]("adjustmentsConfirmed")).getOrElse(false) match {
@@ -1131,8 +1135,9 @@ class GeneralApplicationMongoRepository(
   override def countByStatus(applicationStatus: ApplicationStatus): Future[Int] = {
     val query = Json.obj("applicationStatus" -> applicationStatus.toString)
 
+// Returns Long
 //    collection.count(selector = Some(query), limit = Some(0), skip = 0, hint = None, readConcern = reactivemongo.api.ReadConcern.Local)
-    collection.count(Some(query))
+    collection.count(Some(query)) // returns Int
   }
 
   def getProgressStatusTimestamps(applicationId: String): Future[List[(String, DateTime)]] = {

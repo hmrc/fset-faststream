@@ -24,6 +24,7 @@ import model.ProgressStatuses.ProgressStatus
 import model.persisted.ContactDetails
 import org.joda.time.{ DateTime, LocalDate }
 import reactivemongo.api.DB
+import reactivemongo.api.commands.WriteResult
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
@@ -70,7 +71,7 @@ class TestDataContactDetailsMongoRepository(implicit mongo: () => DB)
     ))
 
     val validator = singleUpsertValidator(id.toString, actionDesc = "creating contact test data")
-    collection.update(BSONDocument("userId" -> id.toString), contactDetailsBson, upsert = true) map validator
+    collection.update(ordered = false).one(BSONDocument("userId" -> id.toString), contactDetailsBson, upsert = true) map validator
   }
 }
 
@@ -113,7 +114,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     additionalProgressStatuses: List[(ProgressStatus, Boolean)] = Nil,
     additionalDoc: BSONDocument = BSONDocument.empty,
     applicationRoute: Option[ApplicationRoute] = None
-  ) = {
+  ): Future[WriteResult] = {
     import repositories.BSONLocalDateHandler
     val document = BSONDocument(
       "applicationId" -> appId,
@@ -150,7 +151,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
         "submitted" -> LocalDate.now()
       )
     ) ++ additionalDoc //.futureValue
-    collection.insert(document)
+    collection.insert(ordered = false).one(document)
   }
   // scalastyle:on parameter.number
 
@@ -180,8 +181,8 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     "dateOfBirth" -> "1986-05-01"
   )
 
-  def createMinimumApplication(userId: String, appId: String, frameworkId: String) = {
-    collection.insert(BSONDocument(
+  def createMinimumApplication(userId: String, appId: String, frameworkId: String): Future[WriteResult] = {
+    collection.insert(ordered = false).one(BSONDocument(
       "applicationId" -> appId,
       "userId" -> userId,
       "frameworkId" -> frameworkId
@@ -193,7 +194,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
 
     val validator = singleUpsertValidator(id.toString, actionDesc = "creating application test data")
 
-    collection.update(BSONDocument("userId" -> id.toString), document, upsert = true) map validator
+    collection.update(ordered = false).one(BSONDocument("userId" -> id.toString), document, upsert = true) map validator
   }
 
   private def createProgress(

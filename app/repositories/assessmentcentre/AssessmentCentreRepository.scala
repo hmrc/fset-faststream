@@ -302,7 +302,7 @@ class AssessmentCentreMongoRepository (
   override def removeFsacTestGroup(applicationId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
 
-    val updateOp = bsonCollection.updateModifier(
+    val updateOp: FindAndModifyCommand.Update = bsonCollection.updateModifier(
       BSONDocument(
         "$unset" -> BSONDocument(s"testGroups.$fsacKey" -> "")
       )

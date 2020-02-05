@@ -47,7 +47,7 @@ class ApplicationRemovalMongoRepository (implicit mongo: () => DB)
     collection.find(query, Some(projection)).cursor[BSONDocument]().collect[List](maxDocs = -1, Cursor.FailOnError[List[BSONDocument]]()).map {
       docList => docList.map { doc => doc.getAs[String]("userId").get }
     }.map { userIds =>
-      collection.remove(query).map(_.n)
+      collection.delete().one(query).map(_.n)
       userIds
     }
   }
