@@ -63,7 +63,7 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
       status.map(s => BSONDocument("status" -> s))
     ).flatten.fold(BSONDocument.empty)(_ ++ _)
 
-    collection.find(query, projection).cursor[CandidateAllocation]()
+    collection.find(query, Some(projection)).cursor[CandidateAllocation]()
       .collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]())
   }
 
@@ -74,7 +74,7 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
   }
 
   def findAllAllocations(applications: Seq[String]): Future[Seq[CandidateAllocation]] = {
-    collection.find(BSONDocument("id" -> BSONDocument("$in" -> applications)), projection)
+    collection.find(BSONDocument("id" -> BSONDocument("$in" -> applications)), Some(projection))
       .cursor[CandidateAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]())
   }
 
@@ -84,7 +84,7 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
       "createdAt" -> BSONDocument("$lte" -> today.minusDays(days)),
       "status" -> AllocationStatuses.UNCONFIRMED,
       "reminderSent" -> false
-    ), projection)
+    ), Some(projection))
       .cursor[CandidateAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]())
   }
 
@@ -92,7 +92,7 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
     collection.find(BSONDocument(
       "eventId" -> eventId,
       "status" -> BSONDocument("$ne" -> AllocationStatuses.REMOVED)
-    ), projection)
+    ), Some(projection))
       .cursor[CandidateAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]())
   }
 
@@ -107,7 +107,7 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
         version.map(v => BSONDocument("version" -> v))
       ).flatten.fold(BSONDocument.empty)(_ ++ _)
 
-    collection.find(query, projection)
+    collection.find(query, Some(projection))
       .cursor[CandidateAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]()).map(_.nonEmpty)
   }
 
@@ -116,7 +116,7 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
       "eventId" -> eventId,
       "sessionId" -> sessionId,
       "status" -> BSONDocument("$ne" -> AllocationStatuses.REMOVED)
-    ), projection)
+    ), Some(projection))
       .cursor[CandidateAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]())
   }
 
@@ -124,7 +124,7 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
     collection.find(BSONDocument(
       "id" -> applicationId,
       "status" -> BSONDocument("$ne" -> AllocationStatuses.REMOVED)
-    ), projection).cursor[CandidateAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]())
+    ), Some(projection)).cursor[CandidateAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]())
   }
 
   def removeCandidateAllocation(allocation: CandidateAllocation): Future[Unit] = {
@@ -146,7 +146,7 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
 
     val validator = singleUpdateValidator(allocation.id, actionDesc = "confirming allocation")
 
-    collection.update(query, update) map validator
+    collection.update(ordered = false).one(query, update) map validator
   }
 
   def removeCandidateRemovalReason(applicationId: String): Future[Unit] = {
@@ -154,7 +154,7 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
       "id" -> applicationId,
       "status" -> AllocationStatuses.REMOVED
     )
-    collection.remove(query).map(_ => ())
+    collection.delete().one(query).map(_ => ())
   }
 
   def delete(allocations: Seq[CandidateAllocation]): Future[Unit] = {
@@ -185,7 +185,7 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
 
     val validator = multipleRemoveValidator(allocations.size, "Deleting allocations")
 
-    val remove = collection.remove(query)
+    val remove = collection.delete().one(query)
     if (!ignoreMissed) {
       remove.map(validator)
     } else {
@@ -203,16 +203,16 @@ class CandidateAllocationMongoRepository(implicit mongo: () => DB)
     val update = BSONDocument("$set" -> BSONDocument("reminderSent" -> true))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "mark allocation as notified")
-    collection.update(query, update) map validator
+    collection.update(ordered = false).one(query, update) map validator
   }
 
   def updateStructure(): Future[Unit] = {
     val updateQuery = BSONDocument("$set" -> BSONDocument("reminderSent" -> true, "createdAt" -> LocalDate.now))
-    collection.update(BSONDocument.empty, updateQuery, multi = true).map(_ => ())
+    collection.update(ordered = false).one(BSONDocument.empty, updateQuery, multi = true).map(_ => ())
   }
 
   def allAllocationUnconfirmed: Future[Seq[CandidateAllocation]] = {
-    collection.find(BSONDocument("status" -> AllocationStatuses.UNCONFIRMED), projection).cursor[CandidateAllocation]()
+    collection.find(BSONDocument("status" -> AllocationStatuses.UNCONFIRMED), Some(projection)).cursor[CandidateAllocation]()
       .collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]())
   }
 }

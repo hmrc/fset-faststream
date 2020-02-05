@@ -21,6 +21,7 @@ import model.Exceptions.NotFoundException
 import model.UniqueIdentifier
 import model.assessmentscores._
 import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
+import play.api.libs.json.JsObject
 import reactivemongo.api.{ Cursor, DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -123,7 +124,7 @@ abstract class AssessmentScoresMongoRepository(collectionName: String)(implicit 
     val query = buildQueryForSaveWithOptimisticLocking(applicationId, section, oldVersion)
     val update = buildUpdateForSaveWithOptimisticLocking(applicationId, section, bsonSection, oldVersion)
     val validator = singleUpdateValidator(applicationId.toString(), actionDesc = s"saving assessment score for final feedback")
-    collection.update(query, update, upsert = oldVersion.isEmpty).map(validator).recover {
+    collection.update(ordered = false).one(query, update, upsert = oldVersion.isEmpty).map(validator).recover {
       case ex: Throwable if ex.getMessage.startsWith("DatabaseException['E11000 duplicate key error collection") =>
         throw new NotFoundException(s"You are trying to update a version of a [$section] " +
           s"for application id [$applicationId] that has been updated already")
@@ -136,18 +137,18 @@ abstract class AssessmentScoresMongoRepository(collectionName: String)(implicit 
     val query = BSONDocument("applicationId" -> applicationId)
     val updateBSON = BSONDocument("$set" -> AssessmentScoresAllExercises.bsonHandler.write(allExercisesScores))
     val validator = singleUpsertValidator(applicationId, actionDesc = "saving assessment scores")
-    collection.update(query, updateBSON, upsert = true) map validator
+    collection.update(ordered = false).one(query, updateBSON, upsert = true) map validator
   }
 
   def find(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = {
     val query = BSONDocument("applicationId" -> applicationId.toString())
-    collection.find(query).one[BSONDocument].map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
+    collection.find(query, projection = Option.empty[JsObject]).one[BSONDocument].map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
   }
 
   def findAccepted(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = {
     val query = BSONDocument("applicationId" -> applicationId.toString(),
     "finalFeedback" -> BSONDocument("$exists" -> BSONBoolean(true)))
-    collection.find(query).one[BSONDocument].map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
+    collection.find(query, projection = Option.empty[JsObject]).one[BSONDocument].map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
   }
 
   def findAll: Future[List[AssessmentScoresAllExercises]] = {
@@ -160,7 +161,7 @@ abstract class AssessmentScoresMongoRepository(collectionName: String)(implicit 
   }
 
   private def findByQuery(query: BSONDocument): Future[List[AssessmentScoresAllExercises]] = {
-    collection.find(query).cursor[BSONDocument](ReadPreference.nearest)
+    collection.find(query, projection = Option.empty[JsObject]).cursor[BSONDocument](ReadPreference.nearest)
       .collect[List](maxDocs = -1, Cursor.FailOnError[List[BSONDocument]]()).map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
   }
 
@@ -172,7 +173,7 @@ abstract class AssessmentScoresMongoRepository(collectionName: String)(implicit 
     }
 
     val unsetDoc = BSONDocument("$unset" -> BSONDocument(exercisesToUnset))
-    collection.update(query, unsetDoc) map( _ => () )
+    collection.update(ordered = false).one(query, unsetDoc) map( _ => () )
   }
 }
 

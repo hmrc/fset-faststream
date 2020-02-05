@@ -76,7 +76,7 @@ class EventsMongoRepository(implicit mongo: () => DB)
   def remove(id: String): Future[Unit] = {
     val validator = singleRemovalValidator(id, actionDesc = "deleting event")
 
-    collection.remove(BSONDocument("id" -> id)) map validator
+    collection.delete().one(BSONDocument("id" -> id)) map validator
   }
 
   def getEvents(eventType: Option[EventType] = None, venueType: Option[Venue] = None,

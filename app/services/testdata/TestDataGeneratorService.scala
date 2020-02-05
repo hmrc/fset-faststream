@@ -22,32 +22,30 @@ import model.exchange.testdata.CreateAdminResponse.CreateAdminResponse
 import model.exchange.testdata.CreateAssessorAllocationResponse.CreateAssessorAllocationResponse
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.exchange.testdata.CreateEventResponse.CreateEventResponse
-import model.testdata.candidate.CreateCandidateData.CreateCandidateData
+import model.exchange.testdata.{ CreateCandidateAllocationResponse, CreateTestDataResponse }
 import model.testdata.CreateAdminData.CreateAdminData
-import model.exchange.testdata.{CreateCandidateAllocationResponse, CreateTestDataResponse}
 import model.testdata.CreateAssessorAllocationData.CreateAssessorAllocationData
 import model.testdata.CreateEventData.CreateEventData
+import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import model.testdata.{ CreateCandidateAllocationData, CreateTestData }
 import play.api.Logger
-import play.api.Play.current
 import play.api.mvc.RequestHeader
 import play.modules.reactivemongo.MongoDbConnection
-import reactivemongo.api.DB
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.collection.JSONCollection
 import services.testdata.admin.AdminUserBaseGenerator
-import services.testdata.allocation.{AssessorAllocationGenerator, CandidateAllocationGenerator}
-import services.testdata.candidate.{BaseGenerator, CandidateRemover, RegisteredStatusGenerator}
+import services.testdata.allocation.{ AssessorAllocationGenerator, CandidateAllocationGenerator }
+import services.testdata.candidate.{ BaseGenerator, CandidateRemover, RegisteredStatusGenerator }
 import services.testdata.event.EventGenerator
 import services.testdata.faker.DataFaker._
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.collection.parallel.ForkJoinTaskSupport
 import scala.collection.parallel.immutable.ParRange
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
-import uk.gov.hmrc.http.HeaderCarrier
 
 object TestDataGeneratorService extends TestDataGeneratorService {
 }
@@ -71,7 +69,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
       names.foreach { name =>
         Logger.info(s"removing collection: $name")
         import reactivemongo.play.json.ImplicitBSONHandlers._
-        db().collection[JSONCollection](name).remove(BSONDocument.empty)
+        db().collection[JSONCollection](name).delete().one(BSONDocument.empty)
       }
     }
   }

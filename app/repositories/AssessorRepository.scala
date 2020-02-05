@@ -21,7 +21,7 @@ import model.persisted.assessor.{ Assessor, AssessorStatus }
 import model.persisted.eventschedules.Location
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
-import play.api.libs.json.Json
+import play.api.libs.json.{ JsObject, Json }
 import reactivemongo.api.{ Cursor, DB, ReadPreference }
 import reactivemongo.bson._
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -55,12 +55,13 @@ class AssessorMongoRepository(implicit mongo: () => DB)
       "userId" -> userId
     )
 
-    collection.find(query).one[Assessor]
+    collection.find(query, projection = Option.empty[JsObject]).one[Assessor]
   }
 
   def findByIds(userIds: Seq[String]): Future[Seq[Assessor]] = {
     val query = BSONDocument("userId" -> BSONDocument("$in" -> userIds))
-    collection.find(query).cursor[Assessor]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[Assessor]]())
+    collection.find(query, projection = Option.empty[JsObject]).cursor[Assessor]()
+      .collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[Assessor]]())
   }
 
   def save(assessor: Assessor): Future[Unit] = {
@@ -71,7 +72,7 @@ class AssessorMongoRepository(implicit mongo: () => DB)
     val insertIfNoRecordFound = true
 
     val assessorValidator = singleUpdateValidator(assessor.userId, actionDesc = "saveAssessor")
-    collection.update(query, saveBson, upsert = insertIfNoRecordFound) map assessorValidator
+    collection.update(ordered = false).one(query, saveBson, upsert = insertIfNoRecordFound) map assessorValidator
   }
 
   def findAvailabilitiesForLocationAndDate(location: Location, date: LocalDate, skills: Seq[SkillType]): Future[Seq[Assessor]] = {
@@ -84,7 +85,8 @@ class AssessorMongoRepository(implicit mongo: () => DB)
         )))
     ))
 
-    collection.find(query).cursor[Assessor]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[Assessor]]())
+    collection.find(query, projection = Option.empty[JsObject]).cursor[Assessor]()
+      .collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[Assessor]]())
   }
 
   def findAssessorsForEvent(eventId: String): Future[Seq[Assessor]] = {
@@ -92,7 +94,8 @@ class AssessorMongoRepository(implicit mongo: () => DB)
       "id" -> eventId
     )))
 
-    collection.find(query).cursor[Assessor]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[Assessor]]())
+    collection.find(query, projection = Option.empty[JsObject]).cursor[Assessor]()
+      .collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[Assessor]]())
   }
 
   def countSubmittedAvailability: Future[Long] = {
@@ -109,7 +112,8 @@ class AssessorMongoRepository(implicit mongo: () => DB)
         )
       )
     ))
-    collection.find(query).cursor[Assessor]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[Assessor]]())
+    collection.find(query, projection = Option.empty[JsObject]).cursor[Assessor]()
+      .collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[Assessor]]())
   }
 
   def remove(userId: UniqueIdentifier): Future[Unit] = {

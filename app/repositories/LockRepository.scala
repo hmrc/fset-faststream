@@ -72,7 +72,7 @@ class LockMongoRepository(implicit mongo: () => DB)
     reqOwner: String,
     forceReleaseAfter: Duration
   )(implicit ec: ExecutionContext): Future[Boolean] = withCurrentTime { now =>
-    collection.remove(Json.obj(id -> reqLockId, expiryTime -> Json.obj("$lte" -> now))).flatMap { writeResult =>
+    collection.delete().one(Json.obj(id -> reqLockId, expiryTime -> Json.obj("$lte" -> now))).flatMap { writeResult =>
       if (writeResult.n != 0) {
         Logger.info(s"Removed ${writeResult.n} expired locks for $reqLockId")
       }
@@ -91,15 +91,15 @@ class LockMongoRepository(implicit mongo: () => DB)
     }
   }
 
-  def isLocked(reqLockId: String, reqOwner: String)(implicit ec: ExecutionContext) = withCurrentTime { now =>
+  def isLocked(reqLockId: String, reqOwner: String)(implicit ec: ExecutionContext): Future[Boolean] = withCurrentTime { now =>
     collection.find(
       Json.obj(id -> reqLockId, owner -> reqOwner, expiryTime -> Json.obj("$gt" -> now)),
       projection = Option.empty[JsObject])
     .one[JsValue].map(_.isDefined)
   }
 
-  def releaseLock(reqLockId: String, reqOwner: String)(implicit ec: ExecutionContext) = {
+  def releaseLock(reqLockId: String, reqOwner: String)(implicit ec: ExecutionContext): Future[Unit] = {
     Logger.debug(s"Releasing lock '$reqLockId' for '$reqOwner'")
-    collection.remove(Json.obj(id -> reqLockId, owner -> reqOwner)).map(_ => ())
+    collection.delete().one(Json.obj(id -> reqLockId, owner -> reqOwner)).map(_ => ())
   }
 }

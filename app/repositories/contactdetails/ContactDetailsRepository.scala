@@ -191,6 +191,6 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
 
   override def removeContactDetails(userId: String): Future[Unit] = {
     val query = BSONDocument("userId" -> userId)
-    collection.remove(query, firstMatchOnly = true).map(_ => ())
+    collection.delete().one(query, limit = Some(1)).map(_ => ())
   }
 }

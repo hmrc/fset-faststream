@@ -17,7 +17,7 @@
 package repositories.application
 
 import factories.DateTimeFactory
-import model.EvaluationResults.{ Amber, Green, Red }
+import model.EvaluationResults.{ Amber, Green }
 import model.ProgressStatuses
 import model.ProgressStatuses.{ ELIGIBLE_FOR_JOB_OFFER, _ }
 import model.command.ApplicationForProgression
@@ -104,7 +104,7 @@ class FinaOutcomeMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit 
     val finalNotifiedState = FailedStatuses.find(_.notified.applicationStatus == application.applicationStatus)
       .getOrElse(sys.error(s"Unexpected status for progression to final failure: ${application.applicationStatus}"))
 
-    collection.update(query, BSONDocument("$set" -> applicationStatusBSON(finalNotifiedState.notified))) map validator
+    collection.update(ordered = false).one(query, BSONDocument("$set" -> applicationStatusBSON(finalNotifiedState.notified))) map validator
   }
 
   def progressToAssessmentCentreFailedSdipGreenNotified(application: ApplicationForProgression): Future[Unit] = {
@@ -113,14 +113,14 @@ class FinaOutcomeMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit 
     val msg = s"progressing candidate to $notifiedState"
     val validator = singleUpdateValidator(application.applicationId, actionDesc = msg)
 
-    collection.update(query, BSONDocument("$set" -> applicationStatusBSON(notifiedState))) map validator
+    collection.update(ordered = false).one(query, BSONDocument("$set" -> applicationStatusBSON(notifiedState))) map validator
   }
 
   def progressToJobOfferNotified(application: ApplicationForProgression): Future[Unit] = {
     val query = BSONDocument("applicationId" -> application.applicationId)
     val validator = singleUpdateValidator(application.applicationId, actionDesc = "progressing to job offer notified")
 
-    collection.update(query, BSONDocument("$set" ->
+    collection.update(ordered = false).one(query, BSONDocument("$set" ->
       applicationStatusBSON(ELIGIBLE_FOR_JOB_OFFER_NOTIFIED)
     )) map validator
   }

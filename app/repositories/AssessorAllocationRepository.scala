@@ -57,7 +57,8 @@ class AssessorAllocationMongoRepository(implicit mongo: () => DB)
       status.map(s => BSONDocument("status" -> s))
     ).flatten.fold(BSONDocument.empty)(_ ++ _)
 
-    collection.find(query, projection).cursor[AssessorAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[AssessorAllocation]]())
+    collection.find(query, Some(projection)).cursor[AssessorAllocation]()
+      .collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[AssessorAllocation]]())
   }
 
   def findAllocations(assessorIds: Seq[String], status: Option[AllocationStatus] = None): Future[Seq[AssessorAllocation]] = {
@@ -65,12 +66,13 @@ class AssessorAllocationMongoRepository(implicit mongo: () => DB)
       Some(BSONDocument("id" -> BSONDocument("$in" -> assessorIds))),
       status.map(s => BSONDocument("status" -> s))
     ).flatten.fold(BSONDocument.empty)(_ ++ _)
-    collection.find(query, projection).cursor[AssessorAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[AssessorAllocation]]())
+    collection.find(query, Some(projection)).cursor[AssessorAllocation]()
+      .collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[AssessorAllocation]]())
   }
 
   def find(id: String, eventId: String): Future[Option[AssessorAllocation]] = {
     val query = BSONDocument("id" -> id, "eventId" -> eventId)
-    collection.find(query, projection).one[AssessorAllocation]
+    collection.find(query, Some(projection)).one[AssessorAllocation]
   }
 
   def save(allocations: Seq[AssessorAllocation]): Future[Unit] = {
@@ -93,11 +95,11 @@ class AssessorAllocationMongoRepository(implicit mongo: () => DB)
 
     val validator = multipleRemoveValidator(allocations.size, "Deleting allocations")
 
-    collection.remove(query) map validator
+    collection.delete().one(query) map validator
   }
 
   def allocationsForEvent(eventId: String): Future[Seq[AssessorAllocation]] = {
-    collection.find(BSONDocument("eventId" -> eventId), projection).cursor[AssessorAllocation]()
+    collection.find(BSONDocument("eventId" -> eventId), Some(projection)).cursor[AssessorAllocation]()
       .collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[AssessorAllocation]]())
   }
 
@@ -106,6 +108,6 @@ class AssessorAllocationMongoRepository(implicit mongo: () => DB)
     val update = BSONDocument("$set" -> BSONDocument("status" -> newStatus))
     val validator = singleUpdateValidator(id, s"updating allocation status to $newStatus")
 
-    collection.update(query, update) map validator
+    collection.update(ordered = false).one(query, update) map validator
   }
 }

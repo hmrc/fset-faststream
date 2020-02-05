@@ -17,7 +17,7 @@
 package repositories
 
 import model.AssessorNewEventsJobInfo
-import model.Exceptions.LastRunInfoNotFound
+import play.api.libs.json.JsObject
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -37,10 +37,10 @@ class AssessorsEventsSummaryJobsMongoRepository(implicit mongo: () => DB)
     mongo, AssessorNewEventsJobInfo.format, ReactiveMongoFormats.objectIdFormats) with AssessorsEventsSummaryJobsRepository {
 
   def save(info: AssessorNewEventsJobInfo): Future[Unit] = {
-    collection.update(BSONDocument.empty, info, upsert = true).map(_ => ())
+    collection.update(ordered = false).one(BSONDocument.empty, info, upsert = true).map(_ => ())
   }
 
   def lastRun: Future[Option[AssessorNewEventsJobInfo]] = {
-    collection.find(BSONDocument.empty).one[AssessorNewEventsJobInfo]
+    collection.find(BSONDocument.empty, projection = Option.empty[JsObject]).one[AssessorNewEventsJobInfo]
   }
 }

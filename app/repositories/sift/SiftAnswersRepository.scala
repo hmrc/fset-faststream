@@ -176,7 +176,7 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
 
   override def removeSiftAnswers(applicationId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
-    collection.remove(query).map(_ => ())
+    collection.delete().one(query).map(_ => ())
   }
 
   private def failWithSubmitted(applicationId: String)(action: => Future[Unit]): Future[Unit] = {
