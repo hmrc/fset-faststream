@@ -38,8 +38,6 @@ import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.{ JsNumber, JsObject, Json }
 import reactivemongo.api.Cursor.FailOnError
-import reactivemongo.api.collections.bson.BSONBatchCommands.FindAndModifyCommand
-import reactivemongo.api.commands.Collation
 import reactivemongo.api._
 import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -51,7 +49,6 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.Try
 
@@ -706,14 +703,6 @@ class GeneralApplicationMongoRepository(
 
     findAndModify(query, updateOp).map(_ => ())
   }
-
-  // Wrap the findAndModify method to provide all the defaults
-  private def findAndModify(query: BSONDocument, updateOp: FindAndModifyCommand.Update) =
-    bsonCollection.findAndModify(
-      query, updateOp, sort = None, fields = None, bypassDocumentValidation = false,
-      writeConcern = WriteConcern.Default, maxTime = Option.empty[FiniteDuration], collation = Option.empty[Collation],
-      arrayFilters = Seq.empty[BSONDocument]
-    )
 
   private[application] def isNonSubmittedStatus(progress: ProgressResponse): Boolean = {
     val isNotSubmitted = !progress.submitted

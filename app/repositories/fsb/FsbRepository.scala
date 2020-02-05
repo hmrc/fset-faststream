@@ -27,9 +27,7 @@ import model.persisted.fsb.ScoresAndFeedback
 import model.persisted.{ FsbSchemeResult, FsbTestGroup, SchemeEvaluationResult }
 import org.joda.time.DateTime
 import play.api.libs.json.JsObject
-import reactivemongo.api.collections.bson.BSONBatchCommands.FindAndModifyCommand
-import reactivemongo.api.commands.Collation
-import reactivemongo.api.{ Cursor, DB, ReadPreference, WriteConcern }
+import reactivemongo.api.{ Cursor, DB, ReadPreference }
 import reactivemongo.bson.{ BSON, BSONArray, BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
@@ -39,7 +37,6 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.concurrent.duration.FiniteDuration
 
 trait FsbRepository {
   def nextApplicationReadyForFsbEvaluation: Future[Option[UniqueIdentifier]]
@@ -390,14 +387,6 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
     }
     filteredResult
   }
-
-  // Wrap the findAndModify method to provide all the defaults
-  private def findAndModify(query: BSONDocument, updateOp: FindAndModifyCommand.Update) =
-    bsonCollection.findAndModify(
-      query, updateOp, sort = None, fields = None, bypassDocumentValidation = false,
-      writeConcern = WriteConcern.Default, maxTime = Option.empty[FiniteDuration], collation = Option.empty[Collation],
-      arrayFilters = Seq.empty[BSONDocument]
-    )
 
   def removeTestGroup(applicationId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
