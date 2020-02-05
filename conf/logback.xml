@@ -64,6 +64,7 @@
     <logger name="akka.event.slf4j.Slf4jLogger" level="WARN"/>
     <logger name="play.api.libs.concurrent.ActorSystemProvider" level="INFO"/>
     <logger name="reactivemongo.core.actors.MongoDBSystem" level="WARN"/>
+    <logger name="reactivemongo" level="WARN" />
 
     <root level="DEBUG">
         <appender-ref ref="FILE"/>
