@@ -47,9 +47,8 @@ trait EventsService {
 
   def eventsConfigRepo: EventsConfigRepository
 
-
   def saveAssessmentEvents(): Future[Unit] = {
-    eventsRepo.count.flatMap {
+    eventsRepo.countLong.flatMap {
       case eventCount if eventCount >= 1 =>
         throw new Exception("Events already exist in the system, batch import not possible.")
       case _ =>
