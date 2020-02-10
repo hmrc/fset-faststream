@@ -189,6 +189,7 @@ GET         /diagnostic/enablePhase3CandidateToBeEvaluated                      
 GET         /diagnostic/removePhase3TestAndSetOtherToActive                                            controllers.fixdata.FixDataConsistencyController.removePhase3TestAndSetOtherToActive(removeTestToken: String, markTestAsActiveToken: String)
 GET         /diagnostic/rollbackToRetakePhase3FromSift                                                 controllers.fixdata.FixDataConsistencyController.rollbackToRetakePhase3FromSift(applicationId: String, token: String)
 GET         /diagnostic/removePhase1TestEvaluation                                                     controllers.fixdata.FixDataConsistencyController.removePhase1TestEvaluation(applicationId: String)
+GET         /diagnostic/removePhase2TestEvaluation                                                     controllers.fixdata.FixDataConsistencyController.removePhase2TestEvaluation(applicationId: String)
 GET         /diagnostic/removePhase3TestEvaluation                                                     controllers.fixdata.FixDataConsistencyController.removePhase3TestEvaluation(applicationId: String)
 GET         /diagnostic/fixPhase2PartialCallbackCandidate                                              controllers.fixdata.FixDataConsistencyController.fixPhase2PartialCallbackCandidate(applicationId: String)
 GET         /diagnostic/fixPhase3ExpiredCandidate                                                      controllers.fixdata.FixDataConsistencyController.fixPhase3ExpiredCandidate(applicationId: String)
