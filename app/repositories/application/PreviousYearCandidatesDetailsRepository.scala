@@ -23,7 +23,7 @@ import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model._
 import model.command.{ CandidateDetailsReportItem, CsvExtract, WithdrawApplication }
-import model.persisted.FSACIndicator
+import model.persisted.{ FSACIndicator, SchemeEvaluationResult }
 import model.persisted.fsb.ScoresAndFeedback
 import org.joda.time.DateTime
 import play.api.Logger
@@ -82,7 +82,7 @@ trait PreviousYearCandidatesDetailsRepository {
   }
 
   def dataAnalystApplicationDetailsHeader(numOfSchemes: Int) =
-    "ApplicationId,Application status,Route,Currently Civil Servant,Currently Civil Service via Fast Track,Eligible for Fast Pass," +
+    "ApplicationId,Application status,Route,All FS schemes failed SDIP not failed,Currently Civil Servant,Currently Civil Service via Fast Track,Eligible for Fast Pass," +
     "Fast Pass No,Scheme preferences,Do you have a disability," +
     appTestStatuses +
     "Final Progress Status prior to withdrawal," +
@@ -447,6 +447,20 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
   }
 
   private def commonDataAnalystApplicationDetailsStream(numOfSchemes: Int, query: BSONDocument): Enumerator[CandidateDetailsReportItem] = {
+
+    def isSdipFsWithFsFailedAndSdipNotFailed(doc: BSONDocument) = {
+      val css: Seq[SchemeEvaluationResult] = doc.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(Nil)
+      val sdipSchemeId = SchemeId("Sdip")
+      val sdipPresent = css.count( schemeEvaluationResult => schemeEvaluationResult.schemeId == sdipSchemeId ) == 1
+      val sdipNotFailed = sdipPresent &&
+        css.count( schemeEvaluationResult => schemeEvaluationResult.schemeId == sdipSchemeId && schemeEvaluationResult.result != "Red") == 1
+      val fsSchemes = css.filterNot( ser => ser.schemeId == sdipSchemeId )
+      val fsSchemesPresentAndAllFailed = fsSchemes.nonEmpty &&
+        fsSchemes.count( schemeEvaluationResult => schemeEvaluationResult.result == "Red" ) == fsSchemes.size
+      val isSdipFaststream = doc.getAs[String]("applicationRoute").contains("SdipFaststream")
+      isSdipFaststream && sdipPresent && sdipNotFailed && fsSchemesPresentAndAllFailed
+    }
+
     val projection = Json.obj("_id" -> 0)
 
     import reactivemongo.play.iteratees.cursorProducer
@@ -465,6 +479,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
           List(applicationIdOpt) :::
             List(doc.getAs[String]("applicationStatus")) :::
             List(doc.getAs[String]("applicationRoute")) :::
+            List(Some(isSdipFsWithFsFailedAndSdipNotFailed(doc).toString)) :::
             civilServiceExperienceCheckExpType(civilServiceExperienceType, CivilServiceExperienceType.CivilServant.toString) :::
             civilServiceExperienceCheckExpType(civilServiceExperienceType, CivilServiceExperienceType.CivilServantViaFastTrack.toString) :::
             civilServiceExperienceCheckInternshipType(civilServiceInternshipTypes, InternshipType.SDIPCurrentYear.toString) :::
