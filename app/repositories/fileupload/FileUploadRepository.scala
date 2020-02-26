@@ -21,7 +21,8 @@ import java.util.UUID
 
 import model.persisted.fileupload.{ FileUpload, FileUploadInfo }
 import org.joda.time.{ DateTime, DateTimeZone }
-import reactivemongo.api.gridfs.{ DefaultFileToSave, GridFS, ReadFile }
+import reactivemongo.api.gridfs.{ DefaultFileToSave, ReadFile }
+import reactivemongo.play.iteratees.GridFS
 import reactivemongo.api._
 import reactivemongo.bson.{ BSONDocument, BSONValue }
 import repositories.CollectionNames
@@ -42,7 +43,7 @@ trait FileUploadRepository {
 
 class FileUploadMongoRepository(implicit mongo: () => DB with DBMetaCommands) extends FileUploadRepository {
 
-  lazy val gridFS = new GridFS[BSONSerializationPack.type](mongo.apply(), CollectionNames.FILE_UPLOAD)
+  private lazy val gridFS = GridFS[BSONSerializationPack.type](mongo.apply(), CollectionNames.FILE_UPLOAD)
 
   def add(contentType: String, fileContents: Array[Byte]): Future[String] = {
     val newId = UUID.randomUUID().toString
