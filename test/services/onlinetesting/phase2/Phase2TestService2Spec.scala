@@ -103,7 +103,7 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
   }
 
   "Invite applicants to PHASE 2" must {
-    "save tests for a candidate after registration and send no email" in new Phase2TestServiceFixture {
+    "successfully register 2 candidates" in new Phase2TestServiceFixture {
       when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile))
       when(otRepositoryMock2.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup2])).thenReturnAsync()
       when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
@@ -111,26 +111,60 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
 
       phase2TestService.registerAndInvite(candidates).futureValue
 
-      verify(otRepositoryMock2, times(4)).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup2])
       verify(onlineTestsGatewayClientMock, times(4)).psiRegisterApplicant(any[RegisterCandidateRequest])
-      verify(emailClientMock, never()).sendOnlineTestInvitation(anyString(), anyString(), any[DateTime])(any[HeaderCarrier])
-      verify(auditServiceMock, never()).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
+      verify(otRepositoryMock2, times(4)).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup2])
+      verify(emailClientMock, times(2)).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier])
     }
 
-    "save tests for a candidate after registration and send ONE email" in new Phase2TestServiceFixture {
-      when(otRepositoryMock2.getTestGroup(any[String]))
-        .thenReturnAsync(Some(phase2TestProfileWithNoTest))
-        .thenReturnAsync(Some(phase2TestProfile))
+    "deal with a failed registration when registering a single candidate" in new Phase2TestServiceFixture {
+      when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile))
       when(otRepositoryMock2.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup2])).thenReturnAsync()
       when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
-        .thenReturnAsync(aoa)
+          .thenReturn(Future.failed(new Exception("Dummy error for test")))
 
       phase2TestService.registerAndInvite(List(onlineTestApplication)).futureValue
 
-      verify(otRepositoryMock2, times(2)).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup2])
       verify(onlineTestsGatewayClientMock, times(2)).psiRegisterApplicant(any[RegisterCandidateRequest])
-      verify(emailClientMock, times(1)).sendOnlineTestInvitation(anyString(), anyString(), any[DateTime])(any[HeaderCarrier])
-      verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
+      verify(otRepositoryMock2, never).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup2])
+      verify(emailClientMock, never).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier])
+    }
+
+    "first candidate registers successfully, 2nd candidate fails" in new Phase2TestServiceFixture {
+      when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile))
+      when(otRepositoryMock2.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup2])).thenReturnAsync()
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+        .thenReturnAsync(aoa) // candidate 1 test 1
+        .thenReturnAsync(aoa) // candidate 1 test 2
+        .thenReturnAsync(aoa) // candidate 2 test 1
+        .thenReturn(Future.failed(new Exception("Dummy error for test"))) // candidate 2 test 2
+
+      phase2TestService.registerAndInvite(candidates).futureValue
+
+      verify(onlineTestsGatewayClientMock, times(4)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      // Called 2 times for 1st candidate who registered successfully for both tests and once for 2nd candidate whose
+      // 1st registration was successful only
+      verify(otRepositoryMock2, times(3)).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup2])
+      // Called for 1st candidate only who registered successfully
+      verify(emailClientMock, times(1)).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier])
+    }
+
+    "first candidate fails registration, 2nd candidate is successful" in new Phase2TestServiceFixture {
+      when(otRepositoryMock2.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile))
+      when(otRepositoryMock2.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup2])).thenReturnAsync()
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+        .thenReturnAsync(aoa) // candidate 1 test 1
+        .thenReturn(Future.failed(new Exception("Dummy error for test"))) // candidate 1 test 2
+        .thenReturnAsync(aoa) // candidate 2 test 1
+        .thenReturnAsync(aoa) // candidate 2 test 2
+
+      phase2TestService.registerAndInvite(candidates).futureValue
+
+      verify(onlineTestsGatewayClientMock, times(4)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      // Called once for 1st candidate who registered successfully for 1st test only tests and twice for 2nd candidate whose
+      // registrations were both successful
+      verify(otRepositoryMock2, times(3)).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup2])
+      // Called for 2nd candidate only who registered successfully
+      verify(emailClientMock, times(1)).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier])
     }
   }
 
@@ -474,7 +508,7 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
     )
 
     val mockPhase2TestConfig = Phase2TestsConfig2(
-      expiryTimeInDays = 5, expiryTimeInDaysForInvigilatedETray = 90, tests, standard = List("test1", "test2")
+      expiryTimeInDays = 5, expiryTimeInDaysForInvigilatedETray = 90, testRegistrationDelayInSecs = 1, tests, standard = List("test1", "test2")
     )
 
     val mockNumericalTestsConfig2 = NumericalTestsConfig2(tests, List("test1"))
@@ -548,14 +582,14 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
       needsOnlineAdjustments = false,
       needsAtVenueAdjustments = false,
       preferredName = "Optimus",
-      lastName = "Prime",
+      lastName = "Prime1",
       None,
       None
     )
 
     val preferredNameSanitized = "Preferred Name"
     val lastName = ""
-    val onlineTestApplication2 = onlineTestApplication.copy(applicationId = "appId2", userId = "userId2")
+    val onlineTestApplication2 = onlineTestApplication.copy(applicationId = "appId2", userId = "userId2", lastName = "Prime2")
     val adjustmentApplication = onlineTestApplication.copy(applicationId = "appId3", userId = "userId3", needsOnlineAdjustments = true)
     val adjustmentApplication2 = onlineTestApplication.copy(applicationId = "appId4", userId = "userId4", needsOnlineAdjustments = true)
     val candidates = List(onlineTestApplication, onlineTestApplication2)
