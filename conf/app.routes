@@ -52,7 +52,6 @@ POST        /application/details/continue                           controllers.
 GET         /application/schemes                                    controllers.SchemePreferencesController.present
 POST        /application/schemes                                    controllers.SchemePreferencesController.submit
 
-
 GET         /application/assistance-details                         controllers.AssistanceDetailsController.present
 POST        /application/assistance-details                         controllers.AssistanceDetailsController.submit
 
