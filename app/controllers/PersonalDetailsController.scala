@@ -64,7 +64,7 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient,
     for {
       allSchemes <- refDataClient.allSchemes()
     } yield {
-      allSchemes.collect{ case s if !s.civilServantEligible => s.name }
+      allSchemes.collect{ case s if !s.civilServantEligible && s.degree.isDefined => s.name }
     }
   }
 

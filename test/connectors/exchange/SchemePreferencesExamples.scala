@@ -17,5 +17,5 @@
 package connectors.exchange
 
 object SchemePreferencesExamples {
-  val DefaultSelectedSchemes = SelectedSchemes(List("Finance", "International"), orderAgreed = true, eligible = true)
+  val DefaultSelectedSchemes = SelectedSchemes(List("Finance", "Commercial"), orderAgreed = true, eligible = true)
 }

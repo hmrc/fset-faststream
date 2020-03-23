@@ -71,6 +71,12 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       val content = contentAsString(result)
       content must include(s"""name="preferredName" value="${currentCandidate.user.firstName}"""")
       content must include("""<input name="civilServiceExperienceDetails.applicable" type="radio"""")
+      // The only scheme where civilServantEligible = false and a degree is specified
+      content must include("""<li>Project Delivery</li>""")
+      // The page should not include any schemes that do not have a degree requirement
+      ReferenceDataExamples.Schemes.schemesWithNoDegree.foreach{ scheme =>
+        content must not include(s"<li>${scheme.name}</li>")
+      }
       content must include(routes.PersonalDetailsController.submitPersonalDetails().url)
     }
 
@@ -105,7 +111,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
   }
 
   "present and continue" should {
-    "load personal details page for the new user and generate submit link for continue the journey" in {
+    "load personal details page for the new user and generate submit link to continue the journey" in {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new PersonalDetailsNotFound))
 
