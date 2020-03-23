@@ -16,50 +16,52 @@
 
 package connectors
 
-import connectors.exchange.referencedata.{ Scheme, SiftRequirement }
+import connectors.exchange.referencedata.{ Degree, Scheme, SiftRequirement }
 
 object ReferenceDataExamples {
 
   object Schemes {
-    val Commercial = Scheme("Commercial", "CFS", "Commercial", civilServantEligible = false, None, Some(SiftRequirement.NUMERIC_TEST),
-      siftEvaluationRequired = true, None, None, None)
-    val DaT = Scheme("DigitalAndTechnology", "DaT", "Digital And Technology", civilServantEligible = false, None, Some(SiftRequirement.FORM),
-      siftEvaluationRequired = true, None, None, None)
-    val Dip = Scheme("DiplomaticService", "DS", "Diplomatic Service", civilServantEligible = false, None, Some(SiftRequirement.FORM),
-      siftEvaluationRequired = true, None, None, None)
-    val Finance = Scheme("Finance", "FIFS", "Finance", civilServantEligible = false, None, Some(SiftRequirement.NUMERIC_TEST),
-      siftEvaluationRequired = true, None, None, None)
-    val Generalist = Scheme("Generalist", "GFS", "Generalist",civilServantEligible = false, None, None, siftEvaluationRequired = false,
-      None, None, None)
+    val Commercial = Scheme("Commercial", "CFS", "Commercial", civilServantEligible = false, degree = None, Some(SiftRequirement.NUMERIC_TEST),
+      siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
+    val DaT = Scheme("DigitalAndTechnology", "DaT", "Digital And Technology", civilServantEligible = false, degree = None,
+      Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
+    val Dip = Scheme("DiplomaticService", "DS", "Diplomatic Service", civilServantEligible = false, degree = None, Some(SiftRequirement.FORM),
+      siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
+    val  DipEcon = Scheme("DiplomaticServiceEconomists", "GES-DS", "Diplomatic Service (Economists)", civilServantEligible = false,
+      degree = None, Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
+    val Finance = Scheme("Finance", "FIFS", "Finance", civilServantEligible = false, degree = None, Some(SiftRequirement.NUMERIC_TEST),
+      siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
+    val Generalist = Scheme("Generalist", "GFS", "Generalist",civilServantEligible = false, degree = None, siftRequirement = None,
+      siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None)
     val GovComms = Scheme("GovernmentCommunicationService", "GCFS", "Government Communication Service", civilServantEligible = false,
-      None, Some(SiftRequirement.FORM),
-      siftEvaluationRequired = true, None, None, None)
+      degree = None, Some(SiftRequirement.FORM),  siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
     val GovEconomics = Scheme("GovernmentEconomicsService", "GES", "Government Economics Service", civilServantEligible = false,
-      None, Some(SiftRequirement.FORM), siftEvaluationRequired = true, None, None, None)
-    val GovOps = Scheme("GovernmentOperationalResearchService", "GORS", "Government Operational Research Service",
-      civilServantEligible = false, None, Some(SiftRequirement.FORM), siftEvaluationRequired = true, None, None, None)
-    val GovSocialResearch = Scheme("GovernmentSocialResearchService", "GSR", "Government Social Research Service",
-      civilServantEligible = false, None, Some(SiftRequirement.FORM), siftEvaluationRequired = true, None, None, None)
+      degree = None, Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
+    val GovOps = Scheme("GovernmentOperationalResearchService", "GORS", "Government Operational Research Service", civilServantEligible = false,
+      degree = None, Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
+    val GovSocialResearch = Scheme("GovernmentSocialResearchService", "GSR", "Government Social Research Service", civilServantEligible = false,
+      degree = None, Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
     val GovStats = Scheme("GovernmentStatisticalService", "GSS", "Government Statistical Service", civilServantEligible = false,
-      None, Some(SiftRequirement.FORM), siftEvaluationRequired = true, None, None, None)
-    val HoP = Scheme("HousesOfParliament", "HoP", "Houses Of Parliament", civilServantEligible = false, None, Some(SiftRequirement.FORM),
-      siftEvaluationRequired = true, None, None, None)
-    val HR = Scheme("HumanResources", "HRFS", "Human Resources", civilServantEligible = false, None, None,
-      siftEvaluationRequired = false, None, None, None)
-    val ProjectDelivery = Scheme("ProjectDelivery", "PDFS", "Project Delivery",
-      civilServantEligible = false, None, Some(SiftRequirement.FORM), siftEvaluationRequired = true, None, None, None)
-    val SciEng = Scheme("ScienceAndEngineering", "SEFS", "Science And Engineering",
-      civilServantEligible = false, None, Some(SiftRequirement.FORM), siftEvaluationRequired = true, None, None, None)
-    val Edip = Scheme("Edip", "EDIP", "Early Diversity Internship Programme",
-      civilServantEligible = false, None, Some(SiftRequirement.FORM), siftEvaluationRequired = true, None, None, None)
-    val Sdip = Scheme("Sdip", "SDIP", "Summer Diversity Internship Programme",
-      civilServantEligible = false, None, Some(SiftRequirement.FORM), siftEvaluationRequired = false, None, None, None)
-    val International = Scheme("International", "INT", "International", civilServantEligible = false, None, Some(SiftRequirement.FORM),
-      siftEvaluationRequired = false, None, None, None)
+      degree = None, Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
+    val HoP = Scheme("HousesOfParliament", "HoP", "Houses Of Parliament", civilServantEligible = false, degree = None,
+      Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
+    val HR = Scheme("HumanResources", "HRFS", "Human Resources", civilServantEligible = false, degree = None, siftRequirement = None,
+      siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None)
+    val ProjectDelivery = Scheme("ProjectDelivery", "PDFS", "Project Delivery", civilServantEligible = false,
+      degree = Some(Degree(required = "Degree_CharteredEngineer", specificRequirement = true)),
+      Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
+    val SciEng = Scheme("ScienceAndEngineering", "SEFS", "Science And Engineering", civilServantEligible = false, degree = None,
+      Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
+    val Edip = Scheme("Edip", "EDIP", "Early Diversity Internship Programme", civilServantEligible = false, degree = None,
+      Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
+    val Sdip = Scheme("Sdip", "SDIP", "Summer Diversity Internship Programme", civilServantEligible = false, degree = None,
+      Some(SiftRequirement.FORM), siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None)
 
-    val AllSchemes = Commercial :: DaT :: Dip :: Finance :: Generalist :: GovComms :: GovEconomics :: GovOps ::
-      GovSocialResearch :: GovStats :: HoP :: HR :: ProjectDelivery :: SciEng :: Edip :: Sdip :: International :: Nil
+    val AllSchemes = Commercial :: DaT :: Dip :: DipEcon :: Finance :: Generalist :: GovComms :: GovEconomics :: GovOps ::
+      GovSocialResearch :: GovStats :: HoP :: HR :: ProjectDelivery :: SciEng :: Edip :: Sdip :: Nil
 
     val SomeSchemes = Commercial :: DaT :: Dip :: Nil
+
+    def schemesWithNoDegree = AllSchemes.filter( _.degree.isEmpty )
   }
 }
