@@ -10,7 +10,7 @@
 - id: DigitalAndTechnology
   code: DAT
   name: Digital, Data & Technology
-  civilServantEligible: false
+  civilServantEligible: true
   degree:
     required: Degree_22
     specificRequirement: false
