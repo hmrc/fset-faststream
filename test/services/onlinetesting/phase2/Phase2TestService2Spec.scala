@@ -333,13 +333,15 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
   }
 
   "processNextExpiredTest" should {
+    val phase2ExpirationEvent = Phase2ExpirationEvent(gracePeriodInSecs = 0)
+
     "do nothing if there is no expired application to process" in new Phase2TestServiceFixture {
-      when(otRepositoryMock.nextExpiringApplication(Phase2ExpirationEvent, 0)).thenReturnAsync(None)
-      phase2TestService.processNextExpiredTest(Phase2ExpirationEvent, 0).futureValue mustBe unit
+      when(otRepositoryMock.nextExpiringApplication(phase2ExpirationEvent)).thenReturnAsync(None)
+      phase2TestService.processNextExpiredTest(phase2ExpirationEvent).futureValue mustBe unit
     }
 
     "update progress status and send an email to the user when a Faststream application is expired" in new Phase2TestServiceFixture {
-      when(otRepositoryMock.nextExpiringApplication(Phase2ExpirationEvent, 0))
+      when(otRepositoryMock.nextExpiringApplication(phase2ExpirationEvent))
         .thenReturnAsync(Some(expiredApplication))
       when(cdRepositoryMock.find(any[String])).thenReturnAsync(contactDetails)
       when(appRepositoryMock.getApplicationRoute(any[String])).thenReturnAsync(ApplicationRoute.Faststream)
@@ -350,7 +352,7 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
 
       when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
 
-      val result = phase2TestService.processNextExpiredTest(Phase2ExpirationEvent, 0)
+      val result = phase2TestService.processNextExpiredTest(phase2ExpirationEvent)
 
       result.futureValue mustBe unit
 
@@ -360,11 +362,11 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
       verify(appRepositoryMock, never()).getCurrentSchemeStatus(applicationId)
       verify(appRepositoryMock, never()).updateCurrentSchemeStatus(applicationId, results)
       verify(siftServiceMock, never()).sendSiftEnteredNotification(applicationId)
-      verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, Phase2ExpirationEvent.template)
+      verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, TestExpirationEmailTemplates.phase2ExpirationTemplate)
     }
 
     "update progress status and send an email to the user when an sdip faststream application is expired" in new Phase2TestServiceFixture {
-      when(otRepositoryMock.nextExpiringApplication(Phase2ExpirationEvent, 0))
+      when(otRepositoryMock.nextExpiringApplication(phase2ExpirationEvent))
         .thenReturnAsync(Some(expiredApplication))
       when(cdRepositoryMock.find(any[String])).thenReturnAsync(contactDetails)
       when(appRepositoryMock.getApplicationRoute(any[String])).thenReturn(Future.successful(ApplicationRoute.SdipFaststream))
@@ -374,7 +376,7 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
       when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
 
-      val result = phase2TestService.processNextExpiredTest(Phase2ExpirationEvent, 0)
+      val result = phase2TestService.processNextExpiredTest(phase2ExpirationEvent)
 
       result.futureValue mustBe unit
 
@@ -384,7 +386,7 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
       verify(appRepositoryMock, never()).getCurrentSchemeStatus(applicationId)
       verify(appRepositoryMock, never()).updateCurrentSchemeStatus(applicationId, results)
       verify(siftServiceMock, never()).sendSiftEnteredNotification(applicationId)
-      verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, Phase2ExpirationEvent.template)
+      verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, TestExpirationEmailTemplates.phase2ExpirationTemplate)
     }
   }
 

@@ -274,11 +274,11 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     ))) map validator
   }
 
-  def nextExpiringApplication(expiryTest: TestExpirationEvent, gracePeriodInSecs: Int): Future[Option[ExpiringOnlineTest]] = {
+  def nextExpiringApplication(expiryTest: TestExpirationEvent): Future[Option[ExpiringOnlineTest]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> thisApplicationStatus),
       BSONDocument(s"testGroups.${expiryTest.phase}.expirationDate" ->
-        BSONDocument("$lte" -> dateTimeFactory.nowLocalTimeZone.plusSeconds(gracePeriodInSecs)) // Serialises to UTC.
+        BSONDocument("$lte" -> dateTimeFactory.nowLocalTimeZone.plusSeconds(expiryTest.gracePeriodInSecs)) // Serialises to UTC.
       ), expiredTestQuery))
 
     implicit val reader = bsonReader(ExpiringOnlineTest.fromBson)

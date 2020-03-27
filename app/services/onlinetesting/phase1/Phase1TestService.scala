@@ -151,9 +151,8 @@ trait Phase1TestService extends OnlineTestService with Phase1TestConcern with Re
   override def storeRealTimeResults(orderId: String, results: PsiRealTimeResults)
                                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
 
-  override def processNextExpiredTest(expiryTest: TestExpirationEvent, gracePeriodInSecs: Int)(
-    implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    testRepository.nextExpiringApplication(expiryTest, gracePeriodInSecs).flatMap {
+  override def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    testRepository.nextExpiringApplication(expiryTest).flatMap {
       case Some(expired) => processExpiredTest(expired, expiryTest)
       case None => Future.successful(())
     }

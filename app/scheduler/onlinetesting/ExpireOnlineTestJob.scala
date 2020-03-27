@@ -32,35 +32,31 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 object ExpirePhase1TestJob extends ExpireOnlineTestJob {
   override val onlineTestingService = Phase1TestService2
-  override val expiryTest = Phase1ExpirationEvent
-  override val gracePeriodInSecs = testIntegrationGatewayConfig.phase1Tests.gracePeriodInSecs
+  override val expiryTest = Phase1ExpirationEvent(gracePeriodInSecs = testIntegrationGatewayConfig.phase1Tests.gracePeriodInSecs)
   val config = ExpirePhase1TestJobConfig
 }
 
 object ExpirePhase2TestJob extends ExpireOnlineTestJob {
   override val onlineTestingService = Phase2TestService2
-  override val expiryTest = Phase2ExpirationEvent
-  override val gracePeriodInSecs = testIntegrationGatewayConfig.phase2Tests.gracePeriodInSecs
+  override val expiryTest = Phase2ExpirationEvent(gracePeriodInSecs = testIntegrationGatewayConfig.phase2Tests.gracePeriodInSecs)
   val config = ExpirePhase2TestJobConfig
 }
 
 object ExpirePhase3TestJob extends ExpireOnlineTestJob {
   override val onlineTestingService = Phase3TestService
-  override val expiryTest = Phase3ExpirationEvent
-  override val gracePeriodInSecs = launchpadGatewayConfig.phase3Tests.gracePeriodInSecs
+  override val expiryTest = Phase3ExpirationEvent(gracePeriodInSecs = launchpadGatewayConfig.phase3Tests.gracePeriodInSecs)
   val config = ExpirePhase3TestJobConfig
 }
 
 trait ExpireOnlineTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
   val onlineTestingService: OnlineTestService
   val expiryTest: TestExpirationEvent
-  val gracePeriodInSecs: Int
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc = HeaderCarrier()
     implicit val rh = EmptyRequestHeader
-    Logger.debug(s"Running online test expiry job for ${expiryTest.phase} with gracePeriodInSecs = $gracePeriodInSecs")
-    onlineTestingService.processNextExpiredTest(expiryTest, gracePeriodInSecs)
+    Logger.debug(s"Running online test expiry job for ${expiryTest.phase} with gracePeriodInSecs = ${expiryTest.gracePeriodInSecs}")
+    onlineTestingService.processNextExpiredTest(expiryTest)
   }
 }
 

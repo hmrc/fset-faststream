@@ -90,9 +90,8 @@ trait OnlineTestService extends TimeExtension with EventSink {
     }
   }
 
-  def processNextExpiredTest(expiryTest: TestExpirationEvent, gracePeriodInSecs: Int)
-                                     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    testRepository.nextExpiringApplication(expiryTest, gracePeriodInSecs).flatMap {
+  def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    testRepository.nextExpiringApplication(expiryTest).flatMap {
       case Some(expiredCandidate) =>
         Logger.info(s"Found candidate ${expiredCandidate.applicationId} to expire in ${expiryTest.phase}")
         processExpiredTest(expiredCandidate, expiryTest)
