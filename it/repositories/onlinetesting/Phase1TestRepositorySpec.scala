@@ -313,16 +313,16 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       "there is an application in PHASE1_TESTS and should be expired" in {
         createApplicationWithAllFields(UserId, AppId, TestAccountId,"frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
-        phase1TestRepo.nextExpiringApplication(Phase1ExpirationEvent).futureValue mustBe Some(ExpiringOnlineTest(AppId, UserId, "Georgy"))
+        phase1TestRepo.nextExpiringApplication(Phase1ExpirationEvent, 0).futureValue mustBe Some(ExpiringOnlineTest(AppId, UserId, "Georgy"))
       }
     }
 
     "return no results" when {
-      "there are no application in PHASE1_TESTS" in {
+      "there are no applications in PHASE1_TESTS" in {
         createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS), AppId).futureValue
-        phase1TestRepo.nextExpiringApplication(Phase1ExpirationEvent).futureValue mustBe None
+        phase1TestRepo.nextExpiringApplication(Phase1ExpirationEvent, 0).futureValue mustBe None
       }
 
       "the date is not expired yet" in {
@@ -330,7 +330,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         phase1TestRepo.insertOrUpdateTestGroup(
           AppId,
           Phase1TestProfile(expirationDate = new DateTime().plusHours(2), tests = List(phase1Test))).futureValue
-        phase1TestRepo.nextExpiringApplication(Phase1ExpirationEvent).futureValue mustBe None
+        phase1TestRepo.nextExpiringApplication(Phase1ExpirationEvent, 0).futureValue mustBe None
       }
 
       "the test is already expired" in {
@@ -342,7 +342,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
           s"progress-status.$PHASE1_TESTS_EXPIRED" -> true,
           s"progress-status-timestamp.$PHASE1_TESTS_EXPIRED" -> DateTime.now()
         )), AppId).futureValue
-        phase1TestRepo.nextExpiringApplication(Phase1ExpirationEvent).futureValue mustBe None
+        phase1TestRepo.nextExpiringApplication(Phase1ExpirationEvent, 0).futureValue mustBe None
       }
 
       "the test is completed" in {
@@ -354,7 +354,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
           s"progress-status.$PHASE1_TESTS_COMPLETED" -> true,
           s"progress-status-timestamp.$PHASE1_TESTS_COMPLETED" -> DateTime.now()
         )), AppId).futureValue
-        phase1TestRepo.nextExpiringApplication(Phase1ExpirationEvent).futureValue mustBe None
+        phase1TestRepo.nextExpiringApplication(Phase1ExpirationEvent, 0).futureValue mustBe None
       }
     }
   }

@@ -334,12 +334,12 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
 
   "processNextExpiredTest" should {
     "do nothing if there is no expired application to process" in new Phase2TestServiceFixture {
-      when(otRepositoryMock2.nextExpiringApplication(Phase2ExpirationEvent)).thenReturnAsync(None)
-      phase2TestService.processNextExpiredTest(Phase2ExpirationEvent).futureValue mustBe unit
+      when(otRepositoryMock.nextExpiringApplication(Phase2ExpirationEvent, 0)).thenReturnAsync(None)
+      phase2TestService.processNextExpiredTest(Phase2ExpirationEvent, 0).futureValue mustBe unit
     }
 
     "update progress status and send an email to the user when a Faststream application is expired" in new Phase2TestServiceFixture {
-      when(otRepositoryMock2.nextExpiringApplication(Phase2ExpirationEvent))
+      when(otRepositoryMock.nextExpiringApplication(Phase2ExpirationEvent, 0))
         .thenReturnAsync(Some(expiredApplication))
       when(cdRepositoryMock.find(any[String])).thenReturnAsync(contactDetails)
       when(appRepositoryMock.getApplicationRoute(any[String])).thenReturnAsync(ApplicationRoute.Faststream)
@@ -350,7 +350,7 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
 
       when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
 
-      val result = phase2TestService.processNextExpiredTest(Phase2ExpirationEvent)
+      val result = phase2TestService.processNextExpiredTest(Phase2ExpirationEvent, 0)
 
       result.futureValue mustBe unit
 
@@ -364,7 +364,7 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
     }
 
     "update progress status and send an email to the user when an sdip faststream application is expired" in new Phase2TestServiceFixture {
-      when(otRepositoryMock2.nextExpiringApplication(Phase2ExpirationEvent))
+      when(otRepositoryMock.nextExpiringApplication(Phase2ExpirationEvent, 0))
         .thenReturnAsync(Some(expiredApplication))
       when(cdRepositoryMock.find(any[String])).thenReturnAsync(contactDetails)
       when(appRepositoryMock.getApplicationRoute(any[String])).thenReturn(Future.successful(ApplicationRoute.SdipFaststream))
@@ -374,7 +374,7 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
       when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
 
-      val result = phase2TestService.processNextExpiredTest(Phase2ExpirationEvent)
+      val result = phase2TestService.processNextExpiredTest(Phase2ExpirationEvent, 0)
 
       result.futureValue mustBe unit
 
@@ -503,15 +503,16 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
     )
 
     val mockPhase1TestConfig = Phase1TestsConfig2(
-      expiryTimeInDays = 5, testRegistrationDelayInSecs = 1, tests, standard = List("test1", "test2", "test3", "test4"),
+      expiryTimeInDays = 5, gracePeriodInSecs = 0, testRegistrationDelayInSecs = 1, tests, standard = List("test1", "test2", "test3", "test4"),
       gis = List("test1", "test4")
     )
 
     val mockPhase2TestConfig = Phase2TestsConfig2(
-      expiryTimeInDays = 5, expiryTimeInDaysForInvigilatedETray = 90, testRegistrationDelayInSecs = 1, tests, standard = List("test1", "test2")
+      expiryTimeInDays = 5, expiryTimeInDaysForInvigilatedETray = 90, gracePeriodInSecs = 0, testRegistrationDelayInSecs = 1, tests,
+      standard = List("test1", "test2")
     )
 
-    val mockNumericalTestsConfig2 = NumericalTestsConfig2(tests, List("test1"))
+    val mockNumericalTestsConfig2 = NumericalTestsConfig2(gracePeriodInSecs = 0, tests = tests, standard = List("test1"))
     val integrationConfigMock = TestIntegrationGatewayConfig(
       url = "",
       phase1Tests = mockPhase1TestConfig,

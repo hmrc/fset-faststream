@@ -137,6 +137,7 @@ class EvaluatePhase3ResultService2Spec extends BaseServiceSpec {
     when(mocklaunchpadGWConfig.phase3Tests).thenReturn(
       Phase3TestsConfig(timeToExpireInDays = 5,
         invigilatedTimeToExpireInDays = 10,
+        gracePeriodInSecs = 0,
         candidateCompletionRedirectUrl = "http://someurl",
         interviewsByAdjustmentPercentage = Map.empty[String, Int],
         evaluationWaitTimeAfterResultsReceivedInHours = 0,

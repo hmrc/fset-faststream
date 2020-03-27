@@ -101,6 +101,7 @@ case class PsiTestIds(inventoryId: String, assessmentId: String,
                       reportId: String, normId: String)
 
 case class Phase1TestsConfig2(expiryTimeInDays: Int,
+                              gracePeriodInSecs: Int,
                               testRegistrationDelayInSecs: Int,
                               tests: Map[String, PsiTestIds],
                               standard: List[String],
@@ -115,6 +116,7 @@ case class Phase2Schedule(scheduleId: Int, assessmentId: Int)
 
 case class Phase2TestsConfig2(expiryTimeInDays: Int,
                               expiryTimeInDaysForInvigilatedETray: Int,
+                              gracePeriodInSecs: Int,
                               testRegistrationDelayInSecs: Int,
                               tests: Map[String, PsiTestIds],
                               standard: List[String])
@@ -147,7 +149,7 @@ case object NumericalTestsConfig {
   val numericalTestScheduleName = "numericalTest"
 }
 
-case class NumericalTestsConfig2(tests: Map[String, PsiTestIds], standard: List[String])
+case class NumericalTestsConfig2(gracePeriodInSecs: Int, tests: Map[String, PsiTestIds], standard: List[String])
 
 trait CubiksGatewayAssessment {
   val assessmentId: Int
@@ -161,6 +163,7 @@ case class LaunchpadGatewayConfig(url: String, phase3Tests: Phase3TestsConfig)
 
 case class Phase3TestsConfig(timeToExpireInDays: Int,
                              invigilatedTimeToExpireInDays: Int,
+                             gracePeriodInSecs: Int,
                              candidateCompletionRedirectUrl: String,
                              interviewsByAdjustmentPercentage: Map[String, Int],
                              evaluationWaitTimeAfterResultsReceivedInHours: Int,

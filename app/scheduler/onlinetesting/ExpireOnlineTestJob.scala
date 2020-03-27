@@ -17,45 +17,50 @@
 package scheduler.onlinetesting
 
 import config.ScheduledJobConfig
+import config.MicroserviceAppConfig.{ testIntegrationGatewayConfig, launchpadGatewayConfig }
 import model._
 import play.api.Logger
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting._
-import services.onlinetesting.phase1.Phase1TestService
-import services.onlinetesting.phase2.Phase2TestService
+import services.onlinetesting.phase1.Phase1TestService2
+import services.onlinetesting.phase2.Phase2TestService2
 import services.onlinetesting.phase3.Phase3TestService
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 
 object ExpirePhase1TestJob extends ExpireOnlineTestJob {
-  override val onlineTestingService = Phase1TestService
+  override val onlineTestingService = Phase1TestService2
   override val expiryTest = Phase1ExpirationEvent
+  override val gracePeriodInSecs = testIntegrationGatewayConfig.phase1Tests.gracePeriodInSecs
   val config = ExpirePhase1TestJobConfig
 }
 
 object ExpirePhase2TestJob extends ExpireOnlineTestJob {
-  override val onlineTestingService = Phase2TestService
+  override val onlineTestingService = Phase2TestService2
   override val expiryTest = Phase2ExpirationEvent
+  override val gracePeriodInSecs = testIntegrationGatewayConfig.phase2Tests.gracePeriodInSecs
   val config = ExpirePhase2TestJobConfig
 }
 
 object ExpirePhase3TestJob extends ExpireOnlineTestJob {
   override val onlineTestingService = Phase3TestService
   override val expiryTest = Phase3ExpirationEvent
+  override val gracePeriodInSecs = launchpadGatewayConfig.phase3Tests.gracePeriodInSecs
   val config = ExpirePhase3TestJobConfig
 }
 
 trait ExpireOnlineTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
   val onlineTestingService: OnlineTestService
   val expiryTest: TestExpirationEvent
+  val gracePeriodInSecs: Int
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc = HeaderCarrier()
     implicit val rh = EmptyRequestHeader
-    Logger.debug(s"Running online test expiry job for ${expiryTest.phase}")
-    onlineTestingService.processNextExpiredTest(expiryTest)
+    Logger.debug(s"Running online test expiry job for ${expiryTest.phase} with gracePeriodInSecs = $gracePeriodInSecs")
+    onlineTestingService.processNextExpiredTest(expiryTest, gracePeriodInSecs)
   }
 }
 

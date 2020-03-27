@@ -158,5 +158,4 @@ class Phase1TestMongoRepository2(dateTime: DateTimeFactory)(implicit mongo: () =
 
     nextTestGroupWithReportReady[Phase1TestGroupWithUserIds2]
   }
-
 }

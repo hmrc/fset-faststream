@@ -399,19 +399,19 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
   "processNextExpiredTest" should {
     "do nothing if there are no expired application to process" in new Phase3TestServiceFixture {
-      when(p3TestRepositoryMock.nextExpiringApplication(Phase3ExpirationEvent)).thenReturn(Future.successful(None))
-      phase3TestServiceWithUnexpiredTestGroup.processNextExpiredTest(Phase3ExpirationEvent).futureValue mustBe unit
+      when(p3TestRepositoryMock.nextExpiringApplication(Phase3ExpirationEvent, 0)).thenReturn(Future.successful(None))
+      phase3TestServiceWithUnexpiredTestGroup.processNextExpiredTest(Phase3ExpirationEvent, 0).futureValue mustBe unit
     }
 
     "update progress status and send an email to the user when a Faststream application is expired" in new Phase3TestServiceFixture {
-      when(p3TestRepositoryMock.nextExpiringApplication(Phase3ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
+      when(p3TestRepositoryMock.nextExpiringApplication(Phase3ExpirationEvent, 0)).thenReturn(Future.successful(Some(expiredApplication)))
       when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
       when(appRepositoryMock.getApplicationRoute(any[String])).thenReturn(Future.successful(ApplicationRoute.Faststream))
       val results = List(SchemeEvaluationResult("Commercial", "Green"))
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
       when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
 
-      val result = phase3TestServiceWithUnexpiredTestGroup.processNextExpiredTest(Phase3ExpirationEvent)
+      val result = phase3TestServiceWithUnexpiredTestGroup.processNextExpiredTest(Phase3ExpirationEvent, 0)
 
       result.futureValue mustBe unit
 
@@ -425,14 +425,14 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     }
 
     "update progress status and send an email to the user when an sdip faststream application is expired" in new Phase3TestServiceFixture {
-      when(p3TestRepositoryMock.nextExpiringApplication(Phase3ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
+      when(p3TestRepositoryMock.nextExpiringApplication(Phase3ExpirationEvent, 0)).thenReturn(Future.successful(Some(expiredApplication)))
       when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
       when(appRepositoryMock.getApplicationRoute(any[String])).thenReturn(Future.successful(ApplicationRoute.SdipFaststream))
       val results = List(SchemeEvaluationResult("Sdip", "Green"), SchemeEvaluationResult("Commercial", "Green"))
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
       when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
 
-      val result = phase3TestServiceWithUnexpiredTestGroup.processNextExpiredTest(Phase3ExpirationEvent)
+      val result = phase3TestServiceWithUnexpiredTestGroup.processNextExpiredTest(Phase3ExpirationEvent, 0)
 
       result.futureValue mustBe unit
 
@@ -533,6 +533,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       Phase3TestsConfig(
         timeToExpireInDays = 5,
         invigilatedTimeToExpireInDays = 90,
+        gracePeriodInSecs = 0,
         candidateCompletionRedirectUrl = testCandidateRedirectUrl,
         Map(
           "0pc" -> zeroPCAdjustedInterviewId,

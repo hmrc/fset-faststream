@@ -54,7 +54,6 @@ trait Phase1TestRepository extends OnlineTestRepository with Phase1TestConcern {
   def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit]
 
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
-
 }
 
 class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)

@@ -144,25 +144,25 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     }
   }
 
-  def processExpiredCandidates(batchSize: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def processExpiredCandidates(batchSize: Int, gracePeriodInSecs: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
     def processApplication(appForExpiry: ApplicationForSiftExpiry): Future[Unit] = {
       expireCandidate(appForExpiry)
         .flatMap(_ => notifyExpiredCandidate(appForExpiry.applicationId))
     }
 
-    nextApplicationsForExpiry(batchSize)
+    nextApplicationsForExpiry(batchSize, gracePeriodInSecs)
       .flatMap {
         case Nil =>
           Logger.info("No applications found for SIFT expiry")
           Future.successful(())
         case applications: Seq[ApplicationForSiftExpiry] =>
-          Logger.info(s"${applications.size} applications found for SIFT expiry -- $applications")
+          Logger.info(s"${applications.size} applications found for SIFT expiry - $applications")
           Future.sequence(applications.map(processApplication)).map(_ => ())
       }
   }
 
-  def nextApplicationsForExpiry(batchSize: Int): Future[Seq[ApplicationForSiftExpiry]] = {
-    applicationSiftRepo.nextApplicationsForSiftExpiry(batchSize)
+  private def nextApplicationsForExpiry(batchSize: Int, gracePeriodInSecs: Int): Future[Seq[ApplicationForSiftExpiry]] = {
+    applicationSiftRepo.nextApplicationsForSiftExpiry(batchSize, gracePeriodInSecs)
   }
 
   def expireCandidate(appForExpiry: ApplicationForSiftExpiry): Future[Unit] = {
