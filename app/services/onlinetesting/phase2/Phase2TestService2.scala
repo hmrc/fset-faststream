@@ -229,13 +229,6 @@ trait Phase2TestService2 extends OnlineTestService with Phase2TestConcern2 with
     registerAndInviteForTestGroup(applications)
   }
 
-  override def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    testRepository2.nextExpiringApplication(expiryTest).flatMap {
-      case Some(expired) => processExpiredTest(expired, expiryTest)
-      case None => Future.successful(())
-    }
-  }
-
   override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
                                             (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val firstApplication = applications.head

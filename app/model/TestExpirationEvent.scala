@@ -17,9 +17,32 @@
 package model
 
 import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE2_TESTS_EXPIRED, PHASE3_TESTS_EXPIRED, ProgressStatus }
+import TestExpirationEmailTemplates._
 
-sealed case class TestExpirationEvent(phase: String, expiredStatus: ProgressStatus, template: String)
+sealed trait TestExpirationEvent {
+  val phase: String
+  val expiredStatus: ProgressStatus
+  val template: String
+  val gracePeriodInSecs: Int
+}
 
-object Phase1ExpirationEvent extends TestExpirationEvent("PHASE1", PHASE1_TESTS_EXPIRED, "fset_faststream_app_online_phase1_test_expired")
-object Phase2ExpirationEvent extends TestExpirationEvent("PHASE2", PHASE2_TESTS_EXPIRED, "fset_faststream_app_online_phase2_test_expired")
-object Phase3ExpirationEvent extends TestExpirationEvent("PHASE3", PHASE3_TESTS_EXPIRED, "fset_faststream_app_online_phase3_test_expired")
+case class Phase1ExpirationEvent(phase: String = "PHASE1",
+                                expiredStatus: ProgressStatus = PHASE1_TESTS_EXPIRED,
+                                template: String = phase1ExpirationTemplate,
+                                gracePeriodInSecs: Int) extends TestExpirationEvent
+
+case class Phase2ExpirationEvent(phase: String = "PHASE2",
+                                expiredStatus: ProgressStatus = PHASE2_TESTS_EXPIRED,
+                                template: String = phase2ExpirationTemplate,
+                                gracePeriodInSecs: Int) extends TestExpirationEvent
+
+case class Phase3ExpirationEvent(phase: String = "PHASE3",
+                                expiredStatus: ProgressStatus = PHASE3_TESTS_EXPIRED,
+                                template: String = phase3ExpirationTemplate,
+                                gracePeriodInSecs: Int) extends TestExpirationEvent
+
+object TestExpirationEmailTemplates {
+  val phase1ExpirationTemplate = "fset_faststream_app_online_phase1_test_expired"
+  val phase2ExpirationTemplate = "fset_faststream_app_online_phase2_test_expired"
+  val phase3ExpirationTemplate = "fset_faststream_app_online_phase3_test_expired"
+}

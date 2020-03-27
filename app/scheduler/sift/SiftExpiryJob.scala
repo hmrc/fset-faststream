@@ -20,6 +20,7 @@ import config.WaitingScheduledJobConfig
 import play.api.Logger
 import scheduler.BasicJobConfig
 import ProgressToSiftJobConfig.conf
+import config.MicroserviceAppConfig.testIntegrationGatewayConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.sift.ApplicationSiftService
 import uk.gov.hmrc.http.HeaderCarrier
@@ -27,18 +28,20 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.{ ExecutionContext, Future }
 
 object SiftExpiryJob extends SiftExpiryJob {
-  val siftService = ApplicationSiftService
-  val config = SiftExpiryJobConfig
+  override val siftService = ApplicationSiftService
+  override val gracePeriodInSecs = testIntegrationGatewayConfig.numericalTests.gracePeriodInSecs
+  override val config = SiftExpiryJobConfig
 }
 
 trait SiftExpiryJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val siftService: ApplicationSiftService
+  val gracePeriodInSecs: Int
   lazy val batchSize = conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
-    Logger.info("Expiring candidates in SIFT")
-    siftService.processExpiredCandidates(batchSize).map(_ => ())
+    Logger.info(s"Expiring candidates in SIFT with batchSize = $batchSize, gracePeriodInSecs = $gracePeriodInSecs")
+    siftService.processExpiredCandidates(batchSize, gracePeriodInSecs).map(_ => ())
   }
 }
 

@@ -27,7 +27,11 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     val passMarkSettingsRepo: Phase3PassMarkSettingsMongoRepository = phase3PassMarkSettingRepo
     val phase = Phase.PHASE3
     val phase3TestsConfigMock: Phase2TestsConfig = mock[Phase2TestsConfig]
-    val launchpadGWConfig = LaunchpadGatewayConfig(url = "", phase3Tests = Phase3TestsConfig(7, 7, "", Map.empty, 3, verifyAllScoresArePresent))
+    val launchpadGWConfig = LaunchpadGatewayConfig(
+      url = "",
+      Phase3TestsConfig(
+        timeToExpireInDays = 7, invigilatedTimeToExpireInDays = 7,  gracePeriodInSecs = 0, candidateCompletionRedirectUrl = "",
+        interviewsByAdjustmentPercentage = Map.empty, evaluationWaitTimeAfterResultsReceivedInHours = 3, verifyAllScoresArePresent))
     val generalAppRepository: GeneralApplicationMongoRepository = applicationRepository
   }
 

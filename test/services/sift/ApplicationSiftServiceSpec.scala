@@ -61,8 +61,8 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
         Scheme("Commercial", "GCS", "Commercial", civilServantEligible = false, None, Some(SiftRequirement.NUMERIC_TEST),
           siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None
         ),
-        Scheme("GovernmentEconomicsService", "GES", " Government Economics Service", civilServantEligible = false, None, Some(SiftRequirement.FORM),
-          siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None
+        Scheme("GovernmentEconomicsService", "GES", " Government Economics Service", civilServantEligible = false, None,
+          Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None
         ),
         Scheme("HousesOfParliament", "HOP", "Houses of Parliament", civilServantEligible = true, None, Some(SiftRequirement.FORM),
           siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None
@@ -373,11 +373,12 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       val candidate: Candidate = CandidateExamples.minCandidate("userId")
       val contactDetails: ContactDetails = ContactDetailsExamples.ContactDetailsUK
 
-      (mockApplicationSiftRepo.nextApplicationsForSiftExpiry(_ : Int)).expects(*).returningAsync(List(applicationForSiftExpiry))
+      (mockApplicationSiftRepo.nextApplicationsForSiftExpiry(_ : Int, _ : Int)).expects(*, *).returningAsync(List(applicationForSiftExpiry))
 
       (mockApplicationRepo.addProgressStatusAndUpdateAppStatus(_ : String, _: ProgressStatus)).expects(appId, ProgressStatuses.SIFT_EXPIRED)
         .returningAsync
-      (mockApplicationRepo.addProgressStatusAndUpdateAppStatus(_ : String, _: ProgressStatus)).expects(appId, ProgressStatuses.SIFT_EXPIRED_NOTIFIED)
+      (mockApplicationRepo.addProgressStatusAndUpdateAppStatus(_ : String, _: ProgressStatus))
+        .expects(appId, ProgressStatuses.SIFT_EXPIRED_NOTIFIED)
         .returningAsync
 
       (mockApplicationRepo.find(_ : String)).expects(appId).returningAsync(Some(candidate))
@@ -385,7 +386,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       (mockEmailClient.sendSiftExpired(_: String, _: String)(_: HeaderCarrier))
         .expects(contactDetails.email, candidate.name, *).returningAsync
 
-      whenReady(service.processExpiredCandidates(1)(HeaderCarrier())) { result => result mustBe unit }
+      whenReady(service.processExpiredCandidates(batchSize = 1, gracePeriodInSecs = 0)(HeaderCarrier())) { result => result mustBe unit }
     }
   }
 
