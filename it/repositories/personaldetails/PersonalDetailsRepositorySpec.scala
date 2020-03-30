@@ -19,7 +19,7 @@ class PersonalDetailsRepositorySpec extends MongoRepositorySpec {
   override val collectionName = CollectionNames.APPLICATION
 
   def repository = new PersonalDetailsMongoRepository(DateTimeFactory)
-  def appRepository = new GeneralApplicationMongoRepository(DateTimeFactory, onlineTestsGatewayConfig)
+  def appRepository = new GeneralApplicationMongoRepository(DateTimeFactory, testIntegrationGatewayConfig, eventsConfig)
 
   "update candidate" should {
     "modify the details and find the personal details successfully" in {
