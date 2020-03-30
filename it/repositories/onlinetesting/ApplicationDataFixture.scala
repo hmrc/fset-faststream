@@ -12,14 +12,14 @@ import testkit.MongoRepositorySpec
 import reactivemongo.play.json.ImplicitBSONHandlers
 
 import scala.concurrent.Future
-import config.MicroserviceAppConfig.onlineTestsGatewayConfig
+import config.MicroserviceAppConfig._
 import model.SchemeId
 import repositories.CollectionNames
 
 trait ApplicationDataFixture {
   this: MongoRepositorySpec =>
 
-  def helperRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, onlineTestsGatewayConfig)
+  def helperRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, testIntegrationGatewayConfig, eventsConfig)
 
   def phase1TestRepo = new Phase1TestMongoRepository(ITDateTimeFactoryMock)
 

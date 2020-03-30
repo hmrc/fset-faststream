@@ -20,7 +20,7 @@ import java.util.UUID
 import java.util.regex.Pattern
 
 import com.github.nscala_time.time.OrderingImplicits.DateTimeOrdering
-import config.OnlineTestsGatewayConfig
+import config.{ EventsConfig, OnlineTestsGatewayConfig, TestIntegrationGatewayConfig }
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
@@ -188,7 +188,8 @@ trait GeneralApplicationRepository {
 // scalastyle:off file.size.limit
 class GeneralApplicationMongoRepository(
   val dateTimeFactory: DateTimeFactory,
-  gatewayConfig: OnlineTestsGatewayConfig
+  gatewayConfig: TestIntegrationGatewayConfig,
+  eventsConfig: EventsConfig
 )(implicit mongo: () => DefaultDB)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
     CreateApplicationRequest.createApplicationRequestFormat,
@@ -967,12 +968,12 @@ class GeneralApplicationMongoRepository(
     }
   }
 
-
   override def findCandidatesEligibleForEventAllocation(
     locations: List[String],
     eventType: EventType,
     schemeId: Option[SchemeId]
   ): Future[CandidatesEligibleForEventResponse] = {
+    Logger.info(s"Finding candidates eligible for event allocation with maxNumberOfCandidates = ${eventsConfig.maxNumberOfCandidates}")
     val appStatus = eventType.applicationStatus
     val status = EventProgressStatuses.get(appStatus)
     val awaitingAllocation = status.awaitingAllocation.key
@@ -1004,7 +1005,7 @@ class GeneralApplicationMongoRepository(
         val ascending = JsNumber(1)
         // Eligible candidates should be sorted based on when they passed PHASE 3
         val sort = new JsObject(Map(s"progress-status-timestamp.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> ascending))
-        collection.find(query, projection).sort(sort).cursor[BSONDocument]().collect[List](50)
+        collection.find(query, projection).sort(sort).cursor[BSONDocument]().collect[List](eventsConfig.maxNumberOfCandidates)
           .map { docList =>
             docList.map { doc =>
               bsonDocToCandidatesEligibleForEvent(doc)

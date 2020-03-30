@@ -72,7 +72,7 @@ package object repositories {
   lazy val fsacIndicatorRepository = new FSACIndicatorMongoRepository
   lazy val questionnaireRepository = new QuestionnaireMongoRepository(new SocioEconomicScoreCalculator {})
   lazy val mediaRepository = new MediaMongoRepository()
-  lazy val applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactory, onlineTestsGatewayConfig)
+  lazy val applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactory, testIntegrationGatewayConfig, eventsConfig)
   lazy val reportingRepository = new ReportingMongoRepository(timeZoneService, DateTimeFactory)
   lazy val phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
   lazy val phase1TestRepository2 = new Phase1TestMongoRepository2(DateTimeFactory)

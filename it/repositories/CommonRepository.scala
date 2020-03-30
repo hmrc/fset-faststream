@@ -1,7 +1,7 @@
 package repositories
 
 import common.FutureEx
-import config.{ LaunchpadGatewayConfig, OnlineTestsGatewayConfig, TestIntegrationGatewayConfig }
+import config.{ EventsConfig, LaunchpadGatewayConfig, OnlineTestsGatewayConfig, TestIntegrationGatewayConfig }
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
@@ -40,6 +40,8 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
 
   val mockLaunchpadConfig = mock[LaunchpadGatewayConfig]
 
+  val mockEventsConfig = mock[EventsConfig]
+
   val DiplomaticServiceEconomists: SchemeId = SchemeId("DiplomaticServiceEconomists")
   val Finance = SchemeId("Finance")
   val GovernmentEconomicsService = SchemeId("GovernmentEconomicsService")
@@ -48,7 +50,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
   val Edip = SchemeId("Edip")
   val siftableSchemeDefinitions = List(DiplomaticServiceEconomists, Finance, GovernmentEconomicsService, Sdip)
 
-  def applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactory, mockGatewayConfig)
+  def applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactory, mockTestIntegrationGatewayConfig, mockEventsConfig)
 
   def schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository
 

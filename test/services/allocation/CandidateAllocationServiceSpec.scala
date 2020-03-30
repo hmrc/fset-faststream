@@ -146,7 +146,8 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
 
       override def schemeRepository: SchemeRepository = SchemeYamlRepository
 
-      override def eventsConfig: EventsConfig = EventsConfig("", "", 1)
+      override def eventsConfig: EventsConfig =
+        EventsConfig(scheduleFilePath = "", fsacGuideUrl = "", daysBeforeInvitationReminder = 1, maxNumberOfCandidates = 1)
     }
 
     protected def mockGetEvent: OngoingStubbing[Future[Event]] = when(mockEventsService.getEvent(any[String]())).thenReturnAsync(new Event(

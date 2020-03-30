@@ -32,7 +32,7 @@ case class FrameworksConfig(yamlFilePath: String)
 
 case class SchemeConfig(yamlFilePath: String)
 
-case class EventsConfig(scheduleFilePath: String, fsacGuideUrl: String, daysBeforeInvitationReminder: Int)
+case class EventsConfig(scheduleFilePath: String, fsacGuideUrl: String, daysBeforeInvitationReminder: Int, maxNumberOfCandidates: Int)
 
 case class EventSubtypeConfig(yamlFilePath: String)
 
