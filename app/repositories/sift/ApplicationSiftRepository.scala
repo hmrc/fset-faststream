@@ -366,7 +366,7 @@ class ApplicationSiftMongoRepository(
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_READY}" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"testGroups.$phaseName.expirationDate" ->
-        BSONDocument("$lte" -> DateTimeFactory.nowLocalTimeZone.plusSeconds(gracePeriodInSecs))
+        BSONDocument("$lte" -> DateTimeFactory.nowLocalTimeZone.minusSeconds(gracePeriodInSecs))
       )
     ))
 

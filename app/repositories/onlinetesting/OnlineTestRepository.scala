@@ -278,7 +278,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> thisApplicationStatus),
       BSONDocument(s"testGroups.${expiryTest.phase}.expirationDate" ->
-        BSONDocument("$lte" -> dateTimeFactory.nowLocalTimeZone.plusSeconds(expiryTest.gracePeriodInSecs)) // Serialises to UTC.
+        BSONDocument("$lte" -> dateTimeFactory.nowLocalTimeZone.minusSeconds(expiryTest.gracePeriodInSecs)) // Serialises to UTC.
       ), expiredTestQuery))
 
     implicit val reader = bsonReader(ExpiringOnlineTest.fromBson)
