@@ -86,7 +86,6 @@ trait FsbService extends CurrentSchemeStatusHelper {
   }
 
   def evaluateFsbCandidate(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
-
     Logger.debug(s"$logPrefix running for application $applicationId")
 
     val appId = applicationId.toString()
@@ -159,9 +158,11 @@ trait FsbService extends CurrentSchemeStatusHelper {
       // These futures need to be in sequence one after the other
       (for {
         _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_PASSED)
+        _ = Logger.debug(s"$logPrefix successfully added $FSB_PASSED for $appId")
       } yield for {
         // There are no notifications before going to eligible but we want audit trail to show we've passed
         _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ELIGIBLE_FOR_JOB_OFFER)
+        _ = Logger.debug(s"$logPrefix successfully added $ELIGIBLE_FOR_JOB_OFFER for $appId")
       } yield ()).flatMap(identity)
 
     } else {

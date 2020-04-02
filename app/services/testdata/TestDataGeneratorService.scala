@@ -136,8 +136,8 @@ trait TestDataGeneratorService extends MongoDbConnection {
   }
 
   def createCandidates(numberToGenerate: Int,
-                       generatorForStatus: (CreateCandidateData) => BaseGenerator,
-                       configGenerator: (Int) => CreateCandidateData
+                       generatorForStatus: CreateCandidateData => BaseGenerator,
+                       configGenerator: Int => CreateCandidateData
                                       )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateCandidateResponse]] = {
     Future.successful {
       val parNumbers = getParNumbers(numberToGenerate)
@@ -151,8 +151,8 @@ trait TestDataGeneratorService extends MongoDbConnection {
   }
 
   def createAdmins(numberToGenerate: Int,
-                   generatorForStatus: (CreateAdminData) => AdminUserBaseGenerator,
-                   createData: (Int) => CreateAdminData
+                   generatorForStatus: CreateAdminData => AdminUserBaseGenerator,
+                   createData: Int => CreateAdminData
                                       )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateAdminResponse]] = {
     Future.successful {
       val parNumbers = getParNumbers(numberToGenerate)
@@ -165,7 +165,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
     }
   }
 
-  def createEvents(numberToGenerate: Int, createDatas: List[(Int) => CreateEventData])(
+  def createEvents(numberToGenerate: Int, createDatas: List[Int => CreateEventData])(
     implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateEventResponse]] = {
     val listOfFutures = createDatas.map { createData =>
       createEvent(numberToGenerate, createData)
@@ -173,7 +173,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
     Future.sequence(listOfFutures).map(_.flatten)
   }
 
-  def createEvent(numberToGenerate: Int, createData: (Int) => CreateEventData)(
+  def createEvent(numberToGenerate: Int, createData: Int => CreateEventData)(
     implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateEventResponse]] = {
     Future.successful {
       val parNumbers = getParNumbers(numberToGenerate)
@@ -185,7 +185,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
     }
   }
 
-  def createAssessorAllocation(numberToGenerate: Int, createData: (Int) => CreateAssessorAllocationData)(
+  def createAssessorAllocation(numberToGenerate: Int, createData: Int => CreateAssessorAllocationData)(
     implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateAssessorAllocationResponse]] = {
     Future.successful {
       val parNumbers = getParNumbers(numberToGenerate)
@@ -197,7 +197,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
     }
   }
 
-  def createCandidateAllocation(numberToGenerate: Int, createData: (Int) => CreateCandidateAllocationData)
+  def createCandidateAllocation(numberToGenerate: Int, createData: Int => CreateCandidateAllocationData)
                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateCandidateAllocationResponse]] = {
     Future.successful {
       val parNumbers = getParNumbers(numberToGenerate)
@@ -206,16 +206,15 @@ trait TestDataGeneratorService extends MongoDbConnection {
     }
   }
 
-
-  def createAssessorAllocations(numberToGenerate: Int, createDatas: List[(Int) => CreateAssessorAllocationData])(
+  def createAssessorAllocations(numberToGenerate: Int, createData: List[Int => CreateAssessorAllocationData])(
     implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateAssessorAllocationResponse]] = {
-    val listOfFutures = createDatas.map { createData =>
+    val listOfFutures = createData.map { createData =>
       createAssessorAllocation(numberToGenerate, createData)
     }
     Future.sequence(listOfFutures).map(_.flatten)
   }
 
-  def createCandidateAllocations(numberToGenerate: Int, data: List[(Int) => CreateCandidateAllocationData])
+  def createCandidateAllocations(numberToGenerate: Int, data: List[Int => CreateCandidateAllocationData])
                                 (implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateCandidateAllocationResponse]] = {
     val listOfFutures = data.map { element =>
       createCandidateAllocation(numberToGenerate, element)
@@ -232,16 +231,13 @@ trait TestDataGeneratorService extends MongoDbConnection {
   }
 
   private def runInParallel[D <: CreateTestData, R <: CreateTestDataResponse](parNumbers: ParRange,
-                                                                              createData: (Int => D),
-                                                                              block: (Int, D) => Future[R])
-  : List[R] = {parNumbers.map { candidateGenerationId =>
+                                                                              createData: Int => D,
+                                                                              block: (Int, D) => Future[R]): List[R] = {
+    parNumbers.map { candidateGenerationId =>
         Await.result(
           block(candidateGenerationId, createData(candidateGenerationId)),
           10 seconds
         )
       }.toList
-
-
   }
-
 }

@@ -7,6 +7,7 @@
     specificRequirement: false
   siftRequirement: NUMERIC_TEST
   siftEvaluationRequired: true
+  fsbType: CFS - Skype interview
 - id: DigitalAndTechnology
   code: DAT
   name: Digital, Data & Technology
