@@ -86,11 +86,9 @@ trait FsbService extends CurrentSchemeStatusHelper {
   }
 
   def evaluateFsbCandidate(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
-
     Logger.debug(s"$logPrefix running for application $applicationId")
 
     val appId = applicationId.toString()
-
     for {
       fsbEvaluation <- fsbRepo.findByApplicationId(appId).map(_.map(_.evaluation.result))
       schemePreferences <- schemePreferencesService.find(applicationId.toString())
@@ -105,7 +103,6 @@ trait FsbService extends CurrentSchemeStatusHelper {
 
   private def getResultsForScheme(appId: String, schemeId: SchemeId, results: Seq[SchemeEvaluationResult]): SchemeEvaluationResult = {
     import DSSchemeIds._
-    Logger.debug(s"$logPrefix - [getResultsForScheme] schemeId = $schemeId")
     val r = schemeId match {
       case DiplomaticServiceEconomists =>
         val res = Seq(
@@ -180,12 +177,9 @@ trait FsbService extends CurrentSchemeStatusHelper {
         val newCurrentSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, fsbEvaluation.get ++ Seq(firstResidualInEvaluation))
         Logger.debug(s"$logPrefix newCurrentSchemeStatus = $newCurrentSchemeStatus")
 
-        // If the candidate is only in the running for GES-DS at fsb then do not evaluate further
-        val onlyInTheRunningForGesDsAtFsb = currentSchemeStatus.size == 1 &&
-          currentSchemeStatus.contains(SchemeEvaluationResult(SchemeId("DiplomaticServiceEconomists"), "Green"))
-        val newFirstPreference = if (onlyInTheRunningForGesDsAtFsb) {
-          Option.empty[SchemeEvaluationResult]
-        } else { firstResidualPreference(newCurrentSchemeStatus) }
+        val newFirstPreference = if (canProcessNextScheme(currentSchemeStatus, fsbEvaluation.get)) {
+          firstResidualPreference(newCurrentSchemeStatus)
+        } else { Option.empty[SchemeEvaluationResult] }
         Logger.debug(s"$logPrefix newFirstPreference = $newFirstPreference")
 
         fsbRepo.updateCurrentSchemeStatus(appId, newCurrentSchemeStatus).flatMap { _ =>
@@ -200,6 +194,30 @@ trait FsbService extends CurrentSchemeStatusHelper {
       }
     }
   }
+
+  // scalastyle:off cyclomatic.complexity
+  private def canProcessNextScheme(currentSchemeStatus: Seq[SchemeEvaluationResult], fsbEvaluation: Seq[SchemeEvaluationResult]) = {
+    // If the candidate is only in the running for GES-DS at fsb then do not evaluate further so the split GES and DS
+    // are not evaluated further because at this point the overall GES-DS is a fail so they are not relevant
+    val onlyInTheRunningForGesDsAtFsb = currentSchemeStatus.size == 1 &&
+      currentSchemeStatus.contains(SchemeEvaluationResult(DiplomaticServiceEconomists, "Green"))
+
+    // If the candidate has GES-DS and DS at fsb but the DS is a fail then stop
+    val inTheRunningForGesDsAndDsAtFsbAndDsFailed = currentSchemeStatus.size == 2 &&
+      currentSchemeStatus.contains(SchemeEvaluationResult(DiplomaticServiceEconomists, "Green")) &&
+      currentSchemeStatus.contains(SchemeEvaluationResult(DiplomaticService, "Green")) &&
+      fsbEvaluation.contains(SchemeEvaluationResult(DiplomaticService, "Red"))
+
+    // If the candidate has GES-DS and GES at fsb but the GES is a fail then stop
+    val inTheRunningForGesDsAndGesAtFsbAndGesFailed = currentSchemeStatus.size == 2 &&
+      currentSchemeStatus.contains(SchemeEvaluationResult(DiplomaticServiceEconomists, "Green")) &&
+      currentSchemeStatus.contains(SchemeEvaluationResult(GovernmentEconomicsService, "Green")) &&
+      fsbEvaluation.contains(SchemeEvaluationResult(GovernmentEconomicsService, "Red"))
+
+    if (onlyInTheRunningForGesDsAtFsb || inTheRunningForGesDsAndDsAtFsbAndDsFailed || inTheRunningForGesDsAndGesAtFsbAndGesFailed) {
+      false
+    } else { true }
+  } //scalastyle:on
 
   private def maybeNotifyOnFailNeedNewFsb(appId: String, newCurrentSchemeStatus: Seq[SchemeEvaluationResult])(
     implicit hc: HeaderCarrier): Future[Unit] = {
