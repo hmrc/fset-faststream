@@ -277,6 +277,74 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       // verify the failure email is sent out
       verify(mockEmailClient).notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any[HeaderCarrier])
     }
+
+    "Fail the candidate who is in the running for GES-DS and DS schemes who passes the EAC part but fails the FCO part of " +
+      "the GES_DS fsb" in new TestFixture {
+      val fsbResult = FsbTestGroup(List(
+        SchemeEvaluationResult(DSSchemeIds.DiplomaticService, Red.toString),
+        SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Green.toString)
+      ))
+      when(mockFsbRepo.findByApplicationId(uid.toString())).thenReturnAsync(Some(fsbResult))
+
+      override val schemes = List(DSSchemeIds.DiplomaticServiceEconomists, DSSchemeIds.DiplomaticService)
+      override val selectedSchemes = SelectedSchemes(schemes, orderAgreed = true, eligible = true)
+      when(mockSchemePreferencesService.find(uid.toString())).thenReturnAsync(selectedSchemes)
+
+      // This is the css after FSAC and before FSB evaluation
+      val curSchemeStatus = List(
+        SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Green.toString),
+        SchemeEvaluationResult(DSSchemeIds.DiplomaticService, Green.toString)
+      )
+      when(mockApplicationRepo.getCurrentSchemeStatus(uid.toString())).thenReturnAsync(curSchemeStatus)
+
+      when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.FSB_FAILED)).thenReturnAsync()
+      when(mockFsbRepo.updateCurrentSchemeStatus(any[String], any[List[SchemeEvaluationResult]])).thenReturnAsync()
+      when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED)).thenReturnAsync()
+
+      // Mocking required to send the failure email
+      when(mockApplicationRepo.find(uid.toString())).thenReturnAsync(Some(cand1))
+      when(mockContactDetailsRepo.find(cand1.userId)).thenReturnAsync(cd1)
+      when(mockEmailClient.notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any())).thenReturnAsync()
+
+      service.evaluateFsbCandidate(uid)(hc).futureValue
+      verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED)
+      // verify the failure email is sent out
+      verify(mockEmailClient).notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any[HeaderCarrier])
+    }
+
+    "Fail the candidate who is in the running for GES-DS and GES schemes who fails the EAC part and passes the FCO part of " +
+      "the GES_DS fsb" in new TestFixture {
+      val fsbResult = FsbTestGroup(List(
+        SchemeEvaluationResult(DSSchemeIds.DiplomaticService, Green.toString),
+        SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Red.toString)
+      ))
+      when(mockFsbRepo.findByApplicationId(uid.toString())).thenReturnAsync(Some(fsbResult))
+
+      override val schemes = List(DSSchemeIds.DiplomaticServiceEconomists, DSSchemeIds.GovernmentEconomicsService)
+      override val selectedSchemes = SelectedSchemes(schemes, orderAgreed = true, eligible = true)
+      when(mockSchemePreferencesService.find(uid.toString())).thenReturnAsync(selectedSchemes)
+
+      // This is the css after FSAC and before FSB evaluation
+      val curSchemeStatus = List(
+        SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Green.toString),
+        SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Green.toString)
+      )
+      when(mockApplicationRepo.getCurrentSchemeStatus(uid.toString())).thenReturnAsync(curSchemeStatus)
+
+      when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.FSB_FAILED)).thenReturnAsync()
+      when(mockFsbRepo.updateCurrentSchemeStatus(any[String], any[List[SchemeEvaluationResult]])).thenReturnAsync()
+      when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED)).thenReturnAsync()
+
+      // Mocking required to send the failure email
+      when(mockApplicationRepo.find(uid.toString())).thenReturnAsync(Some(cand1))
+      when(mockContactDetailsRepo.find(cand1.userId)).thenReturnAsync(cd1)
+      when(mockEmailClient.notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any())).thenReturnAsync()
+
+      service.evaluateFsbCandidate(uid)(hc).futureValue
+      verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED)
+      // verify the failure email is sent out
+      verify(mockEmailClient).notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any[HeaderCarrier])
+    }
   }
 
   trait TestFixture {
