@@ -188,8 +188,8 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       * - DiplomaticService (code: DS, fsbType: FCO)
       *
       * At FSB the separate parts are named correctly:
-      * EAC pass/fail FCO pass/fail actual outcome expected outcome
-      * pass          fail          offered a job  fail
+      * EAC pass/fail FCO pass/fail previous actual outcome expected outcome (now fixed)
+      * pass          fail          offered a job           fail
       *
       */
 
@@ -246,9 +246,9 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(mockEmailClient).notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any[HeaderCarrier])
     }
 
-    "Fail the candidate who is only in the running for GES-DS if the candidate fails " +
-      "the EAC part but passes the DS (FCO) part of the GES_DS fsb. Note the candidate should not be invited " +
-      "to the DS part if they fail the EAC part (so this should never happen)" in new TestFixture {
+    "Fail the candidate who is only in the running for GES-DS if the candidate fails the EAC part but passes " +
+      "the DS (FCO) part of the GES_DS fsb. Note the candidate should not be invited to the DS part " +
+      "if they fail the EAC part (so this should never happen unless they also have DS as a separate scheme)" in new TestFixture {
       val fsbResult = FsbTestGroup(List(
         SchemeEvaluationResult(DSSchemeIds.DiplomaticService, Green.toString),
         SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Red.toString)
