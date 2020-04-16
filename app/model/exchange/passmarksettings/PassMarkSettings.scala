@@ -107,3 +107,16 @@ object AssessmentCentrePassMarkSettings {
   implicit val jsonFormat = Json.format[AssessmentCentrePassMarkSettings]
   implicit val bsonHandler = Macros.handler[AssessmentCentrePassMarkSettings]
 }
+
+case class AssessmentCentrePassMarkSettingsV2(
+                                   schemes: List[AssessmentCentrePassMarkV2],
+                                   version: String,
+                                   createDate: DateTime,
+                                   createdBy: String
+                                 ) extends PassMarkSettings
+
+object AssessmentCentrePassMarkSettingsV2 {
+  import repositories.BSONDateTimeHandler
+  implicit val jsonFormat = Json.format[AssessmentCentrePassMarkSettingsV2]
+  implicit val bsonHandler = Macros.handler[AssessmentCentrePassMarkSettingsV2]
+}

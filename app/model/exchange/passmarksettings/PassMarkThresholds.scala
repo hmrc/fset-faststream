@@ -41,6 +41,14 @@ trait AssessmentCentreThresholds {
   def assessmentCentre: PassMarkThreshold
 }
 
+trait AssessmentCentreThresholdsV2 {
+  def seeingTheBigPicture: PassMarkThreshold
+  def makingEffectiveDecisions: PassMarkThreshold
+  def communicatingAndInfluencing: PassMarkThreshold
+  def workingTogetherDevelopingSelfAndOthers: PassMarkThreshold
+  def overall: PassMarkThreshold
+}
+
 case class Phase1PassMarkThresholds(
                                      test1: PassMarkThreshold,
                                      test2: PassMarkThreshold,
@@ -79,4 +87,17 @@ case class AssessmentCentrePassMarkThresholds(
 object AssessmentCentrePassMarkThresholds {
   implicit val jsonFormat = Json.format[AssessmentCentrePassMarkThresholds]
   implicit val bsonHandler = Macros.handler[AssessmentCentrePassMarkThresholds]
+}
+
+case class AssessmentCentrePassMarkThresholdsV2(
+                                     override val seeingTheBigPicture: PassMarkThreshold,
+                                     override val makingEffectiveDecisions: PassMarkThreshold,
+                                     override val communicatingAndInfluencing: PassMarkThreshold,
+                                     override val workingTogetherDevelopingSelfAndOthers: PassMarkThreshold,
+                                     override val overall: PassMarkThreshold
+                                   ) extends PassMarkThresholds with AssessmentCentreThresholdsV2
+
+object AssessmentCentrePassMarkThresholdsV2 {
+  implicit val jsonFormat = Json.format[AssessmentCentrePassMarkThresholdsV2]
+  implicit val bsonHandler = Macros.handler[AssessmentCentrePassMarkThresholdsV2]
 }

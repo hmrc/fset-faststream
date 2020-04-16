@@ -64,3 +64,13 @@ object AssessmentCentrePassMark {
   implicit val jsonFormat = Json.format[AssessmentCentrePassMark]
   implicit val bsonHandler = Macros.handler[AssessmentCentrePassMark]
 }
+
+case class AssessmentCentrePassMarkV2(
+                           schemeId: SchemeId,
+                           schemeThresholds: AssessmentCentrePassMarkThresholdsV2
+                         ) extends PassMark
+
+object AssessmentCentrePassMarkV2 {
+  implicit val jsonFormat = Json.format[AssessmentCentrePassMarkV2]
+  implicit val bsonHandler = Macros.handler[AssessmentCentrePassMarkV2]
+}
