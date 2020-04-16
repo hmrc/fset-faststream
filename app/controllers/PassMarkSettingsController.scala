@@ -63,6 +63,16 @@ object AssessmentCentrePassMarkSettingsController extends PassMarkSettingsContro
     passMarkSettings.copy(version = newVersionUUID, createDate = DateTime.now())
 }
 
+object AssessmentCentrePassMarkSettingsControllerV2 extends PassMarkSettingsController[AssessmentCentrePassMarkSettingsV2] {
+  val passMarkService = AssessmentCentrePassMarkSettingsServiceV2
+  val auditService = AuditService
+  val uuidFactory = UUIDFactory
+  val passMarksCreatedEvent = "AssessmentCentrePassMarkSettingsCreated"
+  def upgradeVersion(passMarkSettings:AssessmentCentrePassMarkSettingsV2, newVersionUUID: String) = {
+    passMarkSettings.copy(version = newVersionUUID, createDate = DateTime.now())
+  }
+}
+
 abstract class PassMarkSettingsController[T <: PassMarkSettings]
 (implicit manifest: Manifest[T], jsonFormat: Format[T]) extends BaseController {
 

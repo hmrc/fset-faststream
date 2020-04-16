@@ -24,6 +24,7 @@ object CollectionNames {
   val ASSESSOR_ASSESSMENT_SCORES = s"assessor-assessment-scores$suffixForThisCampaign"
   val REVIEWER_ASSESSMENT_SCORES = s"reviewer-assessment-scores$suffixForThisCampaign"
   val ASSESSMENT_CENTRE_PASS_MARK_SETTINGS = s"assessment-centre-pass-mark-settings$suffixForThisCampaign"
+  val ASSESSMENT_CENTRE_PASS_MARK_SETTINGS_V2 = s"assessment-centre-pass-mark-settings-v2$suffixForThisCampaign"
   val ASSESSOR = s"assessor$suffixForThisCampaign"
   val ASSESSOR_ALLOCATION = s"assessor-allocation$suffixForThisCampaign"
   val ASSESSOR_EVENTS_SUMMARY_JOBS = s"assessor-events-summary-jobs$suffixForThisCampaign"
