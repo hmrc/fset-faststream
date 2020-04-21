@@ -53,7 +53,10 @@ trait CandidateAllocationController extends BaseController {
       candidateAllocationService.allocateCandidates(newAllocations, append).map {
         _ => Ok
       }.recover {
-        case e: OptimisticLockException => Conflict(e.getMessage)
+        case e: OptimisticLockException =>
+          Logger.debug(s"Caught OptimisticLockException for eventId=$eventId, sessionId=$sessionId " +
+            s"so will return a http $CONFLICT back to client")
+          Conflict(e.getMessage)
         case e =>
           // Log the data we are trying to save as this operation may perform a deletion first and there is no rollback
           val data = candidateAllocations.allocations.map( ca => s"[applicationId=${ca.id},status=${ca.status}]").mkString(",")

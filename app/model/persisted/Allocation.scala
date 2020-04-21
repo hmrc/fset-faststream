@@ -60,7 +60,17 @@ case class CandidateAllocation(
   removeReason: Option[String],
   createdAt: LocalDate,
   reminderSent: Boolean
-) extends Allocation
+) extends Allocation {
+  override def toString =
+    s"id=$id," +
+    s"eventId=$eventId," +
+    s"sessionId=$sessionId," +
+    s"status=$status," +
+    s"version=$version," +
+    s"removeReason=$removeReason," +
+    s"createdAt=$createdAt," +
+    s"reminderSent=$reminderSent"
+}
 
 object CandidateAllocation {
   implicit val candidateAllocationFormat: OFormat[CandidateAllocation] = Json.format[CandidateAllocation]

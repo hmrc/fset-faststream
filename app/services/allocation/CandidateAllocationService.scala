@@ -18,6 +18,7 @@ package services.allocation
 
 import config.{ EventsConfig, MicroserviceAppConfig }
 import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
+import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.OptimisticLockException
 import model.ProgressStatuses.EventProgressStatuses
 import model._
@@ -161,13 +162,14 @@ trait CandidateAllocationService extends EventSink {
               command.CandidateAllocations(newAllocations.eventId, newAllocations.sessionId, toPersist)
             }
           case _ =>
-            val existingIds = existingAllocation.allocations.map(_.id)
             updateExistingAllocations(existingAllocation, newAllocations, event.eventType, append).flatMap { res =>
+              // Do not send emails to the existing allocations
+              val existingIds = existingAllocation.allocations.map(_.id)
               Future.sequence(
                 newAllocations.allocations
                   .filter(alloc => !existingIds.contains(alloc.id))
                   .map(sendCandidateEmail(_, event, UniqueIdentifier(newAllocations.sessionId)))
-              ).map { _ => res}
+              ).map { _ => res }
             }
         }
       }
@@ -246,8 +248,13 @@ trait CandidateAllocationService extends EventSink {
     append: Boolean
   ): Future[command.CandidateAllocations] = {
 
+    def onlyCandidatesInFsb(toPersist: Seq[model.persisted.CandidateAllocation], idsWithAppStatus: Seq[(String, ApplicationStatus)]) = {
+      // Identify the candidates who are still in fsb and so can be processed. This will exclude candidates in eligible_for_job_offer
+      val idsInFsbOnly = idsWithAppStatus.collect { case (appId, appStatus) if appStatus == ApplicationStatus.FSB => appId }
+      toPersist.filter(allocation => idsInFsbOnly.contains(allocation.id))
+    }
+
     if (existingAllocations.version.forall(_ == newAllocations.version)) {
-      val toDelete = persisted.CandidateAllocation.fromExchange(existingAllocations, newAllocations.eventId, newAllocations.sessionId)
       val newAllocsAll = if (append) {
         val oldToStay = existingAllocations.allocations
           .filter(a => !newAllocations.allocations.exists(_.id == a.id)).map(CandidateAllocation.fromExchange)
@@ -255,15 +262,21 @@ trait CandidateAllocationService extends EventSink {
       } else {
         newAllocations
       }
+      val toDelete = persisted.CandidateAllocation.fromExchange(existingAllocations, newAllocations.eventId, newAllocations.sessionId)
       val toPersist = persisted.CandidateAllocation.fromCommand(newAllocsAll)
-      candidateAllocationRepo.delete(toDelete).flatMap { _ =>
-        candidateAllocationRepo.save(toPersist).flatMap { _ =>
-          updateStatusInvited(toPersist, eventType).map { _ =>
-            command.CandidateAllocations(newAllocations.eventId, newAllocations.sessionId, toPersist)
-          }
-        }
+      for {
+        _ <- candidateAllocationRepo.delete(toDelete)
+        _ <- candidateAllocationRepo.save(toPersist)
+        appIds = toPersist.map(_.id)
+        // Fetch the application statuses of the existing allocations so we can see if any candidates have moved out of fsb
+        idsWithAppStatus <- applicationRepo.getApplicationStatusForCandidates(appIds)
+        _ <- updateStatusInvited(onlyCandidatesInFsb(toPersist, idsWithAppStatus), eventType)
+      } yield {
+        command.CandidateAllocations(newAllocations.eventId, newAllocations.sessionId, toPersist)
       }
     } else {
+      play.api.Logger.debug(s"Going to throw OptimisticLockException because newAllocations.version=${newAllocations.version} " +
+        s"does not match existing allocations version=${existingAllocations.version}")
       throw OptimisticLockException(s"Stored allocations for event ${newAllocations.eventId} have been updated since reading")
     }
   }
@@ -313,7 +326,7 @@ trait CandidateAllocationService extends EventSink {
           } recover { case ex => throw new RuntimeException(s"Was not able to retrieve user details for candidate ${candidate.userId}", ex) }
           res.asInstanceOf[Future[StcEvents]]
         }
-      case None => throw new RuntimeException(s"Can not find user application: ${candidateAllocation.id}")
+      case None => throw new RuntimeException(s"Cannot find user application: ${candidateAllocation.id}")
     }
   }
 
