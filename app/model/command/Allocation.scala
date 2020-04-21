@@ -70,7 +70,11 @@ object AssessorAllocations {
 case class CandidateAllocation(
   id: String,
   status: AllocationStatus
-) extends Allocation
+) extends Allocation {
+  override def toString =
+    s"id=$id," +
+    s"status=$status"
+}
 
 object CandidateAllocation {
   implicit val candidateAllocationFormat: OFormat[CandidateAllocation] = Json.format[CandidateAllocation]
@@ -89,7 +93,13 @@ case class CandidateAllocations(
   eventId: String,
   sessionId: String,
   allocations: Seq[CandidateAllocation]
-)
+) {
+  override def toString =
+    s"version=$version," +
+    s"eventId=$eventId," +
+    s"sessionId=$sessionId," +
+    s"allocations=$allocations"
+}
 
 object CandidateAllocations {
   implicit val candidateAllocationsFormat: OFormat[CandidateAllocations] = Json.format[CandidateAllocations]

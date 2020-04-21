@@ -182,6 +182,8 @@ trait GeneralApplicationRepository {
   def removeCollection(name: String): Future[Unit]
 
   def removeCandidate(applicationId: String): Future[Unit]
+
+  def getApplicationStatusForCandidates(applicationIds: Seq[String]): Future[Seq[(String, ApplicationStatus)]]
 }
 
 // scalastyle:off number.of.methods
@@ -195,6 +197,23 @@ class GeneralApplicationMongoRepository(
     CreateApplicationRequest.createApplicationRequestFormat,
     ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
     with GeneralApplicationRepoBSONReader with ReactiveRepositoryHelpers with CurrentSchemeStatusHelper {
+
+  override def getApplicationStatusForCandidates(applicationIds: Seq[String]): Future[Seq[(String, ApplicationStatus)]] = {
+    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    val projection = BSONDocument(
+      "applicationId" -> true,
+      "applicationStatus" -> true
+    )
+
+    collection.find(query, projection).cursor[BSONDocument]().collect[List]()
+      .map { docList =>
+        docList.map { doc =>
+          val applicationId = doc.getAs[String]("applicationId").get
+          val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
+          applicationId -> applicationStatus
+        }
+      }
+  }
 
   override def create(userId: String, frameworkId: String, route: ApplicationRoute): Future[ApplicationResponse] = {
     val applicationId = UUID.randomUUID().toString

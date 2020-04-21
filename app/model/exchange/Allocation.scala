@@ -60,7 +60,12 @@ case class CandidateAllocation(
   id: String,
   status: AllocationStatus,
   removeReason: Option[String]
-) extends Allocation
+) extends Allocation {
+  override def toString =
+    s"id=$id," +
+    s"status=$status," +
+    s"removeReason=$removeReason"
+}
 
 object CandidateAllocation {
   implicit val candidateAllocationFormat: OFormat[CandidateAllocation] = Json.format[CandidateAllocation]
@@ -73,7 +78,11 @@ object CandidateAllocation {
 case class CandidateAllocations(
   version: Option[String],
   allocations: Seq[CandidateAllocation]
-)
+) {
+  override def toString =
+    s"version=$version," +
+    s"allocations=$allocations"
+}
 
 object CandidateAllocations {
   implicit val candidateAllocationsFormat: OFormat[CandidateAllocations] = Json.format[CandidateAllocations]
