@@ -39,5 +39,4 @@ object EmailEvents {
     eventType: String, eventVenue: String, deadlineDate: String, eventGuideUrl: String) extends EmailEvent
   case class CandidateAllocationConfirmationReminder(to: String, name: String, eventDate: String, eventTime: String,
     eventType: String, eventVenue: String, deadlineDate: String, eventGuideUrl: String) extends EmailEvent
-
 }

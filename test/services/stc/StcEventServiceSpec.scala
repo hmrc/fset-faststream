@@ -39,7 +39,7 @@ class StcEventServiceSpec extends UnitSpec with StcEventServiceFixture {
       implicit val hc = mock[HeaderCarrier]
       implicit val rh = mock[RequestHeader]
 
-      eventServiceMock.handle(model.stc.AuditEvents.ApplicationSubmitted("appId"))
+      stcEventServiceMock.handle(model.stc.AuditEvents.ApplicationSubmitted("appId"))
       verifyAuditEvents(1)
     }
   }
@@ -51,7 +51,7 @@ trait StcEventServiceFixture extends MockitoSugar with MustMatchers {
   val auditEventHandlerMock = mock[AuditEventHandler]
   val emailEventHandlerMock = mock[EmailEventHandler]
 
-  val eventServiceMock = new StcEventService {
+  val stcEventServiceMock = new StcEventService {
     val dataStoreEventHandler = dataStoreEventHandlerMock
     val auditEventHandler = auditEventHandlerMock
     val emailEventHandler = emailEventHandlerMock

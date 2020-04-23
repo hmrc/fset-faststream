@@ -245,7 +245,7 @@ class SiftExpiryExtensionServiceSpec extends UnitSpec with ShortTimeout {
       val appRepository = mockAppRepository
       val siftRepository = mockSiftRepository
       val dateTimeFactory = mockDateTimeFactory
-      val eventService = eventServiceMock
+      val eventService = stcEventServiceMock
     }
 
     val mockProgressResponse = mock[ProgressResponse]

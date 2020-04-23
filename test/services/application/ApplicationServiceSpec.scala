@@ -1155,7 +1155,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       val appRepository = appRepositoryMock
       val pdRepository = pdRepositoryMock
       val cdRepository = cdRepositoryMock
-      val eventService = eventServiceMock
+      val eventService = stcEventServiceMock
       val mediaRepo = mediaRepoMock
       val schemePrefsRepository = schemeRepositoryMock
       val schemesRepo = mockSchemeRepo

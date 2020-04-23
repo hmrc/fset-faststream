@@ -175,7 +175,7 @@ class AdjustmentsManagementServiceSpec extends BaseServiceSpec with ExtendedTime
     val service = new AdjustmentsManagementService {
       val appRepository = mockAppRepository
       val cdRepository = mockCdRepository
-      override val eventService = eventServiceMock
+      override val eventService = stcEventServiceMock
       val schemePreferencesService = mockSchemePreferencesService
       val schemesRepository = mockSchemeRepository
       val applicationSiftService = mockApplicationSiftService

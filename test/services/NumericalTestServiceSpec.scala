@@ -78,7 +78,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
       val onlineTestsGatewayClient: OnlineTestsGatewayClient = mockOnlineTestsGatewayClient
       val dateTimeFactory: DateTimeFactory = mockDateTimeFactory
       override def schemeRepository: SchemeRepository = mockSchemeRepo
-      val eventService = eventServiceMock
+      val eventService = stcEventServiceMock
       override def emailClient = mockEmailClient
       override def contactDetailsRepo = mockContactDetailsRepo
     }

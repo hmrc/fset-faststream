@@ -685,7 +685,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
           val emailClient = emailClientMock
           val auditService = auditServiceMock
           val gatewayConfig = gatewayConfigMock
-          val eventService = eventServiceMock
+          val eventService = stcEventServiceMock
           val siftService = siftServiceMock
         }
 
@@ -837,7 +837,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
         val emailClient = emailClientMock
         val auditService = auditServiceMock
         val gatewayConfig = gatewayConfigMock
-        val eventService = eventServiceMock
+        val eventService = stcEventServiceMock
         val adjustmentsService = adjustmentsManagementServiceMock
         val siftService = siftServiceMock
       }
