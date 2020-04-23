@@ -343,7 +343,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
     val underTest = new FastPassService {
       val appRepo = appRepoMock
       val personalDetailsService = personalDetailsServiceMock
-      val eventService = eventServiceMock
+      val eventService = stcEventServiceMock
       val emailClient = emailClientMock
       val cdRepository = cdRepositoryMock
       val csedRepository = csedRepositoryMock

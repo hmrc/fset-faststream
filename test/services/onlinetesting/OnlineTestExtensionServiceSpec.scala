@@ -200,7 +200,7 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
       val otRepository = mockOtRepository
       val auditService = mockAuditService
       val dateTimeFactory = mockDateFactory
-      val eventService = eventServiceMock
+      val eventService = stcEventServiceMock
     }
 
     when(mockProgressResponse.phase1ProgressResponse).thenReturn(mockPhase1ProgressResponse)

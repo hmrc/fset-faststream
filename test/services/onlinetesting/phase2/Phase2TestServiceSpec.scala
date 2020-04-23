@@ -1016,7 +1016,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       val tokenFactory = tokenFactoryMock
       val dateTimeFactory = clock
       val gatewayConfig = gatewayConfigMock
-      val eventService = eventServiceMock
+      val eventService = stcEventServiceMock
       val actor = ActorSystem()
       val authProvider = authProviderClientMock
       val phase3TestService = phase3TestServiceMock

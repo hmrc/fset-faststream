@@ -249,7 +249,7 @@ trait CandidateAllocationService extends EventSink {
   ): Future[command.CandidateAllocations] = {
 
     def onlyCandidatesInFsb(toPersist: Seq[model.persisted.CandidateAllocation], idsWithAppStatus: Seq[(String, ApplicationStatus)]) = {
-      // Identify the candidates who are still in fsb and so can be processed. This will exclude candidates in eligible_for_job_offer
+      // Identify the candidates who are still in fsb and so can be processed. This will exclude candidates in ELIGIBLE_FOR_JOB_OFFER
       val idsInFsbOnly = idsWithAppStatus.collect { case (appId, appStatus) if appStatus == ApplicationStatus.FSB => appId }
       toPersist.filter(allocation => idsInFsbOnly.contains(allocation.id))
     }
