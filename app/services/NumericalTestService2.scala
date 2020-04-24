@@ -17,23 +17,23 @@
 package services
 
 import config.MicroserviceAppConfig.{ onlineTestsGatewayConfig, testIntegrationGatewayConfig }
-import config.{ PsiTestIds, NumericalTestSchedule, OnlineTestsGatewayConfig, TestIntegrationGatewayConfig }
+import config.{ OnlineTestsGatewayConfig, PsiTestIds, TestIntegrationGatewayConfig }
 import connectors.ExchangeObjects._
 import connectors.{ CSREmailClient, EmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Exceptions.{ CannotFindTestByOrderIdException, UnexpectedException }
-import model.ProgressStatuses.{ ProgressStatus, SIFT_TEST_COMPLETED, SIFT_TEST_INVITED, SIFT_TEST_RESULTS_READY }
+import model.ProgressStatuses.{ ProgressStatus, SIFT_TEST_COMPLETED, SIFT_TEST_INVITED }
 import model._
-import model.exchange.{ CubiksTestResultReady, PsiRealTimeResults }
-import model.persisted.{ CubiksTest, Phase2TestGroupWithAppId2, PsiTest }
-import model.persisted.sift.{ MaybeSiftTestGroupWithAppId2, SiftTestGroup, SiftTestGroup2, SiftTestGroupWithAppId }
+import model.exchange.PsiRealTimeResults
+import model.persisted.PsiTest
+import model.persisted.sift.{ MaybeSiftTestGroupWithAppId2, SiftTestGroup2, SiftTestGroupWithAppId }
 import model.stc.DataStoreEvents
 import play.api.Logger
 import play.api.mvc.RequestHeader
-import repositories.{ SchemeRepository, SchemeYamlRepository }
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.{ ContactDetailsMongoRepository, ContactDetailsRepository }
 import repositories.sift.ApplicationSiftRepository
+import repositories.{ SchemeRepository, SchemeYamlRepository }
 import services.onlinetesting.CubiksSanitizer
 import services.stc.{ EventSink, StcEventService }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -44,13 +44,13 @@ import scala.concurrent.Future
 object NumericalTestService2 extends NumericalTestService2 {
   val applicationRepo: GeneralApplicationRepository = repositories.applicationRepository
   val applicationSiftRepo: ApplicationSiftRepository = repositories.applicationSiftRepository
-  val onlineTestsGatewayClient = OnlineTestsGatewayClient
-  val gatewayConfig = onlineTestsGatewayConfig
-  val integrationGatewayConfig = testIntegrationGatewayConfig
-  val tokenFactory = UUIDFactory
+  val onlineTestsGatewayClient: OnlineTestsGatewayClient = OnlineTestsGatewayClient
+  val gatewayConfig: OnlineTestsGatewayConfig = onlineTestsGatewayConfig
+  val integrationGatewayConfig: TestIntegrationGatewayConfig = testIntegrationGatewayConfig
+  val tokenFactory: UUIDFactory = UUIDFactory
   val dateTimeFactory: DateTimeFactory = DateTimeFactory
   val eventService: StcEventService = StcEventService
-  val schemeRepository = SchemeYamlRepository
+  val schemeRepository: SchemeRepository = SchemeYamlRepository
   val emailClient: CSREmailClient = CSREmailClient
   val contactDetailsRepo: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
 }
@@ -159,8 +159,8 @@ trait NumericalTestService2 extends EventSink {
     s"$completionBaseUrl/complete/$orderId"
   }
 
-
-  private def registerAndInvite(applications: List[NumericalTestApplication], schedule: NumericalTestSchedule)
+  //TODO: remove commented code at end of campaign
+/*  private def registerAndInvite(applications: List[NumericalTestApplication], schedule: NumericalTestSchedule)
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     applications match {
       case Nil => Future.successful(())
@@ -177,8 +177,9 @@ trait NumericalTestService2 extends EventSink {
             s"${invitedApplicants.map(_.application.applicationId)} - moved to $SIFT_TEST_INVITED")
         }
     }
-  }
+  }*/
 
+/*
   private def registerApplicants(candidates: Seq[NumericalTestApplication], tokens: Seq[String])
                         (implicit hc: HeaderCarrier): Future[Map[Int, (NumericalTestApplication, String, Registration)]] = {
     onlineTestsGatewayClient.registerApplicants(candidates.size).map(_.zipWithIndex.map{
@@ -187,7 +188,9 @@ trait NumericalTestService2 extends EventSink {
         (registration.userId, (candidate, tokens(idx), registration))
     }.toMap)
   }
+*/
 
+/*
   private def inviteApplicants(candidateData: Map[Int, (NumericalTestApplication, String, Registration)],
                        schedule: NumericalTestSchedule)(implicit hc: HeaderCarrier): Future[List[NumericalTestInviteData]] = {
     val scheduleCompletionBaseUrl = s"${gatewayConfig.candidateAppUrl}/fset-fast-stream/sift-test"
@@ -207,7 +210,9 @@ trait NumericalTestService2 extends EventSink {
       NumericalTestInviteData(application, schedule.scheduleId, token, registration, invitation)
     })
   }
+*/
 
+/*
   private def insertNumericalTest(invitedApplicants: List[NumericalTestInviteData]): Future[Unit] = {
     val invitedApplicantsOps = invitedApplicants.map { invite =>
       val tests = List(
@@ -225,17 +230,21 @@ trait NumericalTestService2 extends EventSink {
     }
     Future.sequence(invitedApplicantsOps).map(_ => ()) // Process List[Future[Unit]] into Future[Unit]
   }
+*/
 
   private def insertNumericalTest(application: NumericalTestApplication2, test: PsiTest): Future[Unit] = {
     upsertTests2(application, test :: Nil)
   }
 
+/*
   private def calculateAbsoluteTimeWithAdjustments(application: NumericalTestApplication): Int = {
     val baseEtrayTestDurationInMinutes = 25
     (application.eTrayAdjustments.flatMap { etrayAdjustments => etrayAdjustments.timeNeeded }.getOrElse(0)
       * baseEtrayTestDurationInMinutes / 100) + baseEtrayTestDurationInMinutes
   }
+*/
 
+/*
   private def upsertTests(application: NumericalTestApplication, newTests: List[CubiksTest]): Future[Unit] = {
 
     def upsert(applicationId: String, currentTestGroup: Option[SiftTestGroup], newTests: List[CubiksTest]) = {
@@ -255,6 +264,7 @@ trait NumericalTestService2 extends EventSink {
       //TODO: Reset "test profile progresses" while resetting tests?
     } yield ()
   }
+*/
 
   private def upsertTests2(application: NumericalTestApplication2, newTests: List[PsiTest]): Future[Unit] = {
 
@@ -282,6 +292,7 @@ trait NumericalTestService2 extends EventSink {
     ).map(_ => ())
   }
 
+/*
   private def emailInvitedCandidates(invitedApplicants: List[NumericalTestInviteData]): Future[Unit] = {
     val emailFutures = invitedApplicants.map { applicant =>
       (for {
@@ -298,13 +309,14 @@ trait NumericalTestService2 extends EventSink {
     }
     Future.sequence(emailFutures).map(_ => ()) // Process the List[Future[Unit]] into single Future[Unit]
   }
+*/
 
   private def emailInvitedCandidate(application: NumericalTestApplication2): Future[Unit] = {
       (for {
         emailAddress <- contactDetailsRepo.find(application.userId).map(_.email)
         notificationExpiringSiftOpt <- applicationSiftRepo.getNotificationExpiringSift(application.applicationId)
       } yield {
-        implicit val hc = HeaderCarrier()
+        implicit val hc: HeaderCarrier = HeaderCarrier()
         val msg = s"Sending sift numeric test invite email to candidate ${application.applicationId}..."
         Logger.info(msg)
         notificationExpiringSiftOpt.map { notification =>
@@ -313,6 +325,7 @@ trait NumericalTestService2 extends EventSink {
       }).flatMap(identity)
   }
 
+/*
   def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     applicationSiftRepo.updateTestCompletionTime(cubiksUserId, dateTimeFactory.nowLocalTimeZone).flatMap { _ =>
       applicationSiftRepo.getTestGroupByCubiksId(cubiksUserId).flatMap { updatedTestGroup =>
@@ -333,6 +346,7 @@ trait NumericalTestService2 extends EventSink {
       }
     }
   }
+*/
 
   def markAsCompletedByOrderId(orderId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     applicationSiftRepo.updateTestCompletionTime(orderId, dateTimeFactory.nowLocalTimeZone).flatMap { _ =>
@@ -355,6 +369,7 @@ trait NumericalTestService2 extends EventSink {
     }
   }
 
+/*
   def markAsCompleted(token: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     applicationSiftRepo.getTestGroupByToken(token).flatMap { testGroup =>
       val tests = testGroup.tests
@@ -364,7 +379,9 @@ trait NumericalTestService2 extends EventSink {
         .getOrElse(Future.successful(()))
     }
   }
+*/
 
+/*
   def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: CubiksTestResultReady)
     : Future[Unit] = {
     applicationSiftRepo.updateTestReportReady(cubiksUserId, reportReady).flatMap { _ =>
@@ -387,11 +404,13 @@ trait NumericalTestService2 extends EventSink {
       }
     }
   }
+*/
 
   def nextTestGroupWithReportReady: Future[Option[SiftTestGroupWithAppId]] = {
     applicationSiftRepo.nextTestGroupWithReportReady
   }
 
+/*
   def retrieveTestResult(siftTestGroup: SiftTestGroupWithAppId)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     def insertTests(testResults: List[(OnlineTestCommands.TestResult, CubiksTest)]): Future[Unit] = {
       Future.sequence(testResults.map {
@@ -435,6 +454,7 @@ trait NumericalTestService2 extends EventSink {
       _ <- maybeUpdateProgressStatus(siftTestGroup.applicationId)
     } yield ()
   }
+*/
 
   //scalastyle:off method.length
   def storeRealTimeResults(orderId: String, results: PsiRealTimeResults)

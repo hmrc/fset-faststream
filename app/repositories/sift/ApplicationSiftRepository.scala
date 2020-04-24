@@ -729,20 +729,6 @@ class ApplicationSiftMongoRepository(
     }
   }
 
-  private def getTestGroupWithAppIdByQuery2(query: BSONDocument): Future[MaybeSiftTestGroupWithAppId2] = {
-    val projection = BSONDocument("applicationId" -> 1, s"testGroups.$phaseName" -> 1, "_id" -> 0)
-
-    val ex = CannotFindTestByOrderIdException(s"Cannot find test group for query: ${BSONDocument.pretty(query)}")
-    collection.find(query, projection).one[BSONDocument] map {
-      case Some(doc) =>
-        val appId = doc.getAs[String]("applicationId").get
-        val siftDocOpt = doc.getAs[BSONDocument]("testGroups").map(_.getAs[BSONDocument](phaseName).get)
-        val siftTestGroup = siftDocOpt.map(SiftTestGroup2.bsonHandler.read).getOrElse(throw ex)
-        MaybeSiftTestGroupWithAppId2(appId, siftTestGroup.expirationDate, siftTestGroup.tests)
-      case _ => throw ex
-    }
-  }
-
   def updateExpiryTime(applicationId: String, expiryDateTime: DateTime): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
 
@@ -838,7 +824,18 @@ class ApplicationSiftMongoRepository(
     val query = BSONDocument(
       s"testGroups.$phaseName.tests" -> BSONDocument("$elemMatch" -> BSONDocument("orderId" -> orderId))
     )
-    getTestGroupWithAppIdByQuery2(query)
+    val projection = BSONDocument("applicationId" -> 1, s"testGroups.$phaseName" -> 1, "_id" -> 0)
+
+    val ex = CannotFindTestByOrderIdException(s"Cannot find sift test group for orderId:$orderId")
+
+    collection.find(query, projection).one[BSONDocument] map {
+      case Some(doc) =>
+        val appId = doc.getAs[String]("applicationId").get
+        val siftDocOpt = doc.getAs[BSONDocument]("testGroups").map(_.getAs[BSONDocument](phaseName).get)
+        val siftTestGroup = siftDocOpt.map(SiftTestGroup2.bsonHandler.read).getOrElse(throw ex)
+        MaybeSiftTestGroupWithAppId2(appId, siftTestGroup.expirationDate, siftTestGroup.tests)
+      case _ => throw ex
+    }
   }
 
   override def removeEvaluation(applicationId: String): Future[Unit] = {
