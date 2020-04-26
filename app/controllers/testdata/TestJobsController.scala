@@ -17,7 +17,7 @@
 package controllers.testdata
 
 import play.api.mvc.{ Action, AnyContent }
-import scheduler.assessment.EvaluateAssessmentScoreJob
+import scheduler.assessment.EvaluateAssessmentCentreJob
 import scheduler.onlinetesting._
 import scheduler._
 import scheduler.fsb.EvaluateFsbJob
@@ -145,9 +145,9 @@ class TestJobsController extends BaseController {
     }
   }
 
-  def evaluateAssessmentScoresCandidate: Action[AnyContent] = Action.async { implicit request =>
-    EvaluateAssessmentScoreJob.tryExecute().map { _ =>
-      Ok("Evaluate assessment score job started")
+  def evaluateAssessmentCentreCandidate: Action[AnyContent] = Action.async { implicit request =>
+    EvaluateAssessmentCentreJob.tryExecute().map { _ =>
+      Ok("Evaluate assessment centre job started")
     }
   }
 

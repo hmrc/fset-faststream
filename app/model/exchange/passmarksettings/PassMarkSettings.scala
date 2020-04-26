@@ -113,7 +113,11 @@ case class AssessmentCentrePassMarkSettingsV2(
                                    version: String,
                                    createDate: DateTime,
                                    createdBy: String
-                                 ) extends PassMarkSettings
+                                 ) extends PassMarkSettings {
+  // Only display pass marks for the Commercial scheme to reduce the amount we log
+  def abbreviated = s"schemes=${schemes.filter(s => s.schemeId == SchemeId("Commercial"))}," +
+    s"version=$version,createDate=$createDate,createdBy=$createdBy"
+}
 
 object AssessmentCentrePassMarkSettingsV2 {
   import repositories.BSONDateTimeHandler

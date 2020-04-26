@@ -95,7 +95,14 @@ case class AssessmentCentrePassMarkThresholdsV2(
                                      override val communicatingAndInfluencing: PassMarkThreshold,
                                      override val workingTogetherDevelopingSelfAndOthers: PassMarkThreshold,
                                      override val overall: PassMarkThreshold
-                                   ) extends PassMarkThresholds with AssessmentCentreThresholdsV2
+                                   ) extends PassMarkThresholds with AssessmentCentreThresholdsV2 {
+  override def toString =
+    s"seeingTheBigPicture=$seeingTheBigPicture," +
+    s"makingEffectiveDecisions=$makingEffectiveDecisions," +
+    s"communicatingAndInfluencing=$communicatingAndInfluencing," +
+    s"workingTogetherDevelopingSelfAndOthers=$workingTogetherDevelopingSelfAndOthers," +
+    s"overall=$overall"
+}
 
 object AssessmentCentrePassMarkThresholdsV2 {
   implicit val jsonFormat = Json.format[AssessmentCentrePassMarkThresholdsV2]

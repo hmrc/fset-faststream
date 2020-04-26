@@ -17,7 +17,7 @@
 package scheduler
 
 import play.api.Logger
-import scheduler.assessment.{ EvaluateAssessmentScoreJob, EvaluateAssessmentScoreJobConfig }
+import scheduler.assessment.{ EvaluateAssessmentCentreJob, EvaluateAssessmentCentreJobConfig }
 import scheduler.fixer.{ FixerJob, FixerJobConfig }
 import scheduler.fsb.{ EvaluateFsbJob, EvaluateFsbJobConfig }
 import scheduler.onlinetesting._
@@ -58,7 +58,7 @@ trait Scheduler extends RunningOfScheduledJobs {
     maybeInitScheduler(EvaluatePhase1ResultJobConfig, EvaluatePhase1ResultJob),
     maybeInitScheduler(EvaluatePhase2ResultJobConfig, EvaluatePhase2ResultJob),
     maybeInitScheduler(EvaluatePhase3ResultJobConfig, EvaluatePhase3ResultJob),
-    maybeInitScheduler(EvaluateAssessmentScoreJobConfig, EvaluateAssessmentScoreJob),
+    maybeInitScheduler(EvaluateAssessmentCentreJobConfig, EvaluateAssessmentCentreJob),
     maybeInitScheduler(FixerJobConfig, FixerJob),
     maybeInitScheduler(ProgressSdipForFaststreamCandidateJobConfig, ProgressSdipForFaststreamCandidateJob),
     maybeInitScheduler(ProgressToSiftJobConfig, ProgressToSiftJob),

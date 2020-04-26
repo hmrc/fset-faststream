@@ -18,38 +18,59 @@ package services.evaluation
 
 import model.EvaluationResults._
 import model.SchemeId
-import model.exchange.passmarksettings.{ AssessmentCentrePassMark, AssessmentCentrePassMarkSettings, PassMarkThreshold }
+import model.exchange.passmarksettings.{ AssessmentCentrePassMarkSettingsV2, PassMarkThreshold }
 import model.persisted.SchemeEvaluationResult
+import play.api.Logger
 
 trait AssessmentCentreAllSchemesEvaluator {
 
-  def evaluateSchemes(applicationId: String,
-    passmark: AssessmentCentrePassMarkSettings,
-    overallScore: Double,
-    schemes: Seq[SchemeId]): Seq[SchemeEvaluationResult] = {
+  def evaluateSchemes(appId: String,
+                      passmark: AssessmentCentrePassMarkSettingsV2, //TODO: fset-2555
+                      competencyAverages: CompetencyAverageResult,
+                      schemes: Seq[SchemeId]): Seq[SchemeEvaluationResult] = { //TODO we also want the individual results returned
     schemes.map { scheme =>
       val assessmentCentrePassMark = passmark.schemes.find { _.schemeId == scheme }
-        .getOrElse(throw new IllegalStateException(s"Did not find assessment centre pass mark for scheme = $scheme, " +
-          s"applicationId = $applicationId"))
-      val result = evaluateScore(assessmentCentrePassMark, passmark, overallScore)
-      SchemeEvaluationResult(scheme, result.toString)
+        .getOrElse(throw new IllegalStateException(s"Did not find assessment centre pass marks for scheme = $scheme, " +
+          s"applicationId = $appId"))
+      val makingEffectiveDecisionsResult = evaluateScore(appId, "makingEffectiveDecisions", competencyAverages.makingEffectiveDecisionsAverage,
+        assessmentCentrePassMark.schemeThresholds.makingEffectiveDecisions)
+      val workingTogetherDevelopingSelfAndOthersResult = evaluateScore(appId, "workingTogetherDevelopingSelfAndOthers",
+        competencyAverages.workingTogetherDevelopingSelfAndOthersAverage,
+        assessmentCentrePassMark.schemeThresholds.makingEffectiveDecisions)
+      val communicatingAndInfluencingResult = evaluateScore(appId, "communicatingAndInfluencing",
+        competencyAverages.communicatingAndInfluencingAverage,
+        assessmentCentrePassMark.schemeThresholds.communicatingAndInfluencing)
+      val seeingTheBigPictureResult = evaluateScore(appId, "seeingTheBigPicture", competencyAverages.seeingTheBigPictureAverage,
+        assessmentCentrePassMark.schemeThresholds.communicatingAndInfluencing)
+      val overallResult = evaluateScore(appId, "overall", competencyAverages.overallScore, assessmentCentrePassMark.schemeThresholds.overall)
+
+      SchemeEvaluationResult(scheme, combineTestResults(appId, scheme, makingEffectiveDecisionsResult,
+        workingTogetherDevelopingSelfAndOthersResult, communicatingAndInfluencingResult, seeingTheBigPictureResult, overallResult).toString)
     }
   }
 
-  private def evaluateScore(scheme: AssessmentCentrePassMark,
-    passmark: AssessmentCentrePassMarkSettings,
-    overallScore: Double): Result = {
-    val passmarkSetting = scheme.schemeThresholds.assessmentCentre
-    determineSchemeResult(overallScore, passmarkSetting)
-  }
-
-  private def determineSchemeResult(overallScore: Double, passmarkThreshold: PassMarkThreshold): Result = {
-    if (overallScore >= passmarkThreshold.passThreshold) {
+  private def evaluateScore(appId: String, name: String, score: Double, threshold: PassMarkThreshold): Result = {
+    val result = if (score >= threshold.passThreshold) {
       Green
-    } else if (overallScore >= passmarkThreshold.failThreshold) {
-      Amber
-    } else {
+    }
+    else if (score < threshold.failThreshold) {
       Red
     }
+    else {
+      Amber
+    }
+    Logger.debug(s"[FSAC evaluate score] $appId - $name,score=$score,passMarks=$threshold,result=$result")
+    result
+  }
+
+  private def combineTestResults(applicationId: String, scheme: SchemeId, results: Result*) = {
+    require(results.nonEmpty, "Test results not found")
+    val result = results match {
+      case _ if results.contains(Red) => Red        // single red then red overall
+      case _ if results.contains(Amber) => Amber    // single green then green overall
+      case _ if results.forall(_ == Green) => Green // all green then green overall
+    }
+    Logger.info(s"[FSAC evaluator] - $applicationId combining results for $scheme: $results = $result")
+    result
   }
 }

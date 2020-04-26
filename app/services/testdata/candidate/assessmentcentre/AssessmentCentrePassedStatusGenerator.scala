@@ -24,7 +24,6 @@ import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.mvc.RequestHeader
 import repositories.SchemeYamlRepository
-import scheduler.assessment.MinimumCompetencyLevelConfig
 import services.assessmentcentre.AssessmentCentreService
 import services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.http.HeaderCarrier
@@ -37,7 +36,7 @@ object AssessmentCentrePassedStatusGenerator extends AssessmentCentrePassedStatu
   override val applicationAssessmentService = AssessmentCentreService
 }
 
-trait AssessmentCentrePassedStatusGenerator extends ConstructiveGenerator with MinimumCompetencyLevelConfig {
+trait AssessmentCentrePassedStatusGenerator extends ConstructiveGenerator {
   val applicationAssessmentService: AssessmentCentreService
 
   val updatedBy = UniqueIdentifier.randomUniqueIdentifier
@@ -47,8 +46,16 @@ trait AssessmentCentrePassedStatusGenerator extends ConstructiveGenerator with M
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
 
     val schemes = SchemeYamlRepository.schemes.map(_.id).toList
-    val dummyPassmarks = AssessmentCentrePassMarkSettings(
-      schemes.map(id => AssessmentCentrePassMark(id, AssessmentCentrePassMarkThresholds(PassMarkThreshold(0.2, 0.4)))),
+    val dummyPassmarks = AssessmentCentrePassMarkSettingsV2( //TODO: fset-2555
+      schemes.map(schemeId =>
+        AssessmentCentrePassMarkV2(schemeId, AssessmentCentrePassMarkThresholdsV2(
+          seeingTheBigPicture = PassMarkThreshold(0.2, 0.4),
+          makingEffectiveDecisions = PassMarkThreshold(0.2, 0.4),
+          communicatingAndInfluencing = PassMarkThreshold(0.2, 0.4),
+          workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(0.2, 0.4),
+          overall = PassMarkThreshold(2, 16)
+        ))
+      ),
       version.toString(),
       DateTime.now(DateTimeZone.UTC),
       updatedBy.toString()
@@ -66,7 +73,7 @@ trait AssessmentCentrePassedStatusGenerator extends ConstructiveGenerator with M
       passMarksSchemesAndScoresSeq <- applicationAssessmentService.nextAssessmentCandidatesReadyForEvaluation(100)
       scores = passMarksSchemesAndScoresSeq.find(_.scores.applicationId == appId)
         .getOrElse(sys.error(s"Candidate $appId is not ready for evaluation yet"))
-      _ <- applicationAssessmentService.evaluateAssessmentCandidate(scores, minimumCompetencyLevelConfig)
+      _ <- applicationAssessmentService.evaluateAssessmentCandidate(scores)
     } yield {
       candidateInPreviousStatus
     }
