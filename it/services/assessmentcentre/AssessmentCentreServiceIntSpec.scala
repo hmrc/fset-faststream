@@ -3,12 +3,11 @@ package services.assessmentcentre
 import java.io.File
 
 import com.typesafe.config.{ Config, ConfigFactory }
-import config.AssessmentEvaluationMinimumCompetencyLevel
 import model.ApplicationStatus._
 import model.EvaluationResults.CompetencyAverageResult
 import model._
 import model.assessmentscores._
-import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
+import model.exchange.passmarksettings.AssessmentCentrePassMarkSettingsV2
 import model.persisted.SchemeEvaluationResult
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
@@ -33,7 +32,7 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
   lazy val service = new AssessmentCentreService {
     val applicationRepo = repositories.applicationRepository
     val assessmentCentreRepo = repositories.assessmentCentreRepository
-    val passmarkService = mock[PassMarkSettingsService[AssessmentCentrePassMarkSettings]]
+    val passmarkService = mock[PassMarkSettingsService[AssessmentCentrePassMarkSettingsV2]]
     val assessmentScoresRepo = mock[AssessmentScoresRepository]
     val evaluationEngine = AssessmentCentreEvaluationEngine
   }
@@ -41,11 +40,11 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
   val collectionName = CollectionNames.APPLICATION
   // Use this when debugging so the test framework only runs one test scenario. The tests will still be loaded, however
   val DebugRunTestNameOnly: Option[String] = None
-//  val DebugRunTestNameOnly: Option[String] = Some("oneSchemeWithMclSuite_Amber_Scenario1")
+//  val DebugRunTestNameOnly: Option[String] = Some("multipleSchemesSuite_Mix_Scenario1")
   // Use this when debugging so the test framework only runs tests which contain the specified test suite name in their path
   // the tests will still be loaded, however
   val DebugRunTestSuitePathPatternOnly: Option[String] = None
-//  val DebugRunTestSuitePathPatternOnly: Option[String] = Some("2_oneSchemeWithMclSuite/")
+//  val DebugRunTestSuitePathPatternOnly: Option[String] = Some("3_multipleSchemesSuite/")
 
   val prefix= ""
 
@@ -114,27 +113,19 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
     Logger.info(s"$prefix executing suite name = $suiteName...")
 
     // Reads the passmarkSettings.conf file
-    def loadPassmarkSettings: AssessmentCentrePassMarkSettings = {
+    def loadPassmarkSettings: AssessmentCentrePassMarkSettingsV2 = {
       val passmarkSettingsFile = new File(suiteName.getAbsolutePath + "/" + PassmarkSettingsFile)
 
       require(passmarkSettingsFile.exists(), s"File does not exist: ${passmarkSettingsFile.getAbsolutePath}")
       val passmarkSettingsJson = Json.parse(Source.fromFile(passmarkSettingsFile).getLines().mkString)
-      passmarkSettingsJson.as[AssessmentCentrePassMarkSettings]
+      passmarkSettingsJson.as[AssessmentCentrePassMarkSettingsV2]
     }
 
-    // Reads the mcl.conf file
-    def loadMcl: AssessmentEvaluationMinimumCompetencyLevel = {
-      val configFile = new File(suiteName.getAbsolutePath + "/" + MclSettingsFile)
-      require(configFile.exists(), s"File does not exist: ${configFile.getAbsolutePath}")
-      val configJson = Json.parse(Source.fromFile(configFile).getLines().mkString)
-      configJson.as[AssessmentEvaluationMinimumCompetencyLevel]
-    }
-
-    // Returns all files except the config files (mcl.conf and passmarkSettings.conf)
+    // Returns all files except the config files (passmarkSettings.conf)
     def loadTestCases: Array[File] = {
       val testCases = new File(s"$TestPath/${suiteName.getName}/")
         .listFiles
-        .filterNot(f => ConfigFiles.contains(f.getName)) // exclude mcl.conf and passmarkSettings.conf
+        .filterNot(f => ConfigFiles.contains(f.getName)) // exclude passmarkSettings.conf
         .sortBy(_.getName)
       require(testCases.nonEmpty, s"No test cases found to execute in $TestPath/${suiteName.getName}/")
       testCases.sortBy(_.getName)
@@ -142,18 +133,15 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
 
     val passmarkSettings = loadPassmarkSettings
     Logger.info(s"$prefix pass marks loaded = $passmarkSettings")
-    val mcl = loadMcl
-    Logger.info(s"$prefix mcl loaded = $mcl")
     val testCases = loadTestCases
     testCases.foreach(tc => Logger.info(s"$prefix testCase loaded = $tc"))
-    testCases foreach (executeTestCases(_, loadMcl, passmarkSettings))
+    testCases foreach (executeTestCases(_, passmarkSettings))
   }
 
   // Execute a single test case file (which may consist of several test cases within it)
   private def executeTestCases(
     testCase: File,
-    config: AssessmentEvaluationMinimumCompetencyLevel,
-    passmarks: AssessmentCentrePassMarkSettings) = {
+    passmarks: AssessmentCentrePassMarkSettingsV2) = {
     Logger.info(s"$prefix Processing test case: ${testCase.getAbsolutePath}")
 
     if (DebugRunTestSuitePathPatternOnly.isEmpty || testCase.getAbsolutePath.contains(DebugRunTestSuitePathPatternOnly.get)) {
@@ -169,7 +157,7 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
           Logger.info(s"$prefix created application in db")
 
           val candidateData = AssessmentPassMarksSchemesAndScores(passmarks, t.schemes, t.scores)
-          service.evaluateAssessmentCandidate(candidateData, config).futureValue
+          service.evaluateAssessmentCandidate(candidateData).futureValue
 
           val actualResult = findApplicationInDb(t.scores.applicationId.toString())
           Logger.info(s"$prefix data read from db = $actualResult")
@@ -247,10 +235,6 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
         passmarkVersionOpt <- evaluationDocOpt.getAs[String]("passmarkVersion")
       } yield passmarkVersionOpt
 
-      val passedMinimumCompetencyLevelOpt = for {
-        passedMinimumCompetencyLevelOpt <- evaluationDocOpt.getAs[Boolean]("passedMinimumCompetencyLevel")
-      } yield passedMinimumCompetencyLevelOpt
-
       val competencyAverageOpt = for {
         competencyAverageOpt <- evaluationDocOpt.getAs[CompetencyAverageResult]("competency-average")
       } yield competencyAverageOpt
@@ -259,8 +243,7 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
         schemesEvaluationOpt <- evaluationDocOpt.getAs[Seq[SchemeEvaluationResult]]("schemes-evaluation")
       } yield schemesEvaluationOpt
 
-      ActualResult(applicationStatusOpt, latestProgressStatusOpt, passedMinimumCompetencyLevelOpt,
-        passmarkVersionOpt, competencyAverageOpt, schemesEvaluationOpt)
+      ActualResult(applicationStatusOpt, latestProgressStatusOpt, passmarkVersionOpt, competencyAverageOpt, schemesEvaluationOpt)
     }.futureValue
   }
 
@@ -283,8 +266,6 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
     doIt("progressStatus"){ actual.progressStatus mustBe expected.progressStatus }
 
     doIt("passmarkVersion"){ actual.passmarkVersion mustBe expected.passmarkVersion }
-
-    doIt("minimumCompetencyLevel"){ actual.passedMinimumCompetencyLevel mustBe expected.passedMinimumCompetencyLevel }
 
     val actualSchemes = actual.schemesEvaluation.getOrElse(List()).map(x => (x.schemeId, x.result)).toMap
     val expectedSchemes = expected.allSchemesEvaluationExpectations.getOrElse(List()).map(x => (x.schemeId, x.result)).toMap
@@ -315,8 +296,7 @@ object AssessmentCentreServiceIntSpec {
 
   val TestPath = "it/resources/assessmentCentreServiceSpec"
   val PassmarkSettingsFile = "passmarkSettings.conf"
-  val MclSettingsFile = "mcl.conf"
-  val ConfigFiles = List(PassmarkSettingsFile, MclSettingsFile)
+  val ConfigFiles = List(PassmarkSettingsFile)
 
   // This represents all the data read from config using the ficus library for a single test
   case class AssessmentServiceTest(
@@ -331,8 +311,6 @@ object AssessmentCentreServiceIntSpec {
   case class ActualResult(
     applicationStatus: Option[ApplicationStatus],
     progressStatus: Option[ProgressStatuses.ProgressStatus],
-    // This is only stored if mcl is enabled so expect to find it missing if mcl is disabled
-    passedMinimumCompetencyLevel: Option[Boolean] = None,
     passmarkVersion: Option[String],
     competencyAverageResult: Option[CompetencyAverageResult],
     schemesEvaluation: Option[Seq[SchemeEvaluationResult]]
