@@ -24,7 +24,7 @@ import model._
 import model.assessmentscores.{ AssessmentScoresExercise, FixUserStuckInScoresAccepted }
 import model.command.ApplicationForProgression
 import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
-import model.exchange.passmarksettings.AssessmentCentrePassMarkSettingsV2
+import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
 import play.api.Logger
@@ -33,7 +33,7 @@ import repositories.assessmentcentre.AssessmentCentreRepository
 import repositories.{ AssessmentScoresRepository, CurrentSchemeStatusHelper }
 import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
 import services.evaluation.AssessmentCentreEvaluationEngine
-import services.passmarksettings.{ AssessmentCentrePassMarkSettingsServiceV2, PassMarkSettingsService }
+import services.passmarksettings.{ AssessmentCentrePassMarkSettingsService, PassMarkSettingsService }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -41,7 +41,7 @@ import scala.concurrent.Future
 object AssessmentCentreService extends AssessmentCentreService {
   val applicationRepo = repositories.applicationRepository
   val assessmentCentreRepo = repositories.assessmentCentreRepository
-  val passmarkService = AssessmentCentrePassMarkSettingsServiceV2 //TODO: fset-2555
+  val passmarkService = AssessmentCentrePassMarkSettingsService
   val assessmentScoresRepo = repositories.reviewerAssessmentScoresRepository
   val evaluationEngine = AssessmentCentreEvaluationEngine
 
@@ -53,7 +53,7 @@ object AssessmentCentreService extends AssessmentCentreService {
 trait AssessmentCentreService extends CurrentSchemeStatusHelper {
   def applicationRepo: GeneralApplicationRepository
   def assessmentCentreRepo: AssessmentCentreRepository
-  def passmarkService: PassMarkSettingsService[AssessmentCentrePassMarkSettingsV2] //TODO: fset-2555
+  def passmarkService: PassMarkSettingsService[AssessmentCentrePassMarkSettings]
   def assessmentScoresRepo: AssessmentScoresRepository
   def evaluationEngine: AssessmentCentreEvaluationEngine
 
@@ -88,7 +88,7 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
     }
   }
 
-  private def commonProcessApplicationIds(applicationIds: List[UniqueIdentifier], passmark: AssessmentCentrePassMarkSettingsV2) = {
+  private def commonProcessApplicationIds(applicationIds: List[UniqueIdentifier], passmark: AssessmentCentrePassMarkSettings) = {
     applicationIds match {
       case appIds if appIds.nonEmpty =>
         Logger.warn(
@@ -116,7 +116,7 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
 
   // Find existing evaluation data: 1. assessment centre pass marks, 2. the schemes to evaluate and 3. the scores awarded by the reviewer
   def tryToFindEvaluationData(appId: UniqueIdentifier,
-    passmark: AssessmentCentrePassMarkSettingsV2): Future[Option[AssessmentPassMarksSchemesAndScores]] = {
+    passmark: AssessmentCentrePassMarkSettings): Future[Option[AssessmentPassMarksSchemesAndScores]] = {
 
     def filterSchemesToEvaluate(schemeList: Seq[SchemeEvaluationResult]) = {
       schemeList.filterNot( schemeEvaluationResult =>

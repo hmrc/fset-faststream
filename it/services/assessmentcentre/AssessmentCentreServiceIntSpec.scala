@@ -7,7 +7,7 @@ import model.ApplicationStatus._
 import model.EvaluationResults.CompetencyAverageResult
 import model._
 import model.assessmentscores._
-import model.exchange.passmarksettings.AssessmentCentrePassMarkSettingsV2
+import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
 import model.persisted.SchemeEvaluationResult
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
@@ -32,7 +32,7 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
   lazy val service = new AssessmentCentreService {
     val applicationRepo = repositories.applicationRepository
     val assessmentCentreRepo = repositories.assessmentCentreRepository
-    val passmarkService = mock[PassMarkSettingsService[AssessmentCentrePassMarkSettingsV2]]
+    val passmarkService = mock[PassMarkSettingsService[AssessmentCentrePassMarkSettings]]
     val assessmentScoresRepo = mock[AssessmentScoresRepository]
     val evaluationEngine = AssessmentCentreEvaluationEngine
   }
@@ -113,12 +113,12 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
     Logger.info(s"$prefix executing suite name = $suiteName...")
 
     // Reads the passmarkSettings.conf file
-    def loadPassmarkSettings: AssessmentCentrePassMarkSettingsV2 = {
+    def loadPassmarkSettings: AssessmentCentrePassMarkSettings = {
       val passmarkSettingsFile = new File(suiteName.getAbsolutePath + "/" + PassmarkSettingsFile)
 
       require(passmarkSettingsFile.exists(), s"File does not exist: ${passmarkSettingsFile.getAbsolutePath}")
       val passmarkSettingsJson = Json.parse(Source.fromFile(passmarkSettingsFile).getLines().mkString)
-      passmarkSettingsJson.as[AssessmentCentrePassMarkSettingsV2]
+      passmarkSettingsJson.as[AssessmentCentrePassMarkSettings]
     }
 
     // Returns all files except the config files (passmarkSettings.conf)
@@ -141,7 +141,7 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
   // Execute a single test case file (which may consist of several test cases within it)
   private def executeTestCases(
     testCase: File,
-    passmarks: AssessmentCentrePassMarkSettingsV2) = {
+    passmarks: AssessmentCentrePassMarkSettings) = {
     Logger.info(s"$prefix Processing test case: ${testCase.getAbsolutePath}")
 
     if (DebugRunTestSuitePathPatternOnly.isEmpty || testCase.getAbsolutePath.contains(DebugRunTestSuitePathPatternOnly.get)) {

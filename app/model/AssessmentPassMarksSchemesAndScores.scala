@@ -17,11 +17,11 @@
 package model
 
 import model.assessmentscores.AssessmentScoresAllExercises
-import model.exchange.passmarksettings.AssessmentCentrePassMarkSettingsV2
+import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
 import play.api.libs.json.Json
 
 case class AssessmentPassMarksSchemesAndScores(
-  passmark: AssessmentCentrePassMarkSettingsV2, //TODO: fset-2555
+  passmark: AssessmentCentrePassMarkSettings,
   schemes: Seq[SchemeId],
   scores: AssessmentScoresAllExercises)
 

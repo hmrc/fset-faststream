@@ -171,7 +171,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
 
     "return none if there is no passmark settings set" in new TestFixture {
       implicit val jsonFormat = AssessmentCentrePassMarkSettings.jsonFormat
-      (mockAssessmentCentrePassMarkSettingsService.getLatestPassMarkSettings(_: Format[AssessmentCentrePassMarkSettingsV2])).expects(*)
+      (mockAssessmentCentrePassMarkSettingsService.getLatestPassMarkSettings(_: Format[AssessmentCentrePassMarkSettings])).expects(*)
         .returning(Future.successful(None))
 
       val result = service.nextAssessmentCandidatesReadyForEvaluation(batchSize).futureValue
@@ -444,7 +444,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
   trait TestFixture {
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockAssessmentCentreRepo = mock[AssessmentCentreRepository]
-    val mockAssessmentCentrePassMarkSettingsService = mock[PassMarkSettingsService[AssessmentCentrePassMarkSettingsV2]]
+    val mockAssessmentCentrePassMarkSettingsService = mock[PassMarkSettingsService[AssessmentCentrePassMarkSettings]]
     val mockAssessmentScoresRepo = mock[AssessmentScoresRepository]
     val mockEvaluationEngine = mock[AssessmentCentreEvaluationEngine]
     val commercial = "Commercial"
@@ -456,7 +456,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
     val service = new AssessmentCentreService {
       val applicationRepo: GeneralApplicationRepository = mockAppRepo
       val assessmentCentreRepo: AssessmentCentreRepository = mockAssessmentCentreRepo
-      val passmarkService: PassMarkSettingsService[AssessmentCentrePassMarkSettingsV2] = mockAssessmentCentrePassMarkSettingsService
+      val passmarkService: PassMarkSettingsService[AssessmentCentrePassMarkSettings] = mockAssessmentCentrePassMarkSettingsService
       val assessmentScoresRepo: AssessmentScoresRepository = mockAssessmentScoresRepo
       val evaluationEngine: AssessmentCentreEvaluationEngine = mockEvaluationEngine
     }
@@ -496,20 +496,20 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
 
     val applicationId = UniqueIdentifier.randomUniqueIdentifier
 
-    val passMarkSettings = AssessmentCentrePassMarkSettingsV2(List(
-      AssessmentCentrePassMarkV2(SchemeId(commercial), AssessmentCentrePassMarkThresholdsV2(
+    val passMarkSettings = AssessmentCentrePassMarkSettings(List(
+      AssessmentCentrePassMark(SchemeId(commercial), AssessmentCentrePassMarkThresholds(
         seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
         makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
         communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
         workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(1.0, 3.0),
         overall = PassMarkThreshold(10.0, 15.0))),
-      AssessmentCentrePassMarkV2(SchemeId(digitalAndTechnology), AssessmentCentrePassMarkThresholdsV2(
+      AssessmentCentrePassMark(SchemeId(digitalAndTechnology), AssessmentCentrePassMarkThresholds(
         seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
         makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
         communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
         workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(1.0, 3.0),
         overall = PassMarkThreshold(10.0, 15.0))),
-      AssessmentCentrePassMarkV2(SchemeId(diplomaticService), AssessmentCentrePassMarkThresholdsV2(
+      AssessmentCentrePassMark(SchemeId(diplomaticService), AssessmentCentrePassMarkThresholds(
         seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
         makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
         communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
@@ -528,7 +528,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
 
   trait ReturnPassMarksFixture extends TestFixture {
     implicit val jsonFormat = AssessmentCentrePassMarkSettings.jsonFormat
-    (mockAssessmentCentrePassMarkSettingsService.getLatestPassMarkSettings(_: Format[AssessmentCentrePassMarkSettingsV2])).expects(*)
+    (mockAssessmentCentrePassMarkSettingsService.getLatestPassMarkSettings(_: Format[AssessmentCentrePassMarkSettings])).expects(*)
       .returning(Future.successful(Some(passMarkSettings)))
   }
 }

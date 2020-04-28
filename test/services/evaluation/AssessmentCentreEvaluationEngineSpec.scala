@@ -42,8 +42,8 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
     "evaluate to Red with a single Red and the others Green" in {
       val schemes = List(SchemeId(commercial))
 
-      val passMarkSettings = AssessmentCentrePassMarkSettingsV2(List(
-        AssessmentCentrePassMarkV2(SchemeId(commercial), AssessmentCentrePassMarkThresholdsV2(
+      val passMarkSettings = AssessmentCentrePassMarkSettings(List(
+        AssessmentCentrePassMark(SchemeId(commercial), AssessmentCentrePassMarkThresholds(
           seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
           makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
           communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
@@ -88,8 +88,8 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
     "evaluate to Amber with a single Amber and the others Green" in {
       val schemes = List(SchemeId(commercial))
 
-      val passMarkSettings = AssessmentCentrePassMarkSettingsV2(List(
-        AssessmentCentrePassMarkV2(SchemeId(commercial), AssessmentCentrePassMarkThresholdsV2(
+      val passMarkSettings = AssessmentCentrePassMarkSettings(List(
+        AssessmentCentrePassMark(SchemeId(commercial), AssessmentCentrePassMarkThresholds(
           seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
           makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
           communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
@@ -134,8 +134,8 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
     "evaluate to Green when all are Green" in {
       val schemes = List(SchemeId(commercial))
 
-      val passMarkSettings = AssessmentCentrePassMarkSettingsV2(List(
-        AssessmentCentrePassMarkV2(SchemeId(commercial), AssessmentCentrePassMarkThresholdsV2(
+      val passMarkSettings = AssessmentCentrePassMarkSettings(List(
+        AssessmentCentrePassMark(SchemeId(commercial), AssessmentCentrePassMarkThresholds(
           seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
           makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
           communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
@@ -180,8 +180,8 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
     "evaluate to Red with a mix of Amber, Green, Red" in {
       val schemes = List(SchemeId(commercial))
 
-      val passMarkSettings = AssessmentCentrePassMarkSettingsV2(List(
-        AssessmentCentrePassMarkV2(SchemeId(commercial), AssessmentCentrePassMarkThresholdsV2(
+      val passMarkSettings = AssessmentCentrePassMarkSettings(List(
+        AssessmentCentrePassMark(SchemeId(commercial), AssessmentCentrePassMarkThresholds(
           seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
           makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
           communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
@@ -226,8 +226,8 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
     "evaluate to Green when zero pass marks are specified" in {
       val schemes = List(SchemeId(commercial))
 
-      val passMarkSettings = AssessmentCentrePassMarkSettingsV2(List(
-        AssessmentCentrePassMarkV2(SchemeId(commercial), AssessmentCentrePassMarkThresholdsV2(
+      val passMarkSettings = AssessmentCentrePassMarkSettings(List(
+        AssessmentCentrePassMark(SchemeId(commercial), AssessmentCentrePassMarkThresholds(
           seeingTheBigPicture = PassMarkThreshold(0.0, 0.0),
           makingEffectiveDecisions = PassMarkThreshold(0.0, 0.0),
           communicatingAndInfluencing = PassMarkThreshold(0.0, 0.0),
@@ -273,20 +273,20 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
     // s3     | A  | G  | G  | G  | R       | R
     "evaluate multiple schemes to Amber or Red" in {
       // The pass marks which the evaluation engine uses to work out if each scheme has passed/failed
-      val passMarkSettings = AssessmentCentrePassMarkSettingsV2(List(
-        AssessmentCentrePassMarkV2(SchemeId(commercial), AssessmentCentrePassMarkThresholdsV2(
+      val passMarkSettings = AssessmentCentrePassMarkSettings(List(
+        AssessmentCentrePassMark(SchemeId(commercial), AssessmentCentrePassMarkThresholds(
           seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
           makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
           communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
           workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(1.0, 3.0),
           overall = PassMarkThreshold(10.0, 15.0))),
-        AssessmentCentrePassMarkV2(SchemeId(digitalAndTechnology), AssessmentCentrePassMarkThresholdsV2(
+        AssessmentCentrePassMark(SchemeId(digitalAndTechnology), AssessmentCentrePassMarkThresholds(
           seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
           makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
           communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
           workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(1.0, 3.0),
           overall = PassMarkThreshold(10.0, 16.0))),
-        AssessmentCentrePassMarkV2(SchemeId(diplomaticService), AssessmentCentrePassMarkThresholdsV2(
+        AssessmentCentrePassMark(SchemeId(diplomaticService), AssessmentCentrePassMarkThresholds(
           seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
           makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
           communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),

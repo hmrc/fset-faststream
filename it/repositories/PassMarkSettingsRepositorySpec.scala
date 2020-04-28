@@ -88,10 +88,15 @@ class AssessmentCentrePassMarkSettingsRepositorySpec extends PassMarkRepositoryF
   type T = AssessmentCentrePassMarkSettings
   type U = AssessmentCentrePassMark
   implicit val formatter = AssessmentCentrePassMarkSettings.jsonFormat
-  val assessmentCentrePassMarkThresholds = AssessmentCentrePassMarkThresholds(PassMarkThreshold(20d, 80d))
+  val competencyPassMark = PassMarkThreshold(2.0d, 3.0d)
+  val overallPassMark = PassMarkThreshold(2.0d, 14.0d)
+  val assessmentCentrePassMarkThresholds = AssessmentCentrePassMarkThresholds(competencyPassMark, competencyPassMark, competencyPassMark,
+    competencyPassMark, overallPassMark)
   val assessmentCentrePassMarks = List(AssessmentCentrePassMark(SchemeId("Finance"), assessmentCentrePassMarkThresholds))
   val passMarkSettings = AssessmentCentrePassMarkSettings(assessmentCentrePassMarks, version, createdDate, createdByUser)
-  val newPassMarkThresholds = AssessmentCentrePassMarkThresholds(PassMarkThreshold(30d, 80d))
+  val newOverallPassMark = PassMarkThreshold(2.0d, 16.0d)
+  val newPassMarkThresholds = AssessmentCentrePassMarkThresholds(competencyPassMark, competencyPassMark, competencyPassMark,
+    competencyPassMark, newOverallPassMark)
   val newPassMarks = List(AssessmentCentrePassMark(SchemeId("Finance"), newPassMarkThresholds))
   def passMarkSettingsRepo = assessmentCentrePassMarkSettingsRepository
   val collectionName = CollectionNames.ASSESSMENT_CENTRE_PASS_MARK_SETTINGS

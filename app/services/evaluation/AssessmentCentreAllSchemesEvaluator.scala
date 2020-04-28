@@ -18,16 +18,16 @@ package services.evaluation
 
 import model.EvaluationResults._
 import model.SchemeId
-import model.exchange.passmarksettings.{ AssessmentCentrePassMarkSettingsV2, PassMarkThreshold }
+import model.exchange.passmarksettings.{ AssessmentCentrePassMarkSettings, PassMarkThreshold }
 import model.persisted.SchemeEvaluationResult
 import play.api.Logger
 
 trait AssessmentCentreAllSchemesEvaluator {
 
   def evaluateSchemes(appId: String,
-                      passmark: AssessmentCentrePassMarkSettingsV2, //TODO: fset-2555
+                      passmark: AssessmentCentrePassMarkSettings,
                       competencyAverages: CompetencyAverageResult,
-                      schemes: Seq[SchemeId]): Seq[SchemeEvaluationResult] = { //TODO we also want the individual results returned
+                      schemes: Seq[SchemeId]): Seq[SchemeEvaluationResult] = {
     schemes.map { scheme =>
       val assessmentCentrePassMark = passmark.schemes.find { _.schemeId == scheme }
         .getOrElse(throw new IllegalStateException(s"Did not find assessment centre pass marks for scheme = $scheme, " +

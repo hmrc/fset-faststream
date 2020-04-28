@@ -38,10 +38,6 @@ trait Phase3Thresholds {
 }
 
 trait AssessmentCentreThresholds {
-  def assessmentCentre: PassMarkThreshold
-}
-
-trait AssessmentCentreThresholdsV2 {
   def seeingTheBigPicture: PassMarkThreshold
   def makingEffectiveDecisions: PassMarkThreshold
   def communicatingAndInfluencing: PassMarkThreshold
@@ -81,21 +77,12 @@ object Phase3PassMarkThresholds {
 }
 
 case class AssessmentCentrePassMarkThresholds(
-                                     assessmentCentre: PassMarkThreshold
-                                   ) extends PassMarkThresholds with AssessmentCentreThresholds
-
-object AssessmentCentrePassMarkThresholds {
-  implicit val jsonFormat = Json.format[AssessmentCentrePassMarkThresholds]
-  implicit val bsonHandler = Macros.handler[AssessmentCentrePassMarkThresholds]
-}
-
-case class AssessmentCentrePassMarkThresholdsV2(
-                                     override val seeingTheBigPicture: PassMarkThreshold,
-                                     override val makingEffectiveDecisions: PassMarkThreshold,
-                                     override val communicatingAndInfluencing: PassMarkThreshold,
-                                     override val workingTogetherDevelopingSelfAndOthers: PassMarkThreshold,
-                                     override val overall: PassMarkThreshold
-                                   ) extends PassMarkThresholds with AssessmentCentreThresholdsV2 {
+                                    override val seeingTheBigPicture: PassMarkThreshold,
+                                    override val makingEffectiveDecisions: PassMarkThreshold,
+                                    override val communicatingAndInfluencing: PassMarkThreshold,
+                                    override val workingTogetherDevelopingSelfAndOthers: PassMarkThreshold,
+                                    override val overall: PassMarkThreshold
+                                   ) extends PassMarkThresholds with AssessmentCentreThresholds {
   override def toString =
     s"seeingTheBigPicture=$seeingTheBigPicture," +
     s"makingEffectiveDecisions=$makingEffectiveDecisions," +
@@ -104,7 +91,7 @@ case class AssessmentCentrePassMarkThresholdsV2(
     s"overall=$overall"
 }
 
-object AssessmentCentrePassMarkThresholdsV2 {
-  implicit val jsonFormat = Json.format[AssessmentCentrePassMarkThresholdsV2]
-  implicit val bsonHandler = Macros.handler[AssessmentCentrePassMarkThresholdsV2]
+object AssessmentCentrePassMarkThresholds {
+  implicit val jsonFormat = Json.format[AssessmentCentrePassMarkThresholds]
+  implicit val bsonHandler = Macros.handler[AssessmentCentrePassMarkThresholds]
 }

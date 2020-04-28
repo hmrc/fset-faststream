@@ -17,7 +17,6 @@
 package services.testdata.candidate.assessmentcentre
 
 import model.UniqueIdentifier
-import model.assessmentscores.AssessmentScoresFinalFeedback
 import model.exchange.passmarksettings._
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
@@ -46,9 +45,9 @@ trait AssessmentCentrePassedStatusGenerator extends ConstructiveGenerator {
     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
 
     val schemes = SchemeYamlRepository.schemes.map(_.id).toList
-    val dummyPassmarks = AssessmentCentrePassMarkSettingsV2( //TODO: fset-2555
+    val dummyPassmarks = AssessmentCentrePassMarkSettings(
       schemes.map(schemeId =>
-        AssessmentCentrePassMarkV2(schemeId, AssessmentCentrePassMarkThresholdsV2(
+        AssessmentCentrePassMark(schemeId, AssessmentCentrePassMarkThresholds(
           seeingTheBigPicture = PassMarkThreshold(0.2, 0.4),
           makingEffectiveDecisions = PassMarkThreshold(0.2, 0.4),
           communicatingAndInfluencing = PassMarkThreshold(0.2, 0.4),
