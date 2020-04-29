@@ -36,12 +36,12 @@ trait AssessmentCentreAllSchemesEvaluator {
         assessmentCentrePassMark.schemeThresholds.makingEffectiveDecisions)
       val workingTogetherDevelopingSelfAndOthersResult = evaluateScore(appId, "workingTogetherDevelopingSelfAndOthers",
         competencyAverages.workingTogetherDevelopingSelfAndOthersAverage,
-        assessmentCentrePassMark.schemeThresholds.makingEffectiveDecisions)
+        assessmentCentrePassMark.schemeThresholds.workingTogetherDevelopingSelfAndOthers)
       val communicatingAndInfluencingResult = evaluateScore(appId, "communicatingAndInfluencing",
         competencyAverages.communicatingAndInfluencingAverage,
         assessmentCentrePassMark.schemeThresholds.communicatingAndInfluencing)
       val seeingTheBigPictureResult = evaluateScore(appId, "seeingTheBigPicture", competencyAverages.seeingTheBigPictureAverage,
-        assessmentCentrePassMark.schemeThresholds.communicatingAndInfluencing)
+        assessmentCentrePassMark.schemeThresholds.seeingTheBigPicture)
       val overallResult = evaluateScore(appId, "overall", competencyAverages.overallScore, assessmentCentrePassMark.schemeThresholds.overall)
 
       SchemeEvaluationResult(scheme, combineTestResults(appId, scheme, makingEffectiveDecisionsResult,
