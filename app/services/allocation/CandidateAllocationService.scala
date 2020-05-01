@@ -248,10 +248,10 @@ trait CandidateAllocationService extends EventSink {
     append: Boolean
   ): Future[command.CandidateAllocations] = {
 
-    def onlyCandidatesInFsb(toPersist: Seq[model.persisted.CandidateAllocation], idsWithAppStatus: Seq[(String, ApplicationStatus)]) = {
-      // Identify the candidates who are still in fsb and so can be processed. This will exclude candidates in ELIGIBLE_FOR_JOB_OFFER
-      val idsInFsbOnly = idsWithAppStatus.collect { case (appId, appStatus) if appStatus == ApplicationStatus.FSB => appId }
-      toPersist.filter(allocation => idsInFsbOnly.contains(allocation.id))
+    def candidatesNotInJobOffer(toPersist: Seq[model.persisted.CandidateAllocation], idsWithAppStatus: Seq[(String, ApplicationStatus)]) = {
+      // Identify the candidates who are in ELIGIBLE_FOR_JOB_OFFER as these will be excluded from being processed
+      val idsInJobOffer = idsWithAppStatus.collect { case (appId, appStatus) if appStatus == ApplicationStatus.ELIGIBLE_FOR_JOB_OFFER => appId }
+      toPersist.filterNot(allocation => idsInJobOffer.contains(allocation.id))
     }
 
     if (existingAllocations.version.forall(_ == newAllocations.version)) {
@@ -268,9 +268,9 @@ trait CandidateAllocationService extends EventSink {
         _ <- candidateAllocationRepo.delete(toDelete)
         _ <- candidateAllocationRepo.save(toPersist)
         appIds = toPersist.map(_.id)
-        // Fetch the application statuses of the existing allocations so we can see if any candidates have moved out of fsb
+        // Fetch the application statuses of the existing allocations so we can see if any candidates have moved out of fsb and are in job offer
         idsWithAppStatus <- applicationRepo.getApplicationStatusForCandidates(appIds)
-        _ <- updateStatusInvited(onlyCandidatesInFsb(toPersist, idsWithAppStatus), eventType)
+        _ <- updateStatusInvited(candidatesNotInJobOffer(toPersist, idsWithAppStatus), eventType)
       } yield {
         command.CandidateAllocations(newAllocations.eventId, newAllocations.sessionId, toPersist)
       }

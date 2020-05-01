@@ -19,6 +19,7 @@ package services.allocation
 import config.EventsConfig
 import connectors.{ AuthProviderClient, EmailClient }
 import connectors.ExchangeObjects.Candidate
+import model.ApplicationStatus.ApplicationStatus
 import model._
 import model.command.{ CandidateAllocation, CandidateAllocations }
 import model.exchange.candidateevents.CandidateAllocationWithEvent
@@ -61,21 +62,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
       when(mockAppRepo.removeProgressStatuses(any[String], any[List[ProgressStatuses.ProgressStatus]])).thenReturnAsync()
       when(mockAppRepo.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturnAsync()
 
-      val newAllocatedCandidate = model.Candidate(
-        userId = "userId1",
-        applicationId = Some(appId),
-        testAccountId = None,
-        email = None,
-        firstName = Some("first"),
-        lastName = Some("last"),
-        preferredName = Some("first"),
-        dateOfBirth = None,
-        address = None,
-        postCode = None,
-        country = None,
-        applicationRoute = Some(ApplicationRoute.Faststream),
-        applicationStatus = Some("FSB")
-      )
+      val newAllocatedCandidate = allocatedCandidate(appId, "userId1", ApplicationStatus.FSB)
       when(mockAppRepo.find(appId)).thenReturnAsync(Some(newAllocatedCandidate))
       when(mockAuthProviderClient.findByUserIds(any[Seq[String]])(any[HeaderCarrier])).thenReturnAsync(Nil)
 
@@ -114,21 +101,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
 
       when(mockAppRepo.getApplicationStatusForCandidates(Seq(appId2))).thenReturnAsync(Seq(appId2 -> ApplicationStatus.ELIGIBLE_FOR_JOB_OFFER))
 
-      val newAllocatedCandidate = model.Candidate(
-        userId = "userId2",
-        applicationId = Some(appId2),
-        testAccountId = None,
-        email = None,
-        firstName = Some("first"),
-        lastName = Some("last"),
-        preferredName = Some("first"),
-        dateOfBirth = None,
-        address = None,
-        postCode = None,
-        country = None,
-        applicationRoute = Some(ApplicationRoute.Faststream),
-        applicationStatus = Some("FSB")
-      )
+      val newAllocatedCandidate = allocatedCandidate(appId2, "userId2", ApplicationStatus.FSB)
       when(mockAppRepo.find(appId2)).thenReturnAsync(Some(newAllocatedCandidate))
       when(mockAuthProviderClient.findByUserIds(any[Seq[String]])(any[HeaderCarrier])).thenReturnAsync(Nil)
 
@@ -169,28 +142,55 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
       when(mockAppRepo.removeProgressStatuses(any[String], any[List[ProgressStatuses.ProgressStatus]])).thenReturnAsync()
       when(mockAppRepo.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturnAsync()
 
-      val newAllocatedCandidate = model.Candidate(
-        userId = "userId2",
-        applicationId = Some(appId2),
-        testAccountId = None,
-        email = None,
-        firstName = Some("first"),
-        lastName = Some("last"),
-        preferredName = Some("first"),
-        dateOfBirth = None,
-        address = None,
-        postCode = None,
-        country = None,
-        applicationRoute = Some(ApplicationRoute.Faststream),
-        applicationStatus = Some("FSB")
-      )
+      val newAllocatedCandidate = allocatedCandidate(appId2, "userId2", ApplicationStatus.FSB)
       when(mockAppRepo.find(appId2)).thenReturnAsync(Some(newAllocatedCandidate))
       when(mockAuthProviderClient.findByUserIds(any[Seq[String]])(any[HeaderCarrier])).thenReturnAsync(Nil)
 
       val candidateAllocations = CandidateAllocations(version, eventId, sessionId,
         Seq(CandidateAllocation(appId2, AllocationStatuses.UNCONFIRMED)))
       service.allocateCandidates(candidateAllocations, append = false).futureValue
-      // Should be called for the existing candidate who has is still in FSB
+      // Should be called for the existing candidate who is still in FSB
+      verify(mockAppRepo, times(1)).removeProgressStatuses(any[String], any[List[ProgressStatuses.ProgressStatus]])
+    }
+
+    "include candidates who are in ASSESSMENT_CENTRE when processing new allocations for the same event" in new TestFixture {
+      val version = "v1"
+      val eventId = "E1"
+      val sessionId = "71bbe093-cfc6-4cec-ad1a-e15ae829d7b0"
+      val appId1 = "appId1"
+      val appId2 = "appId2"
+
+      when(mockEventsService.getEvent(eventId)).thenReturnAsync(EventExamples.e1)
+
+      val candidate1 = model.persisted.CandidateAllocation(
+        id = appId1,
+        eventId = eventId,
+        sessionId = sessionId,
+        status = AllocationStatuses.CONFIRMED,
+        version = version,
+        removeReason = None,
+        createdAt = LocalDate.now(),
+        reminderSent = false
+      )
+
+      val existingAllocations = Seq(candidate1)
+
+      when(mockCandidateAllocationRepository.activeAllocationsForSession(eventId, sessionId)).thenReturnAsync(existingAllocations)
+      when(mockCandidateAllocationRepository.delete(any[Seq[model.persisted.CandidateAllocation]])).thenReturnAsync()
+      when(mockCandidateAllocationRepository.save(any[Seq[model.persisted.CandidateAllocation]])).thenReturnAsync()
+
+      when(mockAppRepo.getApplicationStatusForCandidates(Seq(appId2))).thenReturnAsync(Seq(appId2 -> ApplicationStatus.ASSESSMENT_CENTRE))
+      when(mockAppRepo.removeProgressStatuses(any[String], any[List[ProgressStatuses.ProgressStatus]])).thenReturnAsync()
+      when(mockAppRepo.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturnAsync()
+
+      val newAllocatedCandidate = allocatedCandidate(appId2, "userId2", ApplicationStatus.ASSESSMENT_CENTRE)
+      when(mockAppRepo.find(appId2)).thenReturnAsync(Some(newAllocatedCandidate))
+      when(mockAuthProviderClient.findByUserIds(any[Seq[String]])(any[HeaderCarrier])).thenReturnAsync(Nil)
+
+      val candidateAllocations = CandidateAllocations(version, eventId, sessionId,
+        Seq(CandidateAllocation(appId2, AllocationStatuses.UNCONFIRMED)))
+      service.allocateCandidates(candidateAllocations, append = false).futureValue
+      // Should be called for the existing candidate who is still in ASSESSMENT_CENTRE
       verify(mockAppRepo, times(1)).removeProgressStatuses(any[String], any[List[ProgressStatuses.ProgressStatus]])
     }
   }
@@ -323,5 +323,22 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
 
       verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier])
     }
+
+    def allocatedCandidate(appId: String, userId: String, applicationStatus: ApplicationStatus) =
+      model.Candidate(
+        userId = userId,
+        applicationId = Some(appId),
+        testAccountId = None,
+        email = None,
+        firstName = Some("first"),
+        lastName = Some("last"),
+        preferredName = Some("first"),
+        dateOfBirth = None,
+        address = None,
+        postCode = None,
+        country = None,
+        applicationRoute = Some(ApplicationRoute.Faststream),
+        applicationStatus = Some(applicationStatus)
+      )
   }
 }
