@@ -110,7 +110,6 @@ class AssessmentCentreMongoRepository (
 
   private val commonProgressStatusStateForEvaluation = BSONDocument(
     "$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE),
       BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED}" -> true),
       BSONDocument(s"progress-status.${ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED}" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_FAILED}" -> BSONDocument("$exists" -> false)),
@@ -120,6 +119,9 @@ class AssessmentCentreMongoRepository (
     )
   )
 
+  // Note we do do specify the applicationStatus of ASSESSMENT_CENTRE deliberately as a candidate can move outside of
+  // FSAC with a single Green scheme and still have others that are in Amber. These candidates need to be re-evaluated
+  // when the pass marks change
   override def nextApplicationReadyForAssessmentScoreEvaluation(
     currentPassmarkVersion: String,
     batchSize: Int): Future[List[UniqueIdentifier]] = {
