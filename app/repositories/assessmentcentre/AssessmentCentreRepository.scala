@@ -110,6 +110,7 @@ class AssessmentCentreMongoRepository (
 
   private val commonProgressStatusStateForEvaluation = BSONDocument(
     "$and" -> BSONArray(
+      BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED}" -> true),
       BSONDocument(s"progress-status.${ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED}" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_FAILED}" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN}" -> BSONDocument("$exists" -> false)),
@@ -118,6 +119,9 @@ class AssessmentCentreMongoRepository (
     )
   )
 
+  // Note we do do specify the applicationStatus of ASSESSMENT_CENTRE deliberately as a candidate can move outside of
+  // FSAC with a single Green scheme and still have others that are in Amber. These candidates need to be re-evaluated
+  // when the pass marks change
   override def nextApplicationReadyForAssessmentScoreEvaluation(
     currentPassmarkVersion: String,
     batchSize: Int): Future[List[UniqueIdentifier]] = {
@@ -126,14 +130,12 @@ class AssessmentCentreMongoRepository (
         BSONArray(
           BSONDocument(
             "$and" -> BSONArray(
-              BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED}" -> true),
               BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
               commonProgressStatusStateForEvaluation
             )
           ),
           BSONDocument(
             "$and" -> BSONArray(
-              BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED}" -> true),
               BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
               BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion)),
               commonProgressStatusStateForEvaluation
@@ -155,7 +157,6 @@ class AssessmentCentreMongoRepository (
           BSONDocument(
             "$and" -> BSONArray(
               BSONDocument("applicationId" -> applicationId),
-              BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED}" -> true),
               BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
               commonProgressStatusStateForEvaluation
             )
@@ -163,7 +164,6 @@ class AssessmentCentreMongoRepository (
           BSONDocument(
             "$and" -> BSONArray(
               BSONDocument("applicationId" -> applicationId),
-              BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED}" -> true),
               BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
               BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion)),
               commonProgressStatusStateForEvaluation
@@ -191,7 +191,6 @@ class AssessmentCentreMongoRepository (
             UniqueIdentifier(applicationId),
             passmarkVersion = evaluationDoc.getAs[String]("passmarkVersion").get,
             evaluationResult = AssessmentEvaluationResult(
-              evaluationDoc.getAs[Boolean]("passedMinimumCompetencyLevel"),
               evaluationDoc.getAs[CompetencyAverageResult]("competency-average").get,
               evaluationDoc.getAs[Seq[SchemeEvaluationResult]]("schemes-evaluation").get
             )
@@ -211,7 +210,6 @@ class AssessmentCentreMongoRepository (
     val passMarkEvaluation = BSONDocument("$set" ->
       BSONDocument(
         "testGroups.FSAC.evaluation" -> BSONDocument("passmarkVersion" -> evaluation.passmarkVersion)
-          .add(booleanToBSON("passedMinimumCompetencyLevel", evaluation.evaluationResult.passedMinimumCompetencyLevel))
           .add(BSONDocument("competency-average" -> evaluation.evaluationResult.competencyAverageResult))
           .add(BSONDocument("schemes-evaluation" -> evaluation.evaluationResult.schemesEvaluation))
       ).add(currentSchemeStatusBSON(currentSchemeStatus)))

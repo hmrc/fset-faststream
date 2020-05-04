@@ -16,16 +16,12 @@
 
 package config
 
-import java.io.File
-
 import com.github.ghik.silencer.silent
-import com.typesafe.config.ConfigFactory
 import model.persisted.eventschedules.{ Location, Venue }
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ValueReader
-import play.api.{ Logger, Play }
 import play.api.Play.{ configuration, current }
-import play.api.libs.json.Json
+import play.api.{ Logger, Play }
 import uk.gov.hmrc.play.config.ServicesConfig
 
 case class FrameworksConfig(yamlFilePath: String)
@@ -171,14 +167,6 @@ case class Phase3TestsConfig(timeToExpireInDays: Int,
 
 case class LocationsAndVenuesConfig(yamlFilePath: String)
 
-case class AssessmentEvaluationMinimumCompetencyLevel(enabled: Boolean, minimumCompetencyLevelScore: Option[Double]) {
-  require(!enabled || minimumCompetencyLevelScore.isDefined)
-}
-
-object AssessmentEvaluationMinimumCompetencyLevel {
-  implicit val AssessmentEvaluationMinimumCompetencyLevelFormats = Json.format[AssessmentEvaluationMinimumCompetencyLevel]
-}
-
 object MicroserviceAppConfig extends MicroserviceAppConfig
 
 trait MicroserviceAppConfig extends ServicesConfig {
@@ -206,10 +194,6 @@ trait MicroserviceAppConfig extends ServicesConfig {
 
   val AllLocations = Location("All")
   val AllVenues = Venue("ALL_VENUES", "All venues")
-
-  lazy val assessmentEvaluationMinimumCompetencyLevelConfig =
-    underlyingConfiguration
-      .as[AssessmentEvaluationMinimumCompetencyLevel]("microservice.services.assessment-evaluation.minimum-competency-level")
 
   lazy val fixerJobConfig =
     underlyingConfiguration.as[ScheduledJobConfig]("scheduling.online-testing.fixer-job")

@@ -24,39 +24,34 @@ import services.assessmentcentre.AssessmentCentreService
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object EvaluateAssessmentScoreJob extends EvaluateAssessmentScoreJob {
+object EvaluateAssessmentCentreJob extends EvaluateAssessmentCentreJob {
   val applicationAssessmentService: AssessmentCentreService = AssessmentCentreService
 }
 
-trait EvaluateAssessmentScoreJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]]
-  with MinimumCompetencyLevelConfig {
+trait EvaluateAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val applicationAssessmentService: AssessmentCentreService
 
-  val config = EvaluateAssessmentScoreJobConfig
+  val config = EvaluateAssessmentCentreJobConfig
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    Logger.debug(s"EvaluateAssessmentScoreJob starting")
+    Logger.debug(s"EvaluateAssessmentCentreJob starting")
     applicationAssessmentService.nextAssessmentCandidatesReadyForEvaluation(config.batchSize).map { candidateResults =>
       candidateResults.map { candidateResult =>
         if (candidateResult.schemes.isEmpty) {
-          Logger.debug(s"EvaluateAssessmentScoreJob - no non-RED schemes found so will not evaluate this candidate")
+          Logger.debug(s"EvaluateAssessmentCentreJob - no non-RED schemes found so will not evaluate this candidate")
           Future.successful(())
         } else {
-          Logger.debug(s"EvaluateAssessmentScoreJob found candidate - now evaluating...")
-          applicationAssessmentService.evaluateAssessmentCandidate(candidateResult, minimumCompetencyLevelConfig)
+          Logger.debug(s"EvaluateAssessmentCentreJob found candidate ${candidateResult.scores.applicationId} - now evaluating...")
+          applicationAssessmentService.evaluateAssessmentCandidate(candidateResult)
         }
       }
     }
   }
 }
 
-object EvaluateAssessmentScoreJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
-  configPrefix = "scheduling.evaluate-assessment-score-job",
-  name = "EvaluateAssessmentScoreJob"
+object EvaluateAssessmentCentreJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
+  configPrefix = "scheduling.evaluate-assessment-centre-job",
+  name = "EvaluateAssessmentCentreJob"
 ) {
   val batchSize: Int = conf.batchSize.getOrElse(1)
-}
-
-trait MinimumCompetencyLevelConfig {
-  val minimumCompetencyLevelConfig = config.MicroserviceAppConfig.assessmentEvaluationMinimumCompetencyLevelConfig
 }

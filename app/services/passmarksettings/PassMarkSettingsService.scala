@@ -50,10 +50,6 @@ object AssessmentCentrePassMarkSettingsService extends PassMarkSettingsService[A
   val passMarkSettingsRepo = assessmentCentrePassMarkSettingsRepository
 }
 
-object AssessmentCentrePassMarkSettingsServiceV2 extends PassMarkSettingsService[AssessmentCentrePassMarkSettingsV2] {
-  val passMarkSettingsRepo = assessmentCentrePassMarkSettingsRepositoryV2
-}
-
 trait PassMarkSettingsService[T <: PassMarkSettings] {
   val passMarkSettingsRepo: PassMarkSettingsRepository[T]
 

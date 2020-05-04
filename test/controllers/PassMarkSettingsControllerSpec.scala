@@ -176,7 +176,10 @@ class AssessmentCentrePassMarkSettingsControllerSpec extends PassMarkSettingsCon
   type U = AssessmentCentrePassMark
   implicit val formatter = AssessmentCentrePassMarkSettings.jsonFormat
   val argumentCaptor = ArgumentCaptor.forClass(classOf[AssessmentCentrePassMarkSettings])
-  val passMarkThresholds = AssessmentCentrePassMarkThresholds(defaultSchemeThreshold)
+  val competencySchemeThreshold = PassMarkThreshold(2.0d, 3.0d)
+  val overallSchemeThreshold = PassMarkThreshold(2.0d, 14.0d)
+  val passMarkThresholds = AssessmentCentrePassMarkThresholds(competencySchemeThreshold, competencySchemeThreshold, competencySchemeThreshold,
+    competencySchemeThreshold, overallSchemeThreshold)
   val passMarks = List(
     AssessmentCentrePassMark(SchemeId("Finance"), passMarkThresholds),
     AssessmentCentrePassMark(SchemeId("Commercial"), passMarkThresholds),
@@ -199,16 +202,32 @@ class AssessmentCentrePassMarkSettingsControllerSpec extends PassMarkSettingsCon
       passMarkSettings.copy(version = uuidFactory.generateUUID(), createDate = DateTime.now())
     val passMarksCreatedEvent = createdEvent
   }
+
   val jsonSchemeThresholds = """
                                | "schemeThresholds": {
-                               |   "assessmentCentre": {
-                               |     "failThreshold": 20.0,
-                               |     "passThreshold": 80.0
+                               |   "seeingTheBigPicture": {
+                               |     "failThreshold": 2.0,
+                               |     "passThreshold": 3.0
+                               |   },
+                               |   "makingEffectiveDecisions": {
+                               |     "failThreshold": 2.0,
+                               |     "passThreshold": 3.0
+                               |   },
+                               |   "communicatingAndInfluencing": {
+                               |     "failThreshold": 2.0,
+                               |     "passThreshold": 3.0
+                               |   },
+                               |   "workingTogetherDevelopingSelfAndOthers": {
+                               |     "failThreshold": 2.0,
+                               |     "passThreshold": 3.0
+                               |   },
+                               |   "overall": {
+                               |     "failThreshold": 2.0,
+                               |     "passThreshold": 14.0
                                |   }
                                | }
                              """
   val createUrl = controllers.routes.AssessmentCentrePassMarkSettingsController.create().url
-
 }
 
 trait PassMarkSettingsControllerSpec extends UnitWithAppSpec {

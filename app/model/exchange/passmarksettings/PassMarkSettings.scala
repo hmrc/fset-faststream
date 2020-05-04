@@ -100,23 +100,14 @@ case class AssessmentCentrePassMarkSettings(
                                    version: String,
                                    createDate: DateTime,
                                    createdBy: String
-                                 ) extends PassMarkSettings
+                                 ) extends PassMarkSettings {
+  // Only display pass marks for the Commercial scheme to reduce the amount we log
+  def abbreviated = s"schemes=${schemes.filter(s => s.schemeId == SchemeId("Commercial"))}," +
+    s"version=$version,createDate=$createDate,createdBy=$createdBy"
+}
 
 object AssessmentCentrePassMarkSettings {
   import repositories.BSONDateTimeHandler
   implicit val jsonFormat = Json.format[AssessmentCentrePassMarkSettings]
   implicit val bsonHandler = Macros.handler[AssessmentCentrePassMarkSettings]
-}
-
-case class AssessmentCentrePassMarkSettingsV2(
-                                   schemes: List[AssessmentCentrePassMarkV2],
-                                   version: String,
-                                   createDate: DateTime,
-                                   createdBy: String
-                                 ) extends PassMarkSettings
-
-object AssessmentCentrePassMarkSettingsV2 {
-  import repositories.BSONDateTimeHandler
-  implicit val jsonFormat = Json.format[AssessmentCentrePassMarkSettingsV2]
-  implicit val bsonHandler = Macros.handler[AssessmentCentrePassMarkSettingsV2]
 }

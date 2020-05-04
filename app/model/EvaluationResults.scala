@@ -111,8 +111,6 @@ object EvaluationResults {
   }
 
   case class AssessmentEvaluationResult(
-    passedMinimumCompetencyLevel: Option[Boolean],
     competencyAverageResult: CompetencyAverageResult,
     schemesEvaluation: Seq[SchemeEvaluationResult])
 }
-

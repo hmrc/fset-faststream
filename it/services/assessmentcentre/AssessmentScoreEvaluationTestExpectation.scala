@@ -9,7 +9,6 @@ case class AssessmentScoreEvaluationTestExpectation(
                                                      applicationStatus: Option[ApplicationStatus],
                                                      progressStatus: Option[ProgressStatuses.ProgressStatus],
                                                      passmarkVersion: Option[String],
-                                                     passedMinimumCompetencyLevel: Option[Boolean],
                                                      makingEffectiveDecisionsAverage: Option[Double],
                                                      workingTogetherDevelopingSelfAndOthersAverage: Option[Double],
                                                      communicatingAndInfluencingAverage: Option[Double],

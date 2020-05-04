@@ -64,9 +64,6 @@ GET         /phase3/pass-mark-settings                                   control
 PUT         /assessment-centre/pass-mark-settings                        controllers.AssessmentCentrePassMarkSettingsController.create
 GET         /assessment-centre/pass-mark-settings                        controllers.AssessmentCentrePassMarkSettingsController.getLatestVersion
 
-PUT         /assessment-centre/pass-mark-settings-v2                     controllers.AssessmentCentrePassMarkSettingsControllerV2.create
-GET         /assessment-centre/pass-mark-settings-v2                     controllers.AssessmentCentrePassMarkSettingsControllerV2.getLatestVersion
-
 GET         /search/find-by-id/user/:userId/framework/:frameworkId       controllers.SearchForApplicantsController.findById(userId: String, frameworkId: String)
 POST        /search/find-by-criteria                                     controllers.SearchForApplicantsController.findByCriteria
 

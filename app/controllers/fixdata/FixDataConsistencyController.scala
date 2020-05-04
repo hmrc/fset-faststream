@@ -25,7 +25,6 @@ import model.command.FastPassPromotion
 import model.persisted.sift.SiftAnswersStatus
 import play.api.Logger
 import play.api.mvc.{ Action, AnyContent, Result }
-import scheduler.assessment.MinimumCompetencyLevelConfig
 import services.application.{ ApplicationService, FsbService }
 import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAssessmentScoreEvaluationException
 import services.assessmentcentre.{ AssessmentCentreService, ProgressionToFsbOrOfferService }
@@ -52,7 +51,7 @@ object FixDataConsistencyController extends FixDataConsistencyController {
 }
 
 // scalastyle:off number.of.methods
-trait FixDataConsistencyController extends BaseController with MinimumCompetencyLevelConfig {
+trait FixDataConsistencyController extends BaseController {
   val applicationService: ApplicationService
   val fastPassService: FastPassService
   val siftService: ApplicationSiftService
@@ -743,7 +742,7 @@ trait FixDataConsistencyController extends BaseController with MinimumCompetency
               Logger.warn(msg)
               Future.failed(new Exception(msg))
             } else {
-              assessmentCentreService.evaluateAssessmentCandidate(candidateResult, minimumCompetencyLevelConfig)
+              assessmentCentreService.evaluateAssessmentCandidate(candidateResult)
             }
           }
           Future.sequence(candidateFutures).map(_ => Ok(s"Successfully evaluated candidate $applicationId at FSAC"))

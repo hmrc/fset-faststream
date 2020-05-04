@@ -49,11 +49,6 @@ class AssessmentCentrePassMarkSettingsMongoRepository(implicit mongo: () => DB)
     AssessmentCentrePassMarkSettings.jsonFormat, ReactiveMongoFormats.objectIdFormats
   ) with PassMarkSettingsRepository[AssessmentCentrePassMarkSettings]
 
-class AssessmentCentrePassMarkSettingsMongoRepositoryV2(implicit mongo: () => DB)
-  extends ReactiveRepository[AssessmentCentrePassMarkSettingsV2, BSONObjectID](CollectionNames.ASSESSMENT_CENTRE_PASS_MARK_SETTINGS_V2, mongo,
-    AssessmentCentrePassMarkSettingsV2.jsonFormat, ReactiveMongoFormats.objectIdFormats
-  ) with PassMarkSettingsRepository[AssessmentCentrePassMarkSettingsV2]
-
 trait PassMarkSettingsRepository[T <: PassMarkSettings] {
   this: ReactiveRepository[T, _] =>
 

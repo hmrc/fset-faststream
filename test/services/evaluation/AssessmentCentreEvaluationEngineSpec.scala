@@ -16,7 +16,6 @@
 
 package services.evaluation
 
-import config.AssessmentEvaluationMinimumCompetencyLevel
 import model.EvaluationResults.{ Amber, CompetencyAverageResult, Green, Red }
 import model.exchange.passmarksettings._
 import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresExercise }
@@ -31,104 +30,270 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
   val digitalAndTechnology = "DigitalAndTechnology"
   val diplomaticService = "DiplomaticService"
 
-  // The pass marks which the evaluation engine uses to work out if each scheme has passed/failed
-  val passMarkSettings = AssessmentCentrePassMarkSettings(List(
-    AssessmentCentrePassMark(SchemeId(commercial), AssessmentCentrePassMarkThresholds(PassMarkThreshold(10.0, 15.0))),
-    AssessmentCentrePassMark(SchemeId(digitalAndTechnology), AssessmentCentrePassMarkThresholds(PassMarkThreshold(10.0, 16.0))),
-    AssessmentCentrePassMark(SchemeId(diplomaticService), AssessmentCentrePassMarkThresholds(PassMarkThreshold(16.0, 20.0)))),
-    "1", DateTime.now(), "user")
-
   val applicationId = UniqueIdentifier.randomUniqueIdentifier
   val updatedBy = UniqueIdentifier.randomUniqueIdentifier
-
-  // The scores awarded to the candidate by assessor/reviewer
-  val candidateScores = AssessmentScoresAllExercises(applicationId,
-    analysisExercise = Some(
-      AssessmentScoresExercise(
-        attended = true,
-        makingEffectiveDecisionsAverage = Some(5.0),
-        communicatingAndInfluencingAverage = Some(4.0),
-        seeingTheBigPictureAverage = Some(4.0),
-        updatedBy = updatedBy
-      )),
-    groupExercise = Some(
-      AssessmentScoresExercise(
-        attended = true,
-        makingEffectiveDecisionsAverage = Some(5.0),
-        workingTogetherDevelopingSelfAndOthersAverage = Some(2.0),
-        communicatingAndInfluencingAverage = Some(4.0),
-        updatedBy = updatedBy
-      )),
-    leadershipExercise = Some(
-      AssessmentScoresExercise(
-        attended = true,
-        workingTogetherDevelopingSelfAndOthersAverage = Some(4.0),
-        communicatingAndInfluencingAverage = Some(4.0),
-        seeingTheBigPictureAverage = Some(4.0),
-        updatedBy = updatedBy
-      ))
-  )
-
-  // List of schemes for which the candidate will be evaluated
-  val candidateSchemes = List(
-    SchemeId(commercial),
-    SchemeId(digitalAndTechnology),
-    SchemeId(diplomaticService)
-  )
 
   val evaluationEngine = AssessmentCentreEvaluationEngine
 
   "Assessment Centre Passmark Rules engine evaluation" should {
-    "evaluate to passedMinimumCompetencyLevel=false when minimum competency level is enabled and not met" in {
-      val config = AssessmentEvaluationMinimumCompetencyLevel(enabled = true, minimumCompetencyLevelScore = Some(3.1))
-      val candidateScore = AssessmentPassMarksSchemesAndScores(passMarkSettings, candidateSchemes, candidateScores)
 
-      val result = evaluationEngine.evaluate(candidateScore, config)
-      result.passedMinimumCompetencyLevel mustBe Some(false)
-      result.schemesEvaluation mustBe List(
-        SchemeEvaluationResult(SchemeId(commercial), Red.toString),
-        SchemeEvaluationResult(SchemeId(digitalAndTechnology), Red.toString),
-        SchemeEvaluationResult(SchemeId(diplomaticService), Red.toString)
+    // scheme | c1 | c2 | c3 | c4 | overall | expected result
+    // s1     | R  | G  | G  | G  | G       | R
+    "evaluate to Red with a single Red and the others Green" in {
+      val schemes = List(SchemeId(commercial))
+
+      val passMarkSettings = AssessmentCentrePassMarkSettings(List(
+        AssessmentCentrePassMark(SchemeId(commercial), AssessmentCentrePassMarkThresholds(
+          seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
+          makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
+          communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
+          workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(1.0, 3.0),
+          overall = PassMarkThreshold(8.0, 10.2)))),
+        version = "v1", createDate = DateTime.now(), "user")
+
+      val candidateScores = AssessmentScoresAllExercises(applicationId,
+        analysisExercise = Some(
+          AssessmentScoresExercise(
+            attended = true,
+            seeingTheBigPictureAverage = Some(0.99),
+            makingEffectiveDecisionsAverage = Some(3.1),
+            communicatingAndInfluencingAverage = Some(3.1),
+            updatedBy = updatedBy
+          )),
+        groupExercise = Some(
+          AssessmentScoresExercise(
+            attended = true,
+            makingEffectiveDecisionsAverage = Some(3.1),
+            communicatingAndInfluencingAverage = Some(3.1),
+            workingTogetherDevelopingSelfAndOthersAverage = Some(3.1),
+            updatedBy = updatedBy
+          )),
+        leadershipExercise = Some(
+          AssessmentScoresExercise(
+            attended = true,
+            seeingTheBigPictureAverage = Some(0.99),
+            communicatingAndInfluencingAverage = Some(3.1),
+            workingTogetherDevelopingSelfAndOthersAverage = Some(3.1),
+            updatedBy = updatedBy
+          ))
       )
 
-      val expectedCompetencyAverage = CompetencyAverageResult(
-        makingEffectiveDecisionsAverage = 5.0,
-        workingTogetherDevelopingSelfAndOthersAverage = 3.0,
-        communicatingAndInfluencingAverage = 4.0,
-        seeingTheBigPictureAverage = 4.0,
-        overallScore = 16.0
-      )
-      result.competencyAverageResult mustBe expectedCompetencyAverage
+      val candidateScore = AssessmentPassMarksSchemesAndScores(passMarkSettings, schemes, candidateScores)
+      val result = evaluationEngine.evaluate(candidateScore)
+      result.schemesEvaluation mustBe List(SchemeEvaluationResult(SchemeId(commercial), Red.toString))
     }
 
-    "evaluate to passedMinimumCompetencyLevel is empty and evaluate the schemes when MCL is turned off" in {
-      val config = AssessmentEvaluationMinimumCompetencyLevel(enabled = false, minimumCompetencyLevelScore = Some(3.0))
-      val candidateScore = AssessmentPassMarksSchemesAndScores(passMarkSettings, candidateSchemes, candidateScores)
+    // scheme | c1 | c2 | c3 | c4 | overall | expected result
+    // s1     | A  | G  | G  | G  | G       | A
+    "evaluate to Amber with a single Amber and the others Green" in {
+      val schemes = List(SchemeId(commercial))
 
-      val result = evaluationEngine.evaluate(candidateScore, config)
-      result.passedMinimumCompetencyLevel mustBe None
-      result.schemesEvaluation mustBe List(
-        SchemeEvaluationResult(SchemeId(commercial), Green.toString),
-        SchemeEvaluationResult(SchemeId(digitalAndTechnology), Green.toString),
-        SchemeEvaluationResult(SchemeId(diplomaticService), Amber.toString)
+      val passMarkSettings = AssessmentCentrePassMarkSettings(List(
+        AssessmentCentrePassMark(SchemeId(commercial), AssessmentCentrePassMarkThresholds(
+          seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
+          makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
+          communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
+          workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(1.0, 3.0),
+          overall = PassMarkThreshold(8.0, 11.3)))), // overall score = 11.3 so this should evaluate to Green
+        version = "v1", createDate = DateTime.now(), "user")
+
+      val candidateScores = AssessmentScoresAllExercises(applicationId,
+        analysisExercise = Some(
+          AssessmentScoresExercise(
+            attended = true,
+            seeingTheBigPictureAverage = Some(2.0),
+            makingEffectiveDecisionsAverage = Some(3.1),
+            communicatingAndInfluencingAverage = Some(3.1),
+            updatedBy = updatedBy
+          )),
+        groupExercise = Some(
+          AssessmentScoresExercise(
+            attended = true,
+            makingEffectiveDecisionsAverage = Some(3.1),
+            communicatingAndInfluencingAverage = Some(3.1),
+            workingTogetherDevelopingSelfAndOthersAverage = Some(3.1),
+            updatedBy = updatedBy
+          )),
+        leadershipExercise = Some(
+          AssessmentScoresExercise(
+            attended = true,
+            seeingTheBigPictureAverage = Some(2.0),
+            communicatingAndInfluencingAverage = Some(3.1),
+            workingTogetherDevelopingSelfAndOthersAverage = Some(3.1),
+            updatedBy = updatedBy
+          ))
       )
+
+      val candidateScore = AssessmentPassMarksSchemesAndScores(passMarkSettings, schemes, candidateScores)
+      val result = evaluationEngine.evaluate(candidateScore)
+      result.schemesEvaluation mustBe List(SchemeEvaluationResult(SchemeId(commercial), Amber.toString))
     }
 
-    "evaluate to passedMinimumCompetencyLevel=true and evaluate the schemes" in {
-      val config = AssessmentEvaluationMinimumCompetencyLevel(enabled = true, Some(3.0))
-      val candidateScore = AssessmentPassMarksSchemesAndScores(passMarkSettings, candidateSchemes, candidateScores)
+    // scheme | c1 | c2 | c3 | c4 | overall | expected result
+    // s1     | G  | G  | G  | G  | G       | G
+    "evaluate to Green when all are Green" in {
+      val schemes = List(SchemeId(commercial))
 
-      val result = evaluationEngine.evaluate(candidateScore, config)
-      result.passedMinimumCompetencyLevel mustBe Some(true)
-      result.schemesEvaluation mustBe List(
-        SchemeEvaluationResult(SchemeId(commercial), Green.toString),
-        SchemeEvaluationResult(SchemeId(digitalAndTechnology), Green.toString),
-        SchemeEvaluationResult(SchemeId(diplomaticService), Amber.toString)
+      val passMarkSettings = AssessmentCentrePassMarkSettings(List(
+        AssessmentCentrePassMark(SchemeId(commercial), AssessmentCentrePassMarkThresholds(
+          seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
+          makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
+          communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
+          workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(1.0, 3.0),
+          overall = PassMarkThreshold(8.0, 12.0)))),
+        version = "v1", createDate = DateTime.now(), "user")
+
+      val candidateScores = AssessmentScoresAllExercises(applicationId,
+        analysisExercise = Some(
+          AssessmentScoresExercise(
+            attended = true,
+            seeingTheBigPictureAverage = Some(3.0),
+            makingEffectiveDecisionsAverage = Some(3.1),
+            communicatingAndInfluencingAverage = Some(3.1),
+            updatedBy = updatedBy
+          )),
+        groupExercise = Some(
+          AssessmentScoresExercise(
+            attended = true,
+            makingEffectiveDecisionsAverage = Some(3.1),
+            communicatingAndInfluencingAverage = Some(3.1),
+            workingTogetherDevelopingSelfAndOthersAverage = Some(3.1),
+            updatedBy = updatedBy
+          )),
+        leadershipExercise = Some(
+          AssessmentScoresExercise(
+            attended = true,
+            seeingTheBigPictureAverage = Some(3.0),
+            communicatingAndInfluencingAverage = Some(3.1),
+            workingTogetherDevelopingSelfAndOthersAverage = Some(3.1),
+            updatedBy = updatedBy
+          ))
       )
+
+      val candidateScore = AssessmentPassMarksSchemesAndScores(passMarkSettings, schemes, candidateScores)
+      val result = evaluationEngine.evaluate(candidateScore)
+      result.schemesEvaluation mustBe List(SchemeEvaluationResult(SchemeId(commercial), Green.toString))
     }
 
-    "evaluate to amber or red" in {
-      val config = AssessmentEvaluationMinimumCompetencyLevel(enabled = true, Some(2.75))
+    // scheme | c1 | c2 | c3 | c4 | overall | expected result
+    // s1     | A  | G  | R  | G  | G       | R
+    "evaluate to Red with a mix of Amber, Green, Red" in {
+      val schemes = List(SchemeId(commercial))
+
+      val passMarkSettings = AssessmentCentrePassMarkSettings(List(
+        AssessmentCentrePassMark(SchemeId(commercial), AssessmentCentrePassMarkThresholds(
+          seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
+          makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
+          communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
+          workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(1.0, 3.0),
+          overall = PassMarkThreshold(8.0, 9.0)))),
+        version = "v1", createDate = DateTime.now(), "user")
+
+      val candidateScores = AssessmentScoresAllExercises(applicationId,
+        analysisExercise = Some(
+          AssessmentScoresExercise(
+            attended = true,
+            seeingTheBigPictureAverage = Some(2.0),
+            makingEffectiveDecisionsAverage = Some(3.1),
+            communicatingAndInfluencingAverage = Some(0.99),
+            updatedBy = updatedBy
+          )),
+        groupExercise = Some(
+          AssessmentScoresExercise(
+            attended = true,
+            makingEffectiveDecisionsAverage = Some(3.1),
+            communicatingAndInfluencingAverage = Some(0.99),
+            workingTogetherDevelopingSelfAndOthersAverage = Some(3.1),
+            updatedBy = updatedBy
+          )),
+        leadershipExercise = Some(
+          AssessmentScoresExercise(
+            attended = true,
+            seeingTheBigPictureAverage = Some(2.0),
+            communicatingAndInfluencingAverage = Some(0.99),
+            workingTogetherDevelopingSelfAndOthersAverage = Some(3.1),
+            updatedBy = updatedBy
+          ))
+      )
+
+      val candidateScore = AssessmentPassMarksSchemesAndScores(passMarkSettings, schemes, candidateScores)
+      val result = evaluationEngine.evaluate(candidateScore)
+      result.schemesEvaluation mustBe List(SchemeEvaluationResult(SchemeId(commercial), Red.toString))
+    }
+
+    // scheme | c1 | c2 | c3 | c4 | overall | expected result
+    // s1     | G  | G  | G  | G  | G       | G
+    "evaluate to Green when zero pass marks are specified" in {
+      val schemes = List(SchemeId(commercial))
+
+      val passMarkSettings = AssessmentCentrePassMarkSettings(List(
+        AssessmentCentrePassMark(SchemeId(commercial), AssessmentCentrePassMarkThresholds(
+          seeingTheBigPicture = PassMarkThreshold(0.0, 0.0),
+          makingEffectiveDecisions = PassMarkThreshold(0.0, 0.0),
+          communicatingAndInfluencing = PassMarkThreshold(0.0, 0.0),
+          workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(0.0, 0.0),
+          overall = PassMarkThreshold(0.0, 0.0)))),
+        version = "v1", createDate = DateTime.now(), "user")
+
+      val candidateScores = AssessmentScoresAllExercises(applicationId,
+        analysisExercise = Some(
+          AssessmentScoresExercise(
+            attended = true,
+            seeingTheBigPictureAverage = Some(1.0),
+            makingEffectiveDecisionsAverage = Some(1.0),
+            communicatingAndInfluencingAverage = Some(1.0),
+            updatedBy = updatedBy
+          )),
+        groupExercise = Some(
+          AssessmentScoresExercise(
+            attended = true,
+            makingEffectiveDecisionsAverage = Some(1.0),
+            communicatingAndInfluencingAverage = Some(1.0),
+            workingTogetherDevelopingSelfAndOthersAverage = Some(1.0),
+            updatedBy = updatedBy
+          )),
+        leadershipExercise = Some(
+          AssessmentScoresExercise(
+            attended = true,
+            seeingTheBigPictureAverage = Some(1.0),
+            communicatingAndInfluencingAverage = Some(1.0),
+            workingTogetherDevelopingSelfAndOthersAverage = Some(1.0),
+            updatedBy = updatedBy
+          ))
+      )
+
+      val candidateScore = AssessmentPassMarksSchemesAndScores(passMarkSettings, schemes, candidateScores)
+      val result = evaluationEngine.evaluate(candidateScore)
+      result.schemesEvaluation mustBe List(SchemeEvaluationResult(SchemeId(commercial), Green.toString))
+    }
+
+    // scheme | c1 | c2 | c3 | c4 | overall | expected result
+    // s1     | A  | G  | G  | G  | A       | A
+    // s2     | A  | G  | G  | G  | A       | A
+    // s3     | A  | G  | G  | G  | R       | R
+    "evaluate multiple schemes to Amber or Red" in {
+      // The pass marks which the evaluation engine uses to work out if each scheme has passed/failed
+      val passMarkSettings = AssessmentCentrePassMarkSettings(List(
+        AssessmentCentrePassMark(SchemeId(commercial), AssessmentCentrePassMarkThresholds(
+          seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
+          makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
+          communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
+          workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(1.0, 3.0),
+          overall = PassMarkThreshold(10.0, 15.0))),
+        AssessmentCentrePassMark(SchemeId(digitalAndTechnology), AssessmentCentrePassMarkThresholds(
+          seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
+          makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
+          communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
+          workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(1.0, 3.0),
+          overall = PassMarkThreshold(10.0, 16.0))),
+        AssessmentCentrePassMark(SchemeId(diplomaticService), AssessmentCentrePassMarkThresholds(
+          seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
+          makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
+          communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
+          workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(1.0, 3.0),
+          overall = PassMarkThreshold(16.0, 20.0)))),
+        version = "v1", DateTime.now(), "user")
+
       val candidateScores = AssessmentScoresAllExercises(applicationId,
         analysisExercise = Some(
           AssessmentScoresExercise(makingEffectiveDecisionsAverage = Some(2.5), communicatingAndInfluencingAverage = Some(3.5),
@@ -144,10 +309,11 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
           ))
       )
 
+      // List of schemes for which the candidate will be evaluated
+      val candidateSchemes = List(SchemeId(commercial), SchemeId(digitalAndTechnology), SchemeId(diplomaticService))
       val candidateScore = AssessmentPassMarksSchemesAndScores(passMarkSettings, candidateSchemes, candidateScores)
 
-      val result = evaluationEngine.evaluate(candidateScore, config)
-      result.passedMinimumCompetencyLevel mustBe Some(true)
+      val result = evaluationEngine.evaluate(candidateScore)
       result.schemesEvaluation mustBe List(
         SchemeEvaluationResult(SchemeId(commercial), Amber.toString),
         SchemeEvaluationResult(SchemeId(digitalAndTechnology), Amber.toString),
