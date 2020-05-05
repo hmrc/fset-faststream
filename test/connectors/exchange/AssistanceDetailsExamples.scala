@@ -16,13 +16,28 @@
 
 package connectors.exchange
 
+import forms.AssistanceDetailsForm
+
 object AssistanceDetailsExamples {
-  val OnlyDisabilityNoGisNoAdjustments = AssistanceDetails("Yes", Some(""), Some(false), Some(false), None, Some(false),
-    None, None, None)
-  val DisabilityGisAndAdjustments = AssistanceDetails("Yes", Some("Epilepsy"), Some(true), Some(true),
-    Some("Some adjustment"), Some(true), Some("Some other adjustments"), None, None)
-  val EdipAdjustments = AssistanceDetails("Yes", Some("Epilepsy"), Some(true), None, None, None, None,
-    Some(true), Some("Some adjustment"))
-  val SdipAdjustments = AssistanceDetails("Yes", Some("Epilepsy"), Some(true), None, None, None, None,
-    Some(true), Some("Some adjustment"))
+  val OnlyDisabilityNoGisNoAdjustments = AssistanceDetails(hasDisability = "Yes", disabilityImpact = Some("No"),
+    disabilityCategories = Some(List(AssistanceDetailsForm.disabilityCategoriesList.head)),
+    otherDisabilityDescription = None, guaranteedInterview = Some(false), needsSupportForOnlineAssessment = Some(false),
+    needsSupportForOnlineAssessmentDescription = None, needsSupportAtVenue = Some(false),
+    needsSupportAtVenueDescription = None, needsSupportForPhoneInterview = None, needsSupportForPhoneInterviewDescription = None)
+  val DisabilityGisAndAdjustments = AssistanceDetails(hasDisability = "Yes", disabilityImpact = Some("No"),
+    disabilityCategories = Some(List(AssistanceDetailsForm.disabilityCategoriesList.head)),
+    otherDisabilityDescription = None, guaranteedInterview = Some(true), needsSupportForOnlineAssessment = Some(true),
+    needsSupportForOnlineAssessmentDescription = Some("Some adjustment"), needsSupportAtVenue = Some(true),
+    needsSupportAtVenueDescription = Some("Some other adjustments"), needsSupportForPhoneInterview = None,
+    needsSupportForPhoneInterviewDescription = None)
+  val EdipAdjustments = AssistanceDetails(hasDisability = "Yes", disabilityImpact = Some("No"),
+    disabilityCategories = Some(List(AssistanceDetailsForm.disabilityCategoriesList.head)), otherDisabilityDescription = None,
+    guaranteedInterview = Some(true), needsSupportForOnlineAssessment = None, needsSupportForOnlineAssessmentDescription = None,
+    needsSupportAtVenue = None, needsSupportAtVenueDescription = None, needsSupportForPhoneInterview = Some(true),
+    needsSupportForPhoneInterviewDescription = Some("Some adjustment"))
+  val SdipAdjustments = AssistanceDetails(hasDisability = "Yes", disabilityImpact = Some("No"),
+    disabilityCategories = Some(List(AssistanceDetailsForm.disabilityCategoriesList.head)), otherDisabilityDescription = None,
+    guaranteedInterview = Some(true), needsSupportForOnlineAssessment = None, needsSupportForOnlineAssessmentDescription = None,
+    needsSupportAtVenue = None, needsSupportAtVenueDescription = None, needsSupportForPhoneInterview = Some(true),
+    needsSupportForPhoneInterviewDescription = Some("Some adjustment"))
 }

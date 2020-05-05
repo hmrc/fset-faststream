@@ -18,8 +18,8 @@ package models.page
 
 import connectors.exchange.referencedata.Scheme
 
-case class SelectedSchemesPage(allSchemes: Seq[Scheme]) {
-
+case class AssistanceDetailsPage(allSchemes: Seq[Scheme]) {
+/*
   val visibleSchemes = allSchemes.filterNot(scheme => Seq("Sdip", "Edip").contains(scheme.id.value))
 
   def getValidSchemesByPriority(formData: Map[String, String]) = {
@@ -31,14 +31,13 @@ case class SelectedSchemesPage(allSchemes: Seq[Scheme]) {
   val getInvalidSchemes = (selectedSchemes: List[String]) => selectedSchemes.diff(allSchemes.map(_.id.value))
 
   def getSchemesByPriority(formData: Map[String, String]) = {
-    val validSchemeParamsFunc = (name: String, value: String) => name.startsWith("scheme_") && value.nonEmpty
-    val extractPriorityNumberFunc: String => Int = _.split("_").last.toInt
-
-    formData.filter { case (name, scheme) => validSchemeParamsFunc(name, scheme) }
-      .collect { case (name, scheme) => extractPriorityNumberFunc(name) -> scheme }
+    val validSchemeParams = (name: String, value: String) => name.startsWith("scheme_") && value.nonEmpty
+    val priority: String => Int = _.split("_").last.toInt
+    formData.filter(pair => validSchemeParams(pair._1, pair._2))
+      .collect { case (name, value) => priority(name) -> value }
       .toList
-      .sortBy { case (priority, _) => priority }
-      .map { case (_, scheme) => scheme }
+      .sortBy { case (prior, _) => prior }
+      .map {case (_, value) => value }
       .distinct
-  }
+  }*/
 }

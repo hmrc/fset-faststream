@@ -19,21 +19,12 @@ package forms
 import models.ApplicationRoute
 
 object AssistanceDetailsFormExamples {
-  val DisabilityGisAndAdjustmentsForm = AssistanceDetailsForm.Data("Yes", Some("Epilepsy"), Some("Yes"), Some("Yes"),
-    Some("Some adjustment"), Some("Yes"), Some("Some other adjustments"), None, None)
-
-  val NoDisabilitiesForm = AssistanceDetailsForm.Data("No", None, None, Some("No"), None, Some("No"), None, None, None)
-
-  val NoAdjustmentsForm = AssistanceDetailsForm.Data("Yes", Some("Some disabilities"), Some("No"), Some("No"), None,
-    Some("No"), None, None, None)
-
-  val FullForm = AssistanceDetailsForm.Data("Yes", Some("Some disabilities"), Some("Yes"), Some("Yes"),
-    Some("Some adjustments online"), Some("Yes"), Some("Some adjustments at venue"), None, None)
-
   val DisabilityGisAndAdjustmentsMap = Map[String, String](
     "applicationRoute" -> ApplicationRoute.Faststream.toString,
     "hasDisability" -> "Yes",
-    "hasDisabilityDescription" -> "Epilepsy",
+    "disabilityImpact" -> "No",
+    "disabilityCategories[0]" -> AssistanceDetailsForm.disabilityCategoriesList.head,
+    "otherDisabilityDescription" -> "Epilepsy",
     "guaranteedInterview" -> "Yes",
     "needsSupportForOnlineAssessment" -> "Yes",
     "needsSupportForOnlineAssessmentDescription" -> "Some adjustment",
@@ -43,7 +34,9 @@ object AssistanceDetailsFormExamples {
   val DisabilityGisAndAdjustmentsEdipMap = Map[String, String](
     "applicationRoute" -> ApplicationRoute.Edip.toString,
     "hasDisability" -> "Yes",
-    "hasDisabilityDescription" -> "Epilepsy",
+    "disabilityImpact" -> "No",
+    "disabilityCategories[0]" -> AssistanceDetailsForm.disabilityCategoriesList.head,
+    "otherDisabilityDescription" -> "Epilepsy",
     "guaranteedInterview" -> "Yes",
     "needsSupportForPhoneInterview" -> "Yes",
     "needsSupportForPhoneInterviewDescription" -> "Some adjustment")
@@ -51,7 +44,9 @@ object AssistanceDetailsFormExamples {
   val DisabilityGisAndAdjustmentsSdipMap = Map[String, String](
     "applicationRoute" -> ApplicationRoute.Sdip.toString,
     "hasDisability" -> "Yes",
-    "hasDisabilityDescription" -> "Epilepsy",
+    "disabilityImpact" -> "No",
+    "disabilityCategories[0]" -> AssistanceDetailsForm.disabilityCategoriesList.head,
+    "otherDisabilityDescription" -> "Epilepsy",
     "guaranteedInterview" -> "Yes",
     "needsSupportForPhoneInterview" -> "Yes",
     "needsSupportForPhoneInterviewDescription" -> "Some adjustment")
@@ -59,11 +54,12 @@ object AssistanceDetailsFormExamples {
   val DisabilityGisAndAdjustmentsFormUrlEncodedBody = Seq(
     "applicationRoute" -> ApplicationRoute.Faststream.toString,
     "hasDisability" -> "Yes",
-    "hasDisabilityDescription" -> "Epilepsy",
+    "disabilityImpact" -> "No",
+    "disabilityCategories[0]" -> AssistanceDetailsForm.disabilityCategoriesList.head,
+    "otherDisabilityDescription" -> "Epilepsy",
     "guaranteedInterview" -> "Yes",
     "needsSupportForOnlineAssessment" -> "Yes",
     "needsSupportForOnlineAssessmentDescription" -> "Some adjustment",
     "needsSupportAtVenue" -> "Yes",
-//    "needsSupportAtVenueDescription" -> "Some other adjustements")
     "needsSupportAtVenueDescription" -> "Some other adjustments")
 }
