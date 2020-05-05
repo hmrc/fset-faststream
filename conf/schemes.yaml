@@ -7,6 +7,7 @@
     specificRequirement: false
   siftRequirement: NUMERIC_TEST
   siftEvaluationRequired: true
+  fsbType: CFS - Skype interview
 - id: DigitalAndTechnology
   code: DAT
   name: Digital, Data & Technology
@@ -150,6 +151,16 @@
   fsbType: PDFS - Skype interview
   schemeGuide: https://www.faststream.gov.uk/media/1243/pdfs-guide.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/1252/scheme-questions-pdfs.rtf
+- id: Property
+  code: PRO
+  name: Property
+  civilServantEligible: true
+  degree:
+    required: Degree_22
+    specificRequirement: false
+  siftRequirement: FORM
+  siftEvaluationRequired: false
+  fsbType: PRO - Skype interview
 - id: ScienceAndEngineering
   code: SEFS
   name: Science and Engineering
