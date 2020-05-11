@@ -76,14 +76,14 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
 
     val updateQuery = BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phase.evaluation" -> evaluation
-    ).add(
+    ).merge(
       newProgressStatus.map(applicationStatusBSON).getOrElse(BSONDocument.empty)
-    ).add(
+    ).merge(
       currentSchemeStatusBSON(evaluation.result)
     ))
     val validator = singleUpdateValidator(applicationId, actionDesc = s"saving passmark evaluation during $phase evaluation")
 
-    collection.update(selectQuery, updateQuery) map validator
+    collection.update(ordered = false).one(selectQuery, updateQuery) map validator
   }
 
   def addSchemeResultToPassmarkEvaluation(applicationId: String,
@@ -103,8 +103,8 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
     val evalSdipvalidator = singleUpdateValidator(applicationId,
       actionDesc = s"add scheme evaluation result to passmark evaluation during $phase evaluation")
 
-    collection.update(query, removeEvaluationIfExists) flatMap { _ =>
-      collection.update(query, passMarkEvaluation) map evalSdipvalidator
+    collection.update(ordered = false).one(query, removeEvaluationIfExists) flatMap { _ =>
+      collection.update(ordered = false).one(query, passMarkEvaluation) map evalSdipvalidator
     }
   }
 
@@ -141,7 +141,7 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
   def getPassMarkEvaluation(applicationId: String): Future[PassmarkEvaluation] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument(s"testGroups.$phase.evaluation" -> 1, "_id" -> 0)
-    collection.find(query, projection).one[BSONDocument] map { optDoc =>
+    collection.find(query, Some(projection)).one[BSONDocument] map { optDoc =>
       passMarkEvaluationReader(phase, applicationId, optDoc)
     }
   }

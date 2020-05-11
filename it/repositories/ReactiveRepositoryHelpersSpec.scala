@@ -72,9 +72,9 @@ class ReactiveRepositoryHelpersSpec extends MongoRepositorySpec {
 
     def update(updateKvp: (String, TestType), queryKvp: Option[(String, TestType)] = None) = {
       val query = queryKvp.map(BSONDocument(_)).getOrElse(BSONDocument.empty)
-      collection.update(query, BSONDocument(updateKvp))
+      collection.update(ordered = false).one(query, BSONDocument(updateKvp))
     }
 
-    def insert(kvp: (String, TestType)) = collection.insert(BSONDocument(kvp))
+    def insert(kvp: (String, TestType)) = collection.insert(ordered = false).one(BSONDocument(kvp))
   }
 }

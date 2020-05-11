@@ -16,7 +16,9 @@
 
 package repositories
 
-import reactivemongo.api.QueryOpts
+import play.api.libs.json.JsObject
+import reactivemongo.api.Cursor.FailOnError
+import reactivemongo.api.{ Cursor, QueryOpts, ReadPreference }
 import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson.{ BSONDocument, BSONDocumentReader }
 import reactivemongo.play.json.collection.JSONBatchCommands.JSONCountCommand
@@ -44,8 +46,14 @@ trait RandomSelection {
   protected def selectRandom[T](query: BSONDocument, batchSize: Int = 1, projection: BSONDocument = BSONDocument.empty)(
     implicit reader: BSONDocumentReader[T], ec: ExecutionContext): Future[List[T]] = {
 
-    collection.runCommand(JSONCountCommand.Count(query)).flatMap { c =>
-      val count = c.count
+    def countDocuments = {
+      val unlimitedMaxDocs = -1
+      collection.find(query, projection = Option.empty[JsObject]).cursor[BSONDocument]()
+        .collect[List](unlimitedMaxDocs, FailOnError[List[BSONDocument]]())
+        .map( _.size )
+    }
+
+    countDocuments.flatMap{ count =>
       if (count == 0) {
         Future.successful(Nil)
       } else {
@@ -53,9 +61,9 @@ trait RandomSelection {
         // `None` is returned by the method instead of a Some[BSONDocument].
         val (randomIndex, newBatchSize) = RandomSelection.calculateBatchSize(batchSize, count)
 
-        bsonCollection.find(query, projection)
+        bsonCollection.find(query, Some(projection))
           .options(QueryOpts(skipN = randomIndex, batchSizeN = newBatchSize))
-          .cursor[T]().collect[List](newBatchSize)
+          .cursor[T]().collect[List](newBatchSize, Cursor.FailOnError[List[T]]())
       }
     }
   }

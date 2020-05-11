@@ -197,7 +197,7 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
       throw new IllegalStateException(msg)
     case Failure(_) =>
       Logger.info(s"$prefix creating db application")
-      applicationRepository.collection.insert(
+      applicationRepository.collection.insert(ordered = false).one(
         BSONDocument(
           "applicationId" -> appId,
           "userId" -> ("user" + appId)
@@ -220,9 +220,9 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
       val applicationStatus = applicationStatusOpt.get
       val progressStatusTimeStampDocOpt = document.getAs[BSONDocument]("progress-status-timestamp")
       val latestProgressStatusOpt = progressStatusTimeStampDocOpt.flatMap { timestamps =>
-        val relevantProgressStatuses = timestamps.elements.filter(_._1.startsWith(applicationStatus))
-        val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element => timestamps.getAs[DateTime](element._1).get)
-        Try(ProgressStatuses.nameToProgressStatus(latestRelevantProgressStatus._1)).toOption
+        val relevantProgressStatuses = timestamps.elements.filter(_.name.startsWith(applicationStatus))
+        val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element => timestamps.getAs[DateTime](element.name).get)
+        Try(ProgressStatuses.nameToProgressStatus(latestRelevantProgressStatus.name)).toOption
       }
 
       val evaluationDocOpt = (for {

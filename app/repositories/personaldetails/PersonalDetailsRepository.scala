@@ -20,7 +20,7 @@ import factories.DateTimeFactory
 import model.ApplicationStatus
 import model.Exceptions.PersonalDetailsNotFound
 import model.persisted.PersonalDetails
-import reactivemongo.api.DB
+import reactivemongo.api.{ Cursor, DB }
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.{ CollectionNames, CommonBSONDocuments, ReactiveRepositoryHelpers }
@@ -57,7 +57,7 @@ class PersonalDetailsMongoRepository(val dateTimeFactory: DateTimeFactory)(impli
       BSONDocument(
         "progress-status.personal-details" -> true,
         PersonalDetailsCollection -> personalDetails
-      ).add(
+      ).merge(
         applicationStatusBSON(newApplicationStatus)
       )
     )
@@ -65,7 +65,7 @@ class PersonalDetailsMongoRepository(val dateTimeFactory: DateTimeFactory)(impli
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating personal details",
       PersonalDetailsNotFound(applicationId))
 
-    collection.update(query, personalDetailsBSON) map validator
+    collection.update(ordered = false).one(query, personalDetailsBSON) map validator
   }
 
   def updateWithoutStatusChange(appId: String, userId: String, personalDetails: PersonalDetails): Future[Unit] = {
@@ -81,14 +81,14 @@ class PersonalDetailsMongoRepository(val dateTimeFactory: DateTimeFactory)(impli
 
     val validator = singleUpdateValidator(appId, actionDesc = "update personal details without status change")
 
-    collection.update(query, personalDetailsBSON) map validator
+    collection.update(ordered = false).one(query, personalDetailsBSON) map validator
   }
 
   override def find(applicationId: String): Future[PersonalDetails] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument(PersonalDetailsCollection -> 1, "_id" -> 0)
 
-    collection.find(query, projection).one[BSONDocument] map {
+    collection.find(query, Some(projection)).one[BSONDocument] map {
       case Some(document) if document.getAs[BSONDocument](PersonalDetailsCollection).isDefined =>
         document.getAs[PersonalDetails](PersonalDetailsCollection).get
       case _ => throw PersonalDetailsNotFound(applicationId)
@@ -102,7 +102,8 @@ class PersonalDetailsMongoRepository(val dateTimeFactory: DateTimeFactory)(impli
       PersonalDetailsCollection -> 1, "_id" -> 0
     )
 
-    collection.find(query, projection).cursor[BSONDocument]().collect[List]().map { docs =>
+    collection.find(query, Some(projection)).cursor[BSONDocument]()
+      .collect[List](maxDocs = -1, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
       docs.map { doc =>
         val appId = doc.getAs[String]("applicationId").get
         val personalDetailsOpt = doc.getAs[PersonalDetails](PersonalDetailsCollection)

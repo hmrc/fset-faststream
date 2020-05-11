@@ -7,6 +7,7 @@ import model.persisted.{ ApplicationReadyForEvaluation, _ }
 import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses, SchemeId }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.scalatest.mockito.MockitoSugar
+import play.api.libs.json.JsObject
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.{ CollectionNames, CommonRepository }
@@ -181,7 +182,8 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   }
 
   private def getOnePhase2Profile(appId: String) = {
-    phase2EvaluationRepo.collection.find(BSONDocument("applicationId" -> appId)).one[BSONDocument].map(_.map { doc =>
+    phase2EvaluationRepo.collection.find(BSONDocument("applicationId" -> appId), projection = Option.empty[JsObject])
+      .one[BSONDocument].map(_.map { doc =>
       val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
       val bsonPhase2 = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument]("PHASE2"))
       val phase2 = bsonPhase2.map(Phase2TestGroup.bsonHandler.read).get

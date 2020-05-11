@@ -21,9 +21,10 @@ import java.util.UUID
 
 import model.persisted.fileupload.{ FileUpload, FileUploadInfo }
 import org.joda.time.{ DateTime, DateTimeZone }
-import reactivemongo.api.gridfs.{ DefaultFileToSave, GridFS }
-import reactivemongo.api.{ BSONSerializationPack, DB, DefaultDB }
-import reactivemongo.bson.BSONDocument
+import reactivemongo.api.gridfs.{ DefaultFileToSave, ReadFile }
+import reactivemongo.play.iteratees.GridFS
+import reactivemongo.api._
+import reactivemongo.bson.{ BSONDocument, BSONValue }
 import repositories.CollectionNames
 import repositories.fileupload.FileUploadRepository.FileUploadNotFoundException
 import reactivemongo.api.gridfs.Implicits._
@@ -40,9 +41,9 @@ trait FileUploadRepository {
   def retrieve(fileId: String): Future[FileUpload]
 }
 
-class FileUploadMongoRepository(implicit mongo: () => DB) extends FileUploadRepository {
+class FileUploadMongoRepository(implicit mongo: () => DB with DBMetaCommands) extends FileUploadRepository {
 
-  lazy val gridFS = new GridFS[BSONSerializationPack.type](DefaultDB(mongo.apply.name, mongo.apply.connection), CollectionNames.FILE_UPLOAD)
+  private lazy val gridFS = GridFS[BSONSerializationPack.type](mongo.apply(), CollectionNames.FILE_UPLOAD)
 
   def add(contentType: String, fileContents: Array[Byte]): Future[String] = {
     val newId = UUID.randomUUID().toString
@@ -55,19 +56,21 @@ class FileUploadMongoRepository(implicit mongo: () => DB) extends FileUploadRepo
   def retrieve(fileId: String): Future[FileUpload] = {
      gridFS.find(BSONDocument("filename" -> fileId)).headOption.map {
       case Some(res) =>
-      val body = gridFS.enumerate(res)
-      FileUpload(
-        fileId,
-        res.contentType.get,
-        new DateTime(res.uploadDate.get),
-        body
-      )
+        val body = gridFS.enumerate(res)
+        FileUpload(
+          fileId,
+          res.contentType.get,
+          new DateTime(res.uploadDate.get),
+          body
+        )
       case _ => throw FileUploadNotFoundException(s"No file upload found with id $fileId")
     }
   }
 
   def retrieveAllIdsAndSizes: Future[List[FileUploadInfo]] = {
-    gridFS.find(BSONDocument()).collect[List]().map { fileList =>
+    val unlimitedMaxDocs = -1
+    gridFS.find(BSONDocument.empty)
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[ReadFile[BSONSerializationPack.type, BSONValue]]]()).map { fileList =>
       fileList.map { file =>
         FileUploadInfo(
           file.filename.get,

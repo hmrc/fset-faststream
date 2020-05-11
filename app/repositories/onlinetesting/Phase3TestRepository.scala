@@ -117,8 +117,8 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val validator = singleUpdateValidator(applicationId, s"Fixing phase3 results for ${result.schemeId}", ApplicationNotFound(applicationId))
 
     for {
-      _ <- collection.update(removePredicate, removeDoc) map validator
-      _ <- collection.update(setPredicate, setDoc) map validator
+      _ <- collection.update(ordered = false).one(removePredicate, removeDoc) map validator
+      _ <- collection.update(ordered = false).one(setPredicate, setDoc) map validator
     } yield ()
   }
 
@@ -132,7 +132,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
     val validator = singleUpdateValidator(token, actionDesc = "appending phase 3 callback")
 
-    collection.update(query, update) map validator
+    collection.update(ordered = false).one(query, update) map validator
   }
 
   override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] = {
@@ -151,7 +151,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "inserting test group")
 
-    collection.update(query, appStatusBSON) map validator
+    collection.update(ordered = false).one(query, appStatusBSON) map validator
   }
 
   def upsertTestGroupEvaluation(applicationId: String, passmarkEvaluation: PassmarkEvaluation): Future[Unit] = {
@@ -178,7 +178,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     )
 
     val validator = singleUpdateValidator(applicationId, "removing test group", ApplicationNotFound(applicationId))
-    collection.update(query, updateQuery, upsert = false) map validator
+    collection.update(ordered = false).one(query, updateQuery, upsert = false) map validator
   }
 
   // Note this is the same impl as the default removeTestGroup in OnlineTestRepository. Provided here because
@@ -196,7 +196,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     )
 
     val validator = singleUpdateValidator(token, "removing reviewed callbacks", TokenNotFound(token))
-    collection.update(query, update, upsert = false, multi = true) map validator
+    collection.update(ordered = false).one(query, update, upsert = false, multi = true) map validator
   }
 
   override def removeTest(token: String): Future[Unit] = {
@@ -210,10 +210,10 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
     val validator = singleUpdateValidator(token, "removing test", TokenNotFound(s"Failed to remove P3 test for $token"))
 
-    collection.update(removePredicate, removeDoc, upsert = false) map validator
+    collection.update(ordered = false).one(removePredicate, removeDoc, upsert = false) map validator
   }
 
-  override def markTestAsActive(token: String) = {
+  override def markTestAsActive(token: String): Future[Unit] = {
     val query = BSONDocument(s"testGroups.$phaseName.tests" -> BSONDocument(
       "$elemMatch" -> BSONDocument("token" -> token)
     ))
@@ -224,7 +224,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
     val validator = singleUpdateValidator(token, "setting P3 test active", TokenNotFound(s"Failed to set P3 test active for $token"))
 
-    collection.update(query, update, upsert = false) map validator
+    collection.update(ordered = false).one(query, update, upsert = false) map validator
   }
 
   override def updateExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit] = {
@@ -235,7 +235,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     ))
 
     val validator = singleUpdateValidator(applicationId, "setting phase3 expiration date", ApplicationNotFound(applicationId))
-    collection.update(query, update, upsert = false) map validator
+    collection.update(ordered = false).one(query, update, upsert = false) map validator
   }
 
   override def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]] = {
@@ -248,7 +248,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     ))
     val projection = BSONDocument("applicationId" -> 1, s"testGroups.$phaseName" -> 1, "_id" -> 0)
 
-    collection.find(query, projection).one[BSONDocument] map {
+    collection.find(query, Some(projection)).one[BSONDocument] map {
       case Some(doc) =>
         val applicationId = doc.getAs[String]("applicationId").get
         val bsonPhase3 = doc.getAs[BSONDocument]("testGroups").map(_.getAs[BSONDocument](phaseName).get)
@@ -258,7 +258,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     }
   }
 
-  override def updateTestStartTime(launchpadInviteId: String, startedTime: DateTime) = {
+  override def updateTestStartTime(launchpadInviteId: String, startedTime: DateTime) : Future[Unit] = {
     val update = BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phaseName.tests.$$.startedDateTime" -> Some(startedTime)
     ))
@@ -266,7 +266,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     findAndUpdateLaunchpadTest(launchpadInviteId, update)
   }
 
-  override def updateTestCompletionTime(launchpadInviteId: String, completedTime: DateTime) = {
+  override def updateTestCompletionTime(launchpadInviteId: String, completedTime: DateTime): Future[Unit] = {
     import repositories.BSONDateTimeHandler
     val update = BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(completedTime)
@@ -301,7 +301,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
         CannotFindTestByLaunchpadId(s"Cannot find test group by launchpad Id: $launchpadInviteId"))
     }
 
-    collection.update(find, update) map validator
+    collection.update(ordered = false).one(find, update) map validator
   }
 
   private def defaultUpdateErrorHandler(launchpadInviteId: String) = {

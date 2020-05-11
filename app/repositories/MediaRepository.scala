@@ -20,8 +20,9 @@ import model.ApplicationRoute.{ apply => _ }
 import model.Exceptions.CannotAddMedia
 import model.persisted.Media
 import model.persisted.Media._
+import play.api.libs.json.JsObject
 import reactivemongo.api.commands.WriteResult
-import reactivemongo.api.{ DB, ReadPreference }
+import reactivemongo.api.{ Cursor, DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -54,14 +55,14 @@ class MediaMongoRepository(implicit mongo: () => DB)
   override def find(userId: String): Future[Option[Media]] = {
     val query = BSONDocument("userId" -> userId)
 
-    bsonCollection.find(query).one[Media]
+    bsonCollection.find(query, projection = Option.empty[JsObject]).one[Media]
   }
 
   override def findAll(): Future[Map[String, Media]] = {
     val query = BSONDocument.empty
     implicit val reader = bsonReader(docToMedia)
-    val queryResult = bsonCollection.find(query)
-      .cursor[(String, Media)](ReadPreference.nearest).collect[List]()
+    val queryResult = bsonCollection.find(query, projection = Option.empty[JsObject])
+      .cursor[(String, Media)](ReadPreference.nearest).collect[List](maxDocs = -1, Cursor.FailOnError[List[(String, Media)]]())
     queryResult.map(_.toMap)
   }
 
@@ -74,9 +75,8 @@ class MediaMongoRepository(implicit mongo: () => DB)
 
   override def removeMedia(userId: String): Future[Unit] = {
     val query = BSONDocument("userId" -> userId)
-    collection.remove(query, firstMatchOnly = true).map(_ => ())
+    collection.delete().one(query, limit = Some(1)).map(_ => ())
   }
-
 
   private def docToMedia(document: BSONDocument): (String, Media) = {
     val userId = document.getAs[String]("userId").get
@@ -84,5 +84,4 @@ class MediaMongoRepository(implicit mongo: () => DB)
 
     (userId, Media(userId, media))
   }
-
 }

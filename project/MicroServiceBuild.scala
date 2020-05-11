@@ -29,8 +29,9 @@ private object Versions {
   val hmrcTestVersion                  = "2.3.0"
   val ficus                            = "1.1.2"
   val playConfigVersion                = "7.2.0"
-  val playReactivemongoVersion         = "6.2.0"
-
+  val hmrcSimpleReactivemongoVersion   = "7.23.0-play-25"
+  // ReactiveMongo version used is here: https://github.com/hmrc/simple-reactivemongo/blob/master/project/LibraryDependencies.scala
+  val reactiveMongoVersion             = "0.18.8"
   val mockito                          = "2.2.17"
   val scalatestplus                    = "2.0.1"
  }
@@ -40,8 +41,14 @@ private object AppDependencies {
   import play.core.PlayVersion
 
   val compile = Seq(
-    "uk.gov.hmrc" %% "play-reactivemongo" % playReactivemongoVersion,
+    "uk.gov.hmrc" %% "simple-reactivemongo" % hmrcSimpleReactivemongoVersion excludeAll
+      ExclusionRule("com.typesafe.play", "play-iteratees_2.11"),
+
     "uk.gov.hmrc" %% "microservice-bootstrap" % hmrcMicroserviceBootstrapVersion,
+    // Needed to get an Enumerator of documents from ReactiveMongo. Note the version specified is the version of the ReactiveMongo driver
+    // which matches the current version used in the HMRC simple-reactivemongo lib
+    "org.reactivemongo" %% "reactivemongo-iteratees" % reactiveMongoVersion,
+
     "uk.gov.hmrc" %% "play-scheduling" % hmrcScheduler,
     "org.webjars" %% "webjars-play" % "2.3.0",
     "org.webjars" % "bootstrap" % "3.1.1",

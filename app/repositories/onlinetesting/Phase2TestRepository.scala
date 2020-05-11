@@ -90,7 +90,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val query = BSONDocument("userId" -> userId)
     val projection = BSONDocument(s"testGroups.PHASE2" -> 1, "_id" -> 0)
 
-    collection.find(query, projection).one[BSONDocument] map { optDocument =>
+    collection.find(query, Some(projection)).one[BSONDocument] map { optDocument =>
       optDocument.flatMap {_.getAs[BSONDocument]("testGroups")}
         .flatMap {_.getAs[BSONDocument]("PHASE2")}
         .map {x => bsonHandler.read(x)}
@@ -114,7 +114,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     ))
     val projection = BSONDocument("applicationId" -> 1, s"testGroups.$phaseName" -> 1, "_id" -> 0)
 
-    collection.find(query, projection).one[BSONDocument] map {
+    collection.find(query, Some(projection)).one[BSONDocument] map {
       case Some(doc) =>
         val applicationId = doc.getAs[String]("applicationId").get
         val bsonPhase2 = doc.getAs[BSONDocument]("testGroups").map(_.getAs[BSONDocument](phaseName).get)
@@ -137,19 +137,19 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "inserting test group")
 
-    collection.update(query, updateBson) map validator
+    collection.update(ordered = false).one(query, updateBson) map validator
   }
 
   def upsertTestGroupEvaluation(applicationId: String, passmarkEvaluation: PassmarkEvaluation): Future[Unit] = {
     upsertTestGroupEvaluationResult(applicationId, passmarkEvaluation)
   }
 
-  override def saveTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup) = {
+  override def saveTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val updateBSON = BSONDocument("$set" -> BSONDocument("testGroups.PHASE2" -> phase2TestProfile))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "Saving phase2 test group")
-    collection.update(query, updateBSON).map(validator)
+    collection.update(ordered = false).one(query, updateBSON).map(validator)
   }
 
   override def insertTestResult(appId: String, phase2Test: CubiksTest, testResult: TestResult): Future[Unit] = {
@@ -166,7 +166,7 @@ class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
     val validator = singleUpdateValidator(appId, actionDesc = "inserting test results")
 
-    collection.update(query, update) map validator
+    collection.update(ordered = false).one(query, update) map validator
   }
 
   override def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = {

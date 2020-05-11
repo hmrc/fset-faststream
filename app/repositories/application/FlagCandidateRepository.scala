@@ -47,7 +47,7 @@ class FlagCandidateMongoRepository(implicit mongo: () => DB)
     val query = BSONDocument("applicationId" -> appId)
     val projection = BSONDocument("applicationId" -> 1, "issue" -> 1)
 
-    collection.find(query, projection).one[BSONDocument].map { docOpt =>
+    collection.find(query, Some(projection)).one[BSONDocument].map { docOpt =>
       docOpt.map(flagCandidateHandler.read) match {
         case flag @ Some(FlagCandidate(_, Some(_))) => flag
         case _ => None
@@ -62,8 +62,7 @@ class FlagCandidateMongoRepository(implicit mongo: () => DB)
     ))
 
     val validator = singleUpdateValidator(flagCandidate.applicationId, actionDesc = "saving flag")
-
-    collection.update(query, result) map validator
+    collection.update(ordered = false).one(query, result) map validator
   }
 
   def remove(appId: String): Future[Unit] = {
@@ -71,7 +70,7 @@ class FlagCandidateMongoRepository(implicit mongo: () => DB)
     val result = BSONDocument("$unset" -> BSONDocument("issue" -> ""))
 
     val validator = singleUpdateValidator(appId, actionDesc = "removing flag")
-    collection.update(query, result) map validator
+    collection.update(ordered = false).one(query, result) map validator
   }
 
 }

@@ -25,6 +25,7 @@ import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
 import model.persisted.{ NotificationExpiringOnlineTest, Phase1TestGroupWithUserIds, Phase1TestProfile }
 import model._
 import org.joda.time.DateTime
+import play.api.libs.json.JsObject
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -109,7 +110,7 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
         BSONDocument("schemeId" -> SchemeId("Sdip"),
           "result" -> BSONDocument("$in" -> List(Green.toString, Red.toString)))))
     ))
-    collection.find(query).one[BSONDocument] map {
+    collection.find(query, projection = Option.empty[JsObject]).one[BSONDocument] map {
       case Some(doc) =>
         val applicationId = doc.getAs[String]("applicationId").get
         val userId = doc.getAs[String]("userId").get
@@ -126,7 +127,7 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     ))
     val projection = BSONDocument("applicationId" -> 1, "userId" -> 1, s"testGroups.$phaseName" -> 1, "_id" -> 0)
 
-    collection.find(query, projection).one[BSONDocument] map {
+    collection.find(query, Some(projection)).one[BSONDocument] map {
       case Some(doc) =>
         val applicationId = doc.getAs[String]("applicationId").get
         val userId = doc.getAs[String]("userId").get
@@ -141,7 +142,7 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     updateGroupExpiryTime(applicationId, expirationDate, phaseName)
   }
 
-  override def insertOrUpdateTestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile) = {
+  override def insertOrUpdateTestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
 
     val update = BSONDocument("$set" -> (applicationStatusBSON(PHASE1_TESTS_INVITED) ++
@@ -150,7 +151,7 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "inserting test group")
 
-    collection.update(query, update) map validator
+    collection.update(ordered = false).one(query, update) map validator
   }
 
   override def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = {

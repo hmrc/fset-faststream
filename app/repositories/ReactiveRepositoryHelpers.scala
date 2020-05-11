@@ -18,9 +18,17 @@ package repositories
 
 import model.Exceptions.{ CannotUpdateRecord, NotFoundException, TooManyEntries }
 import play.api.Logger
+import play.api.libs.json.JsObject
+import reactivemongo.api.{ ReadConcern, ReadPreference, WriteConcern }
+import reactivemongo.api.collections.bson.BSONBatchCommands.FindAndModifyCommand
 import reactivemongo.api.collections.bson.BSONCollection
-import reactivemongo.api.commands.{ UpdateWriteResult, WriteResult }
+import reactivemongo.api.commands.{ Collation, UpdateWriteResult, WriteResult }
+import reactivemongo.bson.BSONDocument
 import uk.gov.hmrc.mongo.ReactiveRepository
+
+import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait ReactiveRepositoryHelpers {
   this: ReactiveRepository[_, _] =>
@@ -48,7 +56,6 @@ trait ReactiveRepositoryHelpers {
 
     singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, notFound, upsert = true)
   }
-
 
   def multipleRemoveValidator(expected: Int, actionDesc: String): WriteResult => Unit = (result: WriteResult) => {
     if (result.ok) {
@@ -106,4 +113,23 @@ trait ReactiveRepositoryHelpers {
       throw CannotUpdateRecord(msg)
     }
   }
+
+  // Wrap the findAndModify method to provide all the defaults
+  def findAndModify(query: BSONDocument, updateOp: FindAndModifyCommand.Update) =
+    bsonCollection.findAndModify(
+      query, updateOp, sort = None, fields = None, bypassDocumentValidation = false,
+      writeConcern = WriteConcern.Default, maxTime = Option.empty[FiniteDuration], collation = Option.empty[Collation],
+      arrayFilters = Seq.empty[BSONDocument]
+    )
+
+  // Alternative to the count implemented by Hmrc ReactiveRepository class, which throws a JsResultException at runtime:
+  // errmsg=readConcern.level must be either 'local', 'majority' or 'linearizable'", "")
+  def countLong(implicit ec: ExecutionContext): Future[Long] =
+    collection.withReadPreference(ReadPreference.primary).count(
+      selector = Option.empty[JsObject],
+      limit = None,
+      skip = 0,
+      hint =  None,
+      readConcern = ReadConcern.Local
+    )
 }

@@ -14,22 +14,6 @@
  * limitations under the License.
  */
 
-/*
- * Copyright 2019 HM Revenue & Customs
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package repositories.onlinetesting
 
 import common.Phase1TestConcern2
@@ -113,7 +97,7 @@ class Phase1TestMongoRepository2(dateTime: DateTimeFactory)(implicit mongo: () =
     getTestGroup(applicationId, phaseName)
   }
 
-  override def insertOrUpdateTestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile2) = {
+  override def insertOrUpdateTestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile2): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
 
     val update = BSONDocument("$set" -> (applicationStatusBSON(PHASE1_TESTS_INVITED) ++
@@ -121,7 +105,7 @@ class Phase1TestMongoRepository2(dateTime: DateTimeFactory)(implicit mongo: () =
     )
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "inserting test group")
-    collection.update(query, update) map validator
+    collection.update(ordered = false).one(query, update) map validator
   }
 
   override def getTestProfileByOrderId(orderId: String): Future[Phase1TestProfile2] = {
@@ -134,7 +118,7 @@ class Phase1TestMongoRepository2(dateTime: DateTimeFactory)(implicit mongo: () =
     ))
     val projection = BSONDocument("applicationId" -> 1, "userId" -> 1, s"testGroups.$phaseName" -> 1, "_id" -> 0)
 
-    collection.find(query, projection).one[BSONDocument] map {
+    collection.find(query, Some(projection)).one[BSONDocument] map {
       case Some(doc) =>
         val applicationId = doc.getAs[String]("applicationId").get
         val userId = doc.getAs[String]("userId").get
@@ -159,3 +143,4 @@ class Phase1TestMongoRepository2(dateTime: DateTimeFactory)(implicit mongo: () =
     nextTestGroupWithReportReady[Phase1TestGroupWithUserIds2]
   }
 }
+

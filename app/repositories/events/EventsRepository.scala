@@ -18,22 +18,18 @@ package repositories.events
 
 import config.MicroserviceAppConfig
 import model.Exceptions.EventNotFoundException
-import model.persisted.eventschedules._
-import model.Exceptions.{ CannotUpdateSchemePreferences, EventNotFoundException }
-import model.persisted.eventschedules.{ Event, EventType, Location, Venue }
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.SkillType.SkillType
+import model.persisted.eventschedules.{ Event, EventType, Location, Venue }
 import org.joda.time.DateTime
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{ JsValue, Json }
-import reactivemongo.api.{ DB, ReadPreference }
+import play.api.libs.json.{ JsObject, JsValue, Json }
+import reactivemongo.api.{ Cursor, DB, ReadPreference }
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
-import repositories.{ BSONDateTimeHandler, CollectionNames, CommonBSONDocuments, ReactiveRepositoryHelpers }
+import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
-import repositories.BSONDateTimeHandler
-import repositories.BSONMapStringIntHandler
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ ExecutionContext, Future }
@@ -41,7 +37,11 @@ import scala.concurrent.{ ExecutionContext, Future }
 trait EventsRepository {
   def save(events: List[Event]): Future[Unit]
   def findAll(readPreference: ReadPreference = ReadPreference.primaryPreferred)(implicit ec: ExecutionContext): Future[List[Event]]
+  // Implemented by Hmrc ReactiveRepository class - don't use until it gets fixed. Use countLong instead
+  @deprecated("At runtime throws a JsResultException: errmsg=readConcern.level must be either 'local', 'majority' or 'linearizable'", "")
   def count(implicit ec: scala.concurrent.ExecutionContext): Future[Int]
+  // Implemented in ReactiveRespositoryHelpers
+  def countLong(implicit ec: scala.concurrent.ExecutionContext): Future[Long]
   def remove(id: String): Future[Unit]
   def getEvent(id: String): Future[Event]
   def getEvents(eventType: Option[EventType] = None, venue: Option[Venue] = None,
@@ -58,18 +58,20 @@ class EventsMongoRepository(implicit mongo: () => DB)
     mongo, Event.eventFormat, ReactiveMongoFormats.objectIdFormats)
     with EventsRepository with ReactiveRepositoryHelpers {
 
+  private val unlimitedMaxDocs = -1
+
   def save(events: List[Event]): Future[Unit] = {
-    collection.bulkInsert(ordered = false)(events.map(implicitly[collection.ImplicitlyDocumentProducer](_)): _*)
+    collection.insert(ordered = false).many(events)
       .map(_ => ())
   }
 
   def updateEvent(updatedEvent: Event): Future[Unit] = {
     val query = BSONDocument("id" -> updatedEvent.id)
-    collection.update(query, updatedEvent).map(_ => ())
+    collection.update(ordered = false).one(query, updatedEvent).map(_ => ())
   }
 
   def getEvent(id: String): Future[Event] = {
-    collection.find(BSONDocument("id" -> id), BSONDocument("_id" -> false)).one[Event] map {
+    collection.find(BSONDocument("id" -> id), Some(BSONDocument("_id" -> false))).one[Event] map {
       case Some(event) => event
       case None => throw EventNotFoundException(s"No event found with id $id")
     }
@@ -78,7 +80,7 @@ class EventsMongoRepository(implicit mongo: () => DB)
   def remove(id: String): Future[Unit] = {
     val validator = singleRemovalValidator(id, actionDesc = "deleting event")
 
-    collection.remove(BSONDocument("id" -> id)) map validator
+    collection.delete().one(BSONDocument("id" -> id)) map validator
   }
 
   def getEvents(eventType: Option[EventType] = None, venueType: Option[Venue] = None,
@@ -109,12 +111,13 @@ class EventsMongoRepository(implicit mongo: () => DB)
       buildDescriptionFilter(description)
     ).flatten.fold(BSONDocument.empty)(_ ++ _)
 
-    collection.find(query).cursor[Event]().collect[List]()
+    collection.find(query, projection = Option.empty[JsObject])
+      .cursor[Event]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Event]]())
   }
 
   def getEventsManuallyCreatedAfter(dateTime: DateTime): Future[Seq[Event]] = {
     val query = BSONDocument("createdAt" -> BSONDocument("$gte" -> dateTime.getMillis), "wasBulkUploaded" -> false)
-    collection.find(query).cursor[Event]().collect[Seq]()
+    collection.find(query, projection = Option.empty[JsObject]).cursor[Event]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[Event]]())
   }
 
   private def buildEventTypeFilter(eventType: Option[EventType]) =
@@ -126,19 +129,21 @@ class EventsMongoRepository(implicit mongo: () => DB)
       Option(BSONDocument("id" -> BSONDocument("$in" -> eventIds)))
     ).flatten.fold(BSONDocument.empty)(_ ++ _)
 
-    collection.find(query).cursor[Event]().collect[List]()
+    collection.find(query, projection = Option.empty[JsObject])
+      .cursor[Event]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Event]]())
   }
 
   def updateStructure(): Future[Unit] = {
     val updateQuery = BSONDocument("$set" -> BSONDocument("wasBulkUploaded" -> false, "createdAt" -> DateTime.now.getMillis))
-    collection.update(BSONDocument.empty, updateQuery, multi = true).map(_ => ())
+    collection.update(ordered = false).one(BSONDocument.empty, updateQuery, multi = true).map(_ => ())
   }
 
-  def findAllForExtract(): Enumerator[JsValue] = {
+  def findAllForExtract(): play.api.libs.iteratee.Enumerator[JsValue] = {
+    import reactivemongo.play.iteratees.cursorProducer
     val projection = Json.obj("_id" -> false)
 
-    collection.find(Json.obj(), projection)
+    collection.find(BSONDocument.empty, Some(projection))
       .cursor[JsValue](ReadPreference.primaryPreferred)
-      .enumerate()
+      .enumerator()
   }
 }

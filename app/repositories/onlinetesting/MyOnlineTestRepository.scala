@@ -49,7 +49,7 @@ trait MyOnlineTestRepository extends RandomSelection with ReactiveRepositoryHelp
   private def phaseTestProfileByQuery(query: BSONDocument, phase: String): Future[Option[T]] = {
     val projection = BSONDocument(s"testGroups.$phase" -> true, "_id" -> false)
 
-    collection.find(query, projection).one[BSONDocument] map { optDocument =>
+    collection.find(query, Some(projection)).one[BSONDocument] map { optDocument =>
       optDocument.flatMap {_.getAs[BSONDocument]("testGroups")}
         .flatMap {_.getAs[BSONDocument](phase)}
         .map {x => bsonHandler.read(x)}

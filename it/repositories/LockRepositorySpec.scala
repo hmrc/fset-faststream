@@ -29,14 +29,12 @@ class LockRepositorySpec extends MongoRepositorySpec {
   "Lock Repository" should {
     "insert a lock when the database is empty" in {
       val result = repo.lock("lockId", "owner", lockTimeout).futureValue
-
       result mustBe true
     }
 
     "fail to insert another lock when the first one has not yet expired" in {
       repo.lock("lockId", "owner", lockTimeout).futureValue
       val result = repo.lock("lockId", "owner", lockTimeout).futureValue
-
       result mustBe false
     }
 
@@ -45,7 +43,6 @@ class LockRepositorySpec extends MongoRepositorySpec {
       Thread.sleep(505L)
       repo.lock("lockId", "owner", new Duration(500L)).futureValue
       val isLocked = repo.isLocked("lockId", "owner").futureValue
-
       isLocked mustBe true
     }
 
@@ -53,7 +50,6 @@ class LockRepositorySpec extends MongoRepositorySpec {
       repo.lock("lockId", "owner", new Duration(500L)).futureValue
       Thread.sleep(501L)
       val result = repo.isLocked("lockId", "owner").futureValue
-
       result mustBe false
     }
 
@@ -61,7 +57,6 @@ class LockRepositorySpec extends MongoRepositorySpec {
       repo.lock("lockId", "owner", lockTimeout).futureValue
       repo.releaseLock("lockId", "owner").futureValue
       val result = repo.isLocked("lockId", "owner").futureValue
-
       result mustBe false
     }
   }

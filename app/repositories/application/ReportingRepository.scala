@@ -27,8 +27,8 @@ import model.{ ApplicationStatus, _ }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.Format
-import reactivemongo.api.Cursor.FailOnError
-import reactivemongo.api.{ DB, ReadPreference }
+import reactivemongo.api.Cursor.{ ContOnError, FailOnError }
+import reactivemongo.api.{ Cursor, DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONDocumentReader, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
@@ -300,7 +300,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
       "civil-service-experience-details.certificateNumber" -> true
     )
 
-    collection.find(query, projection).cursor[BSONDocument]()
+    collection.find(query, Some(projection)).cursor[BSONDocument]()
       .collect[List](unlimitedMaxDocs, FailOnError[List[BSONDocument]]()).map { docList =>
       docList.map { doc =>
         val app = doc.getAs[String]("applicationId").get
@@ -419,7 +419,8 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
       "userId" -> "1"
     )
 
-    collection.find(query, projection).cursor[BSONDocument]().collect[List]().map {
+    collection.find(query, Some(projection)).cursor[BSONDocument]()
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map {
       _.map { doc =>
         val userId = doc.getAs[String]("userId").getOrElse("")
         val applicationId = doc.getAs[String]("applicationId").getOrElse("")
@@ -443,9 +444,9 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
       "personal-details.dateOfBirth" -> "1"
     )
 
-    collection.find(query, projection)
+    collection.find(query, Some(projection))
       .cursor[BSONDocument]()
-      .collect[List]()
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]())
       .map(_.map(toUserApplicationProfile))
   }
 
@@ -486,7 +487,8 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
       "fsac-indicator.assessmentCentre" -> true
     )
 
-    collection.find(query, projection).cursor[BSONDocument]().collect[List]().map {
+    collection.find(query, Some(projection)).cursor[BSONDocument]()
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map {
       _.map { doc =>
         val userId = doc.getAs[String]("userId").get
         val appId = doc.getAs[String]("applicationId").get
@@ -541,8 +543,8 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
       "progress-status" -> "2"
     )
 
-    collection.find(query, projection)
-      .cursor[BSONDocument]().collect[List]()
+    collection.find(query, Some(projection))
+      .cursor[BSONDocument]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]())
       .map(_.map{ document =>
         val applicationId = document.getAs[String]("applicationId").get
         val userId = document.getAs[String]("userId").get
@@ -580,8 +582,10 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
                                              prj: BSONDocument,
                                              upTo: Int = Int.MaxValue,
                                              stopOnError: Boolean = true
-                                           )(implicit reader: Format[A]): Future[List[A]] =
-    collection.find(query).projection(prj).cursor[A](ReadPreference.nearest).collect[List](upTo, stopOnError)
+                                           )(implicit reader: Format[A]): Future[List[A]] = {
+    val err = if (stopOnError) FailOnError[List[A]]() else ContOnError[List[A]]()
+    collection.find(query, Some(prj)).cursor[A](ReadPreference.nearest).collect[List](upTo, err)
+  }
 
   private def extract(key: String)(root: Option[BSONDocument]) = root.flatMap(_.getAs[String](key))
 
@@ -590,8 +594,10 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
                                                  prj: BSONDocument,
                                                  upTo: Int = Int.MaxValue,
                                                  stopOnError: Boolean = true
-                                               )(implicit reader: BSONDocumentReader[A]): Future[List[A]] =
-    bsonCollection.find(query).projection(prj)
+                                               )(implicit reader: BSONDocumentReader[A]): Future[List[A]] = {
+    val err = if (stopOnError) FailOnError[List[A]]() else ContOnError[List[A]]()
+    bsonCollection.find(query, Some(prj))
       .cursor[A](ReadPreference.nearest)
-      .collect[List](Int.MaxValue, stopOnError = true)
+      .collect[List](Int.MaxValue, err)
+  }
 }

@@ -19,8 +19,7 @@ package repositories
 import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
 import model.report.QuestionnaireReportItem
 import play.api.libs.json._
-import reactivemongo.api.{ DB, ReadPreference }
-import reactivemongo.bson.Producer.nameValue2Producer
+import reactivemongo.api.{ Cursor, DB, ReadPreference }
 import reactivemongo.bson._
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import services.reporting.SocioEconomicScoreCalculator
@@ -65,7 +64,7 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
 
     val validator = singleUpsertValidator(applicationId, actionDesc = "adding questions")
 
-    collection.update(
+    collection.update(ordered = false).one(
       BSONDocument(appId),
       BSONDocument("$set" -> questions.map(q => s"questions.${q.question}" -> q.answer).foldLeft(document ++ appId)((d, v) => d ++ v)),
       upsert = true
@@ -105,14 +104,15 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
 
   protected def findAllAsReportItem(query: BSONDocument): Future[Map[String, QuestionnaireReportItem]] = {
     implicit val reader = bsonReader(docToReport)
-    val queryResult = bsonCollection.find(query)
-      .cursor[(String, QuestionnaireReportItem)](ReadPreference.nearest).collect[List]()
+    val queryResult = bsonCollection.find(query, projection = Option.empty[JsObject])
+      .cursor[(String, QuestionnaireReportItem)](ReadPreference.nearest)
+      .collect[List](maxDocs = -1, Cursor.FailOnError[List[(String, QuestionnaireReportItem)]]())
     queryResult.map(_.toMap)
   }
 
   override def removeQuestions(applicationId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
-    collection.remove(query, firstMatchOnly = true).map(_ => ())
+    collection.delete().one(query, limit = Some(1)).map(_ => ())
   }
 
   private[repositories] def find(applicationId: String): Future[List[QuestionnaireQuestion]] = {
@@ -129,7 +129,7 @@ class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCa
       def writes(s: Questions): JsValue = ???
     }
 
-    collection.find(query, projection).one[Questions].map {
+    collection.find(query, Some(projection)).one[Questions].map {
       case Some(q) => q.questions.map((q: (String, QuestionnaireAnswer)) => QuestionnaireQuestion(q._1, q._2)).toList
       case None => List()
     }

@@ -24,7 +24,7 @@ import model.persisted.{ ContactDetails, ContactDetailsWithId, UserIdWithEmail }
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
-import reactivemongo.api.{ DB, ReadPreference }
+import reactivemongo.api.{ Cursor, DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
@@ -62,20 +62,22 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
 
   val ContactDetailsDocumentKey = "contact-details"
 
+  private val unlimitedMaxDocs = -1
+
   override def update(userId: String, contactDetails: ContactDetails): Future[Unit] = {
     val query = BSONDocument("userId" -> userId)
     val contactDetailsBson = BSONDocument("$set" -> BSONDocument(ContactDetailsDocumentKey -> contactDetails))
 
     val validator = singleUpsertValidator(userId, actionDesc = s"updating contact details for $userId")
 
-    collection.update(query, contactDetailsBson, upsert = true) map validator
+    collection.update(ordered = false).one(query, contactDetailsBson, upsert = true) map validator
   }
 
   override def find(userId: String): Future[ContactDetails] = {
     val query = BSONDocument("userId" -> userId)
     val projection = BSONDocument(ContactDetailsDocumentKey -> 1, "_id" -> 0)
 
-    collection.find(query, projection).one[BSONDocument] map {
+    collection.find(query, Some(projection)).one[BSONDocument] map {
       case Some(document) if document.getAs[BSONDocument]("contact-details").isDefined =>
         document.getAs[ContactDetails]("contact-details").get
       case None => throw ContactDetailsNotFound(userId)
@@ -86,7 +88,7 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
     val query = BSONDocument("contact-details.email" -> email)
     val projection = BSONDocument("userId" -> 1, "_id" -> 0)
 
-    collection.find(query, projection).one[BSONDocument] map {
+    collection.find(query, Some(projection)).one[BSONDocument] map {
       case Some(d) if d.getAs[String]("userId").isDefined =>
         d.getAs[String]("userId").get
       case None => throw ContactDetailsNotFoundForEmail()
@@ -96,7 +98,8 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
   override def findAll: Future[List[ContactDetailsWithId]] = {
     val query = BSONDocument()
 
-    collection.find(query).cursor[BSONDocument]().collect[List](MicroserviceAppConfig.maxNumberOfDocuments).map(_.map { doc =>
+    collection.find(query, projection = Option.empty[JsObject]).cursor[BSONDocument]()
+      .collect[List](MicroserviceAppConfig.maxNumberOfDocuments, Cursor.FailOnError[List[BSONDocument]]()).map(_.map { doc =>
       val id = doc.getAs[String]("userId").get
       val root = doc.getAs[BSONDocument]("contact-details").get
       val outsideUk = root.getAs[Boolean]("outsideUk").getOrElse(false)
@@ -116,7 +119,8 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
       (JsPath \ "userId").read[String] and
         (JsPath \ "contact-details" \ "postCode").read[String]
       )((_, _))
-    val result = collection.find(query, projection).cursor[(String, String)](ReadPreference.nearest).collect[List]()
+    val result = collection.find(query, Some(projection)).cursor[(String, String)](ReadPreference.nearest)
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[(String, String)]]())
     result.map(_.toMap)
   }
 
@@ -124,7 +128,8 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
 
     val query = BSONDocument("contact-details.postCode" -> postCode)
 
-    collection.find(query).cursor[BSONDocument]().collect[List]().map(_.map { doc =>
+    collection.find(query, projection = Option.empty[JsObject]).cursor[BSONDocument]()
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map(_.map { doc =>
       val id = doc.getAs[String]("userId").get
       val root = doc.getAs[BSONDocument]("contact-details").get
       val outsideUk = root.getAs[Boolean]("outsideUk").getOrElse(false)
@@ -140,7 +145,8 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
   override def findByUserIds(userIds: List[String]): Future[List[ContactDetailsWithId]] = {
     val query = BSONDocument("userId" -> BSONDocument("$in" -> userIds))
 
-    collection.find(query).cursor[BSONDocument]().collect[List]().map(_.map { doc =>
+    collection.find(query, projection = Option.empty[JsObject]).cursor[BSONDocument]()
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map(_.map { doc =>
       val id = doc.getAs[String]("userId").get
       val root = doc.getAs[BSONDocument]("contact-details").getOrElse(throw new Exception(s"Contact details not found for $id"))
       val outsideUk = root.getAs[Boolean]("outsideUk").getOrElse(throw new Exception(s"Outside UK not found for $id"))
@@ -162,7 +168,7 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
     ))
 
     val validator = singleUpdateValidator(originalUserId, actionDesc = "archiving contact details")
-    collection.update(query, updateWithArchiveUserId) map validator
+    collection.update(ordered = false).one(query, updateWithArchiveUserId) map validator
   }
 
   override def findEmails: Future[List[UserIdWithEmail]] = {
@@ -173,7 +179,8 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
       "_id" -> 0
     )
 
-    collection.find(query, projection).cursor[BSONDocument]().collect[List]().map(_.map { doc =>
+    collection.find(query, Some(projection)).cursor[BSONDocument]()
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map(_.map { doc =>
       val id = doc.getAs[String]("userId").get
       val root = doc.getAs[BSONDocument]("contact-details").get
       val email = root.getAs[String]("email").get
@@ -184,6 +191,6 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
 
   override def removeContactDetails(userId: String): Future[Unit] = {
     val query = BSONDocument("userId" -> userId)
-    collection.remove(query, firstMatchOnly = true).map(_ => ())
+    collection.delete().one(query, limit = Some(1)).map(_ => ())
   }
 }
