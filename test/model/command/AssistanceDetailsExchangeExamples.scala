@@ -19,8 +19,30 @@ package model.command
 import model.exchange.AssistanceDetailsExchange
 
 object AssistanceDetailsExchangeExamples {
-  val OnlyDisabilityNoGisNoAdjustments = AssistanceDetailsExchange("Yes", Some(""), Some(false), Some(false), None, Some(false),
-    None, None, None)
-  val DisabilityGisAndAdjustments = AssistanceDetailsExchange("Yes", Some("disability description"), Some(true), Some(true),
-    Some("online adjustment description"), Some(true), Some("venue adjustment description"), None, None)
+
+  val OnlyDisabilityNoGisNoAdjustments = AssistanceDetailsExchange(
+    hasDisability = "Yes",
+    disabilityImpact = Some("No"),
+    disabilityCategories = Some(List("category1")),
+    otherDisabilityDescription = Some(""),
+    guaranteedInterview = Some(false),
+    needsSupportForOnlineAssessment = Some(false),
+    needsSupportForOnlineAssessmentDescription = None,
+    needsSupportAtVenue = Some(false),
+    needsSupportAtVenueDescription = None,
+    needsSupportForPhoneInterview = None,
+    needsSupportForPhoneInterviewDescription = None)
+
+  val DisabilityGisAndAdjustments = AssistanceDetailsExchange(
+    hasDisability = "Yes",
+    disabilityImpact = Some("No"),
+    disabilityCategories = Some(List("category1")),
+    otherDisabilityDescription = Some("disability description"),
+    guaranteedInterview = Some(true),
+    needsSupportForOnlineAssessment = Some(true),
+    needsSupportForOnlineAssessmentDescription = Some("online adjustment description"),
+    needsSupportAtVenue = Some(true),
+    needsSupportAtVenueDescription = Some("venue adjustment description"),
+    needsSupportForPhoneInterview = None,
+    needsSupportForPhoneInterviewDescription = None)
 }

@@ -33,23 +33,12 @@ trait AssistanceDetailsService {
   val adRepository: AssistanceDetailsRepository
 
   def update(applicationId: String, userId: String, updateAssistanceDetails: AssistanceDetailsExchange): Future[Unit] = {
-    val assistanceDetails = AssistanceDetails(updateAssistanceDetails.hasDisability, updateAssistanceDetails.hasDisabilityDescription,
-      updateAssistanceDetails.guaranteedInterview, updateAssistanceDetails.needsSupportForOnlineAssessment,
-      updateAssistanceDetails.needsSupportForOnlineAssessmentDescription, updateAssistanceDetails.needsSupportAtVenue,
-      updateAssistanceDetails.needsSupportAtVenueDescription, updateAssistanceDetails.needsSupportForPhoneInterview,
-      updateAssistanceDetails.needsSupportForPhoneInterviewDescription)
-
-    adRepository.update(applicationId, userId, assistanceDetails)
+    adRepository.update(applicationId, userId, AssistanceDetails(updateAssistanceDetails))
   }
 
   def find(applicationId: String, userId: String): Future[AssistanceDetailsExchange] = {
-    val assistanceDetailsFut = adRepository.find(applicationId)
-
     for {
-      ad <- assistanceDetailsFut
-    } yield AssistanceDetailsExchange(ad.hasDisability, ad.hasDisabilityDescription, ad.guaranteedInterview,
-      ad.needsSupportForOnlineAssessment, ad.needsSupportForOnlineAssessmentDescription,
-      ad.needsSupportAtVenue, ad.needsSupportAtVenueDescription, ad.needsSupportForPhoneInterview,
-      ad.needsSupportForPhoneInterviewDescription)
+      ad <- adRepository.find(applicationId)
+    } yield AssistanceDetailsExchange(ad)
   }
 }

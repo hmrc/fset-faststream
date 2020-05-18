@@ -330,7 +330,9 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
 
     val assistanceDetails = AssistanceDetails(
       hasDisability = "No",
-      hasDisabilityDescription = None,
+      disabilityImpact = None,
+      disabilityCategories = None,
+      otherDisabilityDescription = None,
       guaranteedInterview = None,
       needsSupportForOnlineAssessment = None,
       needsSupportForOnlineAssessmentDescription = None,

@@ -30,7 +30,6 @@ import scala.concurrent.Future
 
 trait AssistanceDetailsRepository {
   def update(applicationId: String, userId: String, ad: AssistanceDetails): Future[Unit]
-
   def find(applicationId: String): Future[AssistanceDetails]
 }
 

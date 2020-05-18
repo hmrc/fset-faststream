@@ -16,10 +16,13 @@
 
 package model.exchange
 
+import model.persisted.AssistanceDetails
 import play.api.libs.json.Json
 
 case class AssistanceDetailsExchange(hasDisability: String,
-                                     hasDisabilityDescription: Option[String],
+                                     disabilityImpact: Option[String],
+                                     disabilityCategories: Option[List[String]],
+                                     otherDisabilityDescription: Option[String],
                                      guaranteedInterview: Option[Boolean],
                                      needsSupportForOnlineAssessment: Option[Boolean],
                                      needsSupportForOnlineAssessmentDescription: Option[String],
@@ -30,4 +33,10 @@ case class AssistanceDetailsExchange(hasDisability: String,
 
 object AssistanceDetailsExchange {
   implicit val assistanceDetailsExchangeFormat = Json.format[AssistanceDetailsExchange]
+
+  def apply(ad: AssistanceDetails): AssistanceDetailsExchange =
+    AssistanceDetailsExchange(ad.hasDisability, ad.disabilityImpact, ad.disabilityCategories, ad.otherDisabilityDescription,
+      ad.guaranteedInterview, ad.needsSupportForOnlineAssessment, ad.needsSupportForOnlineAssessmentDescription,
+      ad.needsSupportAtVenue, ad.needsSupportAtVenueDescription, ad.needsSupportForPhoneInterview,
+      ad.needsSupportForPhoneInterviewDescription)
 }

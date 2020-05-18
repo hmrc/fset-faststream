@@ -63,8 +63,12 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       val userId = "userId9876"
       val applicationId = applicationRepo.create(userId, "frameworkId", ApplicationRoute.Faststream).futureValue.applicationId
 
-      val details = AssistanceDetails("Yes", Some("disability"), Some(true), Some(true), Some("adjustment online"),
-        Some(true), Some("adjustment venue"), None, None)
+      val details = AssistanceDetails(hasDisability = "Yes", disabilityImpact = Some("No"),
+        disabilityCategories = Some(List("category1")), otherDisabilityDescription = Some("disability"),
+        guaranteedInterview = Some(true), needsSupportForOnlineAssessment = Some(true),
+        needsSupportForOnlineAssessmentDescription = Some("adjustment online"), needsSupportAtVenue = Some(true),
+        needsSupportAtVenueDescription = Some("adjustment venue"), needsSupportForPhoneInterview = None,
+        needsSupportForPhoneInterviewDescription = None)
       assistanceRepo.update(applicationId, userId, details).futureValue
 
       applicationRepo.gisByApplication(applicationId).futureValue mustBe true

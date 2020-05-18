@@ -32,6 +32,8 @@ object CreateCandidateData {
 
   case class AssistanceDetails(
     hasDisability: String = "No",
+    disabilityImpact: String = "No",
+    disabilityCategories: List[String] = Nil,
     hasDisabilityDescription: String = "",
     setGis: Boolean = false,
     onlineAdjustments: Boolean = false,
@@ -40,7 +42,6 @@ object CreateCandidateData {
     assessmentCentreAdjustmentsDescription: String = "",
     phoneAdjustments: Boolean = false,
     phoneAdjustmentsDescription: String = ""
-
   )
 
   object AssistanceDetails {
@@ -48,6 +49,8 @@ object CreateCandidateData {
       val default = AssistanceDetails()
       AssistanceDetails(
         hasDisability = o.hasDisability.getOrElse(default.hasDisability),
+        disabilityImpact = o.disabilityImpact.getOrElse(default.disabilityImpact),
+        disabilityCategories = o.disabilityCategories.getOrElse(default.disabilityCategories),
         hasDisabilityDescription = o.hasDisabilityDescription.getOrElse(default.hasDisabilityDescription),
         setGis = o.setGis.getOrElse(default.setGis),
         onlineAdjustments = o.onlineAdjustments.getOrElse(default.onlineAdjustments),

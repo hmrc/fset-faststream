@@ -16,22 +16,32 @@
 
 package model.persisted
 
+import model.exchange.AssistanceDetailsExchange
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
 case class AssistanceDetails(
-  hasDisability: String,
-  hasDisabilityDescription: Option[String],
-  guaranteedInterview: Option[Boolean],
-  needsSupportForOnlineAssessment: Option[Boolean],
-  needsSupportForOnlineAssessmentDescription: Option[String],
-  needsSupportAtVenue: Option[Boolean],
-  needsSupportAtVenueDescription: Option[String],
-  needsSupportForPhoneInterview: Option[Boolean],
-  needsSupportForPhoneInterviewDescription: Option[String]
+                              hasDisability: String,
+                              disabilityImpact: Option[String],
+                              disabilityCategories: Option[List[String]],
+                              otherDisabilityDescription: Option[String],
+                              guaranteedInterview: Option[Boolean],
+                              needsSupportForOnlineAssessment: Option[Boolean],
+                              needsSupportForOnlineAssessmentDescription: Option[String],
+                              needsSupportAtVenue: Option[Boolean],
+                              needsSupportAtVenueDescription: Option[String],
+                              needsSupportForPhoneInterview: Option[Boolean],
+                              needsSupportForPhoneInterviewDescription: Option[String]
 )
 
 object AssistanceDetails {
   implicit val assistanceDetailsFormat = Json.format[AssistanceDetails]
   implicit val assistanceDetailsHandler = Macros.handler[AssistanceDetails]
+
+  def apply(ex: AssistanceDetailsExchange): AssistanceDetails =
+    AssistanceDetails(ex.hasDisability, ex.disabilityImpact, ex.disabilityCategories,
+      ex.otherDisabilityDescription, ex.guaranteedInterview, ex.needsSupportForOnlineAssessment,
+      ex.needsSupportForOnlineAssessmentDescription, ex.needsSupportAtVenue,
+      ex.needsSupportAtVenueDescription, ex.needsSupportForPhoneInterview,
+      ex.needsSupportForPhoneInterviewDescription)
 }
