@@ -51,6 +51,49 @@ class AssistanceDetailsFormSpec extends UnitWithAppSpec {
       form.hasGlobalErrors mustBe false
     }
 
+    "be invalid when the fast stream candidate does not answer the hasDisability question" in new Fixture {
+      val form = AssistanceDetailsForm.form.bind(Map(
+        "needsSupportForOnlineAssessment" -> "Yes",
+        "needsSupportForOnlineAssessmentDescription" -> "Some online test adjustments",
+        "needsSupportAtVenue" -> "Yes",
+        "needsSupportAtVenueDescription" -> "Some fsac adjustments"
+      ))
+      form.hasErrors mustBe true
+      val expectedFormErrors = Seq(FormError(key = "hasDisability", message = hasDisabilityErrorMsg))
+      form.errors mustBe expectedFormErrors
+      form.hasGlobalErrors mustBe false
+    }
+
+    "be invalid when the fast stream candidate submits an invalid value for the hasDisability question" in new Fixture {
+      val form = AssistanceDetailsForm.form.bind(Map(
+        "hasDisability" -> "BOOM",
+        "needsSupportForOnlineAssessment" -> "Yes",
+        "needsSupportForOnlineAssessmentDescription" -> "Some online test adjustments",
+        "needsSupportAtVenue" -> "Yes",
+        "needsSupportAtVenueDescription" -> "Some fsac adjustments"
+      ))
+      form.hasErrors mustBe true
+      val expectedFormErrors = Seq(FormError(key = "hasDisability", message = hasDisabilityErrorMsg))
+      form.errors mustBe expectedFormErrors
+      form.hasGlobalErrors mustBe false
+    }
+
+    "be invalid when the fast stream candidate does not submit a value for disabilityImpact question" in new Fixture {
+      val form = AssistanceDetailsForm.form.bind(Map(
+        "hasDisability" -> "Yes",
+        "disabilityCategories[0]" -> AssistanceDetailsForm.disabilityCategoriesList.head,
+        "guaranteedInterview" -> "Yes",
+        "needsSupportForOnlineAssessment" -> "Yes",
+        "needsSupportForOnlineAssessmentDescription" -> "Some online test adjustments",
+        "needsSupportAtVenue" -> "Yes",
+        "needsSupportAtVenueDescription" -> "Some fsac adjustments"
+      ))
+      form.hasErrors mustBe true
+      val expectedFormErrors = Seq(FormError(key = "disabilityImpact", message = disabilityImpactErrorMsg))
+      form.errors mustBe expectedFormErrors
+      form.hasGlobalErrors mustBe false
+    }
+
     "be invalid when the fast stream candidate submits an invalid value for disabilityImpact question" in new Fixture {
       val form = AssistanceDetailsForm.form.bind(Map(
         "hasDisability" -> "Yes",
@@ -194,6 +237,7 @@ class AssistanceDetailsFormSpec extends UnitWithAppSpec {
   }
 
   trait Fixture {
+    val hasDisabilityErrorMsg = "Tell us if you consider yourself to have a disability"
     val disabilityImpactErrorMsg = "You must provide a valid disability impact"
     val disabilityCategoriesErrorMsg = "Choose a valid disability category"
     val gisErrorMsg = "Tell us if you wish to apply under the Disability Confident scheme"

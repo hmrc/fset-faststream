@@ -21,6 +21,10 @@ import models.ApplicationRoute._
 import play.api.data.Forms._
 import play.api.data.format.Formatter
 import play.api.data.{ Form, FormError }
+import play.api.i18n.Messages
+import play.api.i18n.Messages.Implicits._
+import play.api.Play.current
+
 
 import scala.language.implicitConversions
 
@@ -60,7 +64,7 @@ object AssistanceDetailsForm {
   val otherDisabilityCategoryMaxSize = 2048
   val form = Form(
     mapping(
-      "hasDisability" -> Mappings.nonEmptyTrimmedText("error.hasDisability.required", 31),
+      "hasDisability" -> of(hasDisabilityFormatter),
       "disabilityImpact" -> of(disabilityImpactFormatter),
       "disabilityCategories" -> of(disabilityCategoriesFormatter),
       "otherDisabilityDescription" -> of(otherDisabilityDescriptionFormatter(otherDisabilityCategoryMaxSize)),
@@ -82,6 +86,24 @@ object AssistanceDetailsForm {
   val disabilityImpact = "disabilityImpact"
   val disabilityCategories = "disabilityCategories"
   val otherDisabilityDescription = "otherDisabilityDescription"
+
+  private def hasDisabilityFormatter = new Formatter[String] {
+    def bind(key: String, request: Map[String, String]): Either[Seq[FormError], String] = {
+      val errorKey = "error.hasDisability.required"
+      request.param(hasDisability) match {
+        case Some(value) =>
+          if (request.isHasDisabilityValid) {
+            Right(value)
+          } else {
+            Left(List(FormError(key, Messages(errorKey))))
+          }
+        case _ =>
+          Left(List(FormError(key, Messages(errorKey))))
+      }
+    }
+
+    def unbind(key: String, value: String): Map[String, String] = Map(key -> value)
+  }
 
   private def disabilityImpactFormatter = new Formatter[Option[String]] {
     def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[String]] = {
