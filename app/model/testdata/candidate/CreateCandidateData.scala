@@ -33,7 +33,7 @@ object CreateCandidateData {
   case class AssistanceDetails(
     hasDisability: String = "No",
     disabilityImpact: String = "No",
-    disabilityCategories: List[String] = Nil,
+    disabilityCategories: List[String] = List("Prefer Not to Say"),
     hasDisabilityDescription: String = "",
     setGis: Boolean = false,
     onlineAdjustments: Boolean = false,

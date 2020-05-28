@@ -21,8 +21,8 @@ object AssistanceDetailsExamples {
   val OnlyDisabilityNoGisNoAdjustments = AssistanceDetails(
     hasDisability = "Yes",
     disabilityImpact = Some("No"),
-    disabilityCategories = Some(List("category1")),
-    otherDisabilityDescription = Some(""),
+    disabilityCategories = Some(List("Other")),
+    otherDisabilityDescription = Some("disability description"),
     guaranteedInterview = Some(false),
     needsSupportForOnlineAssessment = Some(false),
     needsSupportForOnlineAssessmentDescription = None,
@@ -34,7 +34,7 @@ object AssistanceDetailsExamples {
   val DisabilityGisAndAdjustments = AssistanceDetails(
     hasDisability = "Yes",
     disabilityImpact = Some("No"),
-    disabilityCategories = Some(List("category1")),
+    disabilityCategories = Some(List("Other")),
     otherDisabilityDescription = Some("disability description"),
     guaranteedInterview = Some(true),
     needsSupportForOnlineAssessment = Some(true),

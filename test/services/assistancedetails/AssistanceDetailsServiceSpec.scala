@@ -29,7 +29,7 @@ class AssistanceDetailsServiceSpec extends BaseServiceSpec {
 
   "update" should {
     "update assistance details successfully" in new TestFixture {
-      when(mockAdRepository.update(eqTo(AppId), eqTo(UserId), eqTo(AssistanceDetailsExamples.DisabilityGisAndAdjustments))
+      when(mockAssistanceDetailsRepository.update(eqTo(AppId), eqTo(UserId), eqTo(AssistanceDetailsExamples.DisabilityGisAndAdjustments))
       ).thenReturn(Future.successful(()))
 
       val response = service.update(AppId, UserId, AssistanceDetailsExchangeExamples.DisabilityGisAndAdjustments).futureValue
@@ -39,19 +39,18 @@ class AssistanceDetailsServiceSpec extends BaseServiceSpec {
 
   "find candidate" should {
     "return assistance details" in new TestFixture {
-      when(mockAdRepository.find(AppId)).thenReturn(Future.successful(AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments))
+      when(mockAssistanceDetailsRepository.find(AppId)).thenReturn(Future.successful(AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments))
 
       val response = service.find(AppId, UserId).futureValue
-
       response mustBe AssistanceDetailsExchangeExamples.OnlyDisabilityNoGisNoAdjustments
     }
   }
 
   trait TestFixture  {
-    val mockAdRepository = mock[AssistanceDetailsRepository]
+    val mockAssistanceDetailsRepository = mock[AssistanceDetailsRepository]
 
     val service = new AssistanceDetailsService {
-      val adRepository = mockAdRepository
+      val adRepository = mockAssistanceDetailsRepository
     }
   }
 }

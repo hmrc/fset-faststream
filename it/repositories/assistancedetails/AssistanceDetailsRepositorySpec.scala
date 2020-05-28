@@ -61,7 +61,9 @@ class AssistanceDetailsRepositorySpec extends MongoRepositorySpec {
     "frameworkId" -> FrameworkId,
     "assistance-details" -> BSONDocument(
       "hasDisability" -> "Yes",
-      "hasDisabilityDescription" -> "My disability",
+      "disabilityImpact" -> "No",
+      "disabilityCategories" -> List("Other"),
+      "otherDisabilityDescription" -> "My disability",
       "guaranteedInterview" -> true,
       "needsSupportForOnlineAssessment" -> true,
       "needsSupportForOnlineAssessmentDescription" -> "needsSupportForOnlineAssessmentDescription",
