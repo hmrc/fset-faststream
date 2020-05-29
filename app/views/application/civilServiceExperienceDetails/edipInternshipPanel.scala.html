@@ -17,26 +17,13 @@
 @(form: Form[forms.PersonalDetailsForm.Data])(implicit messages: Messages)
 
 @import helpers.CSRFieldConstructor._
-@import views.html.widgets.date
 
-<section class="section-border">
-    <h2 class="heading-medium">Name and date of birth</h2>
-
-    @helper.inputText(form("firstName"),
-        '_label -> "First name",
-        'class -> "form-control",
-        '_class -> "form-group-compound",
-        '_showConstraints -> false)
-    @helper.inputText(form("lastName"),
-        '_label -> "Last name",
-        'class -> "form-control",
-        '_showConstraints -> false)
-    @helper.inputText(form("preferredName"),
-        '_label -> "Preferred name",
-        'class -> "form-control",
-        '_showConstraints -> false)
-
-    <div class="clearfix">
-        @date(form, "dateOfBirth", "Date of birth")
+<div id="civilServiceExperienceDetails_civilServantAndInternshipTypes-EDIP-panel" class="toggle-content">
+    <div class="panel-indent">
+        @helper.inputText(form("civilServiceExperienceDetails.edipYear"),
+            'id -> "civilServiceExperienceDetails.edipYear",
+            '_label -> "What year did you complete EDIP?",
+            'class -> "form-control form-control-1-3 med-btm-margin",
+            '_showConstraints -> false)
     </div>
-</section>
+</div>

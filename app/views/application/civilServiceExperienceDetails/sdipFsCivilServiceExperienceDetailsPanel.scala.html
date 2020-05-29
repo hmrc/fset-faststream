@@ -14,10 +14,10 @@
  * limitations under the License.
  *@
 
-@(form: Form[_root_.forms.PersonalDetailsForm.Data], schemesRequiringQualifications: Seq[String])(implicit messages: Messages)
+@(form: Form[forms.PersonalDetailsForm.Data], schemesRequiringQualifications: Seq[String])(implicit messages: Messages)
 
 @import helpers.CSRFieldConstructor._
-@import views.html.widgets.{checkbox, yesNoRadioWithTogglePanel}
+@import views.html.widgets.yesNoRadioWithTogglePanel
 
 <section class="clearfix" id="civilServantQuestion">
     @yesNoRadioWithTogglePanel(form("civilServiceExperienceDetails.applicable"),

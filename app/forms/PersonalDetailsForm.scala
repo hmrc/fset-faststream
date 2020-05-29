@@ -16,7 +16,7 @@
 
 package forms
 
-import connectors.exchange.{ CivilServiceExperienceDetails, GeneralDetails }
+import connectors.exchange.GeneralDetails
 import forms.Mappings._
 import mappings.PhoneNumberMapping.PhoneNumber
 import mappings.PostCodeMapping._

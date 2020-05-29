@@ -17,9 +17,15 @@
 package connectors.exchange
 
 object CivilServiceExperienceDetailsExamples {
-  val CivilServantExperience = CivilServiceExperienceDetails(true, Some("CivilServant"), None, Some(true), None, None)
+  val CivilServantExperience = CivilServiceExperienceDetails(applicable = true,
+    civilServantAndInternshipTypes = None,
+    fastPassReceived = None, fastPassAccepted = None, certificateNumber = None)
   val CivilServantExperienceFastPassApproved = CivilServiceExperienceDetails(
-    true, Some("CivilServant"), None, Some(true), Some(true), Some("1234567"))
-  val CivilServantExperienceFastPassRejectd = CivilServiceExperienceDetails(
-    true, Some("CivilServant"), None, Some(true), Some(false), Some("1234567"))
+    applicable = true, civilServantAndInternshipTypes = Some(Seq("CivilServant")),
+    fastPassReceived = Some(true),
+    fastPassAccepted = Some(true), certificateNumber = Some("1234567"))
+  val CivilServantExperienceFastPassRejected = CivilServiceExperienceDetails(
+    applicable = true, civilServantAndInternshipTypes = Some(Seq("CivilServant")),
+    fastPassReceived = Some(true),
+    fastPassAccepted = Some(false), certificateNumber = Some("1234567"))
 }

@@ -14,10 +14,10 @@
  * limitations under the License.
  *@
 
-@(form: Form[_root_.forms.PersonalDetailsForm.Data])(implicit messages: Messages)
+@(form: Form[forms.PersonalDetailsForm.Data])(implicit messages: Messages)
 
 @import helpers.CSRFieldConstructor._
-@import views.html.widgets.{checkbox, yesNoQuestion}
+@import views.html.widgets.yesNoQuestion
 
 <section class="clearfix section-border" id="civilServantQuestion">
     @yesNoQuestion(form("edipCompleted"),

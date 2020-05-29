@@ -75,7 +75,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       content must include("""<li>Project Delivery</li>""")
       // The page should not include any schemes that do not have a degree requirement
       ReferenceDataExamples.Schemes.schemesWithNoDegree.foreach{ scheme =>
-        content must not include(s"<li>${scheme.name}</li>")
+        content must not include s"<li>${scheme.name}</li>"
       }
       content must include(routes.PersonalDetailsController.submitPersonalDetails().url)
     }
@@ -216,8 +216,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
       val result = controller.submitPersonalDetailsAndContinue()(Request)
 
-      status(result) must be(SEE_OTHER)
-      redirectLocation(result) must be(Some(routes.SchemePreferencesController.present().url))
+      status(result) mustBe SEE_OTHER
+      redirectLocation(result) mustBe Some(routes.SchemePreferencesController.present().url)
     }
 
     "update edip candidate's details and return to assistance details" in {
@@ -237,8 +237,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
       val result = controller(currentCandidateWithEdipApp).submitPersonalDetailsAndContinue()(Request)
 
-      status(result) must be(SEE_OTHER)
-      redirectLocation(result) must be(Some(routes.AssistanceDetailsController.present().url))
+      status(result) mustBe  SEE_OTHER
+      redirectLocation(result) mustBe Some(routes.AssistanceDetailsController.present().url)
     }
 
     "update sdip candidate's details and return to assistance details" in {
@@ -258,8 +258,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
       val result = controller(currentCandidateWithEdipApp).submitPersonalDetailsAndContinue()(Request)
 
-      status(result) must be(SEE_OTHER)
-      redirectLocation(result) must be(Some(routes.AssistanceDetailsController.present().url))
+      status(result) mustBe SEE_OTHER
+      redirectLocation(result) mustBe Some(routes.AssistanceDetailsController.present().url)
     }
 
     "update candidate's details and return to dashboard page" in {
@@ -280,8 +280,8 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
       val result = controller.submitPersonalDetails()(Request)
 
-      status(result) must be(SEE_OTHER)
-      redirectLocation(result) must be(Some(routes.HomeController.present().url))
+      status(result) mustBe SEE_OTHER
+      redirectLocation(result) mustBe Some(routes.HomeController.present().url)
     }
   }
 }

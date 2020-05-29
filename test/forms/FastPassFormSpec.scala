@@ -17,166 +17,286 @@
 package forms
 
 import forms.FastPassForm.{ form => fastPassForm, _ }
+import play.api.data.FormError
 import testkit.UnitWithAppSpec
 
 class FastPassFormSpec extends UnitWithAppSpec {
 
   "FastPass form" should {
-    "be valid when fast pass is not applicable" in {
+    "be valid when candidate is not applicable" in {
       val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "false"))
       form.hasErrors mustBe false
       form.hasGlobalErrors mustBe false
       form.value.get mustBe Data("false")
     }
 
-    "be valid when fast pass is applicable and fast pass type is CivilServant" in {
+    "be valid when candidate is applicable and is a civil servant with no fast pass" in {
       val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "true",
-        "civilServiceExperienceDetails.civilServiceExperienceType" -> "CivilServant"))
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes" -> FastPassForm.CivilServantKey,
+        "civilServiceExperienceDetails.fastPassReceived" -> "false"
+      ))
       form.hasErrors mustBe false
       form.hasGlobalErrors mustBe false
-      form.value.get mustBe Data("true", Some("CivilServant"))
+      // Check the submitted data has been correctly converted
+      form.value.get mustBe Data(applicable = "true",
+        civilServantAndInternshipTypes = Some(Seq(FastPassForm.CivilServantKey)),
+        fastPassReceived = Some(false)
+      )
     }
 
-    "be valid when fast pass is applicable, fast pass type is DiversityInternship and internship type is " in {
+    "be valid when candidate is applicable, chooses all internship options and has a fast pass" in {
       val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "true",
-        "civilServiceExperienceDetails.civilServiceExperienceType" -> "DiversityInternship",
-        "internshipTypes[0]" -> "EDIP"))
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes[0]" -> FastPassForm.CivilServantKey,
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes[1]" -> FastPassForm.SDIPKey,
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes[2]" -> FastPassForm.EDIPKey,
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes[3]" -> FastPassForm.OtherInternshipKey,
+        "civilServiceExperienceDetails.sdipYear" -> "2020",
+        "civilServiceExperienceDetails.edipYear" -> "2020",
+        "civilServiceExperienceDetails.otherInternshipName" -> "Internship name",
+        "civilServiceExperienceDetails.otherInternshipYear" -> "2020",
+        "civilServiceExperienceDetails.fastPassReceived" -> "true",
+        "civilServiceExperienceDetails.certificateNumber" -> "1234567"
+      ))
       form.hasErrors mustBe false
       form.hasGlobalErrors mustBe false
-      form.value.get mustBe Data("true", Some("DiversityInternship"), Some(Seq("EDIP")))
+
+      // Check the submitted data has been correctly converted
+      val data = form.value.get
+      val postedCivilServantAndInternshipTypes = data.civilServantAndInternshipTypes.get
+      val dataWithoutStream = data.copy(civilServantAndInternshipTypes = None)
+
+      dataWithoutStream mustBe Data(applicable = "true",
+        civilServantAndInternshipTypes = None,
+        sdipYear = Some("2020"),
+        edipYear = Some("2020"),
+        otherInternshipName = Some("Internship name"),
+        otherInternshipYear = Some("2020"),
+        fastPassReceived = Some(true),
+        certificateNumber = Some("1234567")
+      )
+
+      postedCivilServantAndInternshipTypes
+        .diff(Seq(FastPassForm.CivilServantKey, FastPassForm.SDIPKey, FastPassForm.EDIPKey, FastPassForm.OtherInternshipKey))
+        .isEmpty mustBe true
     }
 
-    "be valid when fast pass is applicable, fast pass type is DiversityInternship, internship type is SDIPCurrentYear and " +
-      "fast pass is not received" in {
-      val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "true",
-        "civilServiceExperienceDetails.civilServiceExperienceType" -> "DiversityInternship",
-        "civilServiceExperienceDetails.internshipTypes[0]" -> "SDIPCurrentYear",
+    //// Edip
+    "be valid when candidate is not applicable, but specifies edip internship but doesn't supply the year and has no fast pass" in {
+      val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "false",
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes" -> FastPassForm.EDIPKey,
         "civilServiceExperienceDetails.fastPassReceived" -> "false"))
       form.hasErrors mustBe false
       form.hasGlobalErrors mustBe false
-      form.value.get mustBe Data("true", Some("DiversityInternship"), Some(Seq("SDIPCurrentYear")), Some(false))
+      // Check the submitted data has been correctly converted
+      form.value.get mustBe Data(applicable = "false")
     }
 
-    "be valid when fast pass is applicable, fast pass type is DiversityInternship, internship type is SDIPCurrentYear, " +
-      "fast pass is received and has a valid certificate number" in {
+    "be invalid when candidate is applicable, has completed the edip internship but doesn't supply the year and has no fast pass" in {
       val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "true",
-        "civilServiceExperienceDetails.civilServiceExperienceType" -> "DiversityInternship",
-        "civilServiceExperienceDetails.internshipTypes[0]" -> "SDIPCurrentYear",
-        "civilServiceExperienceDetails.fastPassReceived" -> "true",
-        "civilServiceExperienceDetails.certificateNumber" -> "1234567"))
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes" -> FastPassForm.EDIPKey,
+        "civilServiceExperienceDetails.fastPassReceived" -> "false"))
+      form.hasErrors mustBe true
+      val expectedFormErrors = Seq(FormError(key = "civilServiceExperienceDetails.edipYear",
+        message = "You must provide the year of the EDIP internship"))
+      form.errors mustBe expectedFormErrors
+      form.hasGlobalErrors mustBe false
+    }
+
+    "be invalid when candidate is applicable, has completed the edip internship, supplies an invalid year and has no fast pass" in {
+      val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "true",
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes" -> FastPassForm.EDIPKey,
+        "civilServiceExperienceDetails.edipYear" -> "BOOM",
+        "civilServiceExperienceDetails.fastPassReceived" -> "false"))
+      form.hasErrors mustBe true
+      val expectedFormErrors = Seq(FormError(key = "civilServiceExperienceDetails.edipYear",
+        message = "You must provide the year of the EDIP internship"))
+      form.errors mustBe expectedFormErrors
+      form.hasGlobalErrors mustBe false
+    }
+
+    "be invalid when candidate is applicable, has completed the edip internship, supplies an invalid 5 digit year and has no fast pass" in {
+      val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "true",
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes" -> FastPassForm.EDIPKey,
+        "civilServiceExperienceDetails.edipYear" -> "12345",
+        "civilServiceExperienceDetails.fastPassReceived" -> "false"))
+      form.hasErrors mustBe true
+      val expectedFormErrors = Seq(FormError(key = "civilServiceExperienceDetails.edipYear",
+        message = "You must provide the year of the EDIP internship"))
+      form.errors mustBe expectedFormErrors
+      form.hasGlobalErrors mustBe false
+    }
+
+    "be valid when candidate is applicable, has completed the edip internship, supplies a valid year and has no fast pass" in {
+      val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "true",
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes" -> FastPassForm.EDIPKey,
+        "civilServiceExperienceDetails.edipYear" -> "2020",
+        "civilServiceExperienceDetails.fastPassReceived" -> "false"))
       form.hasErrors mustBe false
       form.hasGlobalErrors mustBe false
-      form.value.get mustBe Data("true", Some("DiversityInternship"), Some(Seq("SDIPCurrentYear")), Some(true), Some("1234567"))
+      // Check the submitted data has been correctly converted
+      form.value.get mustBe Data(applicable = "true",
+        civilServantAndInternshipTypes = Some(Seq(FastPassForm.EDIPKey)),
+        edipYear = Some("2020"),
+        fastPassReceived = Some(false)
+      )
     }
-  }
 
-  "FastPass form" should {
-    "be valid and must discard fast pass type" in {
+    //// Sdip
+    "be valid when candidate is not applicable, but specifies sdip internship but doesn't supply the year and has no fast pass" in {
       val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "false",
-        "civilServiceExperienceDetails.civilServiceExperienceType" -> "CivilServant"))
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes" -> FastPassForm.SDIPKey,
+        "civilServiceExperienceDetails.fastPassReceived" -> "false"))
       form.hasErrors mustBe false
       form.hasGlobalErrors mustBe false
-      form.value.get mustBe Data("false")
+      // Check the submitted data has been correctly converted
+      form.value.get mustBe Data(applicable = "false")
     }
 
-    "be valid and must discard internship type" in {
+    "be invalid when candidate is applicable, has completed sdip internship but doesn't supply the year and has no fast pass" in {
       val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "true",
-        "civilServiceExperienceDetails.civilServiceExperienceType" -> "CivilServant",
-        "civilServiceExperienceDetails.internshipTypes[0]" -> "EDIP"))
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes" -> FastPassForm.SDIPKey,
+        "civilServiceExperienceDetails.fastPassReceived" -> "false"))
+      form.hasErrors mustBe true
+      val expectedFormErrors = Seq(FormError(key = "civilServiceExperienceDetails.sdipYear",
+        message = "You must provide the year of the SDIP internship"))
+      form.errors mustBe expectedFormErrors
+      form.hasGlobalErrors mustBe false
+    }
+
+    "be invalid when candidate is applicable, has completed sdip internship, supplies an invalid year and has no fast pass" in {
+      val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "true",
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes" -> FastPassForm.SDIPKey,
+        "civilServiceExperienceDetails.sdipYear" -> "BOOM",
+        "civilServiceExperienceDetails.fastPassReceived" -> "false"))
+      form.hasErrors mustBe true
+      val expectedFormErrors = Seq(FormError(key = "civilServiceExperienceDetails.sdipYear",
+        message = "You must provide the year of the SDIP internship"))
+      form.errors mustBe expectedFormErrors
+      form.hasGlobalErrors mustBe false
+    }
+
+    "be invalid when candidate is applicable, has completed sdip internship, supplies an invalid 5 digit year and has no fast pass" in {
+      val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "true",
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes" -> FastPassForm.SDIPKey,
+        "civilServiceExperienceDetails.sdipYear" -> "12345",
+        "civilServiceExperienceDetails.fastPassReceived" -> "false"))
+      form.hasErrors mustBe true
+      val expectedFormErrors = Seq(FormError(key = "civilServiceExperienceDetails.sdipYear",
+        message = "You must provide the year of the SDIP internship"))
+      form.errors mustBe expectedFormErrors
+      form.hasGlobalErrors mustBe false
+    }
+
+    "be valid when candidate is applicable, has completed sdip internship, supplies a valid year and has no fast pass" in {
+      val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "true",
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes" -> FastPassForm.SDIPKey,
+        "civilServiceExperienceDetails.sdipYear" -> "2020",
+        "civilServiceExperienceDetails.fastPassReceived" -> "false"))
       form.hasErrors mustBe false
       form.hasGlobalErrors mustBe false
-      form.value.get mustBe Data("true", Some("CivilServant"))
+      // Check the submitted data has been correctly converted
+      form.value.get mustBe Data(applicable = "true",
+        civilServantAndInternshipTypes = Some(Seq(FastPassForm.SDIPKey)),
+        sdipYear = Some("2020"),
+        fastPassReceived = Some(false)
+      )
     }
 
-    "be valid and must discard certificate number" in {
-      val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "true",
-        "civilServiceExperienceDetails.civilServiceExperienceType" -> "DiversityInternship",
-        "civilServiceExperienceDetails.internshipTypes[0]" -> "SDIPCurrentYear",
-        "civilServiceExperienceDetails.fastPassReceived" -> "false",
-        "civilServiceExperienceDetails.certificateNumber" -> "1234567"))
+    //// Other internship
+    "be valid when candidate is not applicable, but specifies another internship but doesn't supply the name or year and has no fast pass" in {
+      val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "false",
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes" -> FastPassForm.OtherInternshipKey,
+        "civilServiceExperienceDetails.fastPassReceived" -> "false"))
       form.hasErrors mustBe false
       form.hasGlobalErrors mustBe false
-      form.value.get mustBe Data("true", Some("DiversityInternship"), Some(Seq("SDIPCurrentYear")), Some(false))
+      // Check the submitted data has been correctly converted
+      form.value.get mustBe Data(applicable = "false")
     }
 
-    "be valid for sdip faststream candidate who specifies applicable and civil service experience only" in {
+    "be invalid when candidate is applicable, chooses other internship fails to enter a name or a year" in {
       val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "true",
-        "civilServiceExperienceDetails.civilServiceExperienceType" -> "DiversityInternship",
-        "applicationRoute" -> "SdipFaststream"
-         ))
-      form.hasErrors mustBe false
-      form.hasGlobalErrors mustBe false
-      form.value.get mustBe Data(applicable = "true", civilServiceExperienceType = Some("DiversityInternship"),
-        internshipTypes = None, fastPassReceived = None, certificateNumber = None)
-    }
-  }
-
-  "FastPass form" should {
-    "be invalid when fast pass is applicable and fast pass type is not supplied" in {
-      val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "true"))
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes[0]" -> FastPassForm.OtherInternshipKey,
+        "civilServiceExperienceDetails.fastPassReceived" -> "false"
+      ))
       form.hasErrors mustBe true
+      val expectedFormErrors = Seq(
+        FormError(key = "civilServiceExperienceDetails.otherInternshipName", message = "You must provide the name of the other internship"),
+        FormError(key = "civilServiceExperienceDetails.otherInternshipYear", message = "You must provide the year of the other internship")
+      )
+      form.errors mustBe expectedFormErrors
       form.hasGlobalErrors mustBe false
     }
 
-    "be invalid when fast pass is applicable, fast pass type is DiversityInternship and internship type is not supplied" in {
+    "be invalid when candidate is applicable, chooses other internship and enters a name that is too big" in {
       val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "true",
-        "civilServiceExperienceDetails.civilServiceExperienceType" -> "DiversityInternship"))
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes[0]" -> FastPassForm.OtherInternshipKey,
+        "civilServiceExperienceDetails.otherInternshipName" -> "A" * (FastPassForm.otherInternshipNameMaxSize + 1),
+        "civilServiceExperienceDetails.otherInternshipYear" -> "2020",
+        "civilServiceExperienceDetails.fastPassReceived" -> "false"
+      ))
       form.hasErrors mustBe true
+      val expectedFormErrors = Seq(FormError(key = "civilServiceExperienceDetails.otherInternshipName",
+        message = s"The other internship name must not exceed ${FastPassForm.otherInternshipNameMaxSize} characters"))
+      form.errors mustBe expectedFormErrors
       form.hasGlobalErrors mustBe false
     }
 
-    "be invalid when fast pass is applicable, fast pass type is DiversityInternship, internship type is SDIPCurrentYear " +
-      "and fast pass received is not supplied" in {
+    "be invalid when candidate is applicable, chooses other internship and enters a year that is not a number" in {
       val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "true",
-        "civilServiceExperienceDetails.civilServiceExperienceType" -> "DiversityInternship",
-        "civilServiceExperienceDetails.internshipTypes[0]" -> "SDIPCurrentYear"))
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes[0]" -> FastPassForm.OtherInternshipKey,
+        "civilServiceExperienceDetails.otherInternshipName" -> "Internship name",
+        "civilServiceExperienceDetails.otherInternshipYear" -> "BOOM",
+        "civilServiceExperienceDetails.fastPassReceived" -> "false"
+      ))
       form.hasErrors mustBe true
-      form.hasGlobalErrors mustBe false
-    }
-
-    "be invalid when fast pass is applicable, fast pass type is DiversityInternship, internship type is SDIPCurrentYear, " +
-      "fast pass is received and certificate number is not supplied" in {
-      val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "true",
-        "civilServiceExperienceDetails.civilServiceExperienceType" -> "DiversityInternship",
-        "civilServiceExperienceDetails.internshipTypes[0]" -> "SDIPCurrentYear",
-        "civilServiceExperienceDetails.fastPassReceived" -> "true"))
-      form.hasErrors mustBe true
-      form.hasGlobalErrors mustBe false
-    }
-
-    "be invalid for sdip faststream candidate if civil service experience is not specified" in {
-      val form = fastPassForm.bind(Map("civilServiceExperienceDetails.applicable" -> "true",
-        "applicationRoute" -> "SdipFaststream"
-         ))
-      form.hasErrors mustBe true
+      val expectedFormErrors = Seq(FormError(key = "civilServiceExperienceDetails.otherInternshipYear",
+        message = s"You must provide the year of the other internship"))
+      form.errors mustBe expectedFormErrors
       form.hasGlobalErrors mustBe false
     }
   }
 
   "cleanup fast pass params" should {
-    "remove other fields when fast pass is not applicable" in {
+    "remove other fields when candidate is not applicable" in {
       val data = Map("civilServiceExperienceDetails.applicable" -> "false",
-        "civilServiceExperienceDetails.civilServiceExperienceType" -> "DiversityInternship",
-        "civilServiceExperienceDetails.internshipTypes[0]" -> "SDIPCurrentYear")
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes[0]" -> FastPassForm.CivilServantKey,
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes[1]" -> FastPassForm.SDIPKey,
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes[2]" -> FastPassForm.EDIPKey,
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes[3]" -> FastPassForm.OtherInternshipKey,
+        "civilServiceExperienceDetails.sdipYear" -> "2020",
+        "civilServiceExperienceDetails.edipYear" -> "2020",
+        "civilServiceExperienceDetails.otherInternshipName" -> "Internship name",
+        "civilServiceExperienceDetails.otherInternshipYear" -> "2020",
+        "civilServiceExperienceDetails.fastPassReceived" -> "true",
+        "civilServiceExperienceDetails.certificateNumber" -> "1234567"
+      )
       data.cleanupFastPassFields mustBe Map("civilServiceExperienceDetails.applicable" -> "false")
     }
 
-    "remove internship types when fast pass type is CivilServant" in {
+    "remove all 3rd level data when the choices are off" in {
       val data = Map("civilServiceExperienceDetails.applicable" -> "true",
-        "civilServiceExperienceDetails.civilServiceExperienceType" -> "CivilServant",
-        "civilServiceExperienceDetails.internshipTypes[0]" -> "SDIPCurrentYear")
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes[0]" -> FastPassForm.CivilServantKey,
+        "civilServiceExperienceDetails.sdipYear" -> "2020",
+        "civilServiceExperienceDetails.edipYear" -> "2020",
+        "civilServiceExperienceDetails.otherInternshipName" -> "Internship name",
+        "civilServiceExperienceDetails.otherInternshipYear" -> "2020",
+        "civilServiceExperienceDetails.fastPassReceived" -> "false",
+        "civilServiceExperienceDetails.certificateNumber" -> "1234567")
       data.cleanupFastPassFields must contain theSameElementsAs
-        Map("civilServiceExperienceDetails.applicable" -> "true", "civilServiceExperienceDetails.civilServiceExperienceType" -> "CivilServant")
+        Map("civilServiceExperienceDetails.applicable" -> "true",
+          "civilServiceExperienceDetails.civilServantAndInternshipTypes[0]" -> FastPassForm.CivilServantKey,
+          "civilServiceExperienceDetails.fastPassReceived" -> "false")
     }
 
     "remove certificate number when fast pass is not received" in {
       val data = Map("civilServiceExperienceDetails.applicable" -> "true",
-        "civilServiceExperienceDetails.civilServiceExperienceType" -> "DiversityInternship",
-        "civilServiceExperienceDetails.internshipTypes[0]" -> "SDIPCurrentYear", "fastPassReceived" -> "false", "certificateNumber" -> "1234567")
+        "civilServiceExperienceDetails.civilServantAndInternshipTypes[0]" -> FastPassForm.CivilServantKey,
+        "fastPassReceived" -> "false",
+        "certificateNumber" -> "1234567")
       data.cleanupFastPassFields must contain theSameElementsAs
         Map("civilServiceExperienceDetails.applicable" -> "true",
-          "civilServiceExperienceDetails.civilServiceExperienceType" -> "DiversityInternship",
-          "civilServiceExperienceDetails.internshipTypes[0]" -> "SDIPCurrentYear", "fastPassReceived" -> "false")
+          "civilServiceExperienceDetails.civilServantAndInternshipTypes[0]" -> FastPassForm.CivilServantKey,
+          "fastPassReceived" -> "false")
     }
   }
 }

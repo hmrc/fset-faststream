@@ -101,20 +101,27 @@ error.country.invalid = Maximum length is 100
 error.phone.required = Add a phone number in case we need to contact you
 error.phoneNumber.format = You''ve entered an invalid phone number
 
-#fastpass details
+#fast pass details
 error.applicable.required = Tell us if you''re currently a civil servant or been on an internship
-error.civilServiceExperienceType.required = Tell us whether you''ve been part of the Civil Service or on an internship
-error.internshipTypes.required = Tell us your diversity internship programme
+error.civilServantAndInternshipTypes.required = Tell us whether you''ve been part of the Civil Service or on an internship
+
+error.edipInternshipYear.required = You must provide the year of the EDIP internship
+error.sdipInternshipYear.required = You must provide the year of the SDIP internship
+
+error.otherInternshipName.required = You must provide the name of the other internship
+error.otherInternshipName.size = The other internship name must not exceed {0} characters
+
+error.otherInternshipYear.required = You must provide the year of the other internship
+
 error.fastPassReceived.required = Tell us if you have received a Fast Pass
 error.certificateNumber.required = Enter your 7-digit certificate number
-civilServiceExperienceType.CivilServant = I''m currently a civil servant
-civilServiceExperienceType.CivilServantViaFastTrack = I''m currently a civil servant via the Fast Track
-civilServiceExperienceType.DiversityInternship = I''ve completed SDIP or EDIP
-civilServiceExperienceType.EdipInternship = I''ve completed EDIP
-internshipType.EDIP = Early Diversity Internship Programme
-internshipType.SDIPPreviousYear = Summer Diversity Internship Programme
-internshipType.SDIPCurrentYear = An internship eligible for Fast Pass
+
 error.needsEdipCompleted.required = Tell us if you have completed EDIP
+
+civilServantAndInternshipType.civilServant = I am currently a civil servant
+civilServantAndInternshipType.EDIP = I completed EDIP
+civilServantAndInternshipType.SDIP = I completed SDIP
+civilServantAndInternshipType.another = I completed another internship
 
 #assistance
 error.hasDisability.required=Tell us if you consider yourself to have a disability

@@ -16,12 +16,12 @@
 
 package controllers
 
-import _root_.forms.PersonalDetailsForm
 import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.exchange.CivilServiceExperienceDetails._
-import connectors.exchange.{ CivilServiceExperienceDetails, SelectedSchemes }
+import connectors.exchange.SelectedSchemes
 import connectors.{ ApplicationClient, ReferenceDataClient, SchemeClient, UserManagementClient }
 import forms.FastPassForm._
+import forms.PersonalDetailsForm
 import helpers.NotificationType._
 import mappings.{ Address, DayMonthYear }
 import models.{ ApplicationRoute, CachedDataWithApp }
@@ -36,7 +36,8 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-object PersonalDetailsController extends PersonalDetailsController(ApplicationClient, SchemeClient, UserManagementClient, ReferenceDataClient) {
+object PersonalDetailsController
+  extends PersonalDetailsController(ApplicationClient, SchemeClient, UserManagementClient, ReferenceDataClient) {
   lazy val silhouette = SilhouetteComponent.silhouette
 }
 
@@ -147,8 +148,6 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient,
     }
 
     val handleValidForm = (form: PersonalDetailsForm.Data) => {
-      val civilServiceExperienceDetails: Option[CivilServiceExperienceDetails] =
-        cachedData.application.civilServiceExperienceDetails.orElse(form.civilServiceExperienceDetails)
       val edipCompleted = cachedData.application.edipCompleted.orElse(form.edipCompleted.map(_.toBoolean))
       for {
         _ <- applicationClient.updatePersonalDetails(cachedData.application.applicationId, cachedData.user.userID,
