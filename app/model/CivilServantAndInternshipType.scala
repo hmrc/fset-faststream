@@ -18,20 +18,20 @@ package model
 
 import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
-//TODO: delete when we update the reports
-object InternshipType extends Enumeration {
 
-  type InternshipType = Value
+object CivilServantAndInternshipType extends Enumeration {
 
-  val EDIP, SDIPPreviousYear, SDIPCurrentYear = Value
+  type CivilServantAndInternshipType = Value
 
-  implicit val internshipTypeFormat = new Format[InternshipType] {
-    def reads(json: JsValue) = JsSuccess(InternshipType.withName(json.as[String]))
-    def writes(myEnum: InternshipType) = JsString(myEnum.toString)
+  val CivilServant, SDIP, EDIP, OtherInternship = Value
+
+  implicit val internshipTypeFormat = new Format[CivilServantAndInternshipType] {
+    def reads(json: JsValue) = JsSuccess(CivilServantAndInternshipType.withName(json.as[String]))
+    def writes(myEnum: CivilServantAndInternshipType) = JsString(myEnum.toString)
   }
 
-  implicit object BSONEnumHandler extends BSONHandler[BSONString, InternshipType] {
-    def read(doc: BSONString) = InternshipType.withName(doc.value)
-    def write(stats: InternshipType) = BSON.write(stats.toString)
+  implicit object BSONEnumHandler extends BSONHandler[BSONString, CivilServantAndInternshipType] {
+    def read(doc: BSONString) = CivilServantAndInternshipType.withName(doc.value)
+    def write(stats: CivilServantAndInternshipType) = BSON.write(stats.toString)
   }
 }

@@ -167,24 +167,24 @@ object CreateCandidateRequest {
   }
 
   case class CreateCandidateRequest(
-    statusData: StatusDataRequest = new StatusDataRequest,
-    personalData: Option[PersonalDataRequest],
-    diversityDetails: Option[DiversityDetailsRequest],
-    assistanceDetails: Option[AssistanceDetailsRequest],
-    schemeTypes: Option[List[SchemeId]],
-    isCivilServant: Option[Boolean],
-    internshipTypes: Option[List[String]],
-    hasFastPass: Option[Boolean],
-    hasDegree: Option[Boolean],
-    region: Option[String],
-    loc1scheme1EvaluationResult: Option[String],
-    loc1scheme2EvaluationResult: Option[String],
-    confirmedAllocation: Option[Boolean],
-    phase1TestData: Option[Phase1TestDataRequest],
-    phase2TestData: Option[Phase2TestDataRequest],
-    phase3TestData: Option[Phase3TestDataRequest],
-    fsbTestGroupData: Option[FsbTestGroupDataRequest],
-    adjustmentInformation: Option[AdjustmentsRequest] = None
+                                     statusData: StatusDataRequest = new StatusDataRequest,
+                                     personalData: Option[PersonalDataRequest],
+                                     diversityDetails: Option[DiversityDetailsRequest],
+                                     assistanceDetails: Option[AssistanceDetailsRequest],
+                                     schemeTypes: Option[List[SchemeId]],
+                                     isCivilServant: Option[Boolean],
+                                     civilServantAndInternshipTypes: Option[List[String]],
+                                     hasFastPass: Option[Boolean],
+                                     hasDegree: Option[Boolean],
+                                     region: Option[String],
+                                     loc1scheme1EvaluationResult: Option[String],
+                                     loc1scheme2EvaluationResult: Option[String],
+                                     confirmedAllocation: Option[Boolean],
+                                     phase1TestData: Option[Phase1TestDataRequest],
+                                     phase2TestData: Option[Phase2TestDataRequest],
+                                     phase3TestData: Option[Phase3TestDataRequest],
+                                     fsbTestGroupData: Option[FsbTestGroupDataRequest],
+                                     adjustmentInformation: Option[AdjustmentsRequest] = None
   ) extends CreateTestDataRequest
 
   object CreateCandidateRequest {
@@ -202,7 +202,7 @@ object CreateCandidateRequest {
         personalData = None,
         schemeTypes = None,
         isCivilServant = None,
-        internshipTypes = None,
+        civilServantAndInternshipTypes = None,
         hasFastPass = None,
         hasDegree = None,
         region = None,

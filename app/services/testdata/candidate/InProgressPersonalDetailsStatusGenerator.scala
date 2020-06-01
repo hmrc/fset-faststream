@@ -53,8 +53,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
       def getCivilServiceExperienceDetails(candidateInformation: CreateCandidateResponse) = {
         if (generatorConfig.isCivilServant) {
           CivilServiceExperienceDetails(applicable = true,
-            civilServiceExperienceType = if (generatorConfig.isCivilServant) Some(CivilServiceExperienceType.CivilServant) else None,
-            internshipTypes = Some(generatorConfig.internshipTypes),
+            civilServantAndInternshipTypes = Some(generatorConfig.civilServantAndInternshipTypes),
             fastPassReceived = Some(generatorConfig.hasFastPass), fastPassAccepted = None,
             certificateNumber = generatorConfig.fastPassCertificateNumber
           )

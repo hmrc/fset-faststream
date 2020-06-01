@@ -19,6 +19,7 @@ package services.application
 import common.FutureEx
 import connectors.ExchangeObjects
 import model.ApplicationStatus.ApplicationStatus
+import model.CivilServantAndInternshipType.CivilServantAndInternshipType
 import model.EvaluationResults.{ Green, Red }
 import model.Exceptions._
 import model.ProgressStatuses._
@@ -526,9 +527,13 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
 
     for {
       _ <- routeConversion
-      _ <- civilServiceExperienceDetailsRepo.update(applicationId, CivilServiceExperienceDetails(
-        applicable = true, Some(CivilServiceExperienceType.DiversityInternship), Some(Seq(InternshipType.SDIPCurrentYear)),
-        Some(true), None, certificateNumber = Some(fastPass.toString)))
+      _ <- civilServiceExperienceDetailsRepo.update(applicationId,
+        CivilServiceExperienceDetails(
+          applicable = true,
+          civilServantAndInternshipTypes =Some(Seq(CivilServantAndInternshipType.SDIP)),
+          edipYear = None, sdipYear = None,
+          otherInternshipName = None, otherInternshipYear = None,
+          fastPassReceived = Some(true), fastPassAccepted = None, certificateNumber = Some(fastPass.toString)))
       _ <- phase1TestRepo.removeTestGroup(applicationId)
     } yield ()
   }

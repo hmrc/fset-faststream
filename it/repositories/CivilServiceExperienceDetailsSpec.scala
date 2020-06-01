@@ -44,5 +44,5 @@ class CivilServiceExperienceDetailsSpec extends MongoRepositorySpec {
     }
   }
 
-  def insert(doc: BSONDocument) = repository.collection.insert(doc)
+  def insert(doc: BSONDocument) = repository.collection.insert(ordered = false).one(doc)
 }

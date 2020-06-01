@@ -18,7 +18,7 @@ package model.testdata.candidate
 
 import connectors.AuthProviderClient.UserRole
 import model.ApplicationStatus.ApplicationStatus
-import model.InternshipType.InternshipType
+import model.CivilServantAndInternshipType.CivilServantAndInternshipType
 import model.ProgressStatuses.ProgressStatus
 import model._
 import model.command.testdata.CreateCandidateRequest._
@@ -40,7 +40,6 @@ object CreateCandidateData {
     assessmentCentreAdjustmentsDescription: String = "",
     phoneAdjustments: Boolean = false,
     phoneAdjustmentsDescription: String = ""
-
   )
 
   object AssistanceDetails {
@@ -177,7 +176,7 @@ object CreateCandidateData {
     schemeTypes: Option[List[SchemeId]] = None,
     isCivilServant: Boolean = false,
     hasFastPass: Boolean = false,
-    internshipTypes: List[InternshipType] = Nil,
+    civilServantAndInternshipTypes: List[CivilServantAndInternshipType] = Nil,
     fastPassCertificateNumber: Option[String] = None,
     hasDegree: Boolean = Random.bool,
     region: Option[String] = None,
@@ -196,13 +195,14 @@ object CreateCandidateData {
 
       val isCivilServant = request.isCivilServant.getOrElse(Random.bool)
       val hasFastPass = request.hasFastPass.getOrElse(false)
-      val internshipTypes = if (hasFastPass) {
-        request.internshipTypes.map(internshipTypes =>
-          internshipTypes.map(internshipType => InternshipType.withName(internshipType)))
-          .getOrElse(List(InternshipType.SDIPCurrentYear))
+      val civilServantAndInternshipTypes = if (hasFastPass) {
+        request.civilServantAndInternshipTypes.map(internshipTypes =>
+          internshipTypes.map(internshipType => CivilServantAndInternshipType.withName(internshipType)))
+          .getOrElse(List(CivilServantAndInternshipType.SDIP))
       } else {
         Nil
       }
+
       val fastPassCertificateNumber = if (hasFastPass) Some(Random.number().toString) else None
 
       val progressStatusMaybe = request.statusData.progressStatus.map(ProgressStatuses.nameToProgressStatus)
@@ -229,7 +229,7 @@ object CreateCandidateData {
         schemeTypes = Some(schemeTypes),
         isCivilServant = isCivilServant,
         hasFastPass = hasFastPass,
-        internshipTypes = internshipTypes,
+        civilServantAndInternshipTypes = civilServantAndInternshipTypes,
         fastPassCertificateNumber = fastPassCertificateNumber,
         hasDegree = request.hasDegree.getOrElse(Random.bool),
         region = request.region,

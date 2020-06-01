@@ -17,5 +17,8 @@
 package model
 
 object CivilServiceExperienceDetailsExamples {
-  val civilServant = CivilServiceExperienceDetails(applicable = true, Some(CivilServiceExperienceType.CivilServant))
+  val civilServant = CivilServiceExperienceDetails(
+    applicable = true,
+    civilServantAndInternshipTypes = Some(Seq(CivilServantAndInternshipType.CivilServant))
+  )
 }
