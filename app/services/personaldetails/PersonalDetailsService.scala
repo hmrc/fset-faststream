@@ -19,6 +19,7 @@ package services.personaldetails
 import model.ApplicationStatus._
 import model.Exceptions.FSACCSVIndicatorNotFound
 import model.FSACIndicator
+import model.command.GeneralDetails
 import model.persisted.{ PersonalDetails, ContactDetails }
 import repositories._
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
@@ -48,7 +49,7 @@ trait PersonalDetailsService {
   val fsacIndicatorRepository: FSACIndicatorRepository
   val auditService: AuditService
 
-  def find(applicationId: String, userId: String): Future[model.command.GeneralDetails] = {
+  def find(applicationId: String, userId: String): Future[GeneralDetails] = {
     val personalDetailsFut = pdRepository.find(applicationId)
     val contactDetailsFut = cdRepository.find(userId)
     val fsacIndicatorFut = fsacIndicatorRepository.find(applicationId)
@@ -59,10 +60,7 @@ trait PersonalDetailsService {
       contactDetails <- contactDetailsFut
       fsacIndicator <- fsacIndicatorFut
       civilServiceExperienceDetails <- civilServiceExperienceDetailsFut
-    } yield model.command.GeneralDetails(personalDetails.firstName, personalDetails.lastName, personalDetails.preferredName,
-      contactDetails.email, personalDetails.dateOfBirth, contactDetails.outsideUk, contactDetails.address, contactDetails.postCode,
-      Some(FSACIndicator(fsacIndicator)), contactDetails.country, contactDetails.phone, civilServiceExperienceDetails,
-      personalDetails.edipCompleted)
+    } yield GeneralDetails(personalDetails, contactDetails, FSACIndicator(fsacIndicator), civilServiceExperienceDetails)
   }
 
   def find(applicationId: String): Future[PersonalDetails] = {
@@ -70,8 +68,9 @@ trait PersonalDetailsService {
   }
 
   def update(applicationId: String, userId: String, personalDetails: model.command.GeneralDetails): Future[Unit] = {
-    val personalDetailsToPersist = model.persisted.PersonalDetails(personalDetails.firstName,
-      personalDetails.lastName, personalDetails.preferredName, personalDetails.dateOfBirth, personalDetails.edipCompleted)
+    val personalDetailsToPersist = model.persisted.PersonalDetails(personalDetails.firstName, personalDetails.lastName,
+      personalDetails.preferredName, personalDetails.dateOfBirth, personalDetails.edipCompleted, personalDetails.edipYear,
+      personalDetails.otherInternshipCompleted, personalDetails.otherInternshipName, personalDetails.otherInternshipYear)
     val contactDetails = ContactDetails(personalDetails.outsideUk, personalDetails.address, personalDetails.postCode,
       personalDetails.country, personalDetails.email, personalDetails.phone)
 

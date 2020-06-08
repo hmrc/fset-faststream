@@ -94,6 +94,7 @@ object CreateCandidateData {
     postCode: Option[String] = None,
     country: Option[String] = None,
     edipCompleted: Option[Boolean] = None,
+    otherInternshipCompleted: Option[Boolean] = None,
     role: Option[UserRole] = None
   ) {
     def getPreferredName: String = preferredName.getOrElse(s"Pref$firstName")

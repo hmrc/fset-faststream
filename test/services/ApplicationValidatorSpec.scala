@@ -29,14 +29,14 @@ class ApplicationValidatorSpec extends UnitSpec {
   "given valid personal details" should {
     "return true when details are valid" in {
       val validator = ApplicationValidator(personalDetails, assistanceDetails, None, List())
-      validator.validateGeneralDetails must be(true)
+      validator.validateGeneralDetails mustBe true
     }
   }
 
   "given assistance details" should {
     "return true when details are all there" in {
       val validator = ApplicationValidator(personalDetails, assistanceDetails, None, List())
-      validator.validateAssistanceDetails must be(true)
+      validator.validateAssistanceDetails mustBe true
     }
 
     "return false if we don't have a description for at venue adjustment" in {
@@ -44,7 +44,7 @@ class ApplicationValidatorSpec extends UnitSpec {
         personalDetails,
         assistanceDetails.copy(needsSupportAtVenueDescription = None), None, List()
       )
-      validator.validateAssistanceDetails must be(false)
+      validator.validateAssistanceDetails mustBe false
     }
 
     "return false if we don't have a description for online adjustment" in {
@@ -52,7 +52,7 @@ class ApplicationValidatorSpec extends UnitSpec {
         personalDetails,
         assistanceDetails.copy(needsSupportForOnlineAssessmentDescription = None), None, List()
       )
-      validator.validateAssistanceDetails must be(false)
+      validator.validateAssistanceDetails mustBe false
     }
 
     "return false if we don't have gis setting and have disability" in {
@@ -60,25 +60,26 @@ class ApplicationValidatorSpec extends UnitSpec {
         personalDetails,
         assistanceDetails.copy(guaranteedInterview = None), None, List()
       )
-      validator.validateAssistanceDetails must be(false)
+      validator.validateAssistanceDetails mustBe false
     }
   }
 
   "given schemes and locations" should {
     "return true if the chosen locations are ok" in {
       val validator = ApplicationValidator(personalDetails, assistanceDetails, preferences, regions)
-      validator.validateSchemes must be(true)
+      validator.validateSchemes mustBe true
     }
 
     "return false if the chosen locations are have stem levels and the candidate doesn't have" in {
       val validator = ApplicationValidator(personalDetails, assistanceDetails, preferences, regionsNoStem)
-      validator.validateSchemes must be(false)
+      validator.validateSchemes mustBe false
     }
   }
 }
 
 object ApplicationValidatorSpec {
-  def personalDetails = PersonalDetails("firstName", "lastName", "preferredName", new LocalDate(), None)
+  def personalDetails = PersonalDetails("firstName", "lastName", "preferredName", new LocalDate(), edipCompleted = Some(false),
+    edipYear = None, otherInternshipCompleted = Some(false), otherInternshipName = None, otherInternshipYear = None)
 
   def assistanceDetails = AssistanceDetailsExamples.DisabilityGisAndAdjustments
   def preferences: Option[Preferences] = Some(

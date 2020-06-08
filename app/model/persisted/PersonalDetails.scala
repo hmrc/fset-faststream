@@ -20,8 +20,16 @@ import org.joda.time.LocalDate
 import play.api.libs.json.Json
 import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
 
-case class PersonalDetails(firstName: String, lastName: String, preferredName: String,
-  dateOfBirth: LocalDate, edipCompleted: Option[Boolean])
+case class PersonalDetails(firstName: String,
+                           lastName: String,
+                           preferredName: String,
+                           dateOfBirth: LocalDate,
+                           edipCompleted: Option[Boolean],
+                           edipYear: Option[String],
+                           otherInternshipCompleted: Option[Boolean],
+                           otherInternshipName: Option[String],
+                           otherInternshipYear: Option[String]
+                          )
 
 object PersonalDetails {
   import repositories.BSONLocalDateHandler
