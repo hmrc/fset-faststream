@@ -9,8 +9,13 @@ This repository provides a service containing business logic and storage to supp
 This service is written in Scala and Play, so needs at least a [JRE] to run.
 
 ### Testing
-To run it locally
+To run it locally using the test routes file
 	
+	./sbtTestRoutes.sh
+	
+	or Alternatively
+	
+	sbt compile
 	sbt -Dhttp.port=9282 run
 	
 
