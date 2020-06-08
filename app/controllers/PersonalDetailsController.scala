@@ -72,7 +72,7 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient,
   private def personalDetails(afterSubmission: OnSuccess)
                              (implicit user: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]): Future[Result] = {
     implicit val now: LocalDate = LocalDate.now
-    val continueToTheNextStep = continuetoTheNextStep(afterSubmission)
+    val continueToTheNextStepValue = continueToTheNextStep(afterSubmission)
 
     (for {
       schemesRequiringQualifications <- getCivilServantSchemeNamesRequiringQualifications
@@ -89,9 +89,13 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient,
         gd.country,
         gd.phone,
         gd.civilServiceExperienceDetails,
-        gd.edipCompleted.map(_.toString)
+        gd.edipCompleted.map(_.toString),
+        gd.edipYear,
+        gd.otherInternshipCompleted.map(_.toString),
+        gd.otherInternshipName,
+        gd.otherInternshipYear
       ))
-      Future.successful(Ok(views.html.application.personalDetails(form, continueToTheNextStep, schemesRequiringQualifications)))
+      Future.successful(Ok(views.html.application.personalDetails(form, continueToTheNextStepValue, schemesRequiringQualifications)))
     }).recover {
       case _: PersonalDetailsNotFound =>
         getCivilServantSchemeNamesRequiringQualifications.map{ schemesRequiringQualifications =>
@@ -106,9 +110,13 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient,
             country = None,
             phone = None,
             civilServiceExperienceDetails = EmptyCivilServiceExperienceDetails,
-            edipCompleted = None
+            edipCompleted = None,
+            edipYear = None,
+            otherInternshipCompleted = None,
+            otherInternshipName = None,
+            otherInternshipYear = None
           ))
-          Ok(views.html.application.personalDetails(formFromUser, continueToTheNextStep, schemesRequiringQualifications))
+          Ok(views.html.application.personalDetails(formFromUser, continueToTheNextStepValue, schemesRequiringQualifications))
         }
     }.flatMap( identity )
   }
@@ -130,28 +138,33 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient,
         Redirect(routes.HomeController.present()).flashing(success("personalDetails.updated")))
   }
 
-  private def continuetoTheNextStep(onSuccess: OnSuccess) = onSuccess match {
+  private def continueToTheNextStep(onSuccess: OnSuccess) = onSuccess match {
     case ContinueToNextStepInJourney => true
     case RedirectToTheDashboard => false
   }
 
   private def submit(personalDetailsForm: Form[PersonalDetailsForm.Data], onSuccess: OnSuccess, redirectOnSuccess: Result)
                     (implicit cachedData: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]) = {
-
     val handleFormWithErrors = (errorForm:Form[PersonalDetailsForm.Data]) => {
       getCivilServantSchemeNamesRequiringQualifications.map { schemesRequiringQualifications =>
+        val isFaststream = cachedData.application.isFaststream
+        val data = if (isFaststream) {
+          errorForm.data.cleanupFastPassFields
+        } else {
+          errorForm.data
+        }
         Ok(views.html.application.personalDetails(
-          personalDetailsForm.bind(errorForm.data.cleanupFastPassFields), continuetoTheNextStep(onSuccess),
-          schemesRequiringQualifications)
+          personalDetailsForm.bind(data), continueToTheNextStep(onSuccess), schemesRequiringQualifications)
         )
       }
     }
 
     val handleValidForm = (form: PersonalDetailsForm.Data) => {
       val edipCompleted = cachedData.application.edipCompleted.orElse(form.edipCompleted.map(_.toBoolean))
+      val otherInternshipCompleted = form.otherInternshipCompleted.map(_.toBoolean)
       for {
         _ <- applicationClient.updatePersonalDetails(cachedData.application.applicationId, cachedData.user.userID,
-          toExchange(form, cachedData.user.email, Some(continuetoTheNextStep(onSuccess)), edipCompleted))
+          toExchange(form, cachedData.user.email, Some(continueToTheNextStep(onSuccess)), edipCompleted, otherInternshipCompleted))
         _ <- createDefaultSchemes
         _ <- userManagementClient.updateDetails(cachedData.user.userID, form.firstName, form.lastName, Some(form.preferredName))
       } yield {
@@ -176,11 +189,11 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient,
 trait PersonalDetailsToExchangeConverter {
 
   def toExchange(personalDetails: PersonalDetailsForm.Data, email: String, updateApplicationStatus: Option[Boolean],
-                 edipCompleted: Option[Boolean] = None) = {
+                 edipCompleted: Option[Boolean] = None, otherInternshipCompleted: Option[Boolean] = None) = {
     val pd = personalDetails.insideUk match {
       case true => personalDetails.copy(country = None)
       case false => personalDetails.copy(postCode = None)
     }
-    pd.toExchange(email, updateApplicationStatus, edipCompleted)
+    pd.toExchange(email, updateApplicationStatus, edipCompleted, otherInternshipCompleted)
   }
 }

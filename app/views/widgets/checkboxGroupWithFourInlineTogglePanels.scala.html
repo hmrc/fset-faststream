@@ -38,8 +38,8 @@
             @defining(field.indexes.flatMap(i => field("[%s]".format(i)).value).toSet) { values =>
             @options.map { v =>
                 <div>
-                    <label data-target="@formatId(id,v)-panel" for="@formatId(id,v)" class="block-label">
-                        <input type="checkbox" id="@formatId(id,v)" aria-controls="@formatId(id,v)-panel" aria-expanded="false"
+                    <label data-target="@formatId(id, v)-panel" for="@formatId(id, v)" class="block-label">
+                        <input type="checkbox" id="@formatId(id, v)" aria-controls="@formatId(id, v)-panel" aria-expanded="false"
                                name="@{name + "[]"}" value="@v._1" @if(values.contains(v._1)){checked="checked"} @toHtmlArgs(htmlArgs)/>
                         @v._2
                     </label>

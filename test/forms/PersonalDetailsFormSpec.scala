@@ -16,10 +16,8 @@
 
 package forms
 
-import controllers.UnitSpec
 import forms.PersonalDetailsFormExamples._
 import org.joda.time.LocalDate
-import org.scalatestplus.play.PlaySpec
 import testkit.UnitWithAppSpec
 
 class PersonalDetailsFormSpec extends UnitWithAppSpec {
@@ -30,41 +28,35 @@ class PersonalDetailsFormSpec extends UnitWithAppSpec {
   "Personal Details form" should {
     "be invalid for missing mandatory fields" in {
       val form = personalDetailsForm.bind(Map[String, String]())
-
-      form.hasErrors must be(true)
-      form.hasGlobalErrors must be(false)
-
-      form.errors.map(_.key) must be(InsideUKMandatoryFieldsFaststream)
+      form.hasErrors mustBe true
+      form.hasGlobalErrors mustBe false
+      form.errors.map(_.key) mustBe InsideUKMandatoryFieldsFaststream
     }
 
     "be successful for outside UK address without post code, but with country" in {
       val form = personalDetailsForm.bind(ValidOutsideUKDetails)
-
-      form.hasErrors must be(false)
-      form.hasGlobalErrors must be(false)
+      form.hasErrors mustBe false
+      form.hasGlobalErrors mustBe false
     }
 
     "be invalid for UK address without post code" in {
       val form = personalDetailsForm.bind(InvalidUKAddressWithoutPostCode)
-
-      form.hasErrors must be(true)
-      form.hasGlobalErrors must be(false)
-      form.errors.flatMap(_.messages) must be(List("error.postcode.required"))
+      form.hasErrors mustBe true
+      form.hasGlobalErrors mustBe false
+      form.errors.flatMap(_.messages) mustBe List("error.postcode.required")
     }
 
     "be valid for UK address with post code" in {
       val form = personalDetailsForm.bind(ValidUKAddress)
-
-      form.hasErrors must be(false)
-      form.hasGlobalErrors must be(false)
+      form.hasErrors mustBe false
+      form.hasGlobalErrors mustBe false
     }
 
     "be invalid for date of birth in the future" in {
       val form = personalDetailsForm.bind(InvalidAddressDoBInFuture)
-
-      form.hasErrors must be(true)
-      form.hasGlobalErrors must be(false)
-      form.errors.flatMap(_.messages) must be(List("error.dateOfBirthInFuture"))
+      form.hasErrors mustBe true
+      form.hasGlobalErrors mustBe false
+      form.errors.flatMap(_.messages) mustBe List("error.dateOfBirthInFuture")
     }
 
     "be valid given a leap year 'date of birth'" in {
@@ -135,22 +127,69 @@ class PersonalDetailsFormSpec extends UnitWithAppSpec {
       assertFormError("error.phone.required", ValidUKAddress + ("phone" -> ""))
     }
 
+    // sdip
     "be valid with all mandatory fields for an sdip candidate" in {
       val form = personalDetailsForm.bind(SdipInProgressValidOutsideUKDetails)
-
-      form.hasErrors must be(false)
-      form.hasGlobalErrors must be(false)
+      form.hasErrors mustBe false
+      form.hasGlobalErrors mustBe false
     }
 
-    "be valid with all mandatory fields except edip completed question for submitted sdip candidate" in {
+    "be valid with all mandatory fields except edipCompleted question for submitted sdip candidate" in {
       val form = personalDetailsForm.bind(SdipSubmittedValidOutsideUKDetails - "edipCompleted")
-
-      form.hasErrors must be(false)
-      form.hasGlobalErrors must be(false)
+      form.hasErrors mustBe false
+      form.hasGlobalErrors mustBe false
     }
 
-    "be invalid with all mandatory fields except edip completed question for in progress sdip candidate" in {
-      assertFormError("Tell us if you have completed EDIP", (SdipInProgressValidOutsideUKDetails - "edipCompleted"))
+    "be invalid with all mandatory fields except edipCompleted question for in progress sdip candidate" in {
+      assertFormError("Tell us if you have completed EDIP", SdipInProgressValidOutsideUKDetails - "edipCompleted")
+    }
+
+    "be invalid with all mandatory fields except edipCompleted and otherInternshipCompleted for in progress sdip candidate" in {
+      assertFormErrors(Seq("Tell us if you have completed EDIP", "Tell us if you completed another internship programme"),
+        SdipInProgressValidOutsideUKDetails - "edipCompleted" - "otherInternshipCompleted")
+    }
+
+    "be invalid when not answering 2nd level questions for in progress sdip candidate" in {
+      assertFormErrors(Seq("error.edipYear.required", "error.otherInternshipName.required", "error.otherInternshipYear.required"),
+        SdipInProgressValidOutsideUKDetails - "edipYear" - "otherInternshipName" - "otherInternshipYear")
+    }
+
+    // sdip faststream
+    "be valid with all mandatory fields for an sdip fs candidate" in {
+      val form = personalDetailsForm.bind(SdipFsInProgressValidOutsideUKDetails)
+      form.hasErrors mustBe false
+      form.hasGlobalErrors mustBe false
+    }
+
+    "be invalid with all mandatory fields except edipCompleted question for in progress sdip fs candidate" in {
+      assertFormError("Tell us if you have completed EDIP", SdipFsInProgressValidOutsideUKDetails - "edipCompleted")
+    }
+
+    "be invalid with all mandatory fields except edipCompleted and otherInternshipCompleted for in progress sdip fs candidate" in {
+      assertFormErrors(Seq("Tell us if you have completed EDIP", "Tell us if you completed another internship programme"),
+        SdipFsInProgressValidOutsideUKDetails - "edipCompleted" - "otherInternshipCompleted")
+    }
+
+    "be invalid when not answering 2nd level questions for in progress sdip fs candidate" in {
+      assertFormErrors(Seq("error.edipYear.required", "error.otherInternshipName.required", "error.otherInternshipYear.required"),
+        SdipFsInProgressValidOutsideUKDetails - "edipYear" - "otherInternshipName" - "otherInternshipYear")
+    }
+
+    // edip
+    "be valid with all mandatory fields for an edip candidate" in {
+      val form = personalDetailsForm.bind(EdipInProgressValidOutsideUKDetails)
+      form.hasErrors mustBe false
+      form.hasGlobalErrors mustBe false
+    }
+
+    "be invalid with all mandatory fields except otherInternshipCompleted question for in progress edip candidate" in {
+      assertFormError("Tell us if you completed an internship programme",
+        EdipInProgressValidOutsideUKDetails - "otherInternshipCompleted")
+    }
+
+    "be invalid when not answering 2nd level questions for in progress edip candidate" in {
+      assertFormErrors(Seq("error.otherInternshipName.required", "error.otherInternshipYear.required"),
+        EdipInProgressValidOutsideUKDetails - "otherInternshipName" - "otherInternshipYear")
     }
   }
 
@@ -158,9 +197,14 @@ class PersonalDetailsFormSpec extends UnitWithAppSpec {
     assertFormError(expectedError, ValidUKAddress + (fieldKey -> ""))
 
   def assertFormError(expectedError: String, invalidFormValues: Map[String, String]) = {
+    assertFormErrors(Seq(expectedError), invalidFormValues)
+  }
+
+  def assertFormErrors(expectedErrors: Seq[String], invalidFormValues: Map[String, String]) = {
     val invalidForm = PersonalDetailsForm.form.bind(invalidFormValues)
     invalidForm.hasErrors mustBe true
-    invalidForm.errors.map(_.message) mustBe Seq(expectedError)
+    val actualErrors = invalidForm.errors.map( _.message )
+    actualErrors mustBe expectedErrors
   }
 
   def assertValidDateOfBirth(validDate: LocalDate) = {

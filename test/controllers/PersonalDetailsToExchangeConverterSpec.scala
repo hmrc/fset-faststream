@@ -30,17 +30,21 @@ class PersonalDetailsToExchangeConverterSpec extends UnitSpec {
         ValidUKAddressForm.firstName,
         ValidUKAddressForm.lastName,
         ValidUKAddressForm.preferredName,
-        "email@email.com",
+        email = "email@email.com",
         ValidUKAddressForm.dateOfBirth,
         outsideUk = false,
         ValidUKAddressForm.address,
-        postCode = ValidUKAddressForm.postCode,
-        None,
-        None,
-        ValidUKAddressForm.phone,
-        ValidUKAddressForm.civilServiceExperienceDetails,
-        None,
-        Some(true)
+        ValidUKAddressForm.postCode,
+        fsacIndicator = None,
+        country = None,
+        phone = ValidUKAddressForm.phone,
+        civilServiceExperienceDetails = ValidUKAddressForm.civilServiceExperienceDetails,
+        edipCompleted = None,
+        edipYear = None,
+        otherInternshipCompleted = None,
+        otherInternshipName = None,
+        otherInternshipYear = None,
+        updateApplicationStatus = Some(true)
       )
     }
 
@@ -56,12 +60,16 @@ class PersonalDetailsToExchangeConverterSpec extends UnitSpec {
         outsideUk = true,
         ValidNonUKAddressForm.address,
         postCode = None,
-        None,
-        ValidNonUKAddressForm.country,
-        ValidNonUKAddressForm.phone,
-        ValidNonUKAddressForm.civilServiceExperienceDetails,
-        None,
-        Some(true)
+        fsacIndicator = None,
+        country = ValidNonUKAddressForm.country,
+        phone = ValidNonUKAddressForm.phone,
+        civilServiceExperienceDetails = ValidNonUKAddressForm.civilServiceExperienceDetails,
+        edipCompleted = None,
+        edipYear = None,
+        otherInternshipCompleted = None,
+        otherInternshipName = None,
+        otherInternshipYear = None,
+        updateApplicationStatus = Some(true)
       )
     }
   }

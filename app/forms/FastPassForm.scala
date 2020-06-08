@@ -97,9 +97,10 @@ object FastPassForm {
     )(Data.apply)(Data.unapply))
   }
 
+  // Only applicable for fs candidates - all other application routes have validation on the PersonalDetailsForm
   def civilServantAndInternshipTypesFormatter = new Formatter[Option[Seq[String]]] {
     def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[Seq[String]]] = {
-      bindOptionalParam(request.isCivilServantOrIntern && !request.isSdipFaststream, request.isValidCivilServantAndInternshipTypeSelected,
+      bindOptionalParam(request.isCivilServantOrIntern && request.isFaststream, request.isValidCivilServantAndInternshipTypeSelected,
         civilServantAndInternshipTypeRequiredMsg)(key, request.civilServantAndInternshipTypesParam)
     }
 
@@ -198,7 +199,7 @@ object FastPassForm {
 
     def isCivilServantOrIntern = fastPassApplicableParam == "true"
 
-    def isSdipFaststream = request.get("applicationRoute").contains(ApplicationRoute.SdipFaststream.toString)
+    def isFaststream = request.get("applicationRoute").contains(ApplicationRoute.Faststream.toString)
 
     def civilServantAndInternshipTypesParam = request.filterKeys(_.contains(civilServantAndInternshipTypes)).values.toSeq
 
@@ -256,6 +257,7 @@ object FastPassForm {
 
     def isCertificateNumberValid = certificateNumberParam.matches("[0-9]{7}")
 
+    // Removes child data that is dependent on a parent if that parent has not been selected
     //scalastyle:off cyclomatic.complexity
     def cleanupFastPassFields = request.filterKeys {
       case key if key.contains("civilServantAndInternshipTypes") ||  key.contains("fastPassReceived") => isCivilServantOrIntern

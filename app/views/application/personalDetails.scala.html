@@ -18,8 +18,7 @@
 
 @import views.html.application.personaldetails.{ contactDetails, nameAndDateOfBirth }
 @import views.html.application.civilServiceExperienceDetails.civilServiceExperienceDetailsPanel
-@import views.html.application.civilServiceExperienceDetails.sdipFsCivilServiceExperienceDetailsPanel
-@import views.html.application.edipExperienceDetails.edipExperienceDetailsPanel
+@import views.html.application.diversityExperienceDetails.{ edipCandidateExperienceDetailsPanel, sdipCandidateExperienceDetailsPanel, sdipFsCandidateExperienceDetailsPanel  }
 @import views.html.widgets.{ applicationRoute, applicationStatus, pageProgress, saveAndContinueButton }
 @import security.Roles.EditPersonalDetailsAndContinueRole
 @import security.RoleUtils._
@@ -39,17 +38,21 @@
         @applicationRoute(optCachedData)
         @applicationStatus(optCachedData)
         @nameAndDateOfBirth(form)
-        @contactDetails(form, isLastSection = optCachedData.exists(cachedData => isEdip(optCachedData)))
+        @contactDetails(form)
         @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData)) && isFaststream(optCachedData)){
             @if(optCachedData.exists(cachedData => isSdipFaststream(cachedData))) {
-                @sdipFsCivilServiceExperienceDetailsPanel(form, schemesRequiringQualifications)
+                @sdipFsCandidateExperienceDetailsPanel(form)
             } else {
                 @civilServiceExperienceDetailsPanel(form, schemesRequiringQualifications)
             }
         }
         @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData)) &&
                 isSdip(optCachedData)) {
-            @edipExperienceDetailsPanel(form)
+            @sdipCandidateExperienceDetailsPanel(form)
+        }
+        @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData)) &&
+                isEdip(optCachedData)) {
+            @edipCandidateExperienceDetailsPanel(form)
         }
         @saveAndContinueButton()
     }

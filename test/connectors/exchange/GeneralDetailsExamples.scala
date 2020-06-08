@@ -20,8 +20,15 @@ import mappings.AddressExamples._
 import org.joda.time.LocalDate
 
 object GeneralDetailsExamples {
-  val FullDetails = GeneralDetails("firstName", "lastName", "preferredName", "email", LocalDate.now(), outsideUk = false,
-    FullAddress, Some("postCode"), None, None, Some("1234567"), Some(CivilServiceExperienceDetails(applicable = false)), None, None)
+  val FullDetails = GeneralDetails("firstName", "lastName", "preferredName", "email", dateOfBirth = LocalDate.now(), outsideUk = false,
+    FullAddress, Some("postCode"), fsacIndicator = None, country = None, phone = Some("1234567"),
+    civilServiceExperienceDetails = Some(CivilServiceExperienceDetails(applicable = false)),
+    edipCompleted = None, edipYear = None, otherInternshipCompleted = None, otherInternshipName = None, otherInternshipYear = None,
+    updateApplicationStatus = None
+  )
   val SdipFullDetailsWithEdipCompleted = GeneralDetails("firstName", "lastName", "preferredName", "email", LocalDate.now(), outsideUk = false,
-    FullAddress, Some("postCode"), None, None, Some("1234567"), Some(CivilServiceExperienceDetails(applicable = false)), Some(true), None)
+    FullAddress, Some("postCode"), fsacIndicator = None, country = None, phone = Some("1234567"),
+    civilServiceExperienceDetails = Some(CivilServiceExperienceDetails(applicable = false)), edipCompleted = Some(true), edipYear = Some("2020"),
+    otherInternshipCompleted = None, otherInternshipName = None, otherInternshipYear = None, updateApplicationStatus = None
+  )
 }

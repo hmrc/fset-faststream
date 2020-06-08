@@ -101,12 +101,19 @@ error.country.invalid = Maximum length is 100
 error.phone.required = Add a phone number in case we need to contact you
 error.phoneNumber.format = You''ve entered an invalid phone number
 
+error.edipYear.required = You must provide the year of the EDIP internship
+
 #fast pass details
 error.applicable.required = Tell us if you''re currently a civil servant or been on an internship
 error.civilServantAndInternshipTypes.required = Tell us whether you''ve been part of the Civil Service or on an internship
 
+error.edipCompleted.required = Tell us if you have completed EDIP
+
 error.edipInternshipYear.required = You must provide the year of the EDIP internship
 error.sdipInternshipYear.required = You must provide the year of the SDIP internship
+
+error.edipCandidate.otherInternshipCompleted.required = Tell us if you completed an internship programme
+error.otherInternshipCompleted.required = Tell us if you completed another internship programme
 
 error.otherInternshipName.required = You must provide the name of the other internship
 error.otherInternshipName.size = The other internship name must not exceed {0} characters
@@ -115,8 +122,6 @@ error.otherInternshipYear.required = You must provide the year of the other inte
 
 error.fastPassReceived.required = Tell us if you have received a Fast Pass
 error.certificateNumber.required = Enter your 7-digit certificate number
-
-error.needsEdipCompleted.required = Tell us if you have completed EDIP
 
 civilServantAndInternshipType.civilServant = I am currently a civil servant
 civilServantAndInternshipType.EDIP = I completed EDIP

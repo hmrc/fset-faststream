@@ -87,6 +87,10 @@ class AssessmentFeedbackControllerSpec extends BaseControllerSpec {
         phone = None,
         civilServiceExperienceDetails = None,
         edipCompleted = None,
+        edipYear = None,
+        otherInternshipCompleted = None,
+        otherInternshipName = None,
+        otherInternshipYear = None,
         updateApplicationStatus = None
       )
 
