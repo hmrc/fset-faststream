@@ -15,12 +15,13 @@
  *@
 
 @import models.view.questionnaire.{ Ethnicities, Genders, SexOrientations }
-@(questionnaireForm: Form[_root_.forms.DiversityQuestionnaireForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+@import views.html.widgets.radioBoxHorizontal
+@(form: Form[forms.DiversityQuestionnaireForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
 
 @import helpers.CSRFieldConstructor._
 @import views.html.widgets.{checkbox, radioBoxVertical, select_guard_multi, pageProgress}
 
-@main_template(title = "About you", pageForms = Seq(questionnaireForm)) {
+@main_template(title = "About you", pageForms = Seq(form)) {
     @pageProgress(5,7)
     <div class="hgroup">
         <h1 class="heading-xlarge">About you</h1>
@@ -39,9 +40,9 @@
         <section>
             <fieldset class="form-group">
                     <legend><h2 class="form-label" id="gender-ques">@Messages("gender.question")</h2></legend>
-                    @radioBoxVertical(questionnaireForm("gender"), options = models.view.questionnaire.Genders.list, optionTrigger = "gender-describe")
+                    @radioBoxVertical(form("gender"), options = Genders.list, optionTrigger = "gender-describe")
                     <div class="toggle-content form-group form-group-compound" id="gender-describe">
-                    @helper.inputText(questionnaireForm("other_gender"),
+                    @helper.inputText(form("other_gender"),
                         '_label -> "Provide more information (optional)",
                         '_labelClass -> "form-hint",
                         'class -> "form-control",
@@ -54,9 +55,9 @@
         <section>
             <fieldset class="form-group">
                 <legend><h2 class="form-label" id="orientation-ques">@Messages("sexOrientation.question")</h2></legend>
-                @radioBoxVertical(questionnaireForm("sexOrientation"), options = models.view.questionnaire.SexOrientations.list, optionTrigger = "orientation-describe")
+                @radioBoxVertical(form("sexOrientation"), options = SexOrientations.list, optionTrigger = "orientation-describe")
                 <div class="toggle-content form-group form-group-compound" id="orientation-describe">
-                @helper.inputText(questionnaireForm("other_sexOrientation"),
+                @helper.inputText(form("other_sexOrientation"),
                     '_label -> "Provide more information (optional)",
                     '_labelClass -> "form-hint",
                     'class -> "form-control",
@@ -67,24 +68,32 @@
         </section>
 
         <section>
-            @select_guard_multi(questionnaireForm("ethnicity"), models.view.questionnaire.Ethnicities.map,
+            @select_guard_multi(form("ethnicity"), Ethnicities.map,
                 "ethnicity-describe", "Select one") {
                 @Messages("ethnicity.question")
             }
 
             <div class="toggle-content form-group form-group-compound" id="ethnicity-describe">
-            @helper.inputText(questionnaireForm("other_ethnicity"),
-                '_label -> "Provide more information (optional)",
-                '_labelClass -> "form-hint",
-                'class -> "form-control",
-                '_showConstraints -> false,
-                'optional -> "")
+                @helper.inputText(form("other_ethnicity"),
+                    '_label -> "Provide more information (optional)",
+                    '_labelClass -> "form-hint",
+                    'class -> "form-control",
+                    '_showConstraints -> false,
+                    'optional -> "")
             </div>
             <div data-optional>
-            @checkbox(questionnaireForm("preferNotSay_ethnicity"), Some("ethnicity")) {
-                I don't know/prefer not to say
-            }
+                @checkbox(form("preferNotSay_ethnicity"), Some("ethnicity")) {
+                    I don't know/prefer not to say
+                }
             </div>
+        </section>
+
+        <section>
+            <fieldset class="form-group">
+                <legend><h2 class="form-label">Is English your first language?</h2></legend>
+                @radioBoxHorizontal(form("isEnglishFirstLanguage"), options = List(("yes", "Yes", true), ("no", "No", false),
+                    ("preferNotToSay", "I don't know/prefer not to say", false)))
+            </fieldset>
         </section>
 
         <div class="form-group">

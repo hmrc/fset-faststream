@@ -207,6 +207,7 @@ locked.account = You''ve made too many unsuccessful attempts to sign in and your
 error.required.gender = You must tell us your gender identity or choose ''prefer not to say''
 error.required.sexOrientation = You must tell us your sexual orientation or choose ''prefer not to say''
 error.required.ethnicity = You must tell us your ethnic group or choose ''prefer not to say''
+error.required.englishLanguage = You must tell us if English is your first language or choose ''prefer not to say''
 
 # Education Questionnaire error messages:
 error.liveInUKBetween14and18.required = You must tell us if you lived in the UK between the ages of 14 and 18
@@ -237,12 +238,13 @@ error.required.acceptance = Confirm you understand that the information you give
 gender.question = What is your gender identity?
 sexOrientation.question = What is your sexual orientation?
 ethnicity.question = What is your ethnic group?
+language.question = Is English your first language?
 liveInUKBetween14and18.question = Did you live in the UK between the ages of 14 and 18?
 postcode.question = What was your home postcode when you were 14?
 schoolName14to16.question = Aged 14 to 16 what was the name of your school?
 schoolType14to16.question = Which type of school was this?
 schoolName16to18.question = Aged 16 to 18 what was the name of your school or college? (if applicable)
-    freeSchoolMeals.question = Were you at any time eligible for free school meals?
+freeSchoolMeals.question = Were you at any time eligible for free school meals?
 haveDegree.question = Do you have a degree?
 university.question = What is the name of the university you received your degree from?
 edip.university.question = What is the name of your current university?
