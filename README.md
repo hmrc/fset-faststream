@@ -16,6 +16,8 @@ To run it locally
 
 If you go to `http://localhost:9284/fset-fast-stream/signin` you can see the landing page
 
+The acceptance tests are managed in fset-faststream-candidate-acceptance-tests
+
 ### License
 
 This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html")
