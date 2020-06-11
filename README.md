@@ -9,6 +9,12 @@ This repository contains the front-end for the Civil Service Resourcing Fast Str
 This service is written in Scala and Play, so needs at least a [JRE] to run.
 
 ### Testing
+To run using sbtTestRoutes file 
+
+        ./sbtTestRoutes.sh
+
+or using SBT with port number 
+
 To run it locally
 	
 	sbt -Dhttp.port=9284 run
