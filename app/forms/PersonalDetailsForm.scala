@@ -52,7 +52,7 @@ object PersonalDetailsForm {
 
   def maxDob(implicit now: LocalDate) = Some(ageReference.minusYears(MinAge))
 
-  val otherInternshipNameMaxSize = 30
+  val otherInternshipNameMaxSize = 60
 
   def form(implicit now: LocalDate, ignoreFastPassValidations: Boolean = false) = Form(
       mapping(
@@ -131,8 +131,8 @@ object PersonalDetailsForm {
       val isCorrectSize = request.isOtherInternshipNameSizeValid(maxSize)
 
       (dependencyCheck, isFilled, isCorrectSize) match {
-        case (true, false, _) => Left(List(FormError(key, "error.otherInternshipName.required", Seq(maxSize))))
-        case (true, true, false) => Left(List(FormError(key, "error.otherInternshipName.size")))
+        case (true, false, _) => Left(List(FormError(key, "error.otherInternshipName.required")))
+        case (true, true, false) => Left(List(FormError(key, "error.otherInternshipName.size", Seq(maxSize))))
         case (true, true, true) => Right(Some(request.otherInternshipNameParam))
         case (false, _, _) => Right(None)
       }

@@ -58,7 +58,7 @@ object FastPassForm {
 
   val otherInternshipName = "otherInternshipName"
   val otherInternshipNameMsg = Messages("error.otherInternshipName.required")
-  val otherInternshipNameMaxSize = 30
+  val otherInternshipNameMaxSize = 60
   val otherInternshipNameSizeMsg = Messages("error.otherInternshipName.size",  otherInternshipNameMaxSize)
 
   val otherInternshipYear = "otherInternshipYear"

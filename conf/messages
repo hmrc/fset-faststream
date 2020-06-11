@@ -115,10 +115,10 @@ error.sdipInternshipYear.required = You must provide the year of the SDIP intern
 error.edipCandidate.otherInternshipCompleted.required = Tell us if you completed an internship programme
 error.otherInternshipCompleted.required = Tell us if you completed another internship programme
 
-error.otherInternshipName.required = You must provide the name of the other internship
-error.otherInternshipName.size = The other internship name must not exceed {0} characters
+error.otherInternshipName.required = You must provide the name of the internship
+error.otherInternshipName.size = The internship name must not exceed {0} characters
 
-error.otherInternshipYear.required = You must provide the year of the other internship
+error.otherInternshipYear.required = You must provide the year of the internship
 
 error.fastPassReceived.required = Tell us if you have received a Fast Pass
 error.certificateNumber.required = Enter your 7-digit certificate number

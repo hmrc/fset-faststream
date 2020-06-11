@@ -251,8 +251,8 @@ class FastPassFormSpec extends UnitWithAppSpec {
       ))
       form.hasErrors mustBe true
       val expectedFormErrors = Seq(
-        FormError(key = "civilServiceExperienceDetails.otherInternshipName", message = "You must provide the name of the other internship"),
-        FormError(key = "civilServiceExperienceDetails.otherInternshipYear", message = "You must provide the year of the other internship")
+        FormError(key = "civilServiceExperienceDetails.otherInternshipName", message = "You must provide the name of the internship"),
+        FormError(key = "civilServiceExperienceDetails.otherInternshipYear", message = "You must provide the year of the internship")
       )
       form.errors mustBe expectedFormErrors
       form.hasGlobalErrors mustBe false
@@ -269,7 +269,7 @@ class FastPassFormSpec extends UnitWithAppSpec {
       ))
       form.hasErrors mustBe true
       val expectedFormErrors = Seq(FormError(key = "civilServiceExperienceDetails.otherInternshipName",
-        message = s"The other internship name must not exceed ${FastPassForm.otherInternshipNameMaxSize} characters"))
+        message = s"The internship name must not exceed ${FastPassForm.otherInternshipNameMaxSize} characters"))
       form.errors mustBe expectedFormErrors
       form.hasGlobalErrors mustBe false
     }
@@ -285,7 +285,7 @@ class FastPassFormSpec extends UnitWithAppSpec {
       ))
       form.hasErrors mustBe true
       val expectedFormErrors = Seq(FormError(key = "civilServiceExperienceDetails.otherInternshipYear",
-        message = s"You must provide the year of the other internship"))
+        message = s"You must provide the year of the internship"))
       form.errors mustBe expectedFormErrors
       form.hasGlobalErrors mustBe false
     }
