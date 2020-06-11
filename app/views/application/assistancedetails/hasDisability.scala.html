@@ -26,13 +26,13 @@
             form("hasDisability"),
             options = List(("yes", "Yes", true), ("no", "No", false), ("preferNotToSay", "I don't know/prefer not to say", false)),
             optionTrigger = "hasDisability-describe")
-        <div id="hasDisability-describe" class="toggle-content" aria-hidden="true">
 
+        <div id="hasDisability-describe" class="toggle-content" aria-hidden="true">
             <legend><h2 class="form-label">Does this condition, illness, impairment, or disability have a substantial and long-term negative effect
                 on your ability to carry out normal daily activities or the work you can do?</h2></legend>
             @radioBoxHorizontal(
                 form("disabilityImpact"),
-                options = List(("yes-a-lot", "Yes, a lot", true), ("yes-a-little", "Yes, a little", true), ("no", "No", false))
+                options = List(("yes-a-lot", "Yes, a lot", true), ("yes-a-little", "Yes, a little", true), ("no", "No", true))
             )
 
             <section class="grid-wrapper">
