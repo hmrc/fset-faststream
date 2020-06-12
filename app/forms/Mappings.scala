@@ -201,4 +201,28 @@ object Mappings {
     }
     override def unbind(key: String, value: Option[String]): Map[String, String] = Map(key -> value.getOrElse(""))
   }
+
+  def mayBeOptionalString(emptyErrorKey: String, additionalCheckEmptyErrorKey: String, maxLength: Int,
+                           required: Map[String, String] => Boolean,
+                           additionalCheck: Map[String, String] => Boolean) = new Formatter[Option[String]] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
+      val additionalCheckResult = additionalCheck(data)
+
+      if(required(data)) {
+        data.getOrElse(key, "").trim match {
+          case param if param.isEmpty =>
+            if (additionalCheckResult) {
+              Left(List(FormError(key, Messages(additionalCheckEmptyErrorKey))))
+            } else {
+              Left(List(FormError(key, Messages(emptyErrorKey))))
+            }
+          case param if param.length > maxLength => Left(List(FormError(key, Messages("error.maxLength"))))
+          case param => Right(Some(param))
+        }
+      } else {
+        Right(None)
+      }
+    }
+    override def unbind(key: String, value: Option[String]): Map[String, String] = Map(key -> value.getOrElse(""))
+  }
 }

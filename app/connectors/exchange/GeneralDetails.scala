@@ -35,6 +35,10 @@ case class GeneralDetails(firstName: String,
                           phone: Option[PhoneNumber],
                           civilServiceExperienceDetails: Option[CivilServiceExperienceDetails],
                           edipCompleted: Option[Boolean],
+                          edipYear: Option[String],
+                          otherInternshipCompleted: Option[Boolean],
+                          otherInternshipName: Option[String],
+                          otherInternshipYear: Option[String],
                           updateApplicationStatus: Option[Boolean]
                           )
 

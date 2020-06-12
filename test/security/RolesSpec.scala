@@ -44,7 +44,7 @@ class RolesSpec extends UnitSpec {
       RoleUtils.hasFastPassBeenApproved(user.copy(application = Some(appData)))(rh) mustBe true
     }
     "return false if the candidate fastPass has not been accepted" in {
-      val appData = CreatedApplication.copy(civilServiceExperienceDetails = Some(CivilServantExperienceFastPassRejectd))
+      val appData = CreatedApplication.copy(civilServiceExperienceDetails = Some(CivilServantExperienceFastPassRejected))
       implicit val rh = mock[RequestHeader]
       RoleUtils.hasFastPassBeenApproved(user.copy(application = Some(appData)))(rh) mustBe false
     }
@@ -53,7 +53,7 @@ class RolesSpec extends UnitSpec {
       implicit val rh = mock[RequestHeader]
       RoleUtils.hasFastPassBeenApproved(user.copy(application = Some(appData)))(rh) mustBe false
     }
-    "return false if the are no civil servant details" in {
+    "return false if there are no civil servant details" in {
       val appData = CreatedApplication.copy(civilServiceExperienceDetails = None)
       implicit val rh = mock[RequestHeader]
       RoleUtils.hasFastPassBeenApproved(user.copy(application = Some(appData)))(rh) mustBe false

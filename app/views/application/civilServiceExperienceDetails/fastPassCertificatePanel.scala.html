@@ -14,15 +14,15 @@
  * limitations under the License.
  *@
 
-@(form: Form[_root_.forms.PersonalDetailsForm.Data])(implicit messages: Messages)
+@(form: Form[forms.PersonalDetailsForm.Data])(implicit messages: Messages)
 
 @import helpers.CSRFieldConstructor._
 @import views.html.widgets.yesNoRadioWithTogglePanel
 
-<div id="civilServiceExperienceDetails_internshipTypes-SDIPCurrentYear-panel" class="toggle-content">
+    <div>
     @yesNoRadioWithTogglePanel(form("civilServiceExperienceDetails.fastPassReceived"),
          'id -> "civilServiceExperienceDetails.fastPassReceived",
-         '_label -> "Did you receive a Fast Pass?") {
+         '_label -> "Do you have a Fast Pass certificate?") {
         <div id="civilServiceExperienceDetails_fastPassReceived-panel-yes" class="toggle-content">
             <div class="panel-indent text">
                <p>

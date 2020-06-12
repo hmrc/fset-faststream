@@ -14,7 +14,7 @@
  * limitations under the License.
  *@
 
-@(form: Form[_root_.forms.PersonalDetailsForm.Data], isLastSection: Boolean)(implicit messages: Messages)
+@(form: Form[forms.PersonalDetailsForm.Data])(implicit messages: Messages)
 
 @import helpers.CSRFieldConstructor._
 @import views.html.widgets.checkbox
@@ -26,7 +26,7 @@
     }
 }
 
-<section @if(!isLastSection){ class="section-border" } >
+<section class="section-border">
     <h2 class="heading-medium">Contact details</h2>
     <div id="postCodeEntry" class="form-group form-group-compound">
         <label for="post-code-search" class="form-label">Enter your postcode</label>

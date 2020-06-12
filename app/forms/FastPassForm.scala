@@ -16,9 +16,9 @@
 
 package forms
 
-import play.api.data.Forms._
-import Mappings._
+import forms.Mappings._
 import models.ApplicationRoute
+import play.api.data.Forms._
 import play.api.data.format.Formatter
 import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
@@ -27,21 +27,11 @@ import play.api.Play.current
 
 object FastPassForm {
 
-  val EmptyCivilServiceExperienceDetails: Option[Data] = Some(Data("", None, None, None, None))
+  val EmptyCivilServiceExperienceDetails: Option[Data] = Some(Data("", None, None, None))
 
   val CivilServant = "CivilServant"
   val CivilServantViaFastTrack = "CivilServantViaFastTrack"
   val DiversityInternship = "DiversityInternship"
-
-  val EDIP = "EDIP"
-  val SDIPPreviousYear = "SDIPPreviousYear"
-  val SDIPCurrentYear = "SDIPCurrentYear"
-
-  val CivilServiceExperienceTypes = Seq(
-    CivilServant -> Messages("civilServiceExperienceType.CivilServant"),
-    CivilServantViaFastTrack -> Messages("civilServiceExperienceType.CivilServantViaFastTrack"),
-    DiversityInternship -> Messages("civilServiceExperienceType.DiversityInternship")
-  )
 
   val SdipFsCivilServiceExperienceTypes = Seq(
     CivilServant -> Messages("civilServiceExperienceType.CivilServant"),
@@ -49,53 +39,69 @@ object FastPassForm {
     DiversityInternship -> Messages("civilServiceExperienceType.EdipInternship")
   )
 
-  val InternshipTypes = Seq(
-    EDIP -> Messages("internshipType.EDIP"),
-    SDIPPreviousYear -> Messages("internshipType.SDIPPreviousYear"),
-    SDIPCurrentYear -> Messages("internshipType.SDIPCurrentYear")
+  val CivilServantKey = "CivilServant"
+  val EDIPKey = "EDIP"
+  val SDIPKey = "SDIP"
+  val OtherInternshipKey = "OtherInternship"
+  val CivilServantAndInternshipTypes = Seq(
+    CivilServantKey -> Messages("civilServantAndInternshipType.civilServant"),
+    EDIPKey -> Messages("civilServantAndInternshipType.EDIP"),
+    SDIPKey -> Messages("civilServantAndInternshipType.SDIP"),
+    OtherInternshipKey -> Messages("civilServantAndInternshipType.another")
   )
 
-  val civilServiceExperienceTypeRequiredMsg = Messages("error.civilServiceExperienceType.required")
-  val internshipTypeRequiredMsg = Messages("error.internshipTypes.required")
+  val edipInternshipYear = "edipYear"
+  val edipInternshipYearMsg = Messages("error.edipInternshipYear.required")
+
+  val sdipInternshipYear = "sdipYear"
+  val sdipInternshipYearMsg = Messages("error.sdipInternshipYear.required")
+
+  val otherInternshipName = "otherInternshipName"
+  val otherInternshipNameMsg = Messages("error.otherInternshipName.required")
+  val otherInternshipNameMaxSize = 60
+  val otherInternshipNameSizeMsg = Messages("error.otherInternshipName.size",  otherInternshipNameMaxSize)
+
+  val otherInternshipYear = "otherInternshipYear"
+  val otherInternshipYearMsg = Messages("error.otherInternshipYear.required")
+
+  val civilServantAndInternshipTypeRequiredMsg = Messages("error.civilServantAndInternshipTypes.required")
+
   val fastPassReceivedRequiredMsg = Messages("error.fastPassReceived.required")
   val certificateNumberRequiredMsg = Messages("error.certificateNumber.required")
 
   val formQualifier = "civilServiceExperienceDetails"
   val applicable = "applicable"
-  val civilServiceExperienceType = "civilServiceExperienceType"
-  val internshipTypes = "internshipTypes"
+  val civilServantAndInternshipTypes = "civilServantAndInternshipTypes"
   val fastPassReceived = "fastPassReceived"
   val certificateNumber = "certificateNumber"
 
   case class Data(applicable: String,
-                  civilServiceExperienceType: Option[String] = None,
-                  internshipTypes: Option[Seq[String]] = None,
+                  civilServantAndInternshipTypes: Option[Seq[String]] = None,
+                  edipYear: Option[String] = None,
+                  sdipYear: Option[String] = None,
+                  otherInternshipName: Option[String] = None,
+                  otherInternshipYear: Option[String] = None,
                   fastPassReceived: Option[Boolean] = None,
                   certificateNumber: Option[String] = None)
 
   def form = {
     Form(mapping(
       s"$formQualifier.applicable" -> nonemptyBooleanText("error.applicable.required"),
-      s"$formQualifier.civilServiceExperienceType" -> of(civilServiceExperienceTypeFormatter),
-      s"$formQualifier.internshipTypes" -> of(internshipTypesFormatter),
+      s"$formQualifier.civilServantAndInternshipTypes" -> of(civilServantAndInternshipTypesFormatter),
+      s"$formQualifier.edipYear" -> of(edipInternshipYearFormatter),
+      s"$formQualifier.sdipYear" -> of(sdipInternshipYearFormatter),
+      s"$formQualifier.otherInternshipName" -> of(otherInternshipNameFormatter(otherInternshipNameMaxSize)),
+      s"$formQualifier.otherInternshipYear" -> of(otherInternshipYearFormatter),
       s"$formQualifier.fastPassReceived" -> of(fastPassReceivedFormatter),
       s"$formQualifier.certificateNumber" -> of(fastPassCertificateFormatter)
     )(Data.apply)(Data.unapply))
   }
 
-  def civilServiceExperienceTypeFormatter = new Formatter[Option[String]] {
-    def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[String]] = {
-      bindOptionalParam(request.isCivilServantOrFastTrackOrIntern, request.isValidCivilServiceExperienceTypeSelected,
-        civilServiceExperienceTypeRequiredMsg)(key, request.civilServiceExperienceTypeParam)
-    }
-
-    def unbind(key: String, value: Option[String]): Map[String, String] = optionalParamToMap(key, value)
-  }
-
-  def internshipTypesFormatter = new Formatter[Option[Seq[String]]] {
+  // Only applicable for fs candidates - all other application routes have validation on the PersonalDetailsForm
+  def civilServantAndInternshipTypesFormatter = new Formatter[Option[Seq[String]]] {
     def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[Seq[String]]] = {
-      bindOptionalParam(request.isDiversityInternshipSelected && !request.isSdipFaststream, request.isValidInternshipTypesSelected,
-        internshipTypeRequiredMsg)(key, request.internshipTypesParam)
+      bindOptionalParam(request.isCivilServantOrIntern && request.isFaststream, request.isValidCivilServantAndInternshipTypeSelected,
+        civilServantAndInternshipTypeRequiredMsg)(key, request.civilServantAndInternshipTypesParam)
     }
 
     def unbind(key: String, value: Option[Seq[String]]): Map[String, String] = {
@@ -107,9 +113,54 @@ object FastPassForm {
     }
   }
 
+  def sdipInternshipYearFormatter = new Formatter[Option[String]] {
+    def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[String]] = {
+      bindOptionalParam(request.isSdipCandidate, request.isSdipInternshipYearValid,
+        sdipInternshipYearMsg)(key, request.sdipInternshipYearParam)
+    }
+
+    def unbind(key: String, value: Option[String]): Map[String, String] = optionalParamToMap(key, value)
+  }
+
+  def edipInternshipYearFormatter = new Formatter[Option[String]] {
+    def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[String]] = {
+      bindOptionalParam(request.isEdipCandidate, request.isEdipInternshipYearValid,
+        edipInternshipYearMsg)(key, request.edipInternshipYearParam)
+    }
+
+    def unbind(key: String, value: Option[String]): Map[String, String] = optionalParamToMap(key, value)
+  }
+
+  def otherInternshipNameFormatter(maxSize: Int) = new Formatter[Option[String]] {
+    def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[String]] = {
+
+      val dependencyCheck = request.isOtherInternshipCandidate
+      val isFilled = request.isOtherInternshipNameFilled
+      val isCorrectSize = request.isOtherInternshipNameSizeValid(maxSize)
+
+      (dependencyCheck, isFilled, isCorrectSize) match {
+        case (true, false, _) => Left(List(FormError(key, otherInternshipNameMsg)))
+        case (true, true, false) => Left(List(FormError(key, otherInternshipNameSizeMsg)))
+        case (true, true, true) => Right(Some(request.otherInternshipNameParam))
+        case (false, _, _) => Right(None)
+      }
+    }
+
+    def unbind(key: String, value: Option[String]): Map[String, String] = optionalParamToMap(key, value)
+  }
+
+  def otherInternshipYearFormatter = new Formatter[Option[String]] {
+    def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[String]] = {
+      bindOptionalParam(request.isOtherInternshipCandidate, request.isOtherInternshipYearValid,
+        otherInternshipYearMsg)(key, request.otherInternshipYearParam)
+    }
+
+    def unbind(key: String, value: Option[String]): Map[String, String] = optionalParamToMap(key, value)
+  }
+
   def fastPassReceivedFormatter = new Formatter[Option[Boolean]] {
     def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[Boolean]] = {
-      bindOptionalParam(request.isSDIPCurrentYearSelected, request.isFastPassReceivedValid,
+      bindOptionalParam(request.isCivilServantOrIntern, request.isFastPassReceivedValid,
         fastPassReceivedRequiredMsg)(key, request.fastPassReceivedParam.toBoolean)
     }
 
@@ -126,7 +177,7 @@ object FastPassForm {
   }
 
   private def bindOptionalParam[T](dependencyCheck: Boolean, validityCheck: Boolean, errMsg: String)
-                                  (key: String, value: => T):Either[Seq[FormError], Option[T]] =
+                                  (key: String, value: => T): Either[Seq[FormError], Option[T]] =
     (dependencyCheck, validityCheck) match {
       case (true, false) => Left(List(FormError(key, errMsg)))
       case (true, true) => Right(Some(value))
@@ -142,42 +193,79 @@ object FastPassForm {
 
   implicit class RequestValidation(request: Map[String, String]) {
 
-    def param(name:String) = request.collectFirst { case (key, value) if key.endsWith(name) => value }
+    def param(name: String) = request.collectFirst { case (key, value) if key.endsWith(name) => value }
 
     def fastPassApplicableParam = param(applicable).getOrElse("")
 
-    def civilServiceExperienceTypeParam = param(civilServiceExperienceType).getOrElse("")
+    def isCivilServantOrIntern = fastPassApplicableParam == "true"
 
-    def isSdipFaststream = request.get("applicationRoute").contains(ApplicationRoute.SdipFaststream.toString)
+    def isFaststream = request.get("applicationRoute").contains(ApplicationRoute.Faststream.toString)
 
-    def internshipTypesParam = request.filterKeys(_.contains(internshipTypes)).values.toSeq
+    def civilServantAndInternshipTypesParam = request.filterKeys(_.contains(civilServantAndInternshipTypes)).values.toSeq
 
+    def isValidCivilServantAndInternshipTypeSelected = {
+      val filled = civilServantAndInternshipTypesParam.nonEmpty
+      val isValid = civilServantAndInternshipTypesParam.diff(CivilServantAndInternshipTypes.toMap.keys.toSeq).isEmpty
+      filled && isValid
+    }
+
+    // Sdip
+    def sdipInternshipYearParam = param(sdipInternshipYear).getOrElse("")
+
+    def isSdipCandidate = isCivilServantOrIntern && isSdipInternshipSelected
+
+    def isSdipInternshipSelected = civilServantAndInternshipTypesParam.contains(SDIPKey)
+
+    def isSdipInternshipYearValid = isSdipInternshipSelected && sdipInternshipYearParam.matches("[0-9]{4}")
+
+    // Edip
+    def edipInternshipYearParam = param(edipInternshipYear).getOrElse("")
+
+    def isEdipCandidate = isCivilServantOrIntern && civilServantAndInternshipTypesParam.contains(EDIPKey)
+
+    def isEdipInternshipSelected = civilServantAndInternshipTypesParam.contains(EDIPKey)
+
+    def isEdipInternshipYearValid = isEdipInternshipSelected && edipInternshipYearParam.matches("[0-9]{4}")
+
+    // Other internship
+    def isOtherInternshipSelected = civilServantAndInternshipTypesParam.contains(OtherInternshipKey)
+
+    def isOtherInternshipCandidate = isCivilServantOrIntern && isOtherInternshipSelected
+
+    // Other internship name
+    def otherInternshipNameParam = param(otherInternshipName).getOrElse("")
+
+    def isOtherInternshipNameFilled = isOtherInternshipSelected && otherInternshipNameParam.length > 0
+
+    def isOtherInternshipNameSizeValid(max: Int) = isOtherInternshipSelected &&
+    isOtherInternshipNameFilled && otherInternshipNameParam.length <= max
+
+    // Other internship year
+    def otherInternshipYearParam = param(otherInternshipYear).getOrElse("")
+
+    def isOtherInternshipYearValid = isOtherInternshipSelected && otherInternshipYearParam.matches("[0-9]{4}")
+
+    // Fast pass received
     def fastPassReceivedParam = param(fastPassReceived).getOrElse("")
 
-    def certificateNumberParam = param(certificateNumber).getOrElse("")
-
-    def isValidCivilServiceExperienceTypeSelected = CivilServiceExperienceTypes.map(_._1).contains(civilServiceExperienceTypeParam)
-
-    def isValidInternshipTypesSelected = internshipTypesParam.nonEmpty && internshipTypesParam.diff(InternshipTypes.toMap.keys.toSeq).isEmpty
+    def isFastPassReceived = isCivilServantOrIntern && fastPassReceivedParam == "true"
 
     def isFastPassReceivedValid = fastPassReceivedParam == "true" || fastPassReceivedParam == "false"
 
+    // Fast pass certificate
+    def certificateNumberParam = param(certificateNumber).getOrElse("")
+
     def isCertificateNumberValid = certificateNumberParam.matches("[0-9]{7}")
 
-    def isCivilServantOrFastTrackOrIntern = fastPassApplicableParam == "true"
-
-    def isDiversityInternshipSelected = isCivilServantOrFastTrackOrIntern && (civilServiceExperienceTypeParam == DiversityInternship)
-
-    def isSDIPCurrentYearSelected = isDiversityInternshipSelected && internshipTypesParam.contains(SDIPCurrentYear)
-
-    def isFastPassReceived = isSDIPCurrentYearSelected && (fastPassReceivedParam == "true")
-
+    // Removes child data that is dependent on a parent if that parent has not been selected
+    //scalastyle:off cyclomatic.complexity
     def cleanupFastPassFields = request.filterKeys {
-      case key if key.endsWith(civilServiceExperienceType) => isCivilServantOrFastTrackOrIntern
-      case key if key.contains(internshipTypes) => isDiversityInternshipSelected
-      case key if key.endsWith(fastPassReceived) => isSDIPCurrentYearSelected
-      case key if key.endsWith(certificateNumber) => isFastPassReceived
+      case key if key.contains("civilServantAndInternshipTypes") ||  key.contains("fastPassReceived") => isCivilServantOrIntern
+      case key if key.endsWith("sdipYear") => isSdipCandidate
+      case key if key.endsWith("otherInternshipName") || key.endsWith("otherInternshipYear") => isOtherInternshipCandidate
+      case key if key.endsWith("edipYear") => isEdipCandidate
+      case key if key.endsWith("certificateNumber") => isFastPassReceived
       case _ => true
-    }
+    }//scalastyle:on
   }
 }

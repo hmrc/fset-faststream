@@ -1,0 +1,43 @@
+@*
+ * Copyright 2020 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@(form: Form[forms.PersonalDetailsForm.Data], schemesRequiringQualifications: Seq[String])(implicit messages: Messages)
+
+@import forms.FastPassForm
+@import views.html.widgets.checkboxGroupWithFourInlineTogglePanels
+
+@panel1 = { @civilServantsContent(schemesRequiringQualifications) }
+
+@panel2 = { @edipInternshipPanel(form) }
+
+@panel3 = { @sdipInternshipPanel(form) }
+
+@panel4 = { @otherInternshipPanel(form) }
+
+<div id="civilServiceExperienceDetails_applicable-panel-yes" class="toggle-content" aria-hidden="true">
+    @checkboxGroupWithFourInlineTogglePanels(form("civilServiceExperienceDetails.civilServantAndInternshipTypes"), FastPassForm.CivilServantAndInternshipTypes,
+    'id -> "civilServiceExperienceDetails.civilServantAndInternshipTypes",
+    '_label -> "Are you a civil servant and which internship programmes did you do (select all that apply)?") {
+        @panel1
+    } {
+        @panel2
+    } {
+        @panel3
+    } {
+        @panel4
+    }
+    @fastPassCertificatePanel(form)
+</div>

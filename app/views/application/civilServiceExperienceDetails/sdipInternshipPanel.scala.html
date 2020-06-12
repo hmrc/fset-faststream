@@ -14,14 +14,16 @@
  * limitations under the License.
  *@
 
-@(form: Form[_root_.forms.PersonalDetailsForm.Data])(implicit messages: Messages)
+@(form: Form[forms.PersonalDetailsForm.Data])(implicit messages: Messages)
 
 @import helpers.CSRFieldConstructor._
-@import views.html.widgets.{checkbox, yesNoQuestion}
 
-<section class="clearfix section-border" id="civilServantQuestion">
-    @yesNoQuestion(form("edipCompleted"),
-        question = "Have you completed the Early Diversity Internship Programme (EDIP)?",
-        noMessage = None
-    )
-</section>
+<div id="civilServiceExperienceDetails_civilServantAndInternshipTypes-SDIP-panel" class="toggle-content">
+    <div class="panel-indent">
+        @helper.inputText(form("civilServiceExperienceDetails.sdipYear"),
+            'id -> "civilServiceExperienceDetails.sdipYear",
+            '_label -> "What year did you complete SDIP?",
+            'class -> "form-control form-control-1-3 med-btm-margin",
+            '_showConstraints -> false)
+    </div>
+</div>

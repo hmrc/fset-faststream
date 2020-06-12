@@ -16,21 +16,35 @@
 
 package connectors.exchange
 
-import forms.FastPassForm._
 import forms.FastPassForm
+import forms.FastPassForm.Data
 import play.api.libs.json.Json
 
 import language.implicitConversions
 
 case class CivilServiceExperienceDetails(applicable: Boolean,
-                                         civilServiceExperienceType: Option[String] = None,
-                                         internshipTypes: Option[Seq[String]] = None,
-                                         fastPassReceived: Option[Boolean] = None,
-                                         fastPassAccepted: Option[Boolean] = None,
-                                         certificateNumber: Option[String] = None) {
-  def isCivilServant = civilServiceExperienceType.exists {
-    fpt => fpt == FastPassForm.CivilServant || fpt == FastPassForm.CivilServantViaFastTrack
+                                        civilServantAndInternshipTypes: Option[Seq[String]] = None,
+                                        edipYear: Option[String] = None,
+                                        sdipYear: Option[String] = None,
+                                        otherInternshipName: Option[String] = None,
+                                        otherInternshipYear: Option[String] = None,
+                                        fastPassReceived: Option[Boolean] = None,
+                                        fastPassAccepted: Option[Boolean] = None,
+                                        certificateNumber: Option[String] = None) {
+  override def toString = {
+    s"applicable=$applicable," +
+      s"civilServantAndInternshipTypes=$civilServantAndInternshipTypes," +
+      s"edipYear=$edipYear," +
+      s"sdipYear=$sdipYear," +
+      s"otherInternshipName=$otherInternshipName," +
+      s"otherInternshipYear=$otherInternshipYear," +
+      s"fastPassReceived=$fastPassReceived," +
+      s"fastPassAccepted=$fastPassAccepted," +
+      s"certificateNumber=$certificateNumber"
   }
+
+  def isCivilServant =
+    civilServantAndInternshipTypes.exists { types => types.contains(FastPassForm.CivilServantKey) }
 }
 
 object CivilServiceExperienceDetails {
@@ -38,22 +52,28 @@ object CivilServiceExperienceDetails {
   implicit val civilServiceExperienceDetailsFormat = Json.format[CivilServiceExperienceDetails]
 
   implicit def toData(optExchange: Option[CivilServiceExperienceDetails]): Option[Data] = optExchange.map(exchange => Data(
-    exchange.applicable.toString,
-    exchange.civilServiceExperienceType,
-    exchange.internshipTypes,
-    exchange.fastPassReceived,
-    exchange.certificateNumber
+    applicable = exchange.applicable.toString,
+    civilServantAndInternshipTypes = exchange.civilServantAndInternshipTypes,
+    edipYear = exchange.edipYear,
+    sdipYear = exchange.sdipYear,
+    otherInternshipName = exchange.otherInternshipName,
+    otherInternshipYear = exchange.otherInternshipYear,
+    fastPassReceived = exchange.fastPassReceived,
+    certificateNumber = exchange.certificateNumber
   ))
 
   implicit def toExchange(optData: Option[Data]): Option[CivilServiceExperienceDetails] = {
     optData.map( data =>
       CivilServiceExperienceDetails(
-        data.applicable.toBoolean,
-        data.civilServiceExperienceType,
-        data.internshipTypes,
-        data.fastPassReceived,
-        None,
-        data.certificateNumber
+        applicable = data.applicable.toBoolean,
+        civilServantAndInternshipTypes = data.civilServantAndInternshipTypes,
+        edipYear = data.edipYear,
+        sdipYear = data.sdipYear,
+        otherInternshipName = data.otherInternshipName,
+        otherInternshipYear = data.otherInternshipYear,
+        fastPassReceived = data.fastPassReceived,
+        fastPassAccepted = None,
+        certificateNumber = data.certificateNumber
       )
     )
   }

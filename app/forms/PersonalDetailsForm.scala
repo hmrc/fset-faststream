@@ -16,7 +16,7 @@
 
 package forms
 
-import connectors.exchange.{ CivilServiceExperienceDetails, GeneralDetails }
+import connectors.exchange.GeneralDetails
 import forms.Mappings._
 import mappings.PhoneNumberMapping.PhoneNumber
 import mappings.PostCodeMapping._
@@ -43,10 +43,16 @@ object PersonalDetailsForm {
   val country = "country"
   val phone = "phone"
   val edipCompleted = "edipCompleted"
+  val edipYear = "edipYear"
+  val otherInternshipCompleted = "otherInternshipCompleted"
+  val otherInternshipName = "otherInternshipName"
+  val otherInternshipYear = "otherInternshipYear"
 
   def ageReference(implicit now: LocalDate) = new LocalDate(now.getYear, 8, 31)
 
   def maxDob(implicit now: LocalDate) = Some(ageReference.minusYears(MinAge))
+
+  val otherInternshipNameMaxSize = 60
 
   def form(implicit now: LocalDate, ignoreFastPassValidations: Boolean = false) = Form(
       mapping(
@@ -60,30 +66,108 @@ object PersonalDetailsForm {
         country -> of(countryFormatter),
         phone -> of(phoneNumberFormatter),
         FastPassForm.formQualifier -> of(fastPassFormFormatter(ignoreFastPassValidations)),
-        edipCompleted -> of(Mappings.mayBeOptionalString("error.needsEdipCompleted.required", 31, isSdipAndCreatedOrInProgress))
+        // Relevant for sdip, sdipFs
+        edipCompleted -> of(Mappings.mayBeOptionalString("error.edipCompleted.required", 31, isSdipOrSdipFsAndCreatedOrInProgress)),
+        edipYear -> of(edipYearFormatter),
+        // Relevant for edip, sdip, sdip faststream
+        otherInternshipCompleted -> of(Mappings.mayBeOptionalString(
+          "error.otherInternshipCompleted.required", "error.edipCandidate.otherInternshipCompleted.required", 31,
+          isEdipOrSdipOrSdipFsAndCreatedOrInProgress, isEdipCandidate)),
+        otherInternshipName -> of(otherInternshipNameFormatter(otherInternshipNameMaxSize)),
+        otherInternshipYear -> of(otherInternshipYearFormatter)
       )(Data.apply)(Data.unapply)
     )
 
-  val isFastStream = (requestParams: Map[String, String]) => {
-    requestParams.getOrElse("applicationRoute", ApplicationRoute.Faststream.toString) == ApplicationRoute.Faststream.toString
+  val isSdipOrSdipFsAndCreatedOrInProgress = (requestParams: Map[String, String]) =>
+    (requestParams.isSdip || requestParams.isSdipFastStream) && requestParams.isCreatedOrInProgressSubmitted
+
+  val isEdipOrSdipOrSdipFsAndCreatedOrInProgress = (requestParams: Map[String, String]) =>
+    (requestParams.isEdip || isSdipOrSdipFsAndCreatedOrInProgress(requestParams)) && requestParams.isCreatedOrInProgressSubmitted
+
+  val isEdipCandidate = (requestParams: Map[String, String]) => requestParams.isEdip
+
+  implicit class RequestValidation(request: Map[String, String]) {
+    val isFastStream = request.getOrElse("applicationRoute", ApplicationRoute.Faststream.toString) == ApplicationRoute.Faststream.toString
+    val isSdipFastStream = request.getOrElse("applicationRoute",
+      ApplicationRoute.Faststream.toString) == ApplicationRoute.SdipFaststream.toString
+    val isEdip = request.getOrElse("applicationRoute", Faststream.toString) == Edip.toString
+    val isSdip = request.getOrElse("applicationRoute", Faststream.toString) == Sdip.toString
+    val isCreatedOrInProgressSubmitted = List("CREATED", "IN_PROGRESS").contains(request.getOrElse("applicationStatus", ""))
+
+    def param(name: String) = request.collectFirst { case (key, value) if key.contains(name) => value }
+
+    def edipCompletedParam = param(edipCompleted).getOrElse("")
+    def hasCompletedEdip = edipCompletedParam == "true"
+
+    def edipYearParam = param(edipYear).getOrElse("")
+    def isEdipInternshipYearValid = hasCompletedEdip && edipYearParam.matches("[0-9]{4}")
+
+    def otherInternshipCompletedParam = param(otherInternshipCompleted).getOrElse("")
+    def hasCompletedOtherInternship = otherInternshipCompletedParam == "true"
+
+    def otherInternshipNameParam = param(otherInternshipName).getOrElse("")
+    def isOtherInternshipNameFilled = hasCompletedOtherInternship && otherInternshipNameParam.length > 0
+    def isOtherInternshipNameSizeValid(max: Int) = hasCompletedOtherInternship &&
+      isOtherInternshipNameFilled && otherInternshipNameParam.length <= max
+
+    def otherInternshipYearParam = param(otherInternshipYear).getOrElse("")
+    def isOtherInternshipYearValid = hasCompletedOtherInternship && otherInternshipYearParam.matches("[0-9]{4}")
   }
 
-  val isSdipFastStream = (requestParams: Map[String, String]) => {
-    requestParams.getOrElse("applicationRoute", ApplicationRoute.SdipFaststream.toString) == ApplicationRoute.SdipFaststream.toString
+  def edipYearFormatter = new Formatter[Option[String]] {
+    def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[String]] = {
+      bindOptionalParam(request.hasCompletedEdip, request.isEdipInternshipYearValid,
+        "error.edipYear.required")(key, request.edipYearParam)
+    }
+
+    def unbind(key: String, value: Option[String]): Map[String, String] = optionalParamToMap(key, value)
   }
 
-  val isSdip = (requestParams: Map[String, String]) =>
-    requestParams.getOrElse("applicationRoute", Faststream.toString) == Sdip.toString
+  def otherInternshipNameFormatter(maxSize: Int) = new Formatter[Option[String]] {
+    def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[String]] = {
 
-  val isCreatedOrInProgressSubmitted = (requestParams: Map[String, String]) =>
-    List("CREATED", "IN_PROGRESS").contains(requestParams.getOrElse("applicationStatus", ""))
+      val dependencyCheck = request.hasCompletedOtherInternship
+      val isFilled = request.isOtherInternshipNameFilled
+      val isCorrectSize = request.isOtherInternshipNameSizeValid(maxSize)
 
-  val isSdipAndCreatedOrInProgress = (requestParams: Map[String, String]) =>
-    isSdip(requestParams) && isCreatedOrInProgressSubmitted(requestParams)
+      (dependencyCheck, isFilled, isCorrectSize) match {
+        case (true, false, _) => Left(List(FormError(key, "error.otherInternshipName.required")))
+        case (true, true, false) => Left(List(FormError(key, "error.otherInternshipName.size", Seq(maxSize))))
+        case (true, true, true) => Right(Some(request.otherInternshipNameParam))
+        case (false, _, _) => Right(None)
+      }
+    }
+
+    def unbind(key: String, value: Option[String]): Map[String, String] = optionalParamToMap(key, value)
+  }
+
+  def otherInternshipYearFormatter = new Formatter[Option[String]] {
+    def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[String]] = {
+      bindOptionalParam(request.hasCompletedOtherInternship, request.isOtherInternshipYearValid,
+        "error.otherInternshipYear.required")(key, request.otherInternshipYearParam)
+    }
+
+    def unbind(key: String, value: Option[String]): Map[String, String] = optionalParamToMap(key, value)
+  }
+
+  private def bindOptionalParam[T](dependencyCheck: Boolean, validityCheck: Boolean, errMsg: String)
+                                  (key: String, value: => T): Either[Seq[FormError], Option[T]] =
+    (dependencyCheck, validityCheck) match {
+      case (true, false) => Left(List(FormError(key, errMsg)))
+      case (true, true) => Right(Some(value))
+      case (false, _) => Right(None)
+    }
+
+  private def optionalParamToMap[T](key: String, optValue: Option[T]) = {
+    optValue match {
+      case None => Map.empty[String, String]
+      case Some(value) => Map(key -> value.toString)
+    }
+  }
 
   def fastPassFormFormatter(ignoreValidations: Boolean) = new Formatter[Option[FastPassForm.Data]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[FastPassForm.Data]] = {
-      (ignoreValidations, isFastStream(data) || isSdipFastStream(data)) match {
+      (ignoreValidations, data.isFastStream) match {
         case (false, true) => FastPassForm.form.mapping.bind(data).right.map(Some(_))
         case _ => Right(None)
       }
@@ -147,7 +231,11 @@ object PersonalDetailsForm {
                   country: Option[String],
                   phone: Option[PhoneNumber],
                   civilServiceExperienceDetails: Option[FastPassForm.Data],
-                  edipCompleted: Option[String]
+                  edipCompleted: Option[String],
+                  edipYear: Option[String],
+                  otherInternshipCompleted: Option[String],
+                  otherInternshipName: Option[String],
+                  otherInternshipYear: Option[String]
                  ) {
 
     def insideUk = outsideUk match {
@@ -156,7 +244,7 @@ object PersonalDetailsForm {
     }
 
     def toExchange(email: String, updateApplicationStatus: Option[Boolean],
-                   overrideEdipCompleted: Option[Boolean] = None) = {
+                   overrideEdipCompleted: Option[Boolean] = None, overrideOtherInternshipCompleted: Option[Boolean] = None) = {
       GeneralDetails(
         firstName,
         lastName,
@@ -171,6 +259,10 @@ object PersonalDetailsForm {
         phone,
         civilServiceExperienceDetails,
         overrideEdipCompleted.orElse(edipCompleted.map(_.toBoolean)),
+        edipYear,
+        overrideOtherInternshipCompleted.orElse(otherInternshipCompleted.map(_.toBoolean)),
+        otherInternshipName,
+        otherInternshipYear,
         updateApplicationStatus
       )
     }

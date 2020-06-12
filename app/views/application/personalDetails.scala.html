@@ -14,12 +14,11 @@
  * limitations under the License.
  *@
 
-@(details: Form[_root_.forms.PersonalDetailsForm.Data], updateStatus: Boolean, schemesRequiringQualifications: Seq[String])(implicit request: Request[_], flash: Flash, optCachedData: Option[CachedData], feedbackUrl: String, messages: Messages)
+@(form: Form[forms.PersonalDetailsForm.Data], updateStatus: Boolean, schemesRequiringQualifications: Seq[String])(implicit request: Request[_], flash: Flash, optCachedData: Option[CachedData], feedbackUrl: String, messages: Messages)
 
 @import views.html.application.personaldetails.{ contactDetails, nameAndDateOfBirth }
 @import views.html.application.civilServiceExperienceDetails.civilServiceExperienceDetailsPanel
-@import views.html.application.civilServiceExperienceDetails.sdipFsCivilServiceExperienceDetailsPanel
-@import views.html.application.edipExperienceDetails.edipExperienceDetailsPanel
+@import views.html.application.diversityExperienceDetails.{ edipCandidateExperienceDetailsPanel, sdipCandidateExperienceDetailsPanel, sdipFsCandidateExperienceDetailsPanel  }
 @import views.html.widgets.{ applicationRoute, applicationStatus, pageProgress, saveAndContinueButton }
 @import security.Roles.EditPersonalDetailsAndContinueRole
 @import security.RoleUtils._
@@ -29,7 +28,7 @@
     else routes.PersonalDetailsController.submitPersonalDetails()
 }
 
-@main_template(title = "Personal details", pageForms = Seq(details), additionalJavascriptFilenames = List()) {
+@main_template(title = "Personal details", pageForms = Seq(form), additionalJavascriptFilenames = List()) {
     @pageProgress(1, 7)
 
     <h1 class="heading-xlarge" id="personalDetailsHeading">Personal details</h1>
@@ -38,18 +37,22 @@
         @helper.CSRF.formField
         @applicationRoute(optCachedData)
         @applicationStatus(optCachedData)
-        @nameAndDateOfBirth(details)
-        @contactDetails(details, isLastSection = optCachedData.exists(cachedData => isEdip(optCachedData)))
+        @nameAndDateOfBirth(form)
+        @contactDetails(form)
         @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData)) && isFaststream(optCachedData)){
             @if(optCachedData.exists(cachedData => isSdipFaststream(cachedData))) {
-                @sdipFsCivilServiceExperienceDetailsPanel(details, schemesRequiringQualifications)
+                @sdipFsCandidateExperienceDetailsPanel(form)
             } else {
-                @civilServiceExperienceDetailsPanel(details, schemesRequiringQualifications)
+                @civilServiceExperienceDetailsPanel(form, schemesRequiringQualifications)
             }
         }
         @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData)) &&
                 isSdip(optCachedData)) {
-            @edipExperienceDetailsPanel(details)
+            @sdipCandidateExperienceDetailsPanel(form)
+        }
+        @if(optCachedData.exists(cachedData => EditPersonalDetailsAndContinueRole.isAuthorized(cachedData)) &&
+                isEdip(optCachedData)) {
+            @edipCandidateExperienceDetailsPanel(form)
         }
         @saveAndContinueButton()
     }
