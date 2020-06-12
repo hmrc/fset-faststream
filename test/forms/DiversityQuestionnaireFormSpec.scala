@@ -16,7 +16,6 @@
 
 package forms
 
-import controllers.UnitSpec
 import forms.DiversityQuestionnaireForm.{ Data, form }
 import testkit.UnitWithAppSpec
 
@@ -30,37 +29,99 @@ class DiversityQuestionnaireFormSpec extends UnitWithAppSpec {
       actualData mustBe expectedData
     }
 
-    "fail when no gender" in new Fixture {
+    "fail when no gender is specified" in new Fixture {
       assertFieldRequired(expectedError = "gender", "gender")
     }
 
-    "fail when no orientation" in new Fixture {
+    "fail when gender is not a correct value" in new Fixture {
+      assertFormError("gender", validFormValues ++ Seq("gender" -> "BOOM"))
+    }
+
+    "fail when other gender is too big" in new Fixture {
+      assertFormError("other_gender", validFormValues ++ Seq("other_gender" -> "A" * (DiversityQuestionnaireForm.OtherMaxSize + 1)))
+    }
+
+    "fail when no sexOrientation is specified" in new Fixture {
       assertFieldRequired(expectedError = "sexOrientation", "sexOrientation")
     }
 
-    "fail when no ethnicity" in new Fixture {
-      assertFieldRequired(expectedError = "ethnicity", "other_ethnicity", "preferNotSay_ethnicity")
+    "fail when sexOrientation is not a correct value" in new Fixture {
+      assertFormError("sexOrientation", validFormValues ++ Seq("sexOrientation" -> "BOOM"))
+    }
+
+    "fail when other sexOrientation is too big" in new Fixture {
+      assertFormError("sexOrientation", validFormValues ++ Seq("sexOrientation" -> "A" * (DiversityQuestionnaireForm.OtherMaxSize + 1)))
+    }
+
+    "be valid when ethnicity is specified and preferNotToSay is not selected" in new Fixture {
+      val validForm = form.bind(validFormValues ++ Seq("ethnicity" -> "Irish", "preferNotSay_ethnicity" -> ""))
+      val expectedData = Data(
+        gender = "Man", otherGender = None,
+        sexOrientation = "Other", otherSexOrientation = Some("details"),
+        ethnicity = Some("Irish"), otherEthnicity = None, preferNotSayEthnicity = None,
+        isEnglishFirstLanguage = "Yes"
+      )
+      val actualData = validForm.get
+      actualData mustBe expectedData
+    }
+
+    "fail when no ethnicity is specified and preferNotToSay is not selected" in new Fixture {
+      assertFieldRequired(expectedError = "ethnicity", validFormValues ++ Seq("preferNotSay_ethnicity" -> ""))
+    }
+
+    "fail when ethnicity is not a correct value and preferNotToSay is not selected" in new Fixture {
+      assertFormError("ethnicity", validFormValues ++ Seq("ethnicity" -> "BOOM", "preferNotSay_ethnicity" -> ""))
+    }
+
+    "be valid when ethnicity is not a correct value and preferNotToSay is selected" in new Fixture {
+      val validForm = form.bind(validFormValues ++ Seq("ethnicity" -> "BOOM"))
+      val expectedData = Data(
+        gender = "Man", otherGender = None,
+        sexOrientation = "Other", otherSexOrientation = Some("details"),
+        ethnicity = None, otherEthnicity = None, preferNotSayEthnicity = Some(true),
+        isEnglishFirstLanguage = "Yes"
+      )
+      val actualData = validForm.get
+      actualData mustBe expectedData
+    }
+
+    "fail when other ethnicity is too big" in new Fixture {
+      assertFormError("other_ethnicity", validFormValues ++ Seq("other_ethnicity" -> "A" * (DiversityQuestionnaireForm.OtherMaxSize + 1)))
+    }
+
+    "fail when preferNotSay_ethnicity is not a correct value" in new Fixture {
+      assertFormError("preferNotSay_ethnicity", validFormValues ++ Seq("preferNotSay_ethnicity" -> "BOOM"))
+    }
+
+    "fail when no language is specified" in new Fixture {
+      assertFieldRequired(expectedError = "isEnglishFirstLanguage", "isEnglishFirstLanguage")
+    }
+
+    "fail when English language is not a correct value" in new Fixture {
+      assertFormError("isEnglishFirstLanguage", validFormValues ++ Seq("isEnglishFirstLanguage" -> "BOOM"))
     }
 
     "transform properly to a question list" in new Fixture {
       val questionList = validFormData.exchange.questions
-      questionList.size must be(3)
-      questionList(0).answer.answer must be(Some("Male"))
-      questionList(1).answer.otherDetails must be(Some("details"))
-      questionList(2).answer.unknown must be(Some(true))
+      questionList.size mustBe 4
+      questionList(0).answer.answer mustBe Some("Man")
+      questionList(1).answer.otherDetails mustBe Some("details")
+      questionList(2).answer.unknown mustBe Some(true)
+      questionList(3).answer.answer mustBe Some("Yes")
     }
   }
 
   trait Fixture {
 
     val validFormData = Data(
-      "Male", None,
-      "Other", Some("details"),
-      None, None, Some(true)
+      gender = "Man", otherGender = None,
+      sexOrientation = "Other", otherSexOrientation = Some("details"),
+      ethnicity = None, otherEthnicity = None, preferNotSayEthnicity = Some(true),
+      isEnglishFirstLanguage = "Yes"
     )
 
     val validFormValues = Map(
-      "gender" -> "Male",
+      "gender" -> "Man",
       "other_gender" -> "",
 
       "sexOrientation" -> "Other",
@@ -68,11 +129,16 @@ class DiversityQuestionnaireFormSpec extends UnitWithAppSpec {
 
       "ethnicity" -> "",
       "other_ethnicity" -> "",
-      "preferNotSay_ethnicity" -> "true"
+      "preferNotSay_ethnicity" -> "true",
+
+      "isEnglishFirstLanguage" -> "Yes"
     )
 
-    def assertFieldRequired(expectedError: String, fieldKey: String*) =
-      assertFormError(expectedError, validFormValues ++ fieldKey.map(k => k -> ""))
+    def assertFieldRequired(expectedError: String, formValues: Map[String, String]) =
+      assertFormError(expectedError, formValues)
+
+    def assertFieldRequired(expectedError: String, fieldKeysToClear: String*) =
+      assertFormError(expectedError, validFormValues ++ fieldKeysToClear.map(k => k -> ""))
 
     def assertFormError(expectedKey: String, invalidFormValues: Map[String, String]) = {
       val invalidForm = form.bind(invalidFormValues)
