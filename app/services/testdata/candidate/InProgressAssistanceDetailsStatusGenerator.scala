@@ -62,6 +62,7 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
     }
   }
 
+  //scalastyle:off cyclomatic.complexity
   private def getAssistanceDetails(config: CreateCandidateData): AssistanceDetails = {
     val hasDisabilityFinalValue = config.assistanceDetails.hasDisability
 
@@ -71,6 +72,21 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
       } else {
         None
       }
+
+    val disabilityImpactFinalValue =
+      if (hasDisabilityFinalValue == "Yes") {
+        Some(config.assistanceDetails.disabilityImpact)
+      } else {
+        None
+      }
+
+    val disabilityCategoriesFinalValue =
+      if (hasDisabilityFinalValue == "Yes") {
+        Some(config.assistanceDetails.disabilityCategories)
+      } else {
+        None
+      }
+
     val gisFinalValue = if (hasDisabilityFinalValue == "Yes" && config.assistanceDetails.setGis) {
       Some(true)
     } else {
@@ -104,9 +120,10 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
         None
       }
 
-
     AssistanceDetails(
       hasDisabilityFinalValue,
+      disabilityImpactFinalValue,
+      disabilityCategoriesFinalValue,
       hasDisabilityDescriptionFinalValue,
       gisFinalValue,
       Some(onlineAdjustmentsFinalValue),
@@ -116,5 +133,5 @@ trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
       Some(phoneAdjustmentsFinalValue),
       phoneAdjustmentsDescriptionFinalValue
     )
-  }
+  }//scalastyle:on
 }

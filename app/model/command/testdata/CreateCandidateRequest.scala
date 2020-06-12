@@ -24,6 +24,8 @@ import play.api.libs.json.{Json, OFormat}
 object CreateCandidateRequest {
 
   case class AssistanceDetailsRequest(hasDisability: Option[String] = None,
+    disabilityImpact: Option[String] = None,
+    disabilityCategories: Option[List[String]] = None,
     hasDisabilityDescription: Option[String] = None,
     setGis: Option[Boolean] = None,
     onlineAdjustments: Option[Boolean] = None,

@@ -237,8 +237,11 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
       }
     ).futureValue
 
-    val ad = AssistanceDetails("No", None, gis, needsSupportForOnlineAssessment = Some(false), None,
-      needsSupportAtVenue = Some(false), None, needsSupportForPhoneInterview = None, needsSupportForPhoneInterviewDescription = None)
+    val ad = AssistanceDetails(hasDisability = "No", disabilityImpact = None, disabilityCategories = None,
+      otherDisabilityDescription = None, guaranteedInterview = gis, needsSupportForOnlineAssessment = Some(false),
+      needsSupportForOnlineAssessmentDescription = None, needsSupportAtVenue = Some(false),
+      needsSupportAtVenueDescription = None, needsSupportForPhoneInterview = None,
+      needsSupportForPhoneInterviewDescription = None)
     assistanceDetailsRepository.update(appId, appId, ad).futureValue
 
     schemePreferencesRepository.save(appId, selectedSchemes(schemes)).futureValue
@@ -281,8 +284,11 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
       }
     ).futureValue
 
-    val ad = AssistanceDetails("No", None, gis, needsSupportForOnlineAssessment = Some(false), None,
-      needsSupportAtVenue = Some(false), None, needsSupportForPhoneInterview = None, needsSupportForPhoneInterviewDescription = None)
+    val ad = AssistanceDetails(hasDisability = "No", disabilityImpact = None, disabilityCategories = None,
+      otherDisabilityDescription = None, guaranteedInterview = gis, needsSupportForOnlineAssessment = Some(false),
+      needsSupportForOnlineAssessmentDescription = None, needsSupportAtVenue = Some(false),
+      needsSupportAtVenueDescription = None, needsSupportForPhoneInterview = None,
+      needsSupportForPhoneInterviewDescription = None)
     assistanceDetailsRepository.update(appId, appId, ad).futureValue
 
     schemePreferencesRepository.save(appId, selectedSchemes(schemes)).futureValue
