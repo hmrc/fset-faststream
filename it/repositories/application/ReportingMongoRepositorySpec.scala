@@ -17,21 +17,21 @@
 package repositories.application
 
 import _root_.services.testdata.TestDataGeneratorService
-import factories.{ITDateTimeFactoryMock, UUIDFactory}
-import model.ProgressStatuses.{PHASE3_TESTS_INVITED, PHASE3_TESTS_PASSED_NOTIFIED, PREVIEW, SUBMITTED, PHASE1_TESTS_PASSED => _}
+import _root_.services.testdata.candidate.CandidateStatusGeneratorFactory
+import factories.{ ITDateTimeFactoryMock, UUIDFactory }
+import model.ProgressStatuses.{ PREVIEW, SUBMITTED, PHASE1_TESTS_PASSED => _ }
 import model._
-import model.report.{AdjustmentReportItem, CandidateProgressReportItem}
+import model.report.{ AdjustmentReportItem, CandidateProgressReportItem }
 import services.GBTimeZoneService
 import config.MicroserviceAppConfig._
-import model.ApplicationRoute.{apply => _}
-import model.command.testdata.CreateCandidateRequest.{AdjustmentsRequest, AssistanceDetailsRequest, CreateCandidateRequest, StatusDataRequest}
-import model.command.{ProgressResponse, WithdrawApplication}
+import model.ApplicationRoute.{ apply => _ }
+import model.command.ProgressResponse
+import model.command.testdata.CreateCandidateRequest.{ AdjustmentsRequest, AssistanceDetailsRequest, CreateCandidateRequest, StatusDataRequest }
 import model.persisted._
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.CollectionNames
-import _root_.services.testdata.candidate.CandidateStatusGeneratorFactory
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -54,7 +54,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
   implicit def blankedHeaderCarrier = HeaderCarrier()
 
   "Candidate Progress Report" must {
-    "for an application with all fields" in {
+    "work for an application with all fields" in {
       val userId = generateUUID()
       val appId = generateUUID()
       val testAccountId = generateUUID()
@@ -63,13 +63,15 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       val result = repository.candidateProgressReport("FastStream-2016").futureValue
 
       result must not be empty
-      result.head mustBe CandidateProgressReportItem(userId, appId, Some("submitted"),
-        List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), Some("Yes"),
-        Some("No"), Some("No"), None, Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("No"), Some("Yes"),
-        Some("1234567"), None, ApplicationRoute.Faststream)
+      // TODO: this report will have to change: fastTrack, sdipPrevious, sdip
+      result.head mustBe CandidateProgressReportItem(userId = userId, applicationId = appId, progress = Some("submitted"),
+        schemes = List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), disability = Some("Yes"),
+        onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
+        civilServant = Some("No"), fastTrack = Some("No"), edip = Some("No"), sdipPrevious = Some("No"), sdip = Some("No"),
+        fastPassCertificate = Some("1234567"), assessmentCentre = None, applicationRoute = ApplicationRoute.Faststream)
     }
 
-    "for the minimum application" in {
+    "work for the minimum application" in {
       val userId = generateUUID()
       val appId = generateUUID()
       testDataRepo.createMinimumApplication(userId, appId, "FastStream-2016").futureValue
@@ -77,14 +79,15 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       val result = repository.candidateProgressReport("FastStream-2016").futureValue
 
       result must not be empty
-      result.head must be(CandidateProgressReportItem(userId, appId, Some("registered"),
-        List.empty[SchemeId], None, None, None, None, None, None, None, None, None, None, None, None, ApplicationRoute.Faststream)
-      )
+      result.head mustBe CandidateProgressReportItem(userId = userId, applicationId = appId, progress = Some("registered"),
+        schemes = List.empty[SchemeId], disability = None, onlineAdjustments = None, assessmentCentreAdjustments = None,
+        phoneAdjustments = None, gis = None, civilServant = None, fastTrack = None, edip = None, sdipPrevious = None,
+        sdip = None, fastPassCertificate = None, assessmentCentre = None, applicationRoute = ApplicationRoute.Faststream)
     }
   }
 
   "Diversity Report" must {
-    "for the minimum application" in {
+    "work for for the minimum application" in {
       val userId = generateUUID()
       val appId = generateUUID()
       testDataRepo.createMinimumApplication(userId, appId, "FastStream-2016").futureValue
@@ -96,7 +99,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
         List.empty, None, None, None, None, None, List.empty)
     }
 
-    "for an application with all fields" in {
+    "work for for an application with all fields" in {
       val userId1 = generateUUID()
       val userId2 = generateUUID()
       val userId3 = generateUUID()
@@ -115,26 +118,39 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       val result = repository.diversityReport("FastStream-2016").futureValue
 
       result must contain theSameElementsAs Seq(
-        ApplicationForDiversityReport(appId1, userId1, ApplicationRoute.Faststream, Some("submitted"),
-          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")),
-          Some("Yes"), Some(true), Some("Yes"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
-            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))),
-          List(SchemeEvaluationResult(SchemeId("DiplomaticService"), EvaluationResults.Green.toString),
-            SchemeEvaluationResult(SchemeId("GovernmentOperationalResearchService"), EvaluationResults.Green.toString))),
         ApplicationForDiversityReport(
-          appId2, userId2, ApplicationRoute.Faststream, Some("submitted"),
-          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")),
-          Some("Yes"), Some(false), Some("No"), Some("No"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
-            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))),
-          List(SchemeEvaluationResult(SchemeId("DiplomaticService"), EvaluationResults.Green.toString),
-            SchemeEvaluationResult(SchemeId("GovernmentOperationalResearchService"), EvaluationResults.Green.toString))),
+          applicationId = appId1, userId = userId1, applicationRoute = ApplicationRoute.Faststream, progress = Some("submitted"),
+          schemes = List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")),
+          disability = Some("Yes"), gis = Some(true), onlineAdjustments = Some("Yes"), assessmentCentreAdjustments = Some("No"),
+          civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
+            isCivilServant = Some("No"), isFastTrack = Some("No"), isEDIP = Some("No"), isSDIP = Some("No"),
+            isEligibleForFastPass = Some("No"), fastPassCertificate = Some("1234567")) //TODO: should be eligible for fast pass
+          ),
+          currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("DiplomaticService"), EvaluationResults.Green.toString),
+            SchemeEvaluationResult(SchemeId("GovernmentOperationalResearchService"), EvaluationResults.Green.toString))
+        ),
         ApplicationForDiversityReport(
-          appId3, userId3, ApplicationRoute.Faststream, Some("submitted"),
-          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")),
-          Some("Yes"), Some(false), Some("No"), Some("Yes"), Some(CivilServiceExperienceDetailsForDiversityReport(Some("Yes"),
-            Some("No"), Some("Yes"), Some("No"), Some("Yes"), Some("1234567"))),
-          List(SchemeEvaluationResult(SchemeId("DiplomaticService"), EvaluationResults.Green.toString),
-            SchemeEvaluationResult(SchemeId("GovernmentOperationalResearchService"), EvaluationResults.Green.toString)))
+          applicationId = appId2, userId = userId2, applicationRoute = ApplicationRoute.Faststream, progress = Some("submitted"),
+          schemes = List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")),
+          disability = Some("Yes"), gis = Some(false), onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("No"),
+          civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
+            isCivilServant = Some("No"), isFastTrack = Some("No"), isEDIP = Some("No"), isSDIP = Some("No"),
+            isEligibleForFastPass = Some("No"), fastPassCertificate = Some("1234567")) //TODO: should be eligible for fast pass
+          ),
+          currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("DiplomaticService"), EvaluationResults.Green.toString),
+            SchemeEvaluationResult(SchemeId("GovernmentOperationalResearchService"), EvaluationResults.Green.toString))
+        ),
+        ApplicationForDiversityReport(
+          applicationId = appId3, userId = userId3, applicationRoute = ApplicationRoute.Faststream, progress = Some("submitted"),
+          schemes = List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")),
+          disability = Some("Yes"), gis = Some(false), onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("Yes"),
+          civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
+            isCivilServant = Some("No"), isFastTrack = Some("No"), isEDIP = Some("No"), isSDIP = Some("No"),
+            isEligibleForFastPass = Some("No"), fastPassCertificate = Some("1234567")) //TODO: should be eligible for fast pass
+          ),
+          currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("DiplomaticService"), EvaluationResults.Green.toString),
+            SchemeEvaluationResult(SchemeId("GovernmentOperationalResearchService"), EvaluationResults.Green.toString))
+        )
       )
     }
   }
@@ -310,7 +326,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
   private def create(application: UserApplicationProfile) = {
     import repositories.BSONLocalDateHandler
 
-    repository.collection.insert(BSONDocument(
+    repository.collection.insert(ordered = false).one(BSONDocument(
       "applicationId" -> application.userId,
       "applicationRoute" -> ApplicationRoute.Faststream,
       "userId" -> application.userId,
@@ -325,9 +341,9 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
   }
 
   private def createWithoutPersonalDetails(userId: String, latestProgressStatus: String) = {
-    import repositories.BSONLocalDateHandler
+//    import repositories.BSONLocalDateHandler
 
-    repository.collection.insert(BSONDocument(
+    repository.collection.insert(ordered = false).one(BSONDocument(
       "userId" -> userId,
       "frameworkId" -> FrameworkId,
       "progress-status" -> BSONDocument(latestProgressStatus -> true)

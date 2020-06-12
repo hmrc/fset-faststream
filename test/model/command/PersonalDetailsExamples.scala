@@ -23,9 +23,16 @@ import org.joda.time.LocalDate
 
 object PersonalDetailsExamples {
 
-  val completeGeneralDetails = GeneralDetails("TestName", "TestSurname", "Jo Test", "jo@go.sx", LocalDate.parse("1972-11-23"),
-    outsideUk = false, Address("Test street"), None, None, None, "098762532", None, None, None)
+  val completeGeneralDetails = GeneralDetails("TestName", "TestSurname", "Jo Test", "jo@go.sx", dateOfBirth = LocalDate.parse("1972-11-23"),
+    outsideUk = false, Address("Test street"), postCode = None, fsacIndicator = None, country = None, phone = "098762532",
+    civilServiceExperienceDetails = None, edipCompleted = None, edipYear = None, otherInternshipCompleted = None, otherInternshipName = None,
+    otherInternshipYear = None, updateApplicationStatus = None)
 
-  val completed = PersonalDetails("firstname", "lastname", "preferedname", DateTimeFactory.nowLocalDate, Some(false))
-  val personalDetails = PersonalDetails("TestName", "TestSurname", "Jo Test", LocalDate.parse("1972-11-23"), edipCompleted = None)
+  val completed = PersonalDetails("firstname", "lastname", "preferedname", dateOfBirth = DateTimeFactory.nowLocalDate,
+    edipCompleted = Some(false), edipYear = None, otherInternshipCompleted = Some(false), otherInternshipName = None,
+    otherInternshipYear = None)
+
+  val personalDetails = PersonalDetails("TestName", "TestSurname", "Jo Test", dateOfBirth = LocalDate.parse("1972-11-23"),
+    edipCompleted = Some(false), edipYear = None, otherInternshipCompleted = Some(false), otherInternshipName = None,
+    otherInternshipYear = None)
 }

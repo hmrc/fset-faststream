@@ -18,7 +18,7 @@ package model
 
 import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
-
+//TODO: delete when we update the reports
 object CivilServiceExperienceType extends Enumeration {
 
   type CivilServiceExperienceType = Value
@@ -34,5 +34,4 @@ object CivilServiceExperienceType extends Enumeration {
     def read(doc: BSONString) = CivilServiceExperienceType.withName(doc.value)
     def write(stats: CivilServiceExperienceType) = BSON.write(stats.toString)
   }
-
 }

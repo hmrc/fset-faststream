@@ -20,6 +20,7 @@ import connectors.ExchangeObjects
 import model.{ ApplicationStatus, _ }
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
+import model.CivilServantAndInternshipType.CivilServantAndInternshipType
 import model.ProgressStatuses.ProgressStatus
 import model.persisted.ContactDetails
 import org.joda.time.{ DateTime, LocalDate }
@@ -105,7 +106,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
       (0 until num).map { i => createSingleApplication(i) }
     ).map(_ => ())
 
-  // scalastyle:off parameter.number
+  // scalastyle:off parameter.number method.length
   def createApplicationWithAllFields(userId: String, appId: String, testAccountId: String, frameworkId: String,
     appStatus: ApplicationStatus = ApplicationStatus.IN_PROGRESS, hasDisability: String = "Yes",
     needsSupportForOnlineAssessment: Boolean = false,
@@ -134,10 +135,18 @@ class TestDataMongoRepository(implicit mongo: () => DB)
       ),
       "civil-service-experience-details" -> BSONDocument(
         "applicable" -> true,
+        "civilServantAndInternshipTypes" -> BSONArray(
+          CivilServantAndInternshipType.CivilServant,
+          CivilServantAndInternshipType.EDIP,
+          CivilServantAndInternshipType.SDIP,
+          CivilServantAndInternshipType.OtherInternship
+        ),
+        "edipYear" -> "2018",
+        "sdipYear" -> "2019",
+        "otherInternshipName" -> "other",
+        "otherInternshipYear" -> "2020",
         "fastPassReceived" -> true,
-        "certificateNumber" -> "1234567",
-        "civilServiceExperienceType" -> CivilServiceExperienceType.CivilServant,
-        "internshipTypes" -> BSONArray(InternshipType.SDIPCurrentYear, InternshipType.EDIP)
+        "certificateNumber" -> "1234567"
       ),
       "assistance-details" -> BSONDocument(
         "hasDisability" -> "Yes",
@@ -153,7 +162,7 @@ class TestDataMongoRepository(implicit mongo: () => DB)
     ) ++ additionalDoc //.futureValue
     collection.insert(ordered = false).one(document)
   }
-  // scalastyle:on parameter.number
+  // scalastyle:on parameter.number method.length
 
   def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {
     val baseDoc = BSONDocument(

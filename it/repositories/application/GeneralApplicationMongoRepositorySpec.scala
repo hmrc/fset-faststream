@@ -60,9 +60,19 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       applicationResponse.userId mustBe userId
       applicationResponse.applicationId mustBe appId
       applicationResponse.civilServiceExperienceDetails.get mustBe
-        CivilServiceExperienceDetails(applicable = true, Some(CivilServiceExperienceType.CivilServant),
-        Some(List(InternshipType.SDIPCurrentYear, InternshipType.EDIP)), fastPassReceived = Some(true),
-        certificateNumber = Some("1234567"))
+        CivilServiceExperienceDetails(applicable = true,
+          civilServantAndInternshipTypes = Some(List(
+            CivilServantAndInternshipType.CivilServant,
+            CivilServantAndInternshipType.EDIP,
+            CivilServantAndInternshipType.SDIP,
+            CivilServantAndInternshipType.OtherInternship
+          )),
+          edipYear = Some("2018"),
+          sdipYear = Some("2019"),
+          otherInternshipName = Some("other"),
+          otherInternshipYear = Some("2020"),
+          fastPassReceived = Some(true),
+          certificateNumber = Some("1234567"))
     }
 
     "Find application status" in {

@@ -46,6 +46,15 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
         }
       }
 
+      def getOtherInternshipCompleted = {
+        if (generatorConfig.statusData.applicationRoute == ApplicationRoute.Sdip) {
+          Some(generatorConfig.personalData.otherInternshipCompleted.getOrElse(Random.bool))
+        }
+        else {
+          None
+        }
+      }
+
       def getOutsideUK(personalData: PersonalData) = {
         personalData.country.isDefined
       }
@@ -53,8 +62,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
       def getCivilServiceExperienceDetails(candidateInformation: CreateCandidateResponse) = {
         if (generatorConfig.isCivilServant) {
           CivilServiceExperienceDetails(applicable = true,
-            civilServiceExperienceType = if (generatorConfig.isCivilServant) Some(CivilServiceExperienceType.CivilServant) else None,
-            internshipTypes = Some(generatorConfig.internshipTypes),
+            civilServantAndInternshipTypes = Some(generatorConfig.civilServantAndInternshipTypes),
             fastPassReceived = Some(generatorConfig.hasFastPass), fastPassAccepted = None,
             certificateNumber = generatorConfig.fastPassCertificateNumber
           )
@@ -63,6 +71,8 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
         }
       }
 
+      val edipCompleted = getEdipCompleted
+      val otherInternshipCompleted = getOtherInternshipCompleted
       model.command.GeneralDetails(
         candidateInformation.firstName,
         candidateInformation.lastName,
@@ -80,7 +90,11 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
         generatorConfig.personalData.country,
         "07770 774 914",
         Some(getCivilServiceExperienceDetails(candidateInformation)),
-        getEdipCompleted,
+        edipCompleted,
+        edipCompleted.flatMap { completed => if (completed) { Some("2020") } else { None } },
+        otherInternshipCompleted,
+        otherInternshipCompleted.flatMap { completed => if (completed) { Some("Other internship name") } else { None } },
+        otherInternshipCompleted.flatMap { completed => if (completed) { Some("2020") } else { None } },
         Some(true)
       )
     }

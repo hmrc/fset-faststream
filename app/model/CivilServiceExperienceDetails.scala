@@ -16,20 +16,33 @@
 
 package model
 
-import model.InternshipType.InternshipType
-import model.CivilServiceExperienceType.CivilServiceExperienceType
+import model.CivilServantAndInternshipType.CivilServantAndInternshipType
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
-
 case class CivilServiceExperienceDetails(
   applicable:Boolean,
-  civilServiceExperienceType: Option[CivilServiceExperienceType] = None,
-  internshipTypes: Option[Seq[InternshipType]] = None,
+  civilServantAndInternshipTypes: Option[Seq[CivilServantAndInternshipType]] = None,
+  edipYear: Option[String] = None,
+  sdipYear: Option[String] = None,
+  otherInternshipName: Option[String] = None,
+  otherInternshipYear: Option[String] = None,
   fastPassReceived: Option[Boolean] = None,
   fastPassAccepted: Option[Boolean] = None,
   certificateNumber: Option[String] = None
-)
+) {
+  override def toString = {
+    s"applicable=$applicable," +
+      s"civilServantAndInternshipTypes=$civilServantAndInternshipTypes," +
+      s"edipYear=$edipYear," +
+      s"sdipYear=$sdipYear," +
+      s"otherInternshipName=$otherInternshipName," +
+      s"otherInternshipYear=$otherInternshipYear," +
+      s"fastPassReceived=$fastPassReceived," +
+      s"fastPassAccepted=$fastPassAccepted," +
+      s"certificateNumber=$certificateNumber"
+  }
+}
 
 object CivilServiceExperienceDetails {
   implicit val civilServiceExperienceDetailsFormat = Json.format[CivilServiceExperienceDetails]

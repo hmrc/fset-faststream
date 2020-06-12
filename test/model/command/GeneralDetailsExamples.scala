@@ -22,9 +22,11 @@ import model.{ CivilServiceExperienceDetails, FSACIndicator }
 
 object GeneralDetailsExamples {
   val CandidateContactDetailsUK = GeneralDetails("John", "Doe", "johnd", "johndoe@test.com", LocalDate.now().minusYears(20),
-    outsideUk = false, FullAddress, Some("A1 B23"), Some(FSACIndicator("London", "London")), None, "1234567890",
-    Some(CivilServiceExperienceDetails(applicable = false)), None, Some(true))
+    outsideUk = false, FullAddress, Some("A1 B23"), Some(FSACIndicator("London", "London")), country = None, phone = "1234567890",
+    Some(CivilServiceExperienceDetails(applicable = false)), edipCompleted = Some(false), edipYear = None,
+    otherInternshipCompleted = Some(false), otherInternshipName = None, otherInternshipYear = None, updateApplicationStatus = Some(true))
   val CandidateContactDetailsUKSdip = GeneralDetails("John", "Doe", "johnd", "johndoe@test.com", LocalDate.now().minusYears(20),
-    outsideUk = false, FullAddress, Some("A1 B23"), Some(FSACIndicator("London", "London")), None, "1234567890",
-    Some(CivilServiceExperienceDetails(applicable = false)), Some(true), Some(true))
+    outsideUk = false, FullAddress, Some("A1 B23"), Some(FSACIndicator("London", "London")), country = None, phone = "1234567890",
+    Some(CivilServiceExperienceDetails(applicable = false)), edipCompleted = Some(true), edipYear = Some("2020"),
+    otherInternshipCompleted = Some(false), otherInternshipName = None, otherInternshipYear = None, updateApplicationStatus = Some(true))
 }

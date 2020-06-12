@@ -18,9 +18,9 @@ package controllers.testdata
 
 import model.ApplicationRoute.ApplicationRoute
 import model.command.testdata.CreateCandidateRequest.CreateCandidateRequest
-import model.{ApplicationRoute, ApplicationStatus}
+import model.{ ApplicationRoute, ApplicationStatus, CivilServantAndInternshipType }
 
-case class ValidatorResult(val result: Boolean, val message: Option[String])
+case class ValidatorResult(result: Boolean, message: Option[String])
 
 object CreateCandidateRequestValidator extends CreateCandidateRequestValidator
 
@@ -28,15 +28,15 @@ trait CreateCandidateRequestValidator {
   def validate(request: CreateCandidateRequest): ValidatorResult = {
 
     if (!validateGis(request)) {
-      ValidatorResult(false, Some("Request contains incompatible values for Gis"))
+      ValidatorResult(result = false, Some("Request contains incompatible values for Gis"))
     } else if (!validateSdip(request)) {
-      ValidatorResult(false, Some("Request contains incompatible values for Sdip"))
+      ValidatorResult(result = false, Some("Request contains incompatible values for Sdip"))
     } else if (!validateEdip(request)) {
-      ValidatorResult(false, Some("Request contains incompatible values for Edip"))
+      ValidatorResult(result = false, Some("Request contains incompatible values for Edip"))
     } else if (!validateFastPass(request)) {
-      ValidatorResult(false, Some("Request contains incompatible values for Fastpass"))
+      ValidatorResult(result = false, Some("Request contains incompatible values for Fastpass"))
     } else {
-      ValidatorResult(true, None)
+      ValidatorResult(result = true, None)
     }
   }
 
@@ -64,12 +64,12 @@ trait CreateCandidateRequestValidator {
 
     def containsCivilServantAndInternshipTypes = {
       val isCivilServant = request.isCivilServant.getOrElse(false)
-      val isExpectedInternshipType = request.internshipTypes.exists(_.contains("SDIPCurrentYear"))
+      val isExpectedInternshipType = request.civilServantAndInternshipTypes.exists(_.contains(CivilServantAndInternshipType.SDIP.toString))
       isCivilServant && isExpectedInternshipType
     }
 
     if (request.hasFastPass.getOrElse(false)) {
-      (containsCivilServantAndInternshipTypes && isValidStatusForFastPass)
+      containsCivilServantAndInternshipTypes && isValidStatusForFastPass
     } else {
       true
     }

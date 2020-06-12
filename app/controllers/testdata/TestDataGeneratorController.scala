@@ -115,7 +115,7 @@ trait TestDataGeneratorController extends BaseController {
       )),
       schemeTypes = Some(List(SchemeId("Commercial"), SchemeId("European"), SchemeId("DigitalAndTechnology"))),
       isCivilServant = Some(Random.bool),
-      internshipTypes = None,
+      civilServantAndInternshipTypes = None,
       hasFastPass = Some(false),
       hasDegree = Some(Random.bool),
       region = Some("region"),
