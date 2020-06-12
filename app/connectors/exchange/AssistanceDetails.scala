@@ -19,15 +19,17 @@ package connectors.exchange
 import play.api.libs.json.Json
 
 final case class AssistanceDetails(
-  hasDisability: String,
-  hasDisabilityDescription: Option[String],
-  guaranteedInterview: Option[Boolean],
-  needsSupportForOnlineAssessment: Option[Boolean],
-  needsSupportForOnlineAssessmentDescription: Option[String],
-  needsSupportAtVenue: Option[Boolean],
-  needsSupportAtVenueDescription: Option[String],
-  needsSupportForPhoneInterview: Option[Boolean],
-  needsSupportForPhoneInterviewDescription: Option[String]
+                                    hasDisability: String,
+                                    disabilityImpact: Option[String],
+                                    disabilityCategories: Option[List[String]],
+                                    otherDisabilityDescription: Option[String],
+                                    guaranteedInterview: Option[Boolean],
+                                    needsSupportForOnlineAssessment: Option[Boolean],
+                                    needsSupportForOnlineAssessmentDescription: Option[String],
+                                    needsSupportAtVenue: Option[Boolean],
+                                    needsSupportAtVenueDescription: Option[String],
+                                    needsSupportForPhoneInterview: Option[Boolean],
+                                    needsSupportForPhoneInterviewDescription: Option[String]
 ) {
   def requiresAdjustments: Boolean = {
     List(

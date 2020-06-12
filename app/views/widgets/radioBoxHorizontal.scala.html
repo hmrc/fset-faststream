@@ -22,7 +22,13 @@
 @helper.input(field, '_class -> (if(isCompound) "form-group-compound" else "inline")) { (id, name, value, args) =>
     @for((key, displayText, shouldTrigger)  <- options){
         <label for="@createId(id, key)" class="block-label" @if(shouldTrigger){ data-target="@optionTrigger" }>
-            <input name="@name" type="radio" id="@createId(id, key)" value="@displayText" aria-controls="@optionTrigger" aria-expanded="false" @(if(value.contains(displayText)) "checked" else "")>@displayText
+            <input name="@name"
+                   type="radio"
+                   id="@createId(id, key)"
+                   value="@displayText"
+                   aria-controls="@optionTrigger"
+                   aria-expanded="false"
+                   @(if(value.contains(displayText)) "checked" else "")>@displayText
         </label>
     }
 }

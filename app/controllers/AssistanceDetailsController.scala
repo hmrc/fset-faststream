@@ -16,7 +16,7 @@
 
 package controllers
 
-import _root_.forms.AssistanceDetailsForm
+import forms.AssistanceDetailsForm
 import connectors.ApplicationClient
 import connectors.ApplicationClient.AssistanceDetailsNotFound
 import models.CachedData
@@ -39,9 +39,10 @@ abstract class AssistanceDetailsController(applicationClient: ApplicationClient)
     implicit user =>
       applicationClient.getAssistanceDetails(user.user.userID, user.application.applicationId).map { ad =>
         val form = AssistanceDetailsForm.form.fill(AssistanceDetailsForm.Data(ad))
-        Ok(views.html.application.assistanceDetails(form))
+        Ok(views.html.application.assistanceDetails(form, AssistanceDetailsForm.disabilityCategoriesList))
       }.recover {
-        case e: AssistanceDetailsNotFound => Ok(views.html.application.assistanceDetails(AssistanceDetailsForm.form))
+        case _: AssistanceDetailsNotFound => Ok(views.html.application.assistanceDetails(AssistanceDetailsForm.form,
+          AssistanceDetailsForm.disabilityCategoriesList))
       }
   }
 
@@ -49,7 +50,7 @@ abstract class AssistanceDetailsController(applicationClient: ApplicationClient)
     implicit user =>
       AssistanceDetailsForm.form.bindFromRequest.fold(
         invalidForm =>
-          Future.successful(Ok(views.html.application.assistanceDetails(invalidForm))),
+          Future.successful(Ok(views.html.application.assistanceDetails(invalidForm, AssistanceDetailsForm.disabilityCategoriesList))),
         data => {
           applicationClient.updateAssistanceDetails(user.application.applicationId, user.user.userID,
             data.sanitizeData.exchange).map { _ =>

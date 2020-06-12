@@ -1,0 +1,41 @@
+@*
+ * Copyright 2020 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import helpers.CSRSkinnyFieldConstructor._
+@import models.FieldNameHelpers._
+
+@(field: play.api.data.Field, options: Seq[String], optionTrigger: String, args: (Symbol, Any)*)(implicit messages: Messages)
+<fieldset>
+    <legend><h2 class="form-label">@args.map(x => if(x._1 == '_label) x._2 )</h2></legend>
+    @helper.input(field, args.map { x => if(x._1 == '_label) '_name -> x._2 else x }: _*) { (id, name, value, htmlArgs) =>
+        <div class="form-group" class="@id">
+        @defining(field.indexes.flatMap(i => field("[%s]".format(i)).value).toSet) { values =>
+            @options.map { disabilityCategory =>
+                <div class="disability-container">
+                    <label class="block-label" for="@createId(id, disabilityCategory)" @if(disabilityCategory.toLowerCase == "other"){ data-target="@optionTrigger" } else { target="@optionTrigger" }>
+                        <input type="checkbox" id="@createId(id, disabilityCategory)" name="@{name + "[]"}"
+                        aria-controls="@optionTrigger"
+                        aria-expanded="false"
+                        value="@{disabilityCategory}" @if(values.contains(disabilityCategory)) { checked="checked" }
+                        @toHtmlArgs(htmlArgs) />
+                        @disabilityCategory
+                    </label>
+                </div>
+            }
+        }
+        </div>
+    }
+</fieldset>

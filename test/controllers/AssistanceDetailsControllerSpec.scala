@@ -27,7 +27,7 @@ import models._
 import org.mockito.Matchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.{ SilhouetteComponent, UserCacheService, UserService }
+import security.{ SilhouetteComponent, UserCacheService }
 import testkit.{ BaseControllerSpec, TestableSecureActions }
 
 import scala.concurrent.Future
@@ -114,7 +114,6 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
     }
 
     "update assistance details and redirect to preview if questionnaire is completed" in new TestFixture {
-
       class TestableAssistanceDetailsControllerWithUserInQuestionnaire extends TestableAssistanceDetailsController {
         override val candidateWithApp: CachedDataWithApp = CachedDataWithApp(ActiveCandidate.user,
           CachedDataExample.InProgressInQuestionnaireApplication.copy(userId = ActiveCandidate.user.userID))

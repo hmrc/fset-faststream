@@ -35,7 +35,7 @@
         <h3 class="heading-small">Do you consider yourself to have a disability?</h3>
         <p id="hasDisability">@assistanceDetails.hasDisability</p>
         @if(assistanceDetails.hasDisability) {
-        <p id="hasDisabilityDescription">@assistanceDetails.hasDisabilityDescription</p>
+        <p id="hasDisabilityDescription">@assistanceDetails.otherDisabilityDescription</p>
         @assistanceDetails.guaranteedInterview.map { gis =>
         <h3 class="heading-small">Would you like to apply under the Disability Confident scheme?</h3>
         <p id="guaranteedInterview">
