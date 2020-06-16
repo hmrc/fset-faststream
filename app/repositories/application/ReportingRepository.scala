@@ -92,17 +92,18 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
   override def candidateProgressReport(frameworkId: String): Future[List[CandidateProgressReportItem]] =
     candidateProgressReport(BSONDocument("frameworkId" -> frameworkId))
 
+  // ReportingRepoBSONReader contains the implicit to convert the BSONDocument to the case class
   private def candidateProgressReport(query: BSONDocument): Future[List[CandidateProgressReportItem]] = {
     val projection = BSONDocument(
-      "userId" -> "1",
-      "applicationRoute" -> "1",
-      "personal-details.edipCompleted" -> "1",
-      "scheme-preferences.schemes" -> "1",
-      "assistance-details" -> "1",
-      "civil-service-experience-details" -> "1",
-      "applicationId" -> "1",
-      "progress-status" -> "2",
-      "fsac-indicator.assessmentCentre" -> 1
+      "userId" -> true,
+      "applicationRoute" -> true,
+      "personal-details" -> true,
+      "scheme-preferences.schemes" -> true,
+      "assistance-details" -> true,
+      "civil-service-experience-details" -> true,
+      "applicationId" -> true,
+      "progress-status" -> true,
+      "fsac-indicator.assessmentCentre" -> true
     )
     reportQueryWithProjectionsBSON[CandidateProgressReportItem](query, projection)
   }

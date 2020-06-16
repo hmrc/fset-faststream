@@ -32,8 +32,16 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
 
   "toCandidateProgressReport" should {
     "return sdip candidate correctly" in new CandidateProgressReportFixture {
-      val candidateProgressReportItem = bsonReader.toCandidateProgressReportItem.read(BSONExamples.SubmittedSdipCandidateWithEdipCompleted)
+      val candidateProgressReportItem = bsonReader.toCandidateProgressReportItem.read(
+        BSONExamples.SubmittedSdipCandidateWithEdipAndOtherInternshipCompleted
+      )
       candidateProgressReportItem mustBe CandidateProgressReportItemExamples.SdipCandidate
+    }
+    "return faststream candidate correctly" in new CandidateProgressReportFixture {
+      val candidateProgressReportItem = bsonReader.toCandidateProgressReportItem.read(
+        BSONExamples.SubmittedFsCandidate
+      )
+      candidateProgressReportItem mustBe CandidateProgressReportItemExamples.FaststreamCandidate
     }
   }
 

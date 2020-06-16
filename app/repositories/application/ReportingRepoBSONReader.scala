@@ -22,6 +22,7 @@ import connectors.launchpadgateway.exchangeobjects.in.reviewed.{ ReviewSectionQu
 import model._
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.{ apply => _ }
+import model.CivilServantAndInternshipType.CivilServantAndInternshipType
 import model.CivilServiceExperienceType.{ CivilServiceExperienceType, apply => _ }
 import model.Commands._
 import model.InternshipType.{ InternshipType, apply => _ }
@@ -39,7 +40,7 @@ import repositories.{ BaseBSONReader, CommonBSONDocuments }
 trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
   implicit val toCandidateProgressReportItem: BSONDocumentReader[CandidateProgressReportItem] = bsonReader {
-    (doc: BSONDocument) => {
+    doc: BSONDocument => {
       val schemesDoc = doc.getAs[BSONDocument]("scheme-preferences")
       val schemes = schemesDoc.flatMap(_.getAs[List[SchemeId]]("schemes"))
 
@@ -50,22 +51,22 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val phoneAdjustments = adDoc.flatMap(_.getAs[Boolean]("needsSupportForPhoneInterview")).map(booleanTranslator)
       val gis = adDoc.flatMap(_.getAs[Boolean]("guaranteedInterview")).map(booleanTranslator)
 
-      val fpDoc = doc.getAs[BSONDocument]("civil-service-experience-details")
-      val civilServiceExperienceType = (fpType: CivilServiceExperienceType) => fpDoc.map(
-        _.getAs[CivilServiceExperienceType]("civilServiceExperienceType").contains(fpType)
-      )
-      val internshipTypes = (internshipType: InternshipType) =>
-        fpDoc.map(_.getAs[List[InternshipType]]("internshipTypes").getOrElse(List.empty[InternshipType]).contains(internshipType))
+      val csedDoc = doc.getAs[BSONDocument]("civil-service-experience-details")
 
-      val civilServant = civilServiceExperienceType(CivilServiceExperienceType.CivilServant).map(booleanTranslator)
-      val fastTrack = civilServiceExperienceType(CivilServiceExperienceType.CivilServantViaFastTrack).map(booleanTranslator)
-      val edip = internshipTypes(InternshipType.EDIP).map(booleanTranslator)
-      val sdipPrevious = internshipTypes(InternshipType.SDIPPreviousYear).map(booleanTranslator)
-      val sdip = internshipTypes(InternshipType.SDIPCurrentYear).map(booleanTranslator)
-      val fastPassCertificate = fpDoc.map(_.getAs[String]("certificateNumber").getOrElse("No"))
+      val civilServantAndInternshipTypes = (internshipType: CivilServantAndInternshipType) =>
+        csedDoc.map(_.getAs[List[CivilServantAndInternshipType]]("civilServantAndInternshipTypes")
+          .getOrElse(List.empty[CivilServantAndInternshipType]).contains(internshipType))
+
+      val csedCivilServant = civilServantAndInternshipTypes(CivilServantAndInternshipType.CivilServant).map(booleanTranslator)
+      val csedEdipCompleted = civilServantAndInternshipTypes(CivilServantAndInternshipType.EDIP).map(booleanTranslator)
+      val csedSdip = civilServantAndInternshipTypes(CivilServantAndInternshipType.SDIP).map(booleanTranslator)
+      val csedOtherInternshipCompleted = civilServantAndInternshipTypes(CivilServantAndInternshipType.OtherInternship).map(booleanTranslator)
+
+      val fastPassCertificate = csedDoc.map(_.getAs[String]("certificateNumber").getOrElse("No"))
 
       val pdDoc = doc.getAs[BSONDocument]("personal-details")
       val edipCompleted = pdDoc.flatMap(_.getAs[Boolean]("edipCompleted"))
+      val otherInternshipCompleted = pdDoc.flatMap(_.getAs[Boolean]("otherInternshipCompleted")).map(booleanTranslator)
 
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
       val userId = doc.getAs[String]("userId").getOrElse("")
@@ -73,24 +74,29 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       val progress: ProgressResponse = toProgressResponse(applicationId).read(doc)
 
       val edipReportColumn = applicationRoute match {
-        case ApplicationRoute.Faststream => edip
-        case ApplicationRoute.SdipFaststream => edip
+        case ApplicationRoute.Faststream => csedEdipCompleted
+        case ApplicationRoute.SdipFaststream => edipCompleted.map(booleanTranslator)
         case ApplicationRoute.Edip => None
-        case ApplicationRoute.Sdip => edipCompleted.map(eC => if (eC) "Yes" else "No")
+        case ApplicationRoute.Sdip => edipCompleted.map(booleanTranslator)
         case _ => None
+      }
+
+      val otherInternshipColumn = applicationRoute match {
+        case ApplicationRoute.Faststream => csedOtherInternshipCompleted
+        case _ => otherInternshipCompleted
       }
 
       val fsacIndicatorDoc = doc.getAs[BSONDocument]("fsac-indicator")
       val assessmentCentre = fsacIndicatorDoc.flatMap(_.getAs[String]("assessmentCentre"))
 
       CandidateProgressReportItem(userId, applicationId, Some(ProgressStatusesReportLabels.progressStatusNameInReports(progress)),
-        schemes.getOrElse(Nil), disability, onlineAdjustments, assessmentCentreAdjustments, phoneAdjustments, gis, civilServant,
-        fastTrack, edipReportColumn, sdipPrevious, sdip, fastPassCertificate, assessmentCentre, applicationRoute)
+        schemes.getOrElse(Nil), disability, onlineAdjustments, assessmentCentreAdjustments, phoneAdjustments, gis, csedCivilServant,
+        edipReportColumn, csedSdip, otherInternshipColumn, fastPassCertificate, assessmentCentre, applicationRoute)
     }
   }
 
   implicit val toApplicationForInternshipReport: BSONDocumentReader[ApplicationForInternshipReport] = bsonReader {
-    (doc: BSONDocument) => {
+    doc: BSONDocument => {
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
       val route = doc.getAs[ApplicationRoute.ApplicationRoute]("applicationRoute")
         .getOrElse(throw new Exception(s"Application route not set for $applicationId"))
@@ -134,7 +140,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
   }
 
   implicit val toApplicationForAnalyticalSchemesReport: BSONDocumentReader[ApplicationForAnalyticalSchemesReport] = bsonReader {
-    (doc: BSONDocument) => {
+    doc: BSONDocument => {
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
       val userId = doc.getAs[String]("userId").getOrElse("")
 
@@ -172,7 +178,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
   }
 
   implicit val toApplicationForDiversityReport: BSONDocumentReader[ApplicationForDiversityReport] = bsonReader {
-    (doc: BSONDocument) => {
+    doc: BSONDocument => {
       val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
       val onlineAdjustmentsKey = if(applicationRoute == ApplicationRoute.Edip) { "needsSupportForPhoneInterview" }
         else if (applicationRoute == ApplicationRoute.Sdip) { "needsSupportForPhoneInterview" }
@@ -204,7 +210,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
   }
 
   implicit val toApplicationForOnlineTestPassMarkReport: BSONDocumentReader[ApplicationForOnlineTestPassMarkReport] = bsonReader {
-    (doc: BSONDocument) => {
+    doc: BSONDocument => {
       val userId = doc.getAs[String]("userId").getOrElse("")
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
       val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
@@ -237,7 +243,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
   }
 
   implicit val toApplicationForNumericTestExtractReport: BSONDocumentReader[ApplicationForNumericTestExtractReport] = bsonReader {
-    (doc: BSONDocument) => {
+    doc: BSONDocument => {
       val userId = doc.getAs[String]("userId").getOrElse("")
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
       val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
@@ -281,7 +287,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
   implicit val toApplicationForOnlineActiveTestCountReport: BSONDocumentReader[ApplicationForOnlineActiveTestCountReport]
   = bsonReader {
-    (doc: BSONDocument) => {
+    doc: BSONDocument => {
       val userId = doc.getAs[String]("userId").getOrElse("")
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
       val testGroupsDoc = doc.getAs[BSONDocument]("testGroups")

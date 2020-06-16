@@ -462,21 +462,25 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     val SuccessfulProgressReportResponse = Future.successful(
       List(
         CandidateProgressReportItem("user1", "app1", Some("submitted"),
-          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), Some("Yes"),
-          Some("No"), Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), Some("London"),
-          ApplicationRoute.Faststream),
+          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), disability = Some("Yes"),
+          onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
+          civilServant = Some("No"), edip = Some("No"), sdip = Some("No"), otherInternship = Some("No"),
+          fastPassCertificate = Some("1234567"), assessmentCentre = Some("London"), ApplicationRoute.Faststream),
         CandidateProgressReportItem("user2", "app2", Some("registered"),
-          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), Some("Yes"),
-          Some("No"), Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), None,
-          ApplicationRoute.Faststream),
+          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), disability = Some("Yes"),
+          onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
+          civilServant = Some("No"), edip = Some("No"), sdip = Some("No"), otherInternship = Some("No"),
+          fastPassCertificate = Some("1234567"), assessmentCentre = None, ApplicationRoute.Faststream),
         CandidateProgressReportItem("user3", "app3", Some("submitted"),
-          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), Some("Yes"),
-          Some("No"), Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), None,
-          ApplicationRoute.Edip),
+          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), disability = Some("Yes"),
+          onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
+          civilServant = Some("No"), edip = Some("No"), sdip = Some("No"), otherInternship = Some("No"), fastPassCertificate = Some("1234567"),
+          assessmentCentre = None, ApplicationRoute.Edip),
         CandidateProgressReportItem("user4", "app4", Some("submitted"),
-          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), Some("Yes"), Some("No"),
-          Some("No"), None, Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("No"), Some("1234567"), Some("Newcastle"),
-          ApplicationRoute.Faststream)
+          List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), disability = Some("Yes"),
+          onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
+          civilServant = Some("No"), edip = Some("No"), sdip = Some("No"), otherInternship = Some("No"), fastPassCertificate = Some("1234567"),
+          assessmentCentre = Some("Newcastle"), ApplicationRoute.Faststream)
       )
     )
 
