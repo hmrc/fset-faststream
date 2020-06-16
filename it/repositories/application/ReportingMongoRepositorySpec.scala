@@ -63,11 +63,10 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       val result = repository.candidateProgressReport("FastStream-2016").futureValue
 
       result must not be empty
-      // TODO: this report will have to change: fastTrack, sdipPrevious, sdip
       result.head mustBe CandidateProgressReportItem(userId = userId, applicationId = appId, progress = Some("submitted"),
         schemes = List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")), disability = Some("Yes"),
         onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
-        civilServant = Some("No"), fastTrack = Some("No"), edip = Some("No"), sdipPrevious = Some("No"), sdip = Some("No"),
+        civilServant = Some("Yes"), edip = Some("Yes"), sdip = Some("Yes"), otherInternship = Some("Yes"),
         fastPassCertificate = Some("1234567"), assessmentCentre = None, applicationRoute = ApplicationRoute.Faststream)
     }
 
@@ -81,8 +80,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       result must not be empty
       result.head mustBe CandidateProgressReportItem(userId = userId, applicationId = appId, progress = Some("registered"),
         schemes = List.empty[SchemeId], disability = None, onlineAdjustments = None, assessmentCentreAdjustments = None,
-        phoneAdjustments = None, gis = None, civilServant = None, fastTrack = None, edip = None, sdipPrevious = None,
-        sdip = None, fastPassCertificate = None, assessmentCentre = None, applicationRoute = ApplicationRoute.Faststream)
+        phoneAdjustments = None, gis = None, civilServant = None, edip = None, sdip = None, otherInternship = None,
+        fastPassCertificate = None, assessmentCentre = None, applicationRoute = ApplicationRoute.Faststream)
     }
   }
 

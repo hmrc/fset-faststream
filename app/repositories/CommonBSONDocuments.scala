@@ -80,7 +80,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
 
   // scalastyle:off method.length
   def toProgressResponse(applicationId: String): BSONDocumentReader[ProgressResponse] = bsonReader {
-    (doc: BSONDocument) => {
+    doc: BSONDocument => {
       (doc.getAs[BSONDocument]("progress-status") map { root =>
 
         def getProgress(key: String) = {

@@ -23,9 +23,31 @@ import play.api.libs.json.Json
 case class CandidateProgressReportItem(userId: String, applicationId: String, progress: Option[String], schemes: List[SchemeId],
                                        disability: Option[String], onlineAdjustments: Option[String],
                                        assessmentCentreAdjustments: Option[String], phoneAdjustments: Option[String],
-                                       gis: Option[String], civilServant: Option[String], fastTrack: Option[String], edip: Option[String],
-                                       sdipPrevious: Option[String], sdip: Option[String],
-                                       fastPassCertificate: Option[String], assessmentCentre: Option[String], applicationRoute: ApplicationRoute)
+                                       gis: Option[String],
+                                       civilServant: Option[String],
+                                       edip: Option[String],
+                                       sdip: Option[String],
+                                       otherInternship: Option[String],
+                                       fastPassCertificate: Option[String],
+                                       assessmentCentre: Option[String], applicationRoute: ApplicationRoute) {
+  override def toString =
+    s"userId=$userId," +
+      s"applicationId=$applicationId," +
+      s"progress=$progress," +
+      s"schemes=$schemes," +
+      s"disability=$disability," +
+      s"onlineAdjustments=$onlineAdjustments," +
+      s"assessmentCentreAdjustments=$assessmentCentreAdjustments," +
+      s"phoneAdjustments=$phoneAdjustments," +
+      s"gis=$gis," +
+      s"civilServant=$civilServant," +
+      s"edip=$edip," +
+      s"sdip=$sdip," +
+      s"otherInternship=$otherInternship," +
+      s"fastPassCertificate=$fastPassCertificate," +
+      s"assessmentCentre=$assessmentCentre," +
+      s"applicationRoute=$applicationRoute"
+}
 
 object CandidateProgressReportItem {
   implicit val candidateProgressReportFormat = Json.format[CandidateProgressReportItem]
