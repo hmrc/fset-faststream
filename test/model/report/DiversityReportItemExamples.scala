@@ -30,28 +30,28 @@ object DiversityReportItemExamples {
 
   val OnlyApplication1 =DiversityReportItem(
     ApplicationForDiversityReportItemExamples.Example1,
-    None,
-    None)
+    questionnaire = None,
+    media = None)
   val OnlyApplication2 =DiversityReportItem(
     ApplicationForDiversityReportItemExamples.Example2,
-    None,
-    None)
+    questionnaire = None,
+    media = None)
 
   val OnlyApplicationAndQuestionnaire1 =DiversityReportItem(
     ApplicationForDiversityReportItemExamples.Example1,
     Some(QuestionnaireReportItemExamples.NoParentOccupation1),
-    None)
+    media = None)
   val OnlyApplicationAndQuestionnaire2 =DiversityReportItem(
     ApplicationForDiversityReportItemExamples.Example2,
     Some(QuestionnaireReportItemExamples.NoParentOccupation2),
-    None)
+    media = None)
 
   val OnlyApplicationAndMedia1 =DiversityReportItem(
     ApplicationForDiversityReportItemExamples.Example1,
-    None,
+    questionnaire = None,
     Some(MediaReportItemExamples.Example1))
   val OnlyApplicationAndMedia2 =DiversityReportItem(
     ApplicationForDiversityReportItemExamples.Example2,
-    None,
+    questionnaire = None,
     Some(MediaReportItemExamples.Example2))
 }

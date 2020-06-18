@@ -17,11 +17,12 @@
 package repositories.application
 
 import factories.DateTimeFactoryMock
-import model.ApplicationRoute.{apply => _}
-import model.BSONExamples
-import model.ProgressStatuses.{PHASE1_TESTS_PASSED => _, SUBMITTED => _}
-import model.report.{CandidateProgressReportItemExamples, VideoInterviewQuestionTestResult, VideoInterviewTestResult}
-import reactivemongo.bson.{BSONArray, BSONDateTime, BSONDocument}
+import model.ApplicationRoute.{ apply => _ }
+import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _ }
+import model.persisted.{ ApplicationForDiversityReport, CivilServiceExperienceDetailsForDiversityReport, SchemeEvaluationResult }
+import model.report._
+import model.{ ApplicationRoute, BSONExamples, SchemeId }
+import reactivemongo.bson.{ BSONArray, BSONDateTime, BSONDocument }
 import testkit.UnitWithAppSpec
 
 class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
@@ -31,17 +32,67 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
   }
 
   "toCandidateProgressReport" should {
-    "return sdip candidate correctly" in new CandidateProgressReportFixture {
+    "return sdip candidate correctly" in {
       val candidateProgressReportItem = bsonReader.toCandidateProgressReportItem.read(
         BSONExamples.SubmittedSdipCandidateWithEdipAndOtherInternshipCompleted
       )
       candidateProgressReportItem mustBe CandidateProgressReportItemExamples.SdipCandidate
     }
-    "return faststream candidate correctly" in new CandidateProgressReportFixture {
+    "return faststream candidate correctly" in {
       val candidateProgressReportItem = bsonReader.toCandidateProgressReportItem.read(
         BSONExamples.SubmittedFsCandidate
       )
       candidateProgressReportItem mustBe CandidateProgressReportItemExamples.FaststreamCandidate
+    }
+  }
+
+  "toDiversityReport" should {
+    "return sdip candidate correctly" in {
+      val applicationForDiversityReport = bsonReader.toApplicationForDiversityReport.read(
+        BSONExamples.SubmittedSdipCandidateWithEdipAndOtherInternshipCompleted
+      )
+
+      val expected = ApplicationForDiversityReport(
+        applicationId = "a665043b-8317-4d28-bdf6-086859ac17ff",
+        userId = "459b5e72-e004-48ff-9f00-adbddf59d9c4",
+        ApplicationRoute.Sdip,
+        progress = Some("submitted"),
+        schemes = List(SchemeId("Sdip")),
+        disability = Some("Yes"), gis = Some(false), onlineAdjustments = Some("Yes"),
+        assessmentCentreAdjustments = Some("Yes"),
+        civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
+          isCivilServant = Some("Yes"), isEDIP = Some("Yes"), edipYear = Some("2019"), isSDIP = Some("No"), sdipYear = None,
+          otherInternship = Some("Yes"), otherInternshipName = Some("Other internship name"), otherInternshipYear = Some("2020"),
+          fastPassCertificate = Some("No")
+        )),
+        currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("Sdip"),"Green"))
+      )
+
+      applicationForDiversityReport mustBe expected
+    }
+
+    "return faststream candidate correctly" in {
+      val applicationForDiversityReport = bsonReader.toApplicationForDiversityReport.read(
+        BSONExamples.SubmittedFsCandidate
+      )
+
+      val expected = ApplicationForDiversityReport(
+        applicationId = "a665043b-8317-4d28-bdf6-086859ac17ff",
+        userId = "459b5e72-e004-48ff-9f00-adbddf59d9c4",
+        ApplicationRoute.Faststream,
+        progress = Some("submitted"),
+        schemes = List(SchemeId("Commercial")),
+        disability = Some("Yes"), gis = Some(false), onlineAdjustments = Some("No"),
+        assessmentCentreAdjustments = Some("Yes"),
+        civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
+          isCivilServant = Some("Yes"), isEDIP = Some("Yes"), edipYear = Some("2018"), isSDIP = Some("Yes"), sdipYear = Some("2019"),
+          otherInternship = Some("Yes"), otherInternshipName = Some("Other internship name"), otherInternshipYear = Some("2020"),
+          fastPassCertificate = Some("1234567")
+        )),
+        currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("Commercial"),"Green"))
+      )
+
+      applicationForDiversityReport mustBe expected
     }
   }
 
@@ -82,7 +133,6 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
       VideoInterviewQuestionTestResult(Some(1.0), Some(1.5)),
       baseTotalOverall
     )
-
 
     //scalastyle:off method.length
     // overall should be 38 + score
@@ -177,7 +227,6 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
           "score" -> 1.5
         )
       ))
-
     //scalastyle:on method.length
 
     def oneReviewedOneReviewerReviewedBSONDoc(score: Double) = BSONArray(
@@ -287,9 +336,7 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
           )
         )
       )
-    )
-
-    //scalastyle:off method.length
+    ) //scalastyle:on method.length
 
     def testsBSONDoc(reviewed: BSONArray) = BSONDocument("tests" ->
       BSONArray(BSONDocument(
@@ -321,8 +368,4 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
       score4: Double, score5: Double, score6: Double) = BSONDocument("PHASE3" ->
       testsBSONDoc(threeReviewedTwoReviewerReviewedBSONDoc(score1, score2, score3, score4, score5, score6)))
   }
-
-  trait CandidateProgressReportFixture {
-  }
-
 }

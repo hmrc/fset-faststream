@@ -21,23 +21,30 @@ import play.api.libs.json.Json
 
 case class CivilServiceExperienceDetailsReportItem(
                                                     isCivilServant: Option[String],
-                                                    isFastTrack: Option[String],
                                                     isEDIP: Option[String],
+                                                    edipYear: Option[String],
                                                     isSDIP: Option[String],
-                                                    isEligibleForFastPass: Option[String],
-                                                    fastPassCertificate: Option[String])
+                                                    sdipYear: Option[String],
+                                                    otherInternship: Option[String],
+                                                    otherInternshipName: Option[String],
+                                                    otherInternshipYear: Option[String],
+                                                    fastPassCertificate: Option[String]
+                                                  )
 
 object CivilServiceExperienceDetailsReportItem {
   implicit val civilServiceExperienceDetailsReportItemFormat = Json.format[CivilServiceExperienceDetailsReportItem]
 
-  // If you add a custom apply() to a case class companion object then Json.reads and Json.writes fail
-  def create(civilServiceExperience: CivilServiceExperienceDetailsForDiversityReport): CivilServiceExperienceDetailsReportItem = {
+  def apply(civilServiceExperience: CivilServiceExperienceDetailsForDiversityReport): CivilServiceExperienceDetailsReportItem = {
     CivilServiceExperienceDetailsReportItem(
       isCivilServant = civilServiceExperience.isCivilServant,
-      isFastTrack = civilServiceExperience.isFastTrack,
       isEDIP = civilServiceExperience.isEDIP,
+      edipYear = civilServiceExperience.edipYear,
       isSDIP = civilServiceExperience.isSDIP,
-      isEligibleForFastPass = civilServiceExperience.isEligibleForFastPass,
-      fastPassCertificate = civilServiceExperience.fastPassCertificate)
+      sdipYear = civilServiceExperience.sdipYear,
+      otherInternship = civilServiceExperience.otherInternship,
+      otherInternshipName = civilServiceExperience.otherInternshipName,
+      otherInternshipYear = civilServiceExperience.otherInternshipYear,
+      fastPassCertificate = civilServiceExperience.fastPassCertificate
+    )
   }
 }

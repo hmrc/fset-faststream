@@ -47,7 +47,7 @@ object ApplicationForDiversityReportItem {
       onlineAdjustments = a.onlineAdjustments,
       assessmentCentreAdjustments = a.assessmentCentreAdjustments,
       civilServiceExperiencesDetails = a.civilServiceExperiencesDetails.map { c =>
-        CivilServiceExperienceDetailsReportItem.create(c)
+        CivilServiceExperienceDetailsReportItem(c)
       },
       currentSchemeStatus = a.currentSchemeStatus
     )

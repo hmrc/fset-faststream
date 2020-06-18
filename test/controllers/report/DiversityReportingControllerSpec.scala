@@ -49,7 +49,7 @@ class DiversityReportingControllerSpec extends UnitWithAppSpec {
       result mustBe empty
     }
 
-    "return applications with no questionnaries and no media when no questionnaires and no media" in new DiversityReportTestFixture {
+    "return applications with no questionnaires and no media when no questionnaires and no media" in new DiversityReportTestFixture {
       when(mockReportRepository.diversityReport(any())).thenReturnAsync(applications)
 
       val response = controller.diversityReport(frameworkId)(request).run

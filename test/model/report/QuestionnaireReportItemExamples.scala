@@ -19,16 +19,21 @@ package model.report
 import scala.util.Random
 
 object QuestionnaireReportItemExamples {
-  val NoParentOccupation1 = QuestionnaireReportItem(Some("Male"), Some("Heterosexual/straight"), Some("Irish"),
-      None, None, None, None, Some("No"), "SE-1", Some("W76-WIN"))
-  val NoParentOccupation2 = QuestionnaireReportItem(Some("Female"), Some("Bisexual"), Some("Other White background"),
-      None, None, None, None, Some("No"), "SE-2", Some("O33-OXF"))
+  val NoParentOccupation1 = QuestionnaireReportItem(gender = Some("Male"), sexualOrientation = Some("Heterosexual/straight"),
+    ethnicity = Some("Irish"), isEnglishYourFirstLanguage = Some("Yes"), parentEmploymentStatus = None, parentOccupation = None,
+    parentEmployedOrSelf = None, parentCompanySize = None, lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SE-1",
+    university = Some("W76-WIN"))
+  val NoParentOccupation2 = QuestionnaireReportItem(gender = Some("Female"), sexualOrientation = Some("Bisexual"),
+    ethnicity = Some("Other White background"), isEnglishYourFirstLanguage = Some("Yes"), parentEmploymentStatus = None, parentOccupation = None,
+    parentEmployedOrSelf = None, parentCompanySize = None, lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SE-2",
+    university = Some("O33-OXF"))
 
   val questionnaire1 = newQuestionnaire
   val questionnaire2 = newQuestionnaire
 
   def newQuestionnaire =
     QuestionnaireReportItem(someRnd("Gender"), someRnd("Orientation"), someRnd("Ethnicity"),
+      isEnglishYourFirstLanguage = Some("Yes"),
       someRnd("EmploymentStatus"), someRnd("Occupation"), someRnd("(Self)Employed"), someRnd("CompanySize"),
       someRnd("SocioEconomicBackground"), rnd("SES"), someRnd("university"))
 

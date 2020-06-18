@@ -68,7 +68,7 @@ object BSONExamples {
         "eligible" -> true
       ),
       "assistance-details" -> BSONDocument(
-        "hasDisability" -> "No",
+        "hasDisability" -> "Yes",
         "needsSupportForPhoneInterviewDescription" -> "I need good headphones",
         "needsSupportForPhoneInterview" -> true,
         "needsSupportAtVenueDescription" -> "I need a comfortable chair because of my back problem",
@@ -129,7 +129,7 @@ object BSONExamples {
         "eligible" -> true
       ),
       "assistance-details" -> BSONDocument(
-        "hasDisability" -> "No",
+        "hasDisability" -> "Yes",
         "needsSupportForPhoneInterviewDescription" -> "I need good headphones",
         "needsSupportForPhoneInterview" -> true,
         "needsSupportAtVenueDescription" -> "I need a comfortable chair because of my back problem",

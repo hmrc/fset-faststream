@@ -164,7 +164,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     reportQueryWithProjectionsBSON[ApplicationForAnalyticalSchemesReport](query, projection)
   }
 
-  override def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReport]] = {
+  def diversityReportOrig(frameworkId: String): Future[List[ApplicationForDiversityReport]] = {
     val query = BSONDocument("frameworkId" -> frameworkId)
     val projection = BSONDocument(
       "userId" -> "1",
@@ -175,6 +175,22 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
       "applicationId" -> "1",
       "progress-status" -> "2",
       "currentSchemeStatus" -> "1"
+    )
+    reportQueryWithProjectionsBSON[ApplicationForDiversityReport](query, projection)
+  }
+
+  override def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReport]] = {
+    val query = BSONDocument("frameworkId" -> frameworkId)
+    val projection = BSONDocument(
+      "userId" -> true,
+      "applicationRoute" -> true,
+      "scheme-preferences.schemes" -> true,
+      "assistance-details" -> true,
+      "civil-service-experience-details" -> true,
+      "personal-details" -> true,
+      "applicationId" -> true,
+      "progress-status" -> true,
+      "currentSchemeStatus" -> true
     )
     reportQueryWithProjectionsBSON[ApplicationForDiversityReport](query, projection)
   }

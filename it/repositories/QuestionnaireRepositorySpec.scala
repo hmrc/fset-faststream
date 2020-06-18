@@ -70,14 +70,16 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
 
       report mustBe Map(
         applicationId1 -> QuestionnaireReportItem(
-          Some("Male"), Some("Straight"), Some("Black"), Some("Unemployed"), None, None,
-          None, None, "SES Score", Some("W01-USW")),
+          gender = Some("Male"), sexualOrientation = Some("Straight"), ethnicity = Some("Black"), isEnglishYourFirstLanguage = Some("Yes"),
+          parentEmploymentStatus = Some("Unemployed"), parentOccupation = None, parentEmployedOrSelf = None,
+          parentCompanySize = None, lowerSocioEconomicBackground = None, socioEconomicScore = "SES Score", university = Some("W01-USW")),
         applicationId2 -> QuestionnaireReportItem(
-          Some("Female"), Some("Lesbian"), Some("White"), Some("Employed"), Some("Modern professional"), Some("Part-time employed"),
-          Some("Large (26-500)"), Some("No"), "SES Score", Some("W17-WARR"))
+          gender = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
+          parentEmploymentStatus = Some("Employed"), parentOccupation = Some("Modern professional"),
+          parentEmployedOrSelf = Some("Part-time employed"), parentCompanySize = Some("Large (26-500)"),
+          lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SES Score", university = Some("W17-WARR"))
       )
     }
-
     "calculate the socioeconomic score for the pass mark report" in new TestFixture {
       when(socioEconomicCalculator.calculate(any())).thenReturn("SES Score")
       submitQuestionnaire()
@@ -88,6 +90,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
         "What is your gender identity?" -> "Male",
         "What is your sexual orientation?" -> "Straight",
         "What is your ethnic group?" -> "Black",
+        "Is English your first language?" -> "Yes",
         "What is the name of the university you received your degree from?" -> "W01-USW",
         "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Unemployed",
         "Do you consider yourself to come from a lower socio-economic background?" -> "Unknown"
@@ -99,17 +102,23 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       submitQuestionnaires()
 
       val report = questionnaireRepo.findAllForDiversityReport.futureValue
-
       report mustBe Map(
         applicationId1 -> QuestionnaireReportItem(
-          Some("Male"), Some("Straight"), Some("Black"), Some("Unemployed"), None, None,
-          None, None, "SES Score", Some("W01-USW")),
+          gender = Some("Male"), sexualOrientation = Some("Straight"), ethnicity = Some("Black"), isEnglishYourFirstLanguage = Some("Yes"),
+          parentEmploymentStatus = Some("Unemployed"), parentOccupation = None, parentEmployedOrSelf = None, parentCompanySize = None,
+          lowerSocioEconomicBackground = None, socioEconomicScore = "SES Score", university = Some("W01-USW")
+        ),
         applicationId2 -> QuestionnaireReportItem(
-          Some("Female"), Some("Lesbian"), Some("White"), Some("Employed"), Some("Modern professional"), Some("Part-time employed"),
-          Some("Large (26-500)"), Some("No"), "SES Score", Some("W17-WARR")),
+          gender = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
+          parentEmploymentStatus = Some("Employed"), parentOccupation = Some("Modern professional"),
+          parentEmployedOrSelf = Some("Part-time employed"), parentCompanySize = Some("Large (26-500)"),
+          lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SES Score", university = Some("W17-WARR")
+        ),
         applicationId3 -> QuestionnaireReportItem(
-          Some("Female"), Some("Lesbian"), Some("White"), None, None, None, None,
-          None, "", None)
+          gender = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
+          parentEmploymentStatus = None, parentOccupation = None, parentEmployedOrSelf = None, parentCompanySize = None,
+          lowerSocioEconomicBackground = None, socioEconomicScore = "", university = None
+        )
       )
     }
   }
@@ -122,6 +131,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       QuestionnaireQuestion("What is your gender identity?", QuestionnaireAnswer(Some("Male"), None, None)),
       QuestionnaireQuestion("What is your sexual orientation?", QuestionnaireAnswer(Some("Straight"), None, None)),
       QuestionnaireQuestion("What is your ethnic group?", QuestionnaireAnswer(Some("Black"), None, None)),
+      QuestionnaireQuestion("Is English your first language?", QuestionnaireAnswer(Some("Yes"), None, None)),
       QuestionnaireQuestion("What is the name of the university you received your degree from?",
         QuestionnaireAnswer(Some("W01-USW"), None, None)),
       QuestionnaireQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
@@ -133,6 +143,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       QuestionnaireQuestion("What is your gender identity?", QuestionnaireAnswer(Some("Female"), None, None)),
       QuestionnaireQuestion("What is your sexual orientation?", QuestionnaireAnswer(Some("Lesbian"), None, None)),
       QuestionnaireQuestion("What is your ethnic group?", QuestionnaireAnswer(Some("White"), None, None)),
+      QuestionnaireQuestion("Is English your first language?", QuestionnaireAnswer(Some("Yes"), None, None)),
       QuestionnaireQuestion("What is the name of the university you received your degree from?",
         QuestionnaireAnswer(Some("W17-WARR"), None, None)),
       QuestionnaireQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
@@ -146,7 +157,8 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
     val partiallyCompleteQuestionnaire = List(
       QuestionnaireQuestion("What is your gender identity?", QuestionnaireAnswer(Some("Female"), None, None)),
       QuestionnaireQuestion("What is your sexual orientation?", QuestionnaireAnswer(Some("Lesbian"), None, None)),
-      QuestionnaireQuestion("What is your ethnic group?", QuestionnaireAnswer(Some("White"), None, None))
+      QuestionnaireQuestion("What is your ethnic group?", QuestionnaireAnswer(Some("White"), None, None)),
+      QuestionnaireQuestion("Is English your first language?", QuestionnaireAnswer(Some("Yes"), None, None))
     )
 
     val socioEconomicCalculator = mock[SocioEconomicScoreCalculator]

@@ -122,8 +122,9 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
           schemes = List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")),
           disability = Some("Yes"), gis = Some(true), onlineAdjustments = Some("Yes"), assessmentCentreAdjustments = Some("No"),
           civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
-            isCivilServant = Some("No"), isFastTrack = Some("No"), isEDIP = Some("No"), isSDIP = Some("No"),
-            isEligibleForFastPass = Some("No"), fastPassCertificate = Some("1234567")) //TODO: should be eligible for fast pass
+            isCivilServant = Some("Yes"), isEDIP = Some("Yes"), edipYear = Some("2018"), isSDIP = Some("Yes"), sdipYear = Some("2019"),
+            otherInternship = Some("Yes"), otherInternshipName = Some("other"), otherInternshipYear = Some("2020"),
+            fastPassCertificate = Some("1234567"))
           ),
           currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("DiplomaticService"), EvaluationResults.Green.toString),
             SchemeEvaluationResult(SchemeId("GovernmentOperationalResearchService"), EvaluationResults.Green.toString))
@@ -133,8 +134,9 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
           schemes = List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")),
           disability = Some("Yes"), gis = Some(false), onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("No"),
           civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
-            isCivilServant = Some("No"), isFastTrack = Some("No"), isEDIP = Some("No"), isSDIP = Some("No"),
-            isEligibleForFastPass = Some("No"), fastPassCertificate = Some("1234567")) //TODO: should be eligible for fast pass
+            isCivilServant = Some("Yes"), isEDIP = Some("Yes"), edipYear = Some("2018"), isSDIP = Some("Yes"), sdipYear = Some("2019"),
+            otherInternship = Some("Yes"), otherInternshipName = Some("other"), otherInternshipYear = Some("2020"),
+            fastPassCertificate = Some("1234567"))
           ),
           currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("DiplomaticService"), EvaluationResults.Green.toString),
             SchemeEvaluationResult(SchemeId("GovernmentOperationalResearchService"), EvaluationResults.Green.toString))
@@ -144,8 +146,9 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
           schemes = List(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService")),
           disability = Some("Yes"), gis = Some(false), onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("Yes"),
           civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
-            isCivilServant = Some("No"), isFastTrack = Some("No"), isEDIP = Some("No"), isSDIP = Some("No"),
-            isEligibleForFastPass = Some("No"), fastPassCertificate = Some("1234567")) //TODO: should be eligible for fast pass
+            isCivilServant = Some("Yes"), isEDIP = Some("Yes"), edipYear = Some("2018"), isSDIP = Some("Yes"), sdipYear = Some("2019"),
+            otherInternship = Some("Yes"), otherInternshipName = Some("other"), otherInternshipYear = Some("2020"),
+            fastPassCertificate = Some("1234567"))
           ),
           currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("DiplomaticService"), EvaluationResults.Green.toString),
             SchemeEvaluationResult(SchemeId("GovernmentOperationalResearchService"), EvaluationResults.Green.toString))
