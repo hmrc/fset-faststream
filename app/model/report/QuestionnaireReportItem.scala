@@ -22,6 +22,7 @@ case class QuestionnaireReportItem(
                                     gender: Option[String],
                                     sexualOrientation: Option[String],
                                     ethnicity: Option[String],
+                                    isEnglishYourFirstLanguage: Option[String],
                                     parentEmploymentStatus: Option[String],
                                     parentOccupation: Option[String],
                                     parentEmployedOrSelf: Option[String],

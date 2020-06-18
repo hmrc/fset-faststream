@@ -27,7 +27,6 @@ object SocioEconomicCalculator extends SocioEconomicScoreCalculator {
   val ManagersSmallOrganisations = 5
   val Supervisors = 6
   val OtherEmployees = 7
-
 }
 
 trait SocioEconomicScoreCalculator extends Calculable {

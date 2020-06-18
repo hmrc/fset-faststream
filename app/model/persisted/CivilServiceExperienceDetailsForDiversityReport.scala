@@ -20,10 +20,13 @@ import play.api.libs.json.Json
 
 case class CivilServiceExperienceDetailsForDiversityReport(
                                                             isCivilServant: Option[String],
-                                                            isFastTrack: Option[String],
                                                             isEDIP: Option[String],
+                                                            edipYear: Option[String],
                                                             isSDIP: Option[String],
-                                                            isEligibleForFastPass: Option[String],
+                                                            sdipYear: Option[String],
+                                                            otherInternship: Option[String],
+                                                            otherInternshipName: Option[String],
+                                                            otherInternshipYear: Option[String],
                                                             fastPassCertificate: Option[String])
 
 object CivilServiceExperienceDetailsForDiversityReport {
