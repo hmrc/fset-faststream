@@ -789,9 +789,10 @@ trait ReportingController extends BaseController {
         sift = siftResults.find(_.applicationId == application.applicationId)
         q <- questionnaires.get(application.applicationId)
         fsb <- fsbScoresAndFeedback.get(application.applicationId)
-      } yield OnlineTestPassMarkReportItem(
-        ApplicationForOnlineTestPassMarkReportItem.create(application, fsac, overallFsacScoreOpt, sift, fsb), q
-      )
+      } yield
+        OnlineTestPassMarkReportItem(
+          ApplicationForOnlineTestPassMarkReportItem(application, fsac, overallFsacScoreOpt, sift, fsb), q
+        )
     }
   }
 

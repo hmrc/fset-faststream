@@ -268,12 +268,8 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
       BSONDocument("applicationRoute" -> BSONDocument("$in" ->
         Seq(ApplicationRoute.Edip.toString, ApplicationRoute.Sdip.toString, ApplicationRoute.SdipFaststream.toString))
       ),
-      BSONDocument(
-        "$or" -> BSONArray(
-          BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true),
-          BSONDocument(s"progress-status.${ProgressStatuses.FAST_PASS_ACCEPTED}" -> true)
-        )
-      )))
+      BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true)
+   ))
 
     commonOnlineTestPassMarkReport(query)
   }
@@ -289,17 +285,17 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
 
   private def commonOnlineTestPassMarkReport(query: BSONDocument): Future[List[ApplicationForOnlineTestPassMarkReport]] = {
     val projection = BSONDocument(
-      "userId" -> "1",
-      "applicationId" -> "1",
-      "applicationRoute" -> "1",
-      "scheme-preferences.schemes" -> "1",
-      "assistance-details" -> "1",
-      "testGroups.PHASE1" -> "1",
-      "testGroups.PHASE2" -> "1",
-      "testGroups.PHASE3.tests.callbacks.reviewed" -> 1,
-      "testGroups.SIFT_PHASE" -> "1",
-      "progress-status" -> "1",
-      "currentSchemeStatus" -> "1"
+      "userId" -> true,
+      "applicationId" -> true,
+      "applicationRoute" -> true,
+      "scheme-preferences.schemes" -> true,
+      "assistance-details" -> true,
+      "testGroups.PHASE1" -> true,
+      "testGroups.PHASE2" -> true,
+      "testGroups.PHASE3.tests.callbacks.reviewed" -> true,
+      "testGroups.SIFT_PHASE" -> true,
+      "progress-status" -> true,
+      "currentSchemeStatus" -> true
     )
 
     reportQueryWithProjectionsBSON[ApplicationForOnlineTestPassMarkReport](query, projection)

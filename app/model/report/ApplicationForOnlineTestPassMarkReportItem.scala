@@ -38,12 +38,11 @@ object ApplicationForOnlineTestPassMarkReportItem {
   implicit val applicationForOnlineTestReportItemFormat: OFormat[ApplicationForOnlineTestPassMarkReportItem] =
     Json.format[ApplicationForOnlineTestPassMarkReportItem]
 
-  // If you add a custom apply() to a case class companion object then Json.reads and Json.writes fail
-  def create(a: ApplicationForOnlineTestPassMarkReport,
-             fsacResults: Option[AssessmentScoresAllExercises],
-             overallScoreOpt: Option[Double],
-             siftResults: Option[SiftPhaseReportItem],
-             fsbScoresAndFeedback: Option[ScoresAndFeedback]): ApplicationForOnlineTestPassMarkReportItem = {
+  def apply(a: ApplicationForOnlineTestPassMarkReport,
+           fsacResults: Option[AssessmentScoresAllExercises],
+           overallScoreOpt: Option[Double],
+           siftResults: Option[SiftPhaseReportItem],
+           fsbScoresAndFeedback: Option[ScoresAndFeedback]): ApplicationForOnlineTestPassMarkReportItem = {
 
     ApplicationForOnlineTestPassMarkReportItem(
       progress = a.progress,
