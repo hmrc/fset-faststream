@@ -87,7 +87,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
       finalResult mustBe a[Seq[_]]
 
-      finalResult.size must be(3)
+      finalResult.size mustBe 3
       val headValue = finalResult.head
       (headValue \ "email").asOpt[String] mustBe Some("joe@bloggs.com")
     }
@@ -101,7 +101,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       val finalResult = contentAsJson(result).as[JsArray].value
 
       finalResult mustBe a[Seq[_]]
-      finalResult.size must be(3)
+      finalResult.size mustBe 3
 
       val headValue = finalResult.head
       (headValue \ "email").asOpt[String] mustBe None
@@ -445,17 +445,44 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
     val SuccessfulAdjustmentReportResponse = Future.successful(
       List(
-        AdjustmentReportItem("1", Some("11"), Some("John"), Some("Smith"), Some("Spiderman"), None, None, Some("Yes"),
-          Some(ApplicationStatus.SUBMITTED), Some("Need help for online tests"), Some("Need help at the venue"),
-          Some("Yes"), Some("A wooden leg"),
-          Some(Adjustments(Some(List("etrayTimeExtension")), Some(true), Some(AdjustmentDetail(Some(55), None, None)), None)), None),
-        AdjustmentReportItem("2", Some("22"), Some("Jones"), Some("Batman"), None, None, None, None,
-          Some(ApplicationStatus.PHASE1_TESTS), None, Some("Need help at the venue"), None, None,
-          Some(Adjustments(Some(List("etrayTimeExtension")), Some(true), Some(AdjustmentDetail(Some(55), None, None)), None)), None),
-        AdjustmentReportItem("3", Some("33"), Some("Kathrine"), Some("Jones"), Some("Supergirl"), None, None, None,
-          Some(ApplicationStatus.PHASE1_TESTS_PASSED), Some("Need help for online tests"), None,
-          Some("Yes"), Some("A glass eye"),
-          Some(Adjustments(Some(List("etrayTimeExtension")), Some(true), Some(AdjustmentDetail(Some(55), None, None)), None)), None)
+        AdjustmentReportItem(userId = "1", applicationId = Some("11"), firstName = Some("John"), lastName = Some("Smith"),
+          preferredName = Some("Spiderman"), email = None, telephone = None, gis = Some("Yes"),
+          disabilityCategories = None,
+          otherDisabilityDescription = None,
+          applicationStatus = Some(ApplicationStatus.SUBMITTED), needsSupportForOnlineAssessmentDescription = Some("Need help for online tests"),
+          needsSupportAtVenueDescription = Some("Need help at the venue"),
+          hasDisability = Some("Yes"), hasDisabilityDescription = Some("A wooden leg"),
+          adjustments = Some(Adjustments(
+            adjustments = Some(List("etrayTimeExtension")), adjustmentsConfirmed = Some(true),
+            etray = Some(AdjustmentDetail(timeNeeded = Some(55))), video = None)
+          ),
+          adjustmentsComment = None
+        ),
+        AdjustmentReportItem(userId = "2", applicationId = Some("22"), firstName = Some("Jones"), lastName = Some("Batman"),
+          preferredName = None,email =  None, telephone = None, gis = None,
+          disabilityCategories = None,
+          otherDisabilityDescription = None,
+          applicationStatus = Some(ApplicationStatus.PHASE1_TESTS), needsSupportForOnlineAssessmentDescription = None,
+          needsSupportAtVenueDescription = Some("Need help at the venue"), hasDisability = None, hasDisabilityDescription = None,
+          adjustments = Some(Adjustments(
+            adjustments = Some(List("etrayTimeExtension")), adjustmentsConfirmed = Some(true),
+            etray = Some(AdjustmentDetail(timeNeeded = Some(55))), video = None)
+          ),
+          adjustmentsComment = None
+        ),
+        AdjustmentReportItem(userId = "3", applicationId = Some("33"), firstName = Some("Kathrine"), lastName = Some("Jones"),
+          preferredName = Some("Supergirl"), email = None, telephone = None, gis = None,
+          disabilityCategories = None,
+          otherDisabilityDescription = None,
+          applicationStatus = Some(ApplicationStatus.PHASE1_TESTS_PASSED),
+          needsSupportForOnlineAssessmentDescription = Some("Need help for online tests"), needsSupportAtVenueDescription = None,
+          hasDisability = Some("Yes"), hasDisabilityDescription = Some("A glass eye"),
+          adjustments = Some(Adjustments(
+            adjustments = Some(List("etrayTimeExtension")), adjustmentsConfirmed = Some(true),
+            etray = Some(AdjustmentDetail(timeNeeded = Some(55))), video = None)
+          ),
+          adjustmentsComment = None
+        )
       )
     )
 
