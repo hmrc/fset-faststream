@@ -357,23 +357,14 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     )
 
     val projection = BSONDocument(
-      "userId" -> "1",
-      "applicationStatus" -> "1",
-      "progress-status" -> "1",
-      "applicationId" -> "1",
-      "personal-details.firstName" -> "1",
-      "personal-details.lastName" -> "1",
-      "personal-details.preferredName" -> "1",
-      "assistance-details.hasDisability" -> "1",
-      "assistance-details.needsSupportAtVenueDescription" -> "1",
-      "assistance-details.needsSupportForOnlineAssessmentDescription" -> "1",
-      "assistance-details.guaranteedInterview" -> "1",
-      "assistance-details.hasDisabilityDescription" -> "1",
-      "assistance-details.typeOfAdjustments" -> "1",
-      "assistance-details.etray" -> "1",
-      "assistance-details.video" -> "1",
-      "assistance-details.adjustmentsConfirmed" -> "1",
-      "assistance-details.adjustmentsComment" -> "1"
+      "userId" -> true,
+      "applicationStatus" -> true,
+      "progress-status" -> true,
+      "applicationId" -> true,
+      "personal-details.firstName" -> true,
+      "personal-details.lastName" -> true,
+      "personal-details.preferredName" -> true,
+      "assistance-details" -> true
     )
 
     reportQueryWithProjections[BSONDocument](query, projection).map { list =>
@@ -390,6 +381,8 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
 
         val assistance = document.getAs[BSONDocument]("assistance-details")
         val gis = assistance.flatMap(_.getAs[Boolean]("guaranteedInterview")).flatMap(b => Some(booleanTranslator(b)))
+        val disabilityCategories = assistance.flatMap(_.getAs[List[String]]("disabilityCategories"))
+        val otherDisabilityDescription = assistance.flatMap(_.getAs[String]("otherDisabilityDescription"))
         val needsSupportForOnlineAssessmentDescription = extract("needsSupportForOnlineAssessmentDescription")(assistance)
         val needsSupportAtVenueDescription = extract("needsSupportAtVenueDescription")(assistance)
         val hasDisability = extract("hasDisability")(assistance)
@@ -405,21 +398,10 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
         }
 
         AdjustmentReportItem(
-          userId,
-          applicationId,
-          firstName,
-          lastName,
-          preferredName,
-          None,
-          None,
-          gis,
-          latestProgressStatus,
-          needsSupportForOnlineAssessmentDescription,
-          needsSupportAtVenueDescription,
-          hasDisability,
-          hasDisabilityDescription,
-          adjustments,
-          adjustmentsComment)
+          userId, applicationId, firstName, lastName, preferredName, email = None, telephone = None, gis,
+          disabilityCategories, otherDisabilityDescription, latestProgressStatus, needsSupportForOnlineAssessmentDescription,
+          needsSupportAtVenueDescription, hasDisability, hasDisabilityDescription, adjustments, adjustmentsComment
+        )
       }
     }
   }
