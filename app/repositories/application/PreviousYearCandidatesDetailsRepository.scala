@@ -83,8 +83,11 @@ trait PreviousYearCandidatesDetailsRepository {
   }
 
   def dataAnalystApplicationDetailsHeader(numOfSchemes: Int) =
-    "ApplicationId,Application status,Route,All FS schemes failed SDIP not failed,Currently Civil Servant,Currently Civil Service via Fast Track,Eligible for Fast Pass," +
-    "Fast Pass No,Scheme preferences,Do you have a disability," +
+    "ApplicationId,Application status,Route,All FS schemes failed SDIP not failed," +
+    "Civil servant,EDIP,EDIP year,SDIP,SDIP year,Other internship,Other internship name,Other internship year,Fast Pass No," +
+    "Scheme preferences," +
+    "Do you have a disability,Disability impact,Deaf,Learning disability,Long-standing disability,Mental health condition,Neurodiverse," +
+    "Other neurodiverse,Physical or mobility,Speech impairment,Visible difference,Sight loss,Prefer not to say,Other,Other description," +
     appTestStatuses +
     "Final Progress Status prior to withdrawal," +
     appTestResults(numOfSchemes) +
@@ -281,7 +284,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
             personalDetails(doc) :::
             List(progressResponseReachedYesNo(progressResponse.personalDetails)) :::
             List(progressResponseReachedYesNo(progressResponse.personalDetails)) :::
-            civilServiceExperience2(doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream), doc) :::
+            civilServiceExperience(doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream), doc) :::
             List(schemePrefsAsString) ::: //Scheme preferences
             List(schemesYesNoAsString) ::: //Scheme names
             List(progressResponseReachedYesNo(progressResponse.schemePreferences)) ::: //Are you happy with order
@@ -464,7 +467,6 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       .enumerator().map { doc =>
 
       try {
-        val (civilServiceExperienceType, civilServiceInternshipTypes, fastPassCertificateNo) = civilServiceExperience(doc)
         val schemePrefs: List[String] = doc.getAs[BSONDocument]("scheme-preferences").flatMap(_.getAs[List[String]]("schemes")).getOrElse(Nil)
         val schemePrefsAsString: Option[String] = Some(schemePrefs.mkString(","))
         val fsacIndicator = doc.getAs[FSACIndicator]("fsac-indicator")
@@ -475,12 +477,9 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
             List(doc.getAs[String]("applicationStatus")) :::
             List(doc.getAs[String]("applicationRoute")) :::
             List(Some(isSdipFsWithFsFailedAndSdipNotFailed(doc).toString)) :::
-            civilServiceExperienceCheckExpType(civilServiceExperienceType, CivilServiceExperienceType.CivilServant.toString) :::
-            civilServiceExperienceCheckExpType(civilServiceExperienceType, CivilServiceExperienceType.CivilServantViaFastTrack.toString) :::
-            civilServiceExperienceCheckInternshipType(civilServiceInternshipTypes, InternshipType.SDIPCurrentYear.toString) :::
-            List(fastPassCertificateNo) :::
+            civilServiceExperience(doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream), doc) :::
             List(schemePrefsAsString) :::
-            hasDisability(doc) :::
+            disabilityDetails(doc) :::
             progressStatusTimestamps(doc) :::
             List(lastProgressStatusPriorToWithdrawal(doc)) :::
             testEvaluations(doc, numOfSchemes) :::
@@ -1325,9 +1324,18 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     )
   }
 
-  private def hasDisability(doc: BSONDocument): List[Option[String]] = {
+  private def disabilityDetails(doc: BSONDocument): List[Option[String]] = {
     val assistanceDetails = doc.getAs[BSONDocument]("assistance-details")
-    List(assistanceDetails.getAs[String]("hasDisability"))
+    val markedDisabilityCategories = markDisabilityCategories(
+      assistanceDetails.getAs[List[String]]("disabilityCategories").getOrElse(Nil)
+    )
+    List(
+      assistanceDetails.getAs[String]("hasDisability"),
+      assistanceDetails.getAs[String]("disabilityImpact")
+    ) ++ markedDisabilityCategories ++
+    List(
+      assistanceDetails.getAs[String]("otherDisabilityDescription")
+    )
   }
 
   private def personalDetails(doc: BSONDocument) = {
@@ -1340,16 +1348,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     )
   }
 
-  private def civilServiceExperience(doc: BSONDocument): (Option[String], Option[List[String]], Option[String]) = {
-    val csExperienceDetails = doc.getAs[BSONDocument]("civil-service-experience-details")
-    (
-      csExperienceDetails.getAs[String]("civilServiceExperienceType"),
-      csExperienceDetails.getAs[List[String]]("internshipTypes"),
-      Option(csExperienceDetails.getAs[String]("certificateNumber").getOrElse("No"))
-    )
-  }
-
-  private def civilServiceExperience2(applicationRoute: ApplicationRoute, doc: BSONDocument): List[Option[String]] = {
+  private def civilServiceExperience(applicationRoute: ApplicationRoute, doc: BSONDocument): List[Option[String]] = {
     val empty = List(None, None, None, None, None, None, None, None, None) // This needs to match the size of the populated list
     def booleanTranslator(bool: Boolean) = if (bool) "Yes" else "No"
     (for {
