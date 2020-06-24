@@ -22,8 +22,6 @@ import connectors.launchpadgateway.exchangeobjects.in.reviewed.{ ReviewSectionQu
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.{ apply => _ }
 import model.CivilServantAndInternshipType.CivilServantAndInternshipType
-import model.CivilServiceExperienceType.{ apply => _ }
-import model.InternshipType.{ apply => _ }
 import model.OnlineTestCommands.{ PsiTestResult, TestResult }
 import model.Phase.Phase
 import model._
