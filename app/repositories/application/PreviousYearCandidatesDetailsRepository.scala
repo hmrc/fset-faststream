@@ -21,6 +21,7 @@ import connectors.launchpadgateway.exchangeobjects.in.reviewed._
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
+import model.CivilServantAndInternshipType.CivilServantAndInternshipType
 import model._
 import model.command.{ CandidateDetailsReportItem, CsvExtract, WithdrawApplication }
 import model.persisted.{ FSACIndicator, SchemeEvaluationResult }
@@ -92,15 +93,17 @@ trait PreviousYearCandidatesDetailsRepository {
   def testTitles(testName: String) = s"$testName inventoryId,orderId,normId,reportId,assessmentId,testUrl,invitationDate,startedDateTime," +
     s"completedDateTime,tScore,rawScore,testReportUrl,"
 
-  val assistanceDetailsHeaders = "Do you have a disability,Provide more info,GIS,Extra support online tests," +
+  val assistanceDetailsHeaders = "Do you have a disability,Disability impact," +
+    "Deaf,Learning disability,Long-standing disability,Mental health condition,Neurodiverse,Other neurodiverse,Physical or mobility," +
+    "Speech impairment,Visible difference,Sight loss,Prefer not to say,Other,Other description,GIS,Extra support online tests," +
     "What adjustments will you need,Extra support f2f,What adjustments will you need,Extra support phone interview,What adjustments will you need," +
     "E-Tray time extension,E-Tray invigilated,E-Tray invigilated notes,E-Tray other notes,Video time extension,Video invigilated,Video invigilated notes," +
     "Video other notes,Additional comments,Adjustments confirmed,"
 
-  def applicationDetailsHeader(numOfSchemes: Int) = "applicationId,userId,testAccountId,Framework ID,Application Status,Route,First name,Last name,Preferred Name,Date of Birth," +
-    "Are you eligible,Terms and Conditions," +
-    "Currently a Civil Servant done SDIP or EDIP,Currently Civil Servant,Currently Civil Service via Fast Track," +
-    "EDIP,SDIP,Eligible for Fast Pass,Fast Pass No,Scheme preferences,Scheme names,Are you happy with order,Are you eligible," +
+  def applicationDetailsHeader(numOfSchemes: Int) = "applicationId,userId,testAccountId,Framework ID,Application Status,Route,First name,Last name," +
+    "Preferred Name,Date of Birth,Are you eligible,Terms and Conditions," +
+    "Civil servant,EDIP,EDIP year,SDIP,SDIP year,Other internship,Other internship name,Other internship year,Fast Pass No," +
+    "Scheme preferences,Scheme names,Are you happy with order,Are you eligible," +
     assistanceDetailsHeaders +
     "I understand this wont affect application," +
     testTitles("Phase1 test1") +
@@ -125,9 +128,9 @@ trait PreviousYearCandidatesDetailsRepository {
 
   val dataAnalystContactDetailsHeader = "Email,Postcode"
 
-  val questionnaireDetailsHeader: String = "Gender Identity,Sexual Orientation,Ethnic Group,Live in UK between 14-18?,Home postcode at 14," +
-    "Name of school 14-16,Which type of school was this?,Name of school 16-18,Eligible for free school meals?,University name,Category of degree," +
-    "Lower socio-economic background?,Parent guardian completed Uni?,Parents job at 14,Employee?,Size," +
+  val questionnaireDetailsHeader: String = "Gender Identity,Sexual Orientation,Ethnic Group,Is English your 1st language?,Live in UK between 14-18?," +
+    "Home postcode at 14,Name of school 14-16,Which type of school was this?,Name of school 16-18,Eligible for free school meals?,University name," +
+    "Category of degree,Lower socio-economic background?,Parent guardian completed Uni?,Parents job at 14,Employee?,Size," +
     "Supervise employees,SE 1-5,Oxbridge,Russell Group"
 
   val mediaHeader = "How did you hear about us?"
@@ -246,7 +249,6 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       try {
         val applicationId = doc.getAs[String]("applicationId").get
         val progressResponse = toProgressResponse(applicationId).read(doc)
-        val (civilServiceExperienceType, civilServiceInternshipTypes, fastPassCertificateNo) = civilServiceExperience(doc)
 
         val schemePrefs: List[String] = doc.getAs[BSONDocument]("scheme-preferences").flatMap(_.getAs[List[String]]("schemes")).getOrElse(Nil)
         val schemePrefsAsString: Option[String] = Some(schemePrefs.mkString(","))
@@ -279,13 +281,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
             personalDetails(doc) :::
             List(progressResponseReachedYesNo(progressResponse.personalDetails)) :::
             List(progressResponseReachedYesNo(progressResponse.personalDetails)) :::
-            civilServiceExperienceCheckExpType(civilServiceExperienceType, CivilServiceExperienceType.DiversityInternship.toString) :::
-            civilServiceExperienceCheckExpType(civilServiceExperienceType, CivilServiceExperienceType.CivilServant.toString) :::
-            civilServiceExperienceCheckExpType(civilServiceExperienceType, CivilServiceExperienceType.CivilServantViaFastTrack.toString) :::
-            civilServiceExperienceCheckInternshipType(civilServiceInternshipTypes, InternshipType.EDIP.toString) :::
-            civilServiceExperienceCheckInternshipType(civilServiceInternshipTypes, InternshipType.SDIPPreviousYear.toString) :::
-            civilServiceExperienceCheckInternshipType(civilServiceInternshipTypes, InternshipType.SDIPCurrentYear.toString) :::
-            List(fastPassCertificateNo) ::: //Fast Pass No
+            civilServiceExperience2(doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream), doc) :::
             List(schemePrefsAsString) ::: //Scheme preferences
             List(schemesYesNoAsString) ::: //Scheme names
             List(progressResponseReachedYesNo(progressResponse.schemePreferences)) ::: //Are you happy with order
@@ -769,6 +765,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
           getAnswer(genderIdentity, questionsDoc),
           getAnswer(sexualOrientation, questionsDoc),
           getAnswer(ethnicGroup, questionsDoc),
+          getAnswer(englishLanguage, questionsDoc),
           getAnswer(liveInUkAged14to18, questionsDoc),
           getAnswer(postcodeAtAge14, questionsDoc),
           getAnswer(schoolNameAged14to16, questionsDoc),
@@ -1274,15 +1271,40 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     }
   }
 
+  private def markDisabilityCategories(disabilityCategories: List[String]) = {
+    val disabilityCategoriesList = List(
+      "Deaf or Hard of Hearing",
+      "Learning disability such as Down's Syndrome & Fragile X",
+      "Long-standing, chronic or fluctuating condition or disability",
+      "Mental Health Condition such as depression, anxiety, bipolar, schizophrenia",
+      "Neurodiverse conditions: Autism Spectrum",
+      "Other neurodiverse conditions such as dyslexia, dyspraxia or AD(H)D",
+      "Physical or Mobility limiting condition or disability",
+      "Speech Impairment",
+      "Visible Difference such as facial disfigurement, skin condition, or alopecia",
+      "Visual Impairment or Sight Loss",
+      "Prefer Not to Say",
+      "Other"
+    )
+    disabilityCategoriesList.map ( dc => if (disabilityCategories.contains(dc)) Y else N )
+  }
+
   private def assistanceDetails(doc: BSONDocument): List[Option[String]] = {
     val assistanceDetails = doc.getAs[BSONDocument]("assistance-details")
     val etrayAdjustments = assistanceDetails.getAs[BSONDocument]("etray")
     val videoAdjustments = assistanceDetails.getAs[BSONDocument]("video")
     val typeOfAdjustments = assistanceDetails.getAs[List[String]]("typeOfAdjustments").getOrElse(Nil)
 
+    val markedDisabilityCategories = markDisabilityCategories(
+      assistanceDetails.getAs[List[String]]("disabilityCategories").getOrElse(Nil)
+    )
+
     List(
       assistanceDetails.getAs[String]("hasDisability"),
-      assistanceDetails.getAs[String]("hasDisabilityDescription"),
+      assistanceDetails.getAs[String]("disabilityImpact")
+    ) ++ markedDisabilityCategories ++
+    List(
+      assistanceDetails.getAs[String]("otherDisabilityDescription"),
       assistanceDetails.flatMap(ad => if (ad.getAs[Boolean]("guaranteedInterview").getOrElse(false)) Y else N),
       if (assistanceDetails.getAs[Boolean]("needsSupportForOnlineAssessment").getOrElse(false)) Y else N,
       assistanceDetails.getAs[String]("needsSupportForOnlineAssessmentDescription"),
@@ -1325,6 +1347,71 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       csExperienceDetails.getAs[List[String]]("internshipTypes"),
       Option(csExperienceDetails.getAs[String]("certificateNumber").getOrElse("No"))
     )
+  }
+
+  private def civilServiceExperience2(applicationRoute: ApplicationRoute, doc: BSONDocument): List[Option[String]] = {
+    val empty = List(None, None, None, None, None, None, None, None, None) // This needs to match the size of the populated list
+    def booleanTranslator(bool: Boolean) = if (bool) "Yes" else "No"
+    (for {
+      pdDoc <- doc.getAs[BSONDocument]("personal-details")
+      csedDoc <- doc.getAs[BSONDocument]("civil-service-experience-details")
+    } yield {
+
+      val civilServantAndInternshipType = (civilServantAndInternshipType: CivilServantAndInternshipType) =>
+        csedDoc.getAs[List[CivilServantAndInternshipType]]("civilServantAndInternshipTypes")
+          .getOrElse(List.empty[CivilServantAndInternshipType]).contains(civilServantAndInternshipType)
+
+      val civilServant = booleanTranslator(civilServantAndInternshipType(CivilServantAndInternshipType.CivilServant))
+      val edipCompleted = booleanTranslator(civilServantAndInternshipType(CivilServantAndInternshipType.EDIP))
+      val sdipCompleted = booleanTranslator(civilServantAndInternshipType(CivilServantAndInternshipType.SDIP))
+      val otherInternshipCompleted = booleanTranslator(civilServantAndInternshipType(CivilServantAndInternshipType.OtherInternship))
+
+      val edipYearOpt = csedDoc.getAs[String]("edipYear")
+      val sdipYearOpt = csedDoc.getAs[String]("sdipYear")
+      val otherInternshipNameOpt = csedDoc.getAs[String]("otherInternshipName")
+      val otherInternshipYearOpt = csedDoc.getAs[String]("otherInternshipYear")
+      val fastPassCertificate = csedDoc.getAs[String]("certificateNumber").getOrElse("No")
+
+      val pdEdipCompletedOpt = pdDoc.getAs[Boolean]("edipCompleted")
+      val pdEdipYearOpt = pdDoc.getAs[String]("edipYear")
+      val pdOtherInternshipCompletedOpt = pdDoc.getAs[Boolean]("otherInternshipCompleted")
+      val pdOtherInternshipNameOpt = pdDoc.getAs[String]("otherInternshipName")
+      val pdOtherInternshipYearOpt = pdDoc.getAs[String]("otherInternshipYear")
+
+      val edipCompletedColumn = applicationRoute match {
+        case ApplicationRoute.Faststream => Some(edipCompleted)
+        case ApplicationRoute.SdipFaststream => pdEdipCompletedOpt.map(booleanTranslator)
+        case ApplicationRoute.Edip => None
+        case ApplicationRoute.Sdip => pdEdipCompletedOpt.map(booleanTranslator)
+        case _ => None
+      }
+
+      val edipYearColumn = applicationRoute match {
+        case ApplicationRoute.Faststream => edipYearOpt
+        case ApplicationRoute.SdipFaststream => pdEdipYearOpt
+        case ApplicationRoute.Edip => None
+        case ApplicationRoute.Sdip => pdEdipYearOpt
+        case _ => None
+      }
+
+      val otherInternshipColumn = applicationRoute match {
+        case ApplicationRoute.Faststream => Some(otherInternshipCompleted)
+        case _ => pdOtherInternshipCompletedOpt.map(booleanTranslator)
+      }
+
+      val otherInternshipNameColumn = applicationRoute match {
+        case ApplicationRoute.Faststream => otherInternshipNameOpt
+        case _ => pdOtherInternshipNameOpt
+      }
+
+      val otherInternshipYearColumn = applicationRoute match {
+        case ApplicationRoute.Faststream => otherInternshipYearOpt
+        case _ => pdOtherInternshipYearOpt
+      }
+
+      List(Some(civilServant), edipCompletedColumn, edipYearColumn, Some(sdipCompleted), sdipYearOpt,
+        otherInternshipColumn, otherInternshipNameColumn, otherInternshipYearColumn, Some(fastPassCertificate))
+    }).getOrElse(empty)
   }
 
   private def makeRow(values: Option[String]*) =

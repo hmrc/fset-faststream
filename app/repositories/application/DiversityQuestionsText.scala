@@ -20,6 +20,7 @@ trait DiversityQuestionsText {
   val genderIdentity = "What is your gender identity?"
   val sexualOrientation = "What is your sexual orientation?"
   val ethnicGroup = "What is your ethnic group?"
+  val englishLanguage = "Is English your first language?"
   val liveInUkAged14to18 = "Did you live in the UK between the ages of 14 and 18?"
   val postcodeAtAge14 = "What was your home postcode when you were 14?"
   val schoolNameAged14to16 = "Aged 14 to 16 what was the name of your school?"

@@ -230,14 +230,12 @@ trait ReportingController extends BaseController {
           (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
            siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) => {
             val header = buildHeaders(numOfSchemes)
-            var counter = 0
             val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream(numOfSchemes, appIds).map {
               app =>
                 val ret = createCandidateInfoBackUpRecord(
                   app, contactDetails, questionnaireDetails, mediaDetails,
                   eventsDetails, siftAnswers, assessorAssessmentScores, reviewerAssessmentScores
                 ) + "\n"
-                counter += 1
                 ret
             }
             Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(candidatesStream))))
