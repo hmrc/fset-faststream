@@ -21,7 +21,6 @@ import connectors.launchpadgateway.exchangeobjects.in.reviewed._
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
-import model.CivilServantAndInternshipType.CivilServantAndInternshipType
 import model._
 import model.command.{ CandidateDetailsReportItem, CsvExtract, WithdrawApplication }
 import model.persisted.{ FSACIndicator, SchemeEvaluationResult }
@@ -284,7 +283,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
             personalDetails(doc) :::
             List(progressResponseReachedYesNo(progressResponse.personalDetails)) :::
             List(progressResponseReachedYesNo(progressResponse.personalDetails)) :::
-            civilServiceExperience(doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream), doc) :::
+            repositories.getCivilServiceExperienceDetails(doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream), doc).toList :::
             List(schemePrefsAsString) ::: //Scheme preferences
             List(schemesYesNoAsString) ::: //Scheme names
             List(progressResponseReachedYesNo(progressResponse.schemePreferences)) ::: //Are you happy with order
@@ -477,7 +476,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
             List(doc.getAs[String]("applicationStatus")) :::
             List(doc.getAs[String]("applicationRoute")) :::
             List(Some(isSdipFsWithFsFailedAndSdipNotFailed(doc).toString)) :::
-            civilServiceExperience(doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream), doc) :::
+            repositories.getCivilServiceExperienceDetails(doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream), doc).toList :::
             List(schemePrefsAsString) :::
             disabilityDetails(doc) :::
             progressStatusTimestamps(doc) :::
@@ -1346,68 +1345,6 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       personalDetails.getAs[String]("preferredName"),
       personalDetails.getAs[String]("dateOfBirth")
     )
-  }
-
-  private def civilServiceExperience(applicationRoute: ApplicationRoute, doc: BSONDocument): List[Option[String]] = {
-    def booleanTranslator(bool: Boolean) = if (bool) "Yes" else "No"
-
-    val csedDocOpt = doc.getAs[BSONDocument]("civil-service-experience-details")
-    val pdDocOpt = doc.getAs[BSONDocument]("personal-details")
-
-    val civilServantAndInternshipType = (civilServantAndInternshipType: CivilServantAndInternshipType) =>
-      csedDocOpt.flatMap(_.getAs[List[CivilServantAndInternshipType]]("civilServantAndInternshipTypes"))
-        .getOrElse(List.empty[CivilServantAndInternshipType]).contains(civilServantAndInternshipType)
-
-    val civilServant = booleanTranslator(civilServantAndInternshipType(CivilServantAndInternshipType.CivilServant))
-    val edipCompleted = booleanTranslator(civilServantAndInternshipType(CivilServantAndInternshipType.EDIP))
-    val sdipCompleted = booleanTranslator(civilServantAndInternshipType(CivilServantAndInternshipType.SDIP))
-    val otherInternshipCompleted = booleanTranslator(civilServantAndInternshipType(CivilServantAndInternshipType.OtherInternship))
-
-    val edipYearOpt = csedDocOpt.flatMap(_.getAs[String]("edipYear"))
-    val sdipYearOpt = csedDocOpt.flatMap(_.getAs[String]("sdipYear"))
-    val otherInternshipNameOpt = csedDocOpt.flatMap(_.getAs[String]("otherInternshipName"))
-    val otherInternshipYearOpt = csedDocOpt.flatMap(_.getAs[String]("otherInternshipYear"))
-    val fastPassCertificate = csedDocOpt.flatMap(_.getAs[String]("certificateNumber")).getOrElse("No")
-
-    val pdEdipCompletedOpt = pdDocOpt.flatMap(_.getAs[Boolean]("edipCompleted"))
-    val pdEdipYearOpt = pdDocOpt.flatMap(_.getAs[String]("edipYear"))
-    val pdOtherInternshipCompletedOpt = pdDocOpt.flatMap(_.getAs[Boolean]("otherInternshipCompleted"))
-    val pdOtherInternshipNameOpt = pdDocOpt.flatMap(_.getAs[String]("otherInternshipName"))
-    val pdOtherInternshipYearOpt = pdDocOpt.flatMap(_.getAs[String]("otherInternshipYear"))
-
-    val edipCompletedColumn = applicationRoute match {
-      case ApplicationRoute.Faststream => Some(edipCompleted)
-      case ApplicationRoute.SdipFaststream => pdEdipCompletedOpt.map(booleanTranslator)
-      case ApplicationRoute.Edip => Some("No")
-      case ApplicationRoute.Sdip => pdEdipCompletedOpt.map(booleanTranslator)
-      case _ => None
-    }
-
-    val edipYearColumn = applicationRoute match {
-      case ApplicationRoute.Faststream => edipYearOpt
-      case ApplicationRoute.SdipFaststream => pdEdipYearOpt
-      case ApplicationRoute.Edip => None
-      case ApplicationRoute.Sdip => pdEdipYearOpt
-      case _ => None
-    }
-
-    val otherInternshipColumn = applicationRoute match {
-      case ApplicationRoute.Faststream => Some(otherInternshipCompleted)
-      case _ => pdOtherInternshipCompletedOpt.map(booleanTranslator)
-    }
-
-    val otherInternshipNameColumn = applicationRoute match {
-      case ApplicationRoute.Faststream => otherInternshipNameOpt
-      case _ => pdOtherInternshipNameOpt
-    }
-
-    val otherInternshipYearColumn = applicationRoute match {
-      case ApplicationRoute.Faststream => otherInternshipYearOpt
-      case _ => pdOtherInternshipYearOpt
-    }
-
-    List(Some(civilServant), edipCompletedColumn, edipYearColumn, Some(sdipCompleted), sdipYearOpt,
-      otherInternshipColumn, otherInternshipNameColumn, otherInternshipYearColumn, Some(fastPassCertificate))
   }
 
   private def makeRow(values: Option[String]*) =
