@@ -95,7 +95,13 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
       result must not be empty
       result.head mustBe ApplicationForDiversityReport(appId, userId, ApplicationRoute.Faststream, Some("registered"),
-        List.empty, None, None, None, None, None, List.empty)
+        schemes = List.empty, disability = None, gis = None, onlineAdjustments = None, assessmentCentreAdjustments = None,
+        civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
+          isCivilServant = Some("No"), isEDIP = Some("No"), edipYear = None, isSDIP = Some("No"),
+          sdipYear = None, otherInternship = Some("No"), otherInternshipName = None, otherInternshipYear = None,
+          fastPassCertificate = Some("No")
+        )),
+        currentSchemeStatus = List.empty)
     }
 
     "work for for an application with all fields" in {
