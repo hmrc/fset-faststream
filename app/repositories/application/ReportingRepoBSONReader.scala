@@ -305,71 +305,66 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
   //scalastyle:off method.length cyclomatic.complexity
   private[application] def toCivilServiceExperienceDetailsReportItem(applicationRoute: ApplicationRoute,
-                                                                     civilServiceExperienceDetails: Option[BSONDocument],
-                                                                     personalDetails: Option[BSONDocument]
+                                                                     csedDocOpt: Option[BSONDocument],
+                                                                     pdDocOpt: Option[BSONDocument]
                                                                     ): Option[CivilServiceExperienceDetailsForDiversityReport] = {
-    for {
-      csedDoc <- civilServiceExperienceDetails
-      pdDoc <- personalDetails
-    } yield {
 
-      val civilServantAndInternshipType = (civilServantAndInternshipType: CivilServantAndInternshipType) =>
-        csedDoc.getAs[List[CivilServantAndInternshipType]]("civilServantAndInternshipTypes")
-          .getOrElse(List.empty[CivilServantAndInternshipType]).contains(civilServantAndInternshipType)
+    val civilServantAndInternshipType = (civilServantAndInternshipType: CivilServantAndInternshipType) =>
+      csedDocOpt.flatMap(_.getAs[List[CivilServantAndInternshipType]]("civilServantAndInternshipTypes"))
+        .getOrElse(List.empty[CivilServantAndInternshipType]).contains(civilServantAndInternshipType)
 
-      val civilServant = booleanTranslator(civilServantAndInternshipType(CivilServantAndInternshipType.CivilServant))
-      val edipCompleted = booleanTranslator(civilServantAndInternshipType(CivilServantAndInternshipType.EDIP))
-      val sdipCompleted = booleanTranslator(civilServantAndInternshipType(CivilServantAndInternshipType.SDIP))
-      val otherInternshipCompleted = booleanTranslator(civilServantAndInternshipType(CivilServantAndInternshipType.OtherInternship))
+    val civilServant = booleanTranslator(civilServantAndInternshipType(CivilServantAndInternshipType.CivilServant))
+    val edipCompleted = booleanTranslator(civilServantAndInternshipType(CivilServantAndInternshipType.EDIP))
+    val sdipCompleted = booleanTranslator(civilServantAndInternshipType(CivilServantAndInternshipType.SDIP))
+    val otherInternshipCompleted = booleanTranslator(civilServantAndInternshipType(CivilServantAndInternshipType.OtherInternship))
 
-      val edipYearOpt = csedDoc.getAs[String]("edipYear")
-      val sdipYearOpt = csedDoc.getAs[String]("sdipYear")
-      val otherInternshipNameOpt = csedDoc.getAs[String]("otherInternshipName")
-      val otherInternshipYearOpt = csedDoc.getAs[String]("otherInternshipYear")
-      val fastPassCertificate = csedDoc.getAs[String]("certificateNumber").getOrElse("No")
+    val edipYearOpt = csedDocOpt.flatMap(_.getAs[String]("edipYear"))
+    val sdipYearOpt = csedDocOpt.flatMap(_.getAs[String]("sdipYear"))
+    val otherInternshipNameOpt = csedDocOpt.flatMap(_.getAs[String]("otherInternshipName"))
+    val otherInternshipYearOpt = csedDocOpt.flatMap(_.getAs[String]("otherInternshipYear"))
+    val fastPassCertificate = csedDocOpt.flatMap(_.getAs[String]("certificateNumber")).getOrElse("No")
 
-      val pdEdipCompletedOpt = pdDoc.getAs[Boolean]("edipCompleted")
-      val pdEdipYearOpt = pdDoc.getAs[String]("edipYear")
-      val pdOtherInternshipCompletedOpt = pdDoc.getAs[Boolean]("otherInternshipCompleted")
-      val pdOtherInternshipNameOpt = pdDoc.getAs[String]("otherInternshipName")
-      val pdOtherInternshipYearOpt = pdDoc.getAs[String]("otherInternshipYear")
+    val pdEdipCompletedOpt = pdDocOpt.flatMap(_.getAs[Boolean]("edipCompleted"))
+    val pdEdipYearOpt = pdDocOpt.flatMap(_.getAs[String]("edipYear"))
+    val pdOtherInternshipCompletedOpt = pdDocOpt.flatMap(_.getAs[Boolean]("otherInternshipCompleted"))
+    val pdOtherInternshipNameOpt = pdDocOpt.flatMap(_.getAs[String]("otherInternshipName"))
+    val pdOtherInternshipYearOpt = pdDocOpt.flatMap(_.getAs[String]("otherInternshipYear"))
 
-      val edipCompletedColumn = applicationRoute match {
-        case ApplicationRoute.Faststream => Some(edipCompleted)
-        case ApplicationRoute.SdipFaststream => pdEdipCompletedOpt.map(booleanTranslator)
-        case ApplicationRoute.Edip => None
-        case ApplicationRoute.Sdip => pdEdipCompletedOpt.map(booleanTranslator)
-        case _ => None
-      }
-
-      val edipYearColumn = applicationRoute match {
-        case ApplicationRoute.Faststream => edipYearOpt
-        case ApplicationRoute.SdipFaststream => pdEdipYearOpt
-        case ApplicationRoute.Edip => None
-        case ApplicationRoute.Sdip => pdEdipYearOpt
-        case _ => None
-      }
-
-      val otherInternshipColumn = applicationRoute match {
-        case ApplicationRoute.Faststream => Some(otherInternshipCompleted)
-        case _ => pdOtherInternshipCompletedOpt.map(booleanTranslator)
-      }
-
-      val otherInternshipNameColumn = applicationRoute match {
-        case ApplicationRoute.Faststream => otherInternshipNameOpt
-        case _ => pdOtherInternshipNameOpt
-      }
-
-      val otherInternshipYearColumn = applicationRoute match {
-        case ApplicationRoute.Faststream => otherInternshipYearOpt
-        case _ => pdOtherInternshipYearOpt
-      }
-
-      CivilServiceExperienceDetailsForDiversityReport(
-        Some(civilServant), edipCompletedColumn, edipYearColumn, Some(sdipCompleted), sdipYearOpt, otherInternshipColumn,
-        otherInternshipNameColumn, otherInternshipYearColumn, Some(fastPassCertificate)
-      )
+    val edipCompletedColumn = applicationRoute match {
+      case ApplicationRoute.Faststream => Some(edipCompleted)
+      case ApplicationRoute.SdipFaststream => pdEdipCompletedOpt.map(booleanTranslator)
+      case ApplicationRoute.Edip => Some("No")
+      case ApplicationRoute.Sdip => pdEdipCompletedOpt.map(booleanTranslator)
+      case _ => None
     }
+
+    val edipYearColumn = applicationRoute match {
+      case ApplicationRoute.Faststream => edipYearOpt
+      case ApplicationRoute.SdipFaststream => pdEdipYearOpt
+      case ApplicationRoute.Edip => None
+      case ApplicationRoute.Sdip => pdEdipYearOpt
+      case _ => None
+    }
+
+    val otherInternshipColumn = applicationRoute match {
+      case ApplicationRoute.Faststream => Some(otherInternshipCompleted)
+      case _ => pdOtherInternshipCompletedOpt.map(booleanTranslator)
+    }
+
+    val otherInternshipNameColumn = applicationRoute match {
+      case ApplicationRoute.Faststream => otherInternshipNameOpt
+      case _ => pdOtherInternshipNameOpt
+    }
+
+    val otherInternshipYearColumn = applicationRoute match {
+      case ApplicationRoute.Faststream => otherInternshipYearOpt
+      case _ => pdOtherInternshipYearOpt
+    }
+
+    Some(CivilServiceExperienceDetailsForDiversityReport(
+      Some(civilServant), edipCompletedColumn, edipYearColumn, Some(sdipCompleted), sdipYearOpt,
+      otherInternshipColumn, otherInternshipNameColumn, otherInternshipYearColumn, Some(fastPassCertificate)
+    ))
   } //scalastyle:on method.length cyclomatic.complexity
 
   private[application] def toTestResultsForOnlineTestPassMarkReportItem(
