@@ -124,8 +124,8 @@ error.fastPassReceived.required = Tell us if you have received a Fast Pass
 error.certificateNumber.required = Enter your 7-digit certificate number
 
 civilServantAndInternshipType.civilServant = I am currently a civil servant
-civilServantAndInternshipType.EDIP = I completed EDIP
-civilServantAndInternshipType.SDIP = I completed SDIP
+civilServantAndInternshipType.EDIP = I completed the EDIP
+civilServantAndInternshipType.SDIP = I completed the SDIP
 civilServantAndInternshipType.another = I completed another internship
 
 #assistance
