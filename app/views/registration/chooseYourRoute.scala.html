@@ -26,8 +26,8 @@
 @edipOpen = @{ (appRouteConfigMap.get(Edip).forall(_.newAccountsStarted) && appRouteConfigMap.get(Edip).forall(_.newAccountsEnabled)) || validAfterDeadlineSubmissionCode }
 @sdipOpen = @{ (appRouteConfigMap.get(Sdip).forall(_.newAccountsStarted) && appRouteConfigMap.get(Sdip).forall(_.newAccountsEnabled)) || validAfterDeadlineSubmissionCode }
 
-@edipUrl = @{ "https://www.faststream.gov.uk/edip-am-i-eligible" }
-@sdipUrl = @{ "https://www.faststream.gov.uk/sdip-am-i-eligible" }
+@edipUrl = @{ "https://www.faststream.gov.uk/edip-am-i-eligible/index.html" }
+@sdipUrl = @{ "https://www.faststream.gov.uk/sdip-am-i-eligible/index.html" }
 
 <section class="section-border clearfix" id="routeElig">
     <div class="text">
