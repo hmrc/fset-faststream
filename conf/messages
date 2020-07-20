@@ -180,15 +180,15 @@ scheme.ScienceAndEngineering.description=Science & Engineering
 scheme.Edip.description=Early Diversity Internship Programme
 scheme.Sdip.description=Summer Diversity Internship Programme
 
-# TODO: Review these for 2018
-scheme.DiplomaticServiceEconomics.link=government-economic-service
-scheme.DiplomaticServiceEuropean.link=european
-scheme.DiplomaticService.link=diplomatic-service
-scheme.GovernmentEconomicsService.link=government-economic-service
-scheme.GovernmentOperationalResearchService.link=government-operational-research-service
-scheme.GovernmentSocialResearchService.link=government-social-research-service
-scheme.GovernmentStatisticalService.link=government-statistical-service
-scheme.ScienceAndEngineering.link=science-engineering
+# These should be checked before each campaign
+# Hyerlinks to the scheme and eligibility criteria on the scheme selection page
+scheme.DiplomaticService.link = diplomatic-service/index.html
+scheme.DiplomaticServiceEconomists.link = diplomatic-service-economics/index.html
+scheme.GovernmentEconomicsService.link = government-economic-service/index.html
+scheme.GovernmentOperationalResearchService.link = government-operational-research-service/index.html
+scheme.GovernmentSocialResearchService.link = government-social-research-service/index.html
+scheme.GovernmentStatisticalService.link = government-statistical-service/index.html
+scheme.ScienceAndEngineering.link = science-engineering/index.html
 
 qualification.Degree_21.description=2:1 degree in any subject
 qualification.Degree_22.description=2:2 degree in any subject
@@ -199,7 +199,6 @@ qualification.Degree_Numerate.description=2:1 degree in a numerate subject
 qualification.Degree_GORS.description=2:1 degree in a numerate subject, or a 2:2 with a relevant postgraduate degree
 qualification.Degree_SocialScience.description=2:1 degree in a relevant social science subject, or a 2:2 with a relevant postgraduate degree
 qualification.Degree_CharteredEngineer.description=2:1 degree and at least a postgraduate degree in a relevant subject, or you must be a registered chartered engineer
-
 
 # Should rarely ever occur. Will either occur if we start calculating location availability dynamically, or if the
 # YAML file has changed between the user loading the page, and submitting their preference (unlikely, but possible).
