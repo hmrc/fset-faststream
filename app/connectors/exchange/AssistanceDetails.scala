@@ -39,6 +39,10 @@ final case class AssistanceDetails(
       needsSupportForPhoneInterview.contains(true)
     ).contains(true)
   }
+
+  def isDisabledCandidate = hasDisability.toLowerCase == "yes"
+  def hasSelectedOtherDisabilityCategory=
+    disabilityCategories.exists ( disabilityCategoryList => disabilityCategoryList.contains("Other") )
 }
 
 object AssistanceDetails {
