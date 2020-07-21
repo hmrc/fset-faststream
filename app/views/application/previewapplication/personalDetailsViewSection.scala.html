@@ -71,11 +71,25 @@
             <p id="phone-input3">No number provided</p>
         }
     </section>
-    @if(isSdip(user)) {
+    @if(isEdip(user)) {
+        @personalDetails.otherInternshipCompleted.map { otherInternshipCompleted =>
+            <section>
+                <h3 class="heading-small">Have you completed an internship programme?</h3>
+                <p id="otherInternshipCompleted">@{if(otherInternshipCompleted) {"Yes"} else {"No"}}</p>
+            </section>
+        }
+    }
+    @if(isSdipFaststream(user) || isSdip(user)) {
         @personalDetails.edipCompleted.map { edipCompleted =>
             <section>
                 <h3 class="heading-small">Have you completed the Early Diversity Internship Programme (EDIP)?</h3>
                 <p id="edipCompleted">@{if(edipCompleted) {"Yes"} else {"No"}}</p>
+            </section>
+        }
+        @personalDetails.otherInternshipCompleted.map { otherInternshipCompleted =>
+            <section>
+                <h3 class="heading-small">Have you completed another internship programme?</h3>
+                <p id="otherInternshipCompleted">@{if(otherInternshipCompleted) {"Yes"} else {"No"}}</p>
             </section>
         }
     }
