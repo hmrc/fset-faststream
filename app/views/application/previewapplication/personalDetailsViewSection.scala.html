@@ -30,10 +30,6 @@
     if(value) "Yes" else "No"
 }
 
-@*getCivilServiceExperienceTypeDescription(civilServiceExperienceType: String) = @{
-    FastPassForm.CivilServiceExperienceTypes.toMap.getOrElse(civilServiceExperienceType, "")
-}*@
-
 @getInternshipTypeDescription(internshipType: String) = @{
     FastPassForm.CivilServantAndInternshipTypes.toMap.getOrElse(internshipType, "")
 }
@@ -86,17 +82,6 @@
     @personalDetails.civilServiceExperienceDetails.map { civilServiceExperienceDetails =>
         @displayFastPassSection("fastPassApplicable", display = true, "Are you a civil servant or been on a diversity internship?",
             getYesOrNo(civilServiceExperienceDetails.applicable))
-        @*displayFastPassSection("civilServiceExperienceType" +
-                "", civilServiceExperienceDetails.civilServiceExperienceType.isDefined, "Which of these applies?",
-            getCivilServiceExperienceTypeDescription(civilServiceExperienceDetails.civilServiceExperienceType.get))*@
-        @*if(civilServiceExperienceDetails.internshipTypes.isDefined){
-            <section id="internshipTypes">
-                <h3 class="heading-small">Which internship programme did you do?</h3>
-                @for(internshipType <- civilServiceExperienceDetails.internshipTypes.get){
-                    <p>@getInternshipTypeDescription(internshipType)</p>
-                }
-            </section>
-        }*@
         @if(civilServiceExperienceDetails.civilServantAndInternshipTypes.isDefined){
             <section id="internshipTypes">
                 <h3 class="heading-small">Which internship programmes did you do?</h3>
