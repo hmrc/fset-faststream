@@ -26,28 +26,50 @@
     }
 }
 
+@displayDisabilityCategories = @{
+    assistanceDetails.disabilityCategories.map { disabilityCategoryList =>
+        disabilityCategoryList.map { dc =>
+            <p id="disabilityCategory">{dc}</p>
+        }
+    }
+}
+
+@maybeDisplayOtherDisabilityDescription = @{
+    if(assistanceDetails.hasSelectedOtherDisabilityCategory) {
+        <h3 class="heading-small">Other Disability Description</h3>
+        <p id="otherDisabilityDescription">{assistanceDetails.otherDisabilityDescription.getOrElse("NOT SPECIFIED")}</p>
+    }
+}
+
 <section class="section-border">
     <h2 class="heading-large">
         <span class="sectionTitle"><a href="@routes.AssistanceDetailsController.present()">Disability and health conditions</a></span>
         @edit
     </h2>
     <section>
-        <h3 class="heading-small">Do you consider yourself to have a disability?</h3>
+        <h3 class="heading-small">Do you have a physical or mental health condition, illness, impairment or disability?</h3>
         <p id="hasDisability">@assistanceDetails.hasDisability</p>
-        @if(assistanceDetails.hasDisability) {
-        <p id="hasDisabilityDescription">@assistanceDetails.otherDisabilityDescription</p>
-        @assistanceDetails.guaranteedInterview.map { gis =>
-        <h3 class="heading-small">Would you like to apply under the Disability Confident scheme?</h3>
-        <p id="guaranteedInterview">
-            @{
-                if(gis) {
-                    "Yes"
-                } else {
-                    "No"
-                }
+        @if(assistanceDetails.isDisabledCandidate) {
+            <h3 class="heading-small">Does this condition, illness, impairment, or disability have a substantial and long-term negative
+                effect on your ability to carry out normal daily activities or the work you can do?
+            </h3>
+            <p id="disabilityImpact">@assistanceDetails.disabilityImpact</p>
+            <h3 class="heading-small">Selected disability categories</h3>
+            @displayDisabilityCategories
+            @maybeDisplayOtherDisabilityDescription
+
+            @assistanceDetails.guaranteedInterview.map { gis =>
+                <h3 class="heading-small">Would you like to apply under the Disability Confident scheme?</h3>
+                <p id="guaranteedInterview">
+                    @{
+                        if(gis) {
+                            "Yes"
+                        } else {
+                            "No"
+                        }
+                    }
+                </p>
             }
-        </p>
-        }
         }
     </section>
     @assistanceDetails.needsSupportForOnlineAssessment.map { needsSupportForOnlineAssessment =>
