@@ -18,7 +18,9 @@
 package scheduler.onlinetesting
 
 import config.WaitingScheduledJobConfig
-import play.api.Logger
+import javax.inject.{ Inject, Singleton }
+import play.api.{ Configuration, Logger }
+import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
@@ -28,15 +30,23 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object RetrievePhase1ResultsJob extends RetrieveResultsJob {
-  val onlineTestingService = Phase1TestService2
-  val config = RetrievePhase1ResultsJobConfig
+@Singleton
+class RetrievePhase1ResultsJob @Inject() (val onlineTestingService: Phase1TestService2,
+                                          val mongoComponent: ReactiveMongoComponent,
+                                          val config: RetrievePhase1ResultsJobConfig
+                                         ) extends RetrieveResultsJob {
+  //  val onlineTestingService = Phase1TestService2
+  //  val config = RetrievePhase1ResultsJobConfig
   val phase = "PHASE1"
 }
 
-object RetrievePhase2ResultsJob extends RetrieveResultsJob {
-  val onlineTestingService = Phase2TestService2
-  val config = RetrievePhase2ResultsJobConfig
+@Singleton
+class RetrievePhase2ResultsJob @Inject() (val onlineTestingService: Phase2TestService2,
+                                          val mongoComponent: ReactiveMongoComponent,
+                                          val config: RetrievePhase2ResultsJobConfig
+                                         ) extends RetrieveResultsJob {
+  //  val onlineTestingService = Phase2TestService2
+  //  val config = RetrievePhase2ResultsJobConfig
   val phase = "PHASE2"
 }
 
@@ -58,12 +68,16 @@ trait RetrieveResultsJob extends SingleInstanceScheduledJob[BasicJobConfig[Waiti
   }
 }
 
-object RetrievePhase1ResultsJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
+@Singleton
+class RetrievePhase1ResultsJobConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.online-testing.retrieve-phase1-results-job",
   name = "RetrieveResultsJob"
 )
 
-object RetrievePhase2ResultsJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
+@Singleton
+class RetrievePhase2ResultsJobConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.online-testing.retrieve-phase2-results-job",
   name = "RetrievePhase2ResultsJob"
 )

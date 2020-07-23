@@ -17,7 +17,8 @@
 package services.testdata.candidate.assessmentcentre
 
 import factories.UUIDFactory
-import model.command.testdata.CreateEventRequest.CreateEventRequest
+import javax.inject.{ Inject, Singleton }
+import model.command.testdata.CreateEventRequest
 import model.command.{ CandidateAllocation, CandidateAllocations }
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.persisted.eventschedules.EventType
@@ -26,27 +27,24 @@ import model.{ AllocationStatuses, ProgressStatuses }
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import services.allocation.CandidateAllocationService
-import services.testdata.candidate.{ BaseGenerator, ConstructiveGenerator }
+import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.event.EventGenerator
-import scala.concurrent.ExecutionContext.Implicits.global
-
-import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
-object AssessmentCentreAllocationConfirmedStatusGenerator extends AssessmentCentreAllocationConfirmedStatusGenerator {
-  override val previousStatusGenerator = AssessmentCentreAwaitingAllocationStatusGenerator
-  override val applicationRepository = repositories.applicationRepository
-  override val candidateAllocationService = CandidateAllocationService
-  override val eventGenerator = EventGenerator
-}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-trait AssessmentCentreAllocationConfirmedStatusGenerator extends ConstructiveGenerator {
-  val applicationRepository: GeneralApplicationRepository
-  val candidateAllocationService: CandidateAllocationService
-  val eventGenerator: EventGenerator
+//scalastyle:off line.size.limit
+@Singleton
+class AssessmentCentreAllocationConfirmedStatusGenerator @Inject() (val previousStatusGenerator: AssessmentCentreAwaitingAllocationStatusGenerator,
+                                                                    applicationRepository: GeneralApplicationRepository,
+                                                                    candidateAllocationService: CandidateAllocationService,
+                                                                    eventGenerator: EventGenerator,
+                                                                    uuidFactory: UUIDFactory
+                                                                   ) extends ConstructiveGenerator {
 
   def generate(generationId: Int, createCandidateData: CreateCandidateData)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, createCandidateData)
       applicationId = candidateInPreviousStatus.applicationId.get
@@ -55,7 +53,7 @@ trait AssessmentCentreAllocationConfirmedStatusGenerator extends ConstructiveGen
       event <- eventGenerator.createEvent(generationId, CreateEventRequest.random.copy(eventType = Some(EventType.FSAC))).map(_.data)
       _ <- candidateAllocationService.allocateCandidates(
         CandidateAllocations(
-          UUIDFactory.generateUUID().toString,
+          uuidFactory.generateUUID().toString,
           event.id,
           event.sessions.head.id,
           List(CandidateAllocation(applicationId, AllocationStatuses.CONFIRMED))
@@ -65,4 +63,4 @@ trait AssessmentCentreAllocationConfirmedStatusGenerator extends ConstructiveGen
       candidateInPreviousStatus
     }
   }
-}
+} //scalastyle:on

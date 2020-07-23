@@ -40,7 +40,7 @@ import testkit.UnitWithAppSpec
 import scala.language.postfixOps
 
 class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
-
+/*
   "Online test pass mark report" should {
     "return nothing if no application exists" in new TestFixture {
       when(mockReportRepository.onlineTestPassMarkReportFsPhase1Failed).thenReturnAsync(Nil)
@@ -183,5 +183,5 @@ class OnlineTestPassMarkReportingControllerSpec extends UnitWithAppSpec {
 
     when(mockAssessmentScoresRepository.findAll).thenReturnAsync(Nil)
     when(mockApplicationSiftRepo.findAllResults).thenReturnAsync(Seq.empty[SiftPhaseReportItem])
-  }
+  }*/
 }

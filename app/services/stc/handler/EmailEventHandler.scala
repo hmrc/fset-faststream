@@ -16,7 +16,9 @@
 
 package services.stc.handler
 
-import connectors.{ CSREmailClient, EmailClient }
+import com.google.inject.ImplementedBy
+import connectors.{ CSREmailClient, EmailClient, OnlineTestEmailClient }
+import javax.inject.{ Inject, Named, Singleton }
 import model.stc.{ EmailEvent, EmailEvents }
 import play.api.Logger
 import play.api.mvc.RequestHeader
@@ -24,10 +26,12 @@ import play.api.mvc.RequestHeader
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
-object EmailEventHandler extends EmailEventHandler {
-  val emailClient: EmailClient = CSREmailClient
+@Singleton
+class EmailEventHandlerImpl @Inject() (@Named("CSREmailClient") val emailClient: OnlineTestEmailClient) extends EmailEventHandler {
+  //  val emailClient: EmailClient = CSREmailClient //TODO:fix changed the type
 }
 
+@ImplementedBy(classOf[EmailEventHandlerImpl])
 trait EmailEventHandler extends StcEventHandler[EmailEvent] {
   val emailClient: EmailClient
 
@@ -47,7 +51,6 @@ trait EmailEventHandler extends StcEventHandler[EmailEvent] {
           e.eventType, e.eventVenue, e.eventGuideUrl)
       case e: EmailEvents.CandidateAllocationConfirmationRequest => emailClient.sendCandidateConfirmationRequestToEvent(e)
       case e: EmailEvents.CandidateAllocationConfirmationReminder => emailClient.sendCandidateConfirmationRequestReminderToEvent(e)
-
     }
   }
 }

@@ -16,15 +16,19 @@
 
 package services.evaluation
 
+import com.google.inject.ImplementedBy
+import javax.inject.Singleton
 import model.AssessmentPassMarksSchemesAndScores
 import model.EvaluationResults._
 import play.api.Logger
 
+@ImplementedBy(classOf[AssessmentCentreEvaluationEngineImpl])
 trait AssessmentCentreEvaluationEngine {
   def evaluate(candidateScores: AssessmentPassMarksSchemesAndScores): AssessmentEvaluationResult
 }
 
-object AssessmentCentreEvaluationEngine extends AssessmentCentreEvaluationEngine with AssessmentScoreCalculator
+@Singleton
+class AssessmentCentreEvaluationEngineImpl extends AssessmentCentreEvaluationEngine with AssessmentScoreCalculator
   with AssessmentCentreAllSchemesEvaluator {
 
   def evaluate(candidateScores: AssessmentPassMarksSchemesAndScores): AssessmentEvaluationResult = {

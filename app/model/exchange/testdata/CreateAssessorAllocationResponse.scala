@@ -16,18 +16,13 @@
 
 package model.exchange.testdata
 
-import model.testdata.CreateAssessorAllocationData.CreateAssessorAllocationData
-import model.testdata.CreateEventData.CreateEventData
+import model.testdata.CreateAssessorAllocationData
 import play.api.libs.json.{ Json, OFormat }
+
+case class CreateAssessorAllocationResponse(generationId: Int, data: CreateAssessorAllocationData) extends CreateTestDataResponse
 
 object CreateAssessorAllocationResponse {
 
-  case class CreateAssessorAllocationResponse(generationId: Int, data: CreateAssessorAllocationData) extends CreateTestDataResponse
-
-  object CreateAssessorAllocationResponse {
-
-    implicit val format: OFormat[CreateAssessorAllocationResponse] =
-      Json.format[CreateAssessorAllocationResponse]
-  }
-
+  implicit val format: OFormat[CreateAssessorAllocationResponse] =
+    Json.format[CreateAssessorAllocationResponse]
 }

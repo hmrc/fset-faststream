@@ -33,10 +33,9 @@ import services.allocation.AssessorAllocationService
 import services.events.EventsService
 import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
-
-import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
+import scala.concurrent.Future
 
 class EventsControllerSpec extends UnitWithAppSpec {
 
@@ -122,19 +121,18 @@ class EventsControllerSpec extends UnitWithAppSpec {
     }
   }
 
-
   trait TestFixture extends TestFixtureBase {
     val mockEventsService = mock[EventsService]
+    val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
     val mockAssessorAllocationService = mock[AssessorAllocationService]
     val mockAppRepo = mock[GeneralApplicationRepository]
-    val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
 
-    val controller = new EventsController {
-      val eventsService = mockEventsService
-      val assessorAllocationService = mockAssessorAllocationService
-      val locationsAndVenuesRepository: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
-      val applicationRepository = mockAppRepo
-    }
+    val controller = new EventsController(
+      mockEventsService,
+      mockLocationsWithVenuesRepo,
+      mockAssessorAllocationService,
+      mockAppRepo
+    )
 
     val venue = Venue("London FSAC", "Bush House")
     val location = Location("London")
@@ -142,11 +140,8 @@ class EventsControllerSpec extends UnitWithAppSpec {
     when(mockLocationsWithVenuesRepo.location(any[String])).thenReturnAsync(location)
     when(mockLocationsWithVenuesRepo.venue(eqTo(venue.name))).thenReturnAsync(venue)
 
-
     val event = new Event("id", EventType.FSAC, "description", location, venue,
             LocalDate.now, 32, 10, 5, LocalTime.now, LocalTime.now, DateTime.now, Map.empty, List.empty)
     val eventWithAllocationsSummaryWithDescription = new EventWithAllocationsSummary(LocalDate.now, event, Nil, Nil)
-
   }
-
 }

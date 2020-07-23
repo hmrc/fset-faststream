@@ -16,9 +16,8 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.{ EventNotFoundException, OptimisticLockException }
-import model.persisted.eventschedules
-import model.{ command, exchange }
 import model.exchange.{ AssessorAllocations, Event => ExchangeEvent }
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.{ Event, EventType, UpdateEvent }
@@ -26,25 +25,31 @@ import model.{ command, exchange }
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
 import repositories.application.GeneralApplicationRepository
-import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository, UnknownVenueException }
+import repositories.events.{ LocationsWithVenuesRepository, UnknownVenueException }
 import services.allocation.AssessorAllocationService
 import services.events.EventsService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
+//import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object EventsController extends EventsController {
-  val eventsService: EventsService = EventsService
-  val locationsAndVenuesRepository: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
-  val assessorAllocationService: AssessorAllocationService = AssessorAllocationService
-  val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
-}
+//object EventsController extends EventsController {
+//  val eventsService: EventsService = EventsService
+//  val locationsAndVenuesRepository: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
+//  val assessorAllocationService: AssessorAllocationService = AssessorAllocationService
+//  val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
+//}
 
-trait EventsController extends BaseController {
-  def eventsService: EventsService
-  def locationsAndVenuesRepository: LocationsWithVenuesRepository
-  def assessorAllocationService: AssessorAllocationService
-  def applicationRepository: GeneralApplicationRepository
+@Singleton
+class EventsController @Inject() (eventsService: EventsService,
+                                  locationsAndVenuesRepository: LocationsWithVenuesRepository,
+                                  assessorAllocationService: AssessorAllocationService,
+                                  applicationRepository: GeneralApplicationRepository
+                                 ) extends BaseController {
+//  def eventsService: EventsService
+//  def locationsAndVenuesRepository: LocationsWithVenuesRepository
+//  def assessorAllocationService: AssessorAllocationService
+//  def applicationRepository: GeneralApplicationRepository
 
   def saveAssessmentEvents(): Action[AnyContent] = Action.async { implicit request =>
     eventsService.saveAssessmentEvents().map(_ => Created("Events saved"))
@@ -137,5 +142,4 @@ trait EventsController extends BaseController {
   def addNewAttributes() = Action.async { implicit request =>
     eventsService.updateStructure().map(_ => Ok)
   }
-
 }

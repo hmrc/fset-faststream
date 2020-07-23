@@ -45,7 +45,7 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
           ))
         when(mockOtRepository.getTestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
         when(mockProgressResponse.phase1ProgressResponse.phase1TestsExpired).thenReturn(true)
-        when(mockDateFactory.nowLocalTimeZone).thenReturn(Now)
+        when(mockDateTimeFactory.nowLocalTimeZone).thenReturn(Now)
         when(mockProfile.expirationDate).thenReturn(OneHourAgo)
         when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any(), any())).thenReturnAsync()
         when(mockAppRepository.removeProgressStatuses(eqTo(applicationId), any())).thenReturnAsync()
@@ -54,7 +54,7 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
 
         verify(mockAppRepository).findProgress(eqTo(applicationId))
         verify(mockOtRepository).getTestGroup(eqTo(applicationId))
-        verify(mockDateFactory).nowLocalTimeZone
+        verify(mockDateTimeFactory).nowLocalTimeZone
         verify(mockOtRepository).updateGroupExpiryTime(eqTo(applicationId), eqTo(Now.plusDays(twoExtraDays)), any())
         verify(mockAppRepository).removeProgressStatuses(eqTo(applicationId), eqTo(statusToRemoveWhenExpiryInMoreThanOneDayExpired))
       }
@@ -71,8 +71,8 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
         when(mockAppRepository.removeProgressStatuses(eqTo(applicationId), any())).thenReturnAsync()
 
         underTest.extendTestGroupExpiryTime(applicationId, threeExtraDays, "triggeredBy").futureValue
-        underTest.verifyAuditEvents(1, "NonExpiredTestsExtended")
-        underTest.verifyDataStoreEvents(1, "OnlineExerciseExtended")
+        verifyAuditEvents(1, "NonExpiredTestsExtended")
+        verifyDataStoreEvents(1, "OnlineExerciseExtended")
 
         verify(mockOtRepository).updateGroupExpiryTime(eqTo(applicationId), eqTo(InFiveHours.plusDays(threeExtraDays)), any())
         verify(mockAppRepository).removeProgressStatuses(eqTo(applicationId), eqTo(statusToRemoveWhenExpiryInMoreThanThreeDays))
@@ -89,7 +89,7 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
 
         verify(mockAppRepository).findProgress(eqTo(applicationId))
         verify(mockOtRepository).getTestGroup(eqTo(applicationId))
-        verifyNoMoreInteractions(mockAppRepository, mockOtRepository, mockAuditService, mockDateFactory)
+        verifyNoMoreInteractions(mockAppRepository, mockOtRepository, mockAuditService, mockDateTimeFactory)
       }
 
       "find progress fails" in new TestFixture {
@@ -116,7 +116,7 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
         )
         when(mockOtRepository.getTestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
         when(mockProgressResponse.phase1ProgressResponse.phase1TestsExpired).thenReturn(true)
-        when(mockDateFactory.nowLocalTimeZone).thenReturn(Now)
+        when(mockDateTimeFactory.nowLocalTimeZone).thenReturn(Now)
         when(mockProfile.expirationDate).thenReturn(OneHourAgo)
         when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any(), any())).thenReturnAsync()
         when(mockAppRepository.removeProgressStatuses(eqTo(applicationId), any())).thenReturn(Future.failed(genericError))
@@ -163,7 +163,7 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
     }
   }
 
-  trait TestFixture {
+  trait TestFixture extends StcEventServiceFixture {
     implicit val hc = HeaderCarrier()
     implicit val rh = mock[RequestHeader]
     val applicationId = "abc"
@@ -178,7 +178,7 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
     val invalidStatusError = TestExtensionException("Application is in an invalid status for test extension")
     val noTestProfileFoundError = TestExtensionException("No Phase1TestGroupAvailable for the given application")
     val genericError = new Exception("Dummy error!")
-    val mockDateFactory = mock[DateTimeFactory]
+    val mockDateTimeFactory = mock[DateTimeFactory]
     val Now = DateTime.now()
     val OneHourAgo = Now.minusHours(1)
     val InFiveHours = Now.plusHours(5)
@@ -195,13 +195,13 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
     val mockAppRepository = mock[GeneralApplicationRepository]
     val mockOtRepository = mock[Phase1TestRepository2]
     val mockAuditService = mock[AuditService]
-    val underTest = new OnlineTestExtensionService with StcEventServiceFixture {
-      val appRepository = mockAppRepository
-      val otRepository = mockOtRepository
-      val auditService = mockAuditService
-      val dateTimeFactory = mockDateFactory
-      val eventService = stcEventServiceMock
-    }
+    val underTest = new OnlineTestExtensionService(
+      mockAppRepository,
+      mockOtRepository,
+      mockAuditService,
+      mockDateTimeFactory,
+      stcEventServiceMock
+    )
 
     when(mockProgressResponse.phase1ProgressResponse).thenReturn(mockPhase1ProgressResponse)
   }

@@ -16,26 +16,32 @@
 
 package services.onlinetesting.phase1
 
-import _root_.services.passmarksettings.PassMarkSettingsService
-import config.MicroserviceAppConfig._
+import com.google.inject.name.Named
+import config.MicroserviceAppConfig
+import factories.UUIDFactory
+import services.passmarksettings.PassMarkSettingsService
+import javax.inject.{ Inject, Singleton }
 import model.exchange.passmarksettings.Phase1PassMarkSettings
 import model.persisted.{ ApplicationReadyForEvaluation2, PsiTest }
 import model.{ Phase, SchemeId }
 import play.api.Logger
-import repositories._
+import repositories.onlinetesting.{ OnlineTestEvaluationRepository, Phase1EvaluationMongoRepository }
+import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import scheduler.onlinetesting.EvaluateOnlineTestResultService2
 
 import scala.concurrent.Future
 
-object EvaluatePhase1ResultService2 extends EvaluatePhase1ResultService2 {
-  val evaluationRepository = repositories.faststreamPhase1EvaluationRepository
-  val passMarkSettingsRepo = phase1PassMarkSettingsRepository
-  val gatewayConfig = testIntegrationGatewayConfig
-  val phase = Phase.PHASE1
-}
-
-trait EvaluatePhase1ResultService2 extends EvaluateOnlineTestResultService2[Phase1PassMarkSettings] with Phase1TestSelector2 with
+// Guice DI PSI version
+@Singleton
+class EvaluatePhase1ResultService2 @Inject() (@Named("Phase1EvaluationRepository") val evaluationRepository: OnlineTestEvaluationRepository,
+                                              val passMarkSettingsRepo: Phase1PassMarkSettingsMongoRepository,
+                                              appConfig: MicroserviceAppConfig,
+                                              val uuidFactory: UUIDFactory
+                                             ) extends EvaluateOnlineTestResultService2[Phase1PassMarkSettings] with Phase1TestSelector2 with
   Phase1TestEvaluation2 with PassMarkSettingsService[Phase1PassMarkSettings] {
+
+  val phase = Phase.PHASE1
+  val gatewayConfig = appConfig.testIntegrationGatewayConfig
 
   def evaluate(implicit application: ApplicationReadyForEvaluation2, passmark: Phase1PassMarkSettings): Future[Unit] = {
     if (application.isSdipFaststream && !passmark.schemes.exists(_.schemeId == SchemeId("Sdip"))) {
@@ -76,7 +82,7 @@ trait EvaluatePhase1ResultService2 extends EvaluateOnlineTestResultService2[Phas
         }
         val msg = s"Illegal number of active tests with results for this application: ${application.applicationId}. $gis"
         throw new IllegalStateException(msg)
-  }
+    }
   //scalastyle:on
 
   private def getSchemesToEvaluate(implicit application: ApplicationReadyForEvaluation2) =

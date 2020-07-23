@@ -21,48 +21,59 @@ import java.nio.file.Files
 import akka.stream.scaladsl.Source
 import connectors.exchange.UserIdResponse
 import controllers.ApplicationController.CandidateNotFound
-import model.Exceptions.{ ApplicationNotFound, CannotUpdateFSACIndicator, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound }
+import javax.inject.{ Inject, Singleton }
+import model.Exceptions._
 import model.{ CreateApplicationRequest, OverrideSubmissionDeadlineRequest, PreviewRequest, ProgressStatuses }
 import play.api.libs.json.{ JsObject, Json }
 import play.api.libs.streams.Streams
 import play.api.mvc.{ Action, AnyContent }
-import repositories._
+import services.assessmentcentre.AssessmentCentreService
+import services.onlinetesting.phase3.EvaluatePhase3ResultService
+//import repositories._
 import repositories.application.GeneralApplicationRepository
-import repositories.fileupload.FileUploadMongoRepository
+import repositories.fileupload.FileUploadRepository
 import services.AuditService
 import services.application.ApplicationService
-import services.assessmentcentre.AssessmentCentreService
-import services.assessmentcentre.AssessmentCentreService._
-import services.onlinetesting.phase3.EvaluatePhase3ResultService
+import services.assessmentcentre.AssessmentCentreService.{ CandidateAlreadyHasAnAnalysisExerciseException, CandidateHasNoAnalysisExerciseException }
 import services.personaldetails.PersonalDetailsService
 import services.sift.ApplicationSiftService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
+//import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object ApplicationController extends ApplicationController {
-  val appRepository = applicationRepository
-  val auditService = AuditService
-  val applicationService = ApplicationService
-  val passmarkService = EvaluatePhase3ResultService
-  val siftService = ApplicationSiftService
-  val assessmentCentreService = AssessmentCentreService
-  val uploadRepository = fileUploadRepository
-  val personalDetailsService = PersonalDetailsService
+object ApplicationController {
+//  val appRepository = applicationRepository
+//  val auditService = AuditService
+//  val applicationService = ApplicationService
+//  val passmarkService = EvaluatePhase3ResultService
+//  val siftService = ApplicationSiftService
+//  val assessmentCentreService = AssessmentCentreService
+//  val uploadRepository = fileUploadRepository
+//  val personalDetailsService = PersonalDetailsService
 
   case class CandidateNotFound(msg: String) extends Exception(msg)
 }
 
-trait ApplicationController extends BaseController {
-  val appRepository: GeneralApplicationRepository
-  val auditService: AuditService
-  val applicationService: ApplicationService
-  val passmarkService: EvaluatePhase3ResultService
-  val siftService: ApplicationSiftService
-  val assessmentCentreService: AssessmentCentreService
-  val uploadRepository: FileUploadMongoRepository
-  val personalDetailsService: PersonalDetailsService
+@Singleton
+class ApplicationController @Inject() (appRepository: GeneralApplicationRepository,
+                                       auditService: AuditService,
+                                       applicationService: ApplicationService,
+                                       passmarkService: EvaluatePhase3ResultService,
+                                       siftService: ApplicationSiftService,
+                                       assessmentCentreService: AssessmentCentreService,
+                                       uploadRepository: FileUploadRepository,
+                                       personalDetailsService: PersonalDetailsService
+                                      ) extends BaseController {
+
+//  val auditService: AuditService //TODO:fix inject
+//  val applicationService: ApplicationService
+//  val passmarkService: EvaluatePhase3ResultService
+//  val siftService: ApplicationSiftService
+//  val assessmentCentreService: AssessmentCentreService
+//  val uploadRepository: FileUploadMongoRepository
+//  val personalDetailsService: PersonalDetailsService
 
   def createApplication = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateApplicationRequest] { applicationRequest =>
@@ -203,8 +214,8 @@ trait ApplicationController extends BaseController {
   def analysisExerciseStatistics: Action[AnyContent] = Action.async {
     implicit request =>
       val result = for {
-        allFileInfo <- fileUploadRepository.retrieveAllIdsAndSizes
-        allApplicationFiles <- applicationRepo.findAllFileInfo
+        allFileInfo <- uploadRepository.retrieveAllIdsAndSizes
+        allApplicationFiles <- appRepository.findAllFileInfo
       } yield {
         allApplicationFiles.map { applicationFile =>
           val matchingFileInfo = allFileInfo.find(_.id == applicationFile.analysisExerciseId)
@@ -238,7 +249,7 @@ trait ApplicationController extends BaseController {
   }
 
   def analysisExerciseFileMetadata(fileId: String): Action[AnyContent] = Action.async { implicit request =>
-    fileUploadRepository.retrieveMetaData(fileId).map(f => Ok(Json.toJson(f)))
+    uploadRepository.retrieveMetaData(fileId).map(f => Ok(Json.toJson(f)))
   }
 
   case class ApplicationStatus(applicationId: String, progressStatus: String)

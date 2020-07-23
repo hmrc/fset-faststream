@@ -22,7 +22,7 @@ import play.api.libs.json._
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 case class UniqueIdentifier(uuid: UUID) {
-  override def toString() = uuid.toString
+  override def toString = uuid.toString
 }
 
 object UniqueIdentifier {

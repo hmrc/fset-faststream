@@ -18,26 +18,27 @@ package services.testdata
 
 import connectors.AuthProviderClient
 import connectors.AuthProviderClient._
+import javax.inject.{ Inject, Singleton }
 import model.exchange.testdata.CreateAdminResponse.CreateAdminResponse
-import model.exchange.testdata.CreateAssessorAllocationResponse.CreateAssessorAllocationResponse
+import model.exchange.testdata.CreateAssessorAllocationResponse
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
-import model.exchange.testdata.CreateEventResponse.CreateEventResponse
+import model.exchange.testdata.CreateEventResponse
 import model.exchange.testdata.{ CreateCandidateAllocationResponse, CreateTestDataResponse }
 import model.testdata.CreateAdminData.CreateAdminData
-import model.testdata.CreateAssessorAllocationData.CreateAssessorAllocationData
-import model.testdata.CreateEventData.CreateEventData
+import model.testdata.CreateAssessorAllocationData
+import model.testdata.CreateEventData
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import model.testdata.{ CreateCandidateAllocationData, CreateTestData }
 import play.api.Logger
 import play.api.mvc.RequestHeader
-import play.modules.reactivemongo.MongoDbConnection
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.collection.JSONCollection
 import services.testdata.admin.AdminUserBaseGenerator
 import services.testdata.allocation.{ AssessorAllocationGenerator, CandidateAllocationGenerator }
-import services.testdata.candidate.{ BaseGenerator, CandidateRemover, RegisteredStatusGenerator }
+import services.testdata.candidate._
 import services.testdata.event.EventGenerator
-import services.testdata.faker.DataFaker._
+import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.collection.parallel.ForkJoinTaskSupport
@@ -47,66 +48,71 @@ import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
 
-object TestDataGeneratorService extends TestDataGeneratorService {
-}
-
-trait TestDataGeneratorService extends MongoDbConnection {
+@Singleton
+class TestDataGeneratorService @Inject() (authProviderClient: AuthProviderClient,
+                                          registeredStatusGenerator: RegisteredStatusGenerator,
+                                          candidateRemover: CandidateRemover,
+                                          candidateAllocationGenerator: CandidateAllocationGenerator,
+                                          assessorAllocationGenerator: AssessorAllocationGenerator,
+                                          mongoComponent: ReactiveMongoComponent,
+                                          dataFaker: DataFaker,
+                                          eventGenerator: EventGenerator) {
 
   def clearDatabase(generateDefaultUsers: Boolean)(implicit hc: HeaderCarrier): Future[Unit] = {
     for {
       _ <- cleanupDb()
-      _ <- AuthProviderClient.removeAllUsers()
+      _ <- authProviderClient.removeAllUsers()
       _ <- generateUsers() if generateDefaultUsers
     } yield ()
   }
 
   def clearCandidates(applicationStatus: Option[String])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Int] = {
-    CandidateRemover.remove(applicationStatus)
+    candidateRemover.remove(applicationStatus)
   }
 
   def cleanupDb(): Future[Unit] = {
-    db().collectionNames.map { names =>
+    mongoComponent.mongoConnector.db().collectionNames.map { names =>
       names.foreach { name =>
         Logger.info(s"removing collection: $name")
         import reactivemongo.play.json.ImplicitBSONHandlers._
-        db().collection[JSONCollection](name).delete().one(BSONDocument.empty)
+        mongoComponent.mongoConnector.db().collection[JSONCollection](name).delete().one(BSONDocument.empty)
       }
     }
   }
 
   private def generateUsers()(implicit hc: HeaderCarrier): Future[Unit] = {
     for {
-      _ <- RegisteredStatusGenerator.createUser(
+      _ <- registeredStatusGenerator.createUser(
         1,
         "test_super_admin_1@mailinator.com", "CSR Test", "Super Admin", Some("TestSuperAdmin"),
         List(AuthProviderClient.SuperAdminRole)
       )
-      _ <- RegisteredStatusGenerator.createUser(
+      _ <- registeredStatusGenerator.createUser(
         1,
         "test_service_manager_1@mailinator.com", "CSR Test", "Tech Admin", Some("TestServiceManager"),
         List(AuthProviderClient.TechnicalAdminRole)
       )
-      _ <- RegisteredStatusGenerator.createUser(
+      _ <- registeredStatusGenerator.createUser(
         1,
         "test_techadmin@mailinator.com", "CSR Test", "Tech Admin", Some("TestServiceManager"),
         List(AuthProviderClient.TechnicalAdminRole)
       )
-      _ <- RegisteredStatusGenerator.createUser(
+      _ <- registeredStatusGenerator.createUser(
         1,
         "test_service_admin@mailinator.com", "CSR Test", "Service Admin", Some("TestServiceManager"),
         List(AuthProviderClient.ServiceAdminRole)
       )
-      _ <- RegisteredStatusGenerator.createUser(
+      _ <- registeredStatusGenerator.createUser(
         1,
         "test_assessor@mailinator.com", "CSR Test", "Assessor", Some("TestServiceManager"),
         List(AuthProviderClient.AssessorRole)
       )
-      _ <- RegisteredStatusGenerator.createUser(
+      _ <- registeredStatusGenerator.createUser(
         1,
         "test_qac@mailinator.com", "CSR Test", "QAC", Some("TestServiceManager"),
         List(AuthProviderClient.AssessorRole)
       )
-      _ <- RegisteredStatusGenerator.createUser(
+      _ <- registeredStatusGenerator.createUser(
         1,
         "test_service_admin_assessor@mailinator.com", "CSR Test", "Admin & Assessor", Some("TestServiceManagerAssessor"),
         List(AuthProviderClient.ServiceAdminRole, AuthProviderClient.AssessorRole)
@@ -120,9 +126,9 @@ trait TestDataGeneratorService extends MongoDbConnection {
       val parNumbers = getParNumbers(numberToGenerate)
 
       parNumbers.map { candidateGenerationId =>
-        val fut = RegisteredStatusGenerator.createUser(
+        val fut = registeredStatusGenerator.createUser(
           candidateGenerationId,
-          s"test_service_manager_${emailPrefix.getOrElse(Random.number(Some(10000)))}a$candidateGenerationId@mailinator.com",
+          s"test_service_manager_${emailPrefix.getOrElse(dataFaker.Random.number(Some(10000)))}a$candidateGenerationId@mailinator.com",
           "CSR Test",
           "Service Manager",
           Some("TestServiceManager"),
@@ -136,7 +142,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
   def createCandidates(numberToGenerate: Int,
                        generatorForStatus: CreateCandidateData => BaseGenerator,
                        configGenerator: Int => CreateCandidateData
-                                      )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateCandidateResponse]] = {
+                      )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateCandidateResponse]] = {
     Future.successful {
       val parNumbers = getParNumbers(numberToGenerate)
 
@@ -151,7 +157,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
   def createAdmins(numberToGenerate: Int,
                    generatorForStatus: CreateAdminData => AdminUserBaseGenerator,
                    createData: Int => CreateAdminData
-                                      )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateAdminResponse]] = {
+                  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[CreateAdminResponse]] = {
     Future.successful {
       val parNumbers = getParNumbers(numberToGenerate)
 
@@ -179,7 +185,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
       // one wasted generation of data
       val _ = createData(parNumbers.head)
 
-      runInParallel(parNumbers, createData, EventGenerator.generate)
+      runInParallel(parNumbers, createData, eventGenerator.generate)
     }
   }
 
@@ -191,7 +197,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
       // one wasted generation of data
       val _ = createData(parNumbers.head)
 
-      runInParallel(parNumbers, createData, AssessorAllocationGenerator.generate)
+      runInParallel(parNumbers, createData, assessorAllocationGenerator.generate)
     }
   }
 
@@ -200,7 +206,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
     Future.successful {
       val parNumbers = getParNumbers(numberToGenerate)
       createData(parNumbers.head)
-      runInParallel(parNumbers, createData, CandidateAllocationGenerator.generate)
+      runInParallel(parNumbers, createData, candidateAllocationGenerator.generate)
     }
   }
 
@@ -232,10 +238,10 @@ trait TestDataGeneratorService extends MongoDbConnection {
                                                                               createData: Int => D,
                                                                               block: (Int, D) => Future[R]): List[R] = {
     parNumbers.map { candidateGenerationId =>
-        Await.result(
-          block(candidateGenerationId, createData(candidateGenerationId)),
-          10 seconds
-        )
-      }.toList
+      Await.result(
+        block(candidateGenerationId, createData(candidateGenerationId)),
+        10 seconds
+      )
+    }.toList
   }
 }

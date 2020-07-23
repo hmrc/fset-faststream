@@ -16,16 +16,20 @@
 
 package controllers.testdata
 
+import javax.inject.Singleton
 import model.ApplicationRoute.ApplicationRoute
 import model.command.testdata.CreateCandidateRequest.CreateCandidateRequest
 import model.{ ApplicationRoute, ApplicationStatus, CivilServantAndInternshipType }
 
 case class ValidatorResult(result: Boolean, message: Option[String])
 
-object CreateCandidateRequestValidator extends CreateCandidateRequestValidator
-
-trait CreateCandidateRequestValidator {
+//object CreateCandidateRequestValidator extends CreateCandidateRequestValidator
+@Singleton
+class CreateCandidateRequestValidator {
   def validate(request: CreateCandidateRequest): ValidatorResult = {
+    //scalastyle:off
+    println("**** CreateCandidateRequestValidator.validate called")
+    //scalastyle:on
 
     if (!validateGis(request)) {
       ValidatorResult(result = false, Some("Request contains incompatible values for Gis"))
@@ -137,5 +141,4 @@ trait CreateCandidateRequestValidator {
   def getApplicationStatus(request: CreateCandidateRequest) = {
     ApplicationStatus.withName(request.statusData.applicationStatus)
   }
-
 }

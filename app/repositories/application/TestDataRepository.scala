@@ -17,14 +17,14 @@
 package repositories.application
 
 import connectors.ExchangeObjects
+import javax.inject.{ Inject, Singleton }
 import model.{ ApplicationStatus, _ }
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
-import model.CivilServantAndInternshipType.CivilServantAndInternshipType
 import model.ProgressStatuses.ProgressStatus
 import model.persisted.ContactDetails
 import org.joda.time.{ DateTime, LocalDate }
-import reactivemongo.api.DB
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -49,10 +49,13 @@ trait TestDataContactDetailsRepository {
   def createContactDetails(num: Int): Future[Unit]
 }
 
-class TestDataContactDetailsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[ContactDetails, BSONObjectID](CollectionNames.CONTACT_DETAILS, mongo,
-    ContactDetails.contactDetailsFormat, ReactiveMongoFormats.objectIdFormats) with
-    TestDataContactDetailsRepository with ReactiveRepositoryHelpers {
+@Singleton
+class TestDataContactDetailsMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[ContactDetails, BSONObjectID](
+    CollectionNames.CONTACT_DETAILS,
+    mongoComponent.mongoConnector.db,
+    ContactDetails.contactDetailsFormat,
+    ReactiveMongoFormats.objectIdFormats) with TestDataContactDetailsRepository with ReactiveRepositoryHelpers {
 
   import Utils.chooseOne
 
@@ -76,10 +79,13 @@ class TestDataContactDetailsMongoRepository(implicit mongo: () => DB)
   }
 }
 
-class TestDataMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[ContactDetails, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    ContactDetails.contactDetailsFormat, ReactiveMongoFormats.objectIdFormats) with TestDataRepository
-    with ReactiveRepositoryHelpers {
+@Singleton
+class TestDataMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[ContactDetails, BSONObjectID](
+    CollectionNames.APPLICATION,
+    mongoComponent.mongoConnector.db,
+    ContactDetails.contactDetailsFormat,
+    ReactiveMongoFormats.objectIdFormats) with TestDataRepository with ReactiveRepositoryHelpers {
 
   import Utils.chooseOne
 
@@ -108,14 +114,14 @@ class TestDataMongoRepository(implicit mongo: () => DB)
 
   // scalastyle:off parameter.number method.length
   def createApplicationWithAllFields(userId: String, appId: String, testAccountId: String, frameworkId: String,
-    appStatus: ApplicationStatus = ApplicationStatus.IN_PROGRESS, hasDisability: String = "Yes",
-    needsSupportForOnlineAssessment: Boolean = false,
-    needsSupportAtVenue: Boolean = false, guaranteedInterview: Boolean = false, lastName: Option[String] = None,
-    firstName: Option[String] = None, preferredName: Option[String] = None,
-    additionalProgressStatuses: List[(ProgressStatus, Boolean)] = Nil,
-    additionalDoc: BSONDocument = BSONDocument.empty,
-    applicationRoute: Option[ApplicationRoute] = None
-  ): Future[WriteResult] = {
+                                     appStatus: ApplicationStatus = ApplicationStatus.IN_PROGRESS, hasDisability: String = "Yes",
+                                     needsSupportForOnlineAssessment: Boolean = false,
+                                     needsSupportAtVenue: Boolean = false, guaranteedInterview: Boolean = false, lastName: Option[String] = None,
+                                     firstName: Option[String] = None, preferredName: Option[String] = None,
+                                     additionalProgressStatuses: List[(ProgressStatus, Boolean)] = Nil,
+                                     additionalDoc: BSONDocument = BSONDocument.empty,
+                                     applicationRoute: Option[ApplicationRoute] = None
+                                    ): Future[WriteResult] = {
     import repositories.BSONLocalDateHandler
     val document = BSONDocument(
       "applicationId" -> appId,

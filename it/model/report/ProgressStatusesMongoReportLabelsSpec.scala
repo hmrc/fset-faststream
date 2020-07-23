@@ -2,6 +2,7 @@ package model.report
 
 import java.util.UUID
 
+import factories.ITDateTimeFactoryMock
 import model.{ ApplicationRoute, ProgressStatuses }
 import repositories.CollectionNames
 import repositories.application.GeneralApplicationMongoRepository
@@ -10,7 +11,9 @@ import testkit.MongoRepositorySpec
 class ProgressStatusesMongoReportLabelsSpec extends MongoRepositorySpec {
   val collectionName: String = CollectionNames.APPLICATION
 
-  lazy val appRepo: GeneralApplicationMongoRepository = repositories.applicationRepository
+//  lazy val appRepo: GeneralApplicationMongoRepository = repositories.applicationRepository
+  lazy val appRepo: GeneralApplicationMongoRepository =
+    new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, appConfig, mongo)
 
   val reportLabels: ProgressStatusesReportLabels = new ProgressStatusesReportLabels {}
 

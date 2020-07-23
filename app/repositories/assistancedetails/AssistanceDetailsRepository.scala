@@ -16,8 +16,10 @@
 
 package repositories.assistancedetails
 
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.{ AssistanceDetailsNotFound, CannotUpdateAssistanceDetails }
 import model.persisted.AssistanceDetails
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -33,10 +35,14 @@ trait AssistanceDetailsRepository {
   def find(applicationId: String): Future[AssistanceDetails]
 }
 
-class AssistanceDetailsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[AssistanceDetails, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    AssistanceDetails.assistanceDetailsFormat, ReactiveMongoFormats.objectIdFormats) with AssistanceDetailsRepository
-    with ReactiveRepositoryHelpers {
+@Singleton
+class AssistanceDetailsMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[AssistanceDetails, BSONObjectID](
+    CollectionNames.APPLICATION,
+    mongoComponent.mongoConnector.db,
+    AssistanceDetails.assistanceDetailsFormat,
+    ReactiveMongoFormats.objectIdFormats
+  ) with AssistanceDetailsRepository with ReactiveRepositoryHelpers {
 
   val AssistanceDetailsDocumentKey = "assistance-details"
 

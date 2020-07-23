@@ -17,6 +17,7 @@
 package repositories.contactdetails
 
 import config.MicroserviceAppConfig
+import javax.inject.{ Inject, Singleton }
 import model.Address
 import model.Commands._
 import model.Exceptions.{ ContactDetailsNotFound, ContactDetailsNotFoundForEmail }
@@ -24,7 +25,10 @@ import model.persisted.{ ContactDetails, ContactDetailsWithId, UserIdWithEmail }
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
-import reactivemongo.api.{ Cursor, DB, ReadPreference }
+import play.modules.reactivemongo.ReactiveMongoComponent
+import reactivemongo.api.indexes.Index
+import reactivemongo.api.indexes.IndexType.Ascending
+import reactivemongo.api.{ Cursor, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
@@ -36,33 +40,30 @@ import scala.concurrent.Future
 
 trait ContactDetailsRepository {
   def update(userId: String, contactDetails: ContactDetails): Future[Unit]
-
   def find(userId: String): Future[ContactDetails]
-
   def findUserIdByEmail(email: String): Future[String]
-
   def findAll: Future[List[ContactDetailsWithId]]
-
   def findAllPostcodes(): Future[Map[String, String]]
-
   def findByPostCode(postCode: String): Future[List[ContactDetailsWithId]]
-
   def findByUserIds(userIds: List[String]): Future[List[ContactDetailsWithId]]
-
   def archive(originalUserId: String, userIdToArchiveWith: String): Future[Unit]
-
   def findEmails: Future[List[UserIdWithEmail]]
-
   def removeContactDetails(userId: String): Future[Unit]
 }
 
-class ContactDetailsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[ContactDetails, BSONObjectID](CollectionNames.CONTACT_DETAILS, mongo, ContactDetails.contactDetailsFormat,
+@Singleton
+class ContactDetailsMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent, appConfig: MicroserviceAppConfig)
+  extends ReactiveRepository[ContactDetails, BSONObjectID](
+    CollectionNames.CONTACT_DETAILS, mongoComponent.mongoConnector.db, ContactDetails.contactDetailsFormat,
     ReactiveMongoFormats.objectIdFormats) with ContactDetailsRepository with ReactiveRepositoryHelpers {
 
   val ContactDetailsDocumentKey = "contact-details"
 
   private val unlimitedMaxDocs = -1
+
+  override def indexes: Seq[Index] = Seq(
+    Index(Seq(("userId", Ascending)), unique = true)
+  )
 
   override def update(userId: String, contactDetails: ContactDetails): Future[Unit] = {
     val query = BSONDocument("userId" -> userId)
@@ -99,7 +100,7 @@ class ContactDetailsMongoRepository(implicit mongo: () => DB)
     val query = BSONDocument()
 
     collection.find(query, projection = Option.empty[JsObject]).cursor[BSONDocument]()
-      .collect[List](MicroserviceAppConfig.maxNumberOfDocuments, Cursor.FailOnError[List[BSONDocument]]()).map(_.map { doc =>
+      .collect[List](appConfig.maxNumberOfDocuments, Cursor.FailOnError[List[BSONDocument]]()).map(_.map { doc =>
       val id = doc.getAs[String]("userId").get
       val root = doc.getAs[BSONDocument]("contact-details").get
       val outsideUk = root.getAs[Boolean]("outsideUk").getOrElse(false)

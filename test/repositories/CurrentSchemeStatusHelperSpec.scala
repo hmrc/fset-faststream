@@ -31,7 +31,6 @@ class CurrentSchemeStatusHelperSpec extends UnitSpec {
   val sdip = "Sdip"
 
   "Current scheme status helper" must {
-
     "update status when one does not exist" in {
       val currentStatus = Nil
       val newStatus = SchemeEvaluationResult(SchemeId(commercial), Green.toString) ::

@@ -16,7 +16,8 @@
 
 package services.onlinetesting.phase2
 
-import config.{ Phase2TestsConfig2, PsiTestIds, TestIntegrationGatewayConfig }
+import config.{ MicroserviceAppConfig, Phase2TestsConfig2, PsiTestIds, TestIntegrationGatewayConfig }
+import factories.UUIDFactory
 import model.EvaluationResults.{ Amber, Green }
 import model.ProgressStatuses.ProgressStatus
 import model._
@@ -135,6 +136,8 @@ class EvaluatePhase2ResultService2Spec extends BaseServiceSpec {
     )
 
     val mockTestIntegrationGatewayConfig = mock[TestIntegrationGatewayConfig]
+    val mockAppConfig = mock[MicroserviceAppConfig]
+    when(mockAppConfig.testIntegrationGatewayConfig).thenReturn(mockTestIntegrationGatewayConfig)
 
     def testIds(idx: Int): PsiTestIds =
       PsiTestIds(s"inventoryId$idx", s"assessmentId$idx", s"reportId$idx", s"normId$idx")
@@ -149,14 +152,22 @@ class EvaluatePhase2ResultService2Spec extends BaseServiceSpec {
       tests, List("test1", "test2")
     )
     when(mockTestIntegrationGatewayConfig.phase2Tests).thenReturn(mockPhase2TestConfig)
-
+/*
     val service = new EvaluatePhase2ResultService2 {
       val evaluationRepository = mockPhase2EvaluationRepository
       val passMarkSettingsRepo = mockPhase2PassMarkSettingsRepository
       val generalAppRepository = mockApplicationRepository
       val gatewayConfig = mockTestIntegrationGatewayConfig
       val phase = Phase.PHASE2
-    }
+    }*/
+
+    val service = new EvaluatePhase2ResultService2(
+      mockPhase2EvaluationRepository,
+      mockPhase2PassMarkSettingsRepository,
+      mockApplicationRepository,
+      mockAppConfig,
+      UUIDFactory
+    )
 
     def createAppWithTestGroup(tests: List[PsiTest]) = {
       val phase2 = Phase2TestProfileExamples.profile2.copy(tests = tests)

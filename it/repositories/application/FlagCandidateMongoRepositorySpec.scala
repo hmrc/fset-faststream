@@ -21,7 +21,6 @@ import model.Exceptions.NotFoundException
 import model.FlagCandidatePersistedObject.FlagCandidate
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers
-import config.MicroserviceAppConfig._
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 
@@ -29,8 +28,8 @@ class FlagCandidateMongoRepositorySpec extends MongoRepositorySpec with UUIDFact
   import ImplicitBSONHandlers._
 
   val collectionName = CollectionNames.APPLICATION
-  def repository = new FlagCandidateMongoRepository
-  def helperRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, testIntegrationGatewayConfig, eventsConfig)
+  def repository = new FlagCandidateMongoRepository(mongo)
+  def helperRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, appConfig, mongo)
 
   "Flag Candidate repository" should {
     "create and get an issue for the candidate" in {
@@ -62,7 +61,6 @@ class FlagCandidateMongoRepositorySpec extends MongoRepositorySpec with UUIDFact
       val issue = "An issue for this candidate version"
 
       val result = repository.save(FlagCandidate(appId, Some(issue)))
-
       result.failed.futureValue mustBe a[NotFoundException]
     }
 
@@ -100,7 +98,7 @@ class FlagCandidateMongoRepositorySpec extends MongoRepositorySpec with UUIDFact
 
   def createApplication() = {
     val appId = generateUUID()
-    helperRepo.collection.insert(BSONDocument("applicationId" -> appId)).futureValue
+    helperRepo.collection.insert(ordered = false).one(BSONDocument("applicationId" -> appId)).futureValue
     appId
   }
 }

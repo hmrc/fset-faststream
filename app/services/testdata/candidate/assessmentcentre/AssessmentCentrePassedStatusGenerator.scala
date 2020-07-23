@@ -16,35 +16,36 @@
 
 package services.testdata.candidate.assessmentcentre
 
+import javax.inject.{ Inject, Singleton }
 import model.UniqueIdentifier
 import model.exchange.passmarksettings._
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.mvc.RequestHeader
-import repositories.SchemeYamlRepository
+import repositories.SchemeRepository
 import services.assessmentcentre.AssessmentCentreService
+import services.passmarksettings.AssessmentCentrePassMarkSettingsService
 import services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object AssessmentCentrePassedStatusGenerator extends AssessmentCentrePassedStatusGenerator {
-  override val previousStatusGenerator = AssessmentCentreScoresAcceptedStatusGenerator
-  override val applicationAssessmentService = AssessmentCentreService
-}
-
-trait AssessmentCentrePassedStatusGenerator extends ConstructiveGenerator {
-  val applicationAssessmentService: AssessmentCentreService
+@Singleton
+class AssessmentCentrePassedStatusGenerator @Inject() (val previousStatusGenerator: AssessmentCentreScoresAcceptedStatusGenerator,
+                                                       applicationAssessmentService: AssessmentCentreService,
+                                                       passmarkService: AssessmentCentrePassMarkSettingsService,
+                                                       schemeRepository: SchemeRepository
+                                                      ) extends ConstructiveGenerator {
 
   val updatedBy = UniqueIdentifier.randomUniqueIdentifier
   val version = UniqueIdentifier.randomUniqueIdentifier
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
 
-    val schemes = SchemeYamlRepository.schemes.map(_.id).toList
+    val schemes = schemeRepository.schemes.map(_.id).toList
     val dummyPassmarks = AssessmentCentrePassMarkSettings(
       schemes.map(schemeId =>
         AssessmentCentrePassMark(schemeId, AssessmentCentrePassMarkThresholds(
@@ -61,9 +62,9 @@ trait AssessmentCentrePassedStatusGenerator extends ConstructiveGenerator {
     )
 
     for {
-      latestPassMarks <- applicationAssessmentService.passmarkService.getLatestPassMarkSettings
+      latestPassMarks <- passmarkService.getLatestPassMarkSettings
       _ <- if (latestPassMarks.isEmpty) {
-        applicationAssessmentService.passmarkService.createPassMarkSettings(dummyPassmarks)
+        passmarkService.createPassMarkSettings(dummyPassmarks)
       } else {
         Future.successful(())
       }

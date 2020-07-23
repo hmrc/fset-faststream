@@ -16,28 +16,30 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions._
 import model.command.GeneralDetails
-import play.api.libs.json.Json
-import play.api.mvc.Action
+import play.api.libs.json.{ JsValue, Json }
+import play.api.mvc.{ Action, AnyContent }
 import services.AuditService
 import services.personaldetails.PersonalDetailsService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
+//import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object PersonalDetailsController extends PersonalDetailsController {
-  val personalDetailsService = PersonalDetailsService
-  val auditService = AuditService
-}
+//object PersonalDetailsController extends PersonalDetailsController {
+//  val personalDetailsService = PersonalDetailsService
+//  val auditService = AuditService
+//}
 
-trait PersonalDetailsController extends BaseController {
+@Singleton
+class PersonalDetailsController @Inject() (personalDetailsService: PersonalDetailsService,
+                                           auditService: AuditService
+                                          ) extends BaseController {
   val PersonalDetailsSavedEvent = "PersonalDetailsSaved"
 
-  val personalDetailsService: PersonalDetailsService
-  val auditService: AuditService
-
-  def update(userId: String, applicationId: String) = Action.async(parse.json) { implicit request =>
+  def update(userId: String, applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[GeneralDetails] { req =>
       personalDetailsService.update(applicationId, userId, req) map { _ =>
         auditService.logEvent(PersonalDetailsSavedEvent)
@@ -51,7 +53,7 @@ trait PersonalDetailsController extends BaseController {
     }
   }
 
-  def find(userId: String, applicationId: String) = Action.async { implicit request =>
+  def find(userId: String, applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     personalDetailsService.find(applicationId, userId) map { candidateDetails =>
       Ok(Json.toJson(candidateDetails))
     } recover {
@@ -63,7 +65,7 @@ trait PersonalDetailsController extends BaseController {
     }
   }
 
-  def findByApplicationId(applicationId: String) = Action.async { implicit request =>
+  def findByApplicationId(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     personalDetailsService.find(applicationId) map { candidateDetails =>
       Ok(Json.toJson(candidateDetails))
     } recover {

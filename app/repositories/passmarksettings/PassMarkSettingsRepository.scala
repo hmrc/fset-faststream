@@ -16,10 +16,14 @@
 
 package repositories.passmarksettings
 
+import javax.inject.{ Inject, Singleton }
 import model.PassMarkSettingsCreateResponse
 import model.exchange.passmarksettings._
 import play.api.libs.json.{ Format, JsNumber, JsObject }
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.DB
+import reactivemongo.api.indexes.Index
+import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.bson._
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -29,25 +33,61 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import repositories.{ CollectionNames, OFormatHelper }
 
-class Phase1PassMarkSettingsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[Phase1PassMarkSettings, BSONObjectID](CollectionNames.PHASE1_PASS_MARK_SETTINGS, mongo,
-    Phase1PassMarkSettings.jsonFormat, ReactiveMongoFormats.objectIdFormats
-  ) with PassMarkSettingsRepository[Phase1PassMarkSettings]
+@Singleton
+class Phase1PassMarkSettingsMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[Phase1PassMarkSettings, BSONObjectID](
+    CollectionNames.PHASE1_PASS_MARK_SETTINGS,
+    mongoComponent.mongoConnector.db,
+    Phase1PassMarkSettings.jsonFormat,
+    ReactiveMongoFormats.objectIdFormats
+  ) with PassMarkSettingsRepository[Phase1PassMarkSettings] {
 
-class Phase2PassMarkSettingsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[Phase2PassMarkSettings, BSONObjectID](CollectionNames.PHASE2_PASS_MARK_SETTINGS, mongo,
-    Phase2PassMarkSettings.jsonFormat, ReactiveMongoFormats.objectIdFormats
-  ) with PassMarkSettingsRepository[Phase2PassMarkSettings]
+  override def indexes: Seq[Index] = Seq(
+    Index(Seq(("createDate", Ascending)), unique = true)
+  )
+}
 
-class Phase3PassMarkSettingsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[Phase3PassMarkSettings, BSONObjectID](CollectionNames.PHASE3_PASS_MARK_SETTINGS, mongo,
-    Phase3PassMarkSettings.jsonFormat, ReactiveMongoFormats.objectIdFormats
-  ) with PassMarkSettingsRepository[Phase3PassMarkSettings]
+@Singleton
+class Phase2PassMarkSettingsMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[Phase2PassMarkSettings, BSONObjectID](
+    CollectionNames.PHASE2_PASS_MARK_SETTINGS,
+    mongoComponent.mongoConnector.db,
+    Phase2PassMarkSettings.jsonFormat,
+    ReactiveMongoFormats.objectIdFormats
+  ) with PassMarkSettingsRepository[Phase2PassMarkSettings] {
 
-class AssessmentCentrePassMarkSettingsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[AssessmentCentrePassMarkSettings, BSONObjectID](CollectionNames.ASSESSMENT_CENTRE_PASS_MARK_SETTINGS, mongo,
-    AssessmentCentrePassMarkSettings.jsonFormat, ReactiveMongoFormats.objectIdFormats
-  ) with PassMarkSettingsRepository[AssessmentCentrePassMarkSettings]
+  override def indexes: Seq[Index] = Seq(
+    Index(Seq(("createDate", Ascending)), unique = true)
+  )
+}
+
+@Singleton
+class Phase3PassMarkSettingsMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[Phase3PassMarkSettings, BSONObjectID](
+    CollectionNames.PHASE3_PASS_MARK_SETTINGS,
+    mongoComponent.mongoConnector.db,
+    Phase3PassMarkSettings.jsonFormat,
+    ReactiveMongoFormats.objectIdFormats
+  ) with PassMarkSettingsRepository[Phase3PassMarkSettings] {
+
+  override def indexes: Seq[Index] = Seq(
+    Index(Seq(("createDate", Ascending)), unique = true)
+  )
+}
+
+@Singleton
+class AssessmentCentrePassMarkSettingsMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[AssessmentCentrePassMarkSettings, BSONObjectID](
+    CollectionNames.ASSESSMENT_CENTRE_PASS_MARK_SETTINGS,
+    mongoComponent.mongoConnector.db,
+    AssessmentCentrePassMarkSettings.jsonFormat,
+    ReactiveMongoFormats.objectIdFormats
+  ) with PassMarkSettingsRepository[AssessmentCentrePassMarkSettings] {
+
+  override def indexes: Seq[Index] = Seq(
+    Index(Seq(("createDate", Ascending)), unique = true)
+  )
+}
 
 trait PassMarkSettingsRepository[T <: PassMarkSettings] {
   this: ReactiveRepository[T, _] =>

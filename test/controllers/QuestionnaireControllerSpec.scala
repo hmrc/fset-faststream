@@ -26,12 +26,11 @@ import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.QuestionnaireRepository
 import repositories.application.GeneralApplicationRepository
-import services.AuditService
-import testkit.UnitWithAppSpec
 import testkit.MockitoImplicits._
+import testkit.UnitWithAppSpec
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.language.postfixOps
-import uk.gov.hmrc.http.HeaderCarrier
 
 class QuestionnaireControllerSpec extends UnitWithAppSpec with Results {
 
@@ -41,7 +40,7 @@ class QuestionnaireControllerSpec extends UnitWithAppSpec with Results {
 
       when(mockApplicationRepository.updateQuestionnaireStatus(any(), any())).thenReturnAsync()
 
-      status(TestQuestionnaireController.addSection(appId, "section1")(addQuestionnaireSection(appId, "section1")(
+      status(testQuestionnaireController.addSection(appId, "section1")(addQuestionnaireSection(appId, "section1")(
         s"""
            |{
            |  "questions": [
@@ -50,7 +49,7 @@ class QuestionnaireControllerSpec extends UnitWithAppSpec with Results {
            |  ]
            |}
            |""".stripMargin
-      ))) must be(202)
+      ))) mustBe ACCEPTED
 
       verify(mockQuestionnaireRepository).addQuestions(appId,
         List(
@@ -62,7 +61,7 @@ class QuestionnaireControllerSpec extends UnitWithAppSpec with Results {
       verify(mockAuditService).logEvent(eqTo("QuestionnaireSectionSaved"), eqTo(
         Map("section" -> "section1")))(any[HeaderCarrier], any[RequestHeader])
 
-      status(TestQuestionnaireController.addSection(appId, "section2")(addQuestionnaireSection(appId, "section2")(
+      status(testQuestionnaireController.addSection(appId, "section2")(addQuestionnaireSection(appId, "section2")(
         s"""
            |{
            |  "questions": [
@@ -72,7 +71,7 @@ class QuestionnaireControllerSpec extends UnitWithAppSpec with Results {
            |  ]
            |}
            |""".stripMargin
-      ))) must be(202)
+      ))) mustBe ACCEPTED
 
       verify(mockQuestionnaireRepository).addQuestions(appId,
         List(
@@ -87,7 +86,7 @@ class QuestionnaireControllerSpec extends UnitWithAppSpec with Results {
     }
 
     "return a system error on invalid json" in new TestFixture {
-      val result = TestQuestionnaireController.addSection("1234", "section1")(addQuestionnaireSection("1234", "section1")(
+      val result = testQuestionnaireController.addSection("1234", "section1")(addQuestionnaireSection("1234", "section1")(
         s"""
            |{
            |  "wrongField1":"wrong",
@@ -96,7 +95,7 @@ class QuestionnaireControllerSpec extends UnitWithAppSpec with Results {
         """.stripMargin
       ))
 
-      status(result) must be(400)
+      status(result) mustBe BAD_REQUEST
     }
   }
 
@@ -107,11 +106,11 @@ class QuestionnaireControllerSpec extends UnitWithAppSpec with Results {
 
     when(mockQuestionnaireRepository.addQuestions(any(), any())).thenReturnAsync()
 
-    object TestQuestionnaireController extends QuestionnaireController {
-      override val qRepository: QuestionnaireRepository = mockQuestionnaireRepository
-      override val appRepository: GeneralApplicationRepository = mockApplicationRepository
-      override val auditService: AuditService = mockAuditService
-    }
+    val testQuestionnaireController = new QuestionnaireController(
+      mockQuestionnaireRepository,
+      mockApplicationRepository,
+      mockAuditService
+    )
 
     def addQuestionnaireSection(applicationId: String, section: String)(jsonString: String) = {
       val json = Json.parse(jsonString)

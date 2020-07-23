@@ -12,48 +12,50 @@
 # Add all the application routes to the prod.routes file
 ->         /                          prod.Routes
 
-GET     /candidate-application/test-data-generator/ping                             controllers.testdata.TestDataGeneratorController.ping
-GET     /candidate-application/test-data-generator/clear-database                   controllers.testdata.TestDataGeneratorController.clearDatabase(generateDefaultUsers: Boolean ?= true)
-POST    /candidate-application/test-data-generator/clear-candidates                 controllers.testdata.TestDataGeneratorController.clearCandidates
-GET     /candidate-application/test-data-generator/create-admin-users               controllers.testdata.TestDataGeneratorController.createAdmins(numberToGenerate: Int, emailPrefix: Option[String] ?= None, roles: List[String] ?= List("tech-admin"))
-POST    /candidate-application/test-data-generator/create-candidates                controllers.testdata.TestDataGeneratorController.createCandidatesPOST(numberToGenerate: Int)
-POST    /candidate-application/test-data-generator/create-admin                     controllers.testdata.TestDataGeneratorController.createAdminsPOST(numberToGenerate: Int)
-POST    /candidate-application/test-data-generator/create-event                     controllers.testdata.TestDataGeneratorController.createEventPOST(numberToGenerate: Int)
-POST    /candidate-application/test-data-generator/create-events                    controllers.testdata.TestDataGeneratorController.createEventsPOST(numberToGenerate: Int)
-POST    /candidate-application/test-data-generator/create-assessor-allocations      controllers.testdata.TestDataGeneratorController.createAssessorAllocationsPOST(numberToGenerate: Int)
-POST    /candidate-application/test-data-generator/create-candidate-allocations     controllers.testdata.TestDataGeneratorController.createCandidateAllocationsPOST(numberToGenerate: Int)
+GET     /candidate-application/test-data-generator/ping                             @controllers.testdata.TestDataGeneratorController.ping
+GET     /candidate-application/test-data-generator/clear-database                   @controllers.testdata.TestDataGeneratorController.clearDatabase(generateDefaultUsers: Boolean ?= true)
+POST    /candidate-application/test-data-generator/clear-candidates                 @controllers.testdata.TestDataGeneratorController.clearCandidates
+GET     /candidate-application/test-data-generator/create-admin-users               @controllers.testdata.TestDataGeneratorController.createAdmins(numberToGenerate: Int, emailPrefix: Option[String] ?= None, roles: List[String] ?= List("tech-admin"))
+POST    /candidate-application/test-data-generator/create-candidates                @controllers.testdata.TestDataGeneratorController.createCandidatesPOST(numberToGenerate: Int)
+POST    /candidate-application/test-data-generator/create-admin                     @controllers.testdata.TestDataGeneratorController.createAdminsPOST(numberToGenerate: Int)
+POST    /candidate-application/test-data-generator/create-event                     @controllers.testdata.TestDataGeneratorController.createEventPOST(numberToGenerate: Int)
+POST    /candidate-application/test-data-generator/create-events                    @controllers.testdata.TestDataGeneratorController.createEventsPOST(numberToGenerate: Int)
+POST    /candidate-application/test-data-generator/create-assessor-allocations      @controllers.testdata.TestDataGeneratorController.createAssessorAllocationsPOST(numberToGenerate: Int)
+POST    /candidate-application/test-data-generator/create-candidate-allocations     @controllers.testdata.TestDataGeneratorController.createCandidateAllocationsPOST(numberToGenerate: Int)
 
 # examples
-GET     /candidate-application/test-data-generator/example-candidate                controllers.testdata.TestDataGeneratorController.exampleCreateCandidate
-GET     /candidate-application/test-data-generator/example-admin                    controllers.testdata.TestDataGeneratorController.exampleCreateAdmin
-GET     /candidate-application/test-data-generator/example-event                    controllers.testdata.TestDataGeneratorController.exampleCreateEvent
-GET     /candidate-application/test-data-generator/example-events                   controllers.testdata.TestDataGeneratorController.exampleCreateEvents
-GET     /candidate-application/test-data-generator/example-assessor-allocations     controllers.testdata.TestDataGeneratorController.exampleCreateAssessorAllocations
-GET     /candidate-application/test-data-generator/example-candidate-allocations    controllers.testdata.TestDataGeneratorController.exampleCreateCandidateAllocations
+GET     /candidate-application/test-data-generator/example-candidate                @controllers.testdata.TestDataGeneratorController.exampleCreateCandidate
+GET     /candidate-application/test-data-generator/example-admin                    @controllers.testdata.TestDataGeneratorController.exampleCreateAdmin
+GET     /candidate-application/test-data-generator/example-event                    @controllers.testdata.TestDataGeneratorController.exampleCreateEvent
+GET     /candidate-application/test-data-generator/example-events                   @controllers.testdata.TestDataGeneratorController.exampleCreateEvents
+GET     /candidate-application/test-data-generator/example-assessor-allocations     @controllers.testdata.TestDataGeneratorController.exampleCreateAssessorAllocations
+GET     /candidate-application/test-data-generator/example-candidate-allocations    @controllers.testdata.TestDataGeneratorController.exampleCreateCandidateAllocations
 
 # Trigger Jobs manually
-GET     /candidate-application/online-test-invitation/:phase                        controllers.testdata.TestJobsController.testInvitationJob(phase: String)
-GET     /candidate-application/expire-online-tests/:phase                           controllers.testdata.TestJobsController.expireOnlineTestJob(phase: String)
-GET     /candidate-application/retrieve-phase1-results                              controllers.testdata.TestJobsController.retrievePhase1Results
-GET     /candidate-application/retrieve-phase2-results                              controllers.testdata.TestJobsController.retrievePhase2Results
-GET     /candidate-application/evaluate-phase1-candidate                            controllers.testdata.TestJobsController.evaluatePhase1OnlineTestsCandidate
-GET     /candidate-application/evaluate-phase2-candidate                            controllers.testdata.TestJobsController.evaluatePhase2EtrayCandidate
-GET     /candidate-application/evaluate-phase3-candidate                            controllers.testdata.TestJobsController.evaluatePhase3VideoInterviewCandidate
-GET     /candidate-application/process-phase1-success                               controllers.testdata.TestJobsController.processSuccessPhase1TestJob
-GET     /candidate-application/process-phase3-success                               controllers.testdata.TestJobsController.processSuccessPhase3TestJob
-GET     /candidate-application/process-phase3-sdip-success                          controllers.testdata.TestJobsController.processSuccessPhase3SdipTestJob
-GET     /candidate-application/progress-candidates-to-sift                          controllers.testdata.TestJobsController.progressCandidatesToSift
-GET     /candidate-application/first-sift-reminder                                  controllers.testdata.TestJobsController.firstSiftReminder
-GET     /candidate-application/second-sift-reminder                                 controllers.testdata.TestJobsController.secondSiftReminder
-GET     /candidate-application/retrieve-sift-results                                controllers.testdata.TestJobsController.retrieveSiftNumericalResults
-GET     /candidate-application/process-sift-results-received                        controllers.testdata.TestJobsController.processSiftNumericalResultsReceived
-GET     /candidate-application/process-expired-at-sift                              controllers.testdata.TestJobsController.processExpiredAtSift
-GET     /candidate-application/process-failed-at-sift                               controllers.testdata.TestJobsController.processFailedAtSift
-GET     /candidate-application/progress-candidates-to-ac                            controllers.testdata.TestJobsController.progressCandidatesToAssessmentCentre
-GET     /candidate-application/progress-candidates-to-fsb-or-offer-job              controllers.testdata.TestJobsController.progressCandidatesToFsbOrOfferJob
-GET     /candidate-application/evaluate-assessment-centre-candidate                 controllers.testdata.TestJobsController.evaluateAssessmentCentreCandidate
-GET     /candidate-application/notify-assessors-of-new-events                       controllers.testdata.TestJobsController.notifyAssessorsOfNewEvents
-GET     /candidate-application/process-failed-at-fsb                                controllers.testdata.TestJobsController.allFailedAtFsb
-GET     /candidate-application/evaluate-fsb-results                                 controllers.testdata.TestJobsController.evaluateFsbResults
-GET     /candidate-application/notify-on-final-failure                              controllers.testdata.TestJobsController.notifyOnFinalFailure
-GET     /candidate-application/notify-on-final-success                              controllers.testdata.TestJobsController.notifyOnFinalSuccess
+GET     /candidate-application/online-test-invitation/:phase                        @controllers.testdata.TestJobsController.testInvitationJob(phase: String)
+GET     /candidate-application/expire-online-tests/:phase                           @controllers.testdata.TestJobsController.expireOnlineTestJob(phase: String)
+#TODO: are the retrieval jobs still used?
+#GET     /candidate-application/retrieve-phase1-results                              @controllers.testdata.TestJobsController.retrievePhase1Results
+#GET     /candidate-application/retrieve-phase2-results                              @controllers.testdata.TestJobsController.retrievePhase2Results
+GET     /candidate-application/evaluate-phase1-candidate                            @controllers.testdata.TestJobsController.evaluatePhase1OnlineTestsCandidate
+GET     /candidate-application/evaluate-phase2-candidate                            @controllers.testdata.TestJobsController.evaluatePhase2EtrayCandidate
+GET     /candidate-application/evaluate-phase3-candidate                            @controllers.testdata.TestJobsController.evaluatePhase3VideoInterviewCandidate
+GET     /candidate-application/process-phase1-success                               @controllers.testdata.TestJobsController.processSuccessPhase1TestJob
+GET     /candidate-application/process-phase3-success                               @controllers.testdata.TestJobsController.processSuccessPhase3TestJob
+GET     /candidate-application/process-phase3-sdip-success                          @controllers.testdata.TestJobsController.processSuccessPhase3SdipTestJob
+GET     /candidate-application/progress-candidates-to-sift                          @controllers.testdata.TestJobsController.progressCandidatesToSift
+GET     /candidate-application/first-sift-reminder                                  @controllers.testdata.TestJobsController.firstSiftReminder
+GET     /candidate-application/second-sift-reminder                                 @controllers.testdata.TestJobsController.secondSiftReminder
+#TODO: don't think this is used
+#GET     /candidate-application/retrieve-sift-results                                @controllers.testdata.TestJobsController.retrieveSiftNumericalResults
+GET     /candidate-application/process-sift-results-received                        @controllers.testdata.TestJobsController.processSiftNumericalResultsReceived
+GET     /candidate-application/process-expired-at-sift                              @controllers.testdata.TestJobsController.processExpiredAtSift
+GET     /candidate-application/process-failed-at-sift                               @controllers.testdata.TestJobsController.processFailedAtSift
+GET     /candidate-application/progress-candidates-to-ac                            @controllers.testdata.TestJobsController.progressCandidatesToAssessmentCentre
+GET     /candidate-application/evaluate-assessment-centre-candidate                 @controllers.testdata.TestJobsController.evaluateAssessmentCentreCandidate
+GET     /candidate-application/progress-candidates-to-fsb-or-offer-job              @controllers.testdata.TestJobsController.progressCandidatesToFsbOrOfferJob
+GET     /candidate-application/notify-assessors-of-new-events                       @controllers.testdata.TestJobsController.notifyAssessorsOfNewEvents
+GET     /candidate-application/process-failed-at-fsb                                @controllers.testdata.TestJobsController.allFailedAtFsb
+GET     /candidate-application/evaluate-fsb-results                                 @controllers.testdata.TestJobsController.evaluateFsbResults
+GET     /candidate-application/notify-on-final-failure                              @controllers.testdata.TestJobsController.notifyOnFinalFailure
+GET     /candidate-application/notify-on-final-success                              @controllers.testdata.TestJobsController.notifyOnFinalSuccess

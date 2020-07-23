@@ -17,6 +17,7 @@
 package testkit
 
 import com.kenshoo.play.metrics.PlayModule
+import config.MicroserviceAppConfig
 import org.joda.time.DateTime
 import org.joda.time.Seconds._
 import org.scalatest._
@@ -26,8 +27,9 @@ import org.scalatestplus.play.{ OneAppPerTest, PlaySpec }
 import play.api.{ Application, Play }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import play.modules.reactivemongo.MongoDbConnection
+import play.modules.reactivemongo.{ MongoDbConnection, ReactiveMongoComponent }
 import reactivemongo.api.DefaultDB
+import reactivemongo.api.indexes.IndexType
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers
 import reactivemongo.play.json.collection.JSONCollection
@@ -55,7 +57,7 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
   val timesApproximatelyEqual: (DateTime, DateTime) => Boolean = (time1: DateTime, time2: DateTime) => secondsBetween(time1, time2)
     .isLessThan(seconds(5))
 
-  implicit final def app: Application = new GuiceApplicationBuilder()
+  implicit final val app: Application = new GuiceApplicationBuilder()
     .disable[PlayModule]
     .build
 
@@ -63,9 +65,13 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
 
   implicit val context: ExecutionContext = play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-  implicit lazy val mongo: () => DefaultDB = {
-    new MongoDbConnection {}.mongoConnector.db
-  }
+  //  implicit lazy val mongo: () => DefaultDB = {
+  //    new MongoDbConnection {}.mongoConnector.db
+  //  }
+
+  lazy val mongo: ReactiveMongoComponent = app.injector.instanceOf(classOf[ReactiveMongoComponent])
+
+  lazy val appConfig: MicroserviceAppConfig = app.injector.instanceOf(classOf[MicroserviceAppConfig])
 
   override def beforeAll(): Unit = {
     Play.start(app)
@@ -76,17 +82,27 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
   }
 
   override def beforeEach(): Unit = {
-    val collection = mongo().collection[JSONCollection](collectionName)
-    Await.ready(collection.remove(Json.obj()), timeout)
+    //    val collection = mongo().collection[JSONCollection](collectionName)
+    val collection = mongo.mongoConnector.db().collection[JSONCollection](collectionName)
+    Await.ready(collection.delete.one(Json.obj()), timeout)
   }
 }
 
 trait IndexesReader {
   this: ScalaFutures =>
 
+  //TODO: remove this and replace with the version below
   def indexesWithFields(repo: ReactiveRepository[_, _])(implicit ec: ExecutionContext): Seq[Seq[String]] = {
     val indexesManager = repo.collection.indexesManager
     val indexes = indexesManager.list().futureValue
-    indexes.map(_.key.map(_._1))
+    indexes.map(_.key.map{ case (columnName, _) => columnName })
+  }
+
+  case class IndexDetails(key: Seq[(String, IndexType)], unique: Boolean)
+
+  def indexesWithFields2(repo: ReactiveRepository[_, _])(implicit ec: ExecutionContext): List[IndexDetails] = {
+    val indexesManager = repo.collection.indexesManager
+    val indexes = indexesManager.list().futureValue
+    indexes.map( index => IndexDetails(index.key, index.unique) )
   }
 }

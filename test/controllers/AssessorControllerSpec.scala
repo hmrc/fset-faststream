@@ -20,7 +20,7 @@ import model.Exceptions._
 import model.UniqueIdentifier
 import model.exchange.assessor.AssessorAvailabilityExamples._
 import model.exchange.assessor.AssessorExamples
-import model.exchange.{ Assessor, AssessorAvailabilities, AssessorAvailability }
+import model.exchange.{ Assessor, AssessorAvailabilities }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.libs.json.Json
@@ -98,7 +98,6 @@ class AssessorControllerSpec extends UnitWithAppSpec {
   }
 
   "find availability" must {
-
     "return an assessor's availability" in new TestFixture {
       when(mockAssessorService.findAvailability(UserId)).thenReturnAsync(AssessorAvailabilitiesSum)
       val response = controller.findAvailability(UserId)(fakeRequest)
@@ -173,11 +172,7 @@ class AssessorControllerSpec extends UnitWithAppSpec {
   trait TestFixture {
     val mockAssessorService = mock[AssessorService]
     val mockAuditService = mock[AuditService]
-
-    val controller = new AssessorController {
-      override val assessorService = mockAssessorService
-      override val auditService = mockAuditService
-    }
+    val controller = new AssessorController(mockAssessorService, mockAuditService)
   }
 }
 

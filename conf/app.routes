@@ -1,376 +1,386 @@
 # microservice specific routes
 
+# Application routes start
 # Should it be PUT as calling this method twice does not create two users (idempotent operation)
-POST        /personal-details/:userId/:applicationId                     controllers.PersonalDetailsController.update(userId: String, applicationId: String)
-GET         /personal-details/:userId/:applicationId                     controllers.PersonalDetailsController.find(userId: String, applicationId: String)
-GET         /personal-details/:applicationId                             controllers.PersonalDetailsController.findByApplicationId(applicationId: String)
+POST        /personal-details/:userId/:applicationId                     @controllers.PersonalDetailsController.update(userId: String, applicationId: String)
+GET         /personal-details/:userId/:applicationId                     @controllers.PersonalDetailsController.find(userId: String, applicationId: String)
+GET         /personal-details/:applicationId                             @controllers.PersonalDetailsController.findByApplicationId(applicationId: String)
 
-POST        /fast-pass-evaluation/:userId/:applicationId                 controllers.FastPassApprovalController.processFastPassCandidate(userId: String, applicationId: String)
+POST        /fast-pass-evaluation/:userId/:applicationId                 @controllers.FastPassApprovalController.processFastPassCandidate(userId: String, applicationId: String)
 
-GET         /scheme-preferences/:applicationId                           controllers.SchemePreferencesController.find(applicationId: String)
-PUT         /scheme-preferences/:applicationId                           controllers.SchemePreferencesController.update(applicationId: String)
+GET         /scheme-preferences/:applicationId                           @controllers.SchemePreferencesController.find(applicationId: String)
+PUT         /scheme-preferences/:applicationId                           @controllers.SchemePreferencesController.update(applicationId: String)
 
-PUT         /assistance-details/:userId/:applicationId                   controllers.AssistanceDetailsController.update(userId: String, applicationId: String)
-GET         /assistance-details/:userId/:applicationId                   controllers.AssistanceDetailsController.find(userId: String, applicationId: String)
+PUT         /assistance-details/:userId/:applicationId                   @controllers.AssistanceDetailsController.update(userId: String, applicationId: String)
+GET         /assistance-details/:userId/:applicationId                   @controllers.AssistanceDetailsController.find(userId: String, applicationId: String)
 
-GET         /application/find/:applicationId                             controllers.ApplicationController.findByApplicationId(applicationId: String)
-PUT         /application/create                                          controllers.ApplicationController.createApplication
-GET         /application/progress/:applicationId                         controllers.ApplicationController.applicationProgress(applicationId: String)
-GET         /application/status/:applicationId                           controllers.ApplicationController.findApplicationStatusDetails(applicationId: String)
-GET         /application/find/user/:userId/framework/:frameworkId        controllers.ApplicationController.findApplication(userId: String, frameworkId: String)
-PUT         /application/preview/:applicationId                          controllers.ApplicationController.preview(applicationId: String)
-PUT         /application/submit/:userId/:applicationId                   controllers.SubmitApplicationController.submitApplication(userId: String, applicationId: String)
-PUT         /application/withdraw/:applicationId                         controllers.WithdrawController.withdrawApplication(applicationId: String)
-PUT         /application/:applicationId/scheme/withdraw                  controllers.WithdrawController.withdrawScheme(applicationId: String)
-PUT         /application/consider-for-sdip/:applicationId                controllers.ApplicationController.considerForSdip(applicationId: String)
-PUT         /application/continue-as-sdip/:userId/:userIdToArchiveWith   controllers.ApplicationController.continueAsSdip(userId: String, userIdToArchiveWith: String)
-PUT         /application/overrideSubmissionDeadline/:applicationId       controllers.ApplicationController.overrideSubmissionDeadline(applicationId: String)
-POST        /application/status                                          controllers.ApplicationController.updateStatus
-POST        /application/uploadAnalysisExercise                          controllers.ApplicationController.uploadAnalysisExercise(applicationId: String, contentType: String)
-GET         /application/downloadAnalysisExercise                        controllers.ApplicationController.downloadAnalysisExercise(applicationId: String)
-GET         /application/hasAnalysisExercise                             controllers.ApplicationController.hasAnalysisExercise(applicationId: String)
-GET         /application/retrieve-analysis-exercise-info/:applicationId  controllers.ApplicationController.retrieveAnalysisExerciseInfo(applicationId: String)
-GET         /application/retrieve-analysis-exercise-meta-data/:fileId    controllers.ApplicationController.analysisExerciseFileMetadata(fileId: String)
-POST        /application/update-analysis-exercise                        controllers.ApplicationController.updateAnalysisExercise(applicationId: String, contentType: String, updatedBy: String)
-GET         /applications/analysisExerciseStatistics                     controllers.ApplicationController.analysisExerciseStatistics
+PUT         /questionnaire/:applicationId/:sectionKey                    @controllers.QuestionnaireController.addSection(applicationId: String,sectionKey: String)
 
-GET         /application/:applicationId/phase3/results                   controllers.ApplicationController.getPhase3Results(applicationId: String)
-GET         /application/:applicationId/currentSchemeStatus              controllers.ApplicationController.getCurrentSchemeStatus(applicationId: String)
-GET         /application/:applicationId/sift/results                     controllers.ApplicationController.getSiftResults(applicationId: String)
-#GET         /application/:applicationId/assessmentcentre/results        controllers.ApplicationController.getSchemeResults(applicationId: String)
+PUT         /application/create                                          @controllers.ApplicationController.createApplication
+GET         /application/find/:applicationId                             @controllers.ApplicationController.findByApplicationId(applicationId: String)
+GET         /application/progress/:applicationId                         @controllers.ApplicationController.applicationProgress(applicationId: String)
+GET         /application/status/:applicationId                           @controllers.ApplicationController.findApplicationStatusDetails(applicationId: String)
+GET         /application/find/user/:userId/framework/:frameworkId        @controllers.ApplicationController.findApplication(userId: String, frameworkId: String)
+PUT         /application/preview/:applicationId                          @controllers.ApplicationController.preview(applicationId: String)
+PUT         /application/submit/:userId/:applicationId                   @controllers.SubmitApplicationController.submitApplication(userId: String, applicationId: String)
+PUT         /application/withdraw/:applicationId                         @controllers.WithdrawController.withdrawApplication(applicationId: String)
+PUT         /application/:applicationId/scheme/withdraw                  @controllers.WithdrawController.withdrawScheme(applicationId: String)
+PUT         /application/consider-for-sdip/:applicationId                @controllers.ApplicationController.considerForSdip(applicationId: String)
+PUT         /application/continue-as-sdip/:userId/:userIdToArchiveWith   @controllers.ApplicationController.continueAsSdip(userId: String, userIdToArchiveWith: String)
+PUT         /application/overrideSubmissionDeadline/:applicationId       @controllers.ApplicationController.overrideSubmissionDeadline(applicationId: String)
+POST        /application/status                                          @controllers.ApplicationController.updateStatus
+POST        /application/uploadAnalysisExercise                          @controllers.ApplicationController.uploadAnalysisExercise(applicationId: String, contentType: String)
+GET         /application/downloadAnalysisExercise                        @controllers.ApplicationController.downloadAnalysisExercise(applicationId: String)
+GET         /application/hasAnalysisExercise                             @controllers.ApplicationController.hasAnalysisExercise(applicationId: String)
+GET         /application/retrieve-analysis-exercise-info/:applicationId  @controllers.ApplicationController.retrieveAnalysisExerciseInfo(applicationId: String)
+GET         /application/retrieve-analysis-exercise-meta-data/:fileId    @controllers.ApplicationController.analysisExerciseFileMetadata(fileId: String)
+POST        /application/update-analysis-exercise                        @controllers.ApplicationController.updateAnalysisExercise(applicationId: String, contentType: String, updatedBy: String)
+GET         /applications/analysisExerciseStatistics                     @controllers.ApplicationController.analysisExerciseStatistics
 
-GET         /application/:applicationId/fsacEvaluationAverages           controllers.ApplicationController.getFsacEvaluationResultAverages(applicationId: String)
-POST        /application/:userId/:applicationId/:fsacAssessmentCentre    controllers.ApplicationController.updateFsacIndicator(userId: String, applicationId: String, fsacAssessmentCentre: String)
+GET         /application/:applicationId/phase3/results                   @controllers.ApplicationController.getPhase3Results(applicationId: String)
+GET         /application/:applicationId/currentSchemeStatus              @controllers.ApplicationController.getCurrentSchemeStatus(applicationId: String)
+GET         /application/:applicationId/sift/results                     @controllers.ApplicationController.getSiftResults(applicationId: String)
+#GET         /application/:applicationId/assessmentcentre/results         @controllers.ApplicationController.getSchemeResults(applicationId: String)
 
-GET         /application/markSignupCodeAsUsed                            controllers.CampaignManagementController.markSignupCodeAsUsed(code: String, applicationId: String)
+GET         /application/:applicationId/fsacEvaluationAverages           @controllers.ApplicationController.getFsacEvaluationResultAverages(applicationId: String)
+POST        /application/:userId/:applicationId/:fsacAssessmentCentre    @controllers.ApplicationController.updateFsacIndicator(userId: String, applicationId: String, fsacAssessmentCentre: String)
 
-PUT         /adjustments/:applicationId                                  controllers.AdjustmentsManagementController.confirmAdjustments(applicationId:String)
-GET         /adjustments/:applicationId                                  controllers.AdjustmentsManagementController.findAdjustments(applicationId: String)
-PUT         /adjustments/comment/:applicationId                          controllers.AdjustmentsManagementController.updateAdjustmentsComment(applicationId: String)
-GET         /adjustments/comment/:applicationId                          controllers.AdjustmentsManagementController.findAdjustmentsComment(applicationId: String)
-DELETE      /adjustments/comment/:applicationId                          controllers.AdjustmentsManagementController.removeAdjustmentsComment(applicationId: String)
+GET         /application/markSignupCodeAsUsed                            @controllers.CampaignManagementController.markSignupCodeAsUsed(code: String, applicationId: String)
+# Application routes end
 
-PUT         /questionnaire/:applicationId/:sectionKey                    controllers.QuestionnaireController.addSection(applicationId: String,sectionKey: String)
+PUT         /adjustments/:applicationId                                  @controllers.AdjustmentsManagementController.confirmAdjustments(applicationId:String)
+GET         /adjustments/:applicationId                                  @controllers.AdjustmentsManagementController.findAdjustments(applicationId: String)
+PUT         /adjustments/comment/:applicationId                          @controllers.AdjustmentsManagementController.updateAdjustmentsComment(applicationId: String)
+GET         /adjustments/comment/:applicationId                          @controllers.AdjustmentsManagementController.findAdjustmentsComment(applicationId: String)
+DELETE      /adjustments/comment/:applicationId                          @controllers.AdjustmentsManagementController.removeAdjustmentsComment(applicationId: String)
 
-PUT         /media/create                                                controllers.MediaController.addMedia()
+PUT         /media/create                                                @controllers.MediaController.addMedia()
 
-PUT         /phase1/pass-mark-settings                                   controllers.Phase1PassMarkSettingsController.create
-GET         /phase1/pass-mark-settings                                   controllers.Phase1PassMarkSettingsController.getLatestVersion
-PUT         /phase2/pass-mark-settings                                   controllers.Phase2PassMarkSettingsController.create
-GET         /phase2/pass-mark-settings                                   controllers.Phase2PassMarkSettingsController.getLatestVersion
-PUT         /phase3/pass-mark-settings                                   controllers.Phase3PassMarkSettingsController.create
-GET         /phase3/pass-mark-settings                                   controllers.Phase3PassMarkSettingsController.getLatestVersion
+# Pass mark management start
+PUT         /phase1/pass-mark-settings                                   @controllers.Phase1PassMarkSettingsController.create
+GET         /phase1/pass-mark-settings                                   @controllers.Phase1PassMarkSettingsController.getLatestVersion
+PUT         /phase2/pass-mark-settings                                   @controllers.Phase2PassMarkSettingsController.create
+GET         /phase2/pass-mark-settings                                   @controllers.Phase2PassMarkSettingsController.getLatestVersion
+PUT         /phase3/pass-mark-settings                                   @controllers.Phase3PassMarkSettingsController.create
+GET         /phase3/pass-mark-settings                                   @controllers.Phase3PassMarkSettingsController.getLatestVersion
+PUT         /assessment-centre/pass-mark-settings                        @controllers.AssessmentCentrePassMarkSettingsController.create
+GET         /assessment-centre/pass-mark-settings                        @controllers.AssessmentCentrePassMarkSettingsController.getLatestVersion
+# Pass mark management end
 
-PUT         /assessment-centre/pass-mark-settings                        controllers.AssessmentCentrePassMarkSettingsController.create
-GET         /assessment-centre/pass-mark-settings                        controllers.AssessmentCentrePassMarkSettingsController.getLatestVersion
+GET         /search/find-by-id/user/:userId/framework/:frameworkId       @controllers.SearchForApplicantsController.findById(userId: String, frameworkId: String)
+POST        /search/find-by-criteria                                     @controllers.SearchForApplicantsController.findByCriteria
 
-GET         /search/find-by-id/user/:userId/framework/:frameworkId       controllers.SearchForApplicantsController.findById(userId: String, frameworkId: String)
-POST        /search/find-by-criteria                                     controllers.SearchForApplicantsController.findByCriteria
+GET         /applications/sifting/:schemeId                              @controllers.SiftingController.findApplicationsReadyForSchemeSifting(schemeId: String)
+PUT         /applications/sifting                                        @controllers.SiftingController.siftCandidateApplication
 
-GET         /applications/sifting/:schemeId                              controllers.SiftingController.findApplicationsReadyForSchemeSifting(schemeId: String)
-PUT         /applications/sifting                                        controllers.SiftingController.siftCandidateApplication
+# Reports start
+GET         /report/diversity/:frameworkId                               @controllers.ReportingController.diversityReport(frameworkId: String)
+GET         /report/successful-candidates/:frameworkId                   @controllers.ReportingController.successfulCandidatesReport(frameworkId: String)
+GET         /report/adjustments/:frameworkId                             @controllers.ReportingController.adjustmentReport(frameworkId: String)
+GET         /report/candidate-progress/:frameworkId                      @controllers.ReportingController.candidateProgressReport(frameworkId: String)
+GET         /report/pre-submitted-candidates/:frameworkId                @controllers.ReportingController.preSubmittedCandidatesReport(frameworkId: String)
+GET         /report/online-active-test-count                             @controllers.ReportingController.onlineActiveTestsCountReport
+GET         /report/online-test-pass-mark-fs-p1-failed/:frameworkId      @controllers.ReportingController.onlineTestPassMarkReportFsPhase1Failed(frameworkId: String)
+GET         /report/online-test-pass-mark-fs-not-p1-failed/:frameworkId  @controllers.ReportingController.onlineTestPassMarkReportFsNotPhase1Failed(frameworkId: String)
+GET         /report/online-test-pass-mark-nonfs/:frameworkId             @controllers.ReportingController.onlineTestPassMarkReportNonFs(frameworkId: String)
+GET         /report/internship/:frameworkId                              @controllers.ReportingController.internshipReport(frameworkId: String)
+GET         /report/analytical-schemes/:frameworkId                      @controllers.ReportingController.analyticalSchemesReport(frameworkId: String)
+GET         /report/numeric-test-extract                                 @controllers.ReportingController.numericTestExtractReport()
+GET         /report/duplicate-applications                               @controllers.DuplicateApplicationReportController.findPotentialDuplicates()
+GET         /report/fast-pass-awaiting-acceptance                        @controllers.ReportingController.fastPassAwaitingAcceptanceReport()
+GET         /report/fsac-scores                                          @controllers.ReportingController.fsacScores()
 
-GET         /report/diversity/:frameworkId                               controllers.ReportingController.diversityReport(frameworkId: String)
-GET         /report/successful-candidates/:frameworkId                   controllers.ReportingController.successfulCandidatesReport(frameworkId: String)
-GET         /report/adjustments/:frameworkId                             controllers.ReportingController.adjustmentReport(frameworkId: String)
-GET         /report/candidate-progress/:frameworkId                      controllers.ReportingController.candidateProgressReport(frameworkId: String)
-GET         /report/pre-submitted-candidates/:frameworkId                controllers.ReportingController.preSubmittedCandidatesReport(frameworkId: String)
-GET         /report/online-active-test-count                             controllers.ReportingController.onlineActiveTestsCountReport
-GET         /report/online-test-pass-mark-fs-p1-failed/:frameworkId      controllers.ReportingController.onlineTestPassMarkReportFsPhase1Failed(frameworkId: String)
-GET         /report/online-test-pass-mark-fs-not-p1-failed/:frameworkId  controllers.ReportingController.onlineTestPassMarkReportFsNotPhase1Failed(frameworkId: String)
-GET         /report/online-test-pass-mark-nonfs/:frameworkId             controllers.ReportingController.onlineTestPassMarkReportNonFs(frameworkId: String)
-GET         /report/internship/:frameworkId                              controllers.ReportingController.internshipReport(frameworkId: String)
-GET         /report/analytical-schemes/:frameworkId                      controllers.ReportingController.analyticalSchemesReport(frameworkId: String)
-GET         /report/numeric-test-extract                                 controllers.ReportingController.numericTestExtractReport()
-GET         /report/duplicate-applications                               controllers.DuplicateApplicationReportController.findPotentialDuplicates()
-GET         /report/fast-pass-awaiting-acceptance                        controllers.ReportingController.fastPassAwaitingAcceptanceReport()
-GET         /report/fsac-scores                                          controllers.ReportingController.fsacScores()
+GET         /report/fs-presubmitted-candidates-details-stream/previous-year  @controllers.ReportingController.streamPreviousYearFaststreamPresubmittedCandidatesDetailsReport()
+GET         /report/fs-p1-not-failed-candidates-details-stream/previous-year @controllers.ReportingController.streamPreviousYearFaststreamP1NotFailedCandidatesDetailsReport()
+GET         /report/fs-p1-failed-candidates-details-stream/previous-year     @controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsReport()
+GET         /report/fs-p1-failed-candidates-details-part1-stream/previous-year   @controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsPart1Report()
+GET         /report/fs-p1-failed-candidates-details-part2-stream/previous-year   @controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsPart2Report()
+GET         /report/fs-p1-failed-candidates-details-part3-stream/previous-year   @controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsPart3Report()
+GET         /report/fs-p1-failed-candidates-details-part4-stream/previous-year   @controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsPart4Report()
+GET         /report/fs-p2-p3-candidates-details-stream/previous-year        @controllers.ReportingController.streamPreviousYearFaststreamP2P3CandidatesDetailsReport()
+GET         /report/fs-p2-candidates-details-stream/previous-year           @controllers.ReportingController.streamPreviousYearFaststreamP2CandidatesDetailsReport()
+GET         /report/fs-p3-candidates-details-stream/previous-year           @controllers.ReportingController.streamPreviousYearFaststreamP3CandidatesDetailsReport()
 
-GET         /report/fs-presubmitted-candidates-details-stream/previous-year controllers.ReportingController.streamPreviousYearFaststreamPresubmittedCandidatesDetailsReport()
-GET         /report/fs-p1-not-failed-candidates-details-stream/previous-year controllers.ReportingController.streamPreviousYearFaststreamP1NotFailedCandidatesDetailsReport()
-GET         /report/fs-p1-failed-candidates-details-stream/previous-year         controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsReport()
-GET         /report/fs-p1-failed-candidates-details-part1-stream/previous-year   controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsPart1Report()
-GET         /report/fs-p1-failed-candidates-details-part2-stream/previous-year   controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsPart2Report()
-GET         /report/fs-p1-failed-candidates-details-part3-stream/previous-year   controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsPart3Report()
-GET         /report/fs-p1-failed-candidates-details-part4-stream/previous-year   controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsPart4Report()
-GET         /report/fs-p2-p3-candidates-details-stream/previous-year        controllers.ReportingController.streamPreviousYearFaststreamP2P3CandidatesDetailsReport()
-GET         /report/fs-p2-candidates-details-stream/previous-year           controllers.ReportingController.streamPreviousYearFaststreamP2CandidatesDetailsReport()
-GET         /report/fs-p3-candidates-details-stream/previous-year           controllers.ReportingController.streamPreviousYearFaststreamP3CandidatesDetailsReport()
-
-
-GET         /report/fs-sift-candidates-details-stream/previous-year         controllers.ReportingController.streamPreviousYearFaststreamSIFTCandidatesDetailsReport()
-GET         /report/fs-fsac-candidates-details-stream/previous-year         controllers.ReportingController.streamPreviousYearFaststreamFSACCandidatesDetailsReport()
-GET         /report/fs-fsb-candidates-details-stream/previous-year          controllers.ReportingController.streamPreviousYearFaststreamFSBCandidatesDetailsReport()
-GET         /report/nonfs-candidates-details-stream/previous-year           controllers.ReportingController.streamPreviousYearNonFaststreamCandidatesDetailsReport()
+GET         /report/fs-sift-candidates-details-stream/previous-year         @controllers.ReportingController.streamPreviousYearFaststreamSIFTCandidatesDetailsReport()
+GET         /report/fs-fsac-candidates-details-stream/previous-year         @controllers.ReportingController.streamPreviousYearFaststreamFSACCandidatesDetailsReport()
+GET         /report/fs-fsb-candidates-details-stream/previous-year          @controllers.ReportingController.streamPreviousYearFaststreamFSBCandidatesDetailsReport()
+GET         /report/nonfs-candidates-details-stream/previous-year           @controllers.ReportingController.streamPreviousYearNonFaststreamCandidatesDetailsReport()
 
 # Data analyst reports start
-GET         /report/streamed/data-analyst-report-pt1                        controllers.ReportingController.streamDataAnalystReportPt1()
-GET         /report/streamed/data-analyst-report-pt2                        controllers.ReportingController.streamDataAnalystReportPt2()
+GET         /report/streamed/data-analyst-report-pt1                        @controllers.ReportingController.streamDataAnalystReportPt1()
+GET         /report/streamed/data-analyst-report-pt2                        @controllers.ReportingController.streamDataAnalystReportPt2()
 
-GET         /report/streamed/data-analyst-fs-presubmitted                   controllers.ReportingController.streamDataAnalystFaststreamPresubmittedCandidatesDetailsReport()
-GET         /report/streamed/data-analyst-fs-p1-not-failed                  controllers.ReportingController.streamDataAnalystFaststreamP1NotFailedCandidatesDetailsReport()
-GET         /report/streamed/data-analyst-fs-p1-failed                      controllers.ReportingController.streamDataAnalystFaststreamP1FailedCandidatesDetailsReport()
-GET         /report/streamed/data-analyst-fs-p1-failed-part1                controllers.ReportingController.streamDataAnalystFaststreamP1FailedCandidatesDetailsPart1Report()
-GET         /report/streamed/data-analyst-fs-p1-failed-part2                controllers.ReportingController.streamDataAnalystFaststreamP1FailedCandidatesDetailsPart2Report()
-GET         /report/streamed/data-analyst-fs-p1-failed-part3                controllers.ReportingController.streamDataAnalystFaststreamP1FailedCandidatesDetailsPart3Report()
-GET         /report/streamed/data-analyst-fs-p1-failed-part4                controllers.ReportingController.streamDataAnalystFaststreamP1FailedCandidatesDetailsPart4Report()
+GET         /report/streamed/data-analyst-fs-presubmitted                   @controllers.ReportingController.streamDataAnalystFaststreamPresubmittedCandidatesDetailsReport()
+GET         /report/streamed/data-analyst-fs-p1-not-failed                  @controllers.ReportingController.streamDataAnalystFaststreamP1NotFailedCandidatesDetailsReport()
+GET         /report/streamed/data-analyst-fs-p1-failed                      @controllers.ReportingController.streamDataAnalystFaststreamP1FailedCandidatesDetailsReport()
+GET         /report/streamed/data-analyst-fs-p1-failed-part1                @controllers.ReportingController.streamDataAnalystFaststreamP1FailedCandidatesDetailsPart1Report()
+GET         /report/streamed/data-analyst-fs-p1-failed-part2                @controllers.ReportingController.streamDataAnalystFaststreamP1FailedCandidatesDetailsPart2Report()
+GET         /report/streamed/data-analyst-fs-p1-failed-part3                @controllers.ReportingController.streamDataAnalystFaststreamP1FailedCandidatesDetailsPart3Report()
+GET         /report/streamed/data-analyst-fs-p1-failed-part4                @controllers.ReportingController.streamDataAnalystFaststreamP1FailedCandidatesDetailsPart4Report()
 
-GET         /report/streamed/data-analyst-fs-p2-p3                          controllers.ReportingController.streamDataAnalystFaststreamP2P3CandidatesDetailsReport()
-GET         /report/streamed/data-analyst-fs-p2                             controllers.ReportingController.streamDataAnalystFaststreamP2CandidatesDetailsReport()
-GET         /report/streamed/data-analyst-fs-p3                             controllers.ReportingController.streamDataAnalystFaststreamP3CandidatesDetailsReport()
+GET         /report/streamed/data-analyst-fs-p2-p3                          @controllers.ReportingController.streamDataAnalystFaststreamP2P3CandidatesDetailsReport()
+GET         /report/streamed/data-analyst-fs-p2                             @controllers.ReportingController.streamDataAnalystFaststreamP2CandidatesDetailsReport()
+GET         /report/streamed/data-analyst-fs-p3                             @controllers.ReportingController.streamDataAnalystFaststreamP3CandidatesDetailsReport()
 
-
-GET         /report/streamed/data-analyst-fs-sift                           controllers.ReportingController.streamDataAnalystFaststreamSIFTCandidatesDetailsReport()
-GET         /report/streamed/data-analyst-fs-fsac                           controllers.ReportingController.streamDataAnalystFaststreamFSACCandidatesDetailsReport()
-GET         /report/streamed/data-analyst-fs-fsb                            controllers.ReportingController.streamDataAnalystFaststreamFSBCandidatesDetailsReport()
-GET         /report/streamed/data-analyst-nonfs                             controllers.ReportingController.streamDataAnalystNonFaststreamCandidatesDetailsReport()
+GET         /report/streamed/data-analyst-fs-sift                           @controllers.ReportingController.streamDataAnalystFaststreamSIFTCandidatesDetailsReport()
+GET         /report/streamed/data-analyst-fs-fsac                           @controllers.ReportingController.streamDataAnalystFaststreamFSACCandidatesDetailsReport()
+GET         /report/streamed/data-analyst-fs-fsb                            @controllers.ReportingController.streamDataAnalystFaststreamFSBCandidatesDetailsReport()
+GET         /report/streamed/data-analyst-nonfs                             @controllers.ReportingController.streamDataAnalystNonFaststreamCandidatesDetailsReport()
 # Data analyst reports end
 
-GET         /report/assessor-allocation                                     controllers.ReportingController.assessorAllocationReport()
-GET         /report/candidate-acceptance                                    controllers.ReportingController.candidateAcceptanceReport()
+GET         /report/assessor-allocation                                     @controllers.ReportingController.assessorAllocationReport()
+GET         /report/candidate-acceptance                                    @controllers.ReportingController.candidateAcceptanceReport()
+# Reports end
 
-GET         /campaign-management/afterDeadlineSignupCodeUnusedAndValid   controllers.CampaignManagementController.afterDeadlineSignupCodeUnusedAndValid(code: String)
-GET         /campaign-management/generateAfterDeadlineSignupCode         controllers.CampaignManagementController.generateAfterDeadlineSignupCode(createdByUserId: String,expiryInHours: Int)
+GET         /campaign-management/afterDeadlineSignupCodeUnusedAndValid   @controllers.CampaignManagementController.afterDeadlineSignupCodeUnusedAndValid(code: String)
+GET         /campaign-management/generateAfterDeadlineSignupCode         @controllers.CampaignManagementController.generateAfterDeadlineSignupCode(createdByUserId: String,expiryInHours: Int)
 
-GET         /diagnostic/user/:userId                                                                                    controllers.DiagnosticReportController.getApplicationByUserId(userId: String)
-GET         /diagnostic/assessor/:userId                                                                                controllers.DiagnosticReportController.getAssessorDiagnosticDetail(userId: String)
-GET         /diagnostic/all-users                                                                                       controllers.DiagnosticReportController.getAllApplications
-GET         /diagnostic/all-events                                                                                      controllers.DiagnosticReportController.getAllEvents
-GET         /diagnostic/application/undoFullWithdraw/:newApplicationStatus                                              controllers.fixdata.FixDataConsistencyController.undoFullWithdraw(applicationId: String, newApplicationStatus: model.ApplicationStatus.ApplicationStatus)
-GET         /diagnostic/application/updateApplicationStatus/:newApplicationStatus                                       controllers.fixdata.FixDataConsistencyController.updateApplicationStatus(applicationId: String, newApplicationStatus: model.ApplicationStatus.ApplicationStatus)
-DELETE      /diagnostic/application/:applicationId/eTray                                                                controllers.fixdata.FixDataConsistencyController.removeETray(applicationId: String)
-DELETE      /diagnostic/application/:applicationId/progress/:progress                                                   controllers.fixdata.FixDataConsistencyController.removeProgressStatus(applicationId: String, progress: String)
-DELETE      /diagnostic/application/:applicationId/failedVideoEvaluation                                                controllers.fixdata.FixDataConsistencyController.removeVideoInterviewFailed(applicationId: String)
-PUT         /diagnostic/application/:applicationId/fastPassPromotion                                                    controllers.fixdata.FixDataConsistencyController.promoteToFastPassAccepted(applicationId: String)
-GET         /diagnostic/application/:applicationId/rollback-to-phase2-completed-from-phase2-failed                      controllers.fixdata.FixDataConsistencyController.rollbackToPhase2CompletedFromPhase2Failed(applicationId: String)
-GET         /diagnostic/application/:applicationId/rollback-to-phase1-results-received-from-phase1-failed               controllers.fixdata.FixDataConsistencyController.rollbackToPhase1ResultsReceivedFromPhase1FailedNotified(applicationId: String)
-GET         /diagnostic/application/:applicationId/rollback-to-phase2-results-received-from-phase2-failed               controllers.fixdata.FixDataConsistencyController.rollbackToPhase2ResultsReceivedFromPhase2FailedNotified(applicationId: String)
-GET         /diagnostic/application/:applicationId/rollback-to-submitted-with-fast-pass-from-online-tests-expired       controllers.fixdata.FixDataConsistencyController.rollbackToSubmittedWithFastPassFromOnlineTestsExpired(applicationId: String, fastPass: Int, sdipFaststream: Boolean)
-GET         /diagnostic/application/:applicationId/rollback-to-in-progress-from-fast-pass-accepted                      controllers.fixdata.FixDataConsistencyController.rollbackToInProgressFromFastPassAccepted(applicationId: String)
-GET         /diagnostic/application/:applicationId/rollback-to-fsac-allocated-from-awaiting-fsb                         controllers.fixdata.FixDataConsistencyController.rollbackToFsacAllocatedFromAwaitingFsb(applicationId: String)
-GET         /diagnostic/application/:applicationId/rollback-fastpass-from-fsac-to-submitted                             controllers.fixdata.FixDataConsistencyController.rollbackFastPassFromFsacToSubmitted(applicationId: String)
-GET         /diagnostic/application/:applicationId/rollback-to-submitted-and-add-fastpass-to-application                controllers.fixdata.FixDataConsistencyController.rollbackToSubmittedFromOnlineTestsAndAddFastpassNumber(applicationId: String, certificateNumber: String)
-GET         /diagnostic/application/:applicationId/rollback-to-fsac-awaiting-allocation-from-fsac-failed                controllers.fixdata.FixDataConsistencyController.rollbackToFsacAwaitingAllocationFromFsacFailed(applicationId: String)
-GET         /diagnostic/application/:applicationId/rollback-to-fsac-allocation-confirmed-from-fsb                       controllers.fixdata.FixDataConsistencyController.rollbackToFsacAllocationConfirmedFromFsb(applicationId: String)
-GET         /diagnostic/application/:applicationId/remove-sdip-scheme-from-faststream-user controllers.fixdata.FixDataConsistencyController.removeSdipSchemeFromFaststreamUser(applicationId: String)
+#Diagnostic routes start
+GET         /diagnostic/user/:userId                                                                                @controllers.DiagnosticReportController.getApplicationByUserId(userId: String)
+GET         /diagnostic/assessor/:userId                                                                            @controllers.DiagnosticReportController.getAssessorDiagnosticDetail(userId: String)
+GET         /diagnostic/all-users                                                                                   @controllers.DiagnosticReportController.getAllApplications
+GET         /diagnostic/all-events                                                                                  @controllers.DiagnosticReportController.getAllEvents
 
-GET         /diagnostic/sift/findCandidatesStuckInSiftReady              controllers.fixdata.FixDataConsistencyController.findUsersStuckInSiftReadyWithFailedPreSiftSiftableSchemes
-GET         /diagnostic/sift/fixCandidateStuckInSiftReady                controllers.fixdata.FixDataConsistencyController.fixUserStuckInSiftReadyWithFailedPreSiftSiftableSchemes(applicationId: String)
-GET         /diagnostic/sift/findCandidatesStuckInSiftEnteredWhoHaveFailedFormBasedSchemesInVideoPhase controllers.fixdata.FixDataConsistencyController.findUsersStuckInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase
-GET         /diagnostic/sift/fixCandidateStuckInSiftEnteredWhoHasFailedFormBasedSchemesInVideoPhase    controllers.fixdata.FixDataConsistencyController.fixUserStuckInSiftEnteredWhoShouldBeInSiftReadyWhoHasFailedFormBasedSchemesInVideoPhase(applicationId: String)
-GET         /diagnostic/sift/findCandidatesStuckInSiftEnteredAfterWithdrawingFromAllFormBasedSchemes   controllers.fixdata.FixDataConsistencyController.findUsersStuckInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes
-GET         /diagnostic/sift/fixCandidateStuckInSiftEnteredAfterWithdrawingFromAllFormBasedSchemes     controllers.fixdata.FixDataConsistencyController.fixUserStuckInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes(applicationId: String)
-GET         /diagnostic/sift/fixUserSiftedWithAFailByMistake                                           controllers.fixdata.FixDataConsistencyController.fixUserSiftedWithAFailByMistake(applicationId: String)
-GET         /diagnostic/sift/fixUserSiftedWithAFailToSiftCompleted                                     controllers.fixdata.FixDataConsistencyController.fixUserSiftedWithAFailToSiftCompleted(applicationId: String)
-GET         /diagnostic/sift/markSiftSchemeAsRed/:schemeId                                             controllers.fixdata.FixDataConsistencyController.markSiftSchemeAsRed(applicationId: String, schemeId: model.SchemeId)
-GET         /diagnostic/sift/markSiftSchemeAsGreen/:schemeId                                           controllers.fixdata.FixDataConsistencyController.markSiftSchemeAsGreen(applicationId: String, schemeId: model.SchemeId)
-GET         /diagnostic/sift/createSiftStructure                                                       controllers.fixdata.FixDataConsistencyController.createSiftStructure(applicationId: String)
-GET         /diagnostic/sift/extend                                                                    controllers.fixdata.FixDataConsistencyController.extendSiftCandidate(applicationId: String, extraDays: Int)
-GET         /diagnostic/sift/removeEvaluation                                                          controllers.fixdata.FixDataConsistencyController.removeSiftEvaluation(applicationId: String)
-GET         /diagnostic/sift/setSiftAnswersStatusToDraft                                                controllers.fixdata.FixDataConsistencyController.setSiftAnswersStatusToDraft(applicationId: String)
-GET         /diagnostic/sift/setSiftAnswersStatusToSubmitted                                            controllers.fixdata.FixDataConsistencyController.setSiftAnswersStatusToSubmitted(applicationId: String)
+GET         /diagnostic/application/undoFullWithdraw/:newApplicationStatus                                          @controllers.fixdata.FixDataConsistencyController.undoFullWithdraw(applicationId: String, newApplicationStatus: model.ApplicationStatus.ApplicationStatus)
+GET         /diagnostic/application/updateApplicationStatus/:newApplicationStatus                                   @controllers.fixdata.FixDataConsistencyController.updateApplicationStatus(applicationId: String, newApplicationStatus: model.ApplicationStatus.ApplicationStatus)
+DELETE      /diagnostic/application/:applicationId/eTray                                                            @controllers.fixdata.FixDataConsistencyController.removeETray(applicationId: String)
+DELETE      /diagnostic/application/:applicationId/progress/:progress                                               @controllers.fixdata.FixDataConsistencyController.removeProgressStatus(applicationId: String, progress: String)
+DELETE      /diagnostic/application/:applicationId/failedVideoEvaluation                                            @controllers.fixdata.FixDataConsistencyController.removeVideoInterviewFailed(applicationId: String)
+PUT         /diagnostic/application/:applicationId/fastPassPromotion                                                @controllers.fixdata.FixDataConsistencyController.promoteToFastPassAccepted(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-to-phase2-completed-from-phase2-failed                  @controllers.fixdata.FixDataConsistencyController.rollbackToPhase2CompletedFromPhase2Failed(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-to-phase1-results-received-from-phase1-failed           @controllers.fixdata.FixDataConsistencyController.rollbackToPhase1ResultsReceivedFromPhase1FailedNotified(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-to-phase2-results-received-from-phase2-failed           @controllers.fixdata.FixDataConsistencyController.rollbackToPhase2ResultsReceivedFromPhase2FailedNotified(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-to-submitted-with-fast-pass-from-online-tests-expired   @controllers.fixdata.FixDataConsistencyController.rollbackToSubmittedWithFastPassFromOnlineTestsExpired(applicationId: String, fastPass: Int, sdipFaststream: Boolean)
+GET         /diagnostic/application/:applicationId/rollback-to-in-progress-from-fast-pass-accepted                  @controllers.fixdata.FixDataConsistencyController.rollbackToInProgressFromFastPassAccepted(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-to-fsac-allocated-from-awaiting-fsb                     @controllers.fixdata.FixDataConsistencyController.rollbackToFsacAllocatedFromAwaitingFsb(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-fastpass-from-fsac-to-submitted                         @controllers.fixdata.FixDataConsistencyController.rollbackFastPassFromFsacToSubmitted(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-to-submitted-and-add-fastpass-to-application            @controllers.fixdata.FixDataConsistencyController.rollbackToSubmittedFromOnlineTestsAndAddFastpassNumber(applicationId: String, certificateNumber: String)
+GET         /diagnostic/application/:applicationId/rollback-to-fsac-awaiting-allocation-from-fsac-failed            @controllers.fixdata.FixDataConsistencyController.rollbackToFsacAwaitingAllocationFromFsacFailed(applicationId: String)
+GET         /diagnostic/application/:applicationId/rollback-to-fsac-allocation-confirmed-from-fsb                   @controllers.fixdata.FixDataConsistencyController.rollbackToFsacAllocationConfirmedFromFsb(applicationId: String)
+GET         /diagnostic/application/:applicationId/remove-sdip-scheme-from-faststream-user                          @controllers.fixdata.FixDataConsistencyController.removeSdipSchemeFromFaststreamUser(applicationId: String)
 
-GET         /diagnostic/phase3/removeTestGroup                                                         controllers.fixdata.FixDataConsistencyController.removePhase3TestGroup(applicationId: String)
-GET         /diagnostic/phase3/extendTestGroup                                                         controllers.fixdata.FixDataConsistencyController.extendPhase3TestGroup(applicationId: String, extraDays: Int)
-GET         /diagnostic/phase3/markSchemeAsRed/:schemeId                                               controllers.fixdata.FixDataConsistencyController.markPhase3SchemeAsRed(applicationId: String, schemeId: model.SchemeId)
-GET         /diagnostic/phase3/markSchemeAsGreen/:schemeId                                             controllers.fixdata.FixDataConsistencyController.markPhase3SchemeAsGreen(applicationId: String, schemeId: model.SchemeId)
+GET         /diagnostic/sift/findCandidatesStuckInSiftReady                                             @controllers.fixdata.FixDataConsistencyController.findUsersStuckInSiftReadyWithFailedPreSiftSiftableSchemes
+GET         /diagnostic/sift/fixCandidateStuckInSiftReady                                               @controllers.fixdata.FixDataConsistencyController.fixUserStuckInSiftReadyWithFailedPreSiftSiftableSchemes(applicationId: String)
+GET         /diagnostic/sift/findCandidatesStuckInSiftEnteredWhoHaveFailedFormBasedSchemesInVideoPhase  @controllers.fixdata.FixDataConsistencyController.findUsersStuckInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase
+GET         /diagnostic/sift/fixCandidateStuckInSiftEnteredWhoHasFailedFormBasedSchemesInVideoPhase     @controllers.fixdata.FixDataConsistencyController.fixUserStuckInSiftEnteredWhoShouldBeInSiftReadyWhoHasFailedFormBasedSchemesInVideoPhase(applicationId: String)
+GET         /diagnostic/sift/findCandidatesStuckInSiftEnteredAfterWithdrawingFromAllFormBasedSchemes    @controllers.fixdata.FixDataConsistencyController.findUsersStuckInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes
+GET         /diagnostic/sift/fixCandidateStuckInSiftEnteredAfterWithdrawingFromAllFormBasedSchemes      @controllers.fixdata.FixDataConsistencyController.fixUserStuckInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes(applicationId: String)
+GET         /diagnostic/sift/fixUserSiftedWithAFailByMistake                                            @controllers.fixdata.FixDataConsistencyController.fixUserSiftedWithAFailByMistake(applicationId: String)
+GET         /diagnostic/sift/fixUserSiftedWithAFailToSiftCompleted                                      @controllers.fixdata.FixDataConsistencyController.fixUserSiftedWithAFailToSiftCompleted(applicationId: String)
+GET         /diagnostic/sift/markSiftSchemeAsRed/:schemeId                                              @controllers.fixdata.FixDataConsistencyController.markSiftSchemeAsRed(applicationId: String, schemeId: model.SchemeId)
+GET         /diagnostic/sift/markSiftSchemeAsGreen/:schemeId                                            @controllers.fixdata.FixDataConsistencyController.markSiftSchemeAsGreen(applicationId: String, schemeId: model.SchemeId)
+GET         /diagnostic/sift/createSiftStructure                                                        @controllers.fixdata.FixDataConsistencyController.createSiftStructure(applicationId: String)
+GET         /diagnostic/sift/extend                                                                     @controllers.fixdata.FixDataConsistencyController.extendSiftCandidate(applicationId: String, extraDays: Int)
+GET         /diagnostic/sift/removeEvaluation                                                           @controllers.fixdata.FixDataConsistencyController.removeSiftEvaluation(applicationId: String)
+GET         /diagnostic/sift/setSiftAnswersStatusToDraft                                                @controllers.fixdata.FixDataConsistencyController.setSiftAnswersStatusToDraft(applicationId: String)
+GET         /diagnostic/sift/setSiftAnswersStatusToSubmitted                                            @controllers.fixdata.FixDataConsistencyController.setSiftAnswersStatusToSubmitted(applicationId: String)
 
-GET         /diagnostic/fsb/markFsbSchemeAsRed/:schemeId                                               controllers.fixdata.FixDataConsistencyController.markFsbSchemeAsRed(applicationId: String, schemeId: model.SchemeId)
-GET         /diagnostic/fsb/markFsbSchemeAsGreen/:schemeId                                             controllers.fixdata.FixDataConsistencyController.markFsbSchemeAsGreen(applicationId: String, schemeId: model.SchemeId)
-GET         /diagnostic/fsb/removeTestGroup                                                            controllers.fixdata.FixDataConsistencyController.removeFsbTestGroup(applicationId: String)
-GET         /diagnostic/findSdipFaststreamFailedFaststreamInvitedToVideoInterview                      controllers.fixdata.FixDataConsistencyController.findSdipFaststreamFailedFaststreamInvitedToVideoInterview
-GET         /diagnostic/moveSdipFaststreamFailedFaststreamInvitedToVideoInterviewToSift                controllers.fixdata.FixDataConsistencyController.moveSdipFaststreamFailedFaststreamInvitedToVideoInterviewToSift(applicationId: String)
-GET         /diagnostic/application/fixSdipFaststreamCandidateWhoExpiredInOnlineTests                  controllers.fixdata.FixDataConsistencyController.fixSdipFaststreamCandidateWhoExpiredInOnlineTests(applicationId: String)
-GET         /diagnostic/application/rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation          controllers.fixdata.FixDataConsistencyController.rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation(applicationId: String)
-GET         /diagnostic/currentSchemeStatus/markAs/:result/schemeId/:schemeId                          controllers.fixdata.FixDataConsistencyController.updateCurrentSchemeStatusScheme(applicationId: String, schemeId: model.SchemeId, result: model.EvaluationResults.Result)
-GET         /diagnostic/application/rollback-to-ac-confirmed-from-ac-failed-notified                   controllers.fixdata.FixDataConsistencyController.rollbackToAssessmentCentreConfirmedFromAssessmentCentreFailedNotified(applicationId: String)
-GET         /diagnostic/application/rollback-to-ac-confirmed-from-eligible-for-job-offer-notified      controllers.fixdata.FixDataConsistencyController.rollbackToAssessmentCentreConfirmedFromEligibleForJobOfferNotified(applicationId: String)
-GET         /diagnostic/application/rollback-to-fsb-awaiting-allocation-from-eligible-for-job-offer-notified controllers.fixdata.FixDataConsistencyController.rollbackToFsbAwaitingAllocationFromEligibleForJobOfferNotified(applicationId: String)
-GET         /diagnostic/application/:applicationId/addProgressStatus/:progressStatus                   controllers.fixdata.FixDataConsistencyController.addProgressStatus(applicationId: String, progressStatus: model.ProgressStatuses.ProgressStatus)
-GET         /diagnostic/application/:applicationId/removeSiftTestGroup                                 controllers.fixdata.FixDataConsistencyController.removeSiftTestGroup(applicationId: String)
-GET         /diagnostic/application/randomisePhasePassmarkVersion                                      controllers.fixdata.FixDataConsistencyController.randomisePhasePassmarkVersion(applicationId: String, phase: String)
-GET         /diagnostic/findUsersStuckInAssessmentScoresAccepted                                       controllers.fixdata.FixDataConsistencyController.findUsersStuckInAssessmentScoresAccepted
-GET         /diagnostic/findUsersEligibleForJobOfferButFsbApplicationStatus                            controllers.fixdata.FixDataConsistencyController.findUsersEligibleForJobOfferButFsbApplicationStatus
-GET         /diagnostic/fixUsersEligibleForJobOfferButFsbApplicationStatus                             controllers.fixdata.FixDataConsistencyController.fixUsersEligibleForJobOfferButFsbApplicationStatus
-GET         /diagnostic/application/:applicationId/setPhase3UsedForResults/:newUsedForResults          controllers.fixdata.FixDataConsistencyController.setPhase3UsedForResults(applicationId: String, newUsedForResults: Boolean, token: String)
-GET         /diagnostic/application/:applicationId/inventory/:inventoryId/order/:orderId/setPhase2UsedForResults/:newUsedForResults controllers.fixdata.FixDataConsistencyController.setPhase2UsedForResults(applicationId: String, inventoryId: String, orderId: String, newUsedForResults: Boolean)
-GET         /diagnostic/application/:applicationId/inventory/:inventoryId/order/:orderId/setPhase1UsedForResults/:newUsedForResults controllers.fixdata.FixDataConsistencyController.setPhase1UsedForResults(applicationId: String, inventoryId: String, orderId: String, newUsedForResults: Boolean)
-GET         /diagnostic/rollbackToPhase2TestExpiredFromSift                                            controllers.fixdata.FixDataConsistencyController.rollbackToPhase2TestExpiredFromSift(applicationId: String)
-GET         /diagnostic/rollbackToPhase3TestExpiredFromSift                                            controllers.fixdata.FixDataConsistencyController.rollbackToPhase3TestExpiredFromSift(applicationId: String)
-GET         /diagnostic/findSdipFaststreamFailedFaststreamInPhase1ExpiredPhase2InvitedToSift           controllers.fixdata.FixDataConsistencyController.findSdipFaststreamFailedFaststreamInPhase1ExpiredPhase2InvitedToSift
-GET         /diagnostic/findSdipFaststreamFailedFaststreamInPhase2ExpiredPhase3InvitedToSift           controllers.fixdata.FixDataConsistencyController.findSdipFaststreamFailedFaststreamInPhase2ExpiredPhase3InvitedToSift
-GET         /diagnostic/rollbackToPhase1TestsPassedFromSift                                            controllers.fixdata.FixDataConsistencyController.rollbackToPhase1TestsPassedFromSift(applicationId: String)
-GET         /diagnostic/enablePhase3CandidateToBeEvaluated                                             controllers.fixdata.FixDataConsistencyController.enablePhase3CandidateToBeEvaluated(applicationId: String)
-GET         /diagnostic/removePhase3TestAndSetOtherToActive                                            controllers.fixdata.FixDataConsistencyController.removePhase3TestAndSetOtherToActive(removeTestToken: String, markTestAsActiveToken: String)
-GET         /diagnostic/rollbackToRetakePhase3FromSift                                                 controllers.fixdata.FixDataConsistencyController.rollbackToRetakePhase3FromSift(applicationId: String, token: String)
-GET         /diagnostic/removePhase1TestEvaluation                                                     controllers.fixdata.FixDataConsistencyController.removePhase1TestEvaluation(applicationId: String)
-GET         /diagnostic/removePhase2TestEvaluation                                                     controllers.fixdata.FixDataConsistencyController.removePhase2TestEvaluation(applicationId: String)
-GET         /diagnostic/removePhase3TestEvaluation                                                     controllers.fixdata.FixDataConsistencyController.removePhase3TestEvaluation(applicationId: String)
-GET         /diagnostic/fixPhase2PartialCallbackCandidate                                              controllers.fixdata.FixDataConsistencyController.fixPhase2PartialCallbackCandidate(applicationId: String)
-GET         /diagnostic/fixPhase3ExpiredCandidate                                                      controllers.fixdata.FixDataConsistencyController.fixPhase3ExpiredCandidate(applicationId: String)
-GET         /diagnostic/fsac/resetFastPassCandidate                                                    controllers.fixdata.FixDataConsistencyController.fsacResetFastPassCandidate(applicationId: String)
-GET         /diagnostic/fsac/rollbackWithdraw                                                          controllers.fixdata.FixDataConsistencyController.fsacRollbackWithdraw(applicationId: String)
-GET         /diagnostic/fsac/removeEvaluation                                                          controllers.fixdata.FixDataConsistencyController.fsacRemoveEvaluation(applicationId: String)
-GET         /diagnostic/fsac/evaluateCandidate                                                         controllers.fixdata.FixDataConsistencyController.fsacEvaluateCandidate(applicationId: String)
-GET         /diagnostic/fsac/setAverageScore/application/:applicationId/version/:version/averageScoreName/:averageScoreName  controllers.fixdata.FixDataConsistencyController.fsacSetAverageScore(applicationId: String, version: String, averageScoreName: String, averageScore: Double)
-GET         /diagnostic/progress-candidate-to-fsb-or-offer-job                                         controllers.fixdata.FixDataConsistencyController.progressCandidateToFsbOrOfferJob(applicationId: String)
-GET         /diagnostic/progress-candidate-failed-at-fsb                                               controllers.fixdata.FixDataConsistencyController.progressCandidateFailedAtFsb(applicationId: String)
-GET         /diagnostic/inviteP2CandidateToMissingTest                                                 controllers.fixdata.FixDataConsistencyController.inviteP2CandidateToMissingTest(applicationId: String)
-GET         /diagnostic/application/:applicationId/setGis/:newGis                                      controllers.fixdata.FixDataConsistencyController.setGis(applicationId: String, newGis: Boolean)
+GET         /diagnostic/phase3/removeTestGroup                                                          @controllers.fixdata.FixDataConsistencyController.removePhase3TestGroup(applicationId: String)
+GET         /diagnostic/phase3/extendTestGroup                                                          @controllers.fixdata.FixDataConsistencyController.extendPhase3TestGroup(applicationId: String, extraDays: Int)
+GET         /diagnostic/phase3/markSchemeAsRed/:schemeId                                                @controllers.fixdata.FixDataConsistencyController.markPhase3SchemeAsRed(applicationId: String, schemeId: model.SchemeId)
+GET         /diagnostic/phase3/markSchemeAsGreen/:schemeId                                              @controllers.fixdata.FixDataConsistencyController.markPhase3SchemeAsGreen(applicationId: String, schemeId: model.SchemeId)
 
-GET         /online-test/psi/phase1/candidate/:applicationId             controllers.OnlineTestController.getPhase1OnlineTest2(applicationId: String)
+GET         /diagnostic/fsb/markFsbSchemeAsRed/:schemeId                                                @controllers.fixdata.FixDataConsistencyController.markFsbSchemeAsRed(applicationId: String, schemeId: model.SchemeId)
+GET         /diagnostic/fsb/markFsbSchemeAsGreen/:schemeId                                              @controllers.fixdata.FixDataConsistencyController.markFsbSchemeAsGreen(applicationId: String, schemeId: model.SchemeId)
+GET         /diagnostic/fsb/removeTestGroup                                                             @controllers.fixdata.FixDataConsistencyController.removeFsbTestGroup(applicationId: String)
+GET         /diagnostic/findSdipFaststreamFailedFaststreamInvitedToVideoInterview                       @controllers.fixdata.FixDataConsistencyController.findSdipFaststreamFailedFaststreamInvitedToVideoInterview
+GET         /diagnostic/moveSdipFaststreamFailedFaststreamInvitedToVideoInterviewToSift                 @controllers.fixdata.FixDataConsistencyController.moveSdipFaststreamFailedFaststreamInvitedToVideoInterviewToSift(applicationId: String)
+GET         /diagnostic/application/fixSdipFaststreamCandidateWhoExpiredInOnlineTests                   @controllers.fixdata.FixDataConsistencyController.fixSdipFaststreamCandidateWhoExpiredInOnlineTests(applicationId: String)
+GET         /diagnostic/application/rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation           @controllers.fixdata.FixDataConsistencyController.rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation(applicationId: String)
+GET         /diagnostic/currentSchemeStatus/markAs/:result/schemeId/:schemeId                           @controllers.fixdata.FixDataConsistencyController.updateCurrentSchemeStatusScheme(applicationId: String, schemeId: model.SchemeId, result: model.EvaluationResults.Result)
+GET         /diagnostic/application/rollback-to-ac-confirmed-from-ac-failed-notified                    @controllers.fixdata.FixDataConsistencyController.rollbackToAssessmentCentreConfirmedFromAssessmentCentreFailedNotified(applicationId: String)
+GET         /diagnostic/application/rollback-to-ac-confirmed-from-eligible-for-job-offer-notified       @controllers.fixdata.FixDataConsistencyController.rollbackToAssessmentCentreConfirmedFromEligibleForJobOfferNotified(applicationId: String)
+GET         /diagnostic/application/rollback-to-fsb-awaiting-allocation-from-eligible-for-job-offer-notified @controllers.fixdata.FixDataConsistencyController.rollbackToFsbAwaitingAllocationFromEligibleForJobOfferNotified(applicationId: String)
+GET         /diagnostic/application/:applicationId/addProgressStatus/:progressStatus                    @controllers.fixdata.FixDataConsistencyController.addProgressStatus(applicationId: String, progressStatus: model.ProgressStatuses.ProgressStatus)
+GET         /diagnostic/application/:applicationId/removeSiftTestGroup                                  @controllers.fixdata.FixDataConsistencyController.removeSiftTestGroup(applicationId: String)
+GET         /diagnostic/application/randomisePhasePassmarkVersion                                       @controllers.fixdata.FixDataConsistencyController.randomisePhasePassmarkVersion(applicationId: String, phase: String)
+GET         /diagnostic/findUsersStuckInAssessmentScoresAccepted                                        @controllers.fixdata.FixDataConsistencyController.findUsersStuckInAssessmentScoresAccepted
+GET         /diagnostic/findUsersEligibleForJobOfferButFsbApplicationStatus                             @controllers.fixdata.FixDataConsistencyController.findUsersEligibleForJobOfferButFsbApplicationStatus
+GET         /diagnostic/fixUsersEligibleForJobOfferButFsbApplicationStatus                              @controllers.fixdata.FixDataConsistencyController.fixUsersEligibleForJobOfferButFsbApplicationStatus
+GET         /diagnostic/application/:applicationId/setPhase3UsedForResults/:newUsedForResults                                       @controllers.fixdata.FixDataConsistencyController.setPhase3UsedForResults(applicationId: String, newUsedForResults: Boolean, token: String)
+GET         /diagnostic/application/:applicationId/inventory/:inventoryId/order/:orderId/setPhase2UsedForResults/:newUsedForResults @controllers.fixdata.FixDataConsistencyController.setPhase2UsedForResults(applicationId: String, inventoryId: String, orderId: String, newUsedForResults: Boolean)
+GET         /diagnostic/application/:applicationId/inventory/:inventoryId/order/:orderId/setPhase1UsedForResults/:newUsedForResults @controllers.fixdata.FixDataConsistencyController.setPhase1UsedForResults(applicationId: String, inventoryId: String, orderId: String, newUsedForResults: Boolean)
+GET         /diagnostic/rollbackToPhase2TestExpiredFromSift                                             @controllers.fixdata.FixDataConsistencyController.rollbackToPhase2TestExpiredFromSift(applicationId: String)
+GET         /diagnostic/rollbackToPhase3TestExpiredFromSift                                             @controllers.fixdata.FixDataConsistencyController.rollbackToPhase3TestExpiredFromSift(applicationId: String)
+GET         /diagnostic/findSdipFaststreamFailedFaststreamInPhase1ExpiredPhase2InvitedToSift            @controllers.fixdata.FixDataConsistencyController.findSdipFaststreamFailedFaststreamInPhase1ExpiredPhase2InvitedToSift
+GET         /diagnostic/findSdipFaststreamFailedFaststreamInPhase2ExpiredPhase3InvitedToSift            @controllers.fixdata.FixDataConsistencyController.findSdipFaststreamFailedFaststreamInPhase2ExpiredPhase3InvitedToSift
+GET         /diagnostic/rollbackToPhase1TestsPassedFromSift                                             @controllers.fixdata.FixDataConsistencyController.rollbackToPhase1TestsPassedFromSift(applicationId: String)
+GET         /diagnostic/enablePhase3CandidateToBeEvaluated                                              @controllers.fixdata.FixDataConsistencyController.enablePhase3CandidateToBeEvaluated(applicationId: String)
+GET         /diagnostic/removePhase3TestAndSetOtherToActive                                             @controllers.fixdata.FixDataConsistencyController.removePhase3TestAndSetOtherToActive(removeTestToken: String, markTestAsActiveToken: String)
+GET         /diagnostic/rollbackToRetakePhase3FromSift                                                  @controllers.fixdata.FixDataConsistencyController.rollbackToRetakePhase3FromSift(applicationId: String, token: String)
+GET         /diagnostic/removePhase1TestEvaluation                                                      @controllers.fixdata.FixDataConsistencyController.removePhase1TestEvaluation(applicationId: String)
+GET         /diagnostic/removePhase2TestEvaluation                                                      @controllers.fixdata.FixDataConsistencyController.removePhase2TestEvaluation(applicationId: String)
+GET         /diagnostic/removePhase3TestEvaluation                                                      @controllers.fixdata.FixDataConsistencyController.removePhase3TestEvaluation(applicationId: String)
+GET         /diagnostic/fixPhase2PartialCallbackCandidate                                               @controllers.fixdata.FixDataConsistencyController.fixPhase2PartialCallbackCandidate(applicationId: String)
+GET         /diagnostic/fixPhase3ExpiredCandidate                                                       @controllers.fixdata.FixDataConsistencyController.fixPhase3ExpiredCandidate(applicationId: String)
+GET         /diagnostic/fsac/resetFastPassCandidate                                                     @controllers.fixdata.FixDataConsistencyController.fsacResetFastPassCandidate(applicationId: String)
+GET         /diagnostic/fsac/rollbackWithdraw                                                           @controllers.fixdata.FixDataConsistencyController.fsacRollbackWithdraw(applicationId: String)
+GET         /diagnostic/fsac/removeEvaluation                                                           @controllers.fixdata.FixDataConsistencyController.fsacRemoveEvaluation(applicationId: String)
+GET         /diagnostic/fsac/evaluateCandidate                                                          @controllers.fixdata.FixDataConsistencyController.fsacEvaluateCandidate(applicationId: String)
+GET         /diagnostic/fsac/setAverageScore/application/:applicationId/version/:version/averageScoreName/:averageScoreName  @controllers.fixdata.FixDataConsistencyController.fsacSetAverageScore(applicationId: String, version: String, averageScoreName: String, averageScore: Double)
+GET         /diagnostic/progress-candidate-to-fsb-or-offer-job                                          @controllers.fixdata.FixDataConsistencyController.progressCandidateToFsbOrOfferJob(applicationId: String)
+GET         /diagnostic/progress-candidate-failed-at-fsb                                                @controllers.fixdata.FixDataConsistencyController.progressCandidateFailedAtFsb(applicationId: String)
+GET         /diagnostic/inviteP2CandidateToMissingTest                                                  @controllers.fixdata.FixDataConsistencyController.inviteP2CandidateToMissingTest(applicationId: String)
+GET         /diagnostic/application/:applicationId/setGis/:newGis                                       @controllers.fixdata.FixDataConsistencyController.setGis(applicationId: String, newGis: Boolean)
+#Diagnostic routes end
 
-GET         /online-test/phase1/candidate/:applicationId                 controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
-GET         /online-test/phase2/candidate/:applicationId                 controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)
-GET         /online-test/phase1/candidate/orderId/:orderId               controllers.OnlineTestController.getPhase1OnlineTestByOrderId(orderId: String)
-GET         /online-test/phase2/candidate/orderId/:orderId               controllers.OnlineTestController.getPhase2OnlineTestByOrderId(orderId: String)
-GET         /online-test/phase3/candidate/:applicationId                 controllers.OnlineTestController.getPhase3OnlineTest(applicationId: String)
-POST        /online-test/candidate/:userId/status                        controllers.OnlineTestController.onlineTestStatusUpdate(userId: String)
-POST        /online-test/psi/phase1/reset/:applicationId                 controllers.OnlineTestController.resetPhase1OnlineTests(applicationId: String)
-POST        /online-test/phase2/reset/:applicationId                     controllers.OnlineTestController.resetPhase2OnlineTest(applicationId: String)
-POST        /online-test/psi/phase2/reset/:applicationId                 controllers.OnlineTestController.resetPhase2OnlineTest(applicationId: String)
-POST        /online-test/phase3/reset/:applicationId                     controllers.OnlineTestController.resetPhase3OnlineTest(applicationId: String)
+GET         /online-test/psi/phase1/candidate/:applicationId             @controllers.OnlineTestController.getPhase1OnlineTest2(applicationId: String)
 
-POST        /online-test/phase2/verifyAccessCode                         controllers.OnlineTestController.verifyAccessCode()
+GET         /online-test/phase1/candidate/:applicationId                 @controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
+GET         /online-test/phase2/candidate/:applicationId                 @controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)
+GET         /online-test/phase1/candidate/orderId/:orderId               @controllers.OnlineTestController.getPhase1OnlineTestByOrderId(orderId: String)
+GET         /online-test/phase2/candidate/orderId/:orderId               @controllers.OnlineTestController.getPhase2OnlineTestByOrderId(orderId: String)
+GET         /online-test/phase3/candidate/:applicationId                 @controllers.OnlineTestController.getPhase3OnlineTest(applicationId: String)
+POST        /online-test/candidate/:userId/status                        @controllers.OnlineTestController.onlineTestStatusUpdate(userId: String)
+POST        /online-test/psi/phase1/reset/:applicationId                 @controllers.OnlineTestController.resetPhase1OnlineTests(applicationId: String)
+POST        /online-test/phase2/reset/:applicationId                     @controllers.OnlineTestController.resetPhase2OnlineTest(applicationId: String)
+POST        /online-test/psi/phase2/reset/:applicationId                 @controllers.OnlineTestController.resetPhase2OnlineTest(applicationId: String)
+POST        /online-test/phase3/reset/:applicationId                     @controllers.OnlineTestController.resetPhase3OnlineTest(applicationId: String)
+POST        /online-test/phase2/verifyAccessCode                         @controllers.OnlineTestController.verifyAccessCode()
 
-PUT         /psi/:orderId/complete                                       controllers.PsiTestsController.completeTestByOrderId(orderId: String)
-PUT         /psi/:orderId/real-time-results                              controllers.PsiTestsController.realTimeResults(orderId: String)
+# Cubiks TODO: these should be deleted
+#PUT         /cubiks/:cubiksUserId/start                                  @controllers.CubiksTestsController.start(cubiksUserId: Int)
+#PUT         /cubiks/:cubiksUserId/complete                               @controllers.CubiksTestsController.complete(cubiksUserId: Int)
+#PUT         /cubiks/complete-by-token/:token                             @controllers.CubiksTestsController.completeTestByToken(token: String)
+#PUT         /cubiks/:cubiksUserId/results-ready                          @controllers.CubiksTestsController.markResultsReady(cubiksUserId: Int)
+# Cubiks end
 
-PUT         /cubiks/:cubiksUserId/start                                  controllers.CubiksTestsController.start(cubiksUserId: Int)
-PUT         /cubiks/:cubiksUserId/complete                               controllers.CubiksTestsController.complete(cubiksUserId: Int)
-PUT         /cubiks/complete-by-token/:token                             controllers.CubiksTestsController.completeTestByToken(token: String)
-PUT         /cubiks/:cubiksUserId/results-ready                          controllers.CubiksTestsController.markResultsReady(cubiksUserId: Int)
+PUT         /psi/:orderId/start                                          @controllers.PsiTestsController.start(orderId: String)
+PUT         /psi/:orderId/complete                                       @controllers.PsiTestsController.completeTestByOrderId(orderId: String)
+PUT         /psi/:orderId/real-time-results                              @controllers.PsiTestsController.realTimeResults(orderId: String)
 
-PUT         /psi/:orderId/start                                          controllers.PsiTestsController.start(orderId: String)
+GET         /phase1-tests/:applicationId                                 @controllers.Phase1TestGroupController.getTests(applicationId: String)
+POST        /phase1-test-group/extend/:applicationId                     @controllers.Phase1TestGroupController.extend(applicationId: String)
+POST        /phase2-test-group/extend/:applicationId                     @controllers.Phase2TestGroupController.extend(applicationId: String)
+POST        /phase3-test-group/extend/:applicationId                     @controllers.Phase3TestGroupController.extend(applicationId: String)
+GET         /phase3-test-group/:applicationId                            @controllers.Phase3TestGroupController.getTestGroup(applicationId: String)
+GET         /phase3-test-group/unexpireCompleted/:applicationId          @controllers.Phase3TestGroupController.unexpireCompleted(applicationId: String)
 
-GET         /phase1-tests/:applicationId                                 controllers.Phase1TestGroupController.getTests(applicationId: String)
-POST        /phase1-test-group/extend/:applicationId                     controllers.Phase1TestGroupController.extend(applicationId: String)
-POST        /phase2-test-group/extend/:applicationId                     controllers.Phase2TestGroupController.extend(applicationId: String)
-POST        /phase3-test-group/extend/:applicationId                     controllers.Phase3TestGroupController.extend(applicationId: String)
-GET         /phase3-test-group/:applicationId                            controllers.Phase3TestGroupController.getTestGroup(applicationId: String)
-GET         /phase3-test-group/unexpireCompleted/:applicationId          controllers.Phase3TestGroupController.unexpireCompleted(applicationId: String)
+# Launchpad routes start
+PUT         /launchpad/:inviteId/markAsStarted                           @controllers.LaunchpadTestsController.markAsStarted(inviteId: String)
+PUT         /launchpad/:inviteId/markAsComplete                          @controllers.LaunchpadTestsController.markAsComplete(inviteId: String)
+PUT         /launchpad/:inviteId/setupProcessCallback                    @controllers.LaunchpadTestsController.setupProcessCallback(inviteId: String)
+PUT         /launchpad/:inviteId/viewPracticeQuestionCallback            @controllers.LaunchpadTestsController.viewPracticeQuestionCallback(inviteId: String)
+PUT         /launchpad/:inviteId/questionCallback                        @controllers.LaunchpadTestsController.questionCallback(inviteId: String)
+PUT         /launchpad/:inviteId/finalCallback                           @controllers.LaunchpadTestsController.finalCallback(inviteId: String)
+PUT         /launchpad/:inviteId/finishedCallback                        @controllers.LaunchpadTestsController.finishedCallback(inviteId: String)
+PUT         /launchpad/:inviteId/reviewedCallback                        @controllers.LaunchpadTestsController.reviewedCallback(inviteId: String)
+# Launchpad routes end
 
-PUT         /launchpad/:inviteId/markAsStarted                           controllers.LaunchpadTestsController.markAsStarted(inviteId: String)
-PUT         /launchpad/:inviteId/markAsComplete                          controllers.LaunchpadTestsController.markAsComplete(inviteId: String)
+GET         /application/:applicationId/issue                            @controllers.FlagCandidateController.find(applicationId: String)
+PUT         /application/:applicationId/issue                            @controllers.FlagCandidateController.save(applicationId: String)
+DELETE      /application/:applicationId/issue                            @controllers.FlagCandidateController.remove(applicationId: String)
 
-PUT         /launchpad/:inviteId/setupProcessCallback                    controllers.LaunchpadTestsController.setupProcessCallback(inviteId: String)
-PUT         /launchpad/:inviteId/viewPracticeQuestionCallback            controllers.LaunchpadTestsController.viewPracticeQuestionCallback(inviteId: String)
-PUT         /launchpad/:inviteId/questionCallback                        controllers.LaunchpadTestsController.questionCallback(inviteId: String)
-PUT         /launchpad/:inviteId/finalCallback                           controllers.LaunchpadTestsController.finalCallback(inviteId: String)
-PUT         /launchpad/:inviteId/finishedCallback                        controllers.LaunchpadTestsController.finishedCallback(inviteId: String)
-PUT         /launchpad/:inviteId/reviewedCallback                        controllers.LaunchpadTestsController.reviewedCallback(inviteId: String)
+GET         /schools                                                     @controllers.SchoolsController.getSchools(term: String)
 
-GET         /application/:applicationId/issue                            controllers.FlagCandidateController.find(applicationId: String)
-PUT         /application/:applicationId/issue                            controllers.FlagCandidateController.save(applicationId: String)
-DELETE      /application/:applicationId/issue                            controllers.FlagCandidateController.remove(applicationId: String)
+# Assessor routes start
+POST        /assessor/save/:userId                                       @controllers.AssessorController.saveAssessor(userId: String)
+POST        /assessor/findByIds                                          @controllers.AssessorController.findAssessorsByIds()
+GET         /assessor/find/:userId                                       @controllers.AssessorController.findAssessor(userId: String)
+DELETE      /assessor/remove/:userId                                     @controllers.AssessorController.removeAssessor(userId: model.UniqueIdentifier)
 
-GET         /schools                                                     controllers.SchoolsController.getSchools(term: String)
+POST        /assessor/availability/save                                  @controllers.AssessorController.saveAvailability()
+GET         /assessor/availability/find/:userId                          @controllers.AssessorController.findAvailability(userId: String)
+GET         /assessor/availability/:locationName/:date                   @controllers.AssessorController.findAvailableAssessorsForLocationAndDate(locationName: String, date: org.joda.time.LocalDate, skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
+GET         /assessor/availability/count-submitted                       @controllers.AssessorController.countSubmittedAvailability()
+GET         /assessor/:assessorId/allocations                            @controllers.AssessorController.findAssessorAllocations(assessorId: String, status: Option[model.AllocationStatuses.AllocationStatus])
+POST        /assessor/allocations                                        @controllers.AssessorController.findAllocations()
+PUT         /assessor/:assessorId/allocations                            @controllers.AssessorController.updateAllocationStatuses(assessorId: String)
+# Assessor routes end
 
-POST        /assessor/save/:userId                                       controllers.AssessorController.saveAssessor(userId: String)
-POST        /assessor/findByIds                                          controllers.AssessorController.findAssessorsByIds()
-GET         /assessor/find/:userId                                       controllers.AssessorController.findAssessor(userId: String)
-DELETE      /assessor/remove/:userId                                     controllers.AssessorController.removeAssessor(userId: model.UniqueIdentifier)
-
-POST        /assessor/availability/save                                  controllers.AssessorController.saveAvailability()
-GET         /assessor/availability/find/:userId                          controllers.AssessorController.findAvailability(userId: String)
-GET         /assessor/availability/:locationName/:date                   controllers.AssessorController.findAvailableAssessorsForLocationAndDate(locationName: String, date: org.joda.time.LocalDate, skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
-GET         /assessor/availability/count-submitted                       controllers.AssessorController.countSubmittedAvailability()
-GET         /assessor/:assessorId/allocations                            controllers.AssessorController.findAssessorAllocations(assessorId: String, status: Option[model.AllocationStatuses.AllocationStatus])
-POST        /assessor/allocations                                        controllers.AssessorController.findAllocations()
-PUT         /assessor/:assessorId/allocations                            controllers.AssessorController.updateAllocationStatuses(assessorId: String)
-
-# Events
-POST        /events/save                                                 controllers.EventsController.saveAssessmentEvents()
-POST        /events/create                                               controllers.EventsController.createEvent()
-GET         /events/:eventId/allocations                                 controllers.EventsController.getAssessorAllocations(eventId: String)
-GET         /events/:eventId/delete                                      controllers.EventsController.delete(eventId: String)
-GET         /events/:eventId/users/:userId/allocation                    controllers.EventsController.getAssessorAllocation(eventId: String, userId: String)
-GET         /events/:eventId                                             controllers.EventsController.getEvent(eventId: String)
-POST        /events/:eventId/update                                      controllers.EventsController.updateEvent(eventId: String)
-GET         /events/:venue/:eventType                                    controllers.EventsController.getEvents(eventType: String, venue: String, description: Option[String] = None)
-PUT         /events/:eventId/allocate                                    controllers.EventsController.allocateAssessor(eventId: String)
-GET         /events-with-allocations-summary/:venueName/:eventType       controllers.EventsController.getEventsWithAllocationsSummary(venueName: String, eventType: model.persisted.eventschedules.EventType.EventType, description: Option[String] = None)
-GET         /events-with-allocations-summary/:venueName/:eventType/:description       controllers.EventsController.getEventsWithAllocationsSummaryWithDescription(venueName: String, eventType: model.persisted.eventschedules.EventType.EventType, description: String)
-GET         /events-structure/add-new-attributes                         controllers.EventsController.addNewAttributes()
+# Events start
+POST        /events/save                                                 @controllers.EventsController.saveAssessmentEvents()
+POST        /events/create                                               @controllers.EventsController.createEvent()
+GET         /events/:eventId/allocations                                 @controllers.EventsController.getAssessorAllocations(eventId: String)
+GET         /events/:eventId/delete                                      @controllers.EventsController.delete(eventId: String)
+GET         /events/:eventId/users/:userId/allocation                    @controllers.EventsController.getAssessorAllocation(eventId: String, userId: String)
+GET         /events/:eventId                                             @controllers.EventsController.getEvent(eventId: String)
+POST        /events/:eventId/update                                      @controllers.EventsController.updateEvent(eventId: String)
+GET         /events/:venue/:eventType                                    @controllers.EventsController.getEvents(eventType: String, venue: String, description: Option[String] = None)
+PUT         /events/:eventId/allocate                                    @controllers.EventsController.allocateAssessor(eventId: String)
+GET         /events-with-allocations-summary/:venueName/:eventType       @controllers.EventsController.getEventsWithAllocationsSummary(venueName: String, eventType: model.persisted.eventschedules.EventType.EventType, description: Option[String] = None)
+GET         /events-with-allocations-summary/:venueName/:eventType/:description       @controllers.EventsController.getEventsWithAllocationsSummaryWithDescription(venueName: String, eventType: model.persisted.eventschedules.EventType.EventType, description: String)
+GET         /events-structure/add-new-attributes                         @controllers.EventsController.addNewAttributes()
+# Events end
 
 # candidate allocations
-GET         /candidate-allocations/find-applications/event/:eventType/location/:location    controllers.CandidateAllocationController.findCandidatesEligibleForEventAllocation(location: String, eventType: model.persisted.eventschedules.EventType.EventType, eventDescription: String)
-POST        /candidate-allocations/find-allocated                                           controllers.CandidateAllocationController.findAllocatedApplications()
-GET         /candidate-allocations/events/:eventId/sessions/:sessionId                      controllers.CandidateAllocationController.getCandidateAllocations(eventId: String, sessionId: String)
-POST        /candidate-allocations/remove/events/:eventId/sessions/:sessionId               controllers.CandidateAllocationController.removeCandidateAllocations(eventId: String, sessionId: String)
-GET         /candidate-allocations/summary/:applicationId                                   controllers.CandidateAllocationController.candidateAllocationsSummary(applicationId: String)
-PUT         /candidate-allocations/allocate/events/:eventId/sessions/:sessionId             controllers.CandidateAllocationController.allocateCandidates(eventId: String, sessionId: String, append: Boolean ?= false)
-DELETE      /candidate-allocations/reset-removals/:applicationId/eventType/:eventType       controllers.CandidateAllocationController.removeCandidateRemovalReason(applicationId: String, eventType: model.persisted.eventschedules.EventType.EventType)
+GET         /candidate-allocations/find-applications/event/:eventType/location/:location    @controllers.CandidateAllocationController.findCandidatesEligibleForEventAllocation(location: String, eventType: model.persisted.eventschedules.EventType.EventType, eventDescription: String)
+POST        /candidate-allocations/find-allocated                                           @controllers.CandidateAllocationController.findAllocatedApplications()
+GET         /candidate-allocations/events/:eventId/sessions/:sessionId                      @controllers.CandidateAllocationController.getCandidateAllocations(eventId: String, sessionId: String)
+POST        /candidate-allocations/remove/events/:eventId/sessions/:sessionId               @controllers.CandidateAllocationController.removeCandidateAllocations(eventId: String, sessionId: String)
+GET         /candidate-allocations/summary/:applicationId                                   @controllers.CandidateAllocationController.candidateAllocationsSummary(applicationId: String)
+PUT         /candidate-allocations/allocate/events/:eventId/sessions/:sessionId             @controllers.CandidateAllocationController.allocateCandidates(eventId: String, sessionId: String, append: Boolean ?= false)
+DELETE      /candidate-allocations/reset-removals/:applicationId/eventType/:eventType       @controllers.CandidateAllocationController.removeCandidateRemovalReason(applicationId: String, eventType: model.persisted.eventschedules.EventType.EventType)
 
-PUT         /candidate-allocations/confirm-allocation/events/:eventId/sessions/:sessionId    controllers.CandidateAllocationController.confirmAllocation(eventId: String, sessionId: String)
-GET         /candidate-allocations/sessions/findByApplicationId                              controllers.CandidateAllocationController.findSessionsForApplication(applicationId: String)
-GET         /candidate-allocations/add-new-attributes                                        controllers.CandidateAllocationController.addNewAttributes()
+PUT         /candidate-allocations/confirm-allocation/events/:eventId/sessions/:sessionId   @controllers.CandidateAllocationController.confirmAllocation(eventId: String, sessionId: String)
+GET         /candidate-allocations/sessions/findByApplicationId                             @controllers.CandidateAllocationController.findSessionsForApplication(applicationId: String)
+GET         /candidate-allocations/add-new-attributes                                       @controllers.CandidateAllocationController.addNewAttributes()
 
-POST          /assessments/fsb-scheme/results                                             controllers.FsbTestGroupController.savePerScheme()
-GET           /assessments/fsb-events/results                                             controllers.FsbTestGroupController.find(applicationIds: List[String], fsbType: Option[String])
-GET           /assessments/fsb/scoresAndFeedback/:applicationId                           controllers.FsbTestGroupController.findScoresAndFeedback(applicationId: String)
-POST          /assessments/fsb/scoresAndFeedback/:applicationId                           controllers.FsbTestGroupController.saveScoresAndFeedback(applicationId: String)
+POST          /assessments/fsb-scheme/results                                               @controllers.FsbTestGroupController.savePerScheme()
+GET           /assessments/fsb-events/results                                               @controllers.FsbTestGroupController.find(applicationIds: List[String], fsbType: Option[String])
+GET           /assessments/fsb/scoresAndFeedback/:applicationId                             @controllers.FsbTestGroupController.findScoresAndFeedback(applicationId: String)
+POST          /assessments/fsb/scoresAndFeedback/:applicationId                             @controllers.FsbTestGroupController.saveScoresAndFeedback(applicationId: String)
 
 # Day aggregate events
-GET         /day-aggregate-events                                        controllers.DayAggregateEventController.findBySkillTypes(skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
-GET         /day-aggregate-events/location/:location                     controllers.DayAggregateEventController.findBySkillTypesAndLocation(location: String, skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
+GET         /day-aggregate-events                                        @controllers.DayAggregateEventController.findBySkillTypes(skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
+GET         /day-aggregate-events/location/:location                     @controllers.DayAggregateEventController.findBySkillTypesAndLocation(location: String, skills: Seq[model.persisted.eventschedules.SkillType.SkillType])
 
 # assessor assessment scores
-POST        /assessment-scores/assessor/save-exercise                                         controllers.AssessorAssessmentScoresController.saveExercise()
-POST        /assessment-scores/assessor/submit-exercise                                       controllers.AssessorAssessmentScoresController.submitExercise()
-POST        /assessment-scores/assessor/save                                                  controllers.AssessorAssessmentScoresController.save()
-GET         /assessment-scores/assessor/with-candidate-summary/application/:applicationId     controllers.AssessorAssessmentScoresController.findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: model.UniqueIdentifier)
-GET         /assessment-scores/assessor/with-candidate-summary/event/:eventId                 controllers.AssessorAssessmentScoresController.findAssessmentScoresWithCandidateSummaryByEventId(eventId: model.UniqueIdentifier)
-GET         /assessment-scores/assessor/:applicationId                                        controllers.AssessorAssessmentScoresController.find(applicationId: model.UniqueIdentifier)
-GET         /assessment-scores/assessor                                                       controllers.AssessorAssessmentScoresController.findAll
-POST        /assessment-scores/assessor/reset-exercises/:applicationId                        controllers.AssessorAssessmentScoresController.resetExercises(applicationId: model.UniqueIdentifier)
+POST        /assessment-scores/assessor/save-exercise                                       @controllers.AssessorAssessmentScoresController.saveExercise()
+POST        /assessment-scores/assessor/submit-exercise                                     @controllers.AssessorAssessmentScoresController.submitExercise()
+POST        /assessment-scores/assessor/save                                                @controllers.AssessorAssessmentScoresController.save()
+GET         /assessment-scores/assessor/with-candidate-summary/application/:applicationId   @controllers.AssessorAssessmentScoresController.findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: model.UniqueIdentifier)
+GET         /assessment-scores/assessor/with-candidate-summary/event/:eventId               @controllers.AssessorAssessmentScoresController.findAssessmentScoresWithCandidateSummaryByEventId(eventId: model.UniqueIdentifier)
+GET         /assessment-scores/assessor/:applicationId                                      @controllers.AssessorAssessmentScoresController.find(applicationId: model.UniqueIdentifier)
+GET         /assessment-scores/assessor                                                     @controllers.AssessorAssessmentScoresController.findAll
+POST        /assessment-scores/assessor/reset-exercises/:applicationId                      @controllers.AssessorAssessmentScoresController.resetExercises(applicationId: model.UniqueIdentifier)
 
 # reviewer assessment scores
-POST        /assessment-scores/reviewer/save-exercise                                         controllers.ReviewerAssessmentScoresController.saveExercise()
-POST        /assessment-scores/reviewer/submit-exercise                                       controllers.ReviewerAssessmentScoresController.submitExercise()
-POST        /assessment-scores/reviewer/submit-final-feedback                                 controllers.ReviewerAssessmentScoresController.submitFinalFeedback()
-POST        /assessment-scores/reviewer/save                                                  controllers.ReviewerAssessmentScoresController.save()
-GET         /assessment-scores/reviewer/with-candidate-summary/application/:applicationId     controllers.ReviewerAssessmentScoresController.findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: model.UniqueIdentifier)
-GET         /assessment-scores/reviewer/with-candidate-summary/event/:eventId                 controllers.ReviewerAssessmentScoresController.findAssessmentScoresWithCandidateSummaryByEventId(eventId: model.UniqueIdentifier)
-GET         /assessment-scores/reviewer/:applicationId                                        controllers.ReviewerAssessmentScoresController.find(applicationId: model.UniqueIdentifier)
-GET         /assessment-scores/reviewer                                                       controllers.ReviewerAssessmentScoresController.findAll
-GET         /assessment-scores/reviewer/accepted-scores/application/:applicationId            controllers.ReviewerAssessmentScoresController.findAcceptedAssessmentScoresByApplicationId(applicationId: model.UniqueIdentifier)
+POST        /assessment-scores/reviewer/save-exercise                                       @controllers.ReviewerAssessmentScoresController.saveExercise()
+POST        /assessment-scores/reviewer/submit-exercise                                     @controllers.ReviewerAssessmentScoresController.submitExercise()
+POST        /assessment-scores/reviewer/submit-final-feedback                               @controllers.ReviewerAssessmentScoresController.submitFinalFeedback()
+POST        /assessment-scores/reviewer/save                                                @controllers.ReviewerAssessmentScoresController.save()
+GET         /assessment-scores/reviewer/with-candidate-summary/application/:applicationId   @controllers.ReviewerAssessmentScoresController.findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: model.UniqueIdentifier)
+GET         /assessment-scores/reviewer/with-candidate-summary/event/:eventId               @controllers.ReviewerAssessmentScoresController.findAssessmentScoresWithCandidateSummaryByEventId(eventId: model.UniqueIdentifier)
+GET         /assessment-scores/reviewer/:applicationId                                      @controllers.ReviewerAssessmentScoresController.find(applicationId: model.UniqueIdentifier)
+GET         /assessment-scores/reviewer                                                     @controllers.ReviewerAssessmentScoresController.findAll
+GET         /assessment-scores/reviewer/accepted-scores/application/:applicationId          @controllers.ReviewerAssessmentScoresController.findAcceptedAssessmentScoresByApplicationId(applicationId: model.UniqueIdentifier)
 
 # Scheme Specific Questions/Answers
-GET         /sift-answers/:applicationId/general                         controllers.SchemeSiftAnswersController.getGeneralAnswers(applicationId: String)
-PUT         /sift-answers/:applicationId/general                         controllers.SchemeSiftAnswersController.addOrUpdateGeneralAnswers(applicationId: String)
-GET         /sift-answers/:applicationId/status                          controllers.SchemeSiftAnswersController.getSiftAnswersStatus(applicationId: String)
-PUT         /sift-answers/:applicationId/submit                          controllers.SchemeSiftAnswersController.submitAnswers(applicationId: String)
-GET         /sift-answers/:applicationId/:schemeId                       controllers.SchemeSiftAnswersController.getSchemeSpecificAnswer(applicationId: String, schemeId: model.SchemeId)
-PUT         /sift-answers/:applicationId/:schemeId                       controllers.SchemeSiftAnswersController.addOrUpdateSchemeSpecificAnswer(applicationId: String, schemeId: model.SchemeId)
-GET         /sift-answers/:applicationId                                 controllers.SchemeSiftAnswersController.getSiftAnswers(applicationId: String)
+GET         /sift-answers/:applicationId/general                         @controllers.SchemeSiftAnswersController.getGeneralAnswers(applicationId: String)
+PUT         /sift-answers/:applicationId/general                         @controllers.SchemeSiftAnswersController.addOrUpdateGeneralAnswers(applicationId: String)
+GET         /sift-answers/:applicationId/status                          @controllers.SchemeSiftAnswersController.getSiftAnswersStatus(applicationId: String)
+PUT         /sift-answers/:applicationId/submit                          @controllers.SchemeSiftAnswersController.submitAnswers(applicationId: String)
+GET         /sift-answers/:applicationId/:schemeId                       @controllers.SchemeSiftAnswersController.getSchemeSpecificAnswer(applicationId: String, schemeId: model.SchemeId)
+PUT         /sift-answers/:applicationId/:schemeId                       @controllers.SchemeSiftAnswersController.addOrUpdateSchemeSpecificAnswer(applicationId: String, schemeId: model.SchemeId)
+GET         /sift-answers/:applicationId                                 @controllers.SchemeSiftAnswersController.getSiftAnswers(applicationId: String)
 
-POST        /sift-candidate/extend/:applicationId                        controllers.SiftCandidateController.extend(applicationId: String)
-GET         /sift-candidate/state/:applicationId                         controllers.SiftCandidateController.getSiftState(applicationId: String)
-GET         /sift-test-group/:applicationId                              controllers.SiftCandidateController.getSiftTestGroup(applicationId: String)
-GET         /psi/sift-test-group/:applicationId                          controllers.SiftCandidateController.getSiftTestGroup2(applicationId: String)
+POST        /sift-candidate/extend/:applicationId                        @controllers.SiftCandidateController.extend(applicationId: String)
+GET         /sift-candidate/state/:applicationId                         @controllers.SiftCandidateController.getSiftState(applicationId: String)
+GET         /sift-test-group/:applicationId                              @controllers.SiftCandidateController.getSiftTestGroup(applicationId: String)
+GET         /psi/sift-test-group/:applicationId                          @controllers.SiftCandidateController.getSiftTestGroup2(applicationId: String)
 
-PUT         /sift-test/:cubiksUserId/start                               controllers.SiftCandidateController.startTest(cubiksUserId: Int)
-PUT         /psi/sift-test/:orderId/start                                controllers.SiftCandidateController.startTest2(orderId: String)
+PUT         /sift-test/:cubiksUserId/start                               @controllers.SiftCandidateController.startTest(cubiksUserId: Int)
+PUT         /psi/sift-test/:orderId/start                                @controllers.SiftCandidateController.startTest2(orderId: String)
 
 # Reference data
-GET         /reference/skills                                            controllers.reference.SkillTypeController.allSkills
-GET         /reference/schemes                                           controllers.reference.SchemesController.allSchemes
-GET         /reference/fsb-types                                         controllers.reference.EventDataController.getFsbTypes
-GET         /reference/candidate-remove-reasons                          controllers.reference.EventDataController.candidateRemoveReasons
+GET         /reference/skills                                            @controllers.reference.SkillTypeController.allSkills
+GET         /reference/schemes                                           @controllers.reference.SchemesController.allSchemes
+GET         /reference/fsb-types                                         @controllers.reference.EventDataController.getFsbTypes
+GET         /reference/candidate-remove-reasons                          @controllers.reference.EventDataController.candidateRemoveReasons
 
-GET         /reference/venues                                            controllers.reference.LocationAndVenueController.venues
-GET         /reference/locations                                         controllers.reference.LocationAndVenueController.locations
-GET         /reference/locations-with-venues                             controllers.reference.LocationAndVenueController.locationsWithVenues
+GET         /reference/venues                                            @controllers.reference.LocationAndVenueController.venues
+GET         /reference/locations                                         @controllers.reference.LocationAndVenueController.locations
+GET         /reference/locations-with-venues                             @controllers.reference.LocationAndVenueController.locationsWithVenues
 
-GET         /reference/fsac/assessment-centres                           controllers.reference.FsacIndicatorController.getAssessmentCentres
+GET         /reference/fsac/assessment-centres                           @controllers.reference.FsacIndicatorController.getAssessmentCentres
 
-GET         /campaign-reset/listCollections                              controllers.CampaignManagementController.listCollections
-GET         /campaign-reset/removeCollection                             controllers.CampaignManagementController.removeCollection(name: String)
-POST        /campaign-reset/setTScore                                    controllers.CampaignManagementController.setTScore
+GET         /campaign-reset/listCollections                              @controllers.CampaignManagementController.listCollections
+GET         /campaign-reset/removeCollection                             @controllers.CampaignManagementController.removeCollection(name: String)
+POST        /campaign-reset/setTScore                                    @controllers.CampaignManagementController.setTScore
 
-GET         /management/findCandidateByUserId                            controllers.CampaignManagementController.findCandidateByUserId(userId: String)
-DELETE      /management/removeCandidate                                  controllers.CampaignManagementController.removeCandidate(applicationId: String, userId:String)
+GET         /management/findCandidateByUserId                            @controllers.CampaignManagementController.findCandidateByUserId(userId: String)
+DELETE      /management/removeCandidate                                  @controllers.CampaignManagementController.removeCandidate(applicationId: String, userId:String)
 
 # Metrics endpoints
-#GET         /metrics/progressStatusCounts                                controllers.metrics.MetricsController.progressStatusCounts
+#GET         /metrics/progressStatusCounts                                @controllers.metrics.MetricsController.progressStatusCounts

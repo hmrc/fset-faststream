@@ -16,23 +16,24 @@
 
 package services
 
-import config.MicroserviceAppConfig.{ onlineTestsGatewayConfig, testIntegrationGatewayConfig }
-import config.{ PsiTestIds, NumericalTestSchedule, OnlineTestsGatewayConfig, TestIntegrationGatewayConfig }
+import com.google.inject.name.Named
+import config._
 import connectors.ExchangeObjects._
-import connectors.{ CSREmailClient, EmailClient, OnlineTestsGatewayClient }
+import connectors.{ OnlineTestEmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.{ CannotFindTestByOrderIdException, UnexpectedException }
 import model.ProgressStatuses.{ ProgressStatus, SIFT_TEST_COMPLETED, SIFT_TEST_INVITED, SIFT_TEST_RESULTS_READY }
 import model._
 import model.exchange.{ CubiksTestResultReady, PsiRealTimeResults }
-import model.persisted.{ CubiksTest, Phase2TestGroupWithAppId2, PsiTest }
 import model.persisted.sift.{ MaybeSiftTestGroupWithAppId2, SiftTestGroup, SiftTestGroup2, SiftTestGroupWithAppId }
+import model.persisted.{ CubiksTest, PsiTest }
 import model.stc.DataStoreEvents
 import play.api.Logger
 import play.api.mvc.RequestHeader
-import repositories.{ SchemeRepository, SchemeYamlRepository }
+import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
-import repositories.contactdetails.{ ContactDetailsMongoRepository, ContactDetailsRepository }
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.sift.ApplicationSiftRepository
 import services.onlinetesting.CubiksSanitizer
 import services.stc.{ EventSink, StcEventService }
@@ -41,32 +42,23 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object NumericalTestService2 extends NumericalTestService2 {
-  val applicationRepo: GeneralApplicationRepository = repositories.applicationRepository
-  val applicationSiftRepo: ApplicationSiftRepository = repositories.applicationSiftRepository
-  val onlineTestsGatewayClient = OnlineTestsGatewayClient
-  val gatewayConfig = onlineTestsGatewayConfig
-  val integrationGatewayConfig = testIntegrationGatewayConfig
-  val tokenFactory = UUIDFactory
-  val dateTimeFactory: DateTimeFactory = DateTimeFactory
-  val eventService: StcEventService = StcEventService
-  val schemeRepository = SchemeYamlRepository
-  val emailClient: CSREmailClient = CSREmailClient
-  val contactDetailsRepo: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
-}
-
+// PSI based version guice injection
 // scalastyle:off number.of.methods
-trait NumericalTestService2 extends EventSink {
-  def applicationRepo: GeneralApplicationRepository
-  def applicationSiftRepo: ApplicationSiftRepository
-  val tokenFactory: UUIDFactory
-  val gatewayConfig: OnlineTestsGatewayConfig
-  val integrationGatewayConfig: TestIntegrationGatewayConfig
-  val onlineTestsGatewayClient: OnlineTestsGatewayClient
-  val dateTimeFactory: DateTimeFactory
-  def schemeRepository: SchemeRepository
-  def emailClient: EmailClient
-  def contactDetailsRepo: ContactDetailsRepository
+@Singleton
+class NumericalTestService2 @Inject() (applicationRepo: GeneralApplicationRepository,
+                                       applicationSiftRepo: ApplicationSiftRepository,
+                                       onlineTestsGatewayClient: OnlineTestsGatewayClient,
+                                       appConfig: MicroserviceAppConfig,
+                                       tokenFactory: UUIDFactory,
+                                       dateTimeFactory: DateTimeFactory,
+                                       val eventService: StcEventService,
+                                       schemeRepository: SchemeRepository,
+                                       @Named("CSREmailClient") emailClient: OnlineTestEmailClient, // Changed the type
+                                       contactDetailsRepo: ContactDetailsRepository
+                                      ) extends EventSink {
+
+  val gatewayConfig: OnlineTestsGatewayConfig = appConfig.onlineTestsGatewayConfig
+  val integrationGatewayConfig: TestIntegrationGatewayConfig = appConfig.testIntegrationGatewayConfig
 
   case class NumericalTestInviteData(application: NumericalTestApplication,
                                      scheduleId: Int,
@@ -161,7 +153,7 @@ trait NumericalTestService2 extends EventSink {
 
 
   private def registerAndInvite(applications: List[NumericalTestApplication], schedule: NumericalTestSchedule)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+                               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     applications match {
       case Nil => Future.successful(())
       case candidates =>
@@ -180,7 +172,7 @@ trait NumericalTestService2 extends EventSink {
   }
 
   private def registerApplicants(candidates: Seq[NumericalTestApplication], tokens: Seq[String])
-                        (implicit hc: HeaderCarrier): Future[Map[Int, (NumericalTestApplication, String, Registration)]] = {
+                                (implicit hc: HeaderCarrier): Future[Map[Int, (NumericalTestApplication, String, Registration)]] = {
     onlineTestsGatewayClient.registerApplicants(candidates.size).map(_.zipWithIndex.map{
       case (registration, idx) =>
         val candidate = candidates(idx)
@@ -189,7 +181,7 @@ trait NumericalTestService2 extends EventSink {
   }
 
   private def inviteApplicants(candidateData: Map[Int, (NumericalTestApplication, String, Registration)],
-                       schedule: NumericalTestSchedule)(implicit hc: HeaderCarrier): Future[List[NumericalTestInviteData]] = {
+                               schedule: NumericalTestSchedule)(implicit hc: HeaderCarrier): Future[List[NumericalTestInviteData]] = {
     val scheduleCompletionBaseUrl = s"${gatewayConfig.candidateAppUrl}/fset-fast-stream/sift-test"
     val invites = candidateData.values.map {
       case (application, token, registration) =>
@@ -300,17 +292,17 @@ trait NumericalTestService2 extends EventSink {
   }
 
   private def emailInvitedCandidate(application: NumericalTestApplication2): Future[Unit] = {
-      (for {
-        emailAddress <- contactDetailsRepo.find(application.userId).map(_.email)
-        notificationExpiringSiftOpt <- applicationSiftRepo.getNotificationExpiringSift(application.applicationId)
-      } yield {
-        implicit val hc = HeaderCarrier()
-        val msg = s"Sending sift numeric test invite email to candidate ${application.applicationId}..."
-        Logger.info(msg)
-        notificationExpiringSiftOpt.map { notification =>
-          emailClient.sendSiftNumericTestInvite(emailAddress, notification.preferredName, notification.expiryDate)
-        }.getOrElse(throw new IllegalStateException(s"No sift notification details found for candidate ${application.applicationId}"))
-      }).flatMap(identity)
+    (for {
+      emailAddress <- contactDetailsRepo.find(application.userId).map(_.email)
+      notificationExpiringSiftOpt <- applicationSiftRepo.getNotificationExpiringSift(application.applicationId)
+    } yield {
+      implicit val hc = HeaderCarrier()
+      val msg = s"Sending sift numeric test invite email to candidate ${application.applicationId}..."
+      Logger.info(msg)
+      notificationExpiringSiftOpt.map { notification =>
+        emailClient.sendSiftNumericTestInvite(emailAddress, notification.preferredName, notification.expiryDate)
+      }.getOrElse(throw new IllegalStateException(s"No sift notification details found for candidate ${application.applicationId}"))
+    }).flatMap(identity)
   }
 
   def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
@@ -366,7 +358,7 @@ trait NumericalTestService2 extends EventSink {
   }
 
   def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: CubiksTestResultReady)
-    : Future[Unit] = {
+  : Future[Unit] = {
     applicationSiftRepo.updateTestReportReady(cubiksUserId, reportReady).flatMap { _ =>
       applicationSiftRepo.getTestGroupByCubiksId(cubiksUserId).flatMap { updatedTestGroup =>
         val appId = updatedTestGroup.applicationId
@@ -438,7 +430,7 @@ trait NumericalTestService2 extends EventSink {
 
   //scalastyle:off method.length
   def storeRealTimeResults(orderId: String, results: PsiRealTimeResults)
-                                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+                          (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
     def insertResults(applicationId: String, orderId: String, testProfile: MaybeSiftTestGroupWithAppId2,
                       results: PsiRealTimeResults): Future[Unit] =
@@ -505,31 +497,31 @@ trait NumericalTestService2 extends EventSink {
       applicationId <- applicationSiftRepo.nextApplicationWithResultsReceived
     } yield {
       applicationId.map { appId =>
-          for {
-            progressResponse <- applicationRepo.findProgress(appId)
-            currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(appId)
-            schemesPassed = currentSchemeStatus.filter(_.result == EvaluationResults.Green.toString).map(_.schemeId).toSet
-            schemesPassedRequiringSift = schemeRepository.schemes.filter( s =>
-              schemesPassed.contains(s.id) && s.siftRequirement.contains(SiftRequirement.FORM)
-            ).map(_.id).toSet
-          } yield {
-            if (schemesPassedRequiringSift.isEmpty) {
-              // Candidate has no schemes that require a form to be filled so we can process the candidate
-              Logger.info(s"Candidate $appId has no schemes that require a form to be filled in so we will process this one")
+        for {
+          progressResponse <- applicationRepo.findProgress(appId)
+          currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(appId)
+          schemesPassed = currentSchemeStatus.filter(_.result == EvaluationResults.Green.toString).map(_.schemeId).toSet
+          schemesPassedRequiringSift = schemeRepository.schemes.filter( s =>
+            schemesPassed.contains(s.id) && s.siftRequirement.contains(SiftRequirement.FORM)
+          ).map(_.id).toSet
+        } yield {
+          if (schemesPassedRequiringSift.isEmpty) {
+            // Candidate has no schemes that require a form to be filled so we can process the candidate
+            Logger.info(s"Candidate $appId has no schemes that require a form to be filled in so we will process this one")
+            applicationId
+          } else { // Candidate has schemes that require forms to be filled
+            if (progressResponse.siftProgressResponse.siftFormsCompleteNumericTestPending) {
+              // Forms have already been filled in so can process this candidate
+              Logger.info(s"Candidate $appId has schemes that require a form to be filled in and has already " +
+                "submitted the answers so we will process this one")
               applicationId
-            } else { // Candidate has schemes that require forms to be filled
-              if (progressResponse.siftProgressResponse.siftFormsCompleteNumericTestPending) {
-                // Forms have already been filled in so can process this candidate
-                Logger.info(s"Candidate $appId has schemes that require a form to be filled in and has already " +
-                  "submitted the answers so we will process this one")
-                applicationId
-              } else {
-                Logger.info(s"Candidate $appId has schemes that require a form to be filled in and has not yet submitted " +
-                  "the answers so not processing this one")
-                None
-              }
+            } else {
+              Logger.info(s"Candidate $appId has schemes that require a form to be filled in and has not yet submitted " +
+                "the answers so not processing this one")
+              None
             }
           }
+        }
       }.getOrElse(Future.successful(None))
     }).flatMap(identity)
   }

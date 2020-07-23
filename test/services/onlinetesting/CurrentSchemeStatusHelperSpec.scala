@@ -17,8 +17,8 @@
 package services.onlinetesting
 
 import model.EvaluationResults.Amber
-import model.persisted.{ApplicationReadyForEvaluation, SchemeEvaluationResult}
-import model.{ApplicationRoute, ApplicationStatus, SchemeId, SelectedSchemes}
+import model.persisted.{ ApplicationReadyForEvaluation2, SchemeEvaluationResult }
+import model.{ ApplicationRoute, ApplicationStatus, SchemeId, SelectedSchemes }
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito.when
 import repositories.application.GeneralApplicationRepository
@@ -47,18 +47,18 @@ class CurrentSchemeStatusHelperSpec extends UnitSpec {
   }
 
   trait TestFixture {
-    val mockAppRepo: GeneralApplicationRepository = mock[GeneralApplicationRepository]
+    val mockAppRepo = mock[GeneralApplicationRepository]
 
-    val helper = new CurrentSchemeStatusHelper {
+    val helper = new CurrentSchemeStatusHelper2 {
       override val generalAppRepository: GeneralApplicationRepository = mockAppRepo
     }
 
-    val application = ApplicationReadyForEvaluation(
+    val application = ApplicationReadyForEvaluation2(
       "app1",
       ApplicationStatus.PHASE1_TESTS,
       ApplicationRoute.Faststream,
       isGis = false,
-      activeCubiksTests = Nil,
+      activePsiTests = Nil,
       activeLaunchpadTest = None,
       prevPhaseEvaluation = None,
       preferences = SelectedSchemes(List(SchemeId("Commercial")), orderAgreed = true, eligible = true))

@@ -16,25 +16,21 @@
 
 package controllers
 
-import model.{ EvaluationResults, SchemeId }
+import javax.inject.{ Inject, Singleton }
+import model.EvaluationResults
 import model.Exceptions.{ AlreadyEvaluatedForSchemeException, SchemeNotFoundException }
 import model.exchange.{ FsbEvaluationResults, FsbScoresAndFeedback }
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
 import services.application.FsbService
 import services.events.EventsService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object FsbTestGroupController extends FsbTestGroupController {
-  val eventsService = EventsService
-  val fsbService = FsbService
-}
-
-trait FsbTestGroupController extends BaseController {
-  val fsbService: FsbService
-  val eventsService: EventsService
+@Singleton
+class FsbTestGroupController @Inject() (fsbService: FsbService,
+                                        eventsService: EventsService) extends BaseController {
 
   def savePerScheme(): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[FsbEvaluationResults] { fsbEvaluationResults =>

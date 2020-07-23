@@ -17,16 +17,20 @@
 package scheduler
 
 import config.ScheduledJobConfig
+import javax.inject.{ Inject, Singleton }
 import model.EmptyRequestHeader
+import play.api.Configuration
+import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.allocation.CandidateAllocationService
-
-import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 
-object ReminderEventAllocationJob extends ReminderEventAllocationJob {
-  override val service = CandidateAllocationService
-  val config = ReminderEventAllocationJobConfig
+import scala.concurrent.{ ExecutionContext, Future }
+
+class ReminderEventAllocationJobImpl @Inject() (val service: CandidateAllocationService,
+                                                val mongoComponent: ReactiveMongoComponent,
+                                                val config: ReminderEventAllocationJobConfig
+                                               ) extends ReminderEventAllocationJob {
 }
 
 trait ReminderEventAllocationJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
@@ -39,7 +43,9 @@ trait ReminderEventAllocationJob extends SingleInstanceScheduledJob[BasicJobConf
   }
 }
 
-object ReminderEventAllocationJobConfig extends BasicJobConfig[ScheduledJobConfig](
+@Singleton
+class ReminderEventAllocationJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.remind-candidate-event-allocated",
   name = "ReminderEventAllocationJob"
 )

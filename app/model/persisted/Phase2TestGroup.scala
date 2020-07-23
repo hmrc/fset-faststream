@@ -19,7 +19,7 @@ package model.persisted
 import org.joda.time.DateTime
 import play.api.libs.json.{ Json, OFormat }
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
-
+// TODO: remove Cubiks code
 case class Phase2TestGroup(expirationDate: DateTime,
   tests: List[CubiksTest],
   evaluation: Option[PassmarkEvaluation] = None

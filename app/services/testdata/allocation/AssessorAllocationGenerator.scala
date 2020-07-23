@@ -16,20 +16,16 @@
 
 package services.testdata.allocation
 
-import model.exchange.testdata.CreateAssessorAllocationResponse.CreateAssessorAllocationResponse
-import model.testdata.CreateAssessorAllocationData.CreateAssessorAllocationData
-import repositories.{ AssessorAllocationRepository, AssessorAllocationMongoRepository }
+import javax.inject.{ Inject, Singleton }
+import model.exchange.testdata.CreateAssessorAllocationResponse
+import model.testdata.CreateAssessorAllocationData
+import repositories.AssessorAllocationRepository
 
 import scala.concurrent.Future
 
-object AssessorAllocationGenerator extends AssessorAllocationGenerator {
-  override val assessorAllocationRepository: AssessorAllocationMongoRepository = repositories.assessorAllocationRepository
-}
-
-trait AssessorAllocationGenerator {
+@Singleton
+class AssessorAllocationGenerator @Inject() (assessorAllocationRepository: AssessorAllocationRepository) {
   import scala.concurrent.ExecutionContext.Implicits.global
-
-  val assessorAllocationRepository: AssessorAllocationRepository
 
   def generate(generationId: Int, createData: CreateAssessorAllocationData): Future[CreateAssessorAllocationResponse] = {
     val assessorAllocation = createData.toAssessorAllocation

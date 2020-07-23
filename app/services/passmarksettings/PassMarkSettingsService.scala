@@ -16,17 +16,18 @@
 
 package services.passmarksettings
 
+import javax.inject.{ Inject, Singleton }
 import model.PassMarkSettingsCreateResponse
 import model.exchange.passmarksettings._
 import play.api.libs.json.Format
-import repositories._
-import repositories.passmarksettings.PassMarkSettingsRepository
+import repositories.passmarksettings._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object Phase1PassMarkSettingsService extends PassMarkSettingsService[Phase1PassMarkSettings] {
-  val passMarkSettingsRepo = phase1PassMarkSettingsRepository
+@Singleton
+class Phase1PassMarkSettingsService @Inject() (val passMarkSettingsRepo: Phase1PassMarkSettingsMongoRepository)
+  extends PassMarkSettingsService[Phase1PassMarkSettings] {
 
   override def createPassMarkSettings(passMarkSettings: Phase1PassMarkSettings)(
     implicit jsonFormat: Format[Phase1PassMarkSettings]): Future[PassMarkSettingsCreateResponse] = {
@@ -38,23 +39,25 @@ object Phase1PassMarkSettingsService extends PassMarkSettingsService[Phase1PassM
   }
 }
 
-object Phase2PassMarkSettingsService extends PassMarkSettingsService[Phase2PassMarkSettings] {
-  val passMarkSettingsRepo = phase2PassMarkSettingsRepository
+@Singleton
+class Phase2PassMarkSettingsService @Inject() (val passMarkSettingsRepo: Phase2PassMarkSettingsMongoRepository)
+  extends PassMarkSettingsService[Phase2PassMarkSettings] {
 }
 
-object Phase3PassMarkSettingsService extends PassMarkSettingsService[Phase3PassMarkSettings] {
-  val passMarkSettingsRepo = phase3PassMarkSettingsRepository
+@Singleton
+class Phase3PassMarkSettingsService @Inject() (val passMarkSettingsRepo: Phase3PassMarkSettingsMongoRepository)
+  extends PassMarkSettingsService[Phase3PassMarkSettings] {
 }
 
-object AssessmentCentrePassMarkSettingsService extends PassMarkSettingsService[AssessmentCentrePassMarkSettings] {
-  val passMarkSettingsRepo = assessmentCentrePassMarkSettingsRepository
+@Singleton
+class AssessmentCentrePassMarkSettingsService @Inject() (val passMarkSettingsRepo: AssessmentCentrePassMarkSettingsMongoRepository
+                                                         ) extends PassMarkSettingsService[AssessmentCentrePassMarkSettings] {
 }
 
 trait PassMarkSettingsService[T <: PassMarkSettings] {
   val passMarkSettingsRepo: PassMarkSettingsRepository[T]
 
   def getLatestPassMarkSettings(implicit jsonFormat: Format[T]): Future[Option[T]] = passMarkSettingsRepo.getLatestVersion
-
   def createPassMarkSettings(passMarkSettings: T)(implicit jsonFormat: Format[T]):Future[PassMarkSettingsCreateResponse]
-      = passMarkSettingsRepo.create(passMarkSettings)
+  = passMarkSettingsRepo.create(passMarkSettings)
 }

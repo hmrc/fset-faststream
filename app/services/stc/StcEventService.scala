@@ -16,35 +16,30 @@
 
 package services.stc
 
+import com.google.inject.ImplementedBy
+import javax.inject.{ Inject, Singleton }
 import model.stc.StcEventTypes.{ StcEventType, StcEvents }
 import model.stc.{ AuditEvent, DataStoreEvent, EmailEvent }
 import play.api.Logger
 import play.api.mvc.RequestHeader
-import services.stc.handler.{ AuditEventHandler, DataStoreEventHandler, EmailEventHandler }
+import services.stc.handler._
 
 import scala.language.implicitConversions
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
-object StcEventService extends StcEventService {
-  val dataStoreEventHandler: DataStoreEventHandler = DataStoreEventHandler
-  val auditEventHandler: AuditEventHandler = AuditEventHandler
-  val emailEventHandler: EmailEventHandler = EmailEventHandler
-}
-
-trait StcEventService {
-  protected[stc] val dataStoreEventHandler: DataStoreEventHandler
-  protected[stc] val auditEventHandler: AuditEventHandler
-  protected[stc] val emailEventHandler: EmailEventHandler
-
-  protected[stc] implicit def toEvents(e: StcEventType): StcEvents = List(e)
+@Singleton
+class StcEventServiceImpl @Inject() (override val dataStoreEventHandler: DataStoreEventHandler,
+                                     override val auditEventHandler: AuditEventHandler,
+                                     override val emailEventHandler: EmailEventHandler
+                                    ) extends StcEventService {
 
   // TODO: Error handling
   protected[stc] def handle(events: StcEvents)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val result = events.collect {
       case event: DataStoreEvent => dataStoreEventHandler.handle(event)
-      case event: AuditEvent => auditEventHandler.handle(event)
+      case event: AuditEvent => auditEventHandler.handle(event) //TODO:fix
       case event: EmailEvent => emailEventHandler.handle(event)
       case e => Future.successful {
         Logger.warn(s"Unknown event type: $e")
@@ -53,6 +48,18 @@ trait StcEventService {
 
     Future.sequence(result) map (_ => ())
   }
+}
+
+@ImplementedBy(classOf[StcEventServiceImpl])
+trait StcEventService {
+  protected[stc] val dataStoreEventHandler: DataStoreEventHandler
+  protected[stc] val auditEventHandler: AuditEventHandler
+  protected[stc] val emailEventHandler: EmailEventHandler
+
+  protected[stc] implicit def toEvents(e: StcEventType): StcEvents = List(e)
+
+  // TODO: Error handling
+  protected[stc] def handle(events: StcEvents)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
 
   protected[stc] def handle(event: StcEventType)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = handle(List(event))
 }
@@ -60,9 +67,9 @@ trait StcEventService {
 trait EventSink {
   val eventService: StcEventService
 
-  def eventSink(block: => Future[StcEvents])(implicit hc: HeaderCarrier, rh: RequestHeader) = block.flatMap { events =>
+  def eventSink(block: => Future[StcEvents])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = block.flatMap { events =>
     eventService.handle(events)
   }
 
-  def eventSink(block: StcEvents)(implicit hc: HeaderCarrier, rh: RequestHeader) = eventService.handle(block)
+  def eventSink(block: StcEvents)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventService.handle(block)
 }

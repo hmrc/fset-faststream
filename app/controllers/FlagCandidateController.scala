@@ -16,28 +16,21 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.NotFoundException
 import model.FlagCandidateCommands.{ FlagCandidate => RqFlagCandidate }
 import model.FlagCandidatePersistedObject.{ FlagCandidate => DbFlagCandidate }
-import play.api.libs.json.Json
-import play.api.mvc.Action
+import play.api.libs.json.{ JsValue, Json }
+import play.api.mvc.{ Action, AnyContent }
 import repositories.application.FlagCandidateRepository
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object FlagCandidateController extends FlagCandidateController {
+@Singleton
+class FlagCandidateController @Inject() (fcRepository: FlagCandidateRepository) extends BaseController {
 
-  import repositories._
-
-  val fcRepository = flagCandidateRepository
-}
-
-trait FlagCandidateController extends BaseController {
-
-  val fcRepository: FlagCandidateRepository
-
-  def find(appId: String) = Action.async { implicit request =>
+  def find(appId: String): Action[AnyContent] = Action.async { implicit request =>
     fcRepository.tryGetCandidateIssue(appId).map {
       case Some(DbFlagCandidate(_, Some(issue))) =>
         Ok(Json.toJson(RqFlagCandidate(issue)))
@@ -46,7 +39,7 @@ trait FlagCandidateController extends BaseController {
     }
   }
 
-  def save(appId: String) = Action.async(parse.json) { implicit request =>
+  def save(appId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[RqFlagCandidate] { flag =>
       fcRepository.save(DbFlagCandidate(appId, Some(flag.issue))).map { _ =>
         Ok
@@ -56,7 +49,7 @@ trait FlagCandidateController extends BaseController {
     }
   }
 
-  def remove(appId: String) = Action.async { implicit request =>
+  def remove(appId: String): Action[AnyContent] = Action.async { implicit request =>
     fcRepository.remove(appId).map { _ =>
       NoContent
     } recover {

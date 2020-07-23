@@ -38,7 +38,6 @@ class SkillTypeControllerSpec extends UnitWithAppSpec {
   }
 
   trait TestFixture extends TestFixtureBase {
-    val controller = SkillTypeController
+    val controller = new SkillTypeController
   }
-
 }

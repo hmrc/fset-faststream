@@ -23,6 +23,7 @@ import org.joda.time.{ DateTime, DateTimeZone }
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import play.api.libs.json.Format
+import play.modules.reactivemongo.ReactiveMongoComponent
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -64,7 +65,7 @@ class EvaluatePhase1ResultJobSpec extends UnitWithAppSpec {
   }
 
   trait TestFixture {
-    val mockEvaluateService = mock[EvaluateOnlineTestResultService[Phase1PassMarkSettings]]
+//    val mockEvaluateService = mock[EvaluateOnlineTestResultService[Phase1PassMarkSettings]]
     val mockEvaluateService2 = mock[EvaluateOnlineTestResultService2[Phase1PassMarkSettings]]
     val profile = Phase1TestProfileExamples.psiProfile
     val schemes = SelectedSchemesExamples.TwoSchemes
@@ -85,8 +86,9 @@ class EvaluatePhase1ResultJobSpec extends UnitWithAppSpec {
     lazy val scheduler = new EvaluateOnlineTestResultJob[Phase1PassMarkSettings] {
       def config = ???
       val phase = Phase.PHASE1
-      val evaluateService = mockEvaluateService
+//      val evaluateService = mockEvaluateService
       val evaluateService2 = mockEvaluateService2
+      override val mongoComponent = mock[ReactiveMongoComponent]
       override lazy val batchSize = 1
       override val lockId: String = "1"
       override val forceLockReleaseAfter: Duration = mock[Duration]

@@ -16,37 +16,39 @@
 
 package services.testdata.candidate.onlinetests
 
-import model.ProgressStatuses.{PHASE1_TESTS_PASSED_NOTIFIED, PHASE3_TESTS_PASSED_NOTIFIED, ProgressStatus}
+import javax.inject.{ Inject, Singleton }
+import model.ProgressStatuses.{ PHASE1_TESTS_PASSED_NOTIFIED, PHASE3_TESTS_PASSED_NOTIFIED, ProgressStatus }
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
-import repositories.application.GeneralApplicationMongoRepository
-import repositories._
+import repositories.application.GeneralApplicationRepository
 import services.testdata.candidate.ConstructiveGenerator
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
-object Phase1TestsPassedNotifiedStatusGenerator extends TestsPassedNotifiedStatusGenerator {
-  val previousStatusGenerator = Phase1TestsPassedStatusGenerator
-  val appRepository: GeneralApplicationMongoRepository = applicationRepository
+@Singleton
+class Phase1TestsPassedNotifiedStatusGenerator @Inject() (val previousStatusGenerator: Phase1TestsPassedStatusGenerator,
+                                                          val appRepository: GeneralApplicationRepository
+                                                        ) extends TestsPassedNotifiedStatusGenerator {
   val notifiedStatus = PHASE1_TESTS_PASSED_NOTIFIED
 }
 
-object Phase3TestsPassedNotifiedStatusGenerator extends TestsPassedNotifiedStatusGenerator {
-  val previousStatusGenerator = Phase3TestsPassedStatusGenerator
-  val appRepository: GeneralApplicationMongoRepository = applicationRepository
+@Singleton
+class Phase3TestsPassedNotifiedStatusGenerator @Inject() (val previousStatusGenerator: Phase3TestsPassedStatusGenerator,
+                                                          val appRepository: GeneralApplicationRepository
+                                                         ) extends TestsPassedNotifiedStatusGenerator {
   val notifiedStatus = PHASE3_TESTS_PASSED_NOTIFIED
 }
 
 trait TestsPassedNotifiedStatusGenerator extends ConstructiveGenerator {
-  def appRepository: GeneralApplicationMongoRepository
+  def appRepository: GeneralApplicationRepository
   def notifiedStatus: ProgressStatus
 
   override def generate(generationId: Int,
-    generatorConfig:
-    CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+                        generatorConfig:
+                        CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
 
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)

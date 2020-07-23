@@ -17,12 +17,13 @@
 package services.onlinetesting
 
 import model.SchemeId
-import model.persisted.{ApplicationReadyForEvaluation, SchemeEvaluationResult}
+import model.persisted.{ ApplicationReadyForEvaluation, SchemeEvaluationResult }
 import repositories.application.GeneralApplicationRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+// This class stays but needs to be updated to guice repos. It is Cubiks based (ApplicationReadyForEvaluation)
 trait CurrentSchemeStatusHelper {
 
   val generalAppRepository: GeneralApplicationRepository

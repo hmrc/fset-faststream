@@ -27,7 +27,7 @@ import scala.language.implicitConversions
 
 trait CommonBSONDocuments extends BaseBSONReader {
 
-  def dateTimeFactory: DateTimeFactory
+  def dateTimeFactory: DateTimeFactory // Guice impl
 
   protected def applicationStatusBSON(applicationStatus: ApplicationStatus) = {
     // TODO the progress status should be propagated up to the caller, rather than default, but that will
@@ -41,8 +41,8 @@ trait CommonBSONDocuments extends BaseBSONReader {
           s"progress-status.${progressStatus.key}" -> true,
           s"progress-status-timestamp.${progressStatus.key}" -> dateTimeFactory.nowLocalTimeZone
         )
-        // For in progress application status we store application status in
-        // progress-status-timestamp.
+      // For in progress application status we store application status in
+      // progress-status-timestamp.
       case _ if applicationStatus == ApplicationStatus.IN_PROGRESS =>
         BSONDocument(
           "applicationStatus" -> applicationStatus,
@@ -65,7 +65,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
   }
 
   def progressStatusOnlyBSON(progressStatus: ProgressStatus) = {
-     BSONDocument(
+    BSONDocument(
       s"progress-status.${progressStatus.key}" -> true,
       s"progress-status-timestamp.${progressStatus.key}" -> dateTimeFactory.nowLocalTimeZone
     )

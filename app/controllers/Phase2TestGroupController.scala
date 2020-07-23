@@ -16,20 +16,18 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
+import play.api.libs.json.JsValue
 import play.api.mvc.Action
 import services.onlinetesting.phase2.Phase2TestService2
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object Phase2TestGroupController extends Phase2TestGroupController {
-  val phase2TestService = Phase2TestService2
-}
+@Singleton
+class Phase2TestGroupController @Inject() (phase2TestService: Phase2TestService2) extends BaseController {
 
-trait Phase2TestGroupController extends BaseController {
-  val phase2TestService: Phase2TestService2
-
-  def extend(applicationId: String) = Action.async(parse.json) { implicit request =>
+  def extend(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[OnlineTestExtension] { extension =>
       phase2TestService.extendTestGroupExpiryTime(applicationId, extension.extraDays,
         extension.actionTriggeredBy) map ( _ => Ok )

@@ -19,6 +19,7 @@ package model.persisted
 import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
+// Cubiks based code - TODO: remove
 case class TestResult(status: String,
   norm: String,
   tScore: Option[Double],

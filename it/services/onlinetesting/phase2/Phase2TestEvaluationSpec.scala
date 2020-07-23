@@ -1,6 +1,6 @@
 package services.onlinetesting.phase2
 
-import config.{ OnlineTestsGatewayConfig, Phase2TestsConfig }
+import factories.UUIDFactory
 import model.ApplicationRoute._
 import model.ApplicationStatus._
 import model.EvaluationResults._
@@ -9,14 +9,10 @@ import model.exchange.passmarksettings._
 import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
 import model.{ ApplicationRoute, _ }
 import org.joda.time.DateTime
-import org.mockito.Mockito._
 import org.scalatest.prop._
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers
 import reactivemongo.play.json.collection.JSONCollection
-import repositories.application.GeneralApplicationMongoRepository
-import repositories.onlinetesting.Phase2EvaluationMongoRepository
-import repositories.passmarksettings.Phase2PassMarkSettingsMongoRepository
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
@@ -30,15 +26,13 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   val collectionName: String = CollectionNames.APPLICATION
   override val additionalCollections = List(CollectionNames.PHASE2_PASS_MARK_SETTINGS)
 
-  def phase2TestEvaluationService = new EvaluatePhase2ResultService {
-    val evaluationRepository: Phase2EvaluationMongoRepository = phase2EvaluationRepo
-    val gatewayConfig: OnlineTestsGatewayConfig = mockGatewayConfig
-    val passMarkSettingsRepo: Phase2PassMarkSettingsMongoRepository = phase2PassMarkSettingRepo
-    val phase2TestsConfigMock: Phase2TestsConfig = mock[Phase2TestsConfig]
-    val generalAppRepository: GeneralApplicationMongoRepository = applicationRepository
-
-    val phase = Phase.PHASE2
-    when(gatewayConfig.phase2Tests).thenReturn(phase2TestsConfigMock)
+  def phase2TestEvaluationService = {
+    new EvaluatePhase2ResultService(
+      phase2EvaluationRepo,
+      phase2PassMarkSettingRepo,
+      applicationRepository,
+      UUIDFactory
+    )
   }
 
   trait TestFixture {
@@ -128,7 +122,7 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       }
     }
 
-    val appCollection: JSONCollection = mongo().collection[JSONCollection](collectionName)
+    val appCollection = mongo.mongoConnector.db().collection[JSONCollection](collectionName)
 
     def createUser(userId: String, appId: String) = {
       appCollection.insert(ordered = false).one(BSONDocument("applicationId" -> appId, "userId" -> userId, "applicationStatus" -> CREATED))

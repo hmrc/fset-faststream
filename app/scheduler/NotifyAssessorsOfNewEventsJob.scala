@@ -17,19 +17,27 @@
 package scheduler
 
 import config.WaitingScheduledJobConfig
+import javax.inject.{ Inject, Singleton }
 import model.AssessorNewEventsJobInfo
 import org.joda.time.{ DateTime, Duration }
+import play.api.Configuration
+import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.AssessorsEventsSummaryJobsService
 import services.assessor.AssessorService
-
-import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 
-object NotifyAssessorsOfNewEventsJob extends NotifyAssessorsOfNewEventsJob {
-  val assessorService: AssessorService = AssessorService
-  val config = NotifyAssessorsOfNewEventsJobConfig
-  val assessorsEventsSummaryJobsService = AssessorsEventsSummaryJobsService
+import scala.concurrent.{ ExecutionContext, Future }
+
+@Singleton
+class NotifyAssessorsOfNewEventsJobImpl @Inject() (val assessorService: AssessorService,
+                                                   val assessorsEventsSummaryJobsService: AssessorsEventsSummaryJobsService,
+                                                   val mongoComponent: ReactiveMongoComponent,
+                                                   val config: NotifyAssessorsOfNewEventsJobConfig
+                                                  ) extends NotifyAssessorsOfNewEventsJob {
+  //  val assessorService: AssessorService = AssessorService
+  //  val config = NotifyAssessorsOfNewEventsJobConfig
+  //  val assessorsEventsSummaryJobsService = AssessorsEventsSummaryJobsService
 }
 
 trait NotifyAssessorsOfNewEventsJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
@@ -66,7 +74,9 @@ trait NotifyAssessorsOfNewEventsJob extends SingleInstanceScheduledJob[BasicJobC
   }
 }
 
-object NotifyAssessorsOfNewEventsJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
+@Singleton
+class NotifyAssessorsOfNewEventsJobConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.notify-assessors-of-new-events-job",
   name = "NotifyAssessorsOfNewEventsJob"
 )

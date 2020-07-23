@@ -16,8 +16,15 @@
 
 package factories
 
+import com.google.inject.ImplementedBy
+import javax.inject.Singleton
+
+@ImplementedBy(classOf[UUIDFactoryImpl])
 trait UUIDFactory {
   def generateUUID(): String = java.util.UUID.randomUUID.toString
 }
+
+@Singleton
+class UUIDFactoryImpl extends UUIDFactory
 
 object UUIDFactory extends UUIDFactory

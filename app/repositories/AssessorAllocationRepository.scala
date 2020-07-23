@@ -16,10 +16,14 @@
 
 package repositories
 
+import javax.inject.{ Inject, Singleton }
 import model.AllocationStatuses.AllocationStatus
 import model.Exceptions.TooManyEventIdsException
 import model.persisted.AssessorAllocation
 import play.api.libs.json.OFormat
+import play.modules.reactivemongo.ReactiveMongoComponent
+import reactivemongo.api.indexes.Index
+import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.api.{ Cursor, DB, ReadPreference }
 import reactivemongo.bson._
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -40,18 +44,26 @@ trait AssessorAllocationRepository {
   def updateAllocationStatus(id: String, eventId: String, newStatus: AllocationStatus): Future[Unit]
 }
 
-class AssessorAllocationMongoRepository(implicit mongo: () => DB)
+@Singleton
+class AssessorAllocationMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
   extends ReactiveRepository[AssessorAllocation, BSONObjectID](
-    CollectionNames.ASSESSOR_ALLOCATION, mongo, AssessorAllocation.assessorAllocationFormat,
+    CollectionNames.ASSESSOR_ALLOCATION,
+    mongoComponent.mongoConnector.db,
+    AssessorAllocation.assessorAllocationFormat,
     ReactiveMongoFormats.objectIdFormats
   ) with AssessorAllocationRepository with ReactiveRepositoryHelpers {
+
   val format: OFormat[AssessorAllocation] = AssessorAllocation.assessorAllocationFormat
 
   val projection = BSONDocument("_id" -> false)
 
   private val unlimitedMaxDocs = -1
 
-  def find(id: String, status: Option[AllocationStatus] = None): Future[Seq[AssessorAllocation]] = {
+  override def indexes: Seq[Index] = Seq(
+    Index(Seq("id" -> Ascending, "eventId" -> Ascending), unique = false)
+  )
+
+  override def find(id: String, status: Option[AllocationStatus] = None): Future[Seq[AssessorAllocation]] = {
     val query = List(
       Some(BSONDocument("id" -> id)),
       status.map(s => BSONDocument("status" -> s))
@@ -61,7 +73,7 @@ class AssessorAllocationMongoRepository(implicit mongo: () => DB)
       .collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[AssessorAllocation]]())
   }
 
-  def findAllocations(assessorIds: Seq[String], status: Option[AllocationStatus] = None): Future[Seq[AssessorAllocation]] = {
+  override def findAllocations(assessorIds: Seq[String], status: Option[AllocationStatus] = None): Future[Seq[AssessorAllocation]] = {
     val query = List(
       Some(BSONDocument("id" -> BSONDocument("$in" -> assessorIds))),
       status.map(s => BSONDocument("status" -> s))
@@ -70,16 +82,16 @@ class AssessorAllocationMongoRepository(implicit mongo: () => DB)
       .collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[AssessorAllocation]]())
   }
 
-  def find(id: String, eventId: String): Future[Option[AssessorAllocation]] = {
+  override def find(id: String, eventId: String): Future[Option[AssessorAllocation]] = {
     val query = BSONDocument("id" -> id, "eventId" -> eventId)
     collection.find(query, Some(projection)).one[AssessorAllocation]
   }
 
-  def save(allocations: Seq[AssessorAllocation]): Future[Unit] = {
+  override def save(allocations: Seq[AssessorAllocation]): Future[Unit] = {
     collection.insert(ordered = false).many(allocations) map (_ => ())
   }
 
-  def delete(allocations: Seq[AssessorAllocation]): Future[Unit] = {
+  override def delete(allocations: Seq[AssessorAllocation]): Future[Unit] = {
     val eventIds = allocations.map(_.eventId).distinct
     val eventId = if (eventIds.size > 1) {
       throw TooManyEventIdsException(s"The delete request contained too many event Ids [$eventIds]")
@@ -98,12 +110,12 @@ class AssessorAllocationMongoRepository(implicit mongo: () => DB)
     collection.delete().one(query) map validator
   }
 
-  def allocationsForEvent(eventId: String): Future[Seq[AssessorAllocation]] = {
+  override def allocationsForEvent(eventId: String): Future[Seq[AssessorAllocation]] = {
     collection.find(BSONDocument("eventId" -> eventId), Some(projection)).cursor[AssessorAllocation]()
       .collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[AssessorAllocation]]())
   }
 
-  def updateAllocationStatus(id: String, eventId: String, newStatus: AllocationStatus): Future[Unit] = {
+  override def updateAllocationStatus(id: String, eventId: String, newStatus: AllocationStatus): Future[Unit] = {
     val query = BSONDocument("id" -> id, "eventId" -> eventId)
     val update = BSONDocument("$set" -> BSONDocument("status" -> newStatus))
     val validator = singleUpdateValidator(id, s"updating allocation status to $newStatus")
