@@ -18,8 +18,8 @@ package services
 
 import config._
 import connectors.ExchangeObjects.{ AssessmentOrderAcknowledgement, Invitation, RegisterCandidateRequest }
-import connectors.{ EmailClient, OnlineTestsGatewayClient }
-import factories.{ DateTimeFactory, UUIDFactory }
+import connectors.{ OnlineTestEmailClient, OnlineTestsGatewayClient }
+import factories._
 import model.EvaluationResults.Green
 import model.Exceptions._
 import model.ProgressStatuses.ProgressStatus
@@ -36,7 +36,7 @@ import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.sift.ApplicationSiftRepository
-import services.stc.{ StcEventService, StcEventServiceFixture }
+import services.stc.StcEventServiceFixture
 import testkit.MockitoImplicits._
 import testkit.{ ExtendedTimeout, UnitSpec }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -47,13 +47,8 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
 
   trait TestFixture extends StcEventServiceFixture {
 
-    val mockAppRepo: GeneralApplicationRepository = mock[GeneralApplicationRepository]
-    val mockSiftRepo: ApplicationSiftRepository = mock[ApplicationSiftRepository]
-    val mockContactDetailsRepo: ContactDetailsRepository = mock[ContactDetailsRepository]
-    val mockEmailClient: EmailClient = mock[EmailClient]
-
-    val mockOnlineTestsGatewayConfig: OnlineTestsGatewayConfig = mock[OnlineTestsGatewayConfig]
-    when(mockOnlineTestsGatewayConfig.candidateAppUrl).thenReturn("localhost")
+//    val mockOnlineTestsGatewayConfig: OnlineTestsGatewayConfig = mock[OnlineTestsGatewayConfig]
+//    when(mockOnlineTestsGatewayConfig.candidateAppUrl).thenReturn("localhost")
 
     val now: DateTime = DateTime.now
     val inventoryIds: Map[String, String] = Map[String, String]("test1" -> "test1-uuid")
@@ -88,11 +83,21 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
       emailDomain = "test.com"
     )
 
-    val mockOnlineTestsGatewayClient: OnlineTestsGatewayClient = mock[OnlineTestsGatewayClient]
-    val mockDateTimeFactory: DateTimeFactory = mock[DateTimeFactory]
+    def uuid: String = UUIDFactory.generateUUID()
+    val orderId: String = uuid
+    val realTimeResults = PsiRealTimeResults(tScore = 10.0, rawScore = 20.0, reportUrl = None)
 
-    val mockSchemeRepo: SchemeRepository = new SchemeRepository {
-      override lazy val schemes: Seq[Scheme] = Seq(
+
+    val mockAppRepo = mock[GeneralApplicationRepository]
+    val mockSiftRepo = mock[ApplicationSiftRepository]
+    val mockOnlineTestsGatewayClient = mock[OnlineTestsGatewayClient]
+    val mockMicroserviceAppConfig = mock[MicroserviceAppConfig]
+    when(mockMicroserviceAppConfig.testIntegrationGatewayConfig).thenReturn(integrationConfig)
+    val tokenFactory: UUIDFactory = new UUIDFactoryImpl
+    val mockDateTimeFactory = mock[DateTimeFactory]
+    val mockSchemeRepository = mock[SchemeRepository]
+    when(mockSchemeRepository.schemes).thenReturn(
+      Seq(
         Scheme("DigitalAndTechnology", "DaT", "Digital and Technology", civilServantEligible = false, None, Some(SiftRequirement.FORM),
           siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None
         ),
@@ -100,26 +105,26 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
           siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None
         )
       )
-    }
+    )
+    val mockEmailClient = mock[OnlineTestEmailClient]
+    val mockContactDetailsRepo = mock[ContactDetailsRepository]
 
-    def uuid: String = UUIDFactory.generateUUID()
-    val orderId: String = uuid
-    val realTimeResults = PsiRealTimeResults(tScore = 10.0, rawScore = 20.0, reportUrl = None)
-
-    val service: NumericalTestService2 = new NumericalTestService2 {
-      override def applicationRepo: GeneralApplicationRepository = mockAppRepo
-      override def applicationSiftRepo: ApplicationSiftRepository = mockSiftRepo
-      val tokenFactory: UUIDFactory = UUIDFactory
-      val gatewayConfig: OnlineTestsGatewayConfig = mockOnlineTestsGatewayConfig
-      val onlineTestsGatewayClient: OnlineTestsGatewayClient = mockOnlineTestsGatewayClient
-      val dateTimeFactory: DateTimeFactory = mockDateTimeFactory
-      override def schemeRepository: SchemeRepository = mockSchemeRepo
-      val eventService: StcEventService = stcEventServiceMock
-      override def emailClient: EmailClient = mockEmailClient
-      override def contactDetailsRepo: ContactDetailsRepository = mockContactDetailsRepo
-
-      override val integrationGatewayConfig: TestIntegrationGatewayConfig = integrationConfig
-    }
+    val service = new NumericalTestService2(
+      mockAppRepo,
+      mockSiftRepo,
+      mockOnlineTestsGatewayClient,
+      mockMicroserviceAppConfig,
+      tokenFactory,
+      mockDateTimeFactory,
+      stcEventServiceMock,
+      mockSchemeRepository,
+//    val gatewayConfig: OnlineTestsGatewayConfig = mockOnlineTestsGatewayConfig
+//      override def schemeRepository: SchemeRepository = mockSchemeRepo
+      mockEmailClient,
+//        eventService: StcEventService = stcEventServiceMock
+      mockContactDetailsRepo
+//      override val integrationGatewayConfig: TestIntegrationGatewayConfig = integrationConfig
+    )
 
     val appId = "appId"
     implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -142,14 +147,14 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
       customerId = "cust-id", receiptId = "receipt-id", orderId = "orderId", testLaunchUrl = authenticateUrl,
       status = AssessmentOrderAcknowledgement.acknowledgedStatus, statusDetails = "", statusDate = LocalDate.now())
 
-    when(service.onlineTestsGatewayClient.psiRegisterApplicant(any[RegisterCandidateRequest]))
+    when(mockOnlineTestsGatewayClient.psiRegisterApplicant(any[RegisterCandidateRequest]))
       .thenReturnAsync(aoa)
   }
 
   "NumericalTestService.registerAndInviteForTests" must {
     "handle an empty list of applications" in new TestFixture {
       service.registerAndInviteForTests(Nil).futureValue
-      verifyZeroInteractions(service.onlineTestsGatewayClient)
+      verifyZeroInteractions(mockOnlineTestsGatewayClient)
     }
 
     "throw an exception if no SIFT_PHASE test group is found" in new TestFixture {
@@ -164,7 +169,7 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
     "throw an exception if no SIFT_PHASE test group is found and the tests have already been populated" in new TestFixture {
       val test = PsiTest(inventoryId = "inventoryUuid", orderId = "orderUuid", assessmentId = "assessmentUuid",
         reportId = "reportUuid", normId = "normUuid", usedForResults = true,
-        testUrl = authenticateUrl, invitationDate = DateTimeFactory.nowLocalTimeZone)
+        testUrl = authenticateUrl, invitationDate = DateTimeFactoryMock.nowLocalTimeZone)
 
       val siftTestGroup = SiftTestGroup2(expirationDate = DateTime.now(), tests = Some(List(test)))
       // This will result in exception being thrown
@@ -218,7 +223,7 @@ class NumericalTestService2Spec extends UnitSpec with ExtendedTimeout {
       val result = service.nextApplicationWithResultsReceived.futureValue
       result mustBe None
 
-      verifyZeroInteractions(service.applicationRepo)
+      verifyZeroInteractions(mockAppRepo)
     }
 
     // the current scheme status is Commercial, which has no FORM requirement only NUMERIC_TEST requirement

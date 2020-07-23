@@ -26,8 +26,7 @@ object FSACIndicator {
   implicit val jsonFormat = Json.format[FSACIndicator]
   implicit val bsonFormat = Macros.handler[FSACIndicator]
 
-  def apply(indicator: model.FSACIndicator): FSACIndicator = {
-    FSACIndicator(indicator.area, indicator.assessmentCentre,
-      FSACIndicatorCSVRepository.FSACIndicatorVersion)
+  def apply(indicator: model.FSACIndicator, fsacIndicatorVersion: String): FSACIndicator = {
+    FSACIndicator(indicator.area, indicator.assessmentCentre, fsacIndicatorVersion)
   }
 }

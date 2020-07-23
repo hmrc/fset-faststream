@@ -31,7 +31,7 @@ import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.AssessmentCentreRepository
 import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
 import services.evaluation.AssessmentCentreEvaluationEngine
-import services.passmarksettings.PassMarkSettingsService
+import services.passmarksettings.AssessmentCentrePassMarkSettingsService
 import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitSpec
 
@@ -444,7 +444,8 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
   trait TestFixture {
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockAssessmentCentreRepo = mock[AssessmentCentreRepository]
-    val mockAssessmentCentrePassMarkSettingsService = mock[PassMarkSettingsService[AssessmentCentrePassMarkSettings]]
+//    val mockAssessmentCentrePassMarkSettingsService = mock[PassMarkSettingsService[AssessmentCentrePassMarkSettings]]
+    val mockAssessmentCentrePassMarkSettingsService = mock[AssessmentCentrePassMarkSettingsService]
     val mockAssessmentScoresRepo = mock[AssessmentScoresRepository]
     val mockEvaluationEngine = mock[AssessmentCentreEvaluationEngine]
     val commercial = "Commercial"
@@ -452,14 +453,22 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
     val diplomaticService = "DiplomaticService"
     val sdip = "Sdip"
     val batchSize = 1
-
+/*
     val service = new AssessmentCentreService {
       val applicationRepo: GeneralApplicationRepository = mockAppRepo
       val assessmentCentreRepo: AssessmentCentreRepository = mockAssessmentCentreRepo
       val passmarkService: PassMarkSettingsService[AssessmentCentrePassMarkSettings] = mockAssessmentCentrePassMarkSettingsService
       val assessmentScoresRepo: AssessmentScoresRepository = mockAssessmentScoresRepo
       val evaluationEngine: AssessmentCentreEvaluationEngine = mockEvaluationEngine
-    }
+    }*/
+
+    val service = new AssessmentCentreService(
+      mockAppRepo,
+      mockAssessmentCentreRepo,
+      mockAssessmentCentrePassMarkSettingsService,
+      mockAssessmentScoresRepo,
+      mockEvaluationEngine
+    )
 
     val applicationsToProgressToSift = List(
       ApplicationForProgression("appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,

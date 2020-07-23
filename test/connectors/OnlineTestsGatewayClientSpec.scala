@@ -16,7 +16,8 @@
 
 package connectors
 
-import config.WSHttp
+//import config.WSHttp
+import config.{ MicroserviceAppConfig, OnlineTestsGatewayConfig, WSHttpT }
 import connectors.ExchangeObjects._
 import mockws.MockWS
 import model.Exceptions.ConnectorException
@@ -33,7 +34,6 @@ import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse }
 
 class OnlineTestsGatewayClientSpec extends UnitSpec with ShortTimeout {
-
   val FirstName = "firstName"
   val LastName = "lastName"
   val Email = "emailfsdferr@mailinator.com"
@@ -66,12 +66,12 @@ class OnlineTestsGatewayClientSpec extends UnitSpec with ShortTimeout {
   val pdfReportContent = Array[Byte](0x20, 0x20, 0x20, 0x20, 0x20, 0x20)
 
   "register applicant" should {
-    "return a ConnectorException when Cubiks gateway returns HTTP status Bad Gateway" in new GatewayTest {
+    "return a ConnectorException when online test gateway returns HTTP status Bad Gateway" in new GatewayTest {
       mockPost[RegisterApplicant].thenReturn(Future.successful(HttpResponse(BAD_GATEWAY)))
       val result = onlineTestsGatewayClient.registerApplicant(registerApplicant)
       result.failed.futureValue mustBe a[ConnectorException]
     }
-    "return an Exception when there is an exception when calling cubiks gateway" in new GatewayTest {
+    "return an Exception when there is an exception when calling online test gateway" in new GatewayTest {
       mockPost[RegisterApplicant].thenReturn(Future.failed(new Exception))
       val result = onlineTestsGatewayClient.registerApplicant(registerApplicant)
       result.failed.futureValue mustBe an[Exception]
@@ -84,12 +84,12 @@ class OnlineTestsGatewayClientSpec extends UnitSpec with ShortTimeout {
   }
 
   "invite application" should {
-    "return a ConnectorException when cubiks gateway returns HTTP status Bad Gateway" in new GatewayTest {
+    "return a ConnectorException when online test gateway returns HTTP status Bad Gateway" in new GatewayTest {
       mockPost[InviteApplicant].thenReturn(Future.successful(HttpResponse(BAD_GATEWAY)))
       val result = onlineTestsGatewayClient.inviteApplicant(inviteApplicant)
       result.failed.futureValue mustBe a[ConnectorException]
     }
-    "throw an Exception when there is an exception when calling cubiks gateway" in new GatewayTest {
+    "throw an Exception when there is an exception when calling online test gateway" in new GatewayTest {
       mockPost[InviteApplicant].thenReturn(Future.failed(new Exception))
       val result = onlineTestsGatewayClient.inviteApplicant(inviteApplicant)
       result.failed.futureValue mustBe an[Exception]
@@ -103,10 +103,10 @@ class OnlineTestsGatewayClientSpec extends UnitSpec with ShortTimeout {
 
   trait GatewayTest {
     implicit val hc = HeaderCarrier()
-    val mockWSHttp = mock[WSHttp]
+    val mockWSHttp = mock[WSHttpT]
 
     val samplePDFValue = Array[Byte](0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20)
-
+/*
     def setupPDFWSMock() = {
       when(mockWSHttp.playWS).thenReturn(
         MockWS {
@@ -122,12 +122,22 @@ class OnlineTestsGatewayClientSpec extends UnitSpec with ShortTimeout {
           }
         }
       )
-    }
+    }*/
 
-    val onlineTestsGatewayClient = new OnlineTestsGatewayClient {
-      override val http = mockWSHttp
-      override val url = "http://localhost"
-    }
+//    val onlineTestsGatewayClient = new OnlineTestsGatewayClient {
+//      override val http = mockWSHttp
+//      override val url = "http://localhost"
+//    }
+
+    val mockMicroserviceAppConfig = mock[MicroserviceAppConfig]
+    val mockOnlineTestsGatewayConfig = mock[OnlineTestsGatewayConfig]
+    when(mockOnlineTestsGatewayConfig.url).thenReturn("http://localhost")
+    when(mockMicroserviceAppConfig.onlineTestsGatewayConfig).thenReturn(mockOnlineTestsGatewayConfig)
+
+    val onlineTestsGatewayClient = new OnlineTestsGatewayClientImpl(
+      mockWSHttp,
+      mockMicroserviceAppConfig
+  )
 
     def mockPost[T] = {
       when(

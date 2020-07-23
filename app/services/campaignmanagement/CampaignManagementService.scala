@@ -17,43 +17,31 @@
 package services.campaignmanagement
 
 import factories.UUIDFactory
+import javax.inject.{ Inject, Singleton }
 import model.command.SetTScoreRequest
 import model.exchange.campaignmanagement.{ AfterDeadlineSignupCode, AfterDeadlineSignupCodeUnused }
 import model.persisted._
 import org.joda.time.DateTime
 import repositories._
-import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
+import repositories.application.GeneralApplicationRepository
 import repositories.campaignmanagement.CampaignManagementAfterDeadlineSignupCodeRepository
 import repositories.contactdetails.ContactDetailsRepository
-import repositories.onlinetesting.{ Phase1TestRepository, Phase1TestRepository2, Phase2TestRepository, Phase2TestRepository2 }
+import repositories.onlinetesting._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object CampaignManagementService extends CampaignManagementService{
-  val afterDeadlineCodeRepository: CampaignManagementAfterDeadlineSignupCodeRepository = campaignManagementAfterDeadlineSignupCodeRepository
-  val uuidFactory: UUIDFactory = UUIDFactory
-  val appRepo: GeneralApplicationMongoRepository = applicationRepository
-  val phase1TestRepo: Phase1TestRepository = phase1TestRepository
-  val phase1TestRepo2: Phase1TestRepository2 = phase1TestRepository2
-  val phase2TestRepo: Phase2TestRepository = phase2TestRepository
-  val phase2TestRepo2: Phase2TestRepository2 = phase2TestRepository2
-  val questionnaireRepo: QuestionnaireRepository = questionnaireRepository
-  val mediaRepo: MediaRepository = mediaRepository
-  val contactDetailsRepo: ContactDetailsRepository = faststreamContactDetailsRepository
-}
-
-trait CampaignManagementService {
-  val afterDeadlineCodeRepository: CampaignManagementAfterDeadlineSignupCodeRepository
-  val uuidFactory: UUIDFactory
-  val appRepo: GeneralApplicationRepository
-  val phase1TestRepo: Phase1TestRepository
-  val phase1TestRepo2: Phase1TestRepository2
-  val phase2TestRepo: Phase2TestRepository
-  val phase2TestRepo2: Phase2TestRepository2
-  val questionnaireRepo: QuestionnaireRepository
-  val mediaRepo: MediaRepository
-  val contactDetailsRepo: ContactDetailsRepository
+@Singleton
+class CampaignManagementService @Inject() (afterDeadlineCodeRepository: CampaignManagementAfterDeadlineSignupCodeRepository,
+                                           uuidFactory: UUIDFactory,
+                                           appRepo: GeneralApplicationRepository,
+                                           phase1TestRepo: Phase1TestRepository,
+                                           phase1TestRepo2: Phase1TestRepository2,
+                                           phase2TestRepo: Phase2TestRepository,
+                                           phase2TestRepo2: Phase2TestRepository2,
+                                           questionnaireRepo: QuestionnaireRepository,
+                                           mediaRepo: MediaRepository,
+                                           contactDetailsRepo: ContactDetailsRepository) {
 
   def afterDeadlineSignupCodeUnusedAndValid(code: String): Future[AfterDeadlineSignupCodeUnused] = {
     afterDeadlineCodeRepository.findUnusedValidCode(code).map(storedCodeOpt =>
@@ -67,7 +55,7 @@ trait CampaignManagementService {
 
   def generateAfterDeadlineSignupCode(createdByUserId: String, expiryInHours: Int): Future[AfterDeadlineSignupCode] = {
     val newCode = CampaignManagementAfterDeadlineCode(
-        uuidFactory.generateUUID(),
+      uuidFactory.generateUUID(),
       createdByUserId,
       DateTime.now().plusHours(expiryInHours)
     )

@@ -16,27 +16,24 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.CannotAddMedia
 import model.persisted.Media
+import play.api.libs.json.JsValue
 import play.api.mvc.Action
-import repositories._
+import repositories.MediaRepository
 import services.AuditService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object MediaController extends MediaController {
-  val mRepository = mediaRepository
-  val auditService = AuditService
-}
+@Singleton
+class MediaController @Inject() (mRepository: MediaRepository,
+                                 auditService: AuditService
+                                ) extends BaseController {
 
-trait MediaController extends BaseController {
-  val mRepository: MediaRepository
-  val auditService: AuditService
-
-  def addMedia() = Action.async(parse.json) { implicit request =>
+  def addMedia(): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[Media] { media =>
-
       (for {
         _ <- mRepository.create(media)
       } yield {

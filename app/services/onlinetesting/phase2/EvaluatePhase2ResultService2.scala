@@ -17,28 +17,34 @@
 package services.onlinetesting.phase2
 
 import _root_.services.passmarksettings.PassMarkSettingsService
-import config.MicroserviceAppConfig.testIntegrationGatewayConfig
+import com.google.inject.name.Named
+import config.MicroserviceAppConfig
+import factories.UUIDFactory
+import javax.inject.{ Inject, Singleton }
 import model.Phase
 import model.exchange.passmarksettings.Phase2PassMarkSettings
 import model.persisted.{ ApplicationReadyForEvaluation2, PsiTestResult }
 import play.api.Logger
-import repositories._
+import repositories.application.GeneralApplicationRepository
+import repositories.onlinetesting.OnlineTestEvaluationRepository
+import repositories.passmarksettings.Phase2PassMarkSettingsMongoRepository
 import scheduler.onlinetesting.EvaluateOnlineTestResultService2
 import services.onlinetesting.CurrentSchemeStatusHelper2
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object EvaluatePhase2ResultService2 extends EvaluatePhase2ResultService2 {
-  val evaluationRepository = repositories.faststreamPhase2EvaluationRepository
-  val passMarkSettingsRepo = phase2PassMarkSettingsRepository
-  val generalAppRepository = repositories.applicationRepository
-  val gatewayConfig = testIntegrationGatewayConfig //TODO: use p2 config instead
-  val phase = Phase.PHASE2
-}
-
-trait EvaluatePhase2ResultService2 extends EvaluateOnlineTestResultService2[Phase2PassMarkSettings] with Phase2TestSelector2
+@Singleton
+class EvaluatePhase2ResultService2 @Inject() (@Named("Phase2EvaluationRepository") val evaluationRepository: OnlineTestEvaluationRepository,
+                                              val passMarkSettingsRepo: Phase2PassMarkSettingsMongoRepository,
+                                              val generalAppRepository: GeneralApplicationRepository,
+                                              appConfig: MicroserviceAppConfig,
+                                              val uuidFactory: UUIDFactory
+                                             ) extends EvaluateOnlineTestResultService2[Phase2PassMarkSettings] with Phase2TestSelector2
   with Phase2TestEvaluation2 with PassMarkSettingsService[Phase2PassMarkSettings] with CurrentSchemeStatusHelper2 {
+
+  val phase = Phase.PHASE2
+  val gatewayConfig = appConfig.testIntegrationGatewayConfig //TODO: use p2 config instead
 
   def evaluate(implicit application: ApplicationReadyForEvaluation2, passmark: Phase2PassMarkSettings): Future[Unit] = {
     Logger.warn(s"Evaluating phase2 appId=${application.applicationId}")

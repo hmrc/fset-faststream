@@ -16,9 +16,10 @@
 
 package repositories.fsacindicator
 
-import model.Exceptions.{ FSACIndicatorNotFound, CannotUpdateFSACIndicator }
+import javax.inject.{ Inject, Singleton }
+import model.Exceptions.{ CannotUpdateFSACIndicator, FSACIndicatorNotFound }
 import model.persisted.FSACIndicator
-import reactivemongo.api.DB
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
@@ -34,10 +35,13 @@ trait FSACIndicatorRepository {
   def find(applicationId: String): Future[FSACIndicator]
 }
 
-class FSACIndicatorMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[FSACIndicator, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    FSACIndicator.jsonFormat, ReactiveMongoFormats.objectIdFormats) with FSACIndicatorRepository
-    with ReactiveRepositoryHelpers {
+@Singleton
+class FSACIndicatorMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[FSACIndicator, BSONObjectID](
+    CollectionNames.APPLICATION,
+    mongoComponent.mongoConnector.db,
+    FSACIndicator.jsonFormat,
+    ReactiveMongoFormats.objectIdFormats) with FSACIndicatorRepository with ReactiveRepositoryHelpers {
 
   val FSACIndicatorDocumentKey = "fsac-indicator"
 

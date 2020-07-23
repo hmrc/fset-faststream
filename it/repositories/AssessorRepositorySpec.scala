@@ -1,18 +1,19 @@
 package repositories
 
 import factories.UUIDFactory
-import model.{ SchemeId, UniqueIdentifier }
 import model.persisted.EventExamples
-import model.persisted.eventschedules.{ Location, SkillType }
 import model.persisted.assessor.{ Assessor, AssessorAvailability, AssessorStatus }
+import model.persisted.eventschedules.{ Location, SkillType }
+import model.{ SchemeId, UniqueIdentifier }
 import org.joda.time.LocalDate
+import reactivemongo.api.indexes.IndexType.Ascending
 import testkit.MongoRepositorySpec
 
 class AssessorRepositorySpec extends MongoRepositorySpec {
 
-  override val collectionName = CollectionNames.ASSESSOR
+  override val collectionName: String = CollectionNames.ASSESSOR
 
-  def repository = new AssessorMongoRepository()
+  def repository = new AssessorMongoRepository(mongo)
 
   private val userId = UniqueIdentifier.randomUniqueIdentifier.toString
   private val AssessorWithAvailabilities = Assessor(userId, None,
@@ -22,15 +23,14 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
     AssessorStatus.AVAILABILITIES_SUBMITTED
   )
 
-
   "Assessor repository" should {
     "create indexes for the repository" in {
-      val repo = repositories.assessorRepository
-
-      val indexes = indexesWithFields(repo)
-      indexes must contain(List("_id"))
-      indexes must contain(List("userId"))
-      indexes.size mustBe 2
+      val indexes = indexesWithFields2(repository)
+      indexes must contain theSameElementsAs
+        Seq(
+          IndexDetails(key = Seq(("_id", Ascending)), unique = false),
+          IndexDetails(key = Seq(("userId", Ascending)), unique = true)
+        )
     }
 
     "save and find the assessor" in {

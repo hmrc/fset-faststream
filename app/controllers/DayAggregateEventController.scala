@@ -16,24 +16,20 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.persisted.eventschedules.Location
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
 import play.api.libs.json.{ Json, OFormat }
 import play.api.mvc.{ Action, AnyContent }
-import repositories.events.{ EventsRepository, LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import repositories.events.{ EventsRepository, LocationsWithVenuesRepository }
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object DayAggregateEventController extends DayAggregateEventController {
-  val locationsWithVenuesRepo = LocationsWithVenuesInMemoryRepository
-  val eventsRepository: EventsRepository = repositories.eventsRepository
-}
-
-trait DayAggregateEventController extends BaseController {
-  def locationsWithVenuesRepo: LocationsWithVenuesRepository
-  def eventsRepository: EventsRepository
+@Singleton
+class DayAggregateEventController @Inject() (locationsWithVenuesRepo: LocationsWithVenuesRepository,
+                                             eventsRepository: EventsRepository) extends BaseController {
 
   def findBySkillTypes(skills: Seq[SkillType]): Action[AnyContent] = Action.async { implicit request =>
     find(None, skills).map ( dayAggregateEvents => Ok(Json.toJson(dayAggregateEvents)) )

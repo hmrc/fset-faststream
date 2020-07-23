@@ -16,11 +16,12 @@
 
 package services.adjustmentsmanagement
 
-import model._
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.ApplicationNotFound
+import model._
+import model.persisted.ContactDetails
 import model.stc.StcEventTypes.StcEvents
 import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
-import model.persisted.ContactDetails
 import play.api.Logger
 import play.api.mvc.RequestHeader
 import repositories._
@@ -29,27 +30,19 @@ import repositories.contactdetails.ContactDetailsRepository
 import services.scheme.SchemePreferencesService
 import services.sift.ApplicationSiftService
 import services.stc.{ EventSink, StcEventService }
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
-object AdjustmentsManagementService extends AdjustmentsManagementService {
-  override val appRepository = applicationRepository
-  override val eventService = StcEventService
-  override val cdRepository = faststreamContactDetailsRepository
-  override val schemePreferencesService = SchemePreferencesService
-  override val schemesRepository = SchemeYamlRepository
-  override val applicationSiftService = ApplicationSiftService
-}
-
-trait AdjustmentsManagementService extends EventSink {
-  val appRepository: GeneralApplicationRepository
-  val cdRepository: ContactDetailsRepository
-  val schemePreferencesService: SchemePreferencesService
-  val schemesRepository: SchemeRepository
-  val applicationSiftService: ApplicationSiftService
-
+@Singleton
+class AdjustmentsManagementService @Inject() (appRepository: GeneralApplicationRepository,
+                                              cdRepository: ContactDetailsRepository,
+                                              schemePreferencesService: SchemePreferencesService,
+                                              schemesRepository: SchemeRepository,
+                                              applicationSiftService: ApplicationSiftService,
+                                              val eventService: StcEventService
+                                             ) extends EventSink {
   val intro = "Adjustments management service"
 
   private def progressToSiftOrFSAC(applicationId: String, adjustmentInformation: Adjustments)(implicit hc: HeaderCarrier): Future[Unit] = {
@@ -98,8 +91,8 @@ trait AdjustmentsManagementService extends EventSink {
 
     val adjustmentsDataStoreAndAuditEvents: StcEvents =
       DataStoreEvents.ManageAdjustmentsUpdated(applicationId) ::
-      AuditEvents.AdjustmentsConfirmed(Map("applicationId" -> applicationId, "adjustments" -> adjustmentInformation.toString)) ::
-      Nil
+        AuditEvents.AdjustmentsConfirmed(Map("applicationId" -> applicationId, "adjustments" -> adjustmentInformation.toString)) ::
+        Nil
 
     appRepository.find(applicationId).flatMap {
       case Some(candidate) => eventSink {
@@ -173,7 +166,7 @@ trait AdjustmentsManagementService extends EventSink {
     eventSink {
       appRepository.updateAdjustmentsComment(applicationId, adjustmentsComment).map { _ =>
         DataStoreEvents.AdjustmentsCommentUpdated(applicationId) ::
-        AuditEvents.AdjustmentsCommentUpdated(Map("applicationId" -> applicationId, "adjustmentsComment" -> adjustmentsComment.toString)) ::
+          AuditEvents.AdjustmentsCommentUpdated(Map("applicationId" -> applicationId, "adjustmentsComment" -> adjustmentsComment.toString)) ::
           Nil
       }
     }

@@ -17,7 +17,7 @@
 package services.onlinetesting.phase3
 
 import config._
-import connectors.CSREmailClient
+import connectors.{ CSREmailClient, OnlineTestEmailClient }
 import connectors.launchpadgateway.LaunchpadGatewayClient
 import connectors.launchpadgateway.exchangeobjects.out._
 import factories.{ DateTimeFactory, UUIDFactory }
@@ -32,6 +32,7 @@ import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
+import org.mockito.Mockito.when
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -299,7 +300,6 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     }
   }
 
-
   "mark as started" should {
     "change progress to started" in new Phase3TestServiceFixture {
       phase3TestServiceWithUnexpiredTestGroup.markAsStarted(testInviteId).futureValue
@@ -475,13 +475,14 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     val cdRepositoryMock = mock[ContactDetailsRepository]
     val p3TestRepositoryMock = mock[Phase3TestRepository]
     val launchpadGatewayClientMock = mock[LaunchpadGatewayClient]
-    val emailClientMock = mock[CSREmailClient]
+    val emailClientMock = mock[OnlineTestEmailClient]
     val auditServiceMock = mock[AuditService]
     val tokenFactoryMock = mock[UUIDFactory]
     val dateTimeFactoryMock = mock[DateTimeFactory]
     val adjustmentsManagementServiceMock = mock[AdjustmentsManagementService]
     val siftServiceMock = mock[ApplicationSiftService]
     val tokens = UUIDFactory.generateUUID() :: Nil
+    val appConfigMock = mock[MicroserviceAppConfig]
 
     val testFirstName = "Optimus"
     val testLastName = "Prime"
@@ -668,6 +669,8 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       ))
     }
 
+    when(appConfigMock.launchpadGatewayConfig).thenReturn(gatewayConfigMock)
+
     lazy val phase3TestServiceNoTestGroup = mockService {
       noTestGroupMocks
     }
@@ -675,19 +678,19 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     lazy val phase3TestServiceNoTestGroupForInvigilated = {
       noTestGroupMocks
       val service =
-        new Phase3TestService {
-          val appRepository = appRepositoryMock
-          val testRepository = p3TestRepositoryMock
-          val cdRepository = cdRepositoryMock
-          val launchpadGatewayClient = launchpadGatewayClientMock
-          val tokenFactory = tokenFactoryMock
-          val dateTimeFactory = dateTimeFactoryMock
-          val emailClient = emailClientMock
-          val auditService = auditServiceMock
-          val gatewayConfig = gatewayConfigMock
-          val eventService = stcEventServiceMock
-          val siftService = siftServiceMock
-        }
+        new Phase3TestService(
+          appRepositoryMock,
+          p3TestRepositoryMock,
+          cdRepositoryMock,
+          launchpadGatewayClientMock,
+          tokenFactoryMock,
+          dateTimeFactoryMock,
+          emailClientMock,
+          auditServiceMock,
+          stcEventServiceMock,
+          siftServiceMock,
+          appConfigMock
+        )
 
       val phase3TestServiceSpy = spy(service)
 
@@ -783,7 +786,6 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       ))
 
       markAsCompleteMocks
-
       markAsResultsReceivedMocks
     }
 
@@ -827,20 +829,19 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
     def mockService(mockSetup: => Unit): Phase3TestService = {
       mockSetup
-      new Phase3TestService {
-        val appRepository = appRepositoryMock
-        val testRepository = p3TestRepositoryMock
-        val cdRepository = cdRepositoryMock
-        val launchpadGatewayClient = launchpadGatewayClientMock
-        val tokenFactory = tokenFactoryMock
-        val dateTimeFactory = dateTimeFactoryMock
-        val emailClient = emailClientMock
-        val auditService = auditServiceMock
-        val gatewayConfig = gatewayConfigMock
-        val eventService = stcEventServiceMock
-        val adjustmentsService = adjustmentsManagementServiceMock
-        val siftService = siftServiceMock
-      }
+      new Phase3TestService(
+        appRepositoryMock,
+        p3TestRepositoryMock,
+        cdRepositoryMock,
+        launchpadGatewayClientMock,
+        tokenFactoryMock,
+        dateTimeFactoryMock,
+        emailClientMock,
+        auditServiceMock,
+        stcEventServiceMock,
+        siftServiceMock,
+        appConfigMock
+      )
     }
   }
 }

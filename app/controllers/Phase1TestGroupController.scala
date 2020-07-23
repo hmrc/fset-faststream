@@ -16,30 +16,19 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.persisted.PsiTest
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
-import repositories._
-import repositories.onlinetesting.{ Phase1TestMongoRepository, Phase1TestMongoRepository2, Phase1TestRepository, Phase1TestRepository2 }
+import repositories.onlinetesting._
 import services.onlinetesting.OnlineTestExtensionService
-import services.stc.StcEventService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object Phase1TestGroupController extends Phase1TestGroupController {
-  override val phase1Repository: Phase1TestMongoRepository = phase1TestRepository
-  override val phase1Repository2: Phase1TestMongoRepository2 = phase1TestRepository2
-  override val phase1TestExtensionService = OnlineTestExtensionService
-  val eventService: StcEventService = StcEventService
-}
-
-trait Phase1TestGroupController extends BaseController {
-
-  val phase1Repository: Phase1TestRepository
-  val phase1Repository2: Phase1TestRepository2
-  val phase1TestExtensionService: OnlineTestExtensionService
-  val eventService: StcEventService
+@Singleton
+class Phase1TestGroupController @Inject() (phase1Repository2: Phase1TestRepository2,
+                                           phase1TestExtensionService: OnlineTestExtensionService) extends BaseController {
 
   def getTests(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     phase1Repository2.getTestGroup(applicationId).map { maybeTestProfile =>

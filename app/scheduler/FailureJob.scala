@@ -17,30 +17,43 @@
 package scheduler
 
 import config.WaitingScheduledJobConfig
+import javax.inject.{ Inject, Singleton }
+import play.api.Configuration
+import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.application.FsbService
 import services.sift.ApplicationSiftService
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object SiftFailureJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
-  val service: ApplicationSiftService = ApplicationSiftService
-  val config = SiftFailureJobConfig
+@Singleton
+class SiftFailureJob @Inject() (service: ApplicationSiftService,
+                                val mongoComponent: ReactiveMongoComponent,
+                                val config: SiftFailureJobConfig
+                               ) extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
+  //  val service: ApplicationSiftService = ApplicationSiftService
+  //  val config = SiftFailureJobConfig2
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     service.processNextApplicationFailedAtSift
   }
 }
 
-object SiftFailureJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
+@Singleton
+class SiftFailureJobConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.sift-failure-job",
   name = "SiftFailureJob"
 )
 
-object FsbOverallFailureJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
-  val service = FsbService
-  val config = FsbOverallFailureJobConfig
-  lazy val batchSize = FsbOverallFailureJobConfig.conf.batchSize.getOrElse(1)
+@Singleton
+class FsbOverallFailureJob @Inject() (service: FsbService,
+                                      val mongoComponent: ReactiveMongoComponent,
+                                      val config: FsbOverallFailureJobConfig
+                                     ) extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
+  //  val service = FsbService
+  //  val config = FsbOverallFailureJobConfig
+  lazy val batchSize = config.conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     service.processApplicationsFailedAtFsb(batchSize).map { result =>
@@ -53,7 +66,9 @@ object FsbOverallFailureJob extends SingleInstanceScheduledJob[BasicJobConfig[Wa
   }
 }
 
-object FsbOverallFailureJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
+@Singleton
+class FsbOverallFailureJobConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.fsb-overall-failure-job",
   name = "FsbOverallFailureJob"
 )

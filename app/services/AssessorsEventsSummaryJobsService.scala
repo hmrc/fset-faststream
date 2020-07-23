@@ -16,18 +16,14 @@
 
 package services
 
+import javax.inject.{ Inject, Singleton }
 import model.AssessorNewEventsJobInfo
 import repositories.AssessorsEventsSummaryJobsRepository
 
 import scala.concurrent.Future
 
-object AssessorsEventsSummaryJobsService extends AssessorsEventsSummaryJobsService {
-  val repository: AssessorsEventsSummaryJobsRepository = repositories.assessorsEventsSummaryJobsRepository
-}
-
-trait AssessorsEventsSummaryJobsService {
-
-  def repository: AssessorsEventsSummaryJobsRepository
+@Singleton
+class AssessorsEventsSummaryJobsService @Inject() (repository: AssessorsEventsSummaryJobsRepository) {
 
   def save(info: AssessorNewEventsJobInfo): Future[Unit] = {
     repository.save(info)

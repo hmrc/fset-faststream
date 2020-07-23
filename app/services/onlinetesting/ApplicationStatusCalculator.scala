@@ -92,7 +92,6 @@ trait ApplicationStatusCalculator {
     evaluatedSchemes: List[SchemeEvaluationResult],
     phase: Phase
   ): Option[ProgressStatus] = {
-
     val results = evaluatedSchemes.map(s => Result(s.result))
     require(results.nonEmpty, "Results not found")
 

@@ -17,42 +17,39 @@
 package services.testdata.candidate.fsb
 
 import factories.UUIDFactory
-import model.{ AllocationStatuses, ProgressStatuses }
+import javax.inject.{ Inject, Singleton }
+import model.command.testdata.CreateEventRequest
 import model.command.{ CandidateAllocation, CandidateAllocations }
-import model.command.testdata.CreateEventRequest.CreateEventRequest
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.persisted.eventschedules.EventType
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
+import model.{ AllocationStatuses, ProgressStatuses }
 import play.api.mvc.RequestHeader
-import repositories.SchemeYamlRepository
+import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
 import services.allocation.CandidateAllocationService
 import services.application.FsbService
-import services.testdata.candidate.{ BaseGenerator, ConstructiveGenerator }
+import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.event.EventGenerator
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
-object FsbAllocationConfirmedStatusGenerator extends FsbAllocationConfirmedStatusGenerator {
-  override val previousStatusGenerator: BaseGenerator = FsbAwaitingAllocationStatusGenerator
-  override val applicationRepository = repositories.applicationRepository
-  override val candidateAllocationService = CandidateAllocationService
-  override val fsbTestGroupService = FsbService
-  override val eventGenerator = EventGenerator
-}
-
-trait FsbAllocationConfirmedStatusGenerator extends ConstructiveGenerator {
-  val applicationRepository: GeneralApplicationRepository
-  val fsbTestGroupService: FsbService
-  val candidateAllocationService: CandidateAllocationService
-  val eventGenerator: EventGenerator
+@Singleton
+class FsbAllocationConfirmedStatusGenerator @Inject() (val previousStatusGenerator: FsbAwaitingAllocationStatusGenerator,
+                                                       applicationRepository: GeneralApplicationRepository,
+                                                       fsbTestGroupService: FsbService,
+                                                       candidateAllocationService: CandidateAllocationService,
+                                                       eventGenerator: EventGenerator,
+                                                       schemeRepository: SchemeRepository,
+                                                       uuidFactory: UUIDFactory
+                                                      ) extends ConstructiveGenerator {
 
   def generate(generationId: Int, createCandidateData: CreateCandidateData)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
 
-    val allSchemes = SchemeYamlRepository.schemes.toList
+    val allSchemes = schemeRepository.schemes.toList
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, createCandidateData)
@@ -66,7 +63,8 @@ trait FsbAllocationConfirmedStatusGenerator extends ConstructiveGenerator {
       ).map(_.data)
       _ <- candidateAllocationService.allocateCandidates(
         CandidateAllocations(
-          UUIDFactory.generateUUID().toString,
+
+          uuidFactory.generateUUID().toString,
           event.id,
           event.sessions.head.id,
           List(CandidateAllocation(appId, AllocationStatuses.CONFIRMED))

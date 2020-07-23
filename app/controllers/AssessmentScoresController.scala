@@ -16,25 +16,26 @@
 
 package controllers
 
+import com.google.inject.name.Named
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.{ EventNotFoundException, NotFoundException }
-import model.assessmentscores._
 import model.UniqueIdentifier
+import model.assessmentscores._
 import model.command.AssessmentScoresCommands._
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.Action
 import repositories.AssessmentScoresRepository
 import services.AuditService
-import services.assessmentscores.{ AssessmentScoresService, AssessorAssessmentScoresService, ReviewerAssessmentScoresService }
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import services.assessmentscores.AssessmentScoresService
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 trait AssessmentScoresController extends BaseController {
   val service: AssessmentScoresService
-  val auditService: AuditService
   val repository: AssessmentScoresRepository
+  val auditService: AuditService
 
   val AssessmentScoresOneExerciseSaved: String
   val AssessmentScoresOneExerciseSubmitted: String
@@ -193,10 +194,14 @@ trait AssessmentScoresController extends BaseController {
   }
 }
 
-object AssessorAssessmentScoresController extends AssessmentScoresController {
-  val service: AssessmentScoresService = AssessorAssessmentScoresService
-  val auditService: AuditService = AuditService
-  val repository: AssessmentScoresRepository = repositories.assessorAssessmentScoresRepository
+@Singleton
+class AssessorAssessmentScoresController @Inject() (@Named("AssessorAssessmentScoresService") val service: AssessmentScoresService,
+                                                    @Named("AssessorAssessmentScoresRepo") val repository: AssessmentScoresRepository,
+                                                    val auditService: AuditService
+                                                   ) extends AssessmentScoresController {
+//  val service: AssessmentScoresService = AssessorAssessmentScoresService
+//  val auditService: AuditService = AuditService
+//  val repository: AssessmentScoresRepository = repositories.assessorAssessmentScoresRepository //In cake pattern we specify the impl class
   val AssessmentScoresOneExerciseSaved = "AssessorAssessmentScoresOneExerciseSaved"
   val AssessmentScoresOneExerciseSubmitted = "AssessorAssessmentScoresOneExerciseSubmitted"
   val AssessmentScoresAllExercisesSubmitted = "AssessorAssessmentScoresAllExercisesSubmitted"
@@ -213,10 +218,14 @@ object AssessorAssessmentScoresController extends AssessmentScoresController {
   }
 }
 
-object ReviewerAssessmentScoresController extends AssessmentScoresController {
-  val service: AssessmentScoresService = ReviewerAssessmentScoresService
-  val auditService: AuditService = AuditService
-  val repository: AssessmentScoresRepository = repositories.reviewerAssessmentScoresRepository
+@Singleton
+class ReviewerAssessmentScoresController @Inject() (@Named("ReviewerAssessmentScoresService") val service: AssessmentScoresService,
+                                                    @Named("ReviewerAssessmentScoresRepo") val repository: AssessmentScoresRepository,
+                                                    val auditService: AuditService
+                                                   ) extends AssessmentScoresController {
+//  val service: AssessmentScoresService2 = ReviewerAssessmentScoresServiceImpl2
+//  val auditService: AuditService = AuditService
+//  val repository: AssessmentScoresRepository = repositories.reviewerAssessmentScoresRepository //In cake pattern we specify the impl class
   val AssessmentScoresOneExerciseSaved = "ReviewerAssessmentScoresOneExerciseSaved"
   val AssessmentScoresOneExerciseSubmitted = "ReviewerAssessmentScoresOneExerciseSubmitted"
   val AssessmentScoresAllExercisesSubmitted = "ReviewerAssessmentScoresAllExercisesSubmitted"

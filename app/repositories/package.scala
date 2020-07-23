@@ -14,148 +14,22 @@
  * limitations under the License.
  */
 
-import factories.{ DateTimeFactory, UUIDFactory }
+import model.ApplicationRoute.ApplicationRoute
+import model.CivilServantAndInternshipType.CivilServantAndInternshipType
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
 import model.OnlineTestCommands.OnlineTestApplication
 import model.assessmentscores._
-import model.persisted.{ AssistanceDetails, CivilServiceExperienceDetailsForDiversityReport, ContactDetails, QuestionnaireAnswer }
-import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalTime }
-import reactivemongo.api.indexes.Index
-import reactivemongo.api.indexes.IndexType.{ Ascending, Descending }
-import reactivemongo.bson._
-import repositories.application._
-import repositories.onlinetesting._
-import services.GBTimeZoneService
-import services.reporting.SocioEconomicScoreCalculator
-import config.MicroserviceAppConfig._
-import model.ApplicationRoute.ApplicationRoute
-import model.CivilServantAndInternshipType.CivilServantAndInternshipType
-import model.{ AdjustmentDetail, ApplicationRoute, CivilServantAndInternshipType }
 import model.command.WithdrawApplication
+import model.persisted.{ AssistanceDetails, ContactDetails, QuestionnaireAnswer }
+import model.{ AdjustmentDetail, ApplicationRoute, CivilServantAndInternshipType }
+import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalTime }
 import play.api.libs.json._
-import play.modules.reactivemongo.{ MongoDbConnection => MongoDbConnectionTrait }
-import repositories.assessmentcentre.AssessmentCentreMongoRepository
-import repositories.campaignmanagement.CampaignManagementAfterDeadlineSignupCodeMongoRepository
-import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
-import repositories.csv.{ FSACIndicatorCSVRepository, SchoolsCSVRepository }
-import repositories.events.EventsMongoRepository
-import repositories.fileupload.FileUploadMongoRepository
-import repositories.fsacindicator.FSACIndicatorMongoRepository
-import repositories.fsb.FsbMongoRepository
-import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository, _ }
-import repositories.sift.{ ApplicationSiftMongoRepository, SiftAnswersMongoRepository }
-import repositories.stc.StcEventMongoRepository
+import reactivemongo.bson._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future }
 import scala.language.postfixOps
 
 package object repositories {
-
-  object MongoDbConnection extends MongoDbConnectionTrait
-
-  private val timeZoneService = GBTimeZoneService
-  private implicit val connection = {
-    MongoDbConnection.mongoConnector.db
-  }
-
-  lazy val personalDetailsRepository = new personaldetails.PersonalDetailsMongoRepository(DateTimeFactory)
-  lazy val faststreamContactDetailsRepository = new contactdetails.ContactDetailsMongoRepository()
-  lazy val schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository
-  lazy val civilServiceExperienceDetailsRepository = new CivilServiceExperienceDetailsMongoRepository()
-  lazy val faststreamAssistanceDetailsRepository = new assistancedetails.AssistanceDetailsMongoRepository()
-  lazy val faststreamPhase1EvaluationRepository = new onlinetesting.Phase1EvaluationMongoRepository(DateTimeFactory)
-  lazy val faststreamPhase2EvaluationRepository = new onlinetesting.Phase2EvaluationMongoRepository(DateTimeFactory)
-  lazy val faststreamPhase3EvaluationRepository = new onlinetesting.Phase3EvaluationMongoRepository(launchpadGatewayConfig, DateTimeFactory)
-  lazy val schoolsRepository = SchoolsCSVRepository
-  lazy val fsacIndicatorCSVRepository = FSACIndicatorCSVRepository
-  lazy val fsacIndicatorRepository = new FSACIndicatorMongoRepository
-  lazy val questionnaireRepository = new QuestionnaireMongoRepository(new SocioEconomicScoreCalculator {})
-  lazy val mediaRepository = new MediaMongoRepository()
-  lazy val applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactory, testIntegrationGatewayConfig, eventsConfig)
-  lazy val reportingRepository = new ReportingMongoRepository(timeZoneService, DateTimeFactory)
-  lazy val phase1TestRepository = new Phase1TestMongoRepository(DateTimeFactory)
-  lazy val phase1TestRepository2 = new Phase1TestMongoRepository2(DateTimeFactory)
-  lazy val phase2TestRepository = new Phase2TestMongoRepository(DateTimeFactory)
-  lazy val phase2TestRepository2 = new Phase2TestMongoRepository2(DateTimeFactory)
-  lazy val phase3TestRepository = new Phase3TestMongoRepository(DateTimeFactory)
-  lazy val phase1PassMarkSettingsRepository = new Phase1PassMarkSettingsMongoRepository()
-  lazy val phase2PassMarkSettingsRepository = new Phase2PassMarkSettingsMongoRepository()
-  lazy val phase3PassMarkSettingsRepository = new Phase3PassMarkSettingsMongoRepository()
-  lazy val assessmentCentrePassMarkSettingsRepository = new AssessmentCentrePassMarkSettingsMongoRepository()
-  lazy val diagnosticReportRepository = new DiagnosticReportingMongoRepository
-  lazy val stcEventMongoRepository = new StcEventMongoRepository
-  lazy val flagCandidateRepository = new FlagCandidateMongoRepository
-  lazy val assessorRepository = new AssessorMongoRepository()
-  lazy val assessorAllocationRepository = new AssessorAllocationMongoRepository()
-  lazy val candidateAllocationRepository = new CandidateAllocationMongoRepository()
-  lazy val eventsRepository = new EventsMongoRepository()
-  lazy val siftAnswersRepository = new SiftAnswersMongoRepository()
-  lazy val fileUploadRepository = new FileUploadMongoRepository()
-  lazy val applicationSiftRepository = new ApplicationSiftMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemeIds)
-  lazy val assessmentCentreRepository = new AssessmentCentreMongoRepository(DateTimeFactory, SchemeYamlRepository.siftableSchemeIds)
-  lazy val fsbRepository = new FsbMongoRepository(DateTimeFactory)
-  lazy val finalOutcomeRepository = new FinaOutcomeMongoRepository(DateTimeFactory)
-  lazy val assessorAssessmentScoresRepository = new AssessorAssessmentScoresMongoRepository
-  lazy val reviewerAssessmentScoresRepository = new ReviewerAssessmentScoresMongoRepository
-  lazy val assessorsEventsSummaryJobsRepository = new AssessorsEventsSummaryJobsMongoRepository()
-  lazy val campaignManagementAfterDeadlineSignupCodeRepository = new CampaignManagementAfterDeadlineSignupCodeMongoRepository()
-  lazy val previousYearCandidatesDetailsRepository = new PreviousYearCandidatesDetailsMongoRepository()
-
-  // Below repositories will be deleted as they are valid only for Fasttrack
-  lazy val frameworkRepository = new FrameworkYamlRepository()
-  lazy val frameworkPreferenceRepository = new FrameworkPreferenceMongoRepository()
-
-  /** Create indexes */
-  Await.result(Future.sequence(List(
-    applicationRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending), ("userId", Ascending)), unique = true)),
-    applicationRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending), ("frameworkId", Ascending)), unique = true)),
-    applicationRepository.collection.indexesManager.create(Index(Seq(("applicationStatus", Ascending)), unique = false)),
-    applicationRepository.collection.indexesManager.create(Index(
-      Seq(("assistance-details.needsSupportForOnlineAssessment", Ascending)), unique = false)),
-    applicationRepository.collection.indexesManager.create(Index(Seq(("assistance-details.needsSupportAtVenue", Ascending)), unique = false)),
-    applicationRepository.collection.indexesManager.create(Index(Seq(("assistance-details.guaranteedInterview", Ascending)), unique = false)),
-
-    faststreamContactDetailsRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending)), unique = true)),
-
-    phase1PassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("createDate", Ascending)), unique = true)),
-
-    phase2PassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("createDate", Ascending)), unique = true)),
-
-    phase3PassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("createDate", Ascending)), unique = true)),
-
-    assessmentCentrePassMarkSettingsRepository.collection.indexesManager.create(Index(Seq(("createDate", Ascending)), unique = true)),
-
-    assessorAssessmentScoresRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true)),
-    reviewerAssessmentScoresRepository.collection.indexesManager.create(Index(Seq(("applicationId", Ascending)), unique = true)),
-
-    assessorRepository.collection.indexesManager.create(Index(Seq(("userId", Ascending)), unique = true)),
-
-    eventsRepository.collection.indexesManager.create(Index(Seq(("eventType", Ascending), ("date", Ascending),
-      ("location", Ascending), ("venue", Ascending)), unique = false)),
-
-    assessorAllocationRepository.collection.indexesManager.create(Index(
-      Seq("id" -> Ascending, "eventId" -> Ascending),
-      unique = false
-    )),
-
-    candidateAllocationRepository.collection.indexesManager.create(Index(
-      Seq("id" -> Ascending, "eventId" -> Ascending, "sessionId" -> Ascending),
-      unique = false
-    )),
-
-    campaignManagementAfterDeadlineSignupCodeRepository.collection.indexesManager.create(Index(
-      Seq("code" -> Ascending),
-      unique = true
-    )),
-
-    campaignManagementAfterDeadlineSignupCodeRepository.collection.indexesManager.create(Index(
-      Seq("expires" -> Descending),
-      unique = false
-    ))
-  )), 30 seconds)
 
   implicit object BSONDateTimeHandler extends BSONHandler[BSONDateTime, DateTime] {
     def read(time: BSONDateTime) = new DateTime(time.value, DateTimeZone.UTC)

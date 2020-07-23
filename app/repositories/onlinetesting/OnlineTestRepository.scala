@@ -40,7 +40,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
 
   val thisApplicationStatus: ApplicationStatus
   val phaseName: String
-  val dateTimeFactory: DateTimeFactory
+  val dateTimeFactory: DateTimeFactory // Guice impl
   val expiredTestQuery: BSONDocument
   val resetStatuses: List[String]
   implicit val bsonHandler: BSONHandler[BSONDocument, T]
@@ -66,6 +66,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     }
   }
 
+  //TODO: delete
   def updateTestStartTime(cubiksUserId: Int, startedTime: DateTime): Future[Unit] = {
     val update = BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phaseName.tests.$$.startedDateTime" -> Some(startedTime)
@@ -80,6 +81,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     findAndUpdateTest(orderId, update)
   }
 
+  //TODO: delete
   def markTestAsInactive(cubiksUserId: Int): Future[Unit] = {
     val update = BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phaseName.tests.$$.usedForResults" -> false
@@ -113,7 +115,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
   }
 
   def insertPsiTests(applicationId: String, newTestProfile: PsiTestProfile): Future[Unit] = {
-//  def insertPsiTests[P <: PsiTestProfile](applicationId: String, newTestProfile: P) = {
+    //  def insertPsiTests[P <: PsiTestProfile](applicationId: String, newTestProfile: P) = {
     val query = BSONDocument(
       "applicationId" -> applicationId
     )
@@ -211,14 +213,14 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
       "applicationId" -> applicationId
     )
     val update = BSONDocument(
-        "$push" -> BSONDocument(
-          s"testGroups.$phaseName.tests" -> BSONDocument(
-            "$each" -> newTestProfile.tests
-          )),
-        "$set" -> BSONDocument(
-         s"testGroups.$phaseName.expirationDate" -> newTestProfile.expirationDate
-        )
+      "$push" -> BSONDocument(
+        s"testGroups.$phaseName.tests" -> BSONDocument(
+          "$each" -> newTestProfile.tests
+        )),
+      "$set" -> BSONDocument(
+        s"testGroups.$phaseName.expirationDate" -> newTestProfile.expirationDate
       )
+    )
 
     val validator = singleUpdateValidator(applicationId, actionDesc = s"inserting tests during $phaseName", ApplicationNotFound(applicationId))
 
@@ -285,7 +287,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
   }
 
   protected[this] def nextTestForReminder(reminder: ReminderNotice, progressStatusQuery: BSONDocument):
-    Future[Option[NotificationExpiringOnlineTest]] = {
+  Future[Option[NotificationExpiringOnlineTest]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> thisApplicationStatus),
       BSONDocument(s"testGroups.${reminder.phase}.expirationDate" ->
@@ -305,7 +307,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     updateProgressStatusForSdipFaststream(appId, progressStatus, progressStatusOnlyBSON)
 
   private def updateProgressStatus(appId: String, progressStatus: ProgressStatus,
-    updateGenerator: ProgressStatus => BSONDocument): Future[Unit] = {
+                                   updateGenerator: ProgressStatus => BSONDocument): Future[Unit] = {
     require(progressStatus.applicationStatus == thisApplicationStatus, "Forbidden progress status update")
 
     val query = BSONDocument(
@@ -320,7 +322,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
   }
 
   private def updateProgressStatusForSdipFaststream(appId: String, progressStatus: ProgressStatus,
-                                   updateGenerator: ProgressStatus => BSONDocument): Future[Unit] = {
+                                                    updateGenerator: ProgressStatus => BSONDocument): Future[Unit] = {
     require(progressStatus.applicationStatus == thisApplicationStatus, "Forbidden progress status update")
 
     val query = BSONDocument(
@@ -347,7 +349,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
   }
 
   private def findAndUpdateCubiksTest(cubiksUserId: Int, update: BSONDocument, ignoreNotFound: Boolean = false): Future[Unit] = {
-        val find = BSONDocument(
+    val find = BSONDocument(
       s"testGroups.$phaseName.tests" -> BSONDocument(
         "$elemMatch" -> BSONDocument("cubiksUserId" -> cubiksUserId)
       )
@@ -381,6 +383,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     collection.update(ordered = false).one(find, update) map validator
   }
 
+  //TODO: should be deleted
   def insertTestResult(appId: String, phase1Test: CubiksTest, testResult: TestResult): Future[Unit] = {
     val query = BSONDocument(
       "applicationId" -> appId,
@@ -415,9 +418,9 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     ))
 
     val progressesToRemoveQueryPartial: Seq[(String, BSONValue)] = progressStatuses.flatMap(p =>
-        Seq(s"progress-status.$p" -> BSONString(""),
-          s"progress-status-timestamp.$p" -> BSONString(""))
-      )
+      Seq(s"progress-status.$p" -> BSONString(""),
+        s"progress-status-timestamp.$p" -> BSONString(""))
+    )
 
     val updateQuery = BSONDocument(
       "$set" -> BSONDocument("applicationStatus" -> thisApplicationStatus),

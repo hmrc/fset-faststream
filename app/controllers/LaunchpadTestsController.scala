@@ -18,52 +18,62 @@ package controllers
 
 import connectors.launchpadgateway.exchangeobjects.in._
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest
-import controllers.LaunchpadTestsController.CannotFindTestByLaunchpadInviteId
+import javax.inject.{ Inject, Singleton }
+import play.api.libs.json.JsValue
+import services.onlinetesting.phase3.{ Phase3TestCallbackService, Phase3TestService }
+import services.stc.StcEventService
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
+//import controllers.LaunchpadTestsController.CannotFindTestByLaunchpadInviteId
 import model.Exceptions.NotFoundException
 import play.api.libs.json.Json
 import play.api.Logger
 import play.api.mvc.{ Action, Result }
 import services.stc.StcEventService
 import services.onlinetesting.phase3.{ Phase3TestCallbackService, Phase3TestService }
-import uk.gov.hmrc.play.microservice.controller.BaseController
+//import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object LaunchpadTestsController extends LaunchpadTestsController {
-  override val phase3TestService = Phase3TestService
-  override val phase3TestCallbackService = Phase3TestCallbackService
-  val eventService = StcEventService
+object LaunchpadTestsController {
+//  override val phase3TestService = Phase3TestService
+//  override val phase3TestCallbackService = Phase3TestCallbackService
+//  val eventService = StcEventService
 
-  case class CannotFindTestByLaunchpadInviteId(message: String) extends NotFoundException(message)
+//  case class CannotFindTestByLaunchpadInviteId(message: String) extends NotFoundException(message)
 }
 
-trait LaunchpadTestsController extends BaseController {
-  val phase3TestService: Phase3TestService
-  val phase3TestCallbackService: Phase3TestCallbackService
-  val eventService: StcEventService
+case class CannotFindTestByLaunchpadInviteId(message: String) extends NotFoundException(message)
 
-  def markAsStarted(inviteId: String) = Action.async(parse.json) { implicit request =>
+@Singleton
+class LaunchpadTestsController @Inject() (phase3TestService: Phase3TestService,
+                                          phase3TestCallbackService: Phase3TestCallbackService) extends BaseController {
+                                          //val eventService: StcEventService2) extends BaseController {
+//  val phase3TestService: Phase3TestService
+//  val phase3TestCallbackService: Phase3TestCallbackService
+//  val eventService: StcEventService
+
+  def markAsStarted(inviteId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     Logger.info(s"Launchpad Assessment with invite ID $inviteId marked as started")
     phase3TestService.markAsStarted(inviteId)
       .map(_ => Ok)
       .recover(recoverNotFound)
   }
 
-  def markAsComplete(inviteId: String) = Action.async(parse.json) { implicit request =>
+  def markAsComplete(inviteId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     Logger.info(s"Launchpad Assessment with invite ID $inviteId marked as completed")
     phase3TestService.markAsCompleted(inviteId)
       .map(_ => Ok)
       .recover(recoverNotFound)
   }
 
-  def setupProcessCallback(inviteId: String) = Action.async(parse.json) { implicit request =>
+  def setupProcessCallback(inviteId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[SetupProcessCallbackRequest] { jsonBody =>
       Logger.info(s"Launchpad: Received setup process callback request json -> ${Json.toJson(jsonBody).toString}, deserialized -> $jsonBody")
       phase3TestCallbackService.recordCallback(jsonBody).map(_ => Ok).recover(recoverNotFound)
     }
   }
 
-  def viewPracticeQuestionCallback(inviteId: String) = Action.async(parse.json) { implicit request =>
+  def viewPracticeQuestionCallback(inviteId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[ViewPracticeQuestionCallbackRequest] { jsonBody =>
       Logger.info("Launchpad: Received view practice question callback request " +
         s"json -> ${Json.toJson(jsonBody).toString}, deserialized -> $jsonBody")
@@ -71,28 +81,28 @@ trait LaunchpadTestsController extends BaseController {
     }
   }
 
-  def questionCallback(inviteId: String) = Action.async(parse.json) { implicit request =>
+  def questionCallback(inviteId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[QuestionCallbackRequest] { jsonBody =>
       Logger.info(s"Launchpad: Received question request json -> ${Json.toJson(jsonBody).toString}, deserialized -> $jsonBody")
       phase3TestCallbackService.recordCallback(jsonBody).map(_ => Ok).recover(recoverNotFound)
     }
   }
 
-  def finalCallback(inviteId: String) = Action.async(parse.json) { implicit request =>
+  def finalCallback(inviteId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[FinalCallbackRequest] { jsonBody =>
       Logger.info(s"Launchpad: Received final callback request json -> ${Json.toJson(jsonBody).toString}, deserialized -> $jsonBody")
       phase3TestCallbackService.recordCallback(jsonBody).map(_ => Ok).recover(recoverNotFound)
     }
   }
 
-  def finishedCallback(inviteId: String) = Action.async(parse.json) { implicit request =>
+  def finishedCallback(inviteId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[FinishedCallbackRequest] { jsonBody =>
       Logger.info(s"Launchpad: Received finished callback request json -> ${Json.toJson(jsonBody).toString}, deserialized -> $jsonBody")
       phase3TestCallbackService.recordCallback(jsonBody).map(_ => Ok).recover(recoverNotFound)
     }
   }
 
-  def reviewedCallback(inviteId: String) = Action.async(parse.json) { implicit request =>
+  def reviewedCallback(inviteId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[ReviewedCallbackRequest] { jsonBody =>
       Logger.info(s"Launchpad: Received reviewed callback request json -> ${Json.toJson(jsonBody).toString}, deserialized -> $jsonBody")
       phase3TestCallbackService.recordCallback(jsonBody).map(_ => Ok).recover(recoverNotFound)

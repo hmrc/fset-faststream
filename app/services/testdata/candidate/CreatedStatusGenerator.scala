@@ -17,23 +17,19 @@
 package services.testdata.candidate
 
 import connectors.ExchangeObjects
+import javax.inject.{ Inject, Singleton }
 import model.ApplicationRoute
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
-import repositories._
 import repositories.application.GeneralApplicationRepository
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
-object CreatedStatusGenerator extends CreatedStatusGenerator {
-  override val previousStatusGenerator = RegisteredStatusGenerator
-  override val appRepository = applicationRepository
-}
-
-trait CreatedStatusGenerator extends ConstructiveGenerator {
-  val appRepository: GeneralApplicationRepository
+@Singleton
+class CreatedStatusGenerator @Inject() (val previousStatusGenerator: RegisteredStatusGenerator,
+                                        appRepository: GeneralApplicationRepository) extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     for {

@@ -6,7 +6,7 @@ class SchoolsCSVRepositorySpec extends UnitWithAppSpec with ShortTimeout {
 
   "Schools CSV Repository" should {
     "parse file with expected number of schools" in {
-      val result = SchoolsCSVRepository.schools.futureValue
+      val result = new SchoolsCSVRepository(app).schools.futureValue
       result.size mustBe 6882
     }
   }

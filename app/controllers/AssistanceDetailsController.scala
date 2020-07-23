@@ -16,26 +16,22 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions._
 import model.exchange.AssistanceDetailsExchange
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import services.AuditService
 import services.assistancedetails.AssistanceDetailsService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object AssistanceDetailsController extends AssistanceDetailsController {
-  val assistanceDetailsService = AssistanceDetailsService
-  val auditService = AuditService
-}
-
-trait AssistanceDetailsController extends BaseController {
+@Singleton
+class AssistanceDetailsController @Inject() (assistanceDetailsService: AssistanceDetailsService,
+                                             auditService: AuditService
+                                            ) extends BaseController {
   val AssistanceDetailsSavedEvent = "AssistanceDetailsSaved"
-
-  val assistanceDetailsService: AssistanceDetailsService
-  val auditService: AuditService
 
   def update(userId: String, applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[AssistanceDetailsExchange] { req =>

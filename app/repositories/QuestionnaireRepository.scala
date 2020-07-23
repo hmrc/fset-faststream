@@ -16,10 +16,12 @@
 
 package repositories
 
+import javax.inject.{ Inject, Singleton }
 import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
 import model.report.QuestionnaireReportItem
 import play.api.libs.json._
-import reactivemongo.api.{ Cursor, DB, ReadPreference }
+import play.modules.reactivemongo.ReactiveMongoComponent
+import reactivemongo.api.{ Cursor, ReadPreference }
 import reactivemongo.bson._
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import services.reporting.SocioEconomicScoreCalculator
@@ -54,9 +56,14 @@ trait QuestionnaireRepository {
   val UnknownAnswerText = "Unknown"
 }
 
-class QuestionnaireMongoRepository(socioEconomicCalculator: SocioEconomicScoreCalculator)(implicit mongo: () => DB)
-  extends ReactiveRepository[QuestionnaireAnswer, BSONObjectID](CollectionNames.QUESTIONNAIRE, mongo,
-    QuestionnaireAnswer.answerFormats, ReactiveMongoFormats.objectIdFormats) with QuestionnaireRepository
+@Singleton
+class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEconomicScoreCalculator,
+                                              mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[QuestionnaireAnswer, BSONObjectID](
+    CollectionNames.QUESTIONNAIRE,
+    mongoComponent.mongoConnector.db,
+    QuestionnaireAnswer.answerFormats,
+    ReactiveMongoFormats.objectIdFormats) with QuestionnaireRepository
     with ReactiveRepositoryHelpers with BaseBSONReader {
 
   override def addQuestions(applicationId: String, questions: List[QuestionnaireQuestion]): Future[Unit] = {

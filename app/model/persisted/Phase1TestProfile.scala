@@ -19,7 +19,7 @@ package model.persisted
 import org.joda.time.DateTime
 import play.api.libs.json.{ Json, OFormat }
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
-
+// TODO: Cubiks based code - delete
 case class CubiksTest(scheduleId: Int,
                       usedForResults: Boolean,
                       cubiksUserId: Int,
@@ -45,7 +45,7 @@ object CubiksTest {
   implicit val phase1TestHandler: BSONHandler[BSONDocument, CubiksTest] = Macros.handler[CubiksTest]
   implicit val phase1TestFormat = Json.format[CubiksTest]
 }
-
+// TODO: Cubiks based code - delete
 case class Phase1TestProfile(expirationDate: DateTime,
                              tests: List[CubiksTest],
                              evaluation: Option[PassmarkEvaluation] = None) extends CubiksTestProfile

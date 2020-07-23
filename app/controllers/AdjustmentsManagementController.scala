@@ -16,24 +16,21 @@
 
 package controllers
 
-import model.{ Adjustments, AdjustmentsComment }
+import javax.inject.{ Inject, Singleton }
 import model.Adjustments._
 import model.Exceptions._
-import play.api.libs.json.Json
-import play.api.mvc.Action
+import model.{ Adjustments, AdjustmentsComment }
+import play.api.libs.json.{ JsValue, Json }
+import play.api.mvc.{ Action, AnyContent }
 import services.adjustmentsmanagement.AdjustmentsManagementService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object AdjustmentsManagementController extends AdjustmentsManagementController {
-  val adjustmentsManagementService = AdjustmentsManagementService
-}
+@Singleton
+class AdjustmentsManagementController @Inject() (adjustmentsManagementService: AdjustmentsManagementService) extends BaseController {
 
-trait AdjustmentsManagementController extends BaseController {
-  val adjustmentsManagementService : AdjustmentsManagementService
-
-  def confirmAdjustments(applicationId: String) = Action.async(parse.json) { implicit request =>
+  def confirmAdjustments(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[Adjustments] { data =>
       adjustmentsManagementService.confirmAdjustment(applicationId, data).map { _ =>
         Ok
@@ -43,13 +40,13 @@ trait AdjustmentsManagementController extends BaseController {
     }
   }
 
-  def findAdjustments(applicationId: String) = Action.async { implicit request =>
+  def findAdjustments(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     adjustmentsManagementService.find(applicationId).map { adjustments =>
       Ok(Json.toJson(adjustments))
     }
   }
 
-  def updateAdjustmentsComment(applicationId: String) = Action.async(parse.json) { implicit request =>
+  def updateAdjustmentsComment(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[AdjustmentsComment] { data =>
       adjustmentsManagementService.updateAdjustmentsComment(applicationId, data).map { _ =>
         NoContent
@@ -59,7 +56,7 @@ trait AdjustmentsManagementController extends BaseController {
     }
   }
 
-  def findAdjustmentsComment(applicationId: String) = Action.async { implicit request =>
+  def findAdjustmentsComment(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     adjustmentsManagementService.findAdjustmentsComment(applicationId).map { adjustmentsComment =>
       Ok(Json.toJson(adjustmentsComment))
     }.recover {
@@ -68,12 +65,11 @@ trait AdjustmentsManagementController extends BaseController {
     }
   }
 
-  def removeAdjustmentsComment(applicationId: String) = Action.async { implicit request =>
+  def removeAdjustmentsComment(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     adjustmentsManagementService.removeAdjustmentsComment(applicationId).map { _ =>
       NoContent
     }.recover {
       case e: CannotRemoveAdjustmentsComment => NotFound(s"cannot remove adjustments comment for application with id: ${e.applicationId}")
     }
   }
-
 }

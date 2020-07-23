@@ -16,38 +16,36 @@
 
 package services.testdata.candidate
 
+import javax.inject.{ Inject, Singleton }
 import model.exchange.testdata.CreateCandidateResponse
 import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
 import model.testdata.candidate.CreateCandidateData.{ CreateCandidateData, DiversityDetails }
 import play.api.mvc.RequestHeader
 import repositories._
-import repositories.application.{ DiversityQuestionsText, GeneralApplicationMongoRepository, GeneralApplicationRepository }
-import services.testdata.faker.DataFaker._
+import repositories.application.{ DiversityQuestionsText, GeneralApplicationRepository }
+import services.testdata.faker.DataFaker
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
-object InProgressQuestionnaireStatusGenerator extends InProgressQuestionnaireStatusGenerator {
-  override val previousStatusGenerator = InProgressAssistanceDetailsStatusGenerator
-  override val appRepository: GeneralApplicationMongoRepository = applicationRepository
-  override val qRepository: QuestionnaireMongoRepository = questionnaireRepository
-}
-
-trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator with DiversityQuestionsText {
-  val appRepository: GeneralApplicationRepository
-  val qRepository: QuestionnaireRepository
+@Singleton
+class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenerator: InProgressAssistanceDetailsStatusGenerator,
+                                                        appRepository: GeneralApplicationRepository,
+                                                        qRepository: QuestionnaireRepository,
+                                                        dataFaker: DataFaker
+                                                       ) extends ConstructiveGenerator with DiversityQuestionsText {
 
   // scalastyle:off method.length
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse.CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse.CreateCandidateResponse] = {
 
-    val didYouLiveInUkBetween14and18Answer = Random.yesNo
+    val didYouLiveInUkBetween14and18Answer = dataFaker.yesNo
 
     def getWhatWasYourHomePostCodeWhenYouWere14 = {
       if (didYouLiveInUkBetween14and18Answer == "Yes") {
         Some(QuestionnaireQuestion(postcodeAtAge14,
-          QuestionnaireAnswer(Some(Random.homePostcode), None, None)))
+          QuestionnaireAnswer(Some(dataFaker.homePostcode), None, None)))
       } else {
         None
       }
@@ -56,7 +54,7 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator with 
     def getSchoolName14to16Answer = {
       if (didYouLiveInUkBetween14and18Answer == "Yes") {
         Some(QuestionnaireQuestion(schoolNameAged14to16,
-          QuestionnaireAnswer(Some(Random.age14to16School), None, None)))
+          QuestionnaireAnswer(Some(dataFaker.age14to16School), None, None)))
       } else {
         None
       }
@@ -64,14 +62,14 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator with 
 
     def getSchoolType14to16Answer = if (didYouLiveInUkBetween14and18Answer == "Yes") {
       Some(QuestionnaireQuestion(schoolTypeAged14to16,
-        QuestionnaireAnswer(Some(Random.schoolType14to16), None, None))
+        QuestionnaireAnswer(Some(dataFaker.schoolType14to16), None, None))
       )
     } else { None }
 
     def getSchoolName16to18Answer = {
       if (didYouLiveInUkBetween14and18Answer == "Yes") {
         Some(QuestionnaireQuestion(schoolNameAged16to18,
-          QuestionnaireAnswer(Some(Random.age16to18School), None, None)))
+          QuestionnaireAnswer(Some(dataFaker.age16to18School), None, None)))
       } else {
         None
       }
@@ -80,7 +78,7 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator with 
     def getFreeSchoolMealsAnswer = {
       if (didYouLiveInUkBetween14and18Answer == "Yes") {
         Some(QuestionnaireQuestion(eligibleForFreeSchoolMeals,
-          QuestionnaireAnswer(Some(Random.yesNoPreferNotToSay), None, None)))
+          QuestionnaireAnswer(Some(dataFaker.yesNoPreferNotToSay), None, None)))
       } else {
         None
       }
@@ -106,7 +104,7 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator with 
     def getUniversityDegreeCategoryAnswer = {
       if (generatorConfig.hasDegree) {
         Some(QuestionnaireQuestion(categoryOfDegree,
-          QuestionnaireAnswer(Some(Random.degreeCategory._2), None, None)))
+          QuestionnaireAnswer(Some(dataFaker.degreeCategory._2), None, None)))
       } else {
         None
       }
@@ -115,7 +113,7 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator with 
     def getEmployedOrSelfEmployed(parentsOccupation: String) = {
       if (parentsOccupation == "Employed") {
         Some(QuestionnaireQuestion(employeeOrSelfEmployed,
-          QuestionnaireAnswer(Some(Random.employeeOrSelf), None, None)))
+          QuestionnaireAnswer(Some(dataFaker.employeeOrSelf), None, None)))
       } else {
         None
       }
@@ -124,19 +122,19 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator with 
     def getSizeParentsEmployer(occupation: Option[String]) = occupation.flatMap { occ =>
       if (occ == "Employed") {
         Some(QuestionnaireQuestion(sizeOfPlaceOfWork,
-          QuestionnaireAnswer(Some(Random.sizeOfPlaceOfWork), None, None)))
+          QuestionnaireAnswer(Some(dataFaker.sizeOfPlaceOfWork), None, None)))
       } else { None }
     }
 
     def getSuperviseEmployees(parentsOccupation: Option[String]) = parentsOccupation.flatMap { occ =>
       if (occ == "Employed") {
         Some(QuestionnaireQuestion(superviseEmployees,
-          QuestionnaireAnswer(Some(Random.yesNoPreferNotToSay), None, None)))
+          QuestionnaireAnswer(Some(dataFaker.yesNoPreferNotToSay), None, None)))
       } else { None }
     }
 
     def getAllQuestionnaireQuestions(dd: DiversityDetails) = List(
-      Some(QuestionnaireQuestion("I understand this won't affect my application", QuestionnaireAnswer(Some(Random.yesNo), None, None))),
+      Some(QuestionnaireQuestion("I understand this won't affect my application", QuestionnaireAnswer(Some(dataFaker.yesNo), None, None))),
       Some(QuestionnaireQuestion(genderIdentity, QuestionnaireAnswer(Some(dd.genderIdentity), None, None))),
       Some(QuestionnaireQuestion(sexualOrientation, QuestionnaireAnswer(Some(dd.sexualOrientation), None, None))),
       Some(QuestionnaireQuestion(ethnicGroup, QuestionnaireAnswer(Some(dd.ethnicity), None, None))),
@@ -152,10 +150,10 @@ trait InProgressQuestionnaireStatusGenerator extends ConstructiveGenerator with 
       getUniversityAnswer,
       getUniversityDegreeCategoryAnswer,
       Some(QuestionnaireQuestion(lowerSocioEconomicBackground,
-        QuestionnaireAnswer(Some(Random.yesNoPreferNotToSay), None, None))
+        QuestionnaireAnswer(Some(dataFaker.yesNoPreferNotToSay), None, None))
       ),
       Some(QuestionnaireQuestion(parentOrGuardianQualificationsAtAge18,
-        QuestionnaireAnswer(Some(Random.parentsDegree), None, None))
+        QuestionnaireAnswer(Some(dataFaker.parentsDegree), None, None))
       ),
       Some(QuestionnaireQuestion(highestEarningParentOrGuardianTypeOfWorkAtAge14,
         QuestionnaireAnswer(dd.parentalEmployment, None, None))),

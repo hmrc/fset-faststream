@@ -16,7 +16,6 @@
 
 package model.command
 
-import factories.DateTimeFactory
 import model.Address
 import model.persisted.PersonalDetails
 import org.joda.time.LocalDate
@@ -28,7 +27,7 @@ object PersonalDetailsExamples {
     civilServiceExperienceDetails = None, edipCompleted = None, edipYear = None, otherInternshipCompleted = None, otherInternshipName = None,
     otherInternshipYear = None, updateApplicationStatus = None)
 
-  val completed = PersonalDetails("firstname", "lastname", "preferedname", dateOfBirth = DateTimeFactory.nowLocalDate,
+  val completed = PersonalDetails("firstname", "lastname", "preferedname", dateOfBirth = LocalDate.now(),
     edipCompleted = Some(false), edipYear = None, otherInternshipCompleted = Some(false), otherInternshipName = None,
     otherInternshipYear = None)
 

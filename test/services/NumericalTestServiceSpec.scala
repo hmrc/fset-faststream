@@ -16,9 +16,9 @@
 
 package services
 
-import config.{ OnlineTestsGatewayConfig, NumericalTestSchedule, NumericalTestsConfig }
+import config.{ MicroserviceAppConfig, NumericalTestSchedule, NumericalTestsConfig, OnlineTestsGatewayConfig }
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration }
-import connectors.{ OnlineTestsGatewayClient, EmailClient }
+import connectors.{ OnlineTestEmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.EvaluationResults.Green
 import model.Exceptions.UnexpectedException
@@ -31,7 +31,7 @@ import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
-import repositories.SchemeRepository
+import repositories.SchemeYamlRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.sift.ApplicationSiftRepository
@@ -46,42 +46,46 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
 
   trait TestFixture extends StcEventServiceFixture {
 
-    val mockAppRepo: GeneralApplicationRepository = mock[GeneralApplicationRepository]
-    val mockSiftRepo: ApplicationSiftRepository = mock[ApplicationSiftRepository]
-    val mockContactDetailsRepo: ContactDetailsRepository = mock[ContactDetailsRepository]
-    val mockEmailClient: EmailClient = mock[EmailClient]
+    val mockAppRepo = mock[GeneralApplicationRepository]
+    val mockSiftRepo = mock[ApplicationSiftRepository]
+    val mockContactDetailsRepo = mock[ContactDetailsRepository]
+    val mockEmailClient = mock[OnlineTestEmailClient]
 
     val mockOnlineTestsGatewayConfig = mock[OnlineTestsGatewayConfig]
     when(mockOnlineTestsGatewayConfig.candidateAppUrl).thenReturn("localhost")
     val mockNumericalTestsConfig = NumericalTestsConfig(Map(NumericalTestsConfig.numericalTestScheduleName -> NumericalTestSchedule(1, 1)))
 
-    val mockOnlineTestsGatewayClient: OnlineTestsGatewayClient = mock[OnlineTestsGatewayClient]
-    val mockDateTimeFactory: DateTimeFactory = mock[DateTimeFactory]
+    val mockOnlineTestsGatewayClient = mock[OnlineTestsGatewayClient]
+    val mockDateTimeFactory = mock[DateTimeFactory]
 
-    val mockSchemeRepo = new SchemeRepository {
-      override lazy val schemes: Seq[Scheme] = Seq(
-        Scheme("DigitalAndTechnology", "DaT", "Digital and Technology", civilServantEligible = false, None, Some(SiftRequirement.FORM),
-          siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None
-        ),
-        Scheme("Commercial", "GCS", "Commercial", civilServantEligible = false, None, Some(SiftRequirement.NUMERIC_TEST),
-          siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None
-        )
+    val mockSchemeRepo = mock[SchemeYamlRepository]
+
+    val testSchemes: Seq[Scheme] = Seq(
+      Scheme("DigitalAndTechnology", "DaT", "Digital and Technology", civilServantEligible = false, None, Some(SiftRequirement.FORM),
+        siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None
+      ),
+      Scheme("Commercial", "GCS", "Commercial", civilServantEligible = false, None, Some(SiftRequirement.NUMERIC_TEST),
+        siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None
       )
-    }
+    )
+    when (mockSchemeRepo.schemes).thenReturn(testSchemes)
 
-    val service = new NumericalTestService {
-      override def applicationRepo: GeneralApplicationRepository = mockAppRepo
-      override def applicationSiftRepo: ApplicationSiftRepository = mockSiftRepo
-      val tokenFactory: UUIDFactory = UUIDFactory
-      val gatewayConfig: OnlineTestsGatewayConfig = mockOnlineTestsGatewayConfig
-      override def testConfig: NumericalTestsConfig = mockNumericalTestsConfig
-      val onlineTestsGatewayClient: OnlineTestsGatewayClient = mockOnlineTestsGatewayClient
-      val dateTimeFactory: DateTimeFactory = mockDateTimeFactory
-      override def schemeRepository: SchemeRepository = mockSchemeRepo
-      val eventService = stcEventServiceMock
-      override def emailClient = mockEmailClient
-      override def contactDetailsRepo = mockContactDetailsRepo
-    }
+    val mockAppConfig = mock[MicroserviceAppConfig]
+    when(mockAppConfig.onlineTestsGatewayConfig).thenReturn(mockOnlineTestsGatewayConfig)
+    when(mockOnlineTestsGatewayConfig.numericalTests).thenReturn(mockNumericalTestsConfig)
+
+    val service = new NumericalTestService(
+      mockAppRepo,
+      mockSiftRepo,
+      mockOnlineTestsGatewayClient,
+      UUIDFactory,
+      mockAppConfig,
+      mockDateTimeFactory,
+      mockSchemeRepo,
+      mockEmailClient,
+      mockContactDetailsRepo,
+      stcEventServiceMock
+    )
 
     val appId = "appId"
     implicit val hc = HeaderCarrier()
@@ -102,7 +106,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
   "NumericalTestService.registerAndInviteForTests" must {
     "handle an empty list of applications" in new TestFixture {
       service.registerAndInviteForTests(Nil).futureValue
-      verifyZeroInteractions(service.onlineTestsGatewayClient)
+      verifyZeroInteractions(mockOnlineTestsGatewayClient)
     }
 
     "throw an exception if no SIFT_PHASE test group is found" in new TestFixture {
@@ -186,7 +190,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
       val result = service.nextApplicationWithResultsReceived.futureValue
       result mustBe None
 
-      verifyZeroInteractions(service.applicationRepo)
+      verifyZeroInteractions(mockAppRepo)
     }
 
     // the current scheme status is Commercial, which has no FORM requirement only NUMERIC_TEST requirement

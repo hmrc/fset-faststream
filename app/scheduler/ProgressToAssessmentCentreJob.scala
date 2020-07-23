@@ -17,22 +17,27 @@
 package scheduler
 
 import config.WaitingScheduledJobConfig
+import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.clustering.SingleInstanceScheduledJob
-import ProgressToAssessmentCentreJobConfig.conf
-import play.api.Logger
+//import ProgressToAssessmentCentreJobConfig.conf
+import javax.inject.Inject
+import play.api.{ Configuration, Logger }
 import services.assessmentcentre.AssessmentCentreService
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object ProgressToAssessmentCentreJob extends ProgressToAssessmentCentreJob {
-  val assessmentCentreService = AssessmentCentreService
-  val config = ProgressToAssessmentCentreJobConfig
+class ProgressToAssessmentCentreJobImpl @Inject() (val assessmentCentreService: AssessmentCentreService,
+                                                   val mongoComponent: ReactiveMongoComponent,
+                                                   val config: ProgressToAssessmentCentreJobConfig
+                                                  ) extends ProgressToAssessmentCentreJob {
+  //  val assessmentCentreService = AssessmentCentreService
+  //  val config = ProgressToAssessmentCentreJobConfig
 }
 
 trait ProgressToAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val assessmentCentreService: AssessmentCentreService
 
-  val batchSize: Int = conf.batchSize.getOrElse(10)
+  val batchSize: Int = config.conf.batchSize.getOrElse(10)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     assessmentCentreService.nextApplicationsForAssessmentCentre(batchSize).flatMap {
@@ -48,7 +53,8 @@ trait ProgressToAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobC
   }
 }
 
-object ProgressToAssessmentCentreJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
+class ProgressToAssessmentCentreJobConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.progress-to-assessment-centre-job",
   name = "ProgressToAssessmentCentreJob"
 )

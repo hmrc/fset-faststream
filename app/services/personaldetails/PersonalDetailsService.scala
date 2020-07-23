@@ -16,38 +16,29 @@
 
 package services.personaldetails
 
+import javax.inject.{ Inject, Singleton }
 import model.ApplicationStatus._
 import model.Exceptions.FSACCSVIndicatorNotFound
 import model.FSACIndicator
 import model.command.GeneralDetails
-import model.persisted.{ PersonalDetails, ContactDetails }
-import repositories._
+import model.persisted.{ ContactDetails, PersonalDetails }
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.csv.FSACIndicatorCSVRepository
 import repositories.fsacindicator.FSACIndicatorRepository
 import repositories.personaldetails.PersonalDetailsRepository
-import services.AuditService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object PersonalDetailsService extends PersonalDetailsService {
-  val pdRepository = personalDetailsRepository
-  val cdRepository = faststreamContactDetailsRepository
-  val csedRepository = civilServiceExperienceDetailsRepository
-  val fsacIndicatorCSVRepository = repositories.fsacIndicatorCSVRepository
-  val fsacIndicatorRepository = repositories.fsacIndicatorRepository
-  val auditService = AuditService
-}
-
-trait PersonalDetailsService {
-  val pdRepository: PersonalDetailsRepository
-  val cdRepository: ContactDetailsRepository
-  val csedRepository: CivilServiceExperienceDetailsRepository
-  val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository
-  val fsacIndicatorRepository: FSACIndicatorRepository
-  val auditService: AuditService
+@Singleton
+class PersonalDetailsService @Inject() (pdRepository: PersonalDetailsRepository,
+                                         cdRepository: ContactDetailsRepository,
+                                         csedRepository: CivilServiceExperienceDetailsRepository,
+                                         fsacIndicatorCSVRepository: FSACIndicatorCSVRepository,
+                                         fsacIndicatorRepository: FSACIndicatorRepository
+                                         //  val auditService: AuditService //not used
+                                        ) {
 
   def find(applicationId: String, userId: String): Future[GeneralDetails] = {
     val personalDetailsFut = pdRepository.find(applicationId)
@@ -83,8 +74,8 @@ trait PersonalDetailsService {
     val contactDetailsUpdateFut = cdRepository.update(userId, contactDetails)
     val fsacIndicator = fsacIndicatorCSVRepository.find(personalDetails.postCode, personalDetails.outsideUk)
     val fsacIndicatorUpdateFut = fsacIndicator.map { fsacIndicatorVal =>
-       fsacIndicatorRepository.update(applicationId, userId,
-         model.persisted.FSACIndicator(fsacIndicatorVal))
+      fsacIndicatorRepository.update(applicationId, userId,
+        model.persisted.FSACIndicator(fsacIndicatorVal, fsacIndicatorCSVRepository.FSACIndicatorVersion))
     }.getOrElse(Future.failed(FSACCSVIndicatorNotFound(applicationId)))
     val civilServiceExperienceDetailsUpdateFut = personalDetails.civilServiceExperienceDetails.map { civilServiceExperienceDetails =>
       csedRepository.update(applicationId, civilServiceExperienceDetails)
@@ -105,7 +96,10 @@ trait PersonalDetailsService {
       Future.failed(new IllegalArgumentException(msg))
     } else {
       fsacIndicatorRepository.update(applicationId, userId,
-        model.persisted.FSACIndicator(model.FSACIndicator(fsacAssessmentCentre, fsacAssessmentCentre)))
+        model.persisted.FSACIndicator(model.FSACIndicator(fsacAssessmentCentre, fsacAssessmentCentre),
+          fsacIndicatorCSVRepository.FSACIndicatorVersion
+        )
+      )
     }
   }
 }

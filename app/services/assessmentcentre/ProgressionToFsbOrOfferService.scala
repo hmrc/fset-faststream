@@ -16,48 +16,37 @@
 
 package services.assessmentcentre
 
+import com.google.inject.name.Named
 import common.FutureEx
-import connectors.{AuthProviderClient, CSREmailClient, EmailClient}
+import connectors.OnlineTestEmailClient
+import javax.inject.{ Inject, Singleton }
 import model.EvaluationResults.Green
 import model.ProgressStatuses._
 import model._
-import model.command.{ApplicationForProgression, ProgressResponse}
-import model.fsb.FSBProgressStatus
-import model.persisted.{FsbSchemeResult, SchemeEvaluationResult}
+import model.command.ApplicationForProgression
+import model.persisted.{ FsbSchemeResult, SchemeEvaluationResult }
 import org.joda.time.DateTime
 import play.api.Logger
-import repositories.{CurrentSchemeStatusHelper, SchemeYamlRepository}
-import repositories.application.{GeneralApplicationMongoRepository, GeneralApplicationRepository}
-import repositories.contactdetails.{ContactDetailsMongoRepository, ContactDetailsRepository}
-import repositories.fsb.{FsbMongoRepository, FsbRepository}
+import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
+import repositories.fsb.FsbRepository
+import repositories.{ CurrentSchemeStatusHelper, SchemeRepository }
 import services.scheme.SchemePreferencesService
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
-object ProgressionToFsbOrOfferService extends ProgressionToFsbOrOfferService {
-  val fsbRequiredSchemeIds: Seq[SchemeId] = SchemeYamlRepository.fsbSchemeIds
-  val applicationRepo: GeneralApplicationRepository = repositories.applicationRepository
-  val contactDetailsRepo: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
-  val fsbRepo: FsbMongoRepository = repositories.fsbRepository
-  val emailClient: CSREmailClient = CSREmailClient
-  val schemePreferencesService: SchemePreferencesService = SchemePreferencesService
-}
+@Singleton
+class ProgressionToFsbOrOfferService @Inject() (schemeRepository: SchemeRepository, //TODO: previously fsbRequiredSchemeIds: Seq[SchemeId]
+                                                 applicationRepo: GeneralApplicationRepository,
+                                                 contactDetailsRepo: ContactDetailsRepository,
+                                                 fsbRepo: FsbRepository,
+                                                 schemePreferencesService: SchemePreferencesService,
+                                                 @Named("CSREmailClient") val emailClient: OnlineTestEmailClient //TODO:fix change type
+                                                ) extends CurrentSchemeStatusHelper {
 
-trait ProgressionToFsbOrOfferService extends CurrentSchemeStatusHelper {
-
-  def fsbRequiredSchemeIds: Seq[SchemeId]
-
-  def applicationRepo: GeneralApplicationRepository
-
-  def contactDetailsRepo: ContactDetailsRepository
-
-  def fsbRepo: FsbRepository
-
-  def emailClient: EmailClient
-
-  def schemePreferencesService: SchemePreferencesService
+  def fsbRequiredSchemeIds: Seq[SchemeId] = schemeRepository.fsbSchemeIds
 
   def nextApplicationsForFsbOrJobOffer(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
     fsbRepo.nextApplicationForFsbOrJobOfferProgression(batchSize)
@@ -72,9 +61,9 @@ trait ProgressionToFsbOrOfferService extends CurrentSchemeStatusHelper {
   : Future[SerialUpdateResult[ApplicationForProgression]] = {
 
     def maybeProgressToFsbOrJobOffer(
-      application: ApplicationForProgression,
-      latestProgressStatus: ProgressStatus,
-      firstResidualOpt: Option[SchemeEvaluationResult])(implicit hc: HeaderCarrier): Future[Unit] = {
+                                      application: ApplicationForProgression,
+                                      latestProgressStatus: ProgressStatus,
+                                      firstResidualOpt: Option[SchemeEvaluationResult])(implicit hc: HeaderCarrier): Future[Unit] = {
 
       firstResidualOpt.map { firstResidual =>
 
@@ -97,7 +86,7 @@ trait ProgressionToFsbOrOfferService extends CurrentSchemeStatusHelper {
     }
 
     def maybeArchiveOldFsbStatuses(application: ApplicationForProgression,
-      latestProgressStatus: ProgressStatus, firstResidualOpt: Option[SchemeEvaluationResult]) = {
+                                   latestProgressStatus: ProgressStatus, firstResidualOpt: Option[SchemeEvaluationResult]) = {
 
       def calculateFsbStatusesToArchive(progressTimestamps: Map[String, DateTime]): List[(ProgressStatus, DateTime)] = {
 
@@ -169,5 +158,4 @@ trait ProgressionToFsbOrOfferService extends CurrentSchemeStatusHelper {
         f
     }
   }
-
 }

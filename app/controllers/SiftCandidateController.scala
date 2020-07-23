@@ -16,24 +16,20 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.{ CannotFindApplicationByOrderIdException, CannotFindTestByCubiksId, CannotFindTestByOrderIdException }
 import play.api.Logger
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.Action
 import services.sift.{ ApplicationSiftService, SiftExpiryExtensionService }
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object SiftCandidateController extends SiftCandidateController {
-  override val siftExpiryExtensionService = SiftExpiryExtensionService
-  override val applicationSiftService = ApplicationSiftService
-}
-
-trait SiftCandidateController extends BaseController {
-
-  val siftExpiryExtensionService: SiftExpiryExtensionService
-  val applicationSiftService: ApplicationSiftService
+@Singleton
+class SiftCandidateController @Inject() (siftExpiryExtensionService: SiftExpiryExtensionService,
+                                         applicationSiftService: ApplicationSiftService
+                                        ) extends BaseController {
 
   def extend(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[SiftExtension] { extension =>

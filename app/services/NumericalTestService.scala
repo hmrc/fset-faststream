@@ -16,23 +16,24 @@
 
 package services
 
-import config.MicroserviceAppConfig.onlineTestsGatewayConfig
-import config.{ OnlineTestsGatewayConfig, NumericalTestSchedule, NumericalTestsConfig }
-import connectors.{ CSREmailClient, OnlineTestsGatewayClient, EmailClient }
+import com.google.inject.name.Named
+import config.{ MicroserviceAppConfig, NumericalTestSchedule, NumericalTestsConfig, OnlineTestsGatewayConfig }
 import connectors.ExchangeObjects.{ Invitation, InviteApplicant, Registration, TimeAdjustments }
+import connectors.{ OnlineTestEmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.UnexpectedException
-import model._
 import model.ProgressStatuses.{ ProgressStatus, SIFT_TEST_COMPLETED, SIFT_TEST_INVITED, SIFT_TEST_RESULTS_READY }
+import model._
 import model.exchange.CubiksTestResultReady
 import model.persisted.CubiksTest
 import model.persisted.sift.{ SiftTestGroup, SiftTestGroupWithAppId }
 import model.stc.DataStoreEvents
 import play.api.Logger
 import play.api.mvc.RequestHeader
-import repositories.{ SchemeRepository, SchemeYamlRepository }
+import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
-import repositories.contactdetails.{ ContactDetailsMongoRepository, ContactDetailsRepository }
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.sift.ApplicationSiftRepository
 import services.stc.{ EventSink, StcEventService }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -40,30 +41,21 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object NumericalTestService extends NumericalTestService {
-  val applicationRepo: GeneralApplicationRepository = repositories.applicationRepository
-  val applicationSiftRepo: ApplicationSiftRepository = repositories.applicationSiftRepository
-  val onlineTestsGatewayClient = OnlineTestsGatewayClient
-  val gatewayConfig = onlineTestsGatewayConfig
-  val tokenFactory = UUIDFactory
-  val dateTimeFactory: DateTimeFactory = DateTimeFactory
-  val eventService: StcEventService = StcEventService
-  val schemeRepository = SchemeYamlRepository
-  val emailClient: CSREmailClient = CSREmailClient
-  val contactDetailsRepo: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
-}
+// Cubiks based version guice injection
+@Singleton
+class NumericalTestService @Inject() (applicationRepo: GeneralApplicationRepository,
+                                      applicationSiftRepo: ApplicationSiftRepository,
+                                      onlineTestsGatewayClient: OnlineTestsGatewayClient,
+                                      tokenFactory: UUIDFactory,
+                                      appConfig: MicroserviceAppConfig,
+                                      dateTimeFactory: DateTimeFactory,
+                                      schemeRepository: SchemeRepository,
+                                      @Named("CSREmailClient") emailClient: OnlineTestEmailClient, // Changed the type
+                                      contactDetailsRepo: ContactDetailsRepository,
+                                      val eventService: StcEventService
+                                     ) extends EventSink {
 
-trait NumericalTestService extends EventSink {
-  def applicationRepo: GeneralApplicationRepository
-  def applicationSiftRepo: ApplicationSiftRepository
-  val tokenFactory: UUIDFactory
-  val gatewayConfig: OnlineTestsGatewayConfig
-  def testConfig: NumericalTestsConfig = gatewayConfig.numericalTests
-  val onlineTestsGatewayClient: OnlineTestsGatewayClient
-  val dateTimeFactory: DateTimeFactory
-  def schemeRepository: SchemeRepository
-  def emailClient: EmailClient
-  def contactDetailsRepo: ContactDetailsRepository
+  val gatewayConfig: OnlineTestsGatewayConfig = appConfig.onlineTestsGatewayConfig
 
   case class NumericalTestInviteData(application: NumericalTestApplication,
                                      scheduleId: Int,
@@ -73,7 +65,7 @@ trait NumericalTestService extends EventSink {
 
   def registerAndInviteForTests(applications: List[NumericalTestApplication])
                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    val schedule = testConfig.schedules(NumericalTestsConfig.numericalTestScheduleName)
+    val schedule = gatewayConfig.numericalTests.schedules(NumericalTestsConfig.numericalTestScheduleName)
     registerAndInvite(applications, schedule)
   }
 

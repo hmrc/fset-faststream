@@ -16,33 +16,26 @@
 
 package controllers
 
-import model.{ ApplicationRoute, Candidate, SearchCandidate }
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.{ ApplicationNotFound, ContactDetailsNotFound, PersonalDetailsNotFound }
-import play.api.libs.json.Json
+import model.{ ApplicationRoute, Candidate, SearchCandidate }
+import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
-import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import services.search.SearchForApplicantService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object SearchForApplicantsController extends SearchForApplicantsController {
-  val appRepository = applicationRepository
-  val psRepository = personalDetailsRepository
-  val cdRepository = faststreamContactDetailsRepository
-  val searchForApplicantService = SearchForApplicantService
-}
-
-trait SearchForApplicantsController extends BaseController {
-
-  val appRepository: GeneralApplicationRepository
-  val psRepository: PersonalDetailsRepository
-  val cdRepository: ContactDetailsRepository
-  val searchForApplicantService: SearchForApplicantService
+@Singleton
+class SearchForApplicantsController @Inject() (appRepository: GeneralApplicationRepository,
+                                               psRepository: PersonalDetailsRepository,
+                                               cdRepository: ContactDetailsRepository,
+                                               searchForApplicantService: SearchForApplicantService
+                                              ) extends BaseController {
 
   val MAX_RESULTS = 25
 
@@ -78,7 +71,7 @@ trait SearchForApplicantsController extends BaseController {
     }
   }
 
-  def findByCriteria = Action.async(parse.json) { implicit request =>
+  def findByCriteria: Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[SearchCandidate] { searchCandidate =>
       createResult(searchForApplicantService.findByCriteria(searchCandidate))
     }

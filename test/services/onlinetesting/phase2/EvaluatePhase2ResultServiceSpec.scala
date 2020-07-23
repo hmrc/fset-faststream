@@ -16,6 +16,7 @@
 
 package services.onlinetesting.phase2
 
+import factories.UUIDFactory
 import model.EvaluationResults.{ Amber, Green }
 import model.ProgressStatuses.ProgressStatus
 import model._
@@ -133,12 +134,12 @@ class EvaluatePhase2ResultServiceSpec extends BaseServiceSpec {
         previousPhaseResultVersion = Some("res-v1"))
     )
 
-    val service = new EvaluatePhase2ResultService {
-      val evaluationRepository = mockPhase2EvaluationRepository
-      val passMarkSettingsRepo = mockPhase2PassMarkSettingsRepository
-      val generalAppRepository = mockApplicationRepository
-      val phase = Phase.PHASE2
-    }
+    val service = new EvaluatePhase2ResultService (
+      mockPhase2EvaluationRepository,
+      mockPhase2PassMarkSettingsRepository,
+      mockApplicationRepository,
+      UUIDFactory
+    )
 
     def createAppWithTestGroup(tests: List[CubiksTest]) = {
       val phase2 = Phase2TestProfileExamples.profile.copy(tests = tests)

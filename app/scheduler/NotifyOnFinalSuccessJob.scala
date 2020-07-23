@@ -17,27 +17,29 @@
 package scheduler
 
 import config.WaitingScheduledJobConfig
-import play.api.Logger
-import scheduler.ProgressToFsbOrOfferJobConfig.conf
+import javax.inject.{ Inject, Singleton }
+import play.api.{ Configuration, Logger }
+import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.clustering.SingleInstanceScheduledJob
+//import scheduler.ProgressToFsbOrOfferJobConfig.conf
 import services.application.FinalOutcomeService
-
-import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 
+import scala.concurrent.{ ExecutionContext, Future }
 
-object NotifyOnFinalSuccessJob extends NotifyOnFinalSuccessJob {
-  val service = FinalOutcomeService
-  val config = NotifyOnFinalSuccessJobConfig
+@Singleton
+class NotifyOnFinalSuccessJobImpl @Inject() (val service: FinalOutcomeService,
+                                             val mongoComponent: ReactiveMongoComponent,
+                                             val config: NotifyOnFinalSuccessJobConfig) extends NotifyOnFinalSuccessJob {
 }
 
 trait NotifyOnFinalSuccessJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val service: FinalOutcomeService
 
-  val batchSize: Int = conf.batchSize.getOrElse(10)
+  val batchSize: Int = config.conf.batchSize.getOrElse(10)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    implicit val hc = HeaderCarrier()
+    implicit val hc: HeaderCarrier = HeaderCarrier()
     service.nextApplicationsFinalSuccessNotification(batchSize).flatMap {
       case Nil =>
         Logger.info("Progress to final success notified complete - no candidates found")
@@ -51,7 +53,9 @@ trait NotifyOnFinalSuccessJob extends SingleInstanceScheduledJob[BasicJobConfig[
   }
 }
 
-object NotifyOnFinalSuccessJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
+@Singleton
+class NotifyOnFinalSuccessJobConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.notify-on-final-success-job",
   name = "NotifyOnFinalSuccessJob"
 )

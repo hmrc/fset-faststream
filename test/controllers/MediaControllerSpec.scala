@@ -25,19 +25,17 @@ import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.MediaRepository
-import services.AuditService
 import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.language.postfixOps
-import uk.gov.hmrc.http.HeaderCarrier
 
 class MediaControllerSpec extends UnitWithAppSpec {
 
   "Add Media" should {
-
     "add media entry" in new TestFixture {
-      val result = TestMediaController.addMedia()(createMedia(
+      val result = testMediaController.addMedia()(createMedia(
         s"""
            |{
            |  "userId":"1234546789",
@@ -51,7 +49,7 @@ class MediaControllerSpec extends UnitWithAppSpec {
     }
 
     "return an error on invalid json" in new TestFixture {
-      val result = TestMediaController.addMedia()(createMedia(
+      val result = testMediaController.addMedia()(createMedia(
         s"""
            |{
            |  "wrongField1":"12345678",
@@ -66,13 +64,9 @@ class MediaControllerSpec extends UnitWithAppSpec {
 
   trait TestFixture extends TestFixtureBase {
     val mockMediaRepo = mock[MediaRepository]
+    when(mockMediaRepo.create(any[Media])).thenReturnAsync()
 
-    object TestMediaController extends MediaController {
-      override val mRepository: MediaRepository = mockMediaRepo
-      override val auditService: AuditService = mockAuditService
-
-      when(mockMediaRepo.create(any[Media])).thenReturnAsync()
-    }
+    val testMediaController = new MediaController(mockMediaRepo, mockAuditService)
 
     def createMedia(jsonString: String) = {
       val json = Json.parse(jsonString)

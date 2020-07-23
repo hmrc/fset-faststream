@@ -16,6 +16,8 @@
 
 package services
 
+import com.google.inject.ImplementedBy
+import javax.inject.Singleton
 import org.joda.time.{ DateTimeZone, LocalDateTime }
 
 trait TimeZoneService {
@@ -30,5 +32,22 @@ trait TimeZoneService {
 }
 
 object GBTimeZoneService extends TimeZoneService {
+  override def timeZone: DateTimeZone = DateTimeZone.forID("Europe/London")
+}
+
+@ImplementedBy(classOf[GBTimeZoneService2])
+trait TimeZoneService2 {
+  def timeZone: DateTimeZone
+
+  /**
+   * Returns a date-time object with a value equal to what the time was, at the given point in time
+   * specified by `utcMillis`, as it was recorded in the location/locale specified by `timeZone`.
+   */
+  def localize(utcMillis: Long): LocalDateTime =
+    new LocalDateTime(utcMillis, timeZone)
+}
+
+@Singleton
+class GBTimeZoneService2 extends TimeZoneService2 {
   override def timeZone: DateTimeZone = DateTimeZone.forID("Europe/London")
 }
