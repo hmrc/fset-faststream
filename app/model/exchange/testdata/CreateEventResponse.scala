@@ -16,16 +16,12 @@
 
 package model.exchange.testdata
 
-import model.testdata.CreateEventData.CreateEventData
+import model.testdata.CreateEventData
 import play.api.libs.json.{ Json, OFormat }
 
+case class CreateEventResponse(generationId: Int, data: CreateEventData) extends CreateTestDataResponse
+
 object CreateEventResponse {
-
-  case class CreateEventResponse(generationId: Int, data: CreateEventData) extends CreateTestDataResponse
-
-  object CreateEventResponse {
-    implicit val createEventResponseFormat: OFormat[CreateEventResponse] =
-      Json.format[CreateEventResponse]
-  }
-
+  implicit val createEventResponseFormat: OFormat[CreateEventResponse] =
+    Json.format[CreateEventResponse]
 }

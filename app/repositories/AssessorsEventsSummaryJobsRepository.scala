@@ -16,9 +16,10 @@
 
 package repositories
 
+import javax.inject.{ Inject, Singleton }
 import model.AssessorNewEventsJobInfo
 import play.api.libs.json.JsObject
-import reactivemongo.api.DB
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -32,15 +33,20 @@ trait AssessorsEventsSummaryJobsRepository {
   def lastRun: Future[Option[AssessorNewEventsJobInfo]]
 }
 
-class AssessorsEventsSummaryJobsMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[AssessorNewEventsJobInfo, BSONObjectID](CollectionNames.ASSESSOR_EVENTS_SUMMARY_JOBS,
-    mongo, AssessorNewEventsJobInfo.format, ReactiveMongoFormats.objectIdFormats) with AssessorsEventsSummaryJobsRepository {
+@Singleton
+class AssessorsEventsSummaryJobsMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[AssessorNewEventsJobInfo, BSONObjectID](
+    CollectionNames.ASSESSOR_EVENTS_SUMMARY_JOBS,
+    mongoComponent.mongoConnector.db,
+    AssessorNewEventsJobInfo.format,
+    ReactiveMongoFormats.objectIdFormats
+  ) with AssessorsEventsSummaryJobsRepository {
 
-  def save(info: AssessorNewEventsJobInfo): Future[Unit] = {
+  override def save(info: AssessorNewEventsJobInfo): Future[Unit] = {
     collection.update(ordered = false).one(BSONDocument.empty, info, upsert = true).map(_ => ())
   }
 
-  def lastRun: Future[Option[AssessorNewEventsJobInfo]] = {
+  override def lastRun: Future[Option[AssessorNewEventsJobInfo]] = {
     collection.find(BSONDocument.empty, projection = Option.empty[JsObject]).one[AssessorNewEventsJobInfo]
   }
 }

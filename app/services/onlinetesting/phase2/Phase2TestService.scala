@@ -16,67 +16,62 @@
 
 package services.onlinetesting.phase2
 
-import _root_.services.AuditService
+import services.AuditService
 import akka.actor.ActorSystem
+import com.google.inject.name.Named
 import common.Phase2TestConcern
-import config.{ OnlineTestsGatewayConfig, Phase2Schedule, Phase2TestsConfig }
+import config.{MicroserviceAppConfig, OnlineTestsGatewayConfig, Phase2Schedule, Phase2TestsConfig}
 import connectors.ExchangeObjects._
-import connectors.{ AuthProviderClient, OnlineTestsGatewayClient, Phase2OnlineTestEmailClient }
-import factories.{ DateTimeFactory, UUIDFactory }
+import connectors.{AuthProviderClient, OnlineTestEmailClient, OnlineTestsGatewayClient, Phase2OnlineTestEmailClient}
+import factories.{DateTimeFactory, UUIDFactory}
+import javax.inject.{Inject, Singleton}
 import model.Exceptions._
 import model.OnlineTestCommands._
 import model.ProgressStatuses._
-import model.command.{ Phase3ProgressResponse, ProgressResponse }
-import model.stc.StcEventTypes.StcEventType
-import model.stc.{ AuditEvent, AuditEvents, DataStoreEvents }
-import model.exchange.{ CubiksTestResultReady, Phase2TestGroupWithActiveTest, PsiRealTimeResults }
+import model.command.{Phase3ProgressResponse, ProgressResponse}
+import model.exchange.{CubiksTestResultReady, Phase2TestGroupWithActiveTest, PsiRealTimeResults}
 import model.persisted._
-import model.{ ApplicationStatus, _ }
+import model.stc.StcEventTypes.StcEventType
+import model.stc.{AuditEvent, AuditEvents, DataStoreEvents}
+import model.{ApplicationStatus, _}
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
-import repositories._
+import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase2TestRepository
-import services.stc.StcEventService
-import services.onlinetesting.Exceptions.{ CannotResetPhase2Tests, NoActiveTestException }
-import services.onlinetesting.phase3.Phase3TestService
+import services.onlinetesting.Exceptions.{CannotResetPhase2Tests, NoActiveTestException}
 import services.onlinetesting.OnlineTestService
+import services.onlinetesting.phase3.Phase3TestService
 import services.sift.ApplicationSiftService
+import services.stc.StcEventService
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.language.postfixOps
-import scala.util.{ Failure, Success, Try }
-import uk.gov.hmrc.http.HeaderCarrier
-
-object Phase2TestService extends Phase2TestService {
-
-  import config.MicroserviceAppConfig._
-
-  val appRepository = applicationRepository
-  val cdRepository = faststreamContactDetailsRepository
-  val testRepository = phase2TestRepository
-  val onlineTestsGatewayClient = OnlineTestsGatewayClient
-  val tokenFactory = UUIDFactory
-  val dateTimeFactory = DateTimeFactory
-  val emailClient = Phase2OnlineTestEmailClient
-  val auditService = AuditService
-  val gatewayConfig = onlineTestsGatewayConfig
-  val actor = ActorSystem()
-  val eventService = StcEventService
-  val authProvider = AuthProviderClient
-  val phase3TestService = Phase3TestService
-  val siftService = ApplicationSiftService
-}
+import scala.util.{Failure, Success, Try}
 
 // scalastyle:off number.of.methods
-trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Phase2TestSelector with ResetPhase2Test {
-  type TestRepository = Phase2TestRepository
-  val actor: ActorSystem
-  val onlineTestsGatewayClient: OnlineTestsGatewayClient
-  val gatewayConfig: OnlineTestsGatewayConfig
-  val authProvider: AuthProviderClient
-  val phase3TestService: Phase3TestService
+@Singleton
+class Phase2TestService @Inject() (appConfig: MicroserviceAppConfig,
+                                   val appRepository: GeneralApplicationRepository,
+                                   val cdRepository: ContactDetailsRepository,
+                                   val testRepository: Phase2TestRepository,
+                                   val onlineTestsGatewayClient: OnlineTestsGatewayClient,
+                                   val tokenFactory: UUIDFactory,
+                                   val dateTimeFactory: DateTimeFactory,
+                                   @Named("Phase2OnlineTestEmailClient") val emailClient: OnlineTestEmailClient,
+                                   val auditService: AuditService,
+                                   val actor: ActorSystem,
+                                   val eventService: StcEventService,
+                                   val authProvider: AuthProviderClient,
+                                   val phase3TestService: Phase3TestService,
+                                   val siftService: ApplicationSiftService
+                                  ) extends OnlineTestService with Phase2TestConcern with Phase2TestSelector with ResetPhase2Test {
+  type TestRepository2 = Phase2TestRepository
 
-  def testConfig: Phase2TestsConfig = gatewayConfig.phase2Tests
+  val gatewayConfig: OnlineTestsGatewayConfig = appConfig.onlineTestsGatewayConfig
+  val testConfig: Phase2TestsConfig = gatewayConfig.phase2Tests
+
 
   case class Phase2TestInviteData(application: OnlineTestApplication,
                                   scheduleId: Int,
@@ -208,7 +203,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
 
   // Not private so tests can access
   protected[phase2] def registerApplicants(candidates: List[OnlineTestApplication], tokens: Seq[String])
-                        (implicit hc: HeaderCarrier): Future[Map[Int, (OnlineTestApplication, String, Registration)]] = {
+                                          (implicit hc: HeaderCarrier): Future[Map[Int, (OnlineTestApplication, String, Registration)]] = {
     onlineTestsGatewayClient.registerApplicants(candidates.size).map(_.zipWithIndex.map { case (registration, idx) =>
       val candidate = candidates(idx)
       audit("Phase2TestRegistered", candidate.userId)
@@ -218,8 +213,8 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
 
   // Not private so tests can access
   protected[phase2] def inviteApplicants(candidateData: Map[Int, (OnlineTestApplication, String, Registration)],
-                      schedule: Phase2Schedule)
-                      (implicit hc: HeaderCarrier): Future[List[Phase2TestInviteData]] = {
+                                         schedule: Phase2Schedule)
+                                        (implicit hc: HeaderCarrier): Future[List[Phase2TestInviteData]] = {
     val invites = candidateData.values.map { case (application, token, registration) =>
       buildInviteApplication(application, token, registration.userId, schedule)
     }.toList
@@ -294,7 +289,7 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
   }
 
   private def registerAndInviteForTestGroup(applications: List[OnlineTestApplication], schedule: Phase2Schedule,
-                                              expiresDate: Option[DateTime] = None)
+                                            expiresDate: Option[DateTime] = None)
                                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[OnlineTestApplication]] = {
     require(applications.map(_.isInvigilatedETray).distinct.size <= 1, "the batch can have only one type of invigilated e-tray")
 
@@ -441,14 +436,14 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
   }
 
   def emailInviteToApplicants(candidates: List[OnlineTestApplication])
-    (implicit hc: HeaderCarrier, rh: RequestHeader, invitationDate: DateTime, expirationDate: DateTime): Future[Unit] =
-  Future.sequence(candidates.map { candidate =>
-    if (candidate.isInvigilatedETray) {
-      Future.successful(())
-    } else {
-      candidateEmailAddress(candidate.userId).flatMap(emailInviteToApplicant(candidate, _ , invitationDate, expirationDate))
-    }
-  }).map( _ => () )
+                             (implicit hc: HeaderCarrier, rh: RequestHeader, invitationDate: DateTime, expirationDate: DateTime): Future[Unit] =
+    Future.sequence(candidates.map { candidate =>
+      if (candidate.isInvigilatedETray) {
+        Future.successful(())
+      } else {
+        candidateEmailAddress(candidate.userId).flatMap(emailInviteToApplicant(candidate, _ , invitationDate, expirationDate))
+      }
+    }).map( _ => () )
 
   def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTriggeredBy: String)
                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
@@ -534,13 +529,11 @@ trait Phase2TestService extends OnlineTestService with Phase2TestConcern with Ph
         }
       }
     }
-
     val testResults = Future.sequence(testProfile.testGroup.activeTests.flatMap { test =>
       test.reportId.map { reportId =>
         onlineTestsGatewayClient.downloadXmlReport(reportId)
       }.map(_.map(_ -> test))
     })
-
     for {
       eventualTestResults <- testResults
       _ <- insertTests(eventualTestResults)

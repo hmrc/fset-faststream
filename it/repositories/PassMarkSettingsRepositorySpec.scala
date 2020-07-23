@@ -17,11 +17,10 @@
 package repositories
 
 import model.SchemeId
-import model.SchemeId._
 import model.exchange.passmarksettings._
 import org.joda.time.DateTime
-import org.scalatestplus.play.OneAppPerTest
-import play.api.libs.json.Format
+import play.api.libs.json.{ Format, OFormat }
+import reactivemongo.api.indexes.IndexType.Ascending
 import repositories.passmarksettings._
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -29,7 +28,7 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 class Phase1PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   type T = Phase1PassMarkSettings
   type U = Phase1PassMark
-  implicit val formatter = Phase1PassMarkSettings.jsonFormat
+  implicit val formatter: OFormat[Phase1PassMarkSettings] = Phase1PassMarkSettings.jsonFormat
   val phase1PassMarkThresholds = Phase1PassMarkThresholds(
     PassMarkThreshold(20d, 80d), PassMarkThreshold(20d, 80d), PassMarkThreshold(20d, 80d), PassMarkThreshold(20d, 80d)
   )
@@ -39,8 +38,8 @@ class Phase1PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
     PassMarkThreshold(30d, 80d), PassMarkThreshold(20d, 60d), PassMarkThreshold(30d, 80d), PassMarkThreshold(20d, 60d)
   )
   val newPassMarks = List(Phase1PassMark(SchemeId("Finance"), newPassMarkThresholds))
-  def passMarkSettingsRepo = phase1PassMarkSettingsRepository
-  val collectionName = CollectionNames.PHASE1_PASS_MARK_SETTINGS
+  def passMarkSettingsRepo = new Phase1PassMarkSettingsMongoRepository(mongo)
+  val collectionName: String = CollectionNames.PHASE1_PASS_MARK_SETTINGS
 
   override def copyNewPassMarkSettings(o: Phase1PassMarkSettings, newPassMarks: List[Phase1PassMark], newVersion: String, newDate:
   DateTime, newUser: String): Phase1PassMarkSettings = {
@@ -51,14 +50,14 @@ class Phase1PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
 class Phase2PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   type T = Phase2PassMarkSettings
   type U = Phase2PassMark
-  implicit val formatter = Phase2PassMarkSettings.jsonFormat
+  implicit val formatter: OFormat[Phase2PassMarkSettings] = Phase2PassMarkSettings.jsonFormat
   val phase2PassMarkThresholds = Phase2PassMarkThresholds(PassMarkThreshold(20d, 80d), PassMarkThreshold(20d, 80d))
   val phase2PassMarks = List(Phase2PassMark(SchemeId("Finance"), phase2PassMarkThresholds))
   val passMarkSettings = Phase2PassMarkSettings(phase2PassMarks, version, createdDate, createdByUser)
   val newPassMarkThresholds = Phase2PassMarkThresholds(PassMarkThreshold(30d, 80d), PassMarkThreshold(30d, 80d))
   val newPassMarks = List(Phase2PassMark(SchemeId("Finance"), newPassMarkThresholds))
-  def passMarkSettingsRepo = phase2PassMarkSettingsRepository
-  val collectionName = CollectionNames.PHASE2_PASS_MARK_SETTINGS
+  def passMarkSettingsRepo = new Phase2PassMarkSettingsMongoRepository(mongo)
+  val collectionName: String = CollectionNames.PHASE2_PASS_MARK_SETTINGS
 
   override def copyNewPassMarkSettings(o: Phase2PassMarkSettings, newPassMarks: List[Phase2PassMark], newVersion: String, newDate:
     DateTime, newUser: String): Phase2PassMarkSettings = {
@@ -69,14 +68,14 @@ class Phase2PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
 class Phase3PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   type T = Phase3PassMarkSettings
   type U = Phase3PassMark
-  implicit val formatter = Phase3PassMarkSettings.jsonFormat
+  implicit val formatter: OFormat[Phase3PassMarkSettings] = Phase3PassMarkSettings.jsonFormat
   val phase3PassMarkThresholds = Phase3PassMarkThresholds(PassMarkThreshold(20d, 80d))
   val phase3PassMarks = List(Phase3PassMark(SchemeId("Finance"), phase3PassMarkThresholds))
   val passMarkSettings = Phase3PassMarkSettings(phase3PassMarks, version, createdDate, createdByUser)
   val newPassMarkThresholds = Phase3PassMarkThresholds(PassMarkThreshold(30d, 80d))
   val newPassMarks = List(Phase3PassMark(SchemeId("Finance"), newPassMarkThresholds))
-  def passMarkSettingsRepo = phase3PassMarkSettingsRepository
-  val collectionName = CollectionNames.PHASE3_PASS_MARK_SETTINGS
+  def passMarkSettingsRepo = new Phase3PassMarkSettingsMongoRepository(mongo)
+  val collectionName: String = CollectionNames.PHASE3_PASS_MARK_SETTINGS
 
   override def copyNewPassMarkSettings(o: Phase3PassMarkSettings, newPassMarks: List[Phase3PassMark], newVersion: String, newDate:
   DateTime, newUser: String): Phase3PassMarkSettings = {
@@ -87,7 +86,7 @@ class Phase3PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
 class AssessmentCentrePassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   type T = AssessmentCentrePassMarkSettings
   type U = AssessmentCentrePassMark
-  implicit val formatter = AssessmentCentrePassMarkSettings.jsonFormat
+  implicit val formatter: OFormat[AssessmentCentrePassMarkSettings] = AssessmentCentrePassMarkSettings.jsonFormat
   val competencyPassMark = PassMarkThreshold(2.0d, 3.0d)
   val overallPassMark = PassMarkThreshold(2.0d, 14.0d)
   val assessmentCentrePassMarkThresholds = AssessmentCentrePassMarkThresholds(competencyPassMark, competencyPassMark, competencyPassMark,
@@ -98,8 +97,8 @@ class AssessmentCentrePassMarkSettingsRepositorySpec extends PassMarkRepositoryF
   val newPassMarkThresholds = AssessmentCentrePassMarkThresholds(competencyPassMark, competencyPassMark, competencyPassMark,
     competencyPassMark, newOverallPassMark)
   val newPassMarks = List(AssessmentCentrePassMark(SchemeId("Finance"), newPassMarkThresholds))
-  def passMarkSettingsRepo = assessmentCentrePassMarkSettingsRepository
-  val collectionName = CollectionNames.ASSESSMENT_CENTRE_PASS_MARK_SETTINGS
+  def passMarkSettingsRepo = new AssessmentCentrePassMarkSettingsMongoRepository(mongo)
+  val collectionName: String = CollectionNames.ASSESSMENT_CENTRE_PASS_MARK_SETTINGS
 
   override def copyNewPassMarkSettings(o: AssessmentCentrePassMarkSettings,
                                        newPassMarks: List[AssessmentCentrePassMark],
@@ -128,9 +127,9 @@ trait PassMarkRepositoryFixture extends MongoRepositorySpec {
 
   "Pass-mark-settings collection" should {
     "create indexes for the repository" in {
-      val indexes = indexesWithFields(passMarkSettingsRepo.asInstanceOf[ReactiveRepository[_, _]])
-      indexes must contain (List("_id"))
-      indexes must contain (List("createDate"))
+      val indexes = indexesWithFields2(passMarkSettingsRepo.asInstanceOf[ReactiveRepository[_, _]])
+      indexes must contain (IndexDetails(key = Seq(("_id", Ascending)), unique = false))
+      indexes must contain (IndexDetails(key = Seq(("createDate", Ascending)), unique = true))
       indexes.size mustBe 2
     }
   }

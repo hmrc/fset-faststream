@@ -16,10 +16,12 @@
 
 package services.sift
 
+import com.google.inject.name.Named
 import common.FutureEx
-import connectors.{ CSREmailClient, EmailClient }
+import connectors.OnlineTestEmailClient
 import factories.DateTimeFactory
-import model.EvaluationResults.{ Green, Red, Result, Withdrawn }
+import javax.inject.{ Inject, Singleton }
+import model.EvaluationResults.{ Green, Red, Withdrawn }
 import model.Exceptions.{ SiftResultsAlreadyExistsException, UnexpectedException }
 import model.ProgressStatuses.SIFT_ENTERED
 import model._
@@ -31,10 +33,10 @@ import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered, SiftReminderNotice 
 import org.joda.time.DateTime
 import play.api.Logger
 import reactivemongo.bson.BSONDocument
-import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
-import repositories.contactdetails.{ ContactDetailsMongoRepository, ContactDetailsRepository }
-import repositories.sift.{ ApplicationSiftMongoRepository, ApplicationSiftRepository }
-import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
+import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
+import repositories.sift.ApplicationSiftRepository
+import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepository }
 import services.allocation.CandidateAllocationService.CouldNotFindCandidateWithApplication
 import services.onlinetesting.Exceptions.NoActiveTestException
 import uk.gov.hmrc.http.HeaderCarrier
@@ -43,24 +45,16 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-object ApplicationSiftService extends ApplicationSiftService {
-  val SiftExpiryWindowInDays: Int = 7
-  val applicationSiftRepo: ApplicationSiftMongoRepository = repositories.applicationSiftRepository
-  val applicationRepo: GeneralApplicationMongoRepository = repositories.applicationRepository
-  val contactDetailsRepo: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
-  val schemeRepo: SchemeRepository = SchemeYamlRepository
-  val dateTimeFactory: DateTimeFactory = DateTimeFactory
-  val emailClient: CSREmailClient = CSREmailClient
-}
-
+@Singleton
 // scalastyle:off number.of.methods
-trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDocuments {
-  val SiftExpiryWindowInDays: Int
-  def applicationSiftRepo: ApplicationSiftRepository
-  def applicationRepo: GeneralApplicationRepository
-  def contactDetailsRepo: ContactDetailsRepository
-  def schemeRepo: SchemeRepository
-  def emailClient: EmailClient
+class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepository,
+                                        applicationRepo: GeneralApplicationRepository,
+                                        contactDetailsRepo: ContactDetailsRepository,
+                                        schemeRepo: SchemeRepository,
+                                        val dateTimeFactory: DateTimeFactory,
+                                        @Named("CSREmailClient") emailClient: OnlineTestEmailClient // TODO: had to change the type
+                                       ) extends CurrentSchemeStatusHelper with CommonBSONDocuments {
+  val SiftExpiryWindowInDays: Int = 7
 
   def nextApplicationsReadyForSiftStage(batchSize: Int): Future[Seq[ApplicationForSift]] = {
     applicationSiftRepo.nextApplicationsForSiftStage(batchSize)
@@ -80,18 +74,18 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   }
 
   def sendReminderNotification(expiringSift: NotificationExpiringSift,
-    siftReminderNotice: SiftReminderNotice)(implicit hc: HeaderCarrier): Future[Unit] = {
-      for {
-        emailAddress <- contactDetailsRepo.find(expiringSift.userId).map(_.email)
-        _ <- emailClient.sendSiftReminder(emailAddress, expiringSift.preferredName, siftReminderNotice.hoursBeforeReminder,
-          siftReminderNotice.timeUnit, expiringSift.expiryDate)
-        _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(expiringSift.applicationId, siftReminderNotice.progressStatus)
-      } yield {
-        val msg = s"Sift reminder email sent to candidate whose applicationId = ${expiringSift.applicationId} " +
-          s"${siftReminderNotice.hoursBeforeReminder} hours before expiry and candidate status updated " +
-          s"to ${siftReminderNotice.progressStatus}"
-        Logger.info(msg)
-      }
+                               siftReminderNotice: SiftReminderNotice)(implicit hc: HeaderCarrier): Future[Unit] = {
+    for {
+      emailAddress <- contactDetailsRepo.find(expiringSift.userId).map(_.email)
+      _ <- emailClient.sendSiftReminder(emailAddress, expiringSift.preferredName, siftReminderNotice.hoursBeforeReminder,
+        siftReminderNotice.timeUnit, expiringSift.expiryDate)
+      _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(expiringSift.applicationId, siftReminderNotice.progressStatus)
+    } yield {
+      val msg = s"Sift reminder email sent to candidate whose applicationId = ${expiringSift.applicationId} " +
+        s"${siftReminderNotice.hoursBeforeReminder} hours before expiry and candidate status updated " +
+        s"to ${siftReminderNotice.progressStatus}"
+      Logger.info(msg)
+    }
   }
 
   def isSiftExpired(applicationId: String): Future[Boolean] = {
@@ -119,8 +113,8 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
     updates.map(SerialUpdateResult.fromEither)
   }
 
-  def saveSiftExpiryDate(applicationId: String,
-                         expiryDate: DateTime = DateTimeFactory.nowLocalTimeZone.plusDays(SiftExpiryWindowInDays)): Future[Unit] = {
+  def saveSiftExpiryDate(applicationId: String): Future[Unit] = {
+    val expiryDate = dateTimeFactory.nowLocalTimeZone.plusDays(SiftExpiryWindowInDays)
     applicationSiftRepo.saveSiftExpiryDate(applicationId, expiryDate).map(_ => ())
   }
 
@@ -268,8 +262,8 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   }
 
   private def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult,
-    updateBuilder: (Seq[SchemeEvaluationResult], Seq[SchemeEvaluationResult]) => Seq[BSONDocument]
-  ): Future[Unit] = {
+                                       updateBuilder: (Seq[SchemeEvaluationResult], Seq[SchemeEvaluationResult]) => Seq[BSONDocument]
+                                      ): Future[Unit] = {
     (for {
       currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(applicationId)
       currentSiftEvaluation <- applicationSiftRepo.getSiftEvaluations(applicationId).recover { case _ => Nil }
@@ -282,8 +276,8 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   }
 
   private def buildSiftSettableFields(result: SchemeEvaluationResult, schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId])
-    (currentSchemeStatus: Seq[SchemeEvaluationResult], currentSiftEvaluation: Seq[SchemeEvaluationResult]
-  ): Seq[BSONDocument] = {
+                                     (currentSchemeStatus: Seq[SchemeEvaluationResult], currentSiftEvaluation: Seq[SchemeEvaluationResult]
+                                     ): Seq[BSONDocument] = {
     val newSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, result :: Nil)
     val candidatesGreenSchemes = currentSchemeStatus.collect { schemeFilter }
     val candidatesSiftableSchemes = schemeRepo.siftableAndEvaluationRequiredSchemeIds.filter(s => candidatesGreenSchemes.contains(s))
@@ -324,7 +318,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   // we need to consider that all siftable schemes have been sifted with a fail or the candidate has withdrawn from them
   // and sdip has been sifted with a pass
   private def maybeSetSdipFaststreamProgressStatus(newSchemeEvaluationResult: Seq[SchemeEvaluationResult],
-    siftedSchemes: Seq[SchemeId], candidatesSiftableSchemes: Seq[SchemeId]) = {
+                                                   siftedSchemes: Seq[SchemeId], candidatesSiftableSchemes: Seq[SchemeId]) = {
 
     // Sdip has been sifted and it passed
     val SdipEvaluationResultPassed = SchemeEvaluationResult(Scheme.SdipId, Green.toString)
@@ -344,7 +338,7 @@ trait ApplicationSiftService extends CurrentSchemeStatusHelper with CommonBSONDo
   }
 
   def findStuckUsersCalculateCorrectProgressStatus(currentSchemeStatus: Seq[SchemeEvaluationResult],
-    currentSiftEvaluation: Seq[SchemeEvaluationResult]): BSONDocument = {
+                                                   currentSiftEvaluation: Seq[SchemeEvaluationResult]): BSONDocument = {
 
     val candidatesGreenSchemes = currentSchemeStatus.collect { schemeFilter }
     val candidatesSiftableSchemes = schemeRepo.siftableAndEvaluationRequiredSchemeIds.filter(s => candidatesGreenSchemes.contains(s))

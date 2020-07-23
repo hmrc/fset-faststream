@@ -17,16 +17,22 @@
 package scheduler.onlinetesting
 
 import config.ScheduledJobConfig
-import model._
+import javax.inject.{ Inject, Singleton }
+import play.api.Configuration
+import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.phase1.Phase1TestService
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object ProgressSdipForFaststreamCandidateJob extends ProgressSdipForFaststreamCandidateJob {
-  override val service = Phase1TestService
-  val config = ProgressSdipForFaststreamCandidateJobConfig
+@Singleton
+class ProgressSdipForFaststreamCandidateJobImpl @Inject() (val service: Phase1TestService,
+                                                           val mongoComponent: ReactiveMongoComponent,
+                                                           val config: ProgressSdipForFaststreamCandidateJobConfig
+                                                          ) extends ProgressSdipForFaststreamCandidateJob {
+  //  override val service = Phase1TestService
+  //  val config = ProgressSdipForFaststreamCandidateJobConfig
 }
 
 trait ProgressSdipForFaststreamCandidateJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
@@ -40,7 +46,9 @@ trait ProgressSdipForFaststreamCandidateJob extends SingleInstanceScheduledJob[B
   }
 }
 
-object ProgressSdipForFaststreamCandidateJobConfig extends BasicJobConfig[ScheduledJobConfig](
+@Singleton
+class ProgressSdipForFaststreamCandidateJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.online-testing.progress-sdipFs-candidate-for-sdip-job",
   name = "ProgressSdipForFaststreamCandidateJob"
 )

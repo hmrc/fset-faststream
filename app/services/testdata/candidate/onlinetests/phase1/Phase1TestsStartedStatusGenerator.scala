@@ -17,12 +17,11 @@
 package services.testdata.candidate.onlinetests.phase1
 
 import common.FutureEx
+import javax.inject.{ Inject, Singleton }
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
-import repositories._
-import repositories.onlinetesting.Phase1TestRepository
 import services.onlinetesting.phase1.Phase1TestService2
 import services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.http.HeaderCarrier
@@ -30,16 +29,13 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object Phase1TestsStartedStatusGenerator extends Phase1TestsStartedStatusGenerator {
-  override val previousStatusGenerator = Phase1TestsInvitedStatusGenerator
-  override val otService = Phase1TestService2
-}
-
-trait Phase1TestsStartedStatusGenerator extends ConstructiveGenerator {
-  val otService: Phase1TestService2
+@Singleton
+class Phase1TestsStartedStatusGenerator @Inject() (val previousStatusGenerator: Phase1TestsInvitedStatusGenerator,
+                                                   otService: Phase1TestService2
+                                                  ) extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
-      (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- FutureEx.traverseSerial(candidate.phase1TestGroup.get.tests.map(_.orderId))(orderId =>

@@ -17,6 +17,7 @@
 package repositories.assessmentcentre
 
 import factories.DateTimeFactory
+import javax.inject.{ Inject, Singleton }
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Amber, AssessmentEvaluationResult, CompetencyAverageResult }
 import model.Exceptions.NotFoundException
@@ -26,7 +27,8 @@ import model.assessmentscores.FixUserStuckInScoresAccepted
 import model.command.{ ApplicationForProgression, ApplicationForSift }
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.AssessmentCentreTests
-import reactivemongo.api.{ Cursor, DB }
+import play.modules.reactivemongo.ReactiveMongoComponent
+import reactivemongo.api.Cursor
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
@@ -53,11 +55,11 @@ trait AssessmentCentreRepository {
   def getTests(applicationId: String): Future[AssessmentCentreTests]
   def updateTests(applicationId: String, tests: AssessmentCentreTests): Future[Unit]
   def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String, batchSize: Int): Future[List[UniqueIdentifier]]
-  def nextSpecificApplicationReadyForAssessmentScoreEvaluation(
-    currentPassmarkVersion: String, applicationId: String): Future[List[UniqueIdentifier]]
+  def nextSpecificApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String,
+                                                               applicationId: String): Future[List[UniqueIdentifier]]
   def getAssessmentScoreEvaluation(applicationId: String): Future[Option[AssessmentPassMarkEvaluation]]
   def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation,
-    currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
+                                    currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
   def getFsacEvaluationResultAverages(applicationId: String): Future[Option[CompetencyAverageResult]]
   def getFsacEvaluatedSchemes(applicationId: String): Future[Option[Seq[SchemeEvaluationResult]]]
   def removeFsacTestGroup(applicationId: String): Future[Unit]
@@ -65,14 +67,18 @@ trait AssessmentCentreRepository {
   def findNonPassedNonFailedNonAmberUsersInAssessmentScoresAccepted: Future[Seq[FixUserStuckInScoresAccepted]]
 }
 
-class AssessmentCentreMongoRepository (
-  val dateTimeFactory: DateTimeFactory,
-  val siftableSchemeIds: Seq[SchemeId]
-)(implicit mongo: () => DB)
-  extends ReactiveRepository[ApplicationForSift, BSONObjectID](CollectionNames.APPLICATION, mongo,
+@Singleton
+class AssessmentCentreMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
+                                                 schemeRepository: SchemeRepository, //TODO:fix guice just inject the list
+//                                                  val siftableSchemeIds: Seq[SchemeId],
+                                                 mongoComponent: ReactiveMongoComponent
+                                                )
+  extends ReactiveRepository[ApplicationForSift, BSONObjectID](
+    CollectionNames.APPLICATION,
+    mongoComponent.mongoConnector.db,
     ApplicationForSift.applicationForSiftFormat,
     ReactiveMongoFormats.objectIdFormats
-) with AssessmentCentreRepository with RandomSelection with ReactiveRepositoryHelpers with GeneralApplicationRepoBSONReader
+  ) with AssessmentCentreRepository with RandomSelection with ReactiveRepositoryHelpers with GeneralApplicationRepoBSONReader
     with CommonBSONDocuments with CurrentSchemeStatusHelper {
 
   val fsacKey = "FSAC"
@@ -83,7 +89,7 @@ class AssessmentCentreMongoRepository (
     val fastStreamNoSiftableSchemes = BSONDocument(
       "applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
       "currentSchemeStatus" -> BSONDocument("$elemMatch" -> BSONDocument(
-        "schemeId" -> BSONDocument("$nin" -> siftableSchemeIds),
+        "schemeId" -> BSONDocument("$nin" -> schemeRepository.siftableSchemeIds),
         "result" -> EvaluationResults.Green.toString
       )))
 
@@ -102,7 +108,7 @@ class AssessmentCentreMongoRepository (
     unfiltered.map(_.filter { app =>
       app.applicationStatus match {
         case ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED => app.currentSchemeStatus.filter(_.result == EvaluationResults.Green.toString)
-            .forall(s => !siftableSchemeIds.contains(s.schemeId))
+          .forall(s => !schemeRepository.siftableSchemeIds.contains(s.schemeId))
         case ApplicationStatus.SIFT => app.currentSchemeStatus.exists(_.result == EvaluationResults.Green.toString)
       }
     })
@@ -123,8 +129,8 @@ class AssessmentCentreMongoRepository (
   // FSAC with a single Green scheme and still have others that are in Amber. These candidates need to be re-evaluated
   // when the pass marks change
   override def nextApplicationReadyForAssessmentScoreEvaluation(
-    currentPassmarkVersion: String,
-    batchSize: Int): Future[List[UniqueIdentifier]] = {
+                                                                 currentPassmarkVersion: String,
+                                                                 batchSize: Int): Future[List[UniqueIdentifier]] = {
     val query =
       BSONDocument("$or" ->
         BSONArray(
@@ -148,8 +154,8 @@ class AssessmentCentreMongoRepository (
   }
 
   override def nextSpecificApplicationReadyForAssessmentScoreEvaluation(
-    currentPassmarkVersion: String,
-    applicationId: String): Future[List[UniqueIdentifier]] = {
+                                                                         currentPassmarkVersion: String,
+                                                                         applicationId: String): Future[List[UniqueIdentifier]] = {
     val projection = BSONDocument("_id" -> false, "applicationId" -> true)
     val query =
       BSONDocument("$or" ->
@@ -201,7 +207,7 @@ class AssessmentCentreMongoRepository (
   }
 
   override def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation,
-    currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = {
+                                             currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> evaluation.applicationId),
       BSONDocument("applicationStatus" -> BSONDocument("$ne" -> ApplicationStatus.WITHDRAWN))
@@ -214,7 +220,7 @@ class AssessmentCentreMongoRepository (
           .merge(BSONDocument("schemes-evaluation" -> evaluation.evaluationResult.schemesEvaluation))
       ).merge(currentSchemeStatusBSON(currentSchemeStatus)))
 
-//    collection.update(query, passMarkEvaluation, upsert = false) map { _ => () }
+    //    collection.update(query, passMarkEvaluation, upsert = false) map { _ => () }
     collection.update(ordered = false).one(query, passMarkEvaluation) map { _ => () }
   }
 

@@ -19,6 +19,7 @@ package controllers
 import akka.stream.scaladsl.Source
 import connectors.AuthProviderClient
 import connectors.exchange.AssessorDiagnosticReport
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.NotFoundException
 import model.UniqueIdentifier
 import play.api.libs.json.{ JsObject, Json }
@@ -26,29 +27,36 @@ import play.api.libs.streams.Streams
 import play.api.mvc.{ Action, AnyContent }
 import repositories._
 import repositories.application.DiagnosticReportingRepository
-import repositories.events.EventsMongoRepository
+import repositories.events.EventsRepository
 import services.assessor.AssessorService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
-
+/*
 object DiagnosticReportController extends DiagnosticReportController {
   val drRepository: DiagnosticReportingRepository = diagnosticReportRepository
   val assessorAssessmentCentreScoresRepo: AssessorAssessmentScoresMongoRepository = repositories.assessorAssessmentScoresRepository
   val reviewerAssessmentCentreScoresRepo: ReviewerAssessmentScoresMongoRepository = repositories.reviewerAssessmentScoresRepository
   val eventsRepo: EventsMongoRepository = repositories.eventsRepository
-  val authProvider: AuthProviderClient = AuthProviderClient
+//  val authProvider: AuthProviderClient = AuthProviderClient //TODO:fix
   val assessorService: AssessorService = AssessorService
-}
+}*/
 
-trait DiagnosticReportController extends BaseController {
+@Singleton
+class DiagnosticReportController @Inject() (drRepository: DiagnosticReportingRepository,
+                                            assessorAssessmentCentreScoresRepo: AssessorAssessmentScoresMongoRepository,
+                                            reviewerAssessmentCentreScoresRepo: ReviewerAssessmentScoresMongoRepository,
+                                            eventsRepo: EventsRepository,
+                                            authProvider: AuthProviderClient,
+                                            assessorService: AssessorService
+                                           ) extends BaseController {
 
-  def drRepository: DiagnosticReportingRepository
-  def assessorAssessmentCentreScoresRepo: AssessmentScoresMongoRepository
-  def reviewerAssessmentCentreScoresRepo: AssessmentScoresMongoRepository
-  def eventsRepo: EventsMongoRepository
-  def authProvider: AuthProviderClient
-  def assessorService: AssessorService
+//  def drRepository: DiagnosticReportingRepository
+//  def assessorAssessmentCentreScoresRepo: AssessmentScoresMongoRepository
+//  def reviewerAssessmentCentreScoresRepo: AssessmentScoresMongoRepository
+//  def eventsRepo: EventsMongoRepository
+//  def authProvider: AuthProviderClient
+//  def assessorService: AssessorService
 
   def getApplicationByUserId(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
 

@@ -16,25 +16,25 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.{ ApplicationNotFound, LastSchemeWithdrawException, SiftExpiredException }
 import model.command.{ WithdrawApplication, WithdrawScheme }
 import play.api.libs.json.JsValue
 import play.api.mvc.Action
 import services.application.ApplicationService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object WithdrawController extends WithdrawController(ApplicationService)
-
-abstract class WithdrawController(applicationService: ApplicationService) extends BaseController {
+@Singleton
+class WithdrawController @Inject() (applicationService: ApplicationService) extends BaseController {
 
   def withdrawApplication(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[WithdrawApplication] { withdrawRequest =>
       applicationService.withdraw(applicationId, withdrawRequest).map { _ =>
         Ok
       }.recover {
-        case e: ApplicationNotFound => NotFound(s"cannot find application with id: ${e.id}")
+        case e: ApplicationNotFound => NotFound(s"Cannot find application with id: ${e.id}")
         case e: SiftExpiredException => Forbidden(e.m)
       }
     }
@@ -50,5 +50,4 @@ abstract class WithdrawController(applicationService: ApplicationService) extend
         }
     }
   }
-
 }

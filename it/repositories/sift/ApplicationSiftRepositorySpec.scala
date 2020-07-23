@@ -10,7 +10,6 @@ import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.prop.TableDrivenPropertyChecks
 import reactivemongo.bson.BSONDocument
-import repositories.onlinetesting.Phase2EvaluationMongoRepositorySpec.phase2TestWithResult
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.{ MockitoSugar, MongoRepositorySpec }
 
@@ -180,8 +179,25 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
   )
   ) = {
 
+    val phase2Test = List(model.persisted.PsiTest(inventoryId = "inventoryId",
+                                                  orderId = "orderId",
+                                                  usedForResults = true,
+                                                  testUrl = "http://localhost",
+                                                  invitationDate = now,
+                                                  assessmentId = "assessmentId",
+                                                  reportId = "reportId",
+                                                  normId = "normId"))
+
+    def phase2TestWithResults(testResult: model.persisted.PsiTestResult) = {
+      phase2Test.map(t => t.copy(testResult = Some(testResult)))
+    }
+
+    val phase2TestWithResult = phase2TestWithResults(model.persisted.PsiTestResult(
+      tScore = 20.5, rawScore = 20.5, testReportUrl = None)
+    )
     val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave, "phase2_version2-res", None)
-    insertApplication(appAndUserId,
+
+    insertApplication2(appAndUserId,
       ApplicationStatus.PHASE3_TESTS, None, Some(phase2TestWithResult),
       Some(phase3TestWithResult),
       schemes = List(Commercial, DiplomaticServiceEconomists),

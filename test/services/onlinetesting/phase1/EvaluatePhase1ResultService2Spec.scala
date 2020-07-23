@@ -16,7 +16,8 @@
 
 package services.onlinetesting.phase1
 
-import config.{ Phase1TestsConfig2, PsiTestIds, TestIntegrationGatewayConfig }
+import config.{ MicroserviceAppConfig, Phase1TestsConfig2, PsiTestIds, TestIntegrationGatewayConfig }
+import factories.UUIDFactory
 import model.EvaluationResults.Green
 import model.Phase1TestExamples._
 import model.ProgressStatuses.ProgressStatus
@@ -26,7 +27,7 @@ import model.persisted._
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
-import repositories.onlinetesting.OnlineTestEvaluationRepository
+import repositories.onlinetesting.Phase1EvaluationMongoRepository
 import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import services.BaseServiceSpec
 
@@ -159,9 +160,15 @@ class EvaluatePhase1ResultService2Spec extends BaseServiceSpec {
     val EvaluateForNonGis = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString))
     val ExpectedPassmarkEvaluation = PassmarkEvaluation(PassmarkVersion, None, EvaluateForNonGis, "", None)
 
-    val mockPhase1EvaluationRepository = mock[OnlineTestEvaluationRepository]
-    val mockTestIntegrationGatewayConfig = mock[TestIntegrationGatewayConfig]
+    val mockPhase1EvaluationRepository = mock[Phase1EvaluationMongoRepository]
     val mockPhase1PMSRepository = mock[Phase1PassMarkSettingsMongoRepository]
+    val mockAppConfig = mock[MicroserviceAppConfig]
+    val mockTestIntegrationGatewayConfig = mock[TestIntegrationGatewayConfig]
+
+    when(mockAppConfig.testIntegrationGatewayConfig).thenReturn(mockTestIntegrationGatewayConfig)
+
+//    val mockPhase1EvaluationRepository = mock[OnlineTestEvaluationRepository]
+
 
     when(mockPhase1EvaluationRepository.savePassmarkEvaluation(eqTo(AppId), any[PassmarkEvaluation], any[Option[ProgressStatus]]))
       .thenReturn(Future.successful(()))
@@ -185,7 +192,7 @@ class EvaluatePhase1ResultService2Spec extends BaseServiceSpec {
       gis = List("test1", "test4")
     )
     when(mockTestIntegrationGatewayConfig.phase1Tests).thenReturn(mockPhase1TestConfig)
-
+/*
     val service = new EvaluatePhase1ResultService2 with StubbedPhase1TestEvaluation {
       val evaluationRepository = mockPhase1EvaluationRepository
       val gatewayConfig = mockTestIntegrationGatewayConfig
@@ -201,14 +208,48 @@ class EvaluatePhase1ResultService2Spec extends BaseServiceSpec {
           case _ => throw new IllegalStateException(s"Unknown test: $testName")
         }
       }
-    }
+    }*/
 
+    val service = new EvaluatePhase1ResultService2(
+      mockPhase1EvaluationRepository,
+      mockPhase1PMSRepository,
+      mockAppConfig,
+      UUIDFactory
+    ) with StubbedPhase1TestEvaluation {
+      override def inventoryIdForTest(testName: String) = {
+        testName match {
+          case "test1" => "inventoryId1"
+          case "test2" => "inventoryId2"
+          case "test3" => "inventoryId3"
+          case "test4" => "inventoryId4"
+          case _ => throw new IllegalStateException(s"Unknown test: $testName")
+        }
+      }
+    }
+/*
     val edipSkipEvaluationService = new EvaluatePhase1ResultService2 {
       val evaluationRepository = mockPhase1EvaluationRepository
       val gatewayConfig = mockTestIntegrationGatewayConfig
       val passMarkSettingsRepo = mockPhase1PMSRepository
       val phase = Phase.PHASE1
 
+      override def inventoryIdForTest(testName: String) = {
+        testName match {
+          case "test1" => "inventoryId1"
+          case "test2" => "inventoryId2"
+          case "test3" => "inventoryId3"
+          case "test4" => "inventoryId4"
+          case _ => throw new IllegalStateException(s"Unknown test: $testName")
+        }
+      }
+    }*/
+
+    val edipSkipEvaluationService = new EvaluatePhase1ResultService2(
+      mockPhase1EvaluationRepository,
+      mockPhase1PMSRepository,
+      mockAppConfig,
+      UUIDFactory
+    ) {
       override def inventoryIdForTest(testName: String) = {
         testName match {
           case "test1" => "inventoryId1"

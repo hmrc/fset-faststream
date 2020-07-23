@@ -16,25 +16,25 @@
 
 package services.application
 
-import connectors.EmailClient
+import connectors.OnlineTestEmailClient
 import model.EvaluationResults.{ Green, Red }
-import model.persisted.{ ContactDetails, FsbTestGroup, SchemeEvaluationResult }
 import model._
 import model.exchange.FsbScoresAndFeedback
 import model.persisted.fsb.ScoresAndFeedback
+import model.persisted.{ ContactDetails, FsbTestGroup, SchemeEvaluationResult }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
+import repositories.SchemeRepository
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.FsbRepository
-import repositories.{ SchemeRepository, SchemeYamlRepository }
+import services.scheme.SchemePreferencesService
 import testkit.MockitoImplicits._
 import testkit.{ ExtendedTimeout, UnitSpec }
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
-import services.scheme.SchemePreferencesService
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import uk.gov.hmrc.http.HeaderCarrier
 
 class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
 
@@ -353,24 +353,24 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
     val uid = UniqueIdentifier.randomUniqueIdentifier
     val appId = "appId"
 
-    val mockFsbRepo = mock[FsbRepository]
     val mockApplicationRepo = mock[GeneralApplicationMongoRepository]
     val mockContactDetailsRepo = mock[ContactDetailsRepository]
-    val mockSchemeRepo = SchemeYamlRepository
-    val mockEmailClient = mock[EmailClient]
+    val mockFsbRepo = mock[FsbRepository]
+    val mockSchemeRepo = mock[SchemeRepository]
     val mockSchemePreferencesService = mock[SchemePreferencesService]
+    val mockEmailClient = mock[OnlineTestEmailClient] //TODO:changed type was EmailClient
 
     val cand1 = Candidate("123", None, None, Some("t@t.com"), Some("Leia"), Some("Amadala"), None, None, None, None, None, None, None)
     val cd1 = ContactDetails(outsideUk = false, Address("line1a"), Some("123"), Some("UK"), "t@t.com", "12345")
 
-    val service = new FsbService {
-      override val fsbRepo: FsbRepository = mockFsbRepo
-      override val applicationRepo: GeneralApplicationMongoRepository = mockApplicationRepo
-      override val contactDetailsRepo: ContactDetailsRepository = mockContactDetailsRepo
-      override val schemeRepo: SchemeRepository = mockSchemeRepo
-      override val emailClient: EmailClient = mockEmailClient
-      override val schemePreferencesService: SchemePreferencesService = mockSchemePreferencesService
-    }
+    val service = new FsbService(
+      mockApplicationRepo,
+      mockContactDetailsRepo,
+      mockFsbRepo,
+      mockSchemeRepo,
+      mockSchemePreferencesService,
+      mockEmailClient
+    )
 
     val schemes = List(
       SchemeId("DigitalAndTechnology"),

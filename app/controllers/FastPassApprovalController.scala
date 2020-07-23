@@ -16,22 +16,18 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.command.{ FastPassEvaluation, ProcessedFastPassCandidate }
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import services.fastpass.FastPassService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object FastPassApprovalController extends FastPassApprovalController {
-  val fastPassService = FastPassService
-}
-
-trait FastPassApprovalController extends BaseController {
-
-  val fastPassService: FastPassService
+@Singleton
+class FastPassApprovalController @Inject() (fastPassService: FastPassService) extends BaseController {
 
   def processFastPassCandidate(userId: String, applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[FastPassEvaluation] { req =>

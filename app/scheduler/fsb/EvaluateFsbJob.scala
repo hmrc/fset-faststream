@@ -17,25 +17,30 @@
 package scheduler.fsb
 
 import config.WaitingScheduledJobConfig
-import play.api.Logger
+import javax.inject.{ Inject, Singleton }
+import play.api.{ Configuration, Logger }
+import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.application.FsbService
-
-import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 
-object EvaluateFsbJob extends EvaluateFsbJob {
-  val fsbService: FsbService = FsbService
+import scala.concurrent.{ ExecutionContext, Future }
+
+@Singleton
+class EvaluateFsbJobImpl @Inject() (val fsbService: FsbService,
+                                    val mongoComponent: ReactiveMongoComponent,
+                                    val config: EvaluateFsbJobConfig
+                                   ) extends EvaluateFsbJob {
 }
 
 trait EvaluateFsbJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val fsbService: FsbService
 
-  val config: EvaluateFsbJobConfig.type = EvaluateFsbJobConfig
+  //  val config: EvaluateFsbJobConfig.type = EvaluateFsbJobConfig
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    implicit val hc = HeaderCarrier()
+    implicit val hc: HeaderCarrier = HeaderCarrier()
     Logger.debug(s"EvaluateFsbJob starting")
     fsbService.nextFsbCandidateReadyForEvaluation.flatMap { appIdOpt =>
       appIdOpt.map { appId =>
@@ -49,7 +54,9 @@ trait EvaluateFsbJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingSc
   }
 }
 
-object EvaluateFsbJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
+@Singleton
+class EvaluateFsbJobConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.evaluate-fsb-job",
   name = "EvaluateFsbJob"
 )

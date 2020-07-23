@@ -23,6 +23,7 @@ import repositories.application.GeneralApplicationRepository
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+// Guice based repos PSI version
 trait CurrentSchemeStatusHelper2 {
 
   val generalAppRepository: GeneralApplicationRepository

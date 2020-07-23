@@ -17,33 +17,26 @@
 package services.search
 
 import connectors.AuthProviderClient
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.ContactDetailsNotFound
 import model.exchange.CandidateToRemove
-import model.{ Candidate, SearchCandidate }
 import model.persisted.ContactDetailsWithId
+import model.{ Candidate, SearchCandidate }
 import org.joda.time.LocalDate
-import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
-
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 import uk.gov.hmrc.http.HeaderCarrier
 
-object SearchForApplicantService extends SearchForApplicantService {
-  val appRepository = applicationRepository
-  val psRepository = personalDetailsRepository
-  val cdRepository = faststreamContactDetailsRepository
-  val authProviderClient = AuthProviderClient
-}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-trait SearchForApplicantService {
-
-  val appRepository: GeneralApplicationRepository
-  val psRepository: PersonalDetailsRepository
-  val cdRepository: ContactDetailsRepository
-  val authProviderClient: AuthProviderClient
+@Singleton
+class SearchForApplicantService @Inject() (appRepository: GeneralApplicationRepository,
+                                           psRepository: PersonalDetailsRepository,
+                                           cdRepository: ContactDetailsRepository,
+                                           authProviderClient: AuthProviderClient
+                                          ) {
 
   def findByCriteria(searchCandidate: SearchCandidate)(implicit hc: HeaderCarrier): Future[List[Candidate]] = searchCandidate match {
     case SearchCandidate(None, None, None, Some(postCode)) => searchByPostCode(postCode)

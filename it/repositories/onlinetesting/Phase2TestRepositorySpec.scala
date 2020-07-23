@@ -2,20 +2,20 @@ package repositories.onlinetesting
 
 import java.util.UUID
 
-import model.{ ApplicationStatus, Phase2SecondReminder, Phase2FirstReminder, ProgressStatuses }
-import model.persisted.{ CubiksTest, Phase2TestGroup, Phase2TestGroupWithAppId }
 import model.ProgressStatuses._
+import model.persisted._
+import model.{ ApplicationStatus, Phase2FirstReminder, Phase2SecondReminder, ProgressStatuses }
 import org.joda.time.{ DateTime, DateTimeZone }
 import reactivemongo.bson.BSONDocument
 import testkit.MongoRepositorySpec
 
 class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataFixture {
 
-  val Now =  DateTime.now(DateTimeZone.UTC)
+  implicit val Now =  DateTime.now(DateTimeZone.UTC)
   val DatePlus7Days = Now.plusDays(7)
-  val CubiksUserId = 999
+//  val CubiksUserId = 999
   val Token = UUID.randomUUID.toString
-
+/*
   val phase2Test = CubiksTest(
     scheduleId = 123,
     usedForResults = true,
@@ -24,14 +24,16 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     testUrl = "test.com",
     invitationDate = Now,
     participantScheduleId = 456
-  )
+  )*/
 
-  val TestProfile = Phase2TestGroup(expirationDate = DatePlus7Days, tests = List(phase2Test))
-  val testProfileWithAppId = Phase2TestGroupWithAppId(
+  val phase2Test = model.Phase2TestExamples.fifthPsiTest.copy(testResult = None)
+
+  val TestProfile = Phase2TestGroup2(expirationDate = DatePlus7Days, tests = List(phase2Test))
+  val testProfileWithAppId = Phase2TestGroupWithAppId2(
     "appId",
     TestProfile.copy(tests = List(
-                       phase2Test.copy(usedForResults = true, resultsReadyToDownload = true),
-                       phase2Test.copy(usedForResults = true, resultsReadyToDownload = true))
+      phase2Test.copy(usedForResults = true, resultsReadyToDownload = true),
+      phase2Test.copy(usedForResults = true, resultsReadyToDownload = true))
     )
   )
 
@@ -45,7 +47,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       val userId = "userId"
       insertApplication("appId", userId)
       phase2TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
-      val result: Option[Phase2TestGroup] = phase2TestRepo.getTestGroupByUserId(userId).futureValue
+      val result: Option[Phase2TestGroup2] = phase2TestRepo.getTestGroupByUserId(userId).futureValue
       result mustBe Some(TestProfile)
     }
   }
@@ -65,14 +67,13 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   }
 
   "Next application ready for online testing" must {
-
     "exclude applications with SDIP or EDIP application routes" in {
-      createApplicationWithAllFields("userId0", "appId0", "testAccountId1", "frameworkId", "PHASE1_TESTS_PASSED",
+      createApplicationWithAllFields2("userId0", "appId0", "testAccountId1", "frameworkId", "PHASE1_TESTS_PASSED",
         additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true)), applicationRoute = "Sdip").futureValue
-      createApplicationWithAllFields("userId1", "appId1", "testAccountId2", "frameworkId", "PHASE1_TESTS_PASSED",
+      createApplicationWithAllFields2("userId1", "appId1", "testAccountId2", "frameworkId", "PHASE1_TESTS_PASSED",
         additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true)), applicationRoute = "Edip").futureValue
-      createApplicationWithAllFields("userId2", "appId2", "testAccountId3", "frameworkId", "PHASE1_TESTS_PASSED",
-       additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true))).futureValue
+      createApplicationWithAllFields2("userId2", "appId2", "testAccountId3", "frameworkId", "PHASE1_TESTS_PASSED",
+        additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true))).futureValue
 
       val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
@@ -82,7 +83,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "return application when does not need adjustments and is no gis and its status is PHASE1_TESTS_PASSED" in {
-      createApplicationWithAllFields("userId0", "appId0", "testAccountId", "frameworkId", "PHASE1_TESTS_PASSED",
+      createApplicationWithAllFields2("userId0", "appId0", "testAccountId", "frameworkId", "PHASE1_TESTS_PASSED",
         additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true)), typeOfEtrayOnlineAdjustments = Nil
       ).futureValue
 
@@ -94,7 +95,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "return application when it is gis and adjustments have been confirmed (etray time extension) and its status is PHASE1_TESTS_PASSED" in {
-      createApplicationWithAllFields("userId3", "appId3", "testAccountId", "frameworkId", "PHASE1_TESTS_PASSED", adjustmentsConfirmed = true,
+      createApplicationWithAllFields2("userId3", "appId3", "testAccountId", "frameworkId", "PHASE1_TESTS_PASSED", adjustmentsConfirmed = true,
         isGis = true, additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true)), typeOfEtrayOnlineAdjustments = List("etrayTimeExtension")
       ).futureValue
 
@@ -107,7 +108,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
     "return application when needs online adjustments, adjustments have been confirmed and its status is PHASE1_TESTS_PASSED" +
       " and adjustment is etray time extension" in {
-      createApplicationWithAllFields("userId4", "appId4", "testAccountId4", "frameworkId", "PHASE1_TESTS_PASSED",
+      createApplicationWithAllFields2("userId4", "appId4", "testAccountId4", "frameworkId", "PHASE1_TESTS_PASSED",
         needsSupportForOnlineAssessment = true, adjustmentsConfirmed = true, timeExtensionAdjustments = true, isGis = true,
         additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true)), typeOfEtrayOnlineAdjustments = List("etrayTimeExtension")
       ).futureValue
@@ -121,7 +122,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
     "return application when needs adjustments at venue, adjustments have been confirmed and its status is PHASE1_TESTS_PASSED" +
       " and adjustment is etray time extension" in {
-      createApplicationWithAllFields("userId5", "appId5", "testAccountId5", "frameworkId", "PHASE1_TESTS_PASSED",
+      createApplicationWithAllFields2("userId5", "appId5", "testAccountId5", "frameworkId", "PHASE1_TESTS_PASSED",
         needsSupportAtVenue = true, adjustmentsConfirmed = true, timeExtensionAdjustments = true, isGis = true,
         additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true)), typeOfEtrayOnlineAdjustments = List("etrayTimeExtension")
       ).futureValue
@@ -134,68 +135,65 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "do not return application when application status is not PHASE1_TESTS_PASSED and no adjustments and no gis" in {
-      createApplicationWithAllFields("userId6", "appId6", "testAccountId6", "frameworkId", "SUBMITTED",
+      createApplicationWithAllFields2("userId6", "appId6", "testAccountId6", "frameworkId", "SUBMITTED",
         additionalProgressStatuses = List((SUBMITTED, true)), typeOfEtrayOnlineAdjustments = Nil
       ).futureValue
 
       val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
-
       results.length mustBe 0
     }
 
     "do not return application when application status is PHASE1_TESTS_PASSED and is gis but there is no need for adjustments" +
       "and adjustments have not been confirmed" in {
-      createApplicationWithAllFields("userId6", "appId6", "testAccountId6", "frameworkId", "SUBMITTED", isGis = true,
+      createApplicationWithAllFields2("userId6", "appId6", "testAccountId6", "frameworkId", "SUBMITTED", isGis = true,
         additionalProgressStatuses = List((SUBMITTED, true)), typeOfEtrayOnlineAdjustments = Nil
       ).futureValue
 
       val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
-
       results.length mustBe 0
     }
 
     "do not return application when application status is PHASE1_TESTS_PASSED and is no gis but there is need for online adjustments" +
       "(e-tray time extension) and adjustments have not been confirmed" in {
-      createApplicationWithAllFields("userId7", "appId7", "testAccountId7", "frameworkId", "SUBMITTED", needsSupportForOnlineAssessment = true,
+      createApplicationWithAllFields2("userId7", "appId7", "testAccountId7", "frameworkId", "SUBMITTED", needsSupportForOnlineAssessment = true,
         timeExtensionAdjustments = true, additionalProgressStatuses = List((SUBMITTED, true)),
         typeOfEtrayOnlineAdjustments = List("etrayTimeExtension")
       ).futureValue
 
       val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
-
       results.length mustBe 0
     }
 
     "do not return application when application status is PHASE1_TESTS_PASSED and is no gis but there is need for adjustments at venue" +
       "and adjustments have not been confirmed" in {
-      createApplicationWithAllFields("userId7", "appId7", "testAccountId7", "frameworkId", "SUBMITTED", needsSupportAtVenue = true,
+      createApplicationWithAllFields2("userId7", "appId7", "testAccountId7", "frameworkId", "SUBMITTED", needsSupportAtVenue = true,
         timeExtensionAdjustments = true, additionalProgressStatuses = List((SUBMITTED, true))
       ).futureValue
 
       val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
-
       results.length mustBe 0
     }
 
     "do not return application when application status is PHASE1_TESTS_PASSED and is no gis but there is need for adjustments at venue" +
       "and adjustments have been confirmed but adjustments is etray invigilated" in {
-      createApplicationWithAllFields("userId8", "appId8", "testAccountId8", "frameworkId", "SUBMITTED", needsSupportAtVenue = true,
+      createApplicationWithAllFields2("userId8", "appId8", "testAccountId8", "frameworkId", "SUBMITTED", needsSupportAtVenue = true,
         timeExtensionAdjustments = true, additionalProgressStatuses = List((ProgressStatuses.SUBMITTED, true)),
         typeOfEtrayOnlineAdjustments = List("etrayInvigilated")
       ).futureValue
 
       val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
-
       results.length mustBe 0
     }
 
     "exclude applications that need adjustments and have not been confirmed" in {
-      createApplicationWithAllFields("userId1", "appId1", "testAccountId1", "frameworkId", "PHASE1_TESTS_PASSED", needsSupportForOnlineAssessment = true,
+      createApplicationWithAllFields2(
+        "userId1", "appId1", "testAccountId1", "frameworkId",
+        "PHASE1_TESTS_PASSED", needsSupportForOnlineAssessment = true,
         timeExtensionAdjustments = true, additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true)),
         typeOfEtrayOnlineAdjustments = List("etrayTimeExtension")
       ).futureValue
 
-      createApplicationWithAllFields("userId2", "appId2", "testAccountId2", "frameworkId", "PHASE1_TESTS_PASSED",
+      createApplicationWithAllFields2("userId2", "appId2", "testAccountId2", "frameworkId", "PHASE1_TESTS_PASSED",
         additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true))
       ).futureValue
 
@@ -211,7 +209,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "Not return candidates whose phase 1 tests have expired" in {
-      createApplicationWithAllFields("userId1", "appId1", "testAccountId", "frameworkId", "PHASE1_TESTS_PASSED",
+      createApplicationWithAllFields2("userId1", "appId1", "testAccountId", "frameworkId", "PHASE1_TESTS_PASSED",
         needsSupportForOnlineAssessment = true, additionalProgressStatuses = List(PHASE1_TESTS_EXPIRED -> true)
       ).futureValue
 
@@ -225,17 +223,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "PHASE1_TESTS_PASSED").futureValue
 
       val now =  DateTime.now(DateTimeZone.UTC)
-
-      val input = Phase2TestGroup(expirationDate = now,
-        tests = List(CubiksTest(scheduleId = 1,
-          usedForResults = true,
-          token = "token",
-          cubiksUserId = 111,
-          testUrl = "testUrl",
-          invitationDate = now,
-          participantScheduleId = 222
-        ))
-      )
+      val input = Phase2TestGroup2(expirationDate = now, tests = List(model.Phase2TestExamples.fifthPsiTest))
 
       phase2TestRepo.insertOrUpdateTestGroup("appId", input).futureValue
 
@@ -249,37 +237,26 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   "Updating completion time" must {
     "update test completion time" in {
       val now =  DateTime.now(DateTimeZone.UTC)
-      val input = Phase2TestGroup(expirationDate = now.plusDays(5),
-        tests = List(CubiksTest(scheduleId = 1,
-          usedForResults = true,
-          token = "token",
-          cubiksUserId = 111,
-          testUrl = "testUrl",
-          invitationDate = now,
-          participantScheduleId = 222
-        ))
-      )
+      val input = Phase2TestGroup2(expirationDate = now.plusDays(5), tests = List(model.Phase2TestExamples.fifthPsiTest))
 
-      createApplicationWithAllFields("userId", "appId", "testAccountId","frameworkId", "PHASE2_TESTS", phase2TestGroup = Some(input)).futureValue
+      createApplicationWithAllFields2("userId", "appId", "testAccountId","frameworkId",
+        "PHASE2_TESTS", phase2TestGroup = Some(input)).futureValue
 
-      phase2TestRepo.updateTestCompletionTime(111, now).futureValue
-      val result = phase2TestRepo.getTestProfileByCubiksId(111).futureValue
+      phase2TestRepo.updateTestCompletionTime2("orderId5", now).futureValue
+      val result = phase2TestRepo.getTestProfileByOrderId("orderId5").futureValue
       result.testGroup.tests.head.completedDateTime mustBe Some(now)
     }
   }
 
   "Insert test result" should {
     "correctly update a test group with results" in {
-       createApplicationWithAllFields("userId", "appId", "testAccountId","frameworkId", "PHASE2_TESTS",
+      createApplicationWithAllFields2("userId", "appId", "testAccountId","frameworkId", "PHASE2_TESTS",
         additionalProgressStatuses = List((PHASE2_TESTS_RESULTS_READY, true)), phase2TestGroup = Some(testProfileWithAppId.testGroup)
       ).futureValue
 
-      val testResult = model.persisted.TestResult(status = "completed", norm = "some norm",
-          tScore = Some(55.33d), percentile = Some(34.876d), raw = Some(65.32d), sten = Some(12.1d))
+      val testResult = PsiTestResult(tScore = 55.33d, rawScore = 65.32d, testReportUrl = None)
 
-      phase2TestRepo.insertTestResult("appId", testProfileWithAppId.testGroup.tests.head,
-        testResult
-      ).futureValue
+      phase2TestRepo.insertTestResult2("appId", testProfileWithAppId.testGroup.tests.head, testResult).futureValue
 
       val phase2TestGroup = phase2TestRepo.getTestGroup("appId").futureValue
       phase2TestGroup.isDefined mustBe true
@@ -297,8 +274,8 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     "return one result" when {
       "there is an application in PHASE2_TESTS and is about to expire in the next 72 hours" in {
         val date = DateTime.now().plusHours(Phase2FirstReminder.hoursBeforeReminder - 1).plusMinutes(55)
-        val testGroup = Phase2TestGroup(expirationDate = date, tests = List(phase2Test))
-        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
+        val testGroup = Phase2TestGroup2(expirationDate = date, tests = List(phase2Test))
+        createApplicationWithAllFields2(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase2TestRepo.insertOrUpdateTestGroup(AppId, testGroup).futureValue
         val notification = phase2TestRepo.nextTestForReminder(Phase2FirstReminder).futureValue
         notification.isDefined mustBe true
@@ -312,8 +289,8 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
       "there is an application in PHASE2_TESTS and is about to expire in the next 24 hours" in {
         val date = DateTime.now().plusHours(Phase2SecondReminder.hoursBeforeReminder - 1).plusMinutes(55)
-        val testGroup = Phase2TestGroup(expirationDate = date, tests = List(phase2Test))
-        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
+        val testGroup = Phase2TestGroup2(expirationDate = date, tests = List(phase2Test))
+        createApplicationWithAllFields2(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase2TestRepo.insertOrUpdateTestGroup(AppId, testGroup).futureValue
         val notification = phase2TestRepo.nextTestForReminder(Phase2SecondReminder).futureValue
         notification.isDefined mustBe true
@@ -326,25 +303,25 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
     "return no results" when {
       val date = DateTime.now().plusHours(22)
-      val testProfile = Phase2TestGroup(expirationDate = date, tests = List(phase2Test))
+      val testProfile = Phase2TestGroup2(expirationDate = date, tests = List(phase2Test))
       "there are no applications in PHASE2_TESTS" in {
-        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
+        createApplicationWithAllFields2(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase2TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS), AppId).futureValue
         phase2TestRepo.nextTestForReminder(Phase2FirstReminder).futureValue mustBe None
       }
 
       "the expiration date is in 26h but we send the second reminder only after 24h" in {
-        createApplicationWithAllFields(UserId, AppId, TestAccountId,"frameworkId", "SUBMITTED").futureValue
+        createApplicationWithAllFields2(UserId, AppId, TestAccountId,"frameworkId", "SUBMITTED").futureValue
         phase2TestRepo.insertOrUpdateTestGroup(
           AppId,
-          Phase2TestGroup(expirationDate = new DateTime().plusHours(30), tests = List(phase2Test))).futureValue
+          Phase2TestGroup2(expirationDate = new DateTime().plusHours(30), tests = List(phase2Test))).futureValue
         phase2TestRepo.nextTestForReminder(Phase2SecondReminder).futureValue mustBe None
       }
 
       "the test is expired" in {
         import repositories.BSONDateTimeHandler
-        createApplicationWithAllFields(UserId, AppId, TestAccountId,"frameworkId", "SUBMITTED").futureValue
+        createApplicationWithAllFields2(UserId, AppId, TestAccountId,"frameworkId", "SUBMITTED").futureValue
         phase2TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE2_TESTS_EXPIRED.applicationStatus,
@@ -356,7 +333,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
       "the test is completed" in {
         import repositories.BSONDateTimeHandler
-        createApplicationWithAllFields(UserId, AppId, TestAccountId,"frameworkId", "SUBMITTED").futureValue
+        createApplicationWithAllFields2(UserId, AppId, TestAccountId,"frameworkId", "SUBMITTED").futureValue
         phase2TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE2_TESTS_COMPLETED.applicationStatus,
@@ -367,7 +344,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       }
 
       "we already sent a second reminder" in {
-        createApplicationWithAllFields(UserId, AppId, TestAccountId,"frameworkId", "SUBMITTED").futureValue
+        createApplicationWithAllFields2(UserId, AppId, TestAccountId,"frameworkId", "SUBMITTED").futureValue
         phase2TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
         updateApplication(BSONDocument("$set" -> BSONDocument(
           s"progress-status.$PHASE2_TESTS_SECOND_REMINDER" -> true

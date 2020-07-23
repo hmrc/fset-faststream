@@ -16,19 +16,15 @@
 
 package controllers.reference
 
+import javax.inject.{ Inject, Singleton }
 import model.exchange.candidateevents.CandidateRemoveReason
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
 import services.events.EventsService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
-object EventDataController extends EventDataController {
-  val eventsService: EventsService = EventsService
-}
-
-trait EventDataController extends BaseController {
-
-  def eventsService: EventsService
+@Singleton
+class EventDataController @Inject()(eventsService: EventsService) extends BaseController {
 
   def getFsbTypes: Action[AnyContent] = Action { implicit request =>
     Ok(Json.toJson(eventsService.getFsbTypes))

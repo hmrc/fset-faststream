@@ -17,6 +17,7 @@
 package services.testdata.candidate
 
 import connectors.AuthProviderClient
+import javax.inject.{ Inject, Singleton }
 import model.SchemeId
 import model.exchange.testdata.CreateAdminResponse.AssessorResponse
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
@@ -26,28 +27,20 @@ import model.persisted.eventschedules.SkillType
 import model.testdata.CreateAdminData.AssessorData
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
-import repositories._
+import repositories.MediaRepository
 import services.testdata.admin.AssessorCreatedStatusGenerator
-import services.testdata.faker.DataFaker._
-
-import scala.concurrent.Future
+import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 
-object RegisteredStatusGenerator extends RegisteredStatusGenerator {
-  override val authProviderClient = AuthProviderClient
-  override val medRepository = mediaRepository
-  override val assessorGenerator = AssessorCreatedStatusGenerator
+import scala.concurrent.Future
 
-}
-
-trait RegisteredStatusGenerator extends BaseGenerator {
+@Singleton
+class RegisteredStatusGenerator @Inject()(authProviderClient: AuthProviderClient,
+                                          medRepository: MediaRepository,
+                                          assessorGenerator: AssessorCreatedStatusGenerator,
+                                          dataFaker: DataFaker) extends BaseGenerator {
 
   import scala.concurrent.ExecutionContext.Implicits.global
-
-  val authProviderClient: AuthProviderClient.type
-  val medRepository: MediaRepository
-  val assessorGenerator: AssessorCreatedStatusGenerator
-
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
@@ -56,7 +49,7 @@ trait RegisteredStatusGenerator extends BaseGenerator {
     val lastName = generatorConfig.personalData.lastName
     val preferredName = generatorConfig.personalData.preferredName
     val email = s"${generatorConfig.personalData.emailPrefix}@mailinator.com"
-    val mediaReferrer = Random.mediaReferrer
+    val mediaReferrer = dataFaker.mediaReferrer
 
     val roles = List(AuthProviderClient.CandidateRole)
     for {
@@ -68,14 +61,12 @@ trait RegisteredStatusGenerator extends BaseGenerator {
         generationId, user.userId, None, None, email, firstName,
         lastName, mediaReferrer = mediaReferrer)
     }
-
   }
 
   def createUser(generationId: Int, email: String,
                  firstName: String, lastName: String,
                  preferredName: Option[String], roles: List[AuthProviderClient.UserRole])
                 (implicit hc: HeaderCarrier): Future[CreateCandidateResponse] = {
-
     val userFuture = for {
       user <- authProviderClient.addUser(email, "Service01", firstName, lastName, roles)
       token <- authProviderClient.getToken(email)
@@ -91,7 +82,7 @@ trait RegisteredStatusGenerator extends BaseGenerator {
           AssessorData(
             List(SkillType.ASSESSOR.toString, SkillType.QUALITY_ASSURANCE_COORDINATOR.toString, SkillType.SIFTER.toString),
             List(SchemeId("Sdip"), SchemeId("Commercial")),
-            Random.bool,
+            dataFaker.Random.bool,
             None,
             AssessorStatus.CREATED)).map {
           assessor => user.copy(assessor = Some(AssessorResponse.apply(assessor)))
@@ -99,5 +90,4 @@ trait RegisteredStatusGenerator extends BaseGenerator {
       case user => Future.successful(user)
     }
   }
-
 }

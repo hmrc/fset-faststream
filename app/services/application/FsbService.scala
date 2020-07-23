@@ -16,8 +16,10 @@
 
 package services.application
 
+import com.google.inject.name.Named
 import common.FutureEx
-import connectors.{ CSREmailClient, EmailClient }
+import connectors.OnlineTestEmailClient
+import javax.inject.{ Inject, Singleton }
 import model.EvaluationResults.{ Green, Red }
 import model.ProgressStatuses._
 import model._
@@ -26,34 +28,26 @@ import model.exchange.{ ApplicationResult, FsbScoresAndFeedback }
 import model.persisted.fsb.ScoresAndFeedback
 import model.persisted.{ FsbSchemeResult, SchemeEvaluationResult }
 import play.api.Logger
-import repositories.application.GeneralApplicationMongoRepository
+import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
-import repositories.fsb.{ FsbMongoRepository, FsbRepository }
-import repositories.{ CurrentSchemeStatusHelper, SchemeRepository, SchemeYamlRepository }
+import repositories.fsb.FsbRepository
+import repositories.{ CurrentSchemeStatusHelper, SchemeRepository }
 import services.application.DSSchemeIds._
 import services.scheme.SchemePreferencesService
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Try
-import uk.gov.hmrc.http.HeaderCarrier
 
-object FsbService extends FsbService {
-  override val applicationRepo: GeneralApplicationMongoRepository = repositories.applicationRepository
-  override val contactDetailsRepo: ContactDetailsRepository = repositories.faststreamContactDetailsRepository
-  override val fsbRepo: FsbMongoRepository = repositories.fsbRepository
-  override val schemeRepo: SchemeYamlRepository.type = SchemeYamlRepository
-  override val emailClient: EmailClient = CSREmailClient
-  override val schemePreferencesService: SchemePreferencesService = SchemePreferencesService
-}
-
-trait FsbService extends CurrentSchemeStatusHelper {
-  val applicationRepo: GeneralApplicationMongoRepository
-  val contactDetailsRepo: ContactDetailsRepository
-  val fsbRepo: FsbRepository
-  val schemeRepo: SchemeRepository
-  val emailClient: EmailClient
-  val schemePreferencesService: SchemePreferencesService
+@Singleton
+class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
+                            contactDetailsRepo: ContactDetailsRepository,
+                            fsbRepo: FsbRepository,
+                            schemeRepo: SchemeRepository,
+                            schemePreferencesService: SchemePreferencesService,
+                            @Named("CSREmailClient") val emailClient: OnlineTestEmailClient //TODO:changed type
+                           ) extends CurrentSchemeStatusHelper {
 
   val logPrefix = "[FsbEvaluation]"
 
@@ -68,7 +62,6 @@ trait FsbService extends CurrentSchemeStatusHelper {
           applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId, ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED)
         )
       }
-
       updates.map(SerialUpdateResult.fromEither)
     }
   }
@@ -80,7 +73,6 @@ trait FsbService extends CurrentSchemeStatusHelper {
           applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId, ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED)
         )
       }
-
       updates.map(SerialUpdateResult.fromEither)
     }
   }
@@ -127,10 +119,10 @@ trait FsbService extends CurrentSchemeStatusHelper {
   }
 
   private def canEvaluateNextWithExistingResults(
-    currentSchemeStatus: Seq[SchemeEvaluationResult],
-    newFirstPreference: Option[SchemeEvaluationResult],
-    fsbEvaluation: Seq[SchemeEvaluationResult]
-  ): Boolean = {
+                                                  currentSchemeStatus: Seq[SchemeEvaluationResult],
+                                                  newFirstPreference: Option[SchemeEvaluationResult],
+                                                  fsbEvaluation: Seq[SchemeEvaluationResult]
+                                                ): Boolean = {
     def schemeWasEvaluatedBefore(id: SchemeId): Boolean = {
       currentSchemeStatus.map(_.schemeId).takeWhile(_ != newFirstPreference.get).contains(id)
     }
@@ -147,9 +139,9 @@ trait FsbService extends CurrentSchemeStatusHelper {
 
   // scalastyle:off method.length
   private def passOrFailFsb(appId: String,
-    fsbEvaluation: Option[Seq[SchemeEvaluationResult]],
-    firstResidualPreferenceOpt: Option[SchemeEvaluationResult],
-    currentSchemeStatus: Seq[SchemeEvaluationResult])(implicit hc: HeaderCarrier): Future[Unit] = {
+                            fsbEvaluation: Option[Seq[SchemeEvaluationResult]],
+                            firstResidualPreferenceOpt: Option[SchemeEvaluationResult],
+                            currentSchemeStatus: Seq[SchemeEvaluationResult])(implicit hc: HeaderCarrier): Future[Unit] = {
 
     Logger.debug(s"$logPrefix fsbEvaluation = $fsbEvaluation")
     Logger.debug(s"$logPrefix firstResidualPreferenceOpt = $firstResidualPreferenceOpt")

@@ -16,25 +16,27 @@
 
 package repositories.csv
 
+import com.google.inject.ImplementedBy
+import javax.inject.{ Inject, Singleton }
 import model.School
+import play.api.Application
 import resource._
 
 import scala.concurrent.Future
 import scala.io.Source
-import play.api.Play
 
+@ImplementedBy(classOf[SchoolsCSVRepository])
 trait SchoolsRepository {
   def schools: Future[List[School]]
 }
 
-object SchoolsCSVRepository extends SchoolsRepository with CsvHelper {
+@Singleton
+class SchoolsCSVRepository @Inject() (application: Application) extends SchoolsRepository with CsvHelper {
   override def expectedNumberOfHeaders = 10
-
-  import play.api.Play.current
 
   private lazy val schoolsCached = Future.successful {
 
-    val input = managed(Play.application.resourceAsStream("UK_schools_data_v2.csv").get)
+    val input = managed(application.resourceAsStream("UK_schools_data_v2.csv").get)
     input.acquireAndGet { inputStream =>
       val rawData = Source.fromInputStream(inputStream).getLines.map(parseLine).toList
       val headers = rawData.head

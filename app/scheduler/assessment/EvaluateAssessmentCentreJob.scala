@@ -17,25 +17,32 @@
 package scheduler.assessment
 
 import config.WaitingScheduledJobConfig
-import play.api.Logger
+import javax.inject.{ Inject, Singleton }
+import play.api.{ Configuration, Logger }
+import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.assessmentcentre.AssessmentCentreService
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object EvaluateAssessmentCentreJob extends EvaluateAssessmentCentreJob {
-  val applicationAssessmentService: AssessmentCentreService = AssessmentCentreService
+@Singleton
+class EvaluateAssessmentCentreJobImpl @Inject() (val applicationAssessmentService: AssessmentCentreService,
+                                                 val config: EvaluateAssessmentCentreJobConfig,
+                                                 val mongoComponent: ReactiveMongoComponent
+                                                ) extends EvaluateAssessmentCentreJob {
+  //  val applicationAssessmentService: AssessmentCentreService = AssessmentCentreService
 }
 
 trait EvaluateAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val applicationAssessmentService: AssessmentCentreService
 
-  val config = EvaluateAssessmentCentreJobConfig
+  //  val config = EvaluateAssessmentCentreJobConfig
+  val batchSize: Int = config.conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     Logger.debug(s"EvaluateAssessmentCentreJob starting")
-    applicationAssessmentService.nextAssessmentCandidatesReadyForEvaluation(config.batchSize).map { candidateResults =>
+    applicationAssessmentService.nextAssessmentCandidatesReadyForEvaluation(batchSize).map { candidateResults =>
       candidateResults.map { candidateResult =>
         if (candidateResult.schemes.isEmpty) {
           Logger.debug(s"EvaluateAssessmentCentreJob - no non-RED schemes found so will not evaluate this candidate")
@@ -49,9 +56,9 @@ trait EvaluateAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobCon
   }
 }
 
-object EvaluateAssessmentCentreJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
+@Singleton
+class EvaluateAssessmentCentreJobConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.evaluate-assessment-centre-job",
   name = "EvaluateAssessmentCentreJob"
-) {
-  val batchSize: Int = conf.batchSize.getOrElse(1)
-}
+)

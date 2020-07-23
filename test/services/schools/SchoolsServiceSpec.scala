@@ -17,15 +17,15 @@
 package services.schools
 
 import model.School
-import repositories.csv.SchoolsCSVRepository
+import org.mockito.Mockito._
 import repositories.csv.{ SchoolsCSVRepository, SchoolsRepository }
+import testkit.MockitoImplicits._
 import testkit.{ ShortTimeout, UnitWithAppSpec }
 
-import scala.concurrent.Future
-
 class SchoolsServiceSpec extends UnitWithAppSpec with ShortTimeout {
-  val service = new SchoolsService {
-    override val schoolsRepo: SchoolsRepository = SchoolsCSVRepository
+
+  val schoolsRepo = new SchoolsCSVRepository(app)
+  val service = new SchoolsService(schoolsRepo) {
     override val MaxNumberOfSchools = Integer.MAX_VALUE
   }
 
@@ -52,16 +52,11 @@ class SchoolsServiceSpec extends UnitWithAppSpec with ShortTimeout {
       val school1WithGrammarName = School("IRN", "341-0209", "Antrim Grammar School", None, None, None, None, None, None, None)
       val school2WithGrammarName = School("IRN", "142-0277", "Aquinas Diocesan Grammar School", None, None, None, None, None, None, None)
       val schoolWithoutGrammarName = School("IRN", "542-0059", "Abbey Christian Brothers School", None, None, None, None, None, None, None)
+      val schoolsData = List(school1WithGrammarName, schoolWithoutGrammarName, school2WithGrammarName)
 
-      val service = new SchoolsService {
-        override val schoolsRepo: SchoolsRepository = new SchoolsRepository {
-          def schools: Future[List[School]] =  Future.successful(List(
-            school1WithGrammarName,
-            schoolWithoutGrammarName,
-            school2WithGrammarName
-          ))
-        }
-      }
+      val schoolsRepoMock = mock[SchoolsRepository]
+      when(schoolsRepoMock.schools).thenReturnAsync(schoolsData)
+      val service = new SchoolsService(schoolsRepoMock)
 
       val term = "Grammar"
 
@@ -96,9 +91,7 @@ class SchoolsServiceSpec extends UnitWithAppSpec with ShortTimeout {
     }
 
     "should limit number of results to 16" in {
-      val service = new SchoolsService {
-        override val schoolsRepo: SchoolsRepository = SchoolsCSVRepository
-      }
+      val service = new SchoolsService(new SchoolsCSVRepository(app))
       val term = "aBB"
       val result = service.getSchools(term).futureValue
 
@@ -109,9 +102,7 @@ class SchoolsServiceSpec extends UnitWithAppSpec with ShortTimeout {
     }
 
     "should return less than 16 if the criteria narrows down the result" in {
-      val service = new SchoolsService {
-        override val schoolsRepo: SchoolsRepository = SchoolsCSVRepository
-      }
+      val service = new SchoolsService(new SchoolsCSVRepository(app))
       val term = "Abbey Community"
       val result = service.getSchools(term).futureValue
 

@@ -16,6 +16,7 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.ApplicationStatus._
 import model.Exceptions.{ CannotFindTestByOrderIdException, ExpiredTestForTokenException }
 import model.OnlineTestCommands.OnlineTestApplication
@@ -24,14 +25,14 @@ import org.joda.time.DateTime
 import play.api.Logger
 import play.api.libs.json.{ JsValue, Json, OFormat }
 import play.api.mvc._
-import repositories._
 import repositories.application.GeneralApplicationRepository
-import services.onlinetesting.phase1.{ Phase1TestService, Phase1TestService2 }
-import services.onlinetesting.phase2.{ Phase2TestService, Phase2TestService2 }
 import services.onlinetesting.Exceptions.{ CannotResetPhase2Tests, ResetLimitExceededException }
+import services.onlinetesting.phase1.{ Phase1TestService2, Phase1TestService }
+import services.onlinetesting.phase2.{ Phase2TestService2, Phase2TestService }
 import services.onlinetesting.phase3.Phase3TestService
 import services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
+//import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -78,22 +79,29 @@ object UserIdWrapper {
   implicit val userIdWrapperFormat: OFormat[UserIdWrapper] = Json.format[UserIdWrapper]
 }
 
-object OnlineTestController extends OnlineTestController {
-  override val appRepository: GeneralApplicationRepository = applicationRepository
-  override val phase1TestService = Phase1TestService
-  override val phase1TestService2 = Phase1TestService2
-  override val phase2TestService = Phase2TestService
-  override val phase2TestService2 = Phase2TestService2
-  override val phase3TestService = Phase3TestService
-}
+//object OnlineTestController extends OnlineTestController {
+//  override val appRepository: GeneralApplicationRepository = applicationRepository
+//  override val phase1TestService = Phase1TestService
+//  override val phase1TestService2 = Phase1TestService2
+//  override val phase2TestService = Phase2TestService
+//  override val phase2TestService2 = Phase2TestService2
+//  override val phase3TestService = Phase3TestService
+//}
 
-trait OnlineTestController extends BaseController {
-  val appRepository: GeneralApplicationRepository
-  val phase1TestService: Phase1TestService
-  val phase1TestService2: Phase1TestService2
-  val phase2TestService: Phase2TestService
-  val phase2TestService2: Phase2TestService2
-  val phase3TestService: Phase3TestService
+@Singleton
+class OnlineTestController @Inject() (appRepository: GeneralApplicationRepository,
+                                      phase1TestService: Phase1TestService,
+                                      phase1TestService2: Phase1TestService2,
+                                      phase2TestService: Phase2TestService,
+                                      phase2TestService2: Phase2TestService2,
+                                      phase3TestService: Phase3TestService
+                                     ) extends BaseController {
+//  val appRepository: GeneralApplicationRepository
+//  val phase1TestService: Phase1TestService   cubiks
+//  val phase1TestService2: Phase1TestService2 psi
+//  val phase2TestService: Phase2TestService   cubiks
+//  val phase2TestService2: Phase2TestService2 psi
+//  val phase3TestService: Phase3TestService
 
   def getPhase1OnlineTest(applicationId: String) = Action.async { implicit request =>
     phase1TestService.getTestGroup(applicationId) map {

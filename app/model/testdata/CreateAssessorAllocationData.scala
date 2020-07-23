@@ -21,30 +21,27 @@ import model.command.testdata.CreateAssessorAllocationRequest.CreateAssessorAllo
 import model.persisted.AssessorAllocation
 import model.persisted.eventschedules.SkillType
 import play.api.libs.json.{ Json, OFormat }
-import services.testdata.faker.DataFaker.Random
+import services.testdata.faker.DataFaker
+
+case class CreateAssessorAllocationData(id: String,
+                                        eventId: String,
+                                        status: AllocationStatus,
+                                        allocatedAs: String,
+                                        version: String) extends CreateTestData {
+  def toAssessorAllocation: AssessorAllocation = {
+    AssessorAllocation(id, eventId, status, SkillType.withName(allocatedAs), version)
+  }
+}
 
 object CreateAssessorAllocationData {
+  implicit val format: OFormat[CreateAssessorAllocationData] = Json.format[CreateAssessorAllocationData]
 
-  case class CreateAssessorAllocationData(id: String,
-                                          eventId: String,
-                                          status: AllocationStatus,
-                                          allocatedAs: String,
-                                          version: String) extends CreateTestData {
-    def toAssessorAllocation: AssessorAllocation = {
-      AssessorAllocation(id, eventId, status, SkillType.withName(allocatedAs), version)
-    }
-  }
-
-  object CreateAssessorAllocationData {
-    implicit val format: OFormat[CreateAssessorAllocationData] = Json.format[CreateAssessorAllocationData]
-
-    def apply(createRequest: CreateAssessorAllocationRequest)(generatorId: Int): CreateAssessorAllocationData = {
-      val id = createRequest.id
-      val eventId = createRequest.eventId
-      val status = createRequest.status.getOrElse(Random.Allocation.status)
-      val allocatedAs = createRequest.allocatedAs
-      val version = createRequest.version.getOrElse("")
-      new CreateAssessorAllocationData(id, eventId, status, allocatedAs, version)
-    }
+  def apply(createRequest: CreateAssessorAllocationRequest, dataFaker: DataFaker)(generatorId: Int): CreateAssessorAllocationData = {
+    val id = createRequest.id
+    val eventId = createRequest.eventId
+    val status = createRequest.status.getOrElse(dataFaker.Allocation.status)
+    val allocatedAs = createRequest.allocatedAs
+    val version = createRequest.version.getOrElse("")
+    new CreateAssessorAllocationData(id, eventId, status, allocatedAs, version)
   }
 }

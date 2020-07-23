@@ -18,20 +18,20 @@ package services.application
 
 import common.FutureEx
 import connectors.ExchangeObjects
+import javax.inject.{ Inject, Named, Singleton }
 import model.ApplicationStatus.ApplicationStatus
-import model.CivilServantAndInternshipType.CivilServantAndInternshipType
 import model.EvaluationResults.{ Green, Red }
 import model.Exceptions._
 import model.ProgressStatuses._
 import model.command._
+import model.exchange.SchemeEvaluationResultWithFailureDetails
+import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings }
+import model.exchange.sift.SiftAnswersStatus
+import model.persisted._
+import model.persisted.eventschedules.EventType
 import model.stc.StcEventTypes._
 import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
-import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings }
-import model.persisted._
 import model.{ ProgressStatuses, _ }
-import model.exchange.SchemeEvaluationResultWithFailureDetails
-import model.exchange.sift.SiftAnswersStatus
-import model.persisted.eventschedules.EventType
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.mvc.RequestHeader
@@ -47,91 +47,73 @@ import repositories.personaldetails.PersonalDetailsRepository
 import repositories.schemepreferences.SchemePreferencesRepository
 import repositories.sift.ApplicationSiftRepository
 import scheduler.fixer.FixBatch
-import scheduler.onlinetesting.EvaluateOnlineTestResultService
+import scheduler.onlinetesting.EvaluateOnlineTestResultService2
 import services.allocation.CandidateAllocationService
 import services.application.ApplicationService.NoChangeInCurrentSchemeStatusException
 import services.events.EventsService
-import services.stc.{ EventSink, StcEventService }
-import services.onlinetesting.phase1.EvaluatePhase1ResultService
-import services.onlinetesting.phase2.EvaluatePhase2ResultService
-import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import services.sift.{ ApplicationSiftService, SiftAnswersService }
+import services.stc.{ EventSink, StcEventService }
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.collection.immutable.ListMap
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
-import uk.gov.hmrc.http.HeaderCarrier
 
-object ApplicationService extends ApplicationService with CurrentSchemeStatusHelper {
-  val appRepository = applicationRepository
-  val eventService = StcEventService
-  val pdRepository = personalDetailsRepository
-  val cdRepository = faststreamContactDetailsRepository
-  val mediaRepo = mediaRepository
-  val schemePrefsRepository = schemePreferencesRepository
-  val evaluateP1ResultService = EvaluatePhase1ResultService
-  val evaluateP2ResultService = EvaluatePhase2ResultService
-  val evaluateP3ResultService = EvaluatePhase3ResultService
-  val siftService = ApplicationSiftService
-  val siftAnswersService = SiftAnswersService
-  val schemesRepo = SchemeYamlRepository
-  val phase1TestRepo = repositories.phase1TestRepository
-  val phase2TestRepository = repositories.phase2TestRepository
-  val phase3TestRepository = repositories.phase3TestRepository
-  val phase1EvaluationRepository = faststreamPhase1EvaluationRepository
-  val phase2EvaluationRepository = faststreamPhase2EvaluationRepository
-  val phase3EvaluationRepository = faststreamPhase3EvaluationRepository
-  val appSiftRepository = applicationSiftRepository
-  val fsacRepo = assessmentCentreRepository
-  val eventsService = EventsService
-  val fsbRepo = fsbRepository
-  val civilServiceExperienceDetailsRepo = civilServiceExperienceDetailsRepository
-  val assessorAssessmentScoresRepository = repositories.assessorAssessmentScoresRepository
-  val reviewerAssessmentScoresRepository = repositories.reviewerAssessmentScoresRepository
-  val candidateAllocationService = CandidateAllocationService
-  val assistanceDetailsRepo = repositories.faststreamAssistanceDetailsRepository
+object ApplicationService {
 
   case class NoChangeInCurrentSchemeStatusException(applicationId: String,
-    currentSchemeStatus: Seq[SchemeEvaluationResult],
-    newSchemeStatus: Seq[SchemeEvaluationResult]) extends Exception(s"$applicationId / $currentSchemeStatus / $newSchemeStatus")
+                                                    currentSchemeStatus: Seq[SchemeEvaluationResult],
+                                                    newSchemeStatus: Seq[SchemeEvaluationResult]) extends
+    Exception(s"$applicationId / $currentSchemeStatus / $newSchemeStatus")
 }
 
 // scalastyle:off number.of.methods
-trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
+@Singleton
+class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
+                                    pdRepository: PersonalDetailsRepository,
+                                    cdRepository: ContactDetailsRepository,
+                                    schemePrefsRepository: SchemePreferencesRepository,
+                                    mediaRepo: MediaRepository,
+
+                                    @Named("Phase1EvaluationService")
+                                    evaluateP1ResultService: EvaluateOnlineTestResultService2[Phase1PassMarkSettings],
+                                    @Named("Phase2EvaluationService")
+                                    evaluateP2ResultService: EvaluateOnlineTestResultService2[Phase2PassMarkSettings],
+                                    @Named("Phase3EvaluationService")
+                                    evaluateP3ResultService: EvaluateOnlineTestResultService2[Phase3PassMarkSettings],
+
+                                    @Named("Phase1EvaluationRepository") phase1EvaluationRepository: OnlineTestEvaluationRepository,
+                                    @Named("Phase2EvaluationRepository") phase2EvaluationRepository: OnlineTestEvaluationRepository,
+                                    @Named("Phase3EvaluationRepository") phase3EvaluationRepository: OnlineTestEvaluationRepository,
+
+                                    phase1TestRepository2: Phase1TestMongoRepository2,
+                                    phase2TestRepository2: Phase2TestMongoRepository2,
+
+                                    siftService: ApplicationSiftService,
+                                    siftAnswersService: SiftAnswersService,
+                                    schemesRepo: SchemeRepository,
+                                    phase1TestRepository: Phase1TestRepository,
+                                    phase2TestRepository: Phase2TestRepository,
+                                    phase3TestRepository: Phase3TestRepository,
+                                    appSiftRepository: ApplicationSiftRepository,
+                                    fsacRepo: AssessmentCentreRepository,
+                                    val eventsService: EventsService,
+                                    fsbRepo: FsbRepository,
+                                    civilServiceExperienceDetailsRepo: CivilServiceExperienceDetailsRepository,
+                                    candidateAllocationService: CandidateAllocationService,
+                                    assistanceDetailsRepo: AssistanceDetailsRepository,
+                                    assessorAssessmentScoresRepository: AssessorAssessmentScoresMongoRepository,
+                                    reviewerAssessmentScoresRepository: ReviewerAssessmentScoresMongoRepository,
+                                    val eventService: StcEventService
+                                   ) extends EventSink with CurrentSchemeStatusHelper {
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
-  def appRepository: GeneralApplicationRepository
-  def pdRepository: PersonalDetailsRepository
-  def cdRepository: ContactDetailsRepository
-  def schemePrefsRepository: SchemePreferencesRepository
-  def mediaRepo: MediaRepository
-  def evaluateP1ResultService: EvaluateOnlineTestResultService[Phase1PassMarkSettings]
-  def evaluateP2ResultService: EvaluateOnlineTestResultService[Phase2PassMarkSettings]
-  def evaluateP3ResultService: EvaluateOnlineTestResultService[Phase3PassMarkSettings]
-  def siftService: ApplicationSiftService
-  def siftAnswersService: SiftAnswersService
-  def schemesRepo: SchemeRepository
-  def phase1TestRepo: Phase1TestRepository
-  def phase2TestRepository: Phase2TestRepository
-  def phase3TestRepository: Phase3TestRepository
-  def phase1EvaluationRepository: Phase1EvaluationMongoRepository
-  def phase2EvaluationRepository: Phase2EvaluationMongoRepository
-  def phase3EvaluationRepository: Phase3EvaluationMongoRepository
-  def appSiftRepository: ApplicationSiftRepository
-  def fsacRepo: AssessmentCentreRepository
-  def eventsService: EventsService
-  def fsbRepo: FsbRepository
-  def civilServiceExperienceDetailsRepo: CivilServiceExperienceDetailsRepository
-  def assessorAssessmentScoresRepository: AssessorAssessmentScoresMongoRepository
-  def reviewerAssessmentScoresRepository: ReviewerAssessmentScoresMongoRepository
-  def candidateAllocationService: CandidateAllocationService
-  def assistanceDetailsRepo: AssistanceDetailsRepository
 
   val Candidate_Role = "Candidate"
 
   def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]] = appRepository.getCurrentSchemeStatus(applicationId)
 
   def withdraw(applicationId: String, withdrawRequest: WithdrawRequest)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     (for {
       isSiftExpired <- siftService.isSiftExpired(applicationId)
       _ = if(isSiftExpired) throw SiftExpiredException("SIFT_PHASE has expired. Unable to withdraw")
@@ -156,7 +138,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   }
 
   private def removeFromAllEvents(applicationId: String, eligibleForReallocation: Boolean)
-                         (implicit hc: HeaderCarrier): Future[Unit] = {
+                                 (implicit hc: HeaderCarrier): Future[Unit] = {
     candidateAllocationService.allocationsForApplication(applicationId).flatMap { allocations =>
       candidateAllocationService.unAllocateCandidates(allocations.toList, eligibleForReallocation).map(_ => ())
     }
@@ -167,20 +149,20 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   }
 
   private def withdrawFromApplication(applicationId: String, withdrawRequest: WithdrawApplication)
-    (candidate: Candidate, cd: ContactDetails)(implicit hc: HeaderCarrier) = {
-      appRepository.withdraw(applicationId, withdrawRequest).flatMap { _ =>
-        removeFromAllEvents(applicationId, eligibleForReallocation = false).map { _ =>
-          val commonEventList =
-            DataStoreEvents.ApplicationWithdrawn(applicationId, withdrawRequest.withdrawer) ::
-              AuditEvents.ApplicationWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
-              Nil
-          withdrawRequest.withdrawer match {
-            case Candidate_Role => commonEventList
-            case _ => EmailEvents.ApplicationWithdrawn(cd.email,
-              candidate.preferredName.getOrElse(candidate.firstName.getOrElse(""))) :: commonEventList
-          }
+                                     (candidate: Candidate, cd: ContactDetails)(implicit hc: HeaderCarrier) = {
+    appRepository.withdraw(applicationId, withdrawRequest).flatMap { _ =>
+      removeFromAllEvents(applicationId, eligibleForReallocation = false).map { _ =>
+        val commonEventList =
+          DataStoreEvents.ApplicationWithdrawn(applicationId, withdrawRequest.withdrawer) ::
+            AuditEvents.ApplicationWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
+            Nil
+        withdrawRequest.withdrawer match {
+          case Candidate_Role => commonEventList
+          case _ => EmailEvents.ApplicationWithdrawn(cd.email,
+            candidate.preferredName.getOrElse(candidate.firstName.getOrElse(""))) :: commonEventList
         }
       }
+    }
   }
 
   //scalastyle:off method.length cyclomatic.complexity
@@ -191,7 +173,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     }
 
     def maybeProgressToFSAC(schemeStatus: Seq[SchemeEvaluationResult], latestProgressStatus: Option[ProgressStatus],
-      siftAnswersStatus: Option[SiftAnswersStatus.Value]) = {
+                            siftAnswersStatus: Option[SiftAnswersStatus.Value]) = {
       val greenSchemes = schemeStatus.collect { case s if s.result == Green.toString => s.schemeId }.toSet
 
       // we only have generalist or human resources
@@ -236,7 +218,8 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     // Move the candidate to SIFT_READY if the candidate is in SIFT_ENTERED and after withdrawal, the numeric test requirements are
     // satisfied, the form requirements are satisfied and the candidate still has at least one scheme that needs an evaluation
     def maybeProgressToSiftReady(schemeStatus: Seq[SchemeEvaluationResult],
-      progressResponse: ProgressResponse, applicationStatus: ApplicationStatus, siftAnswersStatus: Option[SiftAnswersStatus.Value]) = {
+                                 progressResponse: ProgressResponse, applicationStatus: ApplicationStatus,
+                                 siftAnswersStatus: Option[SiftAnswersStatus.Value]) = {
       val greenSchemes = schemeStatus.collect { case s if s.result == Green.toString => s.schemeId }.toSet
 
       val numericTestRequired = greenSchemes.exists( s => schemesRepo.numericTestSiftRequirementSchemeIds.contains(s) )
@@ -278,7 +261,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     } yield {
       DataStoreEvents.SchemeWithdrawn(applicationId, withdrawRequest.withdrawer) ::
         AuditEvents.SchemeWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
-      Nil
+        Nil
     }
   }
   //scalastyle:on
@@ -304,12 +287,12 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     (for {
       application <- appRepository.findByUserId(userId, ExchangeObjects.frameworkId)
       _ <- appRepository.archive(application.applicationId, userId, userIdToArchiveWith,
-            ExchangeObjects.frameworkId, ApplicationRoute.Faststream)
+        ExchangeObjects.frameworkId, ApplicationRoute.Faststream)
       _ <- cdRepository.archive(userId, userIdToArchiveWith)
       _ <- mediaCloningAndSdipAppCreation()
     } yield {
     }).recoverWith {
-      case (_: ApplicationNotFound | _: NotFoundException) => mediaCloningAndSdipAppCreation()
+      case _: ApplicationNotFound | _: NotFoundException => mediaCloningAndSdipAppCreation()
     }
   }
 
@@ -354,20 +337,20 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
 
   def getPassedSchemes(userId: String, frameworkId: String): Future[List[SchemeId]] = {
 
-      val passedSchemes = (_:PassmarkEvaluation).result.filter(result => result.result == Green.toString).map(_.schemeId)
+    val passedSchemes = (_:PassmarkEvaluation).result.filter(result => result.result == Green.toString).map(_.schemeId)
 
-      appRepository.findByUserId(userId, frameworkId).flatMap { appResponse =>
-        (appResponse.progressResponse.fastPassAccepted, appResponse.applicationRoute) match {
-          case (true, _) => schemePrefsRepository.find(appResponse.applicationId).map(_.schemes)
+    appRepository.findByUserId(userId, frameworkId).flatMap { appResponse =>
+      (appResponse.progressResponse.fastPassAccepted, appResponse.applicationRoute) match {
+        case (true, _) => schemePrefsRepository.find(appResponse.applicationId).map(_.schemes)
 
-          case (_, ApplicationRoute.Edip | ApplicationRoute.Sdip) =>
-            evaluateP1ResultService.getPassmarkEvaluation(appResponse.applicationId).map(passedSchemes)
+        case (_, ApplicationRoute.Edip | ApplicationRoute.Sdip) =>
+          evaluateP1ResultService.getPassmarkEvaluation(appResponse.applicationId).map(passedSchemes)
 
-          case (_, ApplicationRoute.SdipFaststream) => getSdipFaststreamSchemes(appResponse.applicationId)
+        case (_, ApplicationRoute.SdipFaststream) => getSdipFaststreamSchemes(appResponse.applicationId)
 
-          case _ => evaluateP3ResultService.getPassmarkEvaluation(appResponse.applicationId).map(passedSchemes)
-        }
+        case _ => evaluateP3ResultService.getPassmarkEvaluation(appResponse.applicationId).map(passedSchemes)
       }
+    }
   }
 
   def rollbackCandidateToPhase2CompletedFromPhase2Failed(applicationId: String): Future[Unit] = {
@@ -503,7 +486,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   }
 
   def rollbackToSubmittedFromOnlineTestsAndAddFastpassNumber(applicationId: String, certificateNumber: String)
-                                                           (implicit hc: HeaderCarrier): Future[Unit] = {
+                                                            (implicit hc: HeaderCarrier): Future[Unit] = {
     val statuses = allOnlineTestsPhases ++ Seq(ProgressStatuses.SIFT_ENTERED, ProgressStatuses.SIFT_READY, ProgressStatuses.SIFT_COMPLETED)
 
     for {
@@ -512,7 +495,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
         .map(_.copy(fastPassReceived = Some(true), certificateNumber = Some(certificateNumber)))
         .getOrElse(throw UnexpectedException("Civil Service Details not found"))
       _ <- civilServiceExperienceDetailsRepo.update(applicationId, updatedCivilServiceDetails)
-      _ <- phase1TestRepo.removeTestGroup(applicationId)
+      _ <- phase1TestRepository.removeTestGroup(applicationId)
       _ <- phase2TestRepository.removeTestGroup(applicationId)
       _ <- phase3TestRepository.removeTestGroup(applicationId)
       _ <- appSiftRepository.removeTestGroup(applicationId)
@@ -537,7 +520,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
           edipYear = None, sdipYear = None,
           otherInternshipName = None, otherInternshipYear = None,
           fastPassReceived = Some(true), fastPassAccepted = None, certificateNumber = Some(fastPass.toString)))
-      _ <- phase1TestRepo.removeTestGroup(applicationId)
+      _ <- phase1TestRepository.removeTestGroup(applicationId)
     } yield ()
   }
 
@@ -717,7 +700,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       _.map { candidate =>
         candidate.applicationStatus match {
           case Some("PHASE2_TESTS") =>
-            updateEvaluationResults(phase1TestRepo, phase2TestRepository)
+            updateEvaluationResults(phase1TestRepository, phase2TestRepository)
               .flatMap(_ => updateStatuses().flatMap(_ => siftService.sendSiftEnteredNotification(applicationId).map(_ => ())))
           case Some("PHASE3_TESTS") =>
             updateEvaluationResults(phase2TestRepository, phase3TestRepository)
@@ -770,9 +753,9 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
     for {
       _ <- appSiftRepository.fixDataByRemovingSiftEvaluation(applicationId)
       _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.SIFT, List(
-            ASSESSMENT_CENTRE_AWAITING_ALLOCATION,
-            SIFT_COMPLETED
-            ))
+        ASSESSMENT_CENTRE_AWAITING_ALLOCATION,
+        SIFT_COMPLETED
+      ))
     } yield ()
   }
 
@@ -1082,7 +1065,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       _ <- appSiftRepository.removeTestGroup(applicationId)
       _ <- phase3TestRepository.removePhase3TestGroup(applicationId)
       _ <- phase2TestRepository.removeTestGroup(applicationId)
-      evaluationOpt <- phase1TestRepo.findEvaluation(applicationId)
+      evaluationOpt <- phase1TestRepository.findEvaluation(applicationId)
       _ <- updateCurrentSchemeStatus(applicationId, evaluationOpt)
     } yield ()
   }
@@ -1255,8 +1238,8 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   }
 
   private def extractFirstRedResults(
-    evaluations: ListMap[String, Seq[SchemeEvaluationResult]]
-  ): Seq[SchemeEvaluationResultWithFailureDetails] = {
+                                      evaluations: ListMap[String, Seq[SchemeEvaluationResult]]
+                                    ): Seq[SchemeEvaluationResultWithFailureDetails] = {
     evaluations.foldLeft(List[SchemeEvaluationResultWithFailureDetails]()) { case (redsSoFar, (description, results)) =>
       redsSoFar ++
         results

@@ -16,19 +16,15 @@
 
 package controllers.reference
 
+import javax.inject.{ Inject, Singleton }
 import model.exchange.FsacAssessmentCentres
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent}
+import play.api.mvc.{ Action, AnyContent }
 import repositories.csv.FSACIndicatorCSVRepository
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
-object FsacIndicatorController extends FsacIndicatorController {
-  val fsacIndicatorRepository: FSACIndicatorCSVRepository = FSACIndicatorCSVRepository
-}
-
-trait FsacIndicatorController extends BaseController {
-
-  def fsacIndicatorRepository: FSACIndicatorCSVRepository
+@Singleton
+class FsacIndicatorController @Inject()(fsacIndicatorRepository: FSACIndicatorCSVRepository) extends BaseController {
 
   def getAssessmentCentres: Action[AnyContent] = Action { implicit request =>
     Ok(Json.toJson(FsacAssessmentCentres(fsacIndicatorRepository.getAssessmentCentres)))

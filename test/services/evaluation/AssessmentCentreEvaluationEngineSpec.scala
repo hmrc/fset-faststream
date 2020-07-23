@@ -33,7 +33,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
   val applicationId = UniqueIdentifier.randomUniqueIdentifier
   val updatedBy = UniqueIdentifier.randomUniqueIdentifier
 
-  val evaluationEngine = AssessmentCentreEvaluationEngine
+  val evaluationEngine = new AssessmentCentreEvaluationEngineImpl
 
   "Assessment Centre Passmark Rules engine evaluation" should {
 

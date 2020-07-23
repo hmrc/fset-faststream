@@ -17,12 +17,13 @@
 package repositories.application
 
 import factories.DateTimeFactory
+import javax.inject.{ Inject, Singleton }
 import model.EvaluationResults.{ Amber, Green }
 import model.ProgressStatuses
 import model.ProgressStatuses.{ ELIGIBLE_FOR_JOB_OFFER, _ }
 import model.command.ApplicationForProgression
 import model.persisted.FsbTestGroup
-import reactivemongo.api.DB
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.assessmentcentre.AssessmentCentreRepository
@@ -30,28 +31,30 @@ import repositories.{ CollectionNames, CommonBSONDocuments, CurrentSchemeStatusH
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 trait FinalOutcomeRepository extends CurrentSchemeStatusHelper {
   def nextApplicationForFinalFailureNotification(batchSize: Int): Future[Seq[ApplicationForProgression]]
-
   def nextApplicationForFinalSuccessNotification(batchSize: Int): Future[Seq[ApplicationForProgression]]
-
   def progressToFinalFailureNotified(application: ApplicationForProgression): Future[Unit]
-
   def progressToAssessmentCentreFailedSdipGreenNotified(application: ApplicationForProgression): Future[Unit]
-
   def progressToJobOfferNotified(application: ApplicationForProgression): Future[Unit]
 }
 
-class FinaOutcomeMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: () => DB) extends
-  ReactiveRepository[FsbTestGroup, BSONObjectID](CollectionNames.APPLICATION, mongo, FsbTestGroup.jsonFormat,
-    ReactiveMongoFormats.objectIdFormats) with FinalOutcomeRepository with RandomSelection
-  with ReactiveRepositoryHelpers with CommonBSONDocuments {
+@Singleton
+class FinaOutcomeMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
+                                            mongoComponent: ReactiveMongoComponent
+                                            )
+  extends ReactiveRepository[FsbTestGroup, BSONObjectID](
+    CollectionNames.APPLICATION,
+    mongoComponent.mongoConnector.db,
+    FsbTestGroup.jsonFormat,
+    ReactiveMongoFormats.objectIdFormats
+  ) with FinalOutcomeRepository with RandomSelection with ReactiveRepositoryHelpers with CommonBSONDocuments {
 
   private case class FinalState(failed: ProgressStatuses.ProgressStatus, notified: ProgressStatuses.ProgressStatus,
-    currentSchemeStatusQuery: BSONDocument)
+                                currentSchemeStatusQuery: BSONDocument)
 
   val allRedOrWithdrawnQuery = BSONDocument(
     "currentSchemeStatus.result" -> BSONDocument("$nin" -> BSONArray(Green.toString, Amber.toString))
@@ -66,7 +69,7 @@ class FinaOutcomeMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit 
     FinalState(FAILED_AT_SIFT, FAILED_AT_SIFT_NOTIFIED, allRedOrWithdrawnQuery)
   )
 
-  def nextApplicationForFinalFailureNotification(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
+  override def nextApplicationForFinalFailureNotification(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
     import AssessmentCentreRepository.applicationForFsacBsonReads
 
     val query = BSONDocument("$or" -> BSONArray(
@@ -85,7 +88,7 @@ class FinaOutcomeMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit 
     selectRandom[BSONDocument](query, batchSize).map(_.map(doc => doc: ApplicationForProgression))
   }
 
-  def nextApplicationForFinalSuccessNotification(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
+  override def nextApplicationForFinalSuccessNotification(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
     import AssessmentCentreRepository.applicationForFsacBsonReads
 
     val query = BSONDocument(
@@ -97,7 +100,7 @@ class FinaOutcomeMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit 
     selectRandom[BSONDocument](query, batchSize).map(_.map(doc => doc: ApplicationForProgression))
   }
 
-  def progressToFinalFailureNotified(application: ApplicationForProgression): Future[Unit] = {
+  override def progressToFinalFailureNotified(application: ApplicationForProgression): Future[Unit] = {
     val query = BSONDocument("applicationId" -> application.applicationId)
     val validator = singleUpdateValidator(application.applicationId, actionDesc = "progressing to final failure")
 
@@ -107,7 +110,7 @@ class FinaOutcomeMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit 
     collection.update(ordered = false).one(query, BSONDocument("$set" -> applicationStatusBSON(finalNotifiedState.notified))) map validator
   }
 
-  def progressToAssessmentCentreFailedSdipGreenNotified(application: ApplicationForProgression): Future[Unit] = {
+  override def progressToAssessmentCentreFailedSdipGreenNotified(application: ApplicationForProgression): Future[Unit] = {
     val query = BSONDocument("applicationId" -> application.applicationId)
     val notifiedState = ASSESSMENT_CENTRE_FAILED_SDIP_GREEN_NOTIFIED
     val msg = s"progressing candidate to $notifiedState"
@@ -116,7 +119,7 @@ class FinaOutcomeMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit 
     collection.update(ordered = false).one(query, BSONDocument("$set" -> applicationStatusBSON(notifiedState))) map validator
   }
 
-  def progressToJobOfferNotified(application: ApplicationForProgression): Future[Unit] = {
+  override def progressToJobOfferNotified(application: ApplicationForProgression): Future[Unit] = {
     val query = BSONDocument("applicationId" -> application.applicationId)
     val validator = singleUpdateValidator(application.applicationId, actionDesc = "progressing to job offer notified")
 

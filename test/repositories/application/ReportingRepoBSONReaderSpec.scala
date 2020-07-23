@@ -16,6 +16,7 @@
 
 package repositories.application
 
+import config.MicroserviceAppConfig
 import factories.DateTimeFactoryMock
 import model.ApplicationRoute.{ apply => _ }
 import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, SUBMITTED => _ }
@@ -27,8 +28,11 @@ import testkit.UnitWithAppSpec
 
 class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
 
-  def bsonReader = new ReportingRepoBSONReader {
-    def dateTimeFactory = DateTimeFactoryMock
+  val appConfigMock = mock[MicroserviceAppConfig]
+
+  def bsonReader= new ReportingRepoBSONReader {
+    override val dateTimeFactory = DateTimeFactoryMock
+    override val appConfig = appConfigMock
   }
 
   "toCandidateProgressReport" should {

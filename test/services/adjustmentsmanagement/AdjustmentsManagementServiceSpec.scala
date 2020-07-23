@@ -33,8 +33,8 @@ import services.scheme.SchemePreferencesService
 import services.sift.ApplicationSiftService
 import services.stc.StcEventServiceFixture
 import services.testdata.examples.AdjustmentsExamples._
-import testkit.MockitoImplicits._
 import testkit.ExtendedTimeout
+import testkit.MockitoImplicits._
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -107,13 +107,13 @@ class AdjustmentsManagementServiceSpec extends BaseServiceSpec with ExtendedTime
       when(mockSchemePreferencesService.find(AppId)).thenReturnAsync(schemes)
 
       when(mockAppRepository.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(mockApplicationSiftService.saveSiftExpiryDate(any[String], any[DateTime])).thenReturnAsync()
+      when(mockApplicationSiftService.saveSiftExpiryDate(any[String])).thenReturnAsync()
       when(mockApplicationSiftService.sendSiftEnteredNotification(any[String])(any[HeaderCarrier])).thenReturnAsync()
 
       service.confirmAdjustment(AppId, ETrayTimeAdjustments).futureValue
 
       verify(mockAppRepository).addProgressStatusAndUpdateAppStatus(AppId, ProgressStatuses.SIFT_ENTERED)
-      verify(mockApplicationSiftService).saveSiftExpiryDate(any[String], any[DateTime])
+      verify(mockApplicationSiftService).saveSiftExpiryDate(any[String])
       verify(mockApplicationSiftService).sendSiftEnteredNotification(AppId) //check email was sent
       verify(mockAppRepository).confirmAdjustments(AppId, ETrayTimeAdjustments)
       verifyDataStoreEvent("ManageAdjustmentsUpdated")
@@ -172,13 +172,13 @@ class AdjustmentsManagementServiceSpec extends BaseServiceSpec with ExtendedTime
     when(mockSchemeRepository.siftableSchemeIds).thenReturn(Seq(commercial, finance, digitalAndTechnology))
     when(mockSchemeRepository.numericTestSiftRequirementSchemeIds).thenReturn(Seq(commercial, finance))
 
-    val service = new AdjustmentsManagementService {
-      val appRepository = mockAppRepository
-      val cdRepository = mockCdRepository
-      override val eventService = stcEventServiceMock
-      val schemePreferencesService = mockSchemePreferencesService
-      val schemesRepository = mockSchemeRepository
-      val applicationSiftService = mockApplicationSiftService
-    }
+    val service = new AdjustmentsManagementService(
+      mockAppRepository,
+      mockCdRepository,
+      mockSchemePreferencesService,
+      mockSchemeRepository,
+      mockApplicationSiftService,
+      stcEventServiceMock
+    )
   }
 }

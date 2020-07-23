@@ -16,21 +16,16 @@
 
 package controllers.reference
 
+import javax.inject.{ Inject, Singleton }
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
-import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import repositories.events.LocationsWithVenuesRepository
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object LocationAndVenueController extends LocationAndVenueController {
-
-  val locationsAndVenuesRepository: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
-
-}
-
-trait LocationAndVenueController extends BaseController {
-
-  def locationsAndVenuesRepository: LocationsWithVenuesRepository
+@Singleton
+class LocationAndVenueController @Inject()(locationsAndVenuesRepository: LocationsWithVenuesRepository) extends BaseController {
 
   def locationsWithVenues: Action[AnyContent] = Action.async { implicit request =>
     locationsAndVenuesRepository.locationsWithVenuesList.map(x => Ok(Json.toJson(x)))
@@ -43,5 +38,4 @@ trait LocationAndVenueController extends BaseController {
   def locations: Action[AnyContent] = Action.async { implicit request =>
     locationsAndVenuesRepository.locations.map(x => Ok(Json.toJson(x)))
   }
-
 }

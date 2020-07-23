@@ -51,11 +51,11 @@ trait StcEventServiceFixture extends MockitoSugar with MustMatchers {
   val auditEventHandlerMock = mock[AuditEventHandler]
   val emailEventHandlerMock = mock[EmailEventHandler]
 
-  val stcEventServiceMock = new StcEventService {
-    val dataStoreEventHandler = dataStoreEventHandlerMock
-    val auditEventHandler = auditEventHandlerMock
-    val emailEventHandler = emailEventHandlerMock
-  }
+  val stcEventServiceMock = new StcEventServiceImpl(
+    dataStoreEventHandlerMock,
+    auditEventHandlerMock,
+    emailEventHandlerMock
+  )
 
   val authProviderClientMock = mock[AuthProviderClient]
 

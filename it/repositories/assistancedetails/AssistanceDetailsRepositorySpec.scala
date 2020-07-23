@@ -10,12 +10,11 @@ import testkit.MongoRepositorySpec
 class AssistanceDetailsRepositorySpec extends MongoRepositorySpec {
   import ImplicitBSONHandlers._
   
-  override val collectionName = CollectionNames.APPLICATION
+  override val collectionName: String = CollectionNames.APPLICATION
 
-  def repository = new AssistanceDetailsMongoRepository
+  def repository = new AssistanceDetailsMongoRepository(mongo)
 
   "update" should {
-
     "create new assistance details if they do not exist" in {
       val result = (for {
         _ <- insert(minimumApplicationBSON(applicationId(1), userId(1)))
@@ -44,7 +43,7 @@ class AssistanceDetailsRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  private def insert(doc: BSONDocument) = repository.collection.insert(doc)
+  private def insert(doc: BSONDocument) = repository.collection.insert(ordered = false).one(doc)
 
   private def userId(i: Int) = "UserId" + i
   private def applicationId(i: Int) = "AppId" + i

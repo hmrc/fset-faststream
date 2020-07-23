@@ -16,14 +16,15 @@
 
 package repositories.fsb
 
-import factories.UUIDFactory
-import model.EvaluationResults.{Green, Red}
+import factories.{ ITDateTimeFactoryMock, UUIDFactory }
+import model.EvaluationResults.{ Green, Red }
 import model.command.ApplicationForProgression
 import model.persisted._
-import model.{ApplicationStatus, ProgressStatuses, SchemeId}
+import model.{ ApplicationStatus, ProgressStatuses, SchemeId }
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers
-import repositories.{CollectionNames, CommonRepository}
+import repositories.application.GeneralApplicationMongoRepository
+import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
 class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonRepository {
@@ -31,8 +32,10 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
   import ImplicitBSONHandlers._
 
   val collectionName = CollectionNames.APPLICATION
-  lazy val repository = repositories.fsbRepository
-  lazy val applicationRepo = repositories.applicationRepository
+//  lazy val repository = repositories.fsbRepository
+  lazy val repository = new FsbMongoRepository(ITDateTimeFactoryMock, mongo)
+//  lazy val applicationRepo = repositories.applicationRepository
+  lazy val applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, appConfig, mongo)
 
   "all failed at fsb" must {
     "select candidates that are all red at FSB" in {
@@ -148,7 +151,8 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
 
   private def createApplication(): String = {
     val applicationId = generateUUID()
-    applicationRepository.collection.insert(BSONDocument("applicationId" -> applicationId, "userId" -> generateUUID())).futureValue
+    applicationRepo.collection.insert(ordered = false)
+      .one(BSONDocument("applicationId" -> applicationId, "userId" -> generateUUID())).futureValue
     applicationId
   }
 }

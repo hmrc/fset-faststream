@@ -16,7 +16,6 @@
 
 package controllers
 
-
 import model.command.FastPassEvaluation
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
@@ -25,9 +24,9 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import services.fastpass.FastPassService
 import testkit.UnitWithAppSpec
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 class FastPassApprovalControllerSpec extends UnitWithAppSpec {
 
@@ -44,7 +43,6 @@ class FastPassApprovalControllerSpec extends UnitWithAppSpec {
     }
   }
 
-
   trait TestFixture {
     implicit val hc = HeaderCarrier()
     implicit val rh: RequestHeader = FakeRequest("GET", "some/path")
@@ -52,9 +50,6 @@ class FastPassApprovalControllerSpec extends UnitWithAppSpec {
     val request = FastPassEvaluation(accepted = true, "adminId")
     val serviceResponse: Future[(String, String)] = Future.successful(("George", "Foreman"))
 
-    def controllerUnderTest = new FastPassApprovalController {
-      val fastPassService = mockFastPassService
-    }
+    def controllerUnderTest = new FastPassApprovalController(mockFastPassService)
   }
-
 }

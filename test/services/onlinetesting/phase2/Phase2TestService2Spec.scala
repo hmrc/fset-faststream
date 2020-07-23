@@ -19,8 +19,8 @@ package services.onlinetesting.phase2
 import akka.actor.ActorSystem
 import config._
 import connectors.ExchangeObjects.{ toString => _, _ }
-import connectors.{ CSREmailClient, OnlineTestEmailClient, OnlineTestsGatewayClient }
-import factories.{ DateTimeFactory, UUIDFactory }
+import connectors.{ OnlineTestEmailClient, OnlineTestsGatewayClient }
+import factories.{ DateTimeFactory, DateTimeFactoryMock, UUIDFactory }
 import model.Commands.PostCode
 import model.Exceptions._
 import model.OnlineTestCommands.OnlineTestApplication
@@ -482,14 +482,14 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
   private def phase2Progress(phase2ProgressResponse: Phase2ProgressResponse) =
     ProgressResponse("appId", phase2ProgressResponse = phase2ProgressResponse)
 
-  trait Phase2TestServiceFixture {
+  trait Phase2TestServiceFixture extends StcEventServiceFixture {
 
     implicit val hc: HeaderCarrier = mock[HeaderCarrier]
     implicit val rh: RequestHeader = mock[RequestHeader]
 
-    val clock: DateTimeFactory = mock[DateTimeFactory]
-    implicit val now: DateTime = DateTimeFactory.nowLocalTimeZone.withZone(DateTimeZone.UTC)
-    when(clock.nowLocalTimeZone).thenReturn(now)
+    val dateTimeFactoryMock: DateTimeFactory = mock[DateTimeFactory]
+    implicit val now: DateTime = DateTimeFactoryMock.nowLocalTimeZone.withZone(DateTimeZone.UTC)
+    when(dateTimeFactoryMock.nowLocalTimeZone).thenReturn(now)
 
     val scheduleCompletionBaseUrl = "http://localhost:9284/fset-fast-stream/online-tests/phase2"
     val inventoryIds: Map[String, String] = Map[String, String]("test3" -> "test3-uuid", "test4" -> "test4-uuid")
@@ -570,12 +570,16 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
     val otRepositoryMock = mock[Phase2TestRepository]
     val otRepositoryMock2 = mock[Phase2TestRepository2]
     val onlineTestsGatewayClientMock = mock[OnlineTestsGatewayClient]
-    val emailClientMock = mock[CSREmailClient]
-    val otEmailClientMock = mock[OnlineTestEmailClient]
-    val auditServiceMock = mock[AuditService]
     val tokenFactoryMock = mock[UUIDFactory]
+    val emailClientMock = mock[OnlineTestEmailClient]
+//    val otEmailClientMock = mock[OnlineTestEmailClient]
+    val auditServiceMock = mock[AuditService]
+
     val phase3TestServiceMock = mock[Phase3TestService]
     val siftServiceMock = mock[ApplicationSiftService]
+
+    val appConfigMock = mock[MicroserviceAppConfig]
+    when(appConfigMock.testIntegrationGatewayConfig).thenReturn(integrationConfigMock)
 
     val onlineTestApplication = OnlineTestApplication(applicationId = "appId",
       applicationStatus = ApplicationStatus.SUBMITTED,
@@ -679,24 +683,24 @@ class Phase2TestService2Spec extends UnitSpec with ExtendedTimeout {
 
     val realTimeResults = PsiRealTimeResults(tScore = 10.0, rawScore = 20.0, reportUrl = None)
 
-    val phase2TestService = new Phase2TestService2 with StcEventServiceFixture {
-      val appRepository = appRepositoryMock
-      val cdRepository = cdRepositoryMock
-      val testRepository = otRepositoryMock
+    val actor = ActorSystem()
 
-      val testRepository2: Phase2TestRepository2 = otRepositoryMock2
-      val integrationGatewayConfig: TestIntegrationGatewayConfig = integrationConfigMock
-
-      val onlineTestsGatewayClient = onlineTestsGatewayClientMock
-      val emailClient = emailClientMock
-      val auditService = auditServiceMock
-      val tokenFactory = tokenFactoryMock
-      val dateTimeFactory = clock
-      val eventService = stcEventServiceMock
-      val actor = ActorSystem()
-      val authProvider = authProviderClientMock
-      val phase3TestService = phase3TestServiceMock
-      val siftService = siftServiceMock
-    }
+    val phase2TestService = new Phase2TestService2(
+      appRepositoryMock,
+      cdRepositoryMock,
+      otRepositoryMock,
+      otRepositoryMock2,
+      onlineTestsGatewayClientMock,
+      tokenFactoryMock,
+      dateTimeFactoryMock,
+      emailClientMock,
+      auditServiceMock,
+      authProviderClientMock,
+      phase3TestServiceMock,
+      siftServiceMock,
+      appConfigMock,
+      stcEventServiceMock,
+      actor
+    )
   }
 }

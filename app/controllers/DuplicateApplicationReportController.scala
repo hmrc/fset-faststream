@@ -16,20 +16,18 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.report.DuplicateApplicationsReportItem
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import services.reporting.{ DuplicateApplicationGroup, DuplicateDetectionService }
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object DuplicateApplicationReportController extends DuplicateApplicationReportController {
-  val duplicateDetectionService: DuplicateDetectionService = DuplicateDetectionService
-}
-
-trait DuplicateApplicationReportController extends BaseController {
-  val duplicateDetectionService: DuplicateDetectionService
+@Singleton
+class DuplicateApplicationReportController @Inject() (duplicateDetectionService: DuplicateDetectionService) extends BaseController {
+//  val duplicateDetectionService: DuplicateDetectionService
 
   def findPotentialDuplicates = Action.async { implicit request =>
     duplicateDetectionService.findAll.map { potentialDuplications =>
@@ -46,5 +44,4 @@ trait DuplicateApplicationReportController extends BaseController {
         matchGroup, c.applicationRoute)
     }
   }
-
 }

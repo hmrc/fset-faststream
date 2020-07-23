@@ -17,12 +17,13 @@
 package controllers.fixdata
 
 import factories.UUIDFactory
+import javax.inject.{ Inject, Singleton }
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.{ ApplicationNotFound, NotFoundException }
 import model.ProgressStatuses.{ ASSESSMENT_CENTRE_PASSED, _ }
-import model.{ SchemeId, UniqueIdentifier }
 import model.command.FastPassPromotion
 import model.persisted.sift.SiftAnswersStatus
+import model.{ SchemeId, UniqueIdentifier }
 import play.api.Logger
 import play.api.mvc.{ Action, AnyContent, Result }
 import services.application.{ ApplicationService, FsbService }
@@ -33,34 +34,24 @@ import services.onlinetesting.phase2.Phase2TestService2
 import services.onlinetesting.phase3.Phase3TestService
 import services.sift.{ ApplicationSiftService, SiftAnswersService }
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object FixDataConsistencyController extends FixDataConsistencyController {
-  override val applicationService = ApplicationService
-  override val fastPassService = FastPassService
-  override val siftService = ApplicationSiftService
-  override val siftAnswersService = SiftAnswersService
-  override val assessmentCentreService = AssessmentCentreService
-  override val progressionToFsbOrOfferService = ProgressionToFsbOrOfferService
-  override val fsbService = FsbService
-  override val phase2TestService = Phase2TestService2
-  override val phase3TestService = Phase3TestService
-}
-
 // scalastyle:off number.of.methods
-trait FixDataConsistencyController extends BaseController {
-  val applicationService: ApplicationService
-  val fastPassService: FastPassService
-  val siftService: ApplicationSiftService
-  val siftAnswersService: SiftAnswersService
-  val assessmentCentreService: AssessmentCentreService
-  val progressionToFsbOrOfferService: ProgressionToFsbOrOfferService
-  val fsbService: FsbService
-  val phase2TestService: Phase2TestService2
-  val phase3TestService: Phase3TestService
+@Singleton
+class FixDataConsistencyController @Inject()(applicationService: ApplicationService,
+                                             fastPassService: FastPassService,
+                                             siftService: ApplicationSiftService,
+                                             siftAnswersService: SiftAnswersService,
+                                             assessmentCentreService: AssessmentCentreService,
+                                             progressionToFsbOrOfferService: ProgressionToFsbOrOfferService,
+                                             fsbService: FsbService,
+                                             phase2TestService: Phase2TestService2,
+                                             phase3TestService: Phase3TestService,
+                                             uuidFactory: UUIDFactory
+                                            ) extends BaseController {
 
   def undoFullWithdraw(applicationId: String, newApplicationStatus: ApplicationStatus) = Action.async { implicit request =>
     applicationService.undoFullWithdraw(applicationId, newApplicationStatus).map { _ =>
@@ -159,7 +150,7 @@ trait FixDataConsistencyController extends BaseController {
           currentSchemeStatus <- applicationService.getCurrentSchemeStatus(applicationId)
           assessmentCentreScoreEvaluation <- assessmentCentreService.getAssessmentScoreEvaluation(applicationId)
           _ = if (assessmentCentreScoreEvaluation.isEmpty) { throw CandidateHasNoAssessmentScoreEvaluationException(applicationId) }
-          newEvaluation = assessmentCentreScoreEvaluation.get.copy(passmarkVersion = UUIDFactory.generateUUID())
+          newEvaluation = assessmentCentreScoreEvaluation.get.copy(passmarkVersion = uuidFactory.generateUUID())
           _ <- assessmentCentreService.saveAssessmentScoreEvaluation(newEvaluation, currentSchemeStatus)
         } yield Ok(s"Pass marks randomised for application $applicationId in phase $phase")
       }
@@ -824,4 +815,4 @@ trait FixDataConsistencyController extends BaseController {
       }
   }
 }
-// scalastyle:on
+// scalastyle:on number.of.methods

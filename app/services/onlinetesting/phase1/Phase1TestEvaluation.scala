@@ -34,9 +34,10 @@ trait Phase1TestEvaluation extends OnlineTestResultsCalculator {
                         passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
     evaluate(isGis = false, schemes, passmark, sjqTestResult, Some(bqTestResult))
   }
-
+//scalastyle:off
   private def evaluate(isGis: Boolean, schemes: List[SchemeId], passmark: Phase1PassMarkSettings,
                sjqTestResult: TestResult, bqTestResultOpt: Option[TestResult] = None) = {
+    println(s"**** evaluate...")
     for {
       schemeToEvaluate <- schemes
       schemePassmark <- passmark.schemes find (_.schemeId == schemeToEvaluate)
@@ -56,4 +57,4 @@ trait Phase1TestEvaluation extends OnlineTestResultsCalculator {
       SchemeEvaluationResult(schemeToEvaluate, combineTestResults(sjqResult, bqResult).toString)
     }
   }
-}
+}//scalastyle:on

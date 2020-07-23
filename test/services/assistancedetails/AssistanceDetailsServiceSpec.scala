@@ -48,9 +48,6 @@ class AssistanceDetailsServiceSpec extends BaseServiceSpec {
 
   trait TestFixture  {
     val mockAssistanceDetailsRepository = mock[AssistanceDetailsRepository]
-
-    val service = new AssistanceDetailsService {
-      val adRepository = mockAssistanceDetailsRepository
-    }
+    val service = new AssistanceDetailsServiceImpl(mockAssistanceDetailsRepository)
   }
 }

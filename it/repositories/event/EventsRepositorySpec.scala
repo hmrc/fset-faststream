@@ -1,10 +1,12 @@
 package repositories.event
 
 import model.Exceptions.EventNotFoundException
-import repositories.CollectionNames
 import model.persisted.EventExamples
 import model.persisted.eventschedules.{ EventType, SkillType, VenueType }
 import org.joda.time.DateTime
+import reactivemongo.api.indexes.IndexType.Ascending
+import repositories.CollectionNames
+import repositories.events.EventsMongoRepository
 import testkit.MongoRepositorySpec
 
 import scala.util.Random
@@ -13,13 +15,17 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
   override val collectionName: String = CollectionNames.ASSESSMENT_EVENTS
 
-  lazy val repository = repositories.eventsRepository
+  lazy val repository = new EventsMongoRepository(mongo, appConfig)
 
   "Events Repository" should {
     "create indexes for the repository" in {
-      val indexes = indexesWithFields(repository)
+      val indexes = indexesWithFields2(repository)
       indexes must contain theSameElementsAs
-        Seq(List("eventType", "date", "location", "venue"), List("_id"))
+        Seq(
+          IndexDetails(key = Seq(("_id", Ascending)), unique = false),
+          IndexDetails(key = Seq(("eventType", Ascending), ("date", Ascending), ("location", Ascending), ("venue", Ascending)),
+            unique = false)
+        )
     }
   }
 

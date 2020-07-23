@@ -16,20 +16,20 @@
 
 package services.events
 
+import config.MicroserviceAppConfig
+import factories.UUIDFactory
 import model.persisted.EventExamples
 import model.persisted.eventschedules._
-import org.scalatest.concurrent.ScalaFutures
-import repositories.events.{ EventsConfigRepository, LocationsWithVenuesRepository }
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import org.scalatest.Matchers
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{ Millis, Seconds, Span }
-import persisted.FsbTypeExamples
-import uk.gov.hmrc.play.test.UnitSpec
+import repositories.events.{ EventsConfigRepositoryImpl, LocationsWithVenuesRepository }
+import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
 
-class EventsConfigRepositorySpec extends UnitSpec with Matchers with ScalaFutures with testkit.MockitoSugar {
+class EventsConfigRepositorySpec extends UnitWithAppSpec with ScalaFutures with testkit.MockitoSugar {
   "events" must {
     "successfully parse the event schedule config" in {
       val input =
@@ -119,13 +119,19 @@ class EventsConfigRepositorySpec extends UnitSpec with Matchers with ScalaFuture
       when(mockLocationsWithVenuesRepo.venue(any[String])).thenReturn(Future.successful(Venue("london fsac", "bush house")))
       when(mockLocationsWithVenuesRepo.location(any[String])).thenReturn(Future.successful(Location("London")))
 
-      val repo = new EventsConfigRepository {
-        override protected def eventScheduleConfig: String = input
+      val appConfigMock = mock[MicroserviceAppConfig]
+      val mockUUIDFactory = mock[UUIDFactory]
+//      val repo = new EventsConfigRepository {
+//        override protected def eventScheduleConfig: String = input
 
-        override def locationsWithVenuesRepo: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
+//        override def locationsWithVenuesRepo: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
+//      }
+
+      val repo = new EventsConfigRepositoryImpl(app, mockLocationsWithVenuesRepo, appConfigMock, mockUUIDFactory) {
+        override protected def eventScheduleConfig: String = input
       }
 
-      implicit val patienceConfig = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
+      implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
 
       def withDefaultFields(event: Event) = {
           event.copy(id = "e1", createdAt = EventExamples.eventCreatedAt, sessions = event.sessions.map { session =>
@@ -136,7 +142,7 @@ class EventsConfigRepositorySpec extends UnitSpec with Matchers with ScalaFuture
 
       whenReady(repo.events) { result =>
         result.zip(EventExamples.YamlEvents).foreach { case (actual, expected) =>
-          withDefaultFields(actual) shouldBe withDefaultFields(expected)
+          withDefaultFields(actual) mustBe withDefaultFields(expected)
         }
       }
     }

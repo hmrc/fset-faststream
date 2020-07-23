@@ -36,11 +36,11 @@ import services.personaldetails.PersonalDetailsService
 import services.scheme.SchemePreferencesService
 import services.sift.ApplicationSiftService
 import services.stc.StcEventServiceFixture
-import testkit.{ ExtendedTimeout, UnitSpec }
 import testkit.MockitoImplicits._
+import testkit.{ ExtendedTimeout, UnitSpec }
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
 
@@ -122,7 +122,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
       val schemes = SelectedSchemes(
         List(generalist, humanResources, digitalAndTechnology), orderAgreed = true, eligible = true)
       when(schemePreferencesServiceMock.find(any[String])).thenReturn(Future.successful(schemes))
-      when(applicationSiftServiceMock.saveSiftExpiryDate(any[String], any[DateTime])).thenReturn(Future.successful(unit))
+      when(applicationSiftServiceMock.saveSiftExpiryDate(any[String])).thenReturn(Future.successful(unit))
       when(applicationSiftServiceMock.progressStatusForSiftStage(any[Seq[SchemeId]])).thenReturn(ProgressStatuses.SIFT_ENTERED)
 
       val (name, surname) = underTest.processFastPassCandidate(userId, appId, accepted, triggeredBy).futureValue
@@ -143,7 +143,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
       new TestFixtureWithMockResponses {
         val schemes = SelectedSchemes(List(commercial, finance), orderAgreed = true, eligible = true)
         when(schemePreferencesServiceMock.find(any[String])).thenReturn(Future.successful(schemes))
-        when(applicationSiftServiceMock.saveSiftExpiryDate(any[String], any[DateTime])).thenReturn(Future.successful(unit))
+        when(applicationSiftServiceMock.saveSiftExpiryDate(any[String])).thenReturn(Future.successful(unit))
         when(applicationSiftServiceMock.progressStatusForSiftStage(any[Seq[SchemeId]])).thenReturn(ProgressStatuses.SIFT_ENTERED)
 
         when(assistanceDetailsRepositoryMock.find(any[String])).thenReturnAsync(
@@ -177,7 +177,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
       new TestFixtureWithMockResponses {
         val schemes = SelectedSchemes(List(commercial, finance), orderAgreed = true, eligible = true)
         when(schemePreferencesServiceMock.find(any[String])).thenReturn(Future.successful(schemes))
-        when(applicationSiftServiceMock.saveSiftExpiryDate(any[String], any[DateTime])).thenReturn(Future.successful(unit))
+        when(applicationSiftServiceMock.saveSiftExpiryDate(any[String])).thenReturn(Future.successful(unit))
         when(applicationSiftServiceMock.progressStatusForSiftStage(any[Seq[SchemeId]])).thenReturn(ProgressStatuses.SIFT_ENTERED)
 
         when(assistanceDetailsRepositoryMock.find(any[String])).thenReturnAsync(
@@ -203,7 +203,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
       "but not time based ones" in new TestFixtureWithMockResponses {
         val schemes = SelectedSchemes(List(commercial, finance), orderAgreed = true, eligible = true)
         when(schemePreferencesServiceMock.find(any[String])).thenReturn(Future.successful(schemes))
-        when(applicationSiftServiceMock.saveSiftExpiryDate(any[String], any[DateTime])).thenReturn(Future.successful(unit))
+        when(applicationSiftServiceMock.saveSiftExpiryDate(any[String])).thenReturn(Future.successful(unit))
         when(applicationSiftServiceMock.progressStatusForSiftStage(any[Seq[SchemeId]])).thenReturn(ProgressStatuses.SIFT_ENTERED)
 
         when(assistanceDetailsRepositoryMock.find(any[String])).thenReturnAsync(
@@ -325,8 +325,6 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
     val error = new RuntimeException("Something bad happened")
     val serviceError = Future.failed(error)
     val selectedSchemes = SelectedSchemesExamples.TwoSchemes
-    val siftableSchemes = SelectedSchemesExamples.siftableSchemes.schemes
-    val numericSchemes = Seq(commercial, finance)
 
     val assistanceDetails = AssistanceDetails(
       hasDisability = "No",
@@ -342,32 +340,33 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
       needsSupportForPhoneInterviewDescription = None
     )
 
-    val underTest = new FastPassService {
-      val appRepo = appRepoMock
-      val personalDetailsService = personalDetailsServiceMock
-      val eventService = stcEventServiceMock
-      val emailClient = emailClientMock
-      val cdRepository = cdRepositoryMock
-      val csedRepository = csedRepositoryMock
-      val schemePreferencesService = schemePreferencesServiceMock
-      val schemesRepository = schemesRepositoryMock
-      val applicationSiftService = applicationSiftServiceMock
-      val adjustmentsManagementService = adjustmentsManagementServiceMock
-      val assistanceDetailsRepository = assistanceDetailsRepositoryMock
+    val underTest = new FastPassService(
+      appRepoMock,
+      personalDetailsServiceMock,
+      stcEventServiceMock,
+      emailClientMock,
+      cdRepositoryMock,
+      csedRepositoryMock,
+      schemePreferencesServiceMock,
+      schemesRepositoryMock,
+      applicationSiftServiceMock,
+      adjustmentsManagementServiceMock,
+      assistanceDetailsRepositoryMock
 
-      override val fastPassDetails = CivilServiceExperienceDetails(
-        applicable = true,
-        fastPassReceived = Some(true),
-        fastPassAccepted = Some(true),
-        certificateNumber = Some("0000000")
-      )
-    }
+//      override val fastPassDetails = CivilServiceExperienceDetails(
+//        applicable = true,
+//        fastPassReceived = Some(true),
+//        fastPassAccepted = Some(true),
+//        certificateNumber = Some("0000000")
+//      )
+    )
   }
 
   trait TestFixtureWithMockResponses extends TestFixture {
-
     val notSubmittedProgressResponse = ProgressResponse(appId)
     val submittedProgressResponse = ProgressResponse(appId, submitted = true)
+    val siftableSchemes = SelectedSchemesExamples.siftableSchemes.schemes
+    val numericSchemes = Seq(commercial, finance)
 
     when(csedRepositoryMock.evaluateFastPassCandidate(any[String], any[Boolean])).thenReturn(serviceFutureResponse)
     when(csedRepositoryMock.update(any[String], any[CivilServiceExperienceDetails])).thenReturn(serviceFutureResponse)
