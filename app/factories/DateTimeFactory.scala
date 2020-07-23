@@ -16,16 +16,18 @@
 
 package factories
 
+import com.google.inject.ImplementedBy
+import javax.inject.Singleton
 import org.joda.time.{ DateTime, LocalDate }
 
+@ImplementedBy(classOf[DateTimeFactoryImpl])
 trait DateTimeFactory {
   def nowLocalTimeZone: DateTime // Uses `DateTimeZone.getDefault` (the timezone of the current machine).
-
   def nowLocalDate: LocalDate
 }
 
-object DateTimeFactory extends DateTimeFactory {
+@Singleton
+class DateTimeFactoryImpl extends DateTimeFactory {
   def nowLocalTimeZone = DateTime.now // Uses `DateTimeZone.getDefault` (the timezone of the current machine).
-
   def nowLocalDate = LocalDate.now
 }

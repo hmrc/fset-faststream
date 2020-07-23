@@ -1,19 +1,23 @@
 package repositories.application
 
-import factories.UUIDFactory
+import factories.{ ITDateTimeFactoryMock, UUIDFactory }
 import model.ProgressStatuses
 import model.persisted.SchemeEvaluationResult
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.CollectionNames
+import repositories.fsb.FsbMongoRepository
 import testkit.MongoRepositorySpec
 
 class FinalOutcomeRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
   val collectionName = CollectionNames.APPLICATION
-  lazy val repository = repositories.finalOutcomeRepository
-  lazy val fsbRepo = repositories.fsbRepository
-  lazy val applicationRepo = repositories.applicationRepository
+//  lazy val repository = repositories.finalOutcomeRepository
+  lazy val repository = new FinaOutcomeMongoRepository(ITDateTimeFactoryMock, mongo)
+//  lazy val fsbRepo = repositories.fsbRepository
+  lazy val fsbRepo = new FsbMongoRepository(ITDateTimeFactoryMock, mongo)
+//  lazy val applicationRepo = repositories.applicationRepository
+  lazy val applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, appConfig, mongo)
 
   "next final failed" must {
     "return only application for final fsb failed with no green schemes" in {
@@ -67,7 +71,7 @@ class FinalOutcomeRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
   private def createApplication(): String = {
     val applicationId = generateUUID()
-    applicationRepo.collection.insert(
+    applicationRepo.collection.insert(ordered = false).one(
       BSONDocument(
         "applicationId" -> applicationId,
         "userId" -> applicationId

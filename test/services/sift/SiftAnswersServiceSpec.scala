@@ -16,18 +16,19 @@
 
 package services.sift
 
+import config.MicroserviceAppConfig
 import model.EvaluationResults.{ Green, Withdrawn }
 import model.ProgressStatuses.{ SIFT_COMPLETED, SIFT_FORMS_COMPLETE_NUMERIC_TEST_PENDING, SIFT_READY }
 import model.command.ProgressResponseExamples
 import model.persisted.SchemeEvaluationResult
 import model.{ Scheme, SchemeId, SiftRequirement }
-import repositories.SchemeRepository
+import repositories.SchemeYamlRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.sift.SiftAnswersRepository
-import testkit.ScalaMockUnitSpec
 import testkit.ScalaMockImplicits._
+import testkit.ScalaMockUnitWithAppSpec
 
-class SiftAnswersServiceSpec extends ScalaMockUnitSpec {
+class SiftAnswersServiceSpec extends ScalaMockUnitWithAppSpec {
 
   val Commercial = Scheme(SchemeId("Commercial"), "CFS", "Commercial", civilServantEligible = true,
     degree = None, siftEvaluationRequired = true, siftRequirement = Some(SiftRequirement.NUMERIC_TEST),
@@ -52,14 +53,16 @@ class SiftAnswersServiceSpec extends ScalaMockUnitSpec {
     val AppId = "appId1"
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockSiftAnswersRepo = mock[SiftAnswersRepository]
-    val mockSchemeRepo = new SchemeRepository {
+    // Needed to create the SchemeYamlRepository. The implicit for the app is provided by ScalaMockUnitWithAppSpec
+    implicit val appConfig = app.injector.instanceOf(classOf[MicroserviceAppConfig])
+    val mockSchemeRepo = new SchemeYamlRepository {
       override lazy val schemes = Commercial :: DaT :: HoP :: Generalist :: HumanResources :: Sdip :: Nil
     }
-    val service = new SiftAnswersService {
-      def appRepo = mockAppRepo
-      def siftAnswersRepo = mockSiftAnswersRepo
-      def schemeRepository = mockSchemeRepo
-    }
+    val service = new SiftAnswersService(
+      mockAppRepo,
+      mockSiftAnswersRepo,
+      mockSchemeRepo
+    )
   }
 
   "Submitting sift answers" must {

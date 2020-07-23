@@ -16,11 +16,11 @@
 
 package services.testdata.candidate
 
+import javax.inject.{ Inject, Singleton }
 import model.persisted.AssistanceDetails
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import model.{Adjustments, ApplicationRoute, ApplicationStatus}
+import model.{ Adjustments, ApplicationRoute }
 import play.api.mvc.RequestHeader
-import repositories._
 import repositories.assistancedetails.AssistanceDetailsRepository
 import services.adjustmentsmanagement.AdjustmentsManagementService
 import uk.gov.hmrc.http.HeaderCarrier
@@ -28,20 +28,18 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object InProgressAssistanceDetailsStatusGenerator extends InProgressAssistanceDetailsStatusGenerator {
-  val previousStatusGenerator = InProgressSchemePreferencesStatusGenerator
-  val adRepository = faststreamAssistanceDetailsRepository
-  val adjustmentsManagementService = AdjustmentsManagementService
-}
-
 // scalastyle:off method.length
-trait InProgressAssistanceDetailsStatusGenerator extends ConstructiveGenerator {
-  val adRepository: AssistanceDetailsRepository
-  val adjustmentsManagementService: AdjustmentsManagementService
+@Singleton
+class InProgressAssistanceDetailsStatusGenerator @Inject() (val previousStatusGenerator: InProgressSchemePreferencesStatusGenerator,
+                                                            adRepository: AssistanceDetailsRepository,
+                                                            adjustmentsManagementService: AdjustmentsManagementService
+                                                           ) extends ConstructiveGenerator {
+//  val adRepository: AssistanceDetailsRepository
+//  val adjustmentsManagementService: AdjustmentsManagementService
 
-  override def getPreviousStatusGenerator(generatorConfig: CreateCandidateData) = {
-    (ApplicationStatus.IN_PROGRESS, InProgressSchemePreferencesStatusGenerator)
-  }
+//  override def getPreviousStatusGenerator(generatorConfig: CreateCandidateData) = {
+//    (ApplicationStatus.IN_PROGRESS, InProgressSchemePreferencesStatusGenerator)
+//  }
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     val assistanceDetails = getAssistanceDetails(generatorConfig)

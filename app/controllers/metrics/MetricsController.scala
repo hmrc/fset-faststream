@@ -16,22 +16,18 @@
 
 package controllers.metrics
 
+import javax.inject.{ Inject, Singleton }
 import model.ApplicationStatus
 import play.api.libs.json.Json
 import play.api.mvc.Action
-import repositories._
 import repositories.application.GeneralApplicationRepository
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.collection.immutable.SortedMap
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object MetricsController extends MetricsController {
-  override val applicationRepo = applicationRepository
-}
-
-trait MetricsController extends BaseController {
-  val applicationRepo: GeneralApplicationRepository
+@Singleton
+class MetricsController @Inject() (applicationRepo: GeneralApplicationRepository) extends BaseController {
 
   def progressStatusCounts = Action.async {
     for {

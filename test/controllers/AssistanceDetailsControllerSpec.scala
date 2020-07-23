@@ -58,10 +58,6 @@ class AssistanceDetailsControllerSpec extends UnitWithAppSpec {
 
   trait TestFixture extends TestFixtureBase {
     val mockAssistanceDetailsService = mock[AssistanceDetailsService]
-
-    val controller = new AssistanceDetailsController {
-      val assistanceDetailsService = mockAssistanceDetailsService
-      val auditService = mockAuditService
-    }
+    val controller = new AssistanceDetailsController(mockAssistanceDetailsService, mockAuditService)
   }
 }

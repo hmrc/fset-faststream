@@ -17,16 +17,28 @@
 package repositories
 
 import org.joda.time.Duration
+import reactivemongo.api.indexes.IndexType.Ascending
 import testkit.MongoRepositorySpec
 
 class LockRepositorySpec extends MongoRepositorySpec {
   val lockTimeout = new Duration(1000L)
 
-  override val collectionName = CollectionNames.LOCKS
+  override val collectionName: String = CollectionNames.LOCKS
 
-  def repo = new LockMongoRepository()
+  def repo = new LockMongoRepository(mongo)
 
   "Lock Repository" should {
+    "create indexes" in {
+      val indexes = indexesWithFields2(repo)
+      indexes must contain theSameElementsAs
+        Seq(
+          IndexDetails(key = Seq(("_id", Ascending)), unique = false),
+          IndexDetails(key = Seq(("owner", Ascending)), unique = false),
+          IndexDetails(key = Seq(("timeCreated", Ascending)), unique = false),
+          IndexDetails(key = Seq(("expiryTime", Ascending)), unique = false)
+        )
+    }
+
     "insert a lock when the database is empty" in {
       val result = repo.lock("lockId", "owner", lockTimeout).futureValue
       result mustBe true

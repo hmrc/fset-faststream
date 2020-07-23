@@ -16,46 +16,52 @@
 
 package services.events
 
+import javax.inject.{ Inject, Singleton }
 import model._
 import model.exchange.{ CandidateAllocationPerSession, EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary }
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.{ Event, UpdateEvent, Venue }
 import org.joda.time.DateTime
 import play.api.Logger
-import repositories.events.{ EventsConfigRepository, EventsMongoRepository, EventsRepository }
-import repositories.{ SchemeRepository, SchemeYamlRepository, eventsRepository }
-import services.allocation.{ AssessorAllocationService, CandidateAllocationService }
+import repositories.SchemeRepository
+import repositories.events._
+import services.allocation.AllocationServiceCommon
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object EventsService extends EventsService {
-  val eventsRepo: EventsMongoRepository = eventsRepository
-  val schemeRepo = SchemeYamlRepository
-  val eventsConfigRepo = EventsConfigRepository
-  val assessorAllocationService: AssessorAllocationService = AssessorAllocationService
-  val candidateAllocationService: CandidateAllocationService = CandidateAllocationService
-}
-
 trait EventsService {
 
-  def eventsRepo: EventsRepository
-  def schemeRepo: SchemeRepository
-  def assessorAllocationService: AssessorAllocationService
+  def saveAssessmentEvents(): Future[Unit]
+  def save(event: Event): Future[Unit]
+  def update(eventUpdate: UpdateEvent): Future[Unit]
+  def getEvent(id: String): Future[Event]
+  def delete(id: String): Future[Unit]
+  def getEvents(eventType: EventType, venue: Venue, description: Option[String] = None): Future[List[Event]]
+  def getEvents(ids: List[String]): Future[List[Event]]
+  def getEventsWithAllocationsSummary(venue: Venue, eventType: EventType,
+                                      description: Option[String] = None): Future[List[EventWithAllocationsSummary]]
+  def getEventsCreatedAfter(dateTime: DateTime): Future[Seq[Event]]
+  def updateStructure(): Future[Unit]
+  def getFsbTypes: Seq[FsbType]
+  def findSchemeByEvent(eventId: String): Future[Scheme]
+}
 
-  def candidateAllocationService: CandidateAllocationService
-
-  def eventsConfigRepo: EventsConfigRepository
+@Singleton
+class EventsServiceImpl @Inject() (eventsRepo: EventsRepository,
+                                   schemeRepo: SchemeRepository,
+                                   allocationServiceCommon: AllocationServiceCommon, // Breaks circular dependencies
+                                   eventsConfigRepo: EventsConfigRepository) extends EventsService {
 
   def saveAssessmentEvents(): Future[Unit] = {
     eventsRepo.countLong.flatMap {
       case eventCount if eventCount >= 1 =>
         throw new Exception("Events already exist in the system, batch import not possible.")
       case _ =>
-      eventsConfigRepo.events.flatMap { events =>
-        Logger.debug("Events have been processed!")
-        eventsRepo.save(events)
-      }
+        eventsConfigRepo.events.flatMap { events =>
+          Logger.debug(s"Batch import of events was successful - ${events.size} events processed from yaml.")
+          eventsRepo.save(events)
+        }
     }
   }
 
@@ -86,10 +92,10 @@ trait EventsService {
   def getEvents(ids: List[String]): Future[List[Event]] = eventsRepo.getEventsById(ids)
 
   def getEventsWithAllocationsSummary(venue: Venue, eventType: EventType,
-    description: Option[String] = None): Future[List[EventWithAllocationsSummary]] = {
+                                      description: Option[String] = None): Future[List[EventWithAllocationsSummary]] = {
     getEvents(eventType, venue, description = description).flatMap { events =>
       val res = events.map { event =>
-        assessorAllocationService.getAllocations(event.id).flatMap { allocations =>
+        allocationServiceCommon.getAllocations(event.id).flatMap { allocations =>
           val allocationsGroupedBySkill = allocations.allocations.groupBy(_.allocatedAs)
           val allocationsGroupedBySkillWithSummary = allocationsGroupedBySkill.map { allocationGroupedBySkill =>
             val assessorAllocation = allocationGroupedBySkill._2
@@ -99,7 +105,7 @@ trait EventsService {
             EventAssessorAllocationsSummaryPerSkill(skill, allocated, confirmed)
           }.toList
           val candidateAllocBySession = event.sessions.sortBy(_.startTime.getMillisOfDay).map { session =>
-            candidateAllocationService.getCandidateAllocations(event.id, session.id).map { candidateAllocations =>
+            allocationServiceCommon.getCandidateAllocations(event.id, session.id).map { candidateAllocations =>
               CandidateAllocationPerSession(UniqueIdentifier(session.id),
                 candidateAllocations.allocations.count(_.status == AllocationStatuses.CONFIRMED))
             }
@@ -126,5 +132,4 @@ trait EventsService {
   def findSchemeByEvent(eventId: String): Future[Scheme] = {
     getEvent(eventId).map { event => schemeRepo.getSchemeForFsb(event.description) }
   }
-
 }

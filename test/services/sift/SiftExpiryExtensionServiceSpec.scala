@@ -22,7 +22,7 @@ import model.command.{ ProgressResponse, SiftProgressResponse }
 import model.persisted.sift.SiftTestGroup
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
-import org.mockito.Mockito._
+import org.mockito.Mockito.{ never, verify, verifyNoMoreInteractions, when }
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.sift.ApplicationSiftRepository
@@ -241,12 +241,12 @@ class SiftExpiryExtensionServiceSpec extends UnitSpec with ShortTimeout {
     val mockSiftRepository = mock[ApplicationSiftRepository]
     val mockDateTimeFactory = mock[DateTimeFactory]
 
-    val service = new SiftExpiryExtensionService {
-      val appRepository = mockAppRepository
-      val siftRepository = mockSiftRepository
-      val dateTimeFactory = mockDateTimeFactory
-      val eventService = stcEventServiceMock
-    }
+    val service = new SiftExpiryExtensionService(
+      mockAppRepository,
+      mockSiftRepository,
+      mockDateTimeFactory,
+      stcEventServiceMock
+    )
 
     val mockProgressResponse = mock[ProgressResponse]
    }

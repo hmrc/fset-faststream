@@ -16,12 +16,13 @@
 
 package connectors
 
+import config.{ MicroserviceAppConfig, WSHttpT }
 import testkit.{ ShortTimeout, UnitSpec }
 
 class AuthProviderClientSpec extends UnitSpec with ShortTimeout {
 
   "AuthProviderClient getRole" should {
-    "return valid roles when passed valid strings" in {
+    "return valid roles when passed valid strings" in new TestFixture {
       import AuthProviderClient._
       val validStrings = Map(
         "faststream-team" -> FaststreamTeamRole,
@@ -32,11 +33,11 @@ class AuthProviderClientSpec extends UnitSpec with ShortTimeout {
       )
 
       validStrings.foreach { case (validString, expectedRole) =>
-        AuthProviderClient.getRole(validString) must be(expectedRole)
+        authProviderClient.getRole(validString) mustBe expectedRole
       }
     }
 
-    "throw an exception when passed invalid strings" in {
+    "throw an exception when passed invalid strings" in new TestFixture {
       val invalidStrings = List(
         "",
         "someText"
@@ -45,9 +46,15 @@ class AuthProviderClientSpec extends UnitSpec with ShortTimeout {
       invalidStrings.foreach { invalidString =>
         import AuthProviderClient._
         intercept[UserRoleDoesNotExistException] {
-          AuthProviderClient.getRole(invalidString)
+          authProviderClient.getRole(invalidString)
         }
       }
     }
+  }
+
+  trait TestFixture {
+    val mockWsHttp: WSHttpT = mock[WSHttpT]
+    val mockMicroserviceAppConfig = mock[MicroserviceAppConfig]
+    val authProviderClient = new AuthProviderClient(mockWsHttp, mockMicroserviceAppConfig)
   }
 }

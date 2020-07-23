@@ -16,36 +16,49 @@
 
 package scheduler.onlinetesting
 
-import config.ScheduledJobConfig
-import config.MicroserviceAppConfig.{ testIntegrationGatewayConfig, launchpadGatewayConfig }
+import com.google.inject.name.Named
+import config.{ MicroserviceAppConfig, ScheduledJobConfig }
+import javax.inject.{ Inject, Singleton }
 import model._
-import play.api.Logger
+import play.api.mvc.RequestHeader
+import play.api.{ Configuration, Logger }
+import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting._
-import services.onlinetesting.phase1.Phase1TestService2
-import services.onlinetesting.phase2.Phase2TestService2
-import services.onlinetesting.phase3.Phase3TestService
-
-import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 
-object ExpirePhase1TestJob extends ExpireOnlineTestJob {
-  override val onlineTestingService = Phase1TestService2
-  override val expiryTest = Phase1ExpirationEvent(gracePeriodInSecs = testIntegrationGatewayConfig.phase1Tests.gracePeriodInSecs)
-  val config = ExpirePhase1TestJobConfig
+import scala.concurrent.{ ExecutionContext, Future }
+
+@Singleton
+class ExpirePhase1TestJob @Inject() (@Named("Phase1OnlineTestService") val onlineTestingService: OnlineTestService,
+                                     val mongoComponent: ReactiveMongoComponent,
+                                     val config: ExpirePhase1TestJobConfig,
+                                     appConfig: MicroserviceAppConfig) extends ExpireOnlineTestJob {
+  //  override val onlineTestingService = Phase1TestService2
+  override val expiryTest = Phase1ExpirationEvent(gracePeriodInSecs = appConfig.testIntegrationGatewayConfig.phase1Tests.gracePeriodInSecs)
+  //  val config = ExpirePhase1TestJobConfig
 }
 
-object ExpirePhase2TestJob extends ExpireOnlineTestJob {
-  override val onlineTestingService = Phase2TestService2
-  override val expiryTest = Phase2ExpirationEvent(gracePeriodInSecs = testIntegrationGatewayConfig.phase2Tests.gracePeriodInSecs)
-  val config = ExpirePhase2TestJobConfig
+@Singleton
+class ExpirePhase2TestJob @Inject() (@Named("Phase2OnlineTestService") val onlineTestingService: OnlineTestService,
+                                     val mongoComponent: ReactiveMongoComponent,
+                                     val config: ExpirePhase2TestJobConfig,
+                                     appConfig: MicroserviceAppConfig
+                                    ) extends ExpireOnlineTestJob {
+  //  override val onlineTestingService = Phase2TestService2
+  override val expiryTest = Phase2ExpirationEvent(gracePeriodInSecs = appConfig.testIntegrationGatewayConfig.phase2Tests.gracePeriodInSecs)
+  //  val config = ExpirePhase2TestJobConfig
 }
 
-object ExpirePhase3TestJob extends ExpireOnlineTestJob {
-  override val onlineTestingService = Phase3TestService
-  override val expiryTest = Phase3ExpirationEvent(gracePeriodInSecs = launchpadGatewayConfig.phase3Tests.gracePeriodInSecs)
-  val config = ExpirePhase3TestJobConfig
+@Singleton
+class ExpirePhase3TestJob @Inject() (@Named("Phase3OnlineTestService") val onlineTestingService: OnlineTestService,
+                                     val mongoComponent: ReactiveMongoComponent,
+                                     val config: ExpirePhase3TestJobConfig,
+                                     appConfig: MicroserviceAppConfig) extends ExpireOnlineTestJob {
+  //  override val onlineTestingService = Phase3TestService
+  override val expiryTest = Phase3ExpirationEvent(gracePeriodInSecs = appConfig.launchpadGatewayConfig.phase3Tests.gracePeriodInSecs)
+  //  val config = ExpirePhase3TestJobConfig
 }
 
 trait ExpireOnlineTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
@@ -53,24 +66,30 @@ trait ExpireOnlineTestJob extends SingleInstanceScheduledJob[BasicJobConfig[Sche
   val expiryTest: TestExpirationEvent
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    implicit val hc = HeaderCarrier()
-    implicit val rh = EmptyRequestHeader
+    implicit val hc: HeaderCarrier = HeaderCarrier()
+    implicit val rh: RequestHeader = EmptyRequestHeader
     Logger.debug(s"Running online test expiry job for ${expiryTest.phase} with gracePeriodInSecs = ${expiryTest.gracePeriodInSecs}")
     onlineTestingService.processNextExpiredTest(expiryTest)
   }
 }
 
-object ExpirePhase1TestJobConfig extends BasicJobConfig[ScheduledJobConfig](
+@Singleton
+class ExpirePhase1TestJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.online-testing.expiry-phase1-job",
   name = "ExpirePhase1TestJob"
 )
 
-object ExpirePhase2TestJobConfig extends BasicJobConfig[ScheduledJobConfig](
+@Singleton
+class ExpirePhase2TestJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.online-testing.expiry-phase2-job",
   name = "ExpirePhase2TestJob"
 )
 
-object ExpirePhase3TestJobConfig extends BasicJobConfig[ScheduledJobConfig](
+@Singleton
+class ExpirePhase3TestJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.online-testing.expiry-phase3-job",
   name = "ExpirePhase3TestJob"
 )

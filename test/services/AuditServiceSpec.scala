@@ -23,59 +23,63 @@ import play.api.test.FakeRequest
 import testkit.UnitSpec
 import uk.gov.hmrc.play.audit.model.{ Audit, DataEvent }
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 class AuditServiceSpec extends UnitSpec {
-  val auditMock = mock[Audit]
-  val auditMockResponse = mock[(DataEvent) => Unit]
-  val eventCaptor = ArgumentCaptor.forClass(classOf[DataEvent])
 
   "Log Event" should {
-    "log event without details" in new TestableAuditService {
-      logEvent("SomeEvent")
+    "log event without details" in new TestFixture {
+      auditService.logEvent("SomeEvent")
 
       verify(auditMockResponse, atLeastOnce()).apply(eventCaptor.capture())
       val actualDataEvent = eventCaptor.getValue
 
-      actualDataEvent.auditSource must be("appName")
-      actualDataEvent.auditType must be("TxSucceeded")
-      actualDataEvent.tags("transactionName") must be("SomeEvent")
-      actualDataEvent.tags("path") must be("some/path")
+      actualDataEvent.auditSource mustBe "appName"
+      actualDataEvent.auditType mustBe "TxSucceeded"
+      actualDataEvent.tags("transactionName") mustBe "SomeEvent"
+      actualDataEvent.tags("path") mustBe "some/path"
     }
 
-    "log event with details" in new TestableAuditService {
-      logEvent("SomeEvent", Map("moreInfo" -> "moreDetails"))
+    "log event with details" in new TestFixture {
+      auditService.logEvent("SomeEvent", Map("moreInfo" -> "moreDetails"))
 
       verify(auditMockResponse, atLeastOnce()).apply(eventCaptor.capture())
       val actualDataEvent = eventCaptor.getValue
 
-      actualDataEvent.auditSource must be("appName")
-      actualDataEvent.auditType must be("TxSucceeded")
-      actualDataEvent.tags("transactionName") must be("SomeEvent")
-      actualDataEvent.tags("path") must be("some/path")
-      actualDataEvent.detail("moreInfo") must be("moreDetails")
+      actualDataEvent.auditSource mustBe "appName"
+      actualDataEvent.auditType mustBe "TxSucceeded"
+      actualDataEvent.tags("transactionName") mustBe "SomeEvent"
+      actualDataEvent.tags("path") mustBe "some/path"
+      actualDataEvent.detail("moreInfo") mustBe "moreDetails"
     }
 
-    "log event without request" in new TestableAuditService {
-      logEventNoRequest("SomeEvent", Map("moreInfo" -> "moreDetails"))
+    "log event without request" in new TestFixture {
+      auditService.logEventNoRequest("SomeEvent", Map("moreInfo" -> "moreDetails"))
 
       verify(auditMockResponse, atLeastOnce()).apply(eventCaptor.capture())
       val actualDataEvent = eventCaptor.getValue
 
-      actualDataEvent.auditSource must be("appName")
-      actualDataEvent.auditType must be("TxSucceeded")
-      actualDataEvent.tags("transactionName") must be("SomeEvent")
+      actualDataEvent.auditSource mustBe "appName"
+      actualDataEvent.auditType mustBe "TxSucceeded"
+      actualDataEvent.tags("transactionName") mustBe "SomeEvent"
       actualDataEvent.tags must not contain "path"
-      actualDataEvent.detail("moreInfo") must be("moreDetails")
+      actualDataEvent.detail("moreInfo") mustBe "moreDetails"
     }
   }
 
-  class TestableAuditService extends AuditService {
-    private[services] val appName = "appName"
-    private[services] val auditFacade: Audit = auditMock
+  trait TestFixture {
+    val auditMock = mock[Audit]
+    val auditConnectorMock = mock[AuditConnector]
+    val auditMockResponse = mock[DataEvent => Unit]
+    val eventCaptor = ArgumentCaptor.forClass(classOf[DataEvent])
 
     implicit val hc: HeaderCarrier = HeaderCarrier()
     implicit val rh: RequestHeader = FakeRequest("GET", "some/path")
 
     when(auditMock.sendDataEvent).thenReturn(auditMockResponse)
+
+    val auditService = new AuditService("appName", auditConnectorMock) {
+      override val auditFacade: Audit = auditMock
+    }
   }
 }

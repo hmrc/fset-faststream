@@ -17,25 +17,21 @@
 package services.testdata.candidate.onlinetests.phase2
 
 import common.FutureEx
+import javax.inject.{ Inject, Singleton }
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
-import repositories._
-import repositories.onlinetesting.Phase2TestRepository
-import services.onlinetesting.phase2.{Phase2TestService, Phase2TestService2}
+import repositories.onlinetesting.Phase2TestRepository2
+import services.onlinetesting.phase2.Phase2TestService2
 import services.testdata.candidate.ConstructiveGenerator
-
-import scala.concurrent.ExecutionContext.Implicits.global
 import uk.gov.hmrc.http.HeaderCarrier
 
-object Phase2TestsCompletedStatusGenerator extends Phase2TestsCompletedStatusGenerator {
-  override val previousStatusGenerator = Phase2TestsStartedStatusGenerator
-  override val otRepository = phase2TestRepository
-  override val otService = Phase2TestService2
-}
+import scala.concurrent.ExecutionContext.Implicits.global
 
-trait Phase2TestsCompletedStatusGenerator extends ConstructiveGenerator {
-  val otRepository: Phase2TestRepository
-  val otService: Phase2TestService2
+@Singleton
+class Phase2TestsCompletedStatusGenerator @Inject() (val previousStatusGenerator: Phase2TestsStartedStatusGenerator,
+                                                     otRepository: Phase2TestRepository2,
+                                                     otService: Phase2TestService2
+                                                    ) extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     for {

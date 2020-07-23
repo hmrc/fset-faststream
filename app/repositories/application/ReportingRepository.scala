@@ -16,7 +16,9 @@
 
 package repositories.application
 
+import config.MicroserviceAppConfig
 import factories.DateTimeFactory
+import javax.inject.{ Inject, Singleton }
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
 import model.ProgressStatuses.ProgressStatus
@@ -27,13 +29,13 @@ import model.{ ApplicationStatus, _ }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.Format
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.Cursor.{ ContOnError, FailOnError }
-import reactivemongo.api.{ Cursor, DB, ReadPreference }
+import reactivemongo.api.{ Cursor, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONDocumentReader, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
-import repositories._
-import repositories.BSONDateTimeHandler
-import services.TimeZoneService
+import repositories.{ BSONDateTimeHandler, _ }
+import services.TimeZoneService2
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -42,44 +44,35 @@ import scala.concurrent.Future
 
 trait ReportingRepository {
   def adjustmentReport(frameworkId: String): Future[List[AdjustmentReportItem]]
-
   def fastPassAwaitingAcceptanceReport: Future[List[(String, String)]]
-
   def candidateProgressReport(frameworkId: String): Future[List[CandidateProgressReportItem]]
-
   def diversityReport(frameworkId: String): Future[List[ApplicationForDiversityReport]]
-
   def onlineTestPassMarkReportFsPhase1Failed: Future[List[ApplicationForOnlineTestPassMarkReport]]
-
   def onlineTestPassMarkReportFsNotPhase1Failed: Future[List[ApplicationForOnlineTestPassMarkReport]]
-
   def onlineTestPassMarkReportNonFs: Future[List[ApplicationForOnlineTestPassMarkReport]]
-
   def onlineTestPassMarkReportByIds(applicationIds: Seq[String]): Future[List[ApplicationForOnlineTestPassMarkReport]]
-
   def numericTestExtractReport: Future[List[ApplicationForNumericTestExtractReport]]
-
   def onlineActiveTestCountReport: Future[List[ApplicationForOnlineActiveTestCountReport]]
-
   def candidateProgressReportNotWithdrawn(frameworkId: String): Future[List[CandidateProgressReportItem]]
-
   def allApplicationAndUserIds(frameworkId: String): Future[List[PersonalDetailsAdded]]
-
   def candidatesForDuplicateDetectionReport: Future[List[UserApplicationProfile]]
-
   def applicationsForInternshipReport(frameworkId: String): Future[List[ApplicationForInternshipReport]]
-
   def applicationsForAnalyticalSchemesReport(frameworkId: String): Future[List[ApplicationForAnalyticalSchemesReport]]
-
   def successfulCandidatesReport: Future[List[SuccessfulCandidatePartialItem]]
-
   def preSubmittedApplications(frameworkId: String): Future[List[ApplicationIdsAndStatus]]
 }
 
-class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFactory: DateTimeFactory)(implicit mongo: () => DB)
-  extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    CreateApplicationRequest.createApplicationRequestFormat, ReactiveMongoFormats.objectIdFormats) with ReportingRepository
-    with RandomSelection with CommonBSONDocuments with ReportingRepoBSONReader with ReactiveRepositoryHelpers {
+@Singleton
+class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2,
+                                          val dateTimeFactory: DateTimeFactory,
+                                          mongoComponent: ReactiveMongoComponent,
+                                          val appConfig: MicroserviceAppConfig
+                                         )
+  extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](
+    CollectionNames.APPLICATION,
+    mongoComponent.mongoConnector.db,
+    CreateApplicationRequest.createApplicationRequestFormat,
+    ReactiveMongoFormats.objectIdFormats) with ReportingRepository with ReportingRepoBSONReader with ReactiveRepositoryHelpers {
 
   private val unlimitedMaxDocs = -1
 
@@ -269,7 +262,7 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
         Seq(ApplicationRoute.Edip.toString, ApplicationRoute.Sdip.toString, ApplicationRoute.SdipFaststream.toString))
       ),
       BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true)
-   ))
+    ))
 
     commonOnlineTestPassMarkReport(query)
   }

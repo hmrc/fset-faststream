@@ -16,10 +16,13 @@
 
 package repositories.campaignmanagement
 
+import javax.inject.{ Inject, Singleton }
 import model.persisted.CampaignManagementAfterDeadlineCode
 import org.joda.time.DateTime
 import play.api.libs.json.JsObject
-import reactivemongo.api.DB
+import play.modules.reactivemongo.ReactiveMongoComponent
+import reactivemongo.api.indexes.Index
+import reactivemongo.api.indexes.IndexType.{ Ascending, Descending }
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
@@ -35,10 +38,18 @@ trait CampaignManagementAfterDeadlineSignupCodeRepository {
   def save(code: CampaignManagementAfterDeadlineCode): Future[Unit]
 }
 
-class CampaignManagementAfterDeadlineSignupCodeMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[CampaignManagementAfterDeadlineCode, BSONObjectID](CollectionNames.CAMPAIGN_MANAGEMENT_AFTER_DEADLINE_CODE,
-    mongo, CampaignManagementAfterDeadlineCode.campaignManagementAfterDeadlineCodeFormat,
+@Singleton
+class CampaignManagementAfterDeadlineSignupCodeMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[CampaignManagementAfterDeadlineCode, BSONObjectID](
+    CollectionNames.CAMPAIGN_MANAGEMENT_AFTER_DEADLINE_CODE,
+    mongoComponent.mongoConnector.db,
+    CampaignManagementAfterDeadlineCode.campaignManagementAfterDeadlineCodeFormat,
     ReactiveMongoFormats.objectIdFormats) with CampaignManagementAfterDeadlineSignupCodeRepository with ReactiveRepositoryHelpers {
+
+  override def indexes: Seq[Index] = Seq(
+    Index(Seq("code" -> Ascending), unique = true),
+    Index(Seq("expires" -> Descending), unique = false)
+  )
 
   def findUnusedValidCode(code: String): Future[Option[CampaignManagementAfterDeadlineCode]] = {
     val query = BSONDocument(

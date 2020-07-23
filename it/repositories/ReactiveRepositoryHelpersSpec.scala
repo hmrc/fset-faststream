@@ -2,9 +2,8 @@ package repositories
 
 import model.Exceptions.NotFoundException
 import play.api.libs.json.Json
-import reactivemongo.bson._
-import reactivemongo.api.DB
-import reactivemongo.bson.{ BSONDocument, BSONObjectID }
+import play.modules.reactivemongo.ReactiveMongoComponent
+import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -63,12 +62,15 @@ class ReactiveRepositoryHelpersSpec extends MongoRepositorySpec {
   }
 
   trait TestFixture {
-    val repo = new TestRepository()
+    val repo = new TestRepository(mongo)
   }
 
-  class TestRepository(implicit mongo: () => DB)
-    extends ReactiveRepository[TestType, BSONObjectID](collectionName, mongo,
-      testJSONFormat, ReactiveMongoFormats.objectIdFormats) with ReactiveRepositoryHelpers {
+  class TestRepository(mongoComponent: ReactiveMongoComponent)
+    extends ReactiveRepository[TestType, BSONObjectID](
+      collectionName,
+      mongoComponent.mongoConnector.db,
+      testJSONFormat,
+      ReactiveMongoFormats.objectIdFormats) with ReactiveRepositoryHelpers {
 
     def update(updateKvp: (String, TestType), queryKvp: Option[(String, TestType)] = None) = {
       val query = queryKvp.map(BSONDocument(_)).getOrElse(BSONDocument.empty)

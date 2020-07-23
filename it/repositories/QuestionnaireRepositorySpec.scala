@@ -18,7 +18,7 @@ package repositories
 
 import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
 import model.report.QuestionnaireReportItem
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import services.reporting.SocioEconomicScoreCalculator
@@ -26,7 +26,7 @@ import testkit.MongoRepositorySpec
 
 class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar {
 
-  override val collectionName = CollectionNames.QUESTIONNAIRE
+  override val collectionName: String = CollectionNames.QUESTIONNAIRE
 
   "The Questionnaire Repo" should {
     "create collection, append questions to the application and overwrite existing questions" in new TestFixture {
@@ -40,7 +40,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
         QuestionnaireAnswer(Some("nada"), None, None)))).futureValue
       val result1 = questionnaireRepo.find(applicationId).futureValue
       result1.size mustBe 1
-      result1.head.answer.answer must be(Some("nada"))
+      result1.head.answer.answer mustBe Some("nada")
 
       questionnaireRepo.addQuestions(applicationId, List(QuestionnaireQuestion("where?",
         QuestionnaireAnswer(None, None, Some(true))))).futureValue
@@ -163,7 +163,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
 
     val socioEconomicCalculator = mock[SocioEconomicScoreCalculator]
 
-    def questionnaireRepo = new QuestionnaireMongoRepository(socioEconomicCalculator)
+    def questionnaireRepo = new QuestionnaireMongoRepository(socioEconomicCalculator, mongo)
 
     def submitQuestionnaire(): Unit =
       questionnaireRepo.addQuestions(applicationId1, submittedQuestionnaire1).futureValue

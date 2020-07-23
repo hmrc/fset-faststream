@@ -16,8 +16,10 @@
 
 package repositories.civilserviceexperiencedetails
 
+import javax.inject.{ Inject, Singleton }
 import model.CivilServiceExperienceDetails
 import model.Exceptions.CannotUpdateCivilServiceExperienceDetails
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -39,10 +41,14 @@ trait CivilServiceExperienceDetailsRepository {
   def evaluateFastPassCandidate(applicationId: String, accepted: Boolean): Future[Unit]
 }
 
-class CivilServiceExperienceDetailsMongoRepository(implicit mongo: () => DB) extends
-  ReactiveRepository[CivilServiceExperienceDetails, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    CivilServiceExperienceDetails.civilServiceExperienceDetailsFormat, ReactiveMongoFormats.objectIdFormats)
-  with CivilServiceExperienceDetailsRepository with ReactiveRepositoryHelpers {
+@Singleton
+class CivilServiceExperienceDetailsMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent) extends
+  ReactiveRepository[CivilServiceExperienceDetails, BSONObjectID](
+    CollectionNames.APPLICATION,
+    mongoComponent.mongoConnector.db,
+    CivilServiceExperienceDetails.civilServiceExperienceDetailsFormat,
+    ReactiveMongoFormats.objectIdFormats
+  ) with CivilServiceExperienceDetailsRepository with ReactiveRepositoryHelpers {
 
   override def update(applicationId: String, civilServiceExperienceDetails: CivilServiceExperienceDetails): Future[Unit] = {
 

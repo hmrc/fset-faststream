@@ -16,6 +16,7 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.OptimisticLockException
 import model.persisted.CandidateAllocation
 import model.persisted.eventschedules.EventType.EventType
@@ -24,17 +25,12 @@ import play.api.Logger
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
 import services.allocation.CandidateAllocationService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object CandidateAllocationController extends CandidateAllocationController {
-  val candidateAllocationService: CandidateAllocationService = CandidateAllocationService
-}
-
-trait CandidateAllocationController extends BaseController {
-
-  def candidateAllocationService: CandidateAllocationService
+@Singleton
+class CandidateAllocationController @Inject() (candidateAllocationService: CandidateAllocationService) extends BaseController {
 
   def confirmAllocation(eventId: String, sessionId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[exchange.CandidateAllocations] { candidateAllocations =>

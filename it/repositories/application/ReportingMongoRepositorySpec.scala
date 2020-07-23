@@ -16,22 +16,23 @@
 
 package repositories.application
 
-import _root_.services.testdata.TestDataGeneratorService
-import _root_.services.testdata.candidate.CandidateStatusGeneratorFactory
+import config.MicroserviceAppConfig
+import services.testdata.TestDataGeneratorService
+import services.testdata.candidate.CandidateStatusGeneratorFactory
 import factories.{ ITDateTimeFactoryMock, UUIDFactory }
+import model.ApplicationRoute.{ apply => _ }
 import model.ProgressStatuses.{ PREVIEW, SUBMITTED, PHASE1_TESTS_PASSED => _ }
 import model._
-import model.report.{ AdjustmentReportItem, CandidateProgressReportItem }
-import services.GBTimeZoneService
-import config.MicroserviceAppConfig._
-import model.ApplicationRoute.{ apply => _ }
 import model.command.ProgressResponse
 import model.command.testdata.CreateCandidateRequest.{ AdjustmentsRequest, AssistanceDetailsRequest, CreateCandidateRequest, StatusDataRequest }
 import model.persisted._
+import model.report.{ AdjustmentReportItem, CandidateProgressReportItem }
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.CollectionNames
+import services.GBTimeZoneService2
+import services.testdata.faker.DataFaker
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -43,15 +44,19 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
   val collectionName = CollectionNames.APPLICATION
 
-  def repository = new ReportingMongoRepository(GBTimeZoneService, ITDateTimeFactoryMock)
+  def repository = new ReportingMongoRepository(new GBTimeZoneService2, ITDateTimeFactoryMock, mongo, mock[MicroserviceAppConfig])
 
-  def applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, testIntegrationGatewayConfig, eventsConfig)
+  def applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, appConfig, mongo)
 
-  def testDataRepo = new TestDataMongoRepository()
+  def testDataRepo = new TestDataMongoRepository(mongo)
 
-  def testDataGeneratorService = TestDataGeneratorService
+  def testDataGeneratorService = app.injector.instanceOf(classOf[TestDataGeneratorService])
+
+  def dataFaker = app.injector.instanceOf(classOf[DataFaker])
 
   implicit def blankedHeaderCarrier = HeaderCarrier()
+
+  val getCandidateStatusGeneratorFactory = app.injector.instanceOf(classOf[CandidateStatusGeneratorFactory])
 
   "Candidate Progress Report" must {
     "work for an application with all fields" in {
@@ -184,7 +189,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
     "return a list of AdjustmentReports" in {
       val frameworkId = "FastStream-2016"
 
-      lazy val testData = new TestDataMongoRepository()
+      lazy val testData = new TestDataMongoRepository(mongo)
       testData.createApplications(100).futureValue
 
       val listFut = repository.adjustmentReport(frameworkId)
@@ -209,7 +214,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       )
 
       testDataGeneratorService.createCandidates(1,
-        CandidateStatusGeneratorFactory.getGenerator, CreateCandidateData.apply("", request)
+        getCandidateStatusGeneratorFactory.getGenerator, CreateCandidateData.apply("", request, dataFaker)
       )(HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
@@ -232,7 +237,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
         ))
       )
       testDataGeneratorService.createCandidates(1,
-        CandidateStatusGeneratorFactory.getGenerator, CreateCandidateData.apply("", request)
+        getCandidateStatusGeneratorFactory.getGenerator, CreateCandidateData.apply("", request, dataFaker)
       )(HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
@@ -262,7 +267,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
         )
       )
       testDataGeneratorService.createCandidates(1,
-        CandidateStatusGeneratorFactory.getGenerator, CreateCandidateData.apply("", request)
+        getCandidateStatusGeneratorFactory.getGenerator, CreateCandidateData.apply("", request, dataFaker)
       )(HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
@@ -298,7 +303,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
         )
       )
       testDataGeneratorService.createCandidates(1,
-        CandidateStatusGeneratorFactory.getGenerator, CreateCandidateData.apply("", request)
+        getCandidateStatusGeneratorFactory.getGenerator, CreateCandidateData.apply("", request, dataFaker)
       )(HeaderCarrier(), EmptyRequestHeader)
 
       val result = repository.adjustmentReport(frameworkId).futureValue
@@ -316,9 +321,9 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
     "return all candidates with personal-details" in {
       val user1 = UserApplicationProfile("1", ProgressResponse("1", submitted = true), SUBMITTED.key, "first1", "last1",
-        factories.DateTimeFactory.nowLocalDate, ApplicationRoute.Faststream)
+        factories.ITDateTimeFactoryMock.nowLocalDate, ApplicationRoute.Faststream)
       val user2 = UserApplicationProfile("2", ProgressResponse("2", submitted = true), SUBMITTED.key, "first2", "last2",
-        factories.DateTimeFactory.nowLocalDate, ApplicationRoute.Faststream)
+        factories.ITDateTimeFactoryMock.nowLocalDate, ApplicationRoute.Faststream)
       create(user1)
       create(user2)
       createWithoutPersonalDetails("3", PREVIEW.key)
@@ -357,5 +362,4 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       "progress-status" -> BSONDocument(latestProgressStatus -> true)
     )).futureValue
   }
-
 }

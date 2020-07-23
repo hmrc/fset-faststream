@@ -1,17 +1,17 @@
 package repositories
 
+import model.persisted.Media
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers
-import model.persisted.Media
 import testkit.MongoRepositorySpec
 
 class MediaRepositorySpec extends MongoRepositorySpec {
 
   import ImplicitBSONHandlers._
 
-  override val collectionName = CollectionNames.MEDIA
+  override val collectionName: String = CollectionNames.MEDIA
 
-  def repository = new MediaMongoRepository()
+  def repository = new MediaMongoRepository(mongo)
 
   "find media" should {
     "return Some media when exists" in {
@@ -54,5 +54,5 @@ class MediaRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  def insert(doc: BSONDocument) = repository.collection.insert(doc)
+  private def insert(doc: BSONDocument) = repository.collection.insert(ordered = false).one(doc)
 }

@@ -16,44 +16,37 @@
 
 package services.assessor
 
+import com.google.inject.name.Named
 import common.FutureEx
-import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
+import connectors.{ AuthProviderClient, OnlineTestEmailClient }
+import javax.inject.{ Inject, Singleton }
 import model.AllocationStatuses.AllocationStatus
 import model.Exceptions._
 import model.command.AllocationWithEvent
 import model.exchange.{ AssessorAvailabilities, AssessorSkill, UpdateAllocationStatusRequest }
 import model.persisted.AssessorAllocation
 import model.persisted.assessor.{ Assessor, AssessorStatus }
-import model.persisted.eventschedules.{ Event, Location, SkillType }
 import model.persisted.eventschedules.SkillType.SkillType
+import model.persisted.eventschedules.{ Event, Location, SkillType }
 import model.{ SerialUpdateResult, UniqueIdentifier, exchange, persisted }
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.Logger
-import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
-import repositories.{ AssessorAllocationMongoRepository, AssessorAllocationRepository, AssessorMongoRepository, AssessorRepository }
+import repositories.events.LocationsWithVenuesRepository
+import repositories.{ AssessorAllocationRepository, AssessorRepository }
 import services.events.EventsService
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
-object AssessorService extends AssessorService {
-  val assessorRepository: AssessorMongoRepository = repositories.assessorRepository
-  val assessorAllocationRepo: AssessorAllocationMongoRepository = repositories.assessorAllocationRepository
-  val eventsService: EventsService = EventsService
-  val locationsWithVenuesRepo: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
-  val authProviderClient: AuthProviderClient = AuthProviderClient
-  val emailClient: EmailClient = CSREmailClient
-}
-
-trait AssessorService {
-  val assessorRepository: AssessorRepository
-  val assessorAllocationRepo: AssessorAllocationRepository
-  val eventsService: EventsService
-  val locationsWithVenuesRepo: LocationsWithVenuesRepository
-
-  def authProviderClient: AuthProviderClient
-  def emailClient: EmailClient
+@Singleton
+class AssessorService @Inject() (assessorRepository: AssessorRepository,
+                                 assessorAllocationRepo: AssessorAllocationRepository,
+                                 eventsService: EventsService,
+                                 locationsWithVenuesRepo: LocationsWithVenuesRepository,
+                                 authProviderClient: AuthProviderClient,
+                                 @Named("CSREmailClient") emailClient: OnlineTestEmailClient //TODO:fix changed type
+                                ) {
 
   private[assessor] def newVersion = Some(UniqueIdentifier.randomUniqueIdentifier.toString())
 
@@ -136,7 +129,7 @@ trait AssessorService {
       } yield {
         val firstAssessorAllocationWithSkillToRemove = onlyFutureAssessorAllocations.find(assessorAllocation =>
           skills.contains(assessorAllocation.allocatedAs))
-        (firstAssessorAllocationWithSkillToRemove.isDefined)
+        firstAssessorAllocationWithSkillToRemove.isDefined
       }
     }
   }
@@ -173,8 +166,8 @@ trait AssessorService {
   }
 
   def findAvailabilitiesForLocationAndDate(
-    locationName: String, date: LocalDate, skills: Seq[SkillType]
-  ): Future[Seq[model.exchange.Assessor]] = {
+                                            locationName: String, date: LocalDate, skills: Seq[SkillType]
+                                          ): Future[Seq[model.exchange.Assessor]] = {
     for {
       location <- locationsWithVenuesRepo.location(locationName)
       assessorList <- assessorRepository.findAvailabilitiesForLocationAndDate(location, date, skills)
@@ -240,8 +233,8 @@ trait AssessorService {
   }
 
   def updateAssessorAllocationStatuses(
-    statusUpdates: Seq[UpdateAllocationStatusRequest]
-  ): Future[SerialUpdateResult[UpdateAllocationStatusRequest]] = {
+                                        statusUpdates: Seq[UpdateAllocationStatusRequest]
+                                      ): Future[SerialUpdateResult[UpdateAllocationStatusRequest]] = {
 
     val rawResult = FutureEx.traverseSerial(statusUpdates) { req =>
       FutureEx.futureToEither(
@@ -331,8 +324,8 @@ trait AssessorService {
   }
 
   private def exchangeToPersistedAvailability(
-    a: Set[exchange.AssessorAvailability]
-  ): Future[Set[persisted.assessor.AssessorAvailability]] = {
+                                               a: Set[exchange.AssessorAvailability]
+                                             ): Future[Set[persisted.assessor.AssessorAvailability]] = {
     FutureEx.traverseSerial(a) { availability =>
       locationsWithVenuesRepo.location(availability.location).map { location =>
         model.persisted.assessor.AssessorAvailability(location, availability.date)

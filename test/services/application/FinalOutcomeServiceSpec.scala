@@ -16,7 +16,7 @@
 
 package services.application
 
-import connectors.EmailClient
+import connectors.OnlineTestEmailClient
 import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_SDIP_GREEN, ASSESSMENT_CENTRE_SCORES_ACCEPTED }
 import model._
 import model.command.ApplicationForProgression
@@ -32,7 +32,6 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
 
   "final success notified" must {
     "progress candidate" in new TestFixture {
-
       ( mockApplicationRepo.find(_: String) )
         .expects(App1.applicationId)
         .returningAsync(Option(C1))
@@ -59,7 +58,6 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
 
   "final failure notified" must {
     "progress candidate to final state" in new TestFixture {
-
       ( mockApplicationRepo.find(_: String) )
         .expects(App1.applicationId)
         .returningAsync(Option(C1))
@@ -84,7 +82,6 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
     }
 
     "progress candidate to non-final state (assessment centre failed sdip green)" in new TestFixture {
-
       ( mockApplicationRepo.find(_: String) )
         .expects(App1.applicationId)
         .returningAsync(Option(C1))
@@ -127,16 +124,13 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
     val mockContactDetailsRepo = mock[ContactDetailsRepository]
     val mockApplicationRepo = mock[GeneralApplicationRepository]
     val mockFinalOutcomeRepo = mock[FinalOutcomeRepository]
-    val mockEmailClient = mock[EmailClient]
+    val mockEmailClient = mock[OnlineTestEmailClient] //TODO:fix changed type
 
-    val service = new FinalOutcomeService {
-      override def contactDetailsRepo: ContactDetailsRepository = mockContactDetailsRepo
-
-      override def applicationRepo: GeneralApplicationRepository = mockApplicationRepo
-
-      override def finalOutcomeRepo: FinalOutcomeRepository = mockFinalOutcomeRepo
-
-      override def emailClient: EmailClient = mockEmailClient
-    }
+    val service = new FinalOutcomeService(
+      mockContactDetailsRepo,
+      mockApplicationRepo,
+      mockFinalOutcomeRepo,
+      mockEmailClient
+    )
   }
 }

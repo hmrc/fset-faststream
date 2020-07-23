@@ -16,8 +16,10 @@
 
 package services.reporting
 
+import com.google.inject.ImplementedBy
 import model.persisted.QuestionnaireAnswer
 
+@ImplementedBy(classOf[SocioEconomicScoreCalculator])
 trait Calculable {
   def calculateAsInt(answers: Map[String, QuestionnaireAnswer]): Int
   def calculate(answers: Map[String, String]): String

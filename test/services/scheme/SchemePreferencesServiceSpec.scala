@@ -26,9 +26,7 @@ import scala.concurrent.Future
 class SchemePreferencesServiceSpec extends BaseServiceSpec {
   val mockSchemePreferencesRepository = mock[SchemePreferencesRepository]
 
-  val service = new SchemePreferencesService {
-    val spRepository = mockSchemePreferencesRepository
-  }
+  val service = new SchemePreferencesServiceImpl(mockSchemePreferencesRepository)
 
   "find preferences" should {
     "return selected preferences" in {

@@ -17,7 +17,7 @@
 package services.allocation
 
 import connectors.ExchangeObjects.Candidate
-import connectors.{ AuthProviderClient, EmailClient }
+import connectors.{ AuthProviderClient, OnlineTestEmailClient }
 import model.Exceptions.OptimisticLockException
 import model.exchange.AssessorSkill
 import model.persisted.eventschedules._
@@ -26,16 +26,16 @@ import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito.{ when, _ }
 import org.mockito.stubbing.OngoingStubbing
+import repositories.AssessorAllocationRepository
 import repositories.application.GeneralApplicationRepository
-import repositories.AssessorAllocationMongoRepository
 import services.BaseServiceSpec
 import services.events.EventsService
 import services.stc.StcEventService
 import testkit.ExtendedTimeout
-
-import scala.concurrent.Future
 import testkit.MockitoImplicits._
 import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.concurrent.Future
 
 class AssessorAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout {
 
@@ -131,20 +131,23 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout
   }
 
   trait TestFixture {
-    val mockAllocationRepository: AssessorAllocationMongoRepository = mock[AssessorAllocationMongoRepository]
-    val mockAppRepo: GeneralApplicationRepository = mock[GeneralApplicationRepository]
-    val mockEventsService: EventsService = mock[EventsService]
-    val mockEmailClient: EmailClient = mock[EmailClient]
-    val mockAuthProviderClient: AuthProviderClient = mock[AuthProviderClient]
-    val mockStcEventService: StcEventService = mock[StcEventService]
-    val service = new AssessorAllocationService {
-      def assessorAllocationRepo: AssessorAllocationMongoRepository = mockAllocationRepository
-      override val eventsService: EventsService = mockEventsService
-      override val applicationRepo: GeneralApplicationRepository = mockAppRepo
-      override def emailClient: EmailClient = mockEmailClient
-      override def authProviderClient: AuthProviderClient = mockAuthProviderClient
-      override val eventService: StcEventService = mockStcEventService
-    }
+    val mockAllocationRepository = mock[AssessorAllocationRepository]
+    val mockAppRepo = mock[GeneralApplicationRepository]
+    val mockEventsService = mock[EventsService]
+    val mockAllocationServiceCommon = mock[AllocationServiceCommon]
+    val mockStcEventService = mock[StcEventService]
+    val mockAuthProviderClient = mock[AuthProviderClient]
+    val mockEmailClient = mock[OnlineTestEmailClient] //TODO:fix change type
+
+    val service = new AssessorAllocationService(
+      mockAllocationRepository,
+      mockAppRepo,
+      mockEventsService,
+      mockAllocationServiceCommon,
+      mockStcEventService,
+      mockAuthProviderClient,
+      mockEmailClient
+    )
 
     protected def mockGetEvent: OngoingStubbing[Future[Event]] = when(mockEventsService.getEvent(any[String]())).thenReturnAsync(new Event(
       "eventId", EventType.FSAC, "Description", Location("London"), Venue("Venue 1", "venue description"),

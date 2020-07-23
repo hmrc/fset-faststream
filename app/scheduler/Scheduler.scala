@@ -16,65 +16,163 @@
 
 package scheduler
 
-import play.api.Logger
-import scheduler.assessment.{ EvaluateAssessmentCentreJob, EvaluateAssessmentCentreJobConfig }
-import scheduler.fixer.{ FixerJob, FixerJobConfig }
-import scheduler.fsb.{ EvaluateFsbJob, EvaluateFsbJobConfig }
+import javax.inject.{ Inject, Singleton }
+import play.api.{ Application, Logger }
+import scheduler.assessment.{ EvaluateAssessmentCentreJobConfig, EvaluateAssessmentCentreJobImpl }
+import scheduler.fixer.{ FixerJobConfig, FixerJobImpl }
+import scheduler.fsb.{ EvaluateFsbJobConfig, EvaluateFsbJobImpl }
 import scheduler.onlinetesting._
 import scheduler.sift._
 import uk.gov.hmrc.play.scheduling.{ RunningOfScheduledJobs, ScheduledJob }
 
-trait Scheduler extends RunningOfScheduledJobs {
+import scala.concurrent.ExecutionContext
+
+@Singleton
+class Scheduler @Inject()(
+                           sendPhase1InvitationJob: SendPhase1InvitationJob,
+                           sendPhase2InvitationJob: SendPhase2InvitationJob,
+                           sendPhase3InvitationJob: SendPhase3InvitationJob,
+                           expirePhase1TestJob: ExpirePhase1TestJob,
+                           expirePhase2TestJob: ExpirePhase2TestJob,
+                           expirePhase3TestJob: ExpirePhase3TestJob,
+                           firstPhase1ReminderExpiringTestJob: FirstPhase1ReminderExpiringTestJob,
+                           secondPhase1ReminderExpiringTestJob: SecondPhase1ReminderExpiringTestJob,
+                           firstPhase2ReminderExpiringTestJob: FirstPhase2ReminderExpiringTestJob,
+                           secondPhase2ReminderExpiringTestJob: SecondPhase2ReminderExpiringTestJob,
+                           firstPhase3ReminderExpiringTestJob: FirstPhase3ReminderExpiringTestJob,
+                           secondPhase3ReminderExpiringTestJob: SecondPhase3ReminderExpiringTestJob,
+                           failedPhase1TestJob: FailedPhase1TestJob,
+                           failedPhase2TestJob: FailedPhase2TestJob,
+                           failedPhase3TestJob: FailedPhase3TestJob,
+                           failedSdipFsTestJob: FailedSdipFsTestJob,
+                           successPhase1TestJob: SuccessPhase1TestJob,
+                           successPhase3TestJob: SuccessPhase3TestJob,
+                           successPhase3SdipFsTestJob: SuccessPhase3SdipFsTestJob,
+                           retrievePhase1ResultsJob: RetrievePhase1ResultsJob,
+                           retrievePhase2ResultsJob: RetrievePhase2ResultsJob,
+                           evaluatePhase1ResultJob: EvaluatePhase1ResultJob,
+                           evaluatePhase2ResultJob: EvaluatePhase2ResultJob,
+                           evaluatePhase3ResultJob: EvaluatePhase3ResultJob,
+                           evaluateAssessmentCentreJob: EvaluateAssessmentCentreJobImpl,
+                           fixerJob: FixerJobImpl,
+                           progressSdipForFaststreamCandidateJob: ProgressSdipForFaststreamCandidateJobImpl,
+                           progressToSiftJob: ProgressToSiftJobImpl,
+                           siftNumericalTestInvitationJob: SiftNumericalTestInvitationJobImpl,
+                           retrieveSiftNumericalResultsJob: RetrieveSiftNumericalResultsJobImpl,
+                           processSiftNumericalResultsReceivedJob: ProcessSiftNumericalResultsReceivedJobImpl,
+                           progressToAssessmentCentreJob: ProgressToAssessmentCentreJobImpl,
+                           notifyAssessorsOfNewEventsJob: NotifyAssessorsOfNewEventsJobImpl,
+                           firstSiftReminderJob: FirstSiftReminderJobImpl,
+                           secondSiftReminderJob: SecondSiftReminderJobImpl,
+                           siftFailureJob: SiftFailureJob,
+                           siftExpiryJob: SiftExpiryJobImpl,
+                           progressToFsbOrOfferJob: ProgressToFsbOrOfferJobImpl,
+                           reminderEventAllocationJob: ReminderEventAllocationJobImpl,
+                           notifyOnFinalFailureJob: NotifyOnFinalFailureJobImpl,
+                           notifyOnFinalSuccessJob: NotifyOnFinalSuccessJobImpl,
+                           evaluateFsbJob: EvaluateFsbJobImpl,
+                           sendPhase1InvitationJobConfig: SendPhase1InvitationJobConfig,
+                           sendPhase2InvitationJobConfig: SendPhase2InvitationJobConfig,
+                           sendPhase3InvitationJobConfig: SendPhase3InvitationJobConfig,
+                           expirePhase1TestJobConfig: ExpirePhase1TestJobConfig,
+                           expirePhase2TestJobConfig: ExpirePhase2TestJobConfig,
+                           expirePhase3TestJobConfig: ExpirePhase3TestJobConfig,
+                           firstPhase1ReminderExpiringTestJobConfig: FirstPhase1ReminderExpiringTestJobConfig,
+                           secondPhase1ReminderExpiringTestJobConfig: SecondPhase1ReminderExpiringTestJobConfig,
+                           firstPhase2ReminderExpiringTestJobConfig: FirstPhase2ReminderExpiringTestJobConfig,
+                           secondPhase2ReminderExpiringTestJobConfig: SecondPhase2ReminderExpiringTestJobConfig,
+                           firstPhase3ReminderExpiringTestJobConfig: FirstPhase3ReminderExpiringTestJobConfig,
+                           secondPhase3ReminderExpiringTestJobConfig: SecondPhase3ReminderExpiringTestJobConfig,
+                           failedPhase1TestJobConfig: FailedPhase1TestJobConfig,
+                           failedPhase2TestJobConfig: FailedPhase2TestJobConfig,
+                           failedPhase3TestJobConfig: FailedPhase3TestJobConfig,
+                           failedSdipFsTestJobConfig: FailedSdipFsTestJobConfig,
+                           successPhase1TestJobConfig: SuccessPhase1TestJobConfig,
+                           successPhase3TestJobConfig: SuccessPhase3TestJobConfig,
+                           successPhase3SdipFsTestJobConfig: SuccessPhase3SdipFsTestJobConfig,
+                           retrievePhase1ResultsJobConfig: RetrievePhase1ResultsJobConfig,
+                           retrievePhase2ResultsJobConfig: RetrievePhase2ResultsJobConfig,
+                           evaluatePhase1ResultJobConfig: EvaluatePhase1ResultJobConfig,
+                           evaluatePhase2ResultJobConfig: EvaluatePhase2ResultJobConfig,
+                           evaluatePhase3ResultJobConfig: EvaluatePhase3ResultJobConfig,
+                           evaluateAssessmentCentreJobConfig: EvaluateAssessmentCentreJobConfig,
+                           fixerJobConfig: FixerJobConfig,
+                           progressSdipForFaststreamCandidateJobConfig: ProgressSdipForFaststreamCandidateJobConfig,
+                           progressToSiftJobConfig: ProgressToSiftJobConfig,
+                           siftNumericalTestInvitationConfig: SiftNumericalTestInvitationConfig,
+                           retrieveSiftNumericalResultsJobConfig: RetrieveSiftNumericalResultsJobConfig,
+                           processSiftNumericalResultsReceivedJobConfig: ProcessSiftNumericalResultsReceivedJobConfig,
+                           progressToAssessmentCentreJobConfig: ProgressToAssessmentCentreJobConfig,
+                           notifyAssessorsOfNewEventsJobConfig: NotifyAssessorsOfNewEventsJobConfig,
+                           firstSiftReminderJobConfig: FirstSiftReminderJobConfig,
+                           secondSiftReminderJobConfig: SecondSiftReminderJobConfig,
+                           siftFailureJobConfig: SiftFailureJobConfig,
+                           siftExpiryJobConfig: SiftExpiryJobConfig,
+                           progressToFsbOrOfferJobConfig: ProgressToFsbOrOfferJobConfig,
+                           reminderEventAllocationJobConfig: ReminderEventAllocationJobConfig,
+                           notifyOnFinalFailureJobConfig: NotifyOnFinalFailureJobConfig,
+                           notifyOnFinalSuccessJobConfig: NotifyOnFinalSuccessJobConfig,
+                           evaluateFsbJobConfig: EvaluateFsbJobConfig,
+                           val application: Application
+                         )
+                         (implicit val ec: ExecutionContext) extends RunningOfScheduledJobs {
+  Logger.info("Scheduler created")
+  onStart(application)
 
   private def maybeInitScheduler(config: BasicJobConfig[_], scheduler: => ScheduledJob): Option[ScheduledJob] = {
-    if (config.enabled) Some(scheduler) else {
+    if (config.enabled) {
+      Logger.warn(s"${config.name} job is enabled")
+      Some(scheduler)
+    } else {
       Logger.warn(s"${config.name} job is disabled")
       None
     }
   }
 
-  lazy val scheduledJobs: List[ScheduledJob] =  List(
-    maybeInitScheduler(SendPhase1InvitationJobConfig, SendPhase1InvitationJob),
-    maybeInitScheduler(SendPhase2InvitationJobConfig, SendPhase2InvitationJob),
-    maybeInitScheduler(SendPhase3InvitationJobConfig, SendPhase3InvitationJob),
-    maybeInitScheduler(ExpirePhase1TestJobConfig, ExpirePhase1TestJob),
-    maybeInitScheduler(ExpirePhase2TestJobConfig, ExpirePhase2TestJob),
-    maybeInitScheduler(ExpirePhase3TestJobConfig, ExpirePhase3TestJob),
-    maybeInitScheduler(FirstPhase1ReminderExpiringTestJobConfig, FirstPhase1ReminderExpiringTestJob),
-    maybeInitScheduler(SecondPhase1ReminderExpiringTestJobConfig, SecondPhase1ReminderExpiringTestJob),
-    maybeInitScheduler(FirstPhase2ReminderExpiringTestJobConfig, FirstPhase2ReminderExpiringTestJob),
-    maybeInitScheduler(SecondPhase2ReminderExpiringTestJobConfig, SecondPhase2ReminderExpiringTestJob),
-    maybeInitScheduler(FirstPhase3ReminderExpiringTestJobConfig, FirstPhase3ReminderExpiringTestJob),
-    maybeInitScheduler(SecondPhase1ReminderExpiringTestJobConfig, SecondPhase3ReminderExpiringTestJob),
-    maybeInitScheduler(FailedPhase1TestJobConfig, FailedPhase1TestJob),
-    maybeInitScheduler(FailedPhase2TestJobConfig, FailedPhase2TestJob),
-    maybeInitScheduler(FailedPhase3TestJobConfig, FailedPhase3TestJob),
-    maybeInitScheduler(FailedSdipFsTestJobConfig, FailedSdipFsTestJob),
-    maybeInitScheduler(SuccessPhase1TestJobConfig, SuccessPhase1TestJob),
-    maybeInitScheduler(SuccessPhase3TestJobConfig, SuccessPhase3TestJob),
-    maybeInitScheduler(SuccessPhase3SdipFsTestJobConfig, SuccessPhase3SdipFsTestJob),
-    maybeInitScheduler(RetrievePhase1ResultsJobConfig, RetrievePhase1ResultsJob),
-    maybeInitScheduler(RetrievePhase2ResultsJobConfig, RetrievePhase2ResultsJob),
-    maybeInitScheduler(EvaluatePhase1ResultJobConfig, EvaluatePhase1ResultJob),
-    maybeInitScheduler(EvaluatePhase2ResultJobConfig, EvaluatePhase2ResultJob),
-    maybeInitScheduler(EvaluatePhase3ResultJobConfig, EvaluatePhase3ResultJob),
-    maybeInitScheduler(EvaluateAssessmentCentreJobConfig, EvaluateAssessmentCentreJob),
-    maybeInitScheduler(FixerJobConfig, FixerJob),
-    maybeInitScheduler(ProgressSdipForFaststreamCandidateJobConfig, ProgressSdipForFaststreamCandidateJob),
-    maybeInitScheduler(ProgressToSiftJobConfig, ProgressToSiftJob),
-    maybeInitScheduler(SiftNumericalTestInvitationConfig, SiftNumericalTestInvitationJob),
-    maybeInitScheduler(RetrieveSiftNumericalResultsJobConfig, RetrieveSiftNumericalResultsJob),
-    maybeInitScheduler(ProcessSiftNumericalResultsReceivedJobConfig, ProcessSiftNumericalResultsReceivedJob),
-    maybeInitScheduler(ProgressToAssessmentCentreJobConfig, ProgressToAssessmentCentreJob),
-    maybeInitScheduler(NotifyAssessorsOfNewEventsJobConfig, NotifyAssessorsOfNewEventsJob),
-    maybeInitScheduler(FirstSiftReminderJobConfig, FirstSiftReminderJob),
-    maybeInitScheduler(SecondSiftReminderJobConfig, SecondSiftReminderJob),
-    maybeInitScheduler(SiftFailureJobConfig, SiftFailureJob),
-    maybeInitScheduler(SiftExpiryJobConfig, SiftExpiryJob),
-    maybeInitScheduler(ProgressToFsbOrOfferJobConfig, ProgressToFsbOrOfferJob),
-    maybeInitScheduler(ReminderEventAllocationJobConfig, ReminderEventAllocationJob),
-    maybeInitScheduler(NotifyOnFinalFailureJobConfig, NotifyOnFinalFailureJob),
-    maybeInitScheduler(NotifyOnFinalSuccessJobConfig, NotifyOnFinalSuccessJob),
-    maybeInitScheduler(EvaluateFsbJobConfig, EvaluateFsbJob)
-  ).flatten
+  override lazy val scheduledJobs: Seq[ScheduledJob] = {
+    Seq(
+      maybeInitScheduler(sendPhase1InvitationJobConfig, sendPhase1InvitationJob),
+      maybeInitScheduler(sendPhase2InvitationJobConfig, sendPhase2InvitationJob),
+      maybeInitScheduler(sendPhase3InvitationJobConfig, sendPhase3InvitationJob),
+      maybeInitScheduler(expirePhase1TestJobConfig, expirePhase1TestJob),
+      maybeInitScheduler(expirePhase2TestJobConfig, expirePhase2TestJob),
+      maybeInitScheduler(expirePhase3TestJobConfig, expirePhase3TestJob),
+      maybeInitScheduler(firstPhase1ReminderExpiringTestJobConfig, firstPhase1ReminderExpiringTestJob),
+      maybeInitScheduler(secondPhase1ReminderExpiringTestJobConfig, secondPhase1ReminderExpiringTestJob),
+      maybeInitScheduler(firstPhase2ReminderExpiringTestJobConfig, firstPhase2ReminderExpiringTestJob),
+      maybeInitScheduler(secondPhase2ReminderExpiringTestJobConfig, secondPhase2ReminderExpiringTestJob),
+      maybeInitScheduler(firstPhase3ReminderExpiringTestJobConfig, firstPhase3ReminderExpiringTestJob),
+      maybeInitScheduler(secondPhase3ReminderExpiringTestJobConfig, secondPhase3ReminderExpiringTestJob),
+      maybeInitScheduler(failedPhase1TestJobConfig, failedPhase1TestJob),
+      maybeInitScheduler(failedPhase2TestJobConfig, failedPhase2TestJob),
+      maybeInitScheduler(failedPhase3TestJobConfig, failedPhase3TestJob),
+      maybeInitScheduler(failedSdipFsTestJobConfig, failedSdipFsTestJob),
+      maybeInitScheduler(successPhase1TestJobConfig, successPhase1TestJob),
+      maybeInitScheduler(successPhase3TestJobConfig, successPhase3TestJob),
+      maybeInitScheduler(successPhase3SdipFsTestJobConfig, successPhase3SdipFsTestJob),
+      maybeInitScheduler(retrievePhase1ResultsJobConfig, retrievePhase1ResultsJob),
+      maybeInitScheduler(retrievePhase2ResultsJobConfig, retrievePhase2ResultsJob),
+      maybeInitScheduler(evaluatePhase1ResultJobConfig, evaluatePhase1ResultJob),
+      maybeInitScheduler(evaluatePhase2ResultJobConfig, evaluatePhase2ResultJob),
+      maybeInitScheduler(evaluatePhase3ResultJobConfig, evaluatePhase3ResultJob),
+      maybeInitScheduler(evaluateAssessmentCentreJobConfig, evaluateAssessmentCentreJob),
+      maybeInitScheduler(fixerJobConfig, fixerJob),
+      maybeInitScheduler(progressSdipForFaststreamCandidateJobConfig, progressSdipForFaststreamCandidateJob),
+      maybeInitScheduler(progressToSiftJobConfig, progressToSiftJob),
+      maybeInitScheduler(siftNumericalTestInvitationConfig, siftNumericalTestInvitationJob),
+      maybeInitScheduler(retrieveSiftNumericalResultsJobConfig, retrieveSiftNumericalResultsJob),
+      maybeInitScheduler(processSiftNumericalResultsReceivedJobConfig, processSiftNumericalResultsReceivedJob),
+      maybeInitScheduler(progressToAssessmentCentreJobConfig, progressToAssessmentCentreJob),
+      maybeInitScheduler(notifyAssessorsOfNewEventsJobConfig, notifyAssessorsOfNewEventsJob),
+      maybeInitScheduler(firstSiftReminderJobConfig, firstSiftReminderJob),
+      maybeInitScheduler(secondSiftReminderJobConfig, secondSiftReminderJob),
+      maybeInitScheduler(siftFailureJobConfig, siftFailureJob),
+      maybeInitScheduler(siftExpiryJobConfig, siftExpiryJob),
+      maybeInitScheduler(progressToFsbOrOfferJobConfig, progressToFsbOrOfferJob),
+      maybeInitScheduler(reminderEventAllocationJobConfig, reminderEventAllocationJob),
+      maybeInitScheduler(notifyOnFinalFailureJobConfig, notifyOnFinalFailureJob),
+      maybeInitScheduler(notifyOnFinalSuccessJobConfig, notifyOnFinalSuccessJob),
+      maybeInitScheduler(evaluateFsbJobConfig, evaluateFsbJob)
+    ).flatten
+  }
 }

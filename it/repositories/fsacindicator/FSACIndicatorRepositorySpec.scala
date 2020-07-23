@@ -1,7 +1,7 @@
 package repositories.fsacindicator
 
-import model.Exceptions.{ FSACIndicatorNotFound }
-import model.persisted.{ FSACIndicator }
+import model.Exceptions.FSACIndicatorNotFound
+import model.persisted.FSACIndicator
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.CollectionNames
@@ -10,9 +10,9 @@ import testkit.MongoRepositorySpec
 class FSACIndicatorRepositorySpec extends MongoRepositorySpec {
   import ImplicitBSONHandlers._
 
-  override val collectionName = CollectionNames.APPLICATION
+  override val collectionName: String = CollectionNames.APPLICATION
 
-  def repository = new FSACIndicatorMongoRepository()
+  def repository = new FSACIndicatorMongoRepository(mongo)
 
   "update" should {
 
@@ -47,7 +47,7 @@ class FSACIndicatorRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  private def insert(doc: BSONDocument) = repository.collection.insert(doc)
+  private def insert(doc: BSONDocument) = repository.collection.insert(ordered = false).one(doc)
 
   private def userId(i: Int) = "UserId" + i
   private def applicationId(i: Int) = "AppId" + i

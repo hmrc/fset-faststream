@@ -16,21 +16,17 @@
 
 package controllers.reference
 
+import javax.inject.{ Inject, Singleton }
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent }
-import repositories.{ SchemeRepository, SchemeYamlRepository }
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import repositories.SchemeRepository
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
-object SchemesController extends SchemesController{
-  val repo = SchemeYamlRepository
-}
-
-trait SchemesController extends BaseController {
-  def repo: SchemeRepository
+@Singleton
+class SchemesController @Inject()(repo: SchemeRepository) extends BaseController {
 
   def allSchemes: Action[AnyContent] = Action { implicit request =>
     Ok(Json.toJson(repo.schemes))
   }
 }
+

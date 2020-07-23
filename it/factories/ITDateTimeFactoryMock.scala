@@ -19,6 +19,6 @@ package factories
 import org.joda.time.{ DateTime, LocalDate }
 
 object ITDateTimeFactoryMock extends  DateTimeFactory {
-  val nowLocalTimeZone: DateTime = DateTime.now()
-  val nowLocalDate: LocalDate = LocalDate.now()
+  def nowLocalTimeZone: DateTime = DateTime.now()
+  def nowLocalDate: LocalDate = LocalDate.now()
 }

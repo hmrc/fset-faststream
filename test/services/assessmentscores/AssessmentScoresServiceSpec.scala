@@ -16,25 +16,23 @@
 
 package services.assessmentscores
 
-import factories.DateTimeFactory
+import factories.{ DateTimeFactory, DateTimeFactoryMock }
 import model.Exceptions.EventNotFoundException
 import model.ProgressStatuses.ProgressStatus
-import model.{ AllocationStatuses, ProgressStatuses, UniqueIdentifier }
 import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresAllExercisesExamples, AssessmentScoresExerciseExamples }
-import model.command.AssessmentScoresCommands.{ AssessmentScoresSectionType, AssessmentScoresCandidateSummary, AssessmentScoresFindResponse }
+import model.command.AssessmentScoresCommands.{ AssessmentScoresCandidateSummary, AssessmentScoresFindResponse, AssessmentScoresSectionType }
 import model.command.PersonalDetailsExamples
 import model.fsacscores.AssessmentScoresFinalFeedbackExamples
 import model.persisted.{ CandidateAllocation, EventExamples }
+import model.{ AllocationStatuses, ProgressStatuses, UniqueIdentifier }
 import org.joda.time.{ DateTimeZone, LocalDate }
-import org.mockito.Mockito.when
-import repositories.{ AssessmentScoresRepository, CandidateAllocationMongoRepository }
+import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.Mockito.{ when, _ }
+import repositories.application.GeneralApplicationRepository
 import repositories.events.EventsRepository
 import repositories.personaldetails.PersonalDetailsRepository
+import repositories.{ AssessmentScoresRepository, CandidateAllocationRepository }
 import services.BaseServiceSpec
-import org.mockito.ArgumentMatchers.{ eq => eqTo }
-import org.mockito.ArgumentMatchers._
-import org.mockito.Mockito._
-import repositories.application.GeneralApplicationRepository
 
 import scala.concurrent.Future
 
@@ -42,15 +40,15 @@ class AssessorAssessmentScoresServiceSpec extends AssessmentScoresServiceSpec {
   type S = AssessorAssessmentScoresService
 
   override def buildService(applicationRepo: GeneralApplicationRepository, assessmentScoresRepo: AssessmentScoresRepository,
-    candidateAllocationRepo: CandidateAllocationMongoRepository, eventsRepo: EventsRepository,
-    personalDetailsRepo: PersonalDetailsRepository, dateTimeFact: DateTimeFactory): S = {
+                            candidateAllocationRepo: CandidateAllocationRepository, eventsRepo: EventsRepository,
+                            personalDetailsRepo: PersonalDetailsRepository, dateTimeFctry: DateTimeFactory): S = {
     new AssessorAssessmentScoresService {
       override val applicationRepository = applicationRepo
       override val assessmentScoresRepository = assessmentScoresRepo
       override val candidateAllocationRepository = candidateAllocationRepo
       override val eventsRepository = eventsRepo
       override val personalDetailsRepository = personalDetailsRepo
-      override val dateTimeFactory = dateTimeFact
+      override val dateTimeFactory: DateTimeFactory = dateTimeFctry
     }
   }
 
@@ -61,28 +59,27 @@ class ReviewerAssessmentScoresServiceSpec extends AssessmentScoresServiceSpec {
   type S = ReviewerAssessmentScoresService
 
   override def buildService(applicationRepo: GeneralApplicationRepository, assessmentScoresRepo: AssessmentScoresRepository,
-    candidateAllocationRepo: CandidateAllocationMongoRepository, eventsRepo: EventsRepository,
-    personalDetailsRepo: PersonalDetailsRepository, dateTimeFact: DateTimeFactory): S = {
+                            candidateAllocationRepo: CandidateAllocationRepository, eventsRepo: EventsRepository,
+                            personalDetailsRepo: PersonalDetailsRepository, dateTimeFctry: DateTimeFactory): S = {
     new ReviewerAssessmentScoresService {
       override val applicationRepository = applicationRepo
       override val assessmentScoresRepository = assessmentScoresRepo
       override val candidateAllocationRepository = candidateAllocationRepo
       override val eventsRepository = eventsRepo
       override val personalDetailsRepository = personalDetailsRepo
-      override val dateTimeFactory = dateTimeFact
+      override val dateTimeFactory: DateTimeFactory = dateTimeFctry
     }
   }
 
   override val statusToUpdateTheApplicationTo = ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED
-
 }
 
 trait AssessmentScoresServiceSpec extends BaseServiceSpec {
   type S <: AssessmentScoresService
 
   def buildService(applicationRepo: GeneralApplicationRepository, assessmentScoresRepo: AssessmentScoresRepository,
-    candidateAllocationRepo: CandidateAllocationMongoRepository, eventsRepo: EventsRepository,
-    personalDetailsRepo: PersonalDetailsRepository, dateTimeFact: DateTimeFactory): S
+    candidateAllocationRepo: CandidateAllocationRepository, eventsRepo: EventsRepository,
+    personalDetailsRepo: PersonalDetailsRepository, dateTimeFactory: DateTimeFactory): S
 
   val statusToUpdateTheApplicationTo: ProgressStatuses.ProgressStatus
 
@@ -338,7 +335,7 @@ trait AssessmentScoresServiceSpec extends BaseServiceSpec {
             eventsRepositoryMock, personalDetailsRepositoryMock, dataTimeFactoryMock)
           service.findAssessmentScoresWithCandidateSummaryByEventId(UniqueIdentifier(eventId)).futureValue
         }
-        ex.getCause mustBe (EventNotFoundException(s"No event found with id $eventId"))
+        ex.getCause mustBe EventNotFoundException(s"No event found with id $eventId")
       }
 
     "return List Assessment Scores find response with empty assessment scores if there is not any" in
@@ -387,16 +384,16 @@ trait AssessmentScoresServiceSpec extends BaseServiceSpec {
   trait BaseTestFixture {
     val applicationRepositoyMock = mock[GeneralApplicationRepository]
     val assessmentScoresRepositoryMock = mock[AssessmentScoresRepository]
-    val candidateAllocationRepositoryMock = mock[CandidateAllocationMongoRepository]
+    val candidateAllocationRepositoryMock = mock[CandidateAllocationRepository]
     val eventsRepositoryMock = mock[EventsRepository]
     val personalDetailsRepositoryMock = mock[PersonalDetailsRepository]
 
     val dataTimeFactoryMock = mock[DateTimeFactory]
 
     val appId = AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise.applicationId
-    val now = DateTimeFactory.nowLocalTimeZone.withZone(DateTimeZone.UTC)
+    val now = DateTimeFactoryMock.nowLocalTimeZone.withZone(DateTimeZone.UTC)
     when(dataTimeFactoryMock.nowLocalTimeZone).thenReturn(now)
-    val today = DateTimeFactory.nowLocalDate
+    val today = DateTimeFactoryMock.nowLocalDate
     when(dataTimeFactoryMock.nowLocalDate).thenReturn(today)
   }
 

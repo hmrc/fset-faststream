@@ -17,7 +17,7 @@
 package controllers
 
 import config.TestFixtureBase
-import factories.DateTimeFactory
+import factories.DateTimeFactoryMock
 import model.Exceptions.EventNotFoundException
 import model.UniqueIdentifier
 import model.assessmentscores._
@@ -33,10 +33,10 @@ import repositories.AssessmentScoresRepository
 import services.assessmentscores.AssessmentScoresService
 import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.language.postfixOps
-import uk.gov.hmrc.http.HeaderCarrier
 
 class AssessorAssessmentScoresControllerSpec extends AssessmentScoresControllerSpec {
   override val userIdForAudit = "assessorId"
@@ -133,7 +133,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
     "return OK with corresponding assessment scores" in new TestFixture {
       val expectedResponse = AssessmentScoresFindResponse(
         AssessmentScoresCandidateSummary(appId, "firstName", "lastName", "venue",
-          DateTimeFactory.nowLocalDate, UniqueIdentifier.randomUniqueIdentifier),
+          DateTimeFactoryMock.nowLocalDate, UniqueIdentifier.randomUniqueIdentifier),
         Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise))
       when(mockService.findAssessmentScoresWithCandidateSummaryByApplicationId(appId)).thenReturn(
         Future.successful(expectedResponse))
@@ -156,7 +156,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
     "return OK with corresponding assessment scores" in new TestFixture {
       val expectedResponse = List(AssessmentScoresFindResponse(
         AssessmentScoresCandidateSummary(appId, "firstName", "lastName", "venue",
-          DateTimeFactory.nowLocalDate, sessionId),
+          DateTimeFactoryMock.nowLocalDate, sessionId),
         Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise)))
       when(mockService.findAssessmentScoresWithCandidateSummaryByEventId(eventId)).thenReturn(
         Future.successful(expectedResponse))
@@ -194,7 +194,6 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
   }
 
   "resetExercises" should {
-
     def toResetExercisesAuditDetails(resetExercisesRequest: ResetExercisesRequest) =
       Map(
         "applicationId" -> resetExercisesRequest.applicationId.toString,
@@ -277,14 +276,17 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
     val leadershipExercise = "leadershipExercise"
     val assessmentScoresResetLogEvent = "AssessmentScoresReset"
 
-    def controller = new AssessmentScoresController {
-      override val service = mockService
-      override val repository = mockAssessmentScoresRepository
-      override val auditService = mockAuditService
-      override val UserIdForAudit = userIdForAudit
-      override val AssessmentScoresOneExerciseSubmitted = assessmentScoresOneExerciseSubmitted
-      override val AssessmentScoresAllExercisesSubmitted = assessmentScoresAllExercisesSubmitted
-      override val AssessmentScoresOneExerciseSaved = assessmentScoresOneExerciseSaved
+    class TestController extends AssessmentScoresController {
+      val service = mockService
+      val repository = mockAssessmentScoresRepository
+      val auditService = mockAuditService
+
+      val AssessmentScoresOneExerciseSaved = assessmentScoresOneExerciseSaved
+      val AssessmentScoresOneExerciseSubmitted = assessmentScoresOneExerciseSubmitted
+      val AssessmentScoresAllExercisesSubmitted = assessmentScoresAllExercisesSubmitted
+      val UserIdForAudit = userIdForAudit
     }
+
+    def controller = new TestController
   }
 }

@@ -21,7 +21,6 @@ import model.SelectedSchemes
 import model.SelectedSchemesExamples._
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import services.AuditService
 import services.scheme.SchemePreferencesService
 import testkit.UnitWithAppSpec
 
@@ -29,12 +28,12 @@ import scala.concurrent.Future
 
 class SchemePreferencesControllerSpec extends UnitWithAppSpec {
   val mockSchemePreferencesService = mock[SchemePreferencesService]
-  val mockAuditService = mock[AuditService]
+//  val mockAuditService = mock[AuditService]
 
-  val controller = new SchemePreferencesController {
-    val schemePreferencesService = mockSchemePreferencesService
-    val auditService = mockAuditService
-  }
+  val controller = new SchemePreferencesController(
+    mockSchemePreferencesService
+//    val auditService = mockAuditService
+  )
 
   "find preferences" should {
     "return scheme preferences" in {
@@ -50,7 +49,6 @@ class SchemePreferencesControllerSpec extends UnitWithAppSpec {
       when(mockSchemePreferencesService.find(AppId)).thenReturn(Future.failed(SchemePreferencesNotFound(AppId)))
 
       val response = controller.find(AppId)(fakeRequest)
-
       status(response) mustBe NOT_FOUND
     }
   }

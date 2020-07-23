@@ -16,7 +16,8 @@
 
 package services.onlinetesting.phase1
 
-import config.OnlineTestsGatewayConfig
+import config.{ MicroserviceAppConfig, OnlineTestsGatewayConfig, Phase1TestsConfig }
+import factories.UUIDFactory
 import model.EvaluationResults.Green
 import model.ProgressStatuses.ProgressStatus
 import model._
@@ -35,7 +36,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
   "next candidate ready for evaluation" should {
     "return none if passmark is not set" in new TestFixture {
-      when(mockPhase1PMSRepository.getLatestVersion).thenReturn(Future.successful(None))
+      when(mockPhase1PassMarkSettingRepository.getLatestVersion).thenReturn(Future.successful(None))
       val result = service.nextCandidatesReadyForEvaluation(1).futureValue
       result mustBe None
     }
@@ -43,7 +44,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     "return none if application for evaluation does not exist" in new TestFixture {
       val application = ApplicationPhase1EvaluationExamples.faststreamApplication
 
-      when(mockPhase1PMSRepository.getLatestVersion).thenReturn(Future.successful(Some(PassmarkSettings)))
+      when(mockPhase1PassMarkSettingRepository.getLatestVersion).thenReturn(Future.successful(Some(PassmarkSettings)))
       when(mockPhase1EvaluationRepository
         .nextApplicationsReadyForEvaluation(eqTo(PassmarkVersion), any[Int]))
         .thenReturn(Future.successful(List(application)))
@@ -169,33 +170,31 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     val ExpectedPassmarkEvaluation = PassmarkEvaluation(PassmarkVersion, None, EvaluateForNonGis, "", None)
 
     val mockPhase1EvaluationRepository = mock[OnlineTestEvaluationRepository]
+    val mockPhase1PassMarkSettingRepository = mock[Phase1PassMarkSettingsMongoRepository]
+    val mockAppConfig = mock[MicroserviceAppConfig]
     val mockOnlineTestsGatewayConfig = mock[OnlineTestsGatewayConfig]
-    val mockPhase1PMSRepository = mock[Phase1PassMarkSettingsMongoRepository]
+    val mockPhase1TestsConfig = mock[Phase1TestsConfig]
+    when(mockPhase1TestsConfig.scheduleIds).thenReturn(Map("sjq" -> SjqId, "bq" -> BqId))
+
+    when(mockAppConfig.onlineTestsGatewayConfig).thenReturn(mockOnlineTestsGatewayConfig)
+    when(mockOnlineTestsGatewayConfig.phase1Tests).thenReturn(mockPhase1TestsConfig)
 
     when(mockPhase1EvaluationRepository.savePassmarkEvaluation(eqTo(AppId), any[PassmarkEvaluation], any[Option[ProgressStatus]]))
       .thenReturn(Future.successful(()))
 
-    val service = new EvaluatePhase1ResultService with StubbedPhase1TestEvaluation {
-      val evaluationRepository = mockPhase1EvaluationRepository
-      val gatewayConfig = mockOnlineTestsGatewayConfig
-      val passMarkSettingsRepo = mockPhase1PMSRepository
-      val phase = Phase.PHASE1
+    val service = new EvaluatePhase1ResultService(
+      mockPhase1EvaluationRepository,
+      mockPhase1PassMarkSettingRepository,
+      mockAppConfig,
+      UUIDFactory
+    ) with StubbedPhase1TestEvaluation
 
-      override def sjq = SjqId
-
-      override def bq = BqId
-    }
-
-    val edipSkipEvaluationService = new EvaluatePhase1ResultService {
-      val evaluationRepository = mockPhase1EvaluationRepository
-      val gatewayConfig = mockOnlineTestsGatewayConfig
-      val passMarkSettingsRepo = mockPhase1PMSRepository
-      val phase = Phase.PHASE1
-
-      override def sjq = SjqId
-
-      override def bq = BqId
-
+    val edipSkipEvaluationService = new EvaluatePhase1ResultService(
+      mockPhase1EvaluationRepository,
+      mockPhase1PassMarkSettingRepository,
+      mockAppConfig,
+      UUIDFactory
+    ) {
       override def evaluateForNonGis(schemes: List[SchemeId], sjqTestResult: TestResult,bqTestResult: TestResult,
                                      passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
         Nil

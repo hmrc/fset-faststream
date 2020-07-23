@@ -17,60 +17,73 @@
 package services.onlinetesting.phase3
 
 import _root_.services.AuditService
+import com.google.inject.name.Named
 import common.Phase3TestConcern
-import config.LaunchpadGatewayConfig
+import config.MicroserviceAppConfig
 import connectors._
 import connectors.launchpadgateway.LaunchpadGatewayClient
 import connectors.launchpadgateway.exchangeobjects.out._
 import factories.{ DateTimeFactory, UUIDFactory }
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.NotFoundException
 import model.OnlineTestCommands._
 import model.ProgressStatuses._
 import model._
 import model.command.ProgressResponse
-import model.stc.StcEventTypes.StcEventType
-import model.stc.{ AuditEvents, DataStoreEvents }
 import model.exchange.{ Phase3TestGroupWithActiveTest, PsiRealTimeResults }
 import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
 import model.persisted.{ NotificationExpiringOnlineTest, Phase3TestGroupWithAppId }
+import model.stc.StcEventTypes.StcEventType
+import model.stc.{ AuditEvents, DataStoreEvents }
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.mvc.RequestHeader
-import repositories._
+import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase3TestRepository
-import services.stc.StcEventService
 import services.onlinetesting.Exceptions.NoActiveTestException
 import services.onlinetesting.OnlineTestService
 import services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
 import services.sift.ApplicationSiftService
+import services.stc.StcEventService
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.postfixOps
-import uk.gov.hmrc.http.HeaderCarrier
-
-object Phase3TestService extends Phase3TestService {
+/*
+object Phase3TestService2 extends Phase3TestService2 {
 
   import config.MicroserviceAppConfig._
 
   val appRepository = applicationRepository
   val testRepository = phase3TestRepository
   val cdRepository = faststreamContactDetailsRepository
-  val launchpadGatewayClient = LaunchpadGatewayClient
+  //  val launchpadGatewayClient = LaunchpadGatewayClient //TODO:fix
   val tokenFactory = UUIDFactory
   val dateTimeFactory = DateTimeFactory
-  val emailClient = Phase3OnlineTestEmailClient
-  val auditService = AuditService
+  //  val emailClient = Phase3OnlineTestEmailClient
+  //  val auditService = AuditService //TODO:fix not used - need it as it is defined in top level trait
   val gatewayConfig = launchpadGatewayConfig
   val eventService = StcEventService
   val siftService = ApplicationSiftService
-}
+}*/
 
 //scalastyle:off number.of.methods
-trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
-  type TestRepository = Phase3TestRepository
+@Singleton
+class Phase3TestService @Inject() (val appRepository: GeneralApplicationRepository,
+                                   val testRepository: Phase3TestRepository,
+                                   val cdRepository: ContactDetailsRepository,
+                                   launchpadGatewayClient: LaunchpadGatewayClient,
+                                   val tokenFactory: UUIDFactory,
+                                   val dateTimeFactory: DateTimeFactory,
+                                   @Named("Phase3OnlineTestEmailClient") val emailClient:  OnlineTestEmailClient,
+                                   val auditService: AuditService,
+                                   val eventService: StcEventService,
+                                   val siftService: ApplicationSiftService,
+                                   appConfig: MicroserviceAppConfig) extends OnlineTestService with Phase3TestConcern {
+  type TestRepository2 = Phase3TestRepository
 
-  val launchpadGatewayClient: LaunchpadGatewayClient
-  val gatewayConfig: LaunchpadGatewayConfig
+  val gatewayConfig = appConfig.launchpadGatewayConfig
 
   override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] = {
     testRepository.nextApplicationsReadyForOnlineTesting(maxBatchSize: Int)
@@ -229,16 +242,15 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
           DataStoreEvents.VideoInterviewRegistrationAndInviteComplete(application.applicationId) :: Nil
       }
     } yield {}
-  }
-
-  // scalastyle:on method.length
+  }// scalastyle:on method.length
 
   //scalastyle:off method.length
   private[onlinetesting] def registerAndInviteOrInviteOrResetOrRetakeOrNothing(phase3TestGroup: Option[Phase3TestGroup],
-    application: OnlineTestApplication, emailAddress: String,
-    interviewId: Int, invitationDate: DateTime,
-    expirationDate: DateTime
-  )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[LaunchpadTest] = {
+                                                                               application: OnlineTestApplication, emailAddress: String,
+                                                                               interviewId: Int, invitationDate: DateTime,
+                                                                               expirationDate: DateTime
+                                                                              )(implicit hc: HeaderCarrier,
+                                                                                rh: RequestHeader): Future[LaunchpadTest] = {
 
     case class InviteResetOrTakeResponse(candidateId: String, testUrl: String, customInviteId: String, customCandidateId: Option[String])
 
@@ -296,7 +308,6 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       )
     )
   }
-
   //scalastyle:on method.length
 
   def markAsStarted(launchpadInviteId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
@@ -447,7 +458,6 @@ trait Phase3TestService extends OnlineTestService with Phase3TestConcern {
       s"/online-tests/phase3/complete/$customInviteId"
 
     val inviteApplicant = InviteApplicantRequest(interviewId, candidateId, customInviteId, completionRedirectUrl)
-
     launchpadGatewayClient.inviteApplicant(inviteApplicant)
   }
 

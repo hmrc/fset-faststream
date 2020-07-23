@@ -17,20 +17,26 @@
 package scheduler.sift
 
 import config.WaitingScheduledJobConfig
-import play.api.Logger
+import javax.inject.{ Inject, Singleton }
+import play.api.{ Configuration, Logger }
+import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-import services.NumericalTestService
+import services.NumericalTestService2
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object ProcessSiftNumericalResultsReceivedJob extends ProcessSiftNumericalResultsReceivedJob {
-  val numericalTestService = NumericalTestService
-  val config = ProcessSiftNumericalResultsReceivedJobConfig
+@Singleton
+class ProcessSiftNumericalResultsReceivedJobImpl @Inject() (val numericalTestService: NumericalTestService2,
+                                                            val mongoComponent: ReactiveMongoComponent,
+                                                            val config: ProcessSiftNumericalResultsReceivedJobConfig
+                                                           ) extends ProcessSiftNumericalResultsReceivedJob {
+  //  val numericalTestService = NumericalTestService2
+  //  val config = ProcessSiftNumericalResultsReceivedJobConfig
 }
 
 trait ProcessSiftNumericalResultsReceivedJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
-  val numericalTestService: NumericalTestService
+  val numericalTestService: NumericalTestService2
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     val intro = "Processing candidates in SIFT who have received numerical test results"
@@ -47,7 +53,9 @@ trait ProcessSiftNumericalResultsReceivedJob extends SingleInstanceScheduledJob[
   }
 }
 
-object ProcessSiftNumericalResultsReceivedJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
+@Singleton
+class ProcessSiftNumericalResultsReceivedJobConfig @Inject()(config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.process-sift-numerical-results-received-job",
   name = "ProcessSiftNumericalResultsReceivedJob"
 )
