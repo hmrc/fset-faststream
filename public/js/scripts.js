@@ -468,7 +468,7 @@ $(function() {
 
   });
 
-  $('[aria-hidden]').each(function() {
+  $('.toggle-content [aria-hidden]').each(function() {
     var $controlID = $(this).attr('id');
 
     if($(this).is(':visible')) {
@@ -533,9 +533,9 @@ $(function() {
       if(currentConfirmPassword || originalPassword) {
       $('#matchingHint').removeClass('invisible');
         if(currentConfirmPassword === originalPassword) {
-          $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html("<i class='fa fa-check'></i>Your passwords match");
+          $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html("<i class='fa fa-check aria-hidden=\"true\"'></i>Your passwords match");
         } else {
-          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times'></i>Your passwords don't match");
+          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times' aria-hidden=\"true\"></i>Your passwords don't match");
         }
       }
       if($('#pass_match').hasClass('strength-weak') || $('#passwordRequirements li').hasClass('strength-weak')) {
@@ -593,12 +593,12 @@ $(function() {
       if(matchVal.length >= minChars) {
         if(matchVal.length == passVal.length) {
           if(matchVal === passVal) {
-            $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html("<i class='fa fa-check'></i>Your passwords match");
+            $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html("<i class='fa fa-check' aria-hidden=\"true\"></i>Your passwords match");
           } else {
-            $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times'></i>Your passwords don't match");
+            $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times' aria-hidden=\"true\"></i>Your passwords don't match");
           }
         } else {
-          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times'></i>Your passwords don't match");
+          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times' aria-hidden=\"true\"></i>Your passwords don't match");
         }
       }
 
@@ -621,12 +621,12 @@ $(function() {
 
       if(matchVal.length == passVal.length) {
         if(matchVal === passVal) {
-          $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html("<i class='fa fa-check'></i>Your passwords match");
+          $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html("<i class='fa fa-check' aria-hidden=\"true\"></i>Your passwords match");
         } else {
-          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times'></i>Your passwords don't match");
+          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times' aria-hidden=\"true\"></i>Your passwords don't match");
         }
       } else if(matchVal.length !== 0 ) {
-        $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times'></i>Your passwords don't match");
+        $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times' aria-hidden=\"true\"></i>Your passwords don't match");
         }
 
     });

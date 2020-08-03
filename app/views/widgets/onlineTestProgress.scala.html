@@ -83,7 +83,7 @@
 }
 
 @phase2SectionBeforeOnlineExercisesFinishes() = {
-    <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-lock the-icon"></i>Work based scenarios
+    <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-lock the-icon" aria-hidden="true"></i>Work based scenarios
         <span class="font-xsmall">- locked</span>
     </p>
     <p>
@@ -92,7 +92,7 @@
 }
 
 @onlineExercisesForUnconfirmedAdjustments() = {
-    <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-minus the-icon"></i>Work based scenarios</p>
+    <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-minus the-icon" aria-hidden="true"></i>Work based scenarios</p>
     <p>Before you take the work based scenarios we need to contact you to confirm your requested extra support.</p>
 }
 
@@ -130,7 +130,7 @@
     case (true, _, Some(testsPage)) => {
         <ul class="list-text list-withicons">
             <li id="phase1TestsSection">
-                <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
+                <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle" aria-hidden="true"></i>
                     Online exercises</p>
                 <div id="groupTestExpired">
                     <p>Unfortunately the time you had to finish the online exercises has expired.</p>
@@ -146,7 +146,7 @@
     case (_, true, Some(testsPage)) => {
         <ul class="list-text list-withicons">
             <li id="phase1TestsSection">
-                <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
+                <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle" aria-hidden="true"></i>
                     Online exercises</p>
                 <div id="phase1TestFailed">
                     <p>Unfortunately we've assessed your results and you've been unsuccessful this time.</p>
@@ -161,17 +161,17 @@
         @if(isFaststream(cachedUserData)) {
             <ul class="list-text list-withicons" id="testsIndividual">
                 <li id="phase1TestsSection">
-                    <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>Online exercises
+                    <p class="med-btm-margin"><i class="fa fa-lock the-icon" aria-hidden="true"></i>Online exercises
                         <span class="font-xsmall">- locked</span>
                     </p>
                 </li>
                 <li id="phase2TestsSection">
-                    <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>Work based scenarios
+                    <p class="med-btm-margin"><i class="fa fa-lock the-icon" aria-hidden="true"></i>Work based scenarios
                         <span class="font-xsmall">- locked</span>
                     </p>
                 </li>
                 <li id="phase3TestsSection">
-                    <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>Video interview
+                    <p class="med-btm-margin"><i class="fa fa-lock the-icon" aria-hidden="true"></i>Video interview
                         <span class="font-xsmall">- locked</span>
                     </p>
                 </li>
@@ -179,7 +179,7 @@
         } else { @if(isEdip(cachedUserData) || isSdip(cachedUserData)) {
                 <ul class="list-text list-withicons" id="testsIndividual">
                     <li id="phase1TestsSection">
-                        <p class="med-btm-margin"><i class="fa fa-lock the-icon"></i>Online exercises
+                        <p class="med-btm-margin"><i class="fa fa-lock the-icon" aria-hidden="true"></i>Online exercises
                             <span class="font-xsmall">- locked</span>
                         </p>
                     </li>
@@ -192,7 +192,7 @@
         <ul class="list-text list-withicons">
             @if(phase1TestsPage.allCompleted) {
                 <li id="phase1TestsSection">
-                    <p class="med-btm-margin" id="testsHeading"><i class="fa fa-check the-icon"></i>
+                    <p class="med-btm-margin" id="testsHeading"><i class="fa fa-check the-icon" aria-hidden="true"></i>
                         Online exercises</p>
                     <div>
                     @if(dashboardPage.isPhase1TestsPassed) {
@@ -208,19 +208,19 @@
 
             } else {
                 <li id="phase1TestsSection">
-                    <p class="med-btm-margin" id="testsHeading"><i class="fa fa-minus the-icon"></i>
+                    <p class="med-btm-margin" id="testsHeading"><i class="fa fa-minus the-icon" aria-hidden="true"></i>
                         Online exercises</p>
                     <ul class="list-text list-withicons" id="testsIndividual">
                         @phase1TestsPage.tests.map { phase1Test =>
                             @if(phase1Test.completed) {
                                 <li>
-                                    <i class="fa fa-check the-icon"></i>
+                                    <i class="fa fa-check the-icon" aria-hidden="true"></i>
                                     <div>@Messages(phase1Test.testNameKey)</div>
                                     <div>@displayTestPageLink(phase1Test, Messages(phase1Test.testNameKey))</div>
                                 </li>
                             } else {
                                 <li>
-                                    <i class="fa fa-minus the-icon"></i>
+                                    <i class="fa fa-minus the-icon" aria-hidden="true"></i>
                                     <div>@Messages(phase1Test.testNameKey)</div>
                                     <div>@Messages(phase1Test.testDescriptionKey)</div>
                                     <div>@displayTestPageLink(phase1Test, Messages(phase1Test.testNameKey))</div>
@@ -251,7 +251,7 @@
                 @(dashboardPage.isPhase2TestGroupExpired, dashboardPage.isPhase2TestsPassed, dashboardPage.isPhase2TestFailed, dashboardPage.phase2TestsPage, dashboardPage.phase1TestsPage) match {
                     case (_, true, _, _, _) => {
                         <li id="phase2TestsSection">
-                            <p class="med-btm-margin" id="etrayHeading"><i class="fa the-icon fa-check"></i>Work based scenarios</p>
+                            <p class="med-btm-margin" id="etrayHeading"><i class="fa the-icon fa-check" aria-hidden="true"></i>Work based scenarios</p>
                             <div id="etrayBlurb">
                                 <p>Congratulations, you've passed this section and can now
                                     continue to the next section.</p>
@@ -261,7 +261,7 @@
                     }
                     case (true, false, _, Some(phase2TestsPage), _) => {
                         <li id="phase2TestsSection">
-                            <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
+                            <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle" aria-hidden="true"></i>
                                 Work based scenarios</p>
                             <div id="groupTestExpired">
                                 <p>Unfortunately the time you had to finish the work based scenarios has expired.</p>
@@ -275,7 +275,7 @@
                     }
                      case (_, false, true, Some(phase2TestsPage), _) => {
                         <li id="phase2TestsSection">
-                            <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
+                            <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle" aria-hidden="true"></i>
                                 Work based scenarios</p>
                             <div id="phase2TestFailed">
                                 <p>Unfortunately we've assessed your results and you've been unsuccessful this time.</p>
@@ -290,7 +290,7 @@
                             @if(dashboardPage.isPhase1TestsPassed && hasUnconfirmedAdjustments) {
                                 @onlineExercisesForUnconfirmedAdjustments()
                             } else { @if(dashboardPage.isPhase1TestsPassed && requiresInvigilatedETray) {
-                                <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-minus the-icon"></i>Work based scenarios</p>
+                                <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-minus the-icon" aria-hidden="true"></i>Work based scenarios</p>
                                 @invigilatedETraySection
                             } else {
                                 @phase2SectionBeforeOnlineExercisesFinishes()
@@ -302,7 +302,7 @@
                             @if(phase2TestsPage.allCompleted) {
                                 <li id="phase2TestsSection">
                                     <p class="med-btm-margin" id="etrayHeading">
-                                        <i class="fa the-icon fa-check"></i>Work based scenarios
+                                        <i class="fa the-icon fa-check" aria-hidden="true"></i>Work based scenarios
                                     </p>
                                     <div id="etrayBlurb">
                                         <p>
@@ -314,20 +314,20 @@
                                 </li>
                             } else {
                                 <li id="phase2TestsSection">
-                                    <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-minus the-icon"></i>Work based scenarios
+                                    <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-minus the-icon" aria-hidden="true"></i>Work based scenarios
                                         Exercises
                                     </p>
                                     <ul class="list-text list-withicons" id="testsIndividual">
                                         @phase2TestsPage.tests.map { phase2Test =>
                                             @if(phase2Test.completed) {
                                                 <li>
-                                                    <i class="fa fa-check the-icon"></i>
+                                                    <i class="fa fa-check the-icon" aria-hidden="true"></i>
                                                     <div>@Messages(phase2Test.testNameKey)</div>
                                                     <div>@displayTestPageLink(phase2Test, Messages(phase2Test.testNameKey))</div>
                                                 </li>
                                             } else {
                                                 <li>
-                                                    <i class="fa fa-minus the-icon"></i>
+                                                    <i class="fa fa-minus the-icon" aria-hidden="true"></i>
                                                     @Messages(phase2Test.testNameKey)
                                                 </li>
                                             }
@@ -344,7 +344,7 @@
                 @(dashboardPage.isPhase3TestGroupExpired, dashboardPage.isPhase3TestFailed, dashboardPage.shouldDisplayPhase3TestFeedbackReport, dashboardPage.phase3TestsPage, dashboardPage.phase2TestsPage, dashboardPage.phase1TestsPage) match {
                     case (true, _, _, Some(phase3TestsPage), _, _) => {
                         <li id="phase3TestsSection">
-                            <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
+                            <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle" aria-hidden="true"></i>
                                 Video interview</p>
                             <div id="groupTestExpired">
                                 <p>Unfortunately the time you had to finish the video interview has expired.</p>
@@ -358,7 +358,7 @@
 
                     case (_, true, _, Some(phase3TestsPage), _, _) => {
                         <li id="phase3TestsSection">
-                            <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
+                            <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle" aria-hidden="true"></i>
                                 Video interview</p>
                             @displayPhase3TestResultsLinks
                                 <div id="phase3TestFailed">
@@ -374,7 +374,7 @@
 
                     case (_, _, true, Some(phase3TestsPage), _, _) => {
                         <li id="phase3TestsSection">
-                            <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
+                            <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle" aria-hidden="true"></i>
                                 Video interview</p>
                             @displayPhase3TestResultsLinks
                         </li>
@@ -382,7 +382,7 @@
 
                     case (_, _, _, None, _, Some(_)) => {
                         <li id="phase3TestsSection">
-                            <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon"></i>Video interview
+                            <p class="med-btm-margin" id="videoHeading"><i class="fa fa-lock the-icon" aria-hidden="true"></i>Video interview
                                 <span class="font-xsmall">- locked</span>
                             </p>
                             <p>Unlocked if you're successful in the work based scenarios</p>
@@ -391,7 +391,7 @@
                     case (false, false, _, Some(phase3TestsPage), _, _) => {
                         @if(phase3TestsPage.isCompleted) {
                             <li id="phase3TestsSection">
-                                <p class="med-btm-margin" id="videoHeading"><i class="fa the-icon fa-check"></i>Video interview</p>
+                                <p class="med-btm-margin" id="videoHeading"><i class="fa the-icon fa-check" aria-hidden="true"></i>Video interview</p>
                                 <div id="videoBlurb">
                                     <p>You've completed this section, we'll send you an email when we have your results.
                                         Make sure you check your junk inbox.</p>
@@ -399,7 +399,7 @@
                             </li>
                         } else {
                             <li id="phase3TestsSection">
-                                <p class="med-btm-margin" id="videoHeading"><i class="fa the-icon fa-minus"></i>
+                                <p class="med-btm-margin" id="videoHeading"><i class="fa the-icon fa-minus" aria-hidden="true"></i>
                                     Video interview </p>
                                 <div id="videoBlurb">
                                     @if(isInvigilatedVideoApproved) {

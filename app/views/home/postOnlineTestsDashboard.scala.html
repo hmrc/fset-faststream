@@ -70,7 +70,7 @@
 
 @renderViewAssessmentFeedback = {
 <p>
-    <i class="fa fa-check"></i>
+    <i class="fa fa-check" aria-hidden="true"></i>
     <a href="@routes.AssessmentFeedbackController.present(page.userDataWithSchemes.application.applicationId)">
         View your assessment centre feedback</a>
 </p>
@@ -150,7 +150,7 @@
 <section class="section-border">
     <section class="text" data-successtop>
         <div id="unsuccessfulNoAttend">
-            <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle"></i>
+            <p class="med-btm-margin" id="warningOnlineExercises"><i class="fa the-icon fa-exclamation-triangle" aria-hidden="true"></i>
                 Important</p>
             <div id="assessmentFailedToAttend">
                 <p>Unfortunately, you've been unsuccessful as you didn't attend the assessment centre.</p>
@@ -274,7 +274,7 @@
                     <p>Check your scheme preferences, as the order may have changed.</p>
                     @if(SchemeWithdrawRole.isAuthorized(page.userDataWithSchemes.toCachedData) && !page.userDataWithSchemes.application.isSiftExpired) {
                         <div class="panel-indent" id="importantToProgress">
-                            <p><i class="fa fa-exclamation-triangle"></i>Important</p>
+                            <p><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>Important</p>
                             <p><span>To progress to the next stage you must first complete any scheme questions or tests, even if your first preference doesn't ask for them. </span>
                              If you've changed your mind, you can <a href="@routes.WithdrawController.presentWithdrawScheme">
                                  withdraw from individual schemes</a>.
