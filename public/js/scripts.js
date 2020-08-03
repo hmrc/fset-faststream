@@ -983,13 +983,6 @@ $(function() {
   $('label[for="address_line3"]').text('Address line 3').addClass('visuallyhidden');
   $('label[for="address_line4"]').text('Address line 4').addClass('visuallyhidden');
 
-  if($('#civilServantQuestion').length) {
-    var $civilServantSection = $('#civilServantQuestion'),
-        legendText = $civilServantSection.find('h2').text();
-
-    $civilServantSection.find('fieldset:eq(0)').prepend('<legend class="visuallyhidden">' + legendText + '</legend>');
-  }
-
   if($('.editSection').length) {
     $('.editSection').each(function() {
       var sectionName = $(this).closest('h2').find('.sectionTitle').text();
