@@ -1064,6 +1064,7 @@ $(function () {
   var timerIndex = 0;
   var isShown = false;
   var timer = null;
+  var lastFocusBeforeModal;
 
   var $el = document.querySelector('#modal');
   if ($el) {
@@ -1086,18 +1087,48 @@ $(function () {
 
       extendSession();
     });
+
+    document.addEventListener("focus", function(event) {
+      if (isShown && !$el.contains(event.target)) {
+        event.stopPropagation();
+        $el.focus();
+      }
+    }, true);
+
+    document.addEventListener("keydown", function(event) {
+      const ESCAPE = 27;
+      if (isShown && event.keyCode === ESCAPE) {
+        hide();
+      }
+    }, true);
   }
+
+  var $main = document.querySelector('#main');
 
   function hide() {
     $htmlEl.className = $htmlEl.className.replace(' show-modal', ' ');
     isShown = false;
+    $($main).attr("aria-hidden", "false");
+    if (lastFocusBeforeModal) {
+      lastFocusBeforeModal.focus();
+    } else {
+      var $govUkLink = document.querySelector('#govUkLink');
+      $($govUkLink).focus();
+    }
   }
 
   function show() {
+    lastFocusBeforeModal = $( document.activeElement );
+
     if ($htmlEl.className.indexOf('show-modal') < 0) {
       $htmlEl.className += ' show-modal';
     }
     isShown = true;
+    if ($el) {
+      var $yesButton = $el.querySelector('.button--modal-yes');
+      $($yesButton).focus();
+      $($main).attr("aria-hidden", "true");
+    }
   }
 
   function handleTimer() {
