@@ -68,24 +68,24 @@
         </section>
 
         <section>
-            @select_guard_multi(form("ethnicity"), Ethnicities.map,
-                "ethnicity-describe", "Select one") {
-                @Messages("ethnicity.question")
-            }
+            <fieldset class="form-group">
+                <legend><h2 class="form-label" id="ethnicity-ques">@Messages("ethnicity.question")</h2></legend>
+                @select_guard_multi(form("ethnicity"), Ethnicities.map, "ethnicity-describe", "Select one")
 
-            <div class="toggle-content form-group form-group-compound" id="ethnicity-describe">
-                @helper.inputText(form("other_ethnicity"),
-                    '_label -> "Provide more information (optional)",
-                    '_labelClass -> "form-hint",
-                    'class -> "form-control",
-                    '_showConstraints -> false,
-                    'optional -> "")
-            </div>
-            <div data-optional>
-                @checkbox(form("preferNotSay_ethnicity"), Some("ethnicity")) {
-                    I don't know/prefer not to say
-                }
-            </div>
+                <div class="toggle-content form-group form-group-compound" id="ethnicity-describe">
+                    @helper.inputText(form("other_ethnicity"),
+                        '_label -> "Provide more information (optional)",
+                        '_labelClass -> "form-hint",
+                        'class -> "form-control",
+                        '_showConstraints -> false,
+                        'optional -> "")
+                </div>
+                <div data-optional>
+                    @checkbox(form("preferNotSay_ethnicity"), Some("ethnicity")) {
+                        I don't know/prefer not to say
+                    }
+                </div>
+            </fieldset>
         </section>
 
         <section>

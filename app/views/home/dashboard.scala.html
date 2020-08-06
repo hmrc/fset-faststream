@@ -44,7 +44,7 @@
         user: Option[CachedData], feedbackUrl: String, messages: Messages)
 
 @renderProgressElement(showLink: Boolean, checked: Boolean, id: String)(link: Call)(body: Html) = {
-    <li id="@id"><i id="@id-icon" class='fa @if(checked) { fa-check } else {fa-minus} the-icon'></i> @if(showLink) {
+    <li id="@id"><i id="@id-icon" class='fa @if(checked) { fa-check } else {fa-minus} the-icon' aria-hidden="true"></i> @if(showLink) {
         <a id="@id-link" href="@link">@body</a>
     } else {
         @body
@@ -69,7 +69,7 @@
 }}
 
 @renderProgressElements = {
-    <li><i class="fa fa-check the-icon"></i>Create your account</li>
+    <li><i class="fa fa-check the-icon" aria-hidden="true"></i>Create your account</li>
     @renderProgressElement(showLink = EditPersonalDetailsAndContinueRole.isAuthorized(usr), checked = SchemesRole.isAuthorized(usr), "personalDetailsStep")(routes.PersonalDetailsController.presentAndContinue()) {Add personal details }
     @if(isFaststream(usr)) {
         @renderProgressElement(showLink = SchemesRole.isAuthorized(usr), checked = hasSchemes(usr), "schemesStep")(routes.SchemePreferencesController.present()) { Choose your schemes }
@@ -99,7 +99,7 @@
                 @if(!dashboardPage.isApplicationWithdrawn) {
                     <ul class="list-text list-withicons">
                         @if(dashboardPage.isApplicationSubmittedAndNotWithdrawn) {
-                            <li><i class='fa fa-check the-icon'></i>Your application has been submitted</li>
+                            <li><i class='fa fa-check the-icon' aria-hidden="true"></i>Your application has been submitted</li>
                         }
                         @if(dashboardPage.isApplicationInProgress) {
                             @renderProgressElements
@@ -145,7 +145,7 @@
                     }
                     case ASSESSMENT_FAST_PASS_APPROVED => {
                         <div data-sdip>
-                            <p id="fast-pass-msg"><i class='fa fa-check the-icon'></i>We have approved your Fast Pass.</p>
+                            <p id="fast-pass-msg"><i class='fa fa-check the-icon' aria-hidden="true"></i>We have approved your Fast Pass.</p>
                         </div>
                     }
                     case _ => {

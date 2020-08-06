@@ -24,7 +24,7 @@
         <h2 class="heading-large">
             Nationality
             @if(!page.areAnswersSubmitted) {
-                <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions()"><i class="the-icon fa fa-pencil"></i><span class="the-text">
+                <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions()"><i class="the-icon fa fa-pencil" aria-hidden="true"></i><span class="the-text">
                     Edit section</span></a>
             }
         </h2>
@@ -47,7 +47,7 @@
         <h2 class="heading-large">
             Undergraduate degree
             @if(!page.areAnswersSubmitted) {
-                <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions()#UndergraduateDegree"><i class="the-icon fa fa-pencil"></i><span class="the-text">
+                <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions()#UndergraduateDegree"><i class="the-icon fa fa-pencil" aria-hidden="true"></i><span class="the-text">
                     Edit section</span></a>
             }
         </h2>
@@ -82,7 +82,7 @@
         <h2 class="heading-large">
             Postgraduate degree
             @if(!page.areAnswersSubmitted) {
-                <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions()#PostgraduateDegree"><i class="the-icon fa fa-pencil"></i><span class="the-text">
+                <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions()#PostgraduateDegree"><i class="the-icon fa fa-pencil" aria-hidden="true"></i><span class="the-text">
                     Edit section</span></a>
             }
         </h2>
@@ -118,7 +118,7 @@
             <h2 class="heading-large">
                 @scheme.name
                 @if(!page.areAnswersSubmitted) {
-                    <a class="icon-with-text" href="@routes.SiftQuestionsController.presentSchemeForm(scheme.id)"><i class="the-icon fa fa-pencil"></i><span class="the-text">
+                    <a class="icon-with-text" href="@routes.SiftQuestionsController.presentSchemeForm(scheme.id)"><i class="the-icon fa fa-pencil" aria-hidden="true"></i><span class="the-text">
                         Edit section</span></a>
                 }
             </h2>
@@ -144,7 +144,7 @@
             <div id="submit-yes-panel" class="toggle-content">
                 <div class="panel-warning standard-panel">
                     <div class="text">
-                        <p><i class="fa fa-warning"></i>You won't be able to change your answers
+                        <p><i class="fa fa-warning" aria-hidden="true"></i>You won't be able to change your answers
                             after you submit.</p>
                     </div>
                 </div>

@@ -468,7 +468,7 @@ $(function() {
 
   });
 
-  $('[aria-hidden]').each(function() {
+  $('.toggle-content [aria-hidden]').each(function() {
     var $controlID = $(this).attr('id');
 
     if($(this).is(':visible')) {
@@ -533,9 +533,9 @@ $(function() {
       if(currentConfirmPassword || originalPassword) {
       $('#matchingHint').removeClass('invisible');
         if(currentConfirmPassword === originalPassword) {
-          $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html("<i class='fa fa-check'></i>Your passwords match");
+          $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html("<i class='fa fa-check aria-hidden=\"true\"'></i>Your passwords match");
         } else {
-          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times'></i>Your passwords don't match");
+          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times' aria-hidden=\"true\"></i>Your passwords don't match");
         }
       }
       if($('#pass_match').hasClass('strength-weak') || $('#passwordRequirements li').hasClass('strength-weak')) {
@@ -593,12 +593,12 @@ $(function() {
       if(matchVal.length >= minChars) {
         if(matchVal.length == passVal.length) {
           if(matchVal === passVal) {
-            $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html("<i class='fa fa-check'></i>Your passwords match");
+            $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html("<i class='fa fa-check' aria-hidden=\"true\"></i>Your passwords match");
           } else {
-            $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times'></i>Your passwords don't match");
+            $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times' aria-hidden=\"true\"></i>Your passwords don't match");
           }
         } else {
-          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times'></i>Your passwords don't match");
+          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times' aria-hidden=\"true\"></i>Your passwords don't match");
         }
       }
 
@@ -621,12 +621,12 @@ $(function() {
 
       if(matchVal.length == passVal.length) {
         if(matchVal === passVal) {
-          $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html("<i class='fa fa-check'></i>Your passwords match");
+          $('#pass_match').removeClass('strength-weak').addClass('strength-strong').html("<i class='fa fa-check' aria-hidden=\"true\"></i>Your passwords match");
         } else {
-          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times'></i>Your passwords don't match");
+          $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times' aria-hidden=\"true\"></i>Your passwords don't match");
         }
       } else if(matchVal.length !== 0 ) {
-        $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times'></i>Your passwords don't match");
+        $('#pass_match').removeClass('strength-strong').addClass('strength-weak').html("<i class='fa fa-times' aria-hidden=\"true\"></i>Your passwords don't match");
         }
 
     });
@@ -983,13 +983,6 @@ $(function() {
   $('label[for="address_line3"]').text('Address line 3').addClass('visuallyhidden');
   $('label[for="address_line4"]').text('Address line 4').addClass('visuallyhidden');
 
-  if($('#civilServantQuestion').length) {
-    var $civilServantSection = $('#civilServantQuestion'),
-        legendText = $civilServantSection.find('h2').text();
-
-    $civilServantSection.find('fieldset:eq(0)').prepend('<legend class="visuallyhidden">' + legendText + '</legend>');
-  }
-
   if($('.editSection').length) {
     $('.editSection').each(function() {
       var sectionName = $(this).closest('h2').find('.sectionTitle').text();
@@ -1071,6 +1064,7 @@ $(function () {
   var timerIndex = 0;
   var isShown = false;
   var timer = null;
+  var lastFocusBeforeModal;
 
   var $el = document.querySelector('#modal');
   if ($el) {
@@ -1093,18 +1087,48 @@ $(function () {
 
       extendSession();
     });
+
+    document.addEventListener("focus", function(event) {
+      if (isShown && !$el.contains(event.target)) {
+        event.stopPropagation();
+        $el.focus();
+      }
+    }, true);
+
+    document.addEventListener("keydown", function(event) {
+      const ESCAPE = 27;
+      if (isShown && event.keyCode === ESCAPE) {
+        hide();
+      }
+    }, true);
   }
+
+  var $main = document.querySelector('#main');
 
   function hide() {
     $htmlEl.className = $htmlEl.className.replace(' show-modal', ' ');
     isShown = false;
+    $($main).attr("aria-hidden", "false");
+    if (lastFocusBeforeModal) {
+      lastFocusBeforeModal.focus();
+    } else {
+      var $govUkLink = document.querySelector('#govUkLink');
+      $($govUkLink).focus();
+    }
   }
 
   function show() {
+    lastFocusBeforeModal = $( document.activeElement );
+
     if ($htmlEl.className.indexOf('show-modal') < 0) {
       $htmlEl.className += ' show-modal';
     }
     isShown = true;
+    if ($el) {
+      var $yesButton = $el.querySelector('.button--modal-yes');
+      $($yesButton).focus();
+      $($main).attr("aria-hidden", "true");
+    }
   }
 
   function handleTimer() {
