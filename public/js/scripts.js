@@ -69,7 +69,7 @@ $(function () {
       addressSelector.slideDown('slow');
 
       _this.$addressesSelectorContainer.attr('aria-hidden', 'false');
-
+      _this.$addressSelect.focus();
     }).fail(postCodeSearchFailHander);
   }
 
@@ -1157,7 +1157,6 @@ $(function () {
           }
         }
       }
-      
     }, true);
   }
 
