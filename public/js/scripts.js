@@ -28,7 +28,24 @@ $(function () {
   _this.$addressesSelectorContainer = $('#addressSelectorContainer');
   _this.$postCodeSearch = $('#post-code-search');
 
-  enableManualAddressFields(true);
+  //
+  _this.$addressesSelectorContainer.attr('aria-live', 'assertive');
+
+  (function initManualAddressFields() {
+    var addressEmpty = true;
+    $(_this.$addressManualInput).find('input').each(function(index, input) {
+      if ($(input).val()) {
+        console.log($(input).val());
+        addressEmpty = false;
+      }
+    });
+
+    if (addressEmpty) {
+      enableManualAddressFields(true);
+    } else {
+      enableManualAddressFields();
+    }
+  })();
 
   function sanitisePostcode(postcode) {
     return postcode.toUpperCase().replace(/ /g, '');
@@ -36,7 +53,6 @@ $(function () {
 
   function addressSearchByPostcode(postcode) {
     var url = addressLookupUrlBase + '?postcode=' + sanitisePostcode(postcode);
-
     $.getJSON(url, function (result) {
       _this.$addressSelect.append(
           '<option value=\'void\'>' + result.length + ' results found</option>'
@@ -51,6 +67,8 @@ $(function () {
       var addressSelector = _this.$addressesSelectorContainer;
       addressSelector.removeClass('toggle-content');
       addressSelector.slideDown('slow');
+
+      _this.$addressesSelectorContainer.attr('aria-hidden', 'false');
 
     }).fail(postCodeSearchFailHander);
   }
@@ -73,9 +91,10 @@ $(function () {
   }
 
   function postCodeSearchFailHander(xhr, textStauts, error) {
+    _this.$addressesSelectorContainer.attr('aria-hidden', 'true');
     hideResultsLink();
     if (xhr.status === BAD_REQUEST) {
-      showPostCodeError('Post code is not valid');
+      showPostCodeError('Postcode is not valid');
     } else if (xhr.status === NOT_FOUND) {
       showPostCodeError('No addresses found');
     }
@@ -99,8 +118,10 @@ $(function () {
   function enableManualAddressFields(disable) {
     if (disable) {
       _this.$addressManualInput.addClass('disabled');
+      _this.$addressManualInput.attr('aria-hidden', true);
     } else {
-    _this.$addressManualInput.removeClass('disabled');
+      _this.$addressManualInput.removeClass('disabled');
+      _this.$addressManualInput.attr('aria-hidden', false);
     }
 
     $(_this.$addressManualInput).find('input').each(function(index, input) {
@@ -165,13 +186,15 @@ $(function () {
       event.preventDefault();
       _this.$addressSelect.empty();
 
+      _this.$addressesSelectorContainer.attr('aria-hidden', 'true');
+
       hidePostCodeError();
       _this.$postCodeError.text('');
 
       if (_this.$postCodeSearch.val().length) {
         addressSearchByPostcode(_this.$postCodeSearch.val());
       } else {
-        showPostCodeError('Post code is not valid');
+        showPostCodeError('Postcode is not valid');
       }
 
       return false;
@@ -1020,44 +1043,47 @@ $(function() {
     $(selector).keypress(function(){
       $(idSelector).val("");
     });
-    $(selector).autocomplete({
-      source: function( request, response ) {
-        var r = jsRoutes.controllers.SchoolsController.getSchools(request.term)
-        r.ajax({
-          success : function(data) {
-            $(selector).removeClass('ui-autocomplete-loading');
-
-            response( $.map( data, function(item) {
-              item.label = item.label
-              item.value = item.name
-              return item
-            }));
-          },
-          error: function(data) {
-            $(selector).removeClass('ui-autocomplete-loading');
-          }
-        });
-      },
-      minLength: 3,
-      change: function(event, ui) {},
-      open: function() {},
-      close: function() {},
-      focus: function(event,ui) {},
-      select: function(event, ui) {
-        $(idSelector).val(ui.item.id);
-      },
-      create: function () {
-        $(this).data("ui-autocomplete")._renderItem = function (ul, item) {
-          if(item.value ==''){
-            return $('<li class="ui-menu-item ui-state-disabled">&nbsp;&nbsp;'+item.label+'</li>').appendTo(ul);
-          }else{
-            return $("<li>")
-                .append("<a>" + item.label + "</a>")
-                .appendTo(ul);
-          }
-        };
-      }
-    });
+    
+    if ($(selector).autocomplete) {
+      $(selector).autocomplete({
+        source: function( request, response ) {
+          var r = jsRoutes.controllers.SchoolsController.getSchools(request.term)
+          r.ajax({
+            success : function(data) {
+              $(selector).removeClass('ui-autocomplete-loading');
+  
+              response( $.map( data, function(item) {
+                item.label = item.label
+                item.value = item.name
+                return item
+              }));
+            },
+            error: function(data) {
+              $(selector).removeClass('ui-autocomplete-loading');
+            }
+          });
+        },
+        minLength: 3,
+        change: function(event, ui) {},
+        open: function() {},
+        close: function() {},
+        focus: function(event,ui) {},
+        select: function(event, ui) {
+          $(idSelector).val(ui.item.id);
+        },
+        create: function () {
+          $(this).data("ui-autocomplete")._renderItem = function (ul, item) {
+            if(item.value ==''){
+              return $('<li class="ui-menu-item ui-state-disabled">&nbsp;&nbsp;'+item.label+'</li>').appendTo(ul);
+            }else{
+              return $("<li>")
+                  .append("<a>" + item.label + "</a>")
+                  .appendTo(ul);
+            }
+          };
+        }
+      });
+    }
   }
 
   $('#schoolName14to16').ready(function() {
@@ -1116,9 +1142,22 @@ $(function () {
 
     document.addEventListener("keydown", function(event) {
       const ESCAPE = 27;
-      if (isShown && event.keyCode === ESCAPE) {
-        hide();
+      const TAB = 9;
+      if (isShown) {
+        if (event.keyCode === ESCAPE) {
+          hide();
+        } else if (event.keyCode === TAB) {
+          event.preventDefault();
+          event.stopPropagation();
+
+          if ($($yesButton).is(':focus')) {
+            $($noButton).focus();
+          } else {
+            $($yesButton).focus();
+          }
+        }
       }
+      
     }, true);
   }
 
