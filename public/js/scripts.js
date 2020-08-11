@@ -28,6 +28,8 @@ $(function () {
   _this.$addressesSelectorContainer = $('#addressSelectorContainer');
   _this.$postCodeSearch = $('#post-code-search');
 
+  enableManualAddressFields(true);
+
   function sanitisePostcode(postcode) {
     return postcode.toUpperCase().replace(/ /g, '');
   }
@@ -94,8 +96,25 @@ $(function () {
     _this.$postCodeErrorWrapper.slideUp(300);
   }
 
-  function populateAddressFields(addressRecord) {
+  function enableManualAddressFields(disable) {
+    if (disable) {
+      _this.$addressManualInput.addClass('disabled');
+    } else {
     _this.$addressManualInput.removeClass('disabled');
+    }
+
+    $(_this.$addressManualInput).find('input').each(function(index, input) {
+      if (disable) {
+        $(input).attr('disabled', 'disabled');
+      } else {
+        $(input).attr('disabled', null);
+      }
+    });
+  }
+
+
+  function populateAddressFields(addressRecord) {
+    enableManualAddressFields();
 
     var addressLines = addressRecord.address.lines.slice(0, 3);
     addressLines.push(addressRecord.address.town);
@@ -125,9 +144,9 @@ $(function () {
       _this.$country.val('');
 
       if($(this).is(':checked')) {
-        _this.$addressManualInput.removeClass('disabled');
         _this.$postCode.closest('.form-group').addClass('toggle-content');
         _this.$country.closest('.form-group').removeClass('toggle-content');
+        enableManualAddressFields();
         _this.$addressLine1.focus();
       } else {
         _this.$postCode.closest('.form-group').removeClass('toggle-content');
@@ -138,7 +157,7 @@ $(function () {
     _this.$addressManualLink.on('click', function(e) {
       e.preventDefault();
 
-      _this.$addressManualInput.removeClass('disabled');
+      enableManualAddressFields();
       _this.$addressLine1.focus();
     });
 
