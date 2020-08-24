@@ -16,7 +16,7 @@
 
 package connectors
 
-import connectors.exchange.referencedata.{ Degree, Scheme, SiftRequirement }
+import connectors.exchange.referencedata.{ Degree, Scheme, SchemeId, SiftRequirement }
 
 object ReferenceDataExamples {
 
@@ -57,8 +57,9 @@ object ReferenceDataExamples {
     val Sdip = Scheme("Sdip", "SDIP", "Summer Diversity Internship Programme", civilServantEligible = false, degree = None,
       Some(SiftRequirement.FORM), siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None)
 
-    val AllSchemes = Commercial :: DaT :: Dip :: DipEcon :: Finance :: Generalist :: GovComms :: GovEconomics :: GovOps ::
-      GovSocialResearch :: GovStats :: HoP :: HR :: ProjectDelivery :: SciEng :: Edip :: Sdip :: Nil
+    val AllSchemes = (Commercial :: DaT :: Dip :: DipEcon :: Finance :: Generalist :: GovComms :: GovEconomics :: GovOps ::
+      GovSocialResearch :: GovStats :: HoP :: HR :: ProjectDelivery :: SciEng :: Edip :: Sdip :: Nil)
+      .filterNot( s => s.id == SchemeId("GovernmentCommunicationService")) // Filter out GFCS for 2021 campaign
 
     val SomeSchemes = Commercial :: DaT :: Dip :: Nil
 

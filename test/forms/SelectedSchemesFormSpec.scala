@@ -60,6 +60,19 @@ class SelectedSchemesFormSpec extends UnitWithAppSpec {
       form.hasGlobalErrors mustBe false
     }
 
+    "be invalid when filtered out scheme for 2021 campaign is supplied" in {
+      val form = selectedSchemesForm().bind(Map(
+        "scheme_0" -> "GovernmentCommunicationService",
+        "scheme_1" -> "Commercial",
+        "orderAgreed" -> "true",
+        "eligible" -> "true"))
+      form.hasErrors mustBe true
+
+      // A single invalid scheme will result in this error for the submission even if you do supply other valid schemes
+      form.errors.head.message mustBe "You must choose a scheme"
+      form.hasGlobalErrors mustBe false
+    }
+
     "be invalid when scheme order is not agreed by the candidate" in {
       val form = selectedSchemesForm().bind(Map("scheme_0" -> "Finance", "orderAgreed" -> "false",
         "eligible" -> "true"))

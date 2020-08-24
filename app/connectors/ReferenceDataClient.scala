@@ -16,8 +16,8 @@
 
 package connectors
 
-import config.{CSRHttp, WSHttp}
-import connectors.exchange.referencedata.{ReferenceData, Scheme}
+import config.{ CSRHttp, WSHttp }
+import connectors.exchange.referencedata.{ ReferenceData, Scheme, SchemeId }
 import play.api.Logger
 import play.api.libs.json.OFormat
 //import uk.gov.hmrc.play.http.ws.WSHttp
@@ -40,12 +40,17 @@ trait ReferenceDataClient {
 
   private val referenceDataCache = TrieMap[String, Any]()
 
-  def allSchemes()(implicit hc: HeaderCarrier): Future[List[Scheme]] = getReferenceDataAsList[Scheme]("schemes", "/reference/schemes")
+  def allSchemes()(implicit hc: HeaderCarrier): Future[List[Scheme]] = {
+    val data = getReferenceDataAsList[Scheme]("schemes", "/reference/schemes")
+    // Filter out GCFS for 2021 campaign
+    data.map { allSchemes => allSchemes.filterNot( s => s.id == SchemeId("GovernmentCommunicationService")) }
+  }
 
   private def getReferenceDataAsList[T](
     key: String,
     endpointPath: String)(implicit hc: HeaderCarrier, jsonFormat: OFormat[T]): Future[List[T]] = {
     val values: List[T] = referenceDataCache.getOrElse(key, List.empty[T]).asInstanceOf[List[T]]
+
     Logger.info(s"Values successfully fetched from reference data cache for key: $key = $values")
     if (values.isEmpty) {
       http.GET(s"$apiBaseUrl$endpointPath").map { response =>
