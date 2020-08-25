@@ -74,7 +74,7 @@ trait TestDataGeneratorService extends MongoDbConnection {
     }
   }
 
-  def generateUsers()(implicit hc: HeaderCarrier): Future[Unit] = {
+  private def generateUsers()(implicit hc: HeaderCarrier): Future[Unit] = {
     for {
       _ <- RegisteredStatusGenerator.createUser(
         1,
