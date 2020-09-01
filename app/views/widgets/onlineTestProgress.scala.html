@@ -314,26 +314,30 @@
                                 </li>
                             } else {
                                 <li id="phase2TestsSection">
-                                    <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-minus the-icon" aria-hidden="true"></i>Work based scenarios
-                                        Exercises
+                                    <p class="med-btm-margin" id="etrayHeading"><i class="fa fa-minus the-icon" aria-hidden="true"></i>
+                                        Work based scenarios exercises
                                     </p>
-                                    <ul class="list-text list-withicons" id="testsIndividual">
-                                        @phase2TestsPage.tests.map { phase2Test =>
-                                            @if(phase2Test.completed) {
-                                                <li>
-                                                    <i class="fa fa-check the-icon" aria-hidden="true"></i>
-                                                    <div>@Messages(phase2Test.testNameKey)</div>
-                                                    <div>@displayTestPageLink(phase2Test, Messages(phase2Test.testNameKey))</div>
-                                                </li>
-                                            } else {
-                                                <li>
-                                                    <i class="fa fa-minus the-icon" aria-hidden="true"></i>
-                                                    @Messages(phase2Test.testNameKey)
-                                                </li>
+                                    @if(phase2TestsPage.tests.size != 2) {
+                                        <p><strong>A technical error has occurred. Please bear with us while we correct it.</strong></p>
+                                    } else {
+                                        <ul class="list-text list-withicons" id="testsIndividual">
+                                            @phase2TestsPage.tests.map { phase2Test =>
+                                                @if(phase2Test.completed) {
+                                                    <li>
+                                                        <i class="fa fa-check the-icon" aria-hidden="true"></i>
+                                                        <div>@Messages(phase2Test.testNameKey)</div>
+                                                        <div>@displayTestPageLink(phase2Test, Messages(phase2Test.testNameKey))</div>
+                                                    </li>
+                                                } else {
+                                                    <li>
+                                                        <i class="fa fa-minus the-icon" aria-hidden="true"></i>
+                                                        @Messages(phase2Test.testNameKey)
+                                                    </li>
+                                                }
                                             }
-                                        }
-                                    </ul>
-                                    @{phase2Section(phase2TestsPage)}
+                                        </ul>
+                                        @{phase2Section(phase2TestsPage)}
+                                    }
                                 </li>
                             }
                         </ul>
