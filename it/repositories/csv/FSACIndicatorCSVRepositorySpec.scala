@@ -41,9 +41,9 @@ class FSACIndicatorCSVRepositorySpec extends UnitWithAppSpec with ShortTimeout {
       val result = FSACIndicatorCSVRepository.find(Some("OX1 4DB"), outsideUk = false)
       result mustBe Some(FSACIndicator("Oxford", "London"))
     }
-    "return Newcastle for Edinburgh postcode" in {
+    "return London for Edinburgh postcode due to covid impact needing virtual FSACs and all postcodes mapped to London" in {
       val result = FSACIndicatorCSVRepository.find(Some("EH1 3EG"), outsideUk = false)
-      result mustBe Some(FSACIndicator("Edinburgh", "Newcastle"))
+      result mustBe Some(FSACIndicator("Edinburgh", "London"))
     }
     "return London even when postcode is lowercase" in {
       val result = FSACIndicatorCSVRepository.find(Some("ec1v 3eg"), outsideUk = false)
