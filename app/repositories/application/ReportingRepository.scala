@@ -252,7 +252,6 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument(s"applicationRoute" -> ApplicationRoute.Faststream),
       BSONDocument("applicationStatus" -> BSONDocument("$ne" -> ApplicationStatus.PHASE1_TESTS_FAILED)),
-
       BSONDocument(
         "$or" -> BSONArray(
           BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}" -> true),
