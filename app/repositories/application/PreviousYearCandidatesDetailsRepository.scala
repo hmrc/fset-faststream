@@ -1003,9 +1003,9 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
 
   private def isRussellGroup(code: Option[String]): Option[String] = {
     val russellGroupUnis = List(
-      "B32-BIRM", "B78-BRISL", "C05-CAM", "C15-CARDF", "D86-DUR", "E56-EDINB", "E81-EXCO", "G28-GLASG", "I50-IMP", "K60-KCL",
+      "B32-BIRM", "B78-BRISL", "C05-CAM", "C15-CARDF", "D86-DUR", "E56-EDINB", "E84-EXETR", "G28-GLASG", "I50-IMP", "K60-KCL",
       "L23-LEEDS", "L41-LVRPL", "L72-LSE", "M20-MANU", "N21-NEWC", "N84-NOTTM", "O33-OXF", "Q75-QBELF", "S18-SHEFD",
-      "S27-SOTON", "U80-UCL", "W20-WARWK", "Y50-YORK"
+      "S27-SOTON", "Q50-QMUL", "U80-UCL", "W20-WARWK", "Y50-YORK"
     )
     code.flatMap(c => if (russellGroupUnis.contains(c)) Y else N)
   }
