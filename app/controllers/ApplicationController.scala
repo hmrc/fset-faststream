@@ -59,4 +59,10 @@ abstract class ApplicationController(applicationClient: ApplicationClient)
     implicit user =>
       Future.successful(Ok(views.html.index.helpdesk()))
   }
+
+  def accessibility = CSRUserAwareAction { implicit request =>
+    implicit user =>
+      Future.successful(Ok(views.html.index.accessibility()))
+  }
+
 }

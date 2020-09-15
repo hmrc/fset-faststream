@@ -6,6 +6,7 @@ GET         /terms                                                  controllers.
 GET         /helpdesk                                               controllers.ApplicationController.helpdesk
 GET         /cookies                                                controllers.ApplicationController.cookies
 GET         /privacy                                                controllers.ApplicationController.privacy
+GET         /accessibility                                          controllers.ApplicationController.accessibility
 
 # Account lock
 GET         /locked                                                 controllers.LockAccountController.present
