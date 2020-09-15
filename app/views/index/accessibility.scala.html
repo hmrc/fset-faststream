@@ -1,0 +1,35 @@
+@*
+ * Copyright 2020 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+
+@main_template(title = "Accessibility") {
+    <h1 class="heading-xlarge">Accessibility</h1>
+
+    <section class="text">
+        <p>The Fast Stream digital team is committed to making sure our <a href="@routes.SignInController.present()">website</a>
+            is accessible to all potential applicants.</p>
+        <p>We particularly want to make sure our online service complies with level AA of the Web Content Accessibility Guidelines (WCAG version 2.1)
+            in line with The Public Sector Bodies (Websites and Mobile Applications) (No. 2) Accessibility Regulations 2018.</p>
+        <p>In order to help us achieve and maintain this objective, we have commissioned
+            <a href="http://www.digitalaccessibilitycentre.org">The Digital Accessibility Centre (DAC)</a> to carry out a technical
+            compliance audit that will include extensive testing by users with a wide range of disabilities.</p>
+        <p>This audit is scheduled to take place in the week commencing tbc.</p>
+        <p>In the meantime, if you are experiencing any barriers to accessing the service please contact us at the following
+            email address: <a href="mailto:faststream.applicationsupport@@cabinetoffice.gov.uk">faststream.applicationsupport@@cabinetoffice.gov.uk</a></p>
+        <p>Last updated 15 September 2020.</p>
+    </section>
+}
