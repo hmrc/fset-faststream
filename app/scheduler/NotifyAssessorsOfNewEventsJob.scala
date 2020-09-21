@@ -50,7 +50,7 @@ trait NotifyAssessorsOfNewEventsJob extends SingleInstanceScheduledJob[BasicJobC
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     assessorsEventsSummaryJobsService.lastRun.flatMap { lastRunInfoOpt =>
-      val newLastRun = AssessorNewEventsJobInfo(DateTime.now)
+      val newLastRun = AssessorNewEventsJobInfo(DateTime.now.minusHours(24)) //TODO:revert this temp change
       val lastRunInfo = lastRunInfoOpt.getOrElse(newLastRun)
       val isFirstJob = lastRunInfoOpt.isEmpty
       val canRun = shouldRun(lastRunInfo.lastRun, newLastRun.lastRun, isFirstJob)
