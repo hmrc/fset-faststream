@@ -22,31 +22,30 @@ import model.AllocationStatuses.AllocationStatus
 import model.Exceptions._
 import model.exchange.{ AssessorAvailabilities, UpdateAllocationStatusRequest }
 import model.persisted.EventExamples._
-import model.persisted.assessor.{ Assessor, AssessorAvailability, AssessorStatus }
 import model.persisted.assessor.AssessorExamples._
+import model.persisted.assessor.{ Assessor, AssessorAvailability, AssessorStatus }
 import model.persisted.eventschedules._
 import model.persisted.{ AssessorAllocation, EventExamples, ReferenceData }
 import model.{ AllocationStatuses, Exceptions, UniqueIdentifier }
 import org.joda.time.{ DateTime, LocalDate, LocalTime }
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import repositories.events.LocationsWithVenuesRepository
 import repositories.{ AssessorAllocationRepository, AssessorRepository }
 import services.BaseServiceSpec
-import services.assessor.AssessorService
 import services.events.EventsService
 import testkit.MockitoImplicits._
+import uk.gov.hmrc.http.HeaderCarrier
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
-import uk.gov.hmrc.http.HeaderCarrier
 
 class AssessorServiceSpec extends BaseServiceSpec {
 
   "save assessor" must {
-
     "save NEW assessor " +
       "when assessor is new" in new TestFixture {
 
@@ -70,13 +69,10 @@ class AssessorServiceSpec extends BaseServiceSpec {
         status = AssessorStatus.AVAILABILITIES_SUBMITTED)
       verify(mockAssessorRepository).save(eqTo(expectedAssessor))
     }
-
   }
 
   "save availability" must {
-
     "throw assessor not found exception when assessor cannot be found" in new TestFixture {
-
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturnAsync(None)
 
       val exchangeAvailability = AssessorWithAvailability.availability.map(model.exchange.AssessorAvailability.apply)
@@ -90,7 +86,6 @@ class AssessorServiceSpec extends BaseServiceSpec {
     }
 
     "save availability to EXISTING assessor" in new TestFixture {
-
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturnAsync(Some(AssessorExisting))
       when(mockLocationsWithVenuesRepo.location(any[String])).thenReturnAsync(EventExamples.LocationLondon)
 
@@ -105,7 +100,6 @@ class AssessorServiceSpec extends BaseServiceSpec {
       verify(mockAssessorRepository).save(any[Assessor])
     }
   }
-
 
   "find assessor" must {
     "return assessor details" in new TestFixture {
@@ -128,7 +122,6 @@ class AssessorServiceSpec extends BaseServiceSpec {
   }
 
   "find assessor availability" must {
-
     "return assessor availability" in new TestFixture {
       when(mockAssessorRepository.find(AssessorUserId)).thenReturnAsync(Some(AssessorWithAvailability))
       val response = service.findAvailability(AssessorUserId).futureValue
@@ -195,8 +188,24 @@ class AssessorServiceSpec extends BaseServiceSpec {
     }
 
     "notify assessors of new events" in new AssessorsEventsSummaryFixture {
-      val result = service.notifyAssessorsOfNewEvents(DateTime.now)(new HeaderCarrier).futureValue
-      verify(mockemailClient, times(2)).notifyAssessorsOfNewEvents(any[String], any[String], any[String], any[String])(any[HeaderCarrier])
+      val now = DateTime.now
+      val result = service.notifyAssessorsOfNewEvents(now)(new HeaderCarrier).futureValue
+      val emailBodyCaptor = ArgumentCaptor.forClass(classOf[String])
+      verify(mockemailClient, times(2)).notifyAssessorsOfNewEvents(
+        to = any[String], name = any[String], htmlBody = any[String], txtBody = emailBodyCaptor.capture)(any[HeaderCarrier])
+
+      val emails = emailBodyCaptor.getAllValues
+      val emailsForEvent1 = emails.get(0).toString
+      val emailsForEvent2 = emails.get(1).toString
+
+      val fsacVirtual = s"${now.toString("EEEE, dd MMMM YYYY")} (FSAC - Virtual)"
+      val event1ExpectedEmails = s"$fsacVirtual\n$fsacVirtual"
+      emailsForEvent1 mustBe event1ExpectedEmails
+
+      val fsbLondon = s"${now.toString("EEEE, dd MMMM YYYY")} (FSB - London)"
+      val fsbNewcastle = s"${now.toString("EEEE, dd MMMM YYYY")} (FSB - Newcastle)"
+      val event2ExpectedEmails = s"$fsacVirtual\n$fsbLondon\n$fsbNewcastle"
+      emailsForEvent2 mustBe event2ExpectedEmails
     }
   }
 
@@ -226,7 +235,6 @@ class AssessorServiceSpec extends BaseServiceSpec {
       val AssessorToSave = assessor.copy(skills = List("ASSESSOR"))
 
       service.saveAssessor(AssessorUserId, model.exchange.Assessor(AssessorToSave)).futureValue
-
       verify(mockAssessorRepository).save(any[Assessor])
     }
 
@@ -237,7 +245,6 @@ class AssessorServiceSpec extends BaseServiceSpec {
       val AssessorToSave = AssessorWithSkill.copy(skills = List("SIFTER"))
 
       service.saveAssessor(AssessorUserId, model.exchange.Assessor(AssessorToSave)).futureValue
-
       verify(mockAssessorRepository).save(any[Assessor])
     }
 
@@ -311,7 +318,6 @@ class AssessorServiceSpec extends BaseServiceSpec {
     val service = Mockito.spy(nonSpiedService)
 
     when(service.newVersion).thenReturn(NewVersion)
-
   }
 
   trait AssessorsEventsSummaryFixture extends TestFixture {
@@ -369,7 +375,6 @@ class AssessorServiceSpec extends BaseServiceSpec {
       eqTo(Seq(SkillType.QUALITY_ASSURANCE_COORDINATOR)), any[Location], any[LocalDate])).thenReturnAsync(Seq(a2))
     when(mockAuthProviderClient.findByUserIds(any[Seq[String]])(any[HeaderCarrier])).thenReturnAsync(findByUserIdsResponse)
     when(mockemailClient.notifyAssessorsOfNewEvents(any[String], any[String], any[String], any[String])(any[HeaderCarrier])).thenReturnAsync()
-
   }
 
   trait TestFixtureWithFutureAllocations extends TestFixture {
@@ -382,6 +387,4 @@ class AssessorServiceSpec extends BaseServiceSpec {
     val futureAllocations = Seq(AssessorAllocation(AssessorUserId, eventId, AllocationStatuses.CONFIRMED, SkillType.ASSESSOR, ""))
     when(mockAllocationRepo.find(AssessorUserId)).thenReturnAsync(futureAllocations)
   }
-
 }
-
