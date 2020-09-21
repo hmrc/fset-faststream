@@ -28,6 +28,7 @@ import model.persisted.eventschedules.{ Event, Location, SkillType }
 import model.persisted.eventschedules.SkillType.SkillType
 import model.{ SerialUpdateResult, UniqueIdentifier, exchange, persisted }
 import org.joda.time.{ DateTime, LocalDate }
+import play.api.Logger
 import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
 import repositories.{ AssessorAllocationMongoRepository, AssessorAllocationRepository, AssessorMongoRepository, AssessorRepository }
 import services.events.EventsService
@@ -275,6 +276,7 @@ trait AssessorService {
   }
 
   def notifyAssessorsOfNewEvents(lastNotificationDate: DateTime)(implicit hc: HeaderCarrier): Future[Seq[Unit]] = {
+    Logger.info(s"Notifying assessors of new events created since $lastNotificationDate")
     val assessorEventsMapping: Future[Map[Assessor, Seq[Event]]] = assessorToEventsMappingSince(lastNotificationDate)
     assessorEventsMapping.flatMap { assessorToEvent =>
       val assessorsIds = assessorToEvent.keySet.map(_.userId).toSeq
@@ -295,14 +297,26 @@ trait AssessorService {
   private def buildEmailContent(events: Seq[Event]): (String, String) = {
     def buildEmailTxt: String = {
       val eventsStr = events.map { event =>
-        s"${event.date.toString("EEEE, dd MMMM YYYY")} (${event.eventType} - ${event.location.name})"
+        event.eventType match {
+          // FSACs are virtual in 20/21 campaign even though the location remains London or Newcastle
+          case model.persisted.eventschedules.EventType.FSAC =>
+            s"${event.date.toString("EEEE, dd MMMM YYYY")} (${event.eventType} - Virtual)"
+          case _ =>
+            s"${event.date.toString("EEEE, dd MMMM YYYY")} (${event.eventType} - ${event.location.name})"
+        }
       }.mkString("\n")
       eventsStr
     }
 
     def buildEmailHtml: String = {
       val eventsHtml = events.map { event =>
-        s"<li>${event.date.toString("EEEE, dd MMMM YYYY")} (${event.eventType} - ${event.location.name}) </li>"
+        event.eventType match {
+          // FSACs are virtual in 20/21 campaign even though the location remains London or Newcastle
+          case model.persisted.eventschedules.EventType.FSAC =>
+            s"<li>${event.date.toString("EEEE, dd MMMM YYYY")} (${event.eventType} - Virtual)</li>"
+          case _ =>
+            s"<li>${event.date.toString("EEEE, dd MMMM YYYY")} (${event.eventType} - ${event.location.name})</li>"
+        }
       }.mkString("")
       val body =
         s"""
