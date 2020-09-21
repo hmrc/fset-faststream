@@ -286,6 +286,9 @@ trait AssessorService {
           assessorToEvent.flatMap { case (assessor, assessorEvents) =>
             assessorsContactDetails.find(_.userId == assessor.userId).map { contact =>
               val (htmlBody, txtBody) = buildEmailContent(assessorEvents)
+              //TODO: remove before we go live
+              Logger.debug(s"**** notifyAssessorsOfNewEvents sent email:")
+              Logger.debug(s"**** ${contact.email}, ${contact.firstName}, html=$htmlBody, txt=$txtBody")
               emailClient.notifyAssessorsOfNewEvents(contact.email, contact.firstName, htmlBody, txtBody)
             }
           }
