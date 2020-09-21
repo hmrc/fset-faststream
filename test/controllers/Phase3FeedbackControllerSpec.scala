@@ -60,7 +60,7 @@ class Phase3FeedbackControllerSpec extends BaseControllerSpec {
     val CapabilityPerformanceMedium = "shows generally good evidence"
     val CapabiliyPerformanceLow = "shows limited evidence"
     val CapabilitySuggestionsHigh = "To sustain or enhance your performance"
-    val CapabilitySuggestionsMedium = "Although you performed somewhat well"
+    val CapabilitySuggestionsMedium = "Although you performed well "
     val CapabilitySuggestionsLow = "When in situations where you need to take action"
     val EngagementPerformanceHigh = "Your responses to the Video Interview displayed very clear willingness"
     val EngagementPerformanceMedium = "Your responses to the Video Interview displayed some degree of willingness"
