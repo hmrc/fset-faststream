@@ -145,7 +145,13 @@ case class PostOnlineTestsPage(
       .getOrElse("No assessment centre")
 
   def eventLocation(al: Option[CandidateAllocationWithEvent]): String =
-    al.map { _.event.venue.description }.getOrElse("")
+    al.map { allocWithEvent =>
+      // FSAC events are virtual in 20/21 campaign so do not show the description eg. London (100 Parliament Street)
+      allocWithEvent.event.eventType match {
+        case models.events.EventType.FSAC => "Virtual"
+        case _ => allocWithEvent.event.venue.description
+      }
+    }.getOrElse("")
 
   def eventTypeText(al: Option[CandidateAllocationWithEvent]): String =
     al.map { x =>
