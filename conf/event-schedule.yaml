@@ -2249,7 +2249,7 @@
       endTime: 17:00
 
 - eventType: FSAC
-  description: fffFast Stream Assessment Centre
+  description: Fast Stream Assessment Centre
   location: London
   venue: LONDON_FSAC
   date: 2020-11-23
@@ -17441,7 +17441,7 @@
   description: EDIP - Telephone interview
   location: Virtual
   venue: VIRTUAL
-  date: 2019-12-21
+  date: 2020-12-21
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
@@ -17486,7 +17486,7 @@
   description: EDIP - Telephone interview
   location: Virtual
   venue: VIRTUAL
-  date: 2019-12-21
+  date: 2020-12-21
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
@@ -17531,7 +17531,7 @@
   description: EDIP - Telephone interview
   location: Virtual
   venue: VIRTUAL
-  date: 2019-12-21
+  date: 2020-12-21
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
@@ -17576,7 +17576,7 @@
   description: EDIP - Telephone interview
   location: Virtual
   venue: VIRTUAL
-  date: 2019-12-21
+  date: 2020-12-21
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
@@ -17621,7 +17621,7 @@
   description: EDIP - Telephone interview
   location: Virtual
   venue: VIRTUAL
-  date: 2019-12-21
+  date: 2020-12-21
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
@@ -37081,7 +37081,7 @@
 - eventType: FSB
   description: SEFS FSB
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-08
   capacity: 100
   minViableAttendees: 6
@@ -37201,7 +37201,7 @@
 - eventType: FSB
   description: SEFS FSB
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-09
   capacity: 100
   minViableAttendees: 6
@@ -37239,7 +37239,7 @@
 - eventType: FSB
   description: SRAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-09
   capacity: 100
   minViableAttendees: 6
@@ -37821,7 +37821,7 @@
 - eventType: FSB
   description: SEFS FSB
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-10
   capacity: 100
   minViableAttendees: 6
@@ -37859,7 +37859,7 @@
 - eventType: FSB
   description: SRAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-10
   capacity: 100
   minViableAttendees: 6
@@ -38461,7 +38461,7 @@
 - eventType: FSB
   description: EAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-11
   capacity: 100
   minViableAttendees: 6
@@ -38704,7 +38704,7 @@
 - eventType: FSB
   description: EAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-15
   capacity: 100
   minViableAttendees: 6
@@ -38824,7 +38824,7 @@
 - eventType: FSB
   description: EAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-16
   capacity: 100
   minViableAttendees: 6
@@ -38862,7 +38862,7 @@
 - eventType: FSB
   description: SAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-16
   capacity: 100
   minViableAttendees: 6
@@ -38896,7 +38896,7 @@
 - eventType: FSB
   description: ORAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-16
   capacity: 100
   minViableAttendees: 6
@@ -39892,7 +39892,7 @@
 - eventType: FSB
   description: SAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-17
   capacity: 100
   minViableAttendees: 6
@@ -39926,7 +39926,7 @@
 - eventType: FSB
   description: ORAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-17
   capacity: 100
   minViableAttendees: 6
@@ -40942,7 +40942,7 @@
 - eventType: FSB
   description: SAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-18
   capacity: 100
   minViableAttendees: 6
@@ -40976,7 +40976,7 @@
 - eventType: FSB
   description: ORAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-18
   capacity: 100
   minViableAttendees: 6
@@ -41072,7 +41072,7 @@
 - eventType: FSB
   description: SAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-19
   capacity: 100
   minViableAttendees: 6
@@ -41168,7 +41168,7 @@
 - eventType: FSB
   description: SAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-22
   capacity: 100
   minViableAttendees: 6
@@ -41202,7 +41202,7 @@
 - eventType: FSB
   description: SEFS FSB
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-22
   capacity: 100
   minViableAttendees: 6
@@ -41302,7 +41302,7 @@
 - eventType: FSB
   description: SEFS FSB
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-23
   capacity: 100
   minViableAttendees: 6
@@ -41340,7 +41340,7 @@
 - eventType: FSB
   description: EAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-23
   capacity: 100
   minViableAttendees: 6
@@ -41478,7 +41478,7 @@
 - eventType: FSB
   description: SEFS FSB
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-24
   capacity: 100
   minViableAttendees: 6
@@ -41516,7 +41516,7 @@
 - eventType: FSB
   description: EAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-24
   capacity: 100
   minViableAttendees: 6
@@ -42574,7 +42574,7 @@
 - eventType: FSB
   description: SAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-25
   capacity: 100
   minViableAttendees: 6
@@ -42608,7 +42608,7 @@
 - eventType: FSB
   description: ORAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-25
   capacity: 100
   minViableAttendees: 6
@@ -42742,7 +42742,7 @@
 - eventType: FSB
   description: EAC_DS
   location: Virtual
-  venue: LONDON_FSB
+  venue: VIRTUAL
   date: 2021-02-25
   capacity: 100
   minViableAttendees: 6
@@ -42774,7 +42774,7 @@
 - eventType: FSB
   description: SAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-02-26
   capacity: 100
   minViableAttendees: 6
@@ -42870,7 +42870,7 @@
 - eventType: FSB
   description: SAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-03-01
   capacity: 100
   minViableAttendees: 6
@@ -42904,7 +42904,7 @@
 - eventType: FSB
   description: SRAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-03-01
   capacity: 100
   minViableAttendees: 6
@@ -42998,7 +42998,7 @@
 - eventType: FSB
   description: SAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-03-02
   capacity: 100
   minViableAttendees: 6
@@ -43032,7 +43032,7 @@
 - eventType: FSB
   description: SEFS FSB
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-03-02
   capacity: 100
   minViableAttendees: 6
@@ -43070,7 +43070,7 @@
 - eventType: FSB
   description: SRAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-03-02
   capacity: 100
   minViableAttendees: 6
@@ -43202,7 +43202,7 @@
 - eventType: FSB
   description: SAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-03-03
   capacity: 100
   minViableAttendees: 6
@@ -43236,7 +43236,7 @@
 - eventType: FSB
   description: SRAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-03-03
   capacity: 100
   minViableAttendees: 6
@@ -43268,7 +43268,7 @@
 - eventType: FSB
   description: ORAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-03-03
   capacity: 100
   minViableAttendees: 6
@@ -43422,7 +43422,7 @@
 - eventType: FSB
   description: SAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-03-04
   capacity: 100
   minViableAttendees: 6
@@ -43456,7 +43456,7 @@
 - eventType: FSB
   description: ORAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-03-04
   capacity: 100
   minViableAttendees: 6
@@ -43714,7 +43714,7 @@
 - eventType: FSB
   description: ORAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-03-09
   capacity: 100
   minViableAttendees: 6
@@ -43848,7 +43848,7 @@
 - eventType: FSB
   description: EAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-03-10
   capacity: 100
   minViableAttendees: 6
@@ -43886,7 +43886,7 @@
 - eventType: FSB
   description: ORAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-03-10
   capacity: 100
   minViableAttendees: 6
@@ -43920,7 +43920,7 @@
 - eventType: FSB
   description: SEFS FSB
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-03-10
   capacity: 100
   minViableAttendees: 6
@@ -44078,7 +44078,7 @@
 - eventType: FSB
   description: EAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-03-11
   capacity: 100
   minViableAttendees: 6
@@ -44278,7 +44278,7 @@
 - eventType: FSB
   description: EAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-03-15
   capacity: 100
   minViableAttendees: 6
@@ -44378,7 +44378,7 @@
 - eventType: FSB
   description: ORAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-03-16
   capacity: 100
   minViableAttendees: 6
@@ -44512,7 +44512,7 @@
 - eventType: FSB
   description: EAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-03-17
   capacity: 100
   minViableAttendees: 6
@@ -44670,7 +44670,7 @@
 - eventType: FSB
   description: EAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-03-18
   capacity: 100
   minViableAttendees: 6
@@ -44707,8 +44707,8 @@
 
 - eventType: FSB
   description: FCO
-  location: London
-  venue: LONDON_FSB
+  location: Virtual
+  venue: VIRTUAL
   date: 2021-03-18
   capacity: 100
   minViableAttendees: 6
@@ -44902,7 +44902,7 @@
 - eventType: FSB
   description: SAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-03-22
   capacity: 100
   minViableAttendees: 6
@@ -44998,7 +44998,7 @@
 - eventType: FSB
   description: SAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-03-23
   capacity: 100
   minViableAttendees: 6
@@ -45194,7 +45194,7 @@
 - eventType: FSB
   description: ORAC
   location: Virtual
-  venue: LONDON_FSAC
+  venue: VIRTUAL
   date: 2021-03-24
   capacity: 100
   minViableAttendees: 6

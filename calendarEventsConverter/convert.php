@@ -16,6 +16,9 @@ error_reporting(E_ALL);
 // Debug London:
 // php convert.php debug london
 //
+// php convert.php debug london > tmp
+// grep ERROR tmp
+//
 // you usually need to check that all the skills specified in the spreadsheet are handled by the converter
 // if any line has no skills specified we report an error to stdout eg.
 // ERROR - line number: 4 has no skills specified bulk upload will not accept this
@@ -55,7 +58,7 @@ $processingNewcastle = $argc == 3 && strtolower($argv[2]) == "newcastle";
 
 $city = $processingNewcastle ? "newcastle" : "london";
 
-$csvRoot = "../../fs-calendar-events/spreadsheets/2020-2021v3";
+$csvRoot = "../../fs-calendar-events/spreadsheets/2020-2021v5";
 $csvFilename = "${csvRoot}/${city}.csv";
 
 $csv = array_map('str_getcsv', file($csvFilename));
