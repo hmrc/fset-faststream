@@ -16,32 +16,39 @@
 
 package controllers
 
-import _root_.forms.{ RequestResetPasswordForm, ResetPasswordForm, SignInForm }
+import _root_.forms.{RequestResetPasswordForm, ResetPasswordForm, SignInForm}
 import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 import com.mohiva.play.silhouette.api.util.Credentials
-import config.CSRHttp
-import connectors.{ ApplicationClient, UserManagementClient }
-import connectors.UserManagementClient.{ InvalidEmailException, TokenEmailPairInvalidException, TokenExpiredException }
+import config.{FrontendAppConfig, SecurityEnvironment}
+import connectors.UserManagementClient.{InvalidEmailException, TokenEmailPairInvalidException, TokenExpiredException}
+import connectors.{ApplicationClient, UserManagementClient}
 import helpers.NotificationType._
+import helpers.NotificationTypeHelper
+import javax.inject.{Inject, Singleton}
 import models.CachedData
-import security.{ InvalidRole, SignInService, SilhouetteComponent }
+import play.api.mvc.MessagesControllerComponents
+import security.{InvalidRole, SignInService, SilhouetteComponent}
 
-import scala.concurrent.Future
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
+import scala.concurrent.{ExecutionContext, Future}
 
-object PasswordResetController extends PasswordResetController(ApplicationClient, UserManagementClient) {
-  val http = CSRHttp
-  lazy val silhouette = SilhouetteComponent.silhouette
-}
-
-abstract class PasswordResetController(val applicationClient: ApplicationClient, userManagementClient: UserManagementClient)
-  extends BaseController with SignInService {
+@Singleton
+class PasswordResetController @Inject() (
+  config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  val applicationClient: ApplicationClient,
+  val notificationTypeHelper: NotificationTypeHelper,
+  userManagementClient: UserManagementClient,
+  signInService: SignInService,
+  formWrapper: ResetPasswordForm)(implicit val ec: ExecutionContext)
+  extends BaseController(config, mcc) {
+  import notificationTypeHelper._
 
   def presentCode() = CSRUserAwareAction { implicit request =>
     implicit user =>
       val email = request.session.get("email")
-      email.filter(e => ResetPasswordForm.validateEmail(e)).map(e => sendCode(e, isResend = true)).getOrElse {
+      email.filter(e => formWrapper.validateEmail(e)).map(e => sendCode(e, isResend = true)).getOrElse {
         Future.successful {
           Ok(views.html.registration.request_reset(RequestResetPasswordForm.form))
         }
@@ -59,10 +66,10 @@ abstract class PasswordResetController(val applicationClient: ApplicationClient,
   def presentReset() = CSRUserAwareAction { implicit request =>
     implicit user =>
       val email = request.session.get("email")
-      email.filter(e => ResetPasswordForm.validateEmail(e)).map { e =>
+      email.filter(e => formWrapper.validateEmail(e)).map { e =>
         Future.successful(
           Ok(views.html.registration.reset_password(
-            ResetPasswordForm.form.fill(
+            formWrapper.form.fill(
               ResetPasswordForm.Data(email = email.getOrElse(""), code = "", password = "", confirmpwd = "")
             )
           ))
@@ -74,7 +81,7 @@ abstract class PasswordResetController(val applicationClient: ApplicationClient,
 
   def submitReset = CSRUserAwareAction { implicit request =>
     implicit user =>
-      ResetPasswordForm.form.bindFromRequest.fold(
+      formWrapper.form.bindFromRequest.fold(
         invalidForm => Future.successful(Ok(views.html.registration.reset_password(invalidForm))),
         reset => resetPassword(reset.email, reset.code, reset.password)
       )
@@ -99,7 +106,7 @@ abstract class PasswordResetController(val applicationClient: ApplicationClient,
                            (implicit request: UserAwareRequest[_,_], user: Option[CachedData]) = {
     def renderError(error: String) = {
       Future.successful(Future.successful(Ok(views.html.registration.reset_password(
-        ResetPasswordForm.form.fill(
+        formWrapper.form.fill(
           ResetPasswordForm.Data(email = email, code = "", password = "", confirmpwd = "")
         ),
         notification = Some(danger(error))
@@ -107,16 +114,16 @@ abstract class PasswordResetController(val applicationClient: ApplicationClient,
     }
 
     userManagementClient.resetPasswd(email, code, newPassword).map { _ =>
-      env.credentialsProvider.authenticate(Credentials(email, newPassword)).map {
+      secEnv.credentialsProvider.authenticate(Credentials(email, newPassword)).map {
         case Right(usr) if usr.lockStatus == "LOCKED" => Future.successful(Redirect(routes.LockAccountController.present()))
-        case Right(usr) if usr.isActive => signInUser(usr, env).map(_.removingFromSession("email"))
-        case Right(usr) => signInUser(usr, redirect = Redirect(routes.ActivationController.present()), env = env)
+        case Right(usr) if usr.isActive => signInService.signInUser(usr).map(_.removingFromSession("email"))
+        case Right(usr) => signInService.signInUser(usr, redirect = Redirect(routes.ActivationController.present()))
           .map(_.removingFromSession("email"))
-        case Left(InvalidRole) => Future.successful(showErrorLogin(SignInForm.Data(
+        case Left(InvalidRole) => Future.successful(signInService.showErrorLogin(SignInForm.Data(
           signIn = email,
           signInPassword = newPassword
         ), errorMsg = "error.invalidRole"))
-        case Left(_) => Future.successful(showErrorLogin(SignInForm.Data(signIn = email, signInPassword = newPassword)))
+        case Left(_) => Future.successful(signInService.showErrorLogin(SignInForm.Data(signIn = email, signInPassword = newPassword)))
       }
     }.recover {
       case _: TokenEmailPairInvalidException =>

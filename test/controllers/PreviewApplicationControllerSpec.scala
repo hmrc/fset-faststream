@@ -16,23 +16,20 @@
 
 package controllers
 
-import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
-import config.{ CSRHttp, SecurityEnvironmentImpl }
-import connectors.ApplicationClient.{ AssistanceDetailsNotFound, PersonalDetailsNotFound }
+import com.github.tomakehurst.wiremock.client.WireMock.{any => _}
+import connectors.ApplicationClient.{AssistanceDetailsNotFound, PersonalDetailsNotFound}
 import connectors.SchemeClient.SchemePreferencesNotFound
-import connectors.exchange.{ AssistanceDetailsExamples, GeneralDetailsExamples, SchemePreferencesExamples }
-import connectors.{ ApplicationClient, SchemeClient }
+import connectors.exchange.{AssistanceDetailsExamples, GeneralDetailsExamples, SchemePreferencesExamples}
 import forms.AssistanceDetailsFormExamples
 import models.SecurityUserExamples._
 import models._
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.{ SilhouetteComponent, UserCacheService, UserService }
-import testkit.{ BaseControllerSpec, TestableSecureActions }
+import testkit.TestableSecureActions
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 class PreviewApplicationControllerSpec extends BaseControllerSpec {
 
@@ -43,6 +40,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
   "present" should {
     "load preview page for existing application" in new TestFixture {
       val result = controller.present()(fakeRequest)
+
       status(result) must be(OK)
       val content = contentAsString(result)
       content must include("<title>Check your application")
@@ -55,7 +53,9 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
     "load preview page for existing edip application" in new TestFixture {
       when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(AssistanceDetailsExamples.EdipAdjustments))
+
       val result = controller(currentCandidateWithEdipApp).present()(fakeRequest)
+
       status(result) must be(OK)
       val content = contentAsString(result)
       content must include("<title>Check your application")
@@ -71,6 +71,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
         .thenReturn(Future.successful(GeneralDetailsExamples.SdipFullDetailsWithEdipCompleted))
 
       val result = controller(currentCandidateWithSdipApp).present()(fakeRequest)
+
       status(result) must be(OK)
       val content = contentAsString(result)
       content must include("<title>Check your application")
@@ -84,7 +85,9 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
     "redirect to home page with error when personal details cannot be found" in new TestFixture {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new PersonalDetailsNotFound))
+
       val result = controller.present()(fakeRequest)
+
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.HomeController.present().url))
     }
@@ -92,7 +95,9 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
     "redirect to home page with error when scheme preferences cannot be found" in new TestFixture {
       when(mockSchemeClient.getSchemePreferences(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new SchemePreferencesNotFound))
+
       val result = controller.present()(fakeRequest)
+
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.HomeController.present().url))
     }
@@ -100,7 +105,9 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
     "redirect to home page with error when assistance details cannot be found" in new TestFixture {
       when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new AssistanceDetailsNotFound))
+
       val result = controller.present()(fakeRequest)
+
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.HomeController.present().url))
     }
@@ -114,7 +121,6 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
         .thenReturn(Future.successful(ProgressResponseExamples.InPreview))
 
       val Application = currentCandidateWithApp.application.copy(progress = ProgressResponseExamples.InPreview)
-      val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
 
       val result = controller.submit()(Request)
 
@@ -123,14 +129,9 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
     }
   }
 
-  trait TestFixture {
+  trait TestFixture extends BaseControllerTestFixture {
     val phoneText = "Will you need any support for your phone interview?"
     val onlineTestText = "Will you need any support for your work based scenarios, video interview or numerical test?"
-
-    val mockApplicationClient = mock[ApplicationClient]
-    val mockSchemeClient = mock[SchemeClient]
-    val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
-    val mockUserService = mock[UserCacheService]
 
     when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
       .thenReturn(Future.successful(GeneralDetailsExamples.FullDetails))
@@ -139,16 +140,11 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
     when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
       .thenReturn(Future.successful(AssistanceDetailsExamples.DisabilityGisAndAdjustments))
 
-    class TestablePreviewApplicationController extends PreviewApplicationController(mockApplicationClient, mockSchemeClient)
-      with TestableSecureActions {
-      val http: CSRHttp = CSRHttp
-      override val env = mockSecurityEnvironment
-      override lazy val silhouette = SilhouetteComponent.silhouette
-      when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
-    }
-
-    def controller(implicit candWithApp: CachedDataWithApp = currentCandidateWithApp) = new TestablePreviewApplicationController{
-      override val candidateWithApp: CachedDataWithApp = candWithApp
+    def controller(implicit candWithApp: CachedDataWithApp = currentCandidateWithApp) = {
+      new PreviewApplicationController(mockConfig, stubMcc, mockSecurityEnv, mockSilhouetteComponent,
+      mockNotificationTypeHelper, mockApplicationClient, mockSchemeClient) with TestableSecureActions {
+        override val candidateWithApp: CachedDataWithApp = candWithApp
+      }
     }
   }
 }

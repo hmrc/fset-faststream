@@ -16,19 +16,22 @@
 
 package forms
 
-import forms.Mappings._
+import javax.inject.Singleton
+import mappings.Mappings._
 import play.api.data.Form
 import play.api.data.Forms._
 
-object VerifyCodeForm {
+@Singleton
+class VerifyCodeForm {
 
   val form = Form(
     mapping(
       "email" -> nonEmptyTrimmedText("error.token.required.email", 128),
       "token" -> nonEmptyTrimmedText("error.token.required.token", 128)
-    )(Data.apply)(Data.unapply)
+    )(VerifyCodeForm.Data.apply)(VerifyCodeForm.Data.unapply)
   )
+}
 
+object VerifyCodeForm {
   case class Data(email: String, token: String)
-
 }

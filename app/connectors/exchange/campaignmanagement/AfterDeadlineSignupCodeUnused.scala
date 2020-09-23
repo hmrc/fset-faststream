@@ -22,5 +22,6 @@ import play.api.libs.json.{ Json, OFormat }
 case class AfterDeadlineSignupCodeUnused(unused: Boolean, expires: Option[DateTime] = None)
 
 object AfterDeadlineSignupCodeUnused {
+  import models.FaststreamImplicits._
   implicit val afterDeadlineSignupCodeUnusedFormat: OFormat[AfterDeadlineSignupCodeUnused] = Json.format[AfterDeadlineSignupCodeUnused]
 }

@@ -16,25 +16,28 @@
 
 package controllers
 
-import config.CSRHttp
+import config.{FrontendAppConfig, SecurityEnvironment}
 import connectors.ApplicationClient
 import connectors.exchange.CubiksTest
+import helpers.NotificationTypeHelper
+import javax.inject.{Inject, Singleton}
 import models.UniqueIdentifier
-import security.Roles.{ OnlineTestInvitedRole, Phase2TestInvitedRole, SiftNumericTestRole }
+import play.api.mvc.MessagesControllerComponents
+import security.Roles.{OnlineTestInvitedRole, Phase2TestInvitedRole, SiftNumericTestRole}
 import security.SilhouetteComponent
-
-import scala.concurrent.Future
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
 import uk.gov.hmrc.http.HeaderCarrier
 
-object CubiksTestController extends CubiksTestController(ApplicationClient) {
-  val http = CSRHttp
-  lazy val silhouette = SilhouetteComponent.silhouette
-}
+import scala.concurrent.{ExecutionContext, Future}
 
-abstract class CubiksTestController(applicationClient: ApplicationClient)
-  extends BaseController {
+@Singleton
+class CubiksTestController @Inject() (
+  config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  val notificationTypeHelper: NotificationTypeHelper,
+  applicationClient: ApplicationClient)(implicit val ec: ExecutionContext)
+  extends BaseController(config, mcc) {
 
   def startPhase1Tests = CSRSecureAppAction(OnlineTestInvitedRole) { implicit request =>
     implicit cachedUserData =>

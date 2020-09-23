@@ -16,8 +16,8 @@
 
 package connectors.exchange
 
-import controllers.UnitSpec
 import connectors.exchange.Phase3TestGroupExamples._
+import testkit.UnitSpec
 
 class ReviewedCallbackRequestSpec extends UnitSpec {
 

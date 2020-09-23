@@ -16,23 +16,25 @@
 
 package mappings
 
-import forms.Mappings.nonEmptyTrimmedText
+import mappings.Mappings._
 import play.api.data.Forms._
-import play.api.libs.json.{ Format, Json }
+import play.api.libs.json.{Format, Json}
 
 case class Address(line1: String, line2: Option[String], line3: Option[String], line4: Option[String])
 
 object Address {
-  private val MaxLineLength = 100
+  val MaxLineLength = 100
 
   implicit val addressFormat: Format[Address] = Json.format[Address]
 
   val EmptyAddress: Address = Address("", None, None, None)
+}
 
+object AddressMapping {
   def address = mapping(
-    "line1" -> nonEmptyTrimmedText("error.address.required", MaxLineLength),
-    "line2" -> optional(nonEmptyTrimmedText("error.address.required", MaxLineLength)),
-    "line3" -> optional(nonEmptyTrimmedText("error.address.required", MaxLineLength)),
-    "line4" -> optional(nonEmptyTrimmedText("error.address.required", MaxLineLength))
+    "line1" -> nonEmptyTrimmedText("error.address.required", Address.MaxLineLength),
+    "line2" -> optional(nonEmptyTrimmedText("error.address.required", Address.MaxLineLength)),
+    "line3" -> optional(nonEmptyTrimmedText("error.address.required", Address.MaxLineLength)),
+    "line4" -> optional(nonEmptyTrimmedText("error.address.required", Address.MaxLineLength))
   )(Address.apply)(Address.unapply)
 }

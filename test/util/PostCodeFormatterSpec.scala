@@ -16,10 +16,9 @@
 
 package util
 
-import controllers.UnitSpec
 import mappings.PostCodeMapping._
-import org.scalatestplus.play.PlaySpec
 import play.api.data.validation.Valid
+import testkit.UnitSpec
 
 class PostCodeFormatterSpec extends UnitSpec {
 

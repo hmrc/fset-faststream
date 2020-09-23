@@ -16,7 +16,7 @@
 
 package models.page
 
-import controllers.UnitSpec
+import testkit.UnitSpec
 
 class Phase3FeedbackPageSpec extends UnitSpec {
   "apply for high" should {

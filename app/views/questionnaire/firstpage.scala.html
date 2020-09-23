@@ -16,7 +16,8 @@
 
 @import models.view.questionnaire.{ Ethnicities, Genders, SexOrientations }
 @import views.html.widgets.radioBoxHorizontal
-@(form: Form[forms.DiversityQuestionnaireForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+@import config.AnalyticsConfig
+@(form: Form[forms.DiversityQuestionnaireForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
 
 @import helpers.CSRFieldConstructor._
 @import views.html.widgets.{checkbox, radioBoxVertical, select_guard_multi, pageProgress}

@@ -14,45 +14,25 @@
  * limitations under the License.
  */
 
-/*
- * Copyright 2016 HM Revenue & Customs
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package forms
 
-import forms.Mappings._
+import javax.inject.Singleton
+import mappings.Mappings._
 import models.ApplicationRoute
 import models.view.CampaignReferrers
 import play.api.data.Forms._
 import play.api.data.format.Formatter
 import play.api.data.validation.Constraints
-import play.api.data.{ Form, FormError }
+import play.api.data.{Form, FormError}
 import play.api.i18n.Messages
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
 
-object SignUpForm {
-  val passwordField = "password"
-  val confirmPasswordField = "confirmpwd"
-  val fakePasswordField = "fake-password" // Used only in view (to prevent auto-fill)
-
+@Singleton
+class SignUpForm {
   val passwordMinLength = 9
   val passwordMaxLength = 128
 
-  val passwordFormatter = new Formatter[String] {
-    // scalastyle:off cyclomatic.complexity
+  // scalastyle:off cyclomatic.complexity
+  def passwordFormatter(implicit messages: Messages) = new Formatter[String] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], String] = {
       val passwd = data("password").trim
       val confirm = data("confirmpwd").trim
@@ -71,12 +51,11 @@ object SignUpForm {
       }
     }
 
-    // scalastyle:on cyclomatic.complexity
-
     override def unbind(key: String, value: String): Map[String, String] = Map(key -> value)
   }
+  // scalastyle:on cyclomatic.complexity
 
-  val emailConfirm = new Formatter[String] {
+  def emailConfirm(implicit messages: Messages) = new Formatter[String] {
 
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], String] = {
       val email: Option[String] = data.get("email")
@@ -94,7 +73,7 @@ object SignUpForm {
     override def unbind(key: String, value: String): Map[String, String] = Map(key -> value)
   }
 
-  val applicationRouteFormatter = new Formatter[String] {
+  def applicationRouteFormatter(implicit messages: Messages) = new Formatter[String] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], String] = {
       data.get(key) match {
         case Some(appRoute) if appRoute.nonEmpty =>
@@ -115,14 +94,15 @@ object SignUpForm {
     override def unbind(key: String, value: String): Map[String, String] = Map(key -> value)
   }
 
-  private def edipEligibilityCheck(data: Map[String, String]): Either[Seq[FormError], String] = {
+  private def edipEligibilityCheck(data: Map[String, String])(implicit messages: Messages): Either[Seq[FormError], String] = {
     data.get("edipEligible").map(_.toLowerCase) match {
       case Some("true") => Right(ApplicationRoute.Edip)
       case _ => Left(List(FormError("edipEligible", Messages("agree.edipEligible"))))
     }
   }
 
-  private def fastStreamCheck(appRoute: String, data: Map[String, String]): Either[Seq[FormError], String] = {
+  private def fastStreamCheck(appRoute: String, data: Map[String, String])
+    (implicit messages: Messages): Either[Seq[FormError], String] = {
     val fastStreamEligible = data.get("faststreamEligible").map(_.toLowerCase)
     val sdipFastStreamConsider = data.get("sdipFastStreamConsider").map(_.toLowerCase)
     (fastStreamEligible, sdipFastStreamConsider) match {
@@ -137,14 +117,16 @@ object SignUpForm {
 
   }
 
-  private def sdipFsCheck(data: Map[String, String]): Either[Seq[FormError], String] = {
+  private def sdipFsCheck(data: Map[String, String])
+    (implicit messages: Messages): Either[Seq[FormError], String] = {
     data.get("sdipFastStreamEligible").map(_.toLowerCase) match {
       case Some("true") => Right(ApplicationRoute.SdipFaststream)
       case _ => Left(List(FormError("sdipFastStreamEligible", Messages("agree.sdipEligible"))))
     }
   }
 
-  private def sdipEligibiliyCheck(postData: Map[String, String]): Either[Seq[FormError], String] = {
+  private def sdipEligibiliyCheck(postData: Map[String, String])
+    (implicit messages: Messages): Either[Seq[FormError], String] = {
     val sdipEligible = postData.get("sdipEligible").map(_.toLowerCase)
 
     val errors = if (!sdipEligible.contains("true")) {
@@ -160,15 +142,15 @@ object SignUpForm {
     }
   }
 
-  def form: Form[Data] = Form(
+  def form(implicit messages: Messages): Form[SignUpForm.Data] = Form(
     mapping(
       "firstName" -> nonEmptyTrimmedText("error.firstName", 256),
       "lastName" -> nonEmptyTrimmedText("error.lastName", 256),
       "email" -> (email verifying Constraints.maxLength(128)),
       "email_confirm" -> of(emailConfirm),
-      passwordField -> of(passwordFormatter),
-      confirmPasswordField -> nonEmptyTrimmedText("error.confirmpwd", passwordMaxLength),
-      "campaignReferrer" -> Mappings.optionalTrimmedText(64),
+      SignUpForm.passwordField -> of(passwordFormatter),
+      SignUpForm.confirmPasswordField -> nonEmptyTrimmedText("error.confirmpwd", passwordMaxLength),
+      "campaignReferrer" -> optionalTrimmedText(64),
       "campaignOther" -> of(campaignOtherFormatter),
       "applicationRoute" -> of(applicationRouteFormatter),
       "agree" -> checked(Messages("agree.accept")),
@@ -177,10 +159,12 @@ object SignUpForm {
       "sdipFastStreamEligible" -> optional(boolean),
       "edipEligible" -> boolean,
       "sdipEligible" -> boolean
-    )(Data.apply)(Data.unapply)
+    )(SignUpForm.Data.apply)(SignUpForm.Data.unapply)
   )
 
-  def campaignOtherFormatter = new Formatter[Option[String]] {
+  import SignUpForm.RequestValidation
+
+  def campaignOtherFormatter(implicit messages: Messages) = new Formatter[Option[String]] {
     override def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       val optCampaignOther = request.get("campaignOther")
       if (request.hasOptionalInfoProvided) {
@@ -195,16 +179,22 @@ object SignUpForm {
 
     override def unbind(key: String, value: Option[String]): Map[String, String] = Map(key -> value.map(_.trim).getOrElse(""))
   }
+}
 
+object SignUpForm {
   implicit class RequestValidation(request: Map[String, String]) {
-      def hasOptionalInfoProvided = CampaignReferrers.list.find(pair =>
-        pair._1 == request.getOrElse("campaignReferrer", "")).exists(_._2)
+    def hasOptionalInfoProvided = CampaignReferrers.list.find(pair =>
+      pair._1 == request.getOrElse("campaignReferrer", "")).exists(_._2)
 
-      def sanitize = request.filterKeys {
-        case "campaignOther" => hasOptionalInfoProvided
-        case _ => true
-      }
+    def sanitize = request.filterKeys {
+      case "campaignOther" => hasOptionalInfoProvided
+      case _ => true
+    }
   }
+
+  val passwordField = "password"
+  val confirmPasswordField = "confirmpwd"
+  val fakePasswordField = "fake-password" // Used only in view (to prevent auto-fill)
 
   case class Data(
     firstName: String,

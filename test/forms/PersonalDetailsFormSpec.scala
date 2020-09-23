@@ -18,12 +18,11 @@ package forms
 
 import forms.PersonalDetailsFormExamples._
 import org.joda.time.LocalDate
-import testkit.UnitWithAppSpec
 
-class PersonalDetailsFormSpec extends UnitWithAppSpec {
+class PersonalDetailsFormSpec extends BaseFormSpec {
   implicit val now = LocalDate.now
 
-  import PersonalDetailsForm.{ form => personalDetailsForm }
+  def personalDetailsForm = new PersonalDetailsForm().form
 
   "Personal Details form" should {
     "be invalid for missing mandatory fields" in {
@@ -141,11 +140,11 @@ class PersonalDetailsFormSpec extends UnitWithAppSpec {
     }
 
     "be invalid with all mandatory fields except edipCompleted question for in progress sdip candidate" in {
-      assertFormError("Tell us if you have completed EDIP", SdipInProgressValidOutsideUKDetails - "edipCompleted")
+      assertFormError("error.edipCompleted.required", SdipInProgressValidOutsideUKDetails - "edipCompleted")
     }
 
     "be invalid with all mandatory fields except edipCompleted and otherInternshipCompleted for in progress sdip candidate" in {
-      assertFormErrors(Seq("Tell us if you have completed EDIP", "Tell us if you completed another internship programme"),
+      assertFormErrors(Seq("error.edipCompleted.required", "error.otherInternshipCompleted.required"),
         SdipInProgressValidOutsideUKDetails - "edipCompleted" - "otherInternshipCompleted")
     }
 
@@ -162,11 +161,11 @@ class PersonalDetailsFormSpec extends UnitWithAppSpec {
     }
 
     "be invalid with all mandatory fields except edipCompleted question for in progress sdip fs candidate" in {
-      assertFormError("Tell us if you have completed EDIP", SdipFsInProgressValidOutsideUKDetails - "edipCompleted")
+      assertFormError("error.edipCompleted.required", SdipFsInProgressValidOutsideUKDetails - "edipCompleted")
     }
 
     "be invalid with all mandatory fields except edipCompleted and otherInternshipCompleted for in progress sdip fs candidate" in {
-      assertFormErrors(Seq("Tell us if you have completed EDIP", "Tell us if you completed another internship programme"),
+      assertFormErrors(Seq("error.edipCompleted.required", "error.otherInternshipCompleted.required"),
         SdipFsInProgressValidOutsideUKDetails - "edipCompleted" - "otherInternshipCompleted")
     }
 
@@ -183,7 +182,7 @@ class PersonalDetailsFormSpec extends UnitWithAppSpec {
     }
 
     "be invalid with all mandatory fields except otherInternshipCompleted question for in progress edip candidate" in {
-      assertFormError("Tell us if you completed an internship programme",
+      assertFormError("error.edipCandidate.otherInternshipCompleted.required",
         EdipInProgressValidOutsideUKDetails - "otherInternshipCompleted")
     }
 
@@ -201,7 +200,7 @@ class PersonalDetailsFormSpec extends UnitWithAppSpec {
   }
 
   def assertFormErrors(expectedErrors: Seq[String], invalidFormValues: Map[String, String]) = {
-    val invalidForm = PersonalDetailsForm.form.bind(invalidFormValues)
+    val invalidForm = personalDetailsForm.bind(invalidFormValues)
     invalidForm.hasErrors mustBe true
     val actualErrors = invalidForm.errors.map( _.message )
     actualErrors mustBe expectedErrors
@@ -211,7 +210,7 @@ class PersonalDetailsFormSpec extends UnitWithAppSpec {
     val day = validDate.getDayOfMonth.toString
     val month = validDate.getMonthOfYear.toString
     val year = validDate.getYear.toString
-    val validForm = PersonalDetailsForm.form.bind(ValidUKAddress +
+    val validForm = personalDetailsForm.bind(ValidUKAddress +
       ("dateOfBirth.day" -> day) +
       ("dateOfBirth.month" -> month) +
       ("dateOfBirth.year" -> year))

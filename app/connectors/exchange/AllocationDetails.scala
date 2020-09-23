@@ -25,5 +25,6 @@ case class AllocationDetails(location: String,
                              expirationDate: Option[LocalDate])
 
 object AllocationDetails {
+  import models.FaststreamImplicits._
   implicit val allocationDetailsFormats: Format[AllocationDetails] = Json.format[AllocationDetails]
 }

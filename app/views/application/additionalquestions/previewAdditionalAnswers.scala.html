@@ -15,8 +15,9 @@
  *@
 
 @import models.page.SiftPreviewPage
+@import config.AnalyticsConfig
 
-@(page: SiftPreviewPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+@(page: SiftPreviewPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticsConfig: AnalyticsConfig, messages: Messages)
 
 @main_template(title = "Preview before you submit") {
     <h1 class="heading-xlarge">Preview before you submit</h1>

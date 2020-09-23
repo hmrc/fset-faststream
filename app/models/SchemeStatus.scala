@@ -24,6 +24,7 @@ object SchemeStatus {
   case object Withdrawn extends Status
 
   object Status {
+    import scala.language.implicitConversions
     implicit def stringify(self: Status): String = self.toString
 
     def apply(s: String): Status = s match {

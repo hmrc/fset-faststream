@@ -16,7 +16,7 @@
 
 package models
 
-import play.api.mvc.{ Cookie, RequestHeader }
+import play.api.mvc.{Cookie, RequestHeader}
 
 object CookiePolicy {
   private val cookieName = "cookies-banner-shown"

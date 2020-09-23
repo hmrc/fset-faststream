@@ -14,7 +14,8 @@
  * limitations under the License.
  *@
 
-@()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+@import config.AnalyticsConfig
+@()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
 
 @main_template(title = "Numerical test complete | Apply for the Civil Service Fast Stream") {
     <div class="success-banner">

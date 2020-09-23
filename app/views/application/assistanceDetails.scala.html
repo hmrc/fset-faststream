@@ -14,7 +14,8 @@
  * limitations under the License.
  *@
 
-@(form: Form[_root_.forms.AssistanceDetailsForm.Data], disabilityCategories: List[String])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+@import config.AnalyticsConfig
+@(form: Form[_root_.forms.AssistanceDetailsForm.Data], disabilityCategories: List[String])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticConfig: AnalyticsConfig, messages: Messages)
 
     @import views.html.application.assistancedetails.{ hasDisability, needsSupportOnlineAssessments, needsSupportAtVenue, needsSupportPhoneInterview }
     @import views.html.widgets.{ pageProgress, saveAndContinueButton }

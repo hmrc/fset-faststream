@@ -16,9 +16,9 @@
 
 package util
 
-import controllers.UnitSpec
-import models.frameworks.{ Location, Region }
+import models.frameworks.{Location, Region}
 import org.junit.Assert._
+import testkit.UnitSpec
 
 class RegionToJsonSpec extends UnitSpec {
 

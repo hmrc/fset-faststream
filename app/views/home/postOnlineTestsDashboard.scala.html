@@ -15,17 +15,14 @@
  *@
 
 @import models.page.PostOnlineTestsPage
-@import views.html.home.commonSectionPostOnlineTests
-@import views.html.home.siftProgress
-@import views.html.home.withdrawSection
 @import models.page.PostOnlineTestsStage
 @import models.page.PsiTestPage
 @import security.Roles._
 @import security.RoleUtils._
-@import views.html.home.withdrawInformation
 @import views.html.widgets.sdipFaststreamBanner
+@import config.AnalyticsConfig
 
-@(page: PostOnlineTestsPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+@(page: PostOnlineTestsPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
 
 @getOrder(pos: Int) = @{
   pos match {

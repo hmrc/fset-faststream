@@ -14,7 +14,8 @@
  * limitations under the License.
  *@
 
-@(name: models.CachedData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+@import config.AnalyticsConfig
+@(name: models.CachedData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
 
 @main_template(title = "Hello from fset-faststream-frontend") {
 

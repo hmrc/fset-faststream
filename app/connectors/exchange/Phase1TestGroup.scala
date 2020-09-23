@@ -19,6 +19,8 @@ package connectors.exchange
 import models.UniqueIdentifier
 import org.joda.time.DateTime
 import play.api.libs.json.Json
+import models.FaststreamImplicits._
+
 
 case class CubiksTest(usedForResults: Boolean,
   testUrl: String,

@@ -16,18 +16,21 @@
 
 package forms
 
-import forms.Mappings._
+import javax.inject.Singleton
+import mappings.Mappings._
 import play.api.data.Form
 import play.api.data.Forms._
 
-object ActivateAccountForm {
-
+@Singleton
+class ActivateAccountForm {
   val form = Form(
     mapping(
       "activation" -> (nonEmptyTrimmedText("activation.required", 7, "activation.wrong-format") verifying
         ("activation.wrong-format", value => value.matches("[\\w]{7}")))
-    )(Data.apply)(Data.unapply)
+    )(ActivateAccountForm.Data.apply)(ActivateAccountForm.Data.unapply)
   )
+}
 
+object ActivateAccountForm {
   case class Data(activationCode: String)
 }

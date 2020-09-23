@@ -16,7 +16,9 @@
 
 @import models.view.SimpleAnswerOptions
 @import models.view.questionnaire.{ Employees, Occupations, OrganizationSizes }
-@(questionnaireForm: Form[_root_.forms.ParentalOccupationQuestionnaireForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+@import config.AnalyticsConfig
+
+@(questionnaireForm: Form[_root_.forms.ParentalOccupationQuestionnaireForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
 
 @import views.html.widgets.{pageProgress, radioBoxHorizontal, radioBoxVertical, radioBoxOccupation, radioBoxOccupationFirst}
 

@@ -16,16 +16,14 @@
 
 package models
 
-import play.api.i18n.{ Lang, Messages }
+import play.api.i18n.Messages
 import play.api.mvc.RequestHeader
 import security.Roles.WithdrawnApplicationRole
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
 
 object ConsiderMeForSdipHelper {
 
   def faststreamerNotEligibleForSdip(cachedData: CachedData)(implicit request: RequestHeader,
-                                     lang: Lang):PartialFunction[Option[ApplicationData], String] = {
+                                     messages: Messages):PartialFunction[Option[ApplicationData], String] = {
     case Some(app) if WithdrawnApplicationRole.isAuthorized(cachedData) => Messages("error.faststream.becomes.sdip.withdrew")
     case Some(app) if !app.progress.submitted => Messages("error.faststream.becomes.sdip.not.submitted")
     case Some(app) if app.progress.phase1TestProgress.phase1TestsExpired && !app.progress.phase1TestProgress.phase1TestsPassed

@@ -16,13 +16,26 @@
 
 package security
 
-import com.mohiva.play.silhouette.api.{ Environment, Silhouette, SilhouetteProvider }
 import com.mohiva.play.silhouette.api.actions._
-import config.SecurityEnvironmentImpl
-import play.api.Play
+import com.mohiva.play.silhouette.api.{Environment, Silhouette, SilhouetteProvider}
+import javax.inject.{Inject, Singleton}
 import play.api.i18n.MessagesApi
+import play.api.mvc.BodyParsers
 
-object SilhouetteComponent extends SilhouetteComponent {
+import scala.concurrent.ExecutionContext
+
+@Singleton
+class SilhouetteComponent @Inject() (
+  val messagesApi: MessagesApi,
+  val securityEnvironment: config.SecurityEnvironment,
+  signInService: SignInService,
+  val bodyParser: BodyParsers.Default)(implicit val ec: ExecutionContext)
+  extends SecuredActionComponents
+    with SecuredErrorHandlerComponents
+    with UnsecuredActionComponents
+    with UnsecuredErrorHandlerComponents
+    with UserAwareActionComponents {
+
   lazy val silhouette: Silhouette[SecurityEnvironment] = {
     new SilhouetteProvider[SecurityEnvironment](
       environment,
@@ -31,17 +44,12 @@ object SilhouetteComponent extends SilhouetteComponent {
       userAwareAction
     )
   }
-}
 
-trait SilhouetteComponent
-  extends SecuredActionComponents
-    with SecuredErrorHandlerComponents
-    with UnsecuredActionComponents
-    with UnsecuredErrorHandlerComponents
-    with UserAwareActionComponents {
+  override lazy val securedErrorHandler = new CustomSecuredErrorHandler(
+    signInService, messagesApi)
+  override lazy val securedBodyParser = bodyParser
+  override lazy val unsecuredBodyParser = bodyParser
+  override lazy val userAwareBodyParser = bodyParser
 
-  def messagesApi: MessagesApi = Play.current.injector.instanceOf(classOf[MessagesApi])
-
-  override lazy val securedErrorHandler = new CustomSecuredErrorHandler(messagesApi)
-  val environment: Environment[SecurityEnvironment] = SecurityEnvironmentImpl
+  val environment: Environment[SecurityEnvironment] = securityEnvironment
 }

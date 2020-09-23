@@ -16,7 +16,7 @@
 
 package models
 
-import controllers.UnitSpec
+import testkit.UnitSpec
 
 class AdjustmentsSpec extends UnitSpec {
 

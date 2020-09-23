@@ -16,17 +16,26 @@
 
 package helpers
 
+import javax.inject.Singleton
 import play.api.i18n.Messages
 
 import scala.language.implicitConversions
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
 
 /**
  * see flashMessage.scala.html
  */
 
-sealed abstract class NotificationType(val key: String)
+sealed class NotificationType(val key: String)
+
+@Singleton
+class NotificationTypeHelper {
+  import helpers.NotificationType._
+
+  def success(msg: String, args: Any*)(implicit messages: Messages): (NotificationType, String) = Success -> Messages(msg, args: _*)
+  def danger(msg: String, args: Any*)(implicit messages: Messages): (NotificationType, String) = Danger -> Messages(msg, args: _*)
+  def warning(msg: String, args: Any*)(implicit messages: Messages): (NotificationType, String) = Warning -> Messages(msg, args: _*)
+  def info(msg: String, args: Any*)(implicit messages: Messages): (NotificationType, String) = Info -> Messages(msg, args: _*)
+}
 
 object NotificationType extends Enumeration {
 
@@ -39,15 +48,10 @@ object NotificationType extends Enumeration {
   // Shows a warning banner used for optional errors (if any) or important messages to the user e.g. deadline for applications is near
   object Warning extends NotificationType("warning")
 
-  // shows a info banner, for generalQuestions information
+  // shows a info banner, for general information
   object Info extends NotificationType("info")
 
   val all = Seq(Success, Danger, Warning, Info)
-
-  def success(msg: String, args: Any*): (NotificationType, String) = Success -> Messages(msg, args: _*)
-  def danger(msg: String, args: Any*): (NotificationType, String) = Danger -> Messages(msg, args: _*)
-  def warning(msg: String, args: Any*): (NotificationType, String) = Warning -> Messages(msg, args: _*)
-  def info(msg: String, args: Any*): (NotificationType, String) = Info -> Messages(msg, args: _*)
 
   /**
    * Implicit conversion helps when using the Notification Type with play's Flash session, as it doesn't understand

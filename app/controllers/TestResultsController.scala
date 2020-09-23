@@ -16,23 +16,28 @@
 
 package controllers
 
+import config.{FrontendAppConfig, SecurityEnvironment}
 import connectors.ApplicationClient
 import connectors.ApplicationClient.OnlineTestNotFound
+import helpers.NotificationTypeHelper
+import javax.inject.{Inject, Singleton}
 import models.ApplicationData
-import models.page.{ Phase1TestsPage, Phase2TestsPage2, Phase3TestsPage, TestResultsPage }
-import play.api.Play.current
-import play.api.i18n.Messages.Implicits._
+import models.page.{Phase1TestsPage, Phase2TestsPage2, Phase3TestsPage, TestResultsPage}
+import play.api.mvc.MessagesControllerComponents
 import security.Roles.PreviewApplicationRole
 import security.SilhouetteComponent
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-object TestResultsController extends TestResultsController(ApplicationClient) {
-  lazy val silhouette = SilhouetteComponent.silhouette
-}
-
-abstract class TestResultsController(applicationClient: ApplicationClient) extends BaseController {
+@Singleton
+class TestResultsController @Inject() (
+  config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  val notificationTypeHelper: NotificationTypeHelper,
+  applicationClient: ApplicationClient)(implicit val ec: ExecutionContext) extends BaseController(config, mcc) {
 
   def present = CSRSecureAppAction(PreviewApplicationRole) { implicit request =>
     implicit user =>

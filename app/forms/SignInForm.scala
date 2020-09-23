@@ -16,11 +16,13 @@
 
 package forms
 
-import forms.Mappings._
+import javax.inject.Singleton
+import mappings.Mappings._
 import play.api.data.Form
 import play.api.data.Forms._
 
-object SignInForm {
+@Singleton
+class SignInForm {
   val passwordField = "signInPassword"
 
   val form = Form(
@@ -28,8 +30,11 @@ object SignInForm {
       "signIn" -> nonEmptyTrimmedText("error.required.signIn", 128),
       passwordField -> nonEmptyTrimmedText("error.required.password", 128),
       "route" -> optional(text)
-    )(Data.apply)(Data.unapply)
+    )(SignInForm.Data.apply)(SignInForm.Data.unapply)
   )
 
+}
+
+object SignInForm {
   case class Data(signIn: String, signInPassword: String, route: Option[String] = None)
 }

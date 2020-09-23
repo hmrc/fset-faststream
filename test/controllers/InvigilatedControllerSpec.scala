@@ -16,16 +16,14 @@
 
 package controllers
 
-import config.{ CSRHttp, SecurityEnvironmentImpl }
-import connectors.ApplicationClient
 import connectors.ApplicationClient.TestForTokenExpiredException
 import connectors.UserManagementClient.TokenEmailPairInvalidException
 import connectors.exchange.InvigilatedTestUrl
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import forms.VerifyCodeForm
+import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.SilhouetteComponent
-import testkit.BaseControllerSpec
+import testkit.TestableSecureActions
 
 import scala.concurrent.Future
 
@@ -33,7 +31,7 @@ class InvigilatedControllerSpec extends BaseControllerSpec {
 
   "present" should {
     "display the Start invigilated phase 2 tests page" in new TestFixture {
-      val result = underTest.present()(fakeRequest)
+      val result = controller.present()(fakeRequest)
       status(result) must be(OK)
       val content = contentAsString(result)
       content must include("Start invigilated phase 2 tests")
@@ -45,7 +43,8 @@ class InvigilatedControllerSpec extends BaseControllerSpec {
       val Request = fakeRequest.withFormUrlEncodedBody("email" -> "test@test.com", "token" -> "KI6U8T")
       when(mockApplicationClient.verifyInvigilatedToken(eqTo("test@test.com"), eqTo("KI6U8T"))(any())).thenReturn(successfulValidationResponse)
 
-      val result = underTest.verifyToken()(Request)
+      val result = controller.verifyToken()(Request)
+
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(testUrl))
     }
@@ -54,40 +53,35 @@ class InvigilatedControllerSpec extends BaseControllerSpec {
       val Request = fakeRequest.withFormUrlEncodedBody("email" -> "test@test.com", "token" -> "KI6U8T")
       when(mockApplicationClient.verifyInvigilatedToken(eqTo("test@test.com"), eqTo("KI6U8T"))(any())).thenReturn(failedValidationResponse)
 
-      val result = underTest.verifyToken()(Request)
+      val result = controller.verifyToken()(Request)
+
       status(result) must be(OK)
       val content = contentAsString(result)
       content must include("Start invigilated phase 2 tests")
-      content must include("Invalid email or access code")
+      content must include("error.token.invalid")
     }
 
     "display the Start invigilated phase 2 tests page with an error message when the test is expired" in new TestFixture {
       val Request = fakeRequest.withFormUrlEncodedBody("email" -> "test@test.com", "token" -> "KI6U8T")
       when(mockApplicationClient.verifyInvigilatedToken(eqTo("test@test.com"), eqTo("KI6U8T"))(any())).thenReturn(testExpiredResponse)
 
-      val result = underTest.verifyToken()(Request)
+      val result = controller.verifyToken()(Request)
+
       status(result) must be(OK)
       val content = contentAsString(result)
       content must include("Start invigilated phase 2 tests")
-      content must include("Test is expired")
+      content must include("error.token.expired")
     }
   }
 
-  trait TestFixture {
-    val mockApplicationClient = mock[ApplicationClient]
-    val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
-
+  trait TestFixture extends BaseControllerTestFixture {
     val testUrl = "http://localhost:9284/fset-fast-stream/invigilated-phase2-tests"
     val successfulValidationResponse = Future.successful(InvigilatedTestUrl(testUrl))
     val failedValidationResponse = Future.failed(new TokenEmailPairInvalidException())
     val testExpiredResponse = Future.failed(new TestForTokenExpiredException())
 
-    class TestableInvigilatedController extends InvigilatedController(mockApplicationClient) {
-      val http: CSRHttp = CSRHttp
-      override val env = mockSecurityEnvironment
-      override lazy val silhouette = SilhouetteComponent.silhouette
-    }
-
-    val underTest = new TestableInvigilatedController
+    val formWrapper = new VerifyCodeForm
+    val controller = new InvigilatedController(mockConfig, stubMcc, mockSecurityEnv, mockSilhouetteComponent,
+     mockNotificationTypeHelper, mockApplicationClient, formWrapper) with TestableSecureActions
   }
 }

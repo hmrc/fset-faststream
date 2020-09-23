@@ -19,31 +19,36 @@ package controllers
 import _root_.forms.SignUpForm
 import _root_.forms.SignUpForm._
 import com.mohiva.play.silhouette.api.SignUpEvent
-import config.CSRHttp
-import connectors.{ ApplicationClient, UserManagementClient }
+import config.{FrontendAppConfig, SecurityEnvironment}
 import connectors.UserManagementClient.EmailTakenException
 import connectors.exchange._
 import connectors.exchange.campaignmanagement.AfterDeadlineSignupCodeUnused
+import connectors.{ApplicationClient, UserManagementClient}
 import helpers.NotificationType._
-import models.{ ApplicationRoute, SecurityUser, UniqueIdentifier }
-import play.api.Logger
+import helpers.NotificationTypeHelper
+import javax.inject.{Inject, Singleton}
+import models.{ApplicationRoute, SecurityUser, UniqueIdentifier}
 import play.api.i18n.Messages
-import play.api.mvc.{ Action, AnyContent, Result }
-import security.{ SignInService, SilhouetteComponent }
-
-import scala.concurrent.Future
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import security.{SignInService, SilhouetteComponent}
 import uk.gov.hmrc.http.HeaderCarrier
 
-object SignUpController extends SignUpController(ApplicationClient, UserManagementClient) {
-  val http = CSRHttp
-  val appRouteConfigMap = config.FrontendAppConfig.applicationRoutesFrontend
-  lazy val silhouette = SilhouetteComponent.silhouette
-}
+import scala.concurrent.{ExecutionContext, Future}
 
-abstract class SignUpController(val applicationClient: ApplicationClient, userManagementClient: UserManagementClient)
-  extends BaseController with SignInService with CampaignAwareController {
+@Singleton
+class SignUpController @Inject() (
+  config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  val notificationTypeHelper: NotificationTypeHelper,
+  signInService: SignInService,
+  applicationClient: ApplicationClient,
+  userManagementClient: UserManagementClient,
+  formWrapper: SignUpForm)(implicit val ec: ExecutionContext)
+  extends BaseController(config, mcc) with CampaignAwareController {
+  val appRouteConfigMap = config.applicationRoutesFrontend
+  import notificationTypeHelper._
 
   private def signupCodeUnusedAndValid(signupCode: Option[String])
                                (implicit hc: HeaderCarrier): Future[AfterDeadlineSignupCodeUnused] = signupCode.map(sCode =>
@@ -57,7 +62,7 @@ abstract class SignUpController(val applicationClient: ApplicationClient, userMa
     signupCodeValid.map { sCodeValid =>
       request.identity match {
         case Some(_) => Redirect(routes.HomeController.present()).flashing(warning("activation.already"))
-        case None => Ok(views.html.registration.signup(SignUpForm.form, appRouteConfigMap, None, signupCode, sCodeValid))
+        case None => Ok(views.html.registration.signup(formWrapper.form, appRouteConfigMap, None, signupCode, sCodeValid))
       }
     }
   }
@@ -101,10 +106,10 @@ abstract class SignUpController(val applicationClient: ApplicationClient, userMa
         }
       }
 
-      SignUpForm.form.bindFromRequest.fold(
+      formWrapper.form.bindFromRequest.fold(
         invalidForm => {
           checkAppWindowBeforeProceeding(invalidForm.data, Future.successful(
-            Ok(views.html.registration.signup(SignUpForm.form.bind(invalidForm.data.sanitize), appRouteConfigMap)))
+            Ok(views.html.registration.signup(formWrapper.form.bind(invalidForm.data.sanitize), appRouteConfigMap)))
           )
         },
         data => {
@@ -113,7 +118,7 @@ abstract class SignUpController(val applicationClient: ApplicationClient, userMa
             case (ApplicationRoute.Faststream, Some(true)) => ApplicationRoute.SdipFaststream
             case (_, _) => selectedAppRoute
           }
-          checkAppWindowBeforeProceeding(SignUpForm.form.fill(data).data, {
+          checkAppWindowBeforeProceeding(formWrapper.form.fill(data).data, {
             (for {
               u <- userManagementClient.register(data.email.toLowerCase, data.password, data.firstName, data.lastName)
               _ <- applicationClient.addReferral(u.userId, extractMediaReferrer(data))
@@ -121,18 +126,20 @@ abstract class SignUpController(val applicationClient: ApplicationClient, userMa
               sCode <- signupCodeUnusedValue
               _ <- overrideSubmissionDeadlineAndMarkUsedIfSignupCodeValid(appResponse.applicationId, sCode)
             } yield {
-              signInUser(
+              signInService.signInUser(
                 u.toCached,
-                redirect = Redirect(routes.ActivationController.present()).flashing(success("account.successful")),
-                env = env
+                redirect = Redirect(routes.ActivationController.present()).flashing(success("account.successful"))
               ).map { r =>
-                env.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString()), request))
+                secEnv.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString()), request))
                 r
               }
             }).flatMap(identity)
             }).recover {
                 case e: EmailTakenException =>
-                  Ok(views.html.registration.signup(SignUpForm.form.fill(data), appRouteConfigMap, Some(danger("user.exists"))))
+                  Ok(views.html.registration.signup(
+                    formWrapper.form.fill(data),
+                    appRouteConfigMap,
+                    Some(danger("user.exists"))))
               }
           })
         }

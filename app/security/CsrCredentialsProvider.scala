@@ -18,13 +18,14 @@ package security
 
 import com.mohiva.play.silhouette.api.Provider
 import com.mohiva.play.silhouette.api.util.Credentials
+import config.{CSRHttp, FrontendAppConfig}
 import connectors.UserManagementClient
-import connectors.UserManagementClient.{ AccountLockedOutException, InvalidCredentialsException, InvalidRoleException }
+import connectors.UserManagementClient.{AccountLockedOutException, InvalidCredentialsException, InvalidRoleException}
+import javax.inject.{Inject, Singleton}
 import models.CachedUser
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.concurrent.{ExecutionContext, Future}
 
 sealed trait AccountError
 case object InvalidRole extends AccountError
@@ -32,7 +33,11 @@ case object LastAttempt extends AccountError
 case object AccountLocked extends AccountError
 case object InvalidCredentials extends AccountError
 
-trait CsrCredentialsProvider extends Provider with UserManagementClient {
+@Singleton
+class CsrCredentialsProvider @Inject() (
+  config: FrontendAppConfig,
+  http: CSRHttp)(override implicit val ec: ExecutionContext)
+  extends UserManagementClient(config, http) with Provider {
 
   def authenticate(credentials: Credentials)(implicit hc: HeaderCarrier): Future[Either[AccountError, CachedUser]] = {
     signIn(credentials.identifier, credentials.password).map {

@@ -28,5 +28,6 @@ case class AssessmentScoresFinalFeedback(
 }
 
 object AssessmentScoresFinalFeedback {
+  import models.FaststreamImplicits._
   implicit val jsonFormat = Json.format[AssessmentScoresFinalFeedback]
 }

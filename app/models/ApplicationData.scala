@@ -106,7 +106,7 @@ object ApplicationData {
       None,
       resp.overriddenSubmissionDeadline
     )
-
+  import models.FaststreamImplicits._
   implicit val applicationDataFormat = Json.format[ApplicationData]
 }
 

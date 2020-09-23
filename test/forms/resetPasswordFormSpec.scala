@@ -16,18 +16,18 @@
 
 package forms
 
-import controllers.UnitSpec
-import testkit.UnitWithAppSpec
+class resetPasswordFormSpec extends BaseFormSpec {
 
-class resetPasswordFormSpec extends UnitWithAppSpec {
+  def signUpFormWrapper = new SignUpForm
+  def formWrapper = new ResetPasswordForm(signUpFormWrapper)
 
   "the validate method" should {
     "validate an email" in {
-      ResetPasswordForm.validateEmail("test@test.com") must be(true)
+      formWrapper.validateEmail("test@test.com") must be(true)
     }
 
     "return false on invalid email" in {
-      ResetPasswordForm.validateEmail("not_an_email") must be(false)
+      formWrapper.validateEmail("not_an_email") must be(false)
     }
   }
 }

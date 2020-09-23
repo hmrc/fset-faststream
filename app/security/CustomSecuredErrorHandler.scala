@@ -16,23 +16,25 @@
 
 package security
 
+import com.mohiva.play.silhouette.api.actions.{SecuredErrorHandler, SecuredRequest}
+import controllers.routes
 import javax.inject.Inject
-
-import com.mohiva.play.silhouette.api.actions.{ SecuredErrorHandler, SecuredRequest }
-import controllers.{ SignInController, routes }
-import helpers.NotificationType.danger
-import models.{ CachedData, SecurityUser }
-import play.api.i18n.{ I18nSupport, Lang, MessagesApi }
-import play.api.mvc.{ RequestHeader, Result }
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.Results.Redirect
+import play.api.mvc.{AnyContent, RequestHeader, Result}
+import uk.gov.hmrc.play.HeaderCarrierConverter
 
 import scala.concurrent.Future
 
-class CustomSecuredErrorHandler @Inject() (val messagesApi: MessagesApi) extends SecuredErrorHandler with I18nSupport {
+class CustomSecuredErrorHandler @Inject() (signInService: SignInService,
+  val messagesApi: MessagesApi) extends SecuredErrorHandler with I18nSupport {
 
   override def onNotAuthenticated(implicit request: RequestHeader): Future[Result] =
     Future.successful(Redirect(routes.SignInController.present()))
 
-  override def onNotAuthorized(implicit request: RequestHeader): Future[Result] =
-    SignInController.notAuthorised(request)
+  override def onNotAuthorized(implicit request: RequestHeader): Future[Result] = {
+    val sec = request.asInstanceOf[SecuredRequest[SecurityEnvironment, AnyContent]]
+    val headerCarrier = HeaderCarrierConverter.fromHeadersAndSession(sec.headers, Some(sec.session))
+    signInService.notAuthorised(request, headerCarrier)
+  }
 }

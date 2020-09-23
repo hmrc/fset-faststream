@@ -16,12 +16,9 @@
 
 package forms
 
-import controllers.UnitSpec
-import testkit.UnitWithAppSpec
+class SignInFormSpec extends BaseFormSpec {
 
-class SignInFormSpec extends UnitWithAppSpec {
-
-  import SignInForm.{ form => signInForm }
+  def signInForm = new SignInForm().form
 
   "Sign In form" should {
     "be valid for non empty email and non empty password" in {

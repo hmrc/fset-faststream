@@ -24,9 +24,3 @@ case class SchemeWithdrawPage(
   schemes: Seq[(String, String)],
   form: Form[SchemeWithdrawForm.Data]
 )
-
-object SchemeWithdrawPage {
-  def apply(schemes: Seq[Scheme]): SchemeWithdrawPage = {
-    SchemeWithdrawPage(schemes.map(s => (s.name, s.id.value)), SchemeWithdrawForm.form)
-  }
-}

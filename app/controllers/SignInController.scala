@@ -18,29 +18,32 @@ package controllers
 
 import _root_.forms.SignInForm
 import com.mohiva.play.silhouette.api.util.Credentials
-import config.CSRHttp
-import connectors.ApplicationClient
-import helpers.NotificationType._
+import config.{FrontendAppConfig, SecurityEnvironment}
+import helpers.NotificationTypeHelper
+import javax.inject.{Inject, Singleton}
 import models.ApplicationRoute
-import security.{ SignInService, _ }
+import play.api.mvc.MessagesControllerComponents
+import security._
 
-import scala.concurrent.Future
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
+import scala.concurrent.{ExecutionContext, Future}
 
-object SignInController extends SignInController(ApplicationClient) with SignInService {
-  val http = CSRHttp
-  lazy val silhouette = SilhouetteComponent.silhouette
-}
-
-abstract class SignInController(val applicationClient: ApplicationClient)
-  extends BaseController with SignInService {
+@Singleton
+class SignInController @Inject() (
+  config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  val notificationTypeHelper: NotificationTypeHelper,
+  val signInService: SignInService,
+  formWrapper: SignInForm)(implicit val ec: ExecutionContext)
+  extends BaseController(config,mcc) {
+  import notificationTypeHelper._
 
   def present = CSRUserAwareAction { implicit request =>
     implicit user =>
       request.identity match {
         case None =>
-          Future.successful(Ok(views.html.index.signin(SignInForm.form)))
+          Future.successful(Ok(views.html.index.signin(formWrapper.form)))
         case Some(u) =>
           Future.successful(Redirect(routes.HomeController.present()))
       }
@@ -50,7 +53,7 @@ abstract class SignInController(val applicationClient: ApplicationClient)
     implicit user =>
       request.identity match {
         case None =>
-          Future.successful(Ok(views.html.index.signin(SignInForm.form.fill(SignInForm.Data("", "", Some(ApplicationRoute.SdipFaststream))))))
+          Future.successful(Ok(views.html.index.signin(formWrapper.form.fill(SignInForm.Data("", "", Some(ApplicationRoute.SdipFaststream))))))
         case Some(u) =>
           Future.successful(Redirect(routes.HomeController.present()))
       }
@@ -59,22 +62,22 @@ abstract class SignInController(val applicationClient: ApplicationClient)
   // scalastyle:off cyclomatic.complexity
   def signIn = CSRUserAwareAction { implicit request =>
     implicit user =>
-      SignInForm.form.bindFromRequest.fold(
+      formWrapper.form.bindFromRequest.fold(
         invalidForm =>
           Future.successful(Ok(views.html.index.signin(invalidForm))),
-        data => env.credentialsProvider.authenticate(Credentials(data.signIn, data.signInPassword)).flatMap {
+        data => secEnv.credentialsProvider.authenticate(Credentials(data.signIn, data.signInPassword)).flatMap {
           case Right(usr) if usr.lockStatus == "LOCKED" => Future.successful(
             Redirect(routes.LockAccountController.present()).addingToSession("email" -> usr.email))
           case Right(usr) if usr.isActive =>
             if (data.route.contains(ApplicationRoute.SdipFaststream.toString)) {
-              signInUser(usr, env, Redirect(routes.ConsiderForSdipController.present()))
+              signInService.signInUser(usr, Redirect(routes.ConsiderForSdipController.present()))
             } else {
-              signInUser(usr, env)
+              signInService.signInUser(usr)
             }
-          case Right(usr) => signInUser(usr, redirect = Redirect(routes.ActivationController.present()), env = env)
-          case Left(InvalidRole) => Future.successful(showErrorLogin(data, errorMsg = "error.invalidRole"))
-          case Left(InvalidCredentials) => Future.successful(showErrorLogin(data))
-          case Left(LastAttempt) => Future.successful(showErrorLogin(data, errorMsg = "last.attempt"))
+          case Right(usr) => signInService.signInUser(usr, redirect = Redirect(routes.ActivationController.present()))
+          case Left(InvalidRole) => Future.successful(signInService.showErrorLogin(data, errorMsg = "error.invalidRole"))
+          case Left(InvalidCredentials) => Future.successful(signInService.showErrorLogin(data))
+          case Left(LastAttempt) => Future.successful(signInService.showErrorLogin(data, errorMsg = "last.attempt"))
           case Left(AccountLocked) => Future.successful(Redirect(routes.LockAccountController.present())
             .addingToSession("email" -> data.signIn))
         }
@@ -84,9 +87,9 @@ abstract class SignInController(val applicationClient: ApplicationClient)
 
   def signOut = CSRUserAwareAction { implicit request =>
     implicit user =>
-      logOutAndRedirectUserAware(
+      signInService.logOutAndRedirectUserAware(
         successAction = Redirect(routes.SignInController.present())
-          .flashing(success("feedback", config.FrontendAppConfig.feedbackUrl)).withNewSession,
+          .flashing(success("feedback", config.feedbackUrl)).withNewSession,
         failAction = Redirect(routes.SignInController.present())
           .flashing(danger("You have already signed out")).withNewSession
       )

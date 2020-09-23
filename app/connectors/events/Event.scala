@@ -38,5 +38,6 @@ case class Event(
 )
 
 object Event {
+  import models.FaststreamImplicits._
   implicit val eventFormat: OFormat[Event] = Json.format[Event]
 }

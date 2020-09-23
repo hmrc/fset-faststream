@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-package forms
+package mappings
 
-import mappings.Year
+import forms._
 import play.api.data.Forms._
 import play.api.data.format.Formatter
 import play.api.data.validation._
-import play.api.data.{ FormError, Mapping }
+import play.api.data.{FormError, Mapping}
 import play.api.i18n.Messages
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
 
 // scalastyle:off line.size.limit
 // Adapted from:
 // https://github.com/dvla/vehicles-presentation-common/blob/9a494e4e4c3732fa827b2d1e7cc4499ed44d42c0/app/uk/gov/dvla/vehicles/presentation/common/views/helpers/FormExtensions.scala
 // scalastyle:one line.size.limit
 object Mappings {
-
   // Max error key not always required: may only be intended to prevent attackers, so helpful error message not required.
   def nonEmptyTrimmedText(
     emptyErrorKey: String
@@ -138,7 +135,8 @@ object Mappings {
   }
 
   def fieldWithCheckBox(max: Int, conditionKey: Option[String] = None,
-    skipValues: Seq[String] = Seq.empty[String], relationField: Option[String] = None) = new Formatter[Option[String]] {
+    skipValues: Seq[String] = Seq.empty[String], relationField: Option[String] = None)
+(implicit messages: Messages)= new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       val conditionValue = conditionKey.flatMap(key => data.get(key).map(_.trim).filter(_.length < max).sanitize)
       val valueField = data.get(key).map(_.trim).filter(_.length < max).sanitize
@@ -187,7 +185,8 @@ object Mappings {
   }
 
   def mayBeOptionalString(emptyErrorKey: String, maxLength: Int,
-                          required: Map[String, String] => Boolean) = new Formatter[Option[String]] {
+                          required: Map[String, String] => Boolean)
+(implicit messages: Messages)= new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       if(required(data)) {
         data.getOrElse(key, "").trim match {
@@ -204,7 +203,8 @@ object Mappings {
 
   def mayBeOptionalString(emptyErrorKey: String, additionalCheckEmptyErrorKey: String, maxLength: Int,
                            required: Map[String, String] => Boolean,
-                           additionalCheck: Map[String, String] => Boolean) = new Formatter[Option[String]] {
+                           additionalCheck: Map[String, String] => Boolean)
+(implicit messages: Messages)= new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       val additionalCheckResult = additionalCheck(data)
 

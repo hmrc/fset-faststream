@@ -18,6 +18,7 @@ package controllers
 
 import connectors.exchange.GeneralDetails
 import forms.PersonalDetailsFormExamples._
+import testkit.UnitSpec
 
 class PersonalDetailsToExchangeConverterSpec extends UnitSpec {
   val converter = new PersonalDetailsToExchangeConverter {}

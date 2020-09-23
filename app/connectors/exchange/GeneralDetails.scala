@@ -43,5 +43,6 @@ case class GeneralDetails(firstName: String,
                           )
 
 object GeneralDetails {
+  import models.FaststreamImplicits._
   implicit val generalDetailsFormat: Format[GeneralDetails] = Json.format[GeneralDetails]
 }

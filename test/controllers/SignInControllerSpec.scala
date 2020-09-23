@@ -17,35 +17,32 @@
 package controllers
 
 import com.mohiva.play.silhouette.api.services.AuthenticatorResult
-import com.mohiva.play.silhouette.api.{ Authenticator, EventBus }
-import com.mohiva.play.silhouette.impl.authenticators.{ SessionAuthenticator, SessionAuthenticatorService }
-import config.SecurityEnvironmentImpl
-import connectors.ApplicationClient
+import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
+import forms.SignInForm
 import models.CachedDataExample
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.mvc._
 import play.api.test.Helpers._
 import security._
-import testables.{ NoIdentityTestableCSRUserAwareAction, TestableCSRUserAwareAction }
-import testkit.BaseControllerSpec
+import testkit.{NoIdentityTestableCSRUserAwareAction, TestableCSRUserAwareAction}
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.util.Right
-import uk.gov.hmrc.http.HeaderCarrier
 
 class SignInControllerSpec extends BaseControllerSpec {
 
   "present" should {
     "Return sign in page if no user has signed in" in new TestFixture {
-      val result = signInController.present(fakeRequest)
+      val result = signInController().present(fakeRequest)
 
       status(result) mustBe OK
       contentAsString(result) must include ("Sign in | Apply for the Civil Service Fast Stream")
     }
 
     "Return home if a user has signed in" in new TestFixture {
-      val result = signInControllerAfterSignIn.present(fakeRequest)
+      val result = signInControllerAfterSignIn().present(fakeRequest)
 
       status(result) mustBe SEE_OTHER
       redirectLocation(result) mustEqual Some(routes.HomeController.present().toString())
@@ -58,13 +55,13 @@ class SignInControllerSpec extends BaseControllerSpec {
         "signIn" -> "",
         "signInPassword" -> ""
       )
-      val result = signInController.signIn(request)
+      val result = signInController().signIn(request)
 
       status(result) mustBe OK
       val content = contentAsString(result)
       content must include ("<title>Error: Sign in | Apply for the Civil Service Fast Stream")
-      content must include ("Enter your email")
-      content must include ("Enter your password")
+      content must include ("error.required.signIn")
+      content must include ("error.required.password")
     }
 
     "return to home page if password is not passed" in new TestFixture {
@@ -72,23 +69,22 @@ class SignInControllerSpec extends BaseControllerSpec {
         "signIn" -> "xxx",
         "signInPassword" -> ""
       )
-      val result = signInController.signIn(request)
+      val result = signInController().signIn(request)
 
       status(result) mustBe OK
       val content = contentAsString(result)
       content must include ("<title>Error: Sign in | Apply for the Civil Service Fast Stream")
-      content must include ("Enter your password")
+      content must include ("error.required.password")
     }
 
     "return to home page if the user has been locked" in new TestFixture {
       when(mockSignInService.signInUser(
         eqTo(CachedDataExample.LockedCandidateUser),
-        any[SecurityEnvironmentImpl],
-        any[Result])(any[Request[_]])
+        any[Result])(any[Request[_]], any[HeaderCarrier])
       ).thenReturn(Future.successful(Results.Redirect(routes.HomeController.present())))
       when(mockCredentialsProvider.authenticate(any())(any())).thenReturn(Future.successful(Right(CachedDataExample.LockedCandidateUser)))
 
-      val result = signInController.signIn(signInRequest)
+      val result = signInController().signIn(signInRequest)
 
       status(result) mustBe SEE_OTHER
       redirectLocation(result) mustEqual Some(routes.LockAccountController.present().toString())
@@ -98,12 +94,11 @@ class SignInControllerSpec extends BaseControllerSpec {
     "sign in user if he/ she is active" in new TestFixture {
       when(mockSignInService.signInUser(
         eqTo(CachedDataExample.ActiveCandidateUser),
-        any[SecurityEnvironmentImpl],
-        any[Result])(any[Request[_]])
+        any[Result])(any[Request[_]], any[HeaderCarrier])
       ).thenReturn(Future.successful(Results.Redirect(routes.HomeController.present())))
       when(mockCredentialsProvider.authenticate(any())(any())).thenReturn(Future.successful(Right(CachedDataExample.ActiveCandidateUser)))
 
-      val result = signInController.signIn(signInRequest)
+      val result = signInController(mockSignInService).signIn(signInRequest)
 
       status(result) mustBe SEE_OTHER
       redirectLocation(result) mustEqual Some(routes.HomeController.present().toString())
@@ -111,13 +106,12 @@ class SignInControllerSpec extends BaseControllerSpec {
 
     "sign in user if he/ she and redirect to activation page" in new TestFixture {
       when(mockSignInService.signInUser(
-        eqTo(CachedDataExample.NonActiveCandidateUser),
-        any[SecurityEnvironmentImpl],
-        any[Result])(any[Request[_]])
-      ).thenReturn(Future.successful(Results.Redirect(routes.ActivationController.present())))
+        eqTo(CachedDataExample.NonActiveCandidateUser), any[Result])
+        (any[Request[_]], any[HeaderCarrier])
+        ).thenReturn(Future.successful(Results.Redirect(routes.ActivationController.present())))
       when(mockCredentialsProvider.authenticate(any())(any())).thenReturn(Future.successful(Right(CachedDataExample.NonActiveCandidateUser)))
 
-      val result = signInController.signIn(signInRequest)
+      val result = signInController(mockSignInService).signIn(signInRequest)
 
       status(result) mustBe SEE_OTHER
       redirectLocation(result) mustEqual Some(routes.ActivationController.present().toString())
@@ -126,11 +120,11 @@ class SignInControllerSpec extends BaseControllerSpec {
     "show invalid role message if user has an invalid role" in new TestFixture {
       when(mockCredentialsProvider.authenticate(any())(any())).thenReturn(Future.successful(Left(InvalidRole)))
 
-      val result = signInController.signIn(signInRequest)
+      val result = signInController(signInService).signIn(signInRequest)
 
       status(result) mustBe OK
       val content = contentAsString(result)
-      content must include ("You don't have access to this application.")
+      content must include ("error.invalidRole")
     }
 
     "handle cross site scripting xss attempt in the flash cookie" in new TestFixture {
@@ -139,12 +133,11 @@ class SignInControllerSpec extends BaseControllerSpec {
       val signInRequestWithXssFlashCookie = signInRequest.withFlash(
         "danger" -> "Some text<script>alert('XSS within PLAY_FLASH cookie')</script>)"
       )
-
-      val result = signInController.signIn(signInRequestWithXssFlashCookie)
+      val result = signInController(signInService).signIn(signInRequestWithXssFlashCookie)
 
       status(result) mustBe OK
       val content = contentAsString(result)
-      content must include ("You don't have access to this application.")
+      content must include ("error.invalidRole")
       val apostropheEncoded = "&#x27;"
       val lessThanEncoded = "&lt;"
       val greaterThanEncoded = "&gt;"
@@ -156,27 +149,27 @@ class SignInControllerSpec extends BaseControllerSpec {
     "show invalid credentials message if invalid credentials are passed" in new TestFixture {
       when(mockCredentialsProvider.authenticate(any())(any())).thenReturn(Future.successful(Left(InvalidCredentials)))
 
-      val result = signInController.signIn(signInRequest)
+      val result = signInController(signInService).signIn(signInRequest)
 
       status(result) mustBe OK
       val content = contentAsString(result)
-      content must include ("Invalid email or password")
+      content must include ("signIn.invalid")
     }
 
     "show last attemp message if user has tried to sign in too many times" in new TestFixture {
       when(mockCredentialsProvider.authenticate(any())(any())).thenReturn(Future.successful(Left(LastAttempt)))
 
-      val result = signInController.signIn(signInRequest)
+      val result = signInController(signInService).signIn(signInRequest)
 
       status(result) mustBe OK
       val content = contentAsString(result)
-      content must include ("Your account will be locked after another unsuccessful attempt to sign in")
+      content must include ("last.attempt")
     }
 
     "show account locked message if user has just been locked while trying to sign in" in new TestFixture {
       when(mockCredentialsProvider.authenticate(any())(any())).thenReturn(Future.successful(Left(AccountLocked)))
 
-      val result = signInController.signIn(signInRequest)
+      val result = signInController().signIn(signInRequest)
 
       status(result) mustBe SEE_OTHER
       redirectLocation(result) mustEqual Some(routes.LockAccountController.present().toString())
@@ -187,7 +180,7 @@ class SignInControllerSpec extends BaseControllerSpec {
       "sign out if you are not signed in" in new TestFixture {
         when(mockAuthenticatorService.retrieve(any())).thenReturn(Future.successful(None))
 
-        val result = signInController.signOut(fakeRequest)
+        val result = signInController(signInService).signOut(fakeRequest)
 
         status(result) mustBe SEE_OTHER
         redirectLocation(result) mustEqual Some(routes.SignInController.present().toString())
@@ -199,7 +192,7 @@ class SignInControllerSpec extends BaseControllerSpec {
           Future.successful(AuthenticatorResult.apply(Results.Redirect(routes.SignInController.present())))
         )
 
-        val result = signInControllerAfterSignIn.signOut(fakeRequest)
+        val result = signInControllerAfterSignIn().signOut(fakeRequest)
 
         status(result) mustBe SEE_OTHER
         redirectLocation(result) mustEqual Some(routes.SignInController.present().toString())
@@ -208,35 +201,34 @@ class SignInControllerSpec extends BaseControllerSpec {
     }
   }
 
-  trait TestFixture {
-    implicit val hc: HeaderCarrier = HeaderCarrier()
-
+  trait TestFixture extends BaseControllerTestFixture {
     val signInRequest = fakeRequest.withFormUrlEncodedBody(
       "signIn" -> "xxx",
       "signInPassword" -> "yyyy"
     )
 
-    val mockApplicationClient = mock[ApplicationClient]
-    val mockSignInService = mock[SignInService]
-
-    val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
-    val mockCredentialsProvider = mock[CsrCredentialsProvider]
-    val mockAuthenticatorService = mock[SessionAuthenticatorService]
-    val mockEventBus = mock[EventBus]
-    when(mockSecurityEnvironment.credentialsProvider).thenReturn(mockCredentialsProvider)
-    when(mockSecurityEnvironment.authenticatorService).thenReturn(mockAuthenticatorService)
-    when(mockSecurityEnvironment.eventBus).thenReturn(mockEventBus)
-
     val mockAuthenticator = mock[SessionAuthenticator]
 
-    class TestableSignInController extends SignInController(mockApplicationClient) with TestableSignInService {
-      override val signInService = mockSignInService
-      override val env = mockSecurityEnvironment
-      override lazy val silhouette = SilhouetteComponent.silhouette
-    }
+    val formWrapper = new SignInForm
+    // In same tests mockSignInService is not appropriate and it is easier to use the real implementation with mocked dependencies.
+    val signInService = new SignInService(mockConfig, mockSecurityEnv, mockApplicationClient, mockNotificationTypeHelper, formWrapper)
 
-    def signInController = new TestableSignInController with NoIdentityTestableCSRUserAwareAction
-    def signInControllerAfterSignIn = new TestableSignInController with TestableCSRUserAwareAction
+    class TestableSignInController extends SignInController(
+      mockConfig, stubMcc, mockSecurityEnv, mockSilhouetteComponent, mockNotificationTypeHelper,
+      mockSignInService, formWrapper)
+
+    // In same tests mockSignInService is not appropriate and it is easier to use the real implementation with mocked dependencies.
+    // With this method, you can pass in newSignInService the preferred sign in service implementation.
+    def signInController(newSignInService: SignInService = mockSignInService) = {
+      new TestableSignInController with NoIdentityTestableCSRUserAwareAction {
+        override val signInService = newSignInService
+      }
+    }
+    def signInControllerAfterSignIn(newSignInService: SignInService = signInService) = {
+      new TestableSignInController with TestableCSRUserAwareAction {
+        override val signInService = newSignInService
+      }
+    }
 
     when(mockCredentialsProvider.authenticate(any())(any())).thenReturn(Future.successful(Right(CachedDataExample.ActiveCandidateUser)))
     when(mockAuthenticatorService.retrieve(any())).thenReturn(Future.successful(Some(mockAuthenticator)))

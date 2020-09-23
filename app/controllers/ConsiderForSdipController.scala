@@ -18,27 +18,35 @@ package controllers
 
 import java.util.UUID
 
-import connectors.{ ApplicationClient, UserManagementClient }
+import config.{FrontendAppConfig, SecurityEnvironment}
+import connectors.{ApplicationClient, UserManagementClient}
 import forms.ConsiderForSdipForm
 import helpers.NotificationType._
+import helpers.NotificationTypeHelper
+import javax.inject.{Inject, Singleton}
 import models.ApplicationRoute._
 import models.ConsiderMeForSdipHelper._
 import security.RoleUtils._
-import security.Roles.{ ActiveUserRole, ContinueAsSdipRole }
+import security.Roles.{ActiveUserRole, ContinueAsSdipRole}
 import security.SilhouetteComponent
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
+import play.api.mvc.MessagesControllerComponents
 
-object ConsiderForSdipController extends ConsiderForSdipController(ApplicationClient, UserManagementClient) {
-  lazy val silhouette = SilhouetteComponent.silhouette
-}
+@Singleton
+class ConsiderForSdipController @Inject() (
+  config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  val notificationTypeHelper: NotificationTypeHelper,
+  applicationClient: ApplicationClient,
+  userManagementClient: UserManagementClient)(implicit val ec: ExecutionContext)
+  extends BaseController(config, mcc) with CampaignAwareController {
+  import notificationTypeHelper._
 
-abstract class ConsiderForSdipController(applicationClient: ApplicationClient, userManagementClient: UserManagementClient)
-  extends BaseController with CampaignAwareController {
-
-  val appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState] = config.FrontendAppConfig.applicationRoutesFrontend
+  val appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState] = config.applicationRoutesFrontend
 
   def present = CSRSecureAction(ActiveUserRole) { implicit request => implicit cachedData =>
     Future.successful {
@@ -61,7 +69,7 @@ abstract class ConsiderForSdipController(applicationClient: ApplicationClient, u
         data =>
           for {
             _ <- applicationClient.considerForSdip(cachedData.application.applicationId)
-            _ <- env.userService.refreshCachedUser(cachedData.user.userID)
+            _ <- secEnv.userService.refreshCachedUser(cachedData.user.userID)
           } yield {
             Redirect(routes.HomeController.present()).flashing(success("faststream.becomes.sdip.success"))
           }
@@ -74,7 +82,7 @@ abstract class ConsiderForSdipController(applicationClient: ApplicationClient, u
         userToArchiveWith <- userManagementClient.register(archivedEmail, UUID.randomUUID().toString,
           cachedData.user.firstName, cachedData.user.lastName)
         _ <- applicationClient.continueAsSdip(cachedData.user.userID, userToArchiveWith.userId)
-        _ <- env.userService.refreshCachedUser(cachedData.user.userID)
+        _ <- secEnv.userService.refreshCachedUser(cachedData.user.userID)
       } yield {
         Redirect(routes.HomeController.present()).flashing(success("faststream.continueAsSdip.success"))
       }

@@ -14,7 +14,7 @@
  * limitations under the License.
  *@
 
-@(personalDetails: connectors.exchange.GeneralDetails)(edit: Html)(implicit user: Option[CachedData])
+@(personalDetails: connectors.exchange.GeneralDetails)(edit: Html)(implicit user: Option[CachedData], messages: Messages)
 
 @import forms.FastPassForm
 @import security.RoleUtils._
@@ -30,8 +30,8 @@
     if(value) "Yes" else "No"
 }
 
-@getInternshipTypeDescription(internshipType: String) = @{
-    FastPassForm.CivilServantAndInternshipTypes.toMap.getOrElse(internshipType, "")
+@getInternshipTypeDescription(internshipType: String)(implicit messages: Messages) = @{
+    FastPassForm.civilServantAndInternshipTypes.toMap.getOrElse(internshipType, "")
 }
 
 <section class="section-border">

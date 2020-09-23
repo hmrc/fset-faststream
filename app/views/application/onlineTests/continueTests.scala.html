@@ -14,8 +14,9 @@
  * limitations under the License.
  *@
 
+@import config.AnalyticsConfig
 @(testCompletedName: String)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl:
-        String, messages: Messages)
+        String, analyticsConfig: AnalyticsConfig, messages: Messages)
 
 @main_template(title = s"$testCompletedName complete | Apply for the Civil Service Fast Stream") {
 

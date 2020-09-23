@@ -16,22 +16,36 @@
 
 package forms
 
-import forms.Mappings._
+import javax.inject.Singleton
+import mappings.Mappings._
 import models.frameworks.Alternatives
 import play.api.data.Form
 import play.api.data.Forms._
 
 import scala.language.implicitConversions
 
-object AlternateLocationsForm {
-
+@Singleton
+class AlternateLocationsForm {
   val form = Form(
     mapping(
       "alternativeLocation" -> nonEmptyTrimmedText("error.alternativeLocation", 3),
       "alternativeScheme" -> nonEmptyTrimmedText("error.alternativeScheme", 3)
-    )(Data.apply)(Data.unapply)
+    )(AlternateLocationsForm.Data.apply)(AlternateLocationsForm.Data.unapply)
   )
 
+  import forms.AlternateLocationsForm._
+
+  implicit def fromAlternativesToFormData(alt: Alternatives): AlternateLocationsForm.Data =
+    AlternateLocationsForm.Data(
+    if (alt.location) yes else no, if (alt.framework) yes else no
+  )
+
+  implicit def fromFormDataToAlternatives(data: Data): Alternatives = Alternatives(
+    data.alternativeLocation == yes, data.alternativeScheme == yes
+  )
+}
+
+object AlternateLocationsForm {
   type YesNo = String
   val yes = "Yes"
   val no = "No"
@@ -39,13 +53,5 @@ object AlternateLocationsForm {
   case class Data(
     alternativeLocation: YesNo,
     alternativeScheme: YesNo
-  )
-
-  implicit def fromAlternativesToFormData(alt: Alternatives): Data = Data(
-    if (alt.location) yes else no, if (alt.framework) yes else no
-  )
-
-  implicit def fromFormDataToAlternatives(data: Data): Alternatives = Alternatives(
-    data.alternativeLocation == yes, data.alternativeScheme == yes
   )
 }

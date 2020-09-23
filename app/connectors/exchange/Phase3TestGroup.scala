@@ -18,6 +18,8 @@ package connectors.exchange
 
 import org.joda.time.DateTime
 import play.api.libs.json.Json
+import models.FaststreamImplicits._
+
 
 case class ReviewSectionCriteriaRequest(`type`: String, score: Option[Double])
 

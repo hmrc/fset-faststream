@@ -17,14 +17,14 @@
 package services
 
 import connectors.ApplicationClient
+import javax.inject.{Inject, Singleton}
 import models.UniqueIdentifier
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-trait Phase3FeedbackService {
-  val applicationClient: ApplicationClient
+@Singleton
+class Phase3FeedbackService @Inject() (applicationClient: ApplicationClient)(implicit val ec: ExecutionContext) {
 
   def getFeedback(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[(String, String)]] = {
     object OverallScore extends Enumeration {
@@ -58,8 +58,4 @@ trait Phase3FeedbackService {
       )
     }
   }
-}
-
-object Phase3FeedbackService extends Phase3FeedbackService {
-  val applicationClient = ApplicationClient
 }

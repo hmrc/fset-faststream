@@ -16,17 +16,20 @@
 
 package controllers
 
-import com.mohiva.play.silhouette.api.Silhouette
-import play.api.mvc.{Action, AnyContent}
-import security.{SecurityEnvironment, SilhouetteComponent}
+import config.{FrontendAppConfig, SecurityEnvironment}
+import helpers.NotificationTypeHelper
+import javax.inject.{Inject, Singleton}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import security.SilhouetteComponent
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-object SessionController extends SessionController {
-  lazy val silhouette: Silhouette[SecurityEnvironment] = SilhouetteComponent.silhouette
-}
-
-abstract class SessionController extends BaseController {
+@Singleton class SessionController @Inject() (config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  val notificationTypeHelper: NotificationTypeHelper)(
+  implicit val ec: ExecutionContext) extends BaseController(config, mcc) {
 
   def extendIdleTimeout: Action[AnyContent] = CSRUserAwareAction {
     implicit request =>

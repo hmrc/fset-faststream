@@ -16,24 +16,23 @@
 
 package forms
 
-import controllers.UnitSpec
-import forms.SchemeLocationPreferenceForm.{ Data, form, resetPreference, validateSchemeLocation }
-import models.frameworks.{ Location, Preference, Region }
+import forms.SchemeLocationPreferenceForm.Data
+import models.frameworks.{Location, Preference, Region}
 import org.junit.Assert._
-import testkit.UnitWithAppSpec
 
-class PreferenceFormSpec extends UnitWithAppSpec {
+class PreferenceFormSpec extends BaseFormSpec {
+  def formWrapper = new SchemeLocationPreferenceForm
 
   "personal details form" should {
     "be valid when all values are correct" in new Fixture {
-      val validForm = form.bind(validFormValues)
+      val validForm = formWrapper.form.bind(validFormValues)
       val expectedData = validFormData
       val actualData = validForm.get
       actualData mustBe expectedData
     }
 
     "be valid when all values are correct - no second option" in new Fixture {
-      val validForm = form.bind(validFormValues + ("secondScheme" -> ""))
+      val validForm = formWrapper.form.bind(validFormValues + ("secondScheme" -> ""))
       val expectedData = validFormData.copy(secondScheme = None)
       val actualData = validForm.get
       actualData mustBe expectedData
@@ -48,50 +47,51 @@ class PreferenceFormSpec extends UnitWithAppSpec {
     }
 
     "be valid when the selection is available" in new Fixture {
-      assertEquals(true, validateSchemeLocation(validFormData, validRegions).isEmpty)
+      assertEquals(true, formWrapper.validateSchemeLocation(validFormData, validRegions).isEmpty)
     }
 
     "fail when the location is not available" in new Fixture {
-      val errors = validateSchemeLocation(validFormData.copy(regionAndlocation = "London;Hackney"), validRegions)
+      val errors = formWrapper.validateSchemeLocation(validFormData.copy(regionAndlocation = "London;Hackney"), validRegions)
       assertEquals("location.unavailable", errors.head)
     }
 
     "fail when the first selection is not available" in new Fixture {
-      val errors = validateSchemeLocation(validFormData.copy(firstScheme = "Security"), validRegions)
+      val errors = formWrapper.validateSchemeLocation(validFormData.copy(firstScheme = "Security"), validRegions)
       assertEquals("firstScheme.unavailable", errors.head)
     }
 
     "reset when the location is not available" in new Fixture {
       val pref: Preference = validFormData.copy(regionAndlocation = "London;Hackney")
-      val errors = validateSchemeLocation(pref, validRegions)
-      assertEquals(pref.copy(location = ""), resetPreference(pref, errors))
+      val errors = formWrapper.validateSchemeLocation(pref, validRegions)
+      assertEquals(pref.copy(location = ""), formWrapper.resetPreference(pref, errors))
     }
 
     "reset when the first selection is not available" in new Fixture {
       val pref: Preference = validFormData.copy(firstScheme = "Security")
-      val errors = validateSchemeLocation(pref, validRegions)
-      assertEquals(pref.copy(firstFramework = "", secondFramework = None), resetPreference(pref, errors))
+      val errors = formWrapper.validateSchemeLocation(pref, validRegions)
+      assertEquals(pref.copy(firstFramework = "", secondFramework = None), formWrapper.resetPreference(pref, errors))
     }
 
     "reset when the second selection is not available" in new Fixture {
       val pref: Preference = validFormData.copy(secondScheme = Some("Security"))
-      val errors = validateSchemeLocation(pref, validRegions)
-      assertEquals(pref.copy(secondFramework = None), resetPreference(pref, errors))
+      val errors = formWrapper.validateSchemeLocation(pref, validRegions)
+      assertEquals(pref.copy(secondFramework = None), formWrapper.resetPreference(pref, errors))
     }
 
     "fail when the second selection is not available" in new Fixture {
-      val errors = validateSchemeLocation(validFormData.copy(secondScheme = Some("Cyber")), validRegions)
+      val errors = formWrapper.validateSchemeLocation(validFormData.copy(secondScheme = Some("Cyber")), validRegions)
       assertEquals("secondScheme.unavailable", errors.head)
     }
 
     "fail when the both selections are not available" in new Fixture {
-      val errors = validateSchemeLocation(validFormData.copy(firstScheme = "Security", secondScheme = Some("Cyber")), validRegions)
+      val errors = formWrapper.validateSchemeLocation(validFormData.copy(firstScheme = "Security", secondScheme = Some("Cyber")), validRegions)
       assertEquals("firstScheme.unavailable", errors.head)
       assertEquals("secondScheme.unavailable", errors.tail.head)
     }
 
     "fail when the both selections are the same" in new Fixture {
-      val errors = validateSchemeLocation(validFormData.copy(firstScheme = "Security", secondScheme = Some("Security")), validRegions)
+      val errors = formWrapper.validateSchemeLocation(
+        validFormData.copy(firstScheme = "Security", secondScheme = Some("Security")), validRegions)
       assertEquals("secondScheme.duplicate", errors.head)
     }
   }
@@ -118,7 +118,7 @@ class PreferenceFormSpec extends UnitWithAppSpec {
       assertFormError(expectedError, validFormValues + (fieldKey -> ""))
 
     def assertFormError(expectedError: String, invalidFormValues: Map[String, String]) = {
-      val invalidForm = form.bind(invalidFormValues)
+      val invalidForm = formWrapper.form.bind(invalidFormValues)
       invalidForm.hasErrors mustBe true
       invalidForm.errors.map(_.message) mustBe Seq(expectedError)
     }

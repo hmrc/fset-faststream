@@ -16,9 +16,9 @@
 
 package models.page
 
-import controllers.UnitSpec
 import models.AdjustmentsExamples._
 import org.joda.time.DateTime
+import testkit.UnitSpec
 
 class Phase2TestsPageSpec extends UnitSpec {
 

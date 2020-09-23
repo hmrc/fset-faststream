@@ -34,5 +34,6 @@ case class Session(
 }
 
 object Session {
+  import models.FaststreamImplicits._
   implicit val eventFormat: OFormat[Session] = Json.format[Session]
 }

@@ -16,12 +16,9 @@
 
 package forms
 
-import controllers.UnitSpec
-import testkit.UnitWithAppSpec
+class LockAccountFormSpec extends BaseFormSpec {
 
-class LockAccountFormSpec extends UnitWithAppSpec {
-
-  import LockAccountForm.{ form => lockAccountForm }
+  import LockAccountForm.{form => lockAccountForm}
 
   "Lock account form" should {
     "be valid for non empty email" in {

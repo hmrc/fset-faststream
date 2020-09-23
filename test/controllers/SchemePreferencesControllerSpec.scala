@@ -16,47 +16,29 @@
 
 package controllers
 
-import config.SecurityEnvironmentImpl
+import connectors.ReferenceDataExamples
 import connectors.SchemeClient.SchemePreferencesNotFound
-import connectors.exchange.CivilServiceExperienceDetailsExamples._
-import connectors.exchange.{ ApplicationResponse, SchemePreferencesExamples }
-import connectors.{ ReferenceDataClient, ReferenceDataExamples, SchemeClient }
+import connectors.exchange.SchemePreferencesExamples
 import forms.SelectedSchemesForm._
-import models.ApplicationData.ApplicationStatus
 import models._
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.{ SilhouetteComponent, UserCacheService }
-import testkit.{ BaseControllerSpec, TestableSecureActions }
 import testkit.MockitoImplicits._
+import testkit.TestableSecureActions
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 class SchemePreferencesControllerSpec extends BaseControllerSpec {
 
-  val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
-  val schemeClient  = mock[SchemeClient]
-  val referenceDataClient = mock[ReferenceDataClient]
-  val userService = mock[UserCacheService]
-
-  def controllerUnderTest = new SchemePreferencesController(schemeClient, referenceDataClient) with TestableSecureActions {
-    override val env = mockSecurityEnvironment
-    override lazy val silhouette = SilhouetteComponent.silhouette
-    when(userService.refreshCachedUser(any[UniqueIdentifier])(any[HeaderCarrier], any())).thenReturn(Future.successful(CachedData(
-      mock[CachedUser],
-      application = Some(mock[ApplicationData])
-    )))
-    when(mockSecurityEnvironment.userService).thenReturn(userService)
-  }
-
   "present" should {
-    "load scheme selections page for the new candidate" in {
-      when(referenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
-      when(schemeClient.getSchemePreferences(eqTo(currentApplicationId))(any[HeaderCarrier]))
+    "load scheme selections page for the new candidate" in new TestFixture {
+      when(mockSchemeClient.getSchemePreferences(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new SchemePreferencesNotFound))
-      val result = controllerUnderTest.present(fakeRequest)
+
+      val result = controller.present(fakeRequest)
+
       status(result) mustBe OK
       val content = contentAsString(result)
       content must include ("Choose your schemes")
@@ -67,11 +49,12 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
       content must include (s"""name="scheme_4" value=''""")
     }
 
-    "populate selected schemes for the candidate" in {
-      when(referenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
-      when(schemeClient.getSchemePreferences(eqTo(currentApplicationId))(any[HeaderCarrier]))
+    "populate selected schemes for the candidate" in new TestFixture {
+      when(mockSchemeClient.getSchemePreferences(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(SchemePreferencesExamples.DefaultSelectedSchemes))
-      val result = controllerUnderTest.present(fakeRequest)
+
+      val result = controller.present(fakeRequest)
+
       status(result) mustBe OK
       val content = contentAsString(result)
       content must include ("Choose your schemes")
@@ -84,20 +67,29 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
   }
 
   "submit scheme preferences" should {
-    "update scheme preferences details" in {
+    "update scheme preferences details" in new TestFixture {
       val request = fakeRequest.withFormUrlEncodedBody("scheme_0" -> "Finance", "scheme_1" -> "Commercial", "orderAgreed" -> "true",
         "eligible" -> "true")
-      val applicationResponse = ApplicationResponse(currentUserId, ApplicationStatus.IN_PROGRESS.toString,
-        ApplicationRoute.Faststream, currentUserId, ProgressResponseExamples.InProgress, Some(CivilServantExperience), None)
       val schemePreferences = SchemePreferences(List("Finance", "Commercial"), orderAgreed = true, eligible = true)
+      when(mockSchemeClient.updateSchemePreferences(eqTo(schemePreferences))(eqTo(currentApplicationId))(any[HeaderCarrier])).thenReturnAsync()
 
-      when(referenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
-      when(schemeClient.updateSchemePreferences(eqTo(schemePreferences))(eqTo(currentApplicationId))(any[HeaderCarrier])).thenReturnAsync()
+      val result = controller.submit(request)
 
-      val result = controllerUnderTest.submit(request)
       print(contentAsString(result))
       status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.AssistanceDetailsController.present().url))
     }
+  }
+
+  trait TestFixture extends BaseControllerTestFixture {
+    when(mockUserService.refreshCachedUser(any[UniqueIdentifier])(any[HeaderCarrier], any())).thenReturn(Future.successful(CachedData(
+      mock[CachedUser],
+      application = Some(mock[ApplicationData])
+    )))
+    when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+
+    def controller = new SchemePreferencesController(mockConfig,
+      stubMcc, mockSecurityEnv, mockSilhouetteComponent, mockNotificationTypeHelper,
+      mockSchemeClient, mockReferenceDataClient) with TestableSecureActions
   }
 }

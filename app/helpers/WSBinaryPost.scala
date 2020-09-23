@@ -16,25 +16,25 @@
 
 package helpers
 
+import play.api.libs.ws.DefaultBodyWritables
 import uk.gov.hmrc.http.hooks.HttpHooks
 import uk.gov.hmrc.http.logging.ConnectionTracing
-import uk.gov.hmrc.play.http.ws.{ WSHttpResponse, WSRequest }
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse, HttpVerb}
+import uk.gov.hmrc.play.http.ws.{WSHttpResponse, WSRequest}
 
-import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse, HttpVerb }
+import scala.concurrent.{ExecutionContext, Future}
 
 // scalastyle:off
 
 trait WSBinaryPost extends HttpBinaryPost with WSRequest {
 
   override protected def doBinaryPost(url: String, body: Array[Byte])(implicit hc: HeaderCarrier, ec : ExecutionContext): Future[HttpResponse] = {
-    import play.api.http.Writeable
-    buildRequest(url).post(body)(Writeable.wByteArray).map(new WSHttpResponse(_))
+    buildRequest(url).post(body)(DefaultBodyWritables.writeableOf_ByteArray).map(WSHttpResponse(_))
   }
 }
 
 trait HttpBinaryPost extends HttpVerb with ConnectionTracing with HttpHooks {
-  import play.api.http.HttpVerbs.{ POST => POST_VERB }
+  import play.api.http.HttpVerbs.{POST => POST_VERB}
 
   protected def doBinaryPost(url: String, body: Array[Byte])(implicit hc: HeaderCarrier, ec : ExecutionContext): Future[HttpResponse]
 

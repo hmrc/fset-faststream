@@ -17,9 +17,10 @@
 @import models.view.CampaignReferrers
 @import models.ApplicationRoute._
 @import controllers.ApplicationRouteState
+@import config.AnalyticsConfig
 
 @(signUpForm: Form[_root_.forms.SignUpForm.Data], appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState], notification: Option[(helpers.NotificationType, String)] = None, afterDeadlineSignupCode: Option[String] = None, validAfterDeadlineSignupCode: Boolean = false)(
-        implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+        implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
 
 @import helpers.CSRFieldConstructor._
 @import views.html.widgets.{checkbox, yesNoQuestion, select_guard}

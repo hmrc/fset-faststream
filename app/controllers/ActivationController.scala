@@ -17,56 +17,61 @@
 package controllers
 
 import _root_.forms.ActivateAccountForm
-import config.CSRHttp
-import connectors.{ ApplicationClient, UserManagementClient }
-import connectors.UserManagementClient.{ TokenEmailPairInvalidException, TokenExpiredException }
+import config.{FrontendAppConfig, SecurityEnvironment}
+import connectors.UserManagementClient
+import connectors.UserManagementClient.{TokenEmailPairInvalidException, TokenExpiredException}
 import helpers.NotificationType._
+import helpers.NotificationTypeHelper
+import javax.inject.{Inject, Singleton}
+import play.api.mvc.MessagesControllerComponents
 import security.Roles._
-import security.{ SignInService, SilhouetteComponent }
+import security.{SignInService, SilhouetteComponent}
 
-import scala.concurrent.Future
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
+import scala.concurrent.{ExecutionContext, Future}
 
-object ActivationController extends ActivationController(ApplicationClient, UserManagementClient) {
-  val http = CSRHttp
-  lazy val silhouette = SilhouetteComponent.silhouette
-}
+@Singleton
+class ActivationController @Inject() (
+  config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  userManagementClient: UserManagementClient,
+  val notificationTypeHelper: NotificationTypeHelper,
+  signInService: SignInService,
+  formWrapper: ActivateAccountForm)(implicit val ec: ExecutionContext) extends BaseController(config, mcc)
+   {
+     import notificationTypeHelper._
 
-abstract class ActivationController(val applicationClient: ApplicationClient,
-                                    userManagementClient: UserManagementClient) extends
-  BaseController with SignInService {
-
-  implicit val marketingTrackingEnabled = config.FrontendAppConfig.marketingTrackingEnabled
+  implicit val marketingTrackingEnabled = config.marketingTrackingEnabled
 
   def present = CSRSecureAction(NoRole) { implicit request =>
     implicit user => if (user.user.isActive) {
       Future.successful(Redirect(routes.HomeController.present()).flashing(warning("activation.already")))
     } else {
-      Future.successful(Ok(views.html.registration.activation(user.user.email, ActivateAccountForm.form,
+      Future.successful(Ok(views.html.registration.activation(user.user.email, formWrapper.form,
         marketingTrackingEnabled = marketingTrackingEnabled)))
     }
   }
 
   def submit = CSRSecureAction(ActivationRole) { implicit request =>
     implicit user =>
-      ActivateAccountForm.form.bindFromRequest.fold(
+      formWrapper.form.bindFromRequest.fold(
         invalidForm =>
           Future.successful(Ok(views.html.registration.activation(user.user.email, invalidForm))),
         data => {
           userManagementClient.activate(user.user.email, data.activationCode).flatMap { _ =>
-            signInUser(user.user.copy(isActive = true), env)
+            signInService.signInUser(user.user.copy(isActive = true))
           }.recover {
             case e: TokenExpiredException =>
               Ok(views.html.registration.activation(
                 user.user.email,
-                ActivateAccountForm.form,
+                formWrapper.form,
                 notification = Some(danger("expired.activation-code"))
               ))
             case e: TokenEmailPairInvalidException =>
               Ok(views.html.registration.activation(
                 user.user.email,
-                ActivateAccountForm.form,
+                formWrapper.form,
                 notification = Some(danger("wrong.activation-code"))
               ))
           }

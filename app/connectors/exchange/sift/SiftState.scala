@@ -26,5 +26,6 @@ case class SiftState(siftEnteredDate: DateTime, expirationDate: DateTime) {
 }
 
 object SiftState {
+  import models.FaststreamImplicits._
   implicit val siftStateFormat = Json.format[SiftState]
 }

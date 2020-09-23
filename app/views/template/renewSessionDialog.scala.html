@@ -1,4 +1,4 @@
-/*
+@*
  * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,19 +12,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+ *@
 
-package controllers
+@()(implicit messages: Messages)
 
-import play.api.mvc.{ Action, Controller }
-import security.SilhouetteComponent
+<div id="confirmDialog">
+ <p>hello</p>
+</div>
 
-object LandingPageController extends LandingPageController {
-  lazy val silhouette = SilhouetteComponent.silhouette
-}
+<div id="dialog" title="Basic dialog">
+    <p>1Do you want to renew the session?.</p>
+</div>
 
-trait LandingPageController extends Controller {
-  def index = Action {
-    Redirect(routes.SignInController.signIn)
-  }
-}
+

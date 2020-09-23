@@ -18,40 +18,51 @@ package config
 
 import java.util.Base64
 
-import testkit.UnitWithAppSpec
 import org.scalatest.TestData
+import org.scalatestplus.play.PlaySpec
+import org.scalatestplus.play.guice.GuiceOneAppPerTest
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers._
 import play.api.test._
+import play.api.{Application, Environment, Mode}
 
-class WhitelistFilterConfigSpec extends UnitWithAppSpec {
+class FaststreamWhitelistFilterConfigSpec extends PlaySpec with GuiceOneAppPerTest {
 
   val dummyIP1 = "11.22.33.44"
   val dummyIP2 = "8.8.8.8"
   val dummyIP3 = "93.00.33.33"
 
-  override implicit lazy val app: FakeApplication =
-    FakeApplication(additionalConfiguration = additionalConfig ++ Map(
+    override def newAppForTest(td: TestData): Application = new GuiceApplicationBuilder()
+      .in(Environment.simple(mode = Mode.Prod, path = new java.io.File(".")))
+      .configure(Map(
         "whitelistExcludedCalls" -> Base64.getEncoder.encodeToString("/ping/ping,/healthcheck".getBytes),
         "whitelist" -> Base64.getEncoder.encodeToString(s"$dummyIP1,$dummyIP2".getBytes),
-        "whitelistFileUpload" -> Base64.getEncoder.encodeToString(s"$dummyIP2".getBytes)
-      ),
-     withGlobal = Some(ProductionFrontendGlobal))
+        "whitelistFileUpload" -> Base64.getEncoder.encodeToString(s"$dummyIP2".getBytes),
+        "play.http.filters" -> "config.ProductionFaststreamFilters"
+      ))
+      .build
 
   "FrontendAppConfig" must {
     "return a valid config item" when {
       "the whitelist exclusion paths are requested" in {
-        FrontendAppConfig.whitelistExcluded mustBe Seq("/ping/ping", "/healthcheck")
+        val environment = Environment.simple(mode = Mode.Prod)
+        val frontendAppConfig = new FrontendAppConfig(app.configuration, environment)
+        frontendAppConfig.whitelistExcluded mustBe Seq("/ping/ping", "/healthcheck")
       }
       "the whitelist IPs are requested" in {
-        FrontendAppConfig.whitelist mustBe Seq(dummyIP1, dummyIP2)
+        val environment = Environment.simple(mode = Mode.Prod)
+        val frontendAppConfig = new FrontendAppConfig(app.configuration, environment)
+        frontendAppConfig.whitelist mustBe Seq(dummyIP1, dummyIP2)
       }
       "the file upload whitelist IPs are requested" in {
-        FrontendAppConfig.whitelistFileUpload mustBe Seq(dummyIP2)
+        val environment = Environment.simple(mode = Mode.Prod)
+        val frontendAppConfig = new FrontendAppConfig(app.configuration, environment)
+        frontendAppConfig.whitelistFileUpload mustBe Seq(dummyIP2)
       }
     }
   }
 
-  "ProductionFrontendGlobal" must {
+  "WhiteListFilter" must {
     "let requests pass" when {
       "coming from an IP in the white list must work as normal" in {
         val request = FakeRequest(GET, "/fset-fast-stream/signup").withHeaders("True-Client-IP" -> dummyIP1)

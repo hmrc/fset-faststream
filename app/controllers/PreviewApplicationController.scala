@@ -16,25 +16,32 @@
 
 package controllers
 
-import connectors.ApplicationClient.{ AssistanceDetailsNotFound, PersonalDetailsNotFound }
+import config.{FrontendAppConfig, SecurityEnvironment}
+import connectors.ApplicationClient.{AssistanceDetailsNotFound, PersonalDetailsNotFound}
 import connectors.SchemeClient.SchemePreferencesNotFound
-import connectors.{ ApplicationClient, SchemeClient }
+import connectors.{ApplicationClient, SchemeClient}
 import helpers.NotificationType._
+import helpers.NotificationTypeHelper
+import javax.inject.{Inject, Singleton}
 import models.CachedDataWithApp
+import play.api.mvc.MessagesControllerComponents
 import security.RoleUtils._
 import security.Roles.PreviewApplicationRole
 import security.SilhouetteComponent
 
-import scala.concurrent.Future
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
+import scala.concurrent.ExecutionContext
 
-object PreviewApplicationController extends PreviewApplicationController(ApplicationClient, SchemeClient) {
-  lazy val silhouette = SilhouetteComponent.silhouette
-}
-
-abstract class PreviewApplicationController(applicationClient: ApplicationClient, schemeClient: SchemeClient)
-  extends BaseController {
+@Singleton
+class PreviewApplicationController @Inject() (
+  config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  val notificationTypeHelper: NotificationTypeHelper,
+  applicationClient: ApplicationClient,
+  schemeClient: SchemeClient)(implicit val ec: ExecutionContext)
+  extends BaseController(config, mcc) {
+  import notificationTypeHelper._
 
   def present = CSRSecureAppAction(PreviewApplicationRole) { implicit request =>
     implicit user =>

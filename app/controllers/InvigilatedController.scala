@@ -16,33 +16,38 @@
 
 package controllers
 
+import config.{FrontendAppConfig, SecurityEnvironment}
 import connectors.ApplicationClient
 import connectors.ApplicationClient.TestForTokenExpiredException
 import connectors.UserManagementClient.TokenEmailPairInvalidException
 import forms.VerifyCodeForm
-import helpers.NotificationType._
+import helpers.NotificationTypeHelper
+import javax.inject.{Inject, Singleton}
 import models.CachedData
-import play.api.mvc.{ Request, Result }
+import play.api.mvc.{MessagesControllerComponents, Request, Result}
 import security.SilhouetteComponent
 
-import scala.concurrent.Future
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
+import scala.concurrent.{ExecutionContext, Future}
 
-object InvigilatedController extends InvigilatedController(ApplicationClient) {
-  lazy val silhouette = SilhouetteComponent.silhouette
-}
-
-abstract class InvigilatedController(applicationClient: ApplicationClient) extends BaseController {
+@Singleton
+class InvigilatedController @Inject() (
+  config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  val notificationTypeHelper: NotificationTypeHelper,
+  applicationClient: ApplicationClient,
+  formWrapper: VerifyCodeForm)(implicit val ec: ExecutionContext) extends BaseController(config, mcc) {
+  import notificationTypeHelper._
 
   def present = CSRUserAwareAction { implicit request =>
     implicit user =>
-      Future.successful(Ok(views.html.index.invigilatedEtraySignin(VerifyCodeForm.form)))
+      Future.successful(Ok(views.html.index.invigilatedEtraySignin(formWrapper.form)))
   }
 
   def verifyToken = CSRUserAwareAction { implicit request =>
     implicit user =>
-      VerifyCodeForm.form.bindFromRequest.fold(
+      formWrapper.form.bindFromRequest.fold(
         invalidForm =>
           Future.successful(Ok(views.html.index.invigilatedEtraySignin(invalidForm))),
         data =>
@@ -57,7 +62,8 @@ abstract class InvigilatedController(applicationClient: ApplicationClient) exten
 
   def showValidationError(data: VerifyCodeForm.Data, errorMsg: String = "error.token.invalid")
                          (implicit user: Option[CachedData], request: Request[_]): Result = {
-    Ok(views.html.index.invigilatedEtraySignin(VerifyCodeForm.form.fill(VerifyCodeForm.Data(email = "", token = "")), Some(danger(errorMsg))))
+    Ok(views.html.index.invigilatedEtraySignin(formWrapper.form.fill(VerifyCodeForm.Data(email = "", token = "")),
+      Some(danger(errorMsg))))
   }
 
 }

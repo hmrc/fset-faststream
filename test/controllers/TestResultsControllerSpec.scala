@@ -18,26 +18,20 @@ package controllers
 
 import java.util.UUID
 
-import config.SecurityEnvironmentImpl
-import connectors.ApplicationClient
 import connectors.ApplicationClient.OnlineTestNotFound
 import connectors.exchange._
 import models.ApplicationData.ApplicationStatus.WITHDRAWN
 import models._
 import org.joda.time.DateTime
-import org.mockito.Matchers.any
+import org.mockito.Matchers.{any, eq => eqTo}
 import org.mockito.Mockito.when
-import org.mockito.Matchers.{ eq => eqTo, _ }
 import play.api.test.Helpers._
-import security.SilhouetteComponent
-import testkit.{ BaseControllerSpec, TestableSecureActions }
+import testkit.TestableSecureActions
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 
 class TestResultsControllerSpec extends BaseControllerSpec {
-
-
   "test results controller" should {
     "display feedback report links for the first 3 phases when the candidate has been invited to all 3 phases" in new TestFixture {
       mockPhaseOneTwoThreeData(List(phase1Test1), List(phase2Test1))
@@ -46,7 +40,8 @@ class TestResultsControllerSpec extends BaseControllerSpec {
         phase2TestProgress = Phase2TestProgress(phase2TestsInvited = true),
         phase3TestProgress = Phase3TestProgress(phase3TestsInvited = true)
       )
-      val result = controllerUnderTest(appStatus).present()(fakeRequest)
+      val result = controller(appStatus).present()(fakeRequest)
+
       val content = contentAsString(result)
       status(result) mustBe OK
       checkAllResultsTitlesAndLinks(content)
@@ -58,7 +53,7 @@ class TestResultsControllerSpec extends BaseControllerSpec {
       val appStatus = candWithApp.application.progress.copy(
         phase2TestProgress = Phase2TestProgress(phase2TestsInvited = true)
       )
-      val result = controllerUnderTest(appStatus).present()(fakeRequest)
+      val result = controller(appStatus).present()(fakeRequest)
       val content = contentAsString(result)
       status(result) mustBe OK
       checkPhase1ResultsTitleAndLinks(content)
@@ -71,7 +66,7 @@ class TestResultsControllerSpec extends BaseControllerSpec {
       mockPhaseOneTwoThreeData(List(phase1Test1))
 
       val appStatus = candWithApp.application.progress
-      val result = controllerUnderTest(appStatus).present()(fakeRequest)
+      val result = controller(appStatus).present()(fakeRequest)
       val content = contentAsString(result)
       status(result) mustBe OK
       checkPhase1ResultsTitleAndLinks(content)
@@ -85,12 +80,12 @@ class TestResultsControllerSpec extends BaseControllerSpec {
       mockPhaseOneTwoThreeData(List(phase1Test1NoResults))
 
       val appStatus = candWithApp.application.progress
-      val result = controllerUnderTest(appStatus).present()(fakeRequest)
+      val result = controller(appStatus).present()(fakeRequest)
       val content = contentAsString(result)
       status(result) mustBe OK
 
       content must include("Phase 1 results")
-      content must include("<div>Work Style Questionnaire Part 1</div>")
+      content must include("<div>tests.inventoryid.name.45c7aee3-4d23-45c7-a09d-276df7db3e4c</div>")
       content must not include phase1Test1ResultsReportLink
       content must not include "Phase 2 results"
       content must not include phase2Test1ResultsReportLink
@@ -103,13 +98,13 @@ class TestResultsControllerSpec extends BaseControllerSpec {
         .thenReturn(Future.failed(new OnlineTestNotFound()))
 
       val appStatus = candWithApp.application.progress
-      val result = controllerUnderTest(appStatus).present()(fakeRequest)
+      val result = controller(appStatus).present()(fakeRequest)
       val content = contentAsString(result)
       status(result) mustBe OK
 
       content must include("No data found")
       content must not include "Phase 1 results"
-      content must not include "<div>Work Style Questionnaire Part 1</div>"
+      content must not include "<div>tests.inventoryid.name.45c7aee3-4d23-45c7-a09d-276df7db3e4c</div>"
       content must not include phase1Test1ResultsReportLink
       content must not include "Phase 2 results"
       content must not include "<div>Case Study Assessment</div>"
@@ -119,28 +114,23 @@ class TestResultsControllerSpec extends BaseControllerSpec {
     }
   }
 
-  trait TestFixture {
-    val mockApplicationClient = mock[ApplicationClient]
-    val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
-
+  trait TestFixture extends BaseControllerTestFixture {
     val candWithApp = currentCandidateWithApp.copy(
       application = currentCandidateWithApp.application.copy(applicationStatus = WITHDRAWN))
 
-    def controllerUnderTest(appStatus: Progress) = new TestResultsController(mockApplicationClient) with TestableSecureActions {
-      override val env = mockSecurityEnvironment
-      override lazy val silhouette = SilhouetteComponent.silhouette
-      override val candidateWithApp: CachedDataWithApp = candWithApp
-        .copy(application = candWithApp.application.copy(progress = appStatus))
+    def controller(appStatus: Progress) = {
+      new TestResultsController(mockConfig, stubMcc, mockSecurityEnv, mockSilhouetteComponent,
+        mockNotificationTypeHelper, mockApplicationClient) with TestableSecureActions {
+        override val candidateWithApp: CachedDataWithApp = candWithApp
+          .copy(application = candWithApp.application.copy(progress = appStatus))
+      }
     }
 
     def mockPhaseOneTwoThreeData(phase1Tests: List[PsiTest] = Nil, phase2Tests: List[PsiTest] = Nil) = {
-
       when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(Phase1TestGroupWithNames2(expirationDate = DateTime.now, activeTests = phase1Tests)))
-
       when(mockApplicationClient.getPhase2TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(Phase2TestGroupWithActiveTest2(expirationDate = DateTime.now, activeTests = phase2Tests)))
-
       when(mockApplicationClient.getPhase3TestGroup(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(Phase3TestGroup(expirationDate = DateTime.now, tests = Nil)))
     }
@@ -156,10 +146,22 @@ class TestResultsControllerSpec extends BaseControllerSpec {
       checkPhase1ResultsLinks(content)
     }
 
+    val phase1Test1InventoryId = "45c7aee3-4d23-45c7-a09d-276df7db3e4c"
+    val phase1Test1NoResults = PsiTest(inventoryId = phase1Test1InventoryId, usedForResults = true,
+      testUrl = "http://testurl.com", orderId = UniqueIdentifier(UUID.randomUUID()),
+      invitationDate = DateTime.now, testResult = None)
+    val phase1Test1 = phase1Test1NoResults.copy(testResult = Some(PsiTestResult(testReportUrl = Some("http://phase1Test1Url.com"))))
+
+    val phase2Test1InventoryId = "60b423e5-75d6-4d31-b02c-97b8686e22e6"
+    val phase2Test1 = PsiTest(inventoryId = phase2Test1InventoryId, usedForResults = true,
+      testUrl = "http://testurl.com", orderId = UniqueIdentifier(UUID.randomUUID()),
+      invitationDate = DateTime.now, testResult = Some(PsiTestResult(testReportUrl = Some("http://phase2Test1Url.com"))))
+
+
     val phase1Test1ResultsReportLink = "<a href=\"http://phase1Test1Url.com\"" +
-      " target=\"_blank\" id=\"WorkStyleQuestionnairePart1LinkResultsReport\">Feedback report"
+      " target=\"_blank\" id=\"tests.inventoryid.name." + phase1Test1InventoryId + "LinkResultsReport\">Feedback report"
     def checkPhase1ResultsLinks(content: String) = {
-      content must include("<div>Work Style Questionnaire Part 1</div>")
+      content must include("<div>tests.inventoryid.name." + phase1Test1InventoryId + "</div>")
       content must include(phase1Test1ResultsReportLink)
     }
 
@@ -169,9 +171,9 @@ class TestResultsControllerSpec extends BaseControllerSpec {
     }
 
     val phase2Test1ResultsReportLink = "<a href=\"http://phase2Test1Url.com\"" +
-      " target=\"_blank\" id=\"CaseStudyAssessmentLinkResultsReport\">Feedback report"
+      " target=\"_blank\" id=\"tests.inventoryid.name." + phase2Test1InventoryId + "LinkResultsReport\">Feedback report"
     def checkPhase2ResultsLinks(content: String) = {
-      content must include("<div>Case Study Assessment</div>")
+      content must include("<div>tests.inventoryid.name." + phase2Test1InventoryId + "</div>")
       content must include(phase2Test1ResultsReportLink)
     }
 
@@ -185,16 +187,5 @@ class TestResultsControllerSpec extends BaseControllerSpec {
     def checkPhase3ResultsLink(content: String) = {
       content must include(phase3ResultsReportLink)
     }
-
-    val phase1Test1InventoryId = "45c7aee3-4d23-45c7-a09d-276df7db3e4c"
-    val phase1Test1NoResults = PsiTest(inventoryId = phase1Test1InventoryId, usedForResults = true,
-      testUrl = "http://testurl.com", orderId = UniqueIdentifier(UUID.randomUUID()),
-      invitationDate = DateTime.now, testResult = None)
-    val phase1Test1 = phase1Test1NoResults.copy(testResult = Some(PsiTestResult(testReportUrl = Some("http://phase1Test1Url.com"))))
-
-    val phase2Test1InventoryId = "60b423e5-75d6-4d31-b02c-97b8686e22e6"
-    val phase2Test1 = PsiTest(inventoryId = phase2Test1InventoryId, usedForResults = true,
-      testUrl = "http://testurl.com", orderId = UniqueIdentifier(UUID.randomUUID()),
-      invitationDate = DateTime.now, testResult = Some(PsiTestResult(testReportUrl = Some("http://phase2Test1Url.com"))))
   }
 }

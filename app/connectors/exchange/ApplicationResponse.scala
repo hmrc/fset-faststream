@@ -19,6 +19,7 @@ package connectors.exchange
 import models.{ ApplicationRoute, UniqueIdentifier }
 import org.joda.time.DateTime
 import play.api.libs.json.Json
+import models.FaststreamImplicits._
 
 
 case class ApplicationResponse(

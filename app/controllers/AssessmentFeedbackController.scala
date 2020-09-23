@@ -17,21 +17,30 @@
 package controllers
 
 import com.mohiva.play.silhouette.api.Silhouette
-import connectors.{ApplicationClient, AssessmentScoresClient}
+import config.{FrontendAppConfig, SecurityEnvironment}
+import connectors.{ApplicationClient, AssessmentScoresClient, UserManagementClient}
+import javax.inject.{Inject, Singleton}
 import models.UniqueIdentifier
 import models.page.AssessmentFeedbackPage
-import play.api.Play.current
 import play.api.i18n.Messages.Implicits._
-import play.api.mvc.{Action, AnyContent}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import security.Roles.ActiveUserRole
-import security.{SecurityEnvironment, SilhouetteComponent}
+import security.{SilhouetteComponent}
+import helpers.NotificationTypeHelper
 
-object AssessmentFeedbackController extends AssessmentFeedbackController(AssessmentScoresClient, ApplicationClient) {
-  lazy val silhouette: Silhouette[SecurityEnvironment] = SilhouetteComponent.silhouette
-}
+import scala.concurrent.ExecutionContext
 
-abstract class AssessmentFeedbackController(assessmentScoresClient: AssessmentScoresClient,
-  applicationClient: ApplicationClient) extends BaseController {
+
+@Singleton
+class AssessmentFeedbackController @Inject() (
+  config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  val notificationTypeHelper: NotificationTypeHelper,
+  assessmentScoresClient: AssessmentScoresClient,
+  applicationClient: ApplicationClient)(implicit val ec: ExecutionContext) extends BaseController(config, mcc) {
+  import notificationTypeHelper._
 
   def present(applicationId: UniqueIdentifier): Action[AnyContent] = CSRSecureAction(ActiveUserRole) {
     implicit request =>

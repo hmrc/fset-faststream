@@ -14,11 +14,12 @@
  * limitations under the License.
  *@
 
+@import config.AnalyticsConfig
 @(
         generalDetails: connectors.exchange.GeneralDetails,
         schemePreferences: connectors.exchange.SelectedSchemes,
         assistanceDetails: connectors.exchange.AssistanceDetails,
-        applicationData: models.ApplicationData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+        applicationData: models.ApplicationData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
 
 @import views.html.application.previewapplication.{assistanceDetailsViewSection, personalDetailsViewSection, schemePreferencesViewSection, diversityQuestionnaireViewSection}
 @import models.ApplicationData.ApplicationStatus._

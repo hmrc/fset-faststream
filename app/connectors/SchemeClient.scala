@@ -16,28 +16,26 @@
 
 package connectors
 
-import config.CSRHttp
-import connectors.SchemeClient.{ CannotUpdateSchemePreferences, SchemePreferencesNotFound }
+import config.{CSRHttp, FrontendAppConfig}
+import connectors.SchemeClient.{CannotUpdateSchemePreferences, SchemePreferencesNotFound}
 import connectors.exchange.SelectedSchemes
+import javax.inject.{Inject, Singleton}
 import models.UniqueIdentifier
 import play.api.http.Status._
+import uk.gov.hmrc.http.{BadRequestException, HeaderCarrier, HttpResponse, NotFoundException, UpstreamErrorResponse}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import uk.gov.hmrc.http.{ BadRequestException, HeaderCarrier, HttpResponse, NotFoundException }
+import scala.concurrent.ExecutionContext
 
-trait SchemeClient {
-
-  val http: CSRHttp
-
-  import config.FrontendAppConfig.faststreamConfig._
+@Singleton
+class SchemeClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(implicit ec: ExecutionContext) {
+  val url = config.faststreamBackendConfig.url
 
   def getSchemePreferences(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier) = {
-    http.GET(
+    import uk.gov.hmrc.http.HttpReads.Implicits._
+    http.GET[SelectedSchemes](
       s"${url.host}${url.base}/scheme-preferences/$applicationId"
-    ).map(
-      httpResponse => httpResponse.json.as[SelectedSchemes]
     ).recover {
-      case e: NotFoundException => throw new SchemePreferencesNotFound
+      case e: UpstreamErrorResponse if e.statusCode == NOT_FOUND => throw new SchemePreferencesNotFound
     }
   }
 
@@ -51,14 +49,9 @@ trait SchemeClient {
       case _: BadRequestException => throw new CannotUpdateSchemePreferences
     }
   }
-
 }
 
-object SchemeClient extends SchemeClient {
-
-  override val http: CSRHttp = CSRHttp
-
+object SchemeClient {
   sealed class SchemePreferencesNotFound extends Exception
-
   sealed class CannotUpdateSchemePreferences extends Exception
 }

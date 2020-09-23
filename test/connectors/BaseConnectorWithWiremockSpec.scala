@@ -19,23 +19,30 @@ package connectors
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration._
-import controllers.UnitSpec
-import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach }
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import org.scalatestplus.play.guice.GuiceOneServerPerSuite
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.{Application, Configuration, Environment}
+import testkit.BaseSpec
 
-trait ConnectorSpec extends UnitSpec with BeforeAndAfterEach with BeforeAndAfterAll {
+trait BaseConnectorWithWiremockSpec extends BaseSpec with BeforeAndAfterEach with BeforeAndAfterAll with GuiceOneServerPerSuite {
 
-  //override implicit val defaultTimeout = FiniteDuration(100, TimeUnit.SECONDS)
-
-  private val WIREMOCK_PORT = 11111
+  protected def wireMockPort: Int = 11111
   private val stubHost = "localhost"
 
-  protected val wiremockBaseUrl: String = s"http://localhost:$WIREMOCK_PORT"
-  private val wireMockServer = new WireMockServer(wireMockConfig().port(WIREMOCK_PORT))
+  override implicit lazy val app: Application = new GuiceApplicationBuilder()
+    .configure(Map(
+      "microservice.services.faststream.url.host" -> s"http://localhost:$wireMockPort"
+    ))
+    .build()
+
+  protected val wiremockBaseUrl: String = s"http://localhost:$wireMockPort"
+  protected val wireMockServer = new WireMockServer(wireMockConfig().port(wireMockPort))
 
   override def beforeAll() = {
     wireMockServer.stop()
     wireMockServer.start()
-    WireMock.configureFor(stubHost, WIREMOCK_PORT)
+    WireMock.configureFor(stubHost, wireMockPort)
   }
 
   override def afterAll() = {
@@ -44,5 +51,10 @@ trait ConnectorSpec extends UnitSpec with BeforeAndAfterEach with BeforeAndAfter
 
   override def beforeEach() = {
     WireMock.reset()
+  }
+
+  trait BaseConnectorTestFixture {
+    val mockConfiguration = mock[Configuration]
+    val mockEnvironment = mock[Environment]
   }
 }

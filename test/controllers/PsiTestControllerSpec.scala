@@ -18,16 +18,13 @@ package controllers
 
 import java.util.UUID
 
-import config.SecurityEnvironmentImpl
-import connectors.ApplicationClient
-import connectors.exchange.{ Phase2TestGroupWithActiveTest2, PsiTest }
+import connectors.exchange.{Phase2TestGroupWithActiveTest2, PsiTest}
 import models.UniqueIdentifier
 import org.joda.time.DateTime
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.SilhouetteComponent
-import testkit.BaseControllerSpec
+import testkit.TestableSecureActions
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -38,11 +35,11 @@ class PsiTestControllerSpec extends BaseControllerSpec {
     "throw an exception if no active test is found for the given order id" in new TestFixture {
       val orderId = UniqueIdentifier(UUID.randomUUID().toString)
       val p2TestGroup = Phase2TestGroupWithActiveTest2(expirationDate = DateTime.now(), activeTests = Nil)
-
       when(mockApplicationClient.getPhase2TestProfile2ByOrderId(any[UniqueIdentifier])(any[HeaderCarrier]))
         .thenReturn(Future.successful(p2TestGroup))
 
-      val result = underTest.completePhase2Tests(orderId)(fakeRequest)
+      val result = controller.completePhase2Tests(orderId)(fakeRequest)
+
       status(result) mustBe INTERNAL_SERVER_ERROR
     }
 
@@ -67,10 +64,10 @@ class PsiTestControllerSpec extends BaseControllerSpec {
       when(mockApplicationClient.getPhase2TestProfile2ByOrderId(any[UniqueIdentifier])(any[HeaderCarrier]))
         .thenReturn(Future.successful(p2TestGroup))
 
-      val result = underTest.completePhase2Tests(test2OrderId)(fakeRequest)
+      val result = controller.completePhase2Tests(test2OrderId)(fakeRequest)
+
       status(result) mustBe OK
       val content = contentAsString(result)
-
       content must include("Exercise complete")
     }
 
@@ -92,26 +89,19 @@ class PsiTestControllerSpec extends BaseControllerSpec {
       when(mockApplicationClient.getPhase2TestProfile2ByOrderId(any[UniqueIdentifier])(any[HeaderCarrier]))
         .thenReturn(Future.successful(p2TestGroup))
 
-      val result = underTest.completePhase2Tests(test2OrderId)(fakeRequest)
+      val result = controller.completePhase2Tests(test2OrderId)(fakeRequest)
+
       status(result) mustBe OK
       val content = contentAsString(result)
-
       content must include("Work based scenarios complete")
     }
 
   }
 
-  trait TestFixture {
-    val mockApplicationClient = mock[ApplicationClient]
-    val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
-
+  trait TestFixture extends BaseControllerTestFixture {
     when(mockApplicationClient.completeTestByOrderId(any[UniqueIdentifier])(any[HeaderCarrier]))
       .thenReturn(Future.successful(()))
-
-    class TestablePsiTestController extends PsiTestController(mockApplicationClient) {
-      override lazy val silhouette = SilhouetteComponent.silhouette
-    }
-
-    val underTest = new TestablePsiTestController
+    val controller = new PsiTestController(mockConfig, stubMcc, mockSecurityEnv, mockSilhouetteComponent,
+    mockNotificationTypeHelper, mockApplicationClient) with TestableSecureActions
   }
 }

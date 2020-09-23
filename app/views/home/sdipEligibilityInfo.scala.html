@@ -16,7 +16,7 @@
 
 @import models.ConsiderMeForSdipHelper._
 
-@(usr: CachedData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, lang: Lang)
+@(usr: CachedData)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
 
 @displayInformation = @{
     if(faststreamerNotEligibleForSdip(usr).isDefinedAt(usr.application)) {

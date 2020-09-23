@@ -27,7 +27,6 @@ import play.api.i18n.Messages
 
 import scala.language.implicitConversions
 import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
 
 class SelectedSchemesForm(allSchemes: Seq[Scheme], isSdipFaststream: Boolean) {
 
@@ -36,7 +35,7 @@ class SelectedSchemesForm(allSchemes: Seq[Scheme], isSdipFaststream: Boolean) {
   private val maxFaststreamSchemes = 4
   private val maxSdipFaststreamSchemes = maxFaststreamSchemes + 1 // Sdip FS candidates are automatically given the Sdip scheme so + 1
 
-  def form = {
+  def form(implicit messages: Messages) = {
     Form(
       mapping(
         "schemes" -> of(schemeFormatter("schemes")),
@@ -46,7 +45,7 @@ class SelectedSchemesForm(allSchemes: Seq[Scheme], isSdipFaststream: Boolean) {
   }
 
   //scalastyle:off cyclomatic.complexity
-  def schemeFormatter(formKey: String) = new Formatter[List[String]] {
+  def schemeFormatter(formKey: String)(implicit messages: Messages) = new Formatter[List[String]] {
     def bind(key: String, data: Map[String, String]): Either[Seq[FormError], List[String]] = {
       page.getSchemesByPriority(data) match {
         case selectedSchemes if selectedSchemes.isEmpty || (isSdipFaststream && selectedSchemes == Seq("Sdip")) =>

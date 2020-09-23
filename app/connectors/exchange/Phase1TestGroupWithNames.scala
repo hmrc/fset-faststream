@@ -18,6 +18,7 @@ package connectors.exchange
 
 import org.joda.time.DateTime
 import play.api.libs.json.{ Json, OFormat }
+import models.FaststreamImplicits._
 
 case class Phase1TestGroupWithNames(expirationDate: DateTime, activeTests: Map[String, CubiksTest]) {
   def tests = activeTests.values

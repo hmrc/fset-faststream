@@ -16,48 +16,40 @@
 
 package controllers
 
-import config.{ CSRHttp, SecurityEnvironmentImpl }
-import connectors.ApplicationClient
-import security.SilhouetteComponent
-import testkit.{ BaseControllerSpec, TestableSecureActions }
+import testkit.TestableSecureActions
 
 class ApplicationControllerSpec extends BaseControllerSpec {
-  val mockApplicationClient = mock[ApplicationClient]
-  val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
-
-  class TestableApplicationController extends ApplicationController(mockApplicationClient) with TestableSecureActions {
-    val http: CSRHttp = CSRHttp
-    override val env = mockSecurityEnvironment
-    override lazy val silhouette = SilhouetteComponent.silhouette
-  }
-
-  def controller = new TestableApplicationController
 
   "index" should {
-    "redirect to sign in page" in {
+    "redirect to sign in page" in new TestFixture {
       val result = controller.index()(fakeRequest)
       assertPageRedirection(result, routes.SignInController.signIn().url)
     }
   }
 
   "terms" should {
-    "load terms page" in {
+    "load terms page" in new TestFixture {
       val result = controller.terms()(fakeRequest)
       assertPageTitle(result, "Terms and conditions")
     }
   }
 
   "privacy" should {
-    "load privacy page" in {
+    "load privacy page" in new TestFixture {
       val result = controller.privacy()(fakeRequest)
       assertPageTitle(result, "Privacy and cookies")
     }
   }
 
   "helpdesk" should {
-    "load helpdesk page" in {
+    "load helpdesk page" in new TestFixture {
       val result = controller.helpdesk()(fakeRequest)
       assertPageTitle(result, "Contact us")
     }
+  }
+
+  trait TestFixture extends BaseControllerTestFixture {
+    val controller = new ApplicationController(
+      mockConfig, stubMcc, mockSecurityEnv, mockSilhouetteComponent, mockNotificationTypeHelper) with TestableSecureActions
   }
 }

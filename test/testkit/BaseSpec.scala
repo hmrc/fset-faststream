@@ -14,22 +14,12 @@
  * limitations under the License.
  */
 
-package controllers
+package testkit
 
-import testkit.UnitWithAppSpec
-import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import uk.gov.hmrc.http.HeaderCarrier
 
-class LandingPageControllerSpec extends UnitWithAppSpec {
-
-  "Landing page controller" should {
-    "redirect to sign-in" in {
-      val request = FakeRequest(GET, controllers.routes.ApplicationController.index().url)
-
-      val result = call(LandingPageController.index, request)
-
-      status(result) must be(303)
-      redirectLocation(result).get must be(controllers.routes.SignInController.signIn().url)
-    }
-  }
+abstract class BaseSpec extends UnitSpec {
+  implicit val ec = scala.concurrent.ExecutionContext.Implicits.global
+  implicit val hc: HeaderCarrier = HeaderCarrier()
+  val unit: Unit = ()
 }

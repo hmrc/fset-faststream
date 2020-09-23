@@ -16,9 +16,9 @@
 
 package config
 
-import java.time.format.{ DateTimeFormatter, DateTimeParseException }
+import java.time.format.{DateTimeFormatter, DateTimeParseException}
 
-import controllers.UnitSpec
+import testkit.UnitSpec
 
 class ApplicationRouteFrontendConfigSpec extends UnitSpec {
   val format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")

@@ -46,5 +46,6 @@ case class AssessmentScoresExercise(
 )
 
 object AssessmentScoresExercise {
+  import models.FaststreamImplicits._
   implicit val scoresAndFeedbackFormat = Json.format[AssessmentScoresExercise]
 }

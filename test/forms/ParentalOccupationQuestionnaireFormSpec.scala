@@ -16,10 +16,11 @@
 
 package forms
 
-import forms.ParentalOccupationQuestionnaireForm.{ Data, form }
-import testkit.UnitWithAppSpec
+import forms.ParentalOccupationQuestionnaireForm.Data
 
-class ParentalOccupationQuestionnaireFormSpec extends UnitWithAppSpec {
+class ParentalOccupationQuestionnaireFormSpec extends BaseFormSpec {
+
+  val form = new ParentalOccupationQuestionnaireForm().form
 
   "the occupation form" should {
 

@@ -14,7 +14,8 @@
  * limitations under the License.
  *@
 
-@(form: Form[_root_.forms.ConsiderForSdipForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+@import config.AnalyticsConfig
+@(form: Form[_root_.forms.ConsiderForSdipForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
 
 @import views.html.widgets.checkbox
 

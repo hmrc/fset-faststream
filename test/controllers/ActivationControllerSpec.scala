@@ -16,52 +16,32 @@
 
 package controllers
 
-import config.SecurityEnvironmentImpl
-import connectors.{ ApplicationClient, UserManagementClient }
-import connectors.UserManagementClient.{ TokenEmailPairInvalidException, TokenExpiredException }
+import connectors.UserManagementClient.{TokenEmailPairInvalidException, TokenExpiredException}
+import forms.ActivateAccountForm
 import models.CachedData
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import models.SecurityUserExamples._
+import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
-import play.api.mvc.{ Request, Result, Results }
+import play.api.mvc.{Request, Result, Results}
 import play.api.test.Helpers._
-import security.{ SignInService, SilhouetteComponent }
-import testkit.{ BaseControllerSpec, TestableSecureActions }
+import testkit.TestableSecureActions
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 
 class ActivationControllerSpec extends BaseControllerSpec {
-  val mockApplicationClient = mock[ApplicationClient]
-  val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
-  val mockUserManagementClient = mock[UserManagementClient]
-  val mockSignInService = mock[SignInService]
-
-  import models.SecurityUserExamples._
-
-  class TestableActivationController extends ActivationController(mockApplicationClient,
-    mockUserManagementClient) with TestableSignInService
-    with TestableSecureActions {
-    val signInService = mockSignInService
-    override val env = mockSecurityEnvironment
-    override lazy val silhouette = SilhouetteComponent.silhouette
-  }
-
-  def controller = new TestableActivationController
 
   "Activation Controller present" should {
-    "redirect to home page for active user" in {
-      val result = controller.present()(fakeRequest)
+    "redirect to home page for active user" in new TestFixture {
+      val result = controller(ActiveCandidate).present()(fakeRequest)
 
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.HomeController.present().url))
-      flash(result).data must be (Map("warning" -> "You've already activated your account"))
+      flash(result).data must be (Map("warning" -> "activation.already"))
     }
 
-    "redirect to registration page for inactive user" in {
-      val controllerForInactiveUser = new TestableActivationController {
-        override val candidate: CachedData = InactiveCandidate
-      }
-
-      val result = controllerForInactiveUser.present()(fakeRequest)
+    "redirect to registration page for inactive user" in new TestFixture {
+      val result = controller(InactiveCandidate).present()(fakeRequest)
 
       status(result) must be(OK)
       contentAsString(result) must include("<title>Activate your account")
@@ -69,66 +49,74 @@ class ActivationControllerSpec extends BaseControllerSpec {
   }
 
   "Activation Controller submit" should {
-    "activate user when activation form is valid" in {
+    "activate user when activation form is valid" in new TestFixture {
       val Request = fakeRequest.withFormUrlEncodedBody("activation" -> ValidToken)
       when(mockUserManagementClient.activate(eqTo(currentEmail), eqTo(ValidToken))(any())).thenReturn(Future.successful(()))
       when(mockSignInService.signInUser(
         eqTo(currentCandidate.user.copy(isActive = true)),
-        eqTo(mockSecurityEnvironment),
-        any[Result])(any[Request[_]])
+        any[Result])(any[Request[_]], any[HeaderCarrier])
       ).thenReturn(Future.successful(Results.Redirect(routes.HomeController.present())))
 
-      val result = controller.submit()(Request)
+      val result = controller(ActiveCandidate).submit()(Request)
 
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.HomeController.present().url))
     }
 
-    "reject form when validation failed" in {
+    "reject form when validation failed" in new TestFixture {
       val TooShortToken = "A"
       val Request = fakeRequest.withFormUrlEncodedBody("activation" -> TooShortToken)
 
-      val result = controller.submit()(Request)
+      val result = controller(ActiveCandidate).submit()(Request)
 
       status(result) must be(OK)
-      contentAsString(result) must include("The activation code must have 7 characters")
+      contentAsString(result) must include("activation.wrong-format")
     }
 
-    "reject form when token expired" in {
+    "reject form when token expired" in new TestFixture {
       val Request = fakeRequest.withFormUrlEncodedBody("activation" -> ValidToken)
       when(mockUserManagementClient.activate(eqTo(currentEmail), eqTo(ValidToken))(any()))
         .thenReturn(Future.failed(new TokenExpiredException))
 
-      val result = controller.submit()(Request)
+      val result = controller(ActiveCandidate).submit()(Request)
 
       status(result) must be(OK)
-      contentAsString(result) must include("This activation code has expired")
+      contentAsString(result) must include("expired.activation-code")
     }
 
-    "reject form when token and email pair invalid" in {
+    "reject form when token and email pair invalid" in new TestFixture {
       val Request = fakeRequest.withFormUrlEncodedBody("activation" -> ValidToken)
       when(mockUserManagementClient.activate(eqTo(ActiveCandidateUser.email), eqTo(ValidToken))(any()))
         .thenReturn(Future.failed(new TokenEmailPairInvalidException))
 
-      val result = controller.submit()(Request)
+      val result = controller(ActiveCandidate).submit()(Request)
 
       status(result) must be(OK)
-      contentAsString(result) must include("Enter a correct activation code")
+      contentAsString(result) must include("wrong.activation-code")
     }
   }
 
   "Activation Controller resend code" should {
-    "resend the activation code" in {
+    "resend the activation code" in new TestFixture {
       when(mockUserManagementClient.resendActivationCode(eqTo(ActiveCandidateUser.email))(any())).thenReturn(Future.successful(()))
 
-      val result = controller.resendCode()(fakeRequest)
+      val result = controller(ActiveCandidate).resendCode()(fakeRequest)
 
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.ActivationController.present().url))
-      flash(result).data must be (Map("success" -> ("A new activation code has been sent. " +
-        "Check your email.<p>If you can't see it in your inbox within a few minutes, " +
-        "check your spam folder.</p>"))
+      flash(result).data must be (Map("success" -> ("activation.code-resent"))
       )
+    }
+  }
+
+  trait TestFixture extends BaseControllerTestFixture {
+    val formWrapper = new ActivateAccountForm
+    def controller(givenCandidate: CachedData) = {
+      new ActivationController(mockConfig,
+        stubMcc, mockSecurityEnv, mockSilhouetteComponent, mockUserManagementClient,
+        mockNotificationTypeHelper, mockSignInService, formWrapper) with TestableSecureActions {
+        override val candidate: CachedData = givenCandidate
+      }
     }
   }
 }

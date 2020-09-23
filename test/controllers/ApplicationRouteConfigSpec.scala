@@ -20,6 +20,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 import config.ApplicationRouteFrontendConfig
+import testkit.UnitSpec
 
 class ApplicationRouteStateSpec extends UnitSpec {
   "New Accounts creation and submit applications" should {

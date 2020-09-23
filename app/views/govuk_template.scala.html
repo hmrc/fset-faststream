@@ -14,10 +14,9 @@
  * limitations under the License.
  *@
 
-@(title: String, user: Option[CachedData] = None, additionalJavascriptFilenames: List[String] = Nil, idElementFirstError: Option[String] = None)(mainContent: Html)(implicit request: Request[_], feedbackUrl: String)
-
-@import config.FrontendAppConfig
+@import config.AnalyticsConfig
 @import views.html.template.userDetails
+@(title: String, user: Option[CachedData] = None, additionalJavascriptFilenames: List[String] = Nil, idElementFirstError: Option[String] = None)(mainContent: Html)(implicit request: Request[_], feedbackUrl: String, analyticsConfig: AnalyticsConfig)
 
 <!DOCTYPE html>
 <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
@@ -177,13 +176,13 @@
             </div>
             <!-- end of modal dialog -->
 
-            @if(FrontendAppConfig.analyticsToken != "N/A") {
+            @if(analyticsConfig.token != "N/A") {
                 <script type="text/javascript">
                     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
                     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
                     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
                     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-                    ga('create', '@FrontendAppConfig.analyticsToken', '@FrontendAppConfig.analyticsHost');
+                    ga('create', '@analyticsConfig.token', '@analyticsConfig.host');
                     ga('send', 'pageview', { 'anonymizeIp': true });
                 </script>
             }

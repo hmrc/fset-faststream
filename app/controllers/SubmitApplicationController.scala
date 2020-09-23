@@ -16,25 +16,32 @@
 
 package controllers
 
+import config.{FrontendAppConfig, SecurityEnvironment}
 import connectors.ApplicationClient
 import connectors.ApplicationClient.CannotSubmit
 import helpers.NotificationType._
-import security.Roles.{ AbleToWithdrawApplicationRole, SubmitApplicationRole }
-
-import scala.concurrent.Future
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
+import helpers.NotificationTypeHelper
+import javax.inject.{Inject, Singleton}
+import play.api.mvc.MessagesControllerComponents
+import security.Roles.{AbleToWithdrawApplicationRole, SubmitApplicationRole}
 import security.SilhouetteComponent
 
-object SubmitApplicationController extends SubmitApplicationController(ApplicationClient) {
-  val appRouteConfigMap = config.FrontendAppConfig.applicationRoutesFrontend
-  lazy val silhouette = SilhouetteComponent.silhouette
-}
+import scala.concurrent.{ExecutionContext, Future}
 
-abstract class SubmitApplicationController(applicationClient: ApplicationClient)
-  extends BaseController with CampaignAwareController {
+@Singleton
+class SubmitApplicationController @Inject() (
+  config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  val notificationTypeHelper: NotificationTypeHelper,
+  applicationClient: ApplicationClient
+)(implicit val ec: ExecutionContext)
+  extends BaseController(config, mcc) with CampaignAwareController {
+  val appRouteConfigMap = config.applicationRoutesFrontend
+  import notificationTypeHelper._
 
-  implicit val marketingTrackingEnabled = config.FrontendAppConfig.marketingTrackingEnabled
+  implicit val marketingTrackingEnabled = config.marketingTrackingEnabled
 
   def presentSubmit = CSRSecureAppAction(SubmitApplicationRole) { implicit request =>
     implicit user =>
@@ -56,7 +63,8 @@ abstract class SubmitApplicationController(applicationClient: ApplicationClient)
         applicationClient.submitApplication(user.user.userID, user.application.applicationId).map { _ =>
             Redirect(routes.SubmitApplicationController.presentSubmitted())
         }.recover {
-          case _: CannotSubmit => Redirect(routes.PreviewApplicationController.present()).flashing(danger("error.cannot.submit"))
+          case _: CannotSubmit => Redirect(routes.PreviewApplicationController.present()).flashing(
+            danger("error.cannot.submit"))
         }
       } else {
         Future.successful(Redirect(routes.HomeController.present()))

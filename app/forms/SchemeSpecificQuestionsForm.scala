@@ -17,13 +17,16 @@
 package forms
 
 import connectors.exchange.sift.SchemeSpecificAnswer
+import javax.inject.Singleton
+import mappings.Mappings._
 import play.api.data.Form
 import play.api.data.Forms._
 
-object SchemeSpecificQuestionsForm {
+@Singleton
+class SchemeSpecificQuestionsForm {
   val form = Form(
     mapping(
-      "rawText" -> Mappings.nonEmptyTrimmedText("additionalquestions.error.schemespecific")
+      "rawText" -> nonEmptyTrimmedText("additionalquestions.error.schemespecific")
     )(SchemeSpecificAnswer.apply)(SchemeSpecificAnswer.unapply)
   )
 }

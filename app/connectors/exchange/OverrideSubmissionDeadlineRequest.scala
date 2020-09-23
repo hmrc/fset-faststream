@@ -22,6 +22,7 @@ import play.api.libs.json.{ Json, OFormat }
 case class OverrideSubmissionDeadlineRequest(submissionDeadline: DateTime)
 
 object OverrideSubmissionDeadlineRequest {
+  import models.FaststreamImplicits._
   implicit val overrideSubmissionDeadlineRequestFormat: OFormat[OverrideSubmissionDeadlineRequest] =
     Json.format[OverrideSubmissionDeadlineRequest]
 }

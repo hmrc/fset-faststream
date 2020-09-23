@@ -18,18 +18,17 @@ package security
 
 import java.util.UUID
 
-import connectors.exchange.ProgressExamples
 import connectors.exchange.CivilServiceExperienceDetailsExamples._
-import controllers.UnitSpec
+import connectors.exchange.ProgressExamples
 import models.ApplicationData.ApplicationStatus
-import models.ApplicationData.ApplicationStatus.{ CREATED, _ }
-import models._
+import models.ApplicationData.ApplicationStatus.{CREATED, _}
 import models.CachedDataExample._
-import play.api.i18n.Lang
+import models._
 import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import security.Roles.{ CsrAuthorization, WithdrawComponent }
+import security.Roles.{CsrAuthorization, WithdrawComponent}
+import testkit.UnitSpec
 
 class RolesSpec extends UnitSpec {
   import RolesSpec._
@@ -68,15 +67,6 @@ class RolesSpec extends UnitSpec {
       assertValidAndInvalidStatuses(WithdrawComponent, enabledStatuses, disabledStatuses)
     }
   }
-
-  /*"Assessment Centre Failed to attend role" must {
-    "be authorised only for specific roles" in {
-      val enabledStatuses = List(FAILED_TO_ATTEND)
-      val disabledStatuses = ApplicationStatus.values.toList.diff(enabledStatuses)
-
-      assertValidAndInvalidStatuses(AssessmentCentreFailedToAttendRole, enabledStatuses, disabledStatuses)
-    }
-  }*/
 
   def assertValidAndInvalidStatuses(
     role: CsrAuthorization,

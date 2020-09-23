@@ -19,22 +19,17 @@ package controllers
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import config.{ CSRHttp, SecurityEnvironmentImpl }
-import connectors.exchange.{ ApplicationResponse, OverrideSubmissionDeadlineRequest, ProgressResponse, UserResponse }
 import connectors.exchange.campaignmanagement.AfterDeadlineSignupCodeUnused
-import connectors.{ ApplicationClient, UserManagementClient }
-import forms.SignupFormGenerator
-import models.ApplicationData.ApplicationStatus
+import forms.{SignUpForm, SignupFormGenerator}
 import models.ApplicationRoute._
 import models.SecurityUserExamples._
-import models.{ ApplicationRoute, CachedDataExample, CachedDataWithApp, UniqueIdentifier }
+import models.{CachedDataExample, CachedDataWithApp}
 import org.joda.time.DateTime
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.Matchers._
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.{ SilhouetteComponent, UserCacheService }
-import testkit.{ BaseControllerSpec, TestableSecureActions }
 import testkit.MockitoImplicits._
+import testkit.TestableSecureActions
 
 class SignUpControllerSpec extends BaseControllerSpec {
 
@@ -166,12 +161,12 @@ class SignUpControllerSpec extends BaseControllerSpec {
         val applicationsStartDate = None
       }
       val appRouteConfigMap = Map(Faststream -> appRouteState, Edip -> defaultAppRouteState, Sdip -> defaultAppRouteState)
-      val (data, signUpForm) = SignupFormGenerator().get
+      val (_, signUpForm) = SignupFormGenerator().get
       val Request = fakeRequest.withFormUrlEncodedBody(signUpForm.data.toSeq:_*)
       val result = controller(appRouteConfigMap).signUp(None)(Request)
       status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.SignUpController.present(None).url))
-      flash(result).data mustBe Map("warning" -> "Sorry, applications for the Civil Service Fast Stream are now closed")
+      flash(result).data mustBe Map("warning" -> "applicationRoute.Faststream.closed")
     }
 
     "display fast stream applications not started message" in new TestFixture {
@@ -187,17 +182,12 @@ class SignUpControllerSpec extends BaseControllerSpec {
       val result = controller(appRouteConfigMap).signUp(None)(Request)
       status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.SignUpController.present(None).url))
-      val msg = "Sorry, applications for the Civil Service Fast Stream are opened from 06 Dec 2016 00:00:00 AM"
+      val msg = "applicationRoute.Faststream.notOpen"
       flash(result).data mustBe Map("warning" -> msg)
     }
   }
 
-  trait TestFixture {
-    val mockApplicationClient = mock[ApplicationClient]
-    val mockUserManagementClient = mock[UserManagementClient]
-    val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
-    val mockUserService = mock[UserCacheService]
-
+  trait TestFixture extends BaseControllerTestFixture {
     val defaultAppRouteState = new ApplicationRouteState {
       val newAccountsStarted = true
       val newAccountsEnabled = true
@@ -207,15 +197,12 @@ class SignUpControllerSpec extends BaseControllerSpec {
 
     val defaultAppRouteConfigMap = Map(Faststream -> defaultAppRouteState, Edip -> defaultAppRouteState, Sdip -> defaultAppRouteState)
 
-    class TestableSignUpController(val testAppRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState])
-      extends SignUpController(mockApplicationClient, mockUserManagementClient) with TestableSecureActions {
-      val http: CSRHttp = CSRHttp
-      override val env = mockSecurityEnvironment
-      override lazy val silhouette = SilhouetteComponent.silhouette
-      when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
-      val appRouteConfigMap = testAppRouteConfigMap
+    def controller(newAppRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState]) = {
+      val formWrapper = new SignUpForm
+      new SignUpController(mockConfig, stubMcc, mockSecurityEnv, mockSilhouetteComponent, mockNotificationTypeHelper, mockSignInService,
+      mockApplicationClient, mockUserManagementClient, formWrapper) with TestableSecureActions {
+        override val appRouteConfigMap = newAppRouteConfigMap
+      }
     }
-
-    def controller(appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState]) = new TestableSignUpController(appRouteConfigMap)
   }
 }

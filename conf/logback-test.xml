@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel" />
+
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>logs/fset-faststream-admin-frontend.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%date{ISO8601} level=[%level] logger=[%logger] thread=[%thread] message=[%message] %replace(exception=[%xException]){'^exception=\[\]$',''}%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="STDOUT_DEV" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{HH:mm:ss,SSS} %coloredLevel [%logger] [%thread] %message [rid=%X{X-Request-ID},usr=%X{Authorization}] %replace(exception=[%xException]){'^exception=\[\]$',''}%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%date{ISO8601} level=[%level] logger=[%logger] message=[%message] %replace(exception=[%xException]){'^exception=\[\]$',''}%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="STDOUT_IGNORE_NETTY" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%date{ISO8601} level=[%level] logger=[%logger] thread=[%thread] rid=[not-available] user=[not-available] message=[%message] %replace(exception=[%xException]){'^exception=\[\]$',''}%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ACCESS_LOG_FILE" class="ch.qos.logback.core.FileAppender">
+        <file>logs/access.log</file>
+        <encoder>
+            <pattern>%message%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="CONNECTOR_LOG_FILE" class="ch.qos.logback.core.FileAppender">
+        <file>logs/connector.log</file>
+        <encoder>
+            <pattern>%message%n</pattern>
+        </encoder>
+    </appender>
+
+
+    <logger name="accesslog" level="INFO" additivity="false">
+        <appender-ref ref="ACCESS_LOG_FILE" />
+    </logger>
+
+    <logger name="play.shaded.ahc.org.asynchttpclient.netty" additivity="false">
+        <appender-ref ref="STDOUT_IGNORE_NETTY" />
+    </logger>
+
+    <logger name="uk.gov" level="INFO"/>
+
+    <logger name="application" level="DEBUG"/>
+
+    <logger name="connector" level="TRACE">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+
+    <logger name="play.shaded.ahc.io.netty.util.ResourceLeakDetectorFactory" level="INFO" />
+    <logger name="org.jboss.netty.channel.socket.nio" level="WARN" />
+    <logger name="play.shaded.ahc.io.netty.buffer" level="WARN"/>
+    <logger name="play.shaded.ahc.io.netty" level="INFO"/>
+    <logger name="play.shaded.ahc.org.asynchttpclient.netty.handler" level="INFO"/>
+    <logger name="play.shaded.ahc.io.netty.channel" level="INFO"/>
+    <logger name="play.shaded.ahc.org.asynchttpclient.netty.channel" level="INFO"/>
+    <logger name="play.shaded.ahc.org.asynchttpclient.netty.request" level="INFO"/>
+
+    <logger name="com.google.inject.internal" level="WARN" />
+    <logger name="javax.management.mbeanserver" level="WARN"/>
+    <logger name="akka.event" level="INFO"/>
+    <logger name="akka.actor" level="INFO"/>
+    <logger name="akka.stream.impl.io" level="INFO"/>
+    <logger name="net.sf.ehcache" level="INFO"/>
+    <logger name="akka.event.slf4j.Slf4jLogger" level="WARN"/>
+    <logger name="play.api.libs.concurrent.ActorSystemProvider" level="INFO"/>
+    <logger name="play.core.netty.utils.ServerCookieDecoder" level="INFO"/>
+
+    <logger name="org.apache.http" level="INFO"/>
+    <logger name="org.apache.http.wire" level="INFO"/>
+
+    <logger name="ch.qos.logback.core.joran.action.AppenderAction" level="ERROR"/>
+    <logger name="uk.gov.hmrc.play.bootstrap.filters.CacheControlFilter" level="ERROR"/>
+
+    <root level="DEBUG">
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="${logger.console.appender:-STDOUT}"/>
+    </root>
+</configuration>

@@ -16,12 +16,9 @@
 
 package controllers
 
-import config.SecurityEnvironmentImpl
 import play.api.test.Helpers._
-import security._
-import testables.NoIdentityTestableCSRUserAwareAction
-import testkit.BaseControllerSpec
-import uk.gov.hmrc.http.{ HeaderCarrier, SessionKeys }
+import testkit.NoIdentityTestableCSRUserAwareAction
+import uk.gov.hmrc.http.SessionKeys
 
 class LockAccountControllerSpec extends BaseControllerSpec {
 
@@ -57,7 +54,6 @@ class LockAccountControllerSpec extends BaseControllerSpec {
     }
 
     "present reset password page when email is passed" in new TestFixture {
-
       val lockAccountRequest = fakeRequest.withFormUrlEncodedBody(
         "email" -> "testEmail123@mailinator.com"
       ).withSession(SessionKeys.sessionId -> "session-0379e8ad-3797-4c7f-b80f-2279b5f0819a")
@@ -71,20 +67,10 @@ class LockAccountControllerSpec extends BaseControllerSpec {
     }
   }
 
-  trait TestFixture {
-    implicit val hc: HeaderCarrier = HeaderCarrier()
-
-    val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
-    val mockEnvironment = mock[SecurityEnvironment]
-
-    class TestableLockAccountController extends LockAccountController {
-      override val env = mockSecurityEnvironment
-      override lazy val silhouette = SilhouetteComponent.silhouette
-    }
-
-    def lockAccountController = new LockAccountController with NoIdentityTestableCSRUserAwareAction {
-      override val env = mockSecurityEnvironment
-      override lazy val silhouette = SilhouetteComponent.silhouette
+  trait TestFixture extends BaseControllerTestFixture {
+    def lockAccountController = {
+      new LockAccountController(mockConfig, stubMcc, mockSecurityEnv,
+        mockSilhouetteComponent, mockNotificationTypeHelper) with NoIdentityTestableCSRUserAwareAction
     }
   }
 }

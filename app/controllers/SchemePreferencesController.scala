@@ -16,27 +16,31 @@
 
 package controllers
 
+import config.{FrontendAppConfig, SecurityEnvironment}
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.exchange.referencedata.SchemeId
-import connectors.{ ReferenceDataClient, SchemeClient }
+import connectors.{ReferenceDataClient, SchemeClient}
 import forms.SelectedSchemesForm
+import helpers.NotificationTypeHelper
+import javax.inject.{Inject, Singleton}
 import models.ApplicationRoute
 import models.page.SelectedSchemesPage
+import play.api.mvc.MessagesControllerComponents
 import security.Roles.SchemesRole
 import security.SilhouetteComponent
 
-import scala.concurrent.Future
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
+import scala.concurrent.{ExecutionContext, Future}
 
-object SchemePreferencesController extends SchemePreferencesController(SchemeClient, ReferenceDataClient) {
-  lazy val silhouette = SilhouetteComponent.silhouette
-}
-
-abstract class SchemePreferencesController(
+@Singleton
+class SchemePreferencesController @Inject() (
+  config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  val notificationTypeHelper: NotificationTypeHelper,
   schemeClient: SchemeClient,
   referenceDataClient: ReferenceDataClient
-) extends BaseController {
+)(implicit val ec: ExecutionContext) extends BaseController(config, mcc) {
 
 
   def present = CSRSecureAppAction(SchemesRole) { implicit request =>
@@ -74,7 +78,7 @@ abstract class SchemePreferencesController(
 
             for {
               _ <- schemeClient.updateSchemePreferences(selectedSchemesAmended)(cachedData.application.applicationId)
-              redirect <- env.userService.refreshCachedUser(cachedData.user.userID).map { _ =>
+              redirect <- secEnv.userService.refreshCachedUser(cachedData.user.userID).map { _ =>
                 Redirect(routes.AssistanceDetailsController.present())
               }
             } yield {

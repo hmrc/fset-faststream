@@ -16,41 +16,24 @@
 
 package forms
 
-import forms.Mappings._
-import models.frameworks.{ Preference, Region }
+import javax.inject.Singleton
+import mappings.Mappings._
+import models.frameworks.{Preference, Region}
 import play.api.data.Form
 import play.api.data.Forms._
 
 import scala.language.implicitConversions
 
-object SchemeLocationPreferenceForm {
-
+@Singleton
+class SchemeLocationPreferenceForm {
   val form = Form(
     mapping(
       "regionAndlocation" -> (nonEmptyTrimmedText("location.required", 128) verifying
         ("location.required", value => value.matches("[^;]+;[^;]+"))),
       "firstScheme" -> nonEmptyTrimmedText("firstScheme.required", 64),
       "secondScheme" -> optionalTrimmedText(64)
-    )(Data.apply)(Data.unapply)
+    )(SchemeLocationPreferenceForm.Data.apply)(SchemeLocationPreferenceForm.Data.unapply)
   )
-
-  case class Data(
-    regionAndlocation: String,
-    firstScheme: String,
-    secondScheme: Option[String]
-  )
-
-  implicit def fromPreferenceToFormData(pref: Preference): Data = Data(
-    regionAndlocation = s"${pref.region};${pref.location}", firstScheme = pref.firstFramework, secondScheme = pref.secondFramework
-  )
-
-  implicit def fromFormDataToPreference(data: Data): Preference = {
-    val tokens = data.regionAndlocation.split(";") // the data was validated by the form
-    Preference(
-      region = tokens.head,
-      location = tokens.tail.head, firstFramework = data.firstScheme, secondFramework = data.secondScheme
-    )
-  }
 
   val locationErr = "location.unavailable"
   val firstErr = "firstScheme.unavailable"
@@ -84,5 +67,25 @@ object SchemeLocationPreferenceForm {
         }
       }
     }.getOrElse(Seq(locationErr))
+  }
+}
+
+object SchemeLocationPreferenceForm {
+  case class Data(
+    regionAndlocation: String,
+    firstScheme: String,
+    secondScheme: Option[String]
+  )
+
+  implicit def fromPreferenceToFormData(pref: Preference): SchemeLocationPreferenceForm.Data = SchemeLocationPreferenceForm.Data(
+    regionAndlocation = s"${pref.region};${pref.location}", firstScheme = pref.firstFramework, secondScheme = pref.secondFramework
+  )
+
+  implicit def fromFormDataToPreference(data: SchemeLocationPreferenceForm.Data): Preference = {
+    val tokens = data.regionAndlocation.split(";") // the data was validated by the form
+    Preference(
+      region = tokens.head,
+      location = tokens.tail.head, firstFramework = data.firstScheme, secondFramework = data.secondScheme
+    )
   }
 }

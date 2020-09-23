@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package connectors
+package testkit
 
-package object exchange {
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.mockito.MockitoSugar
+import org.scalatestplus.play.PlaySpec
 
-  val FrameworkId = "FastStream-2016"
-
-  type LoginInfo = String
-}
+abstract class UnitSpec extends PlaySpec with MockitoSugar with ScalaFutures

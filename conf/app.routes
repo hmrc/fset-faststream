@@ -1,121 +1,120 @@
 # microservice specific routes
 
 # Generic links
-GET         /                                                       controllers.ApplicationController.index
-GET         /terms                                                  controllers.ApplicationController.terms
-GET         /helpdesk                                               controllers.ApplicationController.helpdesk
-GET         /cookies                                                controllers.ApplicationController.cookies
-GET         /privacy                                                controllers.ApplicationController.privacy
-GET         /accessibility                                          controllers.ApplicationController.accessibility
+GET         /                                                       @controllers.ApplicationController.index
+GET         /terms                                                  @controllers.ApplicationController.terms
+GET         /helpdesk                                               @controllers.ApplicationController.helpdesk
+GET         /cookies                                                @controllers.ApplicationController.cookies
+GET         /privacy                                                @controllers.ApplicationController.privacy
+GET         /accessibility                                          @controllers.ApplicationController.accessibility
 
 # Account lock
-GET         /locked                                                 controllers.LockAccountController.present
-POST        /locked                                                 controllers.LockAccountController.submit
+GET         /locked                                                 @controllers.LockAccountController.present
+POST        /locked                                                 @controllers.LockAccountController.submit
 
 # Registration and activation
-GET         /signup                                                 controllers.SignUpController.present(signupCode: Option[String])
-POST        /signup                                                 controllers.SignUpController.signUp(signupCode: Option[String])
+GET         /signup                                                 @controllers.SignUpController.present(signupCode: Option[String])
+POST        /signup                                                 @controllers.SignUpController.signUp(signupCode: Option[String])
 
-GET         /activation                                             controllers.ActivationController.present
-POST        /activation/resend                                      controllers.ActivationController.resendCode
-POST        /activation                                             controllers.ActivationController.submit
+GET         /activation                                             @controllers.ActivationController.present
+POST        /activation/resend                                      @controllers.ActivationController.resendCode
+POST        /activation                                             @controllers.ActivationController.submit
 
 # User sign in
-GET         /signin                                                 controllers.SignInController.present
-GET         /sdip/signin                                            controllers.SignInController.sdipPresent
-POST        /signin                                                 controllers.SignInController.signIn
-GET         /signout                                                controllers.SignInController.signOut
-GET         /password/forgot                                        controllers.PasswordResetController.presentCode
-POST        /password/forgot                                        controllers.PasswordResetController.submitCode
-GET         /password/reset                                         controllers.PasswordResetController.presentReset
-POST        /password/reset                                         controllers.PasswordResetController.submitReset
+GET         /signin                                                 @controllers.SignInController.present
+GET         /sdip/signin                                            @controllers.SignInController.sdipPresent
+POST        /signin                                                 @controllers.SignInController.signIn
+GET         /signout                                                @controllers.SignInController.signOut
+GET         /password/forgot                                        @controllers.PasswordResetController.presentCode
+POST        /password/forgot                                        @controllers.PasswordResetController.submitCode
+GET         /password/reset                                         @controllers.PasswordResetController.presentReset
+POST        /password/reset                                         @controllers.PasswordResetController.submitReset
 
 # Session timeout extension
-GET         /extendIdleTimeout                                      controllers.SessionController.extendIdleTimeout
+GET         /extendIdleTimeout                                      @controllers.SessionController.extendIdleTimeout
 
 # Application pages
-GET         /dashboard                                              controllers.HomeController.present(displaySdipEligibilityInfo: Boolean ?= false)
-GET         /assessment-feedback                                    controllers.AssessmentFeedbackController.present(applicationId: UniqueIdentifier)
-GET         /application/create                                     controllers.HomeController.create
-GET         /application/resume                                     controllers.HomeController.resume
-GET         /application/withdraw                                   controllers.WithdrawController.presentWithdrawApplication
-POST        /application/withdraw                                   controllers.WithdrawController.withdrawApplication
-GET         /application/withdraw/scheme                            controllers.WithdrawController.presentWithdrawScheme
-POST        /application/withdraw/scheme                            controllers.WithdrawController.withdrawScheme
+GET         /dashboard                                              @controllers.HomeController.present(displaySdipEligibilityInfo: Boolean ?= false)
+GET         /assessment-feedback                                    @controllers.AssessmentFeedbackController.present(applicationId: UniqueIdentifier)
+GET         /application/create                                     @controllers.HomeController.create
+GET         /application/resume                                     @controllers.HomeController.resume
+GET         /application/withdraw                                   @controllers.WithdrawController.presentWithdrawApplication
+POST        /application/withdraw                                   @controllers.WithdrawController.withdrawApplication
+GET         /application/withdraw/scheme                            @controllers.WithdrawController.presentWithdrawScheme
+POST        /application/withdraw/scheme                            @controllers.WithdrawController.withdrawScheme
 # Removed for 2020/21 campaign
-#POST        /file-submission/dashboard/submitWrittenExercise        controllers.HomeController.submitAnalysisExercise
-POST        /application/confirm-assessment-centre-allocation       controllers.HomeController.confirmAssessmentCentreAllocation(allocationVersion: String, eventId: UniqueIdentifier,sessionId: UniqueIdentifier)
+#POST        /file-submission/dashboard/submitWrittenExercise        @controllers.HomeController.submitAnalysisExercise
+POST        /application/confirm-assessment-centre-allocation       @controllers.HomeController.confirmAssessmentCentreAllocation(allocationVersion: String, eventId: UniqueIdentifier,sessionId: UniqueIdentifier)
+GET         /application/details                                    @controllers.PersonalDetailsController.present
+POST        /application/details                                    @controllers.PersonalDetailsController.submitPersonalDetails
+GET         /application/details/continue                           @controllers.PersonalDetailsController.presentAndContinue
+POST        /application/details/continue                           @controllers.PersonalDetailsController.submitPersonalDetailsAndContinue
 
-GET         /application/details                                    controllers.PersonalDetailsController.present
-POST        /application/details                                    controllers.PersonalDetailsController.submitPersonalDetails
-GET         /application/details/continue                           controllers.PersonalDetailsController.presentAndContinue
-POST        /application/details/continue                           controllers.PersonalDetailsController.submitPersonalDetailsAndContinue
+GET         /application/schemes                                    @controllers.SchemePreferencesController.present
+POST        /application/schemes                                    @controllers.SchemePreferencesController.submit
 
-GET         /application/schemes                                    controllers.SchemePreferencesController.present
-POST        /application/schemes                                    controllers.SchemePreferencesController.submit
+GET         /application/assistance-details                         @controllers.AssistanceDetailsController.present
+POST        /application/assistance-details                         @controllers.AssistanceDetailsController.submit
 
-GET         /application/assistance-details                         controllers.AssistanceDetailsController.present
-POST        /application/assistance-details                         controllers.AssistanceDetailsController.submit
+GET         /application/testResults                                @controllers.TestResultsController.present
 
-GET         /application/testResults                                controllers.TestResultsController.present
-
-GET         /application/preview                                    controllers.PreviewApplicationController.present
-POST        /application/preview                                    controllers.PreviewApplicationController.submit
-GET         /application/submit                                     controllers.SubmitApplicationController.presentSubmit
-POST        /application/submit                                     controllers.SubmitApplicationController.submit
-GET         /application/success                                    controllers.SubmitApplicationController.presentSubmitted
+GET         /application/preview                                    @controllers.PreviewApplicationController.present
+POST        /application/preview                                    @controllers.PreviewApplicationController.submit
+GET         /application/submit                                     @controllers.SubmitApplicationController.presentSubmit
+POST        /application/submit                                     @controllers.SubmitApplicationController.submit
+GET         /application/success                                    @controllers.SubmitApplicationController.presentSubmitted
 
 # Questionnaire
-GET         /questionnaire/start                                    controllers.QuestionnaireController.presentStartOrContinue
-POST        /questionnaire/start                                    controllers.QuestionnaireController.submitStart
-POST        /questionnaire/continue                                 controllers.QuestionnaireController.submitContinue
-GET         /questionnaire/page/1                                   controllers.QuestionnaireController.presentFirstPage
-POST        /questionnaire/page/1                                   controllers.QuestionnaireController.submitFirstPage
-GET         /questionnaire/page/2                                   controllers.QuestionnaireController.presentSecondPage
-POST        /questionnaire/page/2                                   controllers.QuestionnaireController.submitSecondPage
-GET         /questionnaire/page/3                                   controllers.QuestionnaireController.presentThirdPage
-POST        /questionnaire/page/3                                   controllers.QuestionnaireController.submitThirdPage
-GET         /schools                                                controllers.SchoolsController.getSchools(item: String)
+GET         /questionnaire/start                                    @controllers.QuestionnaireController.presentStartOrContinue
+POST        /questionnaire/start                                    @controllers.QuestionnaireController.submitStart
+POST        /questionnaire/continue                                 @controllers.QuestionnaireController.submitContinue
+GET         /questionnaire/page/1                                   @controllers.QuestionnaireController.presentFirstPage
+POST        /questionnaire/page/1                                   @controllers.QuestionnaireController.submitFirstPage
+GET         /questionnaire/page/2                                   @controllers.QuestionnaireController.presentSecondPage
+POST        /questionnaire/page/2                                   @controllers.QuestionnaireController.submitSecondPage
+GET         /questionnaire/page/3                                   @controllers.QuestionnaireController.presentThirdPage
+POST        /questionnaire/page/3                                   @controllers.QuestionnaireController.submitThirdPage
+GET         /schools                                                @controllers.SchoolsController.getSchools(item: String)
 
-POST        /online-tests/psi/phase1/start                          controllers.PsiTestController.startPhase1Tests
-GET         /online-tests/psi/phase1/complete/:orderId              controllers.PsiTestController.completePhase1Tests(orderId: UniqueIdentifier)
-POST        /online-tests/psi/phase2/start                          controllers.PsiTestController.startPhase2Tests
-GET         /online-tests/psi/phase2/complete/:orderId              controllers.PsiTestController.completePhase2Tests(orderId: UniqueIdentifier)
+POST        /online-tests/psi/phase1/start                          @controllers.PsiTestController.startPhase1Tests
+GET         /online-tests/psi/phase1/complete/:orderId              @controllers.PsiTestController.completePhase1Tests(orderId: UniqueIdentifier)
+POST        /online-tests/psi/phase2/start                          @controllers.PsiTestController.startPhase2Tests
+GET         /online-tests/psi/phase2/complete/:orderId              @controllers.PsiTestController.completePhase2Tests(orderId: UniqueIdentifier)
 
 # Online Test
-POST        /online-tests/phase1/start                              controllers.CubiksTestController.startPhase1Tests
-POST        /online-tests/phase2/start                              controllers.CubiksTestController.startPhase2Tests
-POST        /online-tests/phase3/start                              controllers.LaunchpadTestController.startPhase3Tests
-GET         /online-tests/phase1/continue/:token                    controllers.CubiksTestController.completeSjqByTokenAndContinuePhase1Tests(token: UniqueIdentifier)
-GET         /online-tests/phase1/complete/:token                    controllers.CubiksTestController.completePhase1TestsByToken(token: UniqueIdentifier)
-GET         /online-tests/phase2/complete/:token                    controllers.CubiksTestController.completePhase2TestsByToken(token: UniqueIdentifier)
-GET         /online-tests/phase3/complete/:token                    controllers.LaunchpadTestController.completePhase3TestsByToken(token: String)
-GET         /online-tests/complete/:token                           controllers.CubiksTestController.completeTestByToken(token: UniqueIdentifier)
-GET         /sift-test/complete/:token                              controllers.CubiksTestController.completeSiftTestByToken(token: UniqueIdentifier)
-GET         /psi/sift-test/complete/:orderId                        controllers.PsiTestController.completeSiftTest(orderId: UniqueIdentifier)
-GET         /online-tests/phase3/feedback-report                    controllers.Phase3FeedbackController.present
+POST        /online-tests/phase1/start                              @controllers.CubiksTestController.startPhase1Tests
+POST        /online-tests/phase2/start                              @controllers.CubiksTestController.startPhase2Tests
+POST        /online-tests/phase3/start                              @controllers.LaunchpadTestController.startPhase3Tests
+GET         /online-tests/phase1/continue/:token                    @controllers.CubiksTestController.completeSjqByTokenAndContinuePhase1Tests(token: UniqueIdentifier)
+GET         /online-tests/phase1/complete/:token                    @controllers.CubiksTestController.completePhase1TestsByToken(token: UniqueIdentifier)
+GET         /online-tests/phase2/complete/:token                    @controllers.CubiksTestController.completePhase2TestsByToken(token: UniqueIdentifier)
+GET         /online-tests/phase3/complete/:token                    @controllers.LaunchpadTestController.completePhase3TestsByToken(token: String)
+GET         /online-tests/complete/:token                           @controllers.CubiksTestController.completeTestByToken(token: UniqueIdentifier)
+GET         /sift-test/complete/:token                              @controllers.CubiksTestController.completeSiftTestByToken(token: UniqueIdentifier)
+GET         /psi/sift-test/complete/:orderId                        @controllers.PsiTestController.completeSiftTest(orderId: UniqueIdentifier)
+GET         /online-tests/phase3/feedback-report                    @controllers.Phase3FeedbackController.present
 
 # Invigilated phase 2 tests
-GET         /invigilated-phase2-tests                               controllers.InvigilatedController.present
-POST        /invigilated-phase2-tests                               controllers.InvigilatedController.verifyToken
+GET         /invigilated-phase2-tests                               @controllers.InvigilatedController.present
+POST        /invigilated-phase2-tests                               @controllers.InvigilatedController.verifyToken
 
-GET         /consider-for-sdip                                      controllers.ConsiderForSdipController.present
-POST        /consider-for-sdip                                      controllers.ConsiderForSdipController.submit
-POST        /continue-as-sdip                                       controllers.ConsiderForSdipController.continueAsSdip
+GET         /consider-for-sdip                                      @controllers.ConsiderForSdipController.present
+POST        /consider-for-sdip                                      @controllers.ConsiderForSdipController.submit
+POST        /continue-as-sdip                                       @controllers.ConsiderForSdipController.continueAsSdip
 
 # Assets controller
-GET         /assets/*file                                           controllers.Assets.versioned(path="/public", file: Asset)
+GET         /assets/*file                                           @controllers.Assets.versioned(path="/public", file: Asset)
 
 # Postcode Lookup
-GET         /address-search                                         controllers.AddressLookupController.addressLookupByPostcode(postcode: String)
-GET         /address-search/:id                                     controllers.AddressLookupController.addressLookupById(id: String)
+GET         /address-search                                         @controllers.AddressLookupController.addressLookupByPostcode(postcode: String)
+GET         /address-search/:id                                     @controllers.AddressLookupController.addressLookupById(id: String)
 
 # Scheme Sift Questions/Form
-GET         /additional-questions/generalQuestions                  controllers.SiftQuestionsController.presentGeneralQuestions
-GET         /additional-questions/preview                           controllers.SiftQuestionsController.presentPreview
-GET         /additional-questions/submit                            controllers.SiftQuestionsController.submitAdditionalQuestions
-GET         /additional-questions/:schemeId                         controllers.SiftQuestionsController.presentSchemeForm(schemeId: connectors.exchange.referencedata.SchemeId)
-POST        /additional-questions/generalQuestions                  controllers.SiftQuestionsController.saveGeneralQuestions
-POST        /additional-questions/:schemeId                         controllers.SiftQuestionsController.saveSchemeForm(schemeId: connectors.exchange.referencedata.SchemeId)
+GET         /additional-questions/generalQuestions                  @controllers.SiftQuestionsController.presentGeneralQuestions
+GET         /additional-questions/preview                           @controllers.SiftQuestionsController.presentPreview
+GET         /additional-questions/submit                            @controllers.SiftQuestionsController.submitAdditionalQuestions
+GET         /additional-questions/:schemeId                         @controllers.SiftQuestionsController.presentSchemeForm(schemeId: connectors.exchange.referencedata.SchemeId)
+POST        /additional-questions/generalQuestions                  @controllers.SiftQuestionsController.saveGeneralQuestions
+POST        /additional-questions/:schemeId                         @controllers.SiftQuestionsController.saveSchemeForm(schemeId: connectors.exchange.referencedata.SchemeId)
 
-POST        /sift/numeric-test/start                                controllers.PsiTestController.startSiftNumericTest
+POST        /sift/numeric-test/start                                @controllers.PsiTestController.startSiftNumericTest

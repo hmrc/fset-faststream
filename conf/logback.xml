@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel" />
 
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
         <file>logs/fset-faststream-frontend.log</file>
@@ -11,6 +12,12 @@
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <pattern>%date{ISO8601} level=[%level] logger=[%logger] user=[%X{Authorization}] message=[%message] %replace(exception=[%xException]){'^exception=\[\]$',''}%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="STDOUT_DEV" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{HH:mm:ss,SSS} %coloredLevel [%logger] [%thread] %message [rid=%X{X-Request-ID},usr=%X{Authorization}] %replace(exception=[%xException]){'^exception=\[\]$',''}%n</pattern>
         </encoder>
     </appender>
 
@@ -39,7 +46,7 @@
         <appender-ref ref="ACCESS_LOG_FILE" />
     </logger>
 
-    <logger name="com.ning.http.client.providers.netty" additivity="false">
+    <logger name="play.shaded.ahc.org.asynchttpclient.netty" additivity="false">
         <appender-ref ref="STDOUT_IGNORE_NETTY" />
     </logger>
 
@@ -51,16 +58,19 @@
         <appender-ref ref="STDOUT"/>
     </logger>
 
-    <logger name="io.netty.util.ResourceLeakDetectorFactory" level="INFO" />
+    <logger name="play.shaded.ahc.io.netty.util.ResourceLeakDetectorFactory" level="INFO" />
     <logger name="org.jboss.netty.channel.socket.nio" level="WARN" />
-    <logger name="io.netty.buffer" level="WARN"/>
-    <logger name="io.netty" level="INFO"/>
-    <logger name="org.asynchttpclient.netty.handler" level="INFO"/>
-    <logger name="org.asynchttpclient.netty.channel" level="INFO"/>
+    <logger name="play.shaded.ahc.io.netty.buffer" level="WARN"/>
+    <logger name="play.shaded.ahc.io.netty" level="INFO"/>
+    <logger name="play.shaded.ahc.org.asynchttpclient.netty.handler" level="INFO"/>
+    <logger name="play.shaded.ahc.io.netty.channel" level="INFO"/>
+    <logger name="play.shaded.ahc.org.asynchttpclient.netty.channel" level="INFO"/>
+    <logger name="play.shaded.ahc.org.asynchttpclient.netty.request" level="INFO"/>
 
     <logger name="com.google.inject.internal" level="WARN" />
     <logger name="javax.management.mbeanserver" level="WARN"/>
     <logger name="akka.event" level="INFO"/>
+    <logger name="akka.actor" level="INFO"/>
     <logger name="akka.stream.impl.io" level="INFO"/>
     <logger name="net.sf.ehcache" level="INFO"/>
     <logger name="akka.event.slf4j.Slf4jLogger" level="WARN"/>
@@ -72,6 +82,6 @@
 
     <root level="DEBUG">
         <appender-ref ref="FILE"/>
-        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="${logger.console.appender:-STDOUT}"/>
     </root>
 </configuration>

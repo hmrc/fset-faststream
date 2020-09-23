@@ -16,66 +16,38 @@
 
 package forms
 
-import connectors.exchange.{ Answer, Question, Questionnaire }
-import models.view.questionnaire.{ Ethnicities, Genders, SexOrientations }
-import play.api.data.{ Form, FormError }
+import connectors.exchange.{Answer, Question, Questionnaire}
+import javax.inject.Singleton
+import mappings.Mappings._
+import models.view.questionnaire.{Ethnicities, Genders, SexOrientations}
 import play.api.data.Forms._
-import play.api.i18n.Messages
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
 import play.api.data.format.Formatter
+import play.api.data.{Form, FormError}
+import play.api.i18n.Messages
 
-object DiversityQuestionnaireForm {
-
-  val OtherMaxSize = 256
-  val form = Form(
+@Singleton
+class DiversityQuestionnaireForm {
+  def form(implicit messages: Messages) = Form(
     mapping(
       "gender" -> of(genderFormatter),
-      "other_gender" -> optional(Mappings.nonEmptyTrimmedText("error.required.gender", OtherMaxSize)),
+      "other_gender" -> optional(nonEmptyTrimmedText("error.required.gender", DiversityQuestionnaireForm.OtherMaxSize)),
 
       "sexOrientation" -> of(sexOrientationFormatter),
-      "other_sexOrientation" -> optional(Mappings.nonEmptyTrimmedText("error.required.sexOrientation", OtherMaxSize)),
+      "other_sexOrientation" -> optional(nonEmptyTrimmedText("error.required.sexOrientation", DiversityQuestionnaireForm.OtherMaxSize)),
 
       "ethnicity" -> of(ethnicityFormatter),
-      "other_ethnicity" -> optional(Mappings.nonEmptyTrimmedText("error.required.ethnicity", OtherMaxSize)),
+      "other_ethnicity" -> optional(nonEmptyTrimmedText("error.required.ethnicity", DiversityQuestionnaireForm.OtherMaxSize)),
       "preferNotSay_ethnicity" -> optional(checked(Messages("error.required.ethnicity"))),
 
       "isEnglishFirstLanguage" -> of(englishLanguageFormatter)
-    )(Data.apply)(Data.unapply)
+    )(DiversityQuestionnaireForm.Data.apply)(DiversityQuestionnaireForm.Data.unapply)
   )
 
-  val acceptanceForm = Form(
+  def acceptanceForm(implicit messages: Messages) = Form(
     mapping(
       "accept-terms" -> checked(Messages("error.required.acceptance"))
-    )(AcceptanceTerms.apply)(AcceptanceTerms.unapply)
+    )(DiversityQuestionnaireForm.AcceptanceTerms.apply)(DiversityQuestionnaireForm.AcceptanceTerms.unapply)
   )
-
-  case class Data(
-                   gender: String,
-                   otherGender: Option[String],
-                   sexOrientation: String,
-                   otherSexOrientation: Option[String],
-                   ethnicity: Option[String],
-                   otherEthnicity: Option[String],
-                   preferNotSayEthnicity: Option[Boolean],
-                   isEnglishFirstLanguage: String
-                 ) {
-    def exchange: Questionnaire = Questionnaire(List(
-      Question(Messages("gender.question"), Answer(Some(gender), otherGender, unknown = None)),
-      Question(Messages("sexOrientation.question"), Answer(Some(sexOrientation), otherSexOrientation, unknown = None)),
-      Question(Messages("ethnicity.question"), Answer(ethnicity, otherEthnicity, preferNotSayEthnicity)),
-      Question(Messages("language.question"), Answer(Some(isEnglishFirstLanguage), otherDetails = None, unknown = None))
-    ))
-  }
-
-  case class AcceptanceTerms(acceptTerms: Boolean) {
-    def toQuestionnaire: Questionnaire = {
-      val answer = if (acceptTerms) Some("Yes") else Some("No")
-      Questionnaire(List(
-        Question(Messages("accept-terms.question"), Answer(answer, otherDetails = None, unknown = None))
-      ))
-    }
-  }
 
   private def bindParam[T](validityCheck: Boolean, errMsg: String, key: String, value: => T): Either[Seq[FormError], T] =
     if (validityCheck) {
@@ -98,7 +70,7 @@ object DiversityQuestionnaireForm {
     def unbind(key: String, value: String): Map[String, String] = Map(key -> value)
   }
 
-  private def ethnicityFormatter = new Formatter[Option[String]] {
+  private def ethnicityFormatter(implicit messages: Messages) = new Formatter[Option[String]] {
     def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       val preferNotToSayField = request.preferNotSayEthnicityParam.sanitize
       val isEthnicityValid = request.isEthnicityValid
@@ -146,5 +118,36 @@ object DiversityQuestionnaireForm {
     def englishLanguageParam = param("isEnglishFirstLanguage").getOrElse("")
     val validEnglishLanguageOptions = Seq("Yes", "No", "I don't know/prefer not to say")
     def isEnglishLanguageValid = validEnglishLanguageOptions.contains(englishLanguageParam)
+  }
+}
+
+object DiversityQuestionnaireForm {
+  val OtherMaxSize = 256
+
+  case class Data(
+    gender: String,
+    otherGender: Option[String],
+    sexOrientation: String,
+    otherSexOrientation: Option[String],
+    ethnicity: Option[String],
+    otherEthnicity: Option[String],
+    preferNotSayEthnicity: Option[Boolean],
+    isEnglishFirstLanguage: String
+  ) {
+    def exchange(implicit messages: Messages): Questionnaire = Questionnaire(List(
+      Question(Messages("gender.question"), Answer(Some(gender), otherGender, unknown = None)),
+      Question(Messages("sexOrientation.question"), Answer(Some(sexOrientation), otherSexOrientation, unknown = None)),
+      Question(Messages("ethnicity.question"), Answer(ethnicity, otherEthnicity, preferNotSayEthnicity)),
+      Question(Messages("language.question"), Answer(Some(isEnglishFirstLanguage), otherDetails = None, unknown = None))
+    ))
+  }
+
+  case class AcceptanceTerms(acceptTerms: Boolean) {
+    def toQuestionnaire(implicit messages: Messages): Questionnaire = {
+      val answer = if (acceptTerms) Some("Yes") else Some("No")
+      Questionnaire(List(
+        Question(Messages("accept-terms.question"), Answer(answer, otherDetails = None, unknown = None))
+      ))
+    }
   }
 }

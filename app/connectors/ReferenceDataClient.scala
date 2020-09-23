@@ -16,26 +16,22 @@
 
 package connectors
 
-import config.{ CSRHttp, WSHttp }
-import connectors.exchange.referencedata.{ ReferenceData, Scheme, SchemeId }
+import config.{CSRHttp, FrontendAppConfig}
+import connectors.exchange.referencedata.{ReferenceData, Scheme, SchemeId}
+import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.libs.json.OFormat
-//import uk.gov.hmrc.play.http.ws.WSHttp
+
+import scala.concurrent.ExecutionContext
 import play.api.http.Status.OK
 
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 import uk.gov.hmrc.http.HeaderCarrier
 
-object ReferenceDataClient extends ReferenceDataClient {
-  val http: CSRHttp = CSRHttp
-}
-
-trait ReferenceDataClient {
-  val http: WSHttp
-
-  import config.FrontendAppConfig.faststreamConfig._
+@Singleton
+class ReferenceDataClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(implicit ec: ExecutionContext) {
+  val url = config.faststreamBackendConfig.url
   val apiBaseUrl = s"${url.host}${url.base}"
 
   private val referenceDataCache = TrieMap[String, Any]()
