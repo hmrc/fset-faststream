@@ -52,6 +52,9 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
 
   val nextApplicationQuery: String => BSONDocument
 
+  // Gives classes implementing this trait the opportunity to log anything important when looking for candidates to evaluate
+  def preEvaluationLogging(): Unit = ()
+
   def validEvaluationPhaseStatuses(phase: ApplicationStatus): Set[ApplicationStatus] = {
     val statusesToIgnore = List(ApplicationStatus.PHASE1_TESTS_FAILED, ApplicationStatus.PHASE2_TESTS_FAILED)
     ApplicationStatus.values.filter(s =>
@@ -61,8 +64,10 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
   def nextApplicationsReadyForEvaluation(currentPassmarkVersion: String, batchSize: Int): Future[List[ApplicationReadyForEvaluation]] =
     selectRandom[ApplicationReadyForEvaluation](nextApplicationQuery(currentPassmarkVersion), batchSize)
 
-  def nextApplicationsReadyForEvaluation2(currentPassmarkVersion: String, batchSize: Int): Future[List[ApplicationReadyForEvaluation2]] =
+  def nextApplicationsReadyForEvaluation2(currentPassmarkVersion: String, batchSize: Int): Future[List[ApplicationReadyForEvaluation2]] = {
+    preEvaluationLogging()
     selectRandom[ApplicationReadyForEvaluation2](nextApplicationQuery(currentPassmarkVersion), batchSize)
+  }
 
   def savePassmarkEvaluation(applicationId: String, evaluation: PassmarkEvaluation,
     newProgressStatus: Option[ProgressStatus]): Future[Unit] = {
@@ -258,6 +263,10 @@ class Phase3EvaluationMongoRepository(
     val phase2Evaluation = passMarkEvaluationReader(prevPhase, applicationId, Some(doc))
     applicationEvaluationBuilder2(Nil, phase3.activeTests.headOption, Some(phase2Evaluation))(doc)
   })
+
+  override def preEvaluationLogging(): Unit =
+    Logger.warn("Phase 3 evaluation is looking for candidates with results received " +
+      s"${launchpadGatewayConfig.phase3Tests.evaluationWaitTimeAfterResultsReceivedInHours} hours ago...")
 
   val nextApplicationQuery = (currentPassmarkVersion: String) => {
     // The where clause specifies evaluation will trigger for this phase if the either the previous phase passmark version
