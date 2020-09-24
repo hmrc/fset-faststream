@@ -29,7 +29,7 @@ private object Versions {
   val hmrcTestVersion                  = "2.3.0"
   val ficus                            = "1.1.2"
   val playConfigVersion                = "7.2.0"
-  val hmrcSimpleReactivemongoVersion   = "7.23.0-play-25"
+  val hmrcSimpleReactivemongoVersion   = "7.30.0-play-25"
   // ReactiveMongo version used is here: https://github.com/hmrc/simple-reactivemongo/blob/master/project/LibraryDependencies.scala
   val reactiveMongoVersion             = "0.18.8"
   val mockito                          = "2.2.17"
