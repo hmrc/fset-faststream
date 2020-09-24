@@ -117,6 +117,31 @@ class HomeControllerSpec extends BaseControllerSpec {
       content must not include phase3ResultsReportLink
     }
 
+    "display the P1 error message when candidate has been invited to more than 4 P1 tests" in new TestFixture {
+      val candidateState = CachedDataWithApp(ActiveCandidate.user,
+        CachedDataExample.Phase1TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+        ReferenceDataExamples.Schemes.Dip
+      ))
+      when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
+      when(mockApplicationClient.getSiftResults(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
+      when(mockSiftClient.getSiftAnswersStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturnAsync(None)
+      when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
+      when(mockUserService.refreshCachedUser(eqTo(ActiveCandidate.user.userID))(any[HeaderCarrier], any[Request[_]]))
+        .thenReturn(Future.successful(ActiveCandidate))
+      when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier])).thenReturnAsync(None)
+
+      mockPostOnlineTestsDashboardCalls()
+
+      mockPhaseOneTwoThreeData(List(phase1Test1, phase1Test2, phase1Test3, phase1Test4, phase1Test4))
+
+      val result = controller(candidateState, commonApplicationRouteState).present()(fakeRequest)
+      status(result) mustBe OK
+      val content = contentAsString(result)
+      content must include("A technical error has occurred. Please bear with us while we correct it.")
+    }
+
     "display the expected test result urls in the online test progress page when candidate has passed P1 tests" in new TestFixture {
       val candidateState = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.Phase1TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
@@ -134,7 +159,7 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       mockPostOnlineTestsDashboardCalls()
 
-      mockPhaseOneTwoThreeData(List(phase1Test1))
+      mockPhaseOneTwoThreeData(List(phase1Test1, phase1Test2, phase1Test3, phase1Test4))
 
       val result = controller(candidateState, commonApplicationRouteState).present()(fakeRequest)
       status(result) mustBe OK
@@ -162,7 +187,7 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       mockPostOnlineTestsDashboardCalls()
 
-      mockPhaseOneTwoThreeData(List(phase1Test1), List(phase2Test1))
+      mockPhaseOneTwoThreeData(List(phase1Test1, phase1Test2, phase1Test3, phase1Test4), List(phase2Test1))
 
       val result = controller(candidateState, commonApplicationRouteState).present()(fakeRequest)
       status(result) mustBe OK
@@ -190,7 +215,7 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       mockPostOnlineTestsDashboardCalls()
 
-      mockPhaseOneTwoThreeData(List(phase1Test1), List(phase2Test1))
+      mockPhaseOneTwoThreeData(List(phase1Test1, phase1Test2, phase1Test3, phase1Test4), List(phase2Test1))
 
       val result = controller(candidateState, commonApplicationRouteState).present()(fakeRequest)
       status(result) mustBe OK
@@ -221,7 +246,7 @@ class HomeControllerSpec extends BaseControllerSpec {
 
       mockPostOnlineTestsDashboardCalls()
 
-      mockPhaseOneTwoThreeData(List(phase1Test1), List(phase2Test1))
+      mockPhaseOneTwoThreeData(List(phase1Test1, phase1Test2, phase1Test3, phase1Test4), List(phase2Test1))
 
       val result = controller(candidateState, commonApplicationRouteState).present()(fakeRequest)
       status(result) mustBe OK
@@ -679,6 +704,21 @@ class HomeControllerSpec extends BaseControllerSpec {
     val phase1Test1 = PsiTest(inventoryId = phase1Test1InventoryId, usedForResults = true,
       testUrl = "http://testurl.com", orderId = UniqueIdentifier(UUID.randomUUID()),
       invitationDate = DateTime.now, testResult = Some(PsiTestResult(testReportUrl = Some("http://phase1Test1Url.com"))))
+
+    val phase1Test2InventoryId = "940bc1cf-3e8f-44c0-b74d-ffce1ac5b7d7"
+    val phase1Test2 = PsiTest(inventoryId = phase1Test2InventoryId, usedForResults = true,
+      testUrl = "http://testurl.com", orderId = UniqueIdentifier(UUID.randomUUID()),
+      invitationDate = DateTime.now, testResult = Some(PsiTestResult(testReportUrl = Some("http://phase1Test2Url.com"))))
+
+    val phase1Test3InventoryId = "59a9a3a4-aa1d-4439-a5a0-68602e8e08e0"
+    val phase1Test3 = PsiTest(inventoryId = phase1Test3InventoryId, usedForResults = true,
+      testUrl = "http://testurl.com", orderId = UniqueIdentifier(UUID.randomUUID()),
+      invitationDate = DateTime.now, testResult = Some(PsiTestResult(testReportUrl = Some("http://phase1Test3Url.com"))))
+
+    val phase1Test4InventoryId = "5f59eff8-5ef6-463a-a085-9e5c730936dc"
+    val phase1Test4 = PsiTest(inventoryId = phase1Test4InventoryId, usedForResults = true,
+      testUrl = "http://testurl.com", orderId = UniqueIdentifier(UUID.randomUUID()),
+      invitationDate = DateTime.now, testResult = Some(PsiTestResult(testReportUrl = Some("http://phase1Test4Url.com"))))
 
     val phase2Test1InventoryId = "60b423e5-75d6-4d31-b02c-97b8686e22e6"
     val phase2Test1 = PsiTest(inventoryId = phase2Test1InventoryId, usedForResults = true,
