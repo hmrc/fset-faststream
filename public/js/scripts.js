@@ -1117,6 +1117,7 @@ $(function () {
     var $noButton = $el.querySelector('.button--modal-no');
     var $timeLeft = $el.querySelector('.modal__time-left');
     var $htmlEl = document.querySelector('html');
+    var $focusContainer = document.querySelector('#focus-container');
 
     startTimer(messageTimes[timerIndex].delay);
 
@@ -1160,12 +1161,11 @@ $(function () {
     }, true);
   }
 
-  var $main = document.querySelector('#main');
-
   function hide() {
     $htmlEl.className = $htmlEl.className.replace(' show-modal', ' ');
     isShown = false;
-    $($main).attr("aria-hidden", "false");
+    $el.setAttribute('aria-hidden', 'true');
+    $focusContainer.setAttribute('aria-hidden', 'false');
     if (lastFocusBeforeModal) {
       lastFocusBeforeModal.focus();
     } else {
@@ -1183,8 +1183,9 @@ $(function () {
     isShown = true;
     if ($el) {
       var $yesButton = $el.querySelector('.button--modal-yes');
+      $focusContainer.setAttribute('aria-hidden', 'true');
+      $el.setAttribute('aria-hidden', 'false');
       $($yesButton).focus();
-      $($main).attr("aria-hidden", "true");
     }
   }
 
