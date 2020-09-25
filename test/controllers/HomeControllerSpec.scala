@@ -142,6 +142,34 @@ class HomeControllerSpec extends BaseControllerSpec {
       content must include("A technical error has occurred. Please bear with us while we correct it.")
     }
 
+    "display the P1 error message when GIS candidate has been invited to more than 2 P1 tests" in new TestFixture {
+      val candidateState = CachedDataWithApp(ActiveCandidate.user,
+        CachedDataExample.Phase1TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
+      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+        ReferenceDataExamples.Schemes.Dip
+      ))
+      when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
+      when(mockApplicationClient.getSiftResults(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
+      when(mockSiftClient.getSiftAnswersStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturnAsync(None)
+      when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
+      when(mockUserService.refreshCachedUser(eqTo(ActiveCandidate.user.userID))(any[HeaderCarrier], any[Request[_]]))
+        .thenReturn(Future.successful(ActiveCandidate))
+      when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier])).thenReturnAsync(None)
+
+      when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(AssistanceDetailsExamples.DisabilityGisAndAdjustments))
+
+      mockPostOnlineTestsDashboardCalls()
+
+      mockPhaseOneTwoThreeData(List(phase1Test1, phase1Test2, phase1Test2))
+
+      val result = controller(candidateState, commonApplicationRouteState).present()(fakeRequest)
+      status(result) mustBe OK
+      val content = contentAsString(result)
+      content must include("A technical error has occurred. Please bear with us while we correct it.")
+    }
+
     "display the expected test result urls in the online test progress page when candidate has passed P1 tests" in new TestFixture {
       val candidateState = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.Phase1TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
