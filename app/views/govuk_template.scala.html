@@ -66,8 +66,11 @@
                 routes.javascript.SchoolsController.getSchools
             )
         </head>
-            <body @idElementFirstError.map{id => onload="document.getElementById('@id'+'_errorSummaryItem').focus()"}>
-            @if(!CookiePolicy.bannerSeen(request)) {
+
+        <body @idElementFirstError.map{id => onload="document.getElementById('@id'+'_errorSummaryItem').focus()"}>
+
+            <div id="focus-container">
+                @if(!CookiePolicy.bannerSeen(request)) {
                 <div id="global-cookie-message" class="cookie-banner">
                     <div class="content-container" role="alert">
                         <span class="copy-16">GOV.UK uses cookies to make the site simpler.
@@ -75,93 +78,100 @@
                         </span>
                     </div>
                 </div>
-            }
-            <div class="skiplink-container">
-                <div>
-                    <a href="#main" class="skiplink">Skip to main content</a>
-                </div>
-            </div>
-            <header role="banner" class="global-header">
-                <div class="global-header__wrapper">
-                    <div class="global-header__logo">
-                        <a href="http://gov.uk" title="Go to the GOV.UK homepage" class="govuk-logo" id="govUkLink" target="_blank">
-                            <img src='@routes.Assets.versioned("img/gov.uk_logotype_crown.png")' alt="Crown">GOV.UK
-                        </a>
-                    </div>
-                    <div class="global-header__nav">
-                        <div class="global-header__title beta">
-                            <a href="@routes.HomeController.present()">Apply for the Civil Service Fast Stream</a>
-                        </div>
-                    </div>
-                </div>
-            </header>
-            <div class="content-container">
-                <div class="phase-notice gov-border grid-wrapper">
-                    <div class="grid grid-2-3">
-                        <div class="prototype-warning">
-                            <strong class="beta__label">Beta</strong> <span>This is a new service – your <a href="@feedbackUrl" target="_blank" rel="external">feedback</a> will help us to improve it.</span>
-                        </div>
-                    </div>
-                    <div class="grid grid-1-3">
-                        @userDetails(user)
+                }
+
+                <div class="skiplink-container">
+                    <div>
+                        <a href="#main" class="skiplink">Skip to main content</a>
                     </div>
                 </div>
 
-                <main role="main" id="main">
-                    @mainContent
-                    <div class="modal" id="modal" role="alertdialog" tabindex="0">
-                        <div class="modal__box">
-                            <div class="modal__header"></div>
-                            <div class="modal__body">
-                                <div class="govuk-warning-text">
-                                    <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-                                    <strong class="govuk-warning-text__text">
-                                        <span class="govuk-warning-text__assistive">Warning</span>
-                                        <p>Your secure session will expire in <br> <b class="modal__time-left">5 minutes</b>.</p>
-                                    </strong>
-                                </div>
-                                <p class="centred-on-desktop">Would you like to remain logged on?</p>
-                                <div class="modal__buttons">
-                                    <button class="button button--modal-yes">Yes</button>
-                                    <button class="button button--modal-no">No</button>
-                                </div>
+                <header role="banner" class="global-header">
+                    <div class="global-header__wrapper">
+                        <div class="global-header__logo">
+                            <a href="http://gov.uk" title="Go to the GOV.UK homepage" class="govuk-logo" id="govUkLink" target="_blank">
+                                <img src='@routes.Assets.versioned("img/gov.uk_logotype_crown.png")' alt="Crown">GOV.UK
+                            </a>
+                        </div>
+                        <div class="global-header__nav">
+                            <div class="global-header__title beta">
+                                <a href="@routes.HomeController.present()">Apply for the Civil Service Fast Stream</a>
                             </div>
                         </div>
                     </div>
-                </main>
-            </div>
+                </header>
+
+                <div class="content-container">
+                    <div class="phase-notice gov-border grid-wrapper">
+                        <div class="grid grid-2-3">
+                            <div class="prototype-warning">
+                                <strong class="beta__label">Beta</strong> <span>This is a new service – your <a href="@feedbackUrl" target="_blank" rel="external">feedback</a> will help us to improve it.</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-1-3">
+                            @userDetails(user)
+                        </div>
+                    </div>
+
+                    <main role="main" id="main">
+                        @mainContent
+                    </main>
+                </div>
+
                 <!-- Footer -->
-            <footer class="footer" role="contentinfo">
-                <div class="footer-wrapper">
-                    <div class="footer-meta">
-                        <div class="footer-meta__inner">
-                            <nav class="footer-nav" role="navigation">
-                                <h2 class="visuallyhidden">Support links</h2>
+                <footer class="footer" role="contentinfo">
+                    <div class="footer-wrapper">
+                        <div class="footer-meta">
+                            <div class="footer-meta__inner">
+                                <nav class="footer-nav" role="navigation">
+                                    <h2 class="visuallyhidden">Support links</h2>
 
-                                <ul class="footer-meta__list footer-meta__list--condensed">
-                                    <li class="footer-meta__list-item"><a class="bold-medium" href="@routes.ApplicationController.helpdesk()">Contact us</a></li>
-                                    <li class="footer-meta__list-item"><a class="bold-medium" href="@feedbackUrl" rel="external">Give feedback</a></li>
-                                </ul>
+                                    <ul class="footer-meta__list footer-meta__list--condensed">
+                                        <li class="footer-meta__list-item"><a class="bold-medium" href="@routes.ApplicationController.helpdesk()">Contact us</a></li>
+                                        <li class="footer-meta__list-item"><a class="bold-medium" href="@feedbackUrl" rel="external">Give feedback</a></li>
+                                    </ul>
 
-                                <ul class="footer-meta__list footer-meta__list--short">
-                                    <li class="footer-meta__list-item"><a href="@routes.ApplicationController.privacy()">Privacy Notice</a></li>
-                                    <li class="footer-meta__list-item"><a href="@routes.ApplicationController.cookies()">Cookies</a></li>
-                                    <li class="footer-meta__list-item"><a href="@routes.ApplicationController.terms()">Terms and conditions</a></li>
-                                    <li class="footer-meta__list-item"><a href="@routes.ApplicationController.accessibility()">Accessibility</a></li>
-                                    <li class="footer-meta__list-item">Built by <a href="https://www.gov.uk/government/groups/civil-service-hr-cshr" target="_blank">Civil Service Human Resources</a></li>
-                                </ul>
+                                    <ul class="footer-meta__list footer-meta__list--short">
+                                        <li class="footer-meta__list-item"><a href="@routes.ApplicationController.privacy()">Privacy Notice</a></li>
+                                        <li class="footer-meta__list-item"><a href="@routes.ApplicationController.cookies()">Cookies</a></li>
+                                        <li class="footer-meta__list-item"><a href="@routes.ApplicationController.terms()">Terms and conditions</a></li>
+                                        <li class="footer-meta__list-item"><a href="@routes.ApplicationController.accessibility()">Accessibility</a></li>
+                                        <li class="footer-meta__list-item">Built by <a href="https://www.gov.uk/government/groups/civil-service-hr-cshr" target="_blank">Civil Service Human Resources</a></li>
+                                    </ul>
 
-                                <div class="footer__ogl hide-print"><a href="http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3" class="ir ogl-logo">OGL</a>All content is available under the <a href="http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3">Open Government Licence v3.0</a>, except where otherwise stated</div>
-                            </nav>
+                                    <div class="footer__ogl hide-print"><a href="http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3" class="ir ogl-logo">OGL</a>All content is available under the <a href="http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3">Open Government Licence v3.0</a>, except where otherwise stated</div>
+                                </nav>
 
-                            <a class="footer__copyright" href="http://www.nationalarchives.gov.uk/information-management/our-services/crown-copyright.htm" target="_blank">
-                                <img src='@routes.Assets.versioned("img/govuk-crest-2x.png")' width="125" height="102" alt="Crown copyright logo">
-                                <p>&copy; Crown copyright</p>
-                            </a>
+                                <a class="footer__copyright" href="http://www.nationalarchives.gov.uk/information-management/our-services/crown-copyright.htm" target="_blank">
+                                    <img src='@routes.Assets.versioned("img/govuk-crest-2x.png")' width="125" height="102" alt="Crown copyright logo">
+                                    <p>&copy; Crown copyright</p>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </footer> <!-- end of footer -->
+            </div>
+
+            <!-- modal dialog -->
+            <div class="modal" id="modal" role="alertdialog" aria-modal="true" aria-labelledby="modal-label" tabindex="0" aria-hidden="false">
+                <div class="modal__box">
+                    <div class="modal__body">
+                        <div class="govuk-warning-text">
+                            <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+                            <div class="govuk-warning-text__text">
+                                <span class="govuk-warning-text__assistive" id="modal-label">Warning</span>
+                                <p>Your secure session will expire in <br> <b class="modal__time-left">5 minutes</b>.</p>
+                            </div>
+                        </div>
+                        <p class="centred-on-desktop">Would you like to remain logged on?</p>
+                        <div class="modal__buttons">
+                            <button class="button button--modal-yes" type="button">Yes</button>
+                            <button class="button button--modal-no" type="button">No</button>
                         </div>
                     </div>
                 </div>
-            </footer> <!-- end of footer -->
+            </div>
+            <!-- end of modal dialog -->
 
             @if(FrontendAppConfig.analyticsToken != "N/A") {
                 <script type="text/javascript">
