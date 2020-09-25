@@ -38,7 +38,7 @@ abstract class AddressLookupController(addressLookupClient: AddressLookupClient,
       case Nil => NotFound
     }.recover {
       case e: BadRequestException =>
-        Logger.warn(s"Postcode lookup service returned ${e.getMessage} for postcode $postcode", e)
+        Logger.debug(s"Postcode lookup service returned ${e.getMessage} for postcode $postcode", e)
         BadRequest
     }
   }
