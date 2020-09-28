@@ -293,10 +293,11 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
         profile.activeTests.length
       }
 
+      val gis = booleanTranslator(doc.getAs[BSONDocument]("assistance-details").exists(_.getAs[Boolean]("guaranteedInterview").contains(true)))
       val p1TestsCount = tests(Phase.PHASE1, Phase1TestProfile2.bsonHandler.read _).getOrElse(0)
       val p2TestsCount = tests(Phase.PHASE2, Phase2TestGroup2.bsonHandler.read _).getOrElse(0)
 
-      ApplicationForOnlineActiveTestCountReport(userId,applicationId, p1TestsCount, p2TestsCount)
+      ApplicationForOnlineActiveTestCountReport(userId,applicationId, gis, p1TestsCount, p2TestsCount)
     }
   }
 
