@@ -29,7 +29,7 @@
   siftEvaluationRequired: false
   fsbType: FCO
   schemeGuide: https://www.faststream.gov.uk/media/1232/fco-guide.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1313/scheme-questions-fco.rtf
+  schemeQuestion: https://www.faststream.gov.uk/media/1313/scheme-questions-fco.odt
 - id: DiplomaticServiceEconomists
   code: GES-DS
   name: Diplomatic Service (Economists)
@@ -41,7 +41,7 @@
   siftEvaluationRequired: true
   fsbType: EAC_DS
   schemeGuide: https://www.faststream.gov.uk/media/1234/ges_ds-guide.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1316/scheme-questions-ges-ds.docx
+  schemeQuestion: https://www.faststream.gov.uk/media/1316/scheme-questions-ges-ds.odt
 - id: Finance
   code: FIFS
   name: Finance
@@ -82,7 +82,7 @@
   siftEvaluationRequired: true
   fsbType: EAC
   schemeGuide: https://www.faststream.gov.uk/media/1231/eac-guide.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1248/scheme-questions-ges.rtf
+  schemeQuestion: https://www.faststream.gov.uk/media/1248/scheme-questions-ges.odt
 - id: GovernmentOperationalResearchService
   code: GORS
   name: Government Operational Research Service
@@ -94,7 +94,7 @@
   siftEvaluationRequired: true
   fsbType: ORAC
   schemeGuide: https://www.faststream.gov.uk/media/1236/orac-guide.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1249/scheme-questions-gors.rtf
+  schemeQuestion: https://www.faststream.gov.uk/media/1249/scheme-questions-gors.odt
 - id: GovernmentSocialResearchService
   code: GSR
   name: Government Social Research Service
@@ -106,7 +106,7 @@
   siftEvaluationRequired: true
   fsbType: SRAC
   schemeGuide: https://www.faststream.gov.uk/media/1286/social-research-final-selection-board-2017.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1262/scheme-questions-gsr.rtf
+  schemeQuestion: https://www.faststream.gov.uk/media/1262/GSR-FS-scheme-questions-gsr.odt
 - id: GovernmentStatisticalService
   code: GSS
   name: Government Statistical Service
@@ -118,7 +118,7 @@
   siftEvaluationRequired: true
   fsbType: SAC
   schemeGuide: https://www.faststream.gov.uk/media/1237/sac-guide.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1250/scheme-questions-gss.rtf
+  schemeQuestion: https://www.faststream.gov.uk/media/1250/scheme-questions-gss.odt
 - id: HousesOfParliament
   code: HOP
   name: Houses Of Parliament
@@ -130,7 +130,7 @@
   siftEvaluationRequired: false
   fsbType: HOP FSB
   schemeGuide: https://www.faststream.gov.uk/media/1235/hop_fsb-guide.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1251/scheme-questions-hop.rtf
+  schemeQuestion: https://www.faststream.gov.uk/media/1251/scheme-questions-hop-2021.odt
 - id: HumanResources
   code: HRFS
   name: Human Resources
@@ -150,7 +150,7 @@
   siftEvaluationRequired: false
   fsbType: PDFS - Skype interview
   schemeGuide: https://www.faststream.gov.uk/media/1243/pdfs-guide.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1252/scheme-questions-pdfs.rtf
+  schemeQuestion: https://www.faststream.gov.uk/media/1252/scheme-questions-pdfs-2021.odt
 - id: Property
   code: PRO
   name: Property
@@ -161,6 +161,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: false
   fsbType: PRO - Skype interview
+  schemeQuestion: https://www.faststream.gov.uk/media/Property-Additional-Information-Form.odt
 - id: ScienceAndEngineering
   code: SEFS
   name: Science and Engineering
@@ -172,7 +173,7 @@
   siftEvaluationRequired: true
   fsbType: SEFS FSB
   schemeGuide: https://www.faststream.gov.uk/media/1238/sefs-guide.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1315/scheme-questions-sefs.rtf
+  schemeQuestion: https://www.faststream.gov.uk/media/1315/scheme-questions-sefs.odt
 - id: Edip
   code: EDIP
   name: Early Diversity Internship Programme
@@ -181,7 +182,7 @@
   siftEvaluationRequired: false
   fsbType: EDIP - Telephone interview
   schemeGuide: https://www.faststream.gov.uk/media/1242/edip-guide.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1245/scheme-questions-edip.rtf
+  schemeQuestion: https://www.faststream.gov.uk/media/1245/Early-Diversity-Internship-Programme-additional-information-form-2021-pw.odt
 - id: Sdip
   code: SDIP
   name: Summer Diversity Internship Programme
@@ -190,4 +191,4 @@
   siftEvaluationRequired: false
   fsbType: SDIP - Telephone interview
   schemeGuide: https://www.faststream.gov.uk/media/1244/sdip-guide.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1253/scheme-questions-sdip.rtf
+  schemeQuestion: https://www.faststream.gov.uk/media/1253/Summer-Diversity-Internship-Programme-additional-information-form-2021-pw.odt
