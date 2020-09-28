@@ -225,10 +225,11 @@ class ReportingMongoRepository(timeZoneService: TimeZoneService, val dateTimeFac
     ))
 
     val projection = BSONDocument(
-      "userId" -> "1",
-      "applicationId" -> "1",
-      "testGroups.PHASE1" -> "1",
-      "testGroups.PHASE2" -> "1"
+      "userId" -> true,
+      "applicationId" -> true,
+      "assistance-details.guaranteedInterview" -> true,
+      "testGroups.PHASE1" -> true,
+      "testGroups.PHASE2" -> true
     )
 
     reportQueryWithProjectionsBSON[ApplicationForOnlineActiveTestCountReport](query, projection)

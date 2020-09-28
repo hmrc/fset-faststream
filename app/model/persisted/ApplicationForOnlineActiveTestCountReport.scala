@@ -20,6 +20,7 @@ import play.api.libs.json.{ Json, OFormat }
 
 case class ApplicationForOnlineActiveTestCountReport(userId: String,
                                                      applicationId: String,
+                                                     gis: String,
                                                      phase1ActiveTests: Int,
                                                      phase2ActiveTests: Int)
 
