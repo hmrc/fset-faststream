@@ -812,5 +812,16 @@ trait FixDataConsistencyController extends BaseController {
           BadRequest(msg)
       }
     }
+
+  def setGis(applicationId: String, newGis: Boolean): Action[AnyContent] = Action.async {
+    applicationService.setGis(applicationId, newGis)
+      .map(_ => Ok(s"Successfully updated candidate $applicationId to GIS $newGis"))
+      .recover {
+        case e: Exception =>
+          val msg = s"Failed to update candidate $applicationId to GIS $newGis because ${e.getMessage}"
+          Logger.warn(msg)
+          BadRequest(msg)
+      }
+  }
 }
 // scalastyle:on

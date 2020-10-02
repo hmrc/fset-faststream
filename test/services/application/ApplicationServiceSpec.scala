@@ -38,6 +38,7 @@ import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import repositories.assessmentcentre.AssessmentCentreRepository
+import repositories.assistancedetails.AssistanceDetailsRepository
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.fsb.FsbRepository
 import repositories.onlinetesting._
@@ -1123,6 +1124,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val civilServiceExperienceRepositoryMock = mock[CivilServiceExperienceDetailsRepository]
     val assessorAssessmentScoresRepositoryMock = mock[AssessorAssessmentScoresMongoRepository]
     val reviewerAssessmentScoresRepositoryMock = mock[ReviewerAssessmentScoresMongoRepository]
+    val assistanceDetailsRepoMock = mock[AssistanceDetailsRepository]
 
     val business = "Business"
     val commercial = "Commercial"
@@ -1178,6 +1180,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       val assessorAssessmentScoresRepository = assessorAssessmentScoresRepositoryMock
       val reviewerAssessmentScoresRepository = reviewerAssessmentScoresRepositoryMock
       val candidateAllocationService = candidateAllocationServiceMock
+      def assistanceDetailsRepo = assistanceDetailsRepoMock
     }
 
     val userId = "userId"
