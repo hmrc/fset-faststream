@@ -40,7 +40,7 @@ class AssistanceDetailsRepositorySpec extends MongoRepositorySpec {
   "find" should {
     "return an exception when application does not exist" in {
       val result = repository.find(applicationId(4)).failed.futureValue
-      result mustBe AssistanceDetailsNotFound(applicationId(4))
+      result mustBe AssistanceDetailsNotFound(s"AssistanceDetails not found for ${applicationId(4)}")
     }
   }
 
