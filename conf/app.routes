@@ -177,7 +177,7 @@ GET         /diagnostic/application/randomisePhasePassmarkVersion               
 GET         /diagnostic/findUsersStuckInAssessmentScoresAccepted                                       controllers.fixdata.FixDataConsistencyController.findUsersStuckInAssessmentScoresAccepted
 GET         /diagnostic/findUsersEligibleForJobOfferButFsbApplicationStatus                            controllers.fixdata.FixDataConsistencyController.findUsersEligibleForJobOfferButFsbApplicationStatus
 GET         /diagnostic/fixUsersEligibleForJobOfferButFsbApplicationStatus                             controllers.fixdata.FixDataConsistencyController.fixUsersEligibleForJobOfferButFsbApplicationStatus
-GET         /diagnostic/application/:applicationId/setPhase3UsedForResults/:newUsedForResults                                       controllers.fixdata.FixDataConsistencyController.setPhase3UsedForResults(applicationId: String, newUsedForResults: Boolean, token: String)
+GET         /diagnostic/application/:applicationId/setPhase3UsedForResults/:newUsedForResults          controllers.fixdata.FixDataConsistencyController.setPhase3UsedForResults(applicationId: String, newUsedForResults: Boolean, token: String)
 GET         /diagnostic/application/:applicationId/inventory/:inventoryId/order/:orderId/setPhase2UsedForResults/:newUsedForResults controllers.fixdata.FixDataConsistencyController.setPhase2UsedForResults(applicationId: String, inventoryId: String, orderId: String, newUsedForResults: Boolean)
 GET         /diagnostic/application/:applicationId/inventory/:inventoryId/order/:orderId/setPhase1UsedForResults/:newUsedForResults controllers.fixdata.FixDataConsistencyController.setPhase1UsedForResults(applicationId: String, inventoryId: String, orderId: String, newUsedForResults: Boolean)
 GET         /diagnostic/rollbackToPhase2TestExpiredFromSift                                            controllers.fixdata.FixDataConsistencyController.rollbackToPhase2TestExpiredFromSift(applicationId: String)
@@ -201,6 +201,7 @@ GET         /diagnostic/fsac/setAverageScore/application/:applicationId/version/
 GET         /diagnostic/progress-candidate-to-fsb-or-offer-job                                         controllers.fixdata.FixDataConsistencyController.progressCandidateToFsbOrOfferJob(applicationId: String)
 GET         /diagnostic/progress-candidate-failed-at-fsb                                               controllers.fixdata.FixDataConsistencyController.progressCandidateFailedAtFsb(applicationId: String)
 GET         /diagnostic/inviteP2CandidateToMissingTest                                                 controllers.fixdata.FixDataConsistencyController.inviteP2CandidateToMissingTest(applicationId: String)
+GET         /diagnostic/application/:applicationId/setGis/:newGis                                      controllers.fixdata.FixDataConsistencyController.setGis(applicationId: String, newGis: Boolean)
 
 GET         /online-test/psi/phase1/candidate/:applicationId             controllers.OnlineTestController.getPhase1OnlineTest2(applicationId: String)
 

@@ -38,6 +38,7 @@ import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.AssessmentCentreRepository
+import repositories.assistancedetails.AssistanceDetailsRepository
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.FsbRepository
@@ -88,6 +89,7 @@ object ApplicationService extends ApplicationService with CurrentSchemeStatusHel
   val assessorAssessmentScoresRepository = repositories.assessorAssessmentScoresRepository
   val reviewerAssessmentScoresRepository = repositories.reviewerAssessmentScoresRepository
   val candidateAllocationService = CandidateAllocationService
+  val assistanceDetailsRepo = repositories.faststreamAssistanceDetailsRepository
 
   case class NoChangeInCurrentSchemeStatusException(applicationId: String,
     currentSchemeStatus: Seq[SchemeEvaluationResult],
@@ -122,6 +124,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
   def assessorAssessmentScoresRepository: AssessorAssessmentScoresMongoRepository
   def reviewerAssessmentScoresRepository: ReviewerAssessmentScoresMongoRepository
   def candidateAllocationService: CandidateAllocationService
+  def assistanceDetailsRepo: AssistanceDetailsRepository
 
   val Candidate_Role = "Candidate"
 
@@ -1163,6 +1166,16 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
         if (test.inventoryId == inventoryId && test.orderId == orderId) test.copy(usedForResults = newUsedForResults) else test }
       newPhase1TestProfile = phase1TestProfile.copy(tests = updatedTests)
       _ <- phase1TestRepository2.insertOrUpdateTestGroup(applicationId, newPhase1TestProfile)
+    } yield ()
+  }
+
+  def setGis(applicationId: String, newGis: Boolean): Future[Unit] = {
+    for {
+      candidateOpt <- appRepository.find(applicationId)
+      candidate = candidateOpt.getOrElse(throw UnexpectedException(s"Unable to find application for $applicationId"))
+      assistanceDetails <- assistanceDetailsRepo.find(applicationId)
+      updated = assistanceDetails.copy(guaranteedInterview = Some(newGis))
+      _ <- assistanceDetailsRepo.update(applicationId, candidate.userId, updated)
     } yield ()
   }
 
