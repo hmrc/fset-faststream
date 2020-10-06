@@ -22,11 +22,10 @@ case class WorkingTogetherDevelopingSelfAndOtherScores(
                                                         formsEffectiveWorkingRelationships: Option[Double] = None,
                                                         inclusiveApproach: Option[Double] = None,
                                                         encouragesCollaboration: Option[Double] = None,
-                                                        handlesChallengingConversations: Option[Double] = None,
                                                         encouragesTeamwork: Option[Double] = None,
                                                         understandsPerspectives: Option[Double] = None,
                                                         improvesOwnPerformance: Option[Double] = None
-                                                )
+                                                      )
 
 object WorkingTogetherDevelopingSelfAndOtherScores {
   implicit val buildingProductiveRelationshipsScoresFormat =

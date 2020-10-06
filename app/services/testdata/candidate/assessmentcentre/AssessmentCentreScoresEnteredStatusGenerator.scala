@@ -50,7 +50,7 @@ trait AssessmentCentreScoresEnteredStatusGenerator extends ConstructiveGenerator
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     makingEffectiveDecisionsScores = Some(MakingEffectiveDecisionsScores(
-      Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
+      Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     communicatingAndInfluencingScores = Some(CommunicatingAndInfluencingScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
@@ -66,7 +66,7 @@ trait AssessmentCentreScoresEnteredStatusGenerator extends ConstructiveGenerator
     communicatingAndInfluencingAverage = Some(4.0),
     updatedBy = updatedBy,
     makingEffectiveDecisionsScores = Some(MakingEffectiveDecisionsScores(
-      Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
+      Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     workingTogetherDevelopingSelfAndOthersScores = Some(WorkingTogetherDevelopingSelfAndOtherScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)

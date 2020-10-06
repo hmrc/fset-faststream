@@ -19,12 +19,11 @@ package model.assessmentscores
 import play.api.libs.json.Json
 
 case class CommunicatingAndInfluencingScores(
-                                              isAnInfluencer: Option[Double] = None,
-                                              presentingArguments: Option[Double] = None,
-                                              explainsIdeasClearly: Option[Double] = None,
+                                              presentsIdeas: Option[Double] = None,
                                               communicatesClearly: Option[Double] = None,
                                               defendsOwnView: Option[Double] = None,
-                                              conveysPurposeAndDirection: Option[Double] = None
+                                              conveysPurposeAndDirection: Option[Double] = None,
+                                              defendsProposals: Option[Double] = None
 )
 
 object CommunicatingAndInfluencingScores {

@@ -19,9 +19,9 @@ package model.assessmentscores
 import play.api.libs.json.Json
 
 case class SeeingTheBigPictureScores(
-                                      strategicOutlook: Option[Double] = None,
-                                      understandsHowOptionsMeetDiverseNeedsOfStakeholders: Option[Double] = None,
-                                      suggestsWaysToImproveAcceptance: Option[Double] = None,
+                                      generatesSolutions: Option[Double] = None,
+                                      practicalIdeas: Option[Double] = None,
+                                      seeingTheBiggerPicture: Option[Double] = None,
                                       respondsAppropriately: Option[Double] = None,
                                       alternativeSolutions: Option[Double] = None
                                     )

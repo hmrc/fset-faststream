@@ -19,12 +19,11 @@ package model.assessmentscores
 import play.api.libs.json.Json
 
 case class MakingEffectiveDecisionsScores(
-                                           decisiveAndMakesClearRecommendation: Option[Double] = None,
-                                           analysesFinancialData: Option[Double] = None,
-                                           analysesProsAndCons: Option[Double] = None,
-                                           considersCriticalAndImportantIssues: Option[Double] = None,
-                                           demonstratesMentalResilience: Option[Double] = None
-)
+                                           recognisesRisks: Option[Double] = None,
+                                           identifiesMitigation: Option[Double] = None,
+                                           isAnalytical: Option[Double] = None,
+                                           usesAppropriateCriteria: Option[Double] = None
+                                         )
 
 object MakingEffectiveDecisionsScores {
   implicit val makingEffectiveDecisionsScoresFormat = Json.format[MakingEffectiveDecisionsScores]
