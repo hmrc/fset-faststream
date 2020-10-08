@@ -184,7 +184,7 @@ abstract class HomeController(
                   Redirect(routes.HomeController.present()).flashing(success("assessmentCentre.analysisExercise.upload.success"))
                 }.recover {
                   case _: CandidateAlreadyHasAnAnalysisExerciseException =>
-                    Logger.warn(s"A duplicate written analysis exercise submission was attempted " +
+                    Logger.warn(s"A duplicate written exercise submission was attempted " +
                       s"(applicationId = $applicationId)")
                     Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.error"))
                 }
@@ -196,7 +196,7 @@ abstract class HomeController(
             }
         }
       }.getOrElse {
-        Logger.info(s"A malformed file request was submitted as a written analysis exercise " +
+        Logger.info(s"A malformed file request was submitted as a written exercise " +
           s"(applicationId = $applicationId)")
         Future.successful(Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.error")))
       }

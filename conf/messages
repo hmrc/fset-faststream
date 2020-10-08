@@ -286,11 +286,11 @@ dashboard.final.results.Edip=Congratulations, you''ve been successful for the Ea
 dashboard.final.results.Sdip=Congratulations, you''ve been successful for the Summer Diversity Internship Programme (SDIP).
 dashboard.final.results.SdipFaststream=Congratulations, you''ve been successful for the Summer Diversity Internship Programme (SDIP).
 
-assessmentCentre.analysisExercise.upload.error=There was a problem uploading your analysis exercise. You can try again or speak to an assessor.
-assessmentCentre.analysisExercise.upload.tooBig=Your analysis exercise must be less than 4MB
-assessmentCentre.analysisExercise.upload.tooSmall=Your analysis exercise appeared to be empty. You can try again or speak to an assessor.
-assessmentCentre.analysisExercise.upload.wrongContentType=Your analysis exercise must be in the .doc or .docx format
-assessmentCentre.analysisExercise.upload.success=You''ve successfully submitted your analysis exercise.
+assessmentCentre.analysisExercise.upload.error=There was a problem uploading your written exercise. You can try again or speak to an assessor.
+assessmentCentre.analysisExercise.upload.tooBig=Your written exercise must be less than 4MB
+assessmentCentre.analysisExercise.upload.tooSmall=Your written exercise appeared to be empty. You can try again or speak to an assessor.
+assessmentCentre.analysisExercise.upload.wrongContentType=Your written exercise must be in the .doc or .docx format
+assessmentCentre.analysisExercise.upload.success=You''ve successfully submitted your written exercise.
 
 assessmentCentre.event.confirm.success=You''ve successfully confirmed
 assessmentCentre.event.confirm.optimistic.lock=There''s been a problem accepting this event, please refresh and try again

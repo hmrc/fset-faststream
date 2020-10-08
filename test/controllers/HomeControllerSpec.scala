@@ -566,7 +566,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       val result = controller().submitAnalysisExercise().apply(fakePostRequestWithContentMock)
 
       status(result) mustBe SEE_OTHER
-      flash(result).get("danger") mustBe Some("Your analysis exercise must be less than 4MB")
+      flash(result).get("danger") mustBe Some("Your written exercise must be less than 4MB")
     }
 
     "show success when preconditions for upload are met" in new TestFixture {
@@ -576,17 +576,17 @@ class HomeControllerSpec extends BaseControllerSpec {
       val result = controller().submitAnalysisExercise().apply(fakePostRequestWithContentMock)
 
       status(result) mustBe SEE_OTHER
-      flash(result).get("success") mustBe Some("You've successfully submitted your analysis exercise.")
+      flash(result).get("success") mustBe Some("You've successfully submitted your written exercise.")
     }
 
-    "show an error if this candidate has already uploaded an analysis exercise" in new TestFixture {
+    "show an error if this candidate has already uploaded a written exercise" in new TestFixture {
       mockPostOnlineTestsDashboardCalls(hasAnalysisExerciseAlready = true)
       fileUploadMocks(3500000, analysisExerciseUploadedAlready = true)
 
       val result = controller().submitAnalysisExercise().apply(fakePostRequestWithContentMock)
 
       status(result) mustBe SEE_OTHER
-      flash(result).get("danger") mustBe Some("There was a problem uploading your analysis exercise. You can try again or speak to an assessor.")
+      flash(result).get("danger") mustBe Some("There was a problem uploading your written exercise. You can try again or speak to an assessor.")
     }
 
     "show an error if the content type is not on the allowed list" in new TestFixture {
@@ -596,7 +596,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       val result = controller().submitAnalysisExercise().apply(fakePostRequestWithBadContentTypeMock)
 
       status(result) mustBe SEE_OTHER
-      flash(result).get("danger") mustBe Some("Your analysis exercise must be in the .doc or .docx format")
+      flash(result).get("danger") mustBe Some("Your written exercise must be in the .doc or .docx format")
     }
 
     "Show an error if the file POST is not as expected" in new TestFixture {
@@ -606,7 +606,7 @@ class HomeControllerSpec extends BaseControllerSpec {
       val result = controller().submitAnalysisExercise().apply(fakePostRequestWithoutProperMultipartFormData)
 
       status(result) mustBe SEE_OTHER
-      flash(result).get("danger") mustBe Some("There was a problem uploading your analysis exercise. You can try again or speak to an assessor.")
+      flash(result).get("danger") mustBe Some("There was a problem uploading your written exercise. You can try again or speak to an assessor.")
     }
   }
 
