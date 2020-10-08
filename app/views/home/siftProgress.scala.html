@@ -168,7 +168,7 @@
             case PostOnlineTestsStage.UPLOAD_EXERCISES => {
                 @renderEventDetails(page.fsacAllocation)
                 <section>
-                    <p>You need to upload your written analysis exercise.</p>
+                    <p>You need to upload your written exercise.</p>
                     <div id="attachWordDocument">
                     @form(action = routes.HomeController.submitAnalysisExercise(), 'novalidate -> "novalidate", 'enctype -> "multipart/form-data") {
                         @CSRF.formField
@@ -177,7 +177,7 @@
                         <span class="font-xsmall">Maximum file size: 4MB</span>
                         <div id="fileSelected"></div>
                             <button type="submit" name="analysisExerciseSubmit" class="button" id="analysisExerciseBtn"
-                        style="display: none">Submit analysis exercise</button>
+                        style="display: none">Submit written exercise</button>
                     }
                     </div>
                 </section>
