@@ -87,14 +87,13 @@ GET         /report/fast-pass-awaiting-acceptance                        control
 GET         /report/fsac-scores                                          controllers.ReportingController.fsacScores()
 
 GET         /report/fs-presubmitted-candidates-details-stream/previous-year controllers.ReportingController.streamPreviousYearFaststreamPresubmittedCandidatesDetailsReport()
-GET         /report/fs-p1-candidates-details-stream/previous-year           controllers.ReportingController.streamPreviousYearFaststreamP1CandidatesDetailsReport()
+GET         /report/fs-p1-not-failed-candidates-details-stream/previous-year controllers.ReportingController.streamPreviousYearFaststreamP1NotFailedCandidatesDetailsReport()
+GET         /report/fs-p1-failed-candidates-details-stream/previous-year    controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsReport()
 GET         /report/fs-p2-p3-candidates-details-stream/previous-year        controllers.ReportingController.streamPreviousYearFaststreamP2P3CandidatesDetailsReport()
 
 GET         /report/fs-sift-candidates-details-stream/previous-year         controllers.ReportingController.streamPreviousYearFaststreamSIFTCandidatesDetailsReport()
 GET         /report/fs-fsac-candidates-details-stream/previous-year         controllers.ReportingController.streamPreviousYearFaststreamFSACCandidatesDetailsReport()
 GET         /report/fs-fsb-candidates-details-stream/previous-year          controllers.ReportingController.streamPreviousYearFaststreamFSBCandidatesDetailsReport()
-GET         /report/fs-p1-failed-candidates-details-stream/previous-year    controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsReport()
-GET         /report/fs-p1-not-failed-candidates-details-stream/previous-year controllers.ReportingController.streamPreviousYearFaststreamP1NotFailedCandidatesDetailsReport()
 GET         /report/nonfs-candidates-details-stream/previous-year           controllers.ReportingController.streamPreviousYearNonFaststreamCandidatesDetailsReport()
 
 # Data analyst reports start
@@ -102,7 +101,8 @@ GET         /report/streamed/data-analyst-report-pt1                        cont
 GET         /report/streamed/data-analyst-report-pt2                        controllers.ReportingController.streamDataAnalystReportPt2()
 
 GET         /report/streamed/data-analyst-fs-presubmitted                   controllers.ReportingController.streamDataAnalystFaststreamPresubmittedCandidatesDetailsReport()
-GET         /report/streamed/data-analyst-fs-p1                             controllers.ReportingController.streamDataAnalystFaststreamP1CandidatesDetailsReport()
+GET         /report/streamed/data-analyst-fs-p1-not-failed                  controllers.ReportingController.streamDataAnalystFaststreamP1NotFailedCandidatesDetailsReport()
+GET         /report/streamed/data-analyst-fs-p1-failed                      controllers.ReportingController.streamDataAnalystFaststreamP1FailedCandidatesDetailsReport()
 GET         /report/streamed/data-analyst-fs-p2-p3                          controllers.ReportingController.streamDataAnalystFaststreamP2P3CandidatesDetailsReport()
 
 GET         /report/streamed/data-analyst-fs-sift                           controllers.ReportingController.streamDataAnalystFaststreamSIFTCandidatesDetailsReport()

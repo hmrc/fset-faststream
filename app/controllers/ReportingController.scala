@@ -156,14 +156,6 @@ trait ReportingController extends BaseController {
     )
   }
 
-  def streamPreviousYearFaststreamP1CandidatesDetailsReport: Action[AnyContent] = {
-    streamPreviousYearCandidatesDetailsReport(
-      Seq(Faststream),
-      Seq(ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_FAILED,
-        ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED)
-    )
-  }
-
   def streamPreviousYearFaststreamP2P3CandidatesDetailsReport: Action[AnyContent] = {
     streamPreviousYearCandidatesDetailsReport(
       Seq(Faststream),
@@ -196,7 +188,7 @@ trait ReportingController extends BaseController {
       Seq(ApplicationStatus.FSB)
     )
   }
-
+/*
   def streamPreviousYearFaststreamP1FailedCandidatesDetailsReport: Action[AnyContent] = {
     streamPreviousYearCandidatesDetailsReport(
       Seq(Faststream),
@@ -208,6 +200,20 @@ trait ReportingController extends BaseController {
     streamPreviousYearCandidatesDetailsReport(
       Seq(Faststream),
       (c: Candidate) => c.applicationStatus.get != ApplicationStatus.PHASE1_TESTS_FAILED.toString
+    )
+  }*/
+
+  def streamPreviousYearFaststreamP1NotFailedCandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED)
+    )
+  }
+
+  def streamPreviousYearFaststreamP1FailedCandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.PHASE1_TESTS_FAILED)
     )
   }
 
@@ -332,11 +338,17 @@ trait ReportingController extends BaseController {
     )
   }
 
-  def streamDataAnalystFaststreamP1CandidatesDetailsReport: Action[AnyContent] = {
+  def streamDataAnalystFaststreamP1NotFailedCandidatesDetailsReport: Action[AnyContent] = {
     streamDataAnalystReport(
       Seq(Faststream),
-      Seq(ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_FAILED,
-        ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED)
+      Seq(ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED)
+    )
+  }
+
+  def streamDataAnalystFaststreamP1FailedCandidatesDetailsReport: Action[AnyContent] = {
+    streamDataAnalystReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.PHASE1_TESTS_FAILED)
     )
   }
 
