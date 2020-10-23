@@ -358,4 +358,4 @@ GET         /management/findCandidateByUserId                            control
 DELETE      /management/removeCandidate                                  controllers.CampaignManagementController.removeCandidate(applicationId: String, userId:String)
 
 # Metrics endpoints
-GET         /metrics/progressStatusCounts                                controllers.metrics.MetricsController.progressStatusCounts
+#GET         /metrics/progressStatusCounts                                controllers.metrics.MetricsController.progressStatusCounts
