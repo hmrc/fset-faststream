@@ -18,16 +18,17 @@ package model.exchange
 
 import play.api.libs.json.{ Json, OFormat }
 
-case class CandidateToRemove(userId: String, applicationId: String, applicationStatus: String)
+case class CandidateToRemove(userId: String, applicationId: String, applicationStatus: String, progressStatuses: List[String])
 
 object CandidateToRemove {
   implicit val format: OFormat[CandidateToRemove] = Json.format[CandidateToRemove]
 
-  def apply(persistedCandidate: model.Candidate): CandidateToRemove = {
+  def apply(persistedCandidate: model.Candidate, progressStatuses: List[String]): CandidateToRemove = {
     CandidateToRemove(
       userId = persistedCandidate.userId,
       applicationId = persistedCandidate.applicationId.getOrElse(""),
-      applicationStatus = persistedCandidate.applicationStatus.getOrElse("")
+      applicationStatus = persistedCandidate.applicationStatus.getOrElse(""),
+      progressStatuses = progressStatuses
     )
   }
 }
