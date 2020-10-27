@@ -53,10 +53,18 @@ trait SearchForApplicantService {
   }
 
   def findCandidateByUserId(userId: String): Future[Option[CandidateToRemove]] = {
-    appRepository.findCandidateByUserId(userId).map(_.map { candidate =>
-      CandidateToRemove(candidate)
+    (for {
+      candidateOpt <- appRepository.findCandidateByUserId(userId)
+      candidate = candidateOpt.getOrElse(throw new Exception("No candidate found"))
+      progressTimestamps <- appRepository.getProgressStatusTimestamps(candidate.applicationId
+        .getOrElse(throw new Exception("No application id found")))
+    } yield {
+      val progressStatuses = progressTimestamps.map {
+        case (progressStatus, _) => progressStatus
+      }
+      Some(CandidateToRemove(candidate, progressStatuses))
     }).recover {
-      case _: ContactDetailsNotFound => None
+      case _: Exception => None
     }
   }
 
