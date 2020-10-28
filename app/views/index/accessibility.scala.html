@@ -16,20 +16,114 @@
 
 @()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
 
+@faststreamEmail = {
+    <a href="mailto:faststream.applicationsupport@@cabinetoffice.gov.uk">faststream.applicationsupport@@cabinetoffice.gov.uk</a>
+}
+
+@contactUsFaststreamEmail = {
+    <a href="mailto:faststream.applicationsupport@@cabinetoffice.gov.uk">contact us</a>
+}
+
+@externalLink(url: String, text: String) = {
+    <a href="@url" target="_blank" rel="external">@text (link opens new window)</a>
+}
+
+@wcagExternalLink(text: String) = {
+    <a href="https://www.w3.org/TR/WCAG21/" target="_blank" rel="external">@text (link opens new window)</a>
+}
+
 @main_template(title = "Accessibility") {
-    <h1 class="heading-xlarge">Accessibility</h1>
+    <h1 class="heading-xlarge">Accessibility statement for Apply for the Civil Service Fast Stream service</h1>
 
     <section class="text">
-        <p>The Fast Stream digital team is committed to making sure our <a href="@routes.SignInController.present()">website</a>
-            is accessible to all potential applicants.</p>
-        <p>We particularly want to make sure our online service complies with level AA of the Web Content Accessibility Guidelines (WCAG version 2.1)
-            in line with The Public Sector Bodies (Websites and Mobile Applications) (No. 2) Accessibility Regulations 2018.</p>
-        <p>In order to help us achieve and maintain this objective, we have commissioned
-            <a href="http://www.digitalaccessibilitycentre.org">The Digital Accessibility Centre (DAC)</a> to carry out a technical
-            compliance audit that will include extensive testing by users with a wide range of disabilities.</p>
-        <p>This audit is scheduled to take place in the week commencing 5th October 2020.</p>
-        <p>In the meantime, if you are experiencing any barriers to accessing the service please contact us at the following
-            email address: <a href="mailto:faststream.applicationsupport@@cabinetoffice.gov.uk">faststream.applicationsupport@@cabinetoffice.gov.uk</a></p>
-        <p>Last updated 23 September 2020.</p>
+        <p>This accessibility statement applies to the ‘Apply for the Civil Service Fast Stream’ service.</p>
+        <p>This website is run by Cabinet Office, Civil Service Human Resources. We want as many people as possible
+            to be able to use this website. For example, that means you should be able to:
+        </p>
+        <ul>
+            <li>change colours, contrast levels and fonts</li>
+            <li>zoom in up to 300% without the text spilling off the screen</li>
+            <li>navigate most of the website using just a keyboard</li>
+            <li>navigate most of the website using speech recognition software</li>
+            <li>listen to most of the website using a screen reader (including the most recent versions of JAWS, NVDA and VoiceOver)</li>
+        </ul>
+    </section>
+
+    <section class="text">
+        <p>We’ve also made the website text as simple as possible to understand.</p>
+        <p>AbilityNet has advice on making your device easier to use if you have a disability.</p>
+    </section>
+
+    <h1 class="heading-large">How accessible this website is</h1>
+    <section class="text">
+        <p>The candidate application part of the website is fully compliant with the
+            @wcagExternalLink("Web Content Accessibility Guidelines version 2.1")
+            AA standard up until application submission.
+        </p>
+        <p>Once an application has been submitted for the Fast Stream a candidate is directed to the PSI
+            test platform to undertake online assessments.
+        </p>
+        <p>The PSI accessibility statement can be viewed
+            @externalLink("https://www.psionline.com/en-gb/accessibility-statement", "here").
+        </p>
+        <p>If a candidate is successful at the earlier online assessments stages they will be directed to
+            undertake a video interview via the LaunchPad recruits test platform.
+        </p>
+        <p>The Launchpad recruits accessibility statement can be viewed
+            @externalLink("https://launchpadrecruits.com/accessibility-statement", "here").
+        </p>
+        <p>We know some parts of this website after application submission may not be fully accessible and will be tested by March 2021.</p>
+    </section>
+
+    <h1 class="heading-large">Feedback and contact information</h1>
+    <section class="text">
+        <p>If you need information on this website in a different format like accessible PDF, large print, easy read, audio recording or braille:</p>
+        <ul>
+            <li>email us at: @faststreamEmail</li>
+        </ul>
+        <p>It will help us if you can tell us what assistive technology you use.</p>
+    </section>
+
+    <h1 class="heading-large">Reporting accessibility problems with this website</h1>
+    <section class="text">
+        <p>We’re always looking to improve the accessibility of this website. If you find any problems not listed on this page or think we’re
+            not meeting accessibility requirements, @contactUsFaststreamEmail.</p>
+    </section>
+
+    <h1 class="heading-large">Enforcement procedure</h1>
+    <section class="text">
+        <p>The Equality and Human Rights Commission (EHRC) is responsible for enforcing the Public Sector Bodies (Websites and Mobile Applications)
+            (No. 2) Accessibility Regulations 2018 (the ‘accessibility regulations’). If you’re not happy with how we respond to your complaint,
+            @externalLink("https://www.equalityadvisoryservice.com", "contact the Equality Advisory and Support Service (EASS)").
+        </p>
+        <p>If you are in Northern Ireland and are not happy with how we respond to your complaint you can
+            @externalLink("https://www.equalityni.org/Home", "contact the Equalities Commission for Northern Ireland").
+            who are responsible for enforcing the Public Sector Bodies (Websites and Mobile Applications) (No. 2) Accessibility Regulations 2018
+            (the ‘accessibility regulations’) in Northern Ireland.
+        </p>
+    </section>
+
+    <h1 class="heading-large">Compliance status</h1>
+    <section class="text">
+        <p>This website is partially compliant with the
+            @wcagExternalLink("Web Content Accessibility Guidelines version 2.1") AA standard. After application submission there may be parts of
+            the service that are not fully compliant with the standard. We plan to test and resolve any issues by March 2021.
+        </p>
+    </section>
+
+    <h1 class="heading-large">Disproportionate burden</h1>
+    <section class="text">
+        <p>At this time, we have not made any disproportionate burden claims.</p>
+    </section>
+
+    <h1 class="heading-large">Preparation of this accessibility statement</h1>
+    <section class="text">
+        <p>This statement was prepared on 26 October 2020.</p>
+        <p>It was last reviewed on 26 October 2020.</p>
+        <p>This website was last tested on 16 October 2020 and was checked for compliance with WCAG 2.1 AA.
+            Testing was carried out by our external supplier
+            @externalLink("http://www.digitalaccessibilitycentre.org", "The Digital Accessibility Centre (DAC)").
+        </p>
+        <p>We tested the service based on a user’s ability to complete key journeys.</p>
     </section>
 }
