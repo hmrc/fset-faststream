@@ -181,7 +181,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: false
   fsbType: EDIP - Telephone interview
-  schemeGuide: https://www.faststream.gov.uk/media/1242/edip-guide.pdf
+  schemeGuide: https://www.faststream.gov.uk/media/EDIP-2021-Candidate-Guidance.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/1245/Early-Diversity-Internship-Programme-additional-information-form-2021-pw.odt
 - id: Sdip
   code: SDIP
@@ -190,5 +190,5 @@
   siftRequirement: FORM
   siftEvaluationRequired: false
   fsbType: SDIP - Telephone interview
-  schemeGuide: https://www.faststream.gov.uk/media/1244/sdip-guide.pdf
+  schemeGuide: https://www.faststream.gov.uk/media/SDIP-2021-Candidate-Guidance.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/1253/Summer-Diversity-Internship-Programme-additional-information-form-2021-pw.odt
