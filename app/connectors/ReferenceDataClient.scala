@@ -57,7 +57,8 @@ trait ReferenceDataClient {
         if (response.status == OK) {
           val dataResponse = response.json.as[List[T]]
           referenceDataCache.update(key, dataResponse)
-          Logger.info(s"Reference data cache is empty for key: $key. It will be populated with the following data: $dataResponse")
+          // Set to warn so we see it in live logs
+          Logger.warn(s"Reference data cache is empty for key: $key. It will be populated with the following data: $dataResponse")
           dataResponse
         } else {
           throw new Exception(s"Error retrieving $key for")
