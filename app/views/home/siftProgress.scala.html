@@ -167,6 +167,7 @@
         @page.fsacStage match {
             case PostOnlineTestsStage.UPLOAD_EXERCISES => {
                 @renderEventDetails(page.fsacAllocation)
+                @* Removed for 2020/21 campaign
                 <section>
                     <p>You need to upload your written exercise.</p>
                     <div id="attachWordDocument">
@@ -180,7 +181,7 @@
                         style="display: none">Submit written exercise</button>
                     }
                     </div>
-                </section>
+                </section>*@
                 @renderFindMoreAboutAssessmentDay
             }
             case PostOnlineTestsStage.CONFIRMED_FOR_EVENT => {
