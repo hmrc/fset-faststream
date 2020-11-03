@@ -42,7 +42,8 @@ GET         /application/withdraw                                   controllers.
 POST        /application/withdraw                                   controllers.WithdrawController.withdrawApplication
 GET         /application/withdraw/scheme                            controllers.WithdrawController.presentWithdrawScheme
 POST        /application/withdraw/scheme                            controllers.WithdrawController.withdrawScheme
-POST        /file-submission/dashboard/submitWrittenExercise        controllers.HomeController.submitAnalysisExercise
+# Removed for 2020/21 campaign
+#POST        /file-submission/dashboard/submitWrittenExercise        controllers.HomeController.submitAnalysisExercise
 POST        /application/confirm-assessment-centre-allocation       controllers.HomeController.confirmAssessmentCentreAllocation(allocationVersion: String, eventId: UniqueIdentifier,sessionId: UniqueIdentifier)
 
 GET         /application/details                                    controllers.PersonalDetailsController.present
