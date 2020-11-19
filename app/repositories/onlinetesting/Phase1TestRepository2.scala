@@ -23,6 +23,7 @@ import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model._
 import model.persisted.{ NotificationExpiringOnlineTest, Phase1TestGroupWithUserIds2, Phase1TestProfile2 }
+import play.api.Logger
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -68,6 +69,7 @@ class Phase1TestMongoRepository2(dateTime: DateTimeFactory)(implicit mongo: () =
 
   // Needed to satisfy OnlineTestRepository trait
   override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] = {
+    Logger.warn(s"Looking for candidates to invite to $phaseName with a batch size of $maxBatchSize...")
     val submittedStatuses = List[String](ApplicationStatus.SUBMITTED, ApplicationStatus.SUBMITTED.toLowerCase)
 
     val query = BSONDocument("$and" -> BSONArray(

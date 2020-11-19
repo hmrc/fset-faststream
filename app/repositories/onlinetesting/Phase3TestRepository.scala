@@ -136,6 +136,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   }
 
   override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] = {
+    Logger.warn(s"Looking for candidates to invite to $phaseName with a batch size of $maxBatchSize...")
     val query = inviteToTestBSON(PHASE2_TESTS_PASSED) ++ BSONDocument("applicationRoute" -> BSONDocument("$nin" -> BSONArray("Sdip", "Edip")))
 
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
