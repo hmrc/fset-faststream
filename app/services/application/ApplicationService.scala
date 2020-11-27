@@ -598,7 +598,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
           (schemeResult.schemeId == Scheme.SdipId && schemeResult.result == Green.toString))
 
       if (failedAtEtray || failedAtOnlineExercises) {
-        val failedAtStage = if (failedAtOnlineExercises) "online exercises" else "e-tray"
+        val failedAtStage = if (failedAtOnlineExercises) "online exercises" else "work based scenarios"
         Some((potentialAffectedUser, contactDetails, failedAtStage, applicationDetails.latestProgressStatus.get,
           phase1SchemeStatus, phase2SchemeStatus))
       } else {
@@ -1233,7 +1233,7 @@ trait ApplicationService extends EventSink with CurrentSchemeStatusHelper {
       fsbEvaluation <- fsbRepo.findByApplicationId(applicationId).map(_.map(_.evaluation.result).getOrElse(Nil))
       evaluations = ListMap(
         "online tests" -> phase1Evaluation,
-        "e-tray" -> phase2Evaluation,
+        "work based scenarios" -> phase2Evaluation,
         "video interview" -> phase3Evaluation,
         "sift stage" -> siftEvaluation,
         "assessment centre" -> fsacEvaluation,
