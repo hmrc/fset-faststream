@@ -90,6 +90,9 @@ GET         /report/fs-presubmitted-candidates-details-stream/previous-year cont
 GET         /report/fs-p1-not-failed-candidates-details-stream/previous-year controllers.ReportingController.streamPreviousYearFaststreamP1NotFailedCandidatesDetailsReport()
 GET         /report/fs-p1-failed-candidates-details-stream/previous-year    controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsReport()
 GET         /report/fs-p2-p3-candidates-details-stream/previous-year        controllers.ReportingController.streamPreviousYearFaststreamP2P3CandidatesDetailsReport()
+GET         /report/fs-p2-candidates-details-stream/previous-year           controllers.ReportingController.streamPreviousYearFaststreamP2CandidatesDetailsReport()
+GET         /report/fs-p3-candidates-details-stream/previous-year           controllers.ReportingController.streamPreviousYearFaststreamP3CandidatesDetailsReport()
+
 
 GET         /report/fs-sift-candidates-details-stream/previous-year         controllers.ReportingController.streamPreviousYearFaststreamSIFTCandidatesDetailsReport()
 GET         /report/fs-fsac-candidates-details-stream/previous-year         controllers.ReportingController.streamPreviousYearFaststreamFSACCandidatesDetailsReport()
@@ -104,6 +107,9 @@ GET         /report/streamed/data-analyst-fs-presubmitted                   cont
 GET         /report/streamed/data-analyst-fs-p1-not-failed                  controllers.ReportingController.streamDataAnalystFaststreamP1NotFailedCandidatesDetailsReport()
 GET         /report/streamed/data-analyst-fs-p1-failed                      controllers.ReportingController.streamDataAnalystFaststreamP1FailedCandidatesDetailsReport()
 GET         /report/streamed/data-analyst-fs-p2-p3                          controllers.ReportingController.streamDataAnalystFaststreamP2P3CandidatesDetailsReport()
+GET         /report/streamed/data-analyst-fs-p2                             controllers.ReportingController.streamDataAnalystFaststreamP2CandidatesDetailsReport()
+GET         /report/streamed/data-analyst-fs-p3                             controllers.ReportingController.streamDataAnalystFaststreamP3CandidatesDetailsReport()
+
 
 GET         /report/streamed/data-analyst-fs-sift                           controllers.ReportingController.streamDataAnalystFaststreamSIFTCandidatesDetailsReport()
 GET         /report/streamed/data-analyst-fs-fsac                           controllers.ReportingController.streamDataAnalystFaststreamFSACCandidatesDetailsReport()
