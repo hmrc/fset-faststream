@@ -254,6 +254,22 @@ trait ReportingController extends BaseController {
     )
   }
 
+  def streamPreviousYearFaststreamP1FailedCandidatesDetailsPart3Report: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.PHASE1_TESTS_FAILED),
+      part = 3
+    )
+  }
+
+  def streamPreviousYearFaststreamP1FailedCandidatesDetailsPart4Report: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.PHASE1_TESTS_FAILED),
+      part = 4
+    )
+  }
+
   def streamPreviousYearNonFaststreamCandidatesDetailsReport: Action[AnyContent] = {
     streamPreviousYearCandidatesDetailsReport(
       Seq(SdipFaststream, Sdip, Edip),
@@ -429,6 +445,22 @@ trait ReportingController extends BaseController {
       Seq(Faststream),
       Seq(ApplicationStatus.PHASE1_TESTS_FAILED),
       part = 2
+    )
+  }
+
+  def streamDataAnalystFaststreamP1FailedCandidatesDetailsPart3Report: Action[AnyContent] = {
+    streamDataAnalystReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.PHASE1_TESTS_FAILED),
+      part = 3
+    )
+  }
+
+  def streamDataAnalystFaststreamP1FailedCandidatesDetailsPart4Report: Action[AnyContent] = {
+    streamDataAnalystReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.PHASE1_TESTS_FAILED),
+      part = 4
     )
   }
 

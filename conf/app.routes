@@ -91,6 +91,8 @@ GET         /report/fs-p1-not-failed-candidates-details-stream/previous-year con
 GET         /report/fs-p1-failed-candidates-details-stream/previous-year         controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsReport()
 GET         /report/fs-p1-failed-candidates-details-part1-stream/previous-year   controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsPart1Report()
 GET         /report/fs-p1-failed-candidates-details-part2-stream/previous-year   controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsPart2Report()
+GET         /report/fs-p1-failed-candidates-details-part3-stream/previous-year   controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsPart3Report()
+GET         /report/fs-p1-failed-candidates-details-part4-stream/previous-year   controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsPart4Report()
 GET         /report/fs-p2-p3-candidates-details-stream/previous-year        controllers.ReportingController.streamPreviousYearFaststreamP2P3CandidatesDetailsReport()
 GET         /report/fs-p2-candidates-details-stream/previous-year           controllers.ReportingController.streamPreviousYearFaststreamP2CandidatesDetailsReport()
 GET         /report/fs-p3-candidates-details-stream/previous-year           controllers.ReportingController.streamPreviousYearFaststreamP3CandidatesDetailsReport()
@@ -110,6 +112,8 @@ GET         /report/streamed/data-analyst-fs-p1-not-failed                  cont
 GET         /report/streamed/data-analyst-fs-p1-failed                      controllers.ReportingController.streamDataAnalystFaststreamP1FailedCandidatesDetailsReport()
 GET         /report/streamed/data-analyst-fs-p1-failed-part1                controllers.ReportingController.streamDataAnalystFaststreamP1FailedCandidatesDetailsPart1Report()
 GET         /report/streamed/data-analyst-fs-p1-failed-part2                controllers.ReportingController.streamDataAnalystFaststreamP1FailedCandidatesDetailsPart2Report()
+GET         /report/streamed/data-analyst-fs-p1-failed-part3                controllers.ReportingController.streamDataAnalystFaststreamP1FailedCandidatesDetailsPart3Report()
+GET         /report/streamed/data-analyst-fs-p1-failed-part4                controllers.ReportingController.streamDataAnalystFaststreamP1FailedCandidatesDetailsPart4Report()
 
 GET         /report/streamed/data-analyst-fs-p2-p3                          controllers.ReportingController.streamDataAnalystFaststreamP2P3CandidatesDetailsReport()
 GET         /report/streamed/data-analyst-fs-p2                             controllers.ReportingController.streamDataAnalystFaststreamP2CandidatesDetailsReport()

@@ -661,13 +661,25 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
           BSONDocument( "$and" -> BSONArray(
             BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
             BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses)),
-            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-01|03|05|07|09|11-[0-9]{2}$", "")) //DA 1120 FUNCIONA BIEN
+            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-01|05|09-[0-9]{2}$", "")) //DA 1120 FUNCIONA BIEN
           ))
         case 2 =>
           BSONDocument( "$and" -> BSONArray(
             BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
             BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses)),
-            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-02|04|06|08|10|12-[0-9]{2}$", "")) //DA 1120
+            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-03|07|11-[0-9]{2}$", "")) //DA 1120
+          ))
+        case 3 =>
+          BSONDocument( "$and" -> BSONArray(
+            BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
+            BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses)),
+            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-02|06|10-[0-9]{2}$", "")) //DA 1120
+          ))
+        case 4 =>
+          BSONDocument( "$and" -> BSONArray(
+            BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
+            BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses)),
+            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-04|08|12-[0-9]{2}$", "")) //DA 1120
           ))
         case _ =>
           BSONDocument( "$and" -> BSONArray(
