@@ -81,6 +81,8 @@ abstract class DataFaker(schemeRepo: SchemeRepository) {
 
     def number(limit: Option[Int] = None): Int = util.Random.nextInt(limit.getOrElse(2000000000))
 
+    def monthNumber: Int = util.Random.nextInt(12)
+
     def mediaReferrer = randOne(List(
       None,
       Some("GOV.UK or Civil Service Jobs"),

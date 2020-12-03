@@ -238,6 +238,22 @@ trait ReportingController extends BaseController {
     )
   }
 
+  def streamPreviousYearFaststreamP1FailedCandidatesDetailsPart1Report: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.PHASE1_TESTS_FAILED),
+      part = 1
+    )
+  }
+
+  def streamPreviousYearFaststreamP1FailedCandidatesDetailsPart2Report: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.PHASE1_TESTS_FAILED),
+      part = 2
+    )
+  }
+
   def streamPreviousYearNonFaststreamCandidatesDetailsReport: Action[AnyContent] = {
     streamPreviousYearCandidatesDetailsReport(
       Seq(SdipFaststream, Sdip, Edip),
@@ -269,6 +285,33 @@ trait ReportingController extends BaseController {
           }
         }
       }
+  }
+
+  private def streamPreviousYearCandidatesDetailsReport(
+    applicationRoutes: Seq[ApplicationRoute],
+    applicationStatuses: Seq[ApplicationStatus],
+    part: Int
+  ): Action[AnyContent] = Action.async { implicit request =>
+    prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes, applicationStatuses, part).flatMap { candidates =>
+      val appIds = candidates.flatMap(_.applicationId)
+      val userIds = candidates.map(_.userId)
+
+      enrichPreviousYearCandidateDetails(appIds, userIds) {
+        (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
+        siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) => {
+          val header = buildHeaders(numOfSchemes)
+          val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream(numOfSchemes, appIds).map {
+            app =>
+              val ret = createCandidateInfoBackUpRecord(
+                app, contactDetails, questionnaireDetails, mediaDetails,
+                eventsDetails, siftAnswers, assessorAssessmentScores, reviewerAssessmentScores
+              ) + "\n"
+              ret
+          }
+          Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(candidatesStream))))
+        }
+      }
+    }
   }
 
   private def streamPreviousYearCandidatesDetailsReport(
@@ -370,6 +413,22 @@ trait ReportingController extends BaseController {
     streamDataAnalystReport(
       Seq(Faststream),
       Seq(ApplicationStatus.PHASE1_TESTS_FAILED)
+          )
+  }
+
+  def streamDataAnalystFaststreamP1FailedCandidatesDetailsPart1Report: Action[AnyContent] = {
+    streamDataAnalystReport(
+      Seq(Faststream),
+     Seq(ApplicationStatus.PHASE1_TESTS_FAILED),
+      part = 1
+    )
+  }
+
+  def streamDataAnalystFaststreamP1FailedCandidatesDetailsPart2Report: Action[AnyContent] = {
+    streamDataAnalystReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.PHASE1_TESTS_FAILED),
+      part = 2
     )
   }
 
@@ -438,6 +497,17 @@ trait ReportingController extends BaseController {
                                         applicationStatuses: Seq[ApplicationStatus]
                                        ): Action[AnyContent] = Action.async { implicit request =>
     prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes, applicationStatuses).flatMap { candidates =>
+      val appIds = candidates.flatMap(_.applicationId)
+      val userIds = candidates.map(_.userId)
+      commonEnrichDataAnalystReport(appIds, userIds)
+    }
+  }
+
+  private def streamDataAnalystReport(applicationRoutes: Seq[ApplicationRoute],
+    applicationStatuses: Seq[ApplicationStatus],
+    part: Int
+  ): Action[AnyContent] = Action.async { implicit request =>
+    prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes, applicationStatuses, part).flatMap { candidates =>
       val appIds = candidates.flatMap(_.applicationId)
       val userIds = candidates.map(_.userId)
       commonEnrichDataAnalystReport(appIds, userIds)

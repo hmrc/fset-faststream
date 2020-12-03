@@ -22,18 +22,18 @@ import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model._
-import model.command.{ CandidateDetailsReportItem, CsvExtract, WithdrawApplication }
-import model.persisted.{ FSACIndicator, SchemeEvaluationResult }
+import model.command.{CandidateDetailsReportItem, CsvExtract, WithdrawApplication}
+import model.persisted.{FSACIndicator, SchemeEvaluationResult}
 import model.persisted.fsb.ScoresAndFeedback
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{ JsObject, Json }
-import reactivemongo.api.{ Cursor, DB, ReadPreference }
-import reactivemongo.bson.{ BSONArray, BSONDocument, BSONReader, BSONValue }
+import play.api.libs.json.{JsObject, Json}
+import reactivemongo.api.{Cursor, DB, ReadPreference}
+import reactivemongo.bson.{BSONArray, BSONDocument, BSONReader, BSONRegex, BSONValue}
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import reactivemongo.play.json.collection.JSONCollection
-import repositories.{ BSONDateTimeHandler, CollectionNames, CommonBSONDocuments, SchemeYamlRepository, withdrawHandler }
+import repositories.{BSONDateTimeHandler, CollectionNames, CommonBSONDocuments, SchemeYamlRepository, withdrawHandler}
 import services.reporting.SocioEconomicCalculator
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -176,8 +176,10 @@ trait PreviousYearCandidatesDetailsRepository {
   def dataAnalystApplicationDetailsStream(numOfSchemes: Int, applicationIds: Seq[String]): Enumerator[CandidateDetailsReportItem]
 
   def findApplicationsFor(appRoutes: Seq[ApplicationRoute]): Future[List[Candidate]]
+  def findApplicationsFor(appRoutes: Seq[ApplicationRoute], appStatuses: Seq[ApplicationStatus]): Future[List[Candidate]]
   def findApplicationsFor(appRoutes: Seq[ApplicationRoute],
-                          appStatuses: Seq[ApplicationStatus]): Future[List[Candidate]]
+                          appStatuses: Seq[ApplicationStatus],
+                          part: Int): Future[List[Candidate]]
 
   def findDataAnalystContactDetails: Future[CsvExtract[String]]
   def findDataAnalystContactDetails(userIds: Seq[String]): Future[CsvExtract[String]]
@@ -646,6 +648,34 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
       BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses))
     ))
+    applicationDetailsCollection.find(query, projection = Option.empty[JsObject]).cursor[Candidate]()
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
+  }
+
+  override def findApplicationsFor(appRoutes: Seq[ApplicationRoute],
+    appStatuses: Seq[ApplicationStatus],
+    parts: Int): Future[List[Candidate]] = {
+    val query = {
+      parts match {
+        case 1 =>
+          BSONDocument( "$and" -> BSONArray(
+            BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
+            BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses)),
+            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-01|03|05|07|09|11-[0-9]{2}$", "")) //DA 1120 FUNCIONA BIEN
+          ))
+        case 2 =>
+          BSONDocument( "$and" -> BSONArray(
+            BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
+            BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses)),
+            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-02|04|06|08|10|12-[0-9]{2}$", "")) //DA 1120
+          ))
+        case _ =>
+          BSONDocument( "$and" -> BSONArray(
+            BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
+            BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses))
+          ))
+      }
+    }
     applicationDetailsCollection.find(query, projection = Option.empty[JsObject]).cursor[Candidate]()
       .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
   }

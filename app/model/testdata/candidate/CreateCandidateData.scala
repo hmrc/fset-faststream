@@ -94,7 +94,7 @@ object CreateCandidateData {
     firstName: String = Random.getFirstname(1),
     lastName: String = Random.getLastname(1),
     preferredName: Option[String] = None,
-    dob: LocalDate = new LocalDate(1981, 5, 21),
+    dob: LocalDate = new LocalDate(1981, Random.monthNumber, 21),
     postCode: Option[String] = None,
     country: Option[String] = None,
     edipCompleted: Option[Boolean] = None,
