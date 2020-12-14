@@ -653,33 +653,33 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
   }
 
   override def findApplicationsFor(appRoutes: Seq[ApplicationRoute],
-    appStatuses: Seq[ApplicationStatus],
-    parts: Int): Future[List[Candidate]] = {
+                                   appStatuses: Seq[ApplicationStatus],
+                                   part: Int): Future[List[Candidate]] = {
     val query = {
-      parts match {
+      part match {
         case 1 =>
           BSONDocument( "$and" -> BSONArray(
             BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
             BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses)),
-            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-01|05|09-[0-9]{2}$", "")) //DA 1120 FUNCIONA BIEN
+            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-(01|05|09)-[0-9]{2}$", "")) // Only months 1, 5 & 9
           ))
         case 2 =>
           BSONDocument( "$and" -> BSONArray(
             BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
             BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses)),
-            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-03|07|11-[0-9]{2}$", "")) //DA 1120
+            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-(03|07|11)-[0-9]{2}$", "")) // Only months 3, 7 & 11
           ))
         case 3 =>
           BSONDocument( "$and" -> BSONArray(
             BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
             BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses)),
-            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-02|06|10-[0-9]{2}$", "")) //DA 1120
+            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-(02|06|10)-[0-9]{2}$", "")) // Only months 2, 6 & 10
           ))
         case 4 =>
           BSONDocument( "$and" -> BSONArray(
             BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
             BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses)),
-            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-04|08|12-[0-9]{2}$", "")) //DA 1120
+            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-(04|08|12)-[0-9]{2}$", "")) // Only months 4, 8 & 12
           ))
         case _ =>
           BSONDocument( "$and" -> BSONArray(
