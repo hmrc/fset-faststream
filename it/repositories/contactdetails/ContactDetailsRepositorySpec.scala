@@ -21,7 +21,7 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
 
   "contact details repository " should {
     "create indexes" in {
-      val indexes = indexesWithFields2(repository)
+      val indexes = indexesWithFields(repository)
       indexes must contain theSameElementsAs
         Seq(
           IndexDetails(key = Seq(("_id", Ascending)), unique = false),

@@ -48,7 +48,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   "General Application repository" should {
     "create indexes" in {
-      val indexes = indexesWithFields2(repository)
+      val indexes = indexesWithFields(repository)
       indexes must contain(IndexDetails(key = Seq(("_id", Ascending)), unique = false))
       indexes must contain(IndexDetails(key = Seq(("applicationId", Ascending), ("userId", Ascending)), unique = true))
       indexes must contain(IndexDetails(key = Seq(("userId", Ascending), ("frameworkId", Ascending)), unique = true))

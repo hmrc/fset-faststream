@@ -32,28 +32,24 @@ import scala.language.postfixOps
 package object repositories {
 
   implicit object BSONDateTimeHandler extends BSONHandler[BSONDateTime, DateTime] {
-    def read(time: BSONDateTime) = new DateTime(time.value, DateTimeZone.UTC)
-
+    def read(bdtime: BSONDateTime) = new DateTime(bdtime.value, DateTimeZone.UTC)
     def write(jdtime: DateTime) = BSONDateTime(jdtime.getMillis)
   }
 
-  /** Implicit transformation for the DateTime **/
   implicit object BSONLocalDateHandler extends BSONHandler[BSONString, LocalDate] {
     def read(time: BSONString) = LocalDate.parse(time.value)
-
     def write(jdtime: LocalDate) = BSONString(jdtime.toString("yyyy-MM-dd"))
   }
 
   implicit object BSONLocalTimeHandler extends BSONHandler[BSONString, LocalTime] {
     def read(time: BSONString) = LocalTime.parse(time.value)
-
     def write(jdtime: LocalTime) = BSONString(jdtime.toString("HH:mm"))
   }
 
   implicit object BSONMapStringIntHandler extends BSONHandler[BSONDocument, Map[String, Int]] {
     override def write(map: Map[String, Int]): BSONDocument = {
-      val elements = map.toStream.map { tuple =>
-        tuple._1 -> BSONInteger(tuple._2)
+      val elements = map.toStream.map { case (key, value) =>
+        key -> BSONInteger(value)
       }
       BSONDocument(elements)
     }
@@ -69,8 +65,8 @@ package object repositories {
 
   implicit object BSONMapStringStringHandler extends BSONHandler[BSONDocument, Map[String, String]] {
     override def write(map: Map[String, String]): BSONDocument = {
-      val elements = map.toStream.map { tuple =>
-        tuple._1 -> BSONString(tuple._2)
+      val elements = map.toStream.map { case (key, value ) =>
+        key -> BSONString(value)
       }
       BSONDocument(elements)
     }

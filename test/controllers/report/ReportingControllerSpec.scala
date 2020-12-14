@@ -16,6 +16,8 @@
 
 package controllers.report
 
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
 import config.TestFixtureBase
 import connectors.AuthProviderClient
 import connectors.ExchangeObjects.{ Candidate, UserAuthInfo }
@@ -47,32 +49,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.postfixOps
 
 class ReportingControllerSpec extends UnitWithAppSpec {
-/*
-  val mockContactDetailsRepository: ContactDetailsRepository = mock[contactdetails.ContactDetailsRepository]
-  val reportingRepositoryMock: ReportingRepository = mock[ReportingRepository]
-  val authProviderClientMock: AuthProviderClient = mock[AuthProviderClient]
-  val mockQuestionnaireRepository: QuestionnaireRepository = mock[QuestionnaireRepository]
-  val mockMediaRepository: MediaRepository = mock[MediaRepository]
 
-  class TestableReportingController extends ReportingController {
-    override val reportingRepository: ReportingRepository = reportingRepositoryMock
-    override val contactDetailsRepository: contactdetails.ContactDetailsRepository = mockContactDetailsRepository
-    override val questionnaireRepository: QuestionnaireRepository = mockQuestionnaireRepository
-    override val mediaRepository: MediaRepository = mockMediaRepository
-    override val prevYearCandidatesDetailsRepository = mock[PreviousYearCandidatesDetailsRepository]
-    override val authProviderClient: AuthProviderClient = mock[AuthProviderClient]
-    override val assessorRepository: AssessorRepository = mock[AssessorRepository]
-    override val eventsRepository: EventsRepository = mock[EventsRepository]
-    override val assessorAllocationRepository: AssessorAllocationRepository = mock[AssessorAllocationRepository]
-    override val assessmentScoresRepository: AssessmentScoresRepository = mock[AssessmentScoresRepository]
-    override val applicationSiftRepository: ApplicationSiftRepository = mock[ApplicationSiftRepository]
-    override val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository = mock[FSACIndicatorCSVRepository]
-    override val schemeRepo: SchemeRepository = mock[SchemeRepository]
-    override val candidateAllocationRepo: CandidateAllocationRepository = mock[CandidateAllocationRepository]
-    override val fsbRepository: FsbRepository = mock[FsbRepository]
-    override val applicationRepository: GeneralApplicationRepository = mock[GeneralApplicationRepository]
-  }
-*/
   "Reporting controller create adjustment report" must {
     "return the adjustment report when we execute adjustment reports" in new TestFixture {
       when(mockContactDetailsRepository.findAll).thenReturn(Future.successful(List(
@@ -341,29 +318,9 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockPrevYearCandidatesDetailsRepo = mock[PreviousYearCandidatesDetailsRepository]
     val mockPersonalDetailsRepository = mock[PersonalDetailsRepository]
-/*
-    class TestableReportingController extends ReportingController {
-      val reportingRepository: ReportingRepository2 = mockReportingRepository
-      val assessorRepository = mockAssessorRepository
-      val eventsRepository = mockEventsRepository
-      val assessorAllocationRepository = mockAssessorAllocationRepository
 
-      val contactDetailsRepository: contactdetails.ContactDetailsRepository2 = mockContactDetailsRepository
-      val questionnaireRepository: QuestionnaireRepository2 = mockQuestionnaireRepository
-      val prevYearCandidatesDetailsRepository: PreviousYearCandidatesDetailsRepository2 = mockPrevYearCandidatesDetailsRepo
-      val assessmentScoresRepository: AssessmentScoresRepository2 = mockAssessmentScoresRepository
-      val mediaRepository: MediaRepository2 = mockMediaRepository // MediaInMemoryRepository
-//      override val fsacIndicatorCSVRepository = FSACIndicatorCSVRepository
-      val applicationSiftRepository = mockApplicationSiftRepo
-      val schemeRepo = mockSchemeRepo
-      val authProviderClient: AuthProviderClient = mockAuthProviderClient
-      val candidateAllocationRepo = mockCandidateAllocationRepo
-
-      val fsbRepository: FsbRepository2 = mockFsbRepo
-      val applicationRepository: GeneralApplicationRepository2 = mockAppRepo
-      val personalDetailsRepository = mockPersonalDetailsRepository
-    }*/
     val testableReportingController = new ReportingController(
+      cc = stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
       reportingRepository = mockReportingRepository,
       assessorRepository = mockAssessorRepository,
       eventsRepository = mockEventsRepository,

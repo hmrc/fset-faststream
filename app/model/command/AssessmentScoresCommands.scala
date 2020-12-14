@@ -18,7 +18,9 @@ package model.command
 
 import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresExercise, AssessmentScoresFinalFeedback }
 import model.UniqueIdentifier
-import org.joda.time.{ DateTime, LocalDate }
+import org.joda.time.LocalDate
+import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json._
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 

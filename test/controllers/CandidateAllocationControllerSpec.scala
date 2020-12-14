@@ -77,7 +77,10 @@ class CandidateAllocationControllerSpec  extends UnitWithAppSpec {
     val MockEvent = new Event("id", EventType.FSAC, "description", MockLocation, MockVenue,
       LocalDate.now, 32, 10, 5, LocalTime.now, LocalTime.now, DateTime.now, Map.empty, List.empty)
 
-    val controller = new CandidateAllocationController(mockCandidateAllocationService)
+    val controller = new CandidateAllocationController(
+      stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
+      mockCandidateAllocationService
+    )
   }
 
   def findCandidatesEligibleForEventAllocationRequest(location: String, eventType: EventType, t: String) = {

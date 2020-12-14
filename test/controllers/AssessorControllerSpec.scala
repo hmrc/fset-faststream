@@ -172,7 +172,11 @@ class AssessorControllerSpec extends UnitWithAppSpec {
   trait TestFixture {
     val mockAssessorService = mock[AssessorService]
     val mockAuditService = mock[AuditService]
-    val controller = new AssessorController(mockAssessorService, mockAuditService)
+    val controller = new AssessorController(
+      stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
+      mockAssessorService,
+      mockAuditService
+    )
   }
 }
 

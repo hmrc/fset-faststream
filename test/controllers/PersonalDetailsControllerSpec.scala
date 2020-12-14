@@ -37,7 +37,11 @@ class PersonalDetailsControllerSpec extends UnitWithAppSpec {
   val mockCandidateDetailsService = mock[PersonalDetailsService]
   val mockAuditService = mock[AuditService]
 
-  val controller = new PersonalDetailsController(mockCandidateDetailsService, mockAuditService)
+  val controller = new PersonalDetailsController(
+    stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
+    mockCandidateDetailsService,
+    mockAuditService
+  )
 
   "update details" should {
     val Request = fakeRequest(CandidateContactDetailsUK)

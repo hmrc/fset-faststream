@@ -25,7 +25,7 @@ import model.command.FastPassPromotion
 import model.persisted.sift.SiftAnswersStatus
 import model.{ SchemeId, UniqueIdentifier }
 import play.api.Logger
-import play.api.mvc.{ Action, AnyContent, Result }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents, Result }
 import services.application.{ ApplicationService, FsbService }
 import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAssessmentScoreEvaluationException
 import services.assessmentcentre.{ AssessmentCentreService, ProgressionToFsbOrOfferService }
@@ -34,14 +34,15 @@ import services.onlinetesting.phase2.Phase2TestService2
 import services.onlinetesting.phase3.Phase3TestService
 import services.sift.{ ApplicationSiftService, SiftAnswersService }
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 // scalastyle:off number.of.methods
 @Singleton
-class FixDataConsistencyController @Inject()(applicationService: ApplicationService,
+class FixDataConsistencyController @Inject()(cc: ControllerComponents,
+                                             applicationService: ApplicationService,
                                              fastPassService: FastPassService,
                                              siftService: ApplicationSiftService,
                                              siftAnswersService: SiftAnswersService,
@@ -51,7 +52,7 @@ class FixDataConsistencyController @Inject()(applicationService: ApplicationServ
                                              phase2TestService: Phase2TestService2,
                                              phase3TestService: Phase3TestService,
                                              uuidFactory: UUIDFactory
-                                            ) extends BaseController {
+                                            ) extends BackendController(cc) {
 
   def undoFullWithdraw(applicationId: String, newApplicationStatus: ApplicationStatus) = Action.async { implicit request =>
     applicationService.undoFullWithdraw(applicationId, newApplicationStatus).map { _ =>

@@ -20,6 +20,8 @@ import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.ProgressStatuses.ProgressStatus
 import org.joda.time.DateTime
+import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.Json
 
 case class ApplicationStatusDetails(status: String, // TODO: change to ApplicationStatus type

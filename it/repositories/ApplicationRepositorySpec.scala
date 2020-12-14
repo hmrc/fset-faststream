@@ -24,6 +24,7 @@ import model.persisted.AssistanceDetails
 import model.{ ApplicationRoute, ProgressStatuses }
 import org.joda.time.DateTime
 import play.api.libs.json.JsObject
+import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.application.GeneralApplicationMongoRepository
@@ -49,13 +50,13 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       val indexes = indexesWithFields(repo)
       indexes must contain theSameElementsAs
         Seq(
-          List("_id"),
-          List("applicationId", "userId"),
-          List("userId", "frameworkId"),
-          List("applicationStatus"),
-          List("assistance-details.needsSupportForOnlineAssessment"),
-          List("assistance-details.needsSupportAtVenue"),
-          List("assistance-details.guaranteedInterview")
+          IndexDetails(key = Seq(("_id", Ascending)), unique = false),
+          IndexDetails(key = Seq(("applicationId", Ascending), ("userId", Ascending)), unique = true),
+          IndexDetails(key = Seq(("userId", Ascending), ("frameworkId", Ascending)), unique = true),
+          IndexDetails(key = Seq(("applicationStatus", Ascending)), unique = false),
+          IndexDetails(key = Seq(("assistance-details.needsSupportForOnlineAssessment", Ascending)), unique = false),
+          IndexDetails(key = Seq(("assistance-details.needsSupportAtVenue", Ascending)), unique = false),
+          IndexDetails(key = Seq(("assistance-details.guaranteedInterview", Ascending)), unique = false)
         )
     }
 

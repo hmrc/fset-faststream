@@ -5,7 +5,7 @@ import model.EvaluationResults.Green
 import model.persisted._
 import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses, SchemeId }
 import org.joda.time.{ DateTime, DateTimeZone }
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.JsObject
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers

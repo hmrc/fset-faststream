@@ -25,26 +25,19 @@ import model.persisted.eventschedules.SkillType.SkillType
 import model.{ AllocationStatuses, UniqueIdentifier }
 import org.joda.time.LocalDate
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import services.AuditService
 import services.assessor.AssessorService
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
-//import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-//object AssessorController extends AssessorController {
-//  val assessorService = AssessorService
-//  val auditService = AuditService
-//}
-
 @Singleton
-class AssessorController @Inject() (assessorService: AssessorService,
+class AssessorController @Inject() (cc: ControllerComponents,
+                                    assessorService: AssessorService,
                                     auditService: AuditService
-                                   ) extends BaseController {
-//  val assessorService: AssessorService
-//  val auditService: AuditService //TODO:fix
+                                   ) extends BackendController(cc) {
 
   def saveAssessor(userId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[Assessor] { assessor =>

@@ -19,16 +19,17 @@ package controllers
 import javax.inject.{ Inject, Singleton }
 import model.persisted.PsiTest
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import repositories.onlinetesting._
 import services.onlinetesting.OnlineTestExtensionService
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class Phase1TestGroupController @Inject() (phase1Repository2: Phase1TestRepository2,
-                                           phase1TestExtensionService: OnlineTestExtensionService) extends BaseController {
+class Phase1TestGroupController @Inject() (cc: ControllerComponents,
+                                           phase1Repository2: Phase1TestRepository2,
+                                           phase1TestExtensionService: OnlineTestExtensionService) extends BackendController(cc) {
 
   def getTests(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     phase1Repository2.getTestGroup(applicationId).map { maybeTestProfile =>

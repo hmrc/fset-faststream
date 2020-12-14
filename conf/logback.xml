@@ -52,6 +52,7 @@
     </logger>
 
     <logger name="io.netty.util.ResourceLeakDetectorFactory" level="INFO" />
+    <logger name="play.shaded" level="INFO" />
     <logger name="org.jboss.netty.channel.socket.nio" level="WARN" />
     <logger name="io.netty.buffer" level="WARN"/>
     <logger name="org.asynchttpclient.netty.handler" level="INFO"/>

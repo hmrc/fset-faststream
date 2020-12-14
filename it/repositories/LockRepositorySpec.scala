@@ -29,7 +29,7 @@ class LockRepositorySpec extends MongoRepositorySpec {
 
   "Lock Repository" should {
     "create indexes" in {
-      val indexes = indexesWithFields2(repo)
+      val indexes = indexesWithFields(repo)
       indexes must contain theSameElementsAs
         Seq(
           IndexDetails(key = Seq(("_id", Ascending)), unique = false),

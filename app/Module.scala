@@ -45,12 +45,11 @@ import services.onlinetesting.phase1.{EvaluatePhase1ResultService2, Phase1TestSe
 import services.onlinetesting.phase2.{EvaluatePhase2ResultService2, Phase2TestService2}
 import services.onlinetesting.phase3.{EvaluatePhase3ResultService, Phase3TestService}
 import services.testdata.admin.{AdminCreatedStatusGenerator, AdminUserBaseGenerator}
-import uk.gov.hmrc.play.config.ServicesConfig
 
-class Module(val environment: Environment, val configuration: Configuration) extends AbstractModule with ServicesConfig {
+class Module(val environment: Environment, val configuration: Configuration) extends AbstractModule {
 
-  override val runModeConfiguration: Configuration = configuration
-  override protected def mode = environment.mode
+//  override val runModeConfiguration: Configuration = configuration
+//  override protected def mode = environment.mode
 
   //scalastyle:off method.length
   override def configure(): Unit = {
@@ -117,9 +116,9 @@ class Module(val environment: Environment, val configuration: Configuration) ext
 
     bind(classOf[FlagCandidateRepository]).to(classOf[FlagCandidateMongoRepository]).asEagerSingleton()
 
-    bind(classOf[String])
-      .annotatedWith(Names.named("appName"))
-      .toProvider(new ConfigProvider("appName"))
+//    bind(classOf[String])
+//      .annotatedWith(Names.named("appName"))
+//      .toProvider(new ConfigProvider("appName"))
 
     // Bind the named implementations for the online test service
     bind(classOf[OnlineTestService]).annotatedWith(Names.named("Phase1OnlineTestService"))
@@ -179,13 +178,16 @@ class Module(val environment: Environment, val configuration: Configuration) ext
   } //scalastyle:on
 
   private def startUpMessage() = {
-    val appName = configuration.getString("appName").orElse(throw new RuntimeException(s"No configuration value found for 'appName'"))
-    Logger.info(s"Starting micro service ${appName.getOrElse("NOT-SET")} in mode ${environment.mode}")
+    val appName = configuration.get[String]("appName")
+    Logger.info(s"Starting $appName in mode ${environment.mode}")
+
+//    val appName = configuration.get[String]("appName").orElse(throw new RuntimeException(s"No configuration value found for 'appName'"))
+//    Logger.info(s"Starting micro service ${appName.getOrElse("NOT-SET")} in mode ${environment.mode}")
   }
 
-  private class ConfigProvider(key: String) extends Provider[String] {
-    override lazy val get = configuration
-      .getString(key)
-      .getOrElse(throw new IllegalStateException(s"No value found for configuration property $key"))
-  }
+//  private class ConfigProvider(key: String) extends Provider[String] {
+//    override lazy val get = configuration
+//      .getString(key)
+//      .getOrElse(throw new IllegalStateException(s"No value found for configuration property $key"))
+//  }
 }

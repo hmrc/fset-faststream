@@ -107,6 +107,7 @@ class QuestionnaireControllerSpec extends UnitWithAppSpec with Results {
     when(mockQuestionnaireRepository.addQuestions(any(), any())).thenReturnAsync()
 
     val testQuestionnaireController = new QuestionnaireController(
+      stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
       mockQuestionnaireRepository,
       mockApplicationRepository,
       mockAuditService

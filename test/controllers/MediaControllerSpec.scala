@@ -66,7 +66,11 @@ class MediaControllerSpec extends UnitWithAppSpec {
     val mockMediaRepo = mock[MediaRepository]
     when(mockMediaRepo.create(any[Media])).thenReturnAsync()
 
-    val testMediaController = new MediaController(mockMediaRepo, mockAuditService)
+    val testMediaController = new MediaController(
+      stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
+      mockMediaRepo,
+      mockAuditService
+    )
 
     def createMedia(jsonString: String) = {
       val json = Json.parse(jsonString)

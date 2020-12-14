@@ -38,6 +38,6 @@ class SkillTypeControllerSpec extends UnitWithAppSpec {
   }
 
   trait TestFixture extends TestFixtureBase {
-    val controller = new SkillTypeController
+    val controller = new SkillTypeController(stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)))
   }
 }

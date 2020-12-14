@@ -21,14 +21,16 @@ import model.Adjustments._
 import model.Exceptions._
 import model.{ Adjustments, AdjustmentsComment }
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{ Action, AnyContent, BaseController, ControllerComponents }
 import services.adjustmentsmanagement.AdjustmentsManagementService
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class AdjustmentsManagementController @Inject() (adjustmentsManagementService: AdjustmentsManagementService) extends BaseController {
+class AdjustmentsManagementController @Inject() (
+                                                  cc: ControllerComponents,
+                                                  adjustmentsManagementService: AdjustmentsManagementService) extends BackendController(cc) {
 
   def confirmAdjustments(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[Adjustments] { data =>

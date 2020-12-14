@@ -21,18 +21,19 @@ import model.Exceptions.{ SiftAnswersIncomplete, SiftAnswersSubmitted }
 import model.SchemeId
 import model.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer }
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import services.AuditService
 import services.sift.{ ApplicationSiftService, SiftAnswersService }
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class SchemeSiftAnswersController @Inject() (siftAnswersService: SiftAnswersService,
+class SchemeSiftAnswersController @Inject() (cc: ControllerComponents,
+                                             siftAnswersService: SiftAnswersService,
                                              applicationSiftService: ApplicationSiftService,
                                              auditService: AuditService
-                                            ) extends BaseController {
+                                            ) extends BackendController(cc) {
 
   def addOrUpdateSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId): Action[JsValue] =
     Action.async(parse.json) { implicit request =>

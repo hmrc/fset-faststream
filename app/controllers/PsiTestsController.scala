@@ -21,29 +21,19 @@ import model.Exceptions.{ CannotFindApplicationByOrderIdException, CannotFindTes
 import model.exchange.PsiRealTimeResults
 import play.api.Logger
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent, Result }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents, Result }
 import services.NumericalTestService2
 import services.onlinetesting.phase1.Phase1TestService2
 import services.onlinetesting.phase2.Phase2TestService2
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-//object PsiTestsController extends PsiTestsController {
-//  override val phase1TestService2 = Phase1TestService2
-//  override val phase2TestService2 = Phase2TestService2
-//  val numericalTestService2: NumericalTestService2 = NumericalTestService2
-//  val eventService = StcEventService
-//}
-
 @Singleton
-class PsiTestsController @Inject() (phase1TestService2: Phase1TestService2,
+class PsiTestsController @Inject() (cc: ControllerComponents,
+                                    phase1TestService2: Phase1TestService2,
                                     phase2TestService2: Phase2TestService2,
-                                    numericalTestService2: NumericalTestService2) extends BaseController {
-//  val phase1TestService2: Phase1TestService2
-//  val phase2TestService2: Phase2TestService2
-//  val numericalTestService2: NumericalTestService2
-//  val eventService: StcEventService
+                                    numericalTestService2: NumericalTestService2) extends BackendController(cc) {
 
   def start(orderId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     Logger.info(s"Psi assessment started orderId=$orderId")

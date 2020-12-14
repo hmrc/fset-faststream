@@ -21,7 +21,7 @@ import model.persisted.eventschedules.{ Location, Venue }
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ValueReader
 import play.api.{ Configuration, Environment, Logger }
-import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 case class FrameworksConfig(yamlFilePath: String)
 
@@ -175,7 +175,7 @@ case class Phase3TestsConfig(timeToExpireInDays: Int,
 case class LocationsAndVenuesConfig(yamlFilePath: String)
 
 @Singleton
-class MicroserviceAppConfig @Inject() (val config: Configuration, val environment: Environment) extends ServicesConfig {
+class MicroserviceAppConfig @Inject() (val config: Configuration, val environment: Environment) {
   import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 
   lazy val underlyingConfiguration = config.underlying
@@ -205,6 +205,6 @@ class MicroserviceAppConfig @Inject() (val config: Configuration, val environmen
   lazy val parityExportJobConfig =
     underlyingConfiguration.as[ScheduledJobConfig]("scheduling.parity-export-job")
 
-  override def mode = environment.mode
-  override def runModeConfiguration = config
+//  override def mode = environment.mode
+//  override def runModeConfiguration = configuration
 }

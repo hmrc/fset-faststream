@@ -23,14 +23,9 @@ import model.{ ApplicationRoute, ApplicationStatus, CivilServantAndInternshipTyp
 
 case class ValidatorResult(result: Boolean, message: Option[String])
 
-//object CreateCandidateRequestValidator extends CreateCandidateRequestValidator
 @Singleton
 class CreateCandidateRequestValidator {
   def validate(request: CreateCandidateRequest): ValidatorResult = {
-    //scalastyle:off
-    println("**** CreateCandidateRequestValidator.validate called")
-    //scalastyle:on
-
     if (!validateGis(request)) {
       ValidatorResult(result = false, Some("Request contains incompatible values for Gis"))
     } else if (!validateSdip(request)) {
