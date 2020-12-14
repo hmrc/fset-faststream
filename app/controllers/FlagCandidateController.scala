@@ -21,14 +21,15 @@ import model.Exceptions.NotFoundException
 import model.FlagCandidateCommands.{ FlagCandidate => RqFlagCandidate }
 import model.FlagCandidatePersistedObject.{ FlagCandidate => DbFlagCandidate }
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import repositories.application.FlagCandidateRepository
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class FlagCandidateController @Inject() (fcRepository: FlagCandidateRepository) extends BaseController {
+class FlagCandidateController @Inject() (cc: ControllerComponents,
+                                         fcRepository: FlagCandidateRepository) extends BackendController(cc) {
 
   def find(appId: String): Action[AnyContent] = Action.async { implicit request =>
     fcRepository.tryGetCandidateIssue(appId).map {

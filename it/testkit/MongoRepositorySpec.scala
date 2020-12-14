@@ -65,10 +65,6 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
 
   implicit val context: ExecutionContext = play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-  //  implicit lazy val mongo: () => DefaultDB = {
-  //    new MongoDbConnection {}.mongoConnector.db
-  //  }
-
   lazy val mongo: ReactiveMongoComponent = app.injector.instanceOf(classOf[ReactiveMongoComponent])
 
   lazy val appConfig: MicroserviceAppConfig = app.injector.instanceOf(classOf[MicroserviceAppConfig])
@@ -82,7 +78,6 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
   }
 
   override def beforeEach(): Unit = {
-    //    val collection = mongo().collection[JSONCollection](collectionName)
     val collection = mongo.mongoConnector.db().collection[JSONCollection](collectionName)
     Await.ready(collection.delete.one(Json.obj()), timeout)
   }
@@ -91,18 +86,11 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
 trait IndexesReader {
   this: ScalaFutures =>
 
-  //TODO: remove this and replace with the version below
-  def indexesWithFields(repo: ReactiveRepository[_, _])(implicit ec: ExecutionContext): Seq[Seq[String]] = {
-    val indexesManager = repo.collection.indexesManager
-    val indexes = indexesManager.list().futureValue
-    indexes.map(_.key.map{ case (columnName, _) => columnName })
-  }
-
-  case class IndexDetails(key: Seq[(String, IndexType)], unique: Boolean)
-
-  def indexesWithFields2(repo: ReactiveRepository[_, _])(implicit ec: ExecutionContext): List[IndexDetails] = {
+  def indexesWithFields(repo: ReactiveRepository[_, _])(implicit ec: ExecutionContext): List[IndexDetails] = {
     val indexesManager = repo.collection.indexesManager
     val indexes = indexesManager.list().futureValue
     indexes.map( index => IndexDetails(index.key, index.unique) )
   }
+
+  case class IndexDetails(key: Seq[(String, IndexType)], unique: Boolean)
 }

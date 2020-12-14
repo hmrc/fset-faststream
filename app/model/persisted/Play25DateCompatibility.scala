@@ -19,13 +19,16 @@ package model.persisted
 import org.joda.time.DateTime
 import play.api.libs.json._
 
-case class CampaignManagementAfterDeadlineCode(code: String, createdByUserId: String, expires: DateTime,
-  usedByApplicationId: Option[String] = None)
+// Provides backward compatibility for Play 2.5 play-json, which stores dates as epoch milliseconds
+// The new play-json-joda lib that we use with Play 2.6 writes dates using ISO8601 by default eg.
+// "expiryDate": "2019-07-31T23:59:59.395+01:00"
+//
+// Old play-json writes in epoch milliseconds eg.
+// "expiryDate": 1564613999395”
+object Play25DateCompatibility {
 
-object CampaignManagementAfterDeadlineCode {
-
-  import model.persisted.Play25DateCompatibility.epochMillisDateFormat
-
-  implicit val campaignManagementAfterDeadlineCodeFormat: OFormat[CampaignManagementAfterDeadlineCode] =
-    Json.format[CampaignManagementAfterDeadlineCode]
+    implicit val epochMillisDateFormat = new Format[DateTime] {
+      override def reads(json: JsValue): JsResult[DateTime] = JodaReads.DefaultJodaDateTimeReads.reads(json)
+      override def writes(o: DateTime): JsValue = JodaWrites.JodaDateTimeNumberWrites.writes(o)
+    }
 }

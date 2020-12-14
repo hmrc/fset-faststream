@@ -28,11 +28,10 @@ import scala.concurrent.Future
 
 class SchemePreferencesControllerSpec extends UnitWithAppSpec {
   val mockSchemePreferencesService = mock[SchemePreferencesService]
-//  val mockAuditService = mock[AuditService]
 
   val controller = new SchemePreferencesController(
+    stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
     mockSchemePreferencesService
-//    val auditService = mockAuditService
   )
 
   "find preferences" should {

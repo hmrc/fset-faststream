@@ -17,6 +17,8 @@
 package model.persisted
 
 import org.joda.time.LocalDate
+import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.Json
 import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
 

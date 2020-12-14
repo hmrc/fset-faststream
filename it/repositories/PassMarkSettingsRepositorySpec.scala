@@ -127,7 +127,7 @@ trait PassMarkRepositoryFixture extends MongoRepositorySpec {
 
   "Pass-mark-settings collection" should {
     "create indexes for the repository" in {
-      val indexes = indexesWithFields2(passMarkSettingsRepo.asInstanceOf[ReactiveRepository[_, _]])
+      val indexes = indexesWithFields(passMarkSettingsRepo.asInstanceOf[ReactiveRepository[_, _]])
       indexes must contain (IndexDetails(key = Seq(("_id", Ascending)), unique = false))
       indexes must contain (IndexDetails(key = Seq(("createDate", Ascending)), unique = true))
       indexes.size mustBe 2

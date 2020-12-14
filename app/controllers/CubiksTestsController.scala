@@ -21,32 +21,22 @@ import model.Exceptions.CannotFindTestByCubiksId
 import model.exchange.CubiksTestResultReady
 import play.api.Logger
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, Result }
+import play.api.mvc.{ Action, ControllerComponents, Result }
 import services.NumericalTestService
 import services.onlinetesting.phase1.Phase1TestService
 import services.onlinetesting.phase2.Phase2TestService
 import services.stc.StcEventService
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-//object CubiksTestsController extends CubiksTestsController {
-//  override val phase1TestService = Phase1TestServiceX
-//  override val phase2TestService = Phase2TestServiceX
-//  val numericalTestService: NumericalTestService = NumericalTestService
-//  val eventService = StcEventService
-//}
-
 @Singleton
-class CubiksTestsController @Inject() (phase1TestService: Phase1TestService,
+class CubiksTestsController @Inject() (cc: ControllerComponents,
+                                       phase1TestService: Phase1TestService,
                                        phase2TestService: Phase2TestService,
                                        numericalTestService: NumericalTestService,
                                        eventService: StcEventService
-                                      ) extends BaseController {
-//  val phase1TestService: Phase1TestService
-//  val phase2TestService: Phase2TestService
-//  val numericalTestService: NumericalTestService
-//  val eventService: StcEventService
+                                      ) extends BackendController(cc) {
 
   def start(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     Logger.info(s"Cubiks userId $cubiksUserId assessment started")

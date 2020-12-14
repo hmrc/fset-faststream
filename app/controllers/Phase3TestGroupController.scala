@@ -18,22 +18,15 @@ package controllers
 
 import javax.inject.{ Inject, Singleton }
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import services.onlinetesting.phase3.Phase3TestService
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
-//import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-//object Phase3TestGroupController extends Phase3TestGroupController {
-//  val phase3TestService = Phase3TestService
-//  val eventService: StcEventService = StcEventService
-//}
-
 @Singleton
-class Phase3TestGroupController @Inject() (phase3TestService: Phase3TestService) extends BaseController {
-//  val phase3TestService: Phase3TestService
-//  val eventService: StcEventService
+class Phase3TestGroupController @Inject() (cc: ControllerComponents,
+                                           phase3TestService: Phase3TestService) extends BackendController(cc) {
 
   def getTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     phase3TestService.getTestGroup(applicationId).map {

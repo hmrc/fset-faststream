@@ -20,37 +20,22 @@ import connectors.launchpadgateway.exchangeobjects.in._
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest
 import javax.inject.{ Inject, Singleton }
 import play.api.libs.json.JsValue
-import services.onlinetesting.phase3.{ Phase3TestCallbackService, Phase3TestService }
-import services.stc.StcEventService
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
-//import controllers.LaunchpadTestsController.CannotFindTestByLaunchpadInviteId
+import play.api.mvc.ControllerComponents
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import model.Exceptions.NotFoundException
-import play.api.libs.json.Json
 import play.api.Logger
+import play.api.libs.json.Json
 import play.api.mvc.{ Action, Result }
-import services.stc.StcEventService
 import services.onlinetesting.phase3.{ Phase3TestCallbackService, Phase3TestService }
-//import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
-
-object LaunchpadTestsController {
-//  override val phase3TestService = Phase3TestService
-//  override val phase3TestCallbackService = Phase3TestCallbackService
-//  val eventService = StcEventService
-
-//  case class CannotFindTestByLaunchpadInviteId(message: String) extends NotFoundException(message)
-}
 
 case class CannotFindTestByLaunchpadInviteId(message: String) extends NotFoundException(message)
 
 @Singleton
-class LaunchpadTestsController @Inject() (phase3TestService: Phase3TestService,
-                                          phase3TestCallbackService: Phase3TestCallbackService) extends BaseController {
-                                          //val eventService: StcEventService2) extends BaseController {
-//  val phase3TestService: Phase3TestService
-//  val phase3TestCallbackService: Phase3TestCallbackService
-//  val eventService: StcEventService
+class LaunchpadTestsController @Inject() (cc: ControllerComponents,
+                                          phase3TestService: Phase3TestService,
+                                          phase3TestCallbackService: Phase3TestCallbackService) extends BackendController(cc) {
 
   def markAsStarted(inviteId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     Logger.info(s"Launchpad Assessment with invite ID $inviteId marked as started")

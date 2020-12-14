@@ -68,6 +68,10 @@ class DayAggregateEventsControllerSpec extends UnitWithAppSpec {
   trait TestFixture extends TestFixtureBase {
     val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
     val mockEventsRepo              = mock[EventsRepository]
-    val controller = new DayAggregateEventController(mockLocationsWithVenuesRepo, mockEventsRepo)
+    val controller = new DayAggregateEventController(
+      stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
+      mockLocationsWithVenuesRepo,
+      mockEventsRepo
+    )
   }
 }

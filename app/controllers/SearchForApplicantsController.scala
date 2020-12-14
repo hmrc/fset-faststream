@@ -20,22 +20,23 @@ import javax.inject.{ Inject, Singleton }
 import model.Exceptions.{ ApplicationNotFound, ContactDetailsNotFound, PersonalDetailsNotFound }
 import model.{ ApplicationRoute, Candidate, SearchCandidate }
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import services.search.SearchForApplicantService
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class SearchForApplicantsController @Inject() (appRepository: GeneralApplicationRepository,
+class SearchForApplicantsController @Inject() (cc: ControllerComponents,
+                                               appRepository: GeneralApplicationRepository,
                                                psRepository: PersonalDetailsRepository,
                                                cdRepository: ContactDetailsRepository,
                                                searchForApplicantService: SearchForApplicantService
-                                              ) extends BaseController {
+                                              ) extends BackendController(cc) {
 
   val MAX_RESULTS = 25
 

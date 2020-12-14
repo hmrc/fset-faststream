@@ -42,7 +42,7 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
 
   "Assessment Scores Repository" should {
     "create indexes for the repository" in new TestFixture {
-      val indexes = indexesWithFields2(repository)
+      val indexes = indexesWithFields(repository)
       indexes must contain theSameElementsAs
         Seq(
           IndexDetails(key = Seq(("_id", Ascending)), unique = false),

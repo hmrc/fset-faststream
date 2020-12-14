@@ -58,6 +58,10 @@ class AssistanceDetailsControllerSpec extends UnitWithAppSpec {
 
   trait TestFixture extends TestFixtureBase {
     val mockAssistanceDetailsService = mock[AssistanceDetailsService]
-    val controller = new AssistanceDetailsController(mockAssistanceDetailsService, mockAuditService)
+    val controller = new AssistanceDetailsController(
+      stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
+      mockAssistanceDetailsService,
+      mockAuditService
+    )
   }
 }

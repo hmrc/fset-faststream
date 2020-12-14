@@ -21,7 +21,7 @@ import org.mockito.stubbing.Stubber
 
 import scala.concurrent.Future
 
-trait MockitoSugar extends org.scalatest.mockito.MockitoSugar {
+trait MockitoSugar extends org.scalatestplus.mockito.MockitoSugar {
   // Unfortunately we cannot use the `when().thenReturn` format for spies.
   def doReturnAsync() = Mockito.doReturn(Future.successful(()), Nil:_*)
   def doReturnAsync[A](value: A) = Mockito.doReturn(Future.successful(value), Nil:_*)

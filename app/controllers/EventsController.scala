@@ -23,33 +23,22 @@ import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.{ Event, EventType, UpdateEvent }
 import model.{ command, exchange }
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import repositories.application.GeneralApplicationRepository
 import repositories.events.{ LocationsWithVenuesRepository, UnknownVenueException }
 import services.allocation.AssessorAllocationService
 import services.events.EventsService
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
-//import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-//object EventsController extends EventsController {
-//  val eventsService: EventsService = EventsService
-//  val locationsAndVenuesRepository: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
-//  val assessorAllocationService: AssessorAllocationService = AssessorAllocationService
-//  val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
-//}
-
 @Singleton
-class EventsController @Inject() (eventsService: EventsService,
+class EventsController @Inject() (cc: ControllerComponents,
+                                  eventsService: EventsService,
                                   locationsAndVenuesRepository: LocationsWithVenuesRepository,
                                   assessorAllocationService: AssessorAllocationService,
                                   applicationRepository: GeneralApplicationRepository
-                                 ) extends BaseController {
-//  def eventsService: EventsService
-//  def locationsAndVenuesRepository: LocationsWithVenuesRepository
-//  def assessorAllocationService: AssessorAllocationService
-//  def applicationRepository: GeneralApplicationRepository
+                                 ) extends BackendController(cc) {
 
   def saveAssessmentEvents(): Action[AnyContent] = Action.async { implicit request =>
     eventsService.saveAssessmentEvents().map(_ => Created("Events saved"))

@@ -19,12 +19,12 @@ package controllers.reference
 import javax.inject.{ Inject, Singleton }
 import model.exchange.candidateevents.CandidateRemoveReason
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import services.events.EventsService
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 @Singleton
-class EventDataController @Inject()(eventsService: EventsService) extends BaseController {
+class EventDataController @Inject() (cc: ControllerComponents, eventsService: EventsService) extends BackendController(cc) {
 
   def getFsbTypes: Action[AnyContent] = Action { implicit request =>
     Ok(Json.toJson(eventsService.getFsbTypes))

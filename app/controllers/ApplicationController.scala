@@ -25,39 +25,30 @@ import javax.inject.{ Inject, Singleton }
 import model.Exceptions._
 import model.{ CreateApplicationRequest, OverrideSubmissionDeadlineRequest, PreviewRequest, ProgressStatuses }
 import play.api.libs.json.{ JsObject, Json }
-import play.api.libs.streams.Streams
-import play.api.mvc.{ Action, AnyContent }
+import play.api.libs.iteratee.streams.IterateeStreams
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import services.assessmentcentre.AssessmentCentreService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
-//import repositories._
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import repositories.application.GeneralApplicationRepository
 import repositories.fileupload.FileUploadRepository
 import services.AuditService
 import services.application.ApplicationService
-import services.assessmentcentre.AssessmentCentreService.{ CandidateAlreadyHasAnAnalysisExerciseException, CandidateHasNoAnalysisExerciseException }
+import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
+import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAnalysisExerciseException
 import services.personaldetails.PersonalDetailsService
 import services.sift.ApplicationSiftService
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
-//import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object ApplicationController {
-//  val appRepository = applicationRepository
-//  val auditService = AuditService
-//  val applicationService = ApplicationService
-//  val passmarkService = EvaluatePhase3ResultService
-//  val siftService = ApplicationSiftService
-//  val assessmentCentreService = AssessmentCentreService
-//  val uploadRepository = fileUploadRepository
-//  val personalDetailsService = PersonalDetailsService
-
   case class CandidateNotFound(msg: String) extends Exception(msg)
 }
 
 @Singleton
-class ApplicationController @Inject() (appRepository: GeneralApplicationRepository,
+class ApplicationController @Inject() (cc: ControllerComponents,
+                                       appRepository: GeneralApplicationRepository,
                                        auditService: AuditService,
                                        applicationService: ApplicationService,
                                        passmarkService: EvaluatePhase3ResultService,
@@ -65,15 +56,7 @@ class ApplicationController @Inject() (appRepository: GeneralApplicationReposito
                                        assessmentCentreService: AssessmentCentreService,
                                        uploadRepository: FileUploadRepository,
                                        personalDetailsService: PersonalDetailsService
-                                      ) extends BaseController {
-
-//  val auditService: AuditService //TODO:fix inject
-//  val applicationService: ApplicationService
-//  val passmarkService: EvaluatePhase3ResultService
-//  val siftService: ApplicationSiftService
-//  val assessmentCentreService: AssessmentCentreService
-//  val uploadRepository: FileUploadMongoRepository
-//  val personalDetailsService: PersonalDetailsService
+                                      ) extends BackendController(cc) {
 
   def createApplication = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateApplicationRequest] { applicationRequest =>
@@ -205,7 +188,7 @@ class ApplicationController @Inject() (appRepository: GeneralApplicationReposito
         analysis = assessmentCentreTests.analysisExercise.getOrElse(throw CandidateHasNoAnalysisExerciseException(applicationId))
         file <- uploadRepository.retrieve(analysis.fileId)
       } yield {
-        val source = Source.fromPublisher(Streams.enumeratorToPublisher(file.fileContents))
+        val source = Source.fromPublisher(IterateeStreams.enumeratorToPublisher(file.fileContents))
 
         Ok.chunked(source).as(file.contentType)
       }

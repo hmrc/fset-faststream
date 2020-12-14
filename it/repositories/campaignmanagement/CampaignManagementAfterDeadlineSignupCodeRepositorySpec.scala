@@ -17,7 +17,7 @@ class CampaignManagementAfterDeadlineSignupCodeRepositorySpec extends MongoRepos
 
   "the repository" should {
     "create indexes" in {
-      val indexes = indexesWithFields2(repository)
+      val indexes = indexesWithFields(repository)
       indexes must contain(IndexDetails(key = Seq(("_id", Ascending)), unique = false))
       indexes must contain(IndexDetails(key = Seq(("code", Ascending)), unique = true))
       indexes must contain(IndexDetails(key = Seq(("expires", Descending)), unique = false))

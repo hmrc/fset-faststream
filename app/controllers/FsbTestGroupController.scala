@@ -20,17 +20,19 @@ import javax.inject.{ Inject, Singleton }
 import model.EvaluationResults
 import model.Exceptions.{ AlreadyEvaluatedForSchemeException, SchemeNotFoundException }
 import model.exchange.{ FsbEvaluationResults, FsbScoresAndFeedback }
+import play.api.http.MediaRange.parse
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import services.application.FsbService
 import services.events.EventsService
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class FsbTestGroupController @Inject() (fsbService: FsbService,
-                                        eventsService: EventsService) extends BaseController {
+class FsbTestGroupController @Inject() (cc: ControllerComponents,
+                                        fsbService: FsbService,
+                                        eventsService: EventsService) extends BackendController(cc) {
 
   def savePerScheme(): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[FsbEvaluationResults] { fsbEvaluationResults =>

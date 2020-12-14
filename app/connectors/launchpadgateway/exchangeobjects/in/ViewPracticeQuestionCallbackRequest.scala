@@ -17,6 +17,8 @@
 package connectors.launchpadgateway.exchangeobjects.in
 
 import org.joda.time.{ DateTime, LocalDate }
+import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.Json
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 

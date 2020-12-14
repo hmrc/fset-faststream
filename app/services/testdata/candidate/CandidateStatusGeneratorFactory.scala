@@ -113,11 +113,6 @@ class CandidateStatusGeneratorFactory @Inject() (registeredStatusGenerator: Regi
   // scalastyle:off cyclomatic.complexity method.length
   def getGenerator(generatorConfig: CreateCandidateData): BaseGenerator = {
 
-    //scalastyle:off
-    println("*** CandidateStatusGeneratorFactory.getGenerator - " +
-      s"appStatus=${generatorConfig.statusData.applicationStatus}," +
-      s"progressstatus=${generatorConfig.statusData.progressStatus}")
-
     val phase1StartTime = generatorConfig.phase1TestData.flatMap(_.start)
     val phase2StartTime = generatorConfig.phase2TestData.flatMap(_.start)
     val phase3StartTime = generatorConfig.phase3TestData.flatMap(_.start)

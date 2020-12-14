@@ -20,6 +20,8 @@ import model.Commands.PhoneNumber
 import model.OnlineTestCommands.TestResult
 import org.joda.time.LocalDate
 import model.ApplicationStatus._
+import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json._
 import reactivemongo.bson.Macros
 

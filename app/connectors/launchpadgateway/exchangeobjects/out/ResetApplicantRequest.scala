@@ -17,6 +17,8 @@
 package connectors.launchpadgateway.exchangeobjects.out
 
 import org.joda.time.LocalDate
+import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.Json
 
 case class ResetApplicantRequest(interviewId: Int, candidateId: String, newDeadline: LocalDate)

@@ -138,8 +138,6 @@ trait GeneralApplicationRepository {
 @Singleton
 class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
                                                    appConfig: MicroserviceAppConfig,
-//                                         gatewayConfig: TestIntegrationGatewayConfig, //TODO:fix
-//                                         eventsConfig: EventsConfig, //TODO:fix
                                                    mongoComponent: ReactiveMongoComponent
                                                   )
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](

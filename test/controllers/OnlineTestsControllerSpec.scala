@@ -59,6 +59,7 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
   )
 
   def controller = new OnlineTestController(
+    stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
     mockApplicationRepository,
     mockPhase1TestService,
     mockPhase1TestService2,

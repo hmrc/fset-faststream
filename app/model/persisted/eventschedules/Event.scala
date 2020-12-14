@@ -18,10 +18,11 @@ package model.persisted.eventschedules
 
 import model.persisted.eventschedules.EventType.EventType
 import org.joda.time.{ DateTime, LocalDate, LocalTime }
-import play.api.libs.json.{ Json, OFormat }
+import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+import play.api.libs.json.JodaReads._  // This is needed for DateTime serialization
+import play.api.libs.json._
 import reactivemongo.bson.Macros
 import model.exchange.{ Event => ExchangeEvent }
-import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONDateTimeHandler, BSONMapStringIntHandler }
 
 case class Event(
   id: String,
@@ -41,17 +42,10 @@ case class Event(
   wasBulkUploaded: Boolean = false
 )
 
-case class UpdateEvent(id: String, skillRequirements: Map[String, Int], sessions: Seq[UpdateSession]) {
-  def session(sessionId: String): UpdateSession = {
-    sessions.find(_.id == sessionId).getOrElse(throw new Exception(s"Unable to find session with ID $sessionId"))
-  }
-}
-
-object UpdateEvent {
-  implicit val format = Json.format[UpdateEvent]
-}
-
 object Event {
+  import model.persisted.Play25DateCompatibility.epochMillisDateFormat
+  import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONDateTimeHandler }
+
   implicit val eventFormat: OFormat[Event] = Json.format[Event]
   implicit val eventHandler = Macros.handler[Event]
 
@@ -88,4 +82,14 @@ object Event {
       sessions = exchangeEvent.sessions.map(Session.apply)
     )
   }
+}
+
+case class UpdateEvent(id: String, skillRequirements: Map[String, Int], sessions: Seq[UpdateSession]) {
+  def session(sessionId: String): UpdateSession = {
+    sessions.find(_.id == sessionId).getOrElse(throw new Exception(s"Unable to find session with ID $sessionId"))
+  }
+}
+
+object UpdateEvent {
+  implicit val format = Json.format[UpdateEvent]
 }

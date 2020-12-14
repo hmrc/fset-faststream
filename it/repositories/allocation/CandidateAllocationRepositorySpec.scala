@@ -23,7 +23,7 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
 
   "CandidateAllocationRepository" must {
     "create indexes for the repository" in {
-      val indexes = indexesWithFields2(repository)
+      val indexes = indexesWithFields(repository)
       indexes must contain(IndexDetails(key = Seq(("_id", Ascending)), unique = false))
       indexes must contain(IndexDetails(key = Seq(("id", Ascending), ("eventId", Ascending), ("sessionId", Ascending)), unique = false))
       indexes.size mustBe 2
