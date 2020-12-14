@@ -275,8 +275,9 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
     val groupExercise = "groupExercise"
     val leadershipExercise = "leadershipExercise"
     val assessmentScoresResetLogEvent = "AssessmentScoresReset"
+    val stubCC = stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer))
 
-    class TestController extends AssessmentScoresController {
+    class TestController extends AssessmentScoresController(stubCC) {
       val service = mockService
       val repository = mockAssessmentScoresRepository
       val auditService = mockAuditService

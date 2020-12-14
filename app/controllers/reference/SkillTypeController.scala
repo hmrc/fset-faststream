@@ -16,14 +16,14 @@
 
 package controllers.reference
 
-import javax.inject.Singleton
+import javax.inject.{ Inject, Singleton }
 import model.exchange.AssessorSkill
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent }
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 @Singleton
-class SkillTypeController extends BaseController {
+class SkillTypeController @Inject() (cc: ControllerComponents) extends BackendController(cc) {
 
   def allSkills: Action[AnyContent] = Action { implicit request =>
     Ok(Json.toJson(AssessorSkill.AllSkillsWithLabels))

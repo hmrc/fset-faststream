@@ -17,6 +17,7 @@
 package scheduler
 
 import javax.inject.{ Inject, Singleton }
+import play.api.inject.ApplicationLifecycle
 import play.api.{ Application, Logger }
 import scheduler.assessment.{ EvaluateAssessmentCentreJobConfig, EvaluateAssessmentCentreJobImpl }
 import scheduler.fixer.{ FixerJobConfig, FixerJobImpl }
@@ -113,11 +114,11 @@ class Scheduler @Inject()(
                            notifyOnFinalFailureJobConfig: NotifyOnFinalFailureJobConfig,
                            notifyOnFinalSuccessJobConfig: NotifyOnFinalSuccessJobConfig,
                            evaluateFsbJobConfig: EvaluateFsbJobConfig,
-                           val application: Application
+                           override val applicationLifecycle: ApplicationLifecycle,
+                           override val application: Application
                          )
                          (implicit val ec: ExecutionContext) extends RunningOfScheduledJobs {
   Logger.info("Scheduler created")
-  onStart(application)
 
   private def maybeInitScheduler(config: BasicJobConfig[_], scheduler: => ScheduledJob): Option[ScheduledJob] = {
     if (config.enabled) {

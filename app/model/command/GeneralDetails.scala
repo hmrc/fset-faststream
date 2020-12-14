@@ -20,6 +20,8 @@ import model.{ Address, CivilServiceExperienceDetails, FSACIndicator }
 import model.Commands.{ PhoneNumber, PostCode }
 import model.persisted.{ ContactDetails, PersonalDetails }
 import org.joda.time.LocalDate
+import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.Json
 
 case class GeneralDetails(firstName: String,

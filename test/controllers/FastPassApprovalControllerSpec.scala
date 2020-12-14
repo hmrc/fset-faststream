@@ -50,6 +50,9 @@ class FastPassApprovalControllerSpec extends UnitWithAppSpec {
     val request = FastPassEvaluation(accepted = true, "adminId")
     val serviceResponse: Future[(String, String)] = Future.successful(("George", "Foreman"))
 
-    def controllerUnderTest = new FastPassApprovalController(mockFastPassService)
+    def controllerUnderTest = new FastPassApprovalController(
+      stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
+      mockFastPassService
+    )
   }
 }

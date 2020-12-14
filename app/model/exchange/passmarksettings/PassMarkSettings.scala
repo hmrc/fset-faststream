@@ -18,6 +18,9 @@ package model.exchange.passmarksettings
 
 import model.SchemeId
 import org.joda.time.DateTime
+import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
+import repositories._
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
@@ -36,7 +39,6 @@ case class Phase1PassMarkSettings(
 ) extends PassMarkSettings
 
 object Phase1PassMarkSettings {
-  import repositories.BSONDateTimeHandler
   implicit val jsonFormat = Json.format[Phase1PassMarkSettings]
   implicit val bsonHandler = Macros.handler[Phase1PassMarkSettings]
 
@@ -77,7 +79,6 @@ case class Phase2PassMarkSettings(
 ) extends PassMarkSettings
 
 object Phase2PassMarkSettings {
-  import repositories.BSONDateTimeHandler
   implicit val jsonFormat = Json.format[Phase2PassMarkSettings]
   implicit val bsonHandler = Macros.handler[Phase2PassMarkSettings]
 }
@@ -90,7 +91,6 @@ case class Phase3PassMarkSettings(
 ) extends PassMarkSettings
 
 object Phase3PassMarkSettings {
-  import repositories.BSONDateTimeHandler
   implicit val jsonFormat = Json.format[Phase3PassMarkSettings]
   implicit val bsonHandler = Macros.handler[Phase3PassMarkSettings]
 }
@@ -102,12 +102,11 @@ case class AssessmentCentrePassMarkSettings(
                                    createdBy: String
                                  ) extends PassMarkSettings {
   // Only display pass marks for the Commercial scheme to reduce the amount we log
-  def abbreviated = s"schemes=${schemes.filter(s => s.schemeId == SchemeId("Commercial"))}," +
+  def abbreviated = s"schemes=${schemes.filter(s => s.schemeId == SchemeId("Commercial"))},<<truncated>>" +
     s"version=$version,createDate=$createDate,createdBy=$createdBy"
 }
 
 object AssessmentCentrePassMarkSettings {
-  import repositories.BSONDateTimeHandler
   implicit val jsonFormat = Json.format[AssessmentCentrePassMarkSettings]
   implicit val bsonHandler = Macros.handler[AssessmentCentrePassMarkSettings]
 }

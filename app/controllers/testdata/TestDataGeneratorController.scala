@@ -39,24 +39,20 @@ import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import org.joda.time.{ LocalDate, LocalTime }
 import play.api.Logger
 import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
-import play.api.mvc.{ Action, AnyContent, RequestHeader }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents, RequestHeader }
 import repositories.events.LocationsWithVenuesRepository
 import services.testdata._
 import services.testdata.candidate.{ AdminStatusGeneratorFactory, CandidateStatusGeneratorFactory }
 import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-//object TestDataGeneratorController extends TestDataGeneratorController {
-//  val locationsAndVenuesRepository: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
-//  val createCandidateRequestValidator = CreateCandidateRequestValidator
-//}
-
 @Singleton
-class TestDataGeneratorController @Inject() (createCandidateRequestValidator: CreateCandidateRequestValidator,
+class TestDataGeneratorController @Inject() (cc: ControllerComponents,
+                                             createCandidateRequestValidator: CreateCandidateRequestValidator,
                                              locationsAndVenuesRepository: LocationsWithVenuesRepository,
                                              authProviderClient: AuthProviderClient,
                                              testDataGeneratorService: TestDataGeneratorService,
@@ -65,7 +61,7 @@ class TestDataGeneratorController @Inject() (createCandidateRequestValidator: Cr
                                              appConfig: MicroserviceAppConfig,
                                              uuidFactory: UUIDFactory,
                                              dataFaker: DataFaker
-                                            ) extends BaseController {
+                                            ) extends BackendController(cc) {
 
   def ping = Action { implicit request =>
     Ok("OK")

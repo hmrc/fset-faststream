@@ -31,7 +31,7 @@ import scala.concurrent.Future
 class SiftingControllerSpec extends UnitWithAppSpec {
   val mockSiftService = mock[ApplicationSiftService]
 
-  val controller = new SiftingController(mockSiftService)
+  val controller = new SiftingController(stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)), mockSiftService)
 
   private val Commercial = SchemeId("Commercial")
 

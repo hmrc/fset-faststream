@@ -20,14 +20,15 @@ import javax.inject.{ Inject, Singleton }
 import model.Exceptions.{ ApplicationNotFound, LastSchemeWithdrawException, SiftExpiredException }
 import model.command.{ WithdrawApplication, WithdrawScheme }
 import play.api.libs.json.JsValue
-import play.api.mvc.Action
+import play.api.mvc.{ Action, ControllerComponents }
 import services.application.ApplicationService
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class WithdrawController @Inject() (applicationService: ApplicationService) extends BaseController {
+class WithdrawController @Inject() (cc: ControllerComponents,
+                                    applicationService: ApplicationService) extends BackendController(cc) {
 
   def withdrawApplication(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[WithdrawApplication] { withdrawRequest =>

@@ -20,23 +20,18 @@ import javax.inject.{ Inject, Singleton }
 import model.Exceptions._
 import model.command.GeneralDetails
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import services.AuditService
 import services.personaldetails.PersonalDetailsService
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
-//import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-//object PersonalDetailsController extends PersonalDetailsController {
-//  val personalDetailsService = PersonalDetailsService
-//  val auditService = AuditService
-//}
-
 @Singleton
-class PersonalDetailsController @Inject() (personalDetailsService: PersonalDetailsService,
+class PersonalDetailsController @Inject() (cc: ControllerComponents,
+                                           personalDetailsService: PersonalDetailsService,
                                            auditService: AuditService
-                                          ) extends BaseController {
+                                          ) extends BackendController(cc) {
   val PersonalDetailsSavedEvent = "PersonalDetailsSaved"
 
   def update(userId: String, applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>

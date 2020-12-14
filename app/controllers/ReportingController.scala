@@ -32,9 +32,9 @@ import model.persisted.eventschedules.Event
 import model.persisted.{ ApplicationForOnlineTestPassMarkReport, ContactDetailsWithId }
 import model.report._
 import play.api.libs.iteratee.Enumerator
+import play.api.libs.iteratee.streams.IterateeStreams
 import play.api.libs.json.Json
-import play.api.libs.streams.Streams
-import play.api.mvc.{ Action, AnyContent, Result }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents, Result }
 import repositories.application._
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.events.EventsRepository
@@ -43,35 +43,16 @@ import repositories.personaldetails.PersonalDetailsRepository
 import repositories.sift.ApplicationSiftRepository
 import repositories._
 import services.evaluation.AssessmentScoreCalculator
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
-//import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.collection.breakOut
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-/*
-object ReportingController extends ReportingController {
-  val reportingRepository: ReportingMongoRepository = repositories.reportingRepository
-  val assessorRepository: AssessorRepository = repositories.assessorRepository
-  val eventsRepository: EventsRepository = repositories.eventsRepository
-  val assessorAllocationRepository: AssessorAllocationRepository = repositories.assessorAllocationRepository
-  val contactDetailsRepository: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
-  val questionnaireRepository: QuestionnaireMongoRepository = repositories.questionnaireRepository
-  val prevYearCandidatesDetailsRepository: PreviousYearCandidatesDetailsMongoRepository = repositories.previousYearCandidatesDetailsRepository
-  val assessmentScoresRepository: AssessmentScoresMongoRepository = repositories.reviewerAssessmentScoresRepository
-  val mediaRepository: MediaMongoRepository = repositories.mediaRepository
-  val applicationSiftRepository = repositories.applicationSiftRepository
-  val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository = repositories.fsacIndicatorCSVRepository *** MISSING
-  val schemeRepo: SchemeRepository = SchemeYamlRepository
-  val authProviderClient: AuthProviderClient = AuthProviderClient
-  val candidateAllocationRepo = repositories.candidateAllocationRepository
-  val fsbRepository = repositories.fsbRepository
-  val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
-}*/
 
 // scalastyle:off number.of.methods
 @Singleton
-class ReportingController @Inject() (reportingRepository: ReportingRepository,
+class ReportingController @Inject() (cc: ControllerComponents,
+                                     reportingRepository: ReportingRepository,
                                      assessorRepository: AssessorRepository,
                                      eventsRepository: EventsRepository,
                                      assessorAllocationRepository: AssessorAllocationRepository,
@@ -86,24 +67,7 @@ class ReportingController @Inject() (reportingRepository: ReportingRepository,
                                      candidateAllocationRepo: CandidateAllocationRepository,
                                      fsbRepository: FsbRepository,
                                      applicationRepository: GeneralApplicationRepository,
-                                     personalDetailsRepository: PersonalDetailsRepository) extends BaseController {
-
-//  val reportingRepository: ReportingRepository
-//  val assessorRepository: AssessorRepository
-//  val eventsRepository: EventsRepository
-//  val assessorAllocationRepository: AssessorAllocationRepository
-//  val contactDetailsRepository: contactdetails.ContactDetailsRepository
-//  val questionnaireRepository: QuestionnaireRepository
-//  val prevYearCandidatesDetailsRepository: PreviousYearCandidatesDetailsRepository
-//  val assessmentScoresRepository: AssessmentScoresRepository
-//  val mediaRepository: MediaRepository
-//  val applicationSiftRepository: ApplicationSiftRepository
-//  val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository
-//  val schemeRepo: SchemeRepository
-//  val authProviderClient: AuthProviderClient
-//  val candidateAllocationRepo: CandidateAllocationRepository
-//  val fsbRepository: FsbRepository
-//  val applicationRepository: GeneralApplicationRepository
+                                     personalDetailsRepository: PersonalDetailsRepository) extends BackendController(cc) {
 
   def fsacScores(): Action[AnyContent] = Action.async { implicit request =>
     def removeFeedback(assessmentScoresExercise: AssessmentScoresExercise) =
@@ -325,7 +289,7 @@ class ReportingController @Inject() (reportingRepository: ReportingRepository,
                 ) + "\n"
                 ret
             }
-            Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(candidatesStream))))
+            Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(header.andThen(candidatesStream))))
           }
         }
       }
@@ -352,7 +316,7 @@ class ReportingController @Inject() (reportingRepository: ReportingRepository,
               ) + "\n"
               ret
           }
-          Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(candidatesStream))))
+          Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(header.andThen(candidatesStream))))
         }
       }
     }
@@ -379,7 +343,7 @@ class ReportingController @Inject() (reportingRepository: ReportingRepository,
                 counter += 1
                 ret
             }
-            Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(candidatesStream))))
+            Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(header.andThen(candidatesStream))))
           }
         }
       }
@@ -621,7 +585,7 @@ class ReportingController @Inject() (reportingRepository: ReportingRepository,
             prevYearCandidatesDetailsRepository.dataAnalystSiftAnswersHeader ::
             Nil).mkString(",") + "\n"
         )
-        Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(applicationDetailsStream))))
+        Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(header.andThen(applicationDetailsStream))))
       }
     }
   }
@@ -672,7 +636,7 @@ class ReportingController @Inject() (reportingRepository: ReportingRepository,
             prevYearCandidatesDetailsRepository.mediaHeader ::
             Nil).mkString(",") + "\n"
         )
-        Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(applicationDetailsStream))))
+        Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(header.andThen(applicationDetailsStream))))
       }
     )
   }
@@ -711,7 +675,7 @@ class ReportingController @Inject() (reportingRepository: ReportingRepository,
             prevYearCandidatesDetailsRepository.dataAnalystSiftAnswersHeader ::
             Nil).mkString(",") + "\n"
         )
-        Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(applicationDetailsStream))))
+        Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(header.andThen(applicationDetailsStream))))
       }
     )
   }

@@ -31,7 +31,11 @@ class FsbTestGroupControllerSpec extends UnitWithAppSpec {
   val mockFsbTestGroupService = mock[FsbService]
   val mockEventsService = mock[EventsService]
 
-  val controller = new FsbTestGroupController(mockFsbTestGroupService, mockEventsService)
+  val controller = new FsbTestGroupController(
+    stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
+    mockFsbTestGroupService,
+    mockEventsService
+  )
 
   "save fsb event evaluation result" should {
     "return Ok when save is successful" in {

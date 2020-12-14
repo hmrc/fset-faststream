@@ -19,6 +19,8 @@ package model
 import model.ApplicationRoute.ApplicationRoute
 import model.Commands.PostCode
 import org.joda.time.LocalDate
+import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.{ Json, OFormat }
 
 case class Candidate(userId: String,

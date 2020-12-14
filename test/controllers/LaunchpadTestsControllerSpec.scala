@@ -39,7 +39,6 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
     implicit val rh: RequestHeader = FakeRequest("GET", "some/path")
 
     val mockPhase3TestService = mock[Phase3TestService]
-//    val mockEventService = mock[StcEventService]
     val mockPhase3TestCallbackService = mock[Phase3TestCallbackService]
 
     val sampleCandidateId = UUID.randomUUID().toString
@@ -61,9 +60,9 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
     (any[HeaderCarrier](), any[RequestHeader]())).thenReturn(Future.successful(()))
 
     def controllerUnderTest = new LaunchpadTestsController(
+      stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
       mockPhase3TestService,
       mockPhase3TestCallbackService
-//      val eventService = mockEventService
     )
 
     val sampleSetupProcessCallback = SetupProcessCallbackRequest(

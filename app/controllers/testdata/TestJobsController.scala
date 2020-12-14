@@ -17,20 +17,20 @@
 package controllers.testdata
 
 import javax.inject.{ Inject, Singleton }
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import scheduler._
 import scheduler.assessment.EvaluateAssessmentCentreJobImpl
 import scheduler.fsb.EvaluateFsbJobImpl
 import scheduler.onlinetesting._
 import scheduler.sift._
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
-//import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class TestJobsController @Inject() (sendPhase1InvitationJob: SendPhase1InvitationJob,
+class TestJobsController @Inject() (cc:ControllerComponents,
+                                    sendPhase1InvitationJob: SendPhase1InvitationJob,
                                     sendPhase2InvitationJob: SendPhase2InvitationJob,
                                     sendPhase3InvitationJob: SendPhase3InvitationJob,
                                     siftNumericalTestInvitationJob: SiftNumericalTestInvitationJobImpl,
@@ -60,7 +60,7 @@ class TestJobsController @Inject() (sendPhase1InvitationJob: SendPhase1Invitatio
                                     evaluateFsbJob: EvaluateFsbJobImpl,
                                     notifyOnFinalFailureJob: NotifyOnFinalFailureJobImpl,
                                     notifyOnFinalSuccessJob: NotifyOnFinalSuccessJobImpl
-                                   ) extends BaseController {
+                                   ) extends BackendController(cc) {
 
   def testInvitationJob(phase: String): Action[AnyContent] = Action.async { implicit request =>
     phase.toUpperCase match {

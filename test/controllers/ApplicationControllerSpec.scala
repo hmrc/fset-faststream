@@ -218,6 +218,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     val mockPersonalDetailsService = mock[PersonalDetailsService]
 
     val testApplicationController = new ApplicationController(
+      stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
       mockApplicationRepository,
       mockAuditService,
       mockApplicationService,

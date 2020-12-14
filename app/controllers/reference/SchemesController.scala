@@ -18,12 +18,12 @@ package controllers.reference
 
 import javax.inject.{ Inject, Singleton }
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import repositories.SchemeRepository
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 @Singleton
-class SchemesController @Inject()(repo: SchemeRepository) extends BaseController {
+class SchemesController @Inject() (cc: ControllerComponents, repo: SchemeRepository) extends BackendController(cc) {
 
   def allSchemes: Action[AnyContent] = Action { implicit request =>
     Ok(Json.toJson(repo.schemes))

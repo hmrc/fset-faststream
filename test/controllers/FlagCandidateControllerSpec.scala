@@ -32,7 +32,10 @@ import scala.concurrent.Future
 class FlagCandidateControllerSpec extends UnitWithAppSpec {
   val mockFlagCandidateRepository = mock[FlagCandidateRepository]
 
-  val testableFlagCandidateController = new FlagCandidateController(mockFlagCandidateRepository)
+  val testableFlagCandidateController = new FlagCandidateController(
+    stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
+    mockFlagCandidateRepository
+  )
 
   "Flag Candidate Controller" should {
     "Return a candidate issue" in {

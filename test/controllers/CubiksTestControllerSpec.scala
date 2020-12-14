@@ -40,6 +40,7 @@ class CubiksTestControllerSpec extends UnitWithAppSpec {
   val mockEventService = mock[StcEventService]
 
   def controllerUnderTest = new CubiksTestsController(
+    stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
     mockPhase1TestService,
     mockPhase2TestService,
     mockNumericalTestService,

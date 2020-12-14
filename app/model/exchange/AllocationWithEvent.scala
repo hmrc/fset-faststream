@@ -21,6 +21,8 @@ import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.SkillType.SkillType
 import model.persisted.eventschedules.Venue
 import org.joda.time.{ LocalDate, LocalTime }
+import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.Json
 
 case class AllocationWithEvent(

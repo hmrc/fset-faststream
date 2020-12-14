@@ -19,6 +19,8 @@ package model.persisted.eventschedules
 import model.exchange.{ Session => ExchangeSession }
 import factories.UUIDFactory
 import org.joda.time.LocalTime
+import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.{ Json, OFormat }
 import reactivemongo.bson.Macros
 import repositories.events.SessionConfig

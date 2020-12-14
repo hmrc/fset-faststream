@@ -18,6 +18,8 @@ package model.persisted.assessor
 
 import model.persisted.eventschedules.Location
 import org.joda.time.LocalDate
+import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 import repositories.BSONLocalDateHandler

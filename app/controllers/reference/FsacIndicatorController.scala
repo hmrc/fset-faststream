@@ -19,12 +19,13 @@ package controllers.reference
 import javax.inject.{ Inject, Singleton }
 import model.exchange.FsacAssessmentCentres
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import repositories.csv.FSACIndicatorCSVRepository
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 @Singleton
-class FsacIndicatorController @Inject()(fsacIndicatorRepository: FSACIndicatorCSVRepository) extends BaseController {
+class FsacIndicatorController @Inject() (cc: ControllerComponents,
+                                         fsacIndicatorRepository: FSACIndicatorCSVRepository) extends BackendController(cc) {
 
   def getAssessmentCentres: Action[AnyContent] = Action { implicit request =>
     Ok(Json.toJson(FsacAssessmentCentres(fsacIndicatorRepository.getAssessmentCentres)))

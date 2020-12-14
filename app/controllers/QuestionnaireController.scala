@@ -19,28 +19,20 @@ package controllers
 import javax.inject.{ Inject, Singleton }
 import model.questionnaire.Question._
 import model.questionnaire.Questionnaire
-import play.api.mvc.Action
+import play.api.mvc.{ Action, ControllerComponents }
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import services.AuditService
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-//object QuestionnaireController extends QuestionnaireController {
-//  val qRepository: QuestionnaireMongoRepository = questionnaireRepository
-//  val appRepository: GeneralApplicationMongoRepository = applicationRepository
-//}
-
 @Singleton
-class QuestionnaireController @Inject() (qRepository: QuestionnaireRepository,
+class QuestionnaireController @Inject() (cc: ControllerComponents,
+                                         qRepository: QuestionnaireRepository,
                                          appRepository: GeneralApplicationRepository,
                                          auditService: AuditService
-                                        ) extends BaseController {
-
-//  val qRepository: QuestionnaireRepository
-//  val appRepository: GeneralApplicationRepository
-//  val auditService: AuditService
+                                        ) extends BackendController(cc) {
 
   def addSection(applicationId: String, sectionKey: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[Questionnaire] { questionnaire =>

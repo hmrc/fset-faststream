@@ -19,15 +19,15 @@ package controllers
 import javax.inject.{ Inject, Singleton }
 import model.report.DuplicateApplicationsReportItem
 import play.api.libs.json.Json
-import play.api.mvc.Action
+import play.api.mvc.{ Action, ControllerComponents }
 import services.reporting.{ DuplicateApplicationGroup, DuplicateDetectionService }
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class DuplicateApplicationReportController @Inject() (duplicateDetectionService: DuplicateDetectionService) extends BaseController {
-//  val duplicateDetectionService: DuplicateDetectionService
+class DuplicateApplicationReportController @Inject() (cc: ControllerComponents,
+                                                      duplicateDetectionService: DuplicateDetectionService) extends BackendController(cc) {
 
   def findPotentialDuplicates = Action.async { implicit request =>
     duplicateDetectionService.findAll.map { potentialDuplications =>

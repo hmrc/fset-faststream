@@ -128,6 +128,7 @@ class EventsControllerSpec extends UnitWithAppSpec {
     val mockAppRepo = mock[GeneralApplicationRepository]
 
     val controller = new EventsController(
+      stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
       mockEventsService,
       mockLocationsWithVenuesRepo,
       mockAssessorAllocationService,

@@ -32,8 +32,6 @@ trait MicroService {
   import DefaultBuildSettings.{addTestReportOption, defaultSettings, scalaSettings, targetJvm}
   import TestPhases._
   import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
-  import play.sbt.routes.RoutesKeys.{ routesImport, routesGenerator }
-
   import scalariform.formatter.preferences._
 
   val appName: String
@@ -52,7 +50,7 @@ trait MicroService {
     .settings(publishingSettings)
     .settings(defaultSettings(): _*)
     .settings(
-      routesGenerator := StaticRoutesGenerator,
+//      routesGenerator := StaticRoutesGenerator, migrate to play2.6
       routesImport += "controllers.Binders._",
       targetJvm := "jvm-1.8",
       scalaVersion := "2.11.11",
