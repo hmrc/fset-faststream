@@ -429,13 +429,13 @@ trait ReportingController extends BaseController {
     streamDataAnalystReport(
       Seq(Faststream),
       Seq(ApplicationStatus.PHASE1_TESTS_FAILED)
-          )
+    )
   }
 
   def streamDataAnalystFaststreamP1FailedCandidatesDetailsPart1Report: Action[AnyContent] = {
     streamDataAnalystReport(
       Seq(Faststream),
-     Seq(ApplicationStatus.PHASE1_TESTS_FAILED),
+      Seq(ApplicationStatus.PHASE1_TESTS_FAILED),
       part = 1
     )
   }
