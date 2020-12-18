@@ -8,6 +8,7 @@
   siftRequirement: NUMERIC_TEST
   siftEvaluationRequired: true
   fsbType: CFS - Skype interview
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Commercial.pdf
 - id: DigitalAndTechnology
   code: DAT
   name: Digital, Data & Technology
@@ -93,7 +94,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: ORAC
-  schemeGuide: https://www.faststream.gov.uk/media/1236/orac-guide.pdf
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide-2020_GORS.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/1249/scheme-questions-gors.odt
 - id: GovernmentSocialResearchService
   code: GSR
@@ -105,7 +106,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: SRAC
-  schemeGuide: https://www.faststream.gov.uk/media/1286/social-research-final-selection-board-2017.pdf
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Social-Research_2021.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/1262/GSR-FS-scheme-questions-gsr.odt
 - id: GovernmentStatisticalService
   code: GSS
@@ -149,7 +150,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: false
   fsbType: PDFS - Skype interview
-  schemeGuide: https://www.faststream.gov.uk/media/1243/pdfs-guide.pdf
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Project-Delivery_2021.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/1252/scheme-questions-pdfs-2021.odt
 - id: Property
   code: PRO
@@ -172,7 +173,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: SEFS FSB
-  schemeGuide: https://www.faststream.gov.uk/media/1238/sefs-guide.pdf
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Science-and-Engineering_2021.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/1315/scheme-questions-sefs.odt
 - id: Edip
   code: EDIP
