@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,28 @@
 
 package controllers
 
-import com.mohiva.play.silhouette.api.Silhouette
-import connectors.ApplicationClient
+import config.{FrontendAppConfig, SecurityEnvironment}
 import connectors.addresslookup.AddressLookupClient
+import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import security.Roles.EditPersonalDetailsAndContinueRole
-import security.{ SecurityEnvironment, SilhouetteComponent }
+import security.SilhouetteComponent
 import uk.gov.hmrc.http.BadRequestException
 
-abstract class AddressLookupController(addressLookupClient: AddressLookupClient,
-  applicationClient: ApplicationClient
-) extends BaseController {
+import scala.concurrent.ExecutionContext
+import helpers.NotificationTypeHelper
+
+@Singleton
+class AddressLookupController  @Inject() (
+  config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  val notificationTypeHelper: NotificationTypeHelper,
+  addressLookupClient: AddressLookupClient)(implicit val ec: ExecutionContext) extends BaseController(config, mcc) {
+  import notificationTypeHelper._
 
   def addressLookupByPostcode(postcode: String): Action[AnyContent] = CSRSecureAction(EditPersonalDetailsAndContinueRole) {
     implicit request => implicit cachedData =>
@@ -47,11 +56,4 @@ abstract class AddressLookupController(addressLookupClient: AddressLookupClient,
     implicit request => implicit cachedData =>
     addressLookupClient.findByAddressId(id, None).map( address => Ok(Json.toJson(address)) )
   }
-}
-
-object AddressLookupController extends AddressLookupController(
-  AddressLookupClient,
-  ApplicationClient
-)  {
-  lazy val silhouette: Silhouette[SecurityEnvironment] = SilhouetteComponent.silhouette
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,26 @@
 
 package controllers
 
-import com.mohiva.play.silhouette.api.Silhouette
+import config.{FrontendAppConfig, SecurityEnvironment}
+import helpers.NotificationTypeHelper
+import javax.inject.{Inject, Singleton}
 import models.page.Phase3FeedbackPage
-import play.api.Play.current
-import play.api.i18n.Messages.Implicits._
-import play.api.mvc.{Action, AnyContent}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import security.Roles.Phase3TestDisplayFeedbackRole
-import security.{SecurityEnvironment, SilhouetteComponent}
+import security.SilhouetteComponent
 import services.Phase3FeedbackService
 
-object Phase3FeedbackController extends Phase3FeedbackController(Phase3FeedbackService) {
-  lazy val silhouette: Silhouette[SecurityEnvironment] = SilhouetteComponent.silhouette
-}
+import scala.concurrent.ExecutionContext
 
-abstract class Phase3FeedbackController(phase3FeedbackService: Phase3FeedbackService) extends BaseController {
+@Singleton
+class Phase3FeedbackController @Inject() (
+  config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  val notificationTypeHelper: NotificationTypeHelper,
+  phase3FeedbackService: Phase3FeedbackService)
+  (implicit val ec: ExecutionContext) extends BaseController(config, mcc) {
 
   def present: Action[AnyContent] = CSRSecureAppAction(Phase3TestDisplayFeedbackRole) {
     implicit request =>

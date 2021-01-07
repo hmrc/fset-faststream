@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,22 @@
 package controllers
 
 import _root_.forms.LockAccountForm
-import config.CSRHttp
+import config.{FrontendAppConfig, SecurityEnvironment}
+import helpers.NotificationTypeHelper
+import javax.inject.{Inject, Singleton}
+import play.api.mvc.MessagesControllerComponents
 import security.SilhouetteComponent
 
-import scala.concurrent.Future
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
+import scala.concurrent.{ExecutionContext, Future}
 
-object LockAccountController extends LockAccountController {
-  val http = CSRHttp
-  lazy val silhouette = SilhouetteComponent.silhouette
-}
-
-abstract class LockAccountController
-  extends BaseController {
+@Singleton
+class LockAccountController @Inject() (config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  val notificationTypeHelper: NotificationTypeHelper
+)(implicit val ec: ExecutionContext)
+  extends BaseController(config, mcc) {
 
   def present = CSRUserAwareAction { implicit request =>
     implicit user =>

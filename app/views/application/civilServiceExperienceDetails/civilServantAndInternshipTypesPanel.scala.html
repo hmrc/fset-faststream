@@ -1,5 +1,5 @@
 @*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@
 @panel4 = { @otherInternshipPanel(form) }
 
 <div id="civilServiceExperienceDetails_applicable-panel-yes" class="toggle-content" aria-hidden="true">
-    @checkboxGroupWithFourInlineTogglePanels(form("civilServiceExperienceDetails.civilServantAndInternshipTypes"), FastPassForm.CivilServantAndInternshipTypes,
+    @checkboxGroupWithFourInlineTogglePanels(form("civilServiceExperienceDetails.civilServantAndInternshipTypes"), FastPassForm.civilServantAndInternshipTypes,
     'id -> "civilServiceExperienceDetails.civilServantAndInternshipTypes",
     '_label -> "Select all that apply") {
         @panel1

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,10 @@
 
 package forms
 
-import controllers.UnitSpec
-import testkit.UnitWithAppSpec
 import forms.WithdrawApplicationForm.Data
 import play.api.data.Form
 
-class WithdrawApplicationFormSpec extends UnitWithAppSpec {
+class WithdrawApplicationFormSpec extends BaseFormSpec {
 
   "the withdraw application form" should {
     "be valid when the user selects I want to withdraw and provide a reason (no other reason)" in new Fixture {
@@ -36,33 +34,35 @@ class WithdrawApplicationFormSpec extends UnitWithAppSpec {
 
     "be invalid when the user selects I want to withdraw and provide no reason" in new Fixture {
       assertFormError(Seq(
-        "Select a reason for withdrawing your application"
+        "error.reason.required"
       ), WithdrawApplicationFormExamples.OtherReasonInvalidNoReasonMap)
     }
 
     "be invalid when the user selects I want to withdraw and select other reason and provide no more info" in new Fixture {
       assertFormError(Seq(
-        "Tell us why you're withdrawing your application"
+        "error.required.reason.more_info"
       ), WithdrawApplicationFormExamples.OtherReasonInvalidNoOtherReasonMoreInfoMap)
     }
   }
 
   trait Fixture {
 
-    val Valid = (WithdrawApplicationFormExamples.ValidForm, WithdrawApplicationForm.form.fill(
+    def formWrapper = new WithdrawApplicationForm
+
+    val Valid = (WithdrawApplicationFormExamples.ValidForm, formWrapper.form.fill(
       WithdrawApplicationFormExamples.ValidForm))
 
-    val OtherReasonValid = (WithdrawApplicationFormExamples.OtherReasonValidForm, WithdrawApplicationForm.form.fill(
+    val OtherReasonValid = (WithdrawApplicationFormExamples.OtherReasonValidForm, formWrapper.form.fill(
       WithdrawApplicationFormExamples.OtherReasonValidForm))
 
-    val OtherReasonInvalidNoReason = (WithdrawApplicationFormExamples.OtherReasonInvalidNoReasonForm, WithdrawApplicationForm.form.fill(
+    val OtherReasonInvalidNoReason = (WithdrawApplicationFormExamples.OtherReasonInvalidNoReasonForm, formWrapper.form.fill(
       WithdrawApplicationFormExamples.OtherReasonInvalidNoReasonForm))
 
     val OtherReasonInvalidNoOtherReasonMoreInfo = (WithdrawApplicationFormExamples.OtherReasonInvalidNoOtherReasonMoreInfoForm,
-      WithdrawApplicationForm.form.fill(WithdrawApplicationFormExamples.OtherReasonInvalidNoOtherReasonMoreInfoForm))
+      formWrapper.form.fill(WithdrawApplicationFormExamples.OtherReasonInvalidNoOtherReasonMoreInfoForm))
 
     def assertFormError(expectedError: Seq[String], invalidFormValues: Map[String, String]) = {
-      val invalidForm: Form[Data] = WithdrawApplicationForm.form.bind(invalidFormValues)
+      val invalidForm: Form[Data] = formWrapper.form.bind(invalidFormValues)
       invalidForm.hasErrors mustBe true
       invalidForm.errors.map(_.message) mustBe expectedError
     }

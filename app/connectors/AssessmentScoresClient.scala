@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,36 +16,29 @@
 
 package connectors
 
-import config.CSRHttp
+import config.{CSRHttp, FrontendAppConfig}
 import connectors.exchange.candidatescores.AssessmentScoresAllExercises
+import javax.inject.{Inject, Singleton}
 import models.UniqueIdentifier
 import play.api.http.Status._
-import uk.gov.hmrc.play.http._
+import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
+import scala.concurrent.{ExecutionContext, Future}
 
-trait AssessmentScoresClient {
+@Singleton
+class AssessmentScoresClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(implicit ec: ExecutionContext) {
 
-  val http: CSRHttp
-
-  import config.FrontendAppConfig.faststreamConfig._
+  val url = config.faststreamBackendConfig.url
   val apiBase: String = s"${url.host}${url.base}"
 
   def findReviewerAcceptedAssessmentScores(applicationId: UniqueIdentifier)(
     implicit
     hc: HeaderCarrier): Future[AssessmentScoresAllExercises] = {
-    http.GET(s"$apiBase/assessment-scores/reviewer/accepted-scores/application/$applicationId").map {
-      case response: HttpResponse if response.status == OK => response.json.as[AssessmentScoresAllExercises]
-      case response: HttpResponse if response.status == NOT_FOUND =>
+    http.GET[AssessmentScoresAllExercises](s"$apiBase/assessment-scores/reviewer/accepted-scores/application/$applicationId").recover {
+      case e: UpstreamErrorResponse if e.statusCode == NOT_FOUND =>
         throw new Exception(s"Error no assessment scores found for application id $applicationId")
-    } recover {
       case _ => throw new Exception(s"Error retrieving assessment scores for application id $applicationId")
     }
   }
-}
-
-object AssessmentScoresClient extends AssessmentScoresClient {
-  override val http: CSRHttp = CSRHttp
 }

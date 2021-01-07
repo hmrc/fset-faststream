@@ -1,5 +1,5 @@
 @*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,8 @@
  * limitations under the License.
  *@
 
-@(form: Form[forms.PersonalDetailsForm.Data], updateStatus: Boolean, schemesRequiringQualifications: Seq[String])(implicit request: Request[_], flash: Flash, optCachedData: Option[CachedData], feedbackUrl: String, messages: Messages)
+@import config.AnalyticsConfig
+@(form: Form[forms.PersonalDetailsForm.Data], updateStatus: Boolean, schemesRequiringQualifications: Seq[String])(implicit request: Request[_], flash: Flash, optCachedData: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
 
 @import views.html.application.personaldetails.{ contactDetails, nameAndDateOfBirth }
 @import views.html.application.civilServiceExperienceDetails.civilServiceExperienceDetailsPanel

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,36 +16,41 @@
 
 package controllers
 
+import config.{FrontendAppConfig, SecurityEnvironment}
 import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.exchange.CivilServiceExperienceDetails._
 import connectors.exchange.SelectedSchemes
-import connectors.{ ApplicationClient, ReferenceDataClient, SchemeClient, UserManagementClient }
+import connectors.{ApplicationClient, ReferenceDataClient, SchemeClient, UserManagementClient}
 import forms.FastPassForm._
 import forms.PersonalDetailsForm
 import helpers.NotificationType._
-import mappings.{ Address, DayMonthYear }
-import models.{ ApplicationRoute, CachedDataWithApp }
+import helpers.NotificationTypeHelper
+import javax.inject.{Inject, Singleton}
+import mappings.{Address, DayMonthYear}
+import models.{ApplicationRoute, CachedDataWithApp}
 import org.joda.time.LocalDate
-import play.api.Play.current
 import play.api.data.Form
-import play.api.i18n.Messages.Implicits._
-import play.api.mvc.{ Request, Result }
-import security.Roles.{ EditPersonalDetailsAndContinueRole, EditPersonalDetailsRole }
+import play.api.mvc.{MessagesControllerComponents, Request, Result}
+import security.Roles.{EditPersonalDetailsAndContinueRole, EditPersonalDetailsRole}
 import security.SilhouetteComponent
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-object PersonalDetailsController
-  extends PersonalDetailsController(ApplicationClient, SchemeClient, UserManagementClient, ReferenceDataClient) {
-  lazy val silhouette = SilhouetteComponent.silhouette
-}
-
-abstract class PersonalDetailsController(applicationClient: ApplicationClient,
+@Singleton
+class PersonalDetailsController @Inject() (
+  config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  val notificationTypeHelper: NotificationTypeHelper,
+  applicationClient: ApplicationClient,
                                          schemeClient: SchemeClient,
                                          userManagementClient: UserManagementClient,
-                                         refDataClient: ReferenceDataClient)
-  extends BaseController with PersonalDetailsToExchangeConverter {
+                                         refDataClient: ReferenceDataClient,
+formWrapper: PersonalDetailsForm)(implicit val ec: ExecutionContext)
+  extends BaseController(config, mcc) with PersonalDetailsToExchangeConverter {
+  import notificationTypeHelper._
 
   private sealed trait OnSuccess
   private case object ContinueToNextStepInJourney extends OnSuccess
@@ -78,7 +83,7 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient,
       schemesRequiringQualifications <- getCivilServantSchemeNamesRequiringQualifications
       gd <- applicationClient.getPersonalDetails(user.user.userID, user.application.applicationId)
     } yield {
-      val form = PersonalDetailsForm.form.fill(PersonalDetailsForm.Data(
+      val form = formWrapper.form.fill(PersonalDetailsForm.Data(
         gd.firstName,
         gd.lastName,
         gd.preferredName,
@@ -99,7 +104,7 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient,
     }).recover {
       case _: PersonalDetailsNotFound =>
         getCivilServantSchemeNamesRequiringQualifications.map{ schemesRequiringQualifications =>
-          val formFromUser = PersonalDetailsForm.form.fill(PersonalDetailsForm.Data(
+          val formFromUser = formWrapper.form.fill(PersonalDetailsForm.Data(
             user.user.firstName,
             user.user.lastName,
             user.user.firstName,
@@ -121,20 +126,22 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient,
     }.flatMap( identity )
   }
 
-  def submitPersonalDetailsAndContinue() = CSRSecureAppAction(EditPersonalDetailsAndContinueRole) { implicit request =>
+  def submitPersonalDetailsAndContinue =
+    CSRSecureAppAction(EditPersonalDetailsAndContinueRole) { implicit request =>
     implicit user =>
+      implicit val messages = request.messages
       val redirect = if(user.application.applicationRoute == ApplicationRoute.Faststream ||
       user.application.applicationRoute == ApplicationRoute.SdipFaststream) {
         Redirect(routes.SchemePreferencesController.present())
       } else {
         Redirect(routes.AssistanceDetailsController.present())
       }
-      submit(PersonalDetailsForm.form(LocalDate.now), ContinueToNextStepInJourney, redirect)
+      submit(formWrapper.form(LocalDate.now, false, messages), ContinueToNextStepInJourney, redirect)
   }
 
-  def submitPersonalDetails() = CSRSecureAppAction(EditPersonalDetailsRole) { implicit request =>
+  def submitPersonalDetails = CSRSecureAppAction(EditPersonalDetailsRole) { implicit request =>
     implicit user =>
-      submit(PersonalDetailsForm.form(LocalDate.now, ignoreFastPassValidations = true), RedirectToTheDashboard,
+      submit(formWrapper.form(LocalDate.now, ignoreFastPassValidations = true, request.messages), RedirectToTheDashboard,
         Redirect(routes.HomeController.present()).flashing(success("personalDetails.updated")))
   }
 
@@ -180,7 +187,7 @@ abstract class PersonalDetailsController(applicationClient: ApplicationClient,
       for {
         _ <- schemeClient.updateSchemePreferences(SelectedSchemes(List(appRoute), orderAgreed = true,
           eligible = true))(cacheData.application.applicationId)
-        _ <- env.userService.refreshCachedUser(cacheData.user.userID)
+        _ <- secEnv.userService.refreshCachedUser(cacheData.user.userID)
       } yield ()
     case _ => Future.successful(())
   }

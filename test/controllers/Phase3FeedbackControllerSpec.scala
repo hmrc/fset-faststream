@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,68 +17,42 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.client.WireMock.{any => _}
-import config.{CSRHttp, SecurityEnvironmentImpl}
-import models.SecurityUserExamples._
 import models._
 import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.{SilhouetteComponent, UserCacheService}
-import services.Phase3FeedbackService
-import testkit.{BaseControllerSpec, TestableSecureActions}
+import testkit.TestableSecureActions
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 
 class Phase3FeedbackControllerSpec extends BaseControllerSpec {
 
-  val mockUserService = mock[UserCacheService]
-  val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
-  val mockPhase3FeedbackService = mock[Phase3FeedbackService]
-
-  class TestablePhase3FeedbackController extends Phase3FeedbackController(mockPhase3FeedbackService)
-    with TestableSecureActions {
-    val http: CSRHttp = CSRHttp
-
-    override val env = mockSecurityEnvironment
-    override lazy val silhouette = SilhouetteComponent.silhouette
-
-    when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
-  }
-
-  def controller(implicit candWithApp: CachedDataWithApp = currentCandidateWithApp) = new TestablePhase3FeedbackController {
-    override val candidateWithApp: CachedDataWithApp = candWithApp
-  }
-
-  override def currentCandidateWithApp: CachedDataWithApp = {
-    CachedDataWithApp(ActiveCandidate.user,
-      CachedDataExample.Phase3TestsFailedApplication.copy(userId = ActiveCandidate.user.userID))
-  }
-
   "present" should {
-    val CapabilityPerformanceHigh = "shows high capability"
-    val CapabilityPerformanceMedium = "shows generally good evidence"
-    val CapabiliyPerformanceLow = "shows limited evidence"
-    val CapabilitySuggestionsHigh = "To sustain or enhance your performance"
-    val CapabilitySuggestionsMedium = "Although you performed well "
-    val CapabilitySuggestionsLow = "When in situations where you need to take action"
-    val EngagementPerformanceHigh = "Your responses to the Video Interview displayed very clear willingness"
-    val EngagementPerformanceMedium = "Your responses to the Video Interview displayed some degree of willingness"
-    val EngagementPerformanceLow = "Your responses to the Video Interview displayed limited engagement"
-    val EngagementSuggestionsHigh = "Aim to continue your motivation and engagement in situations"
-    val EngagementSuggestionsMedium = "Aim to develop your motivation and engagement in situations"
-    val EngagementSuggestionsLow = "Aim to enhance your motivation and engagement in situations"
-    "show report for high scores" in {
+    val CapabilityPerformanceHigh = "phase3.feedback.capability.feedbackOnPerformance.High"
+    val CapabilityPerformanceMedium = "phase3.feedback.capability.feedbackOnPerformance.Medium"
+    val CapabilityPerformanceLow = "phase3.feedback.capability.feedbackOnPerformance.Low"
+    val CapabilitySuggestionsHigh = "phase3.feedback.capability.suggestionsForFurtherDevelopment.High"
+    val CapabilitySuggestionsMedium = "phase3.feedback.capability.suggestionsForFurtherDevelopment.Medium"
+    val CapabilitySuggestionsLow = "phase3.feedback.capability.suggestionsForFurtherDevelopment.Low"
+    val EngagementPerformanceHigh = "phase3.feedback.engagement.feedbackOnPerformance.High"
+    val EngagementPerformanceMedium = "phase3.feedback.engagement.feedbackOnPerformance.Medium"
+    val EngagementPerformanceLow = "phase3.feedback.engagement.feedbackOnPerformance.Low"
+    val EngagementSuggestionsHigh = "phase3.feedback.engagement.suggestionsForFurtherDevelopment.High"
+    val EngagementSuggestionsMedium = "phase3.feedback.engagement.suggestionsForFurtherDevelopment.Medium"
+    val EngagementSuggestionsLow = "phase3.feedback.engagement.suggestionsForFurtherDevelopment.Low"
 
+    "show report for high scores" in new TestFixture {
       when(mockPhase3FeedbackService.getFeedback(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(Some(("High", "High"))))
 
       val result = controller.present()(fakeRequest)
+
       status(result) must be(OK)
       val content = contentAsString(result)
       content must include(CapabilityPerformanceHigh)
       content must not include CapabilityPerformanceMedium
-      content must not include CapabiliyPerformanceLow
+      content must not include CapabilityPerformanceLow
 
       content must include(CapabilitySuggestionsHigh)
       content must not include CapabilitySuggestionsMedium
@@ -93,17 +67,17 @@ class Phase3FeedbackControllerSpec extends BaseControllerSpec {
       content must not include EngagementSuggestionsLow
     }
 
-    "show report for medium scores" in {
-
+    "show report for medium scores" in new TestFixture {
       when(mockPhase3FeedbackService.getFeedback(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(Some(("Medium", "Medium"))))
 
       val result = controller.present()(fakeRequest)
+
       status(result) must be(OK)
       val content = contentAsString(result)
       content must not include CapabilityPerformanceHigh
       content must include(CapabilityPerformanceMedium)
-      content must not include CapabiliyPerformanceLow
+      content must not include CapabilityPerformanceLow
 
       content must not include CapabilitySuggestionsHigh
       content must include(CapabilitySuggestionsMedium)
@@ -118,17 +92,17 @@ class Phase3FeedbackControllerSpec extends BaseControllerSpec {
       content must not include EngagementSuggestionsLow
     }
 
-    "show report for low scores" in {
-
+    "show report for low scores" in new TestFixture {
       when(mockPhase3FeedbackService.getFeedback(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(Some(("Low", "Low"))))
 
       val result = controller.present()(fakeRequest)
+
       status(result) must be(OK)
       val content = contentAsString(result)
       content must not include CapabilityPerformanceHigh
       content must not include(CapabilityPerformanceMedium)
-      content must include (CapabiliyPerformanceLow)
+      content must include (CapabilityPerformanceLow)
 
       content must not include CapabilitySuggestionsHigh
       content must not include(CapabilitySuggestionsMedium)
@@ -143,17 +117,17 @@ class Phase3FeedbackControllerSpec extends BaseControllerSpec {
       content must include (EngagementSuggestionsLow)
     }
 
-    "show report for mixed scores: capability is high and engagement is low" in {
-
+    "show report for mixed scores: capability is high and engagement is low" in new TestFixture {
       when(mockPhase3FeedbackService.getFeedback(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(Some(("High", "Low"))))
 
       val result = controller.present()(fakeRequest)
+
       status(result) must be(OK)
       val content = contentAsString(result)
       content must include (CapabilityPerformanceHigh)
       content must not include(CapabilityPerformanceMedium)
-      content must not include (CapabiliyPerformanceLow)
+      content must not include (CapabilityPerformanceLow)
 
       content must include (CapabilitySuggestionsHigh)
       content must not include(CapabilitySuggestionsMedium)
@@ -168,17 +142,17 @@ class Phase3FeedbackControllerSpec extends BaseControllerSpec {
       content must include (EngagementSuggestionsLow)
     }
 
-    "show report for mixed scores: capability is medium and engagement is high" in {
-
+    "show report for mixed scores: capability is medium and engagement is high" in new TestFixture {
       when(mockPhase3FeedbackService.getFeedback(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(Some(("Medium", "High"))))
 
       val result = controller.present()(fakeRequest)
+
       status(result) must be(OK)
       val content = contentAsString(result)
       content must not include (CapabilityPerformanceHigh)
       content must include(CapabilityPerformanceMedium)
-      content must not include (CapabiliyPerformanceLow)
+      content must not include (CapabilityPerformanceLow)
 
       content must not include (CapabilitySuggestionsHigh)
       content must include(CapabilitySuggestionsMedium)
@@ -193,5 +167,14 @@ class Phase3FeedbackControllerSpec extends BaseControllerSpec {
       content must not include (EngagementSuggestionsLow)
     }
 
+  }
+
+  trait TestFixture extends BaseControllerTestFixture {
+    def controller(implicit candWithApp: CachedDataWithApp = currentCandidateWithApp) = {
+      new Phase3FeedbackController(mockConfig, stubMcc, mockSecurityEnv, mockSilhouetteComponent,
+        mockNotificationTypeHelper, mockPhase3FeedbackService) with TestableSecureActions {
+        override val candidateWithApp: CachedDataWithApp = candWithApp
+      }
+    }
   }
 }

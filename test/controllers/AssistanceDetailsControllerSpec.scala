@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,19 @@
 
 package controllers
 
-import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
-import config.{ CSRHttp, SecurityEnvironmentImpl }
-import connectors.ApplicationClient
+import com.github.tomakehurst.wiremock.client.WireMock.{any => _}
 import connectors.ApplicationClient.AssistanceDetailsNotFound
 import connectors.exchange.AssistanceDetailsExamples
-import forms.AssistanceDetailsFormExamples
+import forms.{AssistanceDetailsForm, AssistanceDetailsFormExamples}
 import models.SecurityUserExamples._
 import models._
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.{ SilhouetteComponent, UserCacheService }
-import testkit.{ BaseControllerSpec, TestableSecureActions }
+import testkit.TestableSecureActions
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 class AssistanceDetailsControllerSpec extends BaseControllerSpec {
 
@@ -47,6 +44,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
         .thenReturn(Future.failed(new AssistanceDetailsNotFound))
 
       val result = controller.present()(fakeRequest)
+
       status(result) must be(OK)
       val content = contentAsString(result)
       content must include("<title>Disability and health conditions")
@@ -73,6 +71,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
         .thenReturn(Future.failed(new AssistanceDetailsNotFound))
 
       val result = controller(currentCandidateWithEdipApp).present()(fakeRequest)
+
       status(result) must be(OK)
       val content = contentAsString(result)
       content must include("<title>Disability and health conditions")
@@ -100,12 +99,8 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
       val Request = fakeRequest.withFormUrlEncodedBody(AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsFormUrlEncodedBody: _*)
       when(mockApplicationClient.updateAssistanceDetails(eqTo(currentApplicationId), eqTo(currentUserId),
         eqTo(AssistanceDetailsExamples.DisabilityGisAndAdjustments))(any[HeaderCarrier])).thenReturn(Future.successful(()))
-
       when(mockApplicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(ProgressResponseExamples.InAssistanceDetails))
-      val Application = currentCandidateWithApp.application
-        .copy(progress = ProgressResponseExamples.InAssistanceDetails)
-      val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
 
       val result = controller.submit()(Request)
 
@@ -114,51 +109,32 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
     }
 
     "update assistance details and redirect to preview if questionnaire is completed" in new TestFixture {
-      class TestableAssistanceDetailsControllerWithUserInQuestionnaire extends TestableAssistanceDetailsController {
-        override val candidateWithApp: CachedDataWithApp = CachedDataWithApp(ActiveCandidate.user,
-          CachedDataExample.InProgressInQuestionnaireApplication.copy(userId = ActiveCandidate.user.userID))
-      }
-
-      override def controller(implicit candidateWithApp: CachedDataWithApp = currentCandidateWithApp) =
-        new TestableAssistanceDetailsControllerWithUserInQuestionnaire
-
       val Request = fakeRequest.withFormUrlEncodedBody(AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsFormUrlEncodedBody: _*)
       when(mockApplicationClient.updateAssistanceDetails(eqTo(currentApplicationId), eqTo(currentUserId),
         eqTo(AssistanceDetailsExamples.DisabilityGisAndAdjustments))(any[HeaderCarrier])).thenReturn(Future.successful(()))
 
       when(mockApplicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(ProgressResponseExamples.InQuestionnaire))
-      val Application = currentCandidateWithApp.application
-        .copy(progress = ProgressResponseExamples.InQuestionnaire)
-      val UpdatedCandidate = currentCandidate.copy(application = Some(Application))
 
-      val result = controller.submit()(Request)
+      val candidate = CachedDataWithApp(ActiveCandidate.user,
+        CachedDataExample.InProgressInQuestionnaireApplication.copy(userId = ActiveCandidate.user.userID))
+      val result = controller(candidate).submit()(Request)
 
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.PreviewApplicationController.present().url))
     }
   }
 
-  trait TestFixture {
-    val mockApplicationClient = mock[ApplicationClient]
-    val mockUserService = mock[UserCacheService]
-    val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
-
+  trait TestFixture extends BaseControllerTestFixture {
     val phoneText = "Will you need any support for your phone interview?"
     val onlineTestText = "Will you need any support for your work based scenarios, video interview or numerical test?"
 
-    class TestableAssistanceDetailsController extends AssistanceDetailsController(mockApplicationClient)
-      with TestableSecureActions {
-      val http: CSRHttp = CSRHttp
-
-      override val env = mockSecurityEnvironment
-      override lazy val silhouette = SilhouetteComponent.silhouette
-
-      when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
-    }
-
-    def controller(implicit candWithApp: CachedDataWithApp = currentCandidateWithApp) = new TestableAssistanceDetailsController {
-      override val candidateWithApp: CachedDataWithApp = candWithApp
+    def controller(implicit candWithApp: CachedDataWithApp = currentCandidateWithApp) = {
+      val formWrapper = new AssistanceDetailsForm
+      new AssistanceDetailsController(mockConfig, stubMcc,mockSecurityEnv, mockSilhouetteComponent,
+      mockNotificationTypeHelper, mockApplicationClient, formWrapper) with TestableSecureActions {
+        override val candidateWithApp: CachedDataWithApp = candWithApp
+      }
     }
   }
 }

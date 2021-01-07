@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,24 +17,6 @@
 import play.api.data.FormError
 import play.api.data.format.Formatter
 import play.api.i18n.Messages
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
-
-/*
- * Copyright 2016 HM Revenue & Customs
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
 package object forms {
 
@@ -45,7 +27,8 @@ package object forms {
     }
   }
 
-  def requiredFormatterWithMaxLengthCheck(requiredKey: String, key: String, maxLength: Option[Int]) = new Formatter[Option[String]] {
+  def requiredFormatterWithMaxLengthCheck(requiredKey: String, key: String, maxLength: Option[Int])(
+    implicit messages: Messages) = new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       val requiredField: Option[String] = if (data.isEmpty) None else data.get(requiredKey)
       val keyField: Option[String] = if (data.isEmpty) None else data.get(key).map(_.trim)
@@ -72,7 +55,7 @@ package object forms {
         maxLength: Option[Int],
         msgRequiredError: Option[String] = None
       )(
-        implicit invalidFn: (String => Boolean) = inputValue => maxLength.exists(_ < inputValue.trim.length),
+        implicit messages: Messages, invalidFn: (String => Boolean) = inputValue => maxLength.exists(_ < inputValue.trim.length),
         validationErrorKey:String = s"error.$key.maxLength"
       ) = new Formatter[Option[String]] {
           override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {

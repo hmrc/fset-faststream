@@ -1,5 +1,5 @@
 @*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,9 @@
  * limitations under the License.
  *@
 
-@(schemeSpecificQuestionsForm: Form[_root_.connectors.exchange.sift.SchemeSpecificAnswer], scheme: _root_.connectors.exchange.referencedata.Scheme)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+@import config.AnalyticsConfig
+@(schemeSpecificQuestionsForm: Form[_root_.connectors.exchange.sift.SchemeSpecificAnswer], scheme: _root_.connectors.exchange.referencedata.Scheme,
+    saveAndContinueAction: String, saveAndReturnAction: String)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
 
 @import controllers.SiftQuestionsController
 @import helpers.CSRFieldConstructor._
@@ -43,8 +45,8 @@
         '_showConstraints -> true)
 
         <div class="form-group">
-            <button id="@SiftQuestionsController.SaveAndContinueAction" type="submit" name="action" value="@SiftQuestionsController.SaveAndContinueAction" class="button">Save and continue</button>
-            <button id="@SiftQuestionsController.SaveAndReturnAction" type="submit" name="action" value="@SiftQuestionsController.SaveAndReturnAction" class="button-link">Save and return home</button>
+            <button id="@saveAndContinueAction" type="submit" name="action" value="@saveAndContinueAction" class="button">Save and continue</button>
+            <button id="@saveAndReturnAction" type="submit" name="action" value="@saveAndReturnAction" class="button-link">Save and return home</button>
         </div>
     }
 }

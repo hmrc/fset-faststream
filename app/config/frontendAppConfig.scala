@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,33 +20,33 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Base64
 
-import controllers.{ ApplicationRouteState, ApplicationRouteStateImpl }
+import controllers.{ApplicationRouteState, ApplicationRouteStateImpl}
+import javax.inject.{Inject, Singleton}
 import models.ApplicationRoute._
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
-import play.api.Mode.Mode
-import play.api.{ Configuration, Logger, Play }
-import play.api.Play.{ configuration, current }
-import uk.gov.hmrc.play.config.ServicesConfig
-
-case class AuthConfig(serviceName: String)
+import play.api.{Configuration, Environment, Logger}
 
 case class EmailConfig(url: EmailUrl, templates: EmailTemplates)
-
 case class EmailUrl(host: String, sendEmail: String)
 case class EmailTemplates(registration: String)
+
+case class AuthConfig(serviceName: String)
 
 case class UserManagementConfig(url: UserManagementUrl)
 case class UserManagementUrl(host: String)
 
-case class FaststreamConfig(url: FaststreamUrl)
-case class FaststreamUrl(host: String, base: String)
+case class FaststreamBackendConfig(url: FaststreamBackendUrl)
+case class FaststreamBackendUrl(host: String, base: String)
 
-case class ApplicationRouteFrontendConfig(timeZone: Option[String], startNewAccountsDate: Option[LocalDateTime],
+case class ApplicationRouteFrontendConfig(timeZone: Option[String],
+                                          startNewAccountsDate: Option[LocalDateTime],
                                           blockNewAccountsDate: Option[LocalDateTime],
                                           blockApplicationsDate: Option[LocalDateTime])
 
 case class AddressLookupConfig(url: String)
+
+case class AnalyticsConfig(host: String, token: String)
 
 object ApplicationRouteFrontendConfig {
   def read(timeZone: Option[String], startNewAccountsDate: Option[String], blockNewAccountsDate: Option[String],
@@ -59,54 +59,34 @@ object ApplicationRouteFrontendConfig {
   }
 }
 
-trait AppConfig {
-  val analyticsToken: String
-  val analyticsHost: String
-  val emailConfig: EmailConfig
-  val authConfig: AuthConfig
-  val userManagementConfig: UserManagementConfig
-  val faststreamConfig: FaststreamConfig
-  val applicationRoutesFrontend: Map[ApplicationRoute, ApplicationRouteState]
-  val addressLookupConfig: AddressLookupConfig
-  val fsacGuideUrl: String
-}
+@Singleton
+class FrontendAppConfig @Inject() (val config: Configuration, val environment: Environment) {
+  lazy val emailConfig = config.underlying.as[EmailConfig]("microservice.services.email")
+  lazy val authConfig = config.underlying.as[AuthConfig](s"microservice.services.auth")
+  lazy val userManagementConfig = config.underlying.as[UserManagementConfig]("microservice.services.user-management")
+  lazy val faststreamBackendConfig = config.underlying.as[FaststreamBackendConfig]("microservice.services.faststream")
+  lazy val analyticsConfig: AnalyticsConfig = config.underlying.as[AnalyticsConfig]("microservice.services.google-analytics")
 
-object FrontendAppConfig extends AppConfig with ServicesConfig {
+  lazy val addressLookupConfig = config.underlying.as[AddressLookupConfig]("microservice.services.address-lookup")
 
-  override def mode: Mode = Play.current.mode
-  override def runModeConfiguration: Configuration = Play.current.configuration
+  lazy val fsacGuideUrl = config.underlying.as[String]("microservice.fsacGuideUrl")
 
-  private def loadConfig(key: String) = configuration.getString(key).getOrElse(throw new Exception(s"Missing configuration key: $key"))
+  lazy val feedbackUrl = config.getOptional[String]("feedback.url").getOrElse("")
 
-  val feedbackUrl = configuration.getString("feedback.url").getOrElse("")
+  lazy val marketingTrackingEnabled = config.getOptional[Boolean]("marketing.trackingEnabled").getOrElse(false)
 
-  val marketingTrackingEnabled = configuration.getBoolean("marketing.trackingEnabled").getOrElse(false)
-
-  override lazy val analyticsToken = loadConfig("microservice.services.google-analytics.token")
-  override lazy val analyticsHost = loadConfig("microservice.services.google-analytics.host")
-
-  override lazy val emailConfig = configuration.underlying.as[EmailConfig]("microservice.services.email")
-  override lazy val authConfig = configuration.underlying.as[AuthConfig](s"microservice.services.auth")
-
-  override lazy val userManagementConfig = configuration.underlying.as[UserManagementConfig]("microservice.services.user-management")
-  override lazy val faststreamConfig = configuration.underlying.as[FaststreamConfig]("microservice.services.faststream")
-
-  override lazy val addressLookupConfig = configuration.underlying.as[AddressLookupConfig]("microservice.services.address-lookup")
-
-  override lazy val fsacGuideUrl = configuration.underlying.as[String]("microservice.fsacGuideUrl")
-
-  override lazy val applicationRoutesFrontend = Map(
+  lazy val applicationRoutesFrontend = Map(
     Faststream -> loadAppRouteConfig("faststream"),
     Edip -> loadAppRouteConfig("edip"),
     Sdip -> loadAppRouteConfig("sdip"),
     SdipFaststream -> loadAppRouteConfig("faststream")
   )
 
-  def loadAppRouteConfig(routeKey: String) = {
-    val timeZone = configuration.getString("applicationRoute.timeZone")
-    val startNewAccountsDate = configuration.getString(s"applicationRoute.$routeKey.startNewAccountsDate")
-    val blockNewAccountsDate = configuration.getString(s"applicationRoute.$routeKey.blockNewAccountsDate")
-    val blockApplicationsDate = configuration.getString(s"applicationRoute.$routeKey.blockApplicationsDate")
+  def loadAppRouteConfig(routeKey: String): ApplicationRouteState = {
+    val timeZone = config.getOptional[String]("applicationRoute.timeZone")
+    val startNewAccountsDate = config.getOptional[String](s"applicationRoute.$routeKey.startNewAccountsDate")
+    val blockNewAccountsDate = config.getOptional[String](s"applicationRoute.$routeKey.blockNewAccountsDate")
+    val blockApplicationsDate = config.getOptional[String](s"applicationRoute.$routeKey.blockApplicationsDate")
     Logger.warn(s"Reading campaign closing times timeZone=$timeZone")
     Logger.warn(s"Reading campaign closing times for routeKey=$routeKey...")
     Logger.warn(s"routeKey=$routeKey - startNewAccountsDate=$startNewAccountsDate")
@@ -115,17 +95,17 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
 
     ApplicationRouteStateImpl(
       ApplicationRouteFrontendConfig.read(
-        timeZone = configuration.getString("applicationRoute.timeZone"),
-        startNewAccountsDate = configuration.getString(s"applicationRoute.$routeKey.startNewAccountsDate"),
-        blockNewAccountsDate = configuration.getString(s"applicationRoute.$routeKey.blockNewAccountsDate"),
-        blockApplicationsDate = configuration.getString(s"applicationRoute.$routeKey.blockApplicationsDate")
+        timeZone = config.getOptional[String]("applicationRoute.timeZone"),
+        startNewAccountsDate = config.getOptional[String](s"applicationRoute.$routeKey.startNewAccountsDate"),
+        blockNewAccountsDate = config.getOptional[String](s"applicationRoute.$routeKey.blockNewAccountsDate"),
+        blockApplicationsDate = config.getOptional[String](s"applicationRoute.$routeKey.blockApplicationsDate")
       )
     )
   }
 
   // Whitelist Configuration
   private def whitelistConfig(key: String): Seq[String] = Some(
-    new String(Base64.getDecoder.decode(Play.configuration.getString(key).getOrElse("")), "UTF-8")
+    new String(Base64.getDecoder.decode(config.getOptional[String](key).getOrElse("")), "UTF-8")
   ).map(_.split(",")).getOrElse(Array.empty).toSeq
 
   lazy val whitelist = whitelistConfig("whitelist")

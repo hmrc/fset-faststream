@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,3 @@ case class SchemeWithdrawPage(
   schemes: Seq[(String, String)],
   form: Form[SchemeWithdrawForm.Data]
 )
-
-object SchemeWithdrawPage {
-  def apply(schemes: Seq[Scheme]): SchemeWithdrawPage = {
-    SchemeWithdrawPage(schemes.map(s => (s.name, s.id.value)), SchemeWithdrawForm.form)
-  }
-}

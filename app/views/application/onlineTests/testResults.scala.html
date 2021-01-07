@@ -1,5 +1,5 @@
 @*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 
 @import models.page.TestResultsPage
 @import models.page.PsiTestPage
+@import config.AnalyticsConfig
 
-@(page: TestResultsPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+@(page: TestResultsPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
 
 @generatePsiTestId(psiTestPage: PsiTestPage) = {@Messages(psiTestPage.testNameKey).replace(" ", "").concat("LinkResultsReport")}
 

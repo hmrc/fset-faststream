@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,9 @@ import play.api.data.Form
 import play.api.data.Forms.checked
 import play.api.i18n.Messages
 import play.api.data.Forms._
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
 
 object ConsiderForSdipForm {
-  val form = Form(
+  def form(implicit messages: Messages) = Form(
     mapping(
       "acceptTerms" -> checked(Messages("sdipFaststream.acceptTerms.required"))
     )(Data.apply)(Data.unapply))

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,39 +16,47 @@
 
 package controllers
 
+import config.{FrontendAppConfig, SecurityEnvironment}
 import forms.AssistanceDetailsForm
-import connectors.ApplicationClient
+import connectors.{ApplicationClient, UserManagementClient}
 import connectors.ApplicationClient.AssistanceDetailsNotFound
+import javax.inject.{Inject, Singleton}
 import models.CachedData
-import security.{ SilhouetteComponent }
+import security.SilhouetteComponent
 import security.ProgressStatusRoleUtils._
 import security.Roles.AssistanceDetailsRole
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
+import play.api.mvc.MessagesControllerComponents
+import helpers.NotificationTypeHelper
 
-object AssistanceDetailsController extends AssistanceDetailsController(ApplicationClient) {
-  lazy val silhouette = SilhouetteComponent.silhouette
-}
-
-abstract class AssistanceDetailsController(applicationClient: ApplicationClient)
-  extends BaseController {
+@Singleton
+class AssistanceDetailsController @Inject() (
+  config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  val notificationTypeHelper: NotificationTypeHelper,
+  applicationClient: ApplicationClient,
+  formWrapper: AssistanceDetailsForm)(implicit val ec: ExecutionContext)
+  extends BaseController(config, mcc) {
+  import notificationTypeHelper._
 
   def present = CSRSecureAppAction(AssistanceDetailsRole) { implicit request =>
     implicit user =>
       applicationClient.getAssistanceDetails(user.user.userID, user.application.applicationId).map { ad =>
-        val form = AssistanceDetailsForm.form.fill(AssistanceDetailsForm.Data(ad))
+        val form = formWrapper.form.fill(AssistanceDetailsForm.Data(ad))
         Ok(views.html.application.assistanceDetails(form, AssistanceDetailsForm.disabilityCategoriesList))
       }.recover {
-        case _: AssistanceDetailsNotFound => Ok(views.html.application.assistanceDetails(AssistanceDetailsForm.form,
+        case _: AssistanceDetailsNotFound => Ok(views.html.application.assistanceDetails(formWrapper.form,
           AssistanceDetailsForm.disabilityCategoriesList))
       }
   }
 
   def submit = CSRSecureAppAction(AssistanceDetailsRole) { implicit request =>
     implicit user =>
-      AssistanceDetailsForm.form.bindFromRequest.fold(
+      formWrapper.form.bindFromRequest.fold(
         invalidForm =>
           Future.successful(Ok(views.html.application.assistanceDetails(invalidForm, AssistanceDetailsForm.disabilityCategoriesList))),
         data => {

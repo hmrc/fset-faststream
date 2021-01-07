@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,17 @@
 
 package forms
 
-import connectors.exchange.{ Answer, Question, Questionnaire }
+import connectors.exchange.{Answer, Question, Questionnaire}
+import javax.inject.Singleton
+import mappings.Mappings._
 import play.api.data.Forms._
 import play.api.data.format.Formatter
-import play.api.data.{ Form, FormError }
+import play.api.data.{Form, FormError}
 import play.api.i18n.Messages
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
 
-object ParentalOccupationQuestionnaireForm {
-
-  val employedDependentFormatter = new Formatter[Option[String]] {
+@Singleton
+class ParentalOccupationQuestionnaireForm {
+  def employedDependentFormatter(implicit messages: Messages) = new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       val check = data.get("employedParent")
       val value = data.get(key).filterNot(_.isEmpty)
@@ -41,28 +41,30 @@ object ParentalOccupationQuestionnaireForm {
     override def unbind(key: String, value: Option[String]): Map[String, String] = Map(key -> value.getOrElse(""))
   }
 
-  val form = Form(
+  def form(implicit messages: Messages) = Form(
     mapping(
-      "socioEconomicBackground" -> Mappings.nonEmptyTrimmedText("error.required.socioEconomicBackground", 256),
-      "parentsDegree" -> Mappings.nonEmptyTrimmedText("error.required.parentsDegree", 256),
-      "employedParent" -> Mappings.nonEmptyTrimmedText("error.required.employmentStatus", 256),
+      "socioEconomicBackground" -> nonEmptyTrimmedText("error.required.socioEconomicBackground", 256),
+      "parentsDegree" -> nonEmptyTrimmedText("error.required.parentsDegree", 256),
+      "employedParent" -> nonEmptyTrimmedText("error.required.employmentStatus", 256),
       "parentsOccupation" -> of(employedDependentFormatter),
       "employee" -> of(employedDependentFormatter),
       "organizationSize" -> of(employedDependentFormatter),
       "supervise" -> of(employedDependentFormatter)
-    )(Data.apply)(Data.unapply)
+    )(ParentalOccupationQuestionnaireForm.Data.apply)(ParentalOccupationQuestionnaireForm.Data.unapply)
   )
+}
 
+object ParentalOccupationQuestionnaireForm {
   case class Data(
-                   socioEconomicBackground: String,
-                   parentsDegree: String,
-                   employedParent: String,
-                   parentsOccupation: Option[String],
-                   employee: Option[String],
-                   organizationSize: Option[String],
-                   supervise: Option[String]
-                 ) {
-    def exchange: Questionnaire = {
+    socioEconomicBackground: String,
+    parentsDegree: String,
+    employedParent: String,
+    parentsOccupation: Option[String],
+    employee: Option[String],
+    organizationSize: Option[String],
+    supervise: Option[String]
+  ) {
+    def exchange(implicit messages: Messages): Questionnaire = {
       val occupation = if (employedParent == "Employed") parentsOccupation else Some(employedParent)
 
       Questionnaire(List(

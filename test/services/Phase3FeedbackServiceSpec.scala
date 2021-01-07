@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,24 +21,17 @@ import java.util.UUID
 import connectors.ApplicationClient
 import connectors.exchange.Phase3TestGroupExamples
 import models.UniqueIdentifier
-import org.mockito.Matchers._
 import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
-import testkit.UnitWithAppSpec
-import uk.gov.hmrc.http.HeaderCarrier
+import testkit.BaseSpec
 
 import scala.concurrent.Future
 
-class Phase3FeedbackServiceSpec extends UnitWithAppSpec {
-  implicit val hc = HeaderCarrier()
+class Phase3FeedbackServiceSpec extends BaseSpec {
 
   val mockApplicationClient = mock[ApplicationClient]
 
-  class TestablePhase3FeedbackService extends Phase3FeedbackService {
-    override val applicationClient = mockApplicationClient
-  }
-
-  val service = new TestablePhase3FeedbackService
+  val service = new Phase3FeedbackService(mockApplicationClient)
 
   val applicationId = UniqueIdentifier.apply(UUID.randomUUID())
 
@@ -70,6 +63,5 @@ class Phase3FeedbackServiceSpec extends UnitWithAppSpec {
       val result = service.getFeedback(applicationId).futureValue
       result must be(Some(("Medium", "High")))
     }
-
   }
 }

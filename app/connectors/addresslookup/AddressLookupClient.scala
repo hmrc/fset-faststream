@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,12 @@ package connectors.addresslookup
 
 import java.net.URLEncoder
 
-import config.CSRHttp
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import config.{CSRHttp, FrontendAppConfig}
+import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.HttpReads.Implicits._
+
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * The following client has been take from taken from https://github.com/hmrc/address-reputation-store. The project has
@@ -33,15 +34,11 @@ import uk.gov.hmrc.http.HeaderCarrier
   * but there is some copied code that is not idiomatic Scala and should be changed at some point in the future
   */
 
-object AddressLookupClient extends AddressLookupClient {
-  val http = CSRHttp
-  val addressLookupEndpoint = config.FrontendAppConfig.addressLookupConfig.url
-}
 
-trait AddressLookupClient {
+@Singleton
+class AddressLookupClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(implicit val ec: ExecutionContext) {
 
-  val addressLookupEndpoint: String
-  val http: CSRHttp
+  val addressLookupEndpoint = config.addressLookupConfig.url
 
   private def url = s"$addressLookupEndpoint/v2/uk/addresses"
 

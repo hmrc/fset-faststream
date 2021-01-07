@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,21 @@
 package forms
 
 import connectors.exchange.GeneralDetails
-import forms.Mappings._
+import javax.inject.Singleton
+import mappings.Mappings._
 import mappings.PhoneNumberMapping.PhoneNumber
 import mappings.PostCodeMapping._
-import mappings.{ Address, DayMonthYear, PhoneNumberMapping, PostCodeMapping }
+import mappings._
 import models.ApplicationRoute
 import models.ApplicationRoute._
 import org.joda.time.LocalDate
 import play.api.data.Forms._
 import play.api.data.format.Formatter
-import play.api.data.{ Form, FormError }
+import play.api.data.{Form, FormError}
+import play.api.i18n.Messages
 
-object PersonalDetailsForm {
-
+@Singleton
+class PersonalDetailsForm {
   private val MinAge = 16
   private val MinDob = new LocalDate(1900, 1, 1)
 
@@ -54,28 +56,29 @@ object PersonalDetailsForm {
 
   val otherInternshipNameMaxSize = 60
 
-  def form(implicit now: LocalDate, ignoreFastPassValidations: Boolean = false) = Form(
+  def form(implicit now: LocalDate, ignoreFastPassValidations: Boolean = false, messages: Messages
+  ) = Form(
       mapping(
         firstName -> nonEmptyTrimmedText("error.firstName", 256),
         lastName -> nonEmptyTrimmedText("error.lastName", 256),
         preferredName -> nonEmptyTrimmedText("error.preferredName", 256),
         dateOfBirth -> DayMonthYear.validDayMonthYear("error.dateOfBirth", "error.dateOfBirthInFuture")(Some(MinDob), maxDob),
         outsideUk -> optional(checked("error.address.required")),
-        address -> Address.address,
+        address -> AddressMapping.address,
         postCode -> of(postCodeFormatter),
         country -> of(countryFormatter),
         phone -> of(phoneNumberFormatter),
         FastPassForm.formQualifier -> of(fastPassFormFormatter(ignoreFastPassValidations)),
         // Relevant for sdip, sdipFs
-        edipCompleted -> of(Mappings.mayBeOptionalString("error.edipCompleted.required", 31, isSdipOrSdipFsAndCreatedOrInProgress)),
+        edipCompleted -> of(mayBeOptionalString("error.edipCompleted.required", 31, isSdipOrSdipFsAndCreatedOrInProgress)),
         edipYear -> of(edipYearFormatter),
         // Relevant for edip, sdip, sdip faststream
-        otherInternshipCompleted -> of(Mappings.mayBeOptionalString(
+        otherInternshipCompleted -> of(mayBeOptionalString(
           "error.otherInternshipCompleted.required", "error.edipCandidate.otherInternshipCompleted.required", 31,
           isEdipOrSdipOrSdipFsAndCreatedOrInProgress, isEdipCandidate)),
         otherInternshipName -> of(otherInternshipNameFormatter(otherInternshipNameMaxSize)),
         otherInternshipYear -> of(otherInternshipYearFormatter)
-      )(Data.apply)(Data.unapply)
+      )(PersonalDetailsForm.Data.apply)(PersonalDetailsForm.Data.unapply)
     )
 
   val isSdipOrSdipFsAndCreatedOrInProgress = (requestParams: Map[String, String]) =>
@@ -165,7 +168,7 @@ object PersonalDetailsForm {
     }
   }
 
-  def fastPassFormFormatter(ignoreValidations: Boolean) = new Formatter[Option[FastPassForm.Data]] {
+  def fastPassFormFormatter(ignoreValidations: Boolean)(implicit messages: Messages) = new Formatter[Option[FastPassForm.Data]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[FastPassForm.Data]] = {
       (ignoreValidations, data.isFastStream) match {
         case (false, true) => FastPassForm.form.mapping.bind(data).right.map(Some(_))
@@ -220,23 +223,26 @@ object PersonalDetailsForm {
 
     override def unbind(key: String, value: Option[String]) = Map(key -> value.getOrElse(""))
   }
+}
+
+object PersonalDetailsForm {
 
   case class Data(firstName: String,
-                  lastName: String,
-                  preferredName: String,
-                  dateOfBirth: DayMonthYear,
-                  outsideUk: Option[Boolean],
-                  address: Address,
-                  postCode: Option[PostCode],
-                  country: Option[String],
-                  phone: Option[PhoneNumber],
-                  civilServiceExperienceDetails: Option[FastPassForm.Data],
-                  edipCompleted: Option[String],
-                  edipYear: Option[String],
-                  otherInternshipCompleted: Option[String],
-                  otherInternshipName: Option[String],
-                  otherInternshipYear: Option[String]
-                 ) {
+    lastName: String,
+    preferredName: String,
+    dateOfBirth: DayMonthYear,
+    outsideUk: Option[Boolean],
+    address: Address,
+    postCode: Option[PostCode],
+    country: Option[String],
+    phone: Option[PhoneNumber],
+    civilServiceExperienceDetails: Option[FastPassForm.Data],
+    edipCompleted: Option[String],
+    edipYear: Option[String],
+    otherInternshipCompleted: Option[String],
+    otherInternshipName: Option[String],
+    otherInternshipYear: Option[String]
+  ) {
 
     def insideUk = outsideUk match {
       case Some(true) => false
@@ -244,7 +250,7 @@ object PersonalDetailsForm {
     }
 
     def toExchange(email: String, updateApplicationStatus: Option[Boolean],
-                   overrideEdipCompleted: Option[Boolean] = None, overrideOtherInternshipCompleted: Option[Boolean] = None) = {
+      overrideEdipCompleted: Option[Boolean] = None, overrideOtherInternshipCompleted: Option[Boolean] = None) = {
       GeneralDetails(
         firstName,
         lastName,

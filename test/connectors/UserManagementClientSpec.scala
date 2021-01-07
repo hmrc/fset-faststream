@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,58 +16,63 @@
 
 package connectors
 
-import com.github.tomakehurst.wiremock.client.WireMock._
-import config.CSRHttp
+import java.util.UUID
+
+import config.{AuthConfig, FrontendAppConfig, UserManagementConfig, UserManagementUrl}
 import connectors.UserManagementClient.EmailTakenException
-import testkit.UnitWithAppSpec
-import uk.gov.hmrc.http.HeaderCarrier
+import connectors.exchange.{AddUserRequest, UserResponse}
+import models.UniqueIdentifier
+import org.mockito.Matchers.{any, eq => eqTo}
+import org.mockito.Mockito.when
+import play.api.libs.json.Writes
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, UpstreamErrorResponse}
 
-class UserManagementClientSpec extends UnitWithAppSpec with ConnectorSpec {
-  implicit val hc = HeaderCarrier()
+import scala.concurrent.{ExecutionContext, Future}
 
-  private val connector = new UserManagementClient {
-    val http: CSRHttp = CSRHttp
-  }
+class UserManagementClientSpec extends BaseConnectorSpec {
 
-  // FIXME Test ignored because of failure in build server that is not reproducible locally
-  "sign up" ignore {
-    "return user upon success" in {
+  val userId1 = UniqueIdentifier(UUID.randomUUID.toString)
 
-      stubFor(post(urlPathEqualTo(s"/add")).willReturn(
-        aResponse().withStatus(201).withBody(
-          s"""
-             |{
-             |  "userId":"4ca377d5-9b57-451b-9ca9-a8cd657c857f",
-             |  "email":"test@email.com",
-             |  "firstName":"peter",
-             |  "lastName":"griffin",
-             |  "isActive":true,
-             |  "lockStatus":"UNLOCKED",
-             |  "role":"candidate",
-             |  "service":"faststream",
-             |  "disabled":false
-             |}
-        """.stripMargin
-        )
-      ))
+  "sign up" should {
+    val endpoint = "localhost/faststream/add"
+    val addRequest = AddUserRequest("test@email.com", "password", "peter", "griffin", List("candidate"),
+      "faststream")
 
-      val response = connector.register("test@email.com", "password", "peter", "griffin").futureValue
-      response.userId.toString mustBe "4ca377d5-9b57-451b-9ca9-a8cd657c857f"
-      response.email mustBe "test@email.com"
-      response.firstName mustBe "peter"
-      response.lastName mustBe "griffin"
-      response.roles mustBe List("candidate")
-      response.isActive mustBe true
+    "return user upon success" in new TestFixture {
+      val userResponse = UserResponse("peter", "griffin", None, true, userId1, "test@email.com",
+        false, "UNLOCKED", List("candidate"), "faststream", None)
+
+      when(mockHttp.POST[AddUserRequest, UserResponse](eqTo(endpoint), eqTo(addRequest), any[Seq[(String, String)]])(
+        any[Writes[AddUserRequest]],
+        any[HttpReads[UserResponse]],
+        any[HeaderCarrier],
+        any[ExecutionContext]))
+        .thenReturn(Future.successful(userResponse))
+
+      val response = client.register("test@email.com", "password", "peter", "griffin").futureValue
+
+      response mustBe userResponse
     }
 
-    "throw EmailTakenException if the email address is already taken" in {
+    "throw EmailTakenException if the email address is already taken" in new TestFixture {
+      when(mockHttp.POST[AddUserRequest, UserResponse](eqTo(endpoint), eqTo(addRequest), any[Seq[(String, String)]])(
+        any[Writes[AddUserRequest]],
+        any[HttpReads[UserResponse]],
+        any[HeaderCarrier],
+        any[ExecutionContext]))
+        .thenReturn(Future.failed(UpstreamErrorResponse("", 409, 0, Map.empty)))
 
-      stubFor(post(urlPathEqualTo(s"/add")).willReturn(
-        aResponse().withStatus(409)
-      ))
-
-      connector.register("test@email.com", "pw", "fn", "ln").failed.futureValue mustBe an[EmailTakenException]
+      val response = client.register("test@email.com", "password", "peter", "griffin").failed.futureValue
+      response mustBe an[EmailTakenException]
     }
   }
 
+  trait TestFixture extends BaseConnectorTestFixture {
+    val mockConfig = new FrontendAppConfig(mockConfiguration, mockEnvironment) {
+      val userManagementUrl = UserManagementUrl("localhost")
+      override lazy val userManagementConfig = UserManagementConfig(userManagementUrl)
+      override lazy val authConfig = AuthConfig("faststream")
+    }
+    val client = new UserManagementClient(mockConfig, mockHttp)
+  }
 }

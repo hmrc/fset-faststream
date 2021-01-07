@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@
 package security
 
 import com.mohiva.play.silhouette.api.services.IdentityService
-import models.{ CachedData, SecurityUser, UniqueIdentifier }
+import models.{CachedData, SecurityUser, UniqueIdentifier}
 import play.api.mvc.Request
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 trait UserService extends IdentityService[SecurityUser] {
 

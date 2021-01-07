@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,21 @@
 
 package forms
 
-import forms.Mappings._
+import javax.inject.Singleton
+import mappings.Mappings._
 import play.api.data.Form
 import play.api.data.Forms._
 
-object ActivateAccountForm {
-
+@Singleton
+class ActivateAccountForm {
   val form = Form(
     mapping(
       "activation" -> (nonEmptyTrimmedText("activation.required", 7, "activation.wrong-format") verifying
         ("activation.wrong-format", value => value.matches("[\\w]{7}")))
-    )(Data.apply)(Data.unapply)
+    )(ActivateAccountForm.Data.apply)(ActivateAccountForm.Data.unapply)
   )
+}
 
+object ActivateAccountForm {
   case class Data(activationCode: String)
 }

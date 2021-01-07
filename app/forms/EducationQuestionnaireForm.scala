@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,36 +17,36 @@
 package forms
 
 import connectors.exchange._
+import javax.inject.Singleton
+import mappings.Mappings._
 import mappings.PostCodeMapping._
 import play.api.data.Forms._
 import play.api.data.format.Formatter
-import play.api.data.{ Form, FormError }
+import play.api.data.{Form, FormError}
 import play.api.i18n.Messages
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
 
-object EducationQuestionnaireForm {
-
-  def form(universityQuestionKey: String) = Form(
+@Singleton
+class EducationQuestionnaireForm {
+  def form(universityQuestionKey: String)(implicit messages: Messages) = Form(
     mapping(
-      "liveInUKBetween14and18" -> Mappings.nonEmptyTrimmedText("error.liveInUKBetween14and18.required", 31),
+      "liveInUKBetween14and18" -> nonEmptyTrimmedText("error.liveInUKBetween14and18.required", 31),
       "postcodeQ" -> of(requiredFormatterWithValidationCheckAndSeparatePreferNotToSay("liveInUKBetween14and18",
         "postcodeQ", "preferNotSay_postcodeQ", Some(256))
-      (postCode => !postcodePattern.pattern.matcher(postCode).matches(), "error.postcodeQ.invalid")),
+      (messages, postCode => !postcodePattern.pattern.matcher(postCode).matches(), "error.postcodeQ.invalid")),
       "preferNotSay_postcodeQ" -> optional(checked(Messages("error.required.postcodeQ"))),
       "schoolName14to16" -> of(requiredFormatterWithValidationCheckAndSeparatePreferNotToSay("liveInUKBetween14and18",
         "schoolName14to16", "preferNotSay_schoolName14to16", Some(256))),
       "schoolId14to16" -> of(schoolIdFormatter("schoolName14to16")),
       "preferNotSay_schoolName14to16" -> optional(checked(Messages("error.required.schoolName14to16"))),
       "schoolType14to16" -> of(requiredFormatterWithMaxLengthCheck(
-         "liveInUKBetween14and18", "schoolType14to16", Some(256)
+        "liveInUKBetween14and18", "schoolType14to16", Some(256)
       )),
       "schoolName16to18" -> of(requiredFormatterWithValidationCheckAndSeparatePreferNotToSay("liveInUKBetween14and18",
         "schoolName16to18", "preferNotSay_schoolName16to18", Some(256))),
       "schoolId16to18" -> of(schoolIdFormatter("schoolName16to18")),
       "preferNotSay_schoolName16to18" -> optional(checked(Messages("error.required.schoolName16to18"))),
       "freeSchoolMeals" -> of(requiredFormatterWithMaxLengthCheck("liveInUKBetween14and18", "freeSchoolMeals", Some(256))),
-      "isCandidateCivilServant" -> Mappings.nonEmptyTrimmedText("error.isCandidateCivilServant.required", 31),
+      "isCandidateCivilServant" -> nonEmptyTrimmedText("error.isCandidateCivilServant.required", 31),
       "haveDegree" -> of(requiredFormatterWithMaxLengthCheck("isCandidateCivilServant", "haveDegree", Some(31))),
       "university" -> of(requiredFormatterWithValidationCheckAndSeparatePreferNotToSay("haveDegree",
         "universityQuestionKey", "preferNotSay_university", Some(256), Some(Messages(s"error.$universityQuestionKey.required")))),
@@ -54,7 +54,7 @@ object EducationQuestionnaireForm {
       "universityDegreeCategory" -> of(requiredFormatterWithValidationCheckAndSeparatePreferNotToSay("haveDegree",
         "universityDegreeCategory", "preferNotSay_universityDegreeCategory", Some(256))),
       "preferNotSay_universityDegreeCategory" -> optional(checked(Messages("error.universityDegreeCategory.required")))
-    )(Data.apply)(Data.unapply)
+    )(EducationQuestionnaireForm.Data.apply)(EducationQuestionnaireForm.Data.unapply)
   )
 
   def schoolIdFormatter(schoolNameKey: String) = new Formatter[Option[String]] {
@@ -69,7 +69,9 @@ object EducationQuestionnaireForm {
 
     def unbind(key: String, value: Option[String]): Map[String, String] = Map(key -> value.getOrElse(""))
   }
+}
 
+object EducationQuestionnaireForm {
   case class Data(
     liveInUKBetween14and18: String,
     postcode: Option[String],
@@ -91,7 +93,7 @@ object EducationQuestionnaireForm {
   ) {
 
 
-    def exchange(): Questionnaire = {
+    def exchange(implicit messages: Messages): Questionnaire = {
       def getAnswer(field: Option[String], preferNotToSayField: Option[Boolean], otherDetails: Option[String] = None) = {
         preferNotToSayField match {
           case Some(true) => Answer(None, otherDetails, Some(true))
@@ -104,7 +106,7 @@ object EducationQuestionnaireForm {
         case _ => Answer(freeSchoolMeals, None, None)
       }
 
-      def getOptionalSchoolList = {
+      def getOptionalSchoolList(implicit messages: Messages) = {
         if (liveInUKBetween14and18 == "Yes") {
           List(Question(Messages("postcode.question"), getAnswer(postcode, preferNotSayPostcode)),
             Question(Messages("schoolName14to16.question"), getAnswer(schoolName14to16, preferNotSaySchoolName14to16, schoolId14to16)),
@@ -116,7 +118,7 @@ object EducationQuestionnaireForm {
         }
       }
 
-      def getOptionalUniversityList: List[Question] = {
+      def getOptionalUniversityList(implicit messages: Messages): List[Question] = {
         haveDegree match {
           case Some("Yes") => List(
             Question(Messages("university.question"), getAnswer(university, preferNotSayUniversity)),
@@ -136,10 +138,10 @@ object EducationQuestionnaireForm {
     }
 
     /** It makes sure that when you select "No" as an answer to "live in the UK between 14 and 18" question, the dependent
-      * questions are reset to None.
-      *
-      * This is a kind of backend partial clearing form functionality.
-      */
+     * questions are reset to None.
+     *
+     * This is a kind of backend partial clearing form functionality.
+     */
     def sanitizeData = {
       sanitizeLiveInUK.sanitizeUniversity
     }

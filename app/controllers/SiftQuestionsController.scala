@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,38 +16,43 @@
 
 package controllers
 
-import com.mohiva.play.silhouette.api.Silhouette
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
-import connectors.ApplicationClient.{ SiftAnswersIncomplete, SiftAnswersNotFound, SiftExpired }
-import connectors.{ ApplicationClient, ReferenceDataClient, SchemeClient, SiftClient }
-import connectors.exchange.referencedata.{ Scheme, SchemeId, SiftRequirement }
-import connectors.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswers, SiftAnswersStatus }
+import config.{FrontendAppConfig, SecurityEnvironment}
+import connectors.ApplicationClient.{SiftAnswersIncomplete, SiftAnswersNotFound, SiftExpired}
+import connectors.exchange.referencedata.{Scheme, SchemeId, SiftRequirement}
+import connectors.exchange.sift.{GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswers, SiftAnswersStatus}
+import connectors.{ApplicationClient, ReferenceDataClient, SchemeClient, SiftClient}
 import forms.SchemeSpecificQuestionsForm
 import forms.sift.GeneralQuestionsForm
-import helpers.CachedUserWithSchemeData
-import models.page.{ GeneralQuestionsPage, SiftPreviewPage }
-import security.Roles.{ PreviewSchemeSpecificQuestionsRole, SchemeSpecificQuestionsRole }
-
-import scala.concurrent.Future
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
-import play.api.mvc.{ Action, AnyContent, Result }
-import security.{ SecurityEnvironment, SilhouetteComponent }
 import helpers.NotificationType._
-import models.{ SchemeStatus, UniqueIdentifier }
+import helpers.{CachedUserWithSchemeData, NotificationTypeHelper}
+import javax.inject.{Inject, Singleton}
+import models.page.{GeneralQuestionsPage, SiftPreviewPage}
+import models.{SchemeStatus, UniqueIdentifier}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import security.Roles.{PreviewSchemeSpecificQuestionsRole, SchemeSpecificQuestionsRole}
+import security.SilhouetteComponent
 import uk.gov.hmrc.http.HeaderCarrier
 
-object SiftQuestionsController extends SiftQuestionsController(ApplicationClient, SiftClient, ReferenceDataClient, SchemeClient) {
-  val appRouteConfigMap: Map[models.ApplicationRoute.Value, ApplicationRouteStateImpl] = config.FrontendAppConfig.applicationRoutesFrontend
-  lazy val silhouette: Silhouette[SecurityEnvironment] = SilhouetteComponent.silhouette
-}
+import scala.concurrent.{ExecutionContext, Future}
 
-abstract class SiftQuestionsController(
+@Singleton
+class SiftQuestionsController @Inject() (
+  config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  val notificationTypeHelper: NotificationTypeHelper,
   applicationClient: ApplicationClient,
   siftClient: SiftClient,
   referenceDataClient: ReferenceDataClient,
-  schemeClient: SchemeClient)
-  extends BaseController with CampaignAwareController {
+  schemeClient: SchemeClient,
+  formWrapper: SchemeSpecificQuestionsForm
+    )(implicit val ec: ExecutionContext)
+  extends BaseController(config, mcc) with CampaignAwareController {
+  import notificationTypeHelper._
+
+  val appRouteConfigMap: Map[models.ApplicationRoute.Value, ApplicationRouteState] = config.applicationRoutesFrontend
 
   val GeneralQuestions = "generalQuestions"
   val SaveAndReturnAction = "saveAndReturn"
@@ -62,8 +67,8 @@ abstract class SiftQuestionsController(
       for {
         answers <- siftClient.getGeneralQuestionsAnswers(user.application.applicationId)
       } yield {
-        val page = GeneralQuestionsPage(answers)
-        Ok(views.html.application.additionalquestions.generalQuestions(page))
+        val page = GeneralQuestionsPage.apply(GeneralQuestionsForm().form, answers)
+        Ok(views.html.application.additionalquestions.generalQuestions(page, SaveAndContinueAction, SaveAndReturnAction))
       }
   }
 
@@ -72,7 +77,10 @@ abstract class SiftQuestionsController(
     implicit user =>
       GeneralQuestionsForm().form.bindFromRequest.fold(
         invalid => {
-          Future(Ok(views.html.application.additionalquestions.generalQuestions(GeneralQuestionsPage(invalid))))
+          Future(Ok(views.html.application.additionalquestions.generalQuestions(
+            GeneralQuestionsPage(invalid),
+            SaveAndContinueAction,
+            SaveAndReturnAction)))
         },
         form => {
           for {
@@ -95,17 +103,17 @@ abstract class SiftQuestionsController(
         scheme <- schemeMetadata(schemeId)
         schemeAnswer <- siftClient.getSchemeSpecificAnswer(user.application.applicationId, schemeId)
       } yield {
-        val form = schemeAnswer.map(SchemeSpecificQuestionsForm.form.fill).getOrElse(SchemeSpecificQuestionsForm.form)
-        Ok(views.html.application.additionalquestions.schemespecific(form, scheme))
+        val form = schemeAnswer.map(formWrapper.form.fill).getOrElse(formWrapper.form)
+        Ok(views.html.application.additionalquestions.schemespecific(form, scheme, SaveAndContinueAction, SaveAndReturnAction))
       }
   }
 
   def saveSchemeForm(schemeId: SchemeId): Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
-      SchemeSpecificQuestionsForm.form.bindFromRequest.fold(
+      formWrapper.form.bindFromRequest.fold(
         invalid => {
           schemeMetadata(schemeId).map { scheme =>
-            Ok(views.html.application.additionalquestions.schemespecific(invalid, scheme))
+            Ok(views.html.application.additionalquestions.schemespecific(invalid, scheme, SaveAndContinueAction, SaveAndReturnAction))
           }
         },
         form => {

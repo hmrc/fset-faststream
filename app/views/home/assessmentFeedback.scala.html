@@ -1,5 +1,5 @@
 @*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
  *@
 
 @import models.page.AssessmentFeedbackPage
-@(page: AssessmentFeedbackPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+@import config.AnalyticsConfig
+@(page: AssessmentFeedbackPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
 
 @returnToHomePage = {
     <a href="@routes.HomeController.present()">Return to homepage</a>

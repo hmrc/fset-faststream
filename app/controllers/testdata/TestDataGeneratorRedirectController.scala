@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,28 @@
 
 package controllers.testdata
 
-import config.CSRHttp
-import connectors.TestDataClient
+import config.{FrontendAppConfig, SecurityEnvironment}
+import connectors.{TestDataGeneratorClient, UserManagementClient}
 import controllers.BaseController
+import helpers.NotificationTypeHelper
+import javax.inject.{Inject, Singleton}
+import play.api.mvc.MessagesControllerComponents
 import security.SilhouetteComponent
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-object TestDataGeneratorRedirectController extends TestDataGeneratorRedirectController(TestDataClient) {
-  val http = CSRHttp
-  lazy val silhouette = SilhouetteComponent.silhouette
-}
+@Singleton
+class TestDataGeneratorRedirectController @Inject() (
+  config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  val userManagementClient: UserManagementClient,
+  val notificationTypeHelper: NotificationTypeHelper,
+  testDataClient: TestDataGeneratorClient)(implicit val ec: ExecutionContext)
+  extends BaseController(config, mcc) {
 
-abstract class TestDataGeneratorRedirectController(testDataClient: TestDataClient)
-  extends BaseController {
-
+  @deprecated("Call the TDG using admin frontend, it is better supported")
   def generateTestData(path: String) = CSRUserAwareAction { implicit request =>
     implicit user =>
       val queryParams = request.queryString.map { case (k, v) => k -> v.mkString }

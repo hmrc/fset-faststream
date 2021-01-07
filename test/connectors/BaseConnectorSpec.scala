@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,19 @@
  * limitations under the License.
  */
 
-package controllers
+package connectors
 
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.PlaySpec
+import config.CSRHttp
+import play.api.libs.ws.WSClient
+import play.api.{Configuration, Environment}
+import testkit.BaseSpec
 
-abstract class UnitSpec extends PlaySpec with MockitoSugar with ScalaFutures
+trait BaseConnectorSpec extends BaseSpec {
+  trait BaseConnectorTestFixture {
+    val mockConfiguration = mock[Configuration]
+    val mockEnvironment = mock[Environment]
+    val mockHttp = mock[CSRHttp]
+    val mockApplicationClient = mock[ApplicationClient]
+    val mockWs = mock[WSClient]
+  }
+}

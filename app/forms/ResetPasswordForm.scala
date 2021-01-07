@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,35 +16,39 @@
 
 package forms
 
-import forms.Mappings._
+import javax.inject.{Inject, Singleton}
+import mappings.Mappings._
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.data.validation.{ Constraints, Valid }
+import play.api.data.validation.{Constraints, Valid}
+import play.api.i18n.Messages
 
-object ResetPasswordForm {
-
-  def validateEmail(e: String) = Constraints.emailAddress(e) match {
+@Singleton
+class ResetPasswordForm @Inject() (signUpForm: SignUpForm) {
+  def validateEmail(e: String) = Constraints.emailAddress.apply(e) match {
     case Valid => true
     case _ => false
   }
 
-  val form = Form(
+  def form(implicit messages: Messages) = Form(
     mapping(
       "email" -> email,
       "code" -> (nonEmptyTrimmedText("passwordreset.required", 7, "passwordreset.wrong-format") verifying
         ("activation.wrong-format", value => value.matches("[\\w]{7}"))),
-      "password" -> of(SignUpForm.passwordFormatter),
-      "confirmpwd" -> nonEmptyTrimmedText("error.confirmpwd", SignUpForm.passwordMaxLength)
-    )(Data.apply)(Data.unapply)
+      "password" -> of(signUpForm.passwordFormatter),
+      "confirmpwd" -> nonEmptyTrimmedText("error.confirmpwd", signUpForm.passwordMaxLength)
+    )(ResetPasswordForm.Data.apply)(ResetPasswordForm.Data.unapply)
   )
 
   val resendCodeForm = Form(
     mapping(
       "email" -> email,
       "resend" -> optionalTrimmedText(4) // Some("true") or None
-    )(ResendCodeData.apply)(ResendCodeData.unapply)
+    )(ResetPasswordForm.ResendCodeData.apply)(ResetPasswordForm.ResendCodeData.unapply)
   )
+}
 
+object ResetPasswordForm {
   case class Data(
     email: String,
     code: String,

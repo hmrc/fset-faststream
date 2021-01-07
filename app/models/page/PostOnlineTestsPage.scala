@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,11 +50,12 @@ case class PostOnlineTestsPage(
                                 siftState: Option[SiftState],
                                 phase1DataOpt: Option[Phase1TestsPage2],
                                 phase2DataOpt: Option[Phase2TestsPage2],
-                                phase3DataOpt: Option[Phase3TestsPage]
+                                phase3DataOpt: Option[Phase3TestsPage],
+                                fsacGuideUrl: String
 ) {
   import PostOnlineTestsStage._
 
-  lazy val fsacGuideUrl: String = FrontendAppConfig.fsacGuideUrl
+  //lazy val fsacGuideUrl: String = config.fsacGuideUrl
 
   val isOnlySdipGreen
     : Boolean = userDataWithSchemes.application.applicationRoute == ApplicationRoute.SdipFaststream &&

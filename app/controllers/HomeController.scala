@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,53 +16,46 @@
 
 package controllers
 
-import java.nio.file.{ Files, Path }
+import java.nio.file.{Files, Path}
 
-import com.mohiva.play.silhouette.api.Silhouette
-import connectors.{ ApplicationClient, ReferenceDataClient, SchemeClient, SiftClient }
-import connectors.ApplicationClient._
-import connectors.UserManagementClient.InvalidCredentialsException
-import connectors.ApplicationClient.{ ApplicationNotFound, CandidateAlreadyHasAnAnalysisExerciseException, CannotWithdraw, OnlineTestNotFound }
+import config.{FrontendAppConfig, SecurityEnvironment}
+import connectors.ApplicationClient.{ApplicationNotFound, CandidateAlreadyHasAnAnalysisExerciseException, OnlineTestNotFound, _}
 import connectors.exchange._
 import connectors.exchange.candidateevents.CandidateAllocations
-import forms.WithdrawApplicationForm
+import connectors.{ApplicationClient, ReferenceDataClient, SchemeClient, SiftClient}
 import helpers.NotificationType._
-import helpers.CachedUserWithSchemeData
+import helpers.{CachedUserWithSchemeData, NotificationTypeHelper}
+import javax.inject.{Inject, Singleton}
 import models.ApplicationData.ApplicationStatus
-import models.page._
 import models._
-import models.events.EventType
+import models.page._
 import play.api.Logger
-import play.api.mvc.{ Action, AnyContent, Request, Result }
-import security.RoleUtils._
+import play.api.mvc._
 import security.ProgressStatusRoleUtils._
-import security.{ Roles, SecurityEnvironment, SilhouetteComponent }
+import security.RoleUtils._
 import security.Roles._
-
-import scala.concurrent.Future
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
-import play.api.i18n.Messages
+import security.{Roles, SilhouetteComponent}
 import uk.gov.hmrc.http.HeaderCarrier
 
-object HomeController extends HomeController(
-  ApplicationClient,
-  ReferenceDataClient,
-  SiftClient,
-  SchemeClient
-) {
-  val appRouteConfigMap: Map[ApplicationRoute.Value, ApplicationRouteStateImpl] = config.FrontendAppConfig.applicationRoutesFrontend
-  lazy val silhouette: Silhouette[SecurityEnvironment] = SilhouetteComponent.silhouette
-}
+import scala.concurrent.{ExecutionContext, Future}
 
-abstract class HomeController(
+@Singleton
+class HomeController  @Inject() (
+  config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  val notificationTypeHelper: NotificationTypeHelper,
   applicationClient: ApplicationClient,
   refDataClient: ReferenceDataClient,
   siftClient: SiftClient,
   schemeClient: SchemeClient
-) extends BaseController with CampaignAwareController {
+)(implicit val ec: ExecutionContext) extends BaseController(config, mcc) with CampaignAwareController {
 
+  val appRouteConfigMap: Map[ApplicationRoute.Value, ApplicationRouteState] = config.applicationRoutesFrontend
   val Withdrawer = "Candidate"
+
+  import notificationTypeHelper._
 
   private lazy val validMSWordContentTypes = List(
     "application/msword",
@@ -155,7 +148,8 @@ abstract class HomeController(
         siftState,
         phase1DataOpt,
         phase2DataOpt,
-        phase3DataOpt
+        phase3DataOpt,
+        config.fsacGuideUrl
       )
       Ok(views.html.home.postOnlineTestsDashboard(page))
     }
@@ -169,27 +163,32 @@ abstract class HomeController(
 
       request.asInstanceOf[Request[AnyContent]].body.asMultipartFormData.flatMap { multiPartRequest =>
         multiPartRequest.file("analysisExerciseFile").map {
-          case document if document.ref.file.length() > maxAnalysisExerciseFileSizeInBytes =>
-            Logger.warn(s"File upload rejected as too large for applicationId $applicationId (Size: ${document.ref.file.length()})")
-            Future.successful(Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.tooBig")))
-          case document if document.ref.file.length() < minAnalysisExerciseFileSizeInBytes =>
-            Logger.warn(s"File upload rejected as too small for applicationId $applicationId (Size: ${document.ref.file.length()})")
-            Future.successful(Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.tooSmall")))
+          case document if document.ref.path.toFile.length() > maxAnalysisExerciseFileSizeInBytes =>
+            Logger.warn(s"File upload rejected as too large for applicationId $applicationId (Size: ${document.ref.path.toFile.length()})")
+            Future.successful(Redirect(routes.HomeController.present()).flashing(
+              danger("assessmentCentre.analysisExercise.upload.tooBig")))
+          case document if document.ref.path.toFile.length() < minAnalysisExerciseFileSizeInBytes =>
+            Logger.warn(s"File upload rejected as too small for applicationId $applicationId (Size: ${document.ref.path.toFile.length()})")
+            Future.successful(Redirect(routes.HomeController.present()).flashing(
+              danger("assessmentCentre.analysisExercise.upload.tooSmall")))
           case document =>
             document.contentType match {
               case Some(contentType) if validMSWordContentTypes.contains(contentType) =>
-                Logger.warn(s"File upload accepted for applicationId $applicationId (Size: ${document.ref.file.length()})")
+                Logger.warn(s"File upload accepted for applicationId $applicationId (Size: ${document.ref.path.toFile.length()})")
                 applicationClient.uploadAnalysisExercise(applicationId, contentType,
-                  getAllBytesInFile(document.ref.file.toPath)).map { result =>
-                  Redirect(routes.HomeController.present()).flashing(success("assessmentCentre.analysisExercise.upload.success"))
+                  getAllBytesInFile(document.ref.path)).map { result =>
+                  Redirect(routes.HomeController.present()).flashing(
+                    success("assessmentCentre.analysisExercise.upload.success"))
                 }.recover {
                   case _: CandidateAlreadyHasAnAnalysisExerciseException =>
                     Logger.warn(s"A duplicate written exercise submission was attempted " +
                       s"(applicationId = $applicationId)")
-                    Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.error"))
+                    Redirect(routes.HomeController.present()).flashing(
+                      danger("assessmentCentre.analysisExercise.upload.error"))
                 }
               case Some(contentType) =>
-                Logger.warn(s"File upload rejected as wrong content type for applicationId $applicationId (Size: ${document.ref.file.length()})")
+                Logger.warn(s"File upload rejected as wrong content type for applicationId $applicationId" +
+                  s" (Size: ${document.ref.path.toFile.length()})")
                 Future.successful(
                   Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.wrongContentType"))
                 )
@@ -211,13 +210,14 @@ abstract class HomeController(
       phase1TestsWithNames <- applicationClient.getPhase1TestProfile2(application.applicationId)
       phase2TestsWithNames <- getPhase2Test
       phase3Tests <- getPhase3Test
-      updatedData <- env.userService.refreshCachedUser(cachedData.user.userID)(hc, request)
+      updatedData <- secEnv.userService.refreshCachedUser(cachedData.user.userID)(hc, request)
     } yield {
       val dashboardPage = DashboardPage(
         updatedData,
         Some(Phase1TestsPage(phase1TestsWithNames)),
         phase2TestsWithNames.map(Phase2TestsPage2(_, adjustmentsOpt)),
-        phase3Tests.map(Phase3TestsPage(_, adjustmentsOpt))
+        phase3Tests.map(Phase3TestsPage(_, adjustmentsOpt)),
+        config.fsacGuideUrl
       )
       Ok(
         views.html.home.dashboard(
@@ -238,7 +238,7 @@ abstract class HomeController(
       }
       val isDashboardEnabled = canApplicationBeSubmitted(application.overriddenSubmissionDeadline)(application.applicationRoute) ||
         applicationSubmitted
-      val dashboardPage = DashboardPage(cachedData, None, None, None)
+      val dashboardPage = DashboardPage(cachedData, None, None, None, config.fsacGuideUrl)
       Future.successful(Ok(views.html.home.dashboard(cachedData, dashboardPage,
         submitApplicationsEnabled = isDashboardEnabled,
         displaySdipEligibilityInfo = displaySdipEligibilityInfo)))
@@ -247,7 +247,7 @@ abstract class HomeController(
   private def dashboardWithoutApplication(implicit cachedData: CachedData,
     displaySdipEligibilityInfo: Boolean,
     request: Request[_]) = {
-    val dashboardPage = DashboardPage(cachedData, None, None, None)
+    val dashboardPage = DashboardPage(cachedData, None, None, None, config.fsacGuideUrl)
     Future.successful(
       Ok(views.html.home.dashboard(cachedData, dashboardPage,
         submitApplicationsEnabled = canApplicationBeSubmitted(None),

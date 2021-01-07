@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,12 @@
 package security
 
 import com.mohiva.play.silhouette.api.services.AuthenticatorService
-import com.mohiva.play.silhouette.api.{ Env, Environment, EventBus }
+import com.mohiva.play.silhouette.api.{ Env, EventBus }
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
 import connectors.UserManagementClient
 import models.SecurityUser
 
-trait SecurityEnvironment extends Env with UserManagementClient {
+trait SecurityEnvironment extends UserManagementClient with Env {
 
   type I = SecurityUser
   type A = SessionAuthenticator

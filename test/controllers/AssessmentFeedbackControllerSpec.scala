@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,21 +18,18 @@ package controllers
 
 import java.util.UUID
 
-import config.{CSRHttp, SecurityEnvironmentImpl}
 import connectors.exchange.GeneralDetails
 import connectors.exchange.candidatescores.{AssessmentScoresAllExercises, CompetencyAverageResult}
-import connectors.{ApplicationClient, AssessmentScoresClient}
 import mappings.Address
 import models.UniqueIdentifier
 import org.joda.time.LocalDate
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.SilhouetteComponent
-import testkit.{BaseControllerSpec, TestableSecureActions}
+import testkit.TestableSecureActions
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 class AssessmentFeedbackControllerSpec extends BaseControllerSpec {
 
@@ -43,18 +40,13 @@ class AssessmentFeedbackControllerSpec extends BaseControllerSpec {
     }
   }
 
-  trait TestFixture {
-    val mockAssessmentScoresClient = mock[AssessmentScoresClient]
-    val mockApplicationClient = mock[ApplicationClient]
-    val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
+  trait TestFixture extends BaseControllerTestFixture {
     val applicationId = UniqueIdentifier(UUID.randomUUID().toString)
 
-    class TestableHomeController extends AssessmentFeedbackController(mockAssessmentScoresClient, mockApplicationClient)
-      with TestableSecureActions {
-      val http: CSRHttp = CSRHttp
-      override val env = mockSecurityEnvironment
-      override lazy val silhouette = SilhouetteComponent.silhouette
-    }
+    class TestableHomeController extends AssessmentFeedbackController(
+      mockConfig, stubMcc, mockSecurityEnv, mockSilhouetteComponent, mockNotificationTypeHelper,
+      mockAssessmentScoresClient, mockApplicationClient)
+      with TestableSecureActions
 
     def controller = new TestableHomeController {
 

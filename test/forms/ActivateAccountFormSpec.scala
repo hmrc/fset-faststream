@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,32 +16,31 @@
 
 package forms
 
-import controllers.UnitSpec
-import testkit.UnitWithAppSpec
-
-class ActivateAccountFormSpec extends UnitWithAppSpec {
-
-  import ActivateAccountForm.{ form => activateAccountForm }
+class ActivateAccountFormSpec extends BaseFormSpec {
 
   "Activate Account form" should {
-    "be valid for token with 7 characters" in {
+    "be valid for token with 7 characters" in new TestFixture {
       val form = activateAccountForm.bind(Map("activation" -> "ABCDEFG"))
       form.hasErrors must be(false)
       form.hasGlobalErrors must be(false)
     }
 
-    "be invalid for too short token" in {
+    "be invalid for too short token" in new TestFixture {
       val form = activateAccountForm.bind(Map("activation" -> "A"))
       form.hasErrors must be(true)
       form.hasGlobalErrors must be(false)
       form.errors.map(_.message) must be(List("activation.wrong-format"))
     }
 
-    "be invalid for too too long token" in {
+    "be invalid for too too long token" in new TestFixture {
       val form = activateAccountForm.bind(Map("activation" -> "ABCDEFGH"))
       form.hasErrors must be(true)
       form.hasGlobalErrors must be(false)
       form.errors.map(_.message) must be(List("error.maxLength", "activation.wrong-format"))
     }
+  }
+
+  trait TestFixture {
+    val activateAccountForm = new ActivateAccountForm().form
   }
 }

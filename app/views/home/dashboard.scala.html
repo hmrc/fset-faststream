@@ -1,5 +1,5 @@
 @*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,19 +29,15 @@
 @import security.RoleUtils._
 @import security.ProgressStatusRoleUtils._
 @import views.html.widgets.{ onlineTestProgress, sdipFaststreamBanner }
-@import views.html.home.sdipEligibilityInfo
-@import views.html.home.submit_disabled
-@import views.html.home.fastPassRejectedInfo
-@import views.html.home.withdrawSection
-@import views.html.home.withdrawInformation
 @import models.ConsiderMeForSdipHelper._
+@import config.AnalyticsConfig
 
 @(usr: CachedData, dashboardPage: DashboardPage,
         assistanceDetails: Option[connectors.exchange.AssistanceDetails] = None,
         adjustments: Option[Adjustments] = None,
         submitApplicationsEnabled: Boolean,
         displaySdipEligibilityInfo: Boolean)(implicit request: Request[_], flash: Flash,
-        user: Option[CachedData], feedbackUrl: String, messages: Messages)
+        user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
 
 @renderProgressElement(showLink: Boolean, checked: Boolean, id: String)(link: Call)(body: Html) = {
     <li id="@id"><i id="@id-icon" class='fa @if(checked) { fa-check } else {fa-minus} the-icon' aria-hidden="true"></i> @if(showLink) {

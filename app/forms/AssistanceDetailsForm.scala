@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,19 @@
 package forms
 
 import connectors.exchange.AssistanceDetails
+import forms.AssistanceDetailsForm.{disabilityCategoriesList, other, preferNotToSay}
+import javax.inject.Singleton
+import mappings.Mappings._
 import models.ApplicationRoute._
 import play.api.data.Forms._
 import play.api.data.format.Formatter
-import play.api.data.{ Form, FormError }
+import play.api.data.{Form, FormError}
 import play.api.i18n.Messages
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
-
 
 import scala.language.implicitConversions
 
-object AssistanceDetailsForm {
-
+@Singleton
+class AssistanceDetailsForm {
   val isFastStream: Map[String, String] => Boolean = (requestParams: Map[String, String]) =>
     requestParams.getOrElse("applicationRoute", Faststream.toString) == Faststream.toString
 
@@ -44,25 +44,8 @@ object AssistanceDetailsForm {
       requestParams.getOrElse("applicationRoute", Faststream.toString) == Sdip.toString
   }
 
-  val preferNotToSay = "Prefer Not to Say"
-  val other = "Other"
-  val disabilityCategoriesList = List(
-    "Deaf or Hard of Hearing",
-    "Learning disability such as Down's Syndrome & Fragile X",
-    "Long-standing, chronic or fluctuating condition or disability",
-    "Mental Health Condition such as depression, anxiety, bipolar, schizophrenia",
-    "Neurodiverse conditions: Autism Spectrum",
-    "Other neurodiverse conditions such as dyslexia, dyspraxia or AD(H)D",
-    "Physical or Mobility limiting condition or disability",
-    "Speech Impairment",
-    "Visible Difference such as facial disfigurement, skin condition, or alopecia",
-    "Visual Impairment or Sight Loss",
-    preferNotToSay,
-    other
-  )
-
   val otherDisabilityCategoryMaxSize = 2048
-  val form = Form(
+  def form(implicit messages: Messages) = Form(
     mapping(
       "hasDisability" -> of(hasDisabilityFormatter),
       "disabilityImpact" -> of(disabilityImpactFormatter),
@@ -70,16 +53,16 @@ object AssistanceDetailsForm {
       "otherDisabilityDescription" -> of(otherDisabilityDescriptionFormatter(otherDisabilityCategoryMaxSize)),
       "guaranteedInterview" -> of(requiredFormatterWithMaxLengthCheck("hasDisability", "guaranteedInterview", None)),
       "needsSupportForOnlineAssessment" -> of(
-        Mappings.mayBeOptionalString("error.needsSupportForOnlineAssessment.required", 31, isFastStreamOrSdipFastStream)),
+        mayBeOptionalString("error.needsSupportForOnlineAssessment.required", 31, isFastStreamOrSdipFastStream)),
       "needsSupportForOnlineAssessmentDescription" -> of(requiredFormatterWithMaxLengthCheck("needsSupportForOnlineAssessment",
         "needsSupportForOnlineAssessmentDescription", Some(2048))),
-      "needsSupportAtVenue" -> of(Mappings.mayBeOptionalString("error.needsSupportAtVenue.required", 31, isFastStreamOrSdipFastStream)),
+      "needsSupportAtVenue" -> of(mayBeOptionalString("error.needsSupportAtVenue.required", 31, isFastStreamOrSdipFastStream)),
       "needsSupportAtVenueDescription" -> of(requiredFormatterWithMaxLengthCheck("needsSupportAtVenue", "needsSupportAtVenueDescription",
         Some(2048))),
-      "needsSupportForPhoneInterview" -> of(Mappings.mayBeOptionalString("error.needsSupportForPhoneInterview.required", 31, isEdipOrSdip)),
+      "needsSupportForPhoneInterview" -> of(mayBeOptionalString("error.needsSupportForPhoneInterview.required", 31, isEdipOrSdip)),
       "needsSupportForPhoneInterviewDescription" ->
         of(requiredFormatterWithMaxLengthCheck("needsSupportForPhoneInterview", "needsSupportForPhoneInterviewDescription", Some(2048)))
-    )(Data.apply)(Data.unapply)
+    )(AssistanceDetailsForm.Data.apply)(AssistanceDetailsForm.Data.unapply)
   )
 
   val hasDisability = "hasDisability"
@@ -87,7 +70,7 @@ object AssistanceDetailsForm {
   val disabilityCategories = "disabilityCategories"
   val otherDisabilityDescription = "otherDisabilityDescription"
 
-  private def hasDisabilityFormatter = new Formatter[String] {
+  private def hasDisabilityFormatter(implicit messages: Messages) = new Formatter[String] {
     def bind(key: String, request: Map[String, String]): Either[Seq[FormError], String] = {
       val errorKey = "error.hasDisability.required"
       request.param(hasDisability) match {
@@ -202,20 +185,39 @@ object AssistanceDetailsForm {
     def isOtherDisabilityDescriptionSizeValid(max: Int) = disabilityCategoriesParam.contains(other) &&
       !otherDisabilityDescriptionParam.isEmpty && otherDisabilityDescriptionParam.length <= max
   }
+}
 
-  import Data._
+object AssistanceDetailsForm {
+  val preferNotToSay = "Prefer Not to Say"
+  val other = "Other"
+
+  val disabilityCategoriesList = List(
+    "Deaf or Hard of Hearing",
+    "Learning disability such as Down's Syndrome & Fragile X",
+    "Long-standing, chronic or fluctuating condition or disability",
+    "Mental Health Condition such as depression, anxiety, bipolar, schizophrenia",
+    "Neurodiverse conditions: Autism Spectrum",
+    "Other neurodiverse conditions such as dyslexia, dyspraxia or AD(H)D",
+    "Physical or Mobility limiting condition or disability",
+    "Speech Impairment",
+    "Visible Difference such as facial disfigurement, skin condition, or alopecia",
+    "Visual Impairment or Sight Loss",
+    preferNotToSay,
+    other
+  )
+
   case class Data(
-                   hasDisability: String,
-                   disabilityImpact: Option[String],
-                   disabilityCategories: Option[List[String]],
-                   otherDisabilityDescription: Option[String],
-                   guaranteedInterview: Option[String],
-                   needsSupportForOnlineAssessment: Option[String],
-                   needsSupportForOnlineAssessmentDescription: Option[String],
-                   needsSupportAtVenue: Option[String],
-                   needsSupportAtVenueDescription: Option[String],
-                   needsSupportForPhoneInterview: Option[String],
-                   needsSupportForPhoneInterviewDescription: Option[String]) {
+    hasDisability: String,
+    disabilityImpact: Option[String],
+    disabilityCategories: Option[List[String]],
+    otherDisabilityDescription: Option[String],
+    guaranteedInterview: Option[String],
+    needsSupportForOnlineAssessment: Option[String],
+    needsSupportForOnlineAssessmentDescription: Option[String],
+    needsSupportAtVenue: Option[String],
+    needsSupportAtVenueDescription: Option[String],
+    needsSupportForPhoneInterview: Option[String],
+    needsSupportForPhoneInterviewDescription: Option[String]) {
 
     override def toString =
       s"hasDisability=$hasDisability," +
@@ -241,11 +243,11 @@ object AssistanceDetailsForm {
           case "No" => false
           case _ => false
         },
-        toOptBoolean(needsSupportForOnlineAssessment),
+        AssistanceDetailsForm.Data.toOptBoolean(needsSupportForOnlineAssessment),
         needsSupportForOnlineAssessmentDescription,
-        toOptBoolean(needsSupportAtVenue),
+        AssistanceDetailsForm.Data.toOptBoolean(needsSupportAtVenue),
         needsSupportAtVenueDescription,
-        toOptBoolean(needsSupportForPhoneInterview),
+        AssistanceDetailsForm.Data.toOptBoolean(needsSupportForPhoneInterview),
         needsSupportForPhoneInterviewDescription
       )
     }
@@ -269,7 +271,7 @@ object AssistanceDetailsForm {
   }
 
   object Data {
-    def apply(ad: AssistanceDetails): Data = {
+    def apply(ad: AssistanceDetails): AssistanceDetailsForm.Data = {
       Data(
         ad.hasDisability,
         ad.disabilityImpact,

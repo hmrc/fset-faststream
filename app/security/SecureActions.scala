@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,24 +18,23 @@ package security
 
 import java.util.UUID
 
-import com.mohiva.play.silhouette.api.actions.{ SecuredRequest, UserAwareRequest }
-import com.mohiva.play.silhouette.api.{ Authorization, LogoutEvent, Silhouette }
+import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
+import com.mohiva.play.silhouette.api.{Authorization, LogoutEvent, Silhouette}
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
-import config.SecurityEnvironmentImpl
 import connectors.UserManagementClient.InvalidCredentialsException
 import controllers.routes
 import helpers.NotificationType._
-import models.{ CachedData, CachedDataWithApp, SecurityUser, UniqueIdentifier }
+import helpers.NotificationTypeHelper
+import models.{CachedData, CachedDataWithApp, SecurityUser, UniqueIdentifier}
 import play.api.Logger
-import play.api.mvc.Results.Redirect
+import play.api.i18n.{I18nSupport, Messages}
 import play.api.mvc._
 import security.Roles.CsrAuthorization
-//import uk.gov.hmrc.http.cache.client.KeyStoreEntryValidationException
+import uk.gov.hmrc.http.SessionKeys
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import language.postfixOps
-import uk.gov.hmrc.http.{ HeaderCarrier, SessionKeys }
+import scala.concurrent.{ExecutionContext, Future}
+import scala.language.postfixOps
 
 /**
   *
@@ -51,10 +50,14 @@ import uk.gov.hmrc.http.{ HeaderCarrier, SessionKeys }
 // so in this instance, ignore the scalastyle method rule
 
 // scalastyle:off method.name
-trait SecureActions {
-
-  val silhouette: Silhouette[SecurityEnvironment]
-  //val cacheClient: CSRCache
+trait SecureActions extends I18nSupport {
+  self: FrontendController =>
+  implicit val ec: ExecutionContext
+  val secEnv: config.SecurityEnvironment
+  val silhouetteComponent: SilhouetteComponent
+  val notificationTypeHelper: NotificationTypeHelper
+  lazy val silhouette: Silhouette[SecurityEnvironment] = silhouetteComponent.silhouette
+  import notificationTypeHelper._
 
   /**
     * Wraps the csrAction helper on a secure action.
@@ -67,7 +70,7 @@ trait SecureActions {
     silhouette.SecuredAction.async { secondRequest =>
       implicit val carrier = hc(secondRequest.request)
 
-      env.userService.refreshCachedUser(UniqueIdentifier(secondRequest.identity.userID))(carrier, secondRequest).flatMap { data =>
+      secEnv.userService.refreshCachedUser(UniqueIdentifier(secondRequest.identity.userID))(carrier, secondRequest).flatMap { data =>
         SecuredActionWithCSRAuthorisation(secondRequest, block, role, data, data)
       } recoverWith {
         case ice: InvalidCredentialsException => {
@@ -85,8 +88,9 @@ trait SecureActions {
                         (block: SecuredRequest[_,_] => CachedDataWithApp => Future[Result]): Action[AnyContent] = {
     silhouette.SecuredAction.async { secondRequest =>
       implicit val carrier = hc(secondRequest.request)
+      implicit val request = secondRequest.request
 
-      env.userService.refreshCachedUser(UniqueIdentifier(secondRequest.identity.userID))(carrier, secondRequest).flatMap {
+      secEnv.userService.refreshCachedUser(UniqueIdentifier(secondRequest.identity.userID))(carrier, secondRequest).flatMap {
           case CachedData(_, None) => gotoUnauthorised
           case data @ CachedData(u, Some(app)) => SecuredActionWithCSRAuthorisation(secondRequest,
             block, role, data, CachedDataWithApp(u, app))
@@ -101,7 +105,7 @@ trait SecureActions {
       silhouette.UserAwareAction.async { request =>
         request.identity match {
           case Some(securityUser: SecurityUser) => {
-            env.userService.refreshCachedUser(UniqueIdentifier(securityUser.userID))(hc(request.request), request)
+            secEnv.userService.refreshCachedUser(UniqueIdentifier(securityUser.userID))(hc(request.request), request)
               .flatMap(r => block(request)(Some(r)))
           }
           case None => block(request)(None)
@@ -129,33 +133,27 @@ trait SecureActions {
     } apply originalRequest
   }
 
-  val env: SecurityEnvironmentImpl = SecurityEnvironmentImpl
-
-  implicit def hc(implicit request: Request[_]): HeaderCarrier
-
   implicit def optionUserToUser(implicit u: CachedData): Option[CachedData] = Some(u)
 
   implicit def userWithAppToOptionCachedUser(implicit u: CachedDataWithApp): Option[CachedData] = Some(CachedData(u.user, Some(u.application)))
 
   // TODO: Duplicates code from SigninService. Refactoring challenge.
   private def gotoAuthentication[_](implicit request: SecuredRequest[SecurityEnvironment, _]) = {
-    env.eventBus.publish(LogoutEvent(request.identity, request))
-    env.authenticatorService.retrieve.flatMap {
+    secEnv.eventBus.publish(LogoutEvent(request.identity, request))
+    secEnv.authenticatorService.retrieve.flatMap {
       case Some(authenticator) =>
         Logger.info(s"No keystore record found for user with valid cookie (User Id = ${request.identity.userID}). " +
           s"Removing cookie and redirecting to sign in.")
-        //CSRCache.remove()
-        env.authenticatorService.discard(authenticator, Redirect(routes.SignInController.present()))
+        secEnv.authenticatorService.discard(authenticator, Redirect(routes.SignInController.present()))
       case None => Future.successful(Redirect(routes.SignInController.present()))
     }
   }
 
-  private def gotoUnauthorised = Future.successful(Redirect(routes.HomeController.present()).flashing(danger("access.denied")))
+  private def gotoUnauthorised(implicit messages: Messages) = Future.successful(Redirect(routes.HomeController.present()).flashing(
+    danger("access.denied")))
 
   /* method to wrap the functionality to generate a session is if not exists. */
   private def withSession(block: Action[AnyContent]) = Action.async { implicit request =>
-    import scala.concurrent.ExecutionContext.Implicits.global
-
     request.session.get(SessionKeys.sessionId) match {
       case Some(v) => block(request)
       case None =>

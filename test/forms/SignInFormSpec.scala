@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,9 @@
 
 package forms
 
-import controllers.UnitSpec
-import testkit.UnitWithAppSpec
+class SignInFormSpec extends BaseFormSpec {
 
-class SignInFormSpec extends UnitWithAppSpec {
-
-  import SignInForm.{ form => signInForm }
+  def signInForm = new SignInForm().form
 
   "Sign In form" should {
     "be valid for non empty email and non empty password" in {

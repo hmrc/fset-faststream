@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,14 @@
 
 package models.page
 
-import config.FrontendAppConfig
 import models.page.DashboardPage.Flags._
 import models.{ CachedData, Progress }
 import org.joda.time.LocalDate
-import play.api.i18n.Lang
 import play.api.mvc.RequestHeader
 import security.RoleUtils
 import security.ProgressStatusRoleUtils
 import security.Roles._
+import play.api.i18n.Messages
 
 case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
   secondStepVisibility: ProgressStepVisibility,
@@ -48,9 +47,9 @@ case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
   phase1TestsPage: Option[Phase1TestsPage2],
   phase2TestsPage: Option[Phase2TestsPage2],
   phase3TestsPage: Option[Phase3TestsPage],
-  assessmentStageStatus: AssessmentStageStatus
+  assessmentStageStatus: AssessmentStageStatus,
+    fsacGuideUrl: String
 ) {
-  lazy val fsacGuideUrl: String = FrontendAppConfig.fsacGuideUrl
 }
 
 object DashboardPage {
@@ -62,8 +61,9 @@ object DashboardPage {
   def apply(user: CachedData,
             phase1TestGroup: Option[Phase1TestsPage2],
             phase2TestGroup: Option[Phase2TestsPage2],
-            phase3TestGroup: Option[Phase3TestsPage])
-           (implicit request: RequestHeader, lang: Lang): DashboardPage = {
+            phase3TestGroup: Option[Phase3TestsPage],
+            fsacGuideUrl: String)
+           (implicit request: RequestHeader, messages: Messages): DashboardPage = {
 
     val (firstStepVisibility, secondStepVisibility, thirdStepVisibility,
       fourthStepVisibility
@@ -92,7 +92,8 @@ object DashboardPage {
       phase1TestGroup,
       phase2TestGroup,
       phase3TestGroup,
-      getAssessmentInProgressStatus(user)
+      getAssessmentInProgressStatus(user),
+      fsacGuideUrl
     )
   }
 
@@ -164,41 +165,41 @@ object DashboardPage {
     }
   }
 
-  private def isApplicationSubmittedAndNotWithdrawn(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+  private def isApplicationSubmittedAndNotWithdrawn(user: CachedData)(implicit request: RequestHeader, messages: Messages) =
     AbleToWithdrawApplicationRole.isAuthorized(user)
 
-  private def isApplicationWithdrawn(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+  private def isApplicationWithdrawn(user: CachedData)(implicit request: RequestHeader, messages: Messages) =
     WithdrawnApplicationRole.isAuthorized(user)
 
-  private def isApplicationInProgress(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+  private def isApplicationInProgress(user: CachedData)(implicit request: RequestHeader, messages: Messages) =
     InProgressRole.isAuthorized(user)
 
-  private def isUserWithNoApplication(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+  private def isUserWithNoApplication(user: CachedData)(implicit request: RequestHeader, messages: Messages) =
     ApplicationStartRole.isAuthorized(user)
 
-  private def isTestGroupExpired(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+  private def isTestGroupExpired(user: CachedData)(implicit request: RequestHeader, messages: Messages) =
     OnlineTestExpiredRole.isAuthorized(user)
 
-  private def isPhase1TestFailed(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+  private def isPhase1TestFailed(user: CachedData)(implicit request: RequestHeader, messages: Messages) =
     Phase1TestFailedRole.isAuthorized(user)
 
-  private def isPhase2TestFailed(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+  private def isPhase2TestFailed(user: CachedData)(implicit request: RequestHeader, messages: Messages) =
     Phase2TestFailedRole.isAuthorized(user)
 
-  private def isPhase2TestGroupExpired(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+  private def isPhase2TestGroupExpired(user: CachedData)(implicit request: RequestHeader, messages: Messages) =
     Phase2TestExpiredRole.isAuthorized(user)
 
-  private def isPhase3TestGroupExpired(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+  private def isPhase3TestGroupExpired(user: CachedData)(implicit request: RequestHeader, messages: Messages) =
     Phase3TestExpiredRole.isAuthorized(user)
 
-  private def isPhase3TestFailed(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+  private def isPhase3TestFailed(user: CachedData)(implicit request: RequestHeader, messages: Messages) =
     Phase3TestFailedRole.isAuthorized(user)
 
-  private def shouldDisplayPhase3TestFeedbackReport(user: CachedData)(implicit request: RequestHeader, lang: Lang) =
+  private def shouldDisplayPhase3TestFeedbackReport(user: CachedData)(implicit request: RequestHeader, messages: Messages) =
     Phase3TestDisplayFeedbackRole.isAuthorized(user)
 
   private def getAssessmentInProgressStatus(user: CachedData)
-  (implicit request: RequestHeader, lang: Lang): AssessmentStageStatus = {
+  (implicit request: RequestHeader, messages: Messages): AssessmentStageStatus = {
 
     if (RoleUtils.hasFastPassBeenApproved(user)) {
       ASSESSMENT_FAST_PASS_APPROVED
@@ -210,7 +211,7 @@ object DashboardPage {
   }
 
   // scalastyle:off cyclomatic.complexity
-  private def visibilityForUser(user: CachedData)(implicit request: RequestHeader, lang: Lang):
+  private def visibilityForUser(user: CachedData)(implicit request: RequestHeader, messages: Messages):
   (ProgressStepVisibility, ProgressStepVisibility, ProgressStepVisibility, ProgressStepVisibility) = {
 
     def withdrawnUserVisibility(user: CachedData) = {
@@ -263,7 +264,7 @@ object DashboardPage {
   }
   // scalastyle:on cyclomatic.complexity
 
-  private def status(user: CachedData)(implicit request: RequestHeader, lang: Lang): Option[ApplicationStatus] =
+  private def status(user: CachedData)(implicit request: RequestHeader, messages: Messages): Option[ApplicationStatus] =
     user.application.map(_.applicationStatus)
 
   private def isConfirmationAllocationExpired(allocationDetails: Option[AllocationDetails]): Boolean =

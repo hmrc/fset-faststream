@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,9 @@
 
 package forms
 
-import controllers.UnitSpec
-import testkit.UnitWithAppSpec
+class LockAccountFormSpec extends BaseFormSpec {
 
-class LockAccountFormSpec extends UnitWithAppSpec {
-
-  import LockAccountForm.{ form => lockAccountForm }
+  import LockAccountForm.{form => lockAccountForm}
 
   "Lock account form" should {
     "be valid for non empty email" in {

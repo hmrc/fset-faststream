@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,24 +17,23 @@
 package connectors
 
 
-import config.CSRHttp
+import config.{CSRHttp, FaststreamBackendConfig, FrontendAppConfig}
 import connectors.exchange.referencedata.SchemeId
 import connectors.exchange.sift.SiftAnswersStatus.SiftAnswersStatus
-import connectors.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswers }
+import connectors.exchange.sift.{GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswers}
+import javax.inject.{Inject, Singleton}
 import models.UniqueIdentifier
 import play.api.http.Status._
 import uk.gov.hmrc.play.http._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import uk.gov.hmrc.http.{ BadRequestException, ConflictException, HeaderCarrier, HttpResponse, NotFoundException, Upstream4xxResponse }
+import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.http._
+import connectors.ApplicationClient._
 
-trait SiftClient {
+@Singleton
+class SiftClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(implicit ec: ExecutionContext) {
 
-  val http: CSRHttp
-
-  import ApplicationClient._
-  import config.FrontendAppConfig.faststreamConfig._
+  val url = config.faststreamBackendConfig.url
   val apiBase: String = s"${url.host}${url.base}"
 
   def updateGeneralAnswers(applicationId: UniqueIdentifier, answers: GeneralQuestionsAnswers)(implicit hc: HeaderCarrier): Future[Unit] = {
@@ -63,28 +62,20 @@ trait SiftClient {
   }
 
   def getGeneralQuestionsAnswers(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[GeneralQuestionsAnswers]] = {
-    http.GET(s"$apiBase/sift-answers/$applicationId/general").map { response =>
-      Some(response.json.as[GeneralQuestionsAnswers])
-    } recover {
-      case _: NotFoundException => None
-    }
+    import uk.gov.hmrc.http.HttpReads.Implicits._
+    http.GET[Option[GeneralQuestionsAnswers]](s"$apiBase/sift-answers/$applicationId/general")
   }
 
   def getSchemeSpecificAnswer(applicationId: UniqueIdentifier, schemeId: SchemeId)
     (implicit hc: HeaderCarrier): Future[Option[SchemeSpecificAnswer]] = {
-    http.GET(s"$apiBase/sift-answers/$applicationId/${schemeId.value}").map { response =>
-      val answer = response.json.as[SchemeSpecificAnswer]
-      Some(answer)
-    } recover {
-      case _: NotFoundException => None
-    }
+    import uk.gov.hmrc.http.HttpReads.Implicits._
+    http.GET[Option[SchemeSpecificAnswer]](s"$apiBase/sift-answers/$applicationId/${schemeId.value}")
   }
 
   def getSiftAnswers(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[SiftAnswers] = {
-    http.GET(s"$apiBase/sift-answers/$applicationId").map { response =>
-      response.json.as[SiftAnswers]
-    } recover {
-      case _: NotFoundException => throw new SiftAnswersNotFound()
+    import uk.gov.hmrc.http.HttpReads.Implicits._
+    http.GET[SiftAnswers](s"$apiBase/sift-answers/$applicationId").recover {
+      case e: UpstreamErrorResponse if e.statusCode == NOT_FOUND => throw new SiftAnswersNotFound()
     }
   }
 
@@ -105,14 +96,7 @@ trait SiftClient {
   // scalastyle:on
 
   def getSiftAnswersStatus(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[SiftAnswersStatus]] = {
-    http.GET(s"$apiBase/sift-answers/$applicationId/status").map { response =>
-      Some(response.json.as[SiftAnswersStatus])
-    } recover {
-      case _: NotFoundException => None
-    }
+    import uk.gov.hmrc.http.HttpReads.Implicits._
+    http.GET[Option[SiftAnswersStatus]](s"$apiBase/sift-answers/$applicationId/status")
   }
-}
-
-object SiftClient extends SiftClient {
-  override val http: CSRHttp = CSRHttp
 }

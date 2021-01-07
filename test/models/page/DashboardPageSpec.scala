@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,22 @@ package models.page
 import java.util.UUID
 
 import connectors.exchange._
-import controllers.UnitSpec
+import testkit.UnitSpec
 import models.ApplicationData.ApplicationStatus
 import models.ApplicationData.ApplicationStatus._
 import models._
 import models.page.DashboardPage.Flags._
 import models.page.DashboardPage._
 import org.scalatest.prop.TableDrivenPropertyChecks
-import play.api.i18n.Lang
+import play.api.i18n.{Lang, Messages}
 import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 import security.RolesSpec
 import connectors.exchange.ProgressExamples._
+import org.mockito.Matchers.{any, anyString}
+import org.mockito.Mockito.when
+import org.mockito.invocation.InvocationOnMock
+import org.mockito.stubbing.Answer
 import org.scalatest.Inside
 
 class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks with Inside {
@@ -38,6 +42,21 @@ class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks with Ins
 
   implicit val request: RequestHeader = FakeRequest()
   implicit val lang: Lang = Lang.defaultLang
+
+  val FsacGuideUrl = "fsacGuideurl"
+
+  implicit val mockMessages = mock[Messages]
+  when(mockMessages.messages).thenReturn(mockMessages)
+  when(mockMessages.apply(anyString(), any())).thenAnswer(new Answer[String]() {
+    override def answer(invocationOnMock: InvocationOnMock): String = {
+      invocationOnMock.getArgumentAt(0, classOf[String])
+    }
+  })
+  when(mockMessages.apply(any[Seq[String]], any())).thenAnswer(new Answer[String]() {
+    override def answer(invocationOnMock: InvocationOnMock): String = {
+      invocationOnMock.getArgumentAt(0, classOf[String])
+    }
+  })
 
   // format: OFF
   // scalastyle:off line.size.limit
@@ -105,11 +124,12 @@ class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks with Ins
               testProfile,
               phase2TestProfile,
               phase3TestGroup,
-              assessmentInProgressStatus
+              assessmentInProgressStatus,
+            FsacGuideUrl
             )
 
           // this is rather unwieldy but makes it much easier to match up what field is wrong in the long list of booleans
-          val actual = DashboardPage(user(status), None, None, None)
+          val actual = DashboardPage(user(status), None, None, None, FsacGuideUrl)
 
           actual.firstStepVisibility mustBe expected.firstStepVisibility
           actual.secondStepVisibility mustBe expected.secondStepVisibility
@@ -181,7 +201,7 @@ class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks with Ins
          phase3TestGroup: Option[Phase3TestsPage],
          assessmentInProgressStatus: AssessmentStageStatus
         ) => {
-          DashboardPage(withdrawnApplication(progress), None, None, None) mustBe
+          DashboardPage(withdrawnApplication(progress), None, None, None, FsacGuideUrl) mustBe
             DashboardPage(
               step1,
               step2,
@@ -205,7 +225,8 @@ class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks with Ins
               testProfile,
               phase2TestProfile,
               phase3TestGroup,
-              assessmentInProgressStatus
+              assessmentInProgressStatus,
+              FsacGuideUrl
             )
         }
       }

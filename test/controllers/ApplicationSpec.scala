@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,25 @@
 
 package controllers
 
-import testkit.UnitWithAppSpec
+import com.kenshoo.play.metrics.PlayModule
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import testkit.{BaseSpec, SilhouetteFakeModule}
 
-class ApplicationSpec extends UnitWithAppSpec {
+class ApplicationSpec extends BaseSpec with GuiceOneAppPerSuite {
+
+  override implicit lazy val app: Application = new GuiceApplicationBuilder()
+    .overrides(new SilhouetteFakeModule())
+    .disable[PlayModule]
+    .build
 
   "Application" should {
-    "send 404 on a bad request" ignore {
-      val result = route(FakeRequest(GET, "/boo"))
-      result.isDefined must be(false)
+    "send 404 on a bad request" in {
+      val Some(result) = route(app, FakeRequest(GET, "/boo"))
+      status(result) mustBe NOT_FOUND
     }
   }
 }

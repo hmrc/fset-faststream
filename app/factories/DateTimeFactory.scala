@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package factories
 
-import org.joda.time.{ DateTime, LocalDate }
+import org.joda.time.{DateTime, LocalDate}
 
 trait DateTimeFactory {
   def nowLocalTimeZone: DateTime // Uses `DateTimeZone.getDefault` (the timezone of the current machine).

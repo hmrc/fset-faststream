@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package controllers
+package testkit
 
-import play.api.mvc.{ Action, Controller }
-import security.SilhouetteComponent
+import uk.gov.hmrc.http.HeaderCarrier
 
-object LandingPageController extends LandingPageController {
-  lazy val silhouette = SilhouetteComponent.silhouette
-}
-
-trait LandingPageController extends Controller {
-  def index = Action {
-    Redirect(routes.SignInController.signIn)
-  }
+abstract class BaseSpec extends UnitSpec {
+  implicit val ec = scala.concurrent.ExecutionContext.Implicits.global
+  implicit val hc: HeaderCarrier = HeaderCarrier()
+  val unit: Unit = ()
 }

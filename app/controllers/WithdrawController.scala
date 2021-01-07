@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,53 +16,54 @@
 
 package controllers
 
-
-import com.mohiva.play.silhouette.api.Silhouette
-import connectors.{ ApplicationClient, ReferenceDataClient }
-import connectors.ApplicationClient.{ CannotWithdraw, SiftExpired }
+import config.{FrontendAppConfig, SecurityEnvironment}
+import connectors.ApplicationClient.{CannotWithdraw, SiftExpired}
 import connectors.exchange._
-import connectors.exchange.referencedata.SchemeId
-import forms.{ SchemeWithdrawForm, WithdrawApplicationForm }
+import connectors.{ApplicationClient, ReferenceDataClient}
+import forms.{SchemeWithdrawForm, WithdrawApplicationForm}
 import helpers.NotificationType._
-import models.page._
+import helpers.NotificationTypeHelper
+import javax.inject.{Inject, Singleton}
 import models._
-import play.api.mvc.{ Action, AnyContent }
-import security.{ SecurityEnvironment, SilhouetteComponent }
+import models.page._
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import security.Roles._
-
-import scala.concurrent.Future
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
-import play.api.i18n.Messages
+import security.SilhouetteComponent
 import uk.gov.hmrc.http.HeaderCarrier
 
-object WithdrawController extends WithdrawController(
-  ApplicationClient,
-  ReferenceDataClient
-) {
-  val appRouteConfigMap: Map[ApplicationRoute.Value, ApplicationRouteStateImpl] = config.FrontendAppConfig.applicationRoutesFrontend
-  lazy val silhouette: Silhouette[SecurityEnvironment] = SilhouetteComponent.silhouette
-}
+import scala.concurrent.{ExecutionContext, Future}
 
-abstract class WithdrawController(
+@Singleton
+class WithdrawController @Inject() (
+  config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  val notificationTypeHelper: NotificationTypeHelper,
   applicationClient: ApplicationClient,
-  refDataClient: ReferenceDataClient
-) extends BaseController with CampaignAwareController {
+  refDataClient: ReferenceDataClient,
+  formWrapper: WithdrawApplicationForm,
+  schemeWithdrawFormWrapper: SchemeWithdrawForm
+)(implicit val ec: ExecutionContext) extends BaseController(config, mcc) with CampaignAwareController {
+  val appRouteConfigMap: Map[ApplicationRoute.Value, ApplicationRouteState] = config.applicationRoutesFrontend
+  import notificationTypeHelper._
 
   val Withdrawer = "Candidate"
 
   def presentWithdrawApplication: Action[AnyContent] = CSRSecureAppAction(AbleToWithdrawApplicationRole) { implicit request =>
     implicit user =>
-      Future.successful(Ok(views.html.application.withdraw(WithdrawApplicationForm.form)))
+      Future.successful(Ok(views.html.application.withdraw(formWrapper.form)))
   }
 
   def presentWithdrawScheme: Action[AnyContent] = CSRSecureAppAction(SchemeWithdrawRole) { implicit request =>
     implicit user =>
       getWithdrawableSchemes(user.application.applicationId).map {
         case Nil => Redirect(routes.HomeController.present()).flashing(danger("access.denied"))
-        case lastScheme :: Nil => Redirect(routes.WithdrawController.presentWithdrawApplication()).flashing(warning("withdraw.scheme.last"))
+        case lastScheme :: Nil => Redirect(routes.WithdrawController.presentWithdrawApplication()).flashing(
+          warning("withdraw.scheme.last"))
         case schemes =>
-          val page = SchemeWithdrawPage(schemes)
+          val page = SchemeWithdrawPage(schemes.map(s => (s.name, s.id.value)),
+            schemeWithdrawFormWrapper.form)
           Ok(views.html.home.schemeWithdraw(page))
       }
   }
@@ -79,7 +80,7 @@ abstract class WithdrawController(
 
   def withdrawScheme = CSRSecureAppAction(SchemeWithdrawRole) { implicit request =>
     implicit user =>
-      SchemeWithdrawForm.form.bindFromRequest.fold(
+      schemeWithdrawFormWrapper.form.bindFromRequest.fold(
         invalid => getWithdrawableSchemes(user.application.applicationId).map { schemes =>
           Ok(views.html.home.schemeWithdraw(SchemeWithdrawPage(
             schemes.map(s => (s.name, s.id.value)),
@@ -101,7 +102,7 @@ abstract class WithdrawController(
 
   def withdrawApplication: Action[AnyContent] = CSRSecureAppAction(AbleToWithdrawApplicationRole) { implicit request =>
     implicit user =>
-      WithdrawApplicationForm.form.bindFromRequest.fold(
+      formWrapper.form.bindFromRequest.fold(
         invalidForm => Future.successful(Ok(views.html.application.withdraw(invalidForm))),
         data => {
           applicationClient.withdrawApplication(user.application.applicationId, WithdrawApplication(data.reason.get, data.otherReason))

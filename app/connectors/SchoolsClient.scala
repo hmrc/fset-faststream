@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,35 +16,31 @@
 
 package connectors
 
-import config.CSRHttp
+import config.{CSRHttp, FrontendAppConfig}
 import connectors.SchoolsClient.SchoolsNotFound
 import connectors.exchange.School
+import javax.inject.{Inject, Singleton}
+import play.api.http.Status._
+import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException, UpstreamErrorResponse}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
+import scala.concurrent.ExecutionContext
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
-trait SchoolsClient {
+@Singleton
+class SchoolsClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(implicit ec: ExecutionContext) {
 
-  val http: CSRHttp
-
-  import config.FrontendAppConfig.faststreamConfig._
+  val url = config.faststreamBackendConfig.url
 
   def getSchools(term: String)(implicit hc: HeaderCarrier) = {
-    http.GET(
+    http.GET[List[School]](
       s"${url.host}${url.base}/schools",
       Seq("term" -> term)
-    ).map(
-      httpResponse => httpResponse.json.as[List[School]]
     ).recover {
-      case e: NotFoundException => throw new SchoolsNotFound
+      case e: UpstreamErrorResponse if e.statusCode == NOT_FOUND  => throw new SchoolsNotFound
     }
   }
 }
 
-object SchoolsClient extends SchoolsClient {
-
-  override val http: CSRHttp = CSRHttp
-
+object SchoolsClient {
   sealed class SchoolsNotFound extends Exception
-
 }

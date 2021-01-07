@@ -1,5 +1,5 @@
 @*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,10 @@
  * limitations under the License.
  *@
 
+@import config.AnalyticsConfig
 @(title: String, pageForms: Seq[Form[_]] = Nil, notification: Option[(helpers.NotificationType,String)] = None,
     additionalJavascriptFilenames: List[String] = Nil
-)(mainContent: Html)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+)(mainContent: Html)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticsConfig: AnalyticsConfig, messages: Messages)
 
 @import views.html.template.{errorSummary, flashMessage }
 

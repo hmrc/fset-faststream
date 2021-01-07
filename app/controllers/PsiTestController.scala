@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,28 @@
 
 package controllers
 
+import config.{FrontendAppConfig, SecurityEnvironment}
 import connectors.ApplicationClient
 import connectors.exchange.PsiTest
+import helpers.NotificationTypeHelper
+import javax.inject.{Inject, Singleton}
 import models.UniqueIdentifier
 import play.api.Logger
-import play.api.Play.current
 import play.api.i18n.Messages
-import play.api.i18n.Messages.Implicits._
-import play.api.mvc.{ Action, AnyContent }
-import security.Roles.{ OnlineTestInvitedRole, Phase2TestInvitedRole, SiftNumericTestRole }
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import security.Roles.{OnlineTestInvitedRole, Phase2TestInvitedRole, SiftNumericTestRole}
 import security.SilhouetteComponent
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-object PsiTestController extends PsiTestController(ApplicationClient) {
-  lazy val silhouette = SilhouetteComponent.silhouette
-}
-
-abstract class PsiTestController(applicationClient: ApplicationClient) extends BaseController {
+@Singleton
+class PsiTestController @Inject() (config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  val notificationTypeHelper: NotificationTypeHelper,
+  applicationClient: ApplicationClient)(implicit val ec: ExecutionContext) extends BaseController(config, mcc) {
 
   def startPhase1Tests: Action[AnyContent] = CSRSecureAppAction(OnlineTestInvitedRole) { implicit request =>
     implicit cachedUserData =>

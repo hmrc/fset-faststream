@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,19 @@
 
 package forms
 
+import javax.inject.Singleton
+import mappings.Mappings._
 import models.view.WithdrawReasons
 import play.api.data.Forms._
 import play.api.data.format.Formatter
-import play.api.data.{ Form, FormError }
+import play.api.data.{Form, FormError}
 import play.api.i18n.Messages
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
 
-object WithdrawApplicationForm {
-
+@Singleton
+class WithdrawApplicationForm {
   val mandatoryReason = WithdrawReasons.list.find(_._2).map(_._1).get
 
-  def otherReasonFormatter(maxLength: Option[Int]) = new Formatter[Option[String]] {
+  def otherReasonFormatter(maxLength: Option[Int])(implicit messages: Messages) = new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]) = (data.get("reason"), data.get(key)) match {
       case (Some(`mandatoryReason`), None | Some("")) => Left(Seq(FormError(key, Messages("error.required.reason.more_info"))))
       case _ =>
@@ -43,14 +43,16 @@ object WithdrawApplicationForm {
     override def unbind(key: String, value: Option[String]): Map[String, String] = Map(key -> value.getOrElse(""))
   }
 
-  val form = Form(
+  def form(implicit messages: Messages) = Form(
     mapping(
-      "wantToWithdraw" -> Mappings.nonEmptyTrimmedText("error.wantToWithdraw.required", 5),
+      "wantToWithdraw" -> nonEmptyTrimmedText("error.wantToWithdraw.required", 5),
       "reason" -> of(requiredFormatterWithMaxLengthCheck("wantToWithdraw", "reason", Some(64))),
       "otherReason" -> of(otherReasonFormatter(Some(300)))
-    )(Data.apply)(Data.unapply)
+    )(WithdrawApplicationForm.Data.apply)(WithdrawApplicationForm.Data.unapply)
   )
+}
 
+object WithdrawApplicationForm {
   case class Data(
                    wantToWithdraw: String,
                    reason: Option[String],

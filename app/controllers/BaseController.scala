@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,25 +17,19 @@
 package controllers
 
 
-import helpers.NotificationType._
+import config.FrontendAppConfig
+import play.api.mvc.MessagesControllerComponents
 import security.SecureActions
-import uk.gov.hmrc.play.frontend.controller.FrontendController
-
-import scala.concurrent.Future
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 /**
  * should be extended by all controllers
  */
-abstract class BaseController extends SecureActions with FrontendController {
+abstract class BaseController(
+  config: FrontendAppConfig,
+  mcc: MessagesControllerComponents)
+  extends FrontendController(mcc) with SecureActions {
 
-  implicit val feedbackUrl = config.FrontendAppConfig.feedbackUrl
-
-  val redirectNoApplication = Future.successful {
-    Redirect(routes.HomeController.present()).flashing(warning("info.create.application"))
-  }
-
-  val redirectReadOnlyApplication = Future.successful {
-    Redirect(routes.PreviewApplicationController.present()).flashing(warning("info.application.readonly"))
-  }
-
+  implicit val feedbackUrl = config.feedbackUrl
+  implicit val analyticsConfig = config.analyticsConfig
 }

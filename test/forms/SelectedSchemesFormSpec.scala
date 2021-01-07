@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,8 @@
 package forms
 
 import connectors.ReferenceDataExamples
-import testkit.UnitWithAppSpec
 
-class SelectedSchemesFormSpec extends UnitWithAppSpec {
+class SelectedSchemesFormSpec extends BaseFormSpec {
 
   def selectedSchemesForm(isSdipFaststream: Boolean = false) =
     new SelectedSchemesForm(ReferenceDataExamples.Schemes.AllSchemes, isSdipFaststream).form
@@ -69,7 +68,7 @@ class SelectedSchemesFormSpec extends UnitWithAppSpec {
       form.hasErrors mustBe true
 
       // A single invalid scheme will result in this error for the submission even if you do supply other valid schemes
-      form.errors.head.message mustBe "You must choose a scheme"
+      form.errors.head.message mustBe "schemes.required"
       form.hasGlobalErrors mustBe false
     }
 

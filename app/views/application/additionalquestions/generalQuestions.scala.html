@@ -1,5 +1,5 @@
 @*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,10 @@
 @import forms.sift.UndergradDegreeInfoForm
 @import forms.sift.GeneralQuestionsForm
 @import helpers.CSRFieldConstructor._
+@import config.AnalyticsConfig
 
-@(page: GeneralQuestionsPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+@import config.AnalyticsConfig
+@(page: GeneralQuestionsPage, saveAndContinueAction: String, saveAndReturnAction: String)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticsConfig: AnalyticsConfig, messages: Messages)
 
 @main_template(title = "Nationality and higher education", additionalJavascriptFilenames = List("vendor/chosen.jquery.js", "generalQuestions.js")) {
     <h1 class="heading-xlarge">Nationality and higher education</h1>
@@ -124,8 +126,8 @@
             }
         </fieldset>
         <div class="form-group">
-            <button id="@SiftQuestionsController.SaveAndContinueAction" type="submit" name="action" value="@SiftQuestionsController.SaveAndContinueAction" class="button">Save and continue</button>
-            <button id="@SiftQuestionsController.SaveAndReturnAction" type="submit" name="action" value="@SiftQuestionsController.SaveAndReturnAction" class="button-link">Save and return home</button>
+            <button id="@saveAndContinueAction" type="submit" name="action" value="@saveAndContinueAction" class="button">Save and continue</button>
+            <button id="@saveAndReturnAction" type="submit" name="action" value="@saveAndReturnAction" class="button-link">Save and return home</button>
         </div>
     }
 }

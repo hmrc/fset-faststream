@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,16 @@
 
 package filters
 
+import akka.stream.Materializer
+import com.google.inject.{Inject, Singleton}
 import models.CookiePolicy
-import play.api.mvc.{ Filter, RequestHeader, Result }
+import play.api.mvc.{EssentialFilter, Filter, RequestHeader, Result}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import uk.gov.hmrc.play.frontend.filters.MicroserviceFilterSupport
+import scala.concurrent.{ExecutionContext, Future}
 
-object CookiePolicyFilter extends Filter with MicroserviceFilterSupport {
+@Singleton
+class CookiePolicyFilter @Inject() (implicit val ec: ExecutionContext, val mat: Materializer)
+  extends Filter with EssentialFilter {
   override def apply(next: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] =
     next(rh).map { result =>
       if (result.header.status == 200 && !CookiePolicy.bannerSeen(rh)) {

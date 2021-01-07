@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,23 @@
 
 package security
 
+import com.google.inject.Inject
 import com.mohiva.play.silhouette.api.LoginInfo
-import connectors.{ ApplicationClient, UserManagementClient }
 import connectors.ApplicationClient.ApplicationNotFound
 import connectors.exchange._
-import models.{ CachedData, SecurityUser, UniqueIdentifier }
+import connectors.{ApplicationClient, UserManagementClient}
+import javax.inject.Singleton
+import models.{CachedData, SecurityUser, UniqueIdentifier}
 import play.api.mvc.Request
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
-class UserCacheService(applicationClient: ApplicationClient, userManagementClient: UserManagementClient) extends UserService {
+import scala.concurrent.{ExecutionContext, Future}
+
+@Singleton
+class UserCacheService @Inject() (
+  applicationClient: ApplicationClient,
+  userManagementClient: UserManagementClient)(
+  implicit ec: ExecutionContext) extends UserService {
 
   override def retrieve(loginInfo: LoginInfo): Future[Option[SecurityUser]] =
     Future.successful(Some(SecurityUser(userID = loginInfo.providerKey)))

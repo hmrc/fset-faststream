@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,13 @@
 
 package forms
 
-import forms.SignUpForm.{ Data, _ }
+import forms.SignUpForm.{Data, _}
+import mappings.Mappings
 import models.ApplicationRoute
 import play.api.data.Form
-import testkit.UnitWithAppSpec
-import play.api.i18n.Messages.Implicits._
 import play.api.i18n.Messages
 
-class SignUpFormSpec extends UnitWithAppSpec {
+class SignUpFormSpec extends BaseFormSpec {
 
   "the sign up form" should {
     "be valid when all the data are correct" in {
@@ -204,7 +203,9 @@ case class SignupFormGenerator(
   ) ++ data.sdipFastStreamConsider.map(x => "sdipFastStreamConsider" -> x.toString) ++
     data.sdipFastStreamEligible.map(x => "sdipFastStreamEligible" -> x.toString)
 
-  private def signUpForm = Form(SignUpForm.form.mapping).bind(validFormData)
+  private val formWrapper = new SignUpForm()
+  private def signUpForm(implicit messages: Messages) = Form(formWrapper.form.mapping).bind(validFormData)
 
-  def get = (data, signUpForm)
+  def get(implicit messages: Messages) = (data, signUpForm)
 }
+

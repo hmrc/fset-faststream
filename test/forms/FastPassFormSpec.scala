@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,20 @@
 
 package forms
 
-import forms.FastPassForm.{ form => fastPassForm, _ }
+import forms.FastPassForm._
+import mappings.Mappings
 import models.ApplicationRoute
 import play.api.data.FormError
-import testkit.UnitWithAppSpec
 
-class FastPassFormSpec extends UnitWithAppSpec {
+class FastPassFormSpec extends BaseFormSpec {
+
+  def fastPassForm = FastPassForm.form
 
   "FastPass form" should {
     "be valid when candidate is not applicable" in {
       val form = fastPassForm.bind(Map(
-        "applicationRoute" -> ApplicationRoute.Faststream.toString, "civilServiceExperienceDetails.applicable" -> "false"
+        "applicationRoute" -> ApplicationRoute.Faststream.toString,
+        "civilServiceExperienceDetails.applicable" -> "false"
       ))
       form.hasErrors mustBe false
       form.hasGlobalErrors mustBe false
@@ -108,7 +111,7 @@ class FastPassFormSpec extends UnitWithAppSpec {
         "civilServiceExperienceDetails.fastPassReceived" -> "false"))
       form.hasErrors mustBe true
       val expectedFormErrors = Seq(FormError(key = "civilServiceExperienceDetails.edipYear",
-        message = "You must provide the year of the EDIP internship"))
+        message = "error.edipInternshipYear.required"))
       form.errors mustBe expectedFormErrors
       form.hasGlobalErrors mustBe false
     }
@@ -122,7 +125,7 @@ class FastPassFormSpec extends UnitWithAppSpec {
         "civilServiceExperienceDetails.fastPassReceived" -> "false"))
       form.hasErrors mustBe true
       val expectedFormErrors = Seq(FormError(key = "civilServiceExperienceDetails.edipYear",
-        message = "You must provide the year of the EDIP internship"))
+        message = "error.edipInternshipYear.required"))
       form.errors mustBe expectedFormErrors
       form.hasGlobalErrors mustBe false
     }
@@ -136,7 +139,7 @@ class FastPassFormSpec extends UnitWithAppSpec {
         "civilServiceExperienceDetails.fastPassReceived" -> "false"))
       form.hasErrors mustBe true
       val expectedFormErrors = Seq(FormError(key = "civilServiceExperienceDetails.edipYear",
-        message = "You must provide the year of the EDIP internship"))
+        message = "error.edipInternshipYear.required"))
       form.errors mustBe expectedFormErrors
       form.hasGlobalErrors mustBe false
     }
@@ -179,7 +182,7 @@ class FastPassFormSpec extends UnitWithAppSpec {
         "civilServiceExperienceDetails.fastPassReceived" -> "false"))
       form.hasErrors mustBe true
       val expectedFormErrors = Seq(FormError(key = "civilServiceExperienceDetails.sdipYear",
-        message = "You must provide the year of the SDIP internship"))
+        message = "error.sdipInternshipYear.required"))
       form.errors mustBe expectedFormErrors
       form.hasGlobalErrors mustBe false
     }
@@ -193,7 +196,7 @@ class FastPassFormSpec extends UnitWithAppSpec {
         "civilServiceExperienceDetails.fastPassReceived" -> "false"))
       form.hasErrors mustBe true
       val expectedFormErrors = Seq(FormError(key = "civilServiceExperienceDetails.sdipYear",
-        message = "You must provide the year of the SDIP internship"))
+        message = "error.sdipInternshipYear.required"))
       form.errors mustBe expectedFormErrors
       form.hasGlobalErrors mustBe false
     }
@@ -207,7 +210,7 @@ class FastPassFormSpec extends UnitWithAppSpec {
         "civilServiceExperienceDetails.fastPassReceived" -> "false"))
       form.hasErrors mustBe true
       val expectedFormErrors = Seq(FormError(key = "civilServiceExperienceDetails.sdipYear",
-        message = "You must provide the year of the SDIP internship"))
+        message = "error.sdipInternshipYear.required"))
       form.errors mustBe expectedFormErrors
       form.hasGlobalErrors mustBe false
     }
@@ -251,8 +254,8 @@ class FastPassFormSpec extends UnitWithAppSpec {
       ))
       form.hasErrors mustBe true
       val expectedFormErrors = Seq(
-        FormError(key = "civilServiceExperienceDetails.otherInternshipName", message = "You must provide the name of the internship"),
-        FormError(key = "civilServiceExperienceDetails.otherInternshipYear", message = "You must provide the year of the internship")
+        FormError(key = "civilServiceExperienceDetails.otherInternshipName", message = "error.otherInternshipName.required"),
+        FormError(key = "civilServiceExperienceDetails.otherInternshipYear", message = "error.otherInternshipYear.required")
       )
       form.errors mustBe expectedFormErrors
       form.hasGlobalErrors mustBe false
@@ -269,7 +272,7 @@ class FastPassFormSpec extends UnitWithAppSpec {
       ))
       form.hasErrors mustBe true
       val expectedFormErrors = Seq(FormError(key = "civilServiceExperienceDetails.otherInternshipName",
-        message = s"The internship name must not exceed ${FastPassForm.otherInternshipNameMaxSize} characters"))
+        message = "error.otherInternshipName.size"))
       form.errors mustBe expectedFormErrors
       form.hasGlobalErrors mustBe false
     }
@@ -285,7 +288,7 @@ class FastPassFormSpec extends UnitWithAppSpec {
       ))
       form.hasErrors mustBe true
       val expectedFormErrors = Seq(FormError(key = "civilServiceExperienceDetails.otherInternshipYear",
-        message = s"You must provide the year of the internship"))
+        message = "error.otherInternshipYear.required"))
       form.errors mustBe expectedFormErrors
       form.hasGlobalErrors mustBe false
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,21 +20,21 @@ import java.util.UUID
 
 import connectors.ApplicationClient.ApplicationNotFound
 import connectors.UserManagementClient.InvalidCredentialsException
-import connectors.exchange.{ ApplicationResponse, ProgressResponse, UserResponse }
-import connectors.{ ApplicationClient, UserManagementClient }
-import controllers.UnitSpec
+import connectors.exchange.{ApplicationResponse, ProgressResponse, UserResponse}
+import connectors.{ApplicationClient, UserManagementClient}
 import models.ApplicationData.ApplicationStatus
 import models._
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import testkit.BaseSpec
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.language.postfixOps
-import uk.gov.hmrc.http.HeaderCarrier
 
-class UserCacheServiceSpec extends UnitSpec {
+class UserCacheServiceSpec extends BaseSpec {
 
   "refreshCachedUser" should {
     "return a user and application CachedData when both are found" in new TestFixture {

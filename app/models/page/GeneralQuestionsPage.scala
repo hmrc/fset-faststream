@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,13 @@ import connectors.exchange.sift.GeneralQuestionsAnswers
 import forms.sift.{ GeneralQuestionsForm, PostGradDegreeInfoForm, UndergradDegreeInfoForm }
 import play.api.data.Form
 
-case class GeneralQuestionsPage(
-  form : Form[GeneralQuestionsForm.Data]
-)
+case class GeneralQuestionsPage(form : Form[GeneralQuestionsForm.Data])
 
 object GeneralQuestionsPage {
-
-  def apply(answers: Option[GeneralQuestionsAnswers]): GeneralQuestionsPage = GeneralQuestionsPage(
+  def apply(form: Form[GeneralQuestionsForm.Data], answers: Option[GeneralQuestionsAnswers]): GeneralQuestionsPage = GeneralQuestionsPage(
     answers.map { a =>
-      GeneralQuestionsForm().form.fill(GeneralQuestionsForm.Data(
+      //GeneralQuestionsForm().form.fill(GeneralQuestionsForm.Data(
+      form.fill(GeneralQuestionsForm.Data(
         multipleNationalities = Some(a.multipleNationalities),
         secondNationality= a.secondNationality,
         nationality = Option(a.nationality).filter(_.trim.nonEmpty),
@@ -41,7 +39,7 @@ object GeneralQuestionsPage {
           pd => PostGradDegreeInfoForm.Data(
             pd.name, Option(pd.graduationYear).filter(_.trim.nonEmpty), pd.otherDetails, pd.projectDetails))
       ))
-    }.getOrElse(GeneralQuestionsForm().form)
+    }.getOrElse(form)
   )
 
 

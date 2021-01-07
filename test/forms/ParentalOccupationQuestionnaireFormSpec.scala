@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,11 @@
 
 package forms
 
-import forms.ParentalOccupationQuestionnaireForm.{ Data, form }
-import testkit.UnitWithAppSpec
+import forms.ParentalOccupationQuestionnaireForm.Data
 
-class ParentalOccupationQuestionnaireFormSpec extends UnitWithAppSpec {
+class ParentalOccupationQuestionnaireFormSpec extends BaseFormSpec {
+
+  val form = new ParentalOccupationQuestionnaireForm().form
 
   "the occupation form" should {
 

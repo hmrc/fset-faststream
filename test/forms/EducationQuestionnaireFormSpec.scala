@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,10 @@
 package forms
 
 import forms.EducationQuestionnaireFormExamples._
-import org.scalatestplus.play.PlaySpec
-import play.api.data.{ Form, FormError }
+import play.api.data.{Form, FormError}
 import play.api.i18n.Messages
-import play.api.i18n.Messages.Implicits._
-import testkit.UnitWithAppSpec
 
-class EducationQuestionnaireFormSpec extends UnitWithAppSpec {
+class EducationQuestionnaireFormSpec extends BaseFormSpec {
 
   "the education form" should {
     "be valid when all values are correct" in new Fixture {
@@ -100,7 +97,7 @@ class EducationQuestionnaireFormSpec extends UnitWithAppSpec {
     }
 
     "transform form when form is full valid (has degree and lived in uk) to a question list" in new Fixture {
-      val questionList = FullValidForm.exchange().questions
+      val questionList = FullValidForm.exchange(mockMessages).questions
       questionList.size mustBe 9
       questionList.head.answer.answer mustBe Some("Yes")
       questionList.head.answer.unknown mustBe None
@@ -123,7 +120,7 @@ class EducationQuestionnaireFormSpec extends UnitWithAppSpec {
     }
 
     "transform form when has degree with all possible fields with prefer not to say" in new Fixture {
-      val questionList = AllPreferNotToSayValidForm.exchange().questions
+      val questionList = AllPreferNotToSayValidForm.exchange(mockMessages).questions
       questionList.size mustBe 9
       questionList.head.answer.answer mustBe Some("Yes")
       questionList.head.answer.unknown mustBe None
@@ -145,7 +142,7 @@ class EducationQuestionnaireFormSpec extends UnitWithAppSpec {
     }
 
     "transform form with no lived in uk and has not degree with valid fields to a question list" in new Fixture {
-      val questionList = NotUkLivedAndNoDegreeValidForm.exchange().questions
+      val questionList = NotUkLivedAndNoDegreeValidForm.exchange(mockMessages).questions
       questionList.size mustBe 2
       questionList(0).answer.answer mustBe Some("No")
       questionList(0).answer.unknown mustBe None
@@ -154,7 +151,7 @@ class EducationQuestionnaireFormSpec extends UnitWithAppSpec {
     }
 
     "transform form when has degree and no uk lived with all valid fields to a question list" in new Fixture {
-      val questionList = NotUkLivedAndHaveDegreeValidForm.exchange().questions
+      val questionList = NotUkLivedAndHaveDegreeValidForm.exchange(mockMessages).questions
       questionList.size mustBe 4
       questionList(0).answer.answer mustBe Some("No")
       questionList(0).answer.unknown mustBe None
@@ -167,7 +164,7 @@ class EducationQuestionnaireFormSpec extends UnitWithAppSpec {
     }
 
     "transform form when no degree but lived in UK with all valid fields to a question list" in new Fixture {
-      val questionList = LivedInUKAndNoDegreeValidForm.exchange().questions
+      val questionList = LivedInUKAndNoDegreeValidForm.exchange(mockMessages).questions
       questionList.size mustBe 7
       questionList(0).answer.answer mustBe Some("Yes")
       questionList(0).answer.unknown mustBe None
@@ -196,9 +193,10 @@ class EducationQuestionnaireFormSpec extends UnitWithAppSpec {
   }
 
   trait Fixture {
+    val formWrapper = new EducationQuestionnaireForm
 
-    val fastStreamForm = EducationQuestionnaireForm.form("university")
-    val edipForm = EducationQuestionnaireForm.form("currentUniversity")
+    val fastStreamForm = formWrapper.form("university")(mockMessages)
+    val edipForm = formWrapper.form("currentUniversity")(mockMessages)
 
     val FullValid = (EducationQuestionnaireFormExamples.FullValidForm, fastStreamForm.fill(
       EducationQuestionnaireFormExamples.FullValidForm))

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,15 @@ package mappings
 import play.api.data.FormError
 import play.api.data.format.Formatter
 import play.api.i18n.Messages
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
 
 object SeqMapping {
-  def requiredSetFormatter(allowedValues: Seq[String]) = conditionalRequiredSetFormatter(_ => true, allowedValues)
+  def requiredSetFormatter(allowedValues: Seq[String])(implicit messages: Messages)
+  = conditionalRequiredSetFormatter(_ => true, allowedValues)
 
   def conditionalRequiredSetFormatter(
     enableCondition: (Map[String, String]) => Boolean,
     allowedValues: Seq[String]
-  ) = new Formatter[Option[String]] {
+  )(implicit messages: Messages) = new Formatter[Option[String]] {
 
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       enableCondition(data) match {

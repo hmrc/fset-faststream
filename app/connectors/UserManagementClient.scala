@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,33 +16,32 @@
 
 package connectors
 
-import config.{ CSRHttp, FrontendAppConfig }
-import connectors.exchange._
+import config.{CSRHttp, FrontendAppConfig}
 import connectors.UserManagementClient._
+import connectors.exchange._
+import javax.inject.{Inject, Singleton}
 import models.UniqueIdentifier
-import uk.gov.hmrc.play.http._
+import play.api.http.Status._
+import uk.gov.hmrc.http._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, LockedException, NotFoundException, Upstream4xxResponse }
+import scala.concurrent.{ExecutionContext, Future}
 
-trait UserManagementClient {
+@Singleton
+class UserManagementClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(implicit val ec: ExecutionContext) {
 
   private val role = "candidate" // We have only one role for this application
-  private lazy val ServiceName = FrontendAppConfig.authConfig.serviceName
+  private lazy val ServiceName = config.authConfig.serviceName
   private val urlPrefix = "faststream"
 
-  val http: CSRHttp
+  val url = config.userManagementConfig.url
 
-  import config.FrontendAppConfig.userManagementConfig._
-
-  def register(email: String, password: String, firstName: String, lastName: String)(implicit hc: HeaderCarrier): Future[UserResponse] =
-    http.POST(s"${url.host}/$urlPrefix/add",
-      AddUserRequest(email.toLowerCase, password, firstName, lastName, List(role), ServiceName)).map { (resp: HttpResponse) =>
-      resp.json.as[UserResponse]
-    }.recover {
-      case Upstream4xxResponse(_, 409, _, _) => throw new EmailTakenException()
+  def register(email: String, password: String, firstName: String, lastName: String)(implicit hc: HeaderCarrier): Future[UserResponse] = {
+    import uk.gov.hmrc.http.HttpReads.Implicits._
+    http.POST[AddUserRequest, UserResponse](s"${url.host}/$urlPrefix/add",
+      AddUserRequest(email.toLowerCase, password, firstName, lastName, List(role), ServiceName)).recover {
+      case e: UpstreamErrorResponse if e.statusCode == CONFLICT => throw new EmailTakenException()
     }
+  }
 
   def signIn(email: String, password: String)(implicit hc: HeaderCarrier): Future[UserResponse] =
     http.POST(s"${url.host}/$urlPrefix/authenticate", SignInRequest(email.toLowerCase, password, ServiceName)).map { (resp: HttpResponse) =>
@@ -73,45 +72,46 @@ trait UserManagementClient {
         case e: NotFoundException => throw new InvalidEmailException()
       }
 
-  def resetPasswd(email: String, token: String, newPassword: String)(implicit hc: HeaderCarrier): Future[Unit] =
+  def resetPasswd(email: String, token: String, newPassword: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     http.POST(s"${url.host}/$urlPrefix/reset-password",
       ResetPasswordRequest(email.toLowerCase, token, newPassword, ServiceName)).map(_ => (): Unit)
       .recover {
         case Upstream4xxResponse(_, 410, _, _) => throw new TokenExpiredException()
         case e: NotFoundException => throw new TokenEmailPairInvalidException()
       }
+  }
 
   def updateDetails(userId: UniqueIdentifier, firstName: String, lastName: String,
     preferredName: Option[String])(implicit hc: HeaderCarrier): Future[Unit] =
     http.PUT(s"${url.host}/details/$userId", UpdateDetails(firstName, lastName, preferredName, ServiceName)).map(_ => ())
 
-  def failedLogin(email: String)(implicit hc: HeaderCarrier): Future[UserResponse] =
-    http.PUT(s"${url.host}/$urlPrefix/failedAttempt", EmailWrapper(email.toLowerCase, ServiceName)).map { (resp: HttpResponse) =>
-      resp.json.as[UserResponse]
-    }.recover {
-      case e: NotFoundException => throw new InvalidCredentialsException()
-      case e: LockedException => throw new AccountLockedOutException()
-      //TODO Figure out why LockedException is not caught, and fix this
-      case Upstream4xxResponse(_, 423, _, _) => throw new AccountLockedOutException()
+  def failedLogin(email: String)(implicit hc: HeaderCarrier): Future[UserResponse] = {
+    import uk.gov.hmrc.http.HttpReads.Implicits._
+    http.PUT[EmailWrapper, UserResponse](s"${url.host}/$urlPrefix/failedAttempt", EmailWrapper(email.toLowerCase, ServiceName)).recover {
+      case eNotFound: UpstreamErrorResponse if eNotFound.statusCode == NOT_FOUND => throw new InvalidCredentialsException()
+      case eLocked: UpstreamErrorResponse if eLocked == LOCKED => throw new AccountLockedOutException()
     }
+  }
 
-  def find(email: String)(implicit hc: HeaderCarrier): Future[UserResponse] =
-    http.POST(s"${url.host}/$urlPrefix/find", EmailWrapper(email.toLowerCase, ServiceName)).map { (resp: HttpResponse) =>
-      resp.json.as[UserResponse]
-    }.recover {
-      case e: NotFoundException => throw new InvalidCredentialsException()
+  def find(email: String)(implicit hc: HeaderCarrier): Future[UserResponse] = {
+    import uk.gov.hmrc.http.HttpReads.Implicits._
+    http.POST[EmailWrapper, UserResponse](s"${url.host}/$urlPrefix/find", EmailWrapper(email.toLowerCase, ServiceName)).recover {
+      case e: UpstreamErrorResponse if e.statusCode == NOT_FOUND => throw new InvalidCredentialsException()
     }
+  }
 
-  def findByUserId(userId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[UserResponse] =
-    http.POST(s"${url.host}/$urlPrefix/service/$ServiceName/findUserById", FindByUserIdRequest(userId)).map { (resp: HttpResponse) =>
-      resp.json.as[UserResponse]
-    }.recover {
-      case e: NotFoundException => throw new InvalidCredentialsException(s"UserId = $userId")
+  def findByUserId(userId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[UserResponse] = {
+    import uk.gov.hmrc.http.HttpReads.Implicits._
+    http.POST[FindByUserIdRequest, UserResponse](
+      s"${url.host}/$urlPrefix/service/$ServiceName/findUserById",
+      FindByUserIdRequest(userId)).recover {
+      case e: UpstreamErrorResponse if e.statusCode == NOT_FOUND =>
+        throw new InvalidCredentialsException(s"UserId = $userId")
     }
+  }
 }
 
-object UserManagementClient extends UserManagementClient {
-  val http: CSRHttp = CSRHttp
+object UserManagementClient {
   sealed class InvalidRoleException extends Exception
   sealed class InvalidEmailException extends Exception
   sealed class EmailTakenException extends Exception

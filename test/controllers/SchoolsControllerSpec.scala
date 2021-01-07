@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,18 @@
 
 package controllers
 
-import config.SecurityEnvironmentImpl
-import connectors.{ ApplicationClient, SchoolsClient }
+import connectors.SchoolsClient
 import connectors.SchoolsClient.SchoolsNotFound
 import connectors.exchange.School
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.SilhouetteComponent
-import testkit.{ BaseControllerSpec, TestableSecureActions }
-
-import scala.concurrent.Future
+import testkit.TestableSecureActions
 import uk.gov.hmrc.http.HeaderCarrier
 
+import scala.concurrent.Future
+
 class SchoolsControllerSpec extends BaseControllerSpec {
-
-  val schoolClient = mock[SchoolsClient]
-  val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
-
-  def schoolsController = new SchoolsController(schoolClient) with TestableSecureActions {
-    override val env = mockSecurityEnvironment
-    override lazy val silhouette = SilhouetteComponent.silhouette
-  }
 
   "get schools" should {
     val schoolList = List(
@@ -58,11 +48,11 @@ class SchoolsControllerSpec extends BaseControllerSpec {
       School("IRN", "15", "School15")
     )
 
-    "load list of schools based on the search criteria" in {
+    "load list of schools based on the search criteria" in new TestFixture  {
       val searchCriteria = "Abb"
-      when(schoolClient.getSchools(eqTo(searchCriteria))(any[HeaderCarrier]))
+      when(mockSchoolClient.getSchools(eqTo(searchCriteria))(any[HeaderCarrier]))
         .thenReturn(Future.successful(schoolList))
-      val result = schoolsController.getSchools(searchCriteria)(fakeRequest)
+      val result = controller.getSchools(searchCriteria)(fakeRequest)
       val content = contentAsString(result)
       status(result) mustBe OK
       content must include(
@@ -83,11 +73,11 @@ class SchoolsControllerSpec extends BaseControllerSpec {
           """{"id":"IRN_15","name":"School15","label":"School15"}]""")
     }
 
-    "load max 15 schools based on the search criteria" in {
-      val searchCriteria = "Abb"
-      when(schoolClient.getSchools(eqTo(searchCriteria))(any[HeaderCarrier]))
+    "load max 15 schools based on the search criteria" in new TestFixture {
+    val searchCriteria = "Abb"
+      when(mockSchoolClient.getSchools(eqTo(searchCriteria))(any[HeaderCarrier]))
         .thenReturn(Future.successful(schoolList :+ School("IRN", "16", "School16")))
-      val result = schoolsController.getSchools(searchCriteria)(fakeRequest)
+      val result = controller.getSchools(searchCriteria)(fakeRequest)
       val content = contentAsString(result)
       status(result) mustBe OK
       content must include(
@@ -109,12 +99,21 @@ class SchoolsControllerSpec extends BaseControllerSpec {
           """{"id":"IRN_15","name":"School15","label":"School15"}]""")
     }
 
-    "not return any schools" in {
+    "not return any schools" in new TestFixture {
       val searchCriteria = "Abb"
-      when(schoolClient.getSchools(eqTo(searchCriteria))(any[HeaderCarrier]))
+      when(mockSchoolClient.getSchools(eqTo(searchCriteria))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new SchoolsNotFound))
-      val result = schoolsController.getSchools(searchCriteria)(fakeRequest)
+      val result = controller.getSchools(searchCriteria)(fakeRequest)
       status(result) mustBe BAD_REQUEST
+    }
+  }
+
+  trait TestFixture extends BaseControllerTestFixture {
+    val mockSchoolClient = mock[SchoolsClient]
+
+    def controller = {
+      new SchoolsController(mockConfig, stubMcc, mockSecurityEnv, mockSilhouetteComponent, mockNotificationTypeHelper,
+        mockSchoolClient) with TestableSecureActions
     }
   }
 }

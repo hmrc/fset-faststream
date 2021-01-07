@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,38 +16,26 @@
 
 package controllers
 
-import java.io.File
-import java.nio.file.Path
-import java.time.LocalDateTime
-
-import com.github.tomakehurst.wiremock.client.WireMock.{ any => _ }
-import config.{ CSRHttp, SecurityEnvironmentImpl }
-import connectors.ApplicationClient.{ CandidateAlreadyHasAnAnalysisExerciseException, CannotWithdraw, OnlineTestNotFound }
-import connectors.exchange.candidateevents.CandidateAllocationWithEvent
-import connectors.exchange.referencedata.{ Scheme, SchemeId }
-import connectors.exchange.sift.SiftAnswersStatus
+import com.github.tomakehurst.wiremock.client.WireMock.{any => _}
+import connectors.ApplicationClient.{CannotWithdraw, OnlineTestNotFound}
+import connectors.ReferenceDataExamples
 import connectors.exchange._
-import connectors.{ ApplicationClient, ReferenceDataClient, ReferenceDataExamples, SiftClient }
-import forms.WithdrawApplicationFormExamples
-import models.ApplicationData.ApplicationStatus
+import connectors.exchange.candidateevents.CandidateAllocationWithEvent
+import connectors.exchange.referencedata.SchemeId
+import forms.{SchemeWithdrawForm, WithdrawApplicationForm, WithdrawApplicationFormExamples}
 import models.ApplicationRoute._
 import models.SecurityUserExamples._
 import models._
-import models.events.{ AllocationStatuses, EventType }
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import models.events.AllocationStatuses
+import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
-import play.api.libs.Files
-import play.api.libs.Files.TemporaryFile
-import play.api.mvc.MultipartFormData.FilePart
-import play.api.mvc.{ AnyContent, MultipartFormData, Request }
+import play.api.mvc.Request
 import play.api.test.Helpers._
-import play.api.test.{ FakeHeaders, FakeRequest }
-import security.{ SilhouetteComponent, UserCacheService }
 import testkit.MockitoImplicits._
-import testkit.{ BaseControllerSpec, TestableSecureActions }
+import testkit.TestableSecureActions
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 class WithdrawControllerSpec extends BaseControllerSpec {
 
@@ -78,7 +66,7 @@ class WithdrawControllerSpec extends BaseControllerSpec {
       status(result) must be(OK)
       val content = contentAsString(result)
       content must include(routes.WithdrawController.withdrawApplication().url)
-      content must include ("Select a reason for withdrawing your application")
+      content must include ("error.reason.required")
     }
 
     "display dashboard with error message when form is valid but cannot withdraw" in new TestFixture {
@@ -90,7 +78,7 @@ class WithdrawControllerSpec extends BaseControllerSpec {
 
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.HomeController.present().url))
-      flash(result).data must be (Map("danger" -> "We can't find an application to withdraw"))
+      flash(result).data must be (Map("danger" -> "error.cannot.withdraw"))
     }
 
     "display dashboard with withdrawn success message when withdraw is successful" in new TestFixture {
@@ -100,48 +88,25 @@ class WithdrawControllerSpec extends BaseControllerSpec {
       when(mockApplicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(ProgressResponseExamples.Submitted))
 
-      val Candidate = CachedData(currentCandidateWithApp.user, Some(currentCandidateWithApp.application))
-      val UpdatedApplication = currentCandidateWithApp.application
-        .copy(applicationStatus= ApplicationStatus.WITHDRAWN,  progress = ProgressResponseExamples.WithdrawnAfterSubmitted)
-      val UpdatedCandidate = currentCandidate.copy(application = Some(UpdatedApplication))
-
       val result = controller.withdrawApplication()(Request)
 
       status(result) must be(SEE_OTHER)
       redirectLocation(result) must be(Some(routes.HomeController.present().url))
-      //scalastyle:off line.length
-      flash(result).data must be (Map("success" ->"You've successfully withdrawn your application. <a href=\"https://www.gov.uk/done/apply-civil-service-fast-stream\" target=\"_blank\" rel=\"external\">Give feedback?</a> (30 second survey)"))
-      //scalastyle:on line.length
+      val expectedValue: Map[String, String] = Map("success" -> ("application.withdrawn"))
+      flash(result).data mustBe expectedValue
     }
   }
 
-  trait TestFixture {
-    val mockApplicationClient = mock[ApplicationClient]
-    val mockRefDataClient = mock[ReferenceDataClient]
-    val mockUserService = mock[UserCacheService]
-    val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
+  trait TestFixture extends BaseControllerTestFixture {
+    def controller(implicit candWithApp: CachedDataWithApp = currentCandidateWithApp,
+                   appRouteState: ApplicationRouteState = defaultApplicationRouteState)
+    = {
+      val CandidateExample = CachedData(candWithApp.user, Some(candWithApp.application))
 
+      val withdrawFormWrapper = new WithdrawApplicationForm
+      val schemeWithdrawFormWrapper = new SchemeWithdrawForm
 
-    val anyContentMock = mock[AnyContent]
-
-    def mockPostOnlineTestsDashboardCalls(hasAnalysisExerciseAlready: Boolean = false) = {
-
-      val alloc = CandidateAllocationWithEvent("", "", AllocationStatuses.CONFIRMED, EventsExamples.Event1)
-
-      when(mockApplicationClient.candidateAllocationEventWithSession(any[UniqueIdentifier])(any[HeaderCarrier]())).thenReturnAsync(List(alloc))
-
-      when(mockApplicationClient.hasAnalysisExercise(any[UniqueIdentifier]())(any[HeaderCarrier])).thenReturnAsync(hasAnalysisExerciseAlready)
-    }
-
-
-    class TestableHomeController extends WithdrawController(mockApplicationClient, mockRefDataClient)
-      with TestableSecureActions {
-      val http: CSRHttp = CSRHttp
-      override val env = mockSecurityEnvironment
-      override lazy val silhouette = SilhouetteComponent.silhouette
-      val appRouteConfigMap = Map.empty[ApplicationRoute, ApplicationRouteState]
-      when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
-      when(mockRefDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+      when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
       when(mockApplicationClient.getCurrentSchemeStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturnAsync(List(SchemeEvaluationResultWithFailureDetails(SchemeId("DiplomaticService"), SchemeStatus.Green)))
       when(mockUserService.refreshCachedUser(any[UniqueIdentifier])(any[HeaderCarrier], any[Request[_]]))
@@ -153,44 +118,23 @@ class WithdrawControllerSpec extends BaseControllerSpec {
         .thenReturn(Future.failed(new OnlineTestNotFound))
 
       mockPostOnlineTestsDashboardCalls()
+
+        when(mockUserService.refreshCachedUser(any[UniqueIdentifier])(any[HeaderCarrier], any[Request[_]]))
+          .thenReturn(Future.successful(CandidateExample))
+
+      def mockPostOnlineTestsDashboardCalls(hasAnalysisExerciseAlready: Boolean = false) = {
+        val alloc = CandidateAllocationWithEvent("", "", AllocationStatuses.CONFIRMED, EventsExamples.Event1)
+        when(mockApplicationClient.candidateAllocationEventWithSession(any[UniqueIdentifier])(any[HeaderCarrier]())).thenReturnAsync(List(alloc))
+        when(mockApplicationClient.hasAnalysisExercise(any[UniqueIdentifier]())(any[HeaderCarrier])).thenReturnAsync(hasAnalysisExerciseAlready)
+      }
+
+      new WithdrawController(mockConfig, stubMcc, mockSecurityEnv, mockSilhouetteComponent,
+        mockNotificationTypeHelper, mockApplicationClient, mockReferenceDataClient, withdrawFormWrapper, schemeWithdrawFormWrapper)
+        with TestableSecureActions {
+        override val candidate: CachedData = CandidateExample
+        override val candidateWithApp: CachedDataWithApp = candWithApp
+        override val appRouteConfigMap = Map(Faststream -> appRouteState, Edip -> appRouteState, Sdip -> appRouteState)
+      }
     }
-
-    def controller(implicit candWithApp: CachedDataWithApp = currentCandidateWithApp,
-                   appRouteState: ApplicationRouteState = defaultApplicationRouteState) = new TestableHomeController {
-      override val candidate: CachedData = CachedData(candWithApp.user, Some(candWithApp.application))
-      override val candidateWithApp: CachedDataWithApp = candWithApp
-      override val appRouteConfigMap = Map(Faststream -> appRouteState, Edip -> appRouteState, Sdip -> appRouteState)
-
-      when(mockUserService.refreshCachedUser(any[UniqueIdentifier])(any[HeaderCarrier], any[Request[_]]))
-        .thenReturn(Future.successful(candidate))
-    }
-
-    def defaultApplicationRouteState = new ApplicationRouteState {
-      val newAccountsStarted = true
-      val newAccountsEnabled = true
-      val applicationsSubmitEnabled = true
-      val applicationsStartDate = Some(LocalDateTime.now)
-    }
-  }
-
-  trait EdipAndSdipTestFixture extends TestFixture {
-    val applicationRouteState = new ApplicationRouteState {
-      val newAccountsStarted = true
-      val newAccountsEnabled = true
-      val applicationsSubmitEnabled = true
-      val applicationsStartDate = None }
-
-    when(mockApplicationClient.getPhase3Results(eqTo(currentApplicationId))(any[HeaderCarrier]))
-      .thenReturn(Future.successful(Some(List(SchemeEvaluationResult(SchemeId("DiplomaticService"), SchemeStatus.Green)))))
-
-    val edipPhase1TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
-      CachedDataExample.EdipPhase1TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
-    val sdipPhase1TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
-      CachedDataExample.SdipPhase1TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
-    val edipWithdrawnPhase1TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
-      CachedDataExample.EdipWithdrawnPhase1TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
-    val sdipWithdrawnPhase1TestsPassedApp = CachedDataWithApp(ActiveCandidate.user,
-      CachedDataExample.SdipWithdrawnPhase1TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
-
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,16 @@
 
 package controllers
 
-import config.{ CSRHttp, SecurityEnvironmentImpl }
-import connectors.ApplicationClient
 import models.ApplicationRoute._
 import models.SecurityUserExamples._
-import models.{ CachedData, CachedDataExample, CachedDataWithApp, ProgressResponseExamples }
-import org.mockito.Matchers.{ eq => eqTo, _ }
+import models.{CachedDataExample, CachedDataWithApp, ProgressResponseExamples}
+import org.mockito.Matchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import security.{ SilhouetteComponent, UserCacheService, UserCacheServiceSpec, UserService }
-import testkit.{ BaseControllerSpec, TestableSecureActions }
-
-import scala.concurrent.Future
+import testkit.TestableSecureActions
 import uk.gov.hmrc.http.HeaderCarrier
 
+import scala.concurrent.Future
 
 class SubmitApplicationControllerSpec extends BaseControllerSpec {
 
@@ -38,25 +34,13 @@ class SubmitApplicationControllerSpec extends BaseControllerSpec {
 
   "present submit" should {
     "display submit application page when application submission is enabled" in new TestFixture {
-      val applicationRouteState =  new ApplicationRouteState {
-        val newAccountsStarted = true
-        val newAccountsEnabled = true
-        val applicationsSubmitEnabled = true
-        val applicationsStartDate = None
-      }
-      val result = controller(currentCandidateWithEdipApp, applicationRouteState).presentSubmit()(fakeRequest)
+      val result = controller(currentCandidateWithEdipApp, applicationRouteStateAllEnabled).presentSubmit()(fakeRequest)
       status(result) mustBe OK
       val content = contentAsString(result)
       content must include("Submit application")
     }
     "redirect to home page when application submission is disabled" in new TestFixture {
-      val applicationRouteState =  new ApplicationRouteState {
-        val newAccountsStarted = true
-        val newAccountsEnabled = true
-        val applicationsSubmitEnabled = false
-        val applicationsStartDate = None
-      }
-      val result = controller(currentCandidateWithEdipApp, applicationRouteState).presentSubmit()(fakeRequest)
+      val result = controller(currentCandidateWithEdipApp, applicationRouteStateSubmissionNotEnabled).presentSubmit()(fakeRequest)
       status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.HomeController.present().url))
     }
@@ -64,63 +48,55 @@ class SubmitApplicationControllerSpec extends BaseControllerSpec {
 
   "submit" should {
     "redirect to submitted page" in new TestFixture {
-      val applicationRouteState =  new ApplicationRouteState {
-        val newAccountsStarted = true
-        val newAccountsEnabled = true
-        val applicationsSubmitEnabled = true
-        val applicationsStartDate = None
-      }
-
       when(mockApplicationClient.submitApplication(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(()))
       when(mockApplicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(ProgressResponseExamples.InPreview))
 
-      val result = controller(currentCandidateWithEdipApp, applicationRouteState).submit()(fakeRequest)
+      val result = controller(currentCandidateWithEdipApp, applicationRouteStateAllEnabled).submit()(fakeRequest)
 
       status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.SubmitApplicationController.presentSubmitted().url))
       verify(mockApplicationClient).submitApplication(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier])
     }
     "redirect to home page" in new TestFixture {
-      val applicationRouteState =  new ApplicationRouteState {
-        val newAccountsStarted = true
-        val newAccountsEnabled = false
-        val applicationsSubmitEnabled = false
-        val applicationsStartDate = None
-      }
-      val result = controller(currentCandidateWithEdipApp, applicationRouteState).submit()(fakeRequest)
+      val result = controller(currentCandidateWithEdipApp, applicationRouteStateSubmissionAndAccountsDisabled).submit()(fakeRequest)
       status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.HomeController.present().url))
     }
   }
 
-  trait TestFixture {
-    val mockApplicationClient = mock[ApplicationClient]
-    val mockSecurityEnvironment = mock[SecurityEnvironmentImpl]
-    val mockUserService = mock[UserCacheService]
-
-    class TestableSubmitApplicationController extends SubmitApplicationController(mockApplicationClient)
-      with TestableSecureActions {
-      val http: CSRHttp = CSRHttp
-      override val env = mockSecurityEnvironment
-      override lazy val silhouette = SilhouetteComponent.silhouette
-      when(mockSecurityEnvironment.userService).thenReturn(mockUserService)
-      val appRouteConfigMap = Map.empty[ApplicationRoute, ApplicationRouteState]
+  trait TestFixture extends BaseControllerTestFixture {
+    val applicationRouteStateAllEnabled = new ApplicationRouteState {
+      val newAccountsStarted = true
+      val newAccountsEnabled = true
+      val applicationsSubmitEnabled = true
+      val applicationsStartDate = None
     }
 
-    def controller(implicit candWithApp: CachedDataWithApp = currentCandidateWithApp,
-                   appRouteConfig: ApplicationRouteState = defaultApplicationRouteState) = new TestableSubmitApplicationController{
-      override val candidateWithApp: CachedDataWithApp = candWithApp
-      override implicit val appRouteConfigMap: Map[ApplicationRoute, ApplicationRouteState] =
-        Map(Faststream -> appRouteConfig, Edip -> appRouteConfig, Sdip -> appRouteConfig)
-    }
-
-    def defaultApplicationRouteState = new ApplicationRouteState {
+    val applicationRouteStateSubmissionNotEnabled = new ApplicationRouteState {
       val newAccountsStarted = true
       val newAccountsEnabled = true
       val applicationsSubmitEnabled = false
       val applicationsStartDate = None
     }
+
+    val applicationRouteStateSubmissionAndAccountsDisabled = new ApplicationRouteState {
+      val newAccountsStarted = true
+      val newAccountsEnabled = false
+      val applicationsSubmitEnabled = false
+      val applicationsStartDate = None
+    }
+
+    def controller(implicit candWithApp: CachedDataWithApp = currentCandidateWithApp,
+      appRouteConfig: ApplicationRouteState) = {
+      val appRouteConfigMap = Map(Faststream -> appRouteConfig, Edip -> appRouteConfig, Sdip -> appRouteConfig)
+      when(mockConfig.applicationRoutesFrontend).thenReturn(appRouteConfigMap)
+      new SubmitApplicationController(mockConfig, stubMcc, mockSecurityEnv, mockSilhouetteComponent, mockNotificationTypeHelper,
+        mockApplicationClient) with TestableSecureActions {
+        override val candidateWithApp: CachedDataWithApp = candWithApp
+      }
+    }
   }
 }
+

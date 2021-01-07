@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,29 @@
 
 package controllers
 
+import config.{FrontendAppConfig, SecurityEnvironment}
 import connectors.SchoolsClient
 import connectors.SchoolsClient.SchoolsNotFound
+import helpers.NotificationTypeHelper
+import javax.inject.{Inject, Singleton}
 import models.view.SchoolView
-import models.view.SchoolView._
-import models.view.SchoolView.SchoolImplicits
+import models.view.SchoolView.{SchoolImplicits, _}
 import play.api.libs.json.Json
+import play.api.mvc.MessagesControllerComponents
 import security.QuestionnaireRoles.EducationQuestionnaireRole
 import security.SilhouetteComponent
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.reflectiveCalls
 
-object SchoolsController extends SchoolsController(SchoolsClient) {
-  lazy val silhouette = SilhouetteComponent.silhouette
-}
-
-abstract class SchoolsController(schoolsClient: SchoolsClient)
-  extends BaseController {
+@Singleton
+class SchoolsController @Inject() (config: FrontendAppConfig,
+  mcc: MessagesControllerComponents,
+  val secEnv: SecurityEnvironment,
+  val silhouetteComponent: SilhouetteComponent,
+  val notificationTypeHelper: NotificationTypeHelper,
+  schoolsClient: SchoolsClient)(implicit val ec: ExecutionContext)
+  extends BaseController(config, mcc) {
   def getSchools(term: String) = CSRSecureAppAction(EducationQuestionnaireRole) { implicit request =>
     implicit user =>
       if (term.trim.nonEmpty) {

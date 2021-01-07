@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,13 @@
 
 package forms
 
-import forms.DiversityQuestionnaireForm.{ Data, form }
-import testkit.UnitWithAppSpec
+import forms.DiversityQuestionnaireForm.Data
 
-class DiversityQuestionnaireFormSpec extends UnitWithAppSpec {
+class DiversityQuestionnaireFormSpec extends BaseFormSpec {
 
   "the diversity form" should {
     "be valid when all values are correct" in new Fixture {
-      val validForm = form.bind(validFormValues)
+      val validForm = formWrapper.bind(validFormValues)
       val expectedData = validFormData
       val actualData = validForm.get
       actualData mustBe expectedData
@@ -54,7 +53,7 @@ class DiversityQuestionnaireFormSpec extends UnitWithAppSpec {
     }
 
     "be valid when ethnicity is specified and preferNotToSay is not selected" in new Fixture {
-      val validForm = form.bind(validFormValues ++ Seq("ethnicity" -> "Irish", "preferNotSay_ethnicity" -> ""))
+      val validForm = formWrapper.bind(validFormValues ++ Seq("ethnicity" -> "Irish", "preferNotSay_ethnicity" -> ""))
       val expectedData = Data(
         gender = "Man", otherGender = None,
         sexOrientation = "Other", otherSexOrientation = Some("details"),
@@ -74,7 +73,7 @@ class DiversityQuestionnaireFormSpec extends UnitWithAppSpec {
     }
 
     "be valid when ethnicity is not a correct value and preferNotToSay is selected" in new Fixture {
-      val validForm = form.bind(validFormValues ++ Seq("ethnicity" -> "BOOM"))
+      val validForm = formWrapper.bind(validFormValues ++ Seq("ethnicity" -> "BOOM"))
       val expectedData = Data(
         gender = "Man", otherGender = None,
         sexOrientation = "Other", otherSexOrientation = Some("details"),
@@ -134,6 +133,8 @@ class DiversityQuestionnaireFormSpec extends UnitWithAppSpec {
       "isEnglishFirstLanguage" -> "Yes"
     )
 
+    val formWrapper = new DiversityQuestionnaireForm().form
+
     def assertFieldRequired(expectedError: String, formValues: Map[String, String]) =
       assertFormError(expectedError, formValues)
 
@@ -141,7 +142,7 @@ class DiversityQuestionnaireFormSpec extends UnitWithAppSpec {
       assertFormError(expectedError, validFormValues ++ fieldKeysToClear.map(k => k -> ""))
 
     def assertFormError(expectedKey: String, invalidFormValues: Map[String, String]) = {
-      val invalidForm = form.bind(invalidFormValues)
+      val invalidForm = formWrapper.bind(invalidFormValues)
       invalidForm.hasErrors mustBe true
       invalidForm.errors.map(_.key) mustBe Seq(expectedKey)
     }

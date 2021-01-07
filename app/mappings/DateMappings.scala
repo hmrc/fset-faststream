@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,6 @@ import play.api.data.format.Formatter
 import play.api.data.validation.{ Constraint, Invalid, Valid, ValidationError }
 import play.api.data.FormError
 import play.api.data.format.Formatter
-import play.api.i18n.Messages
-import play.api.i18n.Messages.Implicits._
-import play.api.Play.current
 
 import scala.language.implicitConversions
 import scala.util.{ Success, Try }

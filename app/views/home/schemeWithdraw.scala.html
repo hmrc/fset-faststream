@@ -1,5 +1,5 @@
 @*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,9 @@
 @import models.page.SchemeWithdrawPage
 @import views.html.widgets.{ yesNoRadioWithTogglePanel, selectValueDifferentFromDisplayedText }
 @import helpers.CSRFieldConstructor._
+@import config.AnalyticsConfig
 
-@(page: SchemeWithdrawPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, messages: Messages)
+@(page: SchemeWithdrawPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
 
 @main_template(title = "Withdraw from a scheme") {
     <h1 class="heading-xlarge">Withdraw from a scheme</h1>

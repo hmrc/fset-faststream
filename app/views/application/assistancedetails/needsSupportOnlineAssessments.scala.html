@@ -1,5 +1,5 @@
 @*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@
         <div id="needsSupportForOnlineAssessment-describe" class="toggle-content" aria-hidden="true">
             <div class="form-group">
                 @helper.textarea(form("needsSupportForOnlineAssessmentDescription"),
-                    '_label -> Html("What adjustments will you need <span class='visuallyhidden'>for your work based scenarios, video interview or numerical test</span>?"),
+                    '_label -> "What adjustments will you need for your work based scenarios, video interview or numerical test?",
                     'class -> "form-control",
                     'rows -> 4,
                     'dataValLengthMax -> "2048",
