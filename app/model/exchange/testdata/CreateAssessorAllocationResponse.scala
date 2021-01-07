@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,13 @@
 
 package model.exchange.testdata
 
-import model.testdata.CreateAssessorAllocationData.CreateAssessorAllocationData
-import model.testdata.CreateEventData.CreateEventData
+import model.testdata.CreateAssessorAllocationData
 import play.api.libs.json.{ Json, OFormat }
+
+case class CreateAssessorAllocationResponse(generationId: Int, data: CreateAssessorAllocationData) extends CreateTestDataResponse
 
 object CreateAssessorAllocationResponse {
 
-  case class CreateAssessorAllocationResponse(generationId: Int, data: CreateAssessorAllocationData) extends CreateTestDataResponse
-
-  object CreateAssessorAllocationResponse {
-
-    implicit val format: OFormat[CreateAssessorAllocationResponse] =
-      Json.format[CreateAssessorAllocationResponse]
-  }
-
+  implicit val format: OFormat[CreateAssessorAllocationResponse] =
+    Json.format[CreateAssessorAllocationResponse]
 }

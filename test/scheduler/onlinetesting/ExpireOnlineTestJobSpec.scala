@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,24 +21,27 @@ import model.Phase1ExpirationEvent
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
+import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import services.BaseServiceSpec
 import services.onlinetesting.OnlineTestService
 import testkit.ShortTimeout
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.http.HeaderCarrier
-
 
 class ExpireOnlineTestJobSpec extends BaseServiceSpec with ShortTimeout {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val serviceMock = mock[OnlineTestService]
 
+  val mockConfiguration = mock[play.api.Configuration]
+
   object TestableExpireTestJob extends ExpireOnlineTestJob {
 
     val onlineTestingService = serviceMock
+    override val mongoComponent = mock[ReactiveMongoComponent]
     val expiryTest = Phase1ExpirationEvent(gracePeriodInSecs = 0)
     override val lockId: String = "1"
     override val forceLockReleaseAfter: Duration = mock[Duration]
@@ -46,7 +49,7 @@ class ExpireOnlineTestJobSpec extends BaseServiceSpec with ShortTimeout {
     override val name: String = "test"
     override val initialDelay: FiniteDuration = mock[FiniteDuration]
     override val interval: FiniteDuration = mock[FiniteDuration]
-    val config = BasicJobConfig[ScheduledJobConfig]("", "")
+    val config = BasicJobConfig[ScheduledJobConfig](mockConfiguration, "", "")
   }
 
   "expire test phase N job" should {

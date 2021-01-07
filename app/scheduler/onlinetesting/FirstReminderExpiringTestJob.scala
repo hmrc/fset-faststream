@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,33 +17,49 @@
 package scheduler.onlinetesting
 
 import config.ScheduledJobConfig
-import model.{ EmptyRequestHeader, Phase1FirstReminder, Phase2FirstReminder, Phase3FirstReminder, ReminderNotice }
+import javax.inject.{ Inject, Singleton }
+import model._
+import play.api.Configuration
+import play.api.mvc.RequestHeader
+import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
 import services.onlinetesting.phase1.Phase1TestService
 import services.onlinetesting.phase2.Phase2TestService
 import services.onlinetesting.phase3.Phase3TestService
-
-import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 
-object FirstPhase1ReminderExpiringTestJob extends FirstReminderExpiringTestJob {
-  override val service = Phase1TestService
+import scala.concurrent.{ ExecutionContext, Future }
+
+@Singleton
+class FirstPhase1ReminderExpiringTestJob @Inject() (val service: Phase1TestService,
+                                                    val mongoComponent: ReactiveMongoComponent,
+                                                    val config: FirstPhase1ReminderExpiringTestJobConfig
+                                                   ) extends FirstReminderExpiringTestJob {
+  //  override val service = Phase1TestService
   override val reminderNotice: ReminderNotice = Phase1FirstReminder
-  val config = FirstPhase1ReminderExpiringTestJobConfig
+  //  val config = FirstPhase1ReminderExpiringTestJobConfig2
 }
 
-object FirstPhase2ReminderExpiringTestJob extends FirstReminderExpiringTestJob {
-  override val service = Phase2TestService
+@Singleton
+class FirstPhase2ReminderExpiringTestJob @Inject() (val service: Phase2TestService,
+                                                    val mongoComponent: ReactiveMongoComponent,
+                                                    val config: FirstPhase2ReminderExpiringTestJobConfig
+                                                   ) extends FirstReminderExpiringTestJob {
+  //  override val service = Phase2TestService
   override val reminderNotice: ReminderNotice = Phase2FirstReminder
-  val config = FirstPhase2ReminderExpiringTestJobConfig
+  //  val config = FirstPhase2ReminderExpiringTestJobConfig2
 }
 
-object FirstPhase3ReminderExpiringTestJob extends FirstReminderExpiringTestJob {
-  override val service = Phase3TestService
+@Singleton
+class FirstPhase3ReminderExpiringTestJob @Inject() (val service: Phase3TestService,
+                                                    val mongoComponent: ReactiveMongoComponent,
+                                                    val config: FirstPhase3ReminderExpiringTestJobConfig
+                                                   ) extends FirstReminderExpiringTestJob {
+  //  override val service = Phase3TestService
   override val reminderNotice: ReminderNotice = Phase3FirstReminder
-  val config = FirstPhase3ReminderExpiringTestJobConfig
+  //  val config = FirstPhase3ReminderExpiringTestJobConfig2
 }
 
 trait FirstReminderExpiringTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
@@ -51,23 +67,29 @@ trait FirstReminderExpiringTestJob extends SingleInstanceScheduledJob[BasicJobCo
   val reminderNotice: ReminderNotice
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    implicit val rh = EmptyRequestHeader
-    implicit val hc = HeaderCarrier()
+    implicit val rh: RequestHeader = EmptyRequestHeader
+    implicit val hc: HeaderCarrier = HeaderCarrier()
     service.processNextTestForReminder(reminderNotice)
   }
 }
 
-object FirstPhase1ReminderExpiringTestJobConfig extends BasicJobConfig[ScheduledJobConfig](
+@Singleton
+class FirstPhase1ReminderExpiringTestJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.online-testing.first-phase1-reminder-expiring-test-job",
   name = "FirstPhase1ReminderExpiringTestJob"
 )
 
-object FirstPhase2ReminderExpiringTestJobConfig extends BasicJobConfig[ScheduledJobConfig](
+@Singleton
+class FirstPhase2ReminderExpiringTestJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.online-testing.first-phase2-reminder-expiring-test-job",
   name = "FirstPhase2ReminderExpiringTestJob"
 )
 
-object FirstPhase3ReminderExpiringTestJobConfig extends BasicJobConfig[ScheduledJobConfig](
+@Singleton
+class FirstPhase3ReminderExpiringTestJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.online-testing.first-phase3-reminder-expiring-test-job",
   name = "FirstPhase3ReminderExpiringTestJob"
 )

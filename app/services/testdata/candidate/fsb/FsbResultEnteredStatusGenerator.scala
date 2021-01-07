@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package services.testdata.candidate.fsb
 
+import javax.inject.{ Inject, Singleton }
 import model.EvaluationResults.Green
 import model.Exceptions.{ InvalidApplicationStatusAndProgressStatusException, SchemeNotFoundException }
 import model.command.testdata.CreateCandidateRequest.FsbTestGroupDataRequest
@@ -31,21 +32,17 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
-object FsbResultEnteredStatusGenerator extends FsbResultEnteredStatusGenerator {
-  override val previousStatusGenerator: BaseGenerator = FsbAllocationConfirmedStatusGenerator
-  override val fsbTestGroupService = FsbService
-  override val dataFaker: DataFaker = DataFaker
-}
-
-trait FsbResultEnteredStatusGenerator extends ConstructiveGenerator {
-  val fsbTestGroupService: FsbService
-  val dataFaker: DataFaker
+@Singleton
+class FsbResultEnteredStatusGenerator @Inject() (val previousStatusGenerator: FsbAllocationConfirmedStatusGenerator,
+                                                 fsbTestGroupService: FsbService,
+                                                 dataFaker: DataFaker
+                                                ) extends ConstructiveGenerator {
 
   def generate(generationId: Int, createCandidateDataIn: CreateCandidateData)
               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
 
     val createCandidateData = if (createCandidateDataIn.fsbTestGroupData.isEmpty) {
-      val schemeTypes = createCandidateDataIn.schemeTypes.getOrElse(dataFaker.Random.schemeTypes.map(_.id))
+      val schemeTypes = createCandidateDataIn.schemeTypes.getOrElse(dataFaker.schemeTypes.map(_.id))
       val schemeResults = schemeTypes.map { schemeId =>
         SchemeEvaluationResult(schemeId, Green.toString) // fake data
       }
@@ -75,5 +72,4 @@ trait FsbResultEnteredStatusGenerator extends ConstructiveGenerator {
       throw InvalidApplicationStatusAndProgressStatusException("ProgressStatuses.FSB_RESULT_ENTERED status must have fsbTestGroupData")
     }
   }
-
 }

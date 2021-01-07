@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,137 +21,137 @@ import testkit.UnitSpec
 class SocioEconomicCalculatorSpec extends UnitSpec {
 
   import SocioEconomicCalculatorSpec._
-  val calculator = new SocioEconomicScoreCalculator {}
+  val calculator = new SocioEconomicScoreCalculator()
 
   "The socio-economic score calculator" should {
     "calculate the employment status size of unemployed" in {
-      calculator.calculateEmploymentStatusSize(unemployed) must be(SocioEconomicCalculator.NotApplicable)
+      calculator.calculateEmploymentStatusSize(unemployed) mustBe SocioEconomicCalculator.NotApplicable
     }
 
     "calculate the employment status size of unemployed but seeking work" in {
-      calculator.calculateEmploymentStatusSize(unemployedSeekingWork) must be(SocioEconomicCalculator.NotApplicable)
+      calculator.calculateEmploymentStatusSize(unemployedSeekingWork) mustBe SocioEconomicCalculator.NotApplicable
     }
 
     "calculate the employment status size of Unknown" in {
-      calculator.calculateEmploymentStatusSize(prefersNotToSay) must be(SocioEconomicCalculator.NotApplicable)
+      calculator.calculateEmploymentStatusSize(prefersNotToSay) mustBe SocioEconomicCalculator.NotApplicable
     }
 
     "calculate the employment status size of '7- Other employees" in {
-      calculator.calculateEmploymentStatusSize(otherEmployees_7_Variant1) must be (SocioEconomicCalculator.OtherEmployees)
-      calculator.calculateEmploymentStatusSize(otherEmployees_7_Variant2) must be (SocioEconomicCalculator.OtherEmployees)
+      calculator.calculateEmploymentStatusSize(otherEmployees_7_Variant1) mustBe SocioEconomicCalculator.OtherEmployees
+      calculator.calculateEmploymentStatusSize(otherEmployees_7_Variant2) mustBe SocioEconomicCalculator.OtherEmployees
     }
 
     "calculate the employment status size of '6- Supervisors" in {
-      calculator.calculateEmploymentStatusSize(supervisors_6_Variant1) must be (SocioEconomicCalculator.Supervisors)
-      calculator.calculateEmploymentStatusSize(supervisors_6_Variant2) must be (SocioEconomicCalculator.Supervisors)
+      calculator.calculateEmploymentStatusSize(supervisors_6_Variant1) mustBe SocioEconomicCalculator.Supervisors
+      calculator.calculateEmploymentStatusSize(supervisors_6_Variant2) mustBe SocioEconomicCalculator.Supervisors
     }
 
     "calculate the employment status size of '5- Managers-small organisations" in {
-      calculator.calculateEmploymentStatusSize(managers_5_Variant1) must be (SocioEconomicCalculator.ManagersSmallOrganisations)
-      calculator.calculateEmploymentStatusSize(managers_5_Variant2) must be (SocioEconomicCalculator.ManagersSmallOrganisations)
-      calculator.calculateEmploymentStatusSize(managers_5_Variant2) must be (SocioEconomicCalculator.ManagersSmallOrganisations)
+      calculator.calculateEmploymentStatusSize(managers_5_Variant1) mustBe SocioEconomicCalculator.ManagersSmallOrganisations
+      calculator.calculateEmploymentStatusSize(managers_5_Variant2) mustBe SocioEconomicCalculator.ManagersSmallOrganisations
+      calculator.calculateEmploymentStatusSize(managers_5_Variant2) mustBe SocioEconomicCalculator.ManagersSmallOrganisations
     }
 
     "calculate the employment status size of '4- Managers-large organisations" in {
-      calculator.calculateEmploymentStatusSize(managers_4_Variant1) must be (SocioEconomicCalculator.ManagersLargeOrganisations)
-      calculator.calculateEmploymentStatusSize(managers_4_Variant2) must be (SocioEconomicCalculator.ManagersLargeOrganisations)
-      calculator.calculateEmploymentStatusSize(managers_4_Variant2) must be (SocioEconomicCalculator.ManagersLargeOrganisations)
+      calculator.calculateEmploymentStatusSize(managers_4_Variant1) mustBe SocioEconomicCalculator.ManagersLargeOrganisations
+      calculator.calculateEmploymentStatusSize(managers_4_Variant2) mustBe SocioEconomicCalculator.ManagersLargeOrganisations
+      calculator.calculateEmploymentStatusSize(managers_4_Variant2) mustBe SocioEconomicCalculator.ManagersLargeOrganisations
     }
 
     "calculate the employment status size of '3- Self-employed, no employees" in {
-      calculator.calculateEmploymentStatusSize(self_employed_3_Variant1) must be (SocioEconomicCalculator.SelfEmployedNoEmployees)
-      calculator.calculateEmploymentStatusSize(self_employed_3_Variant2) must be (SocioEconomicCalculator.SelfEmployedNoEmployees)
-      calculator.calculateEmploymentStatusSize(self_employed_3_Variant3) must be (SocioEconomicCalculator.SelfEmployedNoEmployees)
+      calculator.calculateEmploymentStatusSize(self_employed_3_Variant1) mustBe SocioEconomicCalculator.SelfEmployedNoEmployees
+      calculator.calculateEmploymentStatusSize(self_employed_3_Variant2) mustBe SocioEconomicCalculator.SelfEmployedNoEmployees
+      calculator.calculateEmploymentStatusSize(self_employed_3_Variant3) mustBe SocioEconomicCalculator.SelfEmployedNoEmployees
     }
 
     "calculate the employment status size of '2- Employers-small organisations" in {
-      calculator.calculateEmploymentStatusSize(employers_2_Variant1) must be (SocioEconomicCalculator.EmployersSmallOrganisations)
-      calculator.calculateEmploymentStatusSize(employers_2_Variant2) must be (SocioEconomicCalculator.EmployersSmallOrganisations)
-      calculator.calculateEmploymentStatusSize(employers_2_Variant3) must be (SocioEconomicCalculator.EmployersSmallOrganisations)
+      calculator.calculateEmploymentStatusSize(employers_2_Variant1) mustBe SocioEconomicCalculator.EmployersSmallOrganisations
+      calculator.calculateEmploymentStatusSize(employers_2_Variant2) mustBe SocioEconomicCalculator.EmployersSmallOrganisations
+      calculator.calculateEmploymentStatusSize(employers_2_Variant3) mustBe SocioEconomicCalculator.EmployersSmallOrganisations
     }
 
     "calculate the employment status size of '1- Employers-large organisations" in {
-      calculator.calculateEmploymentStatusSize(employers_1_Variant1) must be (SocioEconomicCalculator.EmployersLargeOrganisations)
-      calculator.calculateEmploymentStatusSize(employers_1_Variant2) must be (SocioEconomicCalculator.EmployersLargeOrganisations)
-      calculator.calculateEmploymentStatusSize(employers_1_Variant3) must be (SocioEconomicCalculator.EmployersLargeOrganisations)
+      calculator.calculateEmploymentStatusSize(employers_1_Variant1) mustBe SocioEconomicCalculator.EmployersLargeOrganisations
+      calculator.calculateEmploymentStatusSize(employers_1_Variant2) mustBe SocioEconomicCalculator.EmployersLargeOrganisations
+      calculator.calculateEmploymentStatusSize(employers_1_Variant3) mustBe SocioEconomicCalculator.EmployersLargeOrganisations
     }
 
     "calculate the socio-economic score of unemployed" in {
-      calculator.calculate(unemployed) must be("")
+      calculator.calculate(unemployed) mustBe ""
     }
 
     "calculate the socio-economic score of unemployed but seeking work" in {
-      calculator.calculate(unemployed) must be("")
+      calculator.calculate(unemployed) mustBe ""
     }
 
     "calculate the socio-economic score of Unknown" in {
-      calculator.calculate(prefersNotToSay) must be("")
+      calculator.calculate(prefersNotToSay) mustBe ""
     }
 
     "calculate the socio-economic score of modern professionals" in {
-      calculator.calculate(modernProfessional_Variant1) must be("SE-1")
-      calculator.calculate(modernProfessional_Variant2) must be("SE-1")
-      calculator.calculate(modernProfessional_Variant3) must be("SE-1")
-      calculator.calculate(modernProfessional_Variant6) must be("SE-1")
-      calculator.calculate(modernProfessional_Variant7) must be("SE-1")
+      calculator.calculate(modernProfessional_Variant1) mustBe "SE-1"
+      calculator.calculate(modernProfessional_Variant2) mustBe "SE-1"
+      calculator.calculate(modernProfessional_Variant3) mustBe "SE-1"
+      calculator.calculate(modernProfessional_Variant6) mustBe "SE-1"
+      calculator.calculate(modernProfessional_Variant7) mustBe "SE-1"
     }
 
     "calculate the socio-economic score of clerical" in {
-      calculator.calculate(clerical_Variant1) must be("SE-1")
-      calculator.calculate(clerical_Variant2) must be("SE-3")
-      calculator.calculate(clerical_Variant3) must be("SE-3")
-      calculator.calculate(clerical_Variant6) must be("SE-1")
-      calculator.calculate(clerical_Variant7) must be("SE-2")
+      calculator.calculate(clerical_Variant1) mustBe "SE-1"
+      calculator.calculate(clerical_Variant2) mustBe "SE-3"
+      calculator.calculate(clerical_Variant3) mustBe "SE-3"
+      calculator.calculate(clerical_Variant6) mustBe "SE-1"
+      calculator.calculate(clerical_Variant7) mustBe "SE-2"
     }
 
     "calculate the socio-economic score of senior managers and administrators" in {
-      calculator.calculate(managers_Variant1) must be("SE-1")
-      calculator.calculate(managers_Variant2) must be("SE-3")
-      calculator.calculate(managers_Variant3) must be("SE-3")
-      calculator.calculate(managers_Variant4) must be("SE-1")
-      calculator.calculate(managers_Variant5) must be("SE-1")
-      calculator.calculate(managers_Variant6) must be("SE-1")
-      calculator.calculate(managers_Variant7) must be("SE-1")
+      calculator.calculate(managers_Variant1) mustBe "SE-1"
+      calculator.calculate(managers_Variant2) mustBe "SE-3"
+      calculator.calculate(managers_Variant3) mustBe "SE-3"
+      calculator.calculate(managers_Variant4) mustBe "SE-1"
+      calculator.calculate(managers_Variant5) mustBe "SE-1"
+      calculator.calculate(managers_Variant6) mustBe "SE-1"
+      calculator.calculate(managers_Variant7) mustBe "SE-1"
     }
 
     "calculate the socio-economic score of technical and craft occupations" in {
-      calculator.calculate(technical_Variant1) must be("SE-1")
-      calculator.calculate(technical_Variant2) must be("SE-3")
-      calculator.calculate(technical_Variant3) must be("SE-3")
-      calculator.calculate(technical_Variant6) must be("SE-4")
-      calculator.calculate(technical_Variant7) must be("SE-4")
+      calculator.calculate(technical_Variant1) mustBe "SE-1"
+      calculator.calculate(technical_Variant2) mustBe "SE-3"
+      calculator.calculate(technical_Variant3) mustBe "SE-3"
+      calculator.calculate(technical_Variant6) mustBe "SE-4"
+      calculator.calculate(technical_Variant7) mustBe "SE-4"
     }
 
     "calculate the socio-economic score of semi-routine manual occupations" in {
-      calculator.calculate(semi_routine_Variant1) must be("SE-1")
-      calculator.calculate(semi_routine_Variant2) must be("SE-3")
-      calculator.calculate(semi_routine_Variant3) must be("SE-3")
-      calculator.calculate(semi_routine_Variant6) must be("SE-4")
-      calculator.calculate(semi_routine_Variant7) must be("SE-5")
+      calculator.calculate(semi_routine_Variant1) mustBe "SE-1"
+      calculator.calculate(semi_routine_Variant2) mustBe "SE-3"
+      calculator.calculate(semi_routine_Variant3) mustBe "SE-3"
+      calculator.calculate(semi_routine_Variant6) mustBe "SE-4"
+      calculator.calculate(semi_routine_Variant7) mustBe "SE-5"
     }
 
     "calculate the socio-economic score of routine manual and service occupations" in {
-      calculator.calculate(routine_Variant1) must be("SE-1")
-      calculator.calculate(routine_Variant2) must be("SE-3")
-      calculator.calculate(routine_Variant3) must be("SE-3")
-      calculator.calculate(routine_Variant6) must be("SE-4")
-      calculator.calculate(routine_Variant7) must be("SE-5")
+      calculator.calculate(routine_Variant1) mustBe "SE-1"
+      calculator.calculate(routine_Variant2) mustBe "SE-3"
+      calculator.calculate(routine_Variant3) mustBe "SE-3"
+      calculator.calculate(routine_Variant6) mustBe "SE-4"
+      calculator.calculate(routine_Variant7) mustBe "SE-5"
     }
 
     "calculate the socio-economic score of middle and junior managers occupations" in {
-      calculator.calculate(middle_Variant1) must be("SE-1")
-      calculator.calculate(middle_Variant2) must be("SE-3")
-      calculator.calculate(middle_Variant3) must be("SE-3")
-      calculator.calculate(middle_Variant6) must be("SE-1")
-      calculator.calculate(middle_Variant7) must be("SE-1")
+      calculator.calculate(middle_Variant1) mustBe "SE-1"
+      calculator.calculate(middle_Variant2) mustBe "SE-3"
+      calculator.calculate(middle_Variant3) mustBe "SE-3"
+      calculator.calculate(middle_Variant6) mustBe "SE-1"
+      calculator.calculate(middle_Variant7) mustBe "SE-1"
     }
 
     "calculate the socio-economic score of traditional professional occupations" in {
-      calculator.calculate(traditional_Variant1) must be("SE-1")
-      calculator.calculate(traditional_Variant2) must be("SE-1")
-      calculator.calculate(traditional_Variant3) must be("SE-1")
-      calculator.calculate(traditional_Variant4) must be("SE-1")
-      calculator.calculate(traditional_Variant5) must be("SE-1")
+      calculator.calculate(traditional_Variant1) mustBe "SE-1"
+      calculator.calculate(traditional_Variant2) mustBe "SE-1"
+      calculator.calculate(traditional_Variant3) mustBe "SE-1"
+      calculator.calculate(traditional_Variant4) mustBe "SE-1"
+      calculator.calculate(traditional_Variant5) mustBe "SE-1"
     }
   }
 

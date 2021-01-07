@@ -1,10 +1,12 @@
 package repositories.event
 
 import model.Exceptions.EventNotFoundException
-import repositories.CollectionNames
 import model.persisted.EventExamples
 import model.persisted.eventschedules.{ EventType, SkillType, VenueType }
 import org.joda.time.DateTime
+import reactivemongo.api.indexes.IndexType.Ascending
+import repositories.CollectionNames
+import repositories.events.EventsMongoRepository
 import testkit.MongoRepositorySpec
 
 import scala.util.Random
@@ -13,13 +15,17 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
   override val collectionName: String = CollectionNames.ASSESSMENT_EVENTS
 
-  lazy val repository = repositories.eventsRepository
+  lazy val repository = new EventsMongoRepository(mongo, appConfig)
 
   "Events Repository" should {
     "create indexes for the repository" in {
       val indexes = indexesWithFields(repository)
       indexes must contain theSameElementsAs
-        Seq(List("eventType", "date", "location", "venue"), List("_id"))
+        Seq(
+          IndexDetails(key = Seq(("_id", Ascending)), unique = false),
+          IndexDetails(key = Seq(("eventType", Ascending), ("date", Ascending), ("location", Ascending), ("venue", Ascending)),
+            unique = false)
+        )
     }
   }
 
@@ -142,21 +148,26 @@ class EventsRepositorySpec extends MongoRepositorySpec {
     }
 
     "return the newly created events since the specified date" in {
+      // Create events 1 day ago whose bulkUpload status is false so they are manually created events
       val hoursInPast = 24
-      val createdAt = DateTime.now().minusDays(hoursInPast)
-      val events = EventExamples.EventsNew.map(_.copy(createdAt = createdAt))
+      val createdAt1DayAgo = DateTime.now().minusDays(hoursInPast)
+      val events = EventExamples.EventsNew.map(_.copy(createdAt = createdAt1DayAgo))
       repository.save(events).futureValue mustBe unit
 
-      // this helps us create events at random hours rather using just one
+      // This helps us create events at random hours rather than using just one
       def randomHour = 1 + new Random().nextInt( (hoursInPast - 1) + 1 )
 
-      val bulkInsertedEvent = EventExamples.e1WithSession.copy(createdAt = createdAt.plusHours(randomHour), wasBulkUploaded = true)
+      // The bulkUpload status on this event is true so we do not expect to find it when we look for manually created events
+      val bulkInsertedEvent = EventExamples.e1WithSession.copy(createdAt = createdAt1DayAgo.plusHours(randomHour), wasBulkUploaded = true)
       repository.save(List(bulkInsertedEvent)).futureValue mustBe unit
 
-      val newEvents = EventExamples.EventsNew.map(_.copy(createdAt = createdAt.plusHours(randomHour)))
+      // Create events whose createdAt date is a random hour value after the createdAt1DayAgo value
+      // The bulkUpload status on these events is false so they are manually created events. These are the events we expect to fetch
+      val newEvents = EventExamples.EventsNew.map(_.copy(createdAt = createdAt1DayAgo.plusHours(randomHour)))
       repository.save(newEvents).futureValue mustBe unit
 
-      val result = repository.getEventsManuallyCreatedAfter(createdAt.plusMinutes(1)).futureValue
+      // Look for events whose bulkUpload status is false and which have been created 1 minute after the createdAt1DayAgo time stamp
+      val result = repository.getEventsManuallyCreatedAfter(createdAt1DayAgo.plusMinutes(1)).futureValue
       result mustBe newEvents
     }
   }

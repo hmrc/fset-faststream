@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,14 @@
 
 package services
 
+import javax.inject.{ Inject, Singleton }
 import model.AssessorNewEventsJobInfo
 import repositories.AssessorsEventsSummaryJobsRepository
 
 import scala.concurrent.Future
 
-object AssessorsEventsSummaryJobsService extends AssessorsEventsSummaryJobsService {
-  val repository: AssessorsEventsSummaryJobsRepository = repositories.assessorsEventsSummaryJobsRepository
-}
-
-trait AssessorsEventsSummaryJobsService {
-
-  def repository: AssessorsEventsSummaryJobsRepository
+@Singleton
+class AssessorsEventsSummaryJobsService @Inject() (repository: AssessorsEventsSummaryJobsRepository) {
 
   def save(info: AssessorNewEventsJobInfo): Future[Unit] = {
     repository.save(info)

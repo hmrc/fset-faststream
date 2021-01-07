@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,7 +92,6 @@ trait ApplicationStatusCalculator {
     evaluatedSchemes: List[SchemeEvaluationResult],
     phase: Phase
   ): Option[ProgressStatus] = {
-
     val results = evaluatedSchemes.map(s => Result(s.result))
     require(results.nonEmpty, "Results not found")
 

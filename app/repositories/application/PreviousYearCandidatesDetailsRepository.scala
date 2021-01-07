@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,26 @@
 
 package repositories.application
 
-import config.PsiTestIds
+import config.{ MicroserviceAppConfig, PsiTestIds }
 import connectors.launchpadgateway.exchangeobjects.in.reviewed._
 import factories.DateTimeFactory
+import javax.inject.{ Inject, Singleton }
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model._
-import model.command.{CandidateDetailsReportItem, CsvExtract, WithdrawApplication}
-import model.persisted.{FSACIndicator, SchemeEvaluationResult}
+import model.command.{ CandidateDetailsReportItem, CsvExtract, WithdrawApplication }
 import model.persisted.fsb.ScoresAndFeedback
+import model.persisted.{ FSACIndicator, SchemeEvaluationResult }
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{JsObject, Json}
-import reactivemongo.api.{Cursor, DB, ReadPreference}
-import reactivemongo.bson.{BSONArray, BSONDocument, BSONReader, BSONRegex, BSONValue}
+import play.api.libs.json.{ JsObject, Json }
+import play.modules.reactivemongo.ReactiveMongoComponent
+import reactivemongo.api.{ Cursor, ReadPreference }
+import reactivemongo.bson.{ BSONArray, BSONDocument, BSONReader, BSONRegex, BSONValue }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import reactivemongo.play.json.collection.JSONCollection
-import repositories.{BSONDateTimeHandler, CollectionNames, CommonBSONDocuments, SchemeYamlRepository, withdrawHandler}
+import repositories.{ BSONDateTimeHandler, CollectionNames, CommonBSONDocuments, SchemeRepository, SchemeYamlRepository, withdrawHandler }
 import services.reporting.SocioEconomicCalculator
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -41,6 +43,9 @@ import scala.concurrent.Future
 
 //scalastyle:off
 trait PreviousYearCandidatesDetailsRepository {
+
+  val allSchemes: List[String]
+  val siftAnswersHeader: String
 
   implicit class RichOptionBSONDocument(doc: Option[BSONDocument]) {
 
@@ -123,8 +128,8 @@ trait PreviousYearCandidatesDetailsRepository {
     appTestStatuses +
     fsacCompetencyHeaders +
     appTestResults(numOfSchemes) +
-  ",Candidate or admin withdrawal?,Tell us why you're withdrawing,More information about your withdrawal,Admin comment," +
-  "FSAC Indicator area,FSAC Indicator Assessment Centre,FSAC Indicator version"
+    ",Candidate or admin withdrawal?,Tell us why you're withdrawing,More information about your withdrawal,Admin comment," +
+    "FSAC Indicator area,FSAC Indicator Assessment Centre,FSAC Indicator version"
 
   val contactDetailsHeader = "Email,Address line1,Address line2,Address line3,Address line4,Postcode,Outside UK,Country,Phone"
 
@@ -139,11 +144,11 @@ trait PreviousYearCandidatesDetailsRepository {
 
   val eventsDetailsHeader = "Allocated events"
 
-  val allSchemes: List[String] = SchemeYamlRepository.schemes.map(_.id.value).toList
+//  val allSchemes: List[String] = SchemeYamlRepository.schemes.map(_.id.value).toList //Broke guice DI
 
-  val siftAnswersHeader: String = "Sift Answers status,multipleNationalities,secondNationality,nationality," +
-    "undergrad degree name,classification,graduationYear,moduleDetails," +
-    "postgrad degree name,classification,graduationYear,moduleDetails," + allSchemes.mkString(",")
+  //  val siftAnswersHeader: String = "Sift Answers status,multipleNationalities,secondNationality,nationality," +
+//    "undergrad degree name,classification,graduationYear,moduleDetails," +
+//    "postgrad degree name,classification,graduationYear,moduleDetails," + allSchemes.mkString(",")
 
   val dataAnalystSiftAnswersHeader: String = "Nationality,Undergrad degree name,Classification,Graduation year"
 
@@ -208,27 +213,25 @@ trait PreviousYearCandidatesDetailsRepository {
   def findDataAnalystSiftAnswers(applicationIds: Seq[String]): Future[CsvExtract[String]]
 }
 
-class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
+@Singleton
+class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
+                                                              appConfig: MicroserviceAppConfig,
+                                                              schemeRepository: SchemeRepository,
+                                                              mongoComponent: ReactiveMongoComponent)
   extends PreviousYearCandidatesDetailsRepository with CommonBSONDocuments with DiversityQuestionsText {
 
-  import config.MicroserviceAppConfig._
+//  import config.MicroserviceAppConfig._
+
+  val mongo = mongoComponent.mongoConnector.db
 
   val applicationDetailsCollection = mongo().collection[JSONCollection](CollectionNames.APPLICATION)
-
   val contactDetailsCollection = mongo().collection[JSONCollection](CollectionNames.CONTACT_DETAILS)
-
   val questionnaireCollection = mongo().collection[JSONCollection](CollectionNames.QUESTIONNAIRE)
-
   val mediaCollection = mongo().collection[JSONCollection](CollectionNames.MEDIA)
-
   val assessorAssessmentScoresCollection = mongo().collection[JSONCollection](CollectionNames.ASSESSOR_ASSESSMENT_SCORES)
-
   val reviewerAssessmentScoresCollection = mongo().collection[JSONCollection](CollectionNames.REVIEWER_ASSESSMENT_SCORES)
-
   val candidateAllocationCollection = mongo().collection[JSONCollection](CollectionNames.CANDIDATE_ALLOCATION)
-
   val eventCollection = mongo().collection[JSONCollection](CollectionNames.ASSESSMENT_EVENTS)
-
   val siftAnswersCollection = mongo().collection[JSONCollection](CollectionNames.SIFT_ANSWERS)
 
   private val Y = Some("Yes")
@@ -238,8 +241,13 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
 
   private val unlimitedMaxDocs = -1
 
-  override def applicationDetailsStream(numOfSchemes: Int, applicationIds: Seq[String])
-  : Enumerator[CandidateDetailsReportItem] = {
+  override val allSchemes: List[String] = schemeRepository.schemes.map(_.id.value).toList
+
+  override val siftAnswersHeader: String = "Sift Answers status,multipleNationalities,secondNationality,nationality," +
+    "undergrad degree name,classification,graduationYear,moduleDetails," +
+    "postgrad degree name,classification,graduationYear,moduleDetails," + allSchemes.mkString(",")
+
+  override def applicationDetailsStream(numOfSchemes: Int, applicationIds: Seq[String]): Enumerator[CandidateDetailsReportItem] = {
     adsCounter = 0
 
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
@@ -626,13 +634,13 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       ).map(timestampFor)
   }
 
-  private def civilServiceExperienceCheckExpType(civilServExperienceType: Option[String], typeToMatch: String) =
-    List(if (civilServExperienceType.contains(typeToMatch)) Y else N)
+//  private def civilServiceExperienceCheckExpType(civilServExperienceType: Option[String], typeToMatch: String) =
+//    List(if (civilServExperienceType.contains(typeToMatch)) Y else N)
 
-  private def civilServiceExperienceCheckInternshipType(
-    civilServExperienceInternshipTypes: Option[List[String]],
-    typeToMatch: String
-  ) = List(if (civilServExperienceInternshipTypes.exists(_.contains(typeToMatch))) Y else N)
+//  private def civilServiceExperienceCheckInternshipType(
+//                                                         civilServExperienceInternshipTypes: Option[List[String]],
+//                                                         typeToMatch: String
+//                                                       ) = List(if (civilServExperienceInternshipTypes.exists(_.contains(typeToMatch))) Y else N)
 
   private def progressResponseReachedYesNo(progressResponseReached: Boolean) = if (progressResponseReached) Y else N
 
@@ -643,7 +651,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
   }
 
   override def findApplicationsFor(appRoutes: Seq[ApplicationRoute],
-                            appStatuses: Seq[ApplicationStatus]): Future[List[Candidate]] = {
+                                   appStatuses: Seq[ApplicationStatus]): Future[List[Candidate]] = {
     val query = BSONDocument( "$and" -> BSONArray(
       BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
       BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses))
@@ -1204,7 +1212,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     val phase1TestSection = testGroups.flatMap(_.getAs[BSONDocument]("PHASE1"))
     val phase1Tests = phase1TestSection.flatMap(_.getAs[List[BSONDocument]]("tests"))
 
-    val phase1TestConfig = testIntegrationGatewayConfig.phase1Tests.tests
+    val phase1TestConfig = appConfig.testIntegrationGatewayConfig.phase1Tests.tests
 
     val test1InventoryId = getInventoryId(phase1TestConfig, "test1", "phase1")
     val test2InventoryId = getInventoryId(phase1TestConfig, "test2", "phase1")
@@ -1233,7 +1241,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     )
 
     // Phase2 data
-    val phase2TestConfig = testIntegrationGatewayConfig.phase2Tests.tests
+    val phase2TestConfig = appConfig.testIntegrationGatewayConfig.phase2Tests.tests
 
     val phase2Test1InventoryId = getInventoryId(phase2TestConfig, "test1", "phase2")
     val phase2Test2InventoryId = getInventoryId(phase2TestConfig, "test2", "phase2")
@@ -1253,7 +1261,7 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
     )
 
     // Sift data
-    val siftTestConfig = testIntegrationGatewayConfig.numericalTests.tests
+    val siftTestConfig = appConfig.testIntegrationGatewayConfig.numericalTests.tests
 
     val siftTestInventoryId = getInventoryId(siftTestConfig, "test1", "sift")
 
@@ -1343,26 +1351,26 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       assistanceDetails.getAs[String]("hasDisability"),
       assistanceDetails.getAs[String]("disabilityImpact")
     ) ++ markedDisabilityCategories ++
-    List(
-      assistanceDetails.getAs[String]("otherDisabilityDescription"),
-      assistanceDetails.flatMap(ad => if (ad.getAs[Boolean]("guaranteedInterview").getOrElse(false)) Y else N),
-      if (assistanceDetails.getAs[Boolean]("needsSupportForOnlineAssessment").getOrElse(false)) Y else N,
-      assistanceDetails.getAs[String]("needsSupportForOnlineAssessmentDescription"),
-      if (assistanceDetails.getAs[Boolean]("needsSupportAtVenue").getOrElse(false)) Y else N,
-      assistanceDetails.getAs[String]("needsSupportAtVenueDescription"),
-      if (assistanceDetails.getAs[Boolean]("needsSupportForPhoneInterview").getOrElse(false)) Y else N,
-      assistanceDetails.getAs[String]("needsSupportForPhoneInterviewDescription"),
-      etrayAdjustments.getAs[Int]("timeNeeded").map(_ + "%"),
-      if (typeOfAdjustments.contains("etrayInvigilated")) Y else N,
-      etrayAdjustments.getAs[String]("invigilatedInfo"),
-      etrayAdjustments.getAs[String]("otherInfo"),
-      videoAdjustments.getAs[Int]("timeNeeded").map(_ + "%"),
-      if (typeOfAdjustments.contains("videoInvigilated")) Y else N,
-      videoAdjustments.getAs[String]("invigilatedInfo"),
-      videoAdjustments.getAs[String]("otherInfo"),
-      assistanceDetails.getAs[String]("adjustmentsComment"),
-      if (assistanceDetails.getAs[Boolean]("adjustmentsConfirmed").getOrElse(false)) Y else N
-    )
+      List(
+        assistanceDetails.getAs[String]("otherDisabilityDescription"),
+        assistanceDetails.flatMap(ad => if (ad.getAs[Boolean]("guaranteedInterview").getOrElse(false)) Y else N),
+        if (assistanceDetails.getAs[Boolean]("needsSupportForOnlineAssessment").getOrElse(false)) Y else N,
+        assistanceDetails.getAs[String]("needsSupportForOnlineAssessmentDescription"),
+        if (assistanceDetails.getAs[Boolean]("needsSupportAtVenue").getOrElse(false)) Y else N,
+        assistanceDetails.getAs[String]("needsSupportAtVenueDescription"),
+        if (assistanceDetails.getAs[Boolean]("needsSupportForPhoneInterview").getOrElse(false)) Y else N,
+        assistanceDetails.getAs[String]("needsSupportForPhoneInterviewDescription"),
+        etrayAdjustments.getAs[Int]("timeNeeded").map(_ + "%"),
+        if (typeOfAdjustments.contains("etrayInvigilated")) Y else N,
+        etrayAdjustments.getAs[String]("invigilatedInfo"),
+        etrayAdjustments.getAs[String]("otherInfo"),
+        videoAdjustments.getAs[Int]("timeNeeded").map(_ + "%"),
+        if (typeOfAdjustments.contains("videoInvigilated")) Y else N,
+        videoAdjustments.getAs[String]("invigilatedInfo"),
+        videoAdjustments.getAs[String]("otherInfo"),
+        assistanceDetails.getAs[String]("adjustmentsComment"),
+        if (assistanceDetails.getAs[Boolean]("adjustmentsConfirmed").getOrElse(false)) Y else N
+      )
   }
 
   private def disabilityDetails(doc: BSONDocument): List[Option[String]] = {
@@ -1374,9 +1382,9 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       assistanceDetails.getAs[String]("hasDisability"),
       assistanceDetails.getAs[String]("disabilityImpact")
     ) ++ markedDisabilityCategories ++
-    List(
-      assistanceDetails.getAs[String]("otherDisabilityDescription")
-    )
+      List(
+        assistanceDetails.getAs[String]("otherDisabilityDescription")
+      )
   }
 
   private def personalDetails(doc: BSONDocument) = {
@@ -1394,6 +1402,4 @@ class PreviousYearCandidatesDetailsMongoRepository()(implicit mongo: () => DB)
       val ret = s.getOrElse(" ").replace("\r", " ").replace("\n", " ").replace("\"", "'")
       "\"" + ret + "\""
     }.mkString(",")
-
-  override def dateTimeFactory: DateTimeFactory = DateTimeFactory
 }

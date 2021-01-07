@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,12 @@
 
 package services.reporting
 
-import model.ProgressStatuses
+import javax.inject.{ Inject, Singleton }
 import model.persisted.{ UserApplicationProfile, UserIdWithEmail }
 import play.Logger
 import repositories.application.ReportingRepository
 import repositories.contactdetails.ContactDetailsRepository
-import repositories.faststreamContactDetailsRepository
 
-import scala.collection.immutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -31,17 +29,11 @@ case class DuplicateCandidate(email: String, firstName: String, lastName: String
 
 case class DuplicateApplicationGroup(matchType: Int, candidates: Set[DuplicateCandidate])
 
-object DuplicateDetectionService extends DuplicateDetectionService {
-  val reportingRepository: ReportingRepository = repositories.reportingRepository
-  val cdRepository: ContactDetailsRepository = faststreamContactDetailsRepository
-}
-
-trait DuplicateDetectionService {
+@Singleton
+class DuplicateDetectionService @Inject() (reportingRepository: ReportingRepository,
+                                           cdRepository: ContactDetailsRepository) {
   private val HighProbabilityMatchGroup = 1
   private val MediumProbabilityMatchGroup = 2
-
-  val reportingRepository: ReportingRepository
-  val cdRepository: ContactDetailsRepository
 
   def findAll: Future[List[DuplicateApplicationGroup]] = {
     def toUserIdToEmailMap(cds: List[UserIdWithEmail]) = {
@@ -122,7 +114,7 @@ trait DuplicateDetectionService {
         .filterNot(_.userId == sourceCandidate.userId)
 
       val threeFieldMatches = duplicatesInFirstNameLastNameDOB ++ duplicatesInEmailsFirstNameLastName ++ duplicatesInEmailsFirstNameDOB ++
-      duplicatesInEmailsLastNameDOB
+        duplicatesInEmailsLastNameDOB
 
       val duplicatesFirstNameLastName = firstNameLastNameMap
         .getOrElse(takeFirstNameAndLastName(sourceCandidate), Nil)

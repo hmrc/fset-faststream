@@ -17,18 +17,18 @@
 package repositories.application
 
 import factories.{ ITDateTimeFactoryMock, UUIDFactory }
-import model.ApplicationStatus._
-import model.exchange.CandidatesEligibleForEventResponse
-import model.{ ApplicationStatus, Candidate, _ }
-import org.joda.time.{ DateTime, LocalDate }
-import reactivemongo.bson.{ BSONArray, BSONDocument }
-import config.MicroserviceAppConfig._
 import model.ApplicationRoute.{ ApplicationRoute, apply => _ }
+import model.ApplicationStatus._
 import model.Exceptions.{ ApplicationNotFound, NotFoundException }
 import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, PHASE3_TESTS_FAILED => _, SUBMITTED => _, _ }
 import model.command.ProgressResponse
+import model.exchange.CandidatesEligibleForEventResponse
 import model.persisted._
 import model.persisted.eventschedules.EventType
+import model.{ ApplicationStatus, Candidate, _ }
+import org.joda.time.{ DateTime, LocalDate }
+import reactivemongo.api.indexes.IndexType.{ Ascending, Descending }
+import reactivemongo.bson.{ BSONArray, BSONDocument }
 import repositories.CollectionNames
 import repositories.onlinetesting.{ Phase1TestMongoRepository, Phase2TestMongoRepository }
 import scheduler.fixer.FixBatch
@@ -41,12 +41,24 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   val collectionName = CollectionNames.APPLICATION
 
-  def repository = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, testIntegrationGatewayConfig, eventsConfig)
-  def phase1TestRepo = new Phase1TestMongoRepository(ITDateTimeFactoryMock)
-  def phase2TestRepo = new Phase2TestMongoRepository(ITDateTimeFactoryMock)
-  def testDataRepo = new TestDataMongoRepository()
+  def repository = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, appConfig, mongo)
+  def phase1TestRepo = new Phase1TestMongoRepository(ITDateTimeFactoryMock, mongo)
+  def phase2TestRepo = new Phase2TestMongoRepository(ITDateTimeFactoryMock, mongo)
+  def testDataRepo = new TestDataMongoRepository(mongo)
 
   "General Application repository" should {
+    "create indexes" in {
+      val indexes = indexesWithFields(repository)
+      indexes must contain(IndexDetails(key = Seq(("_id", Ascending)), unique = false))
+      indexes must contain(IndexDetails(key = Seq(("applicationId", Ascending), ("userId", Ascending)), unique = true))
+      indexes must contain(IndexDetails(key = Seq(("userId", Ascending), ("frameworkId", Ascending)), unique = true))
+      indexes must contain(IndexDetails(key = Seq(("applicationStatus", Ascending)), unique = false))
+      indexes must contain(IndexDetails(key = Seq(("assistance-details.needsSupportForOnlineAssessment", Ascending)), unique = false))
+      indexes must contain(IndexDetails(key = Seq(("assistance-details.needsSupportAtVenue", Ascending)), unique = false))
+      indexes must contain(IndexDetails(key = Seq(("assistance-details.guaranteedInterview", Ascending)), unique = false))
+      indexes.size mustBe 7
+    }
+
     "Find user by id" in {
       val userId = "fastPassUser"
       val appId = "fastPassApp"

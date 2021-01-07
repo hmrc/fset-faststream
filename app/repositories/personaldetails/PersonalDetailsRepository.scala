@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,11 @@
 package repositories.personaldetails
 
 import factories.DateTimeFactory
+import javax.inject.{ Inject, Singleton }
 import model.ApplicationStatus
 import model.Exceptions.PersonalDetailsNotFound
 import model.persisted.PersonalDetails
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.{ Cursor, DB }
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -33,16 +35,15 @@ import scala.concurrent.Future
 trait PersonalDetailsRepository {
   def update(appId: String, userId: String, personalDetails: PersonalDetails,
              requiredStatuses: Seq[ApplicationStatus.Value], newApplicationStatus: ApplicationStatus.Value): Future[Unit]
-
   def updateWithoutStatusChange(appid: String, userId: String, personalDetails: PersonalDetails): Future[Unit]
-
   def find(appId: String): Future[PersonalDetails]
-
   def findByIds(appIds: Seq[String]): Future[List[(String, Option[PersonalDetails])]]
 }
 
-class PersonalDetailsMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: () => DB)
-  extends ReactiveRepository[PersonalDetails, BSONObjectID](CollectionNames.APPLICATION, mongo, PersonalDetails.personalDetailsFormat,
+@Singleton //TODO:fix CommonBSONDocuments2
+class PersonalDetailsMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory, mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[PersonalDetails, BSONObjectID](
+    CollectionNames.APPLICATION, mongoComponent.mongoConnector.db, PersonalDetails.personalDetailsFormat,
     ReactiveMongoFormats.objectIdFormats) with PersonalDetailsRepository with CommonBSONDocuments with ReactiveRepositoryHelpers {
   val PersonalDetailsCollection = "personal-details"
 

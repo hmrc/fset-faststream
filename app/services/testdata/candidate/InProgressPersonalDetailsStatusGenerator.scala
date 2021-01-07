@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,28 @@
 
 package services.testdata.candidate
 
+import javax.inject.{ Inject, Singleton }
 import model._
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
-import model.testdata.candidate.CreateCandidateData.{CreateCandidateData, PersonalData}
+import model.testdata.candidate.CreateCandidateData.{ CreateCandidateData, PersonalData }
 import play.api.mvc.RequestHeader
 import services.personaldetails.PersonalDetailsService
-import services.testdata.faker.DataFaker.Random
+import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object InProgressPersonalDetailsStatusGenerator extends InProgressPersonalDetailsStatusGenerator {
-  override val previousStatusGenerator = CreatedStatusGenerator
-  override val pdService = PersonalDetailsService
-}
-
-trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
-  val pdService: PersonalDetailsService
+@Singleton
+class InProgressPersonalDetailsStatusGenerator @Inject() (val previousStatusGenerator: CreatedStatusGenerator,
+                                                          pdService: PersonalDetailsService,
+                                                          dataFaker: DataFaker) extends ConstructiveGenerator {
 
   //scalastyle:off method.length
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     def getPersonalDetails(candidateInformation: CreateCandidateResponse) = {
       def getEdipCompleted = {
         if (generatorConfig.statusData.applicationRoute == ApplicationRoute.Sdip) {
-          Some(generatorConfig.personalData.edipCompleted.getOrElse(Random.bool))
+          Some(generatorConfig.personalData.edipCompleted.getOrElse(dataFaker.Random.bool))
         }
         else {
           None
@@ -48,7 +46,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
 
       def getOtherInternshipCompleted = {
         if (generatorConfig.statusData.applicationRoute == ApplicationRoute.Sdip) {
-          Some(generatorConfig.personalData.otherInternshipCompleted.getOrElse(Random.bool))
+          Some(generatorConfig.personalData.otherInternshipCompleted.getOrElse(dataFaker.Random.bool))
         }
         else {
           None
@@ -82,7 +80,7 @@ trait InProgressPersonalDetailsStatusGenerator extends ConstructiveGenerator {
         outsideUk = getOutsideUK(generatorConfig.personalData),
         Address("123, Fake street"),
         if (generatorConfig.personalData.country.isEmpty) {
-          generatorConfig.personalData.postCode.orElse(Some(Random.postCode))
+          generatorConfig.personalData.postCode.orElse(Some(dataFaker.postCode))
         } else {
           None
         },

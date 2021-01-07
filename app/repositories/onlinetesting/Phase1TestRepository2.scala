@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,14 @@ package repositories.onlinetesting
 
 import common.Phase1TestConcern2
 import factories.DateTimeFactory
+import javax.inject.{ Inject, Singleton }
 import model.ApplicationStatus.ApplicationStatus
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model._
 import model.persisted.{ NotificationExpiringOnlineTest, Phase1TestGroupWithUserIds2, Phase1TestProfile2 }
 import play.api.Logger
-import reactivemongo.api.DB
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.CollectionNames
@@ -49,9 +50,13 @@ trait Phase1TestRepository2 extends OnlineTestRepository with Phase1TestConcern2
   def nextTestGroupWithReportReady: Future[Option[Phase1TestGroupWithUserIds2]]
 }
 
-class Phase1TestMongoRepository2(dateTime: DateTimeFactory)(implicit mongo: () => DB)
-  extends ReactiveRepository[Phase1TestProfile2, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    Phase1TestProfile2.phase1TestProfile2Format, ReactiveMongoFormats.objectIdFormats
+@Singleton
+class Phase1TestMongoRepository2 @Inject () (dateTime: DateTimeFactory, mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[Phase1TestProfile2, BSONObjectID](
+    CollectionNames.APPLICATION,
+    mongoComponent.mongoConnector.db,
+    Phase1TestProfile2.phase1TestProfile2Format,
+    ReactiveMongoFormats.objectIdFormats
   ) with Phase1TestRepository2 {
 
   override val phaseName = "PHASE1"
@@ -145,4 +150,3 @@ class Phase1TestMongoRepository2(dateTime: DateTimeFactory)(implicit mongo: () =
     nextTestGroupWithReportReady[Phase1TestGroupWithUserIds2]
   }
 }
-

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,9 @@ import model.UniqueIdentifier
 import model.persisted.eventschedules.{ Event => PersistedEvent }
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
+import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.Json
-
 
 case class CandidateAllocationPerSession(sessionId: UniqueIdentifier, confirmed: Int)
 

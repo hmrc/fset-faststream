@@ -1,17 +1,16 @@
 package services.onlinetesting.phase3
 
-import config.{ OnlineTestsGatewayConfig, LaunchpadGatewayConfig, Phase2TestsConfig, Phase3TestsConfig }
+import config.{ LaunchpadGatewayConfig, Phase3TestsConfig }
+import factories.UUIDFactory
 import model.ApplicationStatus.{ apply => _, _ }
 import model.EvaluationResults.{ Amber, _ }
 import model.Exceptions.PassMarkEvaluationNotFound
 import model.exchange.passmarksettings._
-import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
-import model.{ ApplicationStatus, Phase, SchemeId }
+import model.persisted.{ ApplicationReadyForEvaluation2, PassmarkEvaluation, SchemeEvaluationResult }
+import model.{ ApplicationStatus, SchemeId }
 import org.joda.time.DateTime
+import org.mockito.Mockito.when
 import org.scalatest.prop._
-import repositories.application.GeneralApplicationMongoRepository
-import repositories.onlinetesting.Phase3EvaluationMongoRepository
-import repositories.passmarksettings.Phase3PassMarkSettingsMongoRepository
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
@@ -21,18 +20,24 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   val collectionName: String = CollectionNames.APPLICATION
   override val additionalCollections = List(CollectionNames.PHASE3_PASS_MARK_SETTINGS)
 
-  def phase3TestEvaluationService(verifyAllScoresArePresent: Boolean = true) = new EvaluatePhase3ResultService {
-    val evaluationRepository: Phase3EvaluationMongoRepository = phase3EvaluationRepo
-    val gatewayConfig: OnlineTestsGatewayConfig = mockGatewayConfig
-    val passMarkSettingsRepo: Phase3PassMarkSettingsMongoRepository = phase3PassMarkSettingRepo
-    val phase = Phase.PHASE3
-    val phase3TestsConfigMock: Phase2TestsConfig = mock[Phase2TestsConfig]
+  def phase3TestEvaluationService(verifyAllScoresArePresent: Boolean = true) = {
+
     val launchpadGWConfig = LaunchpadGatewayConfig(
       url = "",
       Phase3TestsConfig(
         timeToExpireInDays = 7, invigilatedTimeToExpireInDays = 7,  gracePeriodInSecs = 0, candidateCompletionRedirectUrl = "",
-        interviewsByAdjustmentPercentage = Map.empty, evaluationWaitTimeAfterResultsReceivedInHours = 3, verifyAllScoresArePresent))
-    val generalAppRepository: GeneralApplicationMongoRepository = applicationRepository
+        interviewsByAdjustmentPercentage = Map.empty, evaluationWaitTimeAfterResultsReceivedInHours = 3, verifyAllScoresArePresent
+      )
+    )
+    when(mockAppConfig.launchpadGatewayConfig).thenReturn(launchpadGWConfig)
+
+    new EvaluatePhase3ResultService (
+      phase3EvaluationRepo,
+      phase3PassMarkSettingRepo,
+      applicationRepository,
+      mockAppConfig,
+      UUIDFactory
+    )
   }
 
   "phase3 evaluation process" should {
@@ -41,11 +46,12 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("Commercial"),
           Green.toString), SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString)), "phase2-version1-res", None)
 
-          applicationEvaluation("application-1", None, true,SchemeId("Commercial"), SchemeId("DigitalAndTechnology"))
+        applicationEvaluation("application-1", None, true,SchemeId("Commercial"), SchemeId("DigitalAndTechnology"))
 
-          phase3EvaluationRepo.getPassMarkEvaluation("application-1").failed.futureValue mustBe a[PassMarkEvaluationNotFound]
+        phase3EvaluationRepo.getPassMarkEvaluation("application-1").failed.futureValue mustBe a[PassMarkEvaluationNotFound]
       }
     }
+
     "give fail results when all schemes are red and one score is empty and we disable verification that checks " +
       "all scores are present" in new TestFixture {
       {
@@ -55,6 +61,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
           PHASE3_TESTS_FAILED, SchemeId("Commercial") -> Red, SchemeId("DigitalAndTechnology") -> Red)
       }
     }
+
     "give pass results when all schemes are green" in new TestFixture {
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("Commercial"),
@@ -75,6 +82,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
           PHASE3_TESTS_PASSED, SchemeId("Generalist") -> Green)
       }
     }
+
     "give pass results when there is no amber and at-least one scheme is green" in new TestFixture {
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString),
@@ -83,6 +91,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
           PHASE3_TESTS_PASSED, SchemeId("Commercial") -> Red, SchemeId("DigitalAndTechnology") -> Green)
       }
     }
+
     "give fail results when all the schemes are red" in new TestFixture {
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("European"), Green.toString),
@@ -97,6 +106,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
           PHASE3_TESTS_FAILED, SchemeId("European") -> Red, SchemeId("ScienceAndEngineering") -> Red)
       }
     }
+
     "give no results when at-least one scheme is in amber" in new TestFixture {
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None,
@@ -130,6 +140,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
           PHASE3_TESTS_PASSED_WITH_AMBER, SchemeId("HumanResources") -> Green, SchemeId("ProjectDelivery") -> Amber)
       }
     }
+
     "give pass results on re-evaluation when all schemes are green" in new TestFixture {
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None,
@@ -146,6 +157,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
         ) mustResultIn(PHASE3_TESTS_PASSED, SchemeId("DiplomaticServiceEconomics") -> Green, SchemeId("DiplomaticServiceEuropean") -> Green)
       }
     }
+
     "give pass results on re-evaluation when at-least one scheme is green" in new TestFixture {
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("HumanResources"),
@@ -159,6 +171,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
         ) mustResultIn(PHASE3_TESTS_PASSED, SchemeId("HumanResources") -> Red, SchemeId("ProjectDelivery") -> Green)
       }
     }
+
     "move candidate from PHASE3_TESTS_PASSED_WITH_AMBER to PHASE3_TESTS_PASSED " in new TestFixture {
       phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("HumanResources"),
         Green.toString), SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString)), "phase2-version1-res", None)
@@ -198,7 +211,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
     var phase3PassMarkSettings: Phase3PassMarkSettings = createPhase3PassMarkSettings(phase3PassMarkSettingsTable)
 
-    var applicationReadyForEvaluation: ApplicationReadyForEvaluation = _
+    var applicationReadyForEvaluation: ApplicationReadyForEvaluation2 = _
 
     var passMarkEvaluation: PassmarkEvaluation = _
 

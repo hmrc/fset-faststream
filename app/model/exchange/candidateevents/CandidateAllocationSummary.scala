@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,11 @@
 
 package model.exchange.candidateevents
 
-
 import model.AllocationStatuses
 import model.persisted.eventschedules.EventType.EventType
 import org.joda.time.LocalDate
+import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.Json
 
 case class CandidateAllocationSummary(
@@ -28,7 +29,6 @@ case class CandidateAllocationSummary(
   sessionDescription: String,
   allocationStatus: AllocationStatuses.AllocationStatus,
   removeReason: Option[CandidateRemoveReason])
-
 
 object CandidateAllocationSummary {
   implicit val allocationEventSummaryFormat = Json.format[CandidateAllocationSummary]

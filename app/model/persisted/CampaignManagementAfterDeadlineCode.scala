@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,15 @@
 package model.persisted
 
 import org.joda.time.DateTime
-import play.api.libs.json.{ Json, OFormat }
+import play.api.libs.json._
 
 case class CampaignManagementAfterDeadlineCode(code: String, createdByUserId: String, expires: DateTime,
   usedByApplicationId: Option[String] = None)
 
 object CampaignManagementAfterDeadlineCode {
+
+  import model.persisted.Play25DateCompatibility.epochMillisDateFormat
+
   implicit val campaignManagementAfterDeadlineCodeFormat: OFormat[CampaignManagementAfterDeadlineCode] =
     Json.format[CampaignManagementAfterDeadlineCode]
 }

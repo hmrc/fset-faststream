@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package repositories.schemepreferences
 
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.{ CannotUpdateSchemePreferences, SchemePreferencesNotFound }
 import model.{ SchemeId, SelectedSchemes }
-import reactivemongo.api.DB
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
@@ -36,10 +37,14 @@ trait SchemePreferencesRepository {
   def add(applicationId: String, newScheme: SchemeId): Future[Unit]
 }
 
-class SchemePreferencesMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[SelectedSchemes, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    SelectedSchemes.selectedSchemesFormat, ReactiveMongoFormats.objectIdFormats)
-    with SchemePreferencesRepository with ReactiveRepositoryHelpers {
+@Singleton
+class SchemePreferencesMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[SelectedSchemes, BSONObjectID](
+    CollectionNames.APPLICATION,
+    mongoComponent.mongoConnector.db,
+    SelectedSchemes.selectedSchemesFormat,
+    ReactiveMongoFormats.objectIdFormats
+  ) with SchemePreferencesRepository with ReactiveRepositoryHelpers {
 
   private val SchemePreferencesDocumentKey = "scheme-preferences"
 

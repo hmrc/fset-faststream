@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 package services.search
 
 import connectors.AuthProviderClient
-import model.{ Address, Candidate, SearchCandidate }
 import model.persisted.ContactDetailsWithId
+import model.{ Address, Candidate, SearchCandidate }
 import org.joda.time.LocalDate
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
@@ -27,9 +27,9 @@ import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import services.BaseServiceSpec
 import testkit.ShortTimeout
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 class SearchForApplicantServiceSpec extends BaseServiceSpec with ShortTimeout {
 
@@ -100,12 +100,12 @@ class SearchForApplicantServiceSpec extends BaseServiceSpec with ShortTimeout {
     val cdRepositoryMock = mock[ContactDetailsRepository]
     val authProviderClientMock = mock[AuthProviderClient]
 
-    val searchForApplicantService = new SearchForApplicantService {
-      override val appRepository = appRepositoryMock
-      override val psRepository = psRepositoryMock
-      override val cdRepository = cdRepositoryMock
-      override val authProviderClient = authProviderClientMock
-    }
+    val searchForApplicantService = new SearchForApplicantService(
+      appRepositoryMock,
+      psRepositoryMock,
+      cdRepositoryMock,
+      authProviderClientMock
+    )
 
     implicit val headerCarrier = HeaderCarrier()
 

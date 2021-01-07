@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,14 @@
 
 package connectors
 
-import config.MicroserviceAppConfig._
-import _root_.config.WSHttp
+//import config.MicroserviceAppConfig._
+import config.{ MicroserviceAppConfig, WSHttpT }
 import connectors.ExchangeObjects._
 import model.Exceptions.ConnectorException
 import model.OnlineTestCommands.Implicits._
 import ExchangeObjects.Implicits._
+import com.google.inject.ImplementedBy
+import javax.inject.{ Inject, Singleton }
 import model.OnlineTestCommands._
 import play.api.http.Status._
 import play.api.Logger
@@ -31,8 +33,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
+@ImplementedBy(classOf[OnlineTestsGatewayClientImpl])
 trait OnlineTestsGatewayClient {
-  val http: WSHttp
+  val http: WSHttpT
   val url: String
   val root = "fset-online-tests-gateway"
 
@@ -145,7 +148,7 @@ trait OnlineTestsGatewayClient {
   }
 }
 
-object OnlineTestsGatewayClient extends OnlineTestsGatewayClient {
-  val http: WSHttp = WSHttp
-  val url: String = onlineTestsGatewayConfig.url
+@Singleton
+class OnlineTestsGatewayClientImpl @Inject() (val http: WSHttpT, appConfig: MicroserviceAppConfig) extends OnlineTestsGatewayClient {
+  val url: String = appConfig.onlineTestsGatewayConfig.url
 }

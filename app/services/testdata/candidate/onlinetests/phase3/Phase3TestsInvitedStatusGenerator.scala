@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,39 +18,35 @@ package services.testdata.candidate.onlinetests.phase3
 
 import java.util.UUID
 
-import _root_.services.onlinetesting.phase3.Phase3TestService
-import _root_.services.testdata.candidate.ConstructiveGenerator
-import _root_.services.testdata.candidate.onlinetests.Phase2TestsPassedStatusGenerator
-import config.LaunchpadGatewayConfig
-import config.MicroserviceAppConfig._
+import services.onlinetesting.phase3.Phase3TestService
+import services.testdata.candidate.ConstructiveGenerator
+import services.testdata.candidate.onlinetests.Phase2TestsPassedStatusGenerator
+import config.{ LaunchpadGatewayConfig, MicroserviceAppConfig }
+import javax.inject.{ Inject, Singleton }
 import model.ApplicationStatus._
 import model.OnlineTestCommands.OnlineTestApplication
-import model.exchange.testdata.CreateCandidateResponse.{CreateCandidateResponse, TestGroupResponse, TestResponse}
-import model.persisted.phase3tests.{LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup}
+import model.exchange.testdata.CreateCandidateResponse.{ CreateCandidateResponse, TestGroupResponse, TestResponse }
+import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
-import repositories._
 import repositories.onlinetesting.Phase3TestRepository
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object Phase3TestsInvitedStatusGenerator extends Phase3TestsInvitedStatusGenerator {
-  override val previousStatusGenerator = Phase2TestsPassedStatusGenerator
-  override val p3Repository = phase3TestRepository
-  override val p3TestService = Phase3TestService
-  override val gatewayConfig = launchpadGatewayConfig
-}
+@Singleton
+class Phase3TestsInvitedStatusGenerator @Inject() (val previousStatusGenerator: Phase2TestsPassedStatusGenerator,
+                                                   p3Repository: Phase3TestRepository,
+                                                   p3TestService: Phase3TestService,
+                                                   appConfig: MicroserviceAppConfig
+                                                 ) extends ConstructiveGenerator {
 
-trait Phase3TestsInvitedStatusGenerator extends ConstructiveGenerator {
-  val p3Repository: Phase3TestRepository
-  val p3TestService: Phase3TestService
-  val gatewayConfig: LaunchpadGatewayConfig
+  val gatewayConfig: LaunchpadGatewayConfig = appConfig.launchpadGatewayConfig
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
     val launchpad = LaunchpadTest(
       interviewId = 12345,
       usedForResults = true,

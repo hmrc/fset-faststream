@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,19 @@
 
 package connectors
 
-import config.{ MicroserviceAppConfig, WSHttp }
+import config.{ MicroserviceAppConfig, WSHttpT }
 import connectors.AuthProviderClient._
 import connectors.ExchangeObjects._
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.{ ConnectorException, EmailTakenException }
 import model.exchange.SimpleTokenResponse
 import play.api.http.Status._
-import uk.gov.hmrc.play.http._
+import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException, Upstream4xxResponse }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException, Upstream4xxResponse }
 
-object AuthProviderClient extends AuthProviderClient {
+object AuthProviderClient {
   sealed class ErrorRetrievingReportException(message: String) extends Exception(message)
   sealed class TokenExpiredException() extends Exception
   sealed class TokenEmailPairInvalidException() extends Exception
@@ -54,7 +54,8 @@ object AuthProviderClient extends AuthProviderClient {
   case object TechnicalAdminRole extends UserRole("tech-admin")
 }
 
-trait AuthProviderClient {
+@Singleton
+class AuthProviderClient @Inject() (http: WSHttpT, config: MicroserviceAppConfig) {
 
   val allRoles = List(AssessorRole, QacRole, FaststreamTeamRole, ServiceSupportRole, ServiceAdminRole, SuperAdminRole,
     TechnicalAdminRole)
@@ -63,13 +64,15 @@ trait AuthProviderClient {
     throw new UserRoleDoesNotExistException(s"No such role: $roleName")
   )
 
-  private lazy val ServiceName = MicroserviceAppConfig.authConfig.serviceName
+//  private lazy val ServiceName = MicroserviceAppConfig.authConfig.serviceName
+  private lazy val ServiceName = config.authConfig.serviceName
   private val urlPrefix = "faststream"
 
-  import config.MicroserviceAppConfig.userManagementConfig._
+//  import config.MicroserviceAppConfig.userManagementConfig._
+  private lazy val url = config.userManagementConfig.url
 
   def candidatesReport(implicit hc: HeaderCarrier): Future[List[Candidate]] =
-    WSHttp.GET(s"$url/$urlPrefix/service/$ServiceName/findByRole/${CandidateRole.name}").map { response =>
+    http.GET(s"$url/$urlPrefix/service/$ServiceName/findByRole/${CandidateRole.name}").map { response =>
       if (response.status == OK) {
         response.json.as[List[Candidate]]
       } else {
@@ -79,7 +82,7 @@ trait AuthProviderClient {
 
   def addUser(email: String, password: String, firstName: String,
               lastName: String, roles: List[UserRole])(implicit hc: HeaderCarrier): Future[UserResponse] =
-    WSHttp.POST(s"$url/$urlPrefix/add",
+    http.POST(s"$url/$urlPrefix/add",
       AddUserRequest(email.toLowerCase, password, firstName, lastName, roles.map(_.name), ServiceName)).map { response =>
       response.json.as[UserResponse]
     }.recover {
@@ -88,7 +91,7 @@ trait AuthProviderClient {
 
 
   def removeUser(userId: String)(implicit hc: HeaderCarrier): Future[Unit] =
-    WSHttp.DELETE(s"$url/$urlPrefix/user/$userId").map { (response) =>
+    http.DELETE(s"$url/$urlPrefix/user/$userId").map { response =>
       if (response.status == NO_CONTENT) {
         ()
       } else {
@@ -97,7 +100,7 @@ trait AuthProviderClient {
     }
 
   def removeAllUsers()(implicit hc: HeaderCarrier): Future[Unit] =
-    WSHttp.GET(s"$url/test-commands/remove-all?service=$ServiceName").map { response =>
+    http.GET(s"$url/test-commands/remove-all?service=$ServiceName").map { response =>
       if (response.status == OK) {
         ()
       } else {
@@ -106,7 +109,7 @@ trait AuthProviderClient {
     }
 
   def getToken(email: String)(implicit hc: HeaderCarrier): Future[String] =
-    WSHttp.GET(s"$url/auth-code/$ServiceName/$email").map { response =>
+    http.GET(s"$url/auth-code/$ServiceName/$email").map { response =>
       if (response.status == OK) {
         response.body
       } else {
@@ -115,14 +118,14 @@ trait AuthProviderClient {
     }
 
   def activate(email: String, token: String)(implicit hc: HeaderCarrier): Future[Unit] =
-    WSHttp.POST(s"$url/activate", ActivateEmailRequest(email.toLowerCase, token, ServiceName)).map(_ => (): Unit)
+    http.POST(s"$url/activate", ActivateEmailRequest(email.toLowerCase, token, ServiceName)).map(_ => (): Unit)
       .recover {
         case Upstream4xxResponse(_, GONE, _, _) => throw new TokenExpiredException()
         case _: NotFoundException => throw new TokenEmailPairInvalidException()
       }
 
   def findByFirstName(name: String, roles: List[String])(implicit hc: HeaderCarrier): Future[List[Candidate]] = {
-    WSHttp.POST(s"$url/$urlPrefix/service/$ServiceName/findByFirstName", FindByFirstNameRequest(roles, name)).map { response =>
+    http.POST(s"$url/$urlPrefix/service/$ServiceName/findByFirstName", FindByFirstNameRequest(roles, name)).map { response =>
       response.json.as[List[Candidate]]
     }.recover {
       case Upstream4xxResponse(_, REQUEST_ENTITY_TOO_LARGE, _, _) =>
@@ -133,7 +136,7 @@ trait AuthProviderClient {
   }
 
   def findByLastName(name: String, roles: List[String])(implicit hc: HeaderCarrier): Future[List[Candidate]] = {
-    WSHttp.POST(s"$url/$urlPrefix/service/$ServiceName/findByLastName", FindByLastNameRequest(roles, name)).map { response =>
+    http.POST(s"$url/$urlPrefix/service/$ServiceName/findByLastName", FindByLastNameRequest(roles, name)).map { response =>
       response.json.as[List[Candidate]]
     }.recover {
       case Upstream4xxResponse(_, REQUEST_ENTITY_TOO_LARGE, _, _) =>
@@ -145,7 +148,7 @@ trait AuthProviderClient {
 
   def findByFirstNameAndLastName(firstName: String, lastName: String, roles: List[String])
                                 (implicit hc: HeaderCarrier): Future[List[Candidate]] = {
-    WSHttp.POST(s"$url/$urlPrefix/service/$ServiceName/findByFirstNameLastName",
+    http.POST(s"$url/$urlPrefix/service/$ServiceName/findByFirstNameLastName",
       FindByFirstNameLastNameRequest(roles, firstName, lastName)
     ).map { response =>
       response.json.as[List[Candidate]]
@@ -158,19 +161,19 @@ trait AuthProviderClient {
   }
 
   def findByUserIds(userIds: Seq[String])(implicit hs: HeaderCarrier): Future[Seq[Candidate]] = {
-    WSHttp.POST(s"$url/$urlPrefix/service/$ServiceName/findUsersByIds", Map("userIds" -> userIds)).map { (response) =>
+    http.POST(s"$url/$urlPrefix/service/$ServiceName/findUsersByIds", Map("userIds" -> userIds)).map { response =>
       response.json.as[List[Candidate]]
     }
   }
 
   def findAuthInfoByUserIds(userIds: Seq[String])(implicit hs: HeaderCarrier): Future[Seq[UserAuthInfo]] = {
-    WSHttp.POST(s"$url/$urlPrefix/service/$ServiceName/findAuthInfoByIds", Map("userIds" -> userIds)).map { (response) =>
+    http.POST(s"$url/$urlPrefix/service/$ServiceName/findAuthInfoByIds", Map("userIds" -> userIds)).map { response =>
       response.json.as[List[UserAuthInfo]]
     }
   }
 
   def generateAccessCode(implicit hc: HeaderCarrier): Future[SimpleTokenResponse] = {
-    WSHttp.GET(s"$url/user-friendly-access-token").map { response =>
+    http.GET(s"$url/user-friendly-access-token").map { response =>
       response.json.as[SimpleTokenResponse]
     }.recover {
       case _ => throw new ConnectorException(s"Bad response received when getting access code")

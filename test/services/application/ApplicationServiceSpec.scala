@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,35 +26,34 @@ import model.exchange.sift.SiftAnswersStatus
 import model.persisted.{ ContactDetails, FsbTestGroup, PassmarkEvaluation, SchemeEvaluationResult }
 import model.stc.AuditEvents
 import org.joda.time.DateTime
-import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
+import org.mockito.ArgumentMatchers.{ any, eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
-import repositories.contactdetails.ContactDetailsRepository
-import repositories.personaldetails.PersonalDetailsRepository
-import repositories.schemepreferences.SchemePreferencesRepository
-import repositories.{ AssessorAssessmentScoresMongoRepository, MediaRepository, ReviewerAssessmentScoresMongoRepository, SchemeRepository }
-import scheduler.fixer.FixBatch
-import scheduler.fixer.RequiredFixes.{ PassToPhase2, ResetPhase1TestInvitedSubmitted }
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import repositories.assessmentcentre.AssessmentCentreRepository
 import repositories.assistancedetails.AssistanceDetailsRepository
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.FsbRepository
 import repositories.onlinetesting._
+import repositories.personaldetails.PersonalDetailsRepository
+import repositories.schemepreferences.SchemePreferencesRepository
 import repositories.sift.ApplicationSiftRepository
+import repositories.{ AssessorAssessmentScoresMongoRepository, MediaRepository, ReviewerAssessmentScoresMongoRepository, TestSchemeRepository }
+import scheduler.fixer.FixBatch
+import scheduler.fixer.RequiredFixes.{ PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import services.allocation.CandidateAllocationService
 import services.events.EventsService
-import services.onlinetesting.phase1.EvaluatePhase1ResultService
-import services.onlinetesting.phase2.EvaluatePhase2ResultService
+import services.onlinetesting.phase1.EvaluatePhase1ResultService2
+import services.onlinetesting.phase2.EvaluatePhase2ResultService2
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import services.sift.{ ApplicationSiftService, SiftAnswersService }
 import services.stc.StcEventServiceFixture
 import testkit.MockitoImplicits._
 import testkit.{ ExtendedTimeout, UnitSpec }
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
@@ -70,9 +69,9 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       underTest.fix(FixBatch(PassToPhase2, 1) :: FixBatch(ResetPhase1TestInvitedSubmitted, 1) :: Nil)(hc, rh).futureValue
 
       verify(appRepositoryMock, times(3)).fix(any[Candidate], any[FixBatch])
-      verify(underTest.auditEventHandlerMock, times(3)).handle(any[AuditEvents.FixedProdData])(any[HeaderCarrier], any[RequestHeader])
-      verifyZeroInteractions(pdRepositoryMock, cdRepositoryMock, underTest.dataStoreEventHandlerMock, underTest.emailEventHandlerMock)
-      verifyNoMoreInteractions(underTest.auditEventHandlerMock)
+      verify(auditEventHandlerMock, times(3)).handle(any[AuditEvents.FixedProdData])(any[HeaderCarrier], any[RequestHeader])
+      verifyZeroInteractions(pdRepositoryMock, cdRepositoryMock, dataStoreEventHandlerMock, emailEventHandlerMock)
+      verifyNoMoreInteractions(auditEventHandlerMock)
     }
 
     "don't fix anything if no issues are detected" in new TestFixture {
@@ -81,7 +80,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       underTest.fix(FixBatch(PassToPhase2, 1) :: Nil)(hc, rh).futureValue
 
       verify(appRepositoryMock, never).fix(any[Candidate], any[FixBatch])
-      verifyZeroInteractions(underTest.auditEventHandlerMock)
+      verifyZeroInteractions(auditEventHandlerMock)
     }
 
     "proceed with the other searches if one of them fails" in new TestFixture {
@@ -93,8 +92,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       result.failed.futureValue mustBe generalException
 
       verify(appRepositoryMock, times(1)).fix(candidate3, FixBatch(PassToPhase2, 1))
-      verify(underTest.auditEventHandlerMock).handle(any[AuditEvents.FixedProdData])(any[HeaderCarrier], any[RequestHeader])
-      verifyZeroInteractions(underTest.auditEventHandlerMock)
+      verify(auditEventHandlerMock).handle(any[AuditEvents.FixedProdData])(any[HeaderCarrier], any[RequestHeader])
+      verifyZeroInteractions(auditEventHandlerMock)
     }
 
     "retrieve passed schemes for Faststream application" in new TestFixture {
@@ -118,7 +117,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         userId, testAccountId, ProgressResponse(applicationId, fastPassAccepted = true), None, None)
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(faststreamApplication))
-      when(schemeRepositoryMock.find(eqTo(applicationId))).thenReturn(Future.successful(SelectedSchemes(List(SchemeId(commercial)),
+      when(schemePreferencesRepoMock.find(eqTo(applicationId))).thenReturn(Future.successful(SelectedSchemes(List(SchemeId(commercial)),
         orderAgreed = true, eligible = true)))
 
       val passedSchemes = underTest.getPassedSchemes(userId, frameworkId).futureValue
@@ -247,7 +246,6 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       val withdraw = WithdrawScheme(SchemeId(commercial), "reason", "Candidate")
 
       underTest.withdraw(applicationId, withdraw).futureValue
-
       verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw),
         any[Seq[SchemeEvaluationResult]]
       )
@@ -1098,30 +1096,39 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     }
   }
 
-  trait TestFixture {
+  trait TestFixture extends StcEventServiceFixture {
 
-    val appRepositoryMock: GeneralApplicationRepository = mock[GeneralApplicationRepository]
-    val pdRepositoryMock: PersonalDetailsRepository = mock[PersonalDetailsRepository]
-    val cdRepositoryMock: ContactDetailsRepository = mock[ContactDetailsRepository]
-    val schemeRepositoryMock: SchemePreferencesRepository = mock[SchemePreferencesRepository]
-    val mediaRepoMock: MediaRepository = mock[MediaRepository]
-    val evalPhase1ResultMock: EvaluatePhase1ResultService = mock[EvaluatePhase1ResultService]
-    val evalPhase2ResultMock: EvaluatePhase2ResultService = mock[EvaluatePhase2ResultService]
-    val evalPhase3ResultMock: EvaluatePhase3ResultService = mock[EvaluatePhase3ResultService]
-    val siftServiceMock: ApplicationSiftService = mock[ApplicationSiftService]
-    val siftAnswersServiceMock: SiftAnswersService = mock[SiftAnswersService]
-    val phase1TestRepositoryMock: Phase1TestRepository = mock[Phase1TestRepository]
-    val phase2TestRepositoryMock: Phase2TestRepository = mock[Phase2TestRepository]
-    val phase3TestRepositoryMock: Phase3TestRepository = mock[Phase3TestRepository]
-    val siftRepoMock = mock[ApplicationSiftRepository]
-    val fsacRepoMock = mock[AssessmentCentreRepository]
-    val eventsServiceMock = mock[EventsService]
-    val fsbRepoMock = mock[FsbRepository]
-    val phase1EvaluationRepositoryMock = mock[Phase1EvaluationMongoRepository]
-    val phase2EvaluationRepositoryMock = mock[Phase2EvaluationMongoRepository]
-    val phase3EvaluationRepositoryMock = mock[Phase3EvaluationMongoRepository]
-    val candidateAllocationServiceMock = mock[CandidateAllocationService]
-    val civilServiceExperienceRepositoryMock = mock[CivilServiceExperienceDetailsRepository]
+    val appRepositoryMock         = mock[GeneralApplicationRepository]
+    val pdRepositoryMock          = mock[PersonalDetailsRepository]
+    val cdRepositoryMock          = mock[ContactDetailsRepository]
+    val schemePreferencesRepoMock = mock[SchemePreferencesRepository]
+    val mediaRepoMock             = mock[MediaRepository]
+    val evalPhase1ResultMock      = mock[EvaluatePhase1ResultService2]
+    val evalPhase2ResultMock      = mock[EvaluatePhase2ResultService2]
+    val evalPhase3ResultMock      = mock[EvaluatePhase3ResultService]
+
+    val phase1EvaluationRepositoryMock = mock[OnlineTestEvaluationRepository]
+    val phase2EvaluationRepositoryMock = mock[OnlineTestEvaluationRepository]
+    val phase3EvaluationRepositoryMock = mock[OnlineTestEvaluationRepository]
+
+    val phase1TestRepository2Mock = mock[Phase1TestMongoRepository2]
+    val phase2TestRepository2Mock = mock[Phase2TestMongoRepository2]
+
+    val siftServiceMock          = mock[ApplicationSiftService]
+    val siftAnswersServiceMock   = mock[SiftAnswersService]
+//    val schemeRepoMock           = mock[SchemeRepository2]
+
+    val phase1TestRepositoryMock = mock[Phase1TestRepository]
+    val phase2TestRepositoryMock = mock[Phase2TestRepository]
+    val phase3TestRepositoryMock = mock[Phase3TestRepository]
+
+    val siftRepoMock             = mock[ApplicationSiftRepository]
+    val fsacRepoMock             = mock[AssessmentCentreRepository]
+    val eventsServiceMock        = mock[EventsService]
+    val fsbRepoMock              = mock[FsbRepository]
+    val civilServiceExperienceRepositoryMock   = mock[CivilServiceExperienceDetailsRepository]
+    val candidateAllocationServiceMock         = mock[CandidateAllocationService]
+    val assistanceDetailsRepositoryMock = mock[AssistanceDetailsRepository]
     val assessorAssessmentScoresRepositoryMock = mock[AssessorAssessmentScoresMongoRepository]
     val reviewerAssessmentScoresRepositoryMock = mock[ReviewerAssessmentScoresMongoRepository]
     val assistanceDetailsRepoMock = mock[AssistanceDetailsRepository]
@@ -1141,7 +1148,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val scienceAndEngineering = "ScienceAndEngineering"
     val sdip = "Sdip"
 
-    val mockSchemeRepo = new SchemeRepository {
+    val schemeRepoMock = new TestSchemeRepository {
       override lazy val siftableSchemeIds = Seq(SchemeId(commercial), SchemeId(digitalAndTechnology), SchemeId(governmentEconomicsService))
       override lazy val noSiftEvaluationRequiredSchemeIds = Seq(SchemeId(digitalAndTechnology), SchemeId(edip), SchemeId(generalist),
         SchemeId(governmentCommunicationService), SchemeId(housesOfParliament), SchemeId(humanResources), SchemeId(projectDelivery),
@@ -1153,35 +1160,37 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       override lazy val siftableAndEvaluationRequiredSchemeIds = Seq(SchemeId(commercial), SchemeId(governmentEconomicsService))
     }
 
-    val underTest = new ApplicationService with StcEventServiceFixture {
-      val appRepository = appRepositoryMock
-      val pdRepository = pdRepositoryMock
-      val cdRepository = cdRepositoryMock
-      val eventService = stcEventServiceMock
-      val mediaRepo = mediaRepoMock
-      val schemePrefsRepository = schemeRepositoryMock
-      val schemesRepo = mockSchemeRepo
-      val evaluateP1ResultService = evalPhase1ResultMock
-      val evaluateP2ResultService = evalPhase2ResultMock
-      val evaluateP3ResultService = evalPhase3ResultMock
-      val siftService = siftServiceMock
-      val siftAnswersService = siftAnswersServiceMock
-      val phase1TestRepo = phase1TestRepositoryMock
-      val phase2TestRepository = phase2TestRepositoryMock
-      val phase3TestRepository = phase3TestRepositoryMock
-      val appSiftRepository = siftRepoMock
-      val fsacRepo = fsacRepoMock
-      val eventsService = eventsServiceMock
-      val fsbRepo = fsbRepoMock
-      val phase1EvaluationRepository = phase1EvaluationRepositoryMock
-      val phase2EvaluationRepository = phase2EvaluationRepositoryMock
-      val phase3EvaluationRepository = phase3EvaluationRepositoryMock
-      val civilServiceExperienceDetailsRepo = civilServiceExperienceRepositoryMock
-      val assessorAssessmentScoresRepository = assessorAssessmentScoresRepositoryMock
-      val reviewerAssessmentScoresRepository = reviewerAssessmentScoresRepositoryMock
-      val candidateAllocationService = candidateAllocationServiceMock
-      def assistanceDetailsRepo = assistanceDetailsRepoMock
-    }
+    val underTest = new ApplicationService(
+      appRepositoryMock,
+      pdRepositoryMock,
+      cdRepositoryMock,
+      schemePreferencesRepoMock,
+      mediaRepoMock,
+      evalPhase1ResultMock,
+      evalPhase2ResultMock,
+      evalPhase3ResultMock,
+      phase1EvaluationRepositoryMock,
+      phase2EvaluationRepositoryMock,
+      phase3EvaluationRepositoryMock,
+      phase1TestRepository2Mock,
+      phase2TestRepository2Mock,
+      siftServiceMock,
+      siftAnswersServiceMock,
+      schemeRepoMock,
+      phase1TestRepositoryMock,
+      phase2TestRepositoryMock,
+      phase3TestRepositoryMock,
+      siftRepoMock,
+      fsacRepoMock,
+      eventsServiceMock,
+      fsbRepoMock,
+      civilServiceExperienceRepositoryMock,
+      candidateAllocationServiceMock,
+      assistanceDetailsRepositoryMock,
+      assessorAssessmentScoresRepositoryMock,
+      reviewerAssessmentScoresRepositoryMock,
+      stcEventServiceMock
+    )
 
     val userId = "userId"
     val applicationId = "appId"
@@ -1209,6 +1218,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val success = Future.successful(())
   }
 
-  implicit val hc = HeaderCarrier() // Moved out of the trait to here as not getting picked up by the withdraw tests if they are run in isolation
-  implicit val rh = mock[RequestHeader] // with all other tests commented out
+  // Moved out of the trait to here as not getting picked up by the withdraw tests if they are run in isolation
+  // with all other tests commented out
+  implicit val hc: HeaderCarrier = HeaderCarrier()
+  implicit val rh: RequestHeader = mock[RequestHeader]
 }

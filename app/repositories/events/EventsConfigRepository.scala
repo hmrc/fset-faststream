@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,14 @@ package repositories.events
 import common.FutureEx
 import config.MicroserviceAppConfig
 import factories.UUIDFactory
+import javax.inject.{ Inject, Singleton }
 import model.FsbType
 import model.persisted.eventschedules._
 import net.jcazevedo.moultingyaml._
 import net.jcazevedo.moultingyaml.DefaultYamlProtocol._
 import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import org.joda.time.format.DateTimeFormat
-import play.api.Play
+import play.api.{ Application, Play }
 import resource._
 
 import scala.concurrent.Future
@@ -33,28 +34,28 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.Source
 
 case class EventConfig(
-  eventType: String,
-  description: String,
-  location: String,
-  venue: String,
-  date: LocalDate,
-  capacity: Int,
-  minViableAttendees: Int,
-  attendeeSafetyMargin: Int,
-  startTime: LocalTime,
-  endTime: LocalTime,
-  skillRequirements: Map[String, Int],
-  sessions: List[SessionConfig]
-)
+                        eventType: String,
+                        description: String,
+                        location: String,
+                        venue: String,
+                        date: LocalDate,
+                        capacity: Int,
+                        minViableAttendees: Int,
+                        attendeeSafetyMargin: Int,
+                        startTime: LocalTime,
+                        endTime: LocalTime,
+                        skillRequirements: Map[String, Int],
+                        sessions: List[SessionConfig]
+                      )
 
 case class SessionConfig(
-  description: String,
-  capacity: Int,
-  minViableAttendees: Int,
-  attendeeSafetyMargin: Int,
-  startTime: LocalTime,
-  endTime: LocalTime
-)
+                          description: String,
+                          capacity: Int,
+                          minViableAttendees: Int,
+                          attendeeSafetyMargin: Int,
+                          startTime: LocalTime,
+                          endTime: LocalTime
+                        )
 
 object EventConfigProtocol extends DefaultYamlProtocol {
   implicit object LocalDateYamlFormat extends YamlFormat[LocalDate] {
@@ -82,18 +83,23 @@ object EventConfigProtocol extends DefaultYamlProtocol {
 }
 
 trait EventsConfigRepository {
-  def locationsWithVenuesRepo: LocationsWithVenuesRepository
+  def events: Future[List[Event]]
+}
 
-  import play.api.Play.current
+@Singleton
+class EventsConfigRepositoryImpl @Inject() (application: Application,
+                                            locationsWithVenuesRepo: LocationsWithVenuesRepository,
+                                            appConfig: MicroserviceAppConfig,
+                                            uuidFactory: UUIDFactory) extends EventsConfigRepository {
+
+  protected def eventScheduleConfig: String = getConfig(appConfig.eventsConfig.scheduleFilePath)
 
   private def getConfig(filePath: String): String = {
-    val input = managed(Play.application.resourceAsStream(filePath).get)
+    val input = managed(application.resourceAsStream(filePath).get)
     input.acquireAndGet(stream => Source.fromInputStream(stream).mkString)
   }
 
-  protected def eventScheduleConfig: String = getConfig(MicroserviceAppConfig.eventsConfig.scheduleFilePath)
-
-  lazy val events: Future[List[Event]] = {
+  override lazy val events: Future[List[Event]] = {
     import EventConfigProtocol._
 
     val yamlAst = eventScheduleConfig.parseYaml
@@ -109,30 +115,26 @@ trait EventsConfigRepository {
       val eventItemFuture = for {
         location <- locationsWithVenuesRepo.location(configItem.location)
         venue <- locationsWithVenuesRepo.venue(configItem.venue)
-      } yield Event(UUIDFactory.generateUUID(),
-          EventType.withName(configItem.eventType),
-          configItem.description,
-          location,
-          venue,
-          configItem.date,
-          configItem.capacity,
-          configItem.minViableAttendees,
-          configItem.attendeeSafetyMargin,
-          configItem.startTime,
-          configItem.endTime,
-          DateTime.now,
-          configItem.skillRequirements,
-          configItem.sessions.map(s => Session(s)),
-          wasBulkUploaded = true
+      } yield Event(uuidFactory.generateUUID(),
+        EventType.withName(configItem.eventType),
+        configItem.description,
+        location,
+        venue,
+        configItem.date,
+        configItem.capacity,
+        configItem.minViableAttendees,
+        configItem.attendeeSafetyMargin,
+        configItem.startTime,
+        configItem.endTime,
+        DateTime.now,
+        configItem.skillRequirements,
+        configItem.sessions.map(s => Session(s)),
+        wasBulkUploaded = true
       )
       eventItemFuture.recover {
         case ex => throw new Exception(
-          s"Error in events config: ${MicroserviceAppConfig.eventsConfig.scheduleFilePath}. ${ex.getMessage}. ${ex.getClass.getCanonicalName}")
+          s"Error in events config: ${appConfig.eventsConfig.scheduleFilePath}. ${ex.getMessage}. ${ex.getClass.getCanonicalName}")
       }
     }
   }
-}
-
-object EventsConfigRepository extends EventsConfigRepository {
-  val locationsWithVenuesRepo = LocationsWithVenuesInMemoryRepository
 }

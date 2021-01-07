@@ -18,22 +18,23 @@ package repositories
 
 import java.util.UUID
 
-import factories.{ DateTimeFactory, UUIDFactory }
+import factories.{ ITDateTimeFactoryMock, UUIDFactory }
 import model.UniqueIdentifier
 import model.assessmentscores._
 import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
 import model.fsacscores.AssessmentScoresFinalFeedbackExamples
 import org.joda.time.DateTimeZone
+import reactivemongo.api.indexes.IndexType.Ascending
 import testkit.MongoRepositorySpec
 
 class AssessorAssessmentScoresRepositorySpec extends AssessmentScoresRepositorySpec {
   override val collectionName = CollectionNames.ASSESSOR_ASSESSMENT_SCORES
-  override def getRepository = repositories.assessorAssessmentScoresRepository
+  override def getRepository = new AssessorAssessmentScoresMongoRepository(mongo, UUIDFactory)
 }
 
 class ReviewerAssessmentScoresRepositorySpec extends AssessmentScoresRepositorySpec {
   override val collectionName = CollectionNames.REVIEWER_ASSESSMENT_SCORES
-  override def getRepository = repositories.reviewerAssessmentScoresRepository
+  override def getRepository = new ReviewerAssessmentScoresMongoRepository(mongo, UUIDFactory)
 }
 
 trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
@@ -42,9 +43,11 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
   "Assessment Scores Repository" should {
     "create indexes for the repository" in new TestFixture {
       val indexes = indexesWithFields(repository)
-      indexes must contain(List("_id"))
-      indexes must contain(List("applicationId"))
-      indexes.size mustBe 2
+      indexes must contain theSameElementsAs
+        Seq(
+          IndexDetails(key = Seq(("_id", Ascending)), unique = false),
+          IndexDetails(key = Seq(("applicationId", Ascending)), unique = true)
+        )
     }
   }
 
@@ -221,8 +224,8 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     val FinalFeedback = AssessmentScoresFinalFeedbackExamples.Example1
     val FinalFeedback2 = AssessmentScoresFinalFeedbackExamples.Example2
 
-    val LocalTime = DateTimeFactory.nowLocalTimeZone
-    val LocalDate = DateTimeFactory.nowLocalDate
+    val LocalTime = ITDateTimeFactoryMock.nowLocalTimeZone
+    val LocalDate = ITDateTimeFactoryMock.nowLocalDate
     val OldVersion = UUIDFactory.generateUUID()
     val NewVersion = UUIDFactory.generateUUID()
     val NewVersion2 = UUIDFactory.generateUUID()

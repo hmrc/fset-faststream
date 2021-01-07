@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,66 +19,72 @@ package controllers.testdata
 import config.MicroserviceAppConfig
 import connectors.AuthProviderClient
 import factories.UUIDFactory
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.EmailTakenException
 import model._
-import model.command.testdata.CreateAdminRequest.{AssessorAvailabilityRequest, AssessorRequest, CreateAdminRequest}
+import model.command.testdata.CreateAdminRequest.{ AssessorAvailabilityRequest, AssessorRequest, CreateAdminRequest }
 import model.command.testdata.CreateAssessorAllocationRequest.CreateAssessorAllocationRequest
-import model.command.testdata.{ClearCandidatesRequest, CreateCandidateAllocationRequest}
-import model.command.testdata.CreateCandidateRequest.{CreateCandidateRequest, _}
-import model.command.testdata.CreateEventRequest.CreateEventRequest
+import model.command.testdata.CreateCandidateRequest.{ CreateCandidateRequest, _ }
+import model.command.testdata.CreateEventRequest
+import model.command.testdata.{ ClearCandidatesRequest, CreateCandidateAllocationRequest }
 import model.exchange.AssessorSkill
-import model.persisted.{FsbTestGroup, SchemeEvaluationResult}
+import model.persisted.SchemeEvaluationResult
 import model.persisted.assessor.AssessorStatus
-import model.persisted.eventschedules.{EventType, Session, SkillType}
+import model.persisted.eventschedules.{ EventType, Session, SkillType }
 import model.testdata.CreateAdminData.CreateAdminData
-import model.testdata.CreateAssessorAllocationData.CreateAssessorAllocationData
+import model.testdata.CreateAssessorAllocationData
 import model.testdata.CreateCandidateAllocationData
+import model.testdata.CreateEventData
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import model.testdata.CreateEventData.CreateEventData
-import org.joda.time.{LocalDate, LocalTime}
+import org.joda.time.{ LocalDate, LocalTime }
 import play.api.Logger
-import play.api.libs.json.{JsObject, JsString, JsValue, Json}
-import play.api.mvc.{Action, AnyContent, RequestHeader}
-import repositories.events.{LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository}
+import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents, RequestHeader }
+import repositories.events.LocationsWithVenuesRepository
 import services.testdata._
-import services.testdata.candidate.{AdminStatusGeneratorFactory, CandidateStatusGeneratorFactory}
-import services.testdata.faker.DataFaker.Random
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import services.testdata.candidate.{ AdminStatusGeneratorFactory, CandidateStatusGeneratorFactory }
+import services.testdata.faker.DataFaker
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
-object TestDataGeneratorController extends TestDataGeneratorController {
-  val locationsAndVenuesRepository: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
-  val createCandidateRequestValidator = CreateCandidateRequestValidator
-}
-
-trait TestDataGeneratorController extends BaseController {
-  val createCandidateRequestValidator: CreateCandidateRequestValidator
-
-  val locationsAndVenuesRepository: LocationsWithVenuesRepository
+@Singleton
+class TestDataGeneratorController @Inject() (cc: ControllerComponents,
+                                             createCandidateRequestValidator: CreateCandidateRequestValidator,
+                                             locationsAndVenuesRepository: LocationsWithVenuesRepository,
+                                             authProviderClient: AuthProviderClient,
+                                             testDataGeneratorService: TestDataGeneratorService,
+                                             candidateStatusGeneratorFactory: CandidateStatusGeneratorFactory,
+                                             adminStatusGeneratorFactory: AdminStatusGeneratorFactory,
+                                             appConfig: MicroserviceAppConfig,
+                                             uuidFactory: UUIDFactory,
+                                             dataFaker: DataFaker
+                                            ) extends BackendController(cc) {
 
   def ping = Action { implicit request =>
     Ok("OK")
   }
 
   def clearDatabase(generateDefaultUsers: Boolean): Action[AnyContent] = Action.async { implicit request =>
-    TestDataGeneratorService.clearDatabase(generateDefaultUsers).map { _ =>
+    testDataGeneratorService.clearDatabase(generateDefaultUsers).map { _ =>
       Ok(Json.parse("""{"message": "success"}"""))
     }
   }
 
   def clearCandidates(): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[ClearCandidatesRequest] { clearRequest =>
-      TestDataGeneratorService.clearCandidates(clearRequest.applicationStatus).map { numDeleted =>
-        Ok(Json.parse(s"""{"message": "success, removed $numDeleted application"}"""))
+      testDataGeneratorService.clearCandidates(clearRequest.applicationStatus).map { numDeleted =>
+        Ok(Json.parse(s"""{"message": "success, removed $numDeleted application(s)"}"""))
       }
     }
   }
 
   // scalastyle:off method.length
   def exampleCreateCandidate = Action { implicit request =>
+    val random = dataFaker.Random
+
     val example = CreateCandidateRequest(
       statusData = StatusDataRequest(
         applicationStatus = ApplicationStatus.SUBMITTED.toString,
@@ -87,7 +93,7 @@ trait TestDataGeneratorController extends BaseController {
         applicationRoute = Some(ApplicationRoute.Faststream.toString)
       ),
       personalData = Some(PersonalDataRequest(
-        emailPrefix = Some(s"testf${Random.number()}"),
+        emailPrefix = Some(s"testf${random.number()}"),
         firstName = Some("Kathryn"),
         lastName = Some("Janeway"),
         preferredName = Some("Captain"),
@@ -106,22 +112,22 @@ trait TestDataGeneratorController extends BaseController {
       )),
       assistanceDetails = Some(AssistanceDetailsRequest(
         hasDisability = Some("Yes"),
-        hasDisabilityDescription = Some(Random.hasDisabilityDescription),
+        hasDisabilityDescription = Some(dataFaker.hasDisabilityDescription),
         setGis = Some(true),
         onlineAdjustments = Some(true),
-        onlineAdjustmentsDescription = Some(Random.onlineAdjustmentsDescription),
+        onlineAdjustmentsDescription = Some(dataFaker.onlineAdjustmentsDescription),
         assessmentCentreAdjustments = Some(true),
-        assessmentCentreAdjustmentsDescription = Some(Random.assessmentCentreAdjustmentDescription)
+        assessmentCentreAdjustmentsDescription = Some(dataFaker.assessmentCentreAdjustmentDescription)
       )),
       schemeTypes = Some(List(SchemeId("Commercial"), SchemeId("European"), SchemeId("DigitalAndTechnology"))),
-      isCivilServant = Some(Random.bool),
+      isCivilServant = Some(random.bool),
       civilServantAndInternshipTypes = None,
       hasFastPass = Some(false),
-      hasDegree = Some(Random.bool),
+      hasDegree = Some(random.bool),
       region = Some("region"),
       loc1scheme1EvaluationResult = Some("loc1 scheme1 result1"),
       loc1scheme2EvaluationResult = Some("loc1 scheme2 result2"),
-      confirmedAllocation = Some(Random.bool),
+      confirmedAllocation = Some(random.bool),
       phase1TestData = Some(Phase1TestDataRequest(
         start = Some("2340-01-01"),
         expiry = Some("2340-01-29"),
@@ -185,7 +191,7 @@ trait TestDataGeneratorController extends BaseController {
 
   def exampleCreateEvent = Action { implicit request =>
     val example = CreateEventRequest(
-      id = Some(UUIDFactory.generateUUID()),
+      id = Some(uuidFactory.generateUUID()),
       eventType = Some(EventType.FSAC),
       description = Some("PDFS FSB"),
       location = Some("London"),
@@ -207,7 +213,7 @@ trait TestDataGeneratorController extends BaseController {
 
   def exampleCreateEvents = Action { implicit request =>
     val example1 = CreateEventRequest(
-      id = Some(UUIDFactory.generateUUID()),
+      id = Some(uuidFactory.generateUUID()),
       eventType = Some(EventType.FSAC),
       description = Some("PDFS FSB"),
       location = Some("London"),
@@ -224,7 +230,7 @@ trait TestDataGeneratorController extends BaseController {
         Session(UniqueIdentifier.randomUniqueIdentifier.toString(), "Single", 36, 12, 4, LocalTime.now, LocalTime.now.plusHours(1))))
     )
     val example2 = example1.copy(
-      id = Some(UUIDFactory.generateUUID()),
+      id = Some(uuidFactory.generateUUID()),
       location = Some("Newcastle"),
       venue = Some("NEWCASTLE_FSAC")
     )
@@ -270,7 +276,7 @@ trait TestDataGeneratorController extends BaseController {
     Action.async { implicit request =>
 
       try {
-        TestDataGeneratorService.createAdminUsers(numberToGenerate, emailPrefix, roles.map(AuthProviderClient.getRole)).map { candidates =>
+        testDataGeneratorService.createAdminUsers(numberToGenerate, emailPrefix, roles.map(authProviderClient.getRole)).map { candidates =>
           Ok(Json.toJson(candidates))
         }
       } catch {
@@ -281,11 +287,11 @@ trait TestDataGeneratorController extends BaseController {
 
   def createAdminsPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateAdminRequest] { createRequest =>
-      createAdmins(CreateAdminData.apply(createRequest), numberToGenerate)
+      createAdmins(CreateAdminData.apply(createRequest, dataFaker), numberToGenerate)
     }
   }
 
-  private lazy val psiUrlFromConfig: String = MicroserviceAppConfig.testIntegrationGatewayConfig.url
+  private lazy val psiUrlFromConfig: String = appConfig.testIntegrationGatewayConfig.url
 
   def createCandidatesPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateCandidateRequest] { createRequest =>
@@ -293,7 +299,7 @@ trait TestDataGeneratorController extends BaseController {
       if (!validateResult.result) {
         Future.successful(BadRequest(JsObject(List(("message", JsString(s"${validateResult.message.getOrElse("Unexpected error")}"))))))
       } else {
-        createCandidates(CreateCandidateData.apply(psiUrlFromConfig, createRequest), numberToGenerate)
+        createCandidates(CreateCandidateData.apply(psiUrlFromConfig, createRequest, dataFaker), numberToGenerate)
       }
     }
   }
@@ -304,7 +310,7 @@ trait TestDataGeneratorController extends BaseController {
     withJsonBody[List[CreateEventRequest]] { createRequests =>
       val createDatas = createRequests.map { createRequest =>
         allVenues.map { venues =>
-          CreateEventData.apply(createRequest, venues)(_)
+          CreateEventData.apply(createRequest, venues, dataFaker)(_)
         }
       }
       Future.sequence(createDatas).flatMap { cd =>
@@ -316,18 +322,17 @@ trait TestDataGeneratorController extends BaseController {
   def createEventPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateEventRequest] { createRequest =>
       allVenues.map { venues =>
-        CreateEventData.apply(createRequest, venues)(_)
+        CreateEventData.apply(createRequest, venues, dataFaker)(_)
       }.flatMap { d =>
         createEvent(d, numberToGenerate)
       }
     }
   }
 
-
   def createAssessorAllocationsPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[List[CreateAssessorAllocationRequest]] { createRequests =>
-      val createDatas: List[( Int ) => CreateAssessorAllocationData] = createRequests.map { createRequest =>
-        val createData: ( Int ) => CreateAssessorAllocationData = CreateAssessorAllocationData.apply(createRequest)
+      val createDatas: List[Int  => CreateAssessorAllocationData] = createRequests.map { createRequest =>
+        val createData: Int => CreateAssessorAllocationData = CreateAssessorAllocationData.apply(createRequest, dataFaker)
         createData
       }
       createAssessorAllocations(createDatas, numberToGenerate)
@@ -337,42 +342,42 @@ trait TestDataGeneratorController extends BaseController {
   def createCandidateAllocationsPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[List[CreateCandidateAllocationRequest]] { createRequests =>
       val allData = createRequests.map { createRequest =>
-        CreateCandidateAllocationData.apply(createRequest) _
+        CreateCandidateAllocationData.apply(createRequest, dataFaker) _
       }
       createCandidateAllocations(allData, numberToGenerate)
     }
   }
 
-  private def createCandidates(config: ( Int ) => CreateCandidateData, numberToGenerate: Int)
+  private def createCandidates(config: Int => CreateCandidateData, numberToGenerate: Int)
     (implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
-      TestDataGeneratorService.createCandidates(
-        numberToGenerate, CandidateStatusGeneratorFactory.getGenerator,
+      testDataGeneratorService.createCandidates(
+        numberToGenerate,
+        candidateStatusGeneratorFactory.getGenerator,
         config
       ).map { candidates =>
         Ok(Json.toJson(candidates))
       }
     } catch {
-      case etex: EmailTakenException => {
+      case etex: EmailTakenException =>
         Logger.error("TDG: Email has been already taken. Try with another one by changing the emailPrefix parameter.")
         Logger.error(etex.getStackTrace.toString)
         Future.successful(Conflict(JsObject(List(("message",
           JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
-      }
       case ex: Throwable =>
-        Logger.error(s"TDG: There was an exception creating the candidate. Message=[${ex.getMessage}].")
-        Logger.error(ex.getStackTrace.toString);
+        Logger.error(s"TDG: There was an exception creating the candidate. Message=[$ex].")
+        Logger.error(s"TDG: ${ex.getCause}")
         Future.successful(Conflict(JsObject(List(("message",
           JsString(s"There was an exception creating the candidate. Message=[${ex.getMessage}]"))))))
     }
   }
 
-  private def createAdmins(createData: ( Int ) => CreateAdminData, numberToGenerate: Int)
+  private def createAdmins(createData: Int => CreateAdminData, numberToGenerate: Int)
     (implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
-      TestDataGeneratorService.createAdmins(
+      testDataGeneratorService.createAdmins(
         numberToGenerate,
-        AdminStatusGeneratorFactory.getGenerator,
+        adminStatusGeneratorFactory.getGenerator,
         createData
       ).map { admins =>
         Ok(Json.toJson(admins))
@@ -383,10 +388,10 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  private def createEvent(createData: ( Int ) => CreateEventData, numberToGenerate: Int)
+  private def createEvent(createData: Int => CreateEventData, numberToGenerate: Int)
     (implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
-      TestDataGeneratorService.createEvent(
+      testDataGeneratorService.createEvent(
         numberToGenerate,
         createData
       ).map { events =>
@@ -398,10 +403,10 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  private def createEvents(createDatas: List[( Int ) => CreateEventData], numberToGenerate: Int)
+  private def createEvents(createDatas: List[Int => CreateEventData], numberToGenerate: Int)
     (implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
-      TestDataGeneratorService.createEvents(
+      testDataGeneratorService.createEvents(
         numberToGenerate,
         createDatas
       ).map { events =>
@@ -413,10 +418,10 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  private def createAssessorAllocations(createDatas: List[( Int ) => CreateAssessorAllocationData], numberToGenerate: Int)
+  private def createAssessorAllocations(createDatas: List[Int => CreateAssessorAllocationData], numberToGenerate: Int)
     (implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
-      TestDataGeneratorService.createAssessorAllocations(
+      testDataGeneratorService.createAssessorAllocations(
         numberToGenerate,
         createDatas
       ).map { assessorAllocations =>
@@ -428,10 +433,10 @@ trait TestDataGeneratorController extends BaseController {
     }
   }
 
-  private def createCandidateAllocations(data: List[( Int ) => CreateCandidateAllocationData], numberToGenerate: Int)
+  private def createCandidateAllocations(data: List[Int => CreateCandidateAllocationData], numberToGenerate: Int)
     (implicit hc: HeaderCarrier, rh: RequestHeader) = {
     try {
-      TestDataGeneratorService.createCandidateAllocations(numberToGenerate, data).map { candidateAllocations =>
+      testDataGeneratorService.createCandidateAllocations(numberToGenerate, data).map { candidateAllocations =>
         Ok(Json.toJson(candidateAllocations))
       }
     } catch {

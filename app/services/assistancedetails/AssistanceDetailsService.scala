@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,28 @@
 
 package services.assistancedetails
 
+import com.google.inject.ImplementedBy
+import javax.inject.{ Inject, Singleton }
 import model.exchange.AssistanceDetailsExchange
 import model.persisted.AssistanceDetails
-import repositories._
 import repositories.assistancedetails.AssistanceDetailsRepository
-import services.AuditService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object AssistanceDetailsService extends AssistanceDetailsService {
-  val adRepository = faststreamAssistanceDetailsRepository
+@ImplementedBy(classOf[AssistanceDetailsServiceImpl])
+trait AssistanceDetailsService {
+  def update(applicationId: String, userId: String, updateAssistanceDetails: AssistanceDetailsExchange): Future[Unit]
+  def find(applicationId: String, userId: String): Future[AssistanceDetailsExchange]
 }
 
-trait AssistanceDetailsService {
-  val adRepository: AssistanceDetailsRepository
-
-  def update(applicationId: String, userId: String, updateAssistanceDetails: AssistanceDetailsExchange): Future[Unit] = {
+@Singleton
+class AssistanceDetailsServiceImpl @Inject() (adRepository: AssistanceDetailsRepository) extends AssistanceDetailsService {
+  override def update(applicationId: String, userId: String, updateAssistanceDetails: AssistanceDetailsExchange): Future[Unit] = {
     adRepository.update(applicationId, userId, AssistanceDetails(updateAssistanceDetails))
   }
 
-  def find(applicationId: String, userId: String): Future[AssistanceDetailsExchange] = {
+  override def find(applicationId: String, userId: String): Future[AssistanceDetailsExchange] = {
     for {
       ad <- adRepository.find(applicationId)
     } yield AssistanceDetailsExchange(ad)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,10 @@ import scala.concurrent.Future
 class FlagCandidateControllerSpec extends UnitWithAppSpec {
   val mockFlagCandidateRepository = mock[FlagCandidateRepository]
 
-  object TestableFlagCandidateController extends FlagCandidateController {
-    val fcRepository: FlagCandidateRepository = mockFlagCandidateRepository
-  }
+  val testableFlagCandidateController = new FlagCandidateController(
+    stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
+    mockFlagCandidateRepository
+  )
 
   "Flag Candidate Controller" should {
     "Return a candidate issue" in {
@@ -42,26 +43,23 @@ class FlagCandidateControllerSpec extends UnitWithAppSpec {
       val flagCandidate = FlagCandidate("appId", Some(issue))
       when(mockFlagCandidateRepository.tryGetCandidateIssue("appId")).thenReturn(Future.successful(Some(flagCandidate)))
 
-      val response = TestableFlagCandidateController.find("appId")(FakeRequest())
-
+      val response = testableFlagCandidateController.find("appId")(FakeRequest())
       asFlagCandidate(response) must be(FlagCandidateCommands.FlagCandidate(issue))
     }
 
     "Return Not Found for get issue if there it does not exist" in {
       when(mockFlagCandidateRepository.tryGetCandidateIssue("appId")).thenReturn(Future.successful(None))
 
-      val response = TestableFlagCandidateController.find("appId")(FakeRequest())
-
-      status(response) must be(NOT_FOUND)
+      val response = testableFlagCandidateController.find("appId")(FakeRequest())
+      status(response) mustBe NOT_FOUND
     }
 
     "Save a new issue for the candidate" in {
       val flagCandidate = FlagCandidate("appId", Some("some issue"))
       when(mockFlagCandidateRepository.save(flagCandidate)).thenReturn(Future.successful(()))
 
-      val response = TestableFlagCandidateController.save("appId")(createPutRequest("appId", Json.toJson(flagCandidate).toString()))
-
-      status(response) must be(OK)
+      val response = testableFlagCandidateController.save("appId")(createPutRequest("appId", Json.toJson(flagCandidate).toString()))
+      status(response) mustBe OK
       verify(mockFlagCandidateRepository).save(flagCandidate)
     }
 
@@ -69,25 +67,22 @@ class FlagCandidateControllerSpec extends UnitWithAppSpec {
       val flagCandidate = FlagCandidate("appId", Some("some issue"))
       when(mockFlagCandidateRepository.save(flagCandidate)).thenReturn(Future.failed(new NotFoundException()))
 
-      val response = TestableFlagCandidateController.save("appId")(createPutRequest("appId", Json.toJson(flagCandidate).toString()))
-
-      status(response) must be(NOT_FOUND)
+      val response = testableFlagCandidateController.save("appId")(createPutRequest("appId", Json.toJson(flagCandidate).toString()))
+      status(response) mustBe NOT_FOUND
     }
 
     "Remove an issue for the candidate" in {
       when(mockFlagCandidateRepository.remove("appId")).thenReturn(Future.successful(()))
 
-      val response = TestableFlagCandidateController.remove("appId")(FakeRequest())
-
-      status(response) must be(NO_CONTENT)
+      val response = testableFlagCandidateController.remove("appId")(FakeRequest())
+      status(response) mustBe NO_CONTENT
     }
 
     "Return NOT_FOUND when remove an issue for incorrect applicationId" in {
       when(mockFlagCandidateRepository.remove("appId")).thenReturn(Future.failed(new NotFoundException()))
 
-      val response = TestableFlagCandidateController.remove("appId")(FakeRequest())
-
-      status(response) must be(NOT_FOUND)
+      val response = testableFlagCandidateController.remove("appId")(FakeRequest())
+      status(response) mustBe NOT_FOUND
     }
   }
 

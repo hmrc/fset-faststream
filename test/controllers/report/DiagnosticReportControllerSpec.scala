@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import testkit.MockitoImplicits.OngoingStubbingExtension
 import scala.concurrent.Future
 
 class DiagnosticReportControllerSpec extends UnitWithAppSpec {
-
+/*
   val mockDiagnosticReportRepository: DiagnosticReportingRepository = mock[DiagnosticReportingRepository]
   val mockAssessorScoresRepo: AssessmentScoresMongoRepository = mock[AssessmentScoresMongoRepository]
   val mockReviewerScoresRepo: AssessmentScoresMongoRepository = mock[AssessmentScoresMongoRepository]
@@ -94,5 +94,5 @@ class DiagnosticReportControllerSpec extends UnitWithAppSpec {
       FakeRequest(Helpers.GET, controllers.routes.DiagnosticReportController.getAllApplications().url, FakeHeaders(), "")
         .withHeaders("Content-Type" -> "application/json")
     }
-  }
+  }*/
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 package scheduler.sift
 
 import config.ScheduledJobConfig
+import javax.inject.{ Inject, Singleton }
 import model.sift.{ SiftReminderNotice, SiftSecondReminder }
-import play.api.Logger
+import play.api.{ Configuration, Logger }
+import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.sift.ApplicationSiftService
@@ -26,10 +28,13 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object SecondSiftReminderJob extends SecondSiftReminderJob {
-  override val service = ApplicationSiftService
+@Singleton
+class SecondSiftReminderJobImpl @Inject() (val service: ApplicationSiftService,
+                                           val mongoComponent: ReactiveMongoComponent,
+                                           val config: SecondSiftReminderJobConfig) extends SecondSiftReminderJob {
+  //  override val service = ApplicationSiftService
   override val reminderNotice: SiftReminderNotice = SiftSecondReminder
-  val config = SecondSiftReminderJobConfig
+  //  val config = SecondSiftReminderJobConfig
 }
 
 trait SecondSiftReminderJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
@@ -40,7 +45,7 @@ trait SecondSiftReminderJob extends SingleInstanceScheduledJob[BasicJobConfig[Sc
     implicit val hc = HeaderCarrier()
     service.nextApplicationForSecondReminder(reminderNotice.hoursBeforeReminder).flatMap {
       case None =>
-        Logger.info("Sift second reminder job complete - NO applications found")
+        Logger.info("Sift second reminder job complete - No applications found")
         Future.successful(())
       case Some(application) =>
         Logger.info(s"Sift second reminder job complete - one application found - ${application.applicationId}")
@@ -49,7 +54,9 @@ trait SecondSiftReminderJob extends SingleInstanceScheduledJob[BasicJobConfig[Sc
   }
 }
 
-object SecondSiftReminderJobConfig extends BasicJobConfig[ScheduledJobConfig](
+@Singleton
+class SecondSiftReminderJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.sift-second-reminder-job",
   name = "SiftSecondReminderJob"
 )

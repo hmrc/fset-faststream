@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.mockito.Mockito._
 import repositories.application.GeneralApplicationRepository
 import repositories.campaignmanagement.CampaignManagementAfterDeadlineSignupCodeRepository
 import repositories.contactdetails.ContactDetailsRepository
-import repositories.onlinetesting.{ Phase1TestRepository, Phase1TestRepository2, Phase2TestRepository, Phase2TestRepository2 }
+import repositories.onlinetesting._
 import repositories.{ MediaRepository, QuestionnaireRepository }
 import services.BaseServiceSpec
 import testkit.MockitoImplicits._
@@ -239,18 +239,18 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
     val mockMediaRepository = mock[MediaRepository]
     val mockContactDetailsRepository = mock[ContactDetailsRepository]
 
-    val service = new CampaignManagementService {
-      val afterDeadlineCodeRepository = mockAfterDeadlineCodeRepository
-      val uuidFactory = mockUuidFactory
-      val appRepo = mockApplicationRepository
-      val phase1TestRepo = mockPhase1TestRepository
-      val phase1TestRepo2 = mockPhase1TestRepository2
-      val phase2TestRepo = mockPhase2TestRepository
-      val phase2TestRepo2 = mockPhase2TestRepository2
-      val questionnaireRepo = mockQuestionnaireRepository
-      val mediaRepo = mockMediaRepository
-      val contactDetailsRepo = mockContactDetailsRepository
-    }
+    val service = new CampaignManagementService(
+      mockAfterDeadlineCodeRepository,
+      mockUuidFactory,
+      mockApplicationRepository,
+      mockPhase1TestRepository,
+      mockPhase1TestRepository2,
+      mockPhase2TestRepository,
+      mockPhase2TestRepository2,
+      mockQuestionnaireRepository,
+      mockMediaRepository,
+      mockContactDetailsRepository
+    )
 
     val phase1 = "PHASE1"
     val phase2 = "PHASE2"

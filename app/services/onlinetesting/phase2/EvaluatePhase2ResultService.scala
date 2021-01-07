@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,33 @@
 
 package services.onlinetesting.phase2
 
-import _root_.services.passmarksettings.PassMarkSettingsService
+import com.google.inject.name.Named
+import factories.UUIDFactory
+import javax.inject.{ Inject, Singleton }
 import model.Phase
 import model.exchange.passmarksettings.Phase2PassMarkSettings
 import model.persisted.ApplicationReadyForEvaluation
 import play.api.Logger
-import repositories._
+import repositories.application.GeneralApplicationRepository
+import repositories.onlinetesting.OnlineTestEvaluationRepository
+import repositories.passmarksettings.Phase2PassMarkSettingsMongoRepository
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
 import services.onlinetesting.CurrentSchemeStatusHelper
+import services.passmarksettings.PassMarkSettingsService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object EvaluatePhase2ResultService extends EvaluatePhase2ResultService {
-  val evaluationRepository = repositories.faststreamPhase2EvaluationRepository
-  val passMarkSettingsRepo = phase2PassMarkSettingsRepository
-  val generalAppRepository = repositories.applicationRepository
-  val phase = Phase.PHASE2
-}
-
-trait EvaluatePhase2ResultService extends EvaluateOnlineTestResultService[Phase2PassMarkSettings] with Phase2TestEvaluation
+// Cubiks version guice injected
+@Singleton
+class EvaluatePhase2ResultService @Inject() (@Named("Phase2EvaluationRepository") val evaluationRepository: OnlineTestEvaluationRepository,
+                                             val passMarkSettingsRepo: Phase2PassMarkSettingsMongoRepository,
+                                             val generalAppRepository: GeneralApplicationRepository,
+                                             val uuidFactory: UUIDFactory
+                                            ) extends EvaluateOnlineTestResultService[Phase2PassMarkSettings] with Phase2TestEvaluation
   with PassMarkSettingsService[Phase2PassMarkSettings] with CurrentSchemeStatusHelper {
+
+  override val phase = Phase.PHASE2
 
   def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase2PassMarkSettings): Future[Unit] = {
     Logger.debug(s"Evaluating phase2 appId=${application.applicationId}")

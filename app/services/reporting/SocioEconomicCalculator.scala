@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package services.reporting
 
+import javax.inject.Singleton
 import model.persisted.QuestionnaireAnswer
 
 object SocioEconomicCalculator extends SocioEconomicScoreCalculator {
@@ -29,8 +30,9 @@ object SocioEconomicCalculator extends SocioEconomicScoreCalculator {
   val OtherEmployees = 7
 }
 
-trait SocioEconomicScoreCalculator extends Calculable {
-  import services.reporting.SocioEconomicCalculator._
+@Singleton
+class SocioEconomicScoreCalculator extends Calculable {
+  import SocioEconomicCalculator._
 
   def calculateAsInt(answers: Map[String, QuestionnaireAnswer]): Int = {
     val flattenedAnswers = answers.map { case (question, answer) => question -> answer.answer.getOrElse("") }

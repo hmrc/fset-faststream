@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,33 +16,27 @@
 
 package controllers
 
-import model.{ ApplicationRoute, Candidate, SearchCandidate }
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.{ ApplicationNotFound, ContactDetailsNotFound, PersonalDetailsNotFound }
-import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent }
-import repositories._
+import model.{ ApplicationRoute, Candidate, SearchCandidate }
+import play.api.libs.json.{ JsValue, Json }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import services.search.SearchForApplicantService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object SearchForApplicantsController extends SearchForApplicantsController {
-  val appRepository = applicationRepository
-  val psRepository = personalDetailsRepository
-  val cdRepository = faststreamContactDetailsRepository
-  val searchForApplicantService = SearchForApplicantService
-}
-
-trait SearchForApplicantsController extends BaseController {
-
-  val appRepository: GeneralApplicationRepository
-  val psRepository: PersonalDetailsRepository
-  val cdRepository: ContactDetailsRepository
-  val searchForApplicantService: SearchForApplicantService
+@Singleton
+class SearchForApplicantsController @Inject() (cc: ControllerComponents,
+                                               appRepository: GeneralApplicationRepository,
+                                               psRepository: PersonalDetailsRepository,
+                                               cdRepository: ContactDetailsRepository,
+                                               searchForApplicantService: SearchForApplicantService
+                                              ) extends BackendController(cc) {
 
   val MAX_RESULTS = 25
 
@@ -78,7 +72,7 @@ trait SearchForApplicantsController extends BaseController {
     }
   }
 
-  def findByCriteria = Action.async(parse.json) { implicit request =>
+  def findByCriteria: Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[SearchCandidate] { searchCandidate =>
       createResult(searchForApplicantService.findByCriteria(searchCandidate))
     }

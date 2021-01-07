@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package services.testdata.candidate.assessmentcentre
 
+import javax.inject.{ Inject, Singleton }
 import model.ApplicationStatus
 import model.EvaluationResults.Green
 import model.command.ApplicationForProgression
@@ -26,21 +27,18 @@ import play.api.mvc.RequestHeader
 import services.assessmentcentre.AssessmentCentreService
 import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.candidate.sift.SiftCompleteStatusGenerator
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
-object AssessmentCentreAwaitingAllocationStatusGenerator extends AssessmentCentreAwaitingAllocationStatusGenerator {
-  override val previousStatusGenerator = SiftCompleteStatusGenerator
-  override val assessmentCentreService = AssessmentCentreService
-}
-
-trait AssessmentCentreAwaitingAllocationStatusGenerator extends ConstructiveGenerator {
-  val assessmentCentreService: AssessmentCentreService
+@Singleton
+class AssessmentCentreAwaitingAllocationStatusGenerator @Inject() (val previousStatusGenerator: SiftCompleteStatusGenerator,
+                                                                   assessmentCentreService: AssessmentCentreService
+                                                                  ) extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import play.api.test.Helpers._
 import services.NumericalTestService2
 import services.onlinetesting.phase1.Phase1TestService2
 import services.onlinetesting.phase2.Phase2TestService2
-import services.stc.StcEventService
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -37,16 +36,15 @@ class PsiTestsControllerSpec extends UnitWithAppSpec {
   val mockPhase1TestService2 = mock[Phase1TestService2]
   val mockPhase2TestService2 = mock[Phase2TestService2]
   val mockNumericalTestService2 = mock[NumericalTestService2]
-  val mockEventService = mock[StcEventService]
 
   val orderId = "orderId1"
 
-  def controllerUnderTest = new PsiTestsController {
-    val phase1TestService2 = mockPhase1TestService2
-    val phase2TestService2 = mockPhase2TestService2
-    val numericalTestService2 = mockNumericalTestService2
-    val eventService = mockEventService
-  }
+  def controllerUnderTest = new PsiTestsController(
+    stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
+    mockPhase1TestService2,
+    mockPhase2TestService2,
+    mockNumericalTestService2
+  )
 
   "start" should {
     "mark the phase1 test as started" in {

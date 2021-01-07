@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package services.allocation
 
-import config.EventsConfig
-import connectors.{ AuthProviderClient, EmailClient }
+import config.{ EventsConfig, MicroserviceAppConfig }
 import connectors.ExchangeObjects.Candidate
+import connectors.{ AuthProviderClient, OnlineTestEmailClient }
 import model.ApplicationStatus.ApplicationStatus
 import model._
 import model.command.{ CandidateAllocation, CandidateAllocations }
@@ -28,22 +28,21 @@ import model.persisted._
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.{ Event, EventType, Location, Venue }
 import org.joda.time.{ DateTime, LocalDate, LocalTime }
-import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
 import org.mockito.Mockito.{ when, _ }
 import org.mockito.stubbing.OngoingStubbing
-import repositories.{ CandidateAllocationMongoRepository, SchemeRepository, SchemeYamlRepository }
 import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
+import repositories.personaldetails.PersonalDetailsRepository
+import repositories.{ CandidateAllocationMongoRepository, SchemeRepository }
 import services.BaseServiceSpec
 import services.events.EventsService
 import services.stc.{ StcEventService, StcEventServiceFixture }
-import testkit.MockitoImplicits._
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
-import repositories.contactdetails.ContactDetailsRepository
-import repositories.personaldetails.PersonalDetailsRepository
 import testkit.ExtendedTimeout
+import testkit.MockitoImplicits._
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout{
   "Allocate candidate" must {
@@ -56,7 +55,11 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
         Seq(CandidateAllocation(appId, AllocationStatuses.UNCONFIRMED)))
 
       when(mockEventsService.getEvent(eventId)).thenReturnAsync(EventExamples.e1)
-      when(mockCandidateAllocationRepository.activeAllocationsForSession(eventId, sessionId)).thenReturnAsync(Nil)
+      //here
+//      when(mockCandidateAllocationRepository.activeAllocationsForSession(eventId, sessionId)).thenReturnAsync(Nil)
+      when(mockAllocationServiceCommon.getCandidateAllocations(eventId, sessionId)).thenReturnAsync(
+        exchange.CandidateAllocations(version = None, allocations = Nil)
+      )
 
       when(mockCandidateAllocationRepository.save(any[Seq[model.persisted.CandidateAllocation]])).thenReturnAsync()
       when(mockAppRepo.removeProgressStatuses(any[String], any[List[ProgressStatuses.ProgressStatus]])).thenReturnAsync()
@@ -93,9 +96,12 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
         reminderSent = false
       )
 
-      val existingAllocations = Seq(candidate1)
+      val existingPersistedAllocations = Seq(candidate1)
+      val existingAllocations = exchange.CandidateAllocations.apply(existingPersistedAllocations)
+      when(mockAllocationServiceCommon.getCandidateAllocations(eventId, sessionId)).thenReturnAsync(existingAllocations)
+      //here
+//      when(mockCandidateAllocationRepository.activeAllocationsForSession(eventId, sessionId)).thenReturnAsync(existingAllocations)
 
-      when(mockCandidateAllocationRepository.activeAllocationsForSession(eventId, sessionId)).thenReturnAsync(existingAllocations)
       when(mockCandidateAllocationRepository.delete(any[Seq[model.persisted.CandidateAllocation]])).thenReturnAsync()
       when(mockCandidateAllocationRepository.save(any[Seq[model.persisted.CandidateAllocation]])).thenReturnAsync()
 
@@ -132,9 +138,13 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
         reminderSent = false
       )
 
-      val existingAllocations = Seq(candidate1)
+      val existingPersistedAllocations = Seq(candidate1)
 
-      when(mockCandidateAllocationRepository.activeAllocationsForSession(eventId, sessionId)).thenReturnAsync(existingAllocations)
+      //here
+//      when(mockCandidateAllocationRepository.activeAllocationsForSession(eventId, sessionId)).thenReturnAsync(existingPersistedAllocations)
+      val existingAllocations = exchange.CandidateAllocations.apply(existingPersistedAllocations)
+      when(mockAllocationServiceCommon.getCandidateAllocations(eventId, sessionId)).thenReturnAsync(existingAllocations)
+
       when(mockCandidateAllocationRepository.delete(any[Seq[model.persisted.CandidateAllocation]])).thenReturnAsync()
       when(mockCandidateAllocationRepository.save(any[Seq[model.persisted.CandidateAllocation]])).thenReturnAsync()
 
@@ -148,7 +158,9 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
 
       val candidateAllocations = CandidateAllocations(version, eventId, sessionId,
         Seq(CandidateAllocation(appId2, AllocationStatuses.UNCONFIRMED)))
+
       service.allocateCandidates(candidateAllocations, append = false).futureValue
+
       // Should be called for the existing candidate who is still in FSB
       verify(mockAppRepo, times(1)).removeProgressStatuses(any[String], any[List[ProgressStatuses.ProgressStatus]])
     }
@@ -173,9 +185,11 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
         reminderSent = false
       )
 
-      val existingAllocations = Seq(candidate1)
+      val existingPersistedAllocations = Seq(candidate1)
+//      when(mockCandidateAllocationRepository.activeAllocationsForSession(eventId, sessionId)).thenReturnAsync(existingPersistedAllocations)
+      val existingAllocations = exchange.CandidateAllocations.apply(existingPersistedAllocations)
+      when(mockAllocationServiceCommon.getCandidateAllocations(eventId, sessionId)).thenReturnAsync(existingAllocations)
 
-      when(mockCandidateAllocationRepository.activeAllocationsForSession(eventId, sessionId)).thenReturnAsync(existingAllocations)
       when(mockCandidateAllocationRepository.delete(any[Seq[model.persisted.CandidateAllocation]])).thenReturnAsync()
       when(mockCandidateAllocationRepository.save(any[Seq[model.persisted.CandidateAllocation]])).thenReturnAsync()
 
@@ -257,34 +271,39 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
   }
 
   trait TestFixture extends StcEventServiceFixture {
-    val mockCandidateAllocationRepository: CandidateAllocationMongoRepository = mock[CandidateAllocationMongoRepository]
-    val mockAppRepo: GeneralApplicationRepository = mock[GeneralApplicationRepository]
-    val mockPersonalDetailsRepo: PersonalDetailsRepository = mock[PersonalDetailsRepository]
-    val mockContactDetailsRepo: ContactDetailsRepository = mock[ContactDetailsRepository]
-    val mockEventsService: EventsService = mock[EventsService]
-    val mockEmailClient: EmailClient = mock[EmailClient]
-    val mockAuthProviderClient: AuthProviderClient = mock[AuthProviderClient]
+    val mockCandidateAllocationRepository = mock[CandidateAllocationMongoRepository]
+    val mockAppRepo = mock[GeneralApplicationRepository]
+    val mockContactDetailsRepo = mock[ContactDetailsRepository]
+    val mockPersonalDetailsRepo = mock[PersonalDetailsRepository]
+    val mockSchemeRepository = mock[SchemeRepository]
+    val mockEventsService = mock[EventsService]
+    val mockAllocationServiceCommon = mock[AllocationServiceCommon]
+
     val mockStcEventService: StcEventService = stcEventServiceMock
+    val mockEmailClient = mock[OnlineTestEmailClient]
+    val mockAuthProviderClient: AuthProviderClient = mock[AuthProviderClient]
+    val mockMicroserviceAppConfig = mock[MicroserviceAppConfig]
 
-    val service = new CandidateAllocationService {
-      override val eventsService: EventsService = mockEventsService
-      override val applicationRepo: GeneralApplicationRepository = mockAppRepo
-      override val personalDetailsRepo: PersonalDetailsRepository = mockPersonalDetailsRepo
-      override val contactDetailsRepo: ContactDetailsRepository = mockContactDetailsRepo
+    when(mockMicroserviceAppConfig.eventsConfig).thenReturn(
+      EventsConfig(scheduleFilePath = "", fsacGuideUrl = "", daysBeforeInvitationReminder = 1, maxNumberOfCandidates = 1)
+    )
 
-      override def emailClient: EmailClient = mockEmailClient
-
-      override def authProviderClient: AuthProviderClient = mockAuthProviderClient
-
-      override val eventService: StcEventService = mockStcEventService
-
-      def candidateAllocationRepo: CandidateAllocationMongoRepository = mockCandidateAllocationRepository
-
-      override def schemeRepository: SchemeRepository = SchemeYamlRepository
-
-      override def eventsConfig: EventsConfig =
-        EventsConfig(scheduleFilePath = "", fsacGuideUrl = "", daysBeforeInvitationReminder = 1, maxNumberOfCandidates = 1)
-    }
+    val service = new CandidateAllocationService(
+      mockCandidateAllocationRepository,
+      mockAppRepo,
+      mockContactDetailsRepo,
+      mockPersonalDetailsRepo,
+      mockSchemeRepository,
+      //override def schemeRepository: SchemeRepository = SchemeYamlRepository
+      mockEventsService,
+      mockAllocationServiceCommon,
+      mockStcEventService,
+      mockEmailClient,
+      mockAuthProviderClient,
+      mockMicroserviceAppConfig
+//      override def eventsConfig: EventsConfig =
+//        EventsConfig(scheduleFilePath = "", fsacGuideUrl = "", daysBeforeInvitationReminder = 1, maxNumberOfCandidates = 1)
+    )
 
     protected def mockGetEvent: OngoingStubbing[Future[Event]] = when(mockEventsService.getEvent(any[String]())).thenReturnAsync(new Event(
       "eventId", EventType.FSAC, "Description", Location("London"), Venue("Venue 1", "venue description"),

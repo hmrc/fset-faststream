@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,15 +27,15 @@ import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.application.GeneralApplicationRepository
-import services.onlinetesting.phase1.{ Phase1TestService, Phase1TestService2 }
-import services.onlinetesting.phase2.{ Phase2TestService, Phase2TestService2 }
 import services.onlinetesting.Exceptions.{ CannotResetPhase2Tests, ResetLimitExceededException }
+import services.onlinetesting.phase1.{ Phase1TestService2, Phase1TestService }
+import services.onlinetesting.phase2.{ Phase2TestService2, Phase2TestService }
 import services.onlinetesting.phase3.Phase3TestService
 import services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
 import testkit.UnitWithAppSpec
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 class OnlineTestsControllerSpec extends UnitWithAppSpec {
 
@@ -58,14 +58,15 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
     videoInterviewAdjustments = None
   )
 
-  def controller = new OnlineTestController {
-    val phase1TestService = mockPhase1TestService
-    val phase1TestService2 = mockPhase1TestService2
-    val phase2TestService = mockPhase2TestService
-    val phase2TestService2 = mockPhase2TestService2
-    val phase3TestService = mockPhase3TestService
-    val appRepository = mockApplicationRepository
-  }
+  def controller = new OnlineTestController(
+    stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
+    mockApplicationRepository,
+    mockPhase1TestService,
+    mockPhase1TestService2,
+    mockPhase2TestService,
+    mockPhase2TestService2,
+    mockPhase3TestService
+  )
 
   "reset phase1 tests" should {
     "return OK when candidate is reset" in {

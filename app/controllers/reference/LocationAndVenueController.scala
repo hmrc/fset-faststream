@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,17 @@
 
 package controllers.reference
 
+import javax.inject.{ Inject, Singleton }
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent }
-import repositories.events.{ LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
+import repositories.events.LocationsWithVenuesRepository
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object LocationAndVenueController extends LocationAndVenueController {
-
-  val locationsAndVenuesRepository: LocationsWithVenuesRepository = LocationsWithVenuesInMemoryRepository
-
-}
-
-trait LocationAndVenueController extends BaseController {
-
-  def locationsAndVenuesRepository: LocationsWithVenuesRepository
+@Singleton
+class LocationAndVenueController @Inject() (cc: ControllerComponents,
+                                            locationsAndVenuesRepository: LocationsWithVenuesRepository) extends BackendController(cc) {
 
   def locationsWithVenues: Action[AnyContent] = Action.async { implicit request =>
     locationsAndVenuesRepository.locationsWithVenuesList.map(x => Ok(Json.toJson(x)))
@@ -43,5 +39,4 @@ trait LocationAndVenueController extends BaseController {
   def locations: Action[AnyContent] = Action.async { implicit request =>
     locationsAndVenuesRepository.locations.map(x => Ok(Json.toJson(x)))
   }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,7 @@ object FSACIndicator {
   implicit val jsonFormat = Json.format[FSACIndicator]
   implicit val bsonFormat = Macros.handler[FSACIndicator]
 
-  def apply(indicator: model.FSACIndicator): FSACIndicator = {
-    FSACIndicator(indicator.area, indicator.assessmentCentre,
-      FSACIndicatorCSVRepository.FSACIndicatorVersion)
+  def apply(indicator: model.FSACIndicator, fsacIndicatorVersion: String): FSACIndicator = {
+    FSACIndicator(indicator.area, indicator.assessmentCentre, fsacIndicatorVersion)
   }
 }

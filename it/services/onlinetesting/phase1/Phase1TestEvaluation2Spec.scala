@@ -1,21 +1,20 @@
 package services.onlinetesting.phase1
 
-import config.{ Phase1TestsConfig2, PsiTestIds, TestIntegrationGatewayConfig }
+import config.{ Phase1TestsConfig2, PsiTestIds }
+import factories.UUIDFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Result
 import model.ProgressStatuses.ProgressStatus
 import model.exchange.passmarksettings.{ PassMarkThreshold, Phase1PassMark, Phase1PassMarkSettings, Phase1PassMarkThresholds }
 import model.persisted.{ ApplicationReadyForEvaluation2, PassmarkEvaluation, SchemeEvaluationResult }
-import model.{ ApplicationRoute, ApplicationStatus, Phase, SchemeId }
+import model.{ ApplicationRoute, ApplicationStatus, SchemeId }
 import org.joda.time.DateTime
 import org.mockito.Mockito.when
 import org.scalatest.prop.{ TableDrivenPropertyChecks, TableFor9 }
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers
 import reactivemongo.play.json.collection.JSONCollection
-import repositories.onlinetesting.Phase1EvaluationMongoRepository
-import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
@@ -29,12 +28,8 @@ trait Phase1TestEvaluation2Spec extends MongoRepositorySpec with CommonRepositor
   val collectionName: String = CollectionNames.APPLICATION
   override val additionalCollections = List(CollectionNames.PHASE1_PASS_MARK_SETTINGS)
 
-  def phase1TestEvaluationService = new EvaluatePhase1ResultService2 {
-    val evaluationRepository: Phase1EvaluationMongoRepository = phase1EvaluationRepo
-    val gatewayConfig: TestIntegrationGatewayConfig = mockTestIntegrationGatewayConfig
-    val passMarkSettingsRepo: Phase1PassMarkSettingsMongoRepository = phase1PassMarkSettingRepo
-    val phase1TestsConfigMock: Phase1TestsConfig2 = mock[Phase1TestsConfig2]
-    val phase = Phase.PHASE1
+  def phase1TestEvaluationService = {
+    when(mockAppConfig.testIntegrationGatewayConfig).thenReturn(mockTestIntegrationGatewayConfig)
 
     def testIds(idx: Int): PsiTestIds =
       PsiTestIds(s"inventoryId$idx", s"assessmentId$idx", s"reportId$idx", s"normId$idx")
@@ -45,11 +40,18 @@ trait Phase1TestEvaluation2Spec extends MongoRepositorySpec with CommonRepositor
       "test3" -> testIds(3),
       "test4" -> testIds(4)
     )
+    val mockPhase1TestsConfig: Phase1TestsConfig2 = mock[Phase1TestsConfig2]
+    when(mockTestIntegrationGatewayConfig.phase1Tests).thenReturn(mockPhase1TestsConfig)
+    when(mockPhase1TestsConfig.tests).thenReturn(tests)
+    when(mockPhase1TestsConfig.gis).thenReturn(List("test1", "test4"))
+    when(mockPhase1TestsConfig.standard).thenReturn(List("test1", "test2", "test3", "test4"))
 
-    when(gatewayConfig.phase1Tests).thenReturn(phase1TestsConfigMock)
-    when(phase1TestsConfigMock.tests).thenReturn(tests)
-    when(phase1TestsConfigMock.gis).thenReturn(List("test1", "test4"))
-    when(phase1TestsConfigMock.standard).thenReturn(List("test1", "test2", "test3", "test4"))
+    new EvaluatePhase1ResultService2(
+      phase1EvaluationRepo,
+      phase1PassMarkSettingRepo,
+      mockAppConfig,
+      UUIDFactory
+    )
   }
 
   trait TestFixture {
@@ -100,7 +102,7 @@ trait Phase1TestEvaluation2Spec extends MongoRepositorySpec with CommonRepositor
     def applicationEvaluationWithPassMarks(passmarks: Phase1PassMarkSettings, applicationId:String,
                                            t1Score: Double, t2Score: Double,
                                            t3Score: Double, t4Score: Double, selectedSchemes: SchemeId*)(
-      implicit applicationRoute: ApplicationRoute = ApplicationRoute.Faststream): TestFixture = {
+                                            implicit applicationRoute: ApplicationRoute = ApplicationRoute.Faststream): TestFixture = {
       applicationReadyForEvaluation = insertApplicationWithPhase1TestResults2(
         applicationId, t1Score, Some(t2Score), Some(t3Score), t4Score, applicationRoute = applicationRoute)(selectedSchemes: _*)
       phase1TestEvaluationService.evaluate(applicationReadyForEvaluation, passmarks).futureValue
@@ -109,12 +111,12 @@ trait Phase1TestEvaluation2Spec extends MongoRepositorySpec with CommonRepositor
 
     def applicationEvaluation(applicationId: String, t1Score: Double, t2Score: Double,
                               t3Score: Double, t4Score: Double, selectedSchemes: SchemeId*)
-      (implicit applicationRoute: ApplicationRoute = ApplicationRoute.Faststream): TestFixture = {
+                             (implicit applicationRoute: ApplicationRoute = ApplicationRoute.Faststream): TestFixture = {
       applicationEvaluationWithPassMarks(phase1PassMarkSettings, applicationId, t1Score, t2Score, t3Score, t4Score, selectedSchemes:_*)
     }
 
     def mustResultIn(expApplicationStatus: ApplicationStatus, expProgressStatus: Option[ProgressStatus],
-      expSchemeResults: (SchemeId , Result)*): TestFixture = {
+                     expSchemeResults: (SchemeId , Result)*): TestFixture = {
       passMarkEvaluation = phase1EvaluationRepo.getPassMarkEvaluation(applicationReadyForEvaluation.applicationId).futureValue
       val applicationDetails = applicationRepository.findStatus(applicationReadyForEvaluation.applicationId).futureValue
       val applicationStatus = ApplicationStatus.withName(applicationDetails.status)
@@ -135,8 +137,8 @@ trait Phase1TestEvaluation2Spec extends MongoRepositorySpec with CommonRepositor
     }
 
     def getPassMarkSettingWithNewSettings(
-      phase1PassMarkSettingsTable: TableFor9[SchemeId, Double, Double, Double, Double, Double, Double, Double, Double],
-      newSchemeSettings: (SchemeId, Double, Double, Double, Double, Double, Double, Double, Double)*) = {
+                                           phase1PassMarkSettingsTable: TableFor9[SchemeId, Double, Double, Double, Double, Double, Double, Double, Double],
+                                           newSchemeSettings: (SchemeId, Double, Double, Double, Double, Double, Double, Double, Double)*) = {
       phase1PassMarkSettingsTable.filterNot(schemeSetting =>
         newSchemeSettings.map(_._1).contains(schemeSetting._1)) ++ newSchemeSettings
     }
@@ -154,12 +156,12 @@ trait Phase1TestEvaluation2Spec extends MongoRepositorySpec with CommonRepositor
       val schemeThresholds = phase1PassMarkSettingsTable.map {
         case (schemeName, t1Fail, t1Pass, t2Fail, t2Pass, t3Fail, t3Pass, t4Fail, t4Pass) =>
           Phase1PassMark(schemeName,
-          Phase1PassMarkThresholds(
-            PassMarkThreshold(t1Fail, t1Pass),
-            PassMarkThreshold(t2Fail, t2Pass),
-            PassMarkThreshold(t3Fail, t3Pass),
-            PassMarkThreshold(t4Fail, t4Pass)
-          ))
+            Phase1PassMarkThresholds(
+              PassMarkThreshold(t1Fail, t1Pass),
+              PassMarkThreshold(t2Fail, t2Pass),
+              PassMarkThreshold(t3Fail, t3Pass),
+              PassMarkThreshold(t4Fail, t4Pass)
+            ))
       }.toList
 
       val phase1PassMarkSettings = Phase1PassMarkSettings(
@@ -173,7 +175,7 @@ trait Phase1TestEvaluation2Spec extends MongoRepositorySpec with CommonRepositor
       }
     }
 
-    val appCollection = mongo().collection[JSONCollection](collectionName)
+    val appCollection = mongo.mongoConnector.db().collection[JSONCollection](collectionName)
 
     def createUser(userId: String, appId: String) = {
       appCollection.insert(ordered = false).one(BSONDocument("applicationId" -> appId, "userId" -> userId,

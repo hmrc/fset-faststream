@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,48 +21,42 @@ import java.nio.file.Files
 import akka.stream.scaladsl.Source
 import connectors.exchange.UserIdResponse
 import controllers.ApplicationController.CandidateNotFound
-import model.Exceptions.{ ApplicationNotFound, CannotUpdateFSACIndicator, CannotUpdatePreview, NotFoundException, PassMarkEvaluationNotFound }
+import javax.inject.{ Inject, Singleton }
+import model.Exceptions._
 import model.{ CreateApplicationRequest, OverrideSubmissionDeadlineRequest, PreviewRequest, ProgressStatuses }
 import play.api.libs.json.{ JsObject, Json }
-import play.api.libs.streams.Streams
-import play.api.mvc.{ Action, AnyContent }
-import repositories._
+import play.api.libs.iteratee.streams.IterateeStreams
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
+import services.assessmentcentre.AssessmentCentreService
+import services.onlinetesting.phase3.EvaluatePhase3ResultService
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import repositories.application.GeneralApplicationRepository
-import repositories.fileupload.FileUploadMongoRepository
+import repositories.fileupload.FileUploadRepository
 import services.AuditService
 import services.application.ApplicationService
-import services.assessmentcentre.AssessmentCentreService
-import services.assessmentcentre.AssessmentCentreService._
-import services.onlinetesting.phase3.EvaluatePhase3ResultService
+import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
+import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAnalysisExerciseException
 import services.personaldetails.PersonalDetailsService
 import services.sift.ApplicationSiftService
-import uk.gov.hmrc.play.microservice.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object ApplicationController extends ApplicationController {
-  val appRepository = applicationRepository
-  val auditService = AuditService
-  val applicationService = ApplicationService
-  val passmarkService = EvaluatePhase3ResultService
-  val siftService = ApplicationSiftService
-  val assessmentCentreService = AssessmentCentreService
-  val uploadRepository = fileUploadRepository
-  val personalDetailsService = PersonalDetailsService
-
+object ApplicationController {
   case class CandidateNotFound(msg: String) extends Exception(msg)
 }
 
-trait ApplicationController extends BaseController {
-  val appRepository: GeneralApplicationRepository
-  val auditService: AuditService
-  val applicationService: ApplicationService
-  val passmarkService: EvaluatePhase3ResultService
-  val siftService: ApplicationSiftService
-  val assessmentCentreService: AssessmentCentreService
-  val uploadRepository: FileUploadMongoRepository
-  val personalDetailsService: PersonalDetailsService
+@Singleton
+class ApplicationController @Inject() (cc: ControllerComponents,
+                                       appRepository: GeneralApplicationRepository,
+                                       auditService: AuditService,
+                                       applicationService: ApplicationService,
+                                       passmarkService: EvaluatePhase3ResultService,
+                                       siftService: ApplicationSiftService,
+                                       assessmentCentreService: AssessmentCentreService,
+                                       uploadRepository: FileUploadRepository,
+                                       personalDetailsService: PersonalDetailsService
+                                      ) extends BackendController(cc) {
 
   def createApplication = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateApplicationRequest] { applicationRequest =>
@@ -194,7 +188,7 @@ trait ApplicationController extends BaseController {
         analysis = assessmentCentreTests.analysisExercise.getOrElse(throw CandidateHasNoAnalysisExerciseException(applicationId))
         file <- uploadRepository.retrieve(analysis.fileId)
       } yield {
-        val source = Source.fromPublisher(Streams.enumeratorToPublisher(file.fileContents))
+        val source = Source.fromPublisher(IterateeStreams.enumeratorToPublisher(file.fileContents))
 
         Ok.chunked(source).as(file.contentType)
       }
@@ -203,8 +197,8 @@ trait ApplicationController extends BaseController {
   def analysisExerciseStatistics: Action[AnyContent] = Action.async {
     implicit request =>
       val result = for {
-        allFileInfo <- fileUploadRepository.retrieveAllIdsAndSizes
-        allApplicationFiles <- applicationRepo.findAllFileInfo
+        allFileInfo <- uploadRepository.retrieveAllIdsAndSizes
+        allApplicationFiles <- appRepository.findAllFileInfo
       } yield {
         allApplicationFiles.map { applicationFile =>
           val matchingFileInfo = allFileInfo.find(_.id == applicationFile.analysisExerciseId)
@@ -238,7 +232,7 @@ trait ApplicationController extends BaseController {
   }
 
   def analysisExerciseFileMetadata(fileId: String): Action[AnyContent] = Action.async { implicit request =>
-    fileUploadRepository.retrieveMetaData(fileId).map(f => Ok(Json.toJson(f)))
+    uploadRepository.retrieveMetaData(fileId).map(f => Ok(Json.toJson(f)))
   }
 
   case class ApplicationStatus(applicationId: String, progressStatus: String)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,10 +58,10 @@ class AssistanceDetailsControllerSpec extends UnitWithAppSpec {
 
   trait TestFixture extends TestFixtureBase {
     val mockAssistanceDetailsService = mock[AssistanceDetailsService]
-
-    val controller = new AssistanceDetailsController {
-      val assistanceDetailsService = mockAssistanceDetailsService
-      val auditService = mockAuditService
-    }
+    val controller = new AssistanceDetailsController(
+      stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
+      mockAssistanceDetailsService,
+      mockAuditService
+    )
   }
 }

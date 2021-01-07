@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,12 +39,13 @@ class CubiksTestControllerSpec extends UnitWithAppSpec {
   val mockNumericalTestService = mock[NumericalTestService]
   val mockEventService = mock[StcEventService]
 
-  def controllerUnderTest = new CubiksTestsController {
-    val phase1TestService = mockPhase1TestService
-    val eventService = mockEventService
-    val phase2TestService = mockPhase2TestService
-    val numericalTestService: NumericalTestService = mockNumericalTestService
-  }
+  def controllerUnderTest = new CubiksTestsController(
+    stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
+    mockPhase1TestService,
+    mockPhase2TestService,
+    mockNumericalTestService,
+    mockEventService
+  )
 
   "start" should {
     "mark the phase1 test as started" in {

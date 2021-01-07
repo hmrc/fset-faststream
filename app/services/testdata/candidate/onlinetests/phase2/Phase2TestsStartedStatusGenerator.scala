@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package services.testdata.candidate.onlinetests.phase2
 
 import common.FutureEx
+import javax.inject.{ Inject, Singleton }
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import org.joda.time.DateTime
@@ -28,16 +29,13 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object Phase2TestsStartedStatusGenerator extends Phase2TestsStartedStatusGenerator {
-  override val previousStatusGenerator = Phase2TestsInvitedStatusGenerator
-  override val otService = Phase2TestService2
-}
-
-trait Phase2TestsStartedStatusGenerator extends ConstructiveGenerator {
-  val otService: Phase2TestService2
+@Singleton
+class Phase2TestsStartedStatusGenerator @Inject() (val previousStatusGenerator: Phase2TestsInvitedStatusGenerator,
+                                                   otService: Phase2TestService2
+                                                  ) extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
-      (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- FutureEx.traverseSerial(candidate.phase2TestGroup.get.tests.map(_.orderId))(orderId =>

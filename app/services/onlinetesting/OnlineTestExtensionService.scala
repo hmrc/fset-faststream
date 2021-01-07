@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package services.onlinetesting
 
 import factories.DateTimeFactory
+import javax.inject.{ Inject, Singleton }
 import model.ProgressStatuses._
 import model.command.ProgressResponse
 import model.persisted.Phase1TestProfile2
@@ -24,7 +25,6 @@ import model.stc.{ AuditEvent, AuditEvents, DataStoreEvents }
 import model.{ Phase1FirstReminder, Phase1SecondReminder }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
-import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository2
 import services.AuditService
@@ -35,23 +35,16 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object OnlineTestExtensionService extends OnlineTestExtensionService {
-  val appRepository = applicationRepository
-  val otRepository = phase1TestRepository2
-  val auditService = AuditService
-  val dateTimeFactory = DateTimeFactory
-  val eventService = StcEventService
-}
-
-trait OnlineTestExtensionService extends EventSink {
-  val appRepository: GeneralApplicationRepository
-  val otRepository: Phase1TestRepository2
-  val auditService: AuditService
-  val dateTimeFactory: DateTimeFactory
+@Singleton
+class OnlineTestExtensionService @Inject() (appRepository: GeneralApplicationRepository,
+                                            otRepository: Phase1TestRepository2,
+                                            auditService: AuditService,
+                                            dateTimeFactory: DateTimeFactory,
+                                            val eventService: StcEventService) extends EventSink {
   import OnlineTestExtensionServiceImpl._
 
   def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTriggeredBy: String)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+                               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
 
     val extension = for {
       progressResponse <- appRepository.findProgress(applicationId)
@@ -76,10 +69,9 @@ trait OnlineTestExtensionService extends EventSink {
       _ <- getProgressStatusesToRemove(date, profile, progress).fold(NoOp)(p => appRepository.removeProgressStatuses(applicationId, p))
     } yield {
       audit(expired, applicationId) ::
-      DataStoreEvents.OnlineExerciseExtended(applicationId, actionTriggeredBy) ::
-      Nil
+        DataStoreEvents.OnlineExerciseExtended(applicationId, actionTriggeredBy) ::
+        Nil
     }
-
   }
 
   private def audit(expired: Boolean, applicationId: String): AuditEvent = {
@@ -105,10 +97,10 @@ object OnlineTestExtensionServiceImpl {
 
     val today = DateTime.now()
     val progressList = (Set.empty[ProgressStatus]
-        ++ cond(progress.phase1ProgressResponse.phase1TestsExpired, PHASE1_TESTS_EXPIRED)
-        ++ cond(profile.hasNotStartedYet, PHASE1_TESTS_STARTED)
-        ++ cond(extendedExpiryDate.minusHours(Phase1SecondReminder.hoursBeforeReminder).isAfter(today), PHASE1_TESTS_SECOND_REMINDER)
-        ++ cond(extendedExpiryDate.minusHours(Phase1FirstReminder.hoursBeforeReminder).isAfter(today), PHASE1_TESTS_FIRST_REMINDER)).toList
+      ++ cond(progress.phase1ProgressResponse.phase1TestsExpired, PHASE1_TESTS_EXPIRED)
+      ++ cond(profile.hasNotStartedYet, PHASE1_TESTS_STARTED)
+      ++ cond(extendedExpiryDate.minusHours(Phase1SecondReminder.hoursBeforeReminder).isAfter(today), PHASE1_TESTS_SECOND_REMINDER)
+      ++ cond(extendedExpiryDate.minusHours(Phase1FirstReminder.hoursBeforeReminder).isAfter(today), PHASE1_TESTS_FIRST_REMINDER)).toList
     if(progressList.isEmpty) { None } else { Some(progressList) }
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,26 +17,32 @@
 package scheduler.sift
 
 import config.WaitingScheduledJobConfig
+import javax.inject.{ Inject, Singleton }
 import model.ProgressStatuses
 import model.command.ApplicationForSift
-import play.api.Logger
+import play.api.{ Configuration, Logger }
+import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-import scheduler.sift.ProgressToSiftJobConfig.conf
+//import scheduler.sift.ProgressToSiftJobConfig.conf
 import services.sift.ApplicationSiftService
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object ProgressToSiftJob extends ProgressToSiftJob {
-  val siftService = ApplicationSiftService
-  val config = ProgressToSiftJobConfig
+@Singleton
+class ProgressToSiftJobImpl @Inject() (val siftService: ApplicationSiftService,
+                                       val mongoComponent: ReactiveMongoComponent,
+                                       val config: ProgressToSiftJobConfig
+                                      ) extends ProgressToSiftJob {
+  //  val siftService = ApplicationSiftService
+  //  val config = ProgressToSiftJobConfig2
 }
 
 trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val siftService: ApplicationSiftService
 
-  lazy val batchSize = conf.batchSize.getOrElse(1)
+  lazy val batchSize = config.conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -64,7 +70,9 @@ trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[Waitin
   }
 }
 
-object ProgressToSiftJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
+@Singleton
+class ProgressToSiftJobConfig @Inject()(config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.progress-to-sift-job",
   name = "ProgressToSiftJob"
 )

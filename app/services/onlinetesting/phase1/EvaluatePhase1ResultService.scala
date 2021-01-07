@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,32 @@
 
 package services.onlinetesting.phase1
 
-import _root_.services.passmarksettings.PassMarkSettingsService
-import config.MicroserviceAppConfig._
+import com.google.inject.name.Named
+import config.MicroserviceAppConfig
+import factories.UUIDFactory
+import javax.inject.{ Inject, Singleton }
 import model.exchange.passmarksettings.Phase1PassMarkSettings
-import model.persisted.{ApplicationReadyForEvaluation, CubiksTest}
-import model.{Phase, SchemeId}
+import model.persisted.{ ApplicationReadyForEvaluation, CubiksTest }
+import model.{ Phase, SchemeId }
 import play.api.Logger
-import repositories._
+import repositories.onlinetesting.{ OnlineTestEvaluationRepository, Phase1EvaluationMongoRepository }
+import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
+import services.passmarksettings.PassMarkSettingsService
 
 import scala.concurrent.Future
 
-object EvaluatePhase1ResultService extends EvaluatePhase1ResultService {
-  val evaluationRepository = repositories.faststreamPhase1EvaluationRepository
-  val passMarkSettingsRepo = phase1PassMarkSettingsRepository
-  val gatewayConfig = onlineTestsGatewayConfig
-  val phase = Phase.PHASE1
-}
-
-trait EvaluatePhase1ResultService extends EvaluateOnlineTestResultService[Phase1PassMarkSettings] with Phase1TestSelector with
+// Cubiks version guice injected
+@Singleton
+class EvaluatePhase1ResultService @Inject() (@Named("Phase1EvaluationRepository") val evaluationRepository: OnlineTestEvaluationRepository,
+                                             val passMarkSettingsRepo: Phase1PassMarkSettingsMongoRepository,
+                                             appConfig: MicroserviceAppConfig,
+                                             val uuidFactory: UUIDFactory
+                                            ) extends EvaluateOnlineTestResultService[Phase1PassMarkSettings] with Phase1TestSelector with
   Phase1TestEvaluation with PassMarkSettingsService[Phase1PassMarkSettings] {
+
+  override val gatewayConfig = appConfig.onlineTestsGatewayConfig
+  override val phase = Phase.PHASE1
 
   def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettings): Future[Unit] = {
     if (application.isSdipFaststream && !passmark.schemes.exists(_.schemeId == SchemeId("Sdip"))) {
@@ -43,12 +49,10 @@ trait EvaluatePhase1ResultService extends EvaluateOnlineTestResultService[Phase1
       Future.successful(())
     } else {
       Logger.info(s"Evaluating Phase1 appId=${application.applicationId}")
-
       val activeTests = application.activeCubiksTests
       require(activeTests.nonEmpty && activeTests.length <= 2, "Allowed active number of tests is 1 or 2")
       val sjqTestOpt = findFirstSjqTest(activeTests)
       val bqTestOpt = findFirstBqTest(activeTests)
-
       savePassMarkEvaluation(application, getSchemeResults(sjqTestOpt, bqTestOpt), passmark)
     }
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package model.command
 
-import factories.DateTimeFactory
 import model.Address
 import model.persisted.PersonalDetails
 import org.joda.time.LocalDate
@@ -28,7 +27,7 @@ object PersonalDetailsExamples {
     civilServiceExperienceDetails = None, edipCompleted = None, edipYear = None, otherInternshipCompleted = None, otherInternshipName = None,
     otherInternshipYear = None, updateApplicationStatus = None)
 
-  val completed = PersonalDetails("firstname", "lastname", "preferedname", dateOfBirth = DateTimeFactory.nowLocalDate,
+  val completed = PersonalDetails("firstname", "lastname", "preferedname", dateOfBirth = LocalDate.now(),
     edipCompleted = Some(false), edipYear = None, otherInternshipCompleted = Some(false), otherInternshipName = None,
     otherInternshipYear = None)
 

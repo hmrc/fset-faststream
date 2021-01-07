@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,24 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.ApplicationStatus._
 import model.Exceptions.{ CannotFindTestByOrderIdException, ExpiredTestForTokenException }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.command.{ InvigilatedTestUrl, ResetOnlineTest, ResetOnlineTest2, VerifyAccessCode }
 import org.joda.time.DateTime
 import play.api.Logger
+import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.{ JsValue, Json, OFormat }
 import play.api.mvc._
-import repositories._
 import repositories.application.GeneralApplicationRepository
+import services.onlinetesting.Exceptions.{ CannotResetPhase2Tests, ResetLimitExceededException }
 import services.onlinetesting.phase1.{ Phase1TestService, Phase1TestService2 }
 import services.onlinetesting.phase2.{ Phase2TestService, Phase2TestService2 }
-import services.onlinetesting.Exceptions.{ CannotResetPhase2Tests, ResetLimitExceededException }
 import services.onlinetesting.phase3.Phase3TestService
 import services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -78,22 +80,15 @@ object UserIdWrapper {
   implicit val userIdWrapperFormat: OFormat[UserIdWrapper] = Json.format[UserIdWrapper]
 }
 
-object OnlineTestController extends OnlineTestController {
-  override val appRepository: GeneralApplicationRepository = applicationRepository
-  override val phase1TestService = Phase1TestService
-  override val phase1TestService2 = Phase1TestService2
-  override val phase2TestService = Phase2TestService
-  override val phase2TestService2 = Phase2TestService2
-  override val phase3TestService = Phase3TestService
-}
-
-trait OnlineTestController extends BaseController {
-  val appRepository: GeneralApplicationRepository
-  val phase1TestService: Phase1TestService
-  val phase1TestService2: Phase1TestService2
-  val phase2TestService: Phase2TestService
-  val phase2TestService2: Phase2TestService2
-  val phase3TestService: Phase3TestService
+@Singleton
+class OnlineTestController @Inject() (cc: ControllerComponents,
+                                      appRepository: GeneralApplicationRepository,
+                                      phase1TestService: Phase1TestService,
+                                      phase1TestService2: Phase1TestService2,
+                                      phase2TestService: Phase2TestService,
+                                      phase2TestService2: Phase2TestService2,
+                                      phase3TestService: Phase3TestService
+                                     ) extends BackendController(cc) {
 
   def getPhase1OnlineTest(applicationId: String) = Action.async { implicit request =>
     phase1TestService.getTestGroup(applicationId) map {

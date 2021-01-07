@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ trait WithAppSpec extends GuiceOneAppPerSuite with Results with FutureHelper wit
     .disable[ReactiveMongoHmrcModule]
     .build
 
-  implicit def mat: Materializer = Play.materializer(app)
+  implicit def materializer: Materializer = Play.materializer(app)
 
   // Suppress logging during tests
   def additionalConfig = Map("logger.application" -> "ERROR")
@@ -53,5 +53,4 @@ trait WithAppSpec extends GuiceOneAppPerSuite with Results with FutureHelper wit
     FakeRequest("", "", FakeHeaders(), Json.toJson(request)).withHeaders("Content-Type" -> "application/json")
 
   def fakeRequest = FakeRequest()
-
 }

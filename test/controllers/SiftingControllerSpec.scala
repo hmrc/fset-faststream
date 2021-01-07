@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,10 @@
 
 package controllers
 
-import model.Candidate
 import model.exchange.ApplicationSifting
 import model.persisted.SchemeEvaluationResult
-import model.{ CandidateExamples, SchemeId }
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import model.{ Candidate, CandidateExamples, SchemeId }
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.test.Helpers._
@@ -32,9 +31,7 @@ import scala.concurrent.Future
 class SiftingControllerSpec extends UnitWithAppSpec {
   val mockSiftService = mock[ApplicationSiftService]
 
-  val controller = new SiftingController {
-    val siftService = mockSiftService
-  }
+  val controller = new SiftingController(stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)), mockSiftService)
 
   private val Commercial = SchemeId("Commercial")
 

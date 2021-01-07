@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.joda.time.{ DateTime, DateTimeZone }
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import play.api.libs.json.Format
+import play.modules.reactivemongo.ReactiveMongoComponent
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -64,7 +65,6 @@ class EvaluatePhase2ResultJobSpec extends UnitWithAppSpec {
   }
 
   trait TestFixture {
-    val mockEvaluateService = mock[EvaluateOnlineTestResultService[Phase2PassMarkSettings]]
     val mockEvaluateService2 = mock[EvaluateOnlineTestResultService2[Phase2PassMarkSettings]]
     val profile2 = Phase2TestProfileExamples.profile2
     val schemes = SelectedSchemesExamples.TwoSchemes
@@ -81,8 +81,9 @@ class EvaluatePhase2ResultJobSpec extends UnitWithAppSpec {
 
     lazy val scheduler = new EvaluateOnlineTestResultJob[Phase2PassMarkSettings] {
       val phase = Phase.PHASE2
-      val evaluateService = mockEvaluateService
+//      val evaluateService = mockEvaluateService
       val evaluateService2 = mockEvaluateService2
+      override val mongoComponent = mock[ReactiveMongoComponent]
       override lazy val batchSize = 1
       override val lockId = "1"
       override val forceLockReleaseAfter: Duration = mock[Duration]
@@ -90,7 +91,8 @@ class EvaluatePhase2ResultJobSpec extends UnitWithAppSpec {
       override val name = "test"
       override val initialDelay: FiniteDuration = mock[FiniteDuration]
       override val interval: FiniteDuration = mock[FiniteDuration]
-      val config = EvaluatePhase2ResultJobConfig
+      // Must be a def instead of val as val is called immediately, whereas the def is only called when needed
+      def config = ???
     }
 
     def assertAllApplicationsWereEvaluated(apps: Seq[ApplicationReadyForEvaluation2]) = apps foreach { app =>

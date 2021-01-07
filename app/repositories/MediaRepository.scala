@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,13 @@
 
 package repositories
 
+import javax.inject.{ Inject, Singleton }
 import model.ApplicationRoute.{ apply => _ }
 import model.Exceptions.CannotAddMedia
 import model.persisted.Media
 import model.persisted.Media._
 import play.api.libs.json.JsObject
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.api.{ Cursor, DB, ReadPreference }
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
@@ -43,9 +45,13 @@ trait MediaRepository {
   def removeMedia(userId: String): Future[Unit]
 }
 
-class MediaMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[Media, BSONObjectID](CollectionNames.MEDIA, mongo,
-    mediaFormat, ReactiveMongoFormats.objectIdFormats) with MediaRepository with BaseBSONReader with ReactiveRepositoryHelpers {
+@Singleton
+class MediaMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[Media, BSONObjectID](
+    CollectionNames.MEDIA,
+    mongoComponent.mongoConnector.db,
+    mediaFormat,
+    ReactiveMongoFormats.objectIdFormats) with MediaRepository with BaseBSONReader with ReactiveRepositoryHelpers {
 
   override def create(addMedia: Media): Future[Unit] = insert(addMedia).map { _ => ()
   } recover {

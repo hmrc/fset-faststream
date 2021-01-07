@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,32 +16,37 @@
 
 package services.testdata.candidate.fsb
 
+import javax.inject.{Inject, Provider, Singleton}
 import model.ApplicationStatus.ApplicationStatus
-import model.{ApplicationRoute, ApplicationStatus, ProgressStatuses}
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
+import model.{ApplicationRoute, ApplicationStatus, ProgressStatuses}
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import services.testdata.candidate.assessmentcentre._
-import services.testdata.candidate.onlinetests.{Phase1TestsPassedNotifiedStatusGenerator, Phase3TestsPassedNotifiedStatusGenerator}
 import services.testdata.candidate.sift.SiftCompleteStatusGenerator
-import services.testdata.candidate.{BaseGenerator, CandidateStatusGeneratorFactory, ConstructiveGenerator, FastPassAcceptedStatusGenerator}
-
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import services.testdata.candidate.{BaseGenerator, CandidateStatusGeneratorFactory, ConstructiveGenerator}
 import uk.gov.hmrc.http.HeaderCarrier
 
-object FsbAwaitingAllocationStatusGenerator extends FsbAwaitingAllocationStatusGenerator {
-  override val previousStatusGenerator: BaseGenerator = AssessmentCentrePassedStatusGenerator
-  override val applicationRepository = repositories.applicationRepository
-}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-trait FsbAwaitingAllocationStatusGenerator extends ConstructiveGenerator {
-  val applicationRepository: GeneralApplicationRepository
+//object FsbAwaitingAllocationStatusGenerator extends FsbAwaitingAllocationStatusGenerator {
+//  override val previousStatusGenerator: BaseGenerator = AssessmentCentrePassedStatusGenerator
+//  override val applicationRepository = repositories.applicationRepository
+//}
+
+@Singleton
+class FsbAwaitingAllocationStatusGenerator @Inject() (val previousStatusGenerator: AssessmentCentrePassedStatusGenerator,
+                                                      candidateStatusGeneratorFactory: Provider[CandidateStatusGeneratorFactory],
+                                                      siftCompleteStatusGenerator: SiftCompleteStatusGenerator,
+                                                      applicationRepository: GeneralApplicationRepository,
+                                                      assessmentCentrePassedStatusGenerator: AssessmentCentrePassedStatusGenerator
+                                                     ) extends ConstructiveGenerator {
 
   override def getPreviousStatusGenerator(generatorConfig: CreateCandidateData): (ApplicationStatus, BaseGenerator) = {
     val previousStatusAndGeneratorPair = generatorConfig.statusData.previousApplicationStatus.map(previousApplicationStatus => {
-      val generator = CandidateStatusGeneratorFactory.getGenerator(
+      val generator = candidateStatusGeneratorFactory.get().getGenerator(
         generatorConfig.copy(
           statusData = generatorConfig.statusData.copy(
             applicationStatus = previousApplicationStatus
@@ -52,18 +57,18 @@ trait FsbAwaitingAllocationStatusGenerator extends ConstructiveGenerator {
     // TODO: SdipFaststream
     previousStatusAndGeneratorPair.getOrElse(
       if (List(ApplicationRoute.Sdip, ApplicationRoute.Edip).contains(generatorConfig.statusData.applicationRoute)) {
-        (ApplicationStatus.SIFT, SiftCompleteStatusGenerator)
+        (ApplicationStatus.SIFT, siftCompleteStatusGenerator)
       } else {
-        (ApplicationStatus.ASSESSMENT_CENTRE, AssessmentCentrePassedStatusGenerator)
+        (ApplicationStatus.ASSESSMENT_CENTRE, assessmentCentrePassedStatusGenerator)
       }
     )
   }
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
 
     for {
-      (previousApplicationStatus, previousStatusGenerator) <- Future.successful(getPreviousStatusGenerator(generatorConfig))
+      (_, previousStatusGenerator) <- Future.successful(getPreviousStatusGenerator(generatorConfig))
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- applicationRepository.addProgressStatusAndUpdateAppStatus(
         candidateInPreviousStatus.applicationId.get,

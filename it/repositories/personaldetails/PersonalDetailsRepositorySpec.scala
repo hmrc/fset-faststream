@@ -1,25 +1,23 @@
 package repositories.personaldetails
 
+import factories.ITDateTimeFactoryMock
 import model.ApplicationStatus._
 import model.Exceptions.PersonalDetailsNotFound
 import model.persisted.PersonalDetailsExamples._
 import org.joda.time.DateTime
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers
-import repositories.application.GeneralApplicationMongoRepository
-import services.GBTimeZoneService
-import config.MicroserviceAppConfig._
-import factories.DateTimeFactory
 import repositories.CollectionNames
+import repositories.application.GeneralApplicationMongoRepository
 import testkit.MongoRepositorySpec
 
 class PersonalDetailsRepositorySpec extends MongoRepositorySpec {
   import ImplicitBSONHandlers._
 
-  override val collectionName = CollectionNames.APPLICATION
+  override val collectionName: String = CollectionNames.APPLICATION
 
-  def repository = new PersonalDetailsMongoRepository(DateTimeFactory)
-  def appRepository = new GeneralApplicationMongoRepository(DateTimeFactory, testIntegrationGatewayConfig, eventsConfig)
+  def repository = new PersonalDetailsMongoRepository(ITDateTimeFactoryMock, mongo)
+  def appRepository = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, appConfig, mongo)
 
   "update candidate" should {
     "modify the details and find the personal details successfully" in {
@@ -64,5 +62,5 @@ class PersonalDetailsRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  def insert(doc: BSONDocument) = repository.collection.insert(doc)
+  private def insert(doc: BSONDocument) = repository.collection.insert(ordered = false).one(doc)
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,17 @@
 
 package services.schools
 
+import javax.inject.{ Inject, Singleton }
 import model.School
-import repositories._
 import repositories.csv.SchoolsRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object SchoolsService extends SchoolsService{
-  val schoolsRepo = schoolsRepository
-}
-
-trait SchoolsService {
+@Singleton
+class SchoolsService @Inject() (schoolsRepo: SchoolsRepository) {
   val MaxNumberOfSchools = 16
-  val schoolsRepo : SchoolsRepository
 
   def getSchools(term: String) = {
-
     for {
       allSchools <- schoolsRepo.schools
     } yield {
@@ -42,8 +37,8 @@ trait SchoolsService {
 
   private def sanitize(str: String) = {
     str.replaceAll("""([\p{Punct}])*""", "")
-        .replaceAll("""\s*""","")
-        .toLowerCase()
+      .replaceAll("""\s*""","")
+      .toLowerCase()
   }
 
   private def applyLimit(allSchools: List[School]) = allSchools.take(MaxNumberOfSchools)

@@ -32,12 +32,11 @@ trait MicroService {
   import DefaultBuildSettings.{addTestReportOption, defaultSettings, scalaSettings, targetJvm}
   import TestPhases._
   import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
-  import play.sbt.routes.RoutesKeys.{ routesImport, routesGenerator }
-
   import scalariform.formatter.preferences._
 
   val appName: String
   val appDependencies : Seq[ModuleID]
+  val akkaVersion     = "2.5.23"
 
   lazy val plugins : Seq[Plugins] = Seq(SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
   lazy val playSettings : Seq[Setting[_]] = Seq.empty
@@ -52,11 +51,22 @@ trait MicroService {
     .settings(publishingSettings)
     .settings(defaultSettings(): _*)
     .settings(
-      routesGenerator := StaticRoutesGenerator,
+//      routesGenerator := StaticRoutesGenerator, migrate to play2.6
       routesImport += "controllers.Binders._",
       targetJvm := "jvm-1.8",
       scalaVersion := "2.11.11",
       libraryDependencies ++= appDependencies,
+
+      // Reactivemongo on scala 2.11 is not compatible with Akka > 2.5.23.
+      // Play > 2.6.23 has a dependency on a later version of Akka, and will throw the following error:
+      // java.lang.NoSuchMethodError:
+      // akka.pattern.AskableActorRef$.$qmark$extension(Lakka/actor/ActorRef;Ljava/lang/Object;Lakka/util/Timeout;)Lscala/concurrent/Future;
+      // This can be removed when we move to scala 2.12
+      dependencyOverrides += "com.typesafe.akka" %% "akka-actor"     % akkaVersion,
+      dependencyOverrides += "com.typesafe.akka" %% "akka-stream"    % akkaVersion,
+      dependencyOverrides += "com.typesafe.akka" %% "akka-protobuf"  % akkaVersion,
+      dependencyOverrides += "com.typesafe.akka" %% "akka-slf4j"     % akkaVersion,
+
       parallelExecution in Test := false,
       fork in Test := false,
       retrieveManaged := true,

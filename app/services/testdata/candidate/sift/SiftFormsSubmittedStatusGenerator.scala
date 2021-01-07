@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,13 @@
 package services.testdata.candidate.sift
 
 import common.FutureEx
-import model.{ApplicationRoute, SiftRequirement}
-import model.exchange.sift.{GeneralQuestionsAnswers, SchemeSpecificAnswer}
-import model.exchange.testdata.CreateCandidateResponse.{CreateCandidateResponse, TestGroupResponse, TestGroupResponse2}
+import javax.inject.{ Inject, Singleton }
+import model.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer }
+import model.exchange.testdata.CreateCandidateResponse.{ CreateCandidateResponse, TestGroupResponse, TestGroupResponse2 }
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
+import model.{ ApplicationRoute, SiftRequirement }
 import play.api.mvc.RequestHeader
-import repositories.{SchemeRepository, SchemeYamlRepository}
+import repositories.SchemeRepository
 import services.sift.SiftAnswersService
 import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.faker.DataFaker
@@ -31,26 +32,23 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object SiftFormsSubmittedStatusGenerator extends SiftFormsSubmittedStatusGenerator {
-  val previousStatusGenerator = SiftEnteredStatusGenerator
-  val siftService = SiftAnswersService
-  val schemeRepo = SchemeYamlRepository
-}
+@Singleton
+class SiftFormsSubmittedStatusGenerator @Inject() (val previousStatusGenerator: SiftEnteredStatusGenerator,
+                                                   siftService: SiftAnswersService,
+                                                   schemeRepo: SchemeRepository,
+                                                   dataFaker: DataFaker
+                                                  ) extends ConstructiveGenerator {
 
-trait SiftFormsSubmittedStatusGenerator extends ConstructiveGenerator {
-  val siftService: SiftAnswersService
-  val schemeRepo: SchemeRepository
-
-  def generateGeneralAnswers = GeneralQuestionsAnswers(
+  private def generateGeneralAnswers = GeneralQuestionsAnswers(
     multipleNationalities = false,
     secondNationality = None,
     nationality = "British",
     undergradDegree = None, postgradDegree = None
   )
 
-  def generateSchemeAnswers = SchemeSpecificAnswer(DataFaker.loremIpsum)
+  private def generateSchemeAnswers = SchemeSpecificAnswer(dataFaker.loremIpsum)
 
-  def saveSchemeAnswersFromFastPass(appId: String, createCandidateData: CreateCandidateData): Future[List[Unit]] = {
+  private def saveSchemeAnswersFromFastPass(appId: String, createCandidateData: CreateCandidateData): Future[List[Unit]] = {
     createCandidateData.schemeTypes.map(schemeTypes =>
       FutureEx.traverseSerial(schemeTypes) { schemeType =>
         schemeRepo.schemes.find(_.id == schemeType).map { scheme =>
@@ -65,7 +63,7 @@ trait SiftFormsSubmittedStatusGenerator extends ConstructiveGenerator {
   }
 
   // TODO: Once phase3TestData is converted into TestGroupResponse2, merge this method with saveSchemeAnswersFromPhase3TestData
-  def saveSchemeAnswersFromPhase1TestData(appId: String, phase1TestData: TestGroupResponse2): Future[List[Unit]] = {
+  private def saveSchemeAnswersFromPhase1TestData(appId: String, phase1TestData: TestGroupResponse2): Future[List[Unit]] = {
     phase1TestData.schemeResult.map { sr =>
       FutureEx.traverseSerial(sr.result) { result =>
         schemeRepo.schemes.find(_.id == result.schemeId).map { scheme =>
@@ -79,7 +77,7 @@ trait SiftFormsSubmittedStatusGenerator extends ConstructiveGenerator {
     }.getOrElse(Future.successful(Nil))
   }
 
-  def saveSchemeAnswersFromPhase3TestData(appId: String, phase3TestData: TestGroupResponse): Future[List[Unit]] = {
+  private def saveSchemeAnswersFromPhase3TestData(appId: String, phase3TestData: TestGroupResponse): Future[List[Unit]] = {
     phase3TestData.schemeResult.map { sr =>
       FutureEx.traverseSerial(sr.result) { result =>
         schemeRepo.schemes.find(_.id == result.schemeId).map { scheme =>
@@ -93,7 +91,7 @@ trait SiftFormsSubmittedStatusGenerator extends ConstructiveGenerator {
     }.getOrElse(Future.successful(Nil))
   }
 
-  def saveSchemeAnswers(generatorConfig: CreateCandidateData, candidateInPreviousStatus: CreateCandidateResponse) = {
+  private def saveSchemeAnswers(generatorConfig: CreateCandidateData, candidateInPreviousStatus: CreateCandidateResponse) = {
     if (generatorConfig.hasFastPass) {
       saveSchemeAnswersFromFastPass(candidateInPreviousStatus.applicationId.get,
         generatorConfig)
@@ -105,7 +103,7 @@ trait SiftFormsSubmittedStatusGenerator extends ConstructiveGenerator {
   }
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- siftService.addGeneralAnswers(candidateInPreviousStatus.applicationId.get, generateGeneralAnswers)
@@ -114,6 +112,5 @@ trait SiftFormsSubmittedStatusGenerator extends ConstructiveGenerator {
     } yield {
       candidateInPreviousStatus
     }
-
   }
 }

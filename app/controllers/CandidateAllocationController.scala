@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,22 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.OptimisticLockException
 import model.persisted.CandidateAllocation
 import model.persisted.eventschedules.EventType.EventType
 import model.{ command, exchange }
 import play.api.Logger
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import services.allocation.CandidateAllocationService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object CandidateAllocationController extends CandidateAllocationController {
-  val candidateAllocationService: CandidateAllocationService = CandidateAllocationService
-}
-
-trait CandidateAllocationController extends BaseController {
-
-  def candidateAllocationService: CandidateAllocationService
+@Singleton
+class CandidateAllocationController @Inject() (cc: ControllerComponents,
+                                               candidateAllocationService: CandidateAllocationService) extends BackendController(cc) {
 
   def confirmAllocation(eventId: String, sessionId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[exchange.CandidateAllocations] { candidateAllocations =>

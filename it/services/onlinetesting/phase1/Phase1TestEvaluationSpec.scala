@@ -1,21 +1,20 @@
 package services.onlinetesting.phase1
 
-import config.{ OnlineTestsGatewayConfig, Phase1TestsConfig }
+import config.Phase1TestsConfig
+import factories.UUIDFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Result
 import model.ProgressStatuses.ProgressStatus
 import model.exchange.passmarksettings.{ PassMarkThreshold, Phase1PassMark, Phase1PassMarkSettings, Phase1PassMarkThresholds }
 import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
-import model.{ ApplicationRoute, ApplicationStatus, Phase, SchemeId }
+import model.{ ApplicationRoute, ApplicationStatus, SchemeId }
 import org.joda.time.DateTime
 import org.mockito.Mockito.when
 import org.scalatest.prop.{ TableDrivenPropertyChecks, TableFor9 }
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers
 import reactivemongo.play.json.collection.JSONCollection
-import repositories.onlinetesting.Phase1EvaluationMongoRepository
-import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
@@ -29,15 +28,19 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   val collectionName: String = CollectionNames.APPLICATION
   override val additionalCollections = List(CollectionNames.PHASE1_PASS_MARK_SETTINGS)
 
-  def phase1TestEvaluationService = new EvaluatePhase1ResultService {
-    val evaluationRepository: Phase1EvaluationMongoRepository = phase1EvaluationRepo
-    val gatewayConfig: OnlineTestsGatewayConfig = mockGatewayConfig
-    val passMarkSettingsRepo: Phase1PassMarkSettingsMongoRepository = phase1PassMarkSettingRepo
-    val phase1TestsConfigMock: Phase1TestsConfig = mock[Phase1TestsConfig]
-    val phase = Phase.PHASE1
+  def phase1TestEvaluationService = {
+    when(mockAppConfig.onlineTestsGatewayConfig).thenReturn(mockGatewayConfig)
 
-    when(gatewayConfig.phase1Tests).thenReturn(phase1TestsConfigMock)
+    val phase1TestsConfigMock: Phase1TestsConfig = mock[Phase1TestsConfig]
+    when(mockGatewayConfig.phase1Tests).thenReturn(phase1TestsConfigMock)
     when(phase1TestsConfigMock.scheduleIds).thenReturn(Map("sjq" -> 16196, "bq" -> 16194))
+
+    new EvaluatePhase1ResultService(
+      phase1EvaluationRepo,
+      phase1PassMarkSettingRepo,
+      mockAppConfig,
+      UUIDFactory
+    )
   }
 
   trait TestFixture {
@@ -156,7 +159,7 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       }
     }
 
-    val appCollection = mongo().collection[JSONCollection](collectionName)
+    val appCollection = mongo.mongoConnector.db().collection[JSONCollection](collectionName)
 
     def createUser(userId: String, appId: String) = {
       appCollection.insert(ordered = false).one(BSONDocument("applicationId" -> appId, "userId" -> userId,
@@ -170,5 +173,4 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       createPhase1PassMarkSettings(phase1PassMarkSettingsTable).map(phase1PassMarkSettings = _)
     )).futureValue
   }
-
 }

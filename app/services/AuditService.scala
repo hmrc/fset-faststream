@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,19 @@
 
 package services
 
-import config.{ MicroserviceAppConfig, MicroserviceAuditConnector }
-import play.api.Play
+import com.google.inject.Inject
+import com.google.inject.name.Named
+import javax.inject.Singleton
 import play.api.mvc.RequestHeader
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.AuditExtensions.auditHeaderCarrier
 import uk.gov.hmrc.play.audit.EventKeys
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.{ Audit, DataEvent, EventTypes }
-import uk.gov.hmrc.http.HeaderCarrier
 
-trait AuditService {
-  private[services] val appName: String
-  private[services] val auditFacade: Audit
+@Singleton
+class AuditService @Inject() (@Named("appName") val appName: String, auditConnector: AuditConnector) {
+  private[services] val auditFacade: Audit = new Audit(appName, auditConnector)
 
   def logEvent(eventName: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Unit =
     auditFacade.sendDataEvent(
@@ -42,9 +44,4 @@ trait AuditService {
     auditFacade.sendDataEvent(
       DataEvent(appName, EventTypes.Succeeded, tags = Map(EventKeys.TransactionName -> eventName), detail = detail)
     )
-}
-
-object AuditService extends AuditService {
-  private[services] val appName = MicroserviceAppConfig.appName
-  private[services] val auditFacade: Audit = new Audit(appName, MicroserviceAuditConnector)
 }

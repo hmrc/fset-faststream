@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import model.AllocationStatuses.AllocationStatus
 import model.command.{ CandidateAllocation, CandidateAllocations }
 import model.command.testdata.CreateCandidateAllocationRequest
 import play.api.libs.json.{ Json, OFormat }
-import services.testdata.faker.DataFaker.Random
+import services.testdata.faker.DataFaker
 
 case class CreateCandidateAllocationData(id: String,
                                          eventId: String,
@@ -35,11 +35,11 @@ case class CreateCandidateAllocationData(id: String,
 object CreateCandidateAllocationData {
   implicit val format: OFormat[CreateCandidateAllocationData] = Json.format[CreateCandidateAllocationData]
 
-  def apply(createRequest: CreateCandidateAllocationRequest)(generatorId: Int): CreateCandidateAllocationData = {
+  def apply(createRequest: CreateCandidateAllocationRequest, dataFaker: DataFaker)(generatorId: Int): CreateCandidateAllocationData = {
     val id = createRequest.id
     val eventId = createRequest.eventId
     val sessionId = createRequest.sessionId
-    val status = createRequest.status.getOrElse(Random.Allocation.status)
+    val status = createRequest.status.getOrElse(dataFaker.Allocation.status)
     val version = createRequest.version.getOrElse("")
     new CreateCandidateAllocationData(id, eventId, sessionId, status, version)
   }

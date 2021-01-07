@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,21 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.{ CannotUpdateSchemePreferences, SchemePreferencesNotFound }
 import model.SelectedSchemes
-import play.api.libs.json.Json
-import play.api.mvc.Action
-import services.AuditService
+import play.api.libs.json.{ JsValue, Json }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import services.scheme.SchemePreferencesService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object SchemePreferencesController extends SchemePreferencesController {
-  val schemePreferencesService = SchemePreferencesService
-  val auditService = AuditService
-}
+@Singleton
+class SchemePreferencesController @Inject() (cc: ControllerComponents,
+                                             schemePreferencesService: SchemePreferencesService) extends BackendController(cc) {
 
-trait SchemePreferencesController extends BaseController {
-  val schemePreferencesService: SchemePreferencesService
-  val auditService: AuditService
-
-  def find(applicationId: String) = Action.async { implicit request =>
+  def find(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     schemePreferencesService.find(applicationId) map { sp =>
       Ok(Json.toJson(sp))
     } recover {
@@ -43,7 +38,7 @@ trait SchemePreferencesController extends BaseController {
     }
   }
 
-  def update(applicationId: String) = Action.async(parse.json) { implicit request =>
+  def update(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[SelectedSchemes] { schemePref =>
       schemePreferencesService.update(applicationId, schemePref) map { _ =>
         Ok

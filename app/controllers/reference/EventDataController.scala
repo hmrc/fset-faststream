@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,15 @@
 
 package controllers.reference
 
+import javax.inject.{ Inject, Singleton }
 import model.exchange.candidateevents.CandidateRemoveReason
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import services.events.EventsService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-object EventDataController extends EventDataController {
-  val eventsService: EventsService = EventsService
-}
-
-trait EventDataController extends BaseController {
-
-  def eventsService: EventsService
+@Singleton
+class EventDataController @Inject() (cc: ControllerComponents, eventsService: EventsService) extends BackendController(cc) {
 
   def getFsbTypes: Action[AnyContent] = Action { implicit request =>
     Ok(Json.toJson(eventsService.getFsbTypes))

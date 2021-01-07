@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,21 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.{ PassMarkEvaluationNotFound, SiftResultsAlreadyExistsException }
-import model.{ EvaluationResults, SchemeId }
 import model.exchange.ApplicationSifting
 import model.persisted.SchemeEvaluationResult
+import model.{ EvaluationResults, SchemeId }
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import services.sift.ApplicationSiftService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object SiftingController extends SiftingController {
-  val siftService = ApplicationSiftService
-}
-
-trait SiftingController extends BaseController {
-
-  val siftService: ApplicationSiftService
+@Singleton
+class SiftingController @Inject() (cc: ControllerComponents,
+                                   siftService: ApplicationSiftService) extends BackendController(cc) {
 
   def findApplicationsReadyForSchemeSifting(schemeId: String): Action[AnyContent] = Action.async { implicit request =>
     siftService.findApplicationsReadyForSchemeSift(SchemeId(schemeId)).map { candidates =>
@@ -53,5 +50,4 @@ trait SiftingController extends BaseController {
         }
     }
   }
-
 }

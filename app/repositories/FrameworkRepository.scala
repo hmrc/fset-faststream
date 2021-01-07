@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,12 @@ package repositories
 
 import java.util
 
+import com.google.inject.ImplementedBy
+import config.MicroserviceAppConfig
+import javax.inject.{ Inject, Singleton }
 import model.persisted.PersonalDetails
 import org.yaml.snakeyaml.Yaml
-import play.api.Play
+import play.api.Application
 import repositories.FrameworkRepository.{ CandidateHighestQualification, Framework, Location, Region }
 import repositories.FrameworkYamlRepository._
 import resource.managed
@@ -30,6 +33,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @deprecated("fasttrack version. Framework need to be renamed to Scheme", "July 2016")
+@ImplementedBy(classOf[FrameworkYamlRepository])
 trait FrameworkRepository {
   def getFrameworksByRegion: Future[List[Region]]
   def getFrameworksByRegionFilteredByQualification(criteriaMet: CandidateHighestQualification): Future[List[Region]] =
@@ -45,40 +49,12 @@ trait FrameworkRepository {
     }
 }
 
-object FrameworkRepository {
-  case class Region(name: String, locations: List[Location])
-  case class Location(name: String, frameworks: List[Framework])
-  case class Framework(name: String, criteria: CandidateHighestQualification)
-  case class CandidateHighestQualification(value: Int) {
-    require(value >= CandidateHighestQualification.MIN)
-    require(value <= CandidateHighestQualification.MAX)
-  }
-
-  object CandidateHighestQualification {
-    lazy val GCSE = CandidateHighestQualification(1)
-    lazy val A_LEVELS_D_PLUS = CandidateHighestQualification(2)
-    lazy val A_LEVELS_C_PLUS_STEM = CandidateHighestQualification(3)
-    val MIN = 1
-    val MAX = 3
-
-    def from(personalDetails: PersonalDetails): CandidateHighestQualification =
-    /* From fasttrack
-      if (personalDetails.stemLevel) {
-        CandidateHighestQualification.A_LEVELS_C_PLUS_STEM
-      } else if (personalDetails.aLevel) {
-        CandidateHighestQualification.A_LEVELS_D_PLUS
-      } else { */
-        CandidateHighestQualification.GCSE
-      // }
-  }
-}
-
-class FrameworkYamlRepository extends FrameworkRepository {
-  import config.MicroserviceAppConfig.frameworksConfig._
-  import play.api.Play.current
+@Singleton
+class FrameworkYamlRepository @Inject() (implicit application: Application, appConfig: MicroserviceAppConfig)
+  extends FrameworkRepository {
 
   private lazy val frameworks: Iterable[YamlFramework] = {
-    val document = loadYamlDocument(yamlFilePath)
+    val document = loadYamlDocument(appConfig.frameworksConfig.yamlFilePath)
     parseDocument(document)
   }
 
@@ -93,7 +69,7 @@ class FrameworkYamlRepository extends FrameworkRepository {
     frameworksByRegionCached
 
   private def loadYamlDocument(filename: String): Map[String, _] = {
-    val input = managed(Play.application.resourceAsStream(filename).get)
+    val input = managed(application.resourceAsStream(filename).get)
     val document = input.acquireAndGet(new Yaml().load(_).asMapOfObjects)
     document
   }
@@ -153,5 +129,33 @@ object FrameworkYamlRepository {
 
     def asMapOfStringLists: Map[String, List[String]] =
       obj.asInstanceOf[util.LinkedHashMap[String, util.ArrayList[String]]].asScala.mapValues(_.asScala.toList).toMap
+  }
+}
+
+object FrameworkRepository {
+  case class Region(name: String, locations: List[Location])
+  case class Location(name: String, frameworks: List[Framework])
+  case class Framework(name: String, criteria: CandidateHighestQualification)
+  case class CandidateHighestQualification(value: Int) {
+    require(value >= CandidateHighestQualification.MIN)
+    require(value <= CandidateHighestQualification.MAX)
+  }
+
+  object CandidateHighestQualification {
+    lazy val GCSE = CandidateHighestQualification(1)
+    lazy val A_LEVELS_D_PLUS = CandidateHighestQualification(2)
+    lazy val A_LEVELS_C_PLUS_STEM = CandidateHighestQualification(3)
+    val MIN = 1
+    val MAX = 3
+
+    def from(personalDetails: PersonalDetails): CandidateHighestQualification =
+    /* From fasttrack
+      if (personalDetails.stemLevel) {
+        CandidateHighestQualification.A_LEVELS_C_PLUS_STEM
+      } else if (personalDetails.aLevel) {
+        CandidateHighestQualification.A_LEVELS_D_PLUS
+      } else { */
+      CandidateHighestQualification.GCSE
+    // }
   }
 }

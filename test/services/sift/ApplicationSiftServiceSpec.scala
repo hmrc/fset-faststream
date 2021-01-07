@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package services.sift
 
-import connectors.EmailClient
-import factories.{ DateTimeFactory, DateTimeFactoryMock }
+import connectors.OnlineTestEmailClient
+import factories.DateTimeFactoryMock
 import model.ApplicationStatus.{ ApplicationStatus => _ }
 import model.ProgressStatuses.{ ProgressStatus, SIFT_ENTERED }
 import model._
@@ -31,7 +31,7 @@ import reactivemongo.bson.BSONDocument
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.sift.ApplicationSiftRepository
-import repositories.{ BSONDateTimeHandler, SchemeRepository }
+import repositories.{ BSONDateTimeHandler, TestSchemeRepository }
 import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
@@ -47,55 +47,74 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     val expiryDate = DateTime.now()
     val expiringSift = NotificationExpiringSift(appId, userId, "TestUser", expiryDate)
 
-    val mockApplicationSiftRepo: ApplicationSiftRepository = mock[ApplicationSiftRepository]
-    val mockApplicationRepo: GeneralApplicationRepository = mock[GeneralApplicationRepository]
-    val mockContactDetailsRepo: ContactDetailsRepository = mock[ContactDetailsRepository]
-    val mockSchemeRepo = new SchemeRepository {
-      override lazy val schemes: Seq[Scheme] = Seq(
-        Scheme("DigitalAndTechnology", "DaT", "Digital and Technology", civilServantEligible = false, None, Some(SiftRequirement.FORM),
-          siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None
-        ),
-        Scheme("GovernmentSocialResearchService", "GSR", "GovernmentSocialResearchService", civilServantEligible = false, None,
-          Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None,  schemeGuide = None, schemeQuestion = None
-        ),
-        Scheme("Commercial", "GCS", "Commercial", civilServantEligible = false, None, Some(SiftRequirement.NUMERIC_TEST),
-          siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None
-        ),
-        Scheme("GovernmentEconomicsService", "GES", " Government Economics Service", civilServantEligible = false, None,
-          Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None
-        ),
-        Scheme("HousesOfParliament", "HOP", "Houses of Parliament", civilServantEligible = true, None, Some(SiftRequirement.FORM),
-          siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None
-        ),
-        Scheme("ProjectDelivery", "PDFS", "Project Delivery", civilServantEligible = true, None, Some(SiftRequirement.FORM),
-          siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None
-        ),
-        Scheme("ScienceAndEngineering", "SEFS", "Science And Engineering", civilServantEligible = true, None, Some(SiftRequirement.FORM),
-          siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None
-        ),
-        Scheme("Edip", "EDIP", "Early Diversity Internship Programme", civilServantEligible = true, None, Some(SiftRequirement.FORM),
-          siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None
-        ),
-        Scheme("Sdip", "SDIP", "Summer Diversity Internship Programme", civilServantEligible = true, None, Some(SiftRequirement.FORM),
-          siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None
-        ),
-        Scheme("Generalist", "GFS", "Generalist", civilServantEligible = true, None, None, siftEvaluationRequired = false,
-          fsbType = None, schemeGuide = None, schemeQuestion = None
-        )
-      )
-      override def siftableSchemeIds: Seq[SchemeId] = Seq(SchemeId("GovernmentSocialResearchService"), SchemeId("Commercial"))
-    }
-    val mockEmailClient: EmailClient = mock[EmailClient]
+    val mockApplicationSiftRepo = mock[ApplicationSiftRepository]
+    val mockApplicationRepo = mock[GeneralApplicationRepository]
+    val mockContactDetailsRepo = mock[ContactDetailsRepository  ]
+    val mockEmailClient = mock[OnlineTestEmailClient]
 
-    val service = new ApplicationSiftService {
-      val SiftExpiryWindowInDays: Int = 7
-      def applicationSiftRepo: ApplicationSiftRepository = mockApplicationSiftRepo
-      def applicationRepo: GeneralApplicationRepository = mockApplicationRepo
-      def contactDetailsRepo: ContactDetailsRepository = mockContactDetailsRepo
-      def schemeRepo: SchemeRepository = mockSchemeRepo
-      def emailClient: EmailClient = mockEmailClient
-      def dateTimeFactory: DateTimeFactory = DateTimeFactoryMock
+    val stubSchemeRepo = new TestSchemeRepository {
+      override lazy val schemes: Seq[Scheme] =
+        Seq(
+          Scheme(id = "Commercial", code = "GCS", name = "Commercial", civilServantEligible = false, degree = None,
+            siftRequirement = Some(SiftRequirement.NUMERIC_TEST), siftEvaluationRequired = true, fsbType = None,
+            schemeGuide = None, schemeQuestion = None
+          ),
+          Scheme(id = "DigitalAndTechnology", code = "DaT", name = "Digital and Technology", civilServantEligible = false,
+            degree = None, siftRequirement = Some(SiftRequirement.FORM), siftEvaluationRequired = false, fsbType = None,
+            schemeGuide = None, schemeQuestion = None
+          ),
+          Scheme(id = "Generalist", code = "GFS", name = "Generalist", civilServantEligible = true, degree = None, siftRequirement = None,
+            siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None
+          ),
+          Scheme(id = "GovernmentEconomicsService", code = "GES", name = "Government Economics Service", civilServantEligible = false,
+            degree = None, siftRequirement = Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None,
+            schemeQuestion = None
+          ),
+          Scheme(id = "GovernmentSocialResearchService", code = "GSR", name = "GovernmentSocialResearchService", civilServantEligible = false,
+            degree = None, siftRequirement = Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None,  schemeGuide = None,
+            schemeQuestion = None
+          ),
+          Scheme(id = "HousesOfParliament", code = "HOP", name = "Houses of Parliament", civilServantEligible = true, degree = None,
+            siftRequirement = Some(SiftRequirement.FORM), siftEvaluationRequired = false, fsbType = None, schemeGuide = None,
+            schemeQuestion = None
+          ),
+          Scheme(id = "ProjectDelivery", code = "PDFS", name = "Project Delivery", civilServantEligible = true, degree = None,
+            siftRequirement = Some(SiftRequirement.FORM), siftEvaluationRequired = false, fsbType = None, schemeGuide = None,
+            schemeQuestion = None
+          ),
+          Scheme(id = "ScienceAndEngineering", code = "SEFS", name = "Science And Engineering", civilServantEligible = true, degree = None,
+            siftRequirement = Some(SiftRequirement.FORM), siftEvaluationRequired = false, fsbType = None, schemeGuide = None,
+            schemeQuestion = None
+          ),
+          Scheme(id = "Edip", code = "EDIP", name = "Early Diversity Internship Programme", civilServantEligible = true, degree = None,
+            siftRequirement = Some(SiftRequirement.FORM), siftEvaluationRequired = false, fsbType = None, schemeGuide = None,
+            schemeQuestion = None
+          ),
+          Scheme(id = "Sdip", code = "SDIP", name = "Summer Diversity Internship Programme", civilServantEligible = true, degree = None,
+            siftRequirement = Some(SiftRequirement.FORM), siftEvaluationRequired = false, fsbType = None, schemeGuide = None,
+            schemeQuestion = None
+          )
+        )
+      override lazy val siftableSchemeIds: Seq[SchemeId] = Seq(SchemeId("GovernmentSocialResearchService"), SchemeId("Commercial"))
+      override lazy val siftableAndEvaluationRequiredSchemeIds: Seq[SchemeId] =
+        schemes.collect { case s if s.siftRequirement.isDefined && s.siftEvaluationRequired => s.id }
+      override lazy val nonSiftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isEmpty => s.id }
+      override lazy val numericTestSiftRequirementSchemeIds: Seq[SchemeId] = schemes.collect {
+        case s if s.siftRequirement.contains(SiftRequirement.NUMERIC_TEST) && s.siftEvaluationRequired => s.id
+      }
+      override lazy val formMustBeFilledInSchemeIds: Seq[SchemeId] = schemes.collect {
+        case s if s.siftRequirement.contains(SiftRequirement.FORM) => s.id
+      }
     }
+
+    val service = new ApplicationSiftService(
+      mockApplicationSiftRepo,
+      mockApplicationRepo,
+      mockContactDetailsRepo,
+      stubSchemeRepo,
+      DateTimeFactoryMock,
+      mockEmailClient
+    )
   }
 
   trait SiftUpdateTest extends TestFixture {
@@ -118,7 +137,6 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
   }
 
   "progressApplicationToSiftStage" must {
-
     "progress all applications regardless of failures" in new TestFixture {
       val applicationsToProgressToSift = List(
         ApplicationForSift("appId1", "userId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
@@ -389,7 +407,6 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       whenReady(service.processExpiredCandidates(batchSize = 1, gracePeriodInSecs = 0)(HeaderCarrier())) { result => result mustBe unit }
     }
   }
-
 
   "sendSiftEnteredNotification" must {
     "send email to the right candidate" in new TestFixture {

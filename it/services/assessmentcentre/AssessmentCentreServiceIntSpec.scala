@@ -3,6 +3,7 @@ package services.assessmentcentre
 import java.io.File
 
 import com.typesafe.config.{ Config, ConfigFactory }
+import factories.ITDateTimeFactoryMock
 import model.ApplicationStatus._
 import model.EvaluationResults.CompetencyAverageResult
 import model._
@@ -14,12 +15,14 @@ import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import net.ceedubs.ficus.readers.ValueReader
 import org.joda.time.DateTime
 import play.Logger
-import play.api.libs.json.Json
+import play.api.libs.json.{ JsObject, Json }
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories._
-import services.evaluation.AssessmentCentreEvaluationEngine
-import services.passmarksettings.PassMarkSettingsService
+import repositories.application.GeneralApplicationMongoRepository
+import repositories.assessmentcentre.AssessmentCentreMongoRepository
+import services.evaluation.AssessmentCentreEvaluationEngineImpl
+import services.passmarksettings.AssessmentCentrePassMarkSettingsService
 import testkit.MongoRepositorySpec
 
 import scala.io.Source
@@ -29,24 +32,30 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
 
   import AssessmentCentreServiceIntSpec._
 
-  lazy val service = new AssessmentCentreService {
-    val applicationRepo = repositories.applicationRepository
-    val assessmentCentreRepo = repositories.assessmentCentreRepository
-    val passmarkService = mock[PassMarkSettingsService[AssessmentCentrePassMarkSettings]]
-    val assessmentScoresRepo = mock[AssessmentScoresRepository]
-    val evaluationEngine = AssessmentCentreEvaluationEngine
-  }
+  val schemeRepo = new SchemeYamlRepository() (app, appConfig)
+
+  val applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, appConfig, mongo)
+
+  // This tests the guice based class
+  lazy val service = new AssessmentCentreService(
+    applicationRepo,
+    new AssessmentCentreMongoRepository(ITDateTimeFactoryMock, schemeRepo, mongo),
+    mock[AssessmentCentrePassMarkSettingsService],
+    mock[AssessmentScoresRepository],
+    new AssessmentCentreEvaluationEngineImpl
+  )
 
   val collectionName = CollectionNames.APPLICATION
   // Use this when debugging so the test framework only runs one test scenario. The tests will still be loaded, however
   val DebugRunTestNameOnly: Option[String] = None
-//  val DebugRunTestNameOnly: Option[String] = Some("multipleSchemesSuite_Mix_Scenario1")
+  //    val DebugRunTestNameOnly: Option[String] = Some("multipleSchemesSuite_Mix_Scenario1")
+  //    val DebugRunTestNameOnly: Option[String] = Some("oneSchemeSuite_Green_Scenario1")
   // Use this when debugging so the test framework only runs tests which contain the specified test suite name in their path
   // the tests will still be loaded, however
   val DebugRunTestSuitePathPatternOnly: Option[String] = None
-//  val DebugRunTestSuitePathPatternOnly: Option[String] = Some("3_multipleSchemesSuite/")
+  //    val DebugRunTestSuitePathPatternOnly: Option[String] = Some("1_oneSchemeSuite/")
 
-  val prefix= ""
+  val prefix= "****"
 
   // Ficus specific ValueReaders so Ficus can read the config files into case classes
   implicit object SchemeReader extends ValueReader[SchemeId] {
@@ -91,7 +100,7 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
 
   "Assessment centre service" should {
     "evaluate scores for each test in the path" in  {
-      loadSuites foreach executeSuite
+      locateSuites foreach executeSuite
     }
   }
 
@@ -102,88 +111,90 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
     }
   }
 
-  private def loadSuites: Array[File] = {
-    val suites = new File(TestPath).listFiles sortBy(_.getName)
+  private def locateSuites: Array[File] = {
+    val suites = new File(TestPath).listFiles.filterNot(_.getName == PassmarkSettingsFile).sortBy(_.getName)
     require(suites.nonEmpty, s"No test suites found in $TestPath")
-    suites.foreach( s => Logger.info(s"$prefix test suite loaded = $s" ) )
+    suites.foreach( s => Logger.info(s"$prefix suite located = $s" ) )
     suites
   }
 
   private def executeSuite(suiteName: File) = {
-    Logger.info(s"$prefix executing suite name = $suiteName...")
+    Logger.info(s"$prefix executing suites found in directory = $suiteName...")
 
     // Reads the passmarkSettings.conf file
     def loadPassmarkSettings: AssessmentCentrePassMarkSettings = {
       val passmarkSettingsFile = new File(suiteName.getAbsolutePath + "/" + PassmarkSettingsFile)
 
-      require(passmarkSettingsFile.exists(), s"File does not exist: ${passmarkSettingsFile.getAbsolutePath}")
+      require(passmarkSettingsFile.exists(), s"Pass mark settings file does not exist: ${passmarkSettingsFile.getAbsolutePath}")
       val passmarkSettingsJson = Json.parse(Source.fromFile(passmarkSettingsFile).getLines().mkString)
       passmarkSettingsJson.as[AssessmentCentrePassMarkSettings]
     }
 
-    // Returns all files except the config files (passmarkSettings.conf)
-    def loadTestCases: Array[File] = {
-      val testCases = new File(s"$TestPath/${suiteName.getName}/")
+    // Returns all suite files, ignoring the config file (passmarkSettings.conf)
+    def loadTestSuites: Array[File] = {
+      val testSuites = new File(s"$TestPath/${suiteName.getName}/")
         .listFiles
         .filterNot(f => ConfigFiles.contains(f.getName)) // exclude passmarkSettings.conf
         .sortBy(_.getName)
-      require(testCases.nonEmpty, s"No test cases found to execute in $TestPath/${suiteName.getName}/")
-      testCases.sortBy(_.getName)
+      require(testSuites.nonEmpty, s"No test suites found to execute in $TestPath/${suiteName.getName}/")
+      testSuites.sortBy(_.getName)
     }
 
     val passmarkSettings = loadPassmarkSettings
-    Logger.info(s"$prefix pass marks loaded = $passmarkSettings")
-    val testCases = loadTestCases
-    testCases.foreach(tc => Logger.info(s"$prefix testCase loaded = $tc"))
-    testCases foreach (executeTestCases(_, passmarkSettings))
+    Logger.info(s"$prefix pass marks loaded = ${passmarkSettings.toString.substring(0, 600)}...<<truncated>>")
+    val testSuites = loadTestSuites
+    testSuites.foreach (ts => Logger.info(s"$prefix testSuite loaded = $ts"))
+    testSuites foreach (executeTestCases(_, passmarkSettings))
   }
 
-  // Execute a single test case file (which may consist of several test cases within it)
-  private def executeTestCases(
-    testCase: File,
-    passmarks: AssessmentCentrePassMarkSettings) = {
-    Logger.info(s"$prefix Processing test case: ${testCase.getAbsolutePath}")
+  // Execute a single test suite file (which may consist of several test cases within it)
+  private def executeTestCases(testSuite: File,
+                               passmarks: AssessmentCentrePassMarkSettings) = {
+    Logger.info(s"$prefix START: Processing test suite: ${testSuite.getAbsolutePath}")
 
-    if (DebugRunTestSuitePathPatternOnly.isEmpty || testCase.getAbsolutePath.contains(DebugRunTestSuitePathPatternOnly.get)) {
-      val tests: List[AssessmentServiceTest] = loadTestCases(testCase)
+    if (DebugRunTestSuitePathPatternOnly.isEmpty || testSuite.getAbsolutePath.contains(DebugRunTestSuitePathPatternOnly.get)) {
+      val tests: List[AssessmentServiceTest] = loadTestCases(testSuite)
       tests foreach { t =>
-        logTestData(t)
         val testName = t.testName
-        Logger.info(s"$prefix Loading test: $testName")
         if (DebugRunTestNameOnly.isEmpty || testName == DebugRunTestNameOnly.get) {
+          if (DebugRunTestNameOnly.isDefined) {
+            Logger.info(s"$prefix Tests are restricted to only running $testName")
+          } else {
+            Logger.info(s"$prefix Tests are not restricted so all tests will run")
+          }
           Logger.info(s"$prefix Now running test case $testName...")
+          logTestData(t)
           val appId = t.scores.applicationId.toString()
           createApplicationInDb(appId)
-          Logger.info(s"$prefix created application in db")
 
           val candidateData = AssessmentPassMarksSchemesAndScores(passmarks, t.schemes, t.scores)
           service.evaluateAssessmentCandidate(candidateData).futureValue
 
+          val applicationId = t.scores.applicationId.toString()
           val actualResult = findApplicationInDb(t.scores.applicationId.toString())
-          Logger.info(s"$prefix data read from db = $actualResult")
+          Logger.info(s"$prefix data read from db for appId $applicationId = $actualResult")
 
           val expectedResult = t.expected
-          assert(testCase, testName, expectedResult, actualResult)
+          assert(testSuite, testName, expectedResult, actualResult)
         } else {
-          Logger.info(s"$prefix --> Skipped test case")
+          Logger.info(s"$prefix --> Skipped test case: $testName because we are only running <<${DebugRunTestNameOnly.getOrElse("")}>>")
         }
       }
-      Logger.info(s"$prefix Executed test cases: ${tests.size}")
+      Logger.info(s"$prefix END: Processed test cases: ${tests.size}")
     } else {
-      Logger.info(s"$prefix --> Skipped file: $testCase")
+      Logger.info(s"$prefix END: --> Skipped file: $testSuite")
     }
   }
 
   // Uses the ficus library to read the config into case classes
   private def loadTestCases(testCase: File): List[AssessmentServiceTest] = {
     val tests = ConfigFactory.parseFile(new File(testCase.getAbsolutePath)).as[List[AssessmentServiceTest]]("tests")
-    Logger.info(s"$prefix Found ${tests.length} ${if(tests.length == 1) "test case" else "test cases"}")
+    Logger.info(s"$prefix Found ${tests.length} test ${if(tests.length == 1) "case" else "cases"}")
     tests
   }
 
   private def logTestData(data: AssessmentServiceTest) = {
-    Logger.info(s"$prefix Test data read from config:")
-    Logger.info(s"$prefix test case name = ${data.testName}")
+    Logger.info(s"$prefix The following test data was read from config in ${data.testName}:")
     Logger.info(s"$prefix schemes: List[SchemeId] = ${data.schemes}")
     Logger.info(s"$prefix scores: AssessmentScoresAllExercises = ${data.scores}")
     Logger.info(s"$prefix expected: AssessmentScoreEvaluationTestExpectation = ${data.expected}")
@@ -191,20 +202,20 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
 
   // Import required for mongo db interaction
   import ImplicitBSONHandlers._
-  def createApplicationInDb(appId: String) = Try(findApplicationInDb(appId)) match {
+  private def createApplicationInDb(appId: String) = Try(findApplicationInDb(appId)) match {
     case Success(_) =>
-      val msg = s"Found application in database for applicationId $appId - this should not happen. Are you using a unique applicationId?"
+      val msg = s"Found application in database for applicationId $appId - this should not happen. Are you using a unique applicationId ?"
       throw new IllegalStateException(msg)
     case Failure(_) =>
       Logger.info(s"$prefix creating db application")
-      applicationRepository.collection.insert(ordered = false).one(
+      applicationRepo.collection.insert(ordered = false).one(
         BSONDocument(
           "applicationId" -> appId,
           "userId" -> ("user" + appId)
         )
       ).futureValue
       for {
-        - <- applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED)
+        _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED)
       } yield ()
   }
 
@@ -212,7 +223,8 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
     import com.github.nscala_time.time.OrderingImplicits.DateTimeOrdering
     import repositories.BSONDateTimeHandler
 
-    repositories.applicationRepository.collection.find(BSONDocument("applicationId" -> appId)).one[BSONDocument].map { docOpt =>
+    applicationRepo.collection.find(BSONDocument("applicationId" -> appId), projection = Option.empty[JsObject])
+      .one[BSONDocument].map { docOpt =>
       require(docOpt.isDefined)
       val document = docOpt.get
 
@@ -251,14 +263,15 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
 
     val testMessage = s"file=${testCase.getAbsolutePath}, testName=$testName"
     val message = s"Test location: $testMessage:"
+    Logger.info(s"$prefix $message - now performing checks...")
 
     def doIt(dataName: String)(fun: => org.scalatest.Assertion) = {
-      Logger.info(s"$prefix $message $dataName check")
+      Logger.info(s"$prefix $dataName check")
       // If the test fails, withClue will display a helpful message
       withClue(s"$message $dataName") {
         fun
       }
-      Logger.info(s"$prefix passed")
+      Logger.info(s"$prefix $dataName passed")
     }
 
     doIt("applicationStatus"){ actual.applicationStatus mustBe expected.applicationStatus }
@@ -272,23 +285,24 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
 
     val allSchemes = actualSchemes.keys ++ expectedSchemes.keys
 
-    Logger.info(s"$prefix $message schemesEvaluation check")
+    Logger.info(s"$prefix schemesEvaluation check")
     allSchemes.foreach { s =>
       withClue(s"$message schemesEvaluation for scheme: $s") {
         actualSchemes(s) mustBe expectedSchemes(s)
       }
     }
-    Logger.info(s"$prefix passed")
+    Logger.info(s"$prefix schemesEvaluation passed")
 
     doIt("competencyAverage"){ actual.competencyAverageResult mustBe expected.competencyAverage }
 
-    Logger.info(s"$prefix $message competencyAverage overallScore check")
+    Logger.info(s"$prefix competencyAverage overallScore check")
     withClue(s"$message competencyAverage overallScore") {
       expected.overallScore.foreach { overallScore =>
         actual.competencyAverageResult.get.overallScore mustBe overallScore
       }
     }
-    Logger.info(s"$prefix passed")
+    Logger.info(s"$prefix competencyAverage overallScore passed")
+    Logger.info(s"$prefix $testName passed")
   }
 }
 
@@ -300,19 +314,19 @@ object AssessmentCentreServiceIntSpec {
 
   // This represents all the data read from config using the ficus library for a single test
   case class AssessmentServiceTest(
-    testName: String,
-    schemes: List[SchemeId],
-    scores: AssessmentScoresAllExercises,
-    expected: AssessmentScoreEvaluationTestExpectation
-  )
+                                    testName: String,
+                                    schemes: List[SchemeId],
+                                    scores: AssessmentScoresAllExercises,
+                                    expected: AssessmentScoreEvaluationTestExpectation
+                                  )
 
   // Result we get back from the db after evaluation. Note that everything is an Option because
   // that is what get get back from Mongo (without calling get on the Option)
   case class ActualResult(
-    applicationStatus: Option[ApplicationStatus],
-    progressStatus: Option[ProgressStatuses.ProgressStatus],
-    passmarkVersion: Option[String],
-    competencyAverageResult: Option[CompetencyAverageResult],
-    schemesEvaluation: Option[Seq[SchemeEvaluationResult]]
-  )
+                           applicationStatus: Option[ApplicationStatus],
+                           progressStatus: Option[ProgressStatuses.ProgressStatus],
+                           passmarkVersion: Option[String],
+                           competencyAverageResult: Option[CompetencyAverageResult],
+                           schemesEvaluation: Option[Seq[SchemeEvaluationResult]]
+                         )
 }

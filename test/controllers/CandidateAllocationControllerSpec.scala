@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ class CandidateAllocationControllerSpec  extends UnitWithAppSpec {
   private val description = "ORAC"
 
   "Find candidates eligible for event allocation" must {
-
     "handle no candidates" in new TestFixture {
       when(mockCandidateAllocationService.findCandidatesEligibleForEventAllocation(any[String], any[EventType], any[String]))
         .thenReturnAsync(CandidatesEligibleForEventResponse(List.empty, 0))
@@ -78,9 +77,10 @@ class CandidateAllocationControllerSpec  extends UnitWithAppSpec {
     val MockEvent = new Event("id", EventType.FSAC, "description", MockLocation, MockVenue,
       LocalDate.now, 32, 10, 5, LocalTime.now, LocalTime.now, DateTime.now, Map.empty, List.empty)
 
-    val controller = new CandidateAllocationController {
-      val candidateAllocationService: CandidateAllocationService = mockCandidateAllocationService
-    }
+    val controller = new CandidateAllocationController(
+      stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
+      mockCandidateAllocationService
+    )
   }
 
   def findCandidatesEligibleForEventAllocationRequest(location: String, eventType: EventType, t: String) = {

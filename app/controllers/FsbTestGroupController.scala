@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,23 @@
 
 package controllers
 
-import model.{ EvaluationResults, SchemeId }
+import javax.inject.{ Inject, Singleton }
+import model.EvaluationResults
 import model.Exceptions.{ AlreadyEvaluatedForSchemeException, SchemeNotFoundException }
 import model.exchange.{ FsbEvaluationResults, FsbScoresAndFeedback }
+import play.api.http.MediaRange.parse
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import services.application.FsbService
 import services.events.EventsService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object FsbTestGroupController extends FsbTestGroupController {
-  val eventsService = EventsService
-  val fsbService = FsbService
-}
-
-trait FsbTestGroupController extends BaseController {
-  val fsbService: FsbService
-  val eventsService: EventsService
+@Singleton
+class FsbTestGroupController @Inject() (cc: ControllerComponents,
+                                        fsbService: FsbService,
+                                        eventsService: EventsService) extends BackendController(cc) {
 
   def savePerScheme(): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[FsbEvaluationResults] { fsbEvaluationResults =>

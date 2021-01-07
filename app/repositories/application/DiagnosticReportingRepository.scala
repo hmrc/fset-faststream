@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,13 @@
 
 package repositories.application
 
+import javax.inject.{ Inject, Singleton }
 import model.CreateApplicationRequest
 import model.Exceptions.ApplicationNotFound
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{ JsObject, JsValue, Json }
-import reactivemongo.api.{ Cursor, DB, ReadPreference }
+import play.modules.reactivemongo.ReactiveMongoComponent
+import reactivemongo.api.{ Cursor, ReadPreference }
 import reactivemongo.bson.BSONObjectID
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.CollectionNames
@@ -35,9 +37,13 @@ trait DiagnosticReportingRepository {
   def findAll(): Enumerator[JsValue]
 }
 
-class DiagnosticReportingMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    CreateApplicationRequest.createApplicationRequestFormat, ReactiveMongoFormats.objectIdFormats) with DiagnosticReportingRepository {
+@Singleton
+class DiagnosticReportingMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](
+    CollectionNames.APPLICATION,
+    mongoComponent.mongoConnector.db,
+    CreateApplicationRequest.createApplicationRequestFormat,
+    ReactiveMongoFormats.objectIdFormats) with DiagnosticReportingRepository {
 
   private val defaultExclusions = Json.obj(
     "_id" -> 0,

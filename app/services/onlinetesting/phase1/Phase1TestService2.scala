@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,13 @@
 package services.onlinetesting.phase1
 
 import akka.actor.ActorSystem
+import com.google.inject.name.Named
 import common.{ FutureEx, Phase1TestConcern2 }
-import config.{ PsiTestIds, TestIntegrationGatewayConfig }
+import config.{ MicroserviceAppConfig, PsiTestIds, TestIntegrationGatewayConfig }
 import connectors.ExchangeObjects._
-import connectors.{ CSREmailClient, OnlineTestsGatewayClient }
+import connectors.{ OnlineTestEmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions._
 import model.OnlineTestCommands._
 import model.ProgressStatuses.PHASE1_TESTS_STARTED
@@ -32,7 +34,8 @@ import model.stc.{ AuditEvents, DataStoreEvents }
 import org.joda.time.DateTime
 import play.api.Logger
 import play.api.mvc.RequestHeader
-import repositories._
+import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.{ Phase1TestRepository, Phase1TestRepository2 }
 import services.AuditService
 import services.onlinetesting.Exceptions.{ TestCancellationException, TestRegistrationException }
@@ -46,32 +49,25 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.util.{ Failure, Success }
 
-object Phase1TestService2 extends Phase1TestService2 {
+@Singleton
+class Phase1TestService2 @Inject() (appConfig: MicroserviceAppConfig,
+                                    val appRepository: GeneralApplicationRepository,
+                                    val cdRepository: ContactDetailsRepository,
+                                    val testRepository: Phase1TestRepository, //Phase1TestRepositoryX must extend trait OnlineTestRepository2
+                                    val testRepository2: Phase1TestRepository2,
+                                    val onlineTestsGatewayClient: OnlineTestsGatewayClient,
+                                    val tokenFactory: UUIDFactory,
+                                    val dateTimeFactory: DateTimeFactory,
+                                    @Named("CSREmailClient") val emailClient: OnlineTestEmailClient,
+                                    val auditService: AuditService,
+                                    val siftService: ApplicationSiftService,
+                                    val eventService: StcEventService,
+                                    val actor: ActorSystem
+                                   ) extends OnlineTestService with Phase1TestConcern2 with ResetPhase1Test2 {
 
-  import config.MicroserviceAppConfig._
+  type TestRepository2 = Phase1TestRepository
 
-  val appRepository = applicationRepository
-  val cdRepository = faststreamContactDetailsRepository
-  val testRepository = phase1TestRepository //TODO: remove this from OnlineTestService trait
-  val testRepository2 = phase1TestRepository2
-  val onlineTestsGatewayClient = OnlineTestsGatewayClient
-  val tokenFactory = UUIDFactory
-  val dateTimeFactory = DateTimeFactory
-  val emailClient = CSREmailClient
-  val auditService = AuditService
-  val integrationGatewayConfig = testIntegrationGatewayConfig
-  val actor = ActorSystem()
-  val eventService = StcEventService
-  val siftService = ApplicationSiftService
-}
-
-trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with ResetPhase1Test2 {
-  type TestRepository = Phase1TestRepository
-  val actor: ActorSystem
-  val testRepository: Phase1TestRepository
-  val testRepository2: Phase1TestRepository2
-  val onlineTestsGatewayClient: OnlineTestsGatewayClient
-  val integrationGatewayConfig: TestIntegrationGatewayConfig
+  val integrationGatewayConfig: TestIntegrationGatewayConfig = appConfig.testIntegrationGatewayConfig
 
   override def registerAndInvite(applications: List[OnlineTestApplication])
                                 (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
@@ -101,7 +97,7 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     val registerCandidate = FutureEx.traverseToTry(scheduleNames.zipWithIndex) {
       case (testName, delayModifier) =>
         val testIds = testIdsByName(testName)
-      val delay = (delayModifier * integrationGatewayConfig.phase1Tests.testRegistrationDelayInSecs).second
+        val delay = (delayModifier * integrationGatewayConfig.phase1Tests.testRegistrationDelayInSecs).second
         akka.pattern.after(delay, actor.scheduler) {
           Logger.debug(s"Phase1TestService - about to call registerPsiApplicant with testIds - $testIds")
           registerPsiApplicant(application, testIds, invitationDate)
@@ -122,7 +118,7 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
   }
 
   def resetTest(application: OnlineTestApplication, orderIdToReset: String, actionTriggeredBy: String)
-                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
 
     val (invitationDate, expirationDate) = calcOnlineTestDates(integrationGatewayConfig.phase1Tests.expiryTimeInDays)
 
@@ -262,7 +258,7 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
   // This also handles archiving any existing tests to which the candidate has previously been invited
   // eg if a test is being reset and the candidate is being invited to a replacement test
   private def insertOrAppendNewTests2(applicationId: String, currentProfile: Option[Phase1TestProfile2],
-                                     newProfile: Phase1TestProfile2): Future[Phase1TestProfile2] = {
+                                      newProfile: Phase1TestProfile2): Future[Phase1TestProfile2] = {
 
     testRepository2.insertOrUpdateTestGroup(applicationId, newProfile).flatMap { _ =>
       testRepository2.getTestGroup(applicationId).map {
@@ -318,11 +314,11 @@ trait Phase1TestService2 extends OnlineTestService with Phase1TestConcern2 with 
     }
 
   def markAsStarted2(orderId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
-                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     updatePhase1Test2(orderId, testRepository2.updateTestStartTime(_: String, startedTime)) flatMap { u =>
       //TODO: remove the next line and comment in the following line at end of campaign 2019
       testRepository2.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED) map { _ =>
-//      maybeMarkAsStarted(u.applicationId).map { _ =>
+        //      maybeMarkAsStarted(u.applicationId).map { _ =>
         DataStoreEvents.OnlineExerciseStarted(u.applicationId) :: Nil
       }
     }

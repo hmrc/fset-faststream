@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package services.onlinetesting
 
-import factories.DateTimeFactory
+import factories.{ DateTimeFactory, DateTimeFactoryMock }
 import org.mockito.Mockito._
 import testkit.UnitSpec
 
@@ -37,7 +37,7 @@ class TimeExtensionSpec extends UnitSpec {
   }
 
   trait TimeExtensionFixture {
-    val now = DateTimeFactory.nowLocalTimeZone
+    val now = DateTimeFactoryMock.nowLocalTimeZone
     val mockDateTimeFactory = mock[DateTimeFactory]
     when(mockDateTimeFactory.nowLocalTimeZone).thenReturn(now)
 

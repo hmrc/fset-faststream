@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ object EventExamples {
     Session(session2Id, "session2 desc", 8, 5, 1, LocalTime.now(), LocalTime.now().plusHours(4))
   ))
 
+  // All these events use the default bulkUpload status of false
   val EventsNew = List(
     e1,
     Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, description = "", location = LocationLondon,
@@ -73,7 +74,6 @@ object EventExamples {
       venue = VenueNewcastle, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3),
       createdAt = DateTime.now, skillRequirements = Map(SkillType.QUALITY_ASSURANCE_COORDINATOR.toString -> 1), sessions = List())
-
   )
 
   val DayAggregateEventsNew = List(

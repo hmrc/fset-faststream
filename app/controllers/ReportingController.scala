@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 package controllers
 
 import akka.stream.scaladsl.Source
+import com.google.inject.name.Named
 import common.Joda._
 import connectors.{ AuthProviderClient, ExchangeObjects }
+import javax.inject.{ Inject, Singleton }
 import model.ApplicationRoute.{ ApplicationRoute, Edip, Faststream, Sdip, SdipFaststream }
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
@@ -30,63 +32,42 @@ import model.persisted.eventschedules.Event
 import model.persisted.{ ApplicationForOnlineTestPassMarkReport, ContactDetailsWithId }
 import model.report._
 import play.api.libs.iteratee.Enumerator
+import play.api.libs.iteratee.streams.IterateeStreams
 import play.api.libs.json.Json
-import play.api.libs.streams.Streams
-import play.api.mvc.{ Action, AnyContent, Result }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents, Result }
 import repositories.application._
-import repositories.contactdetails.ContactDetailsMongoRepository
-import repositories.csv.FSACIndicatorCSVRepository
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.events.EventsRepository
 import repositories.fsb.FsbRepository
+import repositories.personaldetails.PersonalDetailsRepository
 import repositories.sift.ApplicationSiftRepository
-import repositories.{ QuestionnaireRepository, _ }
+import repositories._
 import services.evaluation.AssessmentScoreCalculator
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.collection.breakOut
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object ReportingController extends ReportingController {
-  val reportingRepository: ReportingMongoRepository = repositories.reportingRepository
-  val assessorRepository: AssessorRepository = repositories.assessorRepository
-  val eventsRepository: EventsRepository = repositories.eventsRepository
-  val assessorAllocationRepository: AssessorAllocationRepository = repositories.assessorAllocationRepository
-  val contactDetailsRepository: ContactDetailsMongoRepository = repositories.faststreamContactDetailsRepository
-  val questionnaireRepository: QuestionnaireMongoRepository = repositories.questionnaireRepository
-  val prevYearCandidatesDetailsRepository: PreviousYearCandidatesDetailsMongoRepository = repositories.previousYearCandidatesDetailsRepository
-  val assessmentScoresRepository: AssessmentScoresMongoRepository = repositories.reviewerAssessmentScoresRepository
-  val mediaRepository: MediaMongoRepository = repositories.mediaRepository
-  val applicationSiftRepository = repositories.applicationSiftRepository
-  val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository = repositories.fsacIndicatorCSVRepository
-  val schemeRepo: SchemeRepository = SchemeYamlRepository
-  val authProviderClient: AuthProviderClient = AuthProviderClient
-  val candidateAllocationRepo = repositories.candidateAllocationRepository
-  val fsbRepository = repositories.fsbRepository
-  val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
-}
-
 // scalastyle:off number.of.methods
-
-trait ReportingController extends BaseController {
-
-  val reportingRepository: ReportingRepository
-  val assessorRepository: AssessorRepository
-  val eventsRepository: EventsRepository
-  val assessorAllocationRepository: AssessorAllocationRepository
-  val contactDetailsRepository: contactdetails.ContactDetailsRepository
-  val questionnaireRepository: QuestionnaireRepository
-  val prevYearCandidatesDetailsRepository: PreviousYearCandidatesDetailsRepository
-  val assessmentScoresRepository: AssessmentScoresRepository
-  val mediaRepository: MediaRepository
-  val applicationSiftRepository: ApplicationSiftRepository
-  val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository
-  val schemeRepo: SchemeRepository
-  val authProviderClient: AuthProviderClient
-  val candidateAllocationRepo: CandidateAllocationRepository
-  val fsbRepository: FsbRepository
-  val applicationRepository: GeneralApplicationRepository
-
+@Singleton
+class ReportingController @Inject() (cc: ControllerComponents,
+                                     reportingRepository: ReportingRepository,
+                                     assessorRepository: AssessorRepository,
+                                     eventsRepository: EventsRepository,
+                                     assessorAllocationRepository: AssessorAllocationRepository,
+                                     contactDetailsRepository: ContactDetailsRepository,
+                                     questionnaireRepository: QuestionnaireRepository,
+                                     prevYearCandidatesDetailsRepository: PreviousYearCandidatesDetailsRepository,
+                                     @Named("ReviewerAssessmentScoresRepo") assessmentScoresRepository: AssessmentScoresRepository,
+                                     mediaRepository: MediaRepository,
+                                     applicationSiftRepository: ApplicationSiftRepository,
+                                     schemeRepo: SchemeRepository,
+                                     authProviderClient: AuthProviderClient,
+                                     candidateAllocationRepo: CandidateAllocationRepository,
+                                     fsbRepository: FsbRepository,
+                                     applicationRepository: GeneralApplicationRepository,
+                                     personalDetailsRepository: PersonalDetailsRepository) extends BackendController(cc) {
 
   def fsacScores(): Action[AnyContent] = Action.async { implicit request =>
     def removeFeedback(assessmentScoresExercise: AssessmentScoresExercise) =
@@ -112,6 +93,17 @@ trait ReportingController extends BaseController {
   }
 
   def internshipReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
+    def buildInternshipReportItems(applications: List[ApplicationForInternshipReport],
+                                   contactDetailsMap: Map[String, ContactDetailsWithId]
+                                  ): List[InternshipReportItem] = {
+      applications.map { application =>
+        val contactDetails = contactDetailsMap.getOrElse(application.userId,
+          throw new IllegalStateException(s"No contact details found for user Id = ${application.userId}")
+        )
+        InternshipReportItem(application, contactDetails)
+      }
+    }
+
     for {
       applications <- reportingRepository.applicationsForInternshipReport(frameworkId)
       contactDetails <- contactDetailsRepository.findByUserIds(applications.map(_.userId)).map(cdList => contactDetailsToMap(cdList))
@@ -122,18 +114,18 @@ trait ReportingController extends BaseController {
 
   private def contactDetailsToMap(contactDetailsList: List[ContactDetailsWithId]) = contactDetailsList.map(cd => cd.userId -> cd).toMap
 
-  private def buildInternshipReportItems(applications: List[ApplicationForInternshipReport],
-    contactDetailsMap: Map[String, ContactDetailsWithId]
-  ): List[InternshipReportItem] = {
-    applications.map { application =>
-      val contactDetails = contactDetailsMap.getOrElse(application.userId,
-        throw new IllegalStateException(s"No contact details found for user Id = ${application.userId}")
-      )
-      InternshipReportItem(application, contactDetails)
-    }
-  }
-
   def analyticalSchemesReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
+
+    def buildAnalyticalSchemesReportItems(applications: List[ApplicationForAnalyticalSchemesReport],
+                                          contactDetailsMap: Map[String, ContactDetailsWithId]): List[AnalyticalSchemesReportItem] = {
+      applications.map { application =>
+        val contactDetails = contactDetailsMap.getOrElse(application.userId,
+          throw new IllegalStateException(s"No contact details found for user Id = ${application.userId}")
+        )
+        AnalyticalSchemesReportItem(application, contactDetails)
+      }
+    }
+
     val applicationsFut = reportingRepository.applicationsForAnalyticalSchemesReport(frameworkId)
     val reportFut = for {
       applications <- applicationsFut
@@ -297,7 +289,7 @@ trait ReportingController extends BaseController {
                 ) + "\n"
                 ret
             }
-            Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(candidatesStream))))
+            Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(header.andThen(candidatesStream))))
           }
         }
       }
@@ -324,7 +316,7 @@ trait ReportingController extends BaseController {
               ) + "\n"
               ret
           }
-          Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(candidatesStream))))
+          Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(header.andThen(candidatesStream))))
         }
       }
     }
@@ -351,10 +343,31 @@ trait ReportingController extends BaseController {
                 counter += 1
                 ret
             }
-            Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(candidatesStream))))
+            Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(header.andThen(candidatesStream))))
           }
         }
       }
+  }
+
+  private def createCandidateInfoBackUpRecord(
+                                               candidateDetails: CandidateDetailsReportItem,
+                                               contactDetails: CsvExtract[String],
+                                               questionnaireDetails: CsvExtract[String],
+                                               mediaDetails: CsvExtract[String],
+                                               eventsDetails: CsvExtract[String],
+                                               siftAnswersDetails: CsvExtract[String],
+                                               assessorAssessmentScoresDetails: CsvExtract[String],
+                                               reviewerAssessmentScoresDetails: CsvExtract[String]
+                                             ) = {
+    (candidateDetails.csvRecord ::
+      contactDetails.records.getOrElse(candidateDetails.userId, contactDetails.emptyRecord) ::
+      questionnaireDetails.records.getOrElse(candidateDetails.appId, questionnaireDetails.emptyRecord) ::
+      mediaDetails.records.getOrElse(candidateDetails.userId, mediaDetails.emptyRecord) ::
+      eventsDetails.records.getOrElse(candidateDetails.appId, eventsDetails.emptyRecord) ::
+      siftAnswersDetails.records.getOrElse(candidateDetails.appId, siftAnswersDetails.emptyRecord) ::
+      assessorAssessmentScoresDetails.records.getOrElse(candidateDetails.appId, assessorAssessmentScoresDetails.emptyRecord) ::
+      reviewerAssessmentScoresDetails.records.getOrElse(candidateDetails.appId, reviewerAssessmentScoresDetails.emptyRecord) ::
+      Nil).mkString(",")
   }
 
   private def buildHeaders(numOfSchemes: Int): Enumerator[String] = {
@@ -572,7 +585,7 @@ trait ReportingController extends BaseController {
             prevYearCandidatesDetailsRepository.dataAnalystSiftAnswersHeader ::
             Nil).mkString(",") + "\n"
         )
-        Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(applicationDetailsStream))))
+        Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(header.andThen(applicationDetailsStream))))
       }
     }
   }
@@ -623,7 +636,7 @@ trait ReportingController extends BaseController {
             prevYearCandidatesDetailsRepository.mediaHeader ::
             Nil).mkString(",") + "\n"
         )
-        Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(applicationDetailsStream))))
+        Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(header.andThen(applicationDetailsStream))))
       }
     )
   }
@@ -662,7 +675,7 @@ trait ReportingController extends BaseController {
             prevYearCandidatesDetailsRepository.dataAnalystSiftAnswersHeader ::
             Nil).mkString(",") + "\n"
         )
-        Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(header.andThen(applicationDetailsStream))))
+        Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(header.andThen(applicationDetailsStream))))
       }
     )
   }
@@ -683,27 +696,6 @@ trait ReportingController extends BaseController {
     (candidateDetails.csvRecord ::
       questionnaireDetails.records.getOrElse(candidateDetails.appId, questionnaireDetails.emptyRecord) ::
       siftDetails.records.getOrElse(candidateDetails.appId, siftDetails.emptyRecord) ::
-      Nil).mkString(",")
-  }
-
-  private def createCandidateInfoBackUpRecord(
-    candidateDetails: CandidateDetailsReportItem,
-    contactDetails: CsvExtract[String],
-    questionnaireDetails: CsvExtract[String],
-    mediaDetails: CsvExtract[String],
-    eventsDetails: CsvExtract[String],
-    siftAnswersDetails: CsvExtract[String],
-    assessorAssessmentScoresDetails: CsvExtract[String],
-    reviewerAssessmentScoresDetails: CsvExtract[String]
-  ) = {
-    (candidateDetails.csvRecord ::
-      contactDetails.records.getOrElse(candidateDetails.userId, contactDetails.emptyRecord) ::
-      questionnaireDetails.records.getOrElse(candidateDetails.appId, questionnaireDetails.emptyRecord) ::
-      mediaDetails.records.getOrElse(candidateDetails.userId, mediaDetails.emptyRecord) ::
-      eventsDetails.records.getOrElse(candidateDetails.appId, eventsDetails.emptyRecord) ::
-      siftAnswersDetails.records.getOrElse(candidateDetails.appId, siftAnswersDetails.emptyRecord) ::
-      assessorAssessmentScoresDetails.records.getOrElse(candidateDetails.appId, assessorAssessmentScoresDetails.emptyRecord) ::
-      reviewerAssessmentScoresDetails.records.getOrElse(candidateDetails.appId, reviewerAssessmentScoresDetails.emptyRecord) ::
       Nil).mkString(",")
   }
 
@@ -776,16 +768,6 @@ trait ReportingController extends BaseController {
   }
   // scalastyle:on
 
-  private def buildAnalyticalSchemesReportItems(applications: List[ApplicationForAnalyticalSchemesReport],
-    contactDetailsMap: Map[String, ContactDetailsWithId]): List[AnalyticalSchemesReportItem] = {
-    applications.map { application =>
-      val contactDetails = contactDetailsMap.getOrElse(application.userId,
-        throw new IllegalStateException(s"No contact details found for user Id = ${application.userId}")
-      )
-      AnalyticalSchemesReportItem(application, contactDetails)
-    }
-  }
-
   def adjustmentReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     val reports =
       for {
@@ -835,7 +817,7 @@ trait ReportingController extends BaseController {
       Future.sequence(batchedApplications.map { applications =>
         authProviderClient.findByUserIds(applications.map(_.userId)).flatMap { authDetails =>
 
-          faststreamContactDetailsRepository.findByUserIds(applications.map(_.userId)).flatMap { contactDetails =>
+          contactDetailsRepository.findByUserIds(applications.map(_.userId)).flatMap { contactDetails =>
             val contactDetailsMap = contactDetailsToMap(contactDetails)
 
             personalDetailsRepository.findByIds(applications.map(_.applicationId)).map { appPersonalDetailsTuple =>
@@ -925,6 +907,12 @@ trait ReportingController extends BaseController {
     }
   }
 
+  def onlineActiveTestsCountReport: Action[AnyContent] = Action.async { implicit request =>
+    reportingRepository.onlineActiveTestCountReport.map { apps =>
+      Ok(Json.toJson(apps))
+    }
+  }
+
   private def onlineTestPassMarkReportCommon(applications: List[ApplicationForOnlineTestPassMarkReport]):
   Future[List[OnlineTestPassMarkReportItem]] = {
 
@@ -947,12 +935,6 @@ trait ReportingController extends BaseController {
         OnlineTestPassMarkReportItem(
           ApplicationForOnlineTestPassMarkReportItem(application, fsac, overallFsacScoreOpt, sift, fsb), q
         )
-    }
-  }
-
-  def onlineActiveTestsCountReport: Action[AnyContent] = Action.async { implicit request =>
-    reportingRepository.onlineActiveTestCountReport.map { apps =>
-      Ok(Json.toJson(apps))
     }
   }
 

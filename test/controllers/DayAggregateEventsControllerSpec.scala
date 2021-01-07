@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,11 +30,9 @@ import scala.concurrent.Future
 
 class DayAggregateEventsControllerSpec extends UnitWithAppSpec {
 
-
   val MySkills = List(SkillType.QUALITY_ASSURANCE_COORDINATOR, SkillType.CHAIR)
 
   "find" should {
-
     "returns day aggregated events when search by skills" in new TestFixture {
       when(mockEventsRepo.getEvents(None, None, None, MySkills))
         .thenReturn(Future.successful(EventExamples.EventsNew))
@@ -68,11 +66,12 @@ class DayAggregateEventsControllerSpec extends UnitWithAppSpec {
   }
 
   trait TestFixture extends TestFixtureBase {
-    val mockEventsRepo: EventsRepository = mock[EventsRepository]
     val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
-    val controller = new DayAggregateEventController {
-      val eventsRepository: EventsRepository = mockEventsRepo
-      val locationsWithVenuesRepo: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
-    }
+    val mockEventsRepo              = mock[EventsRepository]
+    val controller = new DayAggregateEventController(
+      stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
+      mockLocationsWithVenuesRepo,
+      mockEventsRepo
+    )
   }
 }

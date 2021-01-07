@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,24 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.{ SiftAnswersIncomplete, SiftAnswersSubmitted }
+import model.SchemeId
 import model.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer }
-import model.{ SchemeId, persisted }
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent }
-import repositories._
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import services.AuditService
 import services.sift.{ ApplicationSiftService, SiftAnswersService }
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object SchemeSiftAnswersController extends SchemeSiftAnswersController {
-  val siftAnswersService = SiftAnswersService
-  val applicationSiftService = ApplicationSiftService
-  val auditService = AuditService
-}
-
-trait SchemeSiftAnswersController extends BaseController {
-
-  val siftAnswersService: SiftAnswersService
-  val applicationSiftService: ApplicationSiftService
-  val auditService: AuditService
+@Singleton
+class SchemeSiftAnswersController @Inject() (cc: ControllerComponents,
+                                             siftAnswersService: SiftAnswersService,
+                                             applicationSiftService: ApplicationSiftService,
+                                             auditService: AuditService
+                                            ) extends BackendController(cc) {
 
   def addOrUpdateSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId): Action[JsValue] =
     Action.async(parse.json) { implicit request =>

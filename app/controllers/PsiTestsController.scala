@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,34 +16,26 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.{ CannotFindApplicationByOrderIdException, CannotFindTestByOrderIdException }
 import model.exchange.PsiRealTimeResults
 import play.api.Logger
-import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent, Result }
+import play.api.libs.json.{ JsValue, Json }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents, Result }
 import services.NumericalTestService2
 import services.onlinetesting.phase1.Phase1TestService2
 import services.onlinetesting.phase2.Phase2TestService2
-import services.stc.StcEventService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object PsiTestsController extends PsiTestsController {
-  override val phase1TestService2 = Phase1TestService2
-  override val phase2TestService2 = Phase2TestService2
-  val numericalTestService2: NumericalTestService2 = NumericalTestService2
-  val eventService = StcEventService
-}
+@Singleton
+class PsiTestsController @Inject() (cc: ControllerComponents,
+                                    phase1TestService2: Phase1TestService2,
+                                    phase2TestService2: Phase2TestService2,
+                                    numericalTestService2: NumericalTestService2) extends BackendController(cc) {
 
-trait PsiTestsController extends BaseController {
-  val phase1TestService2: Phase1TestService2
-  val phase2TestService2: Phase2TestService2
-  val numericalTestService2: NumericalTestService2
-  val eventService: StcEventService
-
-
-  def start(orderId: String) = Action.async(parse.json) { implicit request =>
+  def start(orderId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     Logger.info(s"Psi assessment started orderId=$orderId")
 
     phase1TestService2.markAsStarted2(orderId)
@@ -71,7 +63,7 @@ trait PsiTestsController extends BaseController {
       }.map(_ => Ok).recover(recoverNotFound)
   }
 
-  def realTimeResults(orderId: String) = Action.async(parse.json) { implicit request =>
+  def realTimeResults(orderId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[PsiRealTimeResults] { realTimeResults =>
       Logger.info(s"We have received real time results for psi test orderId=$orderId. " +
         s"Payload(json) = [${Json.toJson(realTimeResults).toString}], (deserialized) = [$realTimeResults]")

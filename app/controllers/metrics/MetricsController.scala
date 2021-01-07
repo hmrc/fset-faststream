@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,18 @@
 
 package controllers.metrics
 
+import javax.inject.{ Inject, Singleton }
 import model.ApplicationStatus
 import play.api.libs.json.Json
-import play.api.mvc.Action
-import repositories._
+import play.api.mvc.ControllerComponents
 import repositories.application.GeneralApplicationRepository
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.collection.immutable.SortedMap
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object MetricsController extends MetricsController {
-  override val applicationRepo = applicationRepository
-}
-
-trait MetricsController extends BaseController {
-  val applicationRepo: GeneralApplicationRepository
+@Singleton
+class MetricsController @Inject() (cc: ControllerComponents, applicationRepo: GeneralApplicationRepository) extends BackendController(cc) {
 
   def progressStatusCounts = Action.async {
     for {

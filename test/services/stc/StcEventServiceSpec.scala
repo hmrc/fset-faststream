@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.MustMatchers
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.RequestHeader
 import services.stc.handler._
 import testkit.UnitSpec
@@ -51,11 +51,11 @@ trait StcEventServiceFixture extends MockitoSugar with MustMatchers {
   val auditEventHandlerMock = mock[AuditEventHandler]
   val emailEventHandlerMock = mock[EmailEventHandler]
 
-  val stcEventServiceMock = new StcEventService {
-    val dataStoreEventHandler = dataStoreEventHandlerMock
-    val auditEventHandler = auditEventHandlerMock
-    val emailEventHandler = emailEventHandlerMock
-  }
+  val stcEventServiceMock = new StcEventServiceImpl(
+    dataStoreEventHandlerMock,
+    auditEventHandlerMock,
+    emailEventHandlerMock
+  )
 
   val authProviderClientMock = mock[AuthProviderClient]
 

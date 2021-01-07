@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,33 @@
 
 package scheduler.sift
 
-import config.WaitingScheduledJobConfig
-import play.api.Logger
+import config.{ MicroserviceAppConfig, WaitingScheduledJobConfig }
+import play.api.{ Configuration, Logger }
+import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
-import ProgressToSiftJobConfig.conf
-import config.MicroserviceAppConfig.testIntegrationGatewayConfig
 import scheduler.clustering.SingleInstanceScheduledJob
+//import ProgressToSiftJobConfig.conf
+import javax.inject.{ Inject, Singleton }
 import services.sift.ApplicationSiftService
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object SiftExpiryJob extends SiftExpiryJob {
-  override val siftService = ApplicationSiftService
-  override val gracePeriodInSecs = testIntegrationGatewayConfig.numericalTests.gracePeriodInSecs
-  override val config = SiftExpiryJobConfig
+@Singleton
+class SiftExpiryJobImpl @Inject() (val siftService: ApplicationSiftService,
+                                   val mongoComponent: ReactiveMongoComponent,
+                                   val config: SiftExpiryJobConfig,
+                                   val appConfig: MicroserviceAppConfig
+                                  ) extends SiftExpiryJob {
+  //  override val siftService = ApplicationSiftService
+  override val gracePeriodInSecs = appConfig.testIntegrationGatewayConfig.numericalTests.gracePeriodInSecs
+  //  override val config = SiftExpiryJobConfig
 }
 
 trait SiftExpiryJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val siftService: ApplicationSiftService
   val gracePeriodInSecs: Int
-  lazy val batchSize = conf.batchSize.getOrElse(1)
+  lazy val batchSize = config.conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -45,7 +51,9 @@ trait SiftExpiryJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingSch
   }
 }
 
-object SiftExpiryJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
+@Singleton
+class SiftExpiryJobConfig @Inject()(config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.sift-expiry-job",
   name = "SiftExpiryJob"
 )

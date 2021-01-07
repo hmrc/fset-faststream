@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,26 @@
 
 package controllers
 
+import com.google.inject.name.Named
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.{ EventNotFoundException, NotFoundException }
-import model.assessmentscores._
 import model.UniqueIdentifier
+import model.assessmentscores._
 import model.command.AssessmentScoresCommands._
 import play.api.Logger
 import play.api.libs.json._
-import play.api.mvc.Action
+import play.api.mvc.{ Action, ControllerComponents }
 import repositories.AssessmentScoresRepository
 import services.AuditService
-import services.assessmentscores.{ AssessmentScoresService, AssessorAssessmentScoresService, ReviewerAssessmentScoresService }
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import services.assessmentscores.AssessmentScoresService
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
-trait AssessmentScoresController extends BaseController {
+abstract class AssessmentScoresController(cc: ControllerComponents) extends BackendController(cc) {
   val service: AssessmentScoresService
-  val auditService: AuditService
   val repository: AssessmentScoresRepository
+  val auditService: AuditService
 
   val AssessmentScoresOneExerciseSaved: String
   val AssessmentScoresOneExerciseSubmitted: String
@@ -193,10 +194,13 @@ trait AssessmentScoresController extends BaseController {
   }
 }
 
-object AssessorAssessmentScoresController extends AssessmentScoresController {
-  val service: AssessmentScoresService = AssessorAssessmentScoresService
-  val auditService: AuditService = AuditService
-  val repository: AssessmentScoresRepository = repositories.assessorAssessmentScoresRepository
+@Singleton
+class AssessorAssessmentScoresController @Inject() (@Named("AssessorAssessmentScoresService") val service: AssessmentScoresService,
+                                                    @Named("AssessorAssessmentScoresRepo") val repository: AssessmentScoresRepository,
+                                                    val auditService: AuditService,
+                                                    cc: ControllerComponents
+                                                   ) extends AssessmentScoresController(cc) {
+
   val AssessmentScoresOneExerciseSaved = "AssessorAssessmentScoresOneExerciseSaved"
   val AssessmentScoresOneExerciseSubmitted = "AssessorAssessmentScoresOneExerciseSubmitted"
   val AssessmentScoresAllExercisesSubmitted = "AssessorAssessmentScoresAllExercisesSubmitted"
@@ -213,10 +217,13 @@ object AssessorAssessmentScoresController extends AssessmentScoresController {
   }
 }
 
-object ReviewerAssessmentScoresController extends AssessmentScoresController {
-  val service: AssessmentScoresService = ReviewerAssessmentScoresService
-  val auditService: AuditService = AuditService
-  val repository: AssessmentScoresRepository = repositories.reviewerAssessmentScoresRepository
+@Singleton
+class ReviewerAssessmentScoresController @Inject() (@Named("ReviewerAssessmentScoresService") val service: AssessmentScoresService,
+                                                    @Named("ReviewerAssessmentScoresRepo") val repository: AssessmentScoresRepository,
+                                                    val auditService: AuditService,
+                                                    cc: ControllerComponents
+                                                   ) extends AssessmentScoresController(cc) {
+
   val AssessmentScoresOneExerciseSaved = "ReviewerAssessmentScoresOneExerciseSaved"
   val AssessmentScoresOneExerciseSubmitted = "ReviewerAssessmentScoresOneExerciseSubmitted"
   val AssessmentScoresAllExercisesSubmitted = "ReviewerAssessmentScoresAllExercisesSubmitted"

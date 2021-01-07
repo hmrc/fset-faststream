@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,17 @@
 
 package repositories
 
+import javax.inject.{ Inject, Singleton }
 import model.UniqueIdentifier
 import model.persisted.assessor.{ Assessor, AssessorStatus }
 import model.persisted.eventschedules.Location
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
 import play.api.libs.json.{ JsObject, Json }
-import reactivemongo.api.{ Cursor, DB, ReadPreference }
+import play.modules.reactivemongo.ReactiveMongoComponent
+import reactivemongo.api.indexes.Index
+import reactivemongo.api.indexes.IndexType.Ascending
+import reactivemongo.api.{ Cursor, ReadPreference }
 import reactivemongo.bson._
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -43,12 +47,19 @@ trait AssessorRepository {
   def remove(userId: UniqueIdentifier): Future[Unit]
 }
 
-class AssessorMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[Assessor, BSONObjectID](CollectionNames.ASSESSOR, mongo,
+@Singleton
+class AssessorMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[Assessor, BSONObjectID](
+    CollectionNames.ASSESSOR,
+    mongoComponent.mongoConnector.db,
     Assessor.persistedAssessorFormat,
     ReactiveMongoFormats.objectIdFormats) with AssessorRepository with ReactiveRepositoryHelpers {
 
   private val unlimitedMaxDocs = -1
+
+  override def indexes: Seq[Index] = Seq(
+    Index(Seq(("userId", Ascending)), unique = true)
+  )
 
   def find(userId: String): Future[Option[Assessor]] = {
     val query = BSONDocument(

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,9 @@ import java.util.UUID
 import java.util.regex.Pattern
 
 import com.github.nscala_time.time.OrderingImplicits.DateTimeOrdering
-import config.{ EventsConfig, OnlineTestsGatewayConfig, TestIntegrationGatewayConfig }
+import config.{ EventsConfig, MicroserviceAppConfig, OnlineTestsGatewayConfig, TestIntegrationGatewayConfig }
 import factories.DateTimeFactory
+import javax.inject.{ Inject, Singleton }
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
 import model.Exceptions._
@@ -38,8 +39,11 @@ import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.Logger
 import play.api.libs.json.{ JsNumber, JsObject, Json }
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.Cursor.FailOnError
 import reactivemongo.api._
+import reactivemongo.api.indexes.Index
+import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import reactivemongo.play.json.collection.JSONCollection
@@ -59,108 +63,58 @@ import scala.util.Try
 
 // scalastyle:off number.of.methods
 trait GeneralApplicationRepository {
-
   def create(userId: String, frameworkId: String, applicationRoute: ApplicationRoute): Future[ApplicationResponse]
-
   def find(applicationId: String): Future[Option[Candidate]]
-
   def findAllFileInfo: Future[List[CandidateFileInfo]]
-
   def find(applicationIds: Seq[String]): Future[List[Candidate]]
-
   def findProgress(applicationId: String): Future[ProgressResponse]
-
   def findStatus(applicationId: String): Future[ApplicationStatusDetails]
-
   def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse]
-
   def findCandidateByUserId(userId: String): Future[Option[Candidate]]
-
   def findByCriteria(firstOrPreferredName: Option[String], lastName: Option[String],
                      dateOfBirth: Option[LocalDate], userIds: List[String] = List.empty): Future[List[Candidate]]
-
   def findApplicationIdsByLocation(location: String): Future[List[String]]
-
   def submit(applicationId: String): Future[Unit]
-
   def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit]
-
   def withdrawScheme(applicationId: String, schemeWithdraw: WithdrawScheme, schemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
-
   def preview(applicationId: String): Future[Unit]
-
   def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit]
-
   def confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit]
-
   def findAdjustments(applicationId: String): Future[Option[Adjustments]]
-
   def updateAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit]
-
   def findAdjustmentsComment(applicationId: String): Future[AdjustmentsComment]
-
   def removeAdjustmentsComment(applicationId: String): Future[Unit]
-
   def rejectAdjustment(applicationId: String): Future[Unit]
-
   def gisByApplication(applicationId: String): Future[Boolean]
-
   def allocationExpireDateByApplicationId(applicationId: String): Future[Option[LocalDate]]
-
   def updateStatus(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit]
-
   def updateApplicationStatusOnly(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit]
-
   def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime): Future[Unit]
-
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]]
-
   def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit]
-
   def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit]
-
   def findTestForNotification(notificationType: NotificationTestType): Future[Option[TestResultNotification]]
-
   def findTestForSdipFsNotification(notificationType: NotificationTestTypeSdipFs): Future[Option[TestResultSdipFsNotification]]
-
   def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]]
-
   def fix(candidate: Candidate, issue: FixBatch): Future[Option[Candidate]]
-
   def fixDataByRemovingETray(appId: String): Future[Unit]
-
   def fixDataByRemovingVideoInterviewFailed(appId: String): Future[Unit]
-
   def fixDataByRemovingProgressStatus(appId: String, progressStatus: String): Future[Unit]
-
   def updateApplicationRoute(appId: String, appRoute: ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit]
-
   def archive(appId: String, originalUserId: String, userIdToArchiveWith: String,
               frameworkId: String, appRoute: ApplicationRoute): Future[Unit]
-
-  def findCandidatesEligibleForEventAllocation(
-    locations: List[String], eventType: EventType, schemeId: Option[SchemeId]): Future[CandidatesEligibleForEventResponse]
-
+  def findCandidatesEligibleForEventAllocation(locations: List[String], eventType: EventType,
+                                               schemeId: Option[SchemeId]): Future[CandidatesEligibleForEventResponse]
   def resetApplicationAllocationStatus(applicationId: String, eventType: EventType): Future[Unit]
-
   def setFailedToAttendAssessmentStatus(applicationId: String, eventType: EventType): Future[Unit]
-
   def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse]
-
   def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]]
-
   def findSdipFaststreamInvitedToVideoInterview: Future[Seq[Candidate]]
-
   def findSdipFaststreamExpiredPhase2InvitedToSift: Future[Seq[Candidate]]
-
   def findSdipFaststreamExpiredPhase3InvitedToSift: Future[Seq[Candidate]]
-
   def getApplicationRoute(applicationId: String): Future[ApplicationRoute]
-
   def getLatestProgressStatuses: Future[List[String]]
-
   def countByStatus(applicationStatus: ApplicationStatus): Future[Long]
-
   def getProgressStatusTimestamps(applicationId: String): Future[List[(String, DateTime)]]
 
   // Implemented by Hmrc ReactiveRepository class - don't use until it gets fixed. Use countLong instead
@@ -169,37 +123,40 @@ trait GeneralApplicationRepository {
 
   // Implemented in ReactiveRespositoryHelpers
   def countLong(implicit ec: scala.concurrent.ExecutionContext) : Future[Long]
-
   def updateCurrentSchemeStatus(applicationId: String, results: Seq[SchemeEvaluationResult]): Future[Unit]
-
   def removeCurrentSchemeStatus(applicationId: String): Future[Unit]
-
   def removeWithdrawReason(applicationId: String): Future[Unit]
-
   def findEligibleForJobOfferCandidatesWithFsbStatus: Future[Seq[String]]
-
   def listCollections(implicit ec: ExecutionContext): Future[List[String]]
-
   def removeCollection(name: String): Future[Unit]
-
   def removeCandidate(applicationId: String): Future[Unit]
-
   def getApplicationStatusForCandidates(applicationIds: Seq[String]): Future[Seq[(String, ApplicationStatus)]]
 }
 
 // scalastyle:off number.of.methods
 // scalastyle:off file.size.limit
-class GeneralApplicationMongoRepository(
-  val dateTimeFactory: DateTimeFactory,
-  gatewayConfig: TestIntegrationGatewayConfig,
-  eventsConfig: EventsConfig
-)(implicit mongo: () => DefaultDB)
-  extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
+@Singleton
+class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
+                                                   appConfig: MicroserviceAppConfig,
+                                                   mongoComponent: ReactiveMongoComponent
+                                                  )
+  extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](
+    CollectionNames.APPLICATION,
+    mongoComponent.mongoConnector.db,
     CreateApplicationRequest.createApplicationRequestFormat,
     ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
     with GeneralApplicationRepoBSONReader with ReactiveRepositoryHelpers with CurrentSchemeStatusHelper {
 
   private val unlimitedMaxDocs = -1
+
+  override def indexes: Seq[Index] = Seq(
+    Index(Seq(("applicationId", Ascending), ("userId", Ascending)), unique = true),
+    Index(Seq(("userId", Ascending), ("frameworkId", Ascending)), unique = true),
+    Index(Seq(("applicationStatus", Ascending)), unique = false),
+    Index(Seq(("assistance-details.needsSupportForOnlineAssessment", Ascending)), unique = false),
+    Index(Seq(("assistance-details.needsSupportAtVenue", Ascending)), unique = false),
+    Index(Seq(("assistance-details.guaranteedInterview", Ascending)), unique = false)
+  )
 
   override def getApplicationStatusForCandidates(applicationIds: Seq[String]): Future[Seq[(String, ApplicationStatus)]] = {
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
@@ -326,7 +283,7 @@ class GeneralApplicationMongoRepository(
         val progressStatusTimeStamp = progressStatusTimeStampDoc.flatMap { timestamps =>
           val relevantProgressStatuses = timestamps.elements.filter(_.name.startsWith(applicationStatus))
           val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element => timestamps.getAs[DateTime](element.name).get)
-            timestamps.getAs[DateTime](latestRelevantProgressStatus.name)
+          timestamps.getAs[DateTime](latestRelevantProgressStatus.name)
         }
           .orElse(
             progressStatusDateFallback(applicationStatus, document)
@@ -390,7 +347,7 @@ class GeneralApplicationMongoRepository(
     val query = BSONDocument("$and" -> fullQuery)
 
     val projection = BSONDocument("userId" -> true, "applicationId" -> true, "applicationRoute" -> true,
-    "applicationStatus" -> true, "personal-details" -> true)
+      "applicationStatus" -> true, "personal-details" -> true)
 
     bsonCollection.find(query, Some(projection)).cursor[Candidate]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
   }
@@ -580,10 +537,10 @@ class GeneralApplicationMongoRepository(
     issue.fix match {
       case PassToPhase2 =>
         val query = BSONDocument("$and" -> BSONArray(
-            BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
-            BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_PASSED}" -> true),
-            BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_INVITED}" -> true)
-          ))
+          BSONDocument("applicationStatus" -> ApplicationStatus.PHASE1_TESTS),
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_PASSED}" -> true),
+          BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_INVITED}" -> true)
+        ))
 
         selectRandom[Candidate](query, issue.batchSize)
       case PassToPhase1TestPassed =>
@@ -608,8 +565,8 @@ class GeneralApplicationMongoRepository(
           BSONDocument(s"progress-status.${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}" -> BSONDocument("$ne" -> true)),
           BSONDocument(s"testGroups.PHASE2.tests" ->
             BSONDocument("$elemMatch" -> BSONDocument(
-            "usedForResults" -> true, "testResult" -> BSONDocument("$exists" -> true)
-              ))
+              "usedForResults" -> true, "testResult" -> BSONDocument("$exists" -> true)
+            ))
           )
         ))
 
@@ -646,8 +603,8 @@ class GeneralApplicationMongoRepository(
         ))
         val updateOp = bsonCollection.updateModifier(BSONDocument("$unset" ->
           BSONDocument(s"progress-status.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> "",
-          s"progress-status-timestamp.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> "",
-          "testGroups" -> "")))
+            s"progress-status-timestamp.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> "",
+            "testGroups" -> "")))
         findAndModify(query, updateOp).map(_.result[Candidate])
       case AddMissingPhase2ResultReceived =>
         val query = BSONDocument("$and" -> BSONArray(
@@ -670,10 +627,10 @@ class GeneralApplicationMongoRepository(
     import ProgressStatuses._
 
     val query = BSONDocument("$and" ->
-          BSONArray(
-            BSONDocument("applicationId" -> appId),
-            BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS)
-          ))
+      BSONArray(
+        BSONDocument("applicationId" -> appId),
+        BSONDocument("applicationStatus" -> ApplicationStatus.PHASE2_TESTS)
+      ))
 
     val updateOp = bsonCollection.updateModifier(
       BSONDocument(
@@ -922,9 +879,9 @@ class GeneralApplicationMongoRepository(
     val query = BSONDocument("applicationId" -> applicationId)
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating progress and app status")
 
-      collection.update(ordered = false).one(query, BSONDocument("$set" ->
-        applicationStatusBSON(progressStatus))
-      ) map validator
+    collection.update(ordered = false).one(query, BSONDocument("$set" ->
+      applicationStatusBSON(progressStatus))
+    ) map validator
   }
 
   override def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
@@ -933,11 +890,11 @@ class GeneralApplicationMongoRepository(
     val query = BSONDocument("applicationId" -> applicationId)
 
     val statusesToUnset = progressStatuses.flatMap { progressStatus =>
-        Map(
-          s"progress-status.$progressStatus" -> BSONString(""),
-          s"progress-status-dates.$progressStatus" -> BSONString(""),
-          s"progress-status-timestamp.$progressStatus" -> BSONString("")
-        )
+      Map(
+        s"progress-status.$progressStatus" -> BSONString(""),
+        s"progress-status-dates.$progressStatus" -> BSONString(""),
+        s"progress-status-timestamp.$progressStatus" -> BSONString("")
+      )
     }
 
     val unsetDoc = BSONDocument("$unset" -> BSONDocument(statusesToUnset))
@@ -1011,12 +968,12 @@ class GeneralApplicationMongoRepository(
       .map( _.size )
   }
 
-  override def findCandidatesEligibleForEventAllocation(
-    locations: List[String],
-    eventType: EventType,
-    schemeId: Option[SchemeId]
-  ): Future[CandidatesEligibleForEventResponse] = {
-    Logger.info(s"Finding candidates eligible for event allocation with maxNumberOfCandidates = ${eventsConfig.maxNumberOfCandidates}")
+  override def findCandidatesEligibleForEventAllocation(locations: List[String],
+                                                        eventType: EventType,
+                                                        schemeId: Option[SchemeId]
+                                                       ): Future[CandidatesEligibleForEventResponse] = {
+    Logger.info("Finding candidates eligible for event allocation with " +
+      s"maxNumberOfCandidates = ${appConfig.eventsConfig.maxNumberOfCandidates}")
     val appStatus = eventType.applicationStatus
     val status = EventProgressStatuses.get(appStatus)
     val awaitingAllocation = status.awaitingAllocation.key
@@ -1048,7 +1005,7 @@ class GeneralApplicationMongoRepository(
         // Eligible candidates should be sorted based on when they passed PHASE 3
         val sort = new JsObject(Map(s"progress-status-timestamp.${ApplicationStatus.PHASE3_TESTS_PASSED}" -> ascending))
         collection.find(query, Some(projection)).sort(sort).cursor[BSONDocument]()
-          .collect[List](eventsConfig.maxNumberOfCandidates, Cursor.FailOnError[List[BSONDocument]]())
+          .collect[List](appConfig.eventsConfig.maxNumberOfCandidates, Cursor.FailOnError[List[BSONDocument]]())
           .map { docList =>
             docList.map { doc =>
               bsonDocToCandidatesEligibleForEvent(doc)
@@ -1211,8 +1168,8 @@ class GeneralApplicationMongoRepository(
 
   def findEligibleForJobOfferCandidatesWithFsbStatus: Future[Seq[String]] = {
     val query = BSONDocument("$and" -> BSONArray(
-        BSONDocument("applicationStatus" -> BSONDocument("$eq" -> FSB.toString)),
-        BSONDocument(s"progress-status.${ELIGIBLE_FOR_JOB_OFFER.toString}" -> BSONDocument("$exists" -> true))
+      BSONDocument("applicationStatus" -> BSONDocument("$eq" -> FSB.toString)),
+      BSONDocument(s"progress-status.${ELIGIBLE_FOR_JOB_OFFER.toString}" -> BSONDocument("$exists" -> true))
     ))
 
     val projection = BSONDocument("applicationId" -> 1)
@@ -1226,7 +1183,7 @@ class GeneralApplicationMongoRepository(
   }
 
   override def listCollections(implicit ec: ExecutionContext): Future[List[String]] = {
-     mongo().collectionNames
+    mongoComponent.mongoConnector.db().collectionNames
   }
 
   override def removeCollection(name: String): Future[Unit] = {

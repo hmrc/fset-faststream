@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 package services.personaldetails
 
-import model.{ ApplicationStatus, CivilServiceExperienceDetails }
 import model.command.GeneralDetailsExamples._
 import model.persisted.ContactDetailsExamples._
 import model.persisted.FSACIndicator
 import model.persisted.PersonalDetailsExamples._
+import model.{ ApplicationStatus, CivilServiceExperienceDetails }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
@@ -28,7 +28,6 @@ import repositories.contactdetails.ContactDetailsRepository
 import repositories.csv.FSACIndicatorCSVRepository
 import repositories.fsacindicator.FSACIndicatorRepository
 import repositories.personaldetails.PersonalDetailsRepository
-import services.AuditService
 import testkit.{ ShortTimeout, UnitWithAppSpec }
 
 import scala.concurrent.Future
@@ -37,18 +36,16 @@ class PersonalDetailsServiceSpec extends UnitWithAppSpec with ShortTimeout {
   val mockPersonalDetailsRepository = mock[PersonalDetailsRepository]
   val mockContactDetailsRepository = mock[ContactDetailsRepository]
   val mockCivilServiceExperienceDetailsRepository = mock[CivilServiceExperienceDetailsRepository]
-  val mockFSACIndicatorRepository = mock[FSACIndicatorRepository]
   val mockFSACIndicatorCSVRepository = mock[FSACIndicatorCSVRepository]
-  val mockAuditService = mock[AuditService]
+  val mockFSACIndicatorRepository = mock[FSACIndicatorRepository]
 
-  val service = new PersonalDetailsService {
-    val pdRepository = mockPersonalDetailsRepository
-    val cdRepository = mockContactDetailsRepository
-    val csedRepository = mockCivilServiceExperienceDetailsRepository
-    val fsacIndicatorRepository = mockFSACIndicatorRepository
-    val fsacIndicatorCSVRepository: FSACIndicatorCSVRepository = mockFSACIndicatorCSVRepository
-    val auditService = mockAuditService
-  }
+  val service = new PersonalDetailsService(
+    mockPersonalDetailsRepository,
+    mockContactDetailsRepository,
+    mockCivilServiceExperienceDetailsRepository,
+    mockFSACIndicatorCSVRepository,
+    mockFSACIndicatorRepository
+  )
 
   "find candidate" should {
     "return personal and contact details" in {
@@ -60,7 +57,6 @@ class PersonalDetailsServiceSpec extends UnitWithAppSpec with ShortTimeout {
       when(mockFSACIndicatorCSVRepository.find(any(), any())).thenReturn(Some(model.FSACIndicator("London", "London")))
 
       val response = service.find(AppId, UserId).futureValue
-
       response mustBe CandidateContactDetailsUK.copy(updateApplicationStatus = None)
     }
 
@@ -73,7 +69,6 @@ class PersonalDetailsServiceSpec extends UnitWithAppSpec with ShortTimeout {
       when(mockFSACIndicatorCSVRepository.find(any(), any())).thenReturn(Some(model.FSACIndicator("London", "London")))
 
       val response = service.find(AppId, UserId).futureValue
-
       response mustBe CandidateContactDetailsUKSdip.copy(updateApplicationStatus = None)
     }
   }
@@ -89,8 +84,9 @@ class PersonalDetailsServiceSpec extends UnitWithAppSpec with ShortTimeout {
       when(mockFSACIndicatorRepository.update(eqTo(AppId), eqTo(UserId), eqTo(FSACIndicator("London", "London", "1")))
       ).thenReturn(emptyFuture)
 
-      val response = service.update(AppId, UserId, CandidateContactDetailsUK)
+      when(mockFSACIndicatorCSVRepository.FSACIndicatorVersion).thenReturn("1")
 
+      val response = service.update(AppId, UserId, CandidateContactDetailsUK)
       assertNoExceptions(response)
     }
 

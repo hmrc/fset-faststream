@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,23 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.persisted.eventschedules.Location
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
+import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.{ Json, OFormat }
-import play.api.mvc.{ Action, AnyContent }
-import repositories.events.{ EventsRepository, LocationsWithVenuesInMemoryRepository, LocationsWithVenuesRepository }
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
+import repositories.events.{ EventsRepository, LocationsWithVenuesRepository }
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object DayAggregateEventController extends DayAggregateEventController {
-  val locationsWithVenuesRepo = LocationsWithVenuesInMemoryRepository
-  val eventsRepository: EventsRepository = repositories.eventsRepository
-}
-
-trait DayAggregateEventController extends BaseController {
-  def locationsWithVenuesRepo: LocationsWithVenuesRepository
-  def eventsRepository: EventsRepository
+@Singleton
+class DayAggregateEventController @Inject() (cc: ControllerComponents,
+                                             locationsWithVenuesRepo: LocationsWithVenuesRepository,
+                                             eventsRepository: EventsRepository) extends BackendController(cc) {
 
   def findBySkillTypes(skills: Seq[SkillType]): Action[AnyContent] = Action.async { implicit request =>
     find(None, skills).map ( dayAggregateEvents => Ok(Json.toJson(dayAggregateEvents)) )

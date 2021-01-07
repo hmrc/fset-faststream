@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,21 @@
 
 package connectors.launchpadgateway
 
-import config.MicroserviceAppConfig._
-import _root_.config.WSHttp
+import config.{ MicroserviceAppConfig, WSHttpT }
 import connectors.launchpadgateway.exchangeobjects.out._
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.ConnectorException
 import play.api.http.Status._
 import play.api.libs.json.Reads
-import _root_.services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
+import services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, Upstream4xxResponse }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, Upstream4xxResponse }
 
-object LaunchpadGatewayClient extends LaunchpadGatewayClient {
-  val http: WSHttp = WSHttp
-  val url = launchpadGatewayConfig.url
-}
-
-trait LaunchpadGatewayClient {
-  val http: WSHttp
-  val url: String
+@Singleton
+class LaunchpadGatewayClient @Inject() (http: WSHttpT, config: MicroserviceAppConfig) {
+  val url: String = config.launchpadGatewayConfig.url
 
   // Blank out header carriers for calls to LPG. Passing on someone's true-client-ip header will cause them to be reassessed
   // for whitelisting in the LPG as well (even though they've gone from front -> back -> LPG), which leads to undesirable behaviour.
@@ -51,13 +46,13 @@ trait LaunchpadGatewayClient {
 
   def resetApplicant(resetApplicant: ResetApplicantRequest): Future[ResetApplicantResponse] =
     http.POST(s"$urlWithPathPrefix/reset", resetApplicant).map(responseAsOrThrow[ResetApplicantResponse]).recover {
-      case e: Upstream4xxResponse if (e.upstreamResponseCode == CONFLICT) => throw new CannotResetPhase3Tests
+      case e: Upstream4xxResponse if e.upstreamResponseCode == CONFLICT => throw new CannotResetPhase3Tests
       case t: Throwable => throw t
     }
 
   def retakeApplicant(retakeApplicant: RetakeApplicantRequest): Future[RetakeApplicantResponse] = {
     http.POST(s"$urlWithPathPrefix/retake", retakeApplicant).map(responseAsOrThrow[RetakeApplicantResponse]).recover {
-      case e: Upstream4xxResponse if (e.upstreamResponseCode == CONFLICT) => throw new CannotResetPhase3Tests
+      case e: Upstream4xxResponse if e.upstreamResponseCode == CONFLICT => throw new CannotResetPhase3Tests
       case t: Throwable => throw t
     }
   }

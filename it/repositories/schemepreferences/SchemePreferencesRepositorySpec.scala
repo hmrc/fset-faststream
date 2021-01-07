@@ -1,15 +1,14 @@
 package repositories.schemepreferences
 
+import factories.ITDateTimeFactoryMock
 import model.ApplicationStatus._
 import model.Exceptions.{ CannotUpdateSchemePreferences, SchemePreferencesNotFound }
+import model.SchemeId
 import model.SelectedSchemesExamples._
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers
-import repositories.application.GeneralApplicationMongoRepository
-import config.MicroserviceAppConfig._
-import factories.ITDateTimeFactoryMock
-import model.SchemeId
 import repositories.CollectionNames
+import repositories.application.GeneralApplicationMongoRepository
 import testkit.MongoRepositorySpec
 
 class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
@@ -17,8 +16,8 @@ class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
 
   val collectionName: String = CollectionNames.APPLICATION
 
-  def repository = new SchemePreferencesMongoRepository
-  def applicationRepository = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, testIntegrationGatewayConfig, eventsConfig)
+  def repository = new SchemePreferencesMongoRepository(mongo)
+  def applicationRepository = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, appConfig, mongo)
 
   "save and find" should {
     "save and return scheme preferences" in {
@@ -83,5 +82,5 @@ class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
     TwoSchemes.schemes
   }
 
-  def insert(doc: BSONDocument) = repository.collection.insert(doc)
+  private def insert(doc: BSONDocument) = repository.collection.insert(ordered = false).one(doc)
 }

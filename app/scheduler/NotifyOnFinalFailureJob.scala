@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,25 +17,25 @@
 package scheduler
 
 import config.WaitingScheduledJobConfig
-import play.api.Logger
-import scheduler.ProgressToFsbOrOfferJobConfig.conf
+import javax.inject.{ Inject, Singleton }
+import play.api.{ Configuration, Logger }
+import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.application.FinalOutcomeService
-
-import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 
+import scala.concurrent.{ ExecutionContext, Future }
 
-object NotifyOnFinalFailureJob extends NotifyOnFinalFailureJob {
-  val service = FinalOutcomeService
-  val config = NotifyOnFinalFailureJobConfig
+@Singleton
+class NotifyOnFinalFailureJobImpl @Inject() (val service: FinalOutcomeService,
+                                             val mongoComponent: ReactiveMongoComponent,
+                                             val config: NotifyOnFinalFailureJobConfig) extends NotifyOnFinalFailureJob {
 }
 
 trait NotifyOnFinalFailureJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val service: FinalOutcomeService
 
-  val batchSize: Int = conf.batchSize.getOrElse(10)
-
+  val batchSize: Int = config.conf.batchSize.getOrElse(10)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc = HeaderCarrier()
@@ -52,7 +52,9 @@ trait NotifyOnFinalFailureJob extends SingleInstanceScheduledJob[BasicJobConfig[
   }
 }
 
-object NotifyOnFinalFailureJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
+@Singleton
+class NotifyOnFinalFailureJobConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.notify-on-final-failure-job",
   name = "NotifyOnFinalFailureJob"
 )

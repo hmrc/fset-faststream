@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import model.SelectedSchemes
 import model.SelectedSchemesExamples._
 import org.mockito.Mockito._
 import play.api.test.Helpers._
-import services.AuditService
 import services.scheme.SchemePreferencesService
 import testkit.UnitWithAppSpec
 
@@ -29,12 +28,11 @@ import scala.concurrent.Future
 
 class SchemePreferencesControllerSpec extends UnitWithAppSpec {
   val mockSchemePreferencesService = mock[SchemePreferencesService]
-  val mockAuditService = mock[AuditService]
 
-  val controller = new SchemePreferencesController {
-    val schemePreferencesService = mockSchemePreferencesService
-    val auditService = mockAuditService
-  }
+  val controller = new SchemePreferencesController(
+    stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
+    mockSchemePreferencesService
+  )
 
   "find preferences" should {
     "return scheme preferences" in {
@@ -50,7 +48,6 @@ class SchemePreferencesControllerSpec extends UnitWithAppSpec {
       when(mockSchemePreferencesService.find(AppId)).thenReturn(Future.failed(SchemePreferencesNotFound(AppId)))
 
       val response = controller.find(AppId)(fakeRequest)
-
       status(response) mustBe NOT_FOUND
     }
   }

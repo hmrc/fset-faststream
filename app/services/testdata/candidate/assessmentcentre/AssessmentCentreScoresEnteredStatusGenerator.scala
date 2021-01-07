@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,26 @@
 
 package services.testdata.candidate.assessmentcentre
 
+import com.google.inject.name.Named
+import javax.inject.{ Inject, Singleton }
 import model.UniqueIdentifier
 import model.assessmentscores._
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.mvc.RequestHeader
-import services.assessmentscores.{ AssessmentScoresService, AssessorAssessmentScoresService }
+import services.assessmentscores.AssessmentScoresService
 import services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object AssessmentCentreScoresEnteredStatusGenerator extends AssessmentCentreScoresEnteredStatusGenerator {
-  override val previousStatusGenerator = AssessmentCentreAllocationConfirmedStatusGenerator
-  override val assessorAssessmentScoresService = AssessorAssessmentScoresService
-}
-
-trait AssessmentCentreScoresEnteredStatusGenerator extends ConstructiveGenerator {
-  val assessorAssessmentScoresService: AssessmentScoresService
+@Singleton
+class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatusGenerator: AssessmentCentreAllocationConfirmedStatusGenerator,
+                                                              @Named("AssessorAssessmentScoresService")
+                                                              assessorAssessmentScoresService: AssessmentScoresService
+                                                             ) extends ConstructiveGenerator {
 
   val updatedBy = UniqueIdentifier.randomUniqueIdentifier
 
@@ -59,6 +59,7 @@ trait AssessmentCentreScoresEnteredStatusGenerator extends ConstructiveGenerator
     makingEffectiveDecisionsFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
     communicatingAndInfluencingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
   )
+
   def groupExerciseSample(assessorOrReviewer: String) = AssessmentScoresExercise(
     attended = true,
     makingEffectiveDecisionsAverage = Some(5.0),
@@ -78,6 +79,7 @@ trait AssessmentCentreScoresEnteredStatusGenerator extends ConstructiveGenerator
     workingTogetherDevelopingSelfAndOthersFeedback = Some("Building Productive feedback" + assessorOrReviewer),
     communicatingAndInfluencingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
   )
+
   def leadershipExerciseSample(assessorOrReviewer: String) = AssessmentScoresExercise(
     attended = true,
     workingTogetherDevelopingSelfAndOthersAverage = Some(4.0),
@@ -97,12 +99,13 @@ trait AssessmentCentreScoresEnteredStatusGenerator extends ConstructiveGenerator
     communicatingAndInfluencingFeedback = Some("Leading and communicating feedback " + assessorOrReviewer),
     seeingTheBigPictureFeedback = Some("Strategic approach feedback " + assessorOrReviewer)
   )
+
   def finalFeedbackSample(assessorOrReviewer: String) = AssessmentScoresFinalFeedback(
     "final feedback for " + assessorOrReviewer, updatedBy, DateTime.now(DateTimeZone.UTC)
   )
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
 
     import model.command.AssessmentScoresCommands.AssessmentScoresSectionType._
     for {

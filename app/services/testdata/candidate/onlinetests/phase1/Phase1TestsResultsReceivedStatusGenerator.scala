@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package services.testdata.candidate.onlinetests.phase1
 
 import common.FutureEx
+import javax.inject.{ Inject, Singleton }
 import model.exchange.PsiRealTimeResults
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
@@ -29,18 +30,12 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object Phase1TestsResultsReceivedStatusGenerator extends Phase1TestsResultsReceivedStatusGenerator {
-  override val previousStatusGenerator = Phase1TestsCompletedStatusGenerator
-  override val otService = Phase1TestService2
-}
-
-trait Phase1TestsResultsReceivedStatusGenerator extends ConstructiveGenerator {
-  val otService: Phase1TestService2
-
+@Singleton
+class Phase1TestsResultsReceivedStatusGenerator @Inject() (val previousStatusGenerator: Phase1TestsCompletedStatusGenerator,
+                                                           otService: Phase1TestService2) extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
-    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
-
+              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
 
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)

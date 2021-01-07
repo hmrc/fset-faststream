@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package services.assessor
 
 import connectors.ExchangeObjects.Candidate
-import connectors.{ AuthProviderClient, CSREmailClient, EmailClient }
+import connectors.{ AuthProviderClient, OnlineTestEmailClient }
 import model.AllocationStatuses.AllocationStatus
 import model.Exceptions._
 import model.exchange.{ AssessorAvailabilities, UpdateAllocationStatusRequest }
@@ -191,7 +191,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
       val now = DateTime.now
       val result = service.notifyAssessorsOfNewEvents(now)(new HeaderCarrier).futureValue
       val emailBodyCaptor = ArgumentCaptor.forClass(classOf[String])
-      verify(mockemailClient, times(2)).notifyAssessorsOfNewEvents(
+      verify(mockEmailClient, times(2)).notifyAssessorsOfNewEvents(
         to = any[String], name = any[String], htmlBody = any[String], txtBody = emailBodyCaptor.capture)(any[HeaderCarrier])
 
       val emails = emailBodyCaptor.getAllValues
@@ -292,25 +292,26 @@ class AssessorServiceSpec extends BaseServiceSpec {
 
   trait TestFixture {
     val mockAssessorRepository = mock[AssessorRepository]
-    val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
     val mockAllocationRepo = mock[AssessorAllocationRepository]
     val mockEventService = mock[EventsService]
+    val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
     val mockAuthProviderClient = mock[AuthProviderClient]
-    val mockemailClient = mock[CSREmailClient]
+//    val mockemailClient = mock[CSREmailClient] //TODO:fix changed type
+    val mockEmailClient = mock[OnlineTestEmailClient] //TODO:fix changed type
     val virtualVenue = Venue("virtual", "virtual venue")
     val venues = ReferenceData(List(Venue("london fsac", "bush house"), virtualVenue), virtualVenue, virtualVenue)
 
     when(mockLocationsWithVenuesRepo.venues).thenReturnAsync(venues)
     when(mockAssessorRepository.save(any[Assessor])).thenReturnAsync()
 
-    val nonSpiedService = new AssessorService {
-      val assessorRepository: AssessorRepository = mockAssessorRepository
-      val assessorAllocationRepo: AssessorAllocationRepository = mockAllocationRepo
-      val eventsService: EventsService = mockEventService
-      val locationsWithVenuesRepo: LocationsWithVenuesRepository = mockLocationsWithVenuesRepo
-      val authProviderClient: AuthProviderClient = mockAuthProviderClient
-      val emailClient: EmailClient = mockemailClient
-    }
+    val nonSpiedService = new AssessorService(
+      mockAssessorRepository,
+      mockAllocationRepo,
+      mockEventService,
+      mockLocationsWithVenuesRepo,
+      mockAuthProviderClient,
+      mockEmailClient
+    )
 
     import org.mockito.Mockito
 
@@ -374,7 +375,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
     when(mockAssessorRepository.findUnavailableAssessors(
       eqTo(Seq(SkillType.QUALITY_ASSURANCE_COORDINATOR)), any[Location], any[LocalDate])).thenReturnAsync(Seq(a2))
     when(mockAuthProviderClient.findByUserIds(any[Seq[String]])(any[HeaderCarrier])).thenReturnAsync(findByUserIdsResponse)
-    when(mockemailClient.notifyAssessorsOfNewEvents(any[String], any[String], any[String], any[String])(any[HeaderCarrier])).thenReturnAsync()
+    when(mockEmailClient.notifyAssessorsOfNewEvents(any[String], any[String], any[String], any[String])(any[HeaderCarrier])).thenReturnAsync()
   }
 
   trait TestFixtureWithFutureAllocations extends TestFixture {

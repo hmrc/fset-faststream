@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,18 +20,31 @@ import model.report.CandidateProgressReportItem
 import model.{ ApplicationRoute, FSACIndicator }
 import resource._
 import com.github.ghik.silencer.silent
-import play.api.Play
+import com.google.inject.ImplementedBy
+import javax.inject.{ Inject, Singleton }
+import play.api.{ Application, Play }
 
 import scala.io.Source
 
-object FSACIndicatorCSVRepository extends FSACIndicatorCSVRepository {
+@ImplementedBy(classOf[FSACIndicatorCSVRepositoryImpl])
+trait FSACIndicatorCSVRepository extends CsvHelper {
+  val FSACIndicatorVersion = "1"
+  val DefaultIndicator = FSACIndicator(area = "London", assessmentCentre = "London")
+
+  private[repositories] val indicators: Map[String, FSACIndicator]
+
+  def find(postcode: Option[String], outsideUk: Boolean): Option[FSACIndicator]
+
+  def getAssessmentCentres: Seq[String]
+}
+
+@Singleton
+class FSACIndicatorCSVRepositoryImpl @Inject() (application: Application) extends FSACIndicatorCSVRepository {
   private val CsvFileName = "FSAC_indicator_lookup_by_postcode.csv"
   override def expectedNumberOfHeaders = 3
 
-  import play.api.Play.current
-
   override private[repositories] val indicators: Map[String, FSACIndicator] =  {
-    @silent val input = managed(Play.application.resourceAsStream(CsvFileName).get)
+    val input = managed(application.resourceAsStream(CsvFileName).get)
     input.acquireAndGet { inputStream =>
       val rawData = Source.fromInputStream(inputStream).getLines.map(parseLine).toList
       val headers = rawData.head
@@ -65,15 +78,4 @@ object FSACIndicatorCSVRepository extends FSACIndicatorCSVRepository {
 
   override def getAssessmentCentres: Seq[String] =
     indicators.values.groupBy( fsacIndicator => fsacIndicator.assessmentCentre).keys.toSeq
-}
-
-trait FSACIndicatorCSVRepository extends CsvHelper {
-  val FSACIndicatorVersion = "1"
-  val DefaultIndicator = FSACIndicator(area = "London", assessmentCentre = "London")
-
-  private[repositories] val indicators: Map[String, FSACIndicator]
-
-  def find(postcode: Option[String], outsideUk: Boolean): Option[FSACIndicator]
-
-  def getAssessmentCentres: Seq[String]
 }

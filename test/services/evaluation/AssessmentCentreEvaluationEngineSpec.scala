@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
   val applicationId = UniqueIdentifier.randomUniqueIdentifier
   val updatedBy = UniqueIdentifier.randomUniqueIdentifier
 
-  val evaluationEngine = AssessmentCentreEvaluationEngine
+  val evaluationEngine = new AssessmentCentreEvaluationEngineImpl
 
   "Assessment Centre Passmark Rules engine evaluation" should {
 

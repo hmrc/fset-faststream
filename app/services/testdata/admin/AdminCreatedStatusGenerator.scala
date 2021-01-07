@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package services.testdata.admin
 
+import javax.inject.{ Inject, Singleton }
 import connectors.AuthProviderClient
 import model.exchange.testdata.CreateAdminResponse.{ AssessorResponse, CreateAdminResponse }
 import model.testdata.CreateAdminData.CreateAdminData
@@ -24,15 +25,13 @@ import play.api.mvc.RequestHeader
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
-object AdminCreatedStatusGenerator extends AdminCreatedStatusGenerator {
-  override val authProviderClient = AuthProviderClient
-}
-
-trait AdminCreatedStatusGenerator extends AdminUserBaseGenerator {
+//object AdminCreatedStatusGenerator extends AdminCreatedStatusGenerator {
+//  override val authProviderClient = AuthProviderClient
+//}
+@Singleton
+class AdminCreatedStatusGenerator @Inject() (authProviderClient: AuthProviderClient) extends AdminUserBaseGenerator {
 
   import scala.concurrent.ExecutionContext.Implicits.global
-
-  val authProviderClient: AuthProviderClient.type
 
   def generate(generationId: Int, createData: CreateAdminData)
               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateAdminResponse] = {
@@ -46,7 +45,7 @@ trait AdminCreatedStatusGenerator extends AdminUserBaseGenerator {
 
   def createUser(generationId: Int, data: CreateAdminData)
                 (implicit hc: HeaderCarrier): Future[CreateAdminResponse] = {
-    val roles = data.roles.map(AuthProviderClient.getRole)
+    val roles = data.roles.map(authProviderClient.getRole)
     for {
       user <- authProviderClient.addUser(data.email, "Service01", data.firstName, data.lastName, roles)
       token <- authProviderClient.getToken(data.email)
@@ -56,5 +55,4 @@ trait AdminCreatedStatusGenerator extends AdminUserBaseGenerator {
         data.firstName, data.lastName, data.phone, user.roles, user.disabled, data.assessor.map(AssessorResponse(_)))
     }
   }
-
 }

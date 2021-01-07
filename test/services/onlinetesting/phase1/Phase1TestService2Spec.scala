@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 package services.onlinetesting.phase1
 
 import akka.actor.ActorSystem
-import config._
+import config.{ MicroserviceAppConfig, _ }
 import connectors.ExchangeObjects._
-import connectors.{ CSREmailClient, OnlineTestsGatewayClient }
+import connectors.{ OnlineTestEmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
 import model.Commands.PostCode
 import model.Exceptions._
@@ -41,7 +41,6 @@ import repositories.onlinetesting.{ Phase1TestRepository, Phase1TestRepository2 
 import services.AuditService
 import services.onlinetesting.Exceptions.{ TestCancellationException, TestRegistrationException }
 import services.sift.ApplicationSiftService
-import services.stc.StcEventServiceFixture
 import testkit.MockitoImplicits._
 import testkit.{ ExtendedTimeout, UnitSpec }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -556,21 +555,25 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
     }
   }
 
-  trait OnlineTest {
+  import services.stc.StcEventServiceFixture
+
+  trait OnlineTest extends StcEventServiceFixture {
     implicit val hc: HeaderCarrier = HeaderCarrier()
     implicit val rh: RequestHeader = mock[RequestHeader]
     implicit val now: DateTime = DateTime.now
 
+    val appConfigMock = mock[MicroserviceAppConfig]
     val appRepositoryMock = mock[GeneralApplicationRepository]
     val cdRepositoryMock = mock[ContactDetailsRepository]
     val otRepositoryMock = mock[Phase1TestRepository]
     val otRepositoryMock2 = mock[Phase1TestRepository2]
     val onlineTestsGatewayClientMock = mock[OnlineTestsGatewayClient]
-    val emailClientMock = mock[CSREmailClient]
-    val auditServiceMock = mock[AuditService]
     val tokenFactoryMock = mock[UUIDFactory]
-    val onlineTestInvitationDateFactoryMock = mock[DateTimeFactory]
+    val dateTimeFactoryMock = mock[DateTimeFactory]
     val siftServiceMock = mock[ApplicationSiftService]
+    //    val emailClientMock = mock[CSREmailClient] //TODO:fix changed type
+    val emailClientMock = mock[OnlineTestEmailClient] //TODO:fix changed type
+    val auditServiceMock = mock[AuditService]
 
     def aoa = AssessmentOrderAcknowledgement(
       customerId = "cust-id", receiptId = "receipt-id", orderId = orderId, testLaunchUrl = authenticateUrl,
@@ -579,7 +582,6 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
     def aoaFailed = AssessmentOrderAcknowledgement(
       customerId = "cust-id", receiptId = "receipt-id", orderId = orderId, testLaunchUrl = authenticateUrl,
       status = AssessmentOrderAcknowledgement.errorStatus, statusDetails = "", statusDate = LocalDate.now())
-
 
     def acaCompleted = AssessmentCancelAcknowledgementResponse(
       AssessmentCancelAcknowledgementResponse.completedStatus,
@@ -592,32 +594,35 @@ class Phase1TestService2Spec extends UnitSpec with ExtendedTimeout
     )
 
     when(tokenFactoryMock.generateUUID()).thenReturn(uuid)
-    when(onlineTestInvitationDateFactoryMock.nowLocalTimeZone).thenReturn(invitationDate)
+    when(dateTimeFactoryMock.nowLocalTimeZone).thenReturn(invitationDate)
     when(otRepositoryMock2.resetTestProfileProgresses(any[String], any[List[ProgressStatus]]))
       .thenReturnAsync()
 
+    when(appConfigMock.testIntegrationGatewayConfig).thenReturn(integrationConfig)
+
     val realTimeResults = PsiRealTimeResults(tScore = 10.0, rawScore = 20.0, reportUrl = None)
 
-    val phase1TestService = new Phase1TestService2 with StcEventServiceFixture {
-      val appRepository = appRepositoryMock
-      val cdRepository = cdRepositoryMock
-      val testRepository = otRepositoryMock
-      val onlineTestsGatewayClient = onlineTestsGatewayClientMock
-      val emailClient = emailClientMock
-      val auditService = auditServiceMock
-      val tokenFactory = tokenFactoryMock
-      val dateTimeFactory = onlineTestInvitationDateFactoryMock
-      val eventService = stcEventServiceMock
-      val actor = ActorSystem()
-      val siftService = siftServiceMock
+    val actor = ActorSystem()
 
-      override val testRepository2 = otRepositoryMock2
-      override val integrationGatewayConfig = integrationConfig
-    }
+    val phase1TestService = new Phase1TestService2(
+      appConfigMock,
+      appRepositoryMock,
+      cdRepositoryMock,
+      otRepositoryMock,
+      otRepositoryMock2,
+      onlineTestsGatewayClientMock,
+      tokenFactoryMock,
+      dateTimeFactoryMock,
+      emailClientMock,
+      auditServiceMock,
+      siftServiceMock,
+      stcEventServiceMock,
+      actor
+    )
+    //    override val integrationGatewayConfig = integrationConfig
   }
 
   trait SuccessfulTestInviteFixture extends OnlineTest {
-
     when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
       .thenReturnAsync(aoa)
     when(cdRepositoryMock.find(any[String])).thenReturnAsync(contactDetails)

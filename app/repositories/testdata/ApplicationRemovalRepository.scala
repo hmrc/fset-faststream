@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
 
 package repositories.testdata
 
+import javax.inject.{ Inject, Singleton }
 import model.CreateApplicationRequest
-import reactivemongo.api.{ Cursor, DB }
+import play.modules.reactivemongo.ReactiveMongoComponent
+import reactivemongo.api.Cursor
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
@@ -31,13 +33,15 @@ trait ApplicationRemovalRepository {
   def remove(applicationStatus: Option[String]): Future[List[String]]
 }
 
-class ApplicationRemovalMongoRepository (implicit mongo: () => DB)
-  extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](CollectionNames.APPLICATION, mongo,
+@Singleton
+class ApplicationRemovalMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](
+    CollectionNames.APPLICATION,
+    mongoComponent.mongoConnector.db,
     CreateApplicationRequest.createApplicationRequestFormat,
-    ReactiveMongoFormats.objectIdFormats) with ApplicationRemovalRepository
-    with ReactiveRepositoryHelpers
+    ReactiveMongoFormats.objectIdFormats) with ApplicationRemovalRepository with ReactiveRepositoryHelpers
 {
-  override def remove(applicationStatus: Option[String]): Future[List[String]] = {
+  def remove(applicationStatus: Option[String]): Future[List[String]] = {
     val query = applicationStatus.map(as => BSONDocument("applicationStatus" -> as)).getOrElse(BSONDocument())
 
     val projection = BSONDocument(

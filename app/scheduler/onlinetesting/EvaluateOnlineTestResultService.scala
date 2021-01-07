@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,12 +28,15 @@ import services.passmarksettings.PassMarkSettingsService
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+// Cubiks version - ApplicationReadyForEvaluation is Cubiks based
 trait EvaluateOnlineTestResultService[T <: PassMarkSettings] extends ApplicationStatusCalculator {
   this: PassMarkSettingsService[T] =>
 
   val evaluationRepository: OnlineTestEvaluationRepository
 
   val phase: Phase.Phase
+
+  val uuidFactory: UUIDFactory
 
   def nextCandidatesReadyForEvaluation(batchSize: Int)(implicit jsonFormat: Format[T]):
   Future[Option[(List[ApplicationReadyForEvaluation], T)]] = {
@@ -48,12 +51,12 @@ trait EvaluateOnlineTestResultService[T <: PassMarkSettings] extends Application
 
   def savePassMarkEvaluation(application: ApplicationReadyForEvaluation,
                              schemeResults: List[SchemeEvaluationResult],
-                             passMarkSettings: T) = {
+                             passMarkSettings: T): Future[Unit] = {
     if (schemeResults.nonEmpty) {
       evaluationRepository.savePassmarkEvaluation(
         application.applicationId,
         PassmarkEvaluation(passMarkSettings.version, application.prevPhaseEvaluation.map(_.passmarkVersion),
-          schemeResults, UUIDFactory.generateUUID().toString, application.prevPhaseEvaluation.map(_.resultVersion)),
+          schemeResults, uuidFactory.generateUUID().toString, application.prevPhaseEvaluation.map(_.resultVersion)),
         determineApplicationStatus(application.applicationRoute, application.applicationStatus, schemeResults, phase)
       )
     } else {

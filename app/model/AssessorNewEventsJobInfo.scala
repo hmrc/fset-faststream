@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package model
 
 import org.joda.time.DateTime
+import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.{ Json, OFormat }
 import reactivemongo.bson.Macros
 import repositories.BSONDateTimeHandler
@@ -24,6 +26,8 @@ import repositories.BSONDateTimeHandler
 case class AssessorNewEventsJobInfo(lastRun: DateTime)
 
 object AssessorNewEventsJobInfo {
+  // Do not remove this as it is needed to serialize the date as epoch millis
+  import model.persisted.Play25DateCompatibility.epochMillisDateFormat
   implicit val format: OFormat[AssessorNewEventsJobInfo] = Json.format[AssessorNewEventsJobInfo]
   implicit val bsonHandler = Macros.handler[AssessorNewEventsJobInfo]
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,24 @@
 package scheduler.fixer
 
 import config.ScheduledJobConfig
+import javax.inject.{ Inject, Singleton }
 import model.EmptyRequestHeader
+import play.api.Configuration
+import play.api.mvc.RequestHeader
+import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.application.ApplicationService
-
-import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 
-object FixerJob extends FixerJob {
-  override val service = ApplicationService
-  val config = FixerJobConfig
+import scala.concurrent.{ ExecutionContext, Future }
+
+@Singleton
+class FixerJobImpl @Inject() (val service: ApplicationService,
+                              val mongoComponent: ReactiveMongoComponent,
+                              val config: FixerJobConfig) extends FixerJob {
+  //  override val service = ApplicationService
+  //  val config = FixerJobConfig
 }
 
 trait FixerJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
@@ -35,8 +42,8 @@ trait FixerJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobCon
   val service: ApplicationService
   lazy val jobBatchSize = config.conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
 
-  implicit val rh = EmptyRequestHeader
-  implicit val hc = HeaderCarrier()
+  implicit val rh: RequestHeader = EmptyRequestHeader
+  implicit val hc: HeaderCarrier = HeaderCarrier()
   lazy val typesBeFixed = RequiredFixes.allFixes.map(f => FixBatch(f, jobBatchSize))
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
@@ -44,7 +51,9 @@ trait FixerJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobCon
   }
 }
 
-object FixerJobConfig extends BasicJobConfig[ScheduledJobConfig](
+@Singleton
+class FixerJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.online-testing.fixer-job",
   name = "FixerJob"
 )

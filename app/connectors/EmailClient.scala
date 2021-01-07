@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,9 @@ package connectors
 
 import java.util.TimeZone
 
-import config.{ EmailConfig, WSHttp }
+import config.{ EmailConfig, MicroserviceAppConfig, WSHttpT }
 import connectors.ExchangeObjects._
+import javax.inject.{ Inject, Singleton }
 import model.stc.EmailEvents.{ CandidateAllocationConfirmationReminder, CandidateAllocationConfirmationRequest }
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalDateTime }
 
@@ -28,12 +29,15 @@ import scala.concurrent.Future
 import scala.concurrent.duration.TimeUnit
 import uk.gov.hmrc.http.HeaderCarrier
 
-object CSREmailClient extends CSREmailClient {
-  val emailConfig: EmailConfig = config.MicroserviceAppConfig.emailConfig
+@Singleton
+class CSREmailClientImpl @Inject() (val http: WSHttpT, val appConfig: MicroserviceAppConfig) extends CSREmailClient {
+  override val emailConfig: EmailConfig = appConfig.emailConfig
 }
 
-object Phase2OnlineTestEmailClient extends OnlineTestEmailClient with EmailClient {
-  val emailConfig: EmailConfig = config.MicroserviceAppConfig.emailConfig
+@Singleton
+class Phase2OnlineTestEmailClient @Inject() (val http: WSHttpT, val appConfig: MicroserviceAppConfig)
+  extends OnlineTestEmailClient with EmailClient {
+  override val emailConfig: EmailConfig = appConfig.emailConfig
 
   override def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)
     (implicit hc: HeaderCarrier): Future[Unit] = sendEmail(to,
@@ -54,8 +58,10 @@ object Phase2OnlineTestEmailClient extends OnlineTestEmailClient with EmailClien
     )
 }
 
-object Phase3OnlineTestEmailClient extends OnlineTestEmailClient with EmailClient {
-  val emailConfig: EmailConfig = config.MicroserviceAppConfig.emailConfig
+@Singleton
+class Phase3OnlineTestEmailClient @Inject() (val http: WSHttpT, val appConfig: MicroserviceAppConfig)
+  extends OnlineTestEmailClient with EmailClient {
+  override val emailConfig: EmailConfig = appConfig.emailConfig
 
   override def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)
                                        (implicit hc: HeaderCarrier): Future[Unit] = sendEmail(to,
@@ -141,9 +147,10 @@ trait CSREmailClient extends OnlineTestEmailClient with AssessmentCentreEmailCli
   }
 }
 
-sealed trait OnlineTestEmailClient {
+//sealed trait OnlineTestEmailClient extends EmailClient {
+trait OnlineTestEmailClient extends EmailClient {
 
-  self: EmailClient =>
+//  self: EmailClient =>
 
   def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)(implicit hc: HeaderCarrier): Future[Unit]
   def sendEmailWithName(to: String, name: String, template: String)(implicit hc: HeaderCarrier): Future[Unit] = sendEmail(
@@ -179,7 +186,8 @@ trait AssessmentCentreEmailClient {
   def sendAssessmentCentreFailed(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit]
 }
 
-trait EmailClient extends WSHttp {
+trait EmailClient {
+  val http: WSHttpT
   val emailConfig: EmailConfig
 
   protected def sendEmail(to: String, template: String, parameters: Map[String, String])(implicit hc: HeaderCarrier): Future[Unit] = {
@@ -188,7 +196,7 @@ trait EmailClient extends WSHttp {
       template,
       parameters ++ Map("programme" -> "faststream")
     )
-    POST(s"${emailConfig.url}/fsetfaststream/email", data, Seq()).map(_ => (): Unit)
+    http.POST(s"${emailConfig.url}/fsetfaststream/email", data, Seq()).map(_ => (): Unit)
   }
 
   def sendApplicationSubmittedConfirmation(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] =

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,11 @@ import java.util
 
 import com.github.ghik.silencer.silent
 import config.MicroserviceAppConfig
+import javax.inject.{ Inject, Singleton }
 import model.persisted.ReferenceData
 import model.persisted.eventschedules.{ Location, Venue }
 import org.yaml.snakeyaml.Yaml
-import play.api.Play
+import play.api.{ Application, Play }
 import play.api.libs.json.{ Json, OFormat }
 import resource._
 
@@ -32,7 +33,6 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.postfixOps
-
 
 case class LocationWithVenue(name: String, venues: List[Venue])
 
@@ -56,14 +56,14 @@ trait LocationsWithVenuesRepository {
   def venue(name: String): Future[Venue]
 }
 
-trait LocationsWithVenuesYamlRepository extends LocationsWithVenuesRepository {
+@Singleton
+class LocationsWithVenuesInMemoryYamlRepository @Inject() (application: Application,
+                                                           appConfig: MicroserviceAppConfig) extends LocationsWithVenuesRepository {
 
-  import play.api.Play.current
-
-  val locationsAndVenuesFilePath: String
+  val locationsAndVenuesFilePath: String = appConfig.locationsAndVenuesConfig.yamlFilePath
 
   private lazy val locationsAndVenuesCached = Future {
-    @silent val input = managed(Play.application.resourceAsStream(locationsAndVenuesFilePath).get)
+    val input = managed(application.resourceAsStream(locationsAndVenuesFilePath).get)
     input.acquireAndGet(file => asLocationWithVenues(new Yaml().load(file)))
   }
 
@@ -73,17 +73,18 @@ trait LocationsWithVenuesYamlRepository extends LocationsWithVenuesRepository {
 
   def locations: Future[ReferenceData[Location]] = {
     for (locations <- locationsCached) yield {
-      ReferenceData(locations, locations.head, MicroserviceAppConfig.AllLocations)
+      ReferenceData(locations, locations.head, appConfig.AllLocations)
     }
   }
 
   def location(name: String): Future[Location] = {
-    locations.map(_.allValues.find(_.name == name).getOrElse(throw UnknownLocationException(s"$name is not a known location for this campaign")))
+    locations.map(_.allValues.find(_.name == name)
+      .getOrElse(throw UnknownLocationException(s"$name is not a known location for this campaign")))
   }
 
   def venues: Future[ReferenceData[Venue]] =
     for (venues <- venuesCached) yield {
-      ReferenceData(venues, venues.head, MicroserviceAppConfig.AllVenues)
+      ReferenceData(venues, venues.head, appConfig.AllVenues)
     }
 
   def venue(name: String): Future[Venue] = {
@@ -110,9 +111,10 @@ trait LocationsWithVenuesYamlRepository extends LocationsWithVenuesRepository {
   }
 }
 
-object LocationsWithVenuesInMemoryRepository extends LocationsWithVenuesYamlRepository {
-
-  import config.MicroserviceAppConfig.locationsAndVenuesConfig
-
-  val locationsAndVenuesFilePath: String = locationsAndVenuesConfig.yamlFilePath
-}
+//@Singleton
+//class LocationsWithVenuesInMemoryRepository @Inject() (appConfig: MicroserviceAppConfig) extends LocationsWithVenuesYamlRepository {
+//
+//  val locationsAndVenuesConfig = appConfig.locationsAndVenuesConfig
+//
+//  val locationsAndVenuesFilePath: String = locationsAndVenuesConfig.yamlFilePath
+//}

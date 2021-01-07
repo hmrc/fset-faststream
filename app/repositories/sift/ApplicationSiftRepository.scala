@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package repositories.sift
 
 import config.MicroserviceAppConfig
 import factories.DateTimeFactory
+import javax.inject.{ Inject, Singleton }
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Amber, Green, Red }
@@ -31,11 +32,12 @@ import model.report.SiftPhaseReportItem
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered }
 import org.joda.time.DateTime
 import play.api.libs.json.JsObject
-import reactivemongo.api.{ Cursor, DB }
+import play.modules.reactivemongo.ReactiveMongoComponent
+import reactivemongo.api.Cursor
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.application.GeneralApplicationRepoBSONReader
-import repositories.{ BSONDateTimeHandler, CollectionNames, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers }
+import repositories.{ BSONDateTimeHandler, CollectionNames, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers, SchemeRepository }
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -47,7 +49,7 @@ trait ApplicationSiftRepository {
 
   def thisApplicationStatus: ApplicationStatus
   def dateTime: DateTimeFactory
-  def siftableSchemeIds: Seq[SchemeId]
+//  def siftableSchemeIds: Seq[SchemeId]
   val phaseName = "SIFT_PHASE"
 
   def nextApplicationsForSiftStage(maxBatchSize: Int): Future[List[ApplicationForSift]]
@@ -95,15 +97,21 @@ trait ApplicationSiftRepository {
   def removeEvaluation(applicationId: String): Future[Unit]
 }
 
-class ApplicationSiftMongoRepository(
-  val dateTime: DateTimeFactory,
-  val siftableSchemeIds: Seq[SchemeId]
-)(implicit mongo: () => DB)
-  extends ReactiveRepository[ApplicationForSift, BSONObjectID](CollectionNames.APPLICATION, mongo,
+@Singleton
+class ApplicationSiftMongoRepository @Inject() (
+                                                val dateTime: DateTimeFactory,
+                                                schemeRepository: SchemeRepository, //TODO:fix guice just inject the list
+//                                                  @Named("siftableSchemeIds") val siftableSchemeIds: Seq[SchemeId],
+                                                mongoComponent: ReactiveMongoComponent,
+                                                appConfig: MicroserviceAppConfig
+                                    )
+  extends ReactiveRepository[ApplicationForSift, BSONObjectID](
+    CollectionNames.APPLICATION,
+    mongoComponent.mongoConnector.db,
     ApplicationForSift.applicationForSiftFormat,
     ReactiveMongoFormats.objectIdFormats
-) with ApplicationSiftRepository with CurrentSchemeStatusHelper with RandomSelection with ReactiveRepositoryHelpers
-  with GeneralApplicationRepoBSONReader
+  ) with ApplicationSiftRepository with CurrentSchemeStatusHelper with RandomSelection with ReactiveRepositoryHelpers
+    with GeneralApplicationRepoBSONReader
 {
 
   val thisApplicationStatus = ApplicationStatus.SIFT
@@ -271,9 +279,9 @@ class ApplicationSiftMongoRepository(
       BSONDocument("applicationRoute" -> ApplicationRoute.Faststream),
       BSONDocument("applicationStatus" -> prevPhase),
       BSONDocument(s"testGroups.$prevTestGroup.evaluation.result" -> BSONDocument("$elemMatch" ->
-        BSONDocument("schemeId" -> BSONDocument("$in" -> siftableSchemeIds),
-        "result" -> EvaluationResults.Green.toString)
-    ))))
+        BSONDocument("schemeId" -> BSONDocument("$in" -> schemeRepository.siftableSchemeIds),
+          "result" -> EvaluationResults.Green.toString)
+      ))))
 
     val sdipFsQuery = () => BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationRoute" -> ApplicationRoute.SdipFaststream),
@@ -288,9 +296,9 @@ class ApplicationSiftMongoRepository(
         BSONDocument(s"progress-status.${ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED}" -> true)
       )),
       BSONDocument(s"currentSchemeStatus" -> BSONDocument("$elemMatch" ->
-        BSONDocument("schemeId" -> BSONDocument("$in" -> siftableSchemeIds),
-        "result" -> EvaluationResults.Green.toString)
-    ))))
+        BSONDocument("schemeId" -> BSONDocument("$in" -> schemeRepository.siftableSchemeIds),
+          "result" -> EvaluationResults.Green.toString)
+      ))))
 
     val xdipQuery = (route: ApplicationRoute) => BSONDocument(
       "applicationRoute" -> route,
@@ -298,7 +306,7 @@ class ApplicationSiftMongoRepository(
     )
 
     lazy val eligibleForSiftQuery =
-      if (MicroserviceAppConfig.disableSdipFaststreamForSift) { // FSET-1803. Disable sdipfaststream in sift temporarily
+      if (appConfig.disableSdipFaststreamForSift) { // FSET-1803. Disable sdipfaststream in sift temporarily
         BSONDocument("$or" -> BSONArray(
           fsQuery(),
           xdipQuery(ApplicationRoute.Edip),
@@ -367,7 +375,7 @@ class ApplicationSiftMongoRepository(
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_READY}" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> BSONDocument("$exists" -> false)),
       BSONDocument(s"testGroups.$phaseName.expirationDate" ->
-        BSONDocument("$lte" -> DateTimeFactory.nowLocalTimeZone.minusSeconds(gracePeriodInSecs))
+        BSONDocument("$lte" -> dateTime.nowLocalTimeZone.minusSeconds(gracePeriodInSecs))
       )
     ))
 
@@ -400,7 +408,6 @@ class ApplicationSiftMongoRepository(
 
   def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int,
                                                      numericSchemes: Seq[SchemeId]): Future[Seq[NumericalTestApplication2]] = {
-
     val greenNumericSchemes = numericSchemes.map { scheme =>
       BSONDocument("currentSchemeStatus" ->
         BSONDocument("$elemMatch" -> BSONDocument("schemeId" -> scheme.toString, "result" -> Green.toString)))
@@ -447,7 +454,6 @@ class ApplicationSiftMongoRepository(
   }
 
   def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Candidate]] = {
-
     val notSiftedOnScheme = BSONDocument(
       s"testGroups.$phaseName.evaluation.result.schemeId" -> BSONDocument("$nin" -> BSONArray(schemeId.value))
     )
@@ -493,8 +499,8 @@ class ApplicationSiftMongoRepository(
   }
 
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult,
-    settableFields: Seq[BSONDocument] = Nil
-  ): Future[Unit] = {
+                               settableFields: Seq[BSONDocument] = Nil
+                              ): Future[Unit] = {
 
     val saveEvaluationResultsDoc = BSONDocument(s"testGroups.$phaseName.evaluation.result" -> result)
     val saveSettableFieldsDoc = settableFields.foldLeft(BSONDocument.empty) { (acc, doc) => acc ++ doc }
@@ -522,11 +528,11 @@ class ApplicationSiftMongoRepository(
     val projection = BSONDocument("_id" -> 0, s"testGroups.$phaseName.evaluation.result" -> 1)
 
     collection.find(predicate, Some(projection)).one[BSONDocument].map(
-       _.flatMap { _.getAs[BSONDocument]("testGroups") }
+      _.flatMap { _.getAs[BSONDocument]("testGroups") }
         .flatMap { _.getAs[BSONDocument](phaseName) }
         .flatMap { _.getAs[BSONDocument]("evaluation") }
         .flatMap { _.getAs[Seq[SchemeEvaluationResult]]("result") }
-    .getOrElse(throw PassMarkEvaluationNotFound(s"Sift evaluation not found for $applicationId")))
+        .getOrElse(throw PassMarkEvaluationNotFound(s"Sift evaluation not found for $applicationId")))
   }
 
   def siftResultsExistsForScheme(applicationId: String, schemeId: SchemeId): Future[Boolean] = {
@@ -559,7 +565,6 @@ class ApplicationSiftMongoRepository(
   }
 
   def findAllUsersInSiftReady: Future[Seq[FixStuckUser]] = {
-
     val query = BSONDocument("applicationStatus" -> ApplicationStatus.SIFT,
       s"progress-status.${ProgressStatuses.SIFT_READY}" -> BSONDocument("$exists" -> true),
       s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> BSONDocument("$exists" -> false),
@@ -577,30 +582,29 @@ class ApplicationSiftMongoRepository(
 
     collection.find(query, Some(projection)).cursor[BSONDocument]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]())
       .map(_.map { doc =>
-      val siftEvaluation = doc.getAs[BSONDocument]("testGroups")
-        .flatMap { _.getAs[BSONDocument](phaseName) }
-        .flatMap { _.getAs[BSONDocument]("evaluation") }
-        .flatMap { _.getAs[Seq[SchemeEvaluationResult]]("result") }.getOrElse(Nil)
+        val siftEvaluation = doc.getAs[BSONDocument]("testGroups")
+          .flatMap { _.getAs[BSONDocument](phaseName) }
+          .flatMap { _.getAs[BSONDocument]("evaluation") }
+          .flatMap { _.getAs[Seq[SchemeEvaluationResult]]("result") }.getOrElse(Nil)
 
-      val progressStatuses = doc.getAs[BSONDocument]("progress-status")
-      val firstSiftTime = progressStatuses.flatMap { obj =>
-        obj.getAs[DateTime](ProgressStatuses.SIFT_ENTERED.toString).orElse(obj.getAs[DateTime](ProgressStatuses.SIFT_READY.toString))
-      }.getOrElse(DateTime.now())
+        val progressStatuses = doc.getAs[BSONDocument]("progress-status")
+        val firstSiftTime = progressStatuses.flatMap { obj =>
+          obj.getAs[DateTime](ProgressStatuses.SIFT_ENTERED.toString).orElse(obj.getAs[DateTime](ProgressStatuses.SIFT_READY.toString))
+        }.getOrElse(DateTime.now())
 
-      val css = doc.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").get
-      val applicationId = doc.getAs[String]("applicationId").get
+        val css = doc.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").get
+        val applicationId = doc.getAs[String]("applicationId").get
 
-      FixStuckUser(
-        applicationId,
-        firstSiftTime,
-        css,
-        siftEvaluation
-      )
-    })
+        FixStuckUser(
+          applicationId,
+          firstSiftTime,
+          css,
+          siftEvaluation
+        )
+      })
   }
 
   def findAllUsersInSiftEntered: Future[Seq[FixUserStuckInSiftEntered]] = {
-
     val query = BSONDocument("applicationStatus" -> ApplicationStatus.SIFT,
       s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> BSONDocument("$exists" -> true),
       s"progress-status.${ProgressStatuses.SIFT_READY}" -> BSONDocument("$exists" -> false),
@@ -615,15 +619,14 @@ class ApplicationSiftMongoRepository(
 
     collection.find(query, Some(projection)).cursor[BSONDocument]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]())
       .map(_.map { doc =>
-      val css = doc.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").get
-      val applicationId = doc.getAs[String]("applicationId").get
+        val css = doc.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").get
+        val applicationId = doc.getAs[String]("applicationId").get
 
-      FixUserStuckInSiftEntered(applicationId, css)
-    })
+        FixUserStuckInSiftEntered(applicationId, css)
+      })
   }
 
   def fixDataByRemovingSiftPhaseEvaluationAndFailureStatus(applicationId: String): Future[Unit] = {
-
     val query = BSONDocument("$and" ->
       BSONArray(
         BSONDocument("applicationId" -> applicationId),
@@ -660,7 +663,6 @@ class ApplicationSiftMongoRepository(
   }
 
   def fixSchemeEvaluation(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
-
     val saveEvaluationResultsDoc = BSONDocument(s"testGroups.$phaseName.evaluation.result" -> result)
 
     val removeDoc = BSONDocument(

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,18 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.report.DuplicateApplicationsReportItem
 import play.api.libs.json.Json
-import play.api.mvc.Action
+import play.api.mvc.{ Action, ControllerComponents }
 import services.reporting.{ DuplicateApplicationGroup, DuplicateDetectionService }
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object DuplicateApplicationReportController extends DuplicateApplicationReportController {
-  val duplicateDetectionService: DuplicateDetectionService = DuplicateDetectionService
-}
-
-trait DuplicateApplicationReportController extends BaseController {
-  val duplicateDetectionService: DuplicateDetectionService
+@Singleton
+class DuplicateApplicationReportController @Inject() (cc: ControllerComponents,
+                                                      duplicateDetectionService: DuplicateDetectionService) extends BackendController(cc) {
 
   def findPotentialDuplicates = Action.async { implicit request =>
     duplicateDetectionService.findAll.map { potentialDuplications =>
@@ -46,5 +44,4 @@ trait DuplicateApplicationReportController extends BaseController {
         matchGroup, c.applicationRoute)
     }
   }
-
 }

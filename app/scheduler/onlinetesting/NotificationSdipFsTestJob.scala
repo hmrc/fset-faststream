@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,26 @@
 package scheduler.onlinetesting
 
 import config.ScheduledJobConfig
+import javax.inject.{ Inject, Singleton }
 import model._
+import play.api.Configuration
+import play.api.mvc.RequestHeader
+import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
-import services.onlinetesting.phase1.Phase1TestService
-
-import scala.concurrent.{ ExecutionContext, Future }
+import services.onlinetesting.phase1.Phase1TestService2
 import uk.gov.hmrc.http.HeaderCarrier
 
-object FailedSdipFsTestJob extends NotificationSdipFsTestJob {
-  override val service = Phase1TestService
-  override val notificationType = FailedSdipFsTestType
+import scala.concurrent.{ ExecutionContext, Future }
 
-  val config = FailedPhase1TestJobConfig
+@Singleton
+class FailedSdipFsTestJob @Inject() (val service: Phase1TestService2,
+                                     val mongoComponent: ReactiveMongoComponent,
+                                     val config: FailedSdipFsTestJobConfig) extends NotificationSdipFsTestJob {
+  //  override val service = Phase1TestService2X
+  override val notificationType = FailedSdipFsTestType
+  //  val config = FailedPhase1TestJobConfig2
 }
 
 trait NotificationSdipFsTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
@@ -39,13 +45,14 @@ trait NotificationSdipFsTestJob extends SingleInstanceScheduledJob[BasicJobConfi
   val notificationType: NotificationTestTypeSdipFs
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    implicit val rh = EmptyRequestHeader
-    implicit val hc = HeaderCarrier()
+    implicit val rh:RequestHeader = EmptyRequestHeader
+    implicit val hc: HeaderCarrier = HeaderCarrier()
     service.processNextTestForSdipFsNotification(notificationType)
   }
 }
 
-object FailedSdipFsTestJobConfig extends BasicJobConfig[ScheduledJobConfig](
+class FailedSdipFsTestJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.online-testing.failed-sdip-fs-test-job",
   name = "FailedSdipFsTestJob"
 )

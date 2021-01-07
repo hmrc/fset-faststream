@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,22 @@
 
 package repositories.onlinetesting
 
-import config.LaunchpadGatewayConfig
+import config.{ LaunchpadGatewayConfig, MicroserviceAppConfig }
 import factories.DateTimeFactory
+import javax.inject.{ Inject, Singleton }
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
 import model.Exceptions.PassMarkEvaluationNotFound
 import model.Phase._
 import model.ProgressStatuses.ProgressStatus
 import model.persisted._
-import model.persisted.phase3tests.{LaunchpadTest, Phase3TestGroup}
-import model.{ApplicationStatus, Phase => _, _}
+import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
+import model.{ ApplicationStatus, Phase => _, _ }
 import play.api.Logger
-import reactivemongo.api.DB
-import reactivemongo.bson.{BSONArray, BSONDocument, BSONDocumentReader, BSONObjectID}
+import play.modules.reactivemongo.ReactiveMongoComponent
+import reactivemongo.bson.{ BSONArray, BSONDocument, BSONDocumentReader, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
-import repositories.{BaseBSONReader, CollectionNames, CommonBSONDocuments, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers}
+import repositories._
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -60,17 +61,18 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
     ApplicationStatus.values.filter(s =>
       s >= phase && s < ApplicationStatus.PHASE3_TESTS_PASSED && !statusesToIgnore.contains(s))
   }
-
+  // Cubiks code
   def nextApplicationsReadyForEvaluation(currentPassmarkVersion: String, batchSize: Int): Future[List[ApplicationReadyForEvaluation]] =
     selectRandom[ApplicationReadyForEvaluation](nextApplicationQuery(currentPassmarkVersion), batchSize)
 
+  // PSI code
   def nextApplicationsReadyForEvaluation2(currentPassmarkVersion: String, batchSize: Int): Future[List[ApplicationReadyForEvaluation2]] = {
     preEvaluationLogging()
     selectRandom[ApplicationReadyForEvaluation2](nextApplicationQuery(currentPassmarkVersion), batchSize)
   }
 
   def savePassmarkEvaluation(applicationId: String, evaluation: PassmarkEvaluation,
-    newProgressStatus: Option[ProgressStatus]): Future[Unit] = {
+                             newProgressStatus: Option[ProgressStatus]): Future[Unit] = {
     // Warn level so we see it in prod logs
     Logger.warn(s"applicationId = $applicationId - now saving progressStatus as $newProgressStatus")
 
@@ -92,8 +94,8 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
   }
 
   def addSchemeResultToPassmarkEvaluation(applicationId: String,
-    schemeEvaluationResult: SchemeEvaluationResult,
-    passmarkVersion: String): Future[Unit] = {
+                                          schemeEvaluationResult: SchemeEvaluationResult,
+                                          passmarkVersion: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
 
     val removeEvaluationIfExists = BSONDocument(
@@ -114,8 +116,8 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
   }
 
   def applicationEvaluationBuilder(activeCubiksTests: List[CubiksTest],
-    activeLaunchPadTest: Option[LaunchpadTest],
-    prevPhaseEvaluation: Option[PassmarkEvaluation])(doc: BSONDocument) = {
+                                   activeLaunchPadTest: Option[LaunchpadTest],
+                                   prevPhaseEvaluation: Option[PassmarkEvaluation])(doc: BSONDocument) = {
     val applicationId = doc.getAs[String]("applicationId").get
     val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
     val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
@@ -126,8 +128,8 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
   }
 
   def applicationEvaluationBuilder2(activePsiTests: List[PsiTest],
-    activeLaunchPadTest: Option[LaunchpadTest],
-    prevPhaseEvaluation: Option[PassmarkEvaluation])(doc: BSONDocument) = {
+                                    activeLaunchPadTest: Option[LaunchpadTest],
+                                    prevPhaseEvaluation: Option[PassmarkEvaluation])(doc: BSONDocument) = {
     val applicationId = doc.getAs[String]("applicationId").get
     val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
     val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
@@ -152,8 +154,11 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
   }
 }
 
-class Phase1EvaluationMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: () => DB)
-  extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID](CollectionNames.APPLICATION, mongo,
+@Singleton
+class Phase1EvaluationMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory, mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID](
+    CollectionNames.APPLICATION,
+    mongoComponent.mongoConnector.db,
     ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
     ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository with CommonBSONDocuments {
 
@@ -188,11 +193,13 @@ class Phase1EvaluationMongoRepository(val dateTimeFactory: DateTimeFactory)(impl
   }
 }
 
-class Phase2EvaluationMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: () => DB)
-  extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID](CollectionNames.APPLICATION, mongo,
+@Singleton
+class Phase2EvaluationMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory, mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID](
+    CollectionNames.APPLICATION,
+    mongoComponent.mongoConnector.db,
     ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
-    ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository
-    with CommonBSONDocuments {
+    ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository with CommonBSONDocuments {
 
   val phase = PHASE2
   val prevPhase = PHASE1
@@ -232,15 +239,21 @@ class Phase2EvaluationMongoRepository(val dateTimeFactory: DateTimeFactory)(impl
     ))
 }
 
-class Phase3EvaluationMongoRepository(
-  launchpadGatewayConfig: LaunchpadGatewayConfig,
-  val dateTimeFactory: DateTimeFactory
-)(implicit mongo: () => DB)
-  extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID](CollectionNames.APPLICATION, mongo,
+@Singleton
+class Phase3EvaluationMongoRepository @Inject() (//launchpadGatewayConfig: LaunchpadGatewayConfig,
+                                                 appConfig: MicroserviceAppConfig,
+                                                 val dateTimeFactory: DateTimeFactory,
+                                                 mongoComponent: ReactiveMongoComponent
+                                                )
+  extends ReactiveRepository[ApplicationReadyForEvaluation, BSONObjectID](
+    CollectionNames.APPLICATION,
+    mongoComponent.mongoConnector.db,
     ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
     ReactiveMongoFormats.objectIdFormats) with OnlineTestEvaluationRepository with BaseBSONReader {
 
   import repositories.BSONDateTimeHandler
+
+  val launchpadGatewayConfig: LaunchpadGatewayConfig = appConfig.launchpadGatewayConfig
 
   val phase = PHASE3
   val prevPhase = PHASE2

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,48 +16,39 @@
 
 package services.allocation
 
-import connectors.{ AuthProviderClient, CSREmailClient, EmailClient, ExchangeObjects }
+import com.google.inject.name.Named
+import connectors._
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.OptimisticLockException
-import model.{ Commands, exchange, persisted, command }
-import model._
 import model.command.{ AssessorAllocation, AssessorAllocations }
 import model.persisted.eventschedules.Event
+import model.{ command, exchange, persisted, _ }
+import repositories.AssessorAllocationRepository
 import repositories.application.GeneralApplicationRepository
-import repositories.{ AssessorAllocationMongoRepository }
 import services.allocation.AssessorAllocationService.CouldNotFindAssessorContactDetails
 import services.events.EventsService
 import services.stc.{ EventSink, StcEventService }
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
-object AssessorAllocationService extends AssessorAllocationService {
-
-  val assessorAllocationRepo: AssessorAllocationMongoRepository = repositories.assessorAllocationRepository
-  val applicationRepo: GeneralApplicationRepository = repositories.applicationRepository
-
-  val eventsService = EventsService
-  val eventService: StcEventService = StcEventService
-
-  val authProviderClient = AuthProviderClient
-  val emailClient = CSREmailClient
-
-  case class CouldNotFindAssessorContactDetails(userId: String) extends Exception(userId)
+object AssessorAllocationService {
+    case class CouldNotFindAssessorContactDetails(userId: String) extends Exception(userId)
 }
 
-trait AssessorAllocationService extends EventSink {
-
-  def assessorAllocationRepo: AssessorAllocationMongoRepository
-  def applicationRepo: GeneralApplicationRepository
-
-  def eventsService: EventsService
-
-  def emailClient: EmailClient
-  def authProviderClient: AuthProviderClient
+@Singleton
+class AssessorAllocationService @Inject() (assessorAllocationRepo: AssessorAllocationRepository,
+                                           applicationRepo: GeneralApplicationRepository,
+                                           eventsService: EventsService,
+                                           allocationServiceCommon: AllocationServiceCommon, // Breaks circular dependencies
+                                           val eventService: StcEventService,
+                                           authProviderClient: AuthProviderClient,
+                                           @Named("CSREmailClient") emailClient: OnlineTestEmailClient //TODO:fix changed type
+                                          ) extends EventSink {
 
   def getAllocations(eventId: String): Future[exchange.AssessorAllocations] = {
-    assessorAllocationRepo.allocationsForEvent(eventId).map { a => exchange.AssessorAllocations.apply(a) }
+    allocationServiceCommon.getAllocations(eventId)
   }
 
   def getAllocation(eventId: String, userId: String): Future[Option[exchange.AssessorAllocation]] = {
@@ -113,8 +104,8 @@ trait AssessorAllocationService extends EventSink {
   }
 
   private def notifyAllocationUnallocatedAssessors(
-    allocations: command.AssessorAllocations
-  )(implicit hc: HeaderCarrier): Future[Unit] = {
+                                                    allocations: command.AssessorAllocations
+                                                  )(implicit hc: HeaderCarrier): Future[Unit] = {
     val eligibleAllocations = allocations.copy(allocations = allocations.allocations.filterNot(_.status == AllocationStatuses.DECLINED))
     getContactDetails(eligibleAllocations).map { userInfo =>
       userInfo.map { case (contactDetailsForUser, eventDetails, _) =>
@@ -146,7 +137,7 @@ trait AssessorAllocationService extends EventSink {
   }
 
   private def getAllocationDifferences(existingAllocationsUnsanitised: Seq[persisted.AssessorAllocation],
-    newAllocationsUnsanitised: Seq[persisted.AssessorAllocation]) = {
+                                       newAllocationsUnsanitised: Seq[persisted.AssessorAllocation]) = {
 
     // Make versions equal so we can do comparison based on values
     val existingAllocations = existingAllocationsUnsanitised.map(_.copy(version = "version"))

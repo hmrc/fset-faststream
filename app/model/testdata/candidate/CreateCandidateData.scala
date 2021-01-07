@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,9 @@ import model.testdata.CreateAdminData.AssessorData
 import model.testdata.CreateTestData
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
-import services.testdata.faker.DataFaker.Random
+import services.testdata.faker.{ DataFaker, DataFakerRandom }
 
-object CreateCandidateData {
+object CreateCandidateData extends DataFakerRandom {
 
   case class AssistanceDetails(
     hasDisability: String = "No",
@@ -71,7 +71,7 @@ object CreateCandidateData {
     universityAttended: String = Random.university._2,
     parentalEmployedOrSelfEmployed: String = Random.parentsOccupation,
     parentalEmployment: Option[String] = Some(Random.parentsOccupationDetails),
-    parentalCompanySize: Option[String] = Some(Random.sizeParentsEmployeer)
+    parentalCompanySize: Option[String] = Some(Random.sizeParentsEmployer)
   )
 
   object DiversityDetails {
@@ -91,8 +91,8 @@ object CreateCandidateData {
 
   case class PersonalData(
     emailPrefix: String = s"tesf${Random.number() - 1}",
-    firstName: String = Random.getFirstname(1),
-    lastName: String = Random.getLastname(1),
+    firstName: String = Random.firstname(1),
+    lastName: String = Random.lastname(1),
     preferredName: Option[String] = None,
     dob: LocalDate = new LocalDate(1981, Random.monthNumber, 21),
     postCode: Option[String] = None,
@@ -105,10 +105,9 @@ object CreateCandidateData {
   }
 
   object PersonalData {
-
-    def apply(o: PersonalDataRequest, generatorId: Int): PersonalData = {
+    def apply(o: PersonalDataRequest, dataFaker: DataFaker, generatorId: Int): PersonalData = {
       val default = PersonalData()
-      val fname = o.firstName.getOrElse(Random.getFirstname(generatorId))
+      val fname = o.firstName.getOrElse(dataFaker.Random.firstname(generatorId))
       val emailPrefix = o.emailPrefix.map(e => if (generatorId > 1) {
         s"$e-$generatorId"
       } else {
@@ -116,9 +115,9 @@ object CreateCandidateData {
       })
 
       PersonalData(
-        emailPrefix = emailPrefix.getOrElse(s"tesf${Random.number()}-$generatorId"),
+        emailPrefix = emailPrefix.getOrElse(s"tesf${dataFaker.Random.number()}-$generatorId"),
         firstName = fname,
-        lastName = o.lastName.getOrElse(Random.getLastname(generatorId)),
+        lastName = o.lastName.getOrElse(dataFaker.Random.lastname(generatorId)),
         preferredName = o.preferredName,
         dob = o.dateOfBirth.map(x => LocalDate.parse(x, DateTimeFormat.forPattern("yyyy-MM-dd"))).getOrElse(default.dob),
         postCode = o.postCode,
@@ -194,11 +193,11 @@ object CreateCandidateData {
   ) extends CreateTestData
 
   object CreateCandidateData {
-    def apply(psiUrlFromConfig: String, request: CreateCandidateRequest)(generatorId: Int): CreateCandidateData = {
+    def apply(psiUrlFromConfig: String, request: CreateCandidateRequest, dataFaker: DataFaker)(generatorId: Int): CreateCandidateData = {
 
       val statusData = StatusData(request.statusData)
 
-      val isCivilServant = request.isCivilServant.getOrElse(Random.bool)
+      val isCivilServant = request.isCivilServant.getOrElse(dataFaker.Random.bool)
       val hasFastPass = request.hasFastPass.getOrElse(false)
       val civilServantAndInternshipTypes = if (hasFastPass) {
         request.civilServantAndInternshipTypes.map(internshipTypes =>
@@ -208,7 +207,7 @@ object CreateCandidateData {
         Nil
       }
 
-      val fastPassCertificateNumber = if (hasFastPass) Some(Random.number().toString) else None
+      val fastPassCertificateNumber = if (hasFastPass) Some(dataFaker.Random.number().toString) else None
 
       val progressStatusMaybe = request.statusData.progressStatus.map(ProgressStatuses.nameToProgressStatus)
         .orElse(Some(translateApplicationStatusToProgressStatus(request.statusData.applicationStatus)))
@@ -227,7 +226,7 @@ object CreateCandidateData {
 
       CreateCandidateData(
         statusData = statusData,
-        personalData = request.personalData.map(PersonalData(_, generatorId)).getOrElse(PersonalData()),
+        personalData = request.personalData.map(PersonalData(_, dataFaker, generatorId)).getOrElse(PersonalData()),
         diversityDetails = request.diversityDetails.map(DiversityDetails(_)).getOrElse(DiversityDetails()),
         assistanceDetails = request.assistanceDetails.map(AssistanceDetails.apply).getOrElse(AssistanceDetails()),
         psiUrl = psiUrlFromConfig,
@@ -236,7 +235,7 @@ object CreateCandidateData {
         hasFastPass = hasFastPass,
         civilServantAndInternshipTypes = civilServantAndInternshipTypes,
         fastPassCertificateNumber = fastPassCertificateNumber,
-        hasDegree = request.hasDegree.getOrElse(Random.bool),
+        hasDegree = request.hasDegree.getOrElse(dataFaker.Random.bool),
         region = request.region,
         phase1TestData = Phase1TestData.build(request, schemeTypes),
         phase2TestData = Phase2TestData(request, schemeTypes),

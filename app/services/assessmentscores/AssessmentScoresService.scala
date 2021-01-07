@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,27 @@
 
 package services.assessmentscores
 
+import com.google.inject.name.Named
 import factories.DateTimeFactory
+import javax.inject.{ Inject, Singleton }
 import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresExercise, AssessmentScoresFinalFeedback }
-import model.{ ProgressStatuses, UniqueIdentifier }
-import model.command.AssessmentScoresCommands.{ AssessmentScoresSectionType, AssessmentScoresFindResponse, AssessmentScoresCandidateSummary }
+import model.command.AssessmentScoresCommands.{ AssessmentScoresCandidateSummary, AssessmentScoresFindResponse, AssessmentScoresSectionType }
 import model.persisted.eventschedules.Event
+import model.{ ProgressStatuses, UniqueIdentifier }
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.events.EventsRepository
 import repositories.personaldetails.PersonalDetailsRepository
-import repositories.{ AssessmentScoresRepository, CandidateAllocationMongoRepository }
-
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import repositories.{ AssessmentScoresRepository, CandidateAllocationRepository }
 import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 trait AssessmentScoresService {
   val applicationRepository: GeneralApplicationRepository
   val assessmentScoresRepository: AssessmentScoresRepository
-  val candidateAllocationRepository: CandidateAllocationMongoRepository
+  val candidateAllocationRepository: CandidateAllocationRepository
   val eventsRepository: EventsRepository
   val personalDetailsRepository: PersonalDetailsRepository
 
@@ -57,22 +59,22 @@ trait AssessmentScoresService {
   }
 
   def saveExercise(applicationId: UniqueIdentifier,
-    assessmentExerciseType: AssessmentScoresSectionType.AssessmentScoresSectionType,
-    newExerciseScores: AssessmentScoresExercise): Future[Unit] = {
+                   assessmentExerciseType: AssessmentScoresSectionType.AssessmentScoresSectionType,
+                   newExerciseScores: AssessmentScoresExercise): Future[Unit] = {
     saveOrSubmitExercise(applicationId, assessmentExerciseType, newExerciseScores.copy(savedDate = Some(dateTimeFactory.nowLocalTimeZone)))
   }
 
   def submitExercise(applicationId: UniqueIdentifier,
-    assessmentExerciseType: AssessmentScoresSectionType.AssessmentScoresSectionType,
-    newExerciseScores: AssessmentScoresExercise): Future[Unit] = {
+                     assessmentExerciseType: AssessmentScoresSectionType.AssessmentScoresSectionType,
+                     newExerciseScores: AssessmentScoresExercise): Future[Unit] = {
     saveOrSubmitExercise(applicationId, assessmentExerciseType, newExerciseScores.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone)))
   }
 
   private def saveOrSubmitExercise(applicationId: UniqueIdentifier,
-    assessmentExerciseType: AssessmentScoresSectionType.AssessmentScoresSectionType,
-    newExerciseScores: AssessmentScoresExercise): Future[Unit] = {
+                                   assessmentExerciseType: AssessmentScoresSectionType.AssessmentScoresSectionType,
+                                   newExerciseScores: AssessmentScoresExercise): Future[Unit] = {
     def updateAllExercisesWithExercise(oldAllExercisesScores: AssessmentScoresAllExercises,
-      newExerciseScoresWithSubmittedDate: AssessmentScoresExercise) = {
+                                       newExerciseScoresWithSubmittedDate: AssessmentScoresExercise) = {
       assessmentExerciseType match {
         case AssessmentScoresSectionType.analysisExercise =>
           oldAllExercisesScores.copy(analysisExercise = Some(newExerciseScoresWithSubmittedDate))
@@ -186,8 +188,8 @@ trait AssessmentScoresService {
   }
 
   private def findOneAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: UniqueIdentifier,
-    event: Event,
-    sessionId: UniqueIdentifier) = {
+                                                                         event: Event,
+                                                                         sessionId: UniqueIdentifier) = {
     val personalDetailsFut = personalDetailsRepository.find(applicationId.toString())
     val assessmentScoresFut = assessmentScoresRepository.find(applicationId)
 
@@ -217,14 +219,21 @@ abstract class AssessorAssessmentScoresService extends AssessmentScoresService {
   }
 }
 
-object AssessorAssessmentScoresService extends AssessorAssessmentScoresService {
-  override val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
-  override val assessmentScoresRepository: AssessmentScoresRepository = repositories.assessorAssessmentScoresRepository
-  override val candidateAllocationRepository: CandidateAllocationMongoRepository = repositories.candidateAllocationRepository
-  override val eventsRepository: EventsRepository = repositories.eventsRepository
-  override val personalDetailsRepository: PersonalDetailsRepository = repositories.personalDetailsRepository
-
-  override val dateTimeFactory = DateTimeFactory
+@Singleton
+class AssessorAssessmentScoresServiceImpl @Inject() (val applicationRepository: GeneralApplicationRepository,
+                                                     @Named("AssessorAssessmentScoresRepo")
+                                                     val assessmentScoresRepository: AssessmentScoresRepository,
+                                                     val candidateAllocationRepository: CandidateAllocationRepository,
+                                                     val eventsRepository: EventsRepository,
+                                                     val personalDetailsRepository: PersonalDetailsRepository,
+                                                     val dateTimeFactory: DateTimeFactory
+                                                    ) extends AssessorAssessmentScoresService {
+  //  override val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
+  //  override val assessmentScoresRepository: AssessmentScoresRepository = repositories.assessorAssessmentScoresRepository
+  //  override val candidateAllocationRepository: CandidateAllocationMongoRepository = repositories.candidateAllocationRepository
+  //  override val eventsRepository: EventsRepository = repositories.eventsRepository
+  //  override val personalDetailsRepository: PersonalDetailsRepository = repositories.personalDetailsRepository
+  //  override val dateTimeFactory = DateTimeFactory
 }
 
 abstract class ReviewerAssessmentScoresService extends AssessmentScoresService {
@@ -238,12 +247,19 @@ abstract class ReviewerAssessmentScoresService extends AssessmentScoresService {
   }
 }
 
-object ReviewerAssessmentScoresService extends ReviewerAssessmentScoresService {
-  override val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
-  override val assessmentScoresRepository: AssessmentScoresRepository = repositories.reviewerAssessmentScoresRepository
-  override val candidateAllocationRepository: CandidateAllocationMongoRepository = repositories.candidateAllocationRepository
-  override val eventsRepository: EventsRepository = repositories.eventsRepository
-  override val personalDetailsRepository: PersonalDetailsRepository = repositories.personalDetailsRepository
-
-  override val dateTimeFactory = DateTimeFactory
+@Singleton
+class ReviewerAssessmentScoresServiceImpl @Inject() (val applicationRepository: GeneralApplicationRepository,
+                                                     @Named("ReviewerAssessmentScoresRepo")
+                                                     val assessmentScoresRepository: AssessmentScoresRepository,
+                                                     val candidateAllocationRepository: CandidateAllocationRepository,
+                                                     val eventsRepository: EventsRepository,
+                                                     val personalDetailsRepository: PersonalDetailsRepository,
+                                                     val dateTimeFactory: DateTimeFactory
+                                                    ) extends ReviewerAssessmentScoresService {
+  //  override val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
+  //  override val assessmentScoresRepository: AssessmentScoresRepository = repositories.reviewerAssessmentScoresRepository
+  //  override val candidateAllocationRepository: CandidateAllocationMongoRepository = repositories.candidateAllocationRepository
+  //  override val eventsRepository: EventsRepository = repositories.eventsRepository
+  //  override val personalDetailsRepository: PersonalDetailsRepository = repositories.personalDetailsRepository
+  //  override val dateTimeFactory = DateTimeFactory
 }

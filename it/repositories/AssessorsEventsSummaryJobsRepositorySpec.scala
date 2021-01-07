@@ -7,7 +7,7 @@ import testkit.MongoRepositorySpec
 class AssessorsEventsSummaryJobsRepositorySpec extends MongoRepositorySpec {
   override val collectionName: String = CollectionNames.ASSESSOR_EVENTS_SUMMARY_JOBS
 
-  lazy val repository = repositories.assessorsEventsSummaryJobsRepository
+  lazy val repository = new AssessorsEventsSummaryJobsMongoRepository(mongo)
 
   "AssessorsEventsSummaryJobs" should {
     "save only the last run job" in {

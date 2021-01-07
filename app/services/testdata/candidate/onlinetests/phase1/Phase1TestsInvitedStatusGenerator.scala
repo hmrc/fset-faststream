@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,32 +16,27 @@
 
 package services.testdata.candidate.onlinetests.phase1
 
-import config.MicroserviceAppConfig.{onlineTestsGatewayConfig, testIntegrationGatewayConfig}
-import config.{OnlineTestsGatewayConfig, TestIntegrationGatewayConfig}
-import model.exchange.testdata.CreateCandidateResponse.{TestGroupResponse2, TestResponse2}
-import model.persisted.{Phase1TestProfile2, PsiTest}
+import config.{ MicroserviceAppConfig, OnlineTestsGatewayConfig, TestIntegrationGatewayConfig }
+import javax.inject.{ Inject, Singleton }
+import model.exchange.testdata.CreateCandidateResponse.{ TestGroupResponse2, TestResponse2 }
+import model.persisted.{ Phase1TestProfile2, PsiTest }
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
-import repositories._
 import repositories.onlinetesting.Phase1TestRepository2
-import services.testdata.candidate.{ConstructiveGenerator, SubmittedStatusGenerator}
+import services.testdata.candidate.{ ConstructiveGenerator, SubmittedStatusGenerator }
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object Phase1TestsInvitedStatusGenerator extends Phase1TestsInvitedStatusGenerator {
-  override val previousStatusGenerator = SubmittedStatusGenerator
-  override val otRepository = phase1TestRepository2
-  override val gatewayConfig = onlineTestsGatewayConfig
-  override val onlineTestGatewayConfig = testIntegrationGatewayConfig
-}
-
-trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
+@Singleton
+class Phase1TestsInvitedStatusGenerator @Inject() (val previousStatusGenerator: SubmittedStatusGenerator,
+                                                   otRepository: Phase1TestRepository2,
+                                                   appConfig: MicroserviceAppConfig
+                                                  ) extends ConstructiveGenerator {
   private val OneDay = 86400000
-  val otRepository: Phase1TestRepository2
-  val gatewayConfig: OnlineTestsGatewayConfig
-  val onlineTestGatewayConfig: TestIntegrationGatewayConfig
+  val gatewayConfig: OnlineTestsGatewayConfig = appConfig.onlineTestsGatewayConfig
+  val onlineTestGatewayConfig: TestIntegrationGatewayConfig = appConfig.testIntegrationGatewayConfig
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
@@ -51,14 +46,14 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
       onlineTestGatewayConfig.phase1Tests.standard
     }
 
-  val psiTests = testsNames.map{ testName =>
-  (
-    testName,
-    onlineTestGatewayConfig.phase1Tests.tests(testName).inventoryId,
-    onlineTestGatewayConfig.phase1Tests.tests(testName).assessmentId,
-    onlineTestGatewayConfig.phase1Tests.tests(testName).reportId,
-    onlineTestGatewayConfig.phase1Tests.tests(testName).normId
-  )
+    val psiTests = testsNames.map{ testName =>
+      (
+        testName,
+        onlineTestGatewayConfig.phase1Tests.tests(testName).inventoryId,
+        onlineTestGatewayConfig.phase1Tests.tests(testName).assessmentId,
+        onlineTestGatewayConfig.phase1Tests.tests(testName).reportId,
+        onlineTestGatewayConfig.phase1Tests.tests(testName).normId
+      )
     }.map { case (testName, inventoryId, assessmentId, reportId, normId) =>
       val orderId = java.util.UUID.randomUUID.toString
       val test = PsiTest(
@@ -68,7 +63,6 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
         testUrl = s"${generatorConfig.psiUrl}/PartnerRestService/$testName?key=$orderId",
         invitationDate = generatorConfig.phase1TestData.flatMap(_.start).getOrElse(DateTime.now()).
           withDurationAdded(OneDay, -1),
-        resultsReadyToDownload = false,
         assessmentId = assessmentId,
         reportId = reportId,
         normId = normId
@@ -87,10 +81,7 @@ trait Phase1TestsInvitedStatusGenerator extends ConstructiveGenerator {
     } yield {
       val testResponses = psiTests.map(test => TestResponse2(test.inventoryId, test.orderId, test.testUrl))
       candidateInPreviousStatus.copy(phase1TestGroup = Some(
-        TestGroupResponse2(
-          testResponses,
-          None
-        )
+        TestGroupResponse2(testResponses, None)
       ))
     }
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,13 @@
 
 package repositories.sift
 
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.{ NotFoundException, SiftAnswersIncomplete, SiftAnswersSubmitted }
 import model.SchemeId
 import model.persisted.sift.SiftAnswersStatus.SiftAnswersStatus
 import model.persisted.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswers, SiftAnswersStatus }
 import play.api.libs.json.JsObject
-import reactivemongo.api.DB
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.bson._
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.{ BaseBSONReader, CollectionNames, ReactiveRepositoryHelpers }
@@ -44,10 +45,13 @@ trait SiftAnswersRepository {
   def setSiftAnswersStatus(applicationId: String, status: SiftAnswersStatus.SiftAnswersStatus): Future[Unit]
 }
 
-class SiftAnswersMongoRepository()(implicit mongo: () => DB)
-  extends ReactiveRepository[SiftAnswers, BSONObjectID](CollectionNames.SIFT_ANSWERS, mongo,
-    SiftAnswers.siftAnswersFormat, ReactiveMongoFormats.objectIdFormats) with SiftAnswersRepository
-    with ReactiveRepositoryHelpers with BaseBSONReader {
+@Singleton
+class SiftAnswersMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[SiftAnswers, BSONObjectID](
+    CollectionNames.SIFT_ANSWERS,
+    mongoComponent.mongoConnector.db,
+    SiftAnswers.siftAnswersFormat,
+    ReactiveMongoFormats.objectIdFormats) with SiftAnswersRepository with ReactiveRepositoryHelpers with BaseBSONReader {
 
   override def addSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId, answer: SchemeSpecificAnswer): Future[Unit] = {
     failWithSubmitted(applicationId) {
@@ -101,9 +105,9 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
     ))
     val projection = BSONDocument(s"schemeAnswers.$schemeId" -> 1, "_id" -> 0)
     collection.find(query, Some(projection)).one[BSONDocument].map(_.flatMap { doc =>
-        doc.getAs[BSONDocument]("schemeAnswers").flatMap { sa =>
-          sa.getAs[SchemeSpecificAnswer](s"$schemeId")
-        }
+      doc.getAs[BSONDocument]("schemeAnswers").flatMap { sa =>
+        sa.getAs[SchemeSpecificAnswer](s"$schemeId")
+      }
     })
   }
 
@@ -149,7 +153,7 @@ class SiftAnswersMongoRepository()(implicit mongo: () => DB)
       val validator = singleUpdateValidator(applicationId, actionDesc = "Submitting sift answers",
         SiftAnswersIncomplete(
           s"Additional questions missing general or scheme specific " +
-             s"(${requiredSchemes.map(_.value).mkString(", ")}) answers for $applicationId"))
+            s"(${requiredSchemes.map(_.value).mkString(", ")}) answers for $applicationId"))
 
       collection.update(ordered = false).one(
         query,

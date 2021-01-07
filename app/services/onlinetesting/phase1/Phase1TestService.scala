@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,13 @@
 package services.onlinetesting.phase1
 
 import akka.actor.ActorSystem
+import com.google.inject.name.Named
 import common.{ FutureEx, Phase1TestConcern }
-import config.{ OnlineTestsGatewayConfig, TestIntegrationGatewayConfig }
+import config.{ MicroserviceAppConfig, OnlineTestsGatewayConfig }
 import connectors.ExchangeObjects._
-import connectors.{ CSREmailClient, OnlineTestsGatewayClient }
+import connectors.{ OnlineTestEmailClient, OnlineTestsGatewayClient }
 import factories.{ DateTimeFactory, UUIDFactory }
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.ApplicationNotFound
 import model.OnlineTestCommands._
 import model._
@@ -31,6 +33,8 @@ import model.stc.{ AuditEvents, DataStoreEvents }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories._
+import repositories.application.GeneralApplicationRepository
+import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import services.onlinetesting.{ CubiksSanitizer, OnlineTestService }
@@ -43,37 +47,30 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.util.{ Failure, Success }
 
-object Phase1TestService extends Phase1TestService {
+@Singleton
+class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
+                                   val appRepository: GeneralApplicationRepository,
+                                   val cdRepository: ContactDetailsRepository,
+                                   val testRepository: Phase1TestRepository,
+                                   onlineTestsGatewayClient: OnlineTestsGatewayClient,
+                                   val tokenFactory: UUIDFactory,
+                                   val dateTimeFactory: DateTimeFactory,
+                                   @Named("CSREmailClient") val emailClient: OnlineTestEmailClient, // TODO: changed type
+                                   val auditService: AuditService,
+                                   actor: ActorSystem,
+                                   val eventService: StcEventService,
+                                   val siftService: ApplicationSiftService
+                                  ) extends OnlineTestService with Phase1TestConcern with ResetPhase1Test {
+  type TestRepository2 = Phase1TestRepository
 
-  import config.MicroserviceAppConfig._
-
-  val appRepository = applicationRepository
-  val cdRepository = faststreamContactDetailsRepository
-  val testRepository = phase1TestRepository
-  val onlineTestsGatewayClient = OnlineTestsGatewayClient
-  val tokenFactory = UUIDFactory
-  val dateTimeFactory = DateTimeFactory
-  val emailClient = CSREmailClient
-  val auditService = AuditService
-  val gatewayConfig = onlineTestsGatewayConfig
-  val actor = ActorSystem()
-  val eventService = StcEventService
-  val siftService = ApplicationSiftService
-}
-
-trait Phase1TestService extends OnlineTestService with Phase1TestConcern with ResetPhase1Test {
-  type TestRepository = Phase1TestRepository
-  val actor: ActorSystem
-  val testRepository: Phase1TestRepository
-  val onlineTestsGatewayClient: OnlineTestsGatewayClient
-  val gatewayConfig: OnlineTestsGatewayConfig
+  val gatewayConfig: OnlineTestsGatewayConfig = appConfig.onlineTestsGatewayConfig
   val delaySecsBetweenRegistrations = 1
 
   override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] =
     testRepository.nextApplicationsReadyForOnlineTesting(maxBatchSize)
 
   def nextSdipFaststreamCandidateReadyForSdipProgression: Future[Option[Phase1TestGroupWithUserIds]] = {
-    phase1TestRepository.nextSdipFaststreamCandidateReadyForSdipProgression
+    testRepository.nextSdipFaststreamCandidateReadyForSdipProgression
   }
 
   def progressSdipFaststreamCandidateForSdip(o: Phase1TestGroupWithUserIds): Future[Unit] = {

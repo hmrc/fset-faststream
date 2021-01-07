@@ -1,8 +1,8 @@
 package repositories
 
 import model.ApplicationStatus._
-import model.Exceptions.{ CannotUpdateCivilServiceExperienceDetails, CivilServiceExperienceDetailsNotFound }
 import model.CivilServiceExperienceDetailsExamples._
+import model.Exceptions.CannotUpdateCivilServiceExperienceDetails
 import reactivemongo.bson._
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
@@ -12,7 +12,7 @@ class CivilServiceExperienceDetailsSpec extends MongoRepositorySpec {
 
   override val collectionName: String = CollectionNames.APPLICATION
 
-  def repository = new CivilServiceExperienceDetailsMongoRepository
+  def repository = new CivilServiceExperienceDetailsMongoRepository(mongo)
 
   "update and find" should {
     "modify and find the fast pass details successfully" in {
@@ -44,5 +44,5 @@ class CivilServiceExperienceDetailsSpec extends MongoRepositorySpec {
     }
   }
 
-  def insert(doc: BSONDocument) = repository.collection.insert(ordered = false).one(doc)
+  private def insert(doc: BSONDocument) = repository.collection.insert(ordered = false).one(doc)
 }

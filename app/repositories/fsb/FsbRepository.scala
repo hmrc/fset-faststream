@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package repositories.fsb
 
 import factories.DateTimeFactory
+import javax.inject.{ Inject, Singleton }
 import model.ApplicationRoute.ApplicationRoute
 import model.EvaluationResults.{ Amber, Green, Red }
 import model.Exceptions.{ AlreadyEvaluatedForSchemeException, ApplicationNotFound }
@@ -27,7 +28,8 @@ import model.persisted.fsb.ScoresAndFeedback
 import model.persisted.{ FsbSchemeResult, FsbTestGroup, SchemeEvaluationResult }
 import org.joda.time.DateTime
 import play.api.libs.json.JsObject
-import reactivemongo.api.{ Cursor, DB, ReadPreference }
+import play.modules.reactivemongo.ReactiveMongoComponent
+import reactivemongo.api.{ Cursor, ReadPreference }
 import reactivemongo.bson.{ BSON, BSONArray, BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
@@ -58,10 +60,15 @@ trait FsbRepository {
   def removeTestGroup(applicationId: String): Future[Unit]
 }
 
-class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: () => DB) extends
-  ReactiveRepository[FsbTestGroup, BSONObjectID](CollectionNames.APPLICATION, mongo, FsbTestGroup.jsonFormat,
-    ReactiveMongoFormats.objectIdFormats) with FsbRepository with RandomSelection with CurrentSchemeStatusHelper with ReactiveRepositoryHelpers
-  with CommonBSONDocuments {
+@Singleton
+class FsbMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
+                                     mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[FsbTestGroup, BSONObjectID](
+    CollectionNames.APPLICATION,
+    mongoComponent.mongoConnector.db,
+    FsbTestGroup.jsonFormat,
+    ReactiveMongoFormats.objectIdFormats) with FsbRepository with RandomSelection with CurrentSchemeStatusHelper
+    with ReactiveRepositoryHelpers with CommonBSONDocuments {
 
   private val APPLICATION_ID = "applicationId"
   private val FSB_TEST_GROUPS = "testGroups.FSB"
@@ -108,7 +115,7 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
     }
   }
 
-  def nextApplicationForFsbOrJobOfferProgression(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
+  override def nextApplicationForFsbOrJobOfferProgression(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
     import AssessmentCentreRepository.applicationForFsacBsonReads
     val xdipQuery = (route: ApplicationRoute) => BSONDocument(
       "applicationRoute" -> route,
@@ -158,7 +165,7 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
     selectRandom[BSONDocument](query, batchSize).map(_.map(doc => doc: ApplicationForProgression))
   }
 
-  def nextApplicationForFsbOrJobOfferProgression(applicationId: String): Future[Seq[ApplicationForProgression]] = {
+  override def nextApplicationForFsbOrJobOfferProgression(applicationId: String): Future[Seq[ApplicationForProgression]] = {
     import AssessmentCentreRepository.applicationForFsacBsonReads
     val xdipQuery = (route: ApplicationRoute) => BSONDocument(
       "applicationId" -> applicationId,
@@ -202,7 +209,7 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
     }
   }
 
-  def progressToFsb(application: ApplicationForProgression): Future[Unit] = {
+  override def progressToFsb(application: ApplicationForProgression): Future[Unit] = {
     val query = BSONDocument("applicationId" -> application.applicationId)
     val validator = singleUpdateValidator(application.applicationId, actionDesc = "progressing to fsb awaiting allocation")
 
@@ -211,7 +218,7 @@ class FsbMongoRepository(val dateTimeFactory: DateTimeFactory)(implicit mongo: (
     )) map validator
   }
 
-  def progressToJobOffer(application: ApplicationForProgression): Future[Unit] = {
+  override def progressToJobOffer(application: ApplicationForProgression): Future[Unit] = {
     val query = BSONDocument("applicationId" -> application.applicationId)
     val validator = singleUpdateValidator(application.applicationId, actionDesc = "progressing to eligible for job offer")
 

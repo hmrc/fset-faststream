@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,12 @@
 
 package config
 
-import com.github.ghik.silencer.silent
+import javax.inject.{ Inject, Singleton }
 import model.persisted.eventschedules.{ Location, Venue }
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ValueReader
-import play.api.Play.{ configuration, current }
-import play.api.{ Logger, Play }
-import uk.gov.hmrc.play.config.ServicesConfig
+import play.api.{ Configuration, Environment, Logger }
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 case class FrameworksConfig(yamlFilePath: String)
 
@@ -163,18 +162,23 @@ case class Phase3TestsConfig(timeToExpireInDays: Int,
                              candidateCompletionRedirectUrl: String,
                              interviewsByAdjustmentPercentage: Map[String, Int],
                              evaluationWaitTimeAfterResultsReceivedInHours: Int,
-                             verifyAllScoresArePresent: Boolean)
+                             verifyAllScoresArePresent: Boolean) {
+  override def toString: String = s"timeToExpireInDays=$timeToExpireInDays," +
+    s"invigilatedTimeToExpireInDays=$invigilatedTimeToExpireInDays," +
+    s"gracePeriodInSecs=$gracePeriodInSecs," +
+    s"candidateCompletionRedirectUrl=$candidateCompletionRedirectUrl," +
+    s"interviewsByAdjustmentPercentage=$interviewsByAdjustmentPercentage," +
+    s"evaluationWaitTimeAfterResultsReceivedInHours=$evaluationWaitTimeAfterResultsReceivedInHours," +
+    s"verifyAllScoresArePresent=$verifyAllScoresArePresent"
+}
 
 case class LocationsAndVenuesConfig(yamlFilePath: String)
 
-object MicroserviceAppConfig extends MicroserviceAppConfig
-
-trait MicroserviceAppConfig extends ServicesConfig {
+@Singleton
+class MicroserviceAppConfig @Inject() (val config: Configuration, val environment: Environment) {
   import net.ceedubs.ficus.readers.ArbitraryTypeReader._
-  @silent lazy val app = play.api.Play.current
-  @silent lazy val underlyingConfiguration = configuration.underlying
 
-  lazy val appName = app.configuration.getString("appName").get
+  lazy val underlyingConfiguration = config.underlying
 
   lazy val emailConfig = underlyingConfiguration.as[EmailConfig]("microservice.services.email")
   lazy val authConfig = underlyingConfiguration.as[AuthConfig](s"microservice.services.auth")
@@ -201,7 +205,6 @@ trait MicroserviceAppConfig extends ServicesConfig {
   lazy val parityExportJobConfig =
     underlyingConfiguration.as[ScheduledJobConfig]("scheduling.parity-export-job")
 
-  override def mode = Play.current.mode
-
-  override def runModeConfiguration = Play.current.configuration
+//  override def mode = environment.mode
+//  override def runModeConfiguration = configuration
 }

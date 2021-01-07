@@ -16,14 +16,15 @@
 
 package repositories
 
-import config.MicroserviceAppConfig._
 import factories.ITDateTimeFactoryMock
 import model.ApplicationStatus._
-import model.{ ApplicationRoute, ProgressStatuses }
 import model.Exceptions.ApplicationNotFound
 import model.command.WithdrawApplication
 import model.persisted.AssistanceDetails
+import model.{ ApplicationRoute, ProgressStatuses }
 import org.joda.time.DateTime
+import play.api.libs.json.JsObject
+import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.application.GeneralApplicationMongoRepository
@@ -36,26 +37,26 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
   val frameworkId = "FastStream-2016"
 
-  val collectionName = CollectionNames.APPLICATION
+  val collectionName: String = CollectionNames.APPLICATION
 
-  def applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, testIntegrationGatewayConfig, eventsConfig)
+  def applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, appConfig, mongo)
 
-  def assistanceRepo = new AssistanceDetailsMongoRepository()
+  def assistanceRepo = new AssistanceDetailsMongoRepository(mongo)
 
   "Application repository" should {
     "create indexes for the repository" in {
-      val repo = repositories.applicationRepository
+      val repo = applicationRepo
 
       val indexes = indexesWithFields(repo)
       indexes must contain theSameElementsAs
         Seq(
-          List("_id"),
-          List("applicationId", "userId"),
-          List("userId", "frameworkId"),
-          List("applicationStatus"),
-          List("assistance-details.needsSupportForOnlineAssessment"),
-          List("assistance-details.needsSupportAtVenue"),
-          List("assistance-details.guaranteedInterview")
+          IndexDetails(key = Seq(("_id", Ascending)), unique = false),
+          IndexDetails(key = Seq(("applicationId", Ascending), ("userId", Ascending)), unique = true),
+          IndexDetails(key = Seq(("userId", Ascending), ("frameworkId", Ascending)), unique = true),
+          IndexDetails(key = Seq(("applicationStatus", Ascending)), unique = false),
+          IndexDetails(key = Seq(("assistance-details.needsSupportForOnlineAssessment", Ascending)), unique = false),
+          IndexDetails(key = Seq(("assistance-details.needsSupportAtVenue", Ascending)), unique = false),
+          IndexDetails(key = Seq(("assistance-details.guaranteedInterview", Ascending)), unique = false)
         )
     }
 
@@ -94,7 +95,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     }
 
     "throw an exception not of the type ApplicationNotFound when application is corrupt" in {
-      Await.ready(applicationRepo.collection.insert(BSONDocument(
+      Await.ready(applicationRepo.collection.insert(ordered = false).one(BSONDocument(
         "userId" -> "validUser",
         "frameworkId" -> "validFrameworkField"
         // but application Id framework, which is mandatory, so will fail to deserialise
@@ -179,22 +180,23 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
   }
 
   def getApplicationStatus(appId: String) = {
-    applicationRepo.collection.find(BSONDocument("applicationId" -> "app1")).one[BSONDocument].map { docOpt =>
+    applicationRepo.collection.find(BSONDocument("applicationId" -> "app1"), projection = Option.empty[JsObject])
+      .one[BSONDocument].map { docOpt =>
       docOpt must not be empty
       val doc = docOpt.get
       doc.getAs[String]("applicationStatus").get
     }.futureValue
   }
 
-  def createApplication(appId: String, appStatus: String): Unit = {
-    applicationRepo.collection.insert(BSONDocument(
+  private def createApplication(appId: String, appStatus: String): Unit = {
+    applicationRepo.collection.insert(ordered = false).one(BSONDocument(
       "applicationId" -> appId,
       "applicationStatus" -> appStatus
     )).futureValue
   }
 
-  def createApplicationWithPassmark(appId: String, appStatus: String, passmarkVersion: String): Unit = {
-    applicationRepo.collection.insert(BSONDocument(
+  private def createApplicationWithPassmark(appId: String, appStatus: String, passmarkVersion: String): Unit = {
+    applicationRepo.collection.insert(ordered = false).one(BSONDocument(
       "applicationId" -> appId,
       "applicationStatus" -> appStatus,
       "assessment-centre-passmark-evaluation" -> BSONDocument(

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,23 +17,28 @@
 package scheduler
 
 import config.WaitingScheduledJobConfig
-import play.api.Logger
-import scheduler.ProgressToFsbOrOfferJobConfig.conf
+import javax.inject.{ Inject, Singleton }
+import play.api.{ Configuration, Logger }
+import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.clustering.SingleInstanceScheduledJob
+//import scheduler.ProgressToFsbOrOfferJobConfig.conf
 import services.assessmentcentre.ProgressionToFsbOrOfferService
-
-import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 
-object ProgressToFsbOrOfferJob extends ProgressToFsbOrOfferJob {
-  val progressionToFsbOrOfferService = ProgressionToFsbOrOfferService
-  val config = ProgressToFsbOrOfferJobConfig
+import scala.concurrent.{ ExecutionContext, Future }
+
+class ProgressToFsbOrOfferJobImpl @Inject() (val progressionToFsbOrOfferService: ProgressionToFsbOrOfferService,
+                                             val mongoComponent: ReactiveMongoComponent,
+                                             val config: ProgressToFsbOrOfferJobConfig
+                                            ) extends ProgressToFsbOrOfferJob {
+  //  val progressionToFsbOrOfferService = ProgressionToFsbOrOfferService
+  //  val config = ProgressToFsbOrOfferJobConfig
 }
 
 trait ProgressToFsbOrOfferJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val progressionToFsbOrOfferService: ProgressionToFsbOrOfferService
 
-  val batchSize: Int = conf.batchSize.getOrElse(1)
+  val batchSize: Int = config.conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc = HeaderCarrier()
@@ -50,7 +55,9 @@ trait ProgressToFsbOrOfferJob extends SingleInstanceScheduledJob[BasicJobConfig[
   }
 }
 
-object ProgressToFsbOrOfferJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
+@Singleton
+class ProgressToFsbOrOfferJobConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.progress-to-fsb-or-offer-job",
   name = "ProgressToFsbOrOfferJob"
 )

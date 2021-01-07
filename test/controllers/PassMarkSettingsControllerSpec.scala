@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
+import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.{ Format, Json }
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
@@ -55,7 +57,9 @@ class Phase1PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
 
   val mockPassMarkSettingsService = mock[PassMarkSettingsService[Phase1PassMarkSettings]]
 
-  val controller = new PassMarkSettingsController[Phase1PassMarkSettings] {
+  val stubCC = stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer))
+
+  val controller = new PassMarkSettingsController[Phase1PassMarkSettings](stubCC) {
     val passMarkService = mockPassMarkSettingsService
     val auditService = mockAuditService
     val uuidFactory = mockUUIDFactory
@@ -107,7 +111,9 @@ class Phase2PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
 
   val mockPassMarkSettingsService = mock[PassMarkSettingsService[Phase2PassMarkSettings]]
 
-  val controller = new PassMarkSettingsController[Phase2PassMarkSettings] {
+  val stubCC = stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer))
+
+  val controller = new PassMarkSettingsController[Phase2PassMarkSettings](stubCC) {
     val passMarkService = mockPassMarkSettingsService
     val auditService = mockAuditService
     val uuidFactory = mockUUIDFactory
@@ -151,7 +157,9 @@ class Phase3PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
 
   val mockPassMarkSettingsService = mock[PassMarkSettingsService[Phase3PassMarkSettings]]
 
-  val controller = new PassMarkSettingsController[Phase3PassMarkSettings] {
+  val stubCC = stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer))
+
+  val controller = new PassMarkSettingsController[Phase3PassMarkSettings](stubCC) {
     val passMarkService = mockPassMarkSettingsService
     val auditService = mockAuditService
     val uuidFactory = mockUUIDFactory
@@ -194,7 +202,9 @@ class AssessmentCentrePassMarkSettingsControllerSpec extends PassMarkSettingsCon
 
   val mockPassMarkSettingsService = mock[PassMarkSettingsService[AssessmentCentrePassMarkSettings]]
 
-  val controller = new PassMarkSettingsController[AssessmentCentrePassMarkSettings] {
+  val stubCC = stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer))
+
+  val controller = new PassMarkSettingsController[AssessmentCentrePassMarkSettings](stubCC) {
     val passMarkService = mockPassMarkSettingsService
     val auditService = mockAuditService
     val uuidFactory = mockUUIDFactory

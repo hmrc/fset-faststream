@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,11 @@
 package scheduler.sift
 
 import config.WaitingScheduledJobConfig
+import javax.inject.{ Inject, Singleton }
 import model.EmptyRequestHeader
-import play.api.Logger
+import play.api.mvc.RequestHeader
+import play.api.{ Configuration, Logger }
+import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.NumericalTestService2
@@ -27,20 +30,25 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object SiftNumericalTestInvitationJob extends SiftNumericalTestInvitationJob {
-  val siftService = ApplicationSiftService
-  val config = SiftNumericalTestInvitationConfig
-  val numericalTestService: NumericalTestService2 = NumericalTestService2
+@Singleton
+class SiftNumericalTestInvitationJobImpl @Inject() (val siftService: ApplicationSiftService,
+                                                    val numericalTestService: NumericalTestService2,
+                                                    val mongoComponent: ReactiveMongoComponent,
+                                                    val config: SiftNumericalTestInvitationConfig
+                                                   ) extends SiftNumericalTestInvitationJob {
+  //  val siftService = ApplicationSiftService
+  //  val config = SiftNumericalTestInvitationConfig
+  //  val numericalTestService: NumericalTestService2 = NumericalTestService2
 }
 
 trait SiftNumericalTestInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   val siftService: ApplicationSiftService
   val numericalTestService: NumericalTestService2
-  lazy val batchSize = SiftNumericalTestInvitationConfig.conf.batchSize.getOrElse(1)
+  lazy val batchSize = config.conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    implicit val hc = HeaderCarrier()
-    implicit val rh = EmptyRequestHeader
+    implicit val hc: HeaderCarrier = HeaderCarrier()
+    implicit val rh: RequestHeader = EmptyRequestHeader
     log(s"Looking for candidates to invite to sift numerical test with a batch size of $batchSize")
     siftService.nextApplicationsReadyForNumericTestsInvitation(batchSize).flatMap {
       case Nil =>
@@ -62,7 +70,9 @@ trait SiftNumericalTestInvitationJob extends SingleInstanceScheduledJob[BasicJob
   private def log(msg: String) = Logger.warn(msg)
 }
 
-object SiftNumericalTestInvitationConfig extends BasicJobConfig[WaitingScheduledJobConfig](
+@Singleton
+class SiftNumericalTestInvitationConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.sift-numerical-test-invitation-job",
   name = "SiftNumericalTestInvitationJob"
 )

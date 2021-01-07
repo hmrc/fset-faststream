@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,27 @@
 package scheduler.sift
 
 import config.WaitingScheduledJobConfig
+import javax.inject.{ Inject, Singleton }
 import model.EmptyRequestHeader
-import play.api.Logger
+import play.api.mvc.RequestHeader
+import play.api.{ Configuration, Logger }
+import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-import services.NumericalTestService
+import services.NumericalTestService2
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object RetrieveSiftNumericalResultsJob extends RetrieveSiftNumericalResultsJob {
-  val numericalTestService = NumericalTestService
-  val config = RetrieveSiftNumericalResultsJobConfig
+@Singleton
+class RetrieveSiftNumericalResultsJobImpl @Inject() (val numericalTestService: NumericalTestService2,
+                                                     val mongoComponent: ReactiveMongoComponent,
+                                                     val config: RetrieveSiftNumericalResultsJobConfig
+                                                    ) extends RetrieveSiftNumericalResultsJob {
 }
 
 trait RetrieveSiftNumericalResultsJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
-  val numericalTestService: NumericalTestService
+  val numericalTestService: NumericalTestService2
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     val intro = "Retrieving xml results for candidates in SIFT"
@@ -42,8 +47,8 @@ trait RetrieveSiftNumericalResultsJob extends SingleInstanceScheduledJob[BasicJo
       case Some(testGroup) =>
         Logger.info(s"$intro - processing candidate with applicationId: ${testGroup.applicationId}")
 
-        implicit val hc = HeaderCarrier()
-        implicit val rh = EmptyRequestHeader
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+        implicit val rh: RequestHeader = EmptyRequestHeader
         numericalTestService.retrieveTestResult(testGroup)
       case None =>
         Logger.info(s"$intro - found no candidates")
@@ -52,7 +57,8 @@ trait RetrieveSiftNumericalResultsJob extends SingleInstanceScheduledJob[BasicJo
   }
 }
 
-object RetrieveSiftNumericalResultsJobConfig extends BasicJobConfig[WaitingScheduledJobConfig](
+class RetrieveSiftNumericalResultsJobConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
+  config = config,
   configPrefix = "scheduling.retrieve-sift-numerical-results-job",
   name = "RetrieveSiftNumericalResultsJob"
 )

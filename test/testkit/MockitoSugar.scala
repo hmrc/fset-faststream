@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.mockito.stubbing.Stubber
 
 import scala.concurrent.Future
 
-trait MockitoSugar extends org.scalatest.mockito.MockitoSugar {
+trait MockitoSugar extends org.scalatestplus.mockito.MockitoSugar {
   // Unfortunately we cannot use the `when().thenReturn` format for spies.
   def doReturnAsync() = Mockito.doReturn(Future.successful(()), Nil:_*)
   def doReturnAsync[A](value: A) = Mockito.doReturn(Future.successful(value), Nil:_*)

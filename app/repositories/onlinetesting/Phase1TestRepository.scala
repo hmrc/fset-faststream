@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,16 @@ package repositories.onlinetesting
 
 import common.Phase1TestConcern
 import factories.DateTimeFactory
+import javax.inject.{ Inject, Singleton }
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{ Green, Red }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{ PHASE1_TESTS_INVITED, _ }
-import model.persisted.{ NotificationExpiringOnlineTest, Phase1TestGroupWithUserIds, Phase1TestProfile }
 import model._
+import model.persisted.{ NotificationExpiringOnlineTest, Phase1TestGroupWithUserIds, Phase1TestProfile }
 import org.joda.time.DateTime
 import play.api.libs.json.JsObject
-import reactivemongo.api.DB
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.CollectionNames
@@ -55,11 +56,17 @@ trait Phase1TestRepository extends OnlineTestRepository with Phase1TestConcern {
   def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit]
 
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
+
+  def nextSdipFaststreamCandidateReadyForSdipProgression: Future[Option[Phase1TestGroupWithUserIds]]
 }
 
-class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
-  extends ReactiveRepository[Phase1TestProfile, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    Phase1TestProfile.phase1TestProfileFormat, ReactiveMongoFormats.objectIdFormats
+@Singleton
+class Phase1TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[Phase1TestProfile, BSONObjectID](
+    CollectionNames.APPLICATION,
+    mongoComponent.mongoConnector.db,
+    Phase1TestProfile.phase1TestProfileFormat,
+    ReactiveMongoFormats.objectIdFormats
   ) with Phase1TestRepository {
 
   override val phaseName = "PHASE1"
@@ -87,12 +94,12 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
     val submittedStatuses = List[String](ApplicationStatus.SUBMITTED, ApplicationStatus.SUBMITTED.toLowerCase)
 
     val query = BSONDocument("$and" -> BSONArray(
-        BSONDocument("applicationStatus" -> BSONDocument("$in" -> submittedStatuses)),
-        BSONDocument("$or" -> BSONArray(
-          BSONDocument("civil-service-experience-details.fastPassReceived" -> BSONDocument("$ne" -> true)),
-          BSONDocument("civil-service-experience-details.fastPassAccepted" -> false)
-        ))
+      BSONDocument("applicationStatus" -> BSONDocument("$in" -> submittedStatuses)),
+      BSONDocument("$or" -> BSONArray(
+        BSONDocument("civil-service-experience-details.fastPassReceived" -> BSONDocument("$ne" -> true)),
+        BSONDocument("civil-service-experience-details.fastPassAccepted" -> false)
       ))
+    ))
 
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
     selectRandom[OnlineTestApplication](query, maxBatchSize)
@@ -155,11 +162,11 @@ class Phase1TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   }
 
   override def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = {
-      val progressStatusQuery = BSONDocument("$and" -> BSONArray(
-        BSONDocument(s"progress-status.$PHASE1_TESTS_COMPLETED" -> BSONDocument("$ne" -> true)),
-        BSONDocument(s"progress-status.$PHASE1_TESTS_EXPIRED" -> BSONDocument("$ne" -> true)),
-        BSONDocument(s"progress-status.${reminder.progressStatuses}" -> BSONDocument("$ne" -> true))
-      ))
+    val progressStatusQuery = BSONDocument("$and" -> BSONArray(
+      BSONDocument(s"progress-status.$PHASE1_TESTS_COMPLETED" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"progress-status.$PHASE1_TESTS_EXPIRED" -> BSONDocument("$ne" -> true)),
+      BSONDocument(s"progress-status.${reminder.progressStatuses}" -> BSONDocument("$ne" -> true))
+    ))
 
     nextTestForReminder(reminder, progressStatusQuery)
   }

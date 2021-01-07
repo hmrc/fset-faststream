@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,17 +21,17 @@ import java.util.concurrent.TimeUnit
 import config.ScheduledJobConfigurable
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ValueReader
-import play.api.Play.configuration
+import play.api.Configuration
+//import play.api.Play.configuration
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.util.Try
 
-case class BasicJobConfig[T <: ScheduledJobConfigurable] (configPrefix: String, name: String)
-                                                         (implicit reader: ValueReader[T]){
-  import play.api.Play.current
+case class BasicJobConfig[T <: ScheduledJobConfigurable] (config: Configuration, configPrefix: String, name: String)
+                                                         (implicit reader: ValueReader[T]) {
 
-  lazy val conf: T = configuration.underlying.as[T](configPrefix)
+  lazy val conf: T = config.underlying.as[T](configPrefix)
   val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   def lockId = conf.lockId.getOrElse(exception("lockId"))

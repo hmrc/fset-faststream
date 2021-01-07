@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,11 @@
 
 package services.fastpass
 
-import connectors.{ CSREmailClient, OnlineTestEmailClient }
-import model.persisted.SchemeEvaluationResult
+import com.google.inject.name.Named
+import connectors.OnlineTestEmailClient
+import javax.inject.{ Inject, Singleton }
 import model._
+import model.persisted.SchemeEvaluationResult
 import model.stc.AuditEvents.{ FastPassUserAccepted, FastPassUserAcceptedEmailSent, FastPassUserRejected }
 import model.stc.DataStoreEvents.{ ApplicationReadyForExport, FastPassApproved, FastPassRejected }
 import play.api.Logger
@@ -29,51 +31,35 @@ import repositories.assistancedetails.AssistanceDetailsRepository
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
 import services.adjustmentsmanagement.AdjustmentsManagementService
-import services.stc.{ EventSink, StcEventService }
 import services.personaldetails.PersonalDetailsService
 import services.scheme.SchemePreferencesService
 import services.sift.ApplicationSiftService
+import services.stc.{ EventSink, StcEventService }
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
-object FastPassService extends FastPassService {
-  override val appRepo = applicationRepository
-  override val personalDetailsService = PersonalDetailsService
-  override val eventService: StcEventService = StcEventService
-  override val emailClient = CSREmailClient
-  override val cdRepository = faststreamContactDetailsRepository
-  override val csedRepository = civilServiceExperienceDetailsRepository
-  override val schemePreferencesService = SchemePreferencesService
-  override val schemesRepository = SchemeYamlRepository
-  override val applicationSiftService = ApplicationSiftService
-  override val adjustmentsManagementService = AdjustmentsManagementService
-  override val assistanceDetailsRepository = faststreamAssistanceDetailsRepository
+@Singleton
+class FastPassService @Inject() (appRepo: GeneralApplicationRepository,
+                                 personalDetailsService: PersonalDetailsService,
+                                 val eventService: StcEventService,
+                                 @Named("CSREmailClient") emailClient: OnlineTestEmailClient,
+                                 cdRepository: ContactDetailsRepository,
+                                 csedRepository: CivilServiceExperienceDetailsRepository,
+                                 schemePreferencesService: SchemePreferencesService,
+                                 schemesRepository: SchemeRepository,
+                                 applicationSiftService: ApplicationSiftService,
+                                 adjustmentsManagementService: AdjustmentsManagementService,
+                                 assistanceDetailsRepository: AssistanceDetailsRepository
+                                ) extends EventSink with CurrentSchemeStatusHelper {
 
-  override val fastPassDetails = CivilServiceExperienceDetails(
+  val fastPassDetails = CivilServiceExperienceDetails(
     applicable = true,
     fastPassReceived = Some(true),
     fastPassAccepted = Some(true),
     certificateNumber = Some("0000000")
   )
-}
-
-trait FastPassService extends EventSink with CurrentSchemeStatusHelper {
-
-  val appRepo: GeneralApplicationRepository
-  val personalDetailsService: PersonalDetailsService
-  val eventService: StcEventService
-  val emailClient: OnlineTestEmailClient
-  val cdRepository: ContactDetailsRepository
-  val csedRepository: CivilServiceExperienceDetailsRepository
-  val schemePreferencesService: SchemePreferencesService
-  val schemesRepository: SchemeRepository
-  val applicationSiftService: ApplicationSiftService
-  val adjustmentsManagementService: AdjustmentsManagementService
-  val assistanceDetailsRepository: AssistanceDetailsRepository
-
-  val fastPassDetails: CivilServiceExperienceDetails
 
   val acceptedTemplate = "fset_faststream_app_online_fast-pass_accepted"
 
@@ -215,5 +201,4 @@ trait FastPassService extends EventSink with CurrentSchemeStatusHelper {
       _ <- eventSink(FastPassUserRejected(eventMap) :: FastPassRejected(applicationId, actionTriggeredBy) :: Nil)
     } yield (personalDetail.firstName, personalDetail.lastName)
   }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,23 @@
 
 package controllers
 
-import model.questionnaire.Questionnaire
+import javax.inject.{ Inject, Singleton }
 import model.questionnaire.Question._
-import play.api.mvc.Action
-import repositories.application.{ GeneralApplicationMongoRepository, GeneralApplicationRepository }
-import repositories.{ QuestionnaireRepository, _ }
+import model.questionnaire.Questionnaire
+import play.api.mvc.{ Action, ControllerComponents }
+import repositories._
+import repositories.application.GeneralApplicationRepository
 import services.AuditService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object QuestionnaireController extends QuestionnaireController {
-  val qRepository: QuestionnaireMongoRepository = questionnaireRepository
-  val appRepository: GeneralApplicationMongoRepository = applicationRepository
-  val auditService: AuditService.type = AuditService
-}
-
-trait QuestionnaireController extends BaseController {
-
-  val qRepository: QuestionnaireRepository
-  val appRepository: GeneralApplicationRepository
-  val auditService: AuditService
+@Singleton
+class QuestionnaireController @Inject() (cc: ControllerComponents,
+                                         qRepository: QuestionnaireRepository,
+                                         appRepository: GeneralApplicationRepository,
+                                         auditService: AuditService
+                                        ) extends BackendController(cc) {
 
   def addSection(applicationId: String, sectionKey: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[Questionnaire] { questionnaire =>

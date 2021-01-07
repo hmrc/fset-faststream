@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,17 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent }
-import services.stc.StcEventService
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import services.onlinetesting.phase3.Phase3TestService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object Phase3TestGroupController extends Phase3TestGroupController {
-  val phase3TestService = Phase3TestService
-  val eventService: StcEventService = StcEventService
-}
-
-trait Phase3TestGroupController extends BaseController {
-  val phase3TestService: Phase3TestService
-  val eventService: StcEventService
+@Singleton
+class Phase3TestGroupController @Inject() (cc: ControllerComponents,
+                                           phase3TestService: Phase3TestService) extends BackendController(cc) {
 
   def getTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     phase3TestService.getTestGroup(applicationId).map {

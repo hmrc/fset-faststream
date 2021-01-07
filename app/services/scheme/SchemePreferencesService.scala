@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,24 @@
 
 package services.scheme
 
+import com.google.inject.ImplementedBy
+import javax.inject.{ Inject, Singleton }
 import model.SelectedSchemes
-import repositories._
 import repositories.schemepreferences.SchemePreferencesRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object SchemePreferencesService extends SchemePreferencesService {
-  val spRepository: SchemePreferencesRepository = schemePreferencesRepository
+@ImplementedBy(classOf[SchemePreferencesServiceImpl])
+trait SchemePreferencesService {
+  def find(applicationId: String): Future[SelectedSchemes]
+  def update(applicationId: String, selectedSchemes: SelectedSchemes): Future[Unit]
 }
 
-trait SchemePreferencesService {
-  val spRepository: SchemePreferencesRepository
+@Singleton
+class SchemePreferencesServiceImpl @Inject() (spRepository: SchemePreferencesRepository) extends SchemePreferencesService {
+  override def find(applicationId: String): Future[SelectedSchemes] = spRepository.find(applicationId)
 
-  def find(applicationId: String): Future[SelectedSchemes] = spRepository.find(applicationId)
-
-  def update(applicationId: String, selectedSchemes: SelectedSchemes): Future[Unit] =
+  override def update(applicationId: String, selectedSchemes: SelectedSchemes): Future[Unit] =
     spRepository.save(applicationId, selectedSchemes) map (_ => ())
 }

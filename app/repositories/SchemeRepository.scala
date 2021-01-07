@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,13 @@
 
 package repositories
 
+import com.google.inject.ImplementedBy
 import config.MicroserviceAppConfig
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.SchemeNotFoundException
 import model._
 import net.jcazevedo.moultingyaml._
-import play.api.Play
+import play.api.{ Application, Play }
 import resource._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -45,55 +47,22 @@ object SchemeConfigProtocol extends DefaultYamlProtocol {
     fsbType.map(t => FsbType(t)), schemeGuide, schemeQuestion))
 }
 
+@ImplementedBy(classOf[SchemeYamlRepository])
 trait SchemeRepository {
 
-  import play.api.Play.current
-
-  private lazy val rawConfig = {
-    val input = managed(Play.application.resourceAsStream(MicroserviceAppConfig.schemeConfig.yamlFilePath).get)
-    input.acquireAndGet(stream => Source.fromInputStream(stream).mkString)
-  }
-
-  lazy val schemes: Seq[Scheme] = {
-    import SchemeConfigProtocol._
-    rawConfig.parseYaml.convertTo[List[Scheme]]
-  }
-
-  private lazy val schemesByFsb: Map[String, Scheme] = schemes.flatMap(s => s.fsbType.map(ft => ft.key -> s)).toMap
-
-  def getSchemeForFsb(fsb: String): Scheme = {
-    schemesByFsb.getOrElse(fsb, throw SchemeNotFoundException(s"Cannot find scheme for FSB: $fsb"))
-  }
-
-  def faststreamSchemes: Seq[Scheme] = schemes.filterNot(s => s.isSdip || s.isEdip)
-
-  def getSchemesForIds(ids: Seq[SchemeId]): Seq[Scheme] = ids.flatMap { id => getSchemeForId(id) }
-
-  def getSchemeForId(id: SchemeId): Option[Scheme] = schemes.find(_.id == id)
-
-  def fsbSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.fsbType.isDefined => s.id }
-
-  def siftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isDefined => s.id }
-
-  def siftableAndEvaluationRequiredSchemeIds: Seq[SchemeId] = schemes.collect {
-    case s if s.siftRequirement.isDefined && s.siftEvaluationRequired => s.id
-  }
-
-  def noSiftEvaluationRequiredSchemeIds: Seq[SchemeId] = schemes.collect {
-    case s if !s.siftEvaluationRequired => s.id
-  }
-
-  def nonSiftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isEmpty => s.id }
-
-  def numericTestSiftRequirementSchemeIds: Seq[SchemeId] = schemes.collect {
-    case s if s.siftRequirement.contains(SiftRequirement.NUMERIC_TEST) && s.siftEvaluationRequired => s.id
-  }
-
-  def formMustBeFilledInSchemeIds: Seq[SchemeId] = schemes.collect {
-    case s if s.siftRequirement.contains(SiftRequirement.FORM) => s.id
-  }
-
-  def getFsbTypes: Seq[FsbType] = schemes.flatMap(_.fsbType)
+  def schemes: Seq[Scheme]
+  def getSchemeForFsb(fsb: String): Scheme
+  def faststreamSchemes: Seq[Scheme]
+  def getSchemesForIds(ids: Seq[SchemeId]): Seq[Scheme]
+  def getSchemeForId(id: SchemeId): Option[Scheme]
+  def fsbSchemeIds: Seq[SchemeId]
+  def siftableSchemeIds: Seq[SchemeId]
+  def siftableAndEvaluationRequiredSchemeIds: Seq[SchemeId]
+  def noSiftEvaluationRequiredSchemeIds: Seq[SchemeId]
+  def nonSiftableSchemeIds: Seq[SchemeId]
+  def numericTestSiftRequirementSchemeIds: Seq[SchemeId]
+  def formMustBeFilledInSchemeIds: Seq[SchemeId]
+  def getFsbTypes: Seq[FsbType]
 
   /**
     * Max number of schemes that a candidate can choose. Note that SdipFaststream max will be +1 eg. 5 because they automatically
@@ -103,4 +72,54 @@ trait SchemeRepository {
   def maxNumberOfSelectableSchemes = 4
 }
 
-object SchemeYamlRepository extends SchemeRepository
+@Singleton
+class SchemeYamlRepository @Inject() (implicit application: Application, appConfig: MicroserviceAppConfig) extends SchemeRepository {
+
+  //  import play.api.Play.current
+
+  private lazy val rawConfig = {
+    val input = managed(application.resourceAsStream(appConfig.schemeConfig.yamlFilePath).get)
+    input.acquireAndGet(stream => Source.fromInputStream(stream).mkString)
+  }
+
+  override lazy val schemes: Seq[Scheme] = {
+    import SchemeConfigProtocol._
+    rawConfig.parseYaml.convertTo[List[Scheme]]
+  }
+
+  private lazy val schemesByFsb: Map[String, Scheme] = schemes.flatMap(s => s.fsbType.map(ft => ft.key -> s)).toMap
+
+  override def getSchemeForFsb(fsb: String): Scheme = {
+    schemesByFsb.getOrElse(fsb, throw SchemeNotFoundException(s"Cannot find scheme for FSB: $fsb"))
+  }
+
+  override def faststreamSchemes: Seq[Scheme] = schemes.filterNot(s => s.isSdip || s.isEdip)
+
+  override def getSchemesForIds(ids: Seq[SchemeId]): Seq[Scheme] = ids.flatMap { id => getSchemeForId(id) }
+
+  override def getSchemeForId(id: SchemeId): Option[Scheme] = schemes.find(_.id == id)
+
+  override def fsbSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.fsbType.isDefined => s.id }
+
+  override def siftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isDefined => s.id }
+
+  override def siftableAndEvaluationRequiredSchemeIds: Seq[SchemeId] = schemes.collect {
+    case s if s.siftRequirement.isDefined && s.siftEvaluationRequired => s.id
+  }
+
+  override def noSiftEvaluationRequiredSchemeIds: Seq[SchemeId] = schemes.collect {
+    case s if !s.siftEvaluationRequired => s.id
+  }
+
+  override def nonSiftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isEmpty => s.id }
+
+  override def numericTestSiftRequirementSchemeIds: Seq[SchemeId] = schemes.collect {
+    case s if s.siftRequirement.contains(SiftRequirement.NUMERIC_TEST) && s.siftEvaluationRequired => s.id
+  }
+
+  override def formMustBeFilledInSchemeIds: Seq[SchemeId] = schemes.collect {
+    case s if s.siftRequirement.contains(SiftRequirement.FORM) => s.id
+  }
+
+  override def getFsbTypes: Seq[FsbType] = schemes.flatMap(_.fsbType)
+}

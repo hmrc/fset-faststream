@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,32 +16,29 @@
 
 package model
 
+import java.net.InetAddress
 import java.security.cert.X509Certificate
 
+import play.api.libs.typedmap.TypedMap
+import play.api.mvc.request.{ RemoteConnection, RequestTarget }
 import play.api.mvc.{ Headers, RequestHeader }
 
 object EmptyRequestHeader extends EmptyRequestHeader
 
 trait EmptyRequestHeader extends RequestHeader {
-  override def id: Long = 1L
+  override def connection = new RemoteConnection {
+    override def remoteAddress = InetAddress.getByName("127.0.0.1")
+    override def secure: Boolean = false
+    override def clientCertificateChain: Option[Seq[X509Certificate]] = None
+  }
 
-  override def tags: Map[String, String] = Map.empty
+  override def target = RequestTarget(uriString = "", path = "", queryString = Map.empty[String, Seq[String]])
 
-  override def uri: String = ""
-
-  override def path: String = ""
+  override def attrs = TypedMap.empty
 
   override def method: String = ""
 
   override def version: String = ""
 
-  override def queryString: Map[String, Seq[String]] = Map.empty
-
-  override def clientCertificateChain: Option[Seq[X509Certificate]] = None
-
   override def headers: Headers = new Headers(_headers = Nil)
-
-  override def remoteAddress: String = ""
-
-  override def secure: Boolean = false
 }

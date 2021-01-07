@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,22 @@
 
 package services.sift
 
+import javax.inject.{ Inject, Singleton }
 import model._
 import model.persisted.sift.SiftAnswersStatus.SiftAnswersStatus
 import play.api.Logger
+import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
-import repositories.{ SchemeRepository, SchemeYamlRepository }
 import repositories.sift.SiftAnswersRepository
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-object SiftAnswersService extends SiftAnswersService {
-  val appRepo = repositories.applicationRepository
-  val siftAnswersRepo: SiftAnswersRepository = repositories.siftAnswersRepository
-  val schemeRepository = SchemeYamlRepository
-}
-
-trait SiftAnswersService {
-  def appRepo: GeneralApplicationRepository
-  def siftAnswersRepo: SiftAnswersRepository
-  def schemeRepository: SchemeRepository
-
+@Singleton
+class SiftAnswersService @Inject() (appRepo: GeneralApplicationRepository,
+                                    siftAnswersRepo: SiftAnswersRepository,
+                                    schemeRepository: SchemeRepository
+                                   ) {
   def addSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId, answer: model.exchange.sift.SchemeSpecificAnswer): Future[Unit] = {
     siftAnswersRepo.addSchemeSpecificAnswer(applicationId, schemeId, model.persisted.sift.SchemeSpecificAnswer(answer))
   }
@@ -106,7 +101,7 @@ trait SiftAnswersService {
   // or to SIFT_FORMS_COMPLETE_NUMERIC_TEST_PENDING to indicate the forms have been submitted and we are waiting
   // for the numeric test to be completed
   private def maybeMoveToReadyOrTestPending(applicationId: String,
-    schemesPassed: Set[SchemeId], siftTestResultsReceived: Boolean): Future[Unit] = {
+                                            schemesPassed: Set[SchemeId], siftTestResultsReceived: Boolean): Future[Unit] = {
 
     val hasNumericSchemes = schemeRepository.numericTestSiftRequirementSchemeIds.exists( s => schemesPassed.contains(s))
 

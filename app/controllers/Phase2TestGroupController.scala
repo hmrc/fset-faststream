@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,19 @@
 
 package controllers
 
-import play.api.mvc.Action
+import javax.inject.{ Inject, Singleton }
+import play.api.libs.json.JsValue
+import play.api.mvc.{ Action, ControllerComponents }
 import services.onlinetesting.phase2.Phase2TestService2
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object Phase2TestGroupController extends Phase2TestGroupController {
-  val phase2TestService = Phase2TestService2
-}
+@Singleton
+class Phase2TestGroupController @Inject() (cc: ControllerComponents,
+                                           phase2TestService: Phase2TestService2) extends BackendController(cc) {
 
-trait Phase2TestGroupController extends BaseController {
-  val phase2TestService: Phase2TestService2
-
-  def extend(applicationId: String) = Action.async(parse.json) { implicit request =>
+  def extend(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[OnlineTestExtension] { extension =>
       phase2TestService.extendTestGroupExpiryTime(applicationId, extension.extraDays,
         extension.actionTriggeredBy) map ( _ => Ok )

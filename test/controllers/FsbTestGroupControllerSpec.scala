@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package controllers
 
+import model.SchemeId
 import model.exchange.{ ApplicationResult, FsbEvaluationResults }
-import model.{ Degree, Scheme, SchemeId }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.test.Helpers._
@@ -28,13 +28,14 @@ import testkit.UnitWithAppSpec
 
 class FsbTestGroupControllerSpec extends UnitWithAppSpec {
 
-  val mockEventsService = mock[EventsService]
   val mockFsbTestGroupService = mock[FsbService]
+  val mockEventsService = mock[EventsService]
 
-  val controller = new FsbTestGroupController {
-    val eventsService = mockEventsService
-    val fsbService = mockFsbTestGroupService
-  }
+  val controller = new FsbTestGroupController(
+    stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
+    mockFsbTestGroupService,
+    mockEventsService
+  )
 
   "save fsb event evaluation result" should {
     "return Ok when save is successful" in {
@@ -43,11 +44,8 @@ class FsbTestGroupControllerSpec extends UnitWithAppSpec {
         ApplicationResult("applicationId2", "Pass")
       )
       val fsbEvaluationResults = FsbEvaluationResults(SchemeId("DiplomaticService"), applicationResults)
-
       when(mockFsbTestGroupService.saveResults(eqTo(fsbEvaluationResults.schemeId), any[List[ApplicationResult]])).thenReturnAsync(List.empty)
-
       val response = controller.savePerScheme()(fakeRequest(fsbEvaluationResults))
-
       status(response) mustBe OK
     }
   }
@@ -57,7 +55,6 @@ class FsbTestGroupControllerSpec extends UnitWithAppSpec {
       val applicationIds = List("appId1", "appId2")
       when(mockFsbTestGroupService.findByApplicationIdsAndFsbType(applicationIds, None)).thenReturnAsync(List())
       val response = controller.find(applicationIds, None)(fakeRequest)
-
       status(response) mustBe OK
     }
 
@@ -66,10 +63,7 @@ class FsbTestGroupControllerSpec extends UnitWithAppSpec {
       val fsbType = "FsbType"
       when(mockFsbTestGroupService.findByApplicationIdsAndFsbType(applicationIds, Some(fsbType))).thenReturnAsync(List())
       val response = controller.find(applicationIds, Some(fsbType))(fakeRequest)
-
       status(response) mustBe OK
     }
-
   }
-
 }

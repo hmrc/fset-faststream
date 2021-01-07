@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,11 @@
 
 package repositories
 
+import javax.inject.{ Inject, Singleton }
 import org.joda.time.{ DateTime, Duration }
 import play.api.Logger
 import play.api.libs.json.{ Format, JsObject, JsValue, Json }
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.DB
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
@@ -54,24 +56,25 @@ trait LockRepository {
   def releaseLock(reqLockId: String, reqOwner: String)(implicit ec: ExecutionContext): Future[Unit]
 }
 
-class LockMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[Lock, String](CollectionNames.LOCKS, mongo, LockFormats.format, implicitly[Format[String]]) with LockRepository {
+@Singleton
+class LockMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[Lock, String](
+    CollectionNames.LOCKS,
+    mongoComponent.mongoConnector.db,
+    LockFormats.format,
+    implicitly[Format[String]]) with LockRepository {
   private val DuplicateKey = 11000
 
   import LockFormats._
 
-  // When starting check indexes exist
-  Await.result(Future.sequence(List(
-    collection.indexesManager.create(Index(Seq((owner, Ascending)), unique = false)),
-    collection.indexesManager.create(Index(Seq((timeCreated, Ascending)), unique = false)),
-    collection.indexesManager.create(Index(Seq((expiryTime, Ascending)), unique = false))
-  )), 10 seconds)
+  override def indexes: Seq[Index] = Seq(
+    Index(Seq((owner, Ascending)), unique = false),
+    Index(Seq((timeCreated, Ascending)), unique = false),
+    Index(Seq((expiryTime, Ascending)), unique = false)
+  )
 
-  def lock(
-    reqLockId: String,
-    reqOwner: String,
-    forceReleaseAfter: Duration
-  )(implicit ec: ExecutionContext): Future[Boolean] = withCurrentTime { now =>
+  def lock(reqLockId: String, reqOwner: String, forceReleaseAfter: Duration)(
+    implicit ec: ExecutionContext): Future[Boolean] = withCurrentTime { now =>
     collection.delete().one(Json.obj(id -> reqLockId, expiryTime -> Json.obj("$lte" -> now))).flatMap { writeResult =>
       if (writeResult.n != 0) {
         Logger.info(s"Removed ${writeResult.n} expired locks for $reqLockId")
@@ -95,7 +98,7 @@ class LockMongoRepository(implicit mongo: () => DB)
     collection.find(
       Json.obj(id -> reqLockId, owner -> reqOwner, expiryTime -> Json.obj("$gt" -> now)),
       projection = Option.empty[JsObject])
-    .one[JsValue].map(_.isDefined)
+      .one[JsValue].map(_.isDefined)
   }
 
   def releaseLock(reqLockId: String, reqOwner: String)(implicit ec: ExecutionContext): Future[Unit] = {

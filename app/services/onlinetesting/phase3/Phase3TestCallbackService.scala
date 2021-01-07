@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,39 +16,41 @@
 
 package services.onlinetesting.phase3
 
-import _root_.services.AuditService
-import config.LaunchpadGatewayConfig
 import connectors.launchpadgateway.exchangeobjects.in._
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest
+import javax.inject.{ Inject, Singleton }
 import play.api.mvc.RequestHeader
-import repositories._
 import repositories.onlinetesting.Phase3TestRepository
 import services.stc.StcEventService
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.postfixOps
-import uk.gov.hmrc.http.HeaderCarrier
 
-object Phase3TestCallbackService extends Phase3TestCallbackService {
+//object Phase3TestCallbackService2 {
 
-  import config.MicroserviceAppConfig._
+//  import config.MicroserviceAppConfig._
 
-  val phase3TestRepo = phase3TestRepository
-  val phase3TestService = Phase3TestService
-  val auditService = AuditService
-  val gatewayConfig = launchpadGatewayConfig
-  val eventService = StcEventService
+//  val phase3TestRepo = phase3TestRepository
+//  val phase3TestService = Phase3TestService
+//  val auditService = AuditService //TODO:fix (not used)
+//  val gatewayConfig = launchpadGatewayConfig
+//  val eventService = StcEventService
 
-  case class InviteIdNotRecognisedException(message: String) extends Exception(message)
-}
+case class InviteIdNotRecognisedException(message: String) extends Exception(message)
+//}
 
-trait Phase3TestCallbackService {
-  val phase3TestRepo: Phase3TestRepository
-  val phase3TestService: Phase3TestService
-  val auditService: AuditService
-  val gatewayConfig: LaunchpadGatewayConfig
-  val eventService: StcEventService
+@Singleton
+class Phase3TestCallbackService @Inject() (phase3TestRepo: Phase3TestRepository,
+                                           phase3TestService: Phase3TestService,
+//                                           appConfig: MicroserviceAppConfig2, NOT USED
+                                           val eventService: StcEventService) {
+  //  val phase3TestRepo: Phase3TestRepository
+  //  val phase3TestService: Phase3TestService
+  //  val auditService: AuditService
+  //  val gatewayConfig: LaunchpadGatewayConfig
+  //  val eventService: StcEventService
 
   def recordCallback(callbackData: SetupProcessCallbackRequest)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     for{

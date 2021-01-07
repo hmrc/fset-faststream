@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,24 @@
 
 package services.testdata.candidate
 
+import javax.inject.{ Inject, Singleton }
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
-import repositories._
 import repositories.onlinetesting.Phase1TestRepository
-
-import scala.concurrent.ExecutionContext.Implicits.global
 import uk.gov.hmrc.http.HeaderCarrier
 
-object AwaitingAllocationStatusGenerator extends AwaitingAllocationStatusGenerator {
-  override val previousStatusGenerator = CreatedStatusGenerator // TODO: Fix this in faststream once the appropriate prior stage is complete
-  override val otRepository = phase1TestRepository
-}
+import scala.concurrent.ExecutionContext.Implicits.global
 
-trait AwaitingAllocationStatusGenerator extends ConstructiveGenerator {
-  val otRepository: Phase1TestRepository
+//object AwaitingAllocationStatusGenerator extends AwaitingAllocationStatusGenerator {
+//  override val previousStatusGenerator = CreatedStatusGenerator // TODO: Fix this in faststream once the appropriate prior stage is complete
+//  override val otRepository = phase1TestRepository
+//}
+
+@Singleton
+class AwaitingAllocationStatusGenerator @Inject() (val previousStatusGenerator: CreatedStatusGenerator,
+                                                   otRepository: Phase1TestRepository
+                                                  ) extends ConstructiveGenerator {
+//  val otRepository: Phase1TestRepository
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 

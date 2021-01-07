@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,21 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.{ CannotFindApplicationByOrderIdException, CannotFindTestByCubiksId, CannotFindTestByOrderIdException }
 import play.api.Logger
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.Action
+import play.api.mvc.{ Action, ControllerComponents }
 import services.sift.{ ApplicationSiftService, SiftExpiryExtensionService }
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object SiftCandidateController extends SiftCandidateController {
-  override val siftExpiryExtensionService = SiftExpiryExtensionService
-  override val applicationSiftService = ApplicationSiftService
-}
-
-trait SiftCandidateController extends BaseController {
-
-  val siftExpiryExtensionService: SiftExpiryExtensionService
-  val applicationSiftService: ApplicationSiftService
+@Singleton
+class SiftCandidateController @Inject() (cc: ControllerComponents,
+                                         siftExpiryExtensionService: SiftExpiryExtensionService,
+                                         applicationSiftService: ApplicationSiftService
+                                        ) extends BackendController(cc) {
 
   def extend(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[SiftExtension] { extension =>

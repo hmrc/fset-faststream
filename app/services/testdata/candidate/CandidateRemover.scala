@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,29 +17,17 @@
 package services.testdata.candidate
 
 import connectors.AuthProviderClient
+import javax.inject.{ Inject, Singleton }
 import play.api.mvc.RequestHeader
-import repositories.MongoDbConnection
-import repositories.testdata.{ ApplicationRemovalMongoRepository, ApplicationRemovalRepository }
-
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import repositories.testdata.ApplicationRemovalRepository
 import uk.gov.hmrc.http.HeaderCarrier
 
-trait CandidateRemover {
-  val appRemovalRepo: ApplicationRemovalRepository
-  val authClient: AuthProviderClient
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-  def remove(applicationStatus: Option[String])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Int]
-}
-
-object CandidateRemover extends CandidateRemover {
-
-  private implicit val connection = {
-    MongoDbConnection.mongoConnector.db
-  }
-
-  override val appRemovalRepo = new ApplicationRemovalMongoRepository()
-  override val authClient: AuthProviderClient = AuthProviderClient
+@Singleton
+class CandidateRemover @Inject() (appRemovalRepo: ApplicationRemovalRepository,
+                                  authClient: AuthProviderClient) {
 
   def remove(applicationStatus: Option[String])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Int] = {
     for {

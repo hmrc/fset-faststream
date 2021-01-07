@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 
 package services.assessmentcentre
 
+import com.google.inject.name.Named
 import common.FutureEx
+import javax.inject.{ Inject, Singleton }
 import model.EvaluationResults.{ AssessmentEvaluationResult, CompetencyAverageResult, Green }
 import model.Exceptions.NoResultsReturned
 import model.ProgressStatuses._
@@ -33,29 +35,24 @@ import repositories.assessmentcentre.AssessmentCentreRepository
 import repositories.{ AssessmentScoresRepository, CurrentSchemeStatusHelper }
 import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
 import services.evaluation.AssessmentCentreEvaluationEngine
-import services.passmarksettings.{ AssessmentCentrePassMarkSettingsService, PassMarkSettingsService }
+import services.passmarksettings.AssessmentCentrePassMarkSettingsService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object AssessmentCentreService extends AssessmentCentreService {
-  val applicationRepo = repositories.applicationRepository
-  val assessmentCentreRepo = repositories.assessmentCentreRepository
-  val passmarkService = AssessmentCentrePassMarkSettingsService
-  val assessmentScoresRepo = repositories.reviewerAssessmentScoresRepository
-  val evaluationEngine = AssessmentCentreEvaluationEngine
-
+object AssessmentCentreService {
   case class CandidateAlreadyHasAnAnalysisExerciseException(message: String) extends Exception(message)
   case class CandidateHasNoAnalysisExerciseException(message: String) extends Exception(message)
   case class CandidateHasNoAssessmentScoreEvaluationException(message: String) extends Exception(message)
 }
 
-trait AssessmentCentreService extends CurrentSchemeStatusHelper {
-  def applicationRepo: GeneralApplicationRepository
-  def assessmentCentreRepo: AssessmentCentreRepository
-  def passmarkService: PassMarkSettingsService[AssessmentCentrePassMarkSettings]
-  def assessmentScoresRepo: AssessmentScoresRepository
-  def evaluationEngine: AssessmentCentreEvaluationEngine
+@Singleton
+class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepository,
+                                         assessmentCentreRepo: AssessmentCentreRepository,
+                                         passmarkService: AssessmentCentrePassMarkSettingsService,
+                                         @Named("ReviewerAssessmentScoresRepo") assessmentScoresRepo: AssessmentScoresRepository,
+                                         evaluationEngine: AssessmentCentreEvaluationEngine
+                                        ) extends CurrentSchemeStatusHelper {
 
   private val logPrefix = "[Assessment Evaluation]"
 
@@ -116,13 +113,13 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
 
   // Find existing evaluation data: 1. assessment centre pass marks, 2. the schemes to evaluate and 3. the scores awarded by the reviewer
   def tryToFindEvaluationData(appId: UniqueIdentifier,
-    passmark: AssessmentCentrePassMarkSettings): Future[Option[AssessmentPassMarksSchemesAndScores]] = {
+                              passmark: AssessmentCentrePassMarkSettings): Future[Option[AssessmentPassMarksSchemesAndScores]] = {
 
     def filterSchemesToEvaluate(schemeList: Seq[SchemeEvaluationResult]) = {
       schemeList.filterNot( schemeEvaluationResult =>
         schemeEvaluationResult.result == model.EvaluationResults.Red.toString ||
-        schemeEvaluationResult.result == model.EvaluationResults.Withdrawn.toString ||
-        schemeEvaluationResult.schemeId == SchemeId(Scheme.Sdip)
+          schemeEvaluationResult.result == model.EvaluationResults.Withdrawn.toString ||
+          schemeEvaluationResult.schemeId == SchemeId(Scheme.Sdip)
       ).map(_.schemeId)
     }
 
@@ -253,30 +250,30 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
   }
 
   def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation,
-    currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = assessmentCentreRepo.saveAssessmentScoreEvaluation(
-    evaluation, currentSchemeStatus
-  )
+                                    currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] =
+    assessmentCentreRepo.saveAssessmentScoreEvaluation(evaluation, currentSchemeStatus)
 
   private def mergeSchemes(evaluation: Seq[SchemeEvaluationResult], evaluatedSchemesFromDb: Option[Seq[SchemeEvaluationResult]],
-    assessmentPassmarkEvaluation: AssessmentPassMarkEvaluation): AssessmentPassMarkEvaluation = {
-      // find any schemes which have been previously evaluated and stored in db and are not in the current evaluated schemes collection
-      // these will only be schemes that have been evaluated to red
-      val failedSchemes = evaluatedSchemesFromDb.map { evaluatedSchemesSeq =>
-        val schemesEvaluatedNow: Seq[SchemeId] = evaluation.groupBy(_.schemeId).keys.toList
+                           assessmentPassmarkEvaluation: AssessmentPassMarkEvaluation): AssessmentPassMarkEvaluation = {
+    // find any schemes which have been previously evaluated and stored in db and are not in the current evaluated schemes collection
+    // these will only be schemes that have been evaluated to red
+    val failedSchemes = evaluatedSchemesFromDb.map { evaluatedSchemesSeq =>
+      val schemesEvaluatedNow: Seq[SchemeId] = evaluation.groupBy(_.schemeId).keys.toList
 
-        // Any schemes read from db, which have not been evaluated this time will be failed schemes so identify those here
-        evaluatedSchemesSeq.filterNot( es => schemesEvaluatedNow.contains(es.schemeId) )
-      }.getOrElse(Nil)
-      val allSchemes = evaluation ++ failedSchemes
-      assessmentPassmarkEvaluation.copy(evaluationResult =
-        AssessmentEvaluationResult(
-          competencyAverageResult = assessmentPassmarkEvaluation.evaluationResult.competencyAverageResult,
-          schemesEvaluation = allSchemes))
+      // Any schemes read from db, which have not been evaluated this time will be failed schemes so identify those here
+      evaluatedSchemesSeq.filterNot( es => schemesEvaluatedNow.contains(es.schemeId) )
+    }.getOrElse(Nil)
+    val allSchemes = evaluation ++ failedSchemes
+    assessmentPassmarkEvaluation.copy(evaluationResult =
+      AssessmentEvaluationResult(
+        competencyAverageResult = assessmentPassmarkEvaluation.evaluationResult.competencyAverageResult,
+        schemesEvaluation = allSchemes))
   }
 
   private def maybeMoveCandidateToPassedOrFailed(applicationId: UniqueIdentifier,
-    latestProgressStatusOpt: Option[ProgressStatus], results: Seq[SchemeEvaluationResult], isSdipFaststream: Boolean): Future[Unit] = {
-
+                                                 latestProgressStatusOpt: Option[ProgressStatus],
+                                                 results: Seq[SchemeEvaluationResult],
+                                                 isSdipFaststream: Boolean): Future[Unit] = {
     latestProgressStatusOpt.map { latestProgressStatus =>
       if (latestProgressStatus == ASSESSMENT_CENTRE_SCORES_ACCEPTED) {
         firstResidualPreference(results, isSdipFaststream) match {
@@ -317,7 +314,7 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
   }
 
   def calculateCurrentSchemeStatus(applicationId: UniqueIdentifier,
-    evaluationResults: Seq[SchemeEvaluationResult]): Future[Seq[SchemeEvaluationResult]] = {
+                                   evaluationResults: Seq[SchemeEvaluationResult]): Future[Seq[SchemeEvaluationResult]] = {
     for {
       currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(applicationId.toString())
     } yield {
@@ -336,8 +333,8 @@ trait AssessmentCentreService extends CurrentSchemeStatusHelper {
       tests <- getTests(applicationId)
       hasSubmissions = tests.analysisExercise.isDefined
       _ <- if (!hasSubmissions || isAdminUpdate) {
-                assessmentCentreRepo.updateTests(applicationId, tests.copy(analysisExercise = Some(AnalysisExercise(fileId))))
-            } else { throw CandidateAlreadyHasAnAnalysisExerciseException(s"App Id: $applicationId, File Id: $fileId") }
+        assessmentCentreRepo.updateTests(applicationId, tests.copy(analysisExercise = Some(AnalysisExercise(fileId))))
+      } else { throw CandidateAlreadyHasAnAnalysisExerciseException(s"App Id: $applicationId, File Id: $fileId") }
     } yield ()
   }
 

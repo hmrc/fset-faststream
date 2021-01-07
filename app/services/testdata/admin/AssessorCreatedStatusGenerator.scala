@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,31 @@
 
 package services.testdata.admin
 
+import com.google.inject.name.Named
+import javax.inject.{ Inject, Singleton }
 import model.exchange.AssessorAvailabilities
 import model.exchange.testdata.CreateAdminResponse.{ AssessorResponse, CreateAdminResponse }
 import model.persisted.assessor.AssessorStatus
 import model.testdata.CreateAdminData.{ AssessorData, CreateAdminData }
 import play.api.mvc.RequestHeader
 import services.assessor.AssessorService
-
-import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
-object AssessorCreatedStatusGenerator extends AssessorCreatedStatusGenerator {
-  override val previousStatusGenerator: AdminUserBaseGenerator = AdminCreatedStatusGenerator
-  override val assessorService = AssessorService
-}
+import scala.concurrent.Future
 
-trait AssessorCreatedStatusGenerator extends AdminUserConstructiveGenerator {
+//object AssessorCreatedStatusGenerator extends AssessorCreatedStatusGenerator {
+//  override val previousStatusGenerator: AdminUserBaseGenerator = AdminCreatedStatusGenerator
+//  override val assessorService = AssessorService
+//}
 
+@Singleton
+class AssessorCreatedStatusGenerator @Inject() (@Named("AdminCreatedStatusGenerator") val previousStatusGenerator: AdminUserBaseGenerator,
+                                                assessorService: AssessorService) extends AdminUserConstructiveGenerator {
+
+//  override val previousStatusGenerator: AdminUserBaseGenerator = AdminCreatedStatusGenerator
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  val assessorService: AssessorService
+//  val assessorService: AssessorService
 
   def generate(generationId: Int, createData: CreateAdminData)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateAdminResponse] = {
     previousStatusGenerator.generate(generationId, createData).flatMap { userInPreviousStatus =>
@@ -62,5 +67,4 @@ trait AssessorCreatedStatusGenerator extends AdminUserConstructiveGenerator {
     val assessorE = model.exchange.Assessor(userId, None, assessor.skills, assessor.sifterSchemes, assessor.civilServant, assessor.status)
     assessorService.saveAssessor(userId, assessorE).map(_ => assessorE)
   }
-
 }

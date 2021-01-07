@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,32 +17,25 @@
 package services.application
 
 import common.FutureEx
-import connectors.{ CSREmailClient, EmailClient }
+import connectors.OnlineTestEmailClient
+import javax.inject.{ Inject, Named, Singleton }
 import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, FSB_FAILED }
-import model.{ ProgressStatuses, SerialUpdateResult }
 import model.command.ApplicationForProgression
+import model.{ ProgressStatuses, SerialUpdateResult }
 import org.joda.time.DateTime
-import repositories.application.{ FinalOutcomeRepository, GeneralApplicationRepository }
+import repositories.application._
 import repositories.contactdetails.ContactDetailsRepository
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
-object FinalOutcomeService extends FinalOutcomeService {
-
-  val contactDetailsRepo = repositories.faststreamContactDetailsRepository
-  val applicationRepo = repositories.applicationRepository
-  val finalOutcomeRepo = repositories.finalOutcomeRepository
-  val emailClient = CSREmailClient
-}
-
-trait FinalOutcomeService {
-
-  def contactDetailsRepo: ContactDetailsRepository
-  def applicationRepo: GeneralApplicationRepository
-  def finalOutcomeRepo: FinalOutcomeRepository
-  def emailClient: EmailClient
+@Singleton
+class FinalOutcomeService @Inject() (contactDetailsRepo: ContactDetailsRepository,
+                                     applicationRepo: GeneralApplicationRepository,
+                                     finalOutcomeRepo: FinalOutcomeRepository,
+                                     @Named("CSREmailClient") emailClient: OnlineTestEmailClient //TODO:fix changed type
+                                    ) {
 
   val FinalFailedStates = Seq(ASSESSMENT_CENTRE_FAILED, FSB_FAILED)
 

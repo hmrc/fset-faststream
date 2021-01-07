@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package services.testdata.allocation
 
+import javax.inject.{ Inject, Singleton }
 import model.exchange.testdata.CreateCandidateAllocationResponse
 import model.testdata.CreateCandidateAllocationData
 import play.api.mvc.RequestHeader
@@ -25,17 +26,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
-object CandidateAllocationGenerator extends CandidateAllocationGenerator {
-  override val candidateAllocationService: CandidateAllocationService = CandidateAllocationService
-}
+@Singleton
+class CandidateAllocationGenerator @Inject() (candidateAllocationService: CandidateAllocationService) {
 
-trait CandidateAllocationGenerator {
-
-  val candidateAllocationService: CandidateAllocationService
-
-  def generate(
-    generationId: Int,
-    createData: CreateCandidateAllocationData)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateAllocationResponse] = {
+  def generate(generationId: Int, createData: CreateCandidateAllocationData)(
+    implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateAllocationResponse] = {
 
     candidateAllocationService.getCandidateAllocations(createData.eventId, createData.sessionId).flatMap { existingAllocation =>
 
@@ -52,5 +47,4 @@ trait CandidateAllocationGenerator {
       }
     }
   }
-
 }

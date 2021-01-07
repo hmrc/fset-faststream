@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,9 @@
 
 package repositories.application
 
-import model.Exceptions.NotFoundException
+import javax.inject.{ Inject, Singleton }
 import model.FlagCandidatePersistedObject.FlagCandidate
-import reactivemongo.api.DB
-import reactivemongo.api.commands.UpdateWriteResult
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
@@ -30,18 +29,18 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait FlagCandidateRepository {
-
   def tryGetCandidateIssue(appId: String): Future[Option[FlagCandidate]]
-
   def save(flagCandidate: FlagCandidate): Future[Unit]
-
   def remove(appId: String): Future[Unit]
 }
 
-class FlagCandidateMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[FlagCandidate, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    FlagCandidate.FlagCandidateFormats, ReactiveMongoFormats.objectIdFormats) with FlagCandidateRepository
-    with ReactiveRepositoryHelpers {
+@Singleton
+class FlagCandidateMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[FlagCandidate, BSONObjectID](
+    CollectionNames.APPLICATION,
+    mongoComponent.mongoConnector.db,
+    FlagCandidate.FlagCandidateFormats,
+    ReactiveMongoFormats.objectIdFormats) with FlagCandidateRepository with ReactiveRepositoryHelpers {
 
   def tryGetCandidateIssue(appId: String): Future[Option[FlagCandidate]] = {
     val query = BSONDocument("applicationId" -> appId)
@@ -72,5 +71,4 @@ class FlagCandidateMongoRepository(implicit mongo: () => DB)
     val validator = singleUpdateValidator(appId, actionDesc = "removing flag")
     collection.update(ordered = false).one(query, result) map validator
   }
-
 }

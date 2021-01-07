@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ object AssessorAllocations {
     val opLock = o.map(_.version).distinct match {
       case head :: Nil => head
       case head :: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${head +: tail}")
-      case Nil => UUIDFactory.generateUUID()
+      case Nil => UUIDFactory.generateUUID() // TODO: the factory needs to be passed as an argument
     }
 
     AssessorAllocations(opLock, eventId, o.map { a =>

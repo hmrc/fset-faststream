@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,48 +16,46 @@
 
 package services.testdata.candidate
 
+import javax.inject.{ Inject, Singleton }
 import model._
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
-import repositories._
 import repositories.schemepreferences.SchemePreferencesRepository
-import services.testdata.faker.DataFaker._
+import services.testdata.faker.DataFaker
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
-object InProgressSchemePreferencesStatusGenerator extends InProgressSchemePreferencesStatusGenerator {
-  override val previousStatusGenerator = InProgressPersonalDetailsStatusGenerator
-  override val spRepository = schemePreferencesRepository
-}
-
-trait InProgressSchemePreferencesStatusGenerator extends ConstructiveGenerator {
-  val spRepository: SchemePreferencesRepository
+@Singleton
+class InProgressSchemePreferencesStatusGenerator @Inject() (val previousStatusGenerator: InProgressPersonalDetailsStatusGenerator,
+                                                            spRepository: SchemePreferencesRepository,
+                                                            dataFaker: DataFaker
+                                                           ) extends ConstructiveGenerator {
 
   // scalastyle:off method.length
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     def getSchemePreferences: Future[SelectedSchemes] = {
-       Future.successful(
-         generatorConfig.schemeTypes.map { schemeTypesList =>
-           generatorConfig.statusData.applicationRoute match {
-             case ApplicationRoute.Edip => SelectedSchemes(List(model.SchemeId("Edip")), orderAgreed = true, eligible = true)
-             case ApplicationRoute.Sdip => SelectedSchemes(List(SchemeId("Sdip")), orderAgreed = true, eligible = true)
-             case ApplicationRoute.SdipFaststream => SelectedSchemes(schemeTypesList :+ model.SchemeId("Sdip"),
-               orderAgreed = true, eligible = true)
-             case _ => SelectedSchemes(schemeTypesList, orderAgreed = true, eligible = true)
-           }
+      Future.successful(
+        generatorConfig.schemeTypes.map { schemeTypesList =>
+          generatorConfig.statusData.applicationRoute match {
+            case ApplicationRoute.Edip => SelectedSchemes(List(model.SchemeId("Edip")), orderAgreed = true, eligible = true)
+            case ApplicationRoute.Sdip => SelectedSchemes(List(SchemeId("Sdip")), orderAgreed = true, eligible = true)
+            case ApplicationRoute.SdipFaststream => SelectedSchemes(schemeTypesList :+ model.SchemeId("Sdip"),
+              orderAgreed = true, eligible = true)
+            case _ => SelectedSchemes(schemeTypesList, orderAgreed = true, eligible = true)
+          }
 
-         }.getOrElse {
-           generatorConfig.statusData.applicationRoute match {
-             case ApplicationRoute.Edip => SelectedSchemes(List(model.SchemeId("Edip")), orderAgreed = true, eligible = true)
-             case ApplicationRoute.Sdip => SelectedSchemes(List(model.SchemeId("Sdip")), orderAgreed = true, eligible = true)
-             case ApplicationRoute.SdipFaststream => SelectedSchemes(List(model.SchemeId("Sdip"), model.SchemeId("Commercial"),
-               model.SchemeId("DigitalAndTechnology"), model.SchemeId("Finance")), orderAgreed = true, eligible = true)
-             case _ => SelectedSchemes(Random.schemeTypes.map(_.id), orderAgreed = true, eligible = true)
-           }
-         }
-       )
+        }.getOrElse {
+          generatorConfig.statusData.applicationRoute match {
+            case ApplicationRoute.Edip => SelectedSchemes(List(model.SchemeId("Edip")), orderAgreed = true, eligible = true)
+            case ApplicationRoute.Sdip => SelectedSchemes(List(model.SchemeId("Sdip")), orderAgreed = true, eligible = true)
+            case ApplicationRoute.SdipFaststream => SelectedSchemes(List(model.SchemeId("Sdip"), model.SchemeId("Commercial"),
+              model.SchemeId("DigitalAndTechnology"), model.SchemeId("Finance")), orderAgreed = true, eligible = true)
+            case _ => SelectedSchemes(dataFaker.schemeTypes.map(_.id), orderAgreed = true, eligible = true)
+          }
+        }
+      )
     }
 
     for {

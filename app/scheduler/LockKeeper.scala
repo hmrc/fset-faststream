@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package scheduler
 import java.util.UUID
 
 import org.joda.time.Duration
-import play.modules.reactivemongo.MongoDbConnection
+import play.modules.reactivemongo.ReactiveMongoComponent
 import repositories._
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -51,18 +51,17 @@ trait LockKeeper {
   }
 }
 
-object LockKeeper extends MongoDbConnection {
-  private implicit val connection = {
-    db
-  }
+object LockKeeper {
 
   lazy val generatedServerId = UUID.randomUUID().toString
 
-  def apply(lockIdToUse: String, forceLockReleaseAfterToUse: scala.concurrent.duration.Duration) = new LockKeeper {
+  def apply(mongoComponent: ReactiveMongoComponent,
+            lockIdToUse: String,
+            forceLockReleaseAfterToUse: scala.concurrent.duration.Duration) = new LockKeeper {
     val forceLockReleaseAfter: Duration = Duration.millis(forceLockReleaseAfterToUse.toMillis)
     val serverId = generatedServerId
     val lockId = lockIdToUse
-    val repo: LockRepository = new LockMongoRepository
+    val repo = new LockMongoRepository(mongoComponent)
     val greedyLockingEnabled: Boolean = true
   }
 }

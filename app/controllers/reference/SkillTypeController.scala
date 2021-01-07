@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,14 @@
 
 package controllers.reference
 
+import javax.inject.{ Inject, Singleton }
 import model.exchange.AssessorSkill
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent }
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-object SkillTypeController extends SkillTypeController
-
-trait SkillTypeController extends BaseController {
+@Singleton
+class SkillTypeController @Inject() (cc: ControllerComponents) extends BackendController(cc) {
 
   def allSkills: Action[AnyContent] = Action { implicit request =>
     Ok(Json.toJson(AssessorSkill.AllSkillsWithLabels))

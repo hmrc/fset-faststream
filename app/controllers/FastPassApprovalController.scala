@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,19 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.command.{ FastPassEvaluation, ProcessedFastPassCandidate }
 import play.api.Logger
 import play.api.libs.json.Json
-import play.api.mvc.Action
+import play.api.mvc.{ Action, ControllerComponents }
 import services.fastpass.FastPassService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object FastPassApprovalController extends FastPassApprovalController {
-  val fastPassService = FastPassService
-}
-
-trait FastPassApprovalController extends BaseController {
-
-  val fastPassService: FastPassService
+@Singleton
+class FastPassApprovalController @Inject() (cc: ControllerComponents,
+                                            fastPassService: FastPassService) extends BackendController(cc) {
 
   def processFastPassCandidate(userId: String, applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[FastPassEvaluation] { req =>

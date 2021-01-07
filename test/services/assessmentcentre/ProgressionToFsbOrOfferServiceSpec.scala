@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,26 @@
 
 package services.assessmentcentre
 
-import connectors.ExchangeObjects.Candidate
-import connectors.{AuthProviderClient, EmailClient}
+import connectors.OnlineTestEmailClient
 import model.ProgressStatuses.ASSESSMENT_CENTRE_PASSED
-import model.{SchemeId, _}
-import model.command.{ApplicationForProgression, ApplicationStatusDetails}
-import model.persisted.{ContactDetails, SchemeEvaluationResult}
+import model.command.{ ApplicationForProgression, ApplicationStatusDetails }
+import model.persisted.{ ContactDetails, SchemeEvaluationResult }
+import model.{ SchemeId, _ }
+import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.FsbRepository
 import services.scheme.SchemePreferencesService
 import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitSpec
-
-import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
-class ProgressionToFsbOrOfferServiceSpec extends ScalaMockUnitSpec {
+import scala.concurrent.Future
 
+class ProgressionToFsbOrOfferServiceSpec extends ScalaMockUnitSpec {
+//TODO:fix these tests
   "progressApplicationsToFsbOrJobOffer" must {
     "Progress candidates to FSB when their first residual preference is green, and requires an FSB" in new TestFixture {
-
       applicationsToProgressToFsb.map { expectedApplication =>
         (mockSchemePreferencesService.find(_: String))
           .expects(expectedApplication.applicationId)
@@ -61,6 +60,10 @@ class ProgressionToFsbOrOfferServiceSpec extends ScalaMockUnitSpec {
         (mockContactDetailsRepo.find _)
           .expects(userId)
           .returningAsync(candidate1)
+
+        // Mock no arg method, which returns data
+        (mockSchemeRepository.fsbSchemeIds _).expects().returning(
+          Seq(SchemeId("DigitalAndTechnology"), SchemeId("DiplomaticService"), SchemeId("GovernmentStatisticalService")))
 
         (mockEmailClient.sendCandidateAssessmentCompletedMovedToFsb(_: String, _: String)(_: HeaderCarrier))
           .expects(candidate1.email, candidate0.name, hc)
@@ -88,6 +91,10 @@ class ProgressionToFsbOrOfferServiceSpec extends ScalaMockUnitSpec {
         (mockApplicationRepository.findStatus(_: String))
           .expects(expectedApplication.applicationId)
           .returningAsync(assessmentCentrePassedApplicationStatus)
+
+        // Mock no arg method, which returns data
+        (mockSchemeRepository.fsbSchemeIds _).expects().returning(
+          Seq(SchemeId("DigitalAndTechnology"), SchemeId("DiplomaticService"), SchemeId("GovernmentStatisticalService")))
 
         (mockFsbRepository.progressToJobOffer _)
           .expects(expectedApplication)
@@ -135,35 +142,44 @@ class ProgressionToFsbOrOfferServiceSpec extends ScalaMockUnitSpec {
   }
 
   trait TestFixture  {
-    val mockFsbRepository = mock[FsbRepository]
+    val mockSchemeRepository = mock[SchemeRepository]
     val mockApplicationRepository = mock[GeneralApplicationRepository]
     val mockContactDetailsRepo = mock[ContactDetailsRepository]
-    val mockEmailClient = mock[EmailClient]
+    val mockFsbRepository = mock[FsbRepository]
     val mockSchemePreferencesService = mock[SchemePreferencesService]
+    val mockEmailClient = mock[OnlineTestEmailClient] //TODO:fix change the type was EmailClient
 
-    val progressionToFsbOrOfferService: ProgressionToFsbOrOfferService = new ProgressionToFsbOrOfferService() {
-      val fsbRepo = mockFsbRepository
+    val progressionToFsbOrOfferService = new ProgressionToFsbOrOfferService(
+      mockSchemeRepository,
+      mockApplicationRepository,
+      mockContactDetailsRepo,
+      mockFsbRepository,
+      mockSchemePreferencesService,
+      mockEmailClient
+/*      val fsbRepo = mockFsbRepository
       val applicationRepo = mockApplicationRepository
-      val fsbRequiredSchemeIds: Seq[SchemeId] = Seq(SchemeId("DigitalAndTechnology"),
-        SchemeId("DiplomaticService"), SchemeId("GovernmentStatisticalService"))
+      val fsbRequiredSchemeIds: Seq[SchemeId] =
+        Seq(SchemeId("DigitalAndTechnology"), SchemeId("DiplomaticService"), SchemeId("GovernmentStatisticalService"))
 
       override def emailClient: EmailClient = mockEmailClient
       override def contactDetailsRepo: ContactDetailsRepository = mockContactDetailsRepo
-      def schemePreferencesService: SchemePreferencesService = mockSchemePreferencesService
-    }
-
-    val userId = "1"
-    implicit val hc = HeaderCarrier()
-
-    val assessmentCentrePassedApplicationStatus = ApplicationStatusDetails(
-    ApplicationStatus.ASSESSMENT_CENTRE,
-    ApplicationRoute.Faststream,
-    Some(ASSESSMENT_CENTRE_PASSED),
-    None,
-    None
+      def schemePreferencesService: SchemePreferencesService = mockSchemePreferencesService*/
     )
 
-    val candidate0 = model.Candidate(userId, None, None, None, None, None, None, None, None, None, None, None, None)
+    val userId = "1"
+    implicit val hc: HeaderCarrier = HeaderCarrier()
+
+    val assessmentCentrePassedApplicationStatus = ApplicationStatusDetails(
+      ApplicationStatus.ASSESSMENT_CENTRE,
+      ApplicationRoute.Faststream,
+      latestProgressStatus = Some(ASSESSMENT_CENTRE_PASSED),
+      statusDate = None,
+      overrideSubmissionDeadline = None
+    )
+
+    val candidate0 = model.Candidate(userId, applicationId = None, testAccountId = None, email = None, firstName = None,
+      lastName = None, preferredName = None, dateOfBirth = None, address = None, postCode = None, country = None,
+      applicationRoute = None, applicationStatus = None)
 
     val candidate1 = ContactDetails(outsideUk = false, Address("line1a"), Some("123"), Some("UK"), "email1@email.com", "12345")
     val applicationsToProgressToFsb = List(

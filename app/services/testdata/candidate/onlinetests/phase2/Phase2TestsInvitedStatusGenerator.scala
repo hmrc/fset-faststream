@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,32 +16,36 @@
 
 package services.testdata.candidate.onlinetests.phase2
 
-import config.MicroserviceAppConfig.testIntegrationGatewayConfig
-import config.TestIntegrationGatewayConfig
+import config.{ MicroserviceAppConfig, TestIntegrationGatewayConfig }
+import javax.inject.{ Inject, Singleton }
 import model.Adjustments
-import model.exchange.testdata.CreateCandidateResponse.{TestGroupResponse2, TestResponse2}
-import model.persisted.{Phase2TestGroup2, PsiTest}
+import model.exchange.testdata.CreateCandidateResponse.{ TestGroupResponse2, TestResponse2 }
+import model.persisted.{ Phase2TestGroup2, PsiTest }
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
-import repositories._
 import repositories.onlinetesting.Phase2TestRepository2
 import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.candidate.onlinetests.Phase1TestsPassedStatusGenerator
-import services.testdata.faker.DataFaker._
+import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object Phase2TestsInvitedStatusGenerator extends Phase2TestsInvitedStatusGenerator {
-  override val previousStatusGenerator = Phase1TestsPassedStatusGenerator
-  override val otRepository = phase2TestRepository2
-  override val onlineTestGatewayConfig = testIntegrationGatewayConfig
-}
+//object Phase2TestsInvitedStatusGenerator extends Phase2TestsInvitedStatusGenerator {
+//  override val previousStatusGenerator = Phase1TestsPassedStatusGenerator
+//  override val otRepository = phase2TestRepository2
+//  override val onlineTestGatewayConfig = testIntegrationGatewayConfig
+//}
 
-trait Phase2TestsInvitedStatusGenerator extends ConstructiveGenerator {
-  val otRepository: Phase2TestRepository2
-  val onlineTestGatewayConfig: TestIntegrationGatewayConfig
+@Singleton
+class Phase2TestsInvitedStatusGenerator @Inject() (val previousStatusGenerator: Phase1TestsPassedStatusGenerator,
+                                                   otRepository: Phase2TestRepository2,
+                                                   appConfig: MicroserviceAppConfig,
+                                                   dataFaker: DataFaker
+                                                  ) extends ConstructiveGenerator {
+
+  val onlineTestGatewayConfig: TestIntegrationGatewayConfig = appConfig.testIntegrationGatewayConfig
 
   //scalastyle:off method.length
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
@@ -62,10 +66,9 @@ trait Phase2TestsInvitedStatusGenerator extends ConstructiveGenerator {
         usedForResults = true,
         testUrl = s"${generatorConfig.psiUrl}/PartnerRestService/$testName?key=$orderId",
         invitationDate = generatorConfig.phase2TestData.flatMap(_.start).getOrElse(DateTime.now()).plusDays(-1),
-        resultsReadyToDownload = false,
         invigilatedAccessCode = generatorConfig.adjustmentInformation.flatMap { adjustments =>
           if (isInvigilated(Adjustments(adjustments))) {
-            Some(Random.accessCode)
+            Some(dataFaker.accessCode)
           } else {
             None
           }
@@ -88,17 +91,15 @@ trait Phase2TestsInvitedStatusGenerator extends ConstructiveGenerator {
     } yield {
       val onePsiTest = psiTests.head
       val testResponses = psiTests.map(test => TestResponse2(test.inventoryId, test.orderId, test.testUrl))
-      candidateInPreviousStatus.copy(phase2TestGroup = Some(
-        TestGroupResponse2(
-          testResponses,
-          None
-        )
-      ), accessCode = onePsiTest.invigilatedAccessCode)
+      candidateInPreviousStatus.copy(
+        phase2TestGroup = Some(TestGroupResponse2(testResponses, None)),
+        accessCode = onePsiTest.invigilatedAccessCode
+      )
     }
   }
   //scalastyle:on
 
-  def isInvigilated(adjustments: Adjustments) = {
+  private def isInvigilated(adjustments: Adjustments) = {
     val isConfirmed = adjustments.adjustmentsConfirmed.contains(true)
     val hasInvigilated = adjustments.etray.exists(_.invigilatedInfo.isDefined)
     isConfirmed && hasInvigilated

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,12 @@
 
 package services.testdata.candidate.onlinetests
 
-import model.ProgressStatuses.{PHASE1_TESTS_EXPIRED, PHASE2_TESTS_EXPIRED, PHASE3_TESTS_EXPIRED, ProgressStatus}
+import com.google.inject.name.Named
+import javax.inject.{ Inject, Singleton }
+import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE2_TESTS_EXPIRED, PHASE3_TESTS_EXPIRED, ProgressStatus }
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import services.onlinetesting.OnlineTestService
-import services.onlinetesting.phase1.Phase1TestService2
-import services.onlinetesting.phase2.Phase2TestService2
-import services.onlinetesting.phase3.Phase3TestService
 import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.candidate.onlinetests.phase1.Phase1TestsInvitedStatusGenerator
 import services.testdata.candidate.onlinetests.phase2.Phase2TestsInvitedStatusGenerator
@@ -30,24 +29,6 @@ import services.testdata.candidate.onlinetests.phase3.Phase3TestsInvitedStatusGe
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
-
-object Phase1TestsExpiredFromInvitedStatusGenerator extends TestsExpiredFromInvitedStatusGenerator {
-  override val previousStatusGenerator = Phase1TestsInvitedStatusGenerator
-  override val otService = Phase1TestService2
-  override val expiredStatus = PHASE1_TESTS_EXPIRED
-}
-
-object Phase2TestsExpiredFromInvitedStatusGenerator extends TestsExpiredFromInvitedStatusGenerator {
-  override val previousStatusGenerator = Phase2TestsInvitedStatusGenerator
-  override val otService = Phase2TestService2
-  override val expiredStatus = PHASE2_TESTS_EXPIRED
-}
-
-object Phase3TestsExpiredFromInvitedStatusGenerator extends TestsExpiredFromInvitedStatusGenerator {
-  override val previousStatusGenerator = Phase3TestsInvitedStatusGenerator
-  override val otService = Phase3TestService
-  override val expiredStatus = PHASE3_TESTS_EXPIRED
-}
 
 trait TestsExpiredFromInvitedStatusGenerator extends ConstructiveGenerator {
   val otService: OnlineTestService
@@ -60,6 +41,26 @@ trait TestsExpiredFromInvitedStatusGenerator extends ConstructiveGenerator {
     } yield {
       candidateInPreviousStatus
     }
-
   }
+}
+
+@Singleton
+class Phase1TestsExpiredFromInvitedStatusGenerator @Inject() (val previousStatusGenerator: Phase1TestsInvitedStatusGenerator,
+                                                              @Named("Phase1OnlineTestService") val otService: OnlineTestService
+                                                             ) extends TestsExpiredFromInvitedStatusGenerator {
+  override val expiredStatus = PHASE1_TESTS_EXPIRED
+}
+
+@Singleton
+class Phase2TestsExpiredFromInvitedStatusGenerator @Inject() (val previousStatusGenerator: Phase2TestsInvitedStatusGenerator,
+                                                              @Named("Phase2OnlineTestService") val otService: OnlineTestService
+                                                             ) extends TestsExpiredFromInvitedStatusGenerator {
+  override val expiredStatus = PHASE2_TESTS_EXPIRED
+}
+
+@Singleton
+class Phase3TestsExpiredFromInvitedStatusGenerator @Inject() (val previousStatusGenerator: Phase3TestsInvitedStatusGenerator,
+                                                              @Named("Phase3OnlineTestService") val otService: OnlineTestService
+                                                             ) extends TestsExpiredFromInvitedStatusGenerator {
+  override val expiredStatus = PHASE3_TESTS_EXPIRED
 }

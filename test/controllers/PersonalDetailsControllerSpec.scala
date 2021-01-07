@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,24 +23,25 @@ import model.command.PersonalDetailsExamples.personalDetails
 import model.persisted.PersonalDetails
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
+import play.api.libs.json.Json
 import play.api.mvc.RequestHeader
 import play.api.test.Helpers._
 import services.AuditService
 import services.personaldetails.PersonalDetailsService
 import testkit.UnitWithAppSpec
-import play.api.libs.json.Json
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 class PersonalDetailsControllerSpec extends UnitWithAppSpec {
   val mockCandidateDetailsService = mock[PersonalDetailsService]
   val mockAuditService = mock[AuditService]
 
-  val controller = new PersonalDetailsController {
-    val personalDetailsService = mockCandidateDetailsService
-    val auditService = mockAuditService
-  }
+  val controller = new PersonalDetailsController(
+    stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
+    mockCandidateDetailsService,
+    mockAuditService
+  )
 
   "update details" should {
     val Request = fakeRequest(CandidateContactDetailsUK)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package repositories.onlinetesting
 
 import common.Phase3TestConcern
 import factories.DateTimeFactory
+import javax.inject.{ Inject, Singleton }
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.{ ApplicationNotFound, NotFoundException, TokenNotFound }
 import model.OnlineTestCommands.OnlineTestApplication
@@ -27,11 +28,10 @@ import model.persisted.{ NotificationExpiringOnlineTest, PassmarkEvaluation, Pha
 import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
 import org.joda.time.DateTime
 import play.api.Logger
-import reactivemongo.api.DB
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
-import repositories._
-import repositories.BSONDateTimeHandler
+import repositories.{ BSONDateTimeHandler, _ }
 import repositories.onlinetesting.Phase3TestRepository.CannotFindTestByLaunchpadId
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
@@ -45,38 +45,30 @@ object Phase3TestRepository {
 
 trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
   this: ReactiveRepository[_, _] =>
+
   def appendCallback[A](token: String, callbacksKey: String, callback: A)(implicit format: BSONHandler[BSONDocument, A]): Future[Unit]
-
   def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]]
-
   def getTestGroupByToken(token: String): Future[Phase3TestGroupWithAppId]
-
   def insertOrUpdateTestGroup(applicationId: String, phase3TestGroup: Phase3TestGroup): Future[Unit]
-
   def upsertTestGroupEvaluation(applicationId: String, passmarkEvaluation: PassmarkEvaluation): Future[Unit]
-
   def updateTestStartTime(launchpadInviteId: String, startedTime: DateTime): Future[Unit]
-
   def updateTestCompletionTime(launchpadInviteId: String, completionTime: DateTime): Future[Unit]
-
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
-
   def removePhase3TestGroup(applicationId: String): Future[Unit]
-
   def removeReviewedCallbacks(token: String): Future[Unit]
-
   def removeTest(token: String): Future[Unit]
-
   def markTestAsActive(token: String): Future[Unit]
-
   def updateExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit]
-
   def updateResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
 }
 
-class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
-  extends ReactiveRepository[Phase3TestGroup, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    model.persisted.phase3tests.Phase3TestGroup.phase3TestGroupFormat, ReactiveMongoFormats.objectIdFormats
+@Singleton
+class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[Phase3TestGroup, BSONObjectID](
+    CollectionNames.APPLICATION,
+    mongoComponent.mongoConnector.db,
+    model.persisted.phase3tests.Phase3TestGroup.phase3TestGroupFormat,
+    ReactiveMongoFormats.objectIdFormats
   ) with Phase3TestRepository with CommonBSONDocuments {
 
   override val phaseName = "PHASE3"
@@ -183,7 +175,7 @@ class Phase3TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () =>
   }
 
   // Note this is the same impl as the default removeTestGroup in OnlineTestRepository. Provided here because
-  // the default impl is overriden above
+  // the default impl is overridden above
   override def removePhase3TestGroup(applicationId: String): Future[Unit] = {
     super.removeTestGroup(applicationId)
   }

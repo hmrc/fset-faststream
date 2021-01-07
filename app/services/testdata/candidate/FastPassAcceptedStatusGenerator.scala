@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 
 package services.testdata.candidate
 
+import javax.inject.{ Inject, Singleton }
 import model.ProgressStatuses
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
-import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import services.fastpass.FastPassService
@@ -28,21 +28,15 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object FastPassAcceptedStatusGenerator extends FastPassAcceptedStatusGenerator {
-  override val previousStatusGenerator = SubmittedStatusGenerator
-  override val appRepository = applicationRepository
-  override val fastPassService = FastPassService
-  override val schemePreferencesService = SchemePreferencesService
-  override val csedRepository = civilServiceExperienceDetailsRepository
-}
+@Singleton
+class FastPassAcceptedStatusGenerator @Inject() (val previousStatusGenerator: SubmittedStatusGenerator,
+                                                 appRepository: GeneralApplicationRepository,
+                                                 fastPassService: FastPassService,
+                                                 schemePreferencesService: SchemePreferencesService,
+                                                 csedRepository: CivilServiceExperienceDetailsRepository
+                                                ) extends ConstructiveGenerator {
 
-trait FastPassAcceptedStatusGenerator extends ConstructiveGenerator {
-  val appRepository: GeneralApplicationRepository
-  val fastPassService: FastPassService
-  val schemePreferencesService: SchemePreferencesService
-  val csedRepository: CivilServiceExperienceDetailsRepository
-
-
+//scalastyle:off
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
@@ -51,6 +45,6 @@ trait FastPassAcceptedStatusGenerator extends ConstructiveGenerator {
       preferences <- schemePreferencesService.find(candidateInPreviousStatus.applicationId.get)
       _ <- fastPassService.createCurrentSchemeStatus(candidateInPreviousStatus.applicationId.get, preferences)
       _ <- csedRepository.evaluateFastPassCandidate(candidateInPreviousStatus.applicationId.get, accepted = true)
-    } yield (candidateInPreviousStatus)
-  }
+    } yield candidateInPreviousStatus
+  }//scalastyle:on
 }

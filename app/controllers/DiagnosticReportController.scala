@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,36 +19,29 @@ package controllers
 import akka.stream.scaladsl.Source
 import connectors.AuthProviderClient
 import connectors.exchange.AssessorDiagnosticReport
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.NotFoundException
 import model.UniqueIdentifier
+import play.api.libs.iteratee.streams.IterateeStreams
 import play.api.libs.json.{ JsObject, Json }
-import play.api.libs.streams.Streams
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import repositories._
 import repositories.application.DiagnosticReportingRepository
-import repositories.events.EventsMongoRepository
+import repositories.events.EventsRepository
 import services.assessor.AssessorService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object DiagnosticReportController extends DiagnosticReportController {
-  val drRepository: DiagnosticReportingRepository = diagnosticReportRepository
-  val assessorAssessmentCentreScoresRepo: AssessorAssessmentScoresMongoRepository = repositories.assessorAssessmentScoresRepository
-  val reviewerAssessmentCentreScoresRepo: ReviewerAssessmentScoresMongoRepository = repositories.reviewerAssessmentScoresRepository
-  val eventsRepo: EventsMongoRepository = repositories.eventsRepository
-  val authProvider: AuthProviderClient = AuthProviderClient
-  val assessorService: AssessorService = AssessorService
-}
-
-trait DiagnosticReportController extends BaseController {
-
-  def drRepository: DiagnosticReportingRepository
-  def assessorAssessmentCentreScoresRepo: AssessmentScoresMongoRepository
-  def reviewerAssessmentCentreScoresRepo: AssessmentScoresMongoRepository
-  def eventsRepo: EventsMongoRepository
-  def authProvider: AuthProviderClient
-  def assessorService: AssessorService
+@Singleton
+class DiagnosticReportController @Inject() (cc: ControllerComponents,
+                                            drRepository: DiagnosticReportingRepository,
+                                            assessorAssessmentCentreScoresRepo: AssessorAssessmentScoresMongoRepository,
+                                            reviewerAssessmentCentreScoresRepo: ReviewerAssessmentScoresMongoRepository,
+                                            eventsRepo: EventsRepository,
+                                            authProvider: AuthProviderClient,
+                                            assessorService: AssessorService
+                                           ) extends BackendController(cc) {
 
   def getApplicationByUserId(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
 
@@ -88,12 +81,12 @@ trait DiagnosticReportController extends BaseController {
   }
 
   def getAllApplications = Action { implicit request =>
-    val response = Source.fromPublisher(Streams.enumeratorToPublisher(drRepository.findAll()))
+    val response = Source.fromPublisher(IterateeStreams.enumeratorToPublisher(drRepository.findAll()))
     Ok.chunked(response)
   }
 
   def getAllEvents = Action { implicit request =>
-    val response = Source.fromPublisher(Streams.enumeratorToPublisher(eventsRepo.findAllForExtract()))
+    val response = Source.fromPublisher(IterateeStreams.enumeratorToPublisher(eventsRepo.findAllForExtract()))
     Ok.chunked(response)
   }
 }

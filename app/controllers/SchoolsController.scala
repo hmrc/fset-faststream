@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,17 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import play.api.libs.json.Json
-import play.api.mvc.Action
+import play.api.mvc.{ Action, ControllerComponents }
 import services.schools.SchoolsService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object SchoolsController extends SchoolsController{
-  val schoolsService = SchoolsService
-}
-
-trait SchoolsController extends BaseController {
-  val schoolsService: SchoolsService
+@Singleton
+class SchoolsController @Inject() (cc: ControllerComponents,
+                                   schoolsService: SchoolsService) extends BackendController(cc) {
 
   def getSchools(term: String) = Action.async { implicit request =>
     schoolsService.getSchools(term).map { schools =>

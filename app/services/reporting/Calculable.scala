@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
 
 package services.reporting
 
+import com.google.inject.ImplementedBy
 import model.persisted.QuestionnaireAnswer
 
+@ImplementedBy(classOf[SocioEconomicScoreCalculator])
 trait Calculable {
   def calculateAsInt(answers: Map[String, QuestionnaireAnswer]): Int
   def calculate(answers: Map[String, String]): String

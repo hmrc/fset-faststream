@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ import model.Commands.PostCode
 import model.Exceptions.ConnectorException
 import model.OnlineTestCommands._
 import model.ProgressStatuses.{ toString => _, _ }
-import model.stc.StcEventTypes.{ toString => _ }
+import model._
 import model.exchange.CubiksTestResultReady
 import model.persisted._
-import model.{ ProgressStatuses, _ }
+import model.stc.StcEventTypes.{ toString => _ }
 import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
@@ -41,14 +41,13 @@ import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import services.sift.ApplicationSiftService
 import services.stc.{ StcEventService, StcEventServiceFixture }
-import testkit.{ ExtendedTimeout, UnitSpec, UnitWithAppSpec }
+import testkit.{ ExtendedTimeout, UnitSpec }
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.duration.TimeUnit
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.http.HeaderCarrier
 
-class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
-  with PrivateMethodTester {
+class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout with PrivateMethodTester {
   implicit val ec: ExecutionContext = ExecutionContext.global
   val scheduleCompletionBaseUrl = "http://localhost:9284/fset-fast-stream/online-tests/phase1"
   val testGatewayConfig = OnlineTestsGatewayConfig(
@@ -144,19 +143,19 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
   val connectorErrorMessage = "Error in connector"
 
   val result = OnlineTestCommands.TestResult(status = "Completed",
-                                             norm = "some norm",
-                                             tScore = Some(23.9999d),
-                                             percentile = Some(22.4d),
-                                             raw = Some(66.9999d),
-                                             sten = Some(1.333d)
+    norm = "some norm",
+    tScore = Some(23.9999d),
+    percentile = Some(22.4d),
+    raw = Some(66.9999d),
+    sten = Some(1.333d)
   )
 
   val savedResult = persisted.TestResult(status = "Completed",
-                                         norm = "some norm",
-                                         tScore = Some(23.9999d),
-                                         percentile = Some(22.4d),
-                                         raw = Some(66.9999d),
-                                         sten = Some(1.333d)
+    norm = "some norm",
+    tScore = Some(23.9999d),
+    percentile = Some(22.4d),
+    raw = Some(66.9999d),
+    sten = Some(1.333d)
   )
 
   val applicationId = "31009ccc-1ac3-4d55-9c53-1908a13dc5e1"
@@ -166,7 +165,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
   "get online test" should {
     "return None if the application id does not exist" in new OnlineTest {
-      when(otRepositoryMock.getTestGroup(any())).thenReturn(Future.successful(None))
+      when(phase1TestRepositoryMock.getTestGroup(any())).thenReturn(Future.successful(None))
       val result = phase1TestService.getTestGroup("nonexistent-userid").futureValue
       result mustBe None
     }
@@ -178,7 +177,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
         Some(candidate)
       ))
 
-      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(
+      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(
         Some(Phase1TestProfile(expirationDate = validExpireDate,
           tests = List(phase1Test)
         ))
@@ -192,9 +191,9 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
   "register and invite application" should {
     "issue one email for invites to SJQ for GIS candidates" in new SuccessfulTestInviteFixture {
-      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
-      when(otRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
-      when(otRepositoryMock.insertCubiksTests(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
+      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
+      when(phase1TestRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
+      when(phase1TestRepositoryMock.insertCubiksTests(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
 
       val result = phase1TestService
         .registerAndInviteForTestGroup(onlineTestApplication.copy(guaranteedInterview = true))
@@ -214,9 +213,9 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
     }
 
     "issue one email for invites to SJQ and BQ tests for non GIS candidates" in new SuccessfulTestInviteFixture {
-      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
-      when(otRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
-      when(otRepositoryMock.insertCubiksTests(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
+      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
+      when(phase1TestRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
+      when(phase1TestRepositoryMock.insertCubiksTests(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
       val result = phase1TestService.registerAndInviteForTestGroup(onlineTestApplication)
 
       result.futureValue mustBe unit
@@ -308,7 +307,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
         eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(any[HeaderCarrier])
       ).thenReturn(Future.successful(()))
 
-      when(otRepositoryMock.insertOrUpdateTestGroup("appId", phase1TestProfile))
+      when(phase1TestRepositoryMock.insertOrUpdateTestGroup("appId", phase1TestProfile))
         .thenReturn(Future.failed(new Exception))
 
       val result = phase1TestService.registerAndInviteForTestGroup(onlineTestApplication)
@@ -323,19 +322,19 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
     }
 
     "audit 'OnlineTestInvitationProcessComplete' on success" in new OnlineTest {
-      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
+      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
       when(onlineTestsGatewayClientMock.registerApplicant(eqTo(registerApplicant)))
         .thenReturn(Future.successful(registration))
       when(onlineTestsGatewayClientMock.inviteApplicant(any[InviteApplicant]))
         .thenReturn(Future.successful(invitation))
-      when(otRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
-      when(otRepositoryMock.insertCubiksTests(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
+      when(phase1TestRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
+      when(phase1TestRepositoryMock.insertCubiksTests(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
       when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
       when(emailClientMock.sendOnlineTestInvitation(
         eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(
         any[HeaderCarrier]
       )).thenReturn(Future.successful(()))
-      when(otRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile]))
+      when(phase1TestRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile]))
         .thenReturn(Future.successful(()))
 
       val result = phase1TestService.registerAndInviteForTestGroup(onlineTestApplication)
@@ -381,7 +380,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
   }
 
   "build invite application" should {
-     "return an InviteApplication for a GIS candidate" in new OnlineTest {
+    "return an InviteApplication for a GIS candidate" in new OnlineTest {
       val result = phase1TestService.buildInviteApplication(
         onlineTestApplication.copy(guaranteedInterview = true),
         token, cubiksUserId, sjqScheduleId
@@ -413,38 +412,39 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
   "mark as started" should {
     "change progress to started" in new OnlineTest {
-      when(otRepositoryMock.updateTestStartTime(any[Int], any[DateTime])).thenReturn(Future.successful(()))
-      when(otRepositoryMock.getTestProfileByCubiksId(cubiksUserId))
+      when(phase1TestRepositoryMock.updateTestStartTime(any[Int], any[DateTime])).thenReturn(Future.successful(()))
+      when(phase1TestRepositoryMock.getTestProfileByCubiksId(cubiksUserId))
         .thenReturn(Future.successful(Phase1TestGroupWithUserIds("appId123", "userId", phase1TestProfile)))
-      when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED)).thenReturn(Future.successful(()))
+      when(phase1TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED)).thenReturn(Future.successful(()))
       phase1TestService.markAsStarted(cubiksUserId).futureValue
 
-      verify(otRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED)
+      verify(phase1TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED)
     }
   }
 
   "mark as completed" should {
     "change progress to completed if there are all tests completed and the test profile hasn't expired" in new OnlineTest {
-      when(otRepositoryMock.updateTestCompletionTime(any[Int], any[DateTime])).thenReturn(Future.successful(()))
+      when(phase1TestRepositoryMock.updateTestCompletionTime(any[Int], any[DateTime])).thenReturn(Future.successful(()))
       val phase1Tests = phase1TestProfile.copy(tests = phase1TestProfile.tests.map(t => t.copy(completedDateTime = Some(DateTime.now()))),
         expirationDate = DateTime.now().plusDays(2)
       )
 
-      when(otRepositoryMock.getTestProfileByCubiksId(cubiksUserId))
+      when(phase1TestRepositoryMock.getTestProfileByCubiksId(cubiksUserId))
         .thenReturn(Future.successful(Phase1TestGroupWithUserIds("appId123", "userId", phase1Tests)))
-      when(otRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)).thenReturn(Future.successful(()))
+      when(phase1TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)).thenReturn(Future.successful(()))
 
       phase1TestService.markAsCompleted(cubiksUserId).futureValue
 
-      verify(otRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)
+      verify(phase1TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)
     }
   }
 
   "mark report as ready to download" should {
     "not change progress if not all the active tests have reports ready" in new OnlineTest {
-      val reportReady = CubiksTestResultReady(reportId = Some(1), reportStatus = "Ready", reportLinkURL = Some("www.report.com"))
+      val reportReady =
+        CubiksTestResultReady(reportId = Some(1), reportStatus = "Ready", reportLinkURL = Some("www.report.com"))
 
-      when(otRepositoryMock.getTestProfileByCubiksId(cubiksUserId)).thenReturn(
+      when(phase1TestRepositoryMock.getTestProfileByCubiksId(cubiksUserId)).thenReturn(
         Future.successful(Phase1TestGroupWithUserIds("appId", "userId", phase1TestProfile.copy(
           tests = List(phase1Test.copy(usedForResults = false, cubiksUserId = 123),
             phase1Test,
@@ -452,18 +452,18 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
           )
         )))
       )
-      when(otRepositoryMock.updateTestReportReady(cubiksUserId, reportReady)).thenReturn(Future.successful(()))
-      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
+      when(phase1TestRepositoryMock.updateTestReportReady(cubiksUserId, reportReady)).thenReturn(Future.successful(()))
+      when(phase1TestRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
 
       val result = phase1TestService.markAsReportReadyToDownload(cubiksUserId, reportReady).futureValue
 
-      verify(otRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus])
+      verify(phase1TestRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus])
     }
 
     "change progress to reports ready if all the active tests have reports ready" in new OnlineTest {
       val reportReady = CubiksTestResultReady(reportId = Some(1), reportStatus = "Ready", reportLinkURL = Some("www.report.com"))
 
-      when(otRepositoryMock.getTestProfileByCubiksId(cubiksUserId)).thenReturn(
+      when(phase1TestRepositoryMock.getTestProfileByCubiksId(cubiksUserId)).thenReturn(
         Future.successful(Phase1TestGroupWithUserIds("appId", "userId", phase1TestProfile.copy(
           tests = List(phase1Test.copy(usedForResults = false, cubiksUserId = 123),
             phase1Test.copy(resultsReadyToDownload = true),
@@ -471,12 +471,12 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
           )
         )))
       )
-      when(otRepositoryMock.updateTestReportReady(cubiksUserId, reportReady)).thenReturn(Future.successful(()))
-      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
+      when(phase1TestRepositoryMock.updateTestReportReady(cubiksUserId, reportReady)).thenReturn(Future.successful(()))
+      when(phase1TestRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
 
       val result = phase1TestService.markAsReportReadyToDownload(cubiksUserId, reportReady).futureValue
 
-      verify(otRepositoryMock).updateProgressStatus("appId", ProgressStatuses.PHASE1_TESTS_RESULTS_READY)
+      verify(phase1TestRepositoryMock).updateProgressStatus("appId", ProgressStatuses.PHASE1_TESTS_RESULTS_READY)
     }
   }
 
@@ -493,23 +493,23 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
         List(phase1Test.copy(usedForResults = false), phase1Test))
 
       // expectations for 2 invocations
-      when(otRepositoryMock.getTestGroup(any[String]))
+      when(phase1TestRepositoryMock.getTestGroup(any[String]))
         .thenReturn(Future.successful(Some(phase1TestProfileWithStartedTests)))
         .thenReturn(Future.successful(Some(phase1TestProfileWithNewTest)))
 
-      when(otRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
-      when(otRepositoryMock.insertCubiksTests(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
-      when(otRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
+      when(phase1TestRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
+      when(phase1TestRepositoryMock.insertCubiksTests(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
+      when(phase1TestRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
       phase1TestService.resetTests(onlineTestApplication, List("sjq"), "createdBy").futureValue
 
-      verify(otRepositoryMock).resetTestProfileProgresses("appId",
+      verify(phase1TestRepositoryMock).resetTestProfileProgresses("appId",
         List(PHASE1_TESTS_STARTED, PHASE1_TESTS_COMPLETED, PHASE1_TESTS_RESULTS_RECEIVED, PHASE1_TESTS_RESULTS_READY,
           PHASE1_TESTS_FAILED, PHASE1_TESTS_FAILED_NOTIFIED, PHASE1_TESTS_FAILED_SDIP_AMBER, PHASE1_TESTS_FAILED_SDIP_GREEN))
       val expectedTestsAfterReset = List(phase1TestProfileWithStartedTests.tests.head.copy(usedForResults = false),
         phase1Test.copy(participantScheduleId = invitation.participantScheduleId))
 
-      verify(otRepositoryMock).markTestAsInactive(cubiksUserId)
-      verify(otRepositoryMock).insertCubiksTests(any[String], any[Phase1TestProfile])
+      verify(phase1TestRepositoryMock).markTestAsInactive(cubiksUserId)
+      verify(phase1TestRepositoryMock).insertCubiksTests(any[String], any[Phase1TestProfile])
     }
   }
 
@@ -544,9 +544,9 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       when(onlineTestsGatewayClientMock.downloadXmlReport(any[Int]))
         .thenReturn(Future.successful(result))
 
-      when(otRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[persisted.TestResult])).thenReturn(Future.successful(()))
-      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
-      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(
+      when(phase1TestRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[persisted.TestResult])).thenReturn(Future.successful(()))
+      when(phase1TestRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
+      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturn(
         Future.successful(Some(testProfile.copy(tests = List(test.copy(testResult = Some(savedResult))))))
       )
 
@@ -555,7 +555,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       )).futureValue
 
       verify(auditServiceMock, times(2)).logEventNoRequest(any[String], any[Map[String, String]])
-      verify(otRepositoryMock).updateProgressStatus(any[String], any[ProgressStatus])
+      verify(phase1TestRepositoryMock).updateProgressStatus(any[String], any[ProgressStatus])
     }
 
     "save a phase1 report for a candidate and not update progress status" in new OnlineTest {
@@ -566,9 +566,9 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       when(onlineTestsGatewayClientMock.downloadXmlReport(any[Int]))
         .thenReturn(Future.successful(result))
 
-      when(otRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[persisted.TestResult])).thenReturn(Future.successful(()))
-      when(otRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
-      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(
+      when(phase1TestRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[persisted.TestResult])).thenReturn(Future.successful(()))
+      when(phase1TestRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
+      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturn(
         Future.successful(Some(testProfile.copy(tests = List(testReady.copy(testResult = Some(savedResult)), testNotReady))))
       )
 
@@ -577,13 +577,14 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       )).futureValue
 
       verify(auditServiceMock, times(1)).logEventNoRequest(any[String], any[Map[String, String]])
-      verify(otRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus])
+      verify(phase1TestRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus])
     }
 
     "retrieve only reports which are not already saved" in new OnlineTest {
       when(onlineTestsGatewayClientMock.downloadXmlReport(123)).thenReturn(Future.successful(result))
-      when(otRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[model.persisted.TestResult])).thenReturn(Future.successful(()))
-      when(otRepositoryMock.updateProgressStatus("appId", PHASE1_TESTS_RESULTS_RECEIVED)).thenReturn(Future.successful(()))
+      when(phase1TestRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[model.persisted.TestResult]))
+        .thenReturn(Future.successful(()))
+      when(phase1TestRepositoryMock.updateProgressStatus("appId", PHASE1_TESTS_RESULTS_RECEIVED)).thenReturn(Future.successful(()))
 
       val testWithoutResult = phase1Test.copy(reportId = Some(123), resultsReadyToDownload = true)
       val testWithResult = phase1Test.copy(reportId = Some(456), resultsReadyToDownload = true, testResult = Some(savedResult))
@@ -591,13 +592,13 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
         testWithoutResult.copy(testResult = Some(savedResult)),
         testWithResult
       ))
-      when(otRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(testProfileAfterTestResultInsertion)))
+      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(testProfileAfterTestResultInsertion)))
 
       val testProfile = phase1TestProfile.copy(tests = List(testWithoutResult, testWithResult))
       phase1TestService.retrieveTestResult(Phase1TestGroupWithUserIds("appId", "userId", testProfile)).futureValue
 
-      verify(otRepositoryMock).insertTestResult("appId", testWithoutResult, savedResult)
-      verify(otRepositoryMock).updateProgressStatus("appId", PHASE1_TESTS_RESULTS_RECEIVED)
+      verify(phase1TestRepositoryMock).insertTestResult("appId", testWithoutResult, savedResult)
+      verify(phase1TestRepositoryMock).updateProgressStatus("appId", PHASE1_TESTS_RESULTS_RECEIVED)
       verify(onlineTestsGatewayClientMock, never).downloadXmlReport(456)
     }
   }
@@ -606,12 +607,12 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
     val phase1ExpirationEvent = Phase1ExpirationEvent(gracePeriodInSecs = 0)
 
     "do nothing if there are no expired application to process" in new OnlineTest {
-      when(otRepositoryMock.nextExpiringApplication(phase1ExpirationEvent)).thenReturn(Future.successful(None))
+      when(phase1TestRepositoryMock.nextExpiringApplication(phase1ExpirationEvent)).thenReturn(Future.successful(None))
       phase1TestService.processNextExpiredTest(phase1ExpirationEvent).futureValue mustBe unit
     }
 
     "update progress status and send an email to the user when a Faststream application is expired" in new OnlineTest {
-      when(otRepositoryMock.nextExpiringApplication(phase1ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
+      when(phase1TestRepositoryMock.nextExpiringApplication(phase1ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
       when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
       when(appRepositoryMock.getApplicationRoute(any[String])).thenReturn(Future.successful(ApplicationRoute.Faststream))
       val results = List(SchemeEvaluationResult("Sdip", "Green"))
@@ -633,13 +634,13 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
     }
 
     "not attempt progressing SdipFS application to SIFT_ENTERED in PHASE1" in new OnlineTest {
-      when(otRepositoryMock.nextExpiringApplication(phase1ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
+      when(phase1TestRepositoryMock.nextExpiringApplication(phase1ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
       when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
       when(appRepositoryMock.getApplicationRoute(any[String])).thenReturn(Future.successful(ApplicationRoute.SdipFaststream))
       val results = Nil
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturn(Future.successful(results))
       when(appRepositoryMock.updateCurrentSchemeStatus(any[String], any[List[SchemeEvaluationResult]])).thenReturn(Future.successful(unit))
-      when(otRepositoryMock.upsertTestGroupEvaluationResult(any[String], any[PassmarkEvaluation])).thenReturn(Future.successful(unit))
+      when(phase1TestRepositoryMock.upsertTestGroupEvaluationResult(any[String], any[PassmarkEvaluation])).thenReturn(Future.successful(unit))
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
       when(siftServiceMock.sendSiftEnteredNotification(applicationId)).thenReturn(Future.successful(()))
 
@@ -661,16 +662,16 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
   "processNextTestForReminder" should {
     "do nothing if there are no application to process for reminders" in new OnlineTest {
-      when(otRepositoryMock.nextTestForReminder(Phase1FirstReminder)).thenReturn(Future.successful(None))
+      when(phase1TestRepositoryMock.nextTestForReminder(Phase1FirstReminder)).thenReturn(Future.successful(None))
       phase1TestService.processNextTestForReminder(Phase1FirstReminder).futureValue mustBe unit
     }
 
     "update progress status and send an email to the user when an application is about to expire" in new OnlineTest {
-      when(otRepositoryMock.nextTestForReminder(Phase1FirstReminder)).thenReturn(Future.successful(Some(expiryReminder)))
+      when(phase1TestRepositoryMock.nextTestForReminder(Phase1FirstReminder)).thenReturn(Future.successful(Some(expiryReminder)))
       when(cdRepositoryMock.find(userId)).thenReturn(Future.successful(contactDetails))
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
       when(emailClientMock.sendTestExpiringReminder(any[String], any[String], any[Int], any[TimeUnit], any[DateTime])
-        (any[HeaderCarrier])).thenReturn(success)
+      (any[HeaderCarrier])).thenReturn(success)
 
       val result = phase1TestService.processNextTestForReminder(Phase1FirstReminder)
 
@@ -690,7 +691,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
   "Progress Sdip for SdipFaststream candidate" should {
     "Set the progress status the candidate has passed Sdip" in new OnlineTest {
       import scala.collection.JavaConversions._
-      when(otRepositoryMock.updateProgressStatusOnly(any[String], any[ProgressStatus])).thenReturn(Future.successful(unit))
+      when(phase1TestRepositoryMock.updateProgressStatusOnly(any[String], any[ProgressStatus])).thenReturn(Future.successful(unit))
 
       val testProfileWithEvaluation = phase1TestProfile.copy(
         evaluation = Some(PassmarkEvaluation("version", None, result = List(SchemeEvaluationResult(SchemeId("Finance"), "Green"),
@@ -704,13 +705,13 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
       val result = phase1TestService.progressSdipFaststreamCandidateForSdip(phase1TestGroup).futureValue
 
-      verify(otRepositoryMock).updateProgressStatusOnly(any[String], eventCaptor.capture)
+      verify(phase1TestRepositoryMock).updateProgressStatusOnly(any[String], eventCaptor.capture)
       eventCaptor.getAllValues.head.toString mustBe ProgressStatuses.getProgressStatusForSdipFsSuccess(ApplicationStatus.PHASE1_TESTS).toString
     }
 
     "Set the progress status the candidate has failed Sdip" in new OnlineTest {
       import scala.collection.JavaConversions._
-      when(otRepositoryMock.updateProgressStatusOnly(any[String], any[ProgressStatus])).thenReturn(Future.successful(unit))
+      when(phase1TestRepositoryMock.updateProgressStatusOnly(any[String], any[ProgressStatus])).thenReturn(Future.successful(unit))
 
       val testProfileWithEvaluation = phase1TestProfile.copy(
         evaluation = Some(PassmarkEvaluation("version", None,
@@ -725,45 +726,47 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
       val result = phase1TestService.progressSdipFaststreamCandidateForSdip(phase1TestGroup).futureValue
 
-      verify(otRepositoryMock).updateProgressStatusOnly(any[String], eventCaptor.capture)
+      verify(phase1TestRepositoryMock).updateProgressStatusOnly(any[String], eventCaptor.capture)
       eventCaptor.getAllValues.head.toString mustBe ProgressStatuses.getProgressStatusForSdipFsFailed(ApplicationStatus.PHASE1_TESTS).toString
     }
   }
 
-  trait OnlineTest {
+  trait OnlineTest extends StcEventServiceFixture {
     implicit val hc = HeaderCarrier()
     implicit val rh = mock[RequestHeader]
 
     val appRepositoryMock = mock[GeneralApplicationRepository]
     val cdRepositoryMock = mock[ContactDetailsRepository]
-    val otRepositoryMock = mock[Phase1TestRepository]
+    val phase1TestRepositoryMock = mock[Phase1TestRepository]
     val onlineTestsGatewayClientMock = mock[OnlineTestsGatewayClient]
     val emailClientMock = mock[CSREmailClient]
     val auditServiceMock = mock[AuditService]
-    val tokenFactoryMock = mock[UUIDFactory]
-    val onlineTestInvitationDateFactoryMock = mock[DateTimeFactory]
+    val uuidFactoryMock = mock[UUIDFactory]
+    val dateTimeFactoryMock = mock[DateTimeFactory]
     val eventServiceMock = mock[StcEventService]
     val siftServiceMock = mock[ApplicationSiftService]
 
-    when(tokenFactoryMock.generateUUID()).thenReturn(token)
-    when(onlineTestInvitationDateFactoryMock.nowLocalTimeZone).thenReturn(invitationDate)
-    when(otRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
+    when(uuidFactoryMock.generateUUID()).thenReturn(token)
+    when(dateTimeFactoryMock.nowLocalTimeZone).thenReturn(invitationDate)
+    when(phase1TestRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
 
-    val phase1TestService = new Phase1TestService with StcEventServiceFixture {
-      override val delaySecsBetweenRegistrations = 0
-      val appRepository = appRepositoryMock
-      val cdRepository = cdRepositoryMock
-      val testRepository = otRepositoryMock
-      val onlineTestsGatewayClient = onlineTestsGatewayClientMock
-      val emailClient = emailClientMock
-      val auditService = auditServiceMock
-      val tokenFactory = tokenFactoryMock
-      val dateTimeFactory = onlineTestInvitationDateFactoryMock
-      val gatewayConfig = testGatewayConfig
-      val eventService = stcEventServiceMock
-      val actor = ActorSystem()
-      val siftService = siftServiceMock
-    }
+    val appConfigMock = mock[MicroserviceAppConfig]
+    when(appConfigMock.onlineTestsGatewayConfig).thenReturn(testGatewayConfig)
+
+    val phase1TestService = new Phase1TestService(
+      appConfigMock,
+      appRepositoryMock,
+      cdRepositoryMock,
+      phase1TestRepositoryMock,
+      onlineTestsGatewayClientMock,
+      uuidFactoryMock,
+      dateTimeFactoryMock,
+      emailClientMock,
+      auditServiceMock,
+      ActorSystem(),
+      stcEventServiceMock,
+      siftServiceMock
+    )
   }
 
   trait SuccessfulTestInviteFixture extends OnlineTest {
@@ -776,7 +779,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(
       any[HeaderCarrier]
     )).thenReturn(Future.successful(()))
-    when(otRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
-    when(otRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
+    when(phase1TestRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
+    when(phase1TestRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
   }
 }

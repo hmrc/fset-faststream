@@ -3,12 +3,9 @@ package repositories.onlinetesting
 import java.util.UUID
 
 import connectors.launchpadgateway.exchangeobjects.in.{ SetupProcessCallbackRequest, ViewPracticeQuestionCallbackRequest }
-import model.ApplicationResponse
 import model.ProgressStatuses.{ PHASE3_TESTS_PASSED_WITH_AMBER, _ }
-
-import model.ProgressStatuses._
 import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
-import model.{ ApplicationStatus, Phase3FirstReminder, Phase3SecondReminder, ProgressStatuses }
+import model._
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 import reactivemongo.bson.BSONDocument
 import testkit.MongoRepositorySpec
@@ -194,7 +191,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       createApplicationWithAllFields("userId1", "appId1","testAccountId", "frameworkId", "PHASE2_TESTS_PASSED",
         additionalProgressStatuses = List((PHASE2_TESTS_PASSED, true)), applicationRoute = "Edip").futureValue
       createApplicationWithAllFields("userId2", "appId2", "testAccountId","frameworkId", "PHASE2_TESTS_PASSED",
-       additionalProgressStatuses = List((PHASE2_TESTS_PASSED, true))).futureValue
+        additionalProgressStatuses = List((PHASE2_TESTS_PASSED, true))).futureValue
 
       val results = phase3TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 
 package repositories
 
+import javax.inject.{ Inject, Singleton }
 import model.Preferences
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.DB
 import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -31,11 +33,14 @@ trait FrameworkPreferenceRepository {
   def tryGetPreferences(applicationId: String): Future[Option[Preferences]]
 }
 
-class FrameworkPreferenceMongoRepository(implicit mongo: () => DB)
+@Singleton
+class FrameworkPreferenceMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
   extends ReactiveRepository[Preferences, BSONObjectID](
-    CollectionNames.APPLICATION, mongo, Preferences.jsonFormat, ReactiveMongoFormats.objectIdFormats
-  )
-  with FrameworkPreferenceRepository with ReactiveRepositoryHelpers {
+    CollectionNames.APPLICATION,
+    mongoComponent.mongoConnector.db,
+    Preferences.jsonFormat,
+    ReactiveMongoFormats.objectIdFormats
+  ) with FrameworkPreferenceRepository with ReactiveRepositoryHelpers {
 
   override def savePreferences(applicationId: String, preferences: Preferences): Future[Unit] = {
     require(preferences.isValid, "Preferences must be valid when saving to repository")

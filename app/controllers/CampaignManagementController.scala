@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,21 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.command.SetTScoreRequest
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent }
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import services.campaignmanagement.CampaignManagementService
 import services.search.SearchForApplicantService
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object CampaignManagementController extends CampaignManagementController {
-  val campaignManagementService: CampaignManagementService.type = CampaignManagementService
-  val searchForApplicantService: SearchForApplicantService = SearchForApplicantService
-}
-
-trait CampaignManagementController extends BaseController {
-
-  val campaignManagementService: CampaignManagementService
-  val searchForApplicantService: SearchForApplicantService
+@Singleton
+class CampaignManagementController @Inject() (cc: ControllerComponents,
+                                              campaignManagementService: CampaignManagementService,
+                                              searchForApplicantService: SearchForApplicantService) extends BackendController(cc) {
 
   def afterDeadlineSignupCodeUnusedAndValid(code: String): Action[AnyContent] = Action.async { implicit request =>
     campaignManagementService.afterDeadlineSignupCodeUnusedAndValid(code).map(response => Ok(Json.toJson(response)))

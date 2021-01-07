@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,25 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions.CannotAddMedia
 import model.persisted.Media
-import play.api.mvc.Action
-import repositories._
+import play.api.libs.json.JsValue
+import play.api.mvc.{ Action, ControllerComponents }
+import repositories.MediaRepository
 import services.AuditService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object MediaController extends MediaController {
-  val mRepository = mediaRepository
-  val auditService = AuditService
-}
+@Singleton
+class MediaController @Inject() (cc: ControllerComponents,
+                                 mRepository: MediaRepository,
+                                 auditService: AuditService
+                                ) extends BackendController(cc) {
 
-trait MediaController extends BaseController {
-  val mRepository: MediaRepository
-  val auditService: AuditService
-
-  def addMedia() = Action.async(parse.json) { implicit request =>
+  def addMedia(): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[Media] { media =>
-
       (for {
         _ <- mRepository.create(media)
       } yield {

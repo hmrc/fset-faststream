@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,14 @@ package repositories.onlinetesting
 
 import common.Phase2TestConcern
 import factories.DateTimeFactory
+import javax.inject.{ Inject, Singleton }
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.{ ApplicationNotFound, UnexpectedException }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model.persisted._
 import model.{ ApplicationStatus, ReminderNotice }
 import org.joda.time.DateTime
-import play.api.Logger
-import reactivemongo.api.DB
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.bson.{ BSONArray, BSONDocument, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.CollectionNames
@@ -40,32 +39,25 @@ trait Phase2TestRepository extends OnlineTestRepository with Phase2TestConcern {
   this: ReactiveRepository[_, _] =>
 
   def getTestGroup(applicationId: String): Future[Option[Phase2TestGroup]]
-
   def getTestGroupByUserId(userId: String): Future[Option[Phase2TestGroup]]
-
   def getTestProfileByToken(token: String): Future[Phase2TestGroup]
-
   def getTestProfileByCubiksId(cubiksUserId: Int): Future[Phase2TestGroupWithAppId]
-
   def insertOrUpdateTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup): Future[Unit]
-
   def upsertTestGroupEvaluation(applicationId: String, passmarkEvaluation: PassmarkEvaluation): Future[Unit]
-
   def saveTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup): Future[Unit]
-
   def nextTestGroupWithReportReady: Future[Option[Phase2TestGroupWithAppId]]
-
   def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit]
-
   def insertTestResult(appId: String, phase2Test: CubiksTest, testResult: TestResult): Future[Unit]
-
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
-
 }
-
-class Phase2TestMongoRepository(dateTime: DateTimeFactory)(implicit mongo: () => DB)
-  extends ReactiveRepository[Phase2TestGroup, BSONObjectID](CollectionNames.APPLICATION, mongo,
-    model.persisted.Phase2TestGroup.phase2TestProfileFormat, ReactiveMongoFormats.objectIdFormats
+// guice cubiks version
+@Singleton
+class Phase2TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoComponent: ReactiveMongoComponent)
+  extends ReactiveRepository[Phase2TestGroup, BSONObjectID](
+    CollectionNames.APPLICATION,
+    mongoComponent.mongoConnector.db,
+    model.persisted.Phase2TestGroup.phase2TestProfileFormat,
+    ReactiveMongoFormats.objectIdFormats
   ) with Phase2TestRepository {
 
   override val phaseName = "PHASE2"

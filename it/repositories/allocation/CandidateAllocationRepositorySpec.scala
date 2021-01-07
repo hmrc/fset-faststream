@@ -1,17 +1,18 @@
 package repositories.allocation
 
 import model.AllocationStatuses
+import model.AllocationStatuses._
 import model.exchange.candidateevents.CandidateRemoveReason
 import model.persisted.CandidateAllocation
 import org.joda.time.LocalDate
+import reactivemongo.api.indexes.IndexType.Ascending
 import repositories.{ CandidateAllocationMongoRepository, CollectionNames }
 import testkit.MongoRepositorySpec
-import AllocationStatuses._
 
 class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
 
   override val collectionName: String = CollectionNames.CANDIDATE_ALLOCATION
-  def repository: CandidateAllocationMongoRepository = new CandidateAllocationMongoRepository()
+  def repository: CandidateAllocationMongoRepository = new CandidateAllocationMongoRepository(mongo)
   val allocations: Seq[CandidateAllocation] = Seq(
     CandidateAllocation("candId1", "eventId1", "sessionId1", UNCONFIRMED, "version1", None, LocalDate.now(), reminderSent = false),
     CandidateAllocation("candId2", "eventId1", "sessionId1", CONFIRMED, "version1", None, LocalDate.now(), reminderSent = false),
@@ -20,11 +21,11 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
 
   def storeAllocations = allocations.foreach(a => repository.save(Seq(a)).futureValue)
 
-  s"CandidateAllocationRepository" must {
+  "CandidateAllocationRepository" must {
     "create indexes for the repository" in {
-      val indexes = indexesWithFields(repositories.candidateAllocationRepository)
-      indexes must contain(List("_id"))
-      indexes must contain(List("id", "eventId", "sessionId"))
+      val indexes = indexesWithFields(repository)
+      indexes must contain(IndexDetails(key = Seq(("_id", Ascending)), unique = false))
+      indexes must contain(IndexDetails(key = Seq(("id", Ascending), ("eventId", Ascending), ("sessionId", Ascending)), unique = false))
       indexes.size mustBe 2
     }
 
@@ -59,7 +60,7 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
       docs2.size mustBe 1
     }
 
-    "is allocation exists" in {
+    "check allocation exists" in {
       storeAllocations
       val app = allocations.head
       val res = repository.isAllocationExists(app.id, app.eventId, app.sessionId, Some(app.version)).futureValue

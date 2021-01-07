@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,29 +17,27 @@
 package controllers
 
 import connectors.exchange.{ AssessorAllocationRequest, FindAssessorsByIdsRequest }
+import javax.inject.{ Inject, Singleton }
 import model.AllocationStatuses.AllocationStatus
 import model.Exceptions._
-import model.{ AllocationStatuses, UniqueIdentifier }
 import model.exchange._
 import model.persisted.eventschedules.SkillType.SkillType
+import model.{ AllocationStatuses, UniqueIdentifier }
 import org.joda.time.LocalDate
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import services.AuditService
 import services.assessor.AssessorService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object AssessorController extends AssessorController {
-  val assessorService = AssessorService
-  val auditService = AuditService
-}
-
-trait AssessorController extends BaseController {
-  val assessorService: AssessorService
-  val auditService: AuditService
+@Singleton
+class AssessorController @Inject() (cc: ControllerComponents,
+                                    assessorService: AssessorService,
+                                    auditService: AuditService
+                                   ) extends BackendController(cc) {
 
   def saveAssessor(userId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[Assessor] { assessor =>
@@ -129,9 +127,8 @@ trait AssessorController extends BaseController {
         Ok
       }
     }.recover {
-      case e: CannotRemoveAssessorWhenFutureAllocationExistsException => Conflict(e.getMessage())
+      case e: CannotRemoveAssessorWhenFutureAllocationExistsException => Conflict(e.getMessage)
       case e: AssessorNotFoundException => NotFound(e.getMessage)
     }
-
   }
 }

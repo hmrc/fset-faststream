@@ -2,8 +2,9 @@ package repositories.contactdetails
 
 import model.Address
 import model.Exceptions.{ ContactDetailsNotFound, ContactDetailsNotFoundForEmail }
-import model.persisted.{ ContactDetails, UserIdWithEmail }
 import model.persisted.ContactDetailsExamples._
+import model.persisted.{ ContactDetails, UserIdWithEmail }
+import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.CollectionNames
@@ -16,7 +17,18 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
 
   override val collectionName = CollectionNames.CONTACT_DETAILS
 
-  def repository = new ContactDetailsMongoRepository
+  def repository = new ContactDetailsMongoRepository(mongo, appConfig)
+
+  "contact details repository " should {
+    "create indexes" in {
+      val indexes = indexesWithFields(repository)
+      indexes must contain theSameElementsAs
+        Seq(
+          IndexDetails(key = Seq(("_id", Ascending)), unique = false),
+          IndexDetails(key = Seq(("userId", Ascending)), unique = true)
+        )
+    }
+  }
 
   "update contact details" should {
     "update contact details and find them successfully" in {
@@ -30,7 +42,7 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
       result mustBe UpdatedContactDetails
     }
 
-    "create new contact details if they does not exist" in {
+    "create new contact details if they do not exist" in {
       val result = (for {
         _ <- repository.update(UserId, ContactDetailsUK)
         cd <- repository.find(UserId)
@@ -143,7 +155,7 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  def insert(doc: BSONDocument) = repository.collection.insert(doc)
+  private def insert(doc: BSONDocument) = repository.collection.insert(ordered = false).one(doc)
 
-  def insert(userId: String, cd: ContactDetails) = repository.update(userId, cd).futureValue
+  private def insert(userId: String, cd: ContactDetails) = repository.update(userId, cd).futureValue
 }

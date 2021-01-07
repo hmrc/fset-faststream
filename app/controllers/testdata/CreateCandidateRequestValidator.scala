@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,16 @@
 
 package controllers.testdata
 
+import javax.inject.Singleton
 import model.ApplicationRoute.ApplicationRoute
 import model.command.testdata.CreateCandidateRequest.CreateCandidateRequest
 import model.{ ApplicationRoute, ApplicationStatus, CivilServantAndInternshipType }
 
 case class ValidatorResult(result: Boolean, message: Option[String])
 
-object CreateCandidateRequestValidator extends CreateCandidateRequestValidator
-
-trait CreateCandidateRequestValidator {
+@Singleton
+class CreateCandidateRequestValidator {
   def validate(request: CreateCandidateRequest): ValidatorResult = {
-
     if (!validateGis(request)) {
       ValidatorResult(result = false, Some("Request contains incompatible values for Gis"))
     } else if (!validateSdip(request)) {
@@ -137,5 +136,4 @@ trait CreateCandidateRequestValidator {
   def getApplicationStatus(request: CreateCandidateRequest) = {
     ApplicationStatus.withName(request.statusData.applicationStatus)
   }
-
 }

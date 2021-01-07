@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,23 @@
 
 package controllers
 
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions._
 import model.exchange.AssistanceDetailsExchange
 import play.api.libs.json.Json
-import play.api.mvc.Action
+import play.api.mvc.{ Action, ControllerComponents }
 import services.AuditService
 import services.assistancedetails.AssistanceDetailsService
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object AssistanceDetailsController extends AssistanceDetailsController {
-  val assistanceDetailsService = AssistanceDetailsService
-  val auditService = AuditService
-}
-
-trait AssistanceDetailsController extends BaseController {
+@Singleton
+class AssistanceDetailsController @Inject() (cc: ControllerComponents,
+                                             assistanceDetailsService: AssistanceDetailsService,
+                                             auditService: AuditService
+                                            ) extends BackendController(cc) {
   val AssistanceDetailsSavedEvent = "AssistanceDetailsSaved"
-
-  val assistanceDetailsService: AssistanceDetailsService
-  val auditService: AuditService
 
   def update(userId: String, applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[AssistanceDetailsExchange] { req =>

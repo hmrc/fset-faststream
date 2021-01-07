@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,47 +16,15 @@
 
 package services.testdata.candidate.onlinetests
 
+import javax.inject.{ Inject, Singleton }
 import model.ProgressStatuses._
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
-import repositories._
 import repositories.application.GeneralApplicationRepository
 import services.testdata.candidate.ConstructiveGenerator
-import services.testdata.candidate.assessmentcentre.AssessmentCentreAllocationConfirmedStatusGenerator
-import services.testdata.candidate.fsb.FsbResultEnteredStatusGenerator
-
-import scala.concurrent.ExecutionContext.Implicits.global
 import uk.gov.hmrc.http.HeaderCarrier
 
-object Phase1TestsFailedNotifiedStatusGenerator extends TestsFailedNotifiedStatusGenerator {
-  val previousStatusGenerator = Phase1TestsFailedStatusGenerator
-  val appRepository = applicationRepository
-  val failedStatus = PHASE1_TESTS_FAILED_NOTIFIED
-}
-
-object Phase2TestsFailedNotifiedStatusGenerator extends TestsFailedNotifiedStatusGenerator {
-  val previousStatusGenerator = Phase2TestsFailedStatusGenerator
-  val appRepository = applicationRepository
-  val failedStatus = PHASE2_TESTS_FAILED_NOTIFIED
-}
-
-object Phase3TestsFailedNotifiedStatusGenerator extends TestsFailedNotifiedStatusGenerator {
-  val previousStatusGenerator = Phase3TestsFailedStatusGenerator
-  val appRepository = applicationRepository
-  val failedStatus = PHASE3_TESTS_FAILED_NOTIFIED
-}
-
-object AssessmentCentreFailedNotifiedStatusGenerator extends TestsFailedStatusGenerator {
-  val previousStatusGenerator = AssessmentCentreFailedStatusGenerator
-  val appRepository = applicationRepository
-  val failedStatus = ASSESSMENT_CENTRE_FAILED_NOTIFIED
-}
-
-object AllFsbFailedNotifiedStatusGenerator extends TestsFailedStatusGenerator {
-  val previousStatusGenerator = AllFsbFailedStatusGenerator
-  val appRepository = applicationRepository
-  val failedStatus = ALL_FSBS_AND_FSACS_FAILED_NOTIFIED
-}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 trait TestsFailedNotifiedStatusGenerator extends ConstructiveGenerator {
   val appRepository: GeneralApplicationRepository
@@ -68,4 +36,39 @@ trait TestsFailedNotifiedStatusGenerator extends ConstructiveGenerator {
       _ <- appRepository.addProgressStatusAndUpdateAppStatus(candidate.applicationId.get, failedStatus)
     } yield candidate
   }
+}
+
+@Singleton
+class Phase1TestsFailedNotifiedStatusGenerator @Inject() (val previousStatusGenerator: Phase1TestsFailedStatusGenerator,
+                                                          val appRepository: GeneralApplicationRepository
+                                                         ) extends TestsFailedNotifiedStatusGenerator {
+  val failedStatus = PHASE1_TESTS_FAILED_NOTIFIED
+}
+
+@Singleton
+class Phase2TestsFailedNotifiedStatusGenerator @Inject() (val previousStatusGenerator: Phase2TestsFailedStatusGenerator,
+                                                          val appRepository: GeneralApplicationRepository
+                                                         ) extends TestsFailedNotifiedStatusGenerator {
+  val failedStatus = PHASE2_TESTS_FAILED_NOTIFIED
+}
+
+@Singleton
+class Phase3TestsFailedNotifiedStatusGenerator @Inject() (val previousStatusGenerator: Phase3TestsFailedStatusGenerator,
+                                                          val appRepository: GeneralApplicationRepository
+                                                         ) extends TestsFailedNotifiedStatusGenerator {
+  val failedStatus = PHASE3_TESTS_FAILED_NOTIFIED
+}
+
+@Singleton
+class AssessmentCentreFailedNotifiedStatusGenerator @Inject() (val previousStatusGenerator: AssessmentCentreFailedStatusGenerator,
+                                                               val appRepository: GeneralApplicationRepository
+                                                              ) extends TestsFailedStatusGenerator {
+  val failedStatus = ASSESSMENT_CENTRE_FAILED_NOTIFIED
+}
+
+@Singleton
+class AllFsbFailedNotifiedStatusGenerator @Inject() (val previousStatusGenerator: AllFsbFailedStatusGenerator,
+                                                     val appRepository: GeneralApplicationRepository
+                                                    ) extends TestsFailedStatusGenerator {
+  val failedStatus = ALL_FSBS_AND_FSACS_FAILED_NOTIFIED
 }
