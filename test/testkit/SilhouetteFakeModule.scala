@@ -22,7 +22,7 @@ import net.codingwell.scalaguice.ScalaModule
 import security.SecurityEnvironment
 
 class SilhouetteFakeModule extends AbstractModule with SilhouetteFakeEnv with ScalaModule {
-  def configure(): Unit = {
+  override def configure(): Unit = {
     bind[Environment[SecurityEnvironment]].toInstance(env)
   }
 }
