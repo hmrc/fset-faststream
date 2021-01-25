@@ -18,8 +18,9 @@ package connectors
 
 import config.{CSRHttp, FrontendAppConfig}
 import connectors.exchange.referencedata.{ReferenceData, Scheme, SchemeId}
+
 import javax.inject.{Inject, Singleton}
-import play.api.Logger
+import play.api.{Logger, Logging}
 import play.api.libs.json.OFormat
 
 import scala.concurrent.ExecutionContext
@@ -30,7 +31,7 @@ import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
 @Singleton
-class ReferenceDataClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(implicit ec: ExecutionContext) {
+class ReferenceDataClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(implicit ec: ExecutionContext) extends Logging {
   val url = config.faststreamBackendConfig.url
   val apiBaseUrl = s"${url.host}${url.base}"
 
@@ -47,14 +48,14 @@ class ReferenceDataClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(i
     endpointPath: String)(implicit hc: HeaderCarrier, jsonFormat: OFormat[T]): Future[List[T]] = {
     val values: List[T] = referenceDataCache.getOrElse(key, List.empty[T]).asInstanceOf[List[T]]
 
-    Logger.info(s"Values successfully fetched from reference data cache for key: $key = $values")
+    logger.info(s"Values successfully fetched from reference data cache for key: $key = $values")
     if (values.isEmpty) {
       http.GET(s"$apiBaseUrl$endpointPath").map { response =>
         if (response.status == OK) {
           val dataResponse = response.json.as[List[T]]
           referenceDataCache.update(key, dataResponse)
           // Set to warn so we see it in live logs
-          Logger.warn(s"Reference data cache is empty for key: $key. It will be populated with the following data: $dataResponse")
+          logger.warn(s"Reference data cache is empty for key: $key. It will be populated with the following data: $dataResponse")
           dataResponse
         } else {
           throw new Exception(s"Error retrieving $key for")

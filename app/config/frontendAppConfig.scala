@@ -19,13 +19,13 @@ package config
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Base64
-
 import controllers.{ApplicationRouteState, ApplicationRouteStateImpl}
+
 import javax.inject.{Inject, Singleton}
 import models.ApplicationRoute._
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
-import play.api.{Configuration, Environment, Logger}
+import play.api.{Configuration, Environment, Logger, Logging}
 
 case class EmailConfig(url: EmailUrl, templates: EmailTemplates)
 case class EmailUrl(host: String, sendEmail: String)
@@ -60,7 +60,7 @@ object ApplicationRouteFrontendConfig {
 }
 
 @Singleton
-class FrontendAppConfig @Inject() (val config: Configuration, val environment: Environment) {
+class FrontendAppConfig @Inject() (val config: Configuration, val environment: Environment) extends Logging {
   lazy val emailConfig = config.underlying.as[EmailConfig]("microservice.services.email")
   lazy val authConfig = config.underlying.as[AuthConfig](s"microservice.services.auth")
   lazy val userManagementConfig = config.underlying.as[UserManagementConfig]("microservice.services.user-management")
@@ -87,11 +87,11 @@ class FrontendAppConfig @Inject() (val config: Configuration, val environment: E
     val startNewAccountsDate = config.getOptional[String](s"applicationRoute.$routeKey.startNewAccountsDate")
     val blockNewAccountsDate = config.getOptional[String](s"applicationRoute.$routeKey.blockNewAccountsDate")
     val blockApplicationsDate = config.getOptional[String](s"applicationRoute.$routeKey.blockApplicationsDate")
-    Logger.warn(s"Reading campaign closing times timeZone=$timeZone")
-    Logger.warn(s"Reading campaign closing times for routeKey=$routeKey...")
-    Logger.warn(s"routeKey=$routeKey - startNewAccountsDate=$startNewAccountsDate")
-    Logger.warn(s"routeKey=$routeKey - blockNewAccountsDate=$blockNewAccountsDate")
-    Logger.warn(s"routeKey=$routeKey - blockApplicationsDate=$blockApplicationsDate")
+    logger.warn(s"Reading campaign closing times timeZone=$timeZone")
+    logger.warn(s"Reading campaign closing times for routeKey=$routeKey...")
+    logger.warn(s"routeKey=$routeKey - startNewAccountsDate=$startNewAccountsDate")
+    logger.warn(s"routeKey=$routeKey - blockNewAccountsDate=$blockNewAccountsDate")
+    logger.warn(s"routeKey=$routeKey - blockApplicationsDate=$blockApplicationsDate")
 
     ApplicationRouteStateImpl(
       ApplicationRouteFrontendConfig.read(

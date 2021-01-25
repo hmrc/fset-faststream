@@ -17,12 +17,12 @@
 package filters
 
 import java.util.Base64
-
 import akka.stream.Materializer
+
 import javax.inject.{Inject, Singleton}
 import play.api.mvc.Results.{Forbidden, NotImplemented, Redirect}
 import play.api.mvc.{Call, EssentialFilter, RequestHeader, Result}
-import play.api.{Configuration, Logger}
+import play.api.{Configuration, Logging}
 import uk.gov.hmrc.whitelist.AkamaiWhitelistFilter
 
 import scala.concurrent.Future
@@ -35,7 +35,7 @@ import scala.concurrent.Future
 class FaststreamWhitelistFilter @Inject() (
   val configuration: Configuration,
   val mat: Materializer)
-  extends AkamaiWhitelistFilter with EssentialFilter {
+  extends AkamaiWhitelistFilter with EssentialFilter with Logging {
 
   // Whitelist Configuration
   private def whitelistConfig(key: String): Seq[String] =
@@ -68,8 +68,8 @@ class FaststreamWhitelistFilter @Inject() (
   private def toCall(rh: RequestHeader): Call =
     Call(rh.method, rh.uri)
 
-  override def apply(f: (RequestHeader) => Future[Result])(rh: RequestHeader): Future[Result] = {
-    Logger.debug(s"----- Calling WhiteListFilter.apply with method ${rh.method} uri ${rh.uri} from ip ${rh.headers.get(trueClient)}")
+  override def apply(f: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
+    logger.debug(s"----- Calling WhiteListFilter.apply with method ${rh.method} uri ${rh.uri} from ip ${rh.headers.get(trueClient)}")
     if (excludedPaths.contains(toCall(rh))) {
       f(rh)
     } else {

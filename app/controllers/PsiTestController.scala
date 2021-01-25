@@ -20,9 +20,10 @@ import config.{FrontendAppConfig, SecurityEnvironment}
 import connectors.ApplicationClient
 import connectors.exchange.PsiTest
 import helpers.NotificationTypeHelper
+
 import javax.inject.{Inject, Singleton}
 import models.UniqueIdentifier
-import play.api.Logger
+import play.api.{Logger, Logging}
 import play.api.i18n.Messages
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import security.Roles.{OnlineTestInvitedRole, Phase2TestInvitedRole, SiftNumericTestRole}
@@ -89,7 +90,7 @@ class PsiTestController @Inject() (config: FrontendAppConfig,
         }
       }.recover {
         case ex: Throwable =>
-          Logger.warn("Exception when completing phase 1 tests", ex)
+          logger.warn("Exception when completing phase 1 tests", ex)
           InternalServerError(s"Unable to complete phase 1 test for orderId=$orderId because ${ex.getMessage}")
       }
   }
@@ -112,12 +113,12 @@ class PsiTestController @Inject() (config: FrontendAppConfig,
         }
       }.recover {
         case ex: Throwable =>
-          Logger.warn("Exception when completing phase 2 tests", ex)
+          logger.warn("Exception when completing phase 2 tests", ex)
           InternalServerError(s"Unable to complete phase 2 test for orderId=$orderId because ${ex.getMessage}")
       }
 }
 
-  def completeSiftTest(orderId: UniqueIdentifier) = CSRUserAwareAction { implicit request =>
+  def completeSiftTest(orderId: UniqueIdentifier): Action[AnyContent] = CSRUserAwareAction { implicit request =>
     implicit user =>
       applicationClient.completeTestByOrderId(orderId).map { _ =>
         Ok(views.html.application.onlineTests.siftTestComplete())
