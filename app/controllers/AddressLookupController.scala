@@ -47,7 +47,7 @@ class AddressLookupController  @Inject() (
       case Nil => NotFound
     }.recover {
       case e: BadRequestException =>
-        Logger.debug(s"Postcode lookup service returned ${e.getMessage} for postcode $postcode", e)
+        logger.debug(s"Postcode lookup service returned ${e.getMessage} for postcode $postcode", e)
         BadRequest
     }
   }

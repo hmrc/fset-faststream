@@ -16,13 +16,12 @@
 
 package controllers
 
-import java.time.{ LocalDateTime, ZoneId }
+import java.time.{LocalDateTime, ZoneId}
 import java.time.format.DateTimeFormatter
-
 import config.ApplicationRouteFrontendConfig
 import models.ApplicationRoute._
 import org.joda.time.DateTime
-import play.api.Logger
+import play.api.{Logger, Logging}
 
 trait ApplicationRouteState {
   def newAccountsStarted: Boolean
@@ -31,7 +30,7 @@ trait ApplicationRouteState {
   def applicationsStartDate: Option[LocalDateTime]
 }
 
-case class ApplicationRouteStateImpl(config: ApplicationRouteFrontendConfig) extends ApplicationRouteState {
+case class ApplicationRouteStateImpl(config: ApplicationRouteFrontendConfig) extends ApplicationRouteState with Logging {
   require(
     config.startNewAccountsDate.forall(startDate => config.blockNewAccountsDate.forall(_.isAfter(startDate))),
     "start new accounts date must be before block new accounts date"
@@ -48,7 +47,7 @@ case class ApplicationRouteStateImpl(config: ApplicationRouteFrontendConfig) ext
 
   def isAfterNow(date: Option[LocalDateTime]) = {
     val result = date forall (_.isAfter(now))
-    Logger.warn(s"isAfterNow check: checking if given closing date($date) in timezone($zoneId) is after now($now) - " +
+    logger.warn(s"isAfterNow check: checking if given closing date($date) in timezone($zoneId) is after now($now) - " +
       s"result=$result (false indicates we are closed)")
     result
   }

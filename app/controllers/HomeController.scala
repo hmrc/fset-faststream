@@ -40,7 +40,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class HomeController  @Inject() (
+class HomeController @Inject() (
   config: FrontendAppConfig,
   mcc: MessagesControllerComponents,
   val secEnv: SecurityEnvironment,
@@ -164,30 +164,30 @@ class HomeController  @Inject() (
       request.asInstanceOf[Request[AnyContent]].body.asMultipartFormData.flatMap { multiPartRequest =>
         multiPartRequest.file("analysisExerciseFile").map {
           case document if document.ref.path.toFile.length() > maxAnalysisExerciseFileSizeInBytes =>
-            Logger.warn(s"File upload rejected as too large for applicationId $applicationId (Size: ${document.ref.path.toFile.length()})")
+            logger.warn(s"File upload rejected as too large for applicationId $applicationId (Size: ${document.ref.path.toFile.length()})")
             Future.successful(Redirect(routes.HomeController.present()).flashing(
               danger("assessmentCentre.analysisExercise.upload.tooBig")))
           case document if document.ref.path.toFile.length() < minAnalysisExerciseFileSizeInBytes =>
-            Logger.warn(s"File upload rejected as too small for applicationId $applicationId (Size: ${document.ref.path.toFile.length()})")
+            logger.warn(s"File upload rejected as too small for applicationId $applicationId (Size: ${document.ref.path.toFile.length()})")
             Future.successful(Redirect(routes.HomeController.present()).flashing(
               danger("assessmentCentre.analysisExercise.upload.tooSmall")))
           case document =>
             document.contentType match {
               case Some(contentType) if validMSWordContentTypes.contains(contentType) =>
-                Logger.warn(s"File upload accepted for applicationId $applicationId (Size: ${document.ref.path.toFile.length()})")
+                logger.warn(s"File upload accepted for applicationId $applicationId (Size: ${document.ref.path.toFile.length()})")
                 applicationClient.uploadAnalysisExercise(applicationId, contentType,
                   getAllBytesInFile(document.ref.path)).map { result =>
                   Redirect(routes.HomeController.present()).flashing(
                     success("assessmentCentre.analysisExercise.upload.success"))
                 }.recover {
                   case _: CandidateAlreadyHasAnAnalysisExerciseException =>
-                    Logger.warn(s"A duplicate written exercise submission was attempted " +
+                    logger.warn(s"A duplicate written exercise submission was attempted " +
                       s"(applicationId = $applicationId)")
                     Redirect(routes.HomeController.present()).flashing(
                       danger("assessmentCentre.analysisExercise.upload.error"))
                 }
               case Some(contentType) =>
-                Logger.warn(s"File upload rejected as wrong content type for applicationId $applicationId" +
+                logger.warn(s"File upload rejected as wrong content type for applicationId $applicationId" +
                   s" (Size: ${document.ref.path.toFile.length()})")
                 Future.successful(
                   Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.wrongContentType"))
@@ -195,7 +195,7 @@ class HomeController  @Inject() (
             }
         }
       }.getOrElse {
-        Logger.info(s"A malformed file request was submitted as a written exercise " +
+        logger.info(s"A malformed file request was submitted as a written exercise " +
           s"(applicationId = $applicationId)")
         Future.successful(Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.analysisExercise.upload.error")))
       }

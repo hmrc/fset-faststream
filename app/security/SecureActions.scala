@@ -17,7 +17,6 @@
 package security
 
 import java.util.UUID
-
 import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
 import com.mohiva.play.silhouette.api.{Authorization, LogoutEvent, Silhouette}
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
@@ -26,7 +25,7 @@ import controllers.routes
 import helpers.NotificationType._
 import helpers.NotificationTypeHelper
 import models.{CachedData, CachedDataWithApp, SecurityUser, UniqueIdentifier}
-import play.api.Logger
+import play.api.{Logger, Logging}
 import play.api.i18n.{I18nSupport, Messages}
 import play.api.mvc._
 import security.Roles.CsrAuthorization
@@ -50,7 +49,7 @@ import scala.language.postfixOps
 // so in this instance, ignore the scalastyle method rule
 
 // scalastyle:off method.name
-trait SecureActions extends I18nSupport {
+trait SecureActions extends I18nSupport with Logging {
   self: FrontendController =>
   implicit val ec: ExecutionContext
   val secEnv: config.SecurityEnvironment
@@ -74,7 +73,7 @@ trait SecureActions extends I18nSupport {
         SecuredActionWithCSRAuthorisation(secondRequest, block, role, data, data)
       } recoverWith {
         case ice: InvalidCredentialsException => {
-          Logger.warn(s"Retrieved user cache data failed for userID '${secondRequest.identity.userID}. Could not recover!")
+          logger.warn(s"Retrieved user cache data failed for userID '${secondRequest.identity.userID}. Could not recover!")
           gotoAuthentication(secondRequest)
         }
       }
@@ -142,7 +141,7 @@ trait SecureActions extends I18nSupport {
     secEnv.eventBus.publish(LogoutEvent(request.identity, request))
     secEnv.authenticatorService.retrieve.flatMap {
       case Some(authenticator) =>
-        Logger.info(s"No keystore record found for user with valid cookie (User Id = ${request.identity.userID}). " +
+        logger.info(s"No keystore record found for user with valid cookie (User Id = ${request.identity.userID}). " +
           s"Removing cookie and redirecting to sign in.")
         secEnv.authenticatorService.discard(authenticator, Redirect(routes.SignInController.present()))
       case None => Future.successful(Redirect(routes.SignInController.present()))

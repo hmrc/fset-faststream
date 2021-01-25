@@ -18,6 +18,7 @@ package controllers
 
 
 import config.FrontendAppConfig
+import play.api.Logging
 import play.api.mvc.MessagesControllerComponents
 import security.SecureActions
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -28,7 +29,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 abstract class BaseController(
   config: FrontendAppConfig,
   mcc: MessagesControllerComponents)
-  extends FrontendController(mcc) with SecureActions {
+  extends FrontendController(mcc) with SecureActions with Logging {
 
   implicit val feedbackUrl = config.feedbackUrl
   implicit val analyticsConfig = config.analyticsConfig
