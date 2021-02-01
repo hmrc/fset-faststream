@@ -127,7 +127,7 @@ trait GeneralApplicationRepository {
   def removeCurrentSchemeStatus(applicationId: String): Future[Unit]
   def removeWithdrawReason(applicationId: String): Future[Unit]
   def findEligibleForJobOfferCandidatesWithFsbStatus: Future[Seq[String]]
-  def listCollections(implicit ec: ExecutionContext): Future[List[String]]
+  def listCollections: Future[List[String]]
   def removeCollection(name: String): Future[Unit]
   def removeCandidate(applicationId: String): Future[Unit]
   def getApplicationStatusForCandidates(applicationIds: Seq[String]): Future[Seq[(String, ApplicationStatus)]]
@@ -1182,7 +1182,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     }
   }
 
-  override def listCollections(implicit ec: ExecutionContext): Future[List[String]] = {
+  override def listCollections: Future[List[String]] = {
     mongoComponent.mongoConnector.db().collectionNames
   }
 

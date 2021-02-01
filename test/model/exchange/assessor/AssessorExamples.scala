@@ -25,12 +25,13 @@ import org.joda.time.LocalDate
 object AssessorExamples {
   val UserId1 = "57364"
   val Assessor1 = Assessor(
-    UserId1,
+    userId = UserId1,
     version = None,
-    List("assessor", "qac"),
-    List(SchemeId("Sdip")),
+    skills = List("assessor", "qac"),
+    sifterSchemes = List(SchemeId("Sdip")),
     civilServant = true,
-    AssessorStatus.CREATED)
+    status = AssessorStatus.CREATED
+  )
 }
 
 object AssessorAvailabilityExamples {

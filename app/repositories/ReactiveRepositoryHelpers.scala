@@ -27,7 +27,6 @@ import reactivemongo.bson.BSONDocument
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ ExecutionContext, Future }
 
 trait ReactiveRepositoryHelpers {
@@ -115,12 +114,14 @@ trait ReactiveRepositoryHelpers {
   }
 
   // Wrap the findAndModify method to provide all the defaults
-  def findAndModify(query: BSONDocument, updateOp: FindAndModifyCommand.Update) =
+  def findAndModify(query: BSONDocument, updateOp: FindAndModifyCommand.Update) = {
+    implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
     bsonCollection.findAndModify(
       query, updateOp, sort = None, fields = None, bypassDocumentValidation = false,
       writeConcern = WriteConcern.Default, maxTime = Option.empty[FiniteDuration], collation = Option.empty[Collation],
       arrayFilters = Seq.empty[BSONDocument]
     )
+  }
 
   // Alternative to the count implemented by Hmrc ReactiveRepository class, which throws a JsResultException at runtime:
   // errmsg=readConcern.level must be either 'local', 'majority' or 'linearizable'", "")

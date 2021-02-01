@@ -16,12 +16,10 @@
 
 package config
 
-import javax.inject.{ Inject, Singleton }
-import model.persisted.eventschedules.{ Location, Venue }
+import javax.inject.{Inject, Singleton}
+import model.persisted.eventschedules.{Location, Venue}
 import net.ceedubs.ficus.Ficus._
-import net.ceedubs.ficus.readers.ValueReader
 import play.api.{ Configuration, Environment, Logger }
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 case class FrameworksConfig(yamlFilePath: String)
 
@@ -54,9 +52,8 @@ case class ScheduledJobConfig(
 ) extends ScheduledJobConfigurable
 
 object ScheduledJobConfig {
-  implicit lazy val _reader: ValueReader[ScheduledJobConfig] = {
+  implicit lazy val reader =
     net.ceedubs.ficus.readers.ArbitraryTypeReader.arbitraryTypeValueReader[ScheduledJobConfig]
-  }
 }
 
 case class WaitingScheduledJobConfig(
@@ -69,9 +66,8 @@ case class WaitingScheduledJobConfig(
 ) extends ScheduledJobConfigurable
 
 object WaitingScheduledJobConfig {
-  implicit lazy val _reader: ValueReader[WaitingScheduledJobConfig] = {
+  implicit lazy val reader =
     net.ceedubs.ficus.readers.ArbitraryTypeReader.arbitraryTypeValueReader[WaitingScheduledJobConfig]
-  }
 }
 
 case class OnlineTestsGatewayConfig(url: String,
@@ -204,7 +200,4 @@ class MicroserviceAppConfig @Inject() (val config: Configuration, val environmen
 
   lazy val parityExportJobConfig =
     underlyingConfiguration.as[ScheduledJobConfig]("scheduling.parity-export-job")
-
-//  override def mode = environment.mode
-//  override def runModeConfiguration = configuration
 }

@@ -17,7 +17,6 @@
 package model
 
 import java.util.UUID
-
 import play.api.libs.json._
 import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 

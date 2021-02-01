@@ -49,11 +49,11 @@ object LockFormats {
 }
 
 trait LockRepository {
-  def lock(reqLockId: String, reqOwner: String, forceReleaseAfter: Duration)(implicit ec: ExecutionContext): Future[Boolean]
+  def lock(reqLockId: String, reqOwner: String, forceReleaseAfter: Duration): Future[Boolean]
 
-  def isLocked(reqLockId: String, reqOwner: String)(implicit ec: ExecutionContext): Future[Boolean]
+  def isLocked(reqLockId: String, reqOwner: String): Future[Boolean]
 
-  def releaseLock(reqLockId: String, reqOwner: String)(implicit ec: ExecutionContext): Future[Unit]
+  def releaseLock(reqLockId: String, reqOwner: String): Future[Unit]
 }
 
 @Singleton
@@ -73,8 +73,7 @@ class LockMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
     Index(Seq((expiryTime, Ascending)), unique = false)
   )
 
-  def lock(reqLockId: String, reqOwner: String, forceReleaseAfter: Duration)(
-    implicit ec: ExecutionContext): Future[Boolean] = withCurrentTime { now =>
+  def lock(reqLockId: String, reqOwner: String, forceReleaseAfter: Duration): Future[Boolean] = withCurrentTime { now =>
     collection.delete().one(Json.obj(id -> reqLockId, expiryTime -> Json.obj("$lte" -> now))).flatMap { writeResult =>
       if (writeResult.n != 0) {
         Logger.info(s"Removed ${writeResult.n} expired locks for $reqLockId")
@@ -94,14 +93,14 @@ class LockMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
     }
   }
 
-  def isLocked(reqLockId: String, reqOwner: String)(implicit ec: ExecutionContext): Future[Boolean] = withCurrentTime { now =>
+  def isLocked(reqLockId: String, reqOwner: String): Future[Boolean] = withCurrentTime { now =>
     collection.find(
       Json.obj(id -> reqLockId, owner -> reqOwner, expiryTime -> Json.obj("$gt" -> now)),
       projection = Option.empty[JsObject])
       .one[JsValue].map(_.isDefined)
   }
 
-  def releaseLock(reqLockId: String, reqOwner: String)(implicit ec: ExecutionContext): Future[Unit] = {
+  def releaseLock(reqLockId: String, reqOwner: String): Future[Unit] = {
     Logger.debug(s"Releasing lock '$reqLockId' for '$reqOwner'")
     collection.delete().one(Json.obj(id -> reqLockId, owner -> reqOwner)).map(_ => ())
   }

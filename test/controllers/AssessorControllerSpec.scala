@@ -37,10 +37,10 @@ class AssessorControllerSpec extends UnitWithAppSpec {
   "save assessor" must {
     "return OK and log AssessorSaved audit event" +
       "when save is successful" in new TestFixture {
-      val Request = fakeRequest(AssessorExamples.Assessor1)
       when(mockAssessorService.saveAssessor(eqTo(AssessorExamples.UserId1), eqTo(AssessorExamples.Assessor1))).thenReturn(Future.successful(()))
 
-      val response = controller.saveAssessor(AssessorExamples.UserId1)(Request)
+      val request = fakeRequest(AssessorExamples.Assessor1)
+      val response = controller.saveAssessor(AssessorExamples.UserId1)(request)
 
       status(response) mustBe OK
       val logDetails = Map("assessor" -> AssessorExamples.Assessor1.toString)
@@ -179,4 +179,3 @@ class AssessorControllerSpec extends UnitWithAppSpec {
     )
   }
 }
-

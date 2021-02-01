@@ -16,7 +16,7 @@
 
 package services.onlinetesting.phase3
 
-import _root_.services.AuditService
+import services.AuditService
 import com.google.inject.name.Named
 import common.Phase3TestConcern
 import config.MicroserviceAppConfig
@@ -47,26 +47,8 @@ import services.sift.ApplicationSiftService
 import services.stc.StcEventService
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.postfixOps
-/*
-object Phase3TestService2 extends Phase3TestService2 {
-
-  import config.MicroserviceAppConfig._
-
-  val appRepository = applicationRepository
-  val testRepository = phase3TestRepository
-  val cdRepository = faststreamContactDetailsRepository
-  //  val launchpadGatewayClient = LaunchpadGatewayClient //TODO:fix
-  val tokenFactory = UUIDFactory
-  val dateTimeFactory = DateTimeFactory
-  //  val emailClient = Phase3OnlineTestEmailClient
-  //  val auditService = AuditService //TODO:fix not used - need it as it is defined in top level trait
-  val gatewayConfig = launchpadGatewayConfig
-  val eventService = StcEventService
-  val siftService = ApplicationSiftService
-}*/
 
 //scalastyle:off number.of.methods
 @Singleton
