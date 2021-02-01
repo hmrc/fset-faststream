@@ -39,27 +39,39 @@ object AssessorAvailability {
 }
 
 case class Assessor(
-  userId: String,
-  version: Option[String],
-  skills: List[String],
-  sifterSchemes: List[SchemeId],
-  civilServant: Boolean,
-  status: AssessorStatus,
-  availabilities: Seq[AssessorAvailability] = Nil
-)
+                     userId: String,
+                     version: Option[String],
+                     skills: List[String],
+                     sifterSchemes: List[SchemeId],
+                     civilServant: Boolean,
+                     status: AssessorStatus,
+                     // Please note that this was originally a Seq but during the migration from Play2.6 -> Play2.7 the default scala collection
+                     // that play deserializes to changed from a List to a Vector so have changed to a List here to force it back. It caused the
+                     // AssessorControllerSpec to break when using the Seq
+                     availabilities: List[AssessorAvailability] = Nil
+                   ) {
+  override def toString: String =
+    s"userId:$userId," +
+      s"version:$version," +
+      s"skills:$skills," +
+      s"sifterSchemes:$sifterSchemes," +
+      s"civilServant:$civilServant," +
+      s"status:$status," +
+      s"availabilities:$availabilities"
+}
 
 object Assessor {
   implicit val assessorFormat = Json.format[Assessor]
 
   def apply(a: model.persisted.assessor.Assessor): Assessor =
-    Assessor(a.userId, a.version, a.skills, a.sifterSchemes, a.civilServant, a.status, a.availability.map(AssessorAvailability.apply).toSeq)
+    Assessor(a.userId, a.version, a.skills, a.sifterSchemes, a.civilServant, a.status, a.availability.map(AssessorAvailability.apply).toList)
 }
 
 case class AssessorAvailabilities(
-  userId: String,
-  version: Option[String],
-  availabilities: Set[AssessorAvailability]
-)
+                                   userId: String,
+                                   version: Option[String],
+                                   availabilities: Set[AssessorAvailability]
+                                 )
 
 object AssessorAvailabilities {
   implicit val assessorAvailabilityFormat = Json.format[AssessorAvailabilities]

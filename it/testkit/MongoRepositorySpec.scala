@@ -34,7 +34,6 @@ import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers
 import reactivemongo.play.json.collection.JSONCollection
 import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.play.test.WithFakeApplication
 
 import scala.concurrent.{ Await, ExecutionContext }
 import scala.concurrent.duration._
