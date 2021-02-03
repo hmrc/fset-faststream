@@ -30,7 +30,12 @@ case class AssessorAllocation(
   id: String,
   status: AllocationStatus,
   allocatedAs: AssessorSkill
-) extends Allocation
+) extends Allocation {
+  override def toString =
+    s"id=$id," +
+      s"status=$status," +
+      s"allocatedAs=$allocatedAs"
+}
 
 object AssessorAllocation {
   implicit val assessorAllocationFormat = Json.format[AssessorAllocation]
@@ -44,15 +49,21 @@ case class AssessorAllocations(
   version: String,
   eventId: String,
   allocations: Seq[AssessorAllocation]
-)
+) {
+  override def toString =
+    s"[AssessorAllocations]:" +
+      s"version=$version," +
+      s"eventId=$eventId," +
+      s"allocations=$allocations"
+}
 
 object AssessorAllocations {
   implicit val assessorAllocationsFormat = Json.format[AssessorAllocations]
 
   def apply(eventId: String, o: Seq[model.persisted.AssessorAllocation]): AssessorAllocations = {
     val opLock = o.map(_.version).distinct match {
-      case head :: Nil => head
-      case head :: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${head +: tail}")
+      case head +: Nil => head
+      case head +: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${head +: tail}")
       case Nil => UUIDFactory.generateUUID() // TODO: the factory needs to be passed as an argument
     }
 
@@ -106,8 +117,8 @@ object CandidateAllocations {
 
   def apply(eventId: String, sessionId: String, allocations: Seq[model.persisted.CandidateAllocation]): CandidateAllocations = {
     val opLock = allocations.map(_.version).distinct match {
-      case head :: Nil => head
-      case head :: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${head +: tail}")
+      case head +: Nil => head
+      case head +: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${head +: tail}")
       case Nil => UUIDFactory.generateUUID()
     }
 

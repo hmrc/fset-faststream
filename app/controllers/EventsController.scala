@@ -109,7 +109,10 @@ class EventsController @Inject() (cc: ControllerComponents,
       val newAllocations = command.AssessorAllocations.fromExchange(eventId, assessorAllocations)
       assessorAllocationService.allocate(newAllocations).map(_ => Ok)
           .recover {
-            case e: OptimisticLockException => Conflict(e.getMessage)
+            case e: OptimisticLockException =>
+              play.api.Logger.warn(s"Error occurred when allocating assessor for event:$eventId: ${e.getMessage} - " +
+                s"will return http $CONFLICT}")
+              Conflict(e.getMessage)
           }
     }
   }

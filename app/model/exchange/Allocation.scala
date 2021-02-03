@@ -28,7 +28,12 @@ case class AssessorAllocation(
   id: String,
   status: AllocationStatus,
   allocatedAs: AssessorSkill
-) extends Allocation
+) extends Allocation {
+  override def toString =
+    s"id=$id," +
+      s"status=$status," +
+      s"allocatedAs=$allocatedAs"
+}
 
 object AssessorAllocation {
   implicit val assessorAllocationFormat: OFormat[AssessorAllocation] = Json.format[AssessorAllocation]
@@ -37,15 +42,19 @@ object AssessorAllocation {
 case class AssessorAllocations(
   version: Option[String],
   allocations: Seq[AssessorAllocation]
-)
+) {
+  override def toString =
+    s"version=$version," +
+      s"allocations=$allocations"
+}
 
 object AssessorAllocations {
   implicit val assessorAllocationsFormat: OFormat[AssessorAllocations] = Json.format[AssessorAllocations]
 
   def apply(o: Seq[model.persisted.AssessorAllocation]): AssessorAllocations = {
       val opLock = o.map(_.version).distinct match {
-        case head :: Nil => Some(head)
-        case head :: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${head ++ tail}")
+        case head +: Nil => Some(head)
+        case head +: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${head ++ tail}")
         case Nil => None
       }
 
@@ -89,8 +98,8 @@ object CandidateAllocations {
 
   def apply(o: Seq[model.persisted.CandidateAllocation]): CandidateAllocations = {
     val opLock = o.map(_.version).distinct match {
-      case head :: Nil => Some(head)
-      case head :: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${head ++ tail}")
+      case head +: Nil => Some(head)
+      case head +: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${head ++ tail}")
       case Nil => None
     }
     CandidateAllocations(opLock, o.map { a => CandidateAllocation(a.id, a.status, a.removeReason) })
