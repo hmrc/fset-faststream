@@ -28,11 +28,8 @@ import repositories.{ BSONDateTimeHandler, BSONLocalDateHandler, BSONLocalTimeHa
 
 trait Allocation {
   def id: String
-
   def eventId: String
-
   def status: AllocationStatus
-
   def version: String
 }
 
@@ -42,7 +39,14 @@ case class AssessorAllocation(
   status: AllocationStatus,
   allocatedAs: SkillType,
   version: String
-) extends Allocation
+) extends Allocation {
+  override def toString =
+    s"id=$id," +
+      s"eventId=$eventId," +
+      s"status=$status," +
+      s"allocatedAs=$allocatedAs," +
+      s"version=$version"
+}
 
 object AssessorAllocation {
   implicit val assessorAllocationFormat: OFormat[AssessorAllocation] = Json.format[AssessorAllocation]
