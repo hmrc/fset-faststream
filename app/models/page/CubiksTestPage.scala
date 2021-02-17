@@ -23,7 +23,8 @@ case class CubiksTestPage(
 
 object CubiksTestPage {
   def apply(test: connectors.exchange.CubiksTest): CubiksTestPage = {
-    CubiksTestPage(started = test.started,
+    CubiksTestPage(
+      started = test.started,
       completed = test.completed
     )
   }

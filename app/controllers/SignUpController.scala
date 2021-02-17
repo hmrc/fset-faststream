@@ -19,21 +19,21 @@ package controllers
 import _root_.forms.SignUpForm
 import _root_.forms.SignUpForm._
 import com.mohiva.play.silhouette.api.SignUpEvent
-import config.{FrontendAppConfig, SecurityEnvironment}
+import config.{ FrontendAppConfig, SecurityEnvironment }
 import connectors.UserManagementClient.EmailTakenException
 import connectors.exchange._
 import connectors.exchange.campaignmanagement.AfterDeadlineSignupCodeUnused
-import connectors.{ApplicationClient, UserManagementClient}
+import connectors.{ ApplicationClient, UserManagementClient }
 import helpers.NotificationType._
 import helpers.NotificationTypeHelper
-import javax.inject.{Inject, Singleton}
-import models.{ApplicationRoute, SecurityUser, UniqueIdentifier}
+import javax.inject.{ Inject, Singleton }
+import models.{ ApplicationRoute, SecurityUser, UniqueIdentifier }
 import play.api.i18n.Messages
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
-import security.{SignInService, SilhouetteComponent}
+import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, Result }
+import security.{ SignInService, SilhouetteComponent }
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class SignUpController @Inject() (

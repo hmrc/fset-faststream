@@ -16,13 +16,13 @@
 
 package controllers
 
-import config.{FrontendAppConfig, SecurityEnvironment}
+import config.{ FrontendAppConfig, SecurityEnvironment }
 import helpers.NotificationTypeHelper
-import javax.inject.{Inject, Singleton}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import javax.inject.{ Inject, Singleton }
+import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
 import security.SilhouetteComponent
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton class SessionController @Inject() (config: FrontendAppConfig,
   mcc: MessagesControllerComponents,

@@ -20,7 +20,7 @@ import forms._
 import play.api.data.Forms._
 import play.api.data.format.Formatter
 import play.api.data.validation._
-import play.api.data.{FormError, Mapping}
+import play.api.data.{ FormError, Mapping }
 import play.api.i18n.Messages
 
 // scalastyle:off line.size.limit
@@ -188,7 +188,7 @@ object Mappings {
                           required: Map[String, String] => Boolean)
 (implicit messages: Messages)= new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
-      if(required(data)) {
+      if (required(data)) {
         data.getOrElse(key, "").trim match {
           case param if param.isEmpty => Left(List(FormError(key, Messages(emptyErrorKey))))
           case param if param.length > maxLength => Left(List(FormError(key, Messages("error.maxLength"))))
@@ -208,7 +208,7 @@ object Mappings {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       val additionalCheckResult = additionalCheck(data)
 
-      if(required(data)) {
+      if (required(data)) {
         data.getOrElse(key, "").trim match {
           case param if param.isEmpty =>
             if (additionalCheckResult) {

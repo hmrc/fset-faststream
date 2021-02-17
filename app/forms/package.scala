@@ -73,7 +73,7 @@ package object forms {
             }
           }
 
-          override def unbind(key: String, value: Option[String]): Map[String, String] = Map(key -> value.getOrElse(""))
+    override def unbind(key: String, value: Option[String]): Map[String, String] = Map(key -> value.getOrElse(""))
   }
   // scalastyle:on
 }

@@ -30,5 +30,5 @@ case class SiftPreviewPage(
 }
 
 object SiftPreviewPage {
-  def booleanToYesNo(o: Boolean): String = if(o) "Yes" else "No"
+  def booleanToYesNo(o: Boolean): String = if (o) "Yes" else "No"
 }

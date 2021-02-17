@@ -25,7 +25,7 @@ object DateFormatter {
 
   def todMMMMyyyyhmmaFormat(date: DateTime): String = dMMMMyyyyhmma.print(date.toLocalDateTime)
     .replace("AM", "am")
-    .replace("PM","pm")
+    .replace("PM", "pm")
 
   private val ddMMMMyyyy = DateTimeFormat.forPattern("dd MMMM yyyy")
   private val dMMMMyyyyhmma = DateTimeFormat.forPattern("d MMMM yyyy, h:mma")

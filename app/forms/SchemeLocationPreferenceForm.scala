@@ -18,7 +18,7 @@ package forms
 
 import javax.inject.Singleton
 import mappings.Mappings._
-import models.frameworks.{Preference, Region}
+import models.frameworks.{ Preference, Region }
 import play.api.data.Form
 import play.api.data.Forms._
 

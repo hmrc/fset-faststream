@@ -16,19 +16,20 @@
 
 package forms.sift
 
-import forms.sift.GeneralQuestionsForm.{postGradDegreeInfoFormFormatter, undergradDegreeInfoFormFormatter}
+import forms.sift.GeneralQuestionsForm.{ postGradDegreeInfoFormFormatter, undergradDegreeInfoFormFormatter }
 import mappings.Mappings._
 import mappings.SeqMapping._
 import mappings.Year
 import play.api.data.Forms._
 import play.api.data.format.Formatter
-import play.api.data.{Form, FormError}
+import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
 
 class UndergradDegreeInfoForm(classifications: Seq[String]) {
 
   def form(implicit messages: Messages) = Form(
-    mapping("undergradDegree.name" -> nonEmptyTrimmedText("undergradDegree.error.required", 300),
+    mapping(
+      "undergradDegree.name" -> nonEmptyTrimmedText("undergradDegree.error.required", 300),
       "undergradDegree.classification" -> of(requiredSetFormatter(classifications)),
       "undergradDegree.graduationYear" -> of(Year.yearFormatter),
       "undergradDegree.moduleDetails" -> optional(text)
@@ -56,26 +57,28 @@ object UndergradDegreeInfoForm {
 }
 
 object PostGradDegreeInfoForm {
-   def form() = {
-     Form(
-       mapping("postgradDegree.name" -> nonEmptyTrimmedText("postgradDegree.error.required", 400),
-         "postgradDegree.graduationYear" -> of(Year.yearFormatter),
-         "postgradDegree.otherDetails" -> optional(text),
-         "postgradDegree.projectDetails" -> optional(text)
-       )(Data.apply)(Data.unapply))
-   }
+  def form() = {
+    Form(
+      mapping(
+        "postgradDegree.name" -> nonEmptyTrimmedText("postgradDegree.error.required", 400),
+        "postgradDegree.graduationYear" -> of(Year.yearFormatter),
+        "postgradDegree.otherDetails" -> optional(text),
+        "postgradDegree.projectDetails" -> optional(text)
+      )(Data.apply)(Data.unapply))
+  }
 
   case class Data(
-    name: String,
+    name:           String,
     graduationYear: Option[String],
-    otherDetails: Option[String],
+    otherDetails:   Option[String],
     projectDetails: Option[String]
   )
 }
 
 class GeneralQuestionsForm(validNationalities: Seq[String]) {
   def form(implicit messages: Messages) = Form(
-    mapping("multipleNationalities" -> of(BooleanMapping.booleanFormatter("generalquestions.error.multiplenationalities")),
+    mapping(
+      "multipleNationalities" -> of(BooleanMapping.booleanFormatter("generalquestions.error.multiplenationalities")),
       "secondNationality" -> of(conditionalRequiredSetFormatter(
         data => data.getOrElse("multipleNationalities", "") == "true", validNationalities)),
       "nationality" -> of(requiredSetFormatter(validNationalities)),
@@ -135,7 +138,7 @@ object GeneralQuestionsForm {
       fastPassData.map(fpd => PostGradDegreeInfoForm.form.fill(fpd).data).getOrElse(Map(key -> ""))
   }
 
-   val Nationalities = Seq(
+  val Nationalities = Seq(
     "Afghan",
     "Albanian",
     "Algerian",

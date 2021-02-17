@@ -16,12 +16,12 @@
 
 package controllers
 
-import config.{FrontendAppConfig, SecurityEnvironment}
+import config.{ FrontendAppConfig, SecurityEnvironment }
 import connectors.addresslookup.AddressLookupClient
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import play.api.Logger
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
 import security.Roles.EditPersonalDetailsAndContinueRole
 import security.SilhouetteComponent
 import uk.gov.hmrc.http.BadRequestException
@@ -43,7 +43,7 @@ class AddressLookupController  @Inject() (
     implicit request => implicit cachedData =>
     val decoded = java.net.URLDecoder.decode(postcode, "UTF8")
     addressLookupClient.findByPostcode(decoded, None).map {
-      case head :: tail => Ok(Json.toJson(head::tail))
+      case head :: tail => Ok(Json.toJson(head :: tail))
       case Nil => NotFound
     }.recover {
       case e: BadRequestException =>

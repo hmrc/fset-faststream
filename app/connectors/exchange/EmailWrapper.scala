@@ -18,7 +18,6 @@ package connectors.exchange
 
 import play.api.libs.json.Json
 
-
 case class EmailWrapper(email: String, service: String)
 
 object EmailWrapper {

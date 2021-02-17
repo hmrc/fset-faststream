@@ -65,7 +65,7 @@ object PsiTest {
 }
 
 case class Phase1TestGroup(expirationDate: DateTime,
-  tests: List[CubiksTest]
+                           tests: List[CubiksTest]
 ) extends CubiksTestGroup
 
 object Phase1TestGroup {
@@ -73,7 +73,7 @@ object Phase1TestGroup {
 }
 
 case class Phase2TestGroup(expirationDate: DateTime,
-  tests: List[CubiksTest]
+                           tests: List[CubiksTest]
 ) extends CubiksTestGroup
 
 object Phase2TestGroup {

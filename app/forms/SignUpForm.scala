@@ -23,7 +23,7 @@ import models.view.CampaignReferrers
 import play.api.data.Forms._
 import play.api.data.format.Formatter
 import play.api.data.validation.Constraints
-import play.api.data.{Form, FormError}
+import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
 
 @Singleton
@@ -109,7 +109,7 @@ class SignUpForm {
       case (Some("true"), Some("false")) => Right(appRoute)
       case (Some("true"), Some("true")) => sdipFsCheck(data)
       case (Some("true"), None) => Left(List(FormError("sdipFastStreamConsider", Messages("sdipFastStream.consider"))))
-      case (_ , _) => Left(List(
+      case (_, _) => Left(List(
         FormError("sdipFastStreamConsider", Messages("sdipFastStream.consider")),
         FormError("faststreamEligible", Messages("agree.faststreamEligible"))
       ))

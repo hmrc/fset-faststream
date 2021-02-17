@@ -52,17 +52,17 @@ trait DurationFormatter {
   def getDuration: String = durationFromNow(expirationDate)
 
   private val expireTimeFormatter = new DateTimeFormatterBuilder()
-      .appendClockhourOfHalfday(1)
-      .appendLiteral(":")
-      .appendMinuteOfHour(2)
-      .appendHalfdayOfDayText()
+    .appendClockhourOfHalfday(1)
+    .appendLiteral(":")
+    .appendMinuteOfHour(2)
+    .appendHalfdayOfDayText()
 
-  private val expireDateFormatter =  new DateTimeFormatterBuilder()
-      .appendDayOfMonth(1)
-      .appendLiteral(" ")
-      .appendMonthOfYearText()
-      .appendLiteral(" ")
-      .appendYear(4, 4)
+  private val expireDateFormatter = new DateTimeFormatterBuilder()
+    .appendDayOfMonth(1)
+    .appendLiteral(" ")
+    .appendMonthOfYearText()
+    .appendLiteral(" ")
+    .appendYear(4, 4)
 
   private val expirationDateLondon = expirationDate.withZone(Timezones.londonDateTimezone)
 

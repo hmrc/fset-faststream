@@ -18,7 +18,6 @@ package connectors.addresslookup
 
 import play.api.libs.json.Json
 
-
 /**
   * The following DTOs are taken from https://github.com/hmrc/address-reputation-store. The project has
   * not been added as a dependency, as it brings in many transitive dependencies that are not needed,

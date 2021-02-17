@@ -18,19 +18,19 @@ package controllers
 
 import java.util.UUID
 
-import config.{FrontendAppConfig, SecurityEnvironment}
-import connectors.{ApplicationClient, UserManagementClient}
+import config.{ FrontendAppConfig, SecurityEnvironment }
+import connectors.{ ApplicationClient, UserManagementClient }
 import forms.ConsiderForSdipForm
 import helpers.NotificationType._
 import helpers.NotificationTypeHelper
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import models.ApplicationRoute._
 import models.ConsiderMeForSdipHelper._
 import security.RoleUtils._
-import security.Roles.{ActiveUserRole, ContinueAsSdipRole}
+import security.Roles.{ ActiveUserRole, ContinueAsSdipRole }
 import security.SilhouetteComponent
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc.MessagesControllerComponents
 
@@ -63,28 +63,28 @@ class ConsiderForSdipController @Inject() (
   }
 
   def submit = CSRSecureAppAction(ActiveUserRole) { implicit request => implicit cachedData =>
-      ConsiderForSdipForm.form.bindFromRequest.fold(
-        invalidForm =>
-          Future.successful(Ok(views.html.application.sdip.considerMeForSdip(invalidForm))),
-        data =>
-          for {
-            _ <- applicationClient.considerForSdip(cachedData.application.applicationId)
-            _ <- secEnv.userService.refreshCachedUser(cachedData.user.userID)
-          } yield {
-            Redirect(routes.HomeController.present()).flashing(success("faststream.becomes.sdip.success"))
-          }
-      )
+    ConsiderForSdipForm.form.bindFromRequest.fold(
+      invalidForm =>
+        Future.successful(Ok(views.html.application.sdip.considerMeForSdip(invalidForm))),
+      data =>
+        for {
+          _ <- applicationClient.considerForSdip(cachedData.application.applicationId)
+          _ <- secEnv.userService.refreshCachedUser(cachedData.user.userID)
+        } yield {
+          Redirect(routes.HomeController.present()).flashing(success("faststream.becomes.sdip.success"))
+        }
+    )
   }
 
   def continueAsSdip = CSRSecureAction(ContinueAsSdipRole) { implicit request => implicit cachedData =>
-      val archivedEmail = convertToArchiveEmail(cachedData.user.email)
-      for {
-        userToArchiveWith <- userManagementClient.register(archivedEmail, UUID.randomUUID().toString,
-          cachedData.user.firstName, cachedData.user.lastName)
-        _ <- applicationClient.continueAsSdip(cachedData.user.userID, userToArchiveWith.userId)
-        _ <- secEnv.userService.refreshCachedUser(cachedData.user.userID)
-      } yield {
-        Redirect(routes.HomeController.present()).flashing(success("faststream.continueAsSdip.success"))
-      }
+    val archivedEmail = convertToArchiveEmail(cachedData.user.email)
+    for {
+      userToArchiveWith <- userManagementClient.register(archivedEmail, UUID.randomUUID().toString,
+        cachedData.user.firstName, cachedData.user.lastName)
+      _ <- applicationClient.continueAsSdip(cachedData.user.userID, userToArchiveWith.userId)
+      _ <- secEnv.userService.refreshCachedUser(cachedData.user.userID)
+    } yield {
+      Redirect(routes.HomeController.present()).flashing(success("faststream.continueAsSdip.success"))
+    }
   }
 }

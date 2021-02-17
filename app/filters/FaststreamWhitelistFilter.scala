@@ -19,10 +19,10 @@ package filters
 import java.util.Base64
 import akka.stream.Materializer
 
-import javax.inject.{Inject, Singleton}
-import play.api.mvc.Results.{Forbidden, NotImplemented, Redirect}
-import play.api.mvc.{Call, EssentialFilter, RequestHeader, Result}
-import play.api.{Configuration, Logging}
+import javax.inject.{ Inject, Singleton }
+import play.api.mvc.Results.{ Forbidden, NotImplemented, Redirect }
+import play.api.mvc.{ Call, EssentialFilter, RequestHeader, Result }
+import play.api.{ Configuration, Logging }
 import uk.gov.hmrc.whitelist.AkamaiWhitelistFilter
 
 import scala.concurrent.Future
@@ -81,8 +81,7 @@ class FaststreamWhitelistFilter @Inject() (
             } else {
               Future.successful(Forbidden)
             }
-          }
-          else if (whitelist.head == "*" || whitelist.contains(ip)) {
+          } else if (whitelist.head == "*" || whitelist.contains(ip)) {
             f(rh)
           } else if (isCircularDestination(rh)) {
             Future.successful(Forbidden)

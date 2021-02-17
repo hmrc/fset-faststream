@@ -16,16 +16,16 @@
 
 package controllers
 
-import java.nio.file.{Files, Path}
+import java.nio.file.{ Files, Path }
 
-import config.{FrontendAppConfig, SecurityEnvironment}
-import connectors.ApplicationClient.{ApplicationNotFound, CandidateAlreadyHasAnAnalysisExerciseException, OnlineTestNotFound, _}
+import config.{ FrontendAppConfig, SecurityEnvironment }
+import connectors.ApplicationClient.{ ApplicationNotFound, CandidateAlreadyHasAnAnalysisExerciseException, OnlineTestNotFound, _ }
 import connectors.exchange._
 import connectors.exchange.candidateevents.CandidateAllocations
-import connectors.{ApplicationClient, ReferenceDataClient, SchemeClient, SiftClient}
+import connectors.{ ApplicationClient, ReferenceDataClient, SchemeClient, SiftClient }
 import helpers.NotificationType._
-import helpers.{CachedUserWithSchemeData, NotificationTypeHelper}
-import javax.inject.{Inject, Singleton}
+import helpers.{ CachedUserWithSchemeData, NotificationTypeHelper }
+import javax.inject.{ Inject, Singleton }
 import models.ApplicationData.ApplicationStatus
 import models._
 import models.page._
@@ -34,10 +34,10 @@ import play.api.mvc._
 import security.ProgressStatusRoleUtils._
 import security.RoleUtils._
 import security.Roles._
-import security.{Roles, SilhouetteComponent}
+import security.{ Roles, SilhouetteComponent }
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class HomeController @Inject() (
@@ -105,10 +105,11 @@ class HomeController @Inject() (
       val alloc = CandidateAllocations.createConfirmed(Some(allocationVersion), cachedData.application.get.applicationId.toString)
       applicationClient.confirmCandidateAllocation(eventId, sessionId, alloc).map { _ =>
         Redirect(routes.HomeController.present()).flashing(success("assessmentCentre.event.confirm.success"))
-      }.recover { case _: OptimisticLockException =>
-        Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.event.confirm.optimistic.lock"))
+      }.recover {
+        case _: OptimisticLockException =>
+          Redirect(routes.HomeController.present()).flashing(danger("assessmentCentre.event.confirm.optimistic.lock"))
       }
-  }
+    }
 
   // If the candidate is fast pass then there will be no P1 data
   private def getPhase1DataIfCandidateIsNotFastPass(implicit application: ApplicationData, cachedData: CachedData,
@@ -121,7 +122,7 @@ class HomeController @Inject() (
   }
 
   private def displayPostOnlineTestsDashboard(implicit application: ApplicationData, cachedData: CachedData,
-    request: Request[_], hc: HeaderCarrier) = {
+                                              request: Request[_], hc: HeaderCarrier) = {
     for {
       allSchemes <- refDataClient.allSchemes()
       schemeStatus <- applicationClient.getCurrentSchemeStatus(application.applicationId)

@@ -37,8 +37,8 @@ class AlternateLocationsForm {
 
   implicit def fromAlternativesToFormData(alt: Alternatives): AlternateLocationsForm.Data =
     AlternateLocationsForm.Data(
-    if (alt.location) yes else no, if (alt.framework) yes else no
-  )
+      if (alt.location) yes else no, if (alt.framework) yes else no
+    )
 
   implicit def fromFormDataToAlternatives(data: Data): Alternatives = Alternatives(
     data.alternativeLocation == yes, data.alternativeScheme == yes

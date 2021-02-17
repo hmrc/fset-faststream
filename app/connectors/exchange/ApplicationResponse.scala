@@ -21,7 +21,6 @@ import org.joda.time.DateTime
 import play.api.libs.json.Json
 import models.FaststreamImplicits._
 
-
 case class ApplicationResponse(
   applicationId: UniqueIdentifier,
   applicationStatus: String,

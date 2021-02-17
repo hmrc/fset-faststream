@@ -16,18 +16,18 @@
 
 package controllers
 
-import config.{FrontendAppConfig, SecurityEnvironment}
+import config.{ FrontendAppConfig, SecurityEnvironment }
 import connectors.ApplicationClient
 import connectors.exchange.CubiksTest
 import helpers.NotificationTypeHelper
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import models.UniqueIdentifier
 import play.api.mvc.MessagesControllerComponents
-import security.Roles.{OnlineTestInvitedRole, Phase2TestInvitedRole, SiftNumericTestRole}
+import security.Roles.{ OnlineTestInvitedRole, Phase2TestInvitedRole, SiftNumericTestRole }
 import security.SilhouetteComponent
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class CubiksTestController @Inject() (

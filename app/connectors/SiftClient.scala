@@ -16,17 +16,16 @@
 
 package connectors
 
-
-import config.{CSRHttp, FaststreamBackendConfig, FrontendAppConfig}
+import config.{ CSRHttp, FaststreamBackendConfig, FrontendAppConfig }
 import connectors.exchange.referencedata.SchemeId
 import connectors.exchange.sift.SiftAnswersStatus.SiftAnswersStatus
-import connectors.exchange.sift.{GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswers}
-import javax.inject.{Inject, Singleton}
+import connectors.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswers }
+import javax.inject.{ Inject, Singleton }
 import models.UniqueIdentifier
 import play.api.http.Status._
 import uk.gov.hmrc.play.http._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http._
 import connectors.ApplicationClient._
 
@@ -41,11 +40,11 @@ class SiftClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(implicit e
       s"$apiBase/sift-answers/$applicationId/general",
       answers
     ).map {
-      case x: HttpResponse if x.status == OK => ()
-    } recover {
-      case _: BadRequestException => throw new CannotUpdateRecord()
-      case _: ConflictException => throw new SiftAnswersSubmitted
-    }
+        case x: HttpResponse if x.status == OK => ()
+      } recover {
+        case _: BadRequestException => throw new CannotUpdateRecord()
+        case _: ConflictException => throw new SiftAnswersSubmitted
+      }
   }
 
   def updateSchemeSpecificAnswer(applicationId: UniqueIdentifier, schemeId: SchemeId, answer: SchemeSpecificAnswer)
@@ -54,11 +53,11 @@ class SiftClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(implicit e
       s"$apiBase/sift-answers/$applicationId/${schemeId.value}",
       answer
     ).map {
-      case x: HttpResponse if x.status == OK => ()
-    } recover {
-      case _: BadRequestException => throw new CannotUpdateRecord()
-      case _: ConflictException => throw new SiftAnswersSubmitted
-    }
+        case x: HttpResponse if x.status == OK => ()
+      } recover {
+        case _: BadRequestException => throw new CannotUpdateRecord()
+        case _: ConflictException => throw new SiftAnswersSubmitted
+      }
   }
 
   def getGeneralQuestionsAnswers(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Option[GeneralQuestionsAnswers]] = {
@@ -85,13 +84,13 @@ class SiftClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(implicit e
       s"$apiBase/sift-answers/$applicationId/submit",
       Array.empty[Byte]
     ).map {
-      case x: HttpResponse if x.status == OK => ()
-    } recover {
-      case e: Upstream4xxResponse if e.upstreamResponseCode == UNPROCESSABLE_ENTITY => throw new SiftAnswersIncomplete
-      case e: Upstream4xxResponse if e.upstreamResponseCode == CONFLICT => throw new SiftAnswersSubmitted
-      case e: Upstream4xxResponse if e.upstreamResponseCode == BAD_REQUEST => throw new SiftAnswersNotFound()
-      case e: Upstream4xxResponse if e.upstreamResponseCode == FORBIDDEN => throw new SiftExpired()
-    }
+        case x: HttpResponse if x.status == OK => ()
+      } recover {
+        case e: Upstream4xxResponse if e.upstreamResponseCode == UNPROCESSABLE_ENTITY => throw new SiftAnswersIncomplete
+        case e: Upstream4xxResponse if e.upstreamResponseCode == CONFLICT => throw new SiftAnswersSubmitted
+        case e: Upstream4xxResponse if e.upstreamResponseCode == BAD_REQUEST => throw new SiftAnswersNotFound()
+        case e: Upstream4xxResponse if e.upstreamResponseCode == FORBIDDEN => throw new SiftExpired()
+      }
   }
   // scalastyle:on
 

@@ -16,8 +16,8 @@
 
 package security
 
-import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
-import com.mohiva.play.silhouette.api.{LoginEvent, LoginInfo, LogoutEvent}
+import com.mohiva.play.silhouette.api.actions.{ SecuredRequest, UserAwareRequest }
+import com.mohiva.play.silhouette.api.{ LoginEvent, LoginInfo, LogoutEvent }
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import config.FrontendAppConfig
 import connectors.ApplicationClient
@@ -30,13 +30,13 @@ import forms.SignInForm
 import forms.SignInForm.Data
 import helpers.NotificationType._
 import helpers.NotificationTypeHelper
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import models._
 import play.api.i18n.Messages
 import play.api.mvc._
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class SignInService @Inject() (
@@ -84,10 +84,10 @@ class SignInService @Inject() (
     secEnv.authenticatorService.retrieve.map {
       case Some(authenticator) =>
         request match {
-          case sr: SecuredRequest[_,_] => {
+          case sr: SecuredRequest[_, _] => {
             secEnv.eventBus.publish(LogoutEvent(sr.identity, request))
           }
-          case uar: UserAwareRequest[_,_] => {
+          case uar: UserAwareRequest[_, _] => {
             uar.identity.foreach(identity => secEnv.eventBus.publish(LogoutEvent(identity, request)))
           }
           case _ => ()

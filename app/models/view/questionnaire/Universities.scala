@@ -413,7 +413,7 @@ object Universities {
     ("Other", "Others")
   )
 
-  val reverseMap = for((k, v) <- map) yield (v, k)
+  val reverseMap = for ((k, v) <- map) yield (v, k)
 
   def getCode(name: String) = {
     map(name)

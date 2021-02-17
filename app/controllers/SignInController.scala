@@ -18,14 +18,14 @@ package controllers
 
 import _root_.forms.SignInForm
 import com.mohiva.play.silhouette.api.util.Credentials
-import config.{FrontendAppConfig, SecurityEnvironment}
+import config.{ FrontendAppConfig, SecurityEnvironment }
 import helpers.NotificationTypeHelper
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import models.ApplicationRoute
 import play.api.mvc.MessagesControllerComponents
 import security._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class SignInController @Inject() (

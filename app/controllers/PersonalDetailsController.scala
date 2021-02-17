@@ -16,26 +16,26 @@
 
 package controllers
 
-import config.{FrontendAppConfig, SecurityEnvironment}
+import config.{ FrontendAppConfig, SecurityEnvironment }
 import connectors.ApplicationClient.PersonalDetailsNotFound
 import connectors.exchange.CivilServiceExperienceDetails._
 import connectors.exchange.SelectedSchemes
-import connectors.{ApplicationClient, ReferenceDataClient, SchemeClient, UserManagementClient}
+import connectors.{ ApplicationClient, ReferenceDataClient, SchemeClient, UserManagementClient }
 import forms.FastPassForm._
 import forms.PersonalDetailsForm
 import helpers.NotificationType._
 import helpers.NotificationTypeHelper
-import javax.inject.{Inject, Singleton}
-import mappings.{Address, DayMonthYear}
-import models.{ApplicationRoute, CachedDataWithApp}
+import javax.inject.{ Inject, Singleton }
+import mappings.{ Address, DayMonthYear }
+import models.{ ApplicationRoute, CachedDataWithApp }
 import org.joda.time.LocalDate
 import play.api.data.Form
-import play.api.mvc.{MessagesControllerComponents, Request, Result}
-import security.Roles.{EditPersonalDetailsAndContinueRole, EditPersonalDetailsRole}
+import play.api.mvc.{ MessagesControllerComponents, Request, Result }
+import security.Roles.{ EditPersonalDetailsAndContinueRole, EditPersonalDetailsRole }
 import security.SilhouetteComponent
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class PersonalDetailsController @Inject() (
@@ -70,7 +70,7 @@ formWrapper: PersonalDetailsForm)(implicit val ec: ExecutionContext)
     for {
       allSchemes <- refDataClient.allSchemes()
     } yield {
-      allSchemes.collect{ case s if !s.civilServantEligible && s.degree.isDefined => s.name }
+      allSchemes.collect { case s if !s.civilServantEligible && s.degree.isDefined => s.name }
     }
   }
 
@@ -103,7 +103,7 @@ formWrapper: PersonalDetailsForm)(implicit val ec: ExecutionContext)
       Future.successful(Ok(views.html.application.personalDetails(form, continueToTheNextStepValue, schemesRequiringQualifications)))
     }).recover {
       case _: PersonalDetailsNotFound =>
-        getCivilServantSchemeNamesRequiringQualifications.map{ schemesRequiringQualifications =>
+        getCivilServantSchemeNamesRequiringQualifications.map { schemesRequiringQualifications =>
           val formFromUser = formWrapper.form.fill(PersonalDetailsForm.Data(
             user.user.firstName,
             user.user.lastName,
@@ -123,21 +123,21 @@ formWrapper: PersonalDetailsForm)(implicit val ec: ExecutionContext)
           ))
           Ok(views.html.application.personalDetails(formFromUser, continueToTheNextStepValue, schemesRequiringQualifications))
         }
-    }.flatMap( identity )
+    }.flatMap(identity)
   }
 
   def submitPersonalDetailsAndContinue =
     CSRSecureAppAction(EditPersonalDetailsAndContinueRole) { implicit request =>
     implicit user =>
       implicit val messages = request.messages
-      val redirect = if(user.application.applicationRoute == ApplicationRoute.Faststream ||
-      user.application.applicationRoute == ApplicationRoute.SdipFaststream) {
+      val redirect = if (user.application.applicationRoute == ApplicationRoute.Faststream ||
+        user.application.applicationRoute == ApplicationRoute.SdipFaststream) {
         Redirect(routes.SchemePreferencesController.present())
       } else {
         Redirect(routes.AssistanceDetailsController.present())
       }
       submit(formWrapper.form(LocalDate.now, false, messages), ContinueToNextStepInJourney, redirect)
-  }
+    }
 
   def submitPersonalDetails = CSRSecureAppAction(EditPersonalDetailsRole) { implicit request =>
     implicit user =>
@@ -183,14 +183,14 @@ formWrapper: PersonalDetailsForm)(implicit val ec: ExecutionContext)
 
   private def createDefaultSchemes(implicit cacheData: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]): Future[Unit] =
     cacheData.application.applicationRoute match {
-    case appRoute@(ApplicationRoute.Edip | ApplicationRoute.Sdip) =>
-      for {
-        _ <- schemeClient.updateSchemePreferences(SelectedSchemes(List(appRoute), orderAgreed = true,
-          eligible = true))(cacheData.application.applicationId)
-        _ <- secEnv.userService.refreshCachedUser(cacheData.user.userID)
-      } yield ()
-    case _ => Future.successful(())
-  }
+      case appRoute @ (ApplicationRoute.Edip | ApplicationRoute.Sdip) =>
+        for {
+          _ <- schemeClient.updateSchemePreferences(SelectedSchemes(List(appRoute), orderAgreed = true,
+            eligible = true))(cacheData.application.applicationId)
+          _ <- secEnv.userService.refreshCachedUser(cacheData.user.userID)
+        } yield ()
+      case _ => Future.successful(())
+    }
 }
 
 trait PersonalDetailsToExchangeConverter {

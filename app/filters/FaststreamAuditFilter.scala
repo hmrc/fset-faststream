@@ -17,10 +17,10 @@
 package filters
 
 import akka.stream.Materializer
-import forms.{SignInForm, SignUpForm}
-import javax.inject.{Inject, Singleton}
+import forms.{ SignInForm, SignUpForm }
+import javax.inject.{ Inject, Singleton }
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.bootstrap.config.{ControllerConfigs, HttpAuditEvent}
+import uk.gov.hmrc.play.bootstrap.config.{ ControllerConfigs, HttpAuditEvent }
 import uk.gov.hmrc.play.bootstrap.frontend.filters.DefaultFrontendAuditFilter
 
 import scala.concurrent.ExecutionContext

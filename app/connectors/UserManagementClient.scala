@@ -16,15 +16,15 @@
 
 package connectors
 
-import config.{CSRHttp, FrontendAppConfig}
+import config.{ CSRHttp, FrontendAppConfig }
 import connectors.UserManagementClient._
 import connectors.exchange._
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import models.UniqueIdentifier
 import play.api.http.Status._
 import uk.gov.hmrc.http._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class UserManagementClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(implicit val ec: ExecutionContext) {
@@ -39,8 +39,8 @@ class UserManagementClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(
     import uk.gov.hmrc.http.HttpReads.Implicits._
     http.POST[AddUserRequest, UserResponse](s"${url.host}/$urlPrefix/add",
       AddUserRequest(email.toLowerCase, password, firstName, lastName, List(role), ServiceName)).recover {
-      case e: UpstreamErrorResponse if e.statusCode == CONFLICT => throw new EmailTakenException()
-    }
+        case e: UpstreamErrorResponse if e.statusCode == CONFLICT => throw new EmailTakenException()
+      }
   }
 
   def signIn(email: String, password: String)(implicit hc: HeaderCarrier): Future[UserResponse] =
@@ -73,7 +73,8 @@ class UserManagementClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(
       }
 
   def resetPasswd(email: String, token: String, newPassword: String)(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.POST(s"${url.host}/$urlPrefix/reset-password",
+    http.POST(
+      s"${url.host}/$urlPrefix/reset-password",
       ResetPasswordRequest(email.toLowerCase, token, newPassword, ServiceName)).map(_ => (): Unit)
       .recover {
         case Upstream4xxResponse(_, 410, _, _) => throw new TokenExpiredException()
@@ -105,9 +106,9 @@ class UserManagementClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(
     http.POST[FindByUserIdRequest, UserResponse](
       s"${url.host}/$urlPrefix/service/$ServiceName/findUserById",
       FindByUserIdRequest(userId)).recover {
-      case e: UpstreamErrorResponse if e.statusCode == NOT_FOUND =>
-        throw new InvalidCredentialsException(s"UserId = $userId")
-    }
+        case e: UpstreamErrorResponse if e.statusCode == NOT_FOUND =>
+          throw new InvalidCredentialsException(s"UserId = $userId")
+      }
   }
 }
 

@@ -16,12 +16,13 @@
 
 package controllers
 
-import java.time.{LocalDateTime, ZoneId}
-import java.time.format.DateTimeFormatter
 import config.ApplicationRouteFrontendConfig
 import models.ApplicationRoute._
 import org.joda.time.DateTime
-import play.api.{Logger, Logging}
+import play.api.Logging
+
+import java.time.format.DateTimeFormatter
+import java.time.{ LocalDateTime, ZoneId }
 
 trait ApplicationRouteState {
   def newAccountsStarted: Boolean
@@ -37,7 +38,7 @@ case class ApplicationRouteStateImpl(config: ApplicationRouteFrontendConfig) ext
   )
 
   def newAccountsStarted: Boolean = isBeforeNow(config.startNewAccountsDate)
-  def newAccountsEnabled: Boolean =  isAfterNow(config.blockNewAccountsDate)
+  def newAccountsEnabled: Boolean = isAfterNow(config.blockNewAccountsDate)
   def applicationsSubmitEnabled: Boolean = isAfterNow(config.blockApplicationsDate)
   def applicationsStartDate: Option[LocalDateTime] = config.startNewAccountsDate
 

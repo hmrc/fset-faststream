@@ -16,17 +16,17 @@
 
 package controllers
 
-import config.{FrontendAppConfig, SecurityEnvironment}
+import config.{ FrontendAppConfig, SecurityEnvironment }
 import connectors.ApplicationClient
 import connectors.ApplicationClient.CannotSubmit
 import helpers.NotificationType._
 import helpers.NotificationTypeHelper
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import play.api.mvc.MessagesControllerComponents
-import security.Roles.{AbleToWithdrawApplicationRole, SubmitApplicationRole}
+import security.Roles.{ AbleToWithdrawApplicationRole, SubmitApplicationRole }
 import security.SilhouetteComponent
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class SubmitApplicationController @Inject() (

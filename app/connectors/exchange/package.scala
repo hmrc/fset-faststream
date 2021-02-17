@@ -16,8 +16,7 @@
 
 package connectors
 
-package object exchange
-{
+package object exchange {
   val FrameworkId = "FastStream-2016"
 
   type LoginInfo = String

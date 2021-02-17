@@ -22,7 +22,7 @@ import mappings.Mappings._
 import mappings.PostCodeMapping._
 import play.api.data.Forms._
 import play.api.data.format.Formatter
-import play.api.data.{Form, FormError}
+import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
 
 @Singleton
@@ -92,7 +92,6 @@ object EducationQuestionnaireForm {
     preferNotSayUniversityDegreeCategory: Option[Boolean]
   ) {
 
-
     def exchange(implicit messages: Messages): Questionnaire = {
       def getAnswer(field: Option[String], preferNotToSayField: Option[Boolean], otherDetails: Option[String] = None) = {
         preferNotToSayField match {
@@ -108,7 +107,8 @@ object EducationQuestionnaireForm {
 
       def getOptionalSchoolList(implicit messages: Messages) = {
         if (liveInUKBetween14and18 == "Yes") {
-          List(Question(Messages("postcode.question"), getAnswer(postcode, preferNotSayPostcode)),
+          List(
+            Question(Messages("postcode.question"), getAnswer(postcode, preferNotSayPostcode)),
             Question(Messages("schoolName14to16.question"), getAnswer(schoolName14to16, preferNotSaySchoolName14to16, schoolId14to16)),
             Question(Messages("schoolType14to16.question"), Answer(schoolType14to16, None, None)),
             Question(Messages("schoolName16to18.question"), getAnswer(schoolName16to18, preferNotSaySchoolName16to18, schoolId16to18)),
@@ -122,7 +122,8 @@ object EducationQuestionnaireForm {
         haveDegree match {
           case Some("Yes") => List(
             Question(Messages("university.question"), getAnswer(university, preferNotSayUniversity)),
-            Question(Messages("universityDegreeCategory.question"), getAnswer(universityDegreeCategory,
+            Question(Messages("universityDegreeCategory.question"), getAnswer(
+              universityDegreeCategory,
               preferNotSayUniversityDegreeCategory))
           )
           case _ => List.empty
@@ -137,7 +138,8 @@ object EducationQuestionnaireForm {
       )
     }
 
-    /** It makes sure that when you select "No" as an answer to "live in the UK between 14 and 18" question, the dependent
+    /**
+     * It makes sure that when you select "No" as an answer to "live in the UK between 14 and 18" question, the dependent
      * questions are reset to None.
      *
      * This is a kind of backend partial clearing form functionality.

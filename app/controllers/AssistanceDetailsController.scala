@@ -16,17 +16,17 @@
 
 package controllers
 
-import config.{FrontendAppConfig, SecurityEnvironment}
+import config.{ FrontendAppConfig, SecurityEnvironment }
 import forms.AssistanceDetailsForm
-import connectors.{ApplicationClient, UserManagementClient}
+import connectors.{ ApplicationClient, UserManagementClient }
 import connectors.ApplicationClient.AssistanceDetailsNotFound
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import models.CachedData
 import security.SilhouetteComponent
 import security.ProgressStatusRoleUtils._
 import security.Roles.AssistanceDetailsRole
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc.MessagesControllerComponents
 import helpers.NotificationTypeHelper

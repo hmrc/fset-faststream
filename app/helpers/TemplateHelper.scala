@@ -20,7 +20,7 @@ import play.twirl.api.Html
 
 object TemplateHelper {
   def maybeDisplayError(field: play.api.data.Field): Html = {
-    if(field.hasErrors) {
+    if (field.hasErrors) {
       Html(field.errors.map(_.messages.map("<span class='visuallyhidden'>Error: </span>" + _).mkString(", ")).mkString(", "))
     } else {
       Html("")

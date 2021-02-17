@@ -17,11 +17,11 @@
 package services
 
 import connectors.ApplicationClient
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import models.UniqueIdentifier
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class Phase3FeedbackService @Inject() (applicationClient: ApplicationClient)(implicit val ec: ExecutionContext) {
@@ -43,7 +43,6 @@ class Phase3FeedbackService @Inject() (applicationClient: ApplicationClient)(imp
         case _ => Low
       }
     }
-
 
     applicationClient.getPhase3TestGroup(applicationId).map { phase3TestGroup =>
       val testResultsOpt = phase3TestGroup.activeTests.headOption

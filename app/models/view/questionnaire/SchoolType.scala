@@ -17,15 +17,15 @@
 package models.view.questionnaire
 
 /**
-  * Created by bste on 12/06/17.
-  */
+ * Created by bste on 12/06/17.
+ */
 object SchoolType {
 
-  val list =  List(
-    ("stateRunOrFunded-selective" , "A state-run or state-funded school - Selective on academic, faith or other grounds" , false),
-    ("stateRunOrFunded-nonSelective" , "A state-run or state-funded school - Non-selective" , false),
-    ("indyOrFeePaying-bursary" , "Independent or fee-paying school - Bursary" , false),
-    ("indyOrFeePaying-noBursary" , "Independent or fee-paying school - No Bursary" , false),
+  val list = List(
+    ("stateRunOrFunded-selective", "A state-run or state-funded school - Selective on academic, faith or other grounds", false),
+    ("stateRunOrFunded-nonSelective", "A state-run or state-funded school - Non-selective", false),
+    ("indyOrFeePaying-bursary", "Independent or fee-paying school - Bursary", false),
+    ("indyOrFeePaying-noBursary", "Independent or fee-paying school - No Bursary", false),
     ("preferNotSay", "I don't know/prefer not to say", false)
   )
 

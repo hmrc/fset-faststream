@@ -16,13 +16,13 @@
 
 package connectors
 
-import config.{CSRHttp, FrontendAppConfig}
-import connectors.SchemeClient.{CannotUpdateSchemePreferences, SchemePreferencesNotFound}
+import config.{ CSRHttp, FrontendAppConfig }
+import connectors.SchemeClient.{ CannotUpdateSchemePreferences, SchemePreferencesNotFound }
 import connectors.exchange.SelectedSchemes
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import models.UniqueIdentifier
 import play.api.http.Status._
-import uk.gov.hmrc.http.{BadRequestException, HeaderCarrier, HttpResponse, NotFoundException, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{ BadRequestException, HeaderCarrier, HttpResponse, NotFoundException, UpstreamErrorResponse }
 
 import scala.concurrent.ExecutionContext
 

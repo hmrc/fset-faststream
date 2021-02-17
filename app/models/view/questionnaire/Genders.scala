@@ -21,7 +21,7 @@ object Genders {
     ("male", "Man", false),
     ("female", "Woman", false),
     ("other", "Other", true),
-    ("preferNotSay","I don't know/prefer not to say",false)
+    ("preferNotSay", "I don't know/prefer not to say", false)
   )
 }
 

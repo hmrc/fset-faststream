@@ -16,11 +16,11 @@
 
 package connectors
 
-import config.{CSRHttp, FrontendAppConfig}
-import connectors.exchange.referencedata.{ReferenceData, Scheme, SchemeId}
+import config.{ CSRHttp, FrontendAppConfig }
+import connectors.exchange.referencedata.{ ReferenceData, Scheme, SchemeId }
 
-import javax.inject.{Inject, Singleton}
-import play.api.{Logger, Logging}
+import javax.inject.{ Inject, Singleton }
+import play.api.Logging
 import play.api.libs.json.OFormat
 
 import scala.concurrent.ExecutionContext
@@ -40,7 +40,7 @@ class ReferenceDataClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(i
   def allSchemes()(implicit hc: HeaderCarrier): Future[List[Scheme]] = {
     val data = getReferenceDataAsList[Scheme]("schemes", "/reference/schemes")
     // Filter out GCFS for 2021 campaign
-    data.map { allSchemes => allSchemes.filterNot( s => s.id == SchemeId("GovernmentCommunicationService")) }
+    data.map { allSchemes => allSchemes.filterNot(s => s.id == SchemeId("GovernmentCommunicationService")) }
   }
 
   private def getReferenceDataAsList[T](

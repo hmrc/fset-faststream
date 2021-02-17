@@ -16,20 +16,20 @@
 
 package controllers
 
-import config.{FrontendAppConfig, SecurityEnvironment}
+import config.{ FrontendAppConfig, SecurityEnvironment }
 import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.exchange.referencedata.SchemeId
-import connectors.{ReferenceDataClient, SchemeClient}
+import connectors.{ ReferenceDataClient, SchemeClient }
 import forms.SelectedSchemesForm
 import helpers.NotificationTypeHelper
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import models.ApplicationRoute
 import models.page.SelectedSchemesPage
 import play.api.mvc.MessagesControllerComponents
 import security.Roles.SchemesRole
 import security.SilhouetteComponent
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class SchemePreferencesController @Inject() (

@@ -17,13 +17,13 @@
 package forms
 
 import connectors.exchange.AssistanceDetails
-import forms.AssistanceDetailsForm.{disabilityCategoriesList, other, preferNotToSay}
+import forms.AssistanceDetailsForm.{ disabilityCategoriesList, other, preferNotToSay }
 import javax.inject.Singleton
 import mappings.Mappings._
 import models.ApplicationRoute._
 import play.api.data.Forms._
 import play.api.data.format.Formatter
-import play.api.data.{Form, FormError}
+import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
 
 import scala.language.implicitConversions
@@ -54,7 +54,8 @@ class AssistanceDetailsForm {
       "guaranteedInterview" -> of(requiredFormatterWithMaxLengthCheck("hasDisability", "guaranteedInterview", None)),
       "needsSupportForOnlineAssessment" -> of(
         mayBeOptionalString("error.needsSupportForOnlineAssessment.required", 31, isFastStreamOrSdipFastStream)),
-      "needsSupportForOnlineAssessmentDescription" -> of(requiredFormatterWithMaxLengthCheck("needsSupportForOnlineAssessment",
+      "needsSupportForOnlineAssessmentDescription" -> of(requiredFormatterWithMaxLengthCheck(
+        "needsSupportForOnlineAssessment",
         "needsSupportForOnlineAssessmentDescription", Some(2048))),
       "needsSupportAtVenue" -> of(mayBeOptionalString("error.needsSupportAtVenue.required", 31, isFastStreamOrSdipFastStream)),
       "needsSupportAtVenueDescription" -> of(requiredFormatterWithMaxLengthCheck("needsSupportAtVenue", "needsSupportAtVenueDescription",
@@ -91,7 +92,7 @@ class AssistanceDetailsForm {
   private def disabilityImpactFormatter = new Formatter[Option[String]] {
     def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       bindOptionalParam(request.isHasDisabilitySelected, request.isDisabilityImpactValid,
-        "You must provide a valid disability impact") (key, request.disabilityImpactParam)
+        "You must provide a valid disability impact")(key, request.disabilityImpactParam)
     }
 
     def unbind(key: String, value: Option[String]): Map[String, String] = optionalParamToMap(key, value)
@@ -148,7 +149,7 @@ class AssistanceDetailsForm {
   }
 
   implicit class RequestValidation(request: Map[String, String]) {
-    def param(name:String) = request.collectFirst { case (key, value) if key == name => value }
+    def param(name: String) = request.collectFirst { case (key, value) if key == name => value }
 
     def hasDisabilityParam = param(hasDisability).getOrElse("")
 

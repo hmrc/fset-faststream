@@ -16,8 +16,8 @@
 
 package models
 
-import connectors.exchange.{AssessmentCentre, Fsb, ProgressResponse}
-import play.api.libs.json.{Format, Json}
+import connectors.exchange.{ AssessmentCentre, Fsb, ProgressResponse }
+import play.api.libs.json.{ Format, Json }
 
 import scala.language.implicitConversions
 
