@@ -17,24 +17,24 @@
 package controllers
 
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
-import config.{FrontendAppConfig, SecurityEnvironment}
-import connectors.ApplicationClient.{SiftAnswersIncomplete, SiftAnswersNotFound, SiftExpired}
-import connectors.exchange.referencedata.{Scheme, SchemeId, SiftRequirement}
-import connectors.exchange.sift.{GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswers, SiftAnswersStatus}
-import connectors.{ApplicationClient, ReferenceDataClient, SchemeClient, SiftClient}
+import config.{ FrontendAppConfig, SecurityEnvironment }
+import connectors.ApplicationClient.{ SiftAnswersIncomplete, SiftAnswersNotFound, SiftExpired }
+import connectors.exchange.referencedata.{ Scheme, SchemeId, SiftRequirement }
+import connectors.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswers, SiftAnswersStatus }
+import connectors.{ ApplicationClient, ReferenceDataClient, SchemeClient, SiftClient }
 import forms.SchemeSpecificQuestionsForm
 import forms.sift.GeneralQuestionsForm
 import helpers.NotificationType._
-import helpers.{CachedUserWithSchemeData, NotificationTypeHelper}
-import javax.inject.{Inject, Singleton}
-import models.page.{GeneralQuestionsPage, SiftPreviewPage}
-import models.{SchemeStatus, UniqueIdentifier}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
-import security.Roles.{PreviewSchemeSpecificQuestionsRole, SchemeSpecificQuestionsRole}
+import helpers.{ CachedUserWithSchemeData, NotificationTypeHelper }
+import javax.inject.{ Inject, Singleton }
+import models.page.{ GeneralQuestionsPage, SiftPreviewPage }
+import models.{ SchemeStatus, UniqueIdentifier }
+import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, Result }
+import security.Roles.{ PreviewSchemeSpecificQuestionsRole, SchemeSpecificQuestionsRole }
 import security.SilhouetteComponent
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class SiftQuestionsController @Inject() (
@@ -198,13 +198,13 @@ class SiftQuestionsController @Inject() (
         case scheme if resultIsGreen(scheme.result) => scheme.schemeId
       }) { schemeId =>
         schemeMetadata(schemeId)
-      }.map(_.collect { case s if s.siftRequirement.contains(SiftRequirement.FORM) => s.id})
+      }.map(_.collect { case s if s.siftRequirement.contains(SiftRequirement.FORM) => s.id })
     }
   }
 
   private def getFormAction(implicit request: SecuredRequest[_, _]) = {
     request.body.asInstanceOf[AnyContent].asFormUrlEncoded.getOrElse(Map.empty).get("action").flatMap(_.headOption)
-        .getOrElse(SaveAndReturnAction)
+      .getOrElse(SaveAndReturnAction)
   }
 
   private def continueOrReturn(continue: Result, returnHome: Result)(implicit request: SecuredRequest[_, _]) = {

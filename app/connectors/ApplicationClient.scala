@@ -18,22 +18,22 @@ package connectors
 
 import java.net.URLEncoder
 
-import config.{CSRHttp, FrontendAppConfig}
+import config.{ CSRHttp, FrontendAppConfig }
 import connectors.UserManagementClient.TokenEmailPairInvalidException
 import connectors.exchange.GeneralDetails._
 import connectors.exchange.Questionnaire._
 import connectors.exchange._
 import connectors.exchange.campaignmanagement.AfterDeadlineSignupCodeUnused
-import connectors.exchange.candidateevents.{CandidateAllocationWithEvent, CandidateAllocations}
+import connectors.exchange.candidateevents.{ CandidateAllocationWithEvent, CandidateAllocations }
 import connectors.exchange.candidatescores.CompetencyAverageResult
 import connectors.exchange.sift.SiftState
-import javax.inject.{Inject, Singleton}
-import models.{Adjustments, ApplicationRoute, UniqueIdentifier}
+import javax.inject.{ Inject, Singleton }
+import models.{ Adjustments, ApplicationRoute, UniqueIdentifier }
 import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.http._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 // scalastyle:off number.of.methods
 @Singleton
@@ -60,19 +60,19 @@ class ApplicationClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(imp
   }
 
   def overrideSubmissionDeadline(
-                                  applicationId: UniqueIdentifier,
-                                  overrideRequest: OverrideSubmissionDeadlineRequest
-                                )(implicit hc: HeaderCarrier): Future[Unit] = {
+    applicationId: UniqueIdentifier,
+    overrideRequest: OverrideSubmissionDeadlineRequest
+  )(implicit hc: HeaderCarrier): Future[Unit] = {
     import uk.gov.hmrc.http.HttpReads.Implicits._
     http.PUT[OverrideSubmissionDeadlineRequest, HttpResponse](
       s"$apiBaseUrl/application/overrideSubmissionDeadline/$applicationId",
       overrideRequest).map { response =>
-      if (response.status != OK) {
-        throw new CannotSubmitOverriddenSubmissionDeadline()
-      } else {
-        ()
+        if (response.status != OK) {
+          throw new CannotSubmitOverriddenSubmissionDeadline()
+        } else {
+          ()
+        }
       }
-    }
   }
 
   def markSignupCodeAsUsed(
@@ -111,7 +111,7 @@ class ApplicationClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(imp
   }
 
   def withdrawScheme(applicationId: UniqueIdentifier, withdrawal: WithdrawScheme)(implicit hc: HeaderCarrier) = {
-    http.PUT(s"$apiBaseUrl/application/$applicationId/scheme/withdraw", Json.toJson(withdrawal)).map (_ => ())
+    http.PUT(s"$apiBaseUrl/application/$applicationId/scheme/withdraw", Json.toJson(withdrawal)).map(_ => ())
       .recover {
         case e: Upstream4xxResponse if e.upstreamResponseCode == FORBIDDEN => throw new SiftExpired()
         case _: Exception => throw new CannotWithdraw()
@@ -180,7 +180,7 @@ class ApplicationClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(imp
     http.GET[connectors.exchange.AssistanceDetails](s"$apiBaseUrl/assistance-details/$userId/$applicationId")
       .recover {
         case e: UpstreamErrorResponse if e.statusCode == NOT_FOUND => throw new AssistanceDetailsNotFound()
-    }
+      }
   }
 
   def updateQuestionnaire(applicationId: UniqueIdentifier, sectionId: String, questionnaire: Questionnaire)
@@ -244,8 +244,8 @@ class ApplicationClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(imp
     import uk.gov.hmrc.http.HttpReads.Implicits._
     http.GET[Phase1TestGroupWithNames2](s"$apiBaseUrl/online-test/phase1/candidate/orderId/$orderId")
       .recover {
-      case e: UpstreamErrorResponse if e.statusCode == NOT_FOUND => throw new OnlineTestNotFound()
-    }
+        case e: UpstreamErrorResponse if e.statusCode == NOT_FOUND => throw new OnlineTestNotFound()
+      }
   }
 
   def getPhase2TestProfile2ByOrderId(orderId: UniqueIdentifier)
@@ -366,9 +366,9 @@ class ApplicationClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(imp
   )(implicit hc: HeaderCarrier): Future[Unit] = {
     http.PUT(s"$apiBaseUrl/candidate-allocations/confirm-allocation/events/$eventId/sessions/$sessionId",
       Json.toJson(candidateAllocations)).map(_ => ()).recover {
-      case Upstream4xxResponse(_, CONFLICT, _, _) =>
-        throw new OptimisticLockException(s"Candidate allocation for event $eventId has changed.")
-    }
+        case Upstream4xxResponse(_, CONFLICT, _, _) =>
+          throw new OptimisticLockException(s"Candidate allocation for event $eventId has changed.")
+      }
   }
 
   def hasAnalysisExercise(applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Boolean] = {

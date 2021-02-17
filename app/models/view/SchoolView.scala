@@ -20,7 +20,6 @@ import connectors.exchange.School
 import scala.language.implicitConversions
 import play.api.libs.json.Json
 
-
 case class SchoolView(id: String, name: String, label: String)
 
 object SchoolView {
@@ -28,7 +27,7 @@ object SchoolView {
   val narrowYourSearchHint = SchoolView("", "", "More than 15 results found, enter more text")
   implicit val schoolFormat = Json.format[SchoolView]
 
-  implicit class SchoolImplicits(school:School) {
+  implicit class SchoolImplicits(school: School) {
     def toSchoolView: SchoolView = {
       val address = school match {
         case _ if school.addressLine1.exists(_.trim.nonEmpty) => school.addressLine1

@@ -17,7 +17,7 @@
 package security
 
 import com.mohiva.play.silhouette.api.services.IdentityService
-import models.{CachedData, SecurityUser, UniqueIdentifier}
+import models.{ CachedData, SecurityUser, UniqueIdentifier }
 import play.api.mvc.Request
 import uk.gov.hmrc.http.HeaderCarrier
 

@@ -30,5 +30,5 @@ object ReferenceData {
     ((__ \ "options").format[List[T]] ~
       (__ \ "default").format[T] ~
       (__ \ "aggregate").format[T]
-      )(ReferenceData.apply, unlift(ReferenceData.unapply))
+    )(ReferenceData.apply, unlift(ReferenceData.unapply))
 }

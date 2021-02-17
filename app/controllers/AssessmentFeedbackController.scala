@@ -17,19 +17,18 @@
 package controllers
 
 import com.mohiva.play.silhouette.api.Silhouette
-import config.{FrontendAppConfig, SecurityEnvironment}
-import connectors.{ApplicationClient, AssessmentScoresClient, UserManagementClient}
-import javax.inject.{Inject, Singleton}
+import config.{ FrontendAppConfig, SecurityEnvironment }
+import connectors.{ ApplicationClient, AssessmentScoresClient, UserManagementClient }
+import javax.inject.{ Inject, Singleton }
 import models.UniqueIdentifier
 import models.page.AssessmentFeedbackPage
 import play.api.i18n.Messages.Implicits._
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
 import security.Roles.ActiveUserRole
-import security.{SilhouetteComponent}
+import security.{ SilhouetteComponent }
 import helpers.NotificationTypeHelper
 
 import scala.concurrent.ExecutionContext
-
 
 @Singleton
 class AssessmentFeedbackController @Inject() (

@@ -18,7 +18,7 @@ package services
 
 import factories.DateTimeFactory
 import org.joda.time.format.PeriodFormatterBuilder
-import org.joda.time.{DateTime, Period, PeriodType}
+import org.joda.time.{ DateTime, Period, PeriodType }
 
 object TimeFormattingService extends TimeFormattingService {
   val dateTimeFactory: DateTimeFactory = DateTimeFactory

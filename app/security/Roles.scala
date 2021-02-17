@@ -95,9 +95,9 @@ object Roles {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
       activeUserWithActiveApp(user) && statusIn(user)(IN_PROGRESS) &&
         (
-            hasSchemes(user) ||
-            (hasPersonalDetails(user) && (isEdip(user) || isSdip(user)))
-          )
+          hasSchemes(user) ||
+          (hasPersonalDetails(user) && (isEdip(user) || isSdip(user)))
+        )
   }
 
   object PreviewApplicationRole extends CsrAuthorization {
@@ -132,7 +132,7 @@ object Roles {
   }
 
   object SchemeWithdrawRole extends CsrAuthorization {
-    override def isAuthorized(user: CachedData)(implicit request: RequestHeader): Boolean ={
+    override def isAuthorized(user: CachedData)(implicit request: RequestHeader): Boolean = {
       statusIn(user)(SIFT) || (statusIn(user)(ASSESSMENT_CENTRE) && isAwaitingAllocation(user))
     }
   }
@@ -235,7 +235,6 @@ object Roles {
 }
 
 object RoleUtils {
-
 
   import ProgressStatusRoleUtils._
 
@@ -344,7 +343,6 @@ object ProgressStatusRoleUtils {
 
   def isSubmitted(implicit user: CachedData) = user.application.exists(_.progress.submitted)
 
-
   def isPhase1TestsInvited(implicit user: CachedData) = user.application.exists(_.progress.phase1TestProgress.phase1TestsInvited)
 
   def isPhase1TestsStarted(implicit user: CachedData) = user.application.exists(_.progress.phase1TestProgress.phase1TestsStarted)
@@ -354,7 +352,6 @@ object ProgressStatusRoleUtils {
   def isPhase1TestsFailed(implicit user: CachedData) = user.application.exists(_.progress.phase1TestProgress.phase1TestsFailed)
 
   def isPhase1TestsExpired(implicit user: CachedData) = user.application.exists(_.progress.phase1TestProgress.phase1TestsExpired)
-
 
   def isPhase2TestsInvited(implicit user: CachedData) = user.application.exists(_.progress.phase2TestProgress.phase2TestsInvited)
 
@@ -366,18 +363,15 @@ object ProgressStatusRoleUtils {
 
   def isPhase2TestsExpired(implicit user: CachedData) = user.application.exists(_.progress.phase2TestProgress.phase2TestsExpired)
 
-
   def isPhase3TestsInvited(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsInvited)
 
   def isPhase3TestsStarted(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsStarted)
-
 
   def isPhase3TestsPassedWithAmber(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsPassedWithAmber)
 
   def isPhase3TestsPassed(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsPassed)
 
   def isPhase3TestsPassedNotified(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsPassedNotified)
-
 
   def isPhase3TestsFailed(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsFailed)
 
@@ -387,9 +381,7 @@ object ProgressStatusRoleUtils {
 
   def isPhase3TestsFailedSdipGreen(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsFailedSdipGreen)
 
-
   def isPhase3TestsExpired(implicit user: CachedData) = user.application.exists(_.progress.phase3TestProgress.phase3TestsExpired)
-
 
   def isSiftEntered(implicit user: CachedData) = user.application.exists(_.progress.siftProgress.siftEntered)
 
@@ -399,13 +391,11 @@ object ProgressStatusRoleUtils {
 
   def isSiftComplete(implicit user: CachedData) = user.application.exists(_.progress.siftProgress.siftCompleted)
 
-
   def isAwaitingAllocation(implicit user: CachedData) = user.application.exists(_.progress.assessmentCentre.awaitingAllocation)
 
   def isAllocatedToAssessmentCentre(implicit user: CachedData) = user.application.exists(_.progress.assessmentCentre.allocationConfirmed) || user.application.exists(_.progress.assessmentCentre.allocationUnconfirmed)
 
   def assessmentCentreFailedToAttend(implicit user: CachedData) = user.application.exists(_.progress.assessmentCentre.failedToAttend)
-
 
   def isEligibleForJobOffer(implicit user: CachedData): Boolean = user.application.exists(_.progress.jobOffer.eligible)
 
@@ -414,7 +404,6 @@ object ProgressStatusRoleUtils {
   def isAssessmentCentreFailed(implicit user: CachedData): Boolean = user.application.exists(_.progress.assessmentCentre.failed)
 
   def isFailedAtSift(implicit user: CachedData): Boolean = user.application.exists(_.progress.siftProgress.failedAtSift)
-
 
   def isFastStreamFailedGreenSdip(implicit user: CachedData): Boolean = user.application.exists(_.progress.assessmentCentre.failedSdipGreen)
 

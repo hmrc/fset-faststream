@@ -16,7 +16,6 @@
 
 package controllers
 
-
 import config.FrontendAppConfig
 import play.api.Logging
 import play.api.mvc.MessagesControllerComponents

@@ -20,7 +20,6 @@ import org.joda.time.DateTime
 import play.api.libs.json.Json
 import models.FaststreamImplicits._
 
-
 case class ReviewSectionCriteriaRequest(`type`: String, score: Option[Double])
 
 object ReviewSectionCriteriaRequest {
@@ -28,7 +27,7 @@ object ReviewSectionCriteriaRequest {
 }
 
 case class ReviewSectionQuestionRequest(id: Int, reviewCriteria1: ReviewSectionCriteriaRequest,
-  reviewCriteria2: ReviewSectionCriteriaRequest)
+                                        reviewCriteria2: ReviewSectionCriteriaRequest)
 
 object ReviewSectionQuestionRequest {
   implicit val reviewSectionReviewerQuestion = Json.format[ReviewSectionQuestionRequest]
@@ -95,14 +94,14 @@ case class ReviewedCallbackRequest(
   private def aggregateScoresForAllQuestion(scoreExtractor: ReviewSectionQuestionRequest => ReviewSectionCriteriaRequest) = {
     (
       BigDecimal(scoreExtractor(latestReviewer.question1).score.getOrElse(0.0)) +
-        BigDecimal(scoreExtractor(latestReviewer.question2).score.getOrElse(0.0))  +
-        BigDecimal(scoreExtractor(latestReviewer.question3).score.getOrElse(0.0)) +
-        BigDecimal(scoreExtractor(latestReviewer.question4).score.getOrElse(0.0)) +
-        BigDecimal(scoreExtractor(latestReviewer.question5).score.getOrElse(0.0)) +
-        BigDecimal(scoreExtractor(latestReviewer.question6).score.getOrElse(0.0)) +
-        BigDecimal(scoreExtractor(latestReviewer.question7).score.getOrElse(0.0)) +
-        BigDecimal(scoreExtractor(latestReviewer.question8).score.getOrElse(0.0))
-      ).toDouble
+      BigDecimal(scoreExtractor(latestReviewer.question2).score.getOrElse(0.0)) +
+      BigDecimal(scoreExtractor(latestReviewer.question3).score.getOrElse(0.0)) +
+      BigDecimal(scoreExtractor(latestReviewer.question4).score.getOrElse(0.0)) +
+      BigDecimal(scoreExtractor(latestReviewer.question5).score.getOrElse(0.0)) +
+      BigDecimal(scoreExtractor(latestReviewer.question6).score.getOrElse(0.0)) +
+      BigDecimal(scoreExtractor(latestReviewer.question7).score.getOrElse(0.0)) +
+      BigDecimal(scoreExtractor(latestReviewer.question8).score.getOrElse(0.0))
+    ).toDouble
   }
 
   def allQuestionsReviewed: Boolean = {
@@ -117,7 +116,7 @@ object ReviewedCallbackRequest {
 }
 
 case class LaunchpadTestCallbacks(
-  reviewed: List[ReviewedCallbackRequest] = Nil)  {
+  reviewed: List[ReviewedCallbackRequest] = Nil) {
   def getLatestReviewed: Option[ReviewedCallbackRequest] =
     reviewed.sortWith { (r1, r2) => r1.received.isAfter(r2.received) }.headOption
 }
@@ -142,7 +141,7 @@ object Phase3Test {
 }
 
 case class Phase3TestGroup(expirationDate: DateTime, tests: List[Phase3Test],
-  evaluation: Option[PassmarkEvaluation] = None) {
+                           evaluation: Option[PassmarkEvaluation] = None) {
   def activeTests = tests.filter(_.usedForResults)
 }
 

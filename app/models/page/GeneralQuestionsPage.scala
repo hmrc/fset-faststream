@@ -20,7 +20,7 @@ import connectors.exchange.sift.GeneralQuestionsAnswers
 import forms.sift.{ GeneralQuestionsForm, PostGradDegreeInfoForm, UndergradDegreeInfoForm }
 import play.api.data.Form
 
-case class GeneralQuestionsPage(form : Form[GeneralQuestionsForm.Data])
+case class GeneralQuestionsPage(form: Form[GeneralQuestionsForm.Data])
 
 object GeneralQuestionsPage {
   def apply(form: Form[GeneralQuestionsForm.Data], answers: Option[GeneralQuestionsAnswers]): GeneralQuestionsPage = GeneralQuestionsPage(
@@ -28,19 +28,17 @@ object GeneralQuestionsPage {
       //GeneralQuestionsForm().form.fill(GeneralQuestionsForm.Data(
       form.fill(GeneralQuestionsForm.Data(
         multipleNationalities = Some(a.multipleNationalities),
-        secondNationality= a.secondNationality,
+        secondNationality = a.secondNationality,
         nationality = Option(a.nationality).filter(_.trim.nonEmpty),
         hasUndergradDegree = Some(a.undergradDegree.isDefined),
-        undergradDegree = a.undergradDegree map(
+        undergradDegree = a.undergradDegree map (
           ud => UndergradDegreeInfoForm.Data(
             ud.name, Option(ud.classification).filter(_.trim.nonEmpty), Option(ud.graduationYear).filter(_.trim.nonEmpty), ud.moduleDetails)),
         hasPostgradDegree = Some(a.postgradDegree.isDefined),
-        postgradDegree = a.postgradDegree map(
+        postgradDegree = a.postgradDegree map (
           pd => PostGradDegreeInfoForm.Data(
             pd.name, Option(pd.graduationYear).filter(_.trim.nonEmpty), pd.otherDetails, pd.projectDetails))
       ))
     }.getOrElse(form)
   )
-
-
 }

@@ -16,7 +16,7 @@
 
 package factories
 
-import org.joda.time.{DateTime, LocalDate}
+import org.joda.time.{ DateTime, LocalDate }
 
 trait DateTimeFactory {
   def nowLocalTimeZone: DateTime // Uses `DateTimeZone.getDefault` (the timezone of the current machine).

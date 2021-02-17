@@ -16,15 +16,15 @@
 
 package connectors
 
-import config.{CSRHttp, FrontendAppConfig}
+import config.{ CSRHttp, FrontendAppConfig }
 import connectors.exchange.candidatescores.AssessmentScoresAllExercises
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import models.UniqueIdentifier
 import play.api.http.Status._
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{ HeaderCarrier, UpstreamErrorResponse }
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class AssessmentScoresClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(implicit ec: ExecutionContext) {

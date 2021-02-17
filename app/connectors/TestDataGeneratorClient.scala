@@ -16,12 +16,12 @@
 
 package connectors
 
-import config.{CSRHttp, FrontendAppConfig}
+import config.{ CSRHttp, FrontendAppConfig }
 import javax.inject.Singleton
-import play.api.http.Status.{BAD_REQUEST, NOT_FOUND, OK}
+import play.api.http.Status.{ BAD_REQUEST, NOT_FOUND, OK }
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class TestDataGeneratorClient(config: FrontendAppConfig, http: CSRHttp)(implicit val ec: ExecutionContext) {

@@ -16,7 +16,7 @@
 
 package models.page
 
-import connectors.exchange.candidatescores.{AssessmentScoresAllExercises, CompetencyAverageResult}
+import connectors.exchange.candidatescores.{ AssessmentScoresAllExercises, CompetencyAverageResult }
 
 case class ExerciseFeedback(exerciseName: String, competencyFeedback: Seq[CompetencyFeedback])
 case class CompetencyFeedback(competencyName: String, feedback: String)
@@ -68,7 +68,7 @@ case object AssessmentFeedbackPage {
           assessmentScores.leadershipExercise.flatMap{ s => s.seeingTheBigPictureFeedback}.getOrElse(""))
       )
     )
-    val finalFeedback = assessmentScores.finalFeedback.map{ s => s.feedback}.getOrElse("")
+    val finalFeedback = assessmentScores.finalFeedback.map { s => s.feedback }.getOrElse("")
     AssessmentFeedbackPage(Seq(analysisExercise, groupExercise, leadershipExercise), finalFeedback, evaluatedAverageResults, candidateName)
   }
 }

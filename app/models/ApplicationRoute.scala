@@ -16,7 +16,7 @@
 
 package models
 
-import play.api.libs.json.{Format, JsString, JsSuccess, JsValue}
+import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
 
 import scala.language.implicitConversions
 

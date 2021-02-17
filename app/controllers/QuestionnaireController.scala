@@ -16,22 +16,22 @@
 
 package controllers
 
-import _root_.forms.{DiversityQuestionnaireForm, EducationQuestionnaireForm, ParentalOccupationQuestionnaireForm}
+import _root_.forms.{ DiversityQuestionnaireForm, EducationQuestionnaireForm, ParentalOccupationQuestionnaireForm }
 import config.FrontendAppConfig
 import connectors.ApplicationClient
 import connectors.exchange.Questionnaire
 import helpers.NotificationType._
-import helpers.{NotificationType, NotificationTypeHelper}
-import javax.inject.{Inject, Singleton}
-import models.{ApplicationRoute, CachedDataWithApp}
+import helpers.{ NotificationType, NotificationTypeHelper }
+import javax.inject.{ Inject, Singleton }
+import models.{ ApplicationRoute, CachedDataWithApp }
 import play.api.i18n.Messages
 import play.api.mvc._
 import security.QuestionnaireRoles._
-import security.Roles.{CsrAuthorization, PreviewApplicationRole, SubmitApplicationRole}
+import security.Roles.{ CsrAuthorization, PreviewApplicationRole, SubmitApplicationRole }
 import security.SilhouetteComponent
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.reflectiveCalls
 
 @Singleton

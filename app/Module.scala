@@ -15,8 +15,8 @@
  */
 
 import com.google.inject.AbstractModule
-import config.{SecurityEnvironment, SecurityEnvironmentImpl}
-import play.api.{Configuration, Environment, Logger, Logging}
+import config.{ SecurityEnvironment, SecurityEnvironmentImpl }
+import play.api.{ Configuration, Environment, Logging }
 
 class Module(val environment: Environment, val configuration: Configuration) extends AbstractModule with Logging {
 

@@ -16,21 +16,21 @@
 
 package controllers
 
-import config.{FrontendAppConfig, SecurityEnvironment}
+import config.{ FrontendAppConfig, SecurityEnvironment }
 import connectors.ApplicationClient
 import connectors.exchange.PsiTest
 import helpers.NotificationTypeHelper
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import models.UniqueIdentifier
-import play.api.{Logger, Logging}
+import play.api.{ Logger, Logging }
 import play.api.i18n.Messages
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import security.Roles.{OnlineTestInvitedRole, Phase2TestInvitedRole, SiftNumericTestRole}
+import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
+import security.Roles.{ OnlineTestInvitedRole, Phase2TestInvitedRole, SiftNumericTestRole }
 import security.SilhouetteComponent
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class PsiTestController @Inject() (config: FrontendAppConfig,
@@ -82,7 +82,7 @@ class PsiTestController @Inject() (config: FrontendAppConfig,
             .getOrElse(throw new Exception(s"Test not found for OrderId $orderId"))
           val testCompletedName = Messages(s"tests.inventoryid.name.${testCompleted.inventoryId}")
 
-          if(incompleteTestsExists(testGroup.activeTests)) {
+          if (incompleteTestsExists(testGroup.activeTests)) {
             Ok(views.html.application.onlineTests.continueTests(testCompletedName))
           } else {
             Ok(views.html.application.onlineTests.phase1TestsComplete())
@@ -105,7 +105,7 @@ class PsiTestController @Inject() (config: FrontendAppConfig,
             .getOrElse(throw new Exception(s"Active Test not found for OrderId $orderId"))
           val testCompletedName = Messages(s"tests.inventoryid.name.${testCompleted.inventoryId}")
 
-          if(incompleteTestsExists(testGroup.activeTests)) {
+          if (incompleteTestsExists(testGroup.activeTests)) {
             Ok(views.html.application.onlineTests.continueTests(testCompletedName))
           } else {
             Ok(views.html.application.onlineTests.workBasedScenariosTestsComplete())

@@ -16,13 +16,13 @@
 
 package controllers
 
-import config.{FrontendAppConfig, SecurityEnvironment}
-import connectors.ApplicationClient.{AssistanceDetailsNotFound, PersonalDetailsNotFound}
+import config.{ FrontendAppConfig, SecurityEnvironment }
+import connectors.ApplicationClient.{ AssistanceDetailsNotFound, PersonalDetailsNotFound }
 import connectors.SchemeClient.SchemePreferencesNotFound
-import connectors.{ApplicationClient, SchemeClient}
+import connectors.{ ApplicationClient, SchemeClient }
 import helpers.NotificationType._
 import helpers.NotificationTypeHelper
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import models.CachedDataWithApp
 import play.api.mvc.MessagesControllerComponents
 import security.RoleUtils._

@@ -17,17 +17,17 @@
 package controllers
 
 import _root_.forms.ActivateAccountForm
-import config.{FrontendAppConfig, SecurityEnvironment}
+import config.{ FrontendAppConfig, SecurityEnvironment }
 import connectors.UserManagementClient
-import connectors.UserManagementClient.{TokenEmailPairInvalidException, TokenExpiredException}
+import connectors.UserManagementClient.{ TokenEmailPairInvalidException, TokenExpiredException }
 import helpers.NotificationType._
 import helpers.NotificationTypeHelper
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import play.api.mvc.MessagesControllerComponents
 import security.Roles._
-import security.{SignInService, SilhouetteComponent}
+import security.{ SignInService, SilhouetteComponent }
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class ActivationController @Inject() (

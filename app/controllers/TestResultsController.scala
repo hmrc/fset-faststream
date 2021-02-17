@@ -16,19 +16,19 @@
 
 package controllers
 
-import config.{FrontendAppConfig, SecurityEnvironment}
+import config.{ FrontendAppConfig, SecurityEnvironment }
 import connectors.ApplicationClient
 import connectors.ApplicationClient.OnlineTestNotFound
 import helpers.NotificationTypeHelper
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import models.ApplicationData
-import models.page.{Phase1TestsPage, Phase2TestsPage2, Phase3TestsPage, TestResultsPage}
+import models.page.{ Phase1TestsPage, Phase2TestsPage2, Phase3TestsPage, TestResultsPage }
 import play.api.mvc.MessagesControllerComponents
 import security.Roles.PreviewApplicationRole
 import security.SilhouetteComponent
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class TestResultsController @Inject() (

@@ -16,20 +16,20 @@
 
 package controllers
 
-import _root_.forms.{RequestResetPasswordForm, ResetPasswordForm, SignInForm}
+import _root_.forms.{ RequestResetPasswordForm, ResetPasswordForm, SignInForm }
 import com.mohiva.play.silhouette.api.actions.UserAwareRequest
 import com.mohiva.play.silhouette.api.util.Credentials
-import config.{FrontendAppConfig, SecurityEnvironment}
-import connectors.UserManagementClient.{InvalidEmailException, TokenEmailPairInvalidException, TokenExpiredException}
-import connectors.{ApplicationClient, UserManagementClient}
+import config.{ FrontendAppConfig, SecurityEnvironment }
+import connectors.UserManagementClient.{ InvalidEmailException, TokenEmailPairInvalidException, TokenExpiredException }
+import connectors.{ ApplicationClient, UserManagementClient }
 import helpers.NotificationType._
 import helpers.NotificationTypeHelper
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import models.CachedData
 import play.api.mvc.MessagesControllerComponents
-import security.{InvalidRole, SignInService, SilhouetteComponent}
+import security.{ InvalidRole, SignInService, SilhouetteComponent }
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class PasswordResetController @Inject() (

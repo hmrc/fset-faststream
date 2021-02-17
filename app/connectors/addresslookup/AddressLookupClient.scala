@@ -18,22 +18,21 @@ package connectors.addresslookup
 
 import java.net.URLEncoder
 
-import config.{CSRHttp, FrontendAppConfig}
-import javax.inject.{Inject, Singleton}
+import config.{ CSRHttp, FrontendAppConfig }
+import javax.inject.{ Inject, Singleton }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.HttpReads.Implicits._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 /**
-  * The following client has been take from taken from https://github.com/hmrc/address-reputation-store. The project has
-  * not been added as a dependency, as it brings in many transitive dependencies that are not needed,
-  * as well as data cleansing/ingestion and backward compatibility logic that is not needed for this project.
-  * If the version 2 api gets deprecated, then these DTOs will have to change.
-  * There have been some minor changes made to the code to ensure that it compiles and passes scalastyle,
-  * but there is some copied code that is not idiomatic Scala and should be changed at some point in the future
-  */
-
+ * The following client has been take from taken from https://github.com/hmrc/address-reputation-store. The project has
+ * not been added as a dependency, as it brings in many transitive dependencies that are not needed,
+ * as well as data cleansing/ingestion and backward compatibility logic that is not needed for this project.
+ * If the version 2 api gets deprecated, then these DTOs will have to change.
+ * There have been some minor changes made to the code to ensure that it compiles and passes scalastyle,
+ * but there is some copied code that is not idiomatic Scala and should be changed at some point in the future
+ */
 
 @Singleton
 class AddressLookupClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(implicit val ec: ExecutionContext) {

@@ -16,13 +16,13 @@
 
 package forms
 
-import connectors.exchange.{Answer, Question, Questionnaire}
+import connectors.exchange.{ Answer, Question, Questionnaire }
 import javax.inject.Singleton
 import mappings.Mappings._
-import models.view.questionnaire.{Ethnicities, Genders, SexOrientations}
+import models.view.questionnaire.{ Ethnicities, Genders, SexOrientations }
 import play.api.data.Forms._
 import play.api.data.format.Formatter
-import play.api.data.{Form, FormError}
+import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
 
 @Singleton
@@ -97,17 +97,17 @@ class DiversityQuestionnaireForm {
     def param(name: String) = request.collectFirst { case (key, value) if key == name => value }
 
     def genderParam = param("gender").getOrElse("")
-    val validGenderOptions = Genders.list.map{ case (_, value, _) => value }
+    val validGenderOptions = Genders.list.map { case (_, value, _) => value }
     def isGenderValid = validGenderOptions.contains(genderParam)
 
     def sexOrientationParam = param("sexOrientation").getOrElse("")
-    val validSexOrientationOptions = SexOrientations.list.map{ case (_, value, _) => value }
+    val validSexOrientationOptions = SexOrientations.list.map { case (_, value, _) => value }
     def isSexOrientationValid = validSexOrientationOptions.contains(sexOrientationParam)
 
     def ethnicityParam = param("ethnicity").getOrElse("")
 
     val validEthnicityOptions =
-      Ethnicities.map.values.flatMap{ list: List[(String, Boolean)] =>
+      Ethnicities.map.values.flatMap { list: List[(String, Boolean)] =>
         list.map { case (ethnicity, _) => ethnicity }
       }.toList
 

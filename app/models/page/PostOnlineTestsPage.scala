@@ -22,23 +22,21 @@ import connectors.exchange.SchemeEvaluationResultWithFailureDetails
 import connectors.exchange.candidateevents.CandidateAllocationWithEvent
 import connectors.exchange.referencedata.Scheme
 import connectors.exchange.sift.SiftAnswersStatus.SiftAnswersStatus
-import connectors.exchange.sift.{SiftAnswersStatus, SiftState}
-import helpers.{CachedUserWithSchemeData, Timezones}
+import connectors.exchange.sift.{ SiftAnswersStatus, SiftState }
+import helpers.{ CachedUserWithSchemeData, Timezones }
 import models.events.EventType
 import models.page.DashboardPage.Flags
-import models.page.DashboardPage.Flags.{ProgressActive, ProgressInactiveDisabled}
-import models.{ApplicationRoute, SchemeStatus}
-import org.joda.time.{DateTime, LocalTime}
-import security.{ProgressStatusRoleUtils, RoleUtils}
+import models.page.DashboardPage.Flags.{ ProgressActive, ProgressInactiveDisabled }
+import models.{ ApplicationRoute, SchemeStatus }
+import org.joda.time.{ DateTime, LocalTime }
+import security.{ ProgressStatusRoleUtils, RoleUtils }
 
 import scala.util.Try
 
 object PostOnlineTestsStage extends Enumeration {
   type PostOnlineTestsStage = Value
-  val FAILED_TO_ATTEND, CONFIRMED_FOR_EVENT, UPLOAD_EXERCISES,
-  ALLOCATED_TO_EVENT, EVENT_ATTENDED, OTHER = Value
-  val ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_FAILED,
-  ASSESSMENT_CENTRE_FAILED_SDIP_GREEN, FSB_FAILED = Value
+  val FAILED_TO_ATTEND, CONFIRMED_FOR_EVENT, UPLOAD_EXERCISES, ALLOCATED_TO_EVENT, EVENT_ATTENDED, OTHER = Value
+  val ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_SDIP_GREEN, FSB_FAILED = Value
 }
 
 case class PostOnlineTestsPage(
@@ -57,28 +55,24 @@ case class PostOnlineTestsPage(
 
   //lazy val fsacGuideUrl: String = config.fsacGuideUrl
 
-  val isOnlySdipGreen
-    : Boolean = userDataWithSchemes.application.applicationRoute == ApplicationRoute.SdipFaststream &&
+  val isOnlySdipGreen: Boolean = userDataWithSchemes.application.applicationRoute == ApplicationRoute.SdipFaststream &&
     userDataWithSchemes.currentSchemesStatus.forall(schemeStatus =>
       (schemeStatus.scheme.id != Scheme.SdipId && schemeStatus.status == SchemeStatus.Red) ||
         (schemeStatus.scheme.id == Scheme.SdipId && schemeStatus.status == SchemeStatus.Green))
 
-  val isSdipFaststreamFailed
-    : Boolean = userDataWithSchemes.application.applicationRoute == ApplicationRoute.SdipFaststream &&
+  val isSdipFaststreamFailed: Boolean = userDataWithSchemes.application.applicationRoute == ApplicationRoute.SdipFaststream &&
     userDataWithSchemes.currentSchemesStatus.exists(
       schemeStatus =>
         schemeStatus.scheme.id == Scheme.SdipId && schemeStatus.status == SchemeStatus.Red
     )
 
-  val isSdipFaststreamSuccessful
-    : Boolean = userDataWithSchemes.application.applicationRoute == ApplicationRoute.SdipFaststream &&
+  val isSdipFaststreamSuccessful: Boolean = userDataWithSchemes.application.applicationRoute == ApplicationRoute.SdipFaststream &&
     userDataWithSchemes.currentSchemesStatus.exists(
       schemeStatus =>
         schemeStatus.scheme.id == Scheme.SdipId && schemeStatus.status == SchemeStatus.Green
     )
 
-  val sdipFaststreamAllSchemesFailed
-    : Boolean = userDataWithSchemes.application.applicationRoute == ApplicationRoute.SdipFaststream &&
+  val sdipFaststreamAllSchemesFailed: Boolean = userDataWithSchemes.application.applicationRoute == ApplicationRoute.SdipFaststream &&
     userDataWithSchemes.currentSchemesStatus.forall(
       schemeStatus => schemeStatus.status == SchemeStatus.Red
     )
@@ -134,16 +128,15 @@ case class PostOnlineTestsPage(
     additionalQuestionsStatus.contains(SiftAnswersStatus.SUBMITTED)
 
   private def dateTimeToStringWithOptionalMinutes(
-      localTime: LocalTime): String = {
+    localTime: LocalTime): String = {
     localTime.toString(if (localTime.toString("mm") == "00") "ha" else "h:mma")
   }
 
   def eventStartDateAndTime(al: Option[CandidateAllocationWithEvent]): String =
     al.map { e =>
-        e.event.date.toString("EEEE d MMMM YYYY") + " at " + dateTimeToStringWithOptionalMinutes(
-          e.event.sessions.head.startTime)
-      }
-      .getOrElse("No assessment centre")
+      e.event.date.toString("EEEE d MMMM YYYY") + " at " + dateTimeToStringWithOptionalMinutes(
+        e.event.sessions.head.startTime)
+    }.getOrElse("No assessment centre")
 
   def eventLocation(al: Option[CandidateAllocationWithEvent]): String =
     al.map { allocWithEvent =>
@@ -156,9 +149,8 @@ case class PostOnlineTestsPage(
 
   def eventTypeText(al: Option[CandidateAllocationWithEvent]): String =
     al.map { x =>
-        x.event.eventType.displayValue
-      }
-      .getOrElse("")
+      x.event.eventType.displayValue
+    }.getOrElse("")
 
   def eventScheme(al: Option[CandidateAllocationWithEvent]): String =
     al.map(_.event)
@@ -240,7 +232,7 @@ case class PostOnlineTestsPage(
     }
 
   val secondStepVisibility: Flags.ProgressStepVisibility = {
-    if(userDataWithSchemes.application.isSiftExpired) {
+    if (userDataWithSchemes.application.isSiftExpired) {
       ProgressInactiveDisabled
     } else {
       ProgressActive
@@ -250,7 +242,7 @@ case class PostOnlineTestsPage(
   val fourthStepVisibility: Flags.ProgressStepVisibility = {
     userDataWithSchemes.application.progress.assessmentCentre match {
       case a if a.failedToAttend | a.failed | userDataWithSchemes.application.isSiftExpired => ProgressInactiveDisabled
-      case _  => ProgressActive
+      case _ => ProgressActive
     }
   }
 }

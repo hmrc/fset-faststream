@@ -19,7 +19,6 @@ package connectors.exchange
 import models.UniqueIdentifier
 import play.api.libs.json.{ Json, OFormat }
 
-
 case class UserResponse(
   firstName: String,
   lastName: String,
@@ -40,6 +39,6 @@ object UserResponse {
   implicit class exchangeUserToCachedUser(exchUser: UserResponse) {
     def toCached: models.CachedUser =
       models.CachedUser(exchUser.userId, exchUser.firstName, exchUser.lastName,
-                        exchUser.preferredName, exchUser.email, exchUser.isActive, exchUser.lockStatus)
+        exchUser.preferredName, exchUser.email, exchUser.isActive, exchUser.lockStatus)
   }
 }

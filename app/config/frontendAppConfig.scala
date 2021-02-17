@@ -19,13 +19,13 @@ package config
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Base64
-import controllers.{ApplicationRouteState, ApplicationRouteStateImpl}
+import controllers.{ ApplicationRouteState, ApplicationRouteStateImpl }
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import models.ApplicationRoute._
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
-import play.api.{Configuration, Environment, Logger, Logging}
+import play.api.{ Configuration, Environment, Logging }
 
 case class EmailConfig(url: EmailUrl, templates: EmailTemplates)
 case class EmailUrl(host: String, sendEmail: String)

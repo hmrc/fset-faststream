@@ -17,33 +17,33 @@
 package security
 
 import java.util.UUID
-import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
-import com.mohiva.play.silhouette.api.{Authorization, LogoutEvent, Silhouette}
+import com.mohiva.play.silhouette.api.actions.{ SecuredRequest, UserAwareRequest }
+import com.mohiva.play.silhouette.api.{ Authorization, LogoutEvent, Silhouette }
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
 import connectors.UserManagementClient.InvalidCredentialsException
 import controllers.routes
 import helpers.NotificationType._
 import helpers.NotificationTypeHelper
-import models.{CachedData, CachedDataWithApp, SecurityUser, UniqueIdentifier}
-import play.api.{Logger, Logging}
-import play.api.i18n.{I18nSupport, Messages}
+import models.{ CachedData, CachedDataWithApp, SecurityUser, UniqueIdentifier }
+import play.api.{ Logger, Logging }
+import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc._
 import security.Roles.CsrAuthorization
 import uk.gov.hmrc.http.SessionKeys
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.postfixOps
 
 /**
-  *
-  * The following Action wrappers exists in their respective traits:
-  *
-  * CSRUserAwareAction:    used when you have an action that we might have a logged in user (e.g. login page, registration page)
-  * CSRSecureAction(role): used when you have an action where the user must be logged in and has and maybe has a ongoing application
-  * CSRSecureAppAction(role): used when you have an action where the user must be logged in and must have an application
-  *
-  */
+ *
+ * The following Action wrappers exists in their respective traits:
+ *
+ * CSRUserAwareAction:    used when you have an action that we might have a logged in user (e.g. login page, registration page)
+ * CSRSecureAction(role): used when you have an action where the user must be logged in and has and maybe has a ongoing application
+ * CSRSecureAppAction(role): used when you have an action where the user must be logged in and must have an application
+ *
+ */
 
 // Some of the methods in this file are intended to look like the build in Action objects, which begin with an uppercase
 // so in this instance, ignore the scalastyle method rule
@@ -59,13 +59,12 @@ trait SecureActions extends I18nSupport with Logging {
   import notificationTypeHelper._
 
   /**
-    * Wraps the csrAction helper on a secure action.
-    * If the user is not logged in then the onNotAuthenticated method on global (or controller if it overrides it) will be called.
-    * The Action gets a default role that checks  if the user is active or not. \
-    * If the user is inactive then the onNotAuthorized method on global will be called.
-    */
-  def CSRSecureAction(role: CsrAuthorization)
-                     (block: SecuredRequest[_,_] => CachedData => Future[Result]): Action[AnyContent] = {
+   * Wraps the csrAction helper on a secure action.
+   * If the user is not logged in then the onNotAuthenticated method on global (or controller if it overrides it) will be called.
+   * The Action gets a default role that checks  if the user is active or not. \
+   * If the user is inactive then the onNotAuthorized method on global will be called.
+   */
+  def CSRSecureAction(role: CsrAuthorization)(block: SecuredRequest[_, _] => CachedData => Future[Result]): Action[AnyContent] = {
     silhouette.SecuredAction.async { secondRequest =>
       implicit val carrier = hc(secondRequest.request)
 
@@ -84,22 +83,23 @@ trait SecureActions extends I18nSupport with Logging {
    * CSRSecureAction that contains ApplicationData
    **/
   def CSRSecureAppAction(role: CsrAuthorization)
-                        (block: SecuredRequest[_,_] => CachedDataWithApp => Future[Result]): Action[AnyContent] = {
+                        (block: SecuredRequest[_, _] => CachedDataWithApp => Future[Result]): Action[AnyContent] = {
     silhouette.SecuredAction.async { secondRequest =>
       implicit val carrier = hc(secondRequest.request)
       implicit val request = secondRequest.request
 
       secEnv.userService.refreshCachedUser(UniqueIdentifier(secondRequest.identity.userID))(carrier, secondRequest).flatMap {
-          case CachedData(_, None) => gotoUnauthorised
-          case data @ CachedData(u, Some(app)) => SecuredActionWithCSRAuthorisation(secondRequest,
-            block, role, data, CachedDataWithApp(u, app))
+        case CachedData(_, None) => gotoUnauthorised
+        case data @ CachedData(u, Some(app)) => SecuredActionWithCSRAuthorisation(
+          secondRequest,
+          block, role, data, CachedDataWithApp(u, app))
       } recoverWith {
         case ice: InvalidCredentialsException => gotoAuthentication(secondRequest)
       }
     }
   }
 
-  def CSRUserAwareAction(block: UserAwareRequest[_,_] => Option[CachedData] => Future[Result]): Action[AnyContent] =
+  def CSRUserAwareAction(block: UserAwareRequest[_, _] => Option[CachedData] => Future[Result]): Action[AnyContent] =
     withSession {
       silhouette.UserAwareAction.async { request =>
         request.identity match {

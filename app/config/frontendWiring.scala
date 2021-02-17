@@ -17,19 +17,19 @@
 package config
 
 import akka.actor.ActorSystem
-import com.mohiva.play.silhouette.api.crypto.{Base64AuthenticatorEncoder, Hash}
-import com.mohiva.play.silhouette.api.util.{Clock, FingerprintGenerator}
-import com.mohiva.play.silhouette.api.{Environment, EventBus}
-import com.mohiva.play.silhouette.impl.authenticators.{SessionAuthenticatorService, SessionAuthenticatorSettings}
+import com.mohiva.play.silhouette.api.crypto.{ Base64AuthenticatorEncoder, Hash }
+import com.mohiva.play.silhouette.api.util.{ Clock, FingerprintGenerator }
+import com.mohiva.play.silhouette.api.{ Environment, EventBus }
+import com.mohiva.play.silhouette.impl.authenticators.{ SessionAuthenticatorService, SessionAuthenticatorSettings }
 import com.typesafe.config.Config
 import helpers.WSBinaryPost
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import play.api.Application
 import play.api.libs.ws.WSClient
-import play.api.mvc.{LegacySessionCookieBaker, RequestHeader}
-import security.{CsrCredentialsProvider, UserCacheService}
+import play.api.mvc.{ LegacySessionCookieBaker, RequestHeader }
+import security.{ CsrCredentialsProvider, UserCacheService }
 import uk.gov.hmrc.http.hooks.HttpHooks
-import uk.gov.hmrc.http.{HttpDelete, HttpGet, HttpPost, HttpPut}
+import uk.gov.hmrc.http.{ HttpDelete, HttpGet, HttpPost, HttpPut }
 import uk.gov.hmrc.play.http.ws._
 
 import scala.concurrent.ExecutionContext
@@ -53,7 +53,7 @@ class CSRHttp @Inject() (
   override lazy val actorSystem: ActorSystem = application.actorSystem
 }
 
-object CaseInSensitiveFingerPrintGenerator extends  FingerprintGenerator {
+object CaseInSensitiveFingerPrintGenerator extends FingerprintGenerator {
   import play.api.http.HeaderNames._
   def generate(implicit request: RequestHeader) = {
     Hash.sha1(new StringBuilder()

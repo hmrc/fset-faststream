@@ -20,7 +20,7 @@ import mappings.Mappings._
 import models.ApplicationRoute
 import play.api.data.Forms._
 import play.api.data.format.Formatter
-import play.api.data.{Form, FormError}
+import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
 
 object FastPassForm {
@@ -32,10 +32,10 @@ object FastPassForm {
   val DiversityInternship = "DiversityInternship"
 
   def sdipFsCivilServiceExperienceTypes(implicit messages: Messages) = Seq(
-      CivilServant -> Messages("civilServiceExperienceType.CivilServant"),
-      CivilServantViaFastTrack -> Messages("civilServiceExperienceType.CivilServantViaFastTrack"),
-      DiversityInternship -> Messages("civilServiceExperienceType.EdipInternship")
-    )
+    CivilServant -> Messages("civilServiceExperienceType.CivilServant"),
+    CivilServantViaFastTrack -> Messages("civilServiceExperienceType.CivilServantViaFastTrack"),
+    DiversityInternship -> Messages("civilServiceExperienceType.EdipInternship")
+  )
 
   val CivilServantKey = "CivilServant"
   val EDIPKey = "EDIP"
@@ -57,7 +57,7 @@ object FastPassForm {
   val otherInternshipName = "otherInternshipName"
   def otherInternshipNameMsg(implicit messages: Messages) = Messages("error.otherInternshipName.required")
   val otherInternshipNameMaxSize = 60
-  def otherInternshipNameSizeMsg(implicit messages: Messages) = Messages("error.otherInternshipName.size",  otherInternshipNameMaxSize)
+  def otherInternshipNameSizeMsg(implicit messages: Messages) = Messages("error.otherInternshipName.size", otherInternshipNameMaxSize)
 
   val otherInternshipYear = "otherInternshipYear"
   def otherInternshipYearMsg(implicit messages: Messages) = Messages("error.otherInternshipYear.required")
@@ -168,7 +168,7 @@ object FastPassForm {
   def fastPassCertificateFormatter(implicit messages: Messages) = new Formatter[Option[String]] {
     def bind(key: String, request: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       bindOptionalParam(request.isFastPassReceived, request.isCertificateNumberValid,
-        certificateNumberRequiredMsg) (key, request.certificateNumberParam)
+        certificateNumberRequiredMsg)(key, request.certificateNumberParam)
     }
 
     def unbind(key: String, value: Option[String]): Map[String, String] = optionalParamToMap(key, value)
@@ -238,7 +238,7 @@ object FastPassForm {
     def isOtherInternshipNameFilled(implicit messages: Messages) = isOtherInternshipSelected && otherInternshipNameParam.length > 0
 
     def isOtherInternshipNameSizeValid(max: Int)(implicit messages: Messages) = isOtherInternshipSelected &&
-    isOtherInternshipNameFilled && otherInternshipNameParam.length <= max
+      isOtherInternshipNameFilled && otherInternshipNameParam.length <= max
 
     // Other internship year
     def otherInternshipYearParam = param(otherInternshipYear).getOrElse("")
@@ -260,12 +260,12 @@ object FastPassForm {
     // Removes child data that is dependent on a parent if that parent has not been selected
     //scalastyle:off cyclomatic.complexity
     def cleanupFastPassFields(implicit messages: Messages) = request.filterKeys {
-      case key if key.contains("civilServantAndInternshipTypes") ||  key.contains("fastPassReceived") => isCivilServantOrIntern
+      case key if key.contains("civilServantAndInternshipTypes") || key.contains("fastPassReceived") => isCivilServantOrIntern
       case key if key.endsWith("sdipYear") => isSdipCandidate
       case key if key.endsWith("otherInternshipName") || key.endsWith("otherInternshipYear") => isOtherInternshipCandidate
       case key if key.endsWith("edipYear") => isEdipCandidate
       case key if key.endsWith("certificateNumber") => isFastPassReceived
       case _ => true
-    }//scalastyle:on
+    } //scalastyle:on
   }
 }

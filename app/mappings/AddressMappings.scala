@@ -18,7 +18,7 @@ package mappings
 
 import mappings.Mappings._
 import play.api.data.Forms._
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.{ Format, Json }
 
 case class Address(line1: String, line2: Option[String], line3: Option[String], line4: Option[String])
 

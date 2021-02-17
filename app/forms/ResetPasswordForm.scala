@@ -16,11 +16,11 @@
 
 package forms
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import mappings.Mappings._
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.data.validation.{Constraints, Valid}
+import play.api.data.validation.{ Constraints, Valid }
 import play.api.i18n.Messages
 
 @Singleton

@@ -21,9 +21,8 @@ import connectors.exchange.{
   SchemeEvaluationResultWithFailureDetails,
   SelectedSchemes
 }
-import connectors.exchange.referencedata.{Scheme, SiftRequirement}
+import connectors.exchange.referencedata.{ Scheme, SiftRequirement }
 import models._
-import play.api.Logger
 import security.RoleUtils
 
 case class CurrentSchemeStatus(

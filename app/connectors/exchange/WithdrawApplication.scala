@@ -46,7 +46,7 @@ case class WithdrawScheme(
 ) extends CandidateWithdrawal
 
 object WithdrawScheme {
-   implicit val withdrawSchemeWrite = new Writes[WithdrawScheme] {
+  implicit val withdrawSchemeWrite = new Writes[WithdrawScheme] {
     def writes(o: WithdrawScheme): JsValue = Json.obj(
       "schemeId" -> o.schemeId.value,
       "reason" -> o.reason,

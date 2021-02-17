@@ -17,11 +17,11 @@
 package filters
 
 import akka.stream.Materializer
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.{ Inject, Singleton }
 import models.CookiePolicy
-import play.api.mvc.{EssentialFilter, Filter, RequestHeader, Result}
+import play.api.mvc.{ EssentialFilter, Filter, RequestHeader, Result }
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class CookiePolicyFilter @Inject() (implicit val ec: ExecutionContext, val mat: Materializer)

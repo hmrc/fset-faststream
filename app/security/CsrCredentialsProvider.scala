@@ -18,14 +18,14 @@ package security
 
 import com.mohiva.play.silhouette.api.Provider
 import com.mohiva.play.silhouette.api.util.Credentials
-import config.{CSRHttp, FrontendAppConfig}
+import config.{ CSRHttp, FrontendAppConfig }
 import connectors.UserManagementClient
-import connectors.UserManagementClient.{AccountLockedOutException, InvalidCredentialsException, InvalidRoleException}
-import javax.inject.{Inject, Singleton}
+import connectors.UserManagementClient.{ AccountLockedOutException, InvalidCredentialsException, InvalidRoleException }
+import javax.inject.{ Inject, Singleton }
 import models.CachedUser
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 sealed trait AccountError
 case object InvalidRole extends AccountError

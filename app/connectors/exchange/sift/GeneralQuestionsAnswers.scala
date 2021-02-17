@@ -27,7 +27,7 @@ case class UndergradDegreeInfoAnswers(
 )
 
 object UndergradDegreeInfoAnswers {
-  implicit val degreeInfoFormat= Json.format[UndergradDegreeInfoAnswers]
+  implicit val degreeInfoFormat = Json.format[UndergradDegreeInfoAnswers]
 
   def apply(a: UndergradDegreeInfoForm.Data): UndergradDegreeInfoAnswers = {
     UndergradDegreeInfoAnswers(
@@ -74,8 +74,8 @@ object GeneralQuestionsAnswers {
       a.multipleNationalities.get,
       a.secondNationality,
       a.nationality.getOrElse(""),
-      a.undergradDegree map(UndergradDegreeInfoAnswers(_)),
-      a.postgradDegree map(PostGradDegreeInfoAnswers(_))
+      a.undergradDegree map (UndergradDegreeInfoAnswers(_)),
+      a.postgradDegree map (PostGradDegreeInfoAnswers(_))
     )
   }
 }

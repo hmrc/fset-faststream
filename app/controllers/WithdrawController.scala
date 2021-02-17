@@ -16,22 +16,22 @@
 
 package controllers
 
-import config.{FrontendAppConfig, SecurityEnvironment}
-import connectors.ApplicationClient.{CannotWithdraw, SiftExpired}
+import config.{ FrontendAppConfig, SecurityEnvironment }
+import connectors.ApplicationClient.{ CannotWithdraw, SiftExpired }
 import connectors.exchange._
-import connectors.{ApplicationClient, ReferenceDataClient}
-import forms.{SchemeWithdrawForm, WithdrawApplicationForm}
+import connectors.{ ApplicationClient, ReferenceDataClient }
+import forms.{ SchemeWithdrawForm, WithdrawApplicationForm }
 import helpers.NotificationType._
 import helpers.NotificationTypeHelper
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import models._
 import models.page._
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
 import security.Roles._
 import security.SilhouetteComponent
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class WithdrawController @Inject() (
@@ -70,13 +70,13 @@ class WithdrawController @Inject() (
 
   private def getWithdrawableSchemes(appId: UniqueIdentifier)(implicit hc: HeaderCarrier) =
     applicationClient.getCurrentSchemeStatus(appId).flatMap { schemesStatus =>
-    schemesStatus.filter(_.result == "Green").map(_.schemeId) match {
-      case Nil => Future(Nil)
-      case schemes => refDataClient.allSchemes.map { refDataSchemes =>
-        refDataSchemes.filter(s => schemes.contains(s.id))
+      schemesStatus.filter(_.result == "Green").map(_.schemeId) match {
+        case Nil => Future(Nil)
+        case schemes => refDataClient.allSchemes.map { refDataSchemes =>
+          refDataSchemes.filter(s => schemes.contains(s.id))
+        }
       }
     }
-  }
 
   def withdrawScheme = CSRSecureAppAction(SchemeWithdrawRole) { implicit request =>
     implicit user =>

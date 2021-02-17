@@ -16,12 +16,12 @@
 
 package security
 
-import com.mohiva.play.silhouette.api.actions.{SecuredErrorHandler, SecuredRequest}
+import com.mohiva.play.silhouette.api.actions.{ SecuredErrorHandler, SecuredRequest }
 import controllers.routes
 import javax.inject.Inject
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{ I18nSupport, MessagesApi }
 import play.api.mvc.Results.Redirect
-import play.api.mvc.{AnyContent, RequestHeader, Result}
+import play.api.mvc.{ AnyContent, RequestHeader, Result }
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
 import scala.concurrent.Future

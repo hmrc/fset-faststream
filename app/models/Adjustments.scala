@@ -16,7 +16,6 @@
 
 package models
 
-
 import play.api.libs.json.Json
 
 case class Adjustments(adjustments: Option[List[String]],
@@ -26,7 +25,6 @@ case class Adjustments(adjustments: Option[List[String]],
   def isInvigilatedETrayApproved = adjustments.exists(_.contains("etrayInvigilated")) && approved
 
   def isInvigilatedVideoApproved = adjustments.exists(_.contains("videoInvigilated")) && approved
-
 }
 
 object Adjustments {

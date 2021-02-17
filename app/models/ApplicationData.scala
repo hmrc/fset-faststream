@@ -135,17 +135,17 @@ object ProgressStatuses {
   }
 
   case object PERSONAL_DETAILS
-      extends ProgressStatus(ApplicationStatus.IN_PROGRESS) {
+    extends ProgressStatus(ApplicationStatus.IN_PROGRESS) {
     override def key = "personal-details"
   }
 
   case object SCHEME_PREFERENCES
-      extends ProgressStatus(ApplicationStatus.IN_PROGRESS) {
+    extends ProgressStatus(ApplicationStatus.IN_PROGRESS) {
     override def key = "scheme-preferences"
   }
 
   case object ASSISTANCE_DETAILS
-      extends ProgressStatus(ApplicationStatus.IN_PROGRESS) {
+    extends ProgressStatus(ApplicationStatus.IN_PROGRESS) {
     override def key = "assistance-details"
   }
 
@@ -158,147 +158,147 @@ object ProgressStatuses {
   case object WITHDRAWN extends ProgressStatus(ApplicationStatus.WITHDRAWN)
 
   case object PHASE1_TESTS_INVITED
-      extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
+    extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
   case object PHASE1_TESTS_STARTED
-      extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
+    extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
   case object PHASE1_TESTS_FIRST_REMINDER
-      extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
+    extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
   case object PHASE1_TESTS_SECOND_REMINDER
-      extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
+    extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
   case object PHASE1_TESTS_COMPLETED
-      extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
+    extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
   case object PHASE1_TESTS_EXPIRED
-      extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
+    extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
   case object PHASE1_TESTS_RESULTS_READY
-      extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
+    extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
   case object PHASE1_TESTS_RESULTS_RECEIVED
-      extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
+    extends ProgressStatus(ApplicationStatus.PHASE1_TESTS)
   case object PHASE1_TESTS_PASSED
-      extends ProgressStatus(ApplicationStatus.PHASE1_TESTS_PASSED)
+    extends ProgressStatus(ApplicationStatus.PHASE1_TESTS_PASSED)
   case object PHASE1_TESTS_FAILED
-      extends ProgressStatus(ApplicationStatus.PHASE1_TESTS_FAILED)
+    extends ProgressStatus(ApplicationStatus.PHASE1_TESTS_FAILED)
   case object PHASE1_TESTS_FAILED_NOTIFIED
-      extends ProgressStatus(ApplicationStatus.PHASE1_TESTS_FAILED)
+    extends ProgressStatus(ApplicationStatus.PHASE1_TESTS_FAILED)
 
   case object PHASE2_TESTS_INVITED
-      extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
+    extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
   case object PHASE2_TESTS_STARTED
-      extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
+    extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
   case object PHASE2_TESTS_FIRST_REMINDER
-      extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
+    extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
   case object PHASE2_TESTS_SECOND_REMINDER
-      extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
+    extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
   case object PHASE2_TESTS_COMPLETED
-      extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
+    extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
   case object PHASE2_TESTS_EXPIRED
-      extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
+    extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
   case object PHASE2_TESTS_RESULTS_READY
-      extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
+    extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
   case object PHASE2_TESTS_RESULTS_RECEIVED
-      extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
+    extends ProgressStatus(ApplicationStatus.PHASE2_TESTS)
   case object PHASE2_TESTS_PASSED
-      extends ProgressStatus(ApplicationStatus.PHASE2_TESTS_PASSED)
+    extends ProgressStatus(ApplicationStatus.PHASE2_TESTS_PASSED)
   case object PHASE2_TESTS_FAILED
-      extends ProgressStatus(ApplicationStatus.PHASE2_TESTS_FAILED)
+    extends ProgressStatus(ApplicationStatus.PHASE2_TESTS_FAILED)
   case object PHASE2_TESTS_FAILED_NOTIFIED
-      extends ProgressStatus(ApplicationStatus.PHASE2_TESTS_FAILED)
+    extends ProgressStatus(ApplicationStatus.PHASE2_TESTS_FAILED)
 
   case object PHASE3_TESTS_INVITED
-      extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
+    extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
   case object PHASE3_TESTS_STARTED
-      extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
+    extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
   case object PHASE3_TESTS_FIRST_REMINDER
-      extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
+    extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
   case object PHASE3_TESTS_SECOND_REMINDER
-      extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
+    extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
   case object PHASE3_TESTS_COMPLETED
-      extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
+    extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
   case object PHASE3_TESTS_EXPIRED
-      extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
+    extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
   case object PHASE3_TESTS_RESULTS_RECEIVED
-      extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
+    extends ProgressStatus(ApplicationStatus.PHASE3_TESTS)
   case object PHASE3_TESTS_PASSED_WITH_AMBER
-      extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER)
+    extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER)
   case object PHASE3_TESTS_PASSED
-      extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_PASSED)
+    extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_PASSED)
   case object PHASE3_TESTS_PASSED_NOTIFIED
-      extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED)
+    extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED)
   case object PHASE3_TESTS_FAILED
-      extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_FAILED)
+    extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_FAILED)
   case object PHASE3_TESTS_FAILED_NOTIFIED
-      extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_FAILED)
+    extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_FAILED)
 
   case object PHASE1_TESTS_SUCCESS_NOTIFIED
-      extends ProgressStatus(ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED)
+    extends ProgressStatus(ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED)
   case object PHASE3_TESTS_SUCCESS_NOTIFIED
-      extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED)
+    extends ProgressStatus(ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED)
   case object FAST_PASS_ACCEPTED
-      extends ProgressStatus(ApplicationStatus.FAST_PASS_ACCEPTED)
+    extends ProgressStatus(ApplicationStatus.FAST_PASS_ACCEPTED)
 
   case object ALL_SCHEMES_SIFT_ENTERED
-      extends ProgressStatus(ApplicationStatus.SIFT)
+    extends ProgressStatus(ApplicationStatus.SIFT)
   case object ALL_SCHEMES_SIFT_COMPLETED
-      extends ProgressStatus(ApplicationStatus.SIFT)
+    extends ProgressStatus(ApplicationStatus.SIFT)
   case object SIFT_EXPIRED extends ProgressStatus(ApplicationStatus.SIFT)
 
   case object ASSESSMENT_CENTRE_AWAITING_ALLOCATION
-      extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
+    extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED
-      extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
+    extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED
-      extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
+    extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_FAILED_TO_ATTEND
-      extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
+    extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_SCORES_ENTERED
-      extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
+    extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_SCORES_ACCEPTED
-      extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
+    extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION
-      extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
+    extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_PASSED
-      extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
+    extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
   case object ASSESSMENT_CENTRE_FAILED
-      extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
+    extends ProgressStatus(ApplicationStatus.ASSESSMENT_CENTRE)
 
   case object FSB_AWAITING_ALLOCATION
-      extends ProgressStatus(ApplicationStatus.FSB)
+    extends ProgressStatus(ApplicationStatus.FSB)
   case object FSB_ALLOCATION_UNCONFIRMED
-      extends ProgressStatus(ApplicationStatus.FSB)
+    extends ProgressStatus(ApplicationStatus.FSB)
   case object FSB_ALLOCATION_CONFIRMED
-      extends ProgressStatus(ApplicationStatus.FSB)
+    extends ProgressStatus(ApplicationStatus.FSB)
   case object FSB_FAILED_TO_ATTEND extends ProgressStatus(ApplicationStatus.FSB)
   case object FSB_SCORES_ENTERED extends ProgressStatus(ApplicationStatus.FSB)
   case object FSB_PASSED extends ProgressStatus(ApplicationStatus.FSB)
   case object FSB_FAILED extends ProgressStatus(ApplicationStatus.FSB)
 
   case object APPLICATION_ARCHIVED
-      extends ProgressStatus(ApplicationStatus.ARCHIVED)
+    extends ProgressStatus(ApplicationStatus.ARCHIVED)
 
   def getProgressStatusForSdipFsSuccess(
-      applicationStatus: ApplicationStatus): ProgressStatus = {
+    applicationStatus: ApplicationStatus): ProgressStatus = {
     case object PHASE1_TESTS_SDIP_FS_PASSED
-        extends ProgressStatus(applicationStatus)
+      extends ProgressStatus(applicationStatus)
     PHASE1_TESTS_SDIP_FS_PASSED
   }
 
   def getProgressStatusForSdipFsFailed(
-      applicationStatus: ApplicationStatus): ProgressStatus = {
+    applicationStatus: ApplicationStatus): ProgressStatus = {
     case object PHASE1_TESTS_SDIP_FS_FAILED
-        extends ProgressStatus(applicationStatus)
+      extends ProgressStatus(applicationStatus)
     PHASE1_TESTS_SDIP_FS_FAILED
   }
 
   def getProgressStatusForSdipFsFailedNotified(
-      applicationStatus: ApplicationStatus): ProgressStatus = {
+    applicationStatus: ApplicationStatus): ProgressStatus = {
     case object PHASE1_TESTS_SDIP_FS_FAILED_NOTIFIED
-        extends ProgressStatus(applicationStatus)
+      extends ProgressStatus(applicationStatus)
     PHASE1_TESTS_SDIP_FS_FAILED_NOTIFIED
   }
 
   def getProgressStatusForSdipFsPassedNotified(
-      applicationStatus: ApplicationStatus): ProgressStatus = {
+    applicationStatus: ApplicationStatus): ProgressStatus = {
     case object PHASE1_TESTS_SDIP_FS_PASSED_NOTIFIED
-        extends ProgressStatus(applicationStatus)
+      extends ProgressStatus(applicationStatus)
     PHASE1_TESTS_SDIP_FS_PASSED_NOTIFIED
   }
 
@@ -329,7 +329,7 @@ object ProgressStatuses {
     }.toMap
 
   def tryToGetDefaultProgressStatus(
-      applicationStatus: ApplicationStatus): Option[ProgressStatus] = {
+    applicationStatus: ApplicationStatus): Option[ProgressStatus] = {
     val matching = allStatuses.filter(_.applicationStatus == applicationStatus)
     if (matching.size == 1) matching.headOption else None
   }

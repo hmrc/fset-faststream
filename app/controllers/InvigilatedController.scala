@@ -16,18 +16,18 @@
 
 package controllers
 
-import config.{FrontendAppConfig, SecurityEnvironment}
+import config.{ FrontendAppConfig, SecurityEnvironment }
 import connectors.ApplicationClient
 import connectors.ApplicationClient.TestForTokenExpiredException
 import connectors.UserManagementClient.TokenEmailPairInvalidException
 import forms.VerifyCodeForm
 import helpers.NotificationTypeHelper
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import models.CachedData
-import play.api.mvc.{MessagesControllerComponents, Request, Result}
+import play.api.mvc.{ MessagesControllerComponents, Request, Result }
 import security.SilhouetteComponent
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class InvigilatedController @Inject() (
@@ -54,10 +54,10 @@ class InvigilatedController @Inject() (
           applicationClient.verifyInvigilatedToken(data.email, data.token).flatMap {
           invigilatedTest => Future.successful(Redirect(invigilatedTest.url))
         }.recover {
-            case e: TokenEmailPairInvalidException => showValidationError(data)
-            case e: TestForTokenExpiredException => showValidationError(data, "error.token.expired")
+          case e: TokenEmailPairInvalidException => showValidationError(data)
+          case e: TestForTokenExpiredException => showValidationError(data, "error.token.expired")
         }
-      )
+    )
   }
 
   def showValidationError(data: VerifyCodeForm.Data, errorMsg: String = "error.token.invalid")
@@ -65,5 +65,4 @@ class InvigilatedController @Inject() (
     Ok(views.html.index.invigilatedEtraySignin(formWrapper.form.fill(VerifyCodeForm.Data(email = "", token = "")),
       Some(danger(errorMsg))))
   }
-
 }

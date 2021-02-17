@@ -17,7 +17,7 @@
 package config
 
 import akka.stream.Materializer
-import filters.{CookiePolicyFilter, FaststreamAuditFilter, FaststreamWhitelistFilter}
+import filters.{ CookiePolicyFilter, FaststreamAuditFilter, FaststreamWhitelistFilter }
 import play.api.Logging
 import play.api.http.DefaultHttpFilters
 import uk.gov.hmrc.play.bootstrap.frontend.filters.FrontendFilters
@@ -45,6 +45,6 @@ class ProductionFaststreamFilters @Inject() (
   val materializer: Materializer)
   extends DefaultHttpFilters((Seq(whilelistFilter) ++
     defaultFilters.filters.updated(defaultFilters.filters.indexWhere(_.toString.contains("AuditFilter")), auditFilter)
-    ) :+ cookiePolicyFilter: _*) with Logging {
+  ) :+ cookiePolicyFilter: _*) with Logging {
   logger.info("White list filter enabled")
 }

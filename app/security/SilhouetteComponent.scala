@@ -17,8 +17,8 @@
 package security
 
 import com.mohiva.play.silhouette.api.actions._
-import com.mohiva.play.silhouette.api.{Environment, Silhouette, SilhouetteProvider}
-import javax.inject.{Inject, Singleton}
+import com.mohiva.play.silhouette.api.{ Environment, Silhouette, SilhouetteProvider }
+import javax.inject.{ Inject, Singleton }
 import play.api.i18n.MessagesApi
 import play.api.mvc.BodyParsers
 

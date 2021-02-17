@@ -27,7 +27,7 @@ import models.ApplicationRoute._
 import org.joda.time.LocalDate
 import play.api.data.Forms._
 import play.api.data.format.Formatter
-import play.api.data.{Form, FormError}
+import play.api.data.{ Form, FormError }
 import play.api.i18n.Messages
 
 @Singleton
@@ -56,30 +56,29 @@ class PersonalDetailsForm {
 
   val otherInternshipNameMaxSize = 60
 
-  def form(implicit now: LocalDate, ignoreFastPassValidations: Boolean = false, messages: Messages
-  ) = Form(
-      mapping(
-        firstName -> nonEmptyTrimmedText("error.firstName", 256),
-        lastName -> nonEmptyTrimmedText("error.lastName", 256),
-        preferredName -> nonEmptyTrimmedText("error.preferredName", 256),
-        dateOfBirth -> DayMonthYear.validDayMonthYear("error.dateOfBirth", "error.dateOfBirthInFuture")(Some(MinDob), maxDob),
-        outsideUk -> optional(checked("error.address.required")),
-        address -> AddressMapping.address,
-        postCode -> of(postCodeFormatter),
-        country -> of(countryFormatter),
-        phone -> of(phoneNumberFormatter),
-        FastPassForm.formQualifier -> of(fastPassFormFormatter(ignoreFastPassValidations)),
-        // Relevant for sdip, sdipFs
-        edipCompleted -> of(mayBeOptionalString("error.edipCompleted.required", 31, isSdipOrSdipFsAndCreatedOrInProgress)),
-        edipYear -> of(edipYearFormatter),
-        // Relevant for edip, sdip, sdip faststream
-        otherInternshipCompleted -> of(mayBeOptionalString(
-          "error.otherInternshipCompleted.required", "error.edipCandidate.otherInternshipCompleted.required", 31,
-          isEdipOrSdipOrSdipFsAndCreatedOrInProgress, isEdipCandidate)),
-        otherInternshipName -> of(otherInternshipNameFormatter(otherInternshipNameMaxSize)),
-        otherInternshipYear -> of(otherInternshipYearFormatter)
-      )(PersonalDetailsForm.Data.apply)(PersonalDetailsForm.Data.unapply)
-    )
+  def form(implicit now: LocalDate, ignoreFastPassValidations: Boolean = false, messages: Messages) = Form(
+    mapping(
+      firstName -> nonEmptyTrimmedText("error.firstName", 256),
+      lastName -> nonEmptyTrimmedText("error.lastName", 256),
+      preferredName -> nonEmptyTrimmedText("error.preferredName", 256),
+      dateOfBirth -> DayMonthYear.validDayMonthYear("error.dateOfBirth", "error.dateOfBirthInFuture")(Some(MinDob), maxDob),
+      outsideUk -> optional(checked("error.address.required")),
+      address -> AddressMapping.address,
+      postCode -> of(postCodeFormatter),
+      country -> of(countryFormatter),
+      phone -> of(phoneNumberFormatter),
+      FastPassForm.formQualifier -> of(fastPassFormFormatter(ignoreFastPassValidations)),
+      // Relevant for sdip, sdipFs
+      edipCompleted -> of(mayBeOptionalString("error.edipCompleted.required", 31, isSdipOrSdipFsAndCreatedOrInProgress)),
+      edipYear -> of(edipYearFormatter),
+      // Relevant for edip, sdip, sdip faststream
+      otherInternshipCompleted -> of(mayBeOptionalString(
+        "error.otherInternshipCompleted.required", "error.edipCandidate.otherInternshipCompleted.required", 31,
+        isEdipOrSdipOrSdipFsAndCreatedOrInProgress, isEdipCandidate)),
+      otherInternshipName -> of(otherInternshipNameFormatter(otherInternshipNameMaxSize)),
+      otherInternshipYear -> of(otherInternshipYearFormatter)
+    )(PersonalDetailsForm.Data.apply)(PersonalDetailsForm.Data.unapply)
+  )
 
   val isSdipOrSdipFsAndCreatedOrInProgress = (requestParams: Map[String, String]) =>
     (requestParams.isSdip || requestParams.isSdipFastStream) && requestParams.isCreatedOrInProgressSubmitted
@@ -91,7 +90,8 @@ class PersonalDetailsForm {
 
   implicit class RequestValidation(request: Map[String, String]) {
     val isFastStream = request.getOrElse("applicationRoute", ApplicationRoute.Faststream.toString) == ApplicationRoute.Faststream.toString
-    val isSdipFastStream = request.getOrElse("applicationRoute",
+    val isSdipFastStream = request.getOrElse(
+      "applicationRoute",
       ApplicationRoute.Faststream.toString) == ApplicationRoute.SdipFaststream.toString
     val isEdip = request.getOrElse("applicationRoute", Faststream.toString) == Edip.toString
     val isSdip = request.getOrElse("applicationRoute", Faststream.toString) == Sdip.toString
@@ -250,7 +250,7 @@ object PersonalDetailsForm {
     }
 
     def toExchange(email: String, updateApplicationStatus: Option[Boolean],
-      overrideEdipCompleted: Option[Boolean] = None, overrideOtherInternshipCompleted: Option[Boolean] = None) = {
+                   overrideEdipCompleted: Option[Boolean] = None, overrideOtherInternshipCompleted: Option[Boolean] = None) = {
       GeneralDetails(
         firstName,
         lastName,
