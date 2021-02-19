@@ -20,7 +20,6 @@ import model.EvaluationResults.Green
 import model.SchemeId
 import model.exchange.passmarksettings.Phase1PassMarkSettings
 import model.persisted.{ PsiTestResult, SchemeEvaluationResult }
-import play.api.Logger
 import services.onlinetesting.OnlineTestResultsCalculator2
 
 trait Phase1TestEvaluation2 extends OnlineTestResultsCalculator2 {
@@ -47,7 +46,7 @@ trait Phase1TestEvaluation2 extends OnlineTestResultsCalculator2 {
       val t2Result = test2ResultOpt.map(_.tScore).map(evaluateTestResult(schemePassmark.schemeThresholds.test2)).getOrElse(Green)
       val t3Result = test3ResultOpt.map(_.tScore).map(evaluateTestResult(schemePassmark.schemeThresholds.test3)).getOrElse(Green)
       val t4Result = evaluateTestResult(schemePassmark.schemeThresholds.test4)(test4Result.tScore)
-      Logger.info(s"Processing scheme $schemeToEvaluate, " +
+      logger.info(s"Processing scheme $schemeToEvaluate, " +
         s"p1 test1 score = ${test1Result.tScore}, " +
         s"p1 test1 fail = ${schemePassmark.schemeThresholds.test1.failThreshold}, " +
         s"p1 test1 pass = ${schemePassmark.schemeThresholds.test1.passThreshold}, " +

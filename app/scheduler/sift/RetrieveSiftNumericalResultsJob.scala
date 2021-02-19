@@ -20,7 +20,7 @@ import config.WaitingScheduledJobConfig
 import javax.inject.{ Inject, Singleton }
 import model.EmptyRequestHeader
 import play.api.mvc.RequestHeader
-import play.api.{ Configuration, Logger }
+import play.api.{ Configuration, Logging }
 import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
@@ -36,22 +36,22 @@ class RetrieveSiftNumericalResultsJobImpl @Inject() (val numericalTestService: N
                                                     ) extends RetrieveSiftNumericalResultsJob {
 }
 
-trait RetrieveSiftNumericalResultsJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
+trait RetrieveSiftNumericalResultsJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {
   val numericalTestService: NumericalTestService2
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     val intro = "Retrieving xml results for candidates in SIFT"
-    Logger.info(intro)
+    logger.info(intro)
 
     numericalTestService.nextTestGroupWithReportReady.flatMap {
       case Some(testGroup) =>
-        Logger.info(s"$intro - processing candidate with applicationId: ${testGroup.applicationId}")
+        logger.info(s"$intro - processing candidate with applicationId: ${testGroup.applicationId}")
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
         implicit val rh: RequestHeader = EmptyRequestHeader
         numericalTestService.retrieveTestResult(testGroup)
       case None =>
-        Logger.info(s"$intro - found no candidates")
+        logger.info(s"$intro - found no candidates")
         Future.successful(())
     }
   }

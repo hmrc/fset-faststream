@@ -29,7 +29,7 @@ import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
 import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
-import play.api.Logger
+import play.api.Logging
 import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.AssessmentCentreRepository
 import repositories.{ AssessmentScoresRepository, CurrentSchemeStatusHelper }
@@ -52,7 +52,7 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
                                          passmarkService: AssessmentCentrePassMarkSettingsService,
                                          @Named("ReviewerAssessmentScoresRepo") assessmentScoresRepo: AssessmentScoresRepository,
                                          evaluationEngine: AssessmentCentreEvaluationEngine
-                                        ) extends CurrentSchemeStatusHelper {
+                                        ) extends CurrentSchemeStatusHelper with Logging {
 
   private val logPrefix = "[Assessment Evaluation]"
 
@@ -75,12 +75,12 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
   def nextAssessmentCandidatesReadyForEvaluation(batchSize: Int): Future[Seq[AssessmentPassMarksSchemesAndScores]] = {
     passmarkService.getLatestPassMarkSettings.flatMap {
       case Some(passmark) =>
-        Logger.debug(s"$logPrefix Assessment evaluation found pass marks (abbreviated shown) - ${passmark.abbreviated}")
+        logger.debug(s"$logPrefix Assessment evaluation found pass marks (abbreviated shown) - ${passmark.abbreviated}")
         assessmentCentreRepo.nextApplicationReadyForAssessmentScoreEvaluation(passmark.version, batchSize).flatMap { applicationIds =>
           commonProcessApplicationIds(applicationIds, passmark)
         }
       case None =>
-        Logger.debug(s"$logPrefix Assessment centre pass marks have not been set so terminating")
+        logger.debug(s"$logPrefix Assessment centre pass marks have not been set so terminating")
         Future.successful(Seq.empty)
     }
   }
@@ -88,11 +88,11 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
   private def commonProcessApplicationIds(applicationIds: List[UniqueIdentifier], passmark: AssessmentCentrePassMarkSettings) = {
     applicationIds match {
       case appIds if appIds.nonEmpty =>
-        Logger.warn(
+        logger.warn(
           s"$logPrefix Assessment evaluation found ${appIds.size} candidates to process - applicationIds = [${appIds.mkString(",")}]")
         Future.sequence(appIds.map(appId => tryToFindEvaluationData(appId, passmark))).map(_.flatten)
       case Nil =>
-        Logger.warn(s"$logPrefix Assessment evaluation completed - no candidates found")
+        logger.warn(s"$logPrefix Assessment evaluation completed - no candidates found")
         Future.successful(Seq.empty)
     }
   }
@@ -100,13 +100,13 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
   def nextSpecificCandidateReadyForEvaluation(applicationId: String): Future[Seq[AssessmentPassMarksSchemesAndScores]] = {
     passmarkService.getLatestPassMarkSettings.flatMap {
       case Some(passmark) =>
-        Logger.debug(s"$logPrefix Assessment evaluation found pass marks - $passmark")
+        logger.debug(s"$logPrefix Assessment evaluation found pass marks - $passmark")
         assessmentCentreRepo.nextSpecificApplicationReadyForAssessmentScoreEvaluation(
           passmark.version, applicationId).flatMap { applicationIds =>
           commonProcessApplicationIds(applicationIds, passmark)
         }
       case None =>
-        Logger.debug(s"$logPrefix Assessment centre pass marks have not been set")
+        logger.debug(s"$logPrefix Assessment centre pass marks have not been set")
         Future.successful(Seq.empty)
     }
   }
@@ -130,12 +130,12 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
       currentSchemeStatusList <- applicationRepo.getCurrentSchemeStatus(appId.toString())
     } yield {
       assessmentCentreScoresOpt.map { scores =>
-        Logger.debug(s"$logPrefix AssessmentCentreService - tryToFindEvaluationData - scores = $scores")
+        logger.debug(s"$logPrefix AssessmentCentreService - tryToFindEvaluationData - scores = $scores")
         val schemesToEvaluate = filterSchemesToEvaluate(currentSchemeStatusList)
 
         val msg = s"$logPrefix AssessmentCentreService - tryToFindEvaluationData - current scheme status excluding Red, " +
           s"Withdrawn and Sdip = $schemesToEvaluate"
-        Logger.debug(msg)
+        logger.debug(msg)
         AssessmentPassMarksSchemesAndScores(passmark, schemesToEvaluate, scores)
       }
     }
@@ -152,25 +152,25 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
         throw NoResultsReturned(s"No reviewed assessment scores found for applicationId:$applicationId")
       } else {
         assessmentCentreScoresOpt.foreach { scores =>
-          Logger.debug(s"$prefix - found AssessmentScoresAllExercises data for applicationId=$applicationId")
+          logger.debug(s"$prefix - found AssessmentScoresAllExercises data for applicationId=$applicationId")
           // Find the exercise, which matches the version
-          Logger.debug(s"$prefix - looking for an exercise whose version=$version")
+          logger.debug(s"$prefix - looking for an exercise whose version=$version")
           val analysisExercise = scores.analysisExercise.filter { e => e.version.contains(version) }
           val groupExercise = scores.groupExercise.filter { e => e.version.contains(version) }
           val leadershipExercise = scores.leadershipExercise.filter { e => e.version.contains(version) }
 
           val assessmentScoresSectionType =
             if (analysisExercise.isDefined) {
-              Logger.debug(s"$prefix - found analysisExercise for version=$version")
+              logger.debug(s"$prefix - found analysisExercise for version=$version")
               AssessmentScoresSectionType.analysisExercise
             } else if (groupExercise.isDefined) {
-              Logger.debug(s"$prefix - found groupExercise for version=$version")
+              logger.debug(s"$prefix - found groupExercise for version=$version")
               AssessmentScoresSectionType.groupExercise
             } else if (leadershipExercise.isDefined) {
-              Logger.debug(s"$prefix - found leadershipExercise for version=$version")
+              logger.debug(s"$prefix - found leadershipExercise for version=$version")
               AssessmentScoresSectionType.leadershipExercise
             } else {
-              Logger.debug(s"$prefix - found no exercise for version=$version")
+              logger.debug(s"$prefix - found no exercise for version=$version")
               throw new Exception(s"No exercise found whose version=$version")
             }
 
@@ -183,30 +183,30 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
 
           def saveData(newAssessmentScores: AssessmentScoresExercise) =
             assessmentScoresRepo.saveExercise(applicationId, assessmentScoresSectionType, newAssessmentScores, Some(version)).map( _ =>
-              Logger.debug(s"$prefix - new value has been saved for $averageScoreName")
+              logger.debug(s"$prefix - new value has been saved for $averageScoreName")
             )
 
           averageScoreName match {
             case "seeingTheBigPictureAverage" =>
-              Logger.debug(s"$prefix - matched score name: $averageScoreName")
+              logger.debug(s"$prefix - matched score name: $averageScoreName")
               val oldAssessmentScores = getAssessmentScoresExercise(singleExerciseOpt)
               val newAssessmentScores = oldAssessmentScores.copy(seeingTheBigPictureAverage = Some(averageScore))
               saveData(newAssessmentScores)
 
             case "makingEffectiveDecisionsAverage" =>
-              Logger.debug(s"$prefix - matched score name: $averageScoreName")
+              logger.debug(s"$prefix - matched score name: $averageScoreName")
               val oldAssessmentScores = getAssessmentScoresExercise(singleExerciseOpt)
               val newAssessmentScores = oldAssessmentScores.copy(makingEffectiveDecisionsAverage = Some(averageScore))
               saveData(newAssessmentScores)
 
             case "communicatingAndInfluencingAverage" =>
-              Logger.debug(s"$prefix - matched score name: $averageScoreName")
+              logger.debug(s"$prefix - matched score name: $averageScoreName")
               val oldAssessmentScores = getAssessmentScoresExercise(singleExerciseOpt)
               val newAssessmentScores = oldAssessmentScores.copy(communicatingAndInfluencingAverage = Some(averageScore))
               saveData(newAssessmentScores)
 
             case "workingTogetherDevelopingSelfAndOthersAverage" =>
-              Logger.debug(s"$prefix - matched score name: $averageScoreName")
+              logger.debug(s"$prefix - matched score name: $averageScoreName")
               val oldAssessmentScores = getAssessmentScoresExercise(singleExerciseOpt)
               val newAssessmentScores = oldAssessmentScores.copy(workingTogetherDevelopingSelfAndOthersAverage = Some(averageScore))
               saveData(newAssessmentScores)
@@ -222,13 +222,13 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
   //here - entry point
   def evaluateAssessmentCandidate(assessmentPassMarksSchemesAndScores: AssessmentPassMarksSchemesAndScores): Future[Unit] = {
 
-    Logger.debug(s"$logPrefix evaluateAssessmentCandidate - running")
+    logger.debug(s"$logPrefix evaluateAssessmentCandidate - running")
 
     val evaluationResult = evaluationEngine.evaluate(assessmentPassMarksSchemesAndScores)
-    Logger.debug(s"$logPrefix evaluation result for applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId} = " +
+    logger.debug(s"$logPrefix evaluation result for applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId} = " +
       s"$evaluationResult")
 
-    Logger.debug(s"$logPrefix now writing to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
+    logger.debug(s"$logPrefix now writing to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
 
     val applicationId = assessmentPassMarksSchemesAndScores.scores.applicationId
     val evaluation = AssessmentPassMarkEvaluation(applicationId, assessmentPassMarksSchemesAndScores.passmark.version, evaluationResult)
@@ -241,7 +241,7 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
       _ <- maybeMoveCandidateToPassedOrFailed(applicationId, applicationStatus.latestProgressStatus, currentSchemeStatus,
         applicationStatus.applicationRoute == ApplicationRoute.SdipFaststream)
     } yield {
-      Logger.debug(s"$logPrefix written to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
+      logger.debug(s"$logPrefix written to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
     }
   }
 
@@ -279,32 +279,32 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
         firstResidualPreference(results, isSdipFaststream) match {
           // First residual preference is green
           case Some(evaluationResult) if evaluationResult.result == Green.toString =>
-            Logger.debug(s"$logPrefix $applicationId - first residual preference (${evaluationResult.schemeId.toString()}) is green, " +
+            logger.debug(s"$logPrefix $applicationId - first residual preference (${evaluationResult.schemeId.toString()}) is green, " +
               s"moving candidate to $ASSESSMENT_CENTRE_PASSED")
             applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), ASSESSMENT_CENTRE_PASSED)
           // No greens or ambers (i.e. all red or withdrawn)
           case None =>
             if (isSdipFaststream && results.contains(SchemeEvaluationResult(SchemeId(Scheme.Sdip), Green.toString))) {
-              Logger.debug(s"$logPrefix Sdip faststream candidate has failed or withdrawn from all faststream schemes, " +
+              logger.debug(s"$logPrefix Sdip faststream candidate has failed or withdrawn from all faststream schemes, " +
                 s"moving candidate to $ASSESSMENT_CENTRE_FAILED_SDIP_GREEN, applicationId = $applicationId")
               applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), ASSESSMENT_CENTRE_FAILED_SDIP_GREEN)
             } else {
-              Logger.debug(s"$logPrefix $applicationId - there is no first non-red/withdrawn residual preference, moving candidate to failed")
+              logger.debug(s"$logPrefix $applicationId - there is no first non-red/withdrawn residual preference, moving candidate to failed")
               applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), ASSESSMENT_CENTRE_FAILED)
             }
           case _ =>
-            Logger.debug(s"$logPrefix $applicationId - residual preferences are amber or red (but not all red), candidate status " +
+            logger.debug(s"$logPrefix $applicationId - residual preferences are amber or red (but not all red), candidate status " +
               s"has not been changed")
             Future.successful(())
         }
       } else {
         // Don't move anyone not in a SCORES_ACCEPTED status
-        Logger.debug(s"$logPrefix $applicationId - this was a reevaluation, candidate is not in SCORES_ACCEPTED, candidate status has " +
+        logger.debug(s"$logPrefix $applicationId - this was a reevaluation, candidate is not in SCORES_ACCEPTED, candidate status has " +
           s"not been changed")
         Future.successful(())
       }
     }.getOrElse {
-      Logger.debug(s"$logPrefix $applicationId - no progress status, candidate status has not been changed")
+      logger.debug(s"$logPrefix $applicationId - no progress status, candidate status has not been changed")
       Future.successful(())
     }
   }
@@ -319,7 +319,7 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
       currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(applicationId.toString())
     } yield {
       val newSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, evaluationResults)
-      Logger.debug(s"After evaluation newSchemeStatus = $newSchemeStatus for applicationId: $applicationId")
+      logger.debug(s"After evaluation newSchemeStatus = $newSchemeStatus for applicationId: $applicationId")
       newSchemeStatus
     }
   }

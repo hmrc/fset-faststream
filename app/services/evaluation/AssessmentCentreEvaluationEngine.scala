@@ -20,7 +20,6 @@ import com.google.inject.ImplementedBy
 import javax.inject.Singleton
 import model.AssessmentPassMarksSchemesAndScores
 import model.EvaluationResults._
-import play.api.Logger
 
 @ImplementedBy(classOf[AssessmentCentreEvaluationEngineImpl])
 trait AssessmentCentreEvaluationEngine {
@@ -34,7 +33,7 @@ class AssessmentCentreEvaluationEngineImpl extends AssessmentCentreEvaluationEng
   def evaluate(candidateScores: AssessmentPassMarksSchemesAndScores): AssessmentEvaluationResult = {
     val appId = candidateScores.scores.applicationId
     val competencyAverages = countAverage(candidateScores.scores)
-    Logger.debug(s"CompetencyAverages = $competencyAverages - applicationId = $appId")
+    logger.debug(s"CompetencyAverages = $competencyAverages - applicationId = $appId")
 
     val evaluationResult = evaluateSchemes(appId.toString(), candidateScores.passmark, competencyAverages, candidateScores.schemes)
     AssessmentEvaluationResult(competencyAverages, evaluationResult)

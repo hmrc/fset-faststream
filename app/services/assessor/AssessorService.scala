@@ -30,7 +30,7 @@ import model.persisted.eventschedules.SkillType.SkillType
 import model.persisted.eventschedules.{ Event, Location, SkillType }
 import model.{ SerialUpdateResult, UniqueIdentifier, exchange, persisted }
 import org.joda.time.{ DateTime, LocalDate }
-import play.api.Logger
+import play.api.Logging
 import repositories.events.LocationsWithVenuesRepository
 import repositories.{ AssessorAllocationRepository, AssessorRepository }
 import services.events.EventsService
@@ -46,7 +46,7 @@ class AssessorService @Inject() (assessorRepository: AssessorRepository,
                                  locationsWithVenuesRepo: LocationsWithVenuesRepository,
                                  authProviderClient: AuthProviderClient,
                                  @Named("CSREmailClient") emailClient: OnlineTestEmailClient //TODO:fix changed type
-                                ) {
+                                ) extends Logging {
 
   private[assessor] def newVersion = Some(UniqueIdentifier.randomUniqueIdentifier.toString())
 
@@ -269,7 +269,7 @@ class AssessorService @Inject() (assessorRepository: AssessorRepository,
   }
 
   def notifyAssessorsOfNewEvents(lastNotificationDate: DateTime)(implicit hc: HeaderCarrier): Future[Seq[Unit]] = {
-    Logger.info(s"Notifying assessors of new events created since $lastNotificationDate")
+    logger.info(s"Notifying assessors of new events created since $lastNotificationDate")
     val assessorEventsMapping: Future[Map[Assessor, Seq[Event]]] = assessorToEventsMappingSince(lastNotificationDate)
     assessorEventsMapping.flatMap { assessorToEvent =>
       val assessorsIds = assessorToEvent.keySet.map(_.userId).toSeq

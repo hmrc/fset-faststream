@@ -17,7 +17,6 @@
 package repositories
 
 import model.Exceptions.{ CannotUpdateRecord, NotFoundException, TooManyEntries }
-import play.api.Logger
 import play.api.libs.json.JsObject
 import reactivemongo.api.{ ReadConcern, ReadPreference, WriteConcern }
 import reactivemongo.api.collections.bson.BSONBatchCommands.FindAndModifyCommand
@@ -65,12 +64,12 @@ trait ReactiveRepositoryHelpers {
       } else if (result.n > expected) {
         throw TooManyEntries(s"Deletion successful, but too many documents deleted whilst $actionDesc")
       } else if (result.n < expected) {
-        Logger.error(s"Not enough documents deleted for $actionDesc")
+        logger.error(s"Not enough documents deleted for $actionDesc")
       }
     } else {
       val mongoError = result.writeConcernError.map(_.errmsg).mkString(",")
       val msg = s"Failed to $actionDesc -> $mongoError"
-      Logger.error(msg)
+      logger.error(msg)
       throw CannotUpdateRecord(msg)
     }
   }
@@ -87,7 +86,7 @@ trait ReactiveRepositoryHelpers {
     } else {
       val mongoError = result.writeConcernError.map(_.errmsg).mkString(",")
       val msg = s"Failed to $actionDesc for id: $id -> $mongoError"
-      Logger.error(msg)
+      logger.error(msg)
       throw CannotUpdateRecord(msg)
     }
   }
@@ -99,7 +98,7 @@ trait ReactiveRepositoryHelpers {
         ()
       } else if (result.n == 0 && ignoreNotFound) {
         val msg = s"Failed to find record whilst $actionDesc for id: $id"
-        Logger.debug(msg)
+        logger.debug(msg)
       } else if (result.n == 0) {
         throw notFound
       } else if (result.n > 1) {
@@ -108,7 +107,7 @@ trait ReactiveRepositoryHelpers {
     } else {
       val mongoError = result.writeConcernError.map(_.errmsg).mkString(",")
       val msg = s"Failed to $actionDesc for id: $id -> $mongoError"
-      Logger.error(msg)
+      logger.error(msg)
       throw CannotUpdateRecord(msg)
     }
   }

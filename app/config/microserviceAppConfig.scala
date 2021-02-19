@@ -21,6 +21,8 @@ import model.persisted.eventschedules.{Location, Venue}
 import net.ceedubs.ficus.Ficus._
 import play.api.{ Configuration, Environment, Logger }
 
+//scalastyle:off number.of.types
+
 case class FrameworksConfig(yamlFilePath: String)
 
 case class SchemeConfig(yamlFilePath: String)
@@ -201,3 +203,4 @@ class MicroserviceAppConfig @Inject() (val config: Configuration, val environmen
   lazy val parityExportJobConfig =
     underlyingConfiguration.as[ScheduledJobConfig]("scheduling.parity-export-job")
 }
+//scalastyle:on

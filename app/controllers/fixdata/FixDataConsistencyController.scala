@@ -24,7 +24,7 @@ import model.ProgressStatuses.{ ASSESSMENT_CENTRE_PASSED, _ }
 import model.command.FastPassPromotion
 import model.persisted.sift.SiftAnswersStatus
 import model.{ SchemeId, UniqueIdentifier }
-import play.api.Logger
+import play.api.Logging
 import play.api.mvc.{ Action, AnyContent, ControllerComponents, Result }
 import services.application.{ ApplicationService, FsbService }
 import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAssessmentScoreEvaluationException
@@ -39,7 +39,7 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-// scalastyle:off number.of.methods
+// scalastyle:off number.of.methods file.size.limit
 @Singleton
 class FixDataConsistencyController @Inject()(cc: ControllerComponents,
                                              applicationService: ApplicationService,
@@ -52,7 +52,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
                                              phase2TestService: Phase2TestService2,
                                              phase3TestService: Phase3TestService,
                                              uuidFactory: UUIDFactory
-                                            ) extends BackendController(cc) {
+                                            ) extends BackendController(cc) with Logging {
 
   def undoFullWithdraw(applicationId: String, newApplicationStatus: ApplicationStatus) = Action.async { implicit request =>
     applicationService.undoFullWithdraw(applicationId, newApplicationStatus).map { _ =>
@@ -731,7 +731,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
 
             if (candidateResult.schemes.isEmpty) {
               val msg = s"FSAC candidate $applicationId has no eligible schemes so will not evaluate"
-              Logger.warn(msg)
+              logger.warn(msg)
               Future.failed(new Exception(msg))
             } else {
               assessmentCentreService.evaluateAssessmentCandidate(candidateResult)
@@ -752,7 +752,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
           s"to averageScore:$averageScore")
       }.recover {
         case e: Throwable =>
-          Logger.warn(s"Error occurred whilst trying to set Fsac average score: " +
+          logger.warn(s"Error occurred whilst trying to set Fsac average score: " +
             s"applicationId=$applicationId,version=$version,averageScoreName=$averageScoreName,averageScore=$averageScore,error=${e.getMessage}")
           BadRequest(e.getMessage)
       }
@@ -781,7 +781,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
         val failedAppIds = result.failures.map( _.applicationId )
         val msg = s"Progress candidate failed at FSB complete - ${result.successes.size} updated, appIds: ${successfulAppIds.mkString(",")} " +
           s"and ${result.failures.size} failed to update, appIds: ${failedAppIds.mkString(",")}"
-        Logger.warn(msg)
+        logger.warn(msg)
         if (result.failures.nonEmpty) {
           BadRequest(s"Failed to update candidate, appId: ${failedAppIds.mkString(",")}")
         } else if (result.successes.isEmpty) {
@@ -800,7 +800,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       }.recover {
         case e: Exception =>
           val msg = s"Failed to add missing P2 test to candidate $applicationId because ${e.getMessage}"
-          Logger.warn(msg)
+          logger.warn(msg)
           BadRequest(msg)
       }
     }
@@ -811,9 +811,9 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       .recover {
         case e: Exception =>
           val msg = s"Failed to update candidate $applicationId to GIS $newGis because ${e.getMessage}"
-          Logger.warn(msg)
+          logger.warn(msg)
           BadRequest(msg)
       }
   }
 }
-// scalastyle:on number.of.methods
+// scalastyle:on number.of.methods file.size.limit

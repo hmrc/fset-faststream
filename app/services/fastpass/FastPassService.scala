@@ -23,7 +23,7 @@ import model._
 import model.persisted.SchemeEvaluationResult
 import model.stc.AuditEvents.{ FastPassUserAccepted, FastPassUserAcceptedEmailSent, FastPassUserRejected }
 import model.stc.DataStoreEvents.{ ApplicationReadyForExport, FastPassApproved, FastPassRejected }
-import play.api.Logger
+import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
@@ -52,7 +52,7 @@ class FastPassService @Inject() (appRepo: GeneralApplicationRepository,
                                  applicationSiftService: ApplicationSiftService,
                                  adjustmentsManagementService: AdjustmentsManagementService,
                                  assistanceDetailsRepository: AssistanceDetailsRepository
-                                ) extends EventSink with CurrentSchemeStatusHelper {
+                                ) extends EventSink with CurrentSchemeStatusHelper with Logging {
 
   val fastPassDetails = CivilServiceExperienceDetails(
     applicable = true,
@@ -135,27 +135,27 @@ class FastPassService @Inject() (appRepo: GeneralApplicationRepository,
 
             adjustmentDetails match {
               case (false, _) => // Candidate has no adjustments
-                Logger.info(s"$intro - candidate $applicationId has sift numeric schemes and no adjustments " +
+                logger.info(s"$intro - candidate $applicationId has sift numeric schemes and no adjustments " +
                   s"so moving to ${ProgressStatuses.SIFT_ENTERED}")
                 progressCandidate(selectedSchemes)
               case (true, true) => // Candidate has adjustments and they have been applied
-                Logger.info(s"$intro - candidate $applicationId has sift numeric schemes and adjustments, which " +
+                logger.info(s"$intro - candidate $applicationId has sift numeric schemes and adjustments, which " +
                   s"have been applied so moving to ${ProgressStatuses.SIFT_ENTERED}")
                 progressCandidate(selectedSchemes)
               case _ => // Everything else eg. has adjustments but they haven't been applied
-                Logger.info(s"$intro - candidate $applicationId has sift numeric schemes but adjustments are not in a " +
+                logger.info(s"$intro - candidate $applicationId has sift numeric schemes but adjustments are not in a " +
                   s"state to progress to ${ProgressStatuses.SIFT_ENTERED}")
                 Future.successful(())
             }
           }).flatMap(identity)
 
         } else {
-          Logger.info(s"$intro - candidate $applicationId has siftable schemes but no numeric schemes so moving " +
+          logger.info(s"$intro - candidate $applicationId has siftable schemes but no numeric schemes so moving " +
             s"to ${ProgressStatuses.SIFT_ENTERED}")
           progressCandidate(selectedSchemes)
         }
       } else {
-        Logger.info(s"$intro - candidate $applicationId has no siftable schemes so moving " +
+        logger.info(s"$intro - candidate $applicationId has no siftable schemes so moving " +
           s"to ${ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION}")
         appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
       }

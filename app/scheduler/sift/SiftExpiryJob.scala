@@ -17,7 +17,7 @@
 package scheduler.sift
 
 import config.{ MicroserviceAppConfig, WaitingScheduledJobConfig }
-import play.api.{ Configuration, Logger }
+import play.api.{ Configuration, Logging }
 import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
@@ -39,14 +39,14 @@ class SiftExpiryJobImpl @Inject() (val siftService: ApplicationSiftService,
   //  override val config = SiftExpiryJobConfig
 }
 
-trait SiftExpiryJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
+trait SiftExpiryJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {
   val siftService: ApplicationSiftService
   val gracePeriodInSecs: Int
   lazy val batchSize = config.conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
-    Logger.info(s"Expiring candidates in SIFT with batchSize = $batchSize, gracePeriodInSecs = $gracePeriodInSecs")
+    logger.info(s"Expiring candidates in SIFT with batchSize = $batchSize, gracePeriodInSecs = $gracePeriodInSecs")
     siftService.processExpiredCandidates(batchSize, gracePeriodInSecs).map(_ => ())
   }
 }

@@ -18,7 +18,7 @@ package scheduler
 
 import config.WaitingScheduledJobConfig
 import javax.inject.{ Inject, Singleton }
-import play.api.{ Configuration, Logger }
+import play.api.{ Configuration, Logging }
 import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.clustering.SingleInstanceScheduledJob
 //import scheduler.ProgressToFsbOrOfferJobConfig.conf
@@ -35,7 +35,7 @@ class ProgressToFsbOrOfferJobImpl @Inject() (val progressionToFsbOrOfferService:
   //  val config = ProgressToFsbOrOfferJobConfig
 }
 
-trait ProgressToFsbOrOfferJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
+trait ProgressToFsbOrOfferJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {
   val progressionToFsbOrOfferService: ProgressionToFsbOrOfferService
 
   val batchSize: Int = config.conf.batchSize.getOrElse(1)
@@ -44,10 +44,10 @@ trait ProgressToFsbOrOfferJob extends SingleInstanceScheduledJob[BasicJobConfig[
     implicit val hc = HeaderCarrier()
     progressionToFsbOrOfferService.nextApplicationsForFsbOrJobOffer(batchSize).flatMap {
       case Nil =>
-        Logger.info("Progress to fsb or job offer complete - no candidates found")
+        logger.info("Progress to fsb or job offer complete - no candidates found")
         Future.successful(())
       case applications => progressionToFsbOrOfferService.progressApplicationsToFsbOrJobOffer(applications).map { result =>
-        Logger.info(
+        logger.info(
           s"Progress to fsb or job offer complete - ${result.successes.size} processed successfully and ${result.failures.size} failed to update"
         )
       }

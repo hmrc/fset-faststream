@@ -22,7 +22,7 @@ import model.Exceptions.{ EventNotFoundException, NotFoundException }
 import model.UniqueIdentifier
 import model.assessmentscores._
 import model.command.AssessmentScoresCommands._
-import play.api.Logger
+import play.api.Logging
 import play.api.libs.json._
 import play.api.mvc.{ Action, ControllerComponents }
 import repositories.AssessmentScoresRepository
@@ -32,7 +32,7 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-abstract class AssessmentScoresController(cc: ControllerComponents) extends BackendController(cc) {
+abstract class AssessmentScoresController(cc: ControllerComponents) extends BackendController(cc) with Logging {
   val service: AssessmentScoresService
   val repository: AssessmentScoresRepository
   val auditService: AuditService
@@ -125,10 +125,10 @@ abstract class AssessmentScoresController(cc: ControllerComponents) extends Back
       Ok(Json.toJson(scores))
     }.recover {
       case ex: EventNotFoundException =>
-        Logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByApplicationId: $ex")
+        logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByApplicationId: $ex")
         NotFound
       case other: Throwable =>
-        Logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByApplicationId: $other")
+        logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByApplicationId: $other")
         InternalServerError(other.getMessage)
     }
   }
@@ -138,10 +138,10 @@ abstract class AssessmentScoresController(cc: ControllerComponents) extends Back
       Ok(Json.toJson(scores))
     }.recover {
       case ex: EventNotFoundException =>
-        Logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByEventId: $ex")
+        logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByEventId: $ex")
         NotFound
       case other: Throwable =>
-        Logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByEventId: $other")
+        logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByEventId: $other")
         InternalServerError(other.getMessage)
     }
   }
@@ -164,7 +164,7 @@ abstract class AssessmentScoresController(cc: ControllerComponents) extends Back
       case None => NotFound
     }.recover {
       case other: Throwable =>
-        Logger.error(s"Exception when calling findAssessmentScoresByApplicationId: $other")
+        logger.error(s"Exception when calling findAssessmentScoresByApplicationId: $other")
         InternalServerError(other.getMessage)
     }
   }
@@ -187,7 +187,7 @@ abstract class AssessmentScoresController(cc: ControllerComponents) extends Back
           Ok
         }.recover {
           case other: Throwable =>
-            Logger.error(s"Exception when calling resetExercises with applicationId $applicationId: $other")
+            logger.error(s"Exception when calling resetExercises with applicationId $applicationId: $other")
             InternalServerError(other.getMessage)
         }
       }

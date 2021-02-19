@@ -22,7 +22,7 @@ import model.exchange.{ CandidateAllocationPerSession, EventAssessorAllocationsS
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.{ Event, UpdateEvent, Venue }
 import org.joda.time.DateTime
-import play.api.Logger
+import play.api.Logging
 import repositories.SchemeRepository
 import repositories.events._
 import services.allocation.AllocationServiceCommon
@@ -51,7 +51,7 @@ trait EventsService {
 class EventsServiceImpl @Inject() (eventsRepo: EventsRepository,
                                    schemeRepo: SchemeRepository,
                                    allocationServiceCommon: AllocationServiceCommon, // Breaks circular dependencies
-                                   eventsConfigRepo: EventsConfigRepository) extends EventsService {
+                                   eventsConfigRepo: EventsConfigRepository) extends EventsService with Logging {
 
   def saveAssessmentEvents(): Future[Unit] = {
     eventsRepo.countLong.flatMap {
@@ -59,7 +59,7 @@ class EventsServiceImpl @Inject() (eventsRepo: EventsRepository,
         throw new Exception("Events already exist in the system, batch import not possible.")
       case _ =>
         eventsConfigRepo.events.flatMap { events =>
-          Logger.debug(s"Batch import of events was successful - ${events.size} events processed from yaml.")
+          logger.debug(s"Batch import of events was successful - ${events.size} events processed from yaml.")
           eventsRepo.save(events)
         }
     }

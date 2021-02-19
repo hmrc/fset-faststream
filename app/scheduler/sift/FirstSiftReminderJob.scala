@@ -19,7 +19,7 @@ package scheduler.sift
 import config.ScheduledJobConfig
 import javax.inject.{Inject, Singleton}
 import model.sift.{SiftFirstReminder, SiftReminderNotice}
-import play.api.{Configuration, Logger}
+import play.api.{Configuration, Logging}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
@@ -34,7 +34,7 @@ class FirstSiftReminderJobImpl @Inject() (val service: ApplicationSiftService,
                                           val config: FirstSiftReminderJobConfig
                                          ) extends FirstSiftReminderJob
 
-trait FirstSiftReminderJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
+trait FirstSiftReminderJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] with Logging {
   val service: ApplicationSiftService
   val reminderNotice: SiftReminderNotice = SiftFirstReminder
 
@@ -42,10 +42,10 @@ trait FirstSiftReminderJob extends SingleInstanceScheduledJob[BasicJobConfig[Sch
     implicit val hc = HeaderCarrier()
     service.nextApplicationForFirstReminder(reminderNotice.hoursBeforeReminder).flatMap {
       case None =>
-        Logger.info("Sift first reminder job complete - NO applications found")
+        logger.info("Sift first reminder job complete - NO applications found")
         Future.successful(())
       case Some(application) =>
-        Logger.info(s"Sift first reminder job complete - one application found - ${application.applicationId}")
+        logger.info(s"Sift first reminder job complete - one application found - ${application.applicationId}")
         service.sendReminderNotification(application, reminderNotice)
     }
   }

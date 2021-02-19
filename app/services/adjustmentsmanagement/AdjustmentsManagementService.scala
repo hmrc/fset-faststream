@@ -22,7 +22,7 @@ import model._
 import model.persisted.ContactDetails
 import model.stc.StcEventTypes.StcEvents
 import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
-import play.api.Logger
+import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
@@ -42,7 +42,7 @@ class AdjustmentsManagementService @Inject() (appRepository: GeneralApplicationR
                                               schemesRepository: SchemeRepository,
                                               applicationSiftService: ApplicationSiftService,
                                               val eventService: StcEventService
-                                             ) extends EventSink {
+                                             ) extends EventSink with Logging {
   val intro = "Adjustments management service"
 
   private def progressToSiftOrFSAC(applicationId: String, adjustmentInformation: Adjustments)(implicit hc: HeaderCarrier): Future[Unit] = {
@@ -65,21 +65,21 @@ class AdjustmentsManagementService @Inject() (appRepository: GeneralApplicationR
           val timeAdjustmentsSpecified = adjustmentInformation.etray.exists(_.timeNeeded.isDefined)
 
           if(timeAdjustmentsSpecified) {
-            Logger.info(s"$intro - candidate $applicationId has sift numeric schemes and adjustments, which " +
+            logger.info(s"$intro - candidate $applicationId has sift numeric schemes and adjustments, which " +
               s"have been applied so moving to ${ProgressStatuses.SIFT_ENTERED}")
             progressCandidateToSift(selectedSchemes).map(_ => ())
           } else {
-            Logger.info(s"$intro - candidate $applicationId has sift numeric schemes but no time adjustments " +
+            logger.info(s"$intro - candidate $applicationId has sift numeric schemes but no time adjustments " +
               s"so not progressing to ${ProgressStatuses.SIFT_ENTERED}")
             Future.successful(())
           }
         } else {
-          Logger.info(s"$intro - candidate $applicationId has siftable schemes but no numeric schemes so moving " +
+          logger.info(s"$intro - candidate $applicationId has siftable schemes but no numeric schemes so moving " +
             s"to ${ProgressStatuses.SIFT_ENTERED}")
           progressCandidateToSift(selectedSchemes).map(_ => ())
         }
       } else {
-        Logger.info(s"$intro - candidate $applicationId has no siftable schemes so moving " +
+        logger.info(s"$intro - candidate $applicationId has no siftable schemes so moving " +
           s"to ${ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION}")
         appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION).map(_ => ())
       }
@@ -104,11 +104,11 @@ class AdjustmentsManagementService @Inject() (appRepository: GeneralApplicationR
         } yield {
 
           if(ApplicationStatus.withName(applicationStatus.status) == ApplicationStatus.FAST_PASS_ACCEPTED) {
-            Logger.info(s"$intro - candidate $applicationId is in ${ApplicationStatus.FAST_PASS_ACCEPTED} so will check if we " +
+            logger.info(s"$intro - candidate $applicationId is in ${ApplicationStatus.FAST_PASS_ACCEPTED} so will check if we " +
               "should move to SIFT or FSAC")
             progressToSiftOrFSAC(applicationId, adjustmentInformation).map(_ => ())
           } else {
-            Logger.info(s"$intro - candidate $applicationId is not in ${ApplicationStatus.FAST_PASS_ACCEPTED} so will skip the " +
+            logger.info(s"$intro - candidate $applicationId is not in ${ApplicationStatus.FAST_PASS_ACCEPTED} so will skip the " +
               s"check to move to SIFT or FSAC. Candidate is in ${applicationStatus.status}")
           }
 

@@ -28,7 +28,7 @@ import model.command._
 import model.persisted._
 import model.persisted.sift.SiftTestGroup2
 import model.report._
-import play.api.Logger
+import play.api.Logger.logger
 import reactivemongo.bson.{ BSONDocument, _ }
 import repositories.{ BaseBSONReader, CommonBSONDocuments }
 
@@ -407,7 +407,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
         case 1 => siftTestProfile.activeTests.head.testResult.map { tr => PsiTestResult("", tr.tScore, tr.rawScore) }
         case 0 => None
         case s if s > 1 =>
-          Logger.error(s"There are $s active sift tests which is invalid for application id [$applicationId]")
+          logger.error(s"There are $s active sift tests which is invalid for application id [$applicationId]")
           None
       }
     }

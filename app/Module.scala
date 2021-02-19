@@ -18,7 +18,7 @@ import com.google.inject.name.Names
 import com.google.inject.{AbstractModule, Provider, TypeLiteral}
 import connectors.{CSREmailClientImpl, OnlineTestEmailClient, Phase2OnlineTestEmailClient, Phase3OnlineTestEmailClient}
 import model.exchange.passmarksettings.{Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings}
-import play.api.{Configuration, Environment, Logger}
+import play.api.{Configuration, Environment, Logging}
 import repositories._
 import repositories.application._
 import repositories.assessmentcentre.{AssessmentCentreMongoRepository, AssessmentCentreRepository}
@@ -46,10 +46,7 @@ import services.onlinetesting.phase2.{EvaluatePhase2ResultService2, Phase2TestSe
 import services.onlinetesting.phase3.{EvaluatePhase3ResultService, Phase3TestService}
 import services.testdata.admin.{AdminCreatedStatusGenerator, AdminUserBaseGenerator}
 
-class Module(val environment: Environment, val configuration: Configuration) extends AbstractModule {
-
-//  override val runModeConfiguration: Configuration = configuration
-//  override protected def mode = environment.mode
+class Module(val environment: Environment, val configuration: Configuration) extends AbstractModule with Logging {
 
   //scalastyle:off method.length
   override def configure(): Unit = {
@@ -116,10 +113,6 @@ class Module(val environment: Environment, val configuration: Configuration) ext
 
     bind(classOf[FlagCandidateRepository]).to(classOf[FlagCandidateMongoRepository]).asEagerSingleton()
 
-//    bind(classOf[String])
-//      .annotatedWith(Names.named("appName"))
-//      .toProvider(new ConfigProvider("appName"))
-
     // Bind the named implementations for the online test service
     bind(classOf[OnlineTestService]).annotatedWith(Names.named("Phase1OnlineTestService"))
       .to(classOf[Phase1TestService2])
@@ -179,15 +172,6 @@ class Module(val environment: Environment, val configuration: Configuration) ext
 
   private def startUpMessage() = {
     val appName = configuration.get[String]("appName")
-    Logger.info(s"Starting $appName in mode ${environment.mode}")
-
-//    val appName = configuration.get[String]("appName").orElse(throw new RuntimeException(s"No configuration value found for 'appName'"))
-//    Logger.info(s"Starting micro service ${appName.getOrElse("NOT-SET")} in mode ${environment.mode}")
+    logger.info(s"Starting $appName in mode ${environment.mode}")
   }
-
-//  private class ConfigProvider(key: String) extends Provider[String] {
-//    override lazy val get = configuration
-//      .getString(key)
-//      .getOrElse(throw new IllegalStateException(s"No value found for configuration property $key"))
-//  }
 }

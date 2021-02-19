@@ -20,7 +20,7 @@ import config.WaitingScheduledJobConfig
 import javax.inject.{ Inject, Singleton }
 import model.EmptyRequestHeader
 import play.api.mvc.RequestHeader
-import play.api.{ Configuration, Logger }
+import play.api.{ Configuration, Logging }
 import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
@@ -41,7 +41,7 @@ class SiftNumericalTestInvitationJobImpl @Inject() (val siftService: Application
   //  val numericalTestService: NumericalTestService2 = NumericalTestService2
 }
 
-trait SiftNumericalTestInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
+trait SiftNumericalTestInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {
   val siftService: ApplicationSiftService
   val numericalTestService: NumericalTestService2
   lazy val batchSize = config.conf.batchSize.getOrElse(1)
@@ -61,13 +61,13 @@ trait SiftNumericalTestInvitationJob extends SingleInstanceScheduledJob[BasicJob
           .recover { case e: Throwable =>
             val msg = s"Error occurred while registering and inviting candidates $applications " +
               s"for sift numeric tests - $e. Caused by ${e.getCause}"
-            Logger.error(msg)
+            logger.error(msg)
           }
     }
   }
 
   // Logging set to WARN so we can see it in PROD
-  private def log(msg: String) = Logger.warn(msg)
+  private def log(msg: String) = logger.warn(msg)
 }
 
 @Singleton

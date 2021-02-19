@@ -32,7 +32,7 @@ import model.exchange.{ Phase1TestGroupWithNames2, PsiRealTimeResults }
 import model.persisted.{ Phase1TestProfile, PsiTestResult => _, TestResult => _, _ }
 import model.stc.{ AuditEvents, DataStoreEvents }
 import org.joda.time.DateTime
-import play.api.Logger
+import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -63,7 +63,7 @@ class Phase1TestService2 @Inject() (appConfig: MicroserviceAppConfig,
                                     val siftService: ApplicationSiftService,
                                     val eventService: StcEventService,
                                     val actor: ActorSystem
-                                   ) extends OnlineTestService with Phase1TestConcern2 with ResetPhase1Test2 {
+                                   ) extends OnlineTestService with Phase1TestConcern2 with ResetPhase1Test2 with Logging {
 
   type TestRepository2 = Phase1TestRepository
 
@@ -99,7 +99,7 @@ class Phase1TestService2 @Inject() (appConfig: MicroserviceAppConfig,
         val testIds = testIdsByName(testName)
         val delay = (delayModifier * integrationGatewayConfig.phase1Tests.testRegistrationDelayInSecs).second
         akka.pattern.after(delay, actor.scheduler) {
-          Logger.debug(s"Phase1TestService - about to call registerPsiApplicant with testIds - $testIds")
+          logger.debug(s"Phase1TestService - about to call registerPsiApplicant with testIds - $testIds")
           registerPsiApplicant(application, testIds, invitationDate)
         }
     }
@@ -131,27 +131,27 @@ class Phase1TestService2 @Inject() (appConfig: MicroserviceAppConfig,
       // Extract test that requires reset
       testToReset = testGroup.tests.find(_.orderId == orderIdToReset)
         .getOrElse(throw CannotFindTestByOrderIdException(s"OrderId - $orderIdToReset"))
-      _ = Logger.info(s"testToReset -- $testToReset")
+      _ = logger.info(s"testToReset -- $testToReset")
 
       // Create PsiIds to use for re-invitation
       psiIds = integrationGatewayConfig.phase1Tests.tests.find {
         case (_, ids) => ids.inventoryId == testToReset.inventoryId
       }.getOrElse(throw CannotFindTestByInventoryIdException(s"InventoryId - ${testToReset.inventoryId}"))._2
-      _ = Logger.info(s"psiIds -- $psiIds")
+      _ = logger.info(s"psiIds -- $psiIds")
 
       // Register applicant
       newPsiTest <- registerPsiApplicant(application, psiIds, invitationDate)
-      _ = Logger.info(s"newPsiTest -- $newPsiTest")
+      _ = logger.info(s"newPsiTest -- $newPsiTest")
 
       // Set old test to inactive
       testsWithInactiveTest = testGroup.tests
         .map { t => if (t.orderId == orderIdToReset) { t.copy(usedForResults = false) } else t }
-      _ = Logger.info(s"testsWithInactiveTest -- $testsWithInactiveTest")
+      _ = logger.info(s"testsWithInactiveTest -- $testsWithInactiveTest")
 
       // insert new test and maintain test order
       idxOfResetTest = testGroup.tests.indexWhere(_.orderId == orderIdToReset)
       updatedTests = insertTest(testsWithInactiveTest, idxOfResetTest, newPsiTest)
-      _ = Logger.info(s"updatedTests -- $updatedTests")
+      _ = logger.info(s"updatedTests -- $updatedTests")
 
       _ <- markAsInvited2(application)(Phase1TestProfile2(expirationDate, updatedTests))
       emailAddress <- candidateEmailAddress(application.userId)
@@ -178,7 +178,7 @@ class Phase1TestService2 @Inject() (appConfig: MicroserviceAppConfig,
       if (aoa.status != AssessmentOrderAcknowledgement.acknowledgedStatus) {
         val msg = s"Received response status of ${aoa.status} when registering candidate " +
           s"${application.applicationId} to phase1 tests with testIds $testIds"
-        Logger.warn(msg)
+        logger.warn(msg)
         throw TestRegistrationException(msg)
       } else {
         PsiTest(
@@ -226,9 +226,9 @@ class Phase1TestService2 @Inject() (appConfig: MicroserviceAppConfig,
                             orderId: String): Future[AssessmentCancelAcknowledgementResponse] = {
     val req = CancelCandidateTestRequest(orderId)
     onlineTestsGatewayClient.psiCancelTest(req).map { response =>
-      Logger.debug(s"Response from cancellation for orderId=$orderId is $response")
+      logger.debug(s"Response from cancellation for orderId=$orderId is $response")
       if (response.status != AssessmentCancelAcknowledgementResponse.completedStatus) {
-        Logger.debug(s"Cancellation failed with errors: ${response.details}")
+        logger.debug(s"Cancellation failed with errors: ${response.details}")
         throw TestCancellationException(s"appId=$appId, orderId=$orderId")
       } else {
         audit("TestCancelledForCandidate", userId)
@@ -355,7 +355,7 @@ class Phase1TestService2 @Inject() (appConfig: MicroserviceAppConfig,
         } else {
           val msg = s"Did not update progress status to ${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED} for $appId - " +
             s"not all active tests have a testResult saved"
-          Logger.warn(msg)
+          logger.warn(msg)
           Future.successful(())
         }
       }
@@ -364,11 +364,11 @@ class Phase1TestService2 @Inject() (appConfig: MicroserviceAppConfig,
     def markTestAsCompleted(profile: PsiTestProfile): Future[Unit] =
       profile.tests.find(_.orderId == orderId).map { test =>
         if (!test.isCompleted) {
-          Logger.info(s"Processing real time results - setting completed date on psi test whose orderId=$orderId")
+          logger.info(s"Processing real time results - setting completed date on psi test whose orderId=$orderId")
           markAsCompleted22(orderId)
         }
         else {
-          Logger.info(s"Processing real time results - completed date is already set on psi test whose orderId=$orderId " +
+          logger.info(s"Processing real time results - completed date is already set on psi test whose orderId=$orderId " +
             s"so will not mark as complete")
           Future.successful(())
         }

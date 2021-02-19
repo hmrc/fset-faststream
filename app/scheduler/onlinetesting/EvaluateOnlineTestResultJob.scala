@@ -25,7 +25,7 @@ import model.Phase.Phase
 import model.exchange.passmarksettings.{ PassMarkSettings, Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings }
 import model.persisted.ApplicationReadyForEvaluation2
 import play.api.libs.json.Format
-import play.api.{ Configuration, Logger }
+import play.api.{ Configuration, Logging }
 import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
@@ -72,7 +72,7 @@ class EvaluatePhase3ResultJob @Inject() (@Named("Phase3EvaluationService")
 }
 
 abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettings](implicit jsonFormat: Format[T]) extends
-  SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
+  SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] with Logging {
 
   //  val evaluateService: EvaluateOnlineTestResultService[T]
   val evaluateService2: EvaluateOnlineTestResultService2[T]
@@ -84,7 +84,7 @@ abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettings](implicit jsonF
       case Some((apps, passmarkSettings)) =>
         evaluateInBatch(apps, passmarkSettings)
       case None =>
-        Logger.warn(s"Passmark settings or an application to evaluate $phase result not found")
+        logger.warn(s"Passmark settings or an application to evaluate $phase result not found")
         Future.successful(())
     }
   }
@@ -96,7 +96,7 @@ abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettings](implicit jsonF
                               passmarkSettings: T)(implicit ec: ExecutionContext): Future[Unit] = {
     // Warn level so we see it in the prod logs
     val applicationIds = apps.map ( _.applicationId ).mkString(",")
-    Logger.warn(s"Evaluate $phase job found ${apps.size} application(s), applicationIds=$applicationIds, " +
+    logger.warn(s"Evaluate $phase job found ${apps.size} application(s), applicationIds=$applicationIds, " +
       s"passmarkVersion=${passmarkSettings.version}")
     val evaluationResultsFut = FutureEx.traverseToTry(apps) { app =>
       Try(evaluateService2.evaluate(app, passmarkSettings)) match {
@@ -114,10 +114,10 @@ abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettings](implicit jsonF
       if (errors.nonEmpty) {
         val errorMsg = apps.map(errorLog).mkString("\n")
 
-        Logger.error(s"There were ${errors.size} errors in batch $phase evaluation:\n$errorMsg")
+        logger.error(s"There were ${errors.size} errors in batch $phase evaluation:\n$errorMsg")
         Future.failed(errors.head)
       } else {
-        Logger.warn(s"Evaluate $phase job successfully evaluated ${apps.size} application(s), applicationIds=$applicationIds, " +
+        logger.warn(s"Evaluate $phase job successfully evaluated ${apps.size} application(s), applicationIds=$applicationIds, " +
           s"passmarkVersion=${passmarkSettings.version}")
         Future.successful(())
       }

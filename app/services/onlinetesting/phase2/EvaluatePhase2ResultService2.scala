@@ -24,7 +24,7 @@ import javax.inject.{ Inject, Singleton }
 import model.Phase
 import model.exchange.passmarksettings.Phase2PassMarkSettings
 import model.persisted.{ ApplicationReadyForEvaluation2, PsiTestResult }
-import play.api.Logger
+import play.api.Logging
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.OnlineTestEvaluationRepository
 import repositories.passmarksettings.Phase2PassMarkSettingsMongoRepository
@@ -41,13 +41,13 @@ class EvaluatePhase2ResultService2 @Inject() (@Named("Phase2EvaluationRepository
                                               appConfig: MicroserviceAppConfig,
                                               val uuidFactory: UUIDFactory
                                              ) extends EvaluateOnlineTestResultService2[Phase2PassMarkSettings] with Phase2TestSelector2
-  with Phase2TestEvaluation2 with PassMarkSettingsService[Phase2PassMarkSettings] with CurrentSchemeStatusHelper2 {
+  with Phase2TestEvaluation2 with PassMarkSettingsService[Phase2PassMarkSettings] with CurrentSchemeStatusHelper2 with Logging {
 
   val phase = Phase.PHASE2
   val gatewayConfig = appConfig.testIntegrationGatewayConfig //TODO: use p2 config instead
 
   def evaluate(implicit application: ApplicationReadyForEvaluation2, passmark: Phase2PassMarkSettings): Future[Unit] = {
-    Logger.warn(s"Evaluating phase2 appId=${application.applicationId}")
+    logger.warn(s"Evaluating phase2 appId=${application.applicationId}")
 
     val activeTests = application.activePsiTests
     require(activeTests.nonEmpty && activeTests.length == 2,
@@ -60,7 +60,7 @@ class EvaluatePhase2ResultService2 @Inject() (@Named("Phase2EvaluationRepository
 
     getSdipResults(application).flatMap { sdip =>
       if (application.isSdipFaststream) {
-        Logger.debug(s"Phase2 appId=${application.applicationId} Sdip faststream application will persist the following Sdip results " +
+        logger.debug(s"Phase2 appId=${application.applicationId} Sdip faststream application will persist the following Sdip results " +
           s"read from current scheme status: $sdip")
       }
       savePassMarkEvaluation(application, schemeResults ++ sdip , passmark)

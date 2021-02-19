@@ -29,7 +29,7 @@ import model.exchange.{ CubiksTestResultReady, PsiRealTimeResults }
 import model.persisted.sift.{ MaybeSiftTestGroupWithAppId2, SiftTestGroup, SiftTestGroup2, SiftTestGroupWithAppId }
 import model.persisted.{ CubiksTest, PsiTest }
 import model.stc.DataStoreEvents
-import play.api.Logger
+import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
@@ -55,7 +55,7 @@ class NumericalTestService2 @Inject() (applicationRepo: GeneralApplicationReposi
                                        schemeRepository: SchemeRepository,
                                        @Named("CSREmailClient") emailClient: OnlineTestEmailClient, // Changed the type
                                        contactDetailsRepo: ContactDetailsRepository
-                                      ) extends EventSink {
+                                      ) extends EventSink with Logging {
 
   val gatewayConfig: OnlineTestsGatewayConfig = appConfig.onlineTestsGatewayConfig
   val integrationGatewayConfig: TestIntegrationGatewayConfig = appConfig.testIntegrationGatewayConfig
@@ -90,7 +90,7 @@ class NumericalTestService2 @Inject() (applicationRepo: GeneralApplicationReposi
             _ <- emailInvitedCandidate(candidate)
             _ <- updateProgressStatuses(List(candidate.applicationId), SIFT_TEST_INVITED)
           } yield {
-            Logger.warn(s"Successfully invited candidate to take numerical test with Id: " +
+            logger.warn(s"Successfully invited candidate to take numerical test with Id: " +
               s"${candidate.applicationId} - moved to $SIFT_TEST_INVITED")
           }
         }
@@ -106,7 +106,7 @@ class NumericalTestService2 @Inject() (applicationRepo: GeneralApplicationReposi
       if (aoa.status != AssessmentOrderAcknowledgement.acknowledgedStatus) {
         val msg = s"Received response status of ${aoa.status} when registering candidate " +
           s"${application.applicationId} to phase1 tests with=$testIds"
-        Logger.warn(msg)
+        logger.warn(msg)
         throw new RuntimeException(msg)
       } else {
         PsiTest(
@@ -165,7 +165,7 @@ class NumericalTestService2 @Inject() (applicationRepo: GeneralApplicationReposi
           _ <- emailInvitedCandidates(invitedApplicants)
           _ <- updateProgressStatuses(invitedApplicants.map(_.application.applicationId), SIFT_TEST_INVITED)
         } yield {
-          Logger.warn(s"Successfully invited candidates to take a sift numerical test with Ids: " +
+          logger.warn(s"Successfully invited candidates to take a sift numerical test with Ids: " +
             s"${invitedApplicants.map(_.application.applicationId)} - moved to $SIFT_TEST_INVITED")
         }
     }
@@ -282,7 +282,7 @@ class NumericalTestService2 @Inject() (applicationRepo: GeneralApplicationReposi
       } yield {
         implicit val hc = HeaderCarrier()
         val msg = s"Sending sift numeric test invite email to candidate ${applicant.application.applicationId}..."
-        Logger.info(msg)
+        logger.info(msg)
         notificationExpiringSiftOpt.map { notification =>
           emailClient.sendSiftNumericTestInvite(emailAddress, notification.preferredName, notification.expiryDate)
         }.getOrElse(throw new IllegalStateException(s"No sift notification details found for candidate ${applicant.application.applicationId}"))
@@ -298,7 +298,7 @@ class NumericalTestService2 @Inject() (applicationRepo: GeneralApplicationReposi
     } yield {
       implicit val hc = HeaderCarrier()
       val msg = s"Sending sift numeric test invite email to candidate ${application.applicationId}..."
-      Logger.info(msg)
+      logger.info(msg)
       notificationExpiringSiftOpt.map { notification =>
         emailClient.sendSiftNumericTestInvite(emailAddress, notification.preferredName, notification.expiryDate)
       }.getOrElse(throw new IllegalStateException(s"No sift notification details found for candidate ${application.applicationId}"))
@@ -316,10 +316,10 @@ class NumericalTestService2 @Inject() (applicationRepo: GeneralApplicationReposi
         val activeCompletedTests = tests.forall(_.completedDateTime.isDefined)
         if(activeCompletedTests) {
           applicationRepo.addProgressStatusAndUpdateAppStatus(appId, SIFT_TEST_COMPLETED).map { _ =>
-            Logger.info(s"Successfully updated to $SIFT_TEST_COMPLETED for cubiksId: $cubiksUserId and appId: $appId")
+            logger.info(s"Successfully updated to $SIFT_TEST_COMPLETED for cubiksId: $cubiksUserId and appId: $appId")
           }
         } else {
-          Logger.info(s"No tests to mark as completed for cubiksId: $cubiksUserId and applicationId: $appId")
+          logger.info(s"No tests to mark as completed for cubiksId: $cubiksUserId and applicationId: $appId")
           Future.successful(())
         }
       }
@@ -337,10 +337,10 @@ class NumericalTestService2 @Inject() (applicationRepo: GeneralApplicationReposi
         val activeCompletedTests = tests.forall(_.completedDateTime.isDefined)
         if(activeCompletedTests) {
           applicationRepo.addProgressStatusAndUpdateAppStatus(appId, SIFT_TEST_COMPLETED).map { _ =>
-            Logger.info(s"Successfully updated to $SIFT_TEST_COMPLETED for orderID: $orderId and appId: $appId")
+            logger.info(s"Successfully updated to $SIFT_TEST_COMPLETED for orderID: $orderId and appId: $appId")
           }
         } else {
-          Logger.info(s"No tests to mark as completed for orderId: $orderId and applicationId: $appId")
+          logger.info(s"No tests to mark as completed for orderId: $orderId and applicationId: $appId")
           Future.successful(())
         }
       }
@@ -370,10 +370,10 @@ class NumericalTestService2 @Inject() (applicationRepo: GeneralApplicationReposi
         val activeCompletedTest = tests.forall(_.completedDateTime.isDefined)
         if (activeCompletedTest) {
           applicationRepo.addProgressStatusAndUpdateAppStatus(appId, SIFT_TEST_RESULTS_READY).map { _ =>
-            Logger.info(s"Successfully updated to $SIFT_TEST_RESULTS_READY for cubiksId: $cubiksUserId and appId: $appId")
+            logger.info(s"Successfully updated to $SIFT_TEST_RESULTS_READY for cubiksId: $cubiksUserId and appId: $appId")
           }
         } else {
-          Logger.info(s"No tests to mark as results ready for cubiksId: $cubiksUserId and applicationId: $appId")
+          logger.info(s"No tests to mark as results ready for cubiksId: $cubiksUserId and applicationId: $appId")
           Future.successful(())
         }
       }
@@ -406,7 +406,7 @@ class NumericalTestService2 @Inject() (applicationRepo: GeneralApplicationReposi
               DataStoreEvents.SiftTestResultsReceived(appId) :: Nil
             }
           } yield {
-            Logger.info(s"Successfully retrieved sift numerical results for Id $appId - " +
+            logger.info(s"Successfully retrieved sift numerical results for Id $appId - " +
               s"moved to ${ProgressStatuses.SIFT_TEST_RESULTS_RECEIVED}")
           }
         } else {
@@ -453,7 +453,7 @@ class NumericalTestService2 @Inject() (applicationRepo: GeneralApplicationReposi
               DataStoreEvents.SiftTestResultsReceived(appId) :: Nil
             }
           } yield {
-            Logger.info(s"Successfully processed sift numerical results for appId:$appId, orderId:$orderId - " +
+            logger.info(s"Successfully processed sift numerical results for appId:$appId, orderId:$orderId - " +
               s"moved to ${ProgressStatuses.SIFT_TEST_RESULTS_RECEIVED}")
           }
         } else {
@@ -465,11 +465,11 @@ class NumericalTestService2 @Inject() (applicationRepo: GeneralApplicationReposi
     def markTestAsCompleted(profile: MaybeSiftTestGroupWithAppId2): Future[Unit] = {
       profile.tests.flatMap( tests => tests.find(_.orderId == orderId).map { test =>
         if (!test.isCompleted) {
-          Logger.info(s"Processing real time sift results - setting completed date on psi test whose orderId=$orderId")
+          logger.info(s"Processing real time sift results - setting completed date on psi test whose orderId=$orderId")
           markAsCompletedByOrderId(orderId)
         }
         else {
-          Logger.info(s"Processing real time sift results - completed date is already set on psi test whose orderId=$orderId " +
+          logger.info(s"Processing real time sift results - completed date is already set on psi test whose orderId=$orderId " +
             s"so will not mark as complete")
           Future.successful(())
         }
@@ -507,16 +507,16 @@ class NumericalTestService2 @Inject() (applicationRepo: GeneralApplicationReposi
         } yield {
           if (schemesPassedRequiringSift.isEmpty) {
             // Candidate has no schemes that require a form to be filled so we can process the candidate
-            Logger.info(s"Candidate $appId has no schemes that require a form to be filled in so we will process this one")
+            logger.info(s"Candidate $appId has no schemes that require a form to be filled in so we will process this one")
             applicationId
           } else { // Candidate has schemes that require forms to be filled
             if (progressResponse.siftProgressResponse.siftFormsCompleteNumericTestPending) {
               // Forms have already been filled in so can process this candidate
-              Logger.info(s"Candidate $appId has schemes that require a form to be filled in and has already " +
+              logger.info(s"Candidate $appId has schemes that require a form to be filled in and has already " +
                 "submitted the answers so we will process this one")
               applicationId
             } else {
-              Logger.info(s"Candidate $appId has schemes that require a form to be filled in and has not yet submitted " +
+              logger.info(s"Candidate $appId has schemes that require a form to be filled in and has not yet submitted " +
                 "the answers so not processing this one")
               None
             }
@@ -528,7 +528,7 @@ class NumericalTestService2 @Inject() (applicationRepo: GeneralApplicationReposi
 
   def progressToSiftReady(applicationId: String): Future[Unit] = {
     applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_READY).map { _ =>
-      Logger.info(s"Successfully moved $applicationId to ${ProgressStatuses.SIFT_READY}")
+      logger.info(s"Successfully moved $applicationId to ${ProgressStatuses.SIFT_READY}")
     }
   }
 }

@@ -20,7 +20,7 @@ import config.WaitingScheduledJobConfig
 import javax.inject.{ Inject, Singleton }
 import model.ProgressStatuses
 import model.command.ApplicationForSift
-import play.api.{ Configuration, Logger }
+import play.api.{ Configuration, Logging }
 import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
@@ -39,17 +39,17 @@ class ProgressToSiftJobImpl @Inject() (val siftService: ApplicationSiftService,
   //  val config = ProgressToSiftJobConfig2
 }
 
-trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
+trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {
   val siftService: ApplicationSiftService
 
   lazy val batchSize = config.conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
-    Logger.info("Looking for candidates to progress to SIFT")
+    logger.info("Looking for candidates to progress to SIFT")
     siftService.nextApplicationsReadyForSiftStage(batchSize).flatMap {
       case Nil =>
-        Logger.info("No application found to progress to SIFT")
+        logger.info("No application found to progress to SIFT")
         Future.successful(())
       case applications => siftService.progressApplicationToSiftStage(applications).map { result =>
         result.successes.map { application =>
@@ -59,8 +59,8 @@ trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[Waitin
             }
           }
         }
-        Logger.info(s"Progressed to sift entered - ${result.successes.size} updated and ${result.failures.size} failed to update")
-        Logger.info(s"Progressed to sift entered - successful application Ids = ${result.successes.map(_.applicationId)}")
+        logger.info(s"Progressed to sift entered - ${result.successes.size} updated and ${result.failures.size} failed to update")
+        logger.info(s"Progressed to sift entered - successful application Ids = ${result.successes.map(_.applicationId)}")
       }
     }
   }

@@ -29,7 +29,7 @@ import model.testdata.CreateAssessorAllocationData
 import model.testdata.CreateEventData
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import model.testdata.{ CreateCandidateAllocationData, CreateTestData }
-import play.api.Logger
+import play.api.Logging
 import play.api.mvc.RequestHeader
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.bson.BSONDocument
@@ -56,7 +56,7 @@ class TestDataGeneratorService @Inject() (authProviderClient: AuthProviderClient
                                           assessorAllocationGenerator: AssessorAllocationGenerator,
                                           mongoComponent: ReactiveMongoComponent,
                                           dataFaker: DataFaker,
-                                          eventGenerator: EventGenerator) {
+                                          eventGenerator: EventGenerator) extends Logging {
 
   def clearDatabase(generateDefaultUsers: Boolean)(implicit hc: HeaderCarrier): Future[Unit] = {
     for {
@@ -73,7 +73,7 @@ class TestDataGeneratorService @Inject() (authProviderClient: AuthProviderClient
   def cleanupDb(): Future[Unit] = {
     mongoComponent.mongoConnector.db().collectionNames.map { names =>
       names.foreach { name =>
-        Logger.info(s"removing collection: $name")
+        logger.info(s"removing collection: $name")
         import reactivemongo.play.json.ImplicitBSONHandlers._
         mongoComponent.mongoConnector.db().collection[JSONCollection](name).delete().one(BSONDocument.empty)
       }

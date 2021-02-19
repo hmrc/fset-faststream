@@ -16,26 +16,27 @@
 
 package repositories.application
 
-import config.{ MicroserviceAppConfig, PsiTestIds }
+import config.{MicroserviceAppConfig, PsiTestIds}
 import connectors.launchpadgateway.exchangeobjects.in.reviewed._
 import factories.DateTimeFactory
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model._
-import model.command.{ CandidateDetailsReportItem, CsvExtract, WithdrawApplication }
+import model.command.{CandidateDetailsReportItem, CsvExtract, WithdrawApplication}
 import model.persisted.fsb.ScoresAndFeedback
-import model.persisted.{ FSACIndicator, SchemeEvaluationResult }
+import model.persisted.{FSACIndicator, SchemeEvaluationResult}
 import org.joda.time.DateTime
-import play.api.Logger
+import play.api.Logging
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{ JsObject, Json }
+import play.api.libs.json.{JsObject, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.{ Cursor, ReadPreference }
-import reactivemongo.bson.{ BSONArray, BSONDocument, BSONReader, BSONRegex, BSONValue }
+import reactivemongo.api.{Cursor, ReadPreference}
+import reactivemongo.bson.{BSONArray, BSONDocument, BSONReader, BSONRegex, BSONValue}
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import reactivemongo.play.json.collection.JSONCollection
-import repositories.{ BSONDateTimeHandler, CollectionNames, CommonBSONDocuments, SchemeRepository, SchemeYamlRepository, withdrawHandler }
+import repositories.{BSONDateTimeHandler, CollectionNames, CommonBSONDocuments, SchemeRepository, SchemeYamlRepository, withdrawHandler}
 import services.reporting.SocioEconomicCalculator
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -218,7 +219,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
                                                               appConfig: MicroserviceAppConfig,
                                                               schemeRepository: SchemeRepository,
                                                               mongoComponent: ReactiveMongoComponent)
-  extends PreviousYearCandidatesDetailsRepository with CommonBSONDocuments with DiversityQuestionsText {
+  extends PreviousYearCandidatesDetailsRepository with CommonBSONDocuments with DiversityQuestionsText with Logging {
 
 //  import config.MicroserviceAppConfig._
 
@@ -330,7 +331,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
         )
       } catch {
         case ex: Throwable =>
-          Logger.error("Previous year candidate report generation exception", ex)
+          logger.error("Previous year candidate report generation exception", ex)
           CandidateDetailsReportItem("", "", "ERROR LINE " + ex.getMessage)
       }
     }
@@ -443,7 +444,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
         )
       } catch {
         case ex: Throwable =>
-          Logger.error("Data analyst Previous year candidate report generation exception", ex)
+          logger.error("Data analyst Previous year candidate report generation exception", ex)
           CandidateDetailsReportItem("", "", "ERROR LINE " + ex.getMessage)
       }
     }
@@ -503,7 +504,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
         )
       } catch {
         case ex: Throwable =>
-          Logger.error("Data analyst streamed candidate report generation exception", ex)
+          logger.error("Data analyst streamed candidate report generation exception", ex)
           CandidateDetailsReportItem("", "", "ERROR LINE " + ex.getMessage)
       }
     }

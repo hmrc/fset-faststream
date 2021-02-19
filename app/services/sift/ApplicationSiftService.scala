@@ -31,7 +31,7 @@ import model.persisted.SchemeEvaluationResult
 import model.persisted.sift.NotificationExpiringSift
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered, SiftReminderNotice }
 import org.joda.time.DateTime
-import play.api.Logger
+import play.api.Logging
 import reactivemongo.bson.BSONDocument
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -53,7 +53,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
                                         schemeRepo: SchemeRepository,
                                         val dateTimeFactory: DateTimeFactory,
                                         @Named("CSREmailClient") emailClient: OnlineTestEmailClient // TODO: had to change the type
-                                       ) extends CurrentSchemeStatusHelper with CommonBSONDocuments {
+                                       ) extends CurrentSchemeStatusHelper with CommonBSONDocuments with Logging {
   val SiftExpiryWindowInDays: Int = 7
 
   def nextApplicationsReadyForSiftStage(batchSize: Int): Future[Seq[ApplicationForSift]] = {
@@ -84,7 +84,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
       val msg = s"Sift reminder email sent to candidate whose applicationId = ${expiringSift.applicationId} " +
         s"${siftReminderNotice.hoursBeforeReminder} hours before expiry and candidate status updated " +
         s"to ${siftReminderNotice.progressStatus}"
-      Logger.info(msg)
+      logger.info(msg)
     }
   }
 
@@ -147,10 +147,10 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     nextApplicationsForExpiry(batchSize, gracePeriodInSecs)
       .flatMap {
         case Nil =>
-          Logger.info("No applications found for SIFT expiry")
+          logger.info("No applications found for SIFT expiry")
           Future.successful(())
         case applications: Seq[ApplicationForSiftExpiry] =>
-          Logger.info(s"${applications.size} applications found for SIFT expiry - $applications")
+          logger.info(s"${applications.size} applications found for SIFT expiry - $applications")
           Future.sequence(applications.map(processApplication)).map(_ => ())
       }
   }
@@ -162,7 +162,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
   def expireCandidate(appForExpiry: ApplicationForSiftExpiry): Future[Unit] = {
     applicationRepo
       .addProgressStatusAndUpdateAppStatus(appForExpiry.applicationId, ProgressStatuses.SIFT_EXPIRED)
-      .map(_ => Logger.info(s"Expired SIFT application: $appForExpiry"))
+      .map(_ => logger.info(s"Expired SIFT application: $appForExpiry"))
   }
 
   def expireCandidates(appsForExpiry: Seq[ApplicationForSiftExpiry]): Future[Unit] = {

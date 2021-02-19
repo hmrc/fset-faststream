@@ -21,7 +21,6 @@ import model.EvaluationResults.Result
 import model.SchemeId
 import model.exchange.passmarksettings.Phase3PassMarkSettings
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
-import play.api.Logger
 import repositories.onlinetesting.Phase3EvaluationMongoRepository
 
 import scala.concurrent.Future
@@ -40,7 +39,7 @@ trait Phase3TestEvaluation extends OnlineTestResultsCalculator {
     } yield {
       val phase3Result = evaluateTestResult(schemePassmark.schemeThresholds.videoInterview)(
         Some(launchpadTestResult.calculateTotalScore()))
-      Logger.debug(s"processing scheme $schemeToEvaluate, " +
+      logger.debug(s"processing scheme $schemeToEvaluate, " +
         s"video score = ${launchpadTestResult.calculateTotalScore()}, " +
         s"video fail = ${schemePassmark.schemeThresholds.videoInterview.failThreshold}, " +
         s"video pass = ${schemePassmark.schemeThresholds.videoInterview.passThreshold}, " +

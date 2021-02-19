@@ -18,7 +18,7 @@ package scheduler.sift
 
 import config.WaitingScheduledJobConfig
 import javax.inject.{ Inject, Singleton }
-import play.api.{ Configuration, Logger }
+import play.api.{ Configuration, Logging }
 import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
@@ -35,19 +35,19 @@ class ProcessSiftNumericalResultsReceivedJobImpl @Inject() (val numericalTestSer
   //  val config = ProcessSiftNumericalResultsReceivedJobConfig
 }
 
-trait ProcessSiftNumericalResultsReceivedJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
+trait ProcessSiftNumericalResultsReceivedJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {
   val numericalTestService: NumericalTestService2
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     val intro = "Processing candidates in SIFT who have received numerical test results"
-    Logger.info(intro)
+    logger.info(intro)
 
     numericalTestService.nextApplicationWithResultsReceived.flatMap {
       case Some(applicationId) =>
-        Logger.info(s"$intro - processing candidate with applicationId: $applicationId")
+        logger.info(s"$intro - processing candidate with applicationId: $applicationId")
         numericalTestService.progressToSiftReady(applicationId)
       case None =>
-        Logger.info(s"$intro - found no candidates")
+        logger.info(s"$intro - found no candidates")
         Future.successful(())
     }
   }

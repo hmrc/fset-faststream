@@ -26,7 +26,7 @@ import model._
 import model.command.ApplicationForProgression
 import model.persisted.{ FsbSchemeResult, SchemeEvaluationResult }
 import org.joda.time.DateTime
-import play.api.Logger
+import play.api.Logging
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.FsbRepository
@@ -44,7 +44,7 @@ class ProgressionToFsbOrOfferService @Inject() (schemeRepository: SchemeReposito
                                                  fsbRepo: FsbRepository,
                                                  schemePreferencesService: SchemePreferencesService,
                                                  @Named("CSREmailClient") val emailClient: OnlineTestEmailClient //TODO:fix change type
-                                                ) extends CurrentSchemeStatusHelper {
+                                                ) extends CurrentSchemeStatusHelper with Logging {
 
   def fsbRequiredSchemeIds: Seq[SchemeId] = schemeRepository.fsbSchemeIds
 
@@ -154,7 +154,7 @@ class ProgressionToFsbOrOfferService @Inject() (schemeRepository: SchemeReposito
 
   private def withErrLogging[T](logPrefix: String)(f: Future[T]): Future[T] = {
     f.recoverWith {
-      case ex: Throwable => Logger.warn(s"$logPrefix: ${ex.getMessage}", ex)
+      case ex: Throwable => logger.warn(s"$logPrefix: ${ex.getMessage}", ex)
         f
     }
   }

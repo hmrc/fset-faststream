@@ -18,7 +18,7 @@ package controllers
 
 import javax.inject.{ Inject, Singleton }
 import model.Exceptions.{ CannotFindApplicationByOrderIdException, CannotFindTestByCubiksId, CannotFindTestByOrderIdException }
-import play.api.Logger
+import play.api.Logging
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, ControllerComponents }
 import services.sift.{ ApplicationSiftService, SiftExpiryExtensionService }
@@ -30,7 +30,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class SiftCandidateController @Inject() (cc: ControllerComponents,
                                          siftExpiryExtensionService: SiftExpiryExtensionService,
                                          applicationSiftService: ApplicationSiftService
-                                        ) extends BackendController(cc) {
+                                        ) extends BackendController(cc) with Logging {
 
   def extend(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[SiftExtension] { extension =>
@@ -43,7 +43,7 @@ class SiftCandidateController @Inject() (cc: ControllerComponents,
     applicationSiftService.getSiftState(applicationId) map {
       case Some(siftState) =>
         Ok(Json.toJson(siftState))
-      case None => Logger.debug(s"No sift state found for applicationId: $applicationId")
+      case None => logger.debug(s"No sift state found for applicationId: $applicationId")
         NotFound
     }
   }
@@ -52,7 +52,7 @@ class SiftCandidateController @Inject() (cc: ControllerComponents,
     applicationSiftService.getTestGroup(applicationId) map {
       case Some(siftTest) =>
         Ok(Json.toJson(siftTest))
-      case None => Logger.debug(s"No sift test group found for applicationId: $applicationId")
+      case None => logger.debug(s"No sift test group found for applicationId: $applicationId")
         NotFound
     }
   }
@@ -61,13 +61,13 @@ class SiftCandidateController @Inject() (cc: ControllerComponents,
     applicationSiftService.getTestGroup2(applicationId) map {
       case Some(siftTest) =>
         Ok(Json.toJson(siftTest))
-      case None => Logger.debug(s"No sift test group found for applicationId: $applicationId")
+      case None => logger.debug(s"No sift test group found for applicationId: $applicationId")
         NotFound
     }
   }
 
   def startTest(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
-    Logger.info(s"Sift test started for cubiks id: $cubiksUserId")
+    logger.info(s"Sift test started for cubiks id: $cubiksUserId")
     applicationSiftService.markTestAsStarted(cubiksUserId)
       .map( _ => Ok )
       .recover {
@@ -76,7 +76,7 @@ class SiftCandidateController @Inject() (cc: ControllerComponents,
   }
 
   def startTest2(orderId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    Logger.info(s"Sift test started for order id: $orderId")
+    logger.info(s"Sift test started for order id: $orderId")
     applicationSiftService.markTestAsStarted2(orderId)
       .map( _ => Ok )
       .recover {

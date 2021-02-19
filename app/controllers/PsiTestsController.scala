@@ -19,7 +19,7 @@ package controllers
 import javax.inject.{ Inject, Singleton }
 import model.Exceptions.{ CannotFindApplicationByOrderIdException, CannotFindTestByOrderIdException }
 import model.exchange.PsiRealTimeResults
-import play.api.Logger
+import play.api.Logging
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent, ControllerComponents, Result }
 import services.NumericalTestService2
@@ -33,15 +33,15 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class PsiTestsController @Inject() (cc: ControllerComponents,
                                     phase1TestService2: Phase1TestService2,
                                     phase2TestService2: Phase2TestService2,
-                                    numericalTestService2: NumericalTestService2) extends BackendController(cc) {
+                                    numericalTestService2: NumericalTestService2) extends BackendController(cc) with Logging {
 
   def start(orderId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    Logger.info(s"Psi assessment started orderId=$orderId")
+    logger.info(s"Psi assessment started orderId=$orderId")
 
     phase1TestService2.markAsStarted2(orderId)
       .recoverWith {
         case e =>
-          Logger.warn(s"Something went wrong while saving start time: ${e.getMessage}")
+          logger.warn(s"Something went wrong while saving start time: ${e.getMessage}")
           phase2TestService2.markAsStarted2(orderId)
       }.map(_ => Ok)
         .recover(recoverNotFound)
@@ -53,7 +53,7 @@ class PsiTestsController @Inject() (cc: ControllerComponents,
     * any reason the token is wrong we still want to display the success page.
     */
   def completeTestByOrderId(orderId: String): Action[AnyContent] = Action.async { implicit request =>
-    Logger.info(s"Complete psi test by orderId=$orderId")
+    logger.info(s"Complete psi test by orderId=$orderId")
     phase1TestService2.markAsCompleted2(orderId)
       .recoverWith { case _: CannotFindTestByOrderIdException =>
           phase2TestService2.markAsCompleted2(orderId).recoverWith {
@@ -65,7 +65,7 @@ class PsiTestsController @Inject() (cc: ControllerComponents,
 
   def realTimeResults(orderId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[PsiRealTimeResults] { realTimeResults =>
-      Logger.info(s"We have received real time results for psi test orderId=$orderId. " +
+      logger.info(s"We have received real time results for psi test orderId=$orderId. " +
         s"Payload(json) = [${Json.toJson(realTimeResults).toString}], (deserialized) = [$realTimeResults]")
 
       phase1TestService2.storeRealTimeResults(orderId, realTimeResults)
@@ -80,10 +80,10 @@ class PsiTestsController @Inject() (cc: ControllerComponents,
 
   private def recoverNotFound[U >: Result]: PartialFunction[Throwable, U] = {
     case e @ CannotFindTestByOrderIdException(msg) =>
-      Logger.warn(msg, e)
+      logger.warn(msg, e)
       NotFound(msg)
     case e @ CannotFindApplicationByOrderIdException(msg) =>
-      Logger.warn(msg, e)
+      logger.warn(msg, e)
       NotFound(msg)
   }
 }

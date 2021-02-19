@@ -19,7 +19,7 @@ package services.sift
 import javax.inject.{ Inject, Singleton }
 import model._
 import model.persisted.sift.SiftAnswersStatus.SiftAnswersStatus
-import play.api.Logger
+import play.api.Logging
 import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.sift.SiftAnswersRepository
@@ -31,7 +31,7 @@ import scala.concurrent.Future
 class SiftAnswersService @Inject() (appRepo: GeneralApplicationRepository,
                                     siftAnswersRepo: SiftAnswersRepository,
                                     schemeRepository: SchemeRepository
-                                   ) {
+                                   ) extends Logging {
   def addSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId, answer: model.exchange.sift.SchemeSpecificAnswer): Future[Unit] = {
     siftAnswersRepo.addSchemeSpecificAnswer(applicationId, schemeId, model.persisted.sift.SchemeSpecificAnswer(answer))
   }
@@ -108,22 +108,22 @@ class SiftAnswersService @Inject() (appRepo: GeneralApplicationRepository,
     (hasNumericSchemes, siftTestResultsReceived) match {
       case (false, _) =>
         // No numeric schemes so move candidate to SIFT_READY
-        Logger.info(s"Candidate $applicationId has submitted sift forms and has no numeric schemes " +
+        logger.info(s"Candidate $applicationId has submitted sift forms and has no numeric schemes " +
           s"so moving to ${ProgressStatuses.SIFT_READY}")
         appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_READY)
       case (true, true) =>
         // Numeric schemes and the test results have been received so move candidate to SIFT_READY
-        Logger.info(s"Candidate $applicationId has submitted sift forms, has numeric schemes, has " +
+        logger.info(s"Candidate $applicationId has submitted sift forms, has numeric schemes, has " +
           s"taken the numeric test and received the results so moving to ${ProgressStatuses.SIFT_READY}")
         appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_READY)
       case (true, false) =>
         // Numeric schemes and the test results have not been received so move the candidate to NUMERIC_TEST_PENDING
-        Logger.info(s"Candidate $applicationId has submitted sift forms, has numeric schemes but has " +
+        logger.info(s"Candidate $applicationId has submitted sift forms, has numeric schemes but has " +
           s"not received test results so now moving to ${ProgressStatuses.SIFT_FORMS_COMPLETE_NUMERIC_TEST_PENDING}")
         appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_FORMS_COMPLETE_NUMERIC_TEST_PENDING)
       case _ =>
         // Do not move the candidate
-        Logger.info(s"Candidate $applicationId is not yet in a state to move to ${ProgressStatuses.SIFT_READY}")
+        logger.info(s"Candidate $applicationId is not yet in a state to move to ${ProgressStatuses.SIFT_READY}")
         Future.successful(())
     }
   }
@@ -136,11 +136,11 @@ class SiftAnswersService @Inject() (appRepo: GeneralApplicationRepository,
       passedSchemes == passedSchemesNotRequiringSift
 
     if(allPassedSchemesDoNotRequireSift) {
-      Logger.info(s"Candidate $applicationId has submitted sift forms and has no schemes requiring a sift so " +
+      logger.info(s"Candidate $applicationId has submitted sift forms and has no schemes requiring a sift so " +
         s"now moving to ${ProgressStatuses.SIFT_COMPLETED}")
       appRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_COMPLETED)
     } else {
-      Logger.info(s"Candidate $applicationId has schemes, which require sifting so cannot " +
+      logger.info(s"Candidate $applicationId has schemes, which require sifting so cannot " +
         s"move to ${ProgressStatuses.SIFT_COMPLETED}")
       Future.successful(())
     }

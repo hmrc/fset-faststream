@@ -23,7 +23,7 @@ import javax.inject.{ Inject, Singleton }
 import model.exchange.passmarksettings.Phase1PassMarkSettings
 import model.persisted.{ ApplicationReadyForEvaluation, CubiksTest }
 import model.{ Phase, SchemeId }
-import play.api.Logger
+import play.api.Logging
 import repositories.onlinetesting.{ OnlineTestEvaluationRepository, Phase1EvaluationMongoRepository }
 import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
@@ -38,17 +38,17 @@ class EvaluatePhase1ResultService @Inject() (@Named("Phase1EvaluationRepository"
                                              appConfig: MicroserviceAppConfig,
                                              val uuidFactory: UUIDFactory
                                             ) extends EvaluateOnlineTestResultService[Phase1PassMarkSettings] with Phase1TestSelector with
-  Phase1TestEvaluation with PassMarkSettingsService[Phase1PassMarkSettings] {
+  Phase1TestEvaluation with PassMarkSettingsService[Phase1PassMarkSettings] with Logging {
 
   override val gatewayConfig = appConfig.onlineTestsGatewayConfig
   override val phase = Phase.PHASE1
 
   def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettings): Future[Unit] = {
     if (application.isSdipFaststream && !passmark.schemes.exists(_.schemeId == SchemeId("Sdip"))) {
-      Logger.info(s"Evaluating Phase1 Sdip Faststream candidate with no Sdip passmarks set, so skipping - appId=${application.applicationId}")
+      logger.info(s"Evaluating Phase1 Sdip Faststream candidate with no Sdip passmarks set, so skipping - appId=${application.applicationId}")
       Future.successful(())
     } else {
-      Logger.info(s"Evaluating Phase1 appId=${application.applicationId}")
+      logger.info(s"Evaluating Phase1 appId=${application.applicationId}")
       val activeTests = application.activeCubiksTests
       require(activeTests.nonEmpty && activeTests.length <= 2, "Allowed active number of tests is 1 or 2")
       val sjqTestOpt = findFirstSjqTest(activeTests)
