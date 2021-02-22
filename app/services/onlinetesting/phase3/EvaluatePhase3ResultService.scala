@@ -24,7 +24,7 @@ import javax.inject.{ Inject, Singleton }
 import model.Phase
 import model.exchange.passmarksettings.Phase3PassMarkSettings
 import model.persisted.ApplicationReadyForEvaluation2
-import play.api.Logger
+import play.api.Logging
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.OnlineTestEvaluationRepository
 import repositories.passmarksettings.Phase3PassMarkSettingsMongoRepository
@@ -49,13 +49,13 @@ class EvaluatePhase3ResultService @Inject() (@Named("Phase3EvaluationRepository"
                                              appConfig: MicroserviceAppConfig,
                                              val uuidFactory: UUIDFactory
                                             ) extends EvaluateOnlineTestResultService2[Phase3PassMarkSettings] with Phase3TestEvaluation
-  with PassMarkSettingsService[Phase3PassMarkSettings] with ApplicationStatusCalculator with CurrentSchemeStatusHelper2 {
+  with PassMarkSettingsService[Phase3PassMarkSettings] with ApplicationStatusCalculator with CurrentSchemeStatusHelper2 with Logging {
 
   val phase = Phase.PHASE3
   val launchpadGWConfig = appConfig.launchpadGatewayConfig
 
   def evaluate(implicit application: ApplicationReadyForEvaluation2, passmark: Phase3PassMarkSettings): Future[Unit] = {
-    Logger.warn(s"Evaluating Phase3 appId=${application.applicationId}")
+    logger.warn(s"Evaluating Phase3 appId=${application.applicationId}")
 
     val optLaunchpadTest = application.activeLaunchpadTest
     require(optLaunchpadTest.isDefined, "Active launchpad test not found")
@@ -67,7 +67,7 @@ class EvaluatePhase3ResultService @Inject() (@Named("Phase3EvaluationRepository"
 
     if (launchpadGWConfig.phase3Tests.verifyAllScoresArePresent && !allQuestionsReviewed) {
       val msg = s"Some of the launchpad questions are not reviewed for application Id = ${application.applicationId} so terminating evaluation"
-      Logger.info(msg)
+      logger.info(msg)
       Future.successful(())
     } else {
       val schemeResults = (optLatestReviewed, application.prevPhaseEvaluation) match {
@@ -80,7 +80,7 @@ class EvaluatePhase3ResultService @Inject() (@Named("Phase3EvaluationRepository"
 
       getSdipResults(application).flatMap { sdip =>
         if (application.isSdipFaststream) {
-          Logger.debug(s"Phase3 appId=${application.applicationId} Sdip faststream application will persist the following Sdip results " +
+          logger.debug(s"Phase3 appId=${application.applicationId} Sdip faststream application will persist the following Sdip results " +
             s"read from current scheme status: $sdip")
         }
         savePassMarkEvaluation(application, schemeResults ++ sdip, passmark)

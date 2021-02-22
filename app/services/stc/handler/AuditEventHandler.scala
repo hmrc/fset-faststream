@@ -19,7 +19,7 @@ package services.stc.handler
 import com.google.inject.ImplementedBy
 import javax.inject.{ Inject, Singleton }
 import model.stc.{ AuditEvent, AuditEventNoRequest, AuditEventWithAppId }
-import play.api.Logger
+import play.api.Logging
 import play.api.mvc.RequestHeader
 import services.AuditService
 
@@ -32,10 +32,10 @@ trait AuditEventHandler extends StcEventHandler[AuditEvent] {
 }
 
 @Singleton
-class AuditEventHandlerImpl @Inject() (auditService: AuditService) extends AuditEventHandler {
+class AuditEventHandlerImpl @Inject() (auditService: AuditService) extends AuditEventHandler with Logging {
   def handle(event: AuditEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val sanitisedDetails = event.details - "email"
-    Logger.info(s"Audit event ${event.eventName}, details: $sanitisedDetails")
+    logger.info(s"Audit event ${event.eventName}, details: $sanitisedDetails")
     Future.successful {
       event match {
         case e: AuditEventWithAppId => auditService.logEvent(e.eventName, e.details)

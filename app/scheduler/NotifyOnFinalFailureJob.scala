@@ -18,7 +18,7 @@ package scheduler
 
 import config.WaitingScheduledJobConfig
 import javax.inject.{ Inject, Singleton }
-import play.api.{ Configuration, Logger }
+import play.api.{ Configuration, Logging }
 import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.application.FinalOutcomeService
@@ -32,7 +32,7 @@ class NotifyOnFinalFailureJobImpl @Inject() (val service: FinalOutcomeService,
                                              val config: NotifyOnFinalFailureJobConfig) extends NotifyOnFinalFailureJob {
 }
 
-trait NotifyOnFinalFailureJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
+trait NotifyOnFinalFailureJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {
   val service: FinalOutcomeService
 
   val batchSize: Int = config.conf.batchSize.getOrElse(10)
@@ -41,10 +41,10 @@ trait NotifyOnFinalFailureJob extends SingleInstanceScheduledJob[BasicJobConfig[
     implicit val hc = HeaderCarrier()
     service.nextApplicationsFinalFailNotification(batchSize).flatMap {
       case Nil =>
-        Logger.info("Progress to final failure notified complete - no candidates found")
+        logger.info("Progress to final failure notified complete - no candidates found")
         Future.successful(())
       case applications => service.progressApplicationsToFinalFailureNotified(applications).map { result =>
-        Logger.info(
+        logger.info(
           s"Progress to final failure notified complete - ${result.successes.size} updated and ${result.failures.size} failed to update"
         )
       }

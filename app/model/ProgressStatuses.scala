@@ -22,7 +22,7 @@ import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 import scala.language.implicitConversions
 
-// scalastyle:off number.of.methods
+// scalastyle:off number.of.methods number.of.types
 object ProgressStatuses {
   sealed abstract class ProgressStatus(val applicationStatus: ApplicationStatus) {
     def key = toString

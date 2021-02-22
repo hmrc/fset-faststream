@@ -20,9 +20,9 @@ import model.EvaluationResults._
 import model.SchemeId
 import model.exchange.passmarksettings.{ AssessmentCentrePassMarkSettings, PassMarkThreshold }
 import model.persisted.SchemeEvaluationResult
-import play.api.Logger
+import play.api.Logging
 
-trait AssessmentCentreAllSchemesEvaluator {
+trait AssessmentCentreAllSchemesEvaluator extends Logging {
 
   def evaluateSchemes(appId: String,
                       passmark: AssessmentCentrePassMarkSettings,
@@ -59,7 +59,7 @@ trait AssessmentCentreAllSchemesEvaluator {
     else {
       Amber
     }
-    Logger.debug(s"[FSAC evaluate score] $appId - $name,score=$score,passMarks=$threshold,result=$result")
+    logger.debug(s"[FSAC evaluate score] $appId - $name,score=$score,passMarks=$threshold,result=$result")
     result
   }
 
@@ -70,7 +70,7 @@ trait AssessmentCentreAllSchemesEvaluator {
       case _ if results.contains(Amber) => Amber    // single green then green overall
       case _ if results.forall(_ == Green) => Green // all green then green overall
     }
-    Logger.info(s"[FSAC evaluator] - $applicationId combining results for $scheme: $results = $result")
+    logger.info(s"[FSAC evaluator] - $applicationId combining results for $scheme: $results = $result")
     result
   }
 }

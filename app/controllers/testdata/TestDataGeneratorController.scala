@@ -37,7 +37,7 @@ import model.testdata.CreateCandidateAllocationData
 import model.testdata.CreateEventData
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import org.joda.time.{ LocalDate, LocalTime }
-import play.api.Logger
+import play.api.Logging
 import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
 import play.api.mvc.{ Action, AnyContent, ControllerComponents, RequestHeader }
 import repositories.events.LocationsWithVenuesRepository
@@ -61,7 +61,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
                                              appConfig: MicroserviceAppConfig,
                                              uuidFactory: UUIDFactory,
                                              dataFaker: DataFaker
-                                            ) extends BackendController(cc) {
+                                            ) extends BackendController(cc) with Logging {
 
   def ping = Action { implicit request =>
     Ok("OK")
@@ -360,13 +360,13 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
       }
     } catch {
       case etex: EmailTakenException =>
-        Logger.error("TDG: Email has been already taken. Try with another one by changing the emailPrefix parameter.")
-        Logger.error(etex.getStackTrace.toString)
+        logger.error("TDG: Email has been already taken. Try with another one by changing the emailPrefix parameter.")
+        logger.error(etex.getStackTrace.toString)
         Future.successful(Conflict(JsObject(List(("message",
           JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
       case ex: Throwable =>
-        Logger.error(s"TDG: There was an exception creating the candidate. Message=[$ex].")
-        Logger.error(s"TDG: ${ex.getCause}")
+        logger.error(s"TDG: There was an exception creating the candidate. Message=[$ex].")
+        logger.error(s"TDG: ${ex.getCause}")
         Future.successful(Conflict(JsObject(List(("message",
           JsString(s"There was an exception creating the candidate. Message=[${ex.getMessage}]"))))))
     }

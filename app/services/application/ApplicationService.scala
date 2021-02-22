@@ -33,7 +33,7 @@ import model.stc.StcEventTypes._
 import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
 import model.{ ProgressStatuses, _ }
 import org.joda.time.DateTime
-import play.api.Logger
+import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
@@ -67,7 +67,7 @@ object ApplicationService {
     Exception(s"$applicationId / $currentSchemeStatus / $newSchemeStatus")
 }
 
-// scalastyle:off number.of.methods
+// scalastyle:off number.of.methods file.size.limit
 @Singleton
 class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
                                     pdRepository: PersonalDetailsRepository,
@@ -105,7 +105,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
                                     assessorAssessmentScoresRepository: AssessorAssessmentScoresMongoRepository,
                                     reviewerAssessmentScoresRepository: ReviewerAssessmentScoresMongoRepository,
                                     val eventService: StcEventService
-                                   ) extends EventSink with CurrentSchemeStatusHelper {
+                                   ) extends EventSink with CurrentSchemeStatusHelper with Logging {
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   val Candidate_Role = "Candidate"
@@ -194,16 +194,16 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
 
       if (shouldProgressSdipFaststreamCandidateToFsb) {
         appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.FSB_AWAITING_ALLOCATION).map { _ =>
-          Logger.info(s"Candidate $applicationId withdrawing scheme will be moved to ${ProgressStatuses.FSB_AWAITING_ALLOCATION}")
+          logger.info(s"Candidate $applicationId withdrawing scheme will be moved to ${ProgressStatuses.FSB_AWAITING_ALLOCATION}")
           AuditEvents.AutoProgressedToFSB(Map("applicationId" -> applicationId, "reason" -> "last fast stream scheme withdrawn")) :: Nil
         }
       } else if (shouldProgressToFSAC) {
         appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION).map { _ =>
-          Logger.info(s"Candidate $applicationId withdrawing scheme will be moved to ${ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION}")
+          logger.info(s"Candidate $applicationId withdrawing scheme will be moved to ${ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION}")
           AuditEvents.AutoProgressedToFSAC(Map("applicationId" -> applicationId, "reason" -> "last siftable scheme withdrawn")) :: Nil
         }
       } else {
-        Logger.info(s"Candidate $applicationId withdrawing scheme will not be moved to " +
+        logger.info(s"Candidate $applicationId withdrawing scheme will not be moved to " +
           s"${ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION}")
         Future.successful(())
       }
@@ -239,10 +239,10 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
         numericTestRequirementSatisfied && formRequirementSatisfied && siftEvaluationNeeded
 
       if (shouldProgressCandidate) {
-        Logger.info(s"Candidate $applicationId withdrawing scheme will be moved to ${ProgressStatuses.SIFT_READY}")
+        logger.info(s"Candidate $applicationId withdrawing scheme will be moved to ${ProgressStatuses.SIFT_READY}")
         appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_READY).map { _ => }
       } else {
-        Logger.info(s"Candidate $applicationId withdrawing scheme will not be moved to ${ProgressStatuses.SIFT_READY}")
+        logger.info(s"Candidate $applicationId withdrawing scheme will not be moved to ${ProgressStatuses.SIFT_READY}")
         Future.successful(()) }
     }
 
@@ -1197,7 +1197,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
         "applicationRoute" -> app.applicationRoute.getOrElse("").toString)))
       case Success(None) => None
       case Failure(e) =>
-        Logger.error(s"Failed to update ${fixBatch.fix.name}", e)
+        logger.error(s"Failed to update ${fixBatch.fix.name}", e)
         None
     }.toList
   }

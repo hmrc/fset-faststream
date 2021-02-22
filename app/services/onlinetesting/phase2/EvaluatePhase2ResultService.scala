@@ -22,7 +22,6 @@ import javax.inject.{ Inject, Singleton }
 import model.Phase
 import model.exchange.passmarksettings.Phase2PassMarkSettings
 import model.persisted.ApplicationReadyForEvaluation
-import play.api.Logger
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.OnlineTestEvaluationRepository
 import repositories.passmarksettings.Phase2PassMarkSettingsMongoRepository
@@ -45,7 +44,7 @@ class EvaluatePhase2ResultService @Inject() (@Named("Phase2EvaluationRepository"
   override val phase = Phase.PHASE2
 
   def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase2PassMarkSettings): Future[Unit] = {
-    Logger.debug(s"Evaluating phase2 appId=${application.applicationId}")
+    logger.debug(s"Evaluating phase2 appId=${application.applicationId}")
 
     val activeTests = application.activeCubiksTests
     require(activeTests.nonEmpty && activeTests.length == 1, "Allowed active number of tests is 1")
@@ -62,7 +61,7 @@ class EvaluatePhase2ResultService @Inject() (@Named("Phase2EvaluationRepository"
 
     getSdipResults(application).flatMap { sdip =>
       if (application.isSdipFaststream) {
-        Logger.debug(s"Phase2 appId=${application.applicationId} Sdip faststream application will persist the following Sdip results " +
+        logger.debug(s"Phase2 appId=${application.applicationId} Sdip faststream application will persist the following Sdip results " +
           s"read from current scheme status: $sdip")
       }
       savePassMarkEvaluation(application, schemeResults ++ sdip , passmark)

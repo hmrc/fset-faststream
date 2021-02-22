@@ -26,7 +26,7 @@ import model.persisted._
 import model.stc.StcEventTypes._
 import model.stc.{ AuditEvents, DataStoreEvents }
 import org.joda.time.DateTime
-import play.api.Logger
+import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -40,7 +40,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.Try
 
 // This is the guice injected version
-trait OnlineTestService extends TimeExtension with EventSink {
+trait OnlineTestService extends TimeExtension with EventSink with Logging {
   type U <: Test
   type T <: TestProfile[U]
   type RichTestGroup <: TestGroupWithIds[U, T]
@@ -71,10 +71,10 @@ trait OnlineTestService extends TimeExtension with EventSink {
                                     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     appRepository.findTestForNotification(notificationType).flatMap {
       case Some(test) =>
-        Logger.warn(s"Candidate found to notify they successfully $operation tests in $phase - appId=${test.applicationId}")
+        logger.warn(s"Candidate found to notify they successfully $operation tests in $phase - appId=${test.applicationId}")
         processTestForNotification(test, notificationType)
       case None =>
-        Logger.warn(s"No candidate found to notify they successfully $operation tests in $phase")
+        logger.warn(s"No candidate found to notify they successfully $operation tests in $phase")
         Future.successful(())
     }
   }
@@ -90,10 +90,10 @@ trait OnlineTestService extends TimeExtension with EventSink {
   def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     testRepository.nextExpiringApplication(expiryTest).flatMap {
       case Some(expiredCandidate) =>
-        Logger.info(s"Found candidate ${expiredCandidate.applicationId} to expire in ${expiryTest.phase}")
+        logger.info(s"Found candidate ${expiredCandidate.applicationId} to expire in ${expiryTest.phase}")
         processExpiredTest(expiredCandidate, expiryTest)
       case None =>
-        Logger.info(s"No candidates found to expire in ${expiryTest.phase}")
+        logger.info(s"No candidates found to expire in ${expiryTest.phase}")
         Future.successful(())
     }
   }
@@ -147,7 +147,7 @@ trait OnlineTestService extends TimeExtension with EventSink {
 
   @deprecated("use event sink instead", "2016-10-18")
   protected def audit(event: String, userId: String, emailAddress: Option[String] = None): Unit = {
-    Logger.info(s"$event for user $userId")
+    logger.info(s"$event for user $userId")
     auditService.logEventNoRequest(
       event,
       Map("userId" -> userId) ++ emailAddress.map("email" -> _).toMap

@@ -18,7 +18,7 @@ package controllers
 
 import javax.inject.{ Inject, Singleton }
 import model.command.{ FastPassEvaluation, ProcessedFastPassCandidate }
-import play.api.Logger
+import play.api.Logging
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, ControllerComponents }
 import services.fastpass.FastPassService
@@ -28,7 +28,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
 class FastPassApprovalController @Inject() (cc: ControllerComponents,
-                                            fastPassService: FastPassService) extends BackendController(cc) {
+                                            fastPassService: FastPassService) extends BackendController(cc) with Logging {
 
   def processFastPassCandidate(userId: String, applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[FastPassEvaluation] { req =>
@@ -37,7 +37,7 @@ class FastPassApprovalController @Inject() (cc: ControllerComponents,
         Ok(Json.toJson(ProcessedFastPassCandidate(firstName, lastName)))
       }.recover {
         case ex : IllegalStateException =>
-          Logger.warn(ex.getMessage)
+          logger.warn(ex.getMessage)
           Forbidden(ex.getMessage)
       }
     }

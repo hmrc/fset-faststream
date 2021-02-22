@@ -37,7 +37,6 @@ import model.persisted.fsb.ScoresAndFeedback
 import model.{ ApplicationStatus, _ }
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{ DateTime, LocalDate }
-import play.api.Logger
 import play.api.libs.json.{ JsNumber, JsObject, Json }
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.Cursor.FailOnError
@@ -972,7 +971,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
                                                         eventType: EventType,
                                                         schemeId: Option[SchemeId]
                                                        ): Future[CandidatesEligibleForEventResponse] = {
-    Logger.info("Finding candidates eligible for event allocation with " +
+    logger.info("Finding candidates eligible for event allocation with " +
       s"maxNumberOfCandidates = ${appConfig.eventsConfig.maxNumberOfCandidates}")
     val appStatus = eventType.applicationStatus
     val status = EventProgressStatuses.get(appStatus)

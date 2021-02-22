@@ -19,7 +19,7 @@ package controllers
 import javax.inject.{ Inject, Singleton }
 import model.Exceptions.CannotFindTestByCubiksId
 import model.exchange.CubiksTestResultReady
-import play.api.Logger
+import play.api.Logging
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, ControllerComponents, Result }
 import services.NumericalTestService
@@ -36,10 +36,10 @@ class CubiksTestsController @Inject() (cc: ControllerComponents,
                                        phase2TestService: Phase2TestService,
                                        numericalTestService: NumericalTestService,
                                        eventService: StcEventService
-                                      ) extends BackendController(cc) {
+                                      ) extends BackendController(cc) with Logging {
 
   def start(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
-    Logger.info(s"Cubiks userId $cubiksUserId assessment started")
+    logger.info(s"Cubiks userId $cubiksUserId assessment started")
     phase1TestService.markAsStarted(cubiksUserId)
       .recoverWith { case _: CannotFindTestByCubiksId =>
           phase2TestService.markAsStarted(cubiksUserId)
@@ -48,7 +48,7 @@ class CubiksTestsController @Inject() (cc: ControllerComponents,
   }
 
   def complete(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
-    Logger.info(s"Cubiks userId $cubiksUserId assessment completed")
+    logger.info(s"Cubiks userId $cubiksUserId assessment completed")
     phase1TestService.markAsCompleted(cubiksUserId).recoverWith {
       case _: CannotFindTestByCubiksId =>
           phase2TestService.markAsCompleted(cubiksUserId).recoverWith {
@@ -65,7 +65,7 @@ class CubiksTestsController @Inject() (cc: ControllerComponents,
     * any reason the token is wrong we still want to display the success page.
     */
   def completeTestByToken(token: String) = Action.async { implicit request =>
-    Logger.info(s"Complete test by token $token")
+    logger.info(s"Complete test by token $token")
     phase1TestService.markAsCompleted(token)
       .recoverWith { case _: CannotFindTestByCubiksId =>
           phase2TestService.markAsCompleted(token).recoverWith {
@@ -78,7 +78,7 @@ class CubiksTestsController @Inject() (cc: ControllerComponents,
 
   def markResultsReady(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     withJsonBody[CubiksTestResultReady] { testResultReady =>
-      Logger.info(s"Cubiks user $cubiksUserId has xml results report ready to download. " +
+      logger.info(s"Cubiks user $cubiksUserId has xml results report ready to download. " +
         s"Payload(json) = [${Json.toJson(testResultReady).toString}], (deserialized) = [$testResultReady]")
       phase1TestService.markAsReportReadyToDownload(cubiksUserId, testResultReady)
         .recoverWith { case _: CannotFindTestByCubiksId =>
@@ -93,7 +93,7 @@ class CubiksTestsController @Inject() (cc: ControllerComponents,
 
   private def recoverNotFound[U >: Result]: PartialFunction[Throwable, U] = {
     case e @ CannotFindTestByCubiksId(msg) =>
-      Logger.warn(msg, e)
+      logger.warn(msg, e)
       NotFound
   }
 }

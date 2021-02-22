@@ -18,7 +18,6 @@ package repositories
 
 import javax.inject.{ Inject, Singleton }
 import org.joda.time.{ DateTime, Duration }
-import play.api.Logger
 import play.api.libs.json.{ Format, JsObject, JsValue, Json }
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.DB
@@ -76,18 +75,18 @@ class LockMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
   def lock(reqLockId: String, reqOwner: String, forceReleaseAfter: Duration): Future[Boolean] = withCurrentTime { now =>
     collection.delete().one(Json.obj(id -> reqLockId, expiryTime -> Json.obj("$lte" -> now))).flatMap { writeResult =>
       if (writeResult.n != 0) {
-        Logger.info(s"Removed ${writeResult.n} expired locks for $reqLockId")
+        logger.info(s"Removed ${writeResult.n} expired locks for $reqLockId")
       }
 
       collection.insert(ordered = false).one(
         Json.obj(id -> reqLockId, owner -> reqOwner, timeCreated -> now, expiryTime -> now.plus(forceReleaseAfter)))
         .map { _ =>
-          Logger.debug(s"Took lock '$reqLockId' for '$reqOwner' at $now.  Expires at: ${now.plus(forceReleaseAfter)}")
+          logger.debug(s"Took lock '$reqLockId' for '$reqOwner' at $now.  Expires at: ${now.plus(forceReleaseAfter)}")
           true
         }
         .recover {
           case e: DatabaseException if e.code.contains(DuplicateKey) =>
-            Logger.debug(s"Unable to take lock '$reqLockId' for '$reqOwner'")
+            logger.debug(s"Unable to take lock '$reqLockId' for '$reqOwner'")
             false
         }
     }
@@ -101,7 +100,7 @@ class LockMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
   }
 
   def releaseLock(reqLockId: String, reqOwner: String): Future[Unit] = {
-    Logger.debug(s"Releasing lock '$reqLockId' for '$reqOwner'")
+    logger.debug(s"Releasing lock '$reqLockId' for '$reqOwner'")
     collection.delete().one(Json.obj(id -> reqLockId, owner -> reqOwner)).map(_ => ())
   }
 }

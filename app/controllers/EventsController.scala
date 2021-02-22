@@ -16,16 +16,17 @@
 
 package controllers
 
-import javax.inject.{ Inject, Singleton }
-import model.Exceptions.{ EventNotFoundException, OptimisticLockException }
-import model.exchange.{ AssessorAllocations, Event => ExchangeEvent }
+import javax.inject.{Inject, Singleton}
+import model.Exceptions.{EventNotFoundException, OptimisticLockException}
+import model.exchange.{AssessorAllocations, Event => ExchangeEvent}
 import model.persisted.eventschedules.EventType.EventType
-import model.persisted.eventschedules.{ Event, EventType, UpdateEvent }
-import model.{ command, exchange }
-import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent, ControllerComponents }
+import model.persisted.eventschedules.{Event, EventType, UpdateEvent}
+import model.{command, exchange}
+import play.api.Logging
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import repositories.application.GeneralApplicationRepository
-import repositories.events.{ LocationsWithVenuesRepository, UnknownVenueException }
+import repositories.events.{LocationsWithVenuesRepository, UnknownVenueException}
 import services.allocation.AssessorAllocationService
 import services.events.EventsService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -38,7 +39,7 @@ class EventsController @Inject() (cc: ControllerComponents,
                                   locationsAndVenuesRepository: LocationsWithVenuesRepository,
                                   assessorAllocationService: AssessorAllocationService,
                                   applicationRepository: GeneralApplicationRepository
-                                 ) extends BackendController(cc) {
+                                 ) extends BackendController(cc) with Logging {
 
   def saveAssessmentEvents(): Action[AnyContent] = Action.async { implicit request =>
     eventsService.saveAssessmentEvents().map(_ => Created("Events saved"))
@@ -110,7 +111,7 @@ class EventsController @Inject() (cc: ControllerComponents,
       assessorAllocationService.allocate(newAllocations).map(_ => Ok)
           .recover {
             case e: OptimisticLockException =>
-              play.api.Logger.warn(s"Error occurred when allocating assessor for event:$eventId: ${e.getMessage} - " +
+              logger.warn(s"Error occurred when allocating assessor for event:$eventId: ${e.getMessage} - " +
                 s"will return http $CONFLICT}")
               Conflict(e.getMessage)
           }

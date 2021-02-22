@@ -20,7 +20,7 @@ import factories.UUIDFactory
 import model.Phase
 import model.exchange.passmarksettings.PassMarkSettings
 import model.persisted.{ ApplicationReadyForEvaluation2, PassmarkEvaluation, SchemeEvaluationResult }
-import play.api.Logger
+import play.api.Logging
 import play.api.libs.json.Format
 import repositories.onlinetesting.OnlineTestEvaluationRepository
 import services.onlinetesting.ApplicationStatusCalculator
@@ -29,7 +29,7 @@ import services.passmarksettings.PassMarkSettingsService
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 // PSI version - uses guice injected repos
-trait EvaluateOnlineTestResultService2[T <: PassMarkSettings] extends ApplicationStatusCalculator {
+trait EvaluateOnlineTestResultService2[T <: PassMarkSettings] extends ApplicationStatusCalculator with Logging {
   this: PassMarkSettingsService[T] =>
 
   val evaluationRepository: OnlineTestEvaluationRepository
@@ -40,7 +40,7 @@ trait EvaluateOnlineTestResultService2[T <: PassMarkSettings] extends Applicatio
 
   def nextCandidatesReadyForEvaluation(batchSize: Int)(implicit jsonFormat: Format[T]):
   Future[Option[(List[ApplicationReadyForEvaluation2], T)]] = {
-    Logger.warn(s"Looking for candidates for $phase evaluation. Batch size=$batchSize")
+    logger.warn(s"Looking for candidates for $phase evaluation. Batch size=$batchSize")
     getLatestPassMarkSettings flatMap {
       case Some(passmark) =>
         evaluationRepository.nextApplicationsReadyForEvaluation2(passmark.version, batchSize) map { candidates =>
@@ -62,7 +62,7 @@ trait EvaluateOnlineTestResultService2[T <: PassMarkSettings] extends Applicatio
         determineApplicationStatus(application.applicationRoute, application.applicationStatus, schemeResults, phase)
       )
     } else {
-      Logger.warn(s"AppId=${application.applicationId} has no schemeResults so will not evaluate. " +
+      logger.warn(s"AppId=${application.applicationId} has no schemeResults so will not evaluate. " +
         s"Have all pass marks been set including Edip/Sdip?")
       Future.successful(())
     }

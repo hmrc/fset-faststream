@@ -17,14 +17,15 @@
 package scheduler
 
 import config.WaitingScheduledJobConfig
-import javax.inject.{ Inject, Singleton }
-import play.api.Configuration
+
+import javax.inject.{Inject, Singleton}
+import play.api.{Configuration, Logging}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.application.FsbService
 import services.sift.ApplicationSiftService
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SiftFailureJob @Inject() (service: ApplicationSiftService,
@@ -50,7 +51,7 @@ class SiftFailureJobConfig @Inject() (config: Configuration) extends BasicJobCon
 class FsbOverallFailureJob @Inject() (service: FsbService,
                                       val mongoComponent: ReactiveMongoComponent,
                                       val config: FsbOverallFailureJobConfig
-                                     ) extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
+                                     ) extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {
   //  val service = FsbService
   //  val config = FsbOverallFailureJobConfig
   lazy val batchSize = config.conf.batchSize.getOrElse(1)
@@ -61,7 +62,7 @@ class FsbOverallFailureJob @Inject() (service: FsbService,
       val failedAppIds = result.failures.map( _.applicationId )
       val msg = s"FSB failure job complete - ${result.successes.size} updated, appIds: ${successfulAppIds.mkString(",")} " +
         s"and ${result.failures.size} failed to update, appIds: ${failedAppIds.mkString(",")}"
-      play.api.Logger.warn(msg)
+      logger.warn(msg)
     }
   }
 }

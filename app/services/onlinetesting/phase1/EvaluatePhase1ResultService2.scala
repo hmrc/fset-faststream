@@ -24,7 +24,7 @@ import javax.inject.{ Inject, Singleton }
 import model.exchange.passmarksettings.Phase1PassMarkSettings
 import model.persisted.{ ApplicationReadyForEvaluation2, PsiTest }
 import model.{ Phase, SchemeId }
-import play.api.Logger
+import play.api.Logging
 import repositories.onlinetesting.{ OnlineTestEvaluationRepository, Phase1EvaluationMongoRepository }
 import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import scheduler.onlinetesting.EvaluateOnlineTestResultService2
@@ -38,17 +38,17 @@ class EvaluatePhase1ResultService2 @Inject() (@Named("Phase1EvaluationRepository
                                               appConfig: MicroserviceAppConfig,
                                               val uuidFactory: UUIDFactory
                                              ) extends EvaluateOnlineTestResultService2[Phase1PassMarkSettings] with Phase1TestSelector2 with
-  Phase1TestEvaluation2 with PassMarkSettingsService[Phase1PassMarkSettings] {
+  Phase1TestEvaluation2 with PassMarkSettingsService[Phase1PassMarkSettings] with Logging {
 
   val phase = Phase.PHASE1
   val gatewayConfig = appConfig.testIntegrationGatewayConfig
 
   def evaluate(implicit application: ApplicationReadyForEvaluation2, passmark: Phase1PassMarkSettings): Future[Unit] = {
     if (application.isSdipFaststream && !passmark.schemes.exists(_.schemeId == SchemeId("Sdip"))) {
-      Logger.warn(s"Evaluating Phase1 Sdip Faststream candidate with no Sdip passmarks set, so skipping - appId=${application.applicationId}")
+      logger.warn(s"Evaluating Phase1 Sdip Faststream candidate with no Sdip passmarks set, so skipping - appId=${application.applicationId}")
       Future.successful(())
     } else {
-      Logger.warn(s"Evaluating Phase1 appId=${application.applicationId}")
+      logger.warn(s"Evaluating Phase1 appId=${application.applicationId}")
 
       val activeTests = application.activePsiTests
       require(activeTests.nonEmpty && (activeTests.length == 2 || activeTests.length == 4), "Allowed active number of tests is 2 or 4")

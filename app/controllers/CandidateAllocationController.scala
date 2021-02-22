@@ -21,7 +21,7 @@ import model.Exceptions.OptimisticLockException
 import model.persisted.CandidateAllocation
 import model.persisted.eventschedules.EventType.EventType
 import model.{ command, exchange }
-import play.api.Logger
+import play.api.Logging
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import services.allocation.CandidateAllocationService
@@ -31,7 +31,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
 class CandidateAllocationController @Inject() (cc: ControllerComponents,
-                                               candidateAllocationService: CandidateAllocationService) extends BackendController(cc) {
+                                               candidateAllocationService: CandidateAllocationService)
+  extends BackendController(cc) with Logging {
 
   def confirmAllocation(eventId: String, sessionId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[exchange.CandidateAllocations] { candidateAllocations =>
@@ -51,13 +52,13 @@ class CandidateAllocationController @Inject() (cc: ControllerComponents,
         _ => Ok
       }.recover {
         case e: OptimisticLockException =>
-          Logger.debug(s"Caught OptimisticLockException for eventId=$eventId, sessionId=$sessionId " +
+          logger.debug(s"Caught OptimisticLockException for eventId=$eventId, sessionId=$sessionId " +
             s"so will return a http $CONFLICT back to client")
           Conflict(e.getMessage)
         case e =>
           // Log the data we are trying to save as this operation may perform a deletion first and there is no rollback
           val data = candidateAllocations.allocations.map( ca => s"[applicationId=${ca.id},status=${ca.status}]").mkString(",")
-          Logger.error(
+          logger.error(
             s"Error occurred trying to allocate candidates to eventId:$eventId, sessionId:$sessionId. Data=$data. Error=${e.getMessage}"
           )
           throw e // Will result in internal server error for the operation

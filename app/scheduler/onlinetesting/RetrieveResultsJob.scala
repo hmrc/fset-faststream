@@ -19,7 +19,7 @@ package scheduler.onlinetesting
 
 import config.WaitingScheduledJobConfig
 import javax.inject.{ Inject, Singleton }
-import play.api.{ Configuration, Logger }
+import play.api.{ Configuration, Logging }
 import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
@@ -50,18 +50,18 @@ class RetrievePhase2ResultsJob @Inject() (val onlineTestingService: Phase2TestSe
   val phase = "PHASE2"
 }
 
-trait RetrieveResultsJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
+trait RetrieveResultsJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {
   val onlineTestingService: OnlineTestService
   val phase: String
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     onlineTestingService.nextTestGroupWithReportReady.flatMap {
       case Some(richTestGroup) =>
-        Logger.info(s"Now fetching results for candidate: ${richTestGroup.applicationId} in phase $phase")
+        logger.info(s"Now fetching results for candidate: ${richTestGroup.applicationId} in phase $phase")
         implicit val hc = HeaderCarrier()
         onlineTestingService.retrieveTestResult(richTestGroup)
       case None => {
-        Logger.info(s"No candidates found when looking to download results for phase $phase")
+        logger.info(s"No candidates found when looking to download results for phase $phase")
         Future.successful(())
       }
     }

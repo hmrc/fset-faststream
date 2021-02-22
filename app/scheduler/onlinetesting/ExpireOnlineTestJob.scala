@@ -21,7 +21,7 @@ import config.{ MicroserviceAppConfig, ScheduledJobConfig }
 import javax.inject.{ Inject, Singleton }
 import model._
 import play.api.mvc.RequestHeader
-import play.api.{ Configuration, Logger }
+import play.api.{ Configuration, Logging }
 import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
@@ -61,14 +61,14 @@ class ExpirePhase3TestJob @Inject() (@Named("Phase3OnlineTestService") val onlin
   //  val config = ExpirePhase3TestJobConfig
 }
 
-trait ExpireOnlineTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
+trait ExpireOnlineTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] with Logging {
   val onlineTestingService: OnlineTestService
   val expiryTest: TestExpirationEvent
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
     implicit val rh: RequestHeader = EmptyRequestHeader
-    Logger.debug(s"Running online test expiry job for ${expiryTest.phase} with gracePeriodInSecs = ${expiryTest.gracePeriodInSecs}")
+    logger.debug(s"Running online test expiry job for ${expiryTest.phase} with gracePeriodInSecs = ${expiryTest.gracePeriodInSecs}")
     onlineTestingService.processNextExpiredTest(expiryTest)
   }
 }

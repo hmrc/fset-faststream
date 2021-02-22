@@ -16,16 +16,17 @@
 
 package scheduler
 
-import javax.inject.{ Inject, Singleton }
+import play.api.Application
+import play.api.Logger.logger
 import play.api.inject.ApplicationLifecycle
-import play.api.{ Application, Logger }
-import scheduler.assessment.{ EvaluateAssessmentCentreJobConfig, EvaluateAssessmentCentreJobImpl }
-import scheduler.fixer.{ FixerJobConfig, FixerJobImpl }
-import scheduler.fsb.{ EvaluateFsbJobConfig, EvaluateFsbJobImpl }
+import scheduler.assessment.{EvaluateAssessmentCentreJobConfig, EvaluateAssessmentCentreJobImpl}
+import scheduler.fixer.{FixerJobConfig, FixerJobImpl}
+import scheduler.fsb.{EvaluateFsbJobConfig, EvaluateFsbJobImpl}
 import scheduler.onlinetesting._
 import scheduler.sift._
-import uk.gov.hmrc.play.scheduling.{ RunningOfScheduledJobs, ScheduledJob }
+import uk.gov.hmrc.play.scheduling.{RunningOfScheduledJobs, ScheduledJob}
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
@@ -118,14 +119,14 @@ class Scheduler @Inject()(
                            override val application: Application
                          )
                          (implicit val ec: ExecutionContext) extends RunningOfScheduledJobs {
-  Logger.info("Scheduler created")
+  logger.info("Scheduler created")
 
   private def maybeInitScheduler(config: BasicJobConfig[_], scheduler: => ScheduledJob): Option[ScheduledJob] = {
     if (config.enabled) {
-      Logger.warn(s"${config.name} job is enabled")
+      logger.warn(s"${config.name} job is enabled")
       Some(scheduler)
     } else {
-      Logger.warn(s"${config.name} job is disabled")
+      logger.warn(s"${config.name} job is disabled")
       None
     }
   }

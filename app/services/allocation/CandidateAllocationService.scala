@@ -18,29 +18,31 @@ package services.allocation
 
 import com.google.inject.name.Named
 import config.MicroserviceAppConfig
-import connectors.{ AuthProviderClient, OnlineTestEmailClient }
-import javax.inject.{ Inject, Singleton }
+import connectors.{AuthProviderClient, OnlineTestEmailClient}
+
+import javax.inject.{Inject, Singleton}
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.OptimisticLockException
 import model.ProgressStatuses.EventProgressStatuses
 import model._
 import model.command.CandidateAllocation
 import model.exchange.CandidatesEligibleForEventResponse
-import model.exchange.candidateevents.{ CandidateAllocationSummary, CandidateAllocationWithEvent, CandidateRemoveReason }
+import model.exchange.candidateevents.{CandidateAllocationSummary, CandidateAllocationWithEvent, CandidateRemoveReason}
 import model.persisted.eventschedules.EventType.EventType
-import model.persisted.eventschedules.{ Event, EventType }
-import model.persisted.{ ContactDetails, PersonalDetails }
-import model.stc.EmailEvents.{ CandidateAllocationConfirmationReminder, CandidateAllocationConfirmationRequest, CandidateAllocationConfirmed }
+import model.persisted.eventschedules.{Event, EventType}
+import model.persisted.{ContactDetails, PersonalDetails}
+import model.stc.EmailEvents.{CandidateAllocationConfirmationReminder, CandidateAllocationConfirmationRequest, CandidateAllocationConfirmed}
 import model.stc.StcEventTypes.StcEvents
 import org.joda.time.LocalDate
+import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
-import repositories.{ CandidateAllocationMongoRepository, SchemeRepository }
+import repositories.{CandidateAllocationMongoRepository, SchemeRepository}
 import services.allocation.CandidateAllocationService.CouldNotFindCandidateWithApplication
 import services.events.EventsService
-import services.stc.{ EventSink, StcEventService }
+import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -62,7 +64,7 @@ class CandidateAllocationService @Inject() (candidateAllocationRepo: CandidateAl
                                              @Named("CSREmailClient") emailClient: OnlineTestEmailClient, //TODO:fix change type
                                              authProviderClient: AuthProviderClient,
                                              appConfig: MicroserviceAppConfig
-                                            ) extends EventSink {
+                                            ) extends EventSink with Logging {
 
   private val dateFormat = "dd MMMM YYYY"
   private val eventsConfig = appConfig.eventsConfig
@@ -263,7 +265,7 @@ class CandidateAllocationService @Inject() (candidateAllocationRepo: CandidateAl
         command.CandidateAllocations(newAllocations.eventId, newAllocations.sessionId, toPersist)
       }
     } else {
-      play.api.Logger.debug(s"Going to throw OptimisticLockException because newAllocations.version=${newAllocations.version} " +
+      logger.debug(s"Going to throw OptimisticLockException because newAllocations.version=${newAllocations.version} " +
         s"does not match existing allocations version=${existingAllocations.version}")
       throw OptimisticLockException(s"Stored allocations for event ${newAllocations.eventId} have been updated since reading")
     }

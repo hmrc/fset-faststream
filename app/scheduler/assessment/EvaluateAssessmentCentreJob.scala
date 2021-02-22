@@ -18,7 +18,7 @@ package scheduler.assessment
 
 import config.WaitingScheduledJobConfig
 import javax.inject.{ Inject, Singleton }
-import play.api.{ Configuration, Logger }
+import play.api.{ Configuration, Logging }
 import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
@@ -34,21 +34,21 @@ class EvaluateAssessmentCentreJobImpl @Inject() (val applicationAssessmentServic
   //  val applicationAssessmentService: AssessmentCentreService = AssessmentCentreService
 }
 
-trait EvaluateAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
+trait EvaluateAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {
   val applicationAssessmentService: AssessmentCentreService
 
   //  val config = EvaluateAssessmentCentreJobConfig
   val batchSize: Int = config.conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    Logger.debug(s"EvaluateAssessmentCentreJob starting")
+    logger.debug(s"EvaluateAssessmentCentreJob starting")
     applicationAssessmentService.nextAssessmentCandidatesReadyForEvaluation(batchSize).map { candidateResults =>
       candidateResults.map { candidateResult =>
         if (candidateResult.schemes.isEmpty) {
-          Logger.debug(s"EvaluateAssessmentCentreJob - no non-RED schemes found so will not evaluate this candidate")
+          logger.debug(s"EvaluateAssessmentCentreJob - no non-RED schemes found so will not evaluate this candidate")
           Future.successful(())
         } else {
-          Logger.debug(s"EvaluateAssessmentCentreJob found candidate ${candidateResult.scores.applicationId} - now evaluating...")
+          logger.debug(s"EvaluateAssessmentCentreJob found candidate ${candidateResult.scores.applicationId} - now evaluating...")
           applicationAssessmentService.evaluateAssessmentCandidate(candidateResult)
         }
       }

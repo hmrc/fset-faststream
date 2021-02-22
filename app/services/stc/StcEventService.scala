@@ -20,7 +20,7 @@ import com.google.inject.ImplementedBy
 import javax.inject.{ Inject, Singleton }
 import model.stc.StcEventTypes.{ StcEventType, StcEvents }
 import model.stc.{ AuditEvent, DataStoreEvent, EmailEvent }
-import play.api.Logger
+import play.api.Logging
 import play.api.mvc.RequestHeader
 import services.stc.handler._
 
@@ -33,7 +33,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 class StcEventServiceImpl @Inject() (override val dataStoreEventHandler: DataStoreEventHandler,
                                      override val auditEventHandler: AuditEventHandler,
                                      override val emailEventHandler: EmailEventHandler
-                                    ) extends StcEventService {
+                                    ) extends StcEventService with Logging {
 
   // TODO: Error handling
   protected[stc] def handle(events: StcEvents)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
@@ -42,7 +42,7 @@ class StcEventServiceImpl @Inject() (override val dataStoreEventHandler: DataSto
       case event: AuditEvent => auditEventHandler.handle(event) //TODO:fix
       case event: EmailEvent => emailEventHandler.handle(event)
       case e => Future.successful {
-        Logger.warn(s"Unknown event type: $e")
+        logger.warn(s"Unknown event type: $e")
       }
     }
 

@@ -18,7 +18,7 @@ package services.reporting
 
 import javax.inject.{ Inject, Singleton }
 import model.persisted.{ UserApplicationProfile, UserIdWithEmail }
-import play.Logger
+import play.api.Logging
 import repositories.application.ReportingRepository
 import repositories.contactdetails.ContactDetailsRepository
 
@@ -31,7 +31,7 @@ case class DuplicateApplicationGroup(matchType: Int, candidates: Set[DuplicateCa
 
 @Singleton
 class DuplicateDetectionService @Inject() (reportingRepository: ReportingRepository,
-                                           cdRepository: ContactDetailsRepository) {
+                                           cdRepository: ContactDetailsRepository) extends Logging {
   private val HighProbabilityMatchGroup = 1
   private val MediumProbabilityMatchGroup = 2
 
@@ -46,8 +46,8 @@ class DuplicateDetectionService @Inject() (reportingRepository: ReportingReposit
       source = allCandidates
       population = allCandidates
     } yield {
-      Logger.debug(s"Detect duplications from ${source.length} candidates")
-      Logger.debug(s"Detect duplications in ${population.length} candidates")
+      logger.debug(s"Detect duplications from ${source.length} candidates")
+      logger.debug(s"Detect duplications in ${population.length} candidates")
       findDuplicates(source, population, userIdToEmailReference).groupBy(_.candidates).mapValues(_.head).values.toList
     }
   }

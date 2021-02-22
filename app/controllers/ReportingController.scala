@@ -19,22 +19,24 @@ package controllers
 import akka.stream.scaladsl.Source
 import com.google.inject.name.Named
 import common.Joda._
-import connectors.{ AuthProviderClient, ExchangeObjects }
-import javax.inject.{ Inject, Singleton }
-import model.ApplicationRoute.{ ApplicationRoute, Edip, Faststream, Sdip, SdipFaststream }
+import connectors.{AuthProviderClient, ExchangeObjects}
+
+import javax.inject.{Inject, Singleton}
+import model.ApplicationRoute.{ApplicationRoute, Edip, Faststream, Sdip, SdipFaststream}
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
-import model.Exceptions.{ NotFoundException, UnexpectedException }
+import model.Exceptions.{NotFoundException, UnexpectedException}
 import model._
 import model.assessmentscores.AssessmentScoresExercise
-import model.command.{ CandidateDetailsReportItem, CsvExtract }
+import model.command.{CandidateDetailsReportItem, CsvExtract}
 import model.persisted.eventschedules.Event
-import model.persisted.{ ApplicationForOnlineTestPassMarkReport, ContactDetailsWithId }
+import model.persisted.{ApplicationForOnlineTestPassMarkReport, ContactDetailsWithId}
 import model.report._
+import play.api.Logging
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.iteratee.streams.IterateeStreams
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent, ControllerComponents, Result }
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import repositories.application._
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.events.EventsRepository
@@ -49,7 +51,7 @@ import scala.collection.breakOut
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-// scalastyle:off number.of.methods
+// scalastyle:off number.of.methods file.size.limit
 @Singleton
 class ReportingController @Inject() (cc: ControllerComponents,
                                      reportingRepository: ReportingRepository,
@@ -67,7 +69,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
                                      candidateAllocationRepo: CandidateAllocationRepository,
                                      fsbRepository: FsbRepository,
                                      applicationRepository: GeneralApplicationRepository,
-                                     personalDetailsRepository: PersonalDetailsRepository) extends BackendController(cc) {
+                                     personalDetailsRepository: PersonalDetailsRepository) extends BackendController(cc) with Logging {
 
   def fsacScores(): Action[AnyContent] = Action.async { implicit request =>
     def removeFeedback(assessmentScoresExercise: AssessmentScoresExercise) =
@@ -388,7 +390,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
     CsvExtract[String],CsvExtract[String], CsvExtract[String]) => Result
 
   private def enrichPreviousYearCandidateDetails(applicationIds: Seq[String], userIds: Seq[String] = Nil)(block: ReportStreamBlockType) = {
-    def log(msg: String)= play.api.Logger.warn(s"streamPreviousYearCandidatesDetailsReport: $msg")
+    def log(msg: String)= logger.warn(s"streamPreviousYearCandidatesDetailsReport: $msg")
     log(s"started enriching data at ${org.joda.time.DateTime.now}")
     val data = for {
       contactDetails <- prevYearCandidatesDetailsRepository.findContactDetails(userIds)
@@ -1032,3 +1034,4 @@ class ReportingController @Inject() (cc: ControllerComponents,
     }
   }
 }
+//scalastyle:on

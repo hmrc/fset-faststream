@@ -18,7 +18,7 @@ package model
 
 import play.api.libs.json.{ Json, OFormat }
 
-// scalastyle:off number.of.methods
+// scalastyle:off number.of.methods number.of.types
 object Exceptions {
   sealed class ConnectorException(message: String) extends Exception(message)
 
@@ -152,4 +152,4 @@ object Exceptions {
   case class SiftExpiredException(m: String) extends Exception(m)
 }
 
-// scalastyle:on number.of.methods
+// scalastyle:on number.of.methods number.of.types

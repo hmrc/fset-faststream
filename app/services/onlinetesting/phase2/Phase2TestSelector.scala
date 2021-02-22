@@ -17,11 +17,11 @@
 package services.onlinetesting.phase2
 
 import config.{ Phase2Schedule, Phase2TestsConfig }
-import play.api.Logger
+import play.api.Logging
 
 import scala.util.Random
 
-trait Phase2TestSelector {
+trait Phase2TestSelector extends Logging {
   def testConfig: Phase2TestsConfig
 
   def schedulesAvailable(currentScheduleIds: List[Int]) = true
@@ -37,7 +37,7 @@ trait Phase2TestSelector {
       getAlwaysChooseSchedule.getOrElse((testConfig.scheduleNameByScheduleId(schedule.scheduleId), schedule))
     }
     testConfig.alwaysChooseSchedule.foreach { scheduleName =>
-      Logger.info(s"AlwaysChooseSchedule is configured so all candidates will be invited to take Etray schedule: $scheduleName")
+      logger.info(s"AlwaysChooseSchedule is configured so all candidates will be invited to take Etray schedule: $scheduleName")
     }
     result
   }

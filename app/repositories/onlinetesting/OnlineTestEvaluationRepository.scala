@@ -27,7 +27,6 @@ import model.ProgressStatuses.ProgressStatus
 import model.persisted._
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import model.{ ApplicationStatus, Phase => _, _ }
-import play.api.Logger
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.bson.{ BSONArray, BSONDocument, BSONDocumentReader, BSONObjectID }
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -74,7 +73,7 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
   def savePassmarkEvaluation(applicationId: String, evaluation: PassmarkEvaluation,
                              newProgressStatus: Option[ProgressStatus]): Future[Unit] = {
     // Warn level so we see it in prod logs
-    Logger.warn(s"applicationId = $applicationId - now saving progressStatus as $newProgressStatus")
+    logger.warn(s"applicationId = $applicationId - now saving progressStatus as $newProgressStatus")
 
     val selectQuery = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> applicationId),
@@ -278,7 +277,7 @@ class Phase3EvaluationMongoRepository @Inject() (//launchpadGatewayConfig: Launc
   })
 
   override def preEvaluationLogging(): Unit =
-    Logger.warn("Phase 3 evaluation is looking for candidates with results received " +
+    logger.warn("Phase 3 evaluation is looking for candidates with results received " +
       s"${launchpadGatewayConfig.phase3Tests.evaluationWaitTimeAfterResultsReceivedInHours} hours ago...")
 
   val nextApplicationQuery = (currentPassmarkVersion: String) => {

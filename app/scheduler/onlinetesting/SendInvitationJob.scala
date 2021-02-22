@@ -21,7 +21,7 @@ import config.ScheduledJobConfig
 import javax.inject.{ Inject, Singleton }
 import model.EmptyRequestHeader
 import play.api.mvc.RequestHeader
-import play.api.{ Configuration, Logger }
+import play.api.{ Configuration, Logging }
 import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
@@ -54,7 +54,7 @@ class SendPhase3InvitationJob @Inject() (@Named("Phase3OnlineTestService") val o
   val phase = "PHASE3"
 }
 
-trait SendInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
+trait SendInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] with Logging {
   val onlineTestingService: OnlineTestService
   val phase: String
   lazy val batchSize: Int = config.conf.batchSize.getOrElse(1)
@@ -62,11 +62,11 @@ trait SendInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[Schedu
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     onlineTestingService.nextApplicationsReadyForOnlineTesting(batchSize).flatMap {
       case Nil =>
-        Logger.warn(s"No candidates found to invite to phase $phase")
+        logger.warn(s"No candidates found to invite to phase $phase")
         Future.successful(())
       case applications =>
         val applicationIds = applications.map( _.applicationId ).mkString(",")
-        Logger.warn(s"Inviting the following candidates to phase $phase: $applicationIds")
+        logger.warn(s"Inviting the following candidates to phase $phase: $applicationIds")
         implicit val hc: HeaderCarrier = HeaderCarrier()
         implicit val rh: RequestHeader = EmptyRequestHeader
         //        onlineTestingService.registerAndInviteForTestGroup(applications)

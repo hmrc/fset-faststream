@@ -35,7 +35,7 @@ import model.persisted._
 import model.stc.StcEventTypes.StcEventType
 import model.stc.{ AuditEvent, AuditEvents, DataStoreEvents }
 import org.joda.time.DateTime
-import play.api.Logger
+import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -69,7 +69,7 @@ class Phase2TestService2 @Inject() (val appRepository: GeneralApplicationReposit
                                     appConfig: MicroserviceAppConfig,
                                     val eventService: StcEventService,
                                     actor: ActorSystem
-                                   ) extends OnlineTestService with Phase2TestConcern2 with ResetPhase2Test2 {
+                                   ) extends OnlineTestService with Phase2TestConcern2 with ResetPhase2Test2 with Logging {
   type TestRepository2 = Phase2TestRepository
 
   val integrationGatewayConfig = appConfig.testIntegrationGatewayConfig
@@ -149,28 +149,28 @@ class Phase2TestService2 @Inject() (val appRepository: GeneralApplicationReposit
       // Extract test that requires reset
       testToReset = testGroup.tests.find(_.orderId == orderIdToReset)
         .getOrElse(throw CannotFindTestByOrderIdException(s"OrderId - $orderIdToReset"))
-      _ = Logger.info(s"testToReset -- $testToReset")
+      _ = logger.info(s"testToReset -- $testToReset")
 
       // Create PsiIds to use for re-invitation
       psiIds = integrationGatewayConfig.phase2Tests.tests.find {
         case (_, ids) => ids.inventoryId == testToReset.inventoryId
       }.getOrElse(throw CannotFindTestByInventoryIdException(s"InventoryId - ${testToReset.inventoryId}"))._2
-      _ = Logger.info(s"psiIds -- $psiIds")
+      _ = logger.info(s"psiIds -- $psiIds")
 
       // Register applicant
       testInvite <- registerPsiApplicant(application, psiIds, invitationDate)
       newPsiTest = testInvite.psiTest
-      _ = Logger.info(s"newPsiTest -- $newPsiTest")
+      _ = logger.info(s"newPsiTest -- $newPsiTest")
 
       // Set old test to inactive
       testsWithInactiveTest = testGroup.tests
         .map { t => if (t.orderId == orderIdToReset) { t.copy(usedForResults = false) } else t }
-      _ = Logger.info(s"testsWithInactiveTest -- $testsWithInactiveTest")
+      _ = logger.info(s"testsWithInactiveTest -- $testsWithInactiveTest")
 
       // insert new test and maintain test order
       idxOfResetTest = testGroup.tests.indexWhere(_.orderId == orderIdToReset)
       updatedTests = insertTest(testsWithInactiveTest, idxOfResetTest, newPsiTest)
-      _ = Logger.info(s"updatedTests -- $updatedTests")
+      _ = logger.info(s"updatedTests -- $updatedTests")
 
       _ <- insertOrUpdateTestGroup(application)(testGroup.copy(expirationDate = expirationDate, tests = updatedTests))
       _ <- emailInviteToApplicant(application)(hc, rh, invitationDate, expirationDate)
@@ -188,9 +188,9 @@ class Phase2TestService2 @Inject() (val appRepository: GeneralApplicationReposit
                             orderId: String): Future[AssessmentCancelAcknowledgementResponse] = {
     val req = CancelCandidateTestRequest(orderId)
     onlineTestsGatewayClient.psiCancelTest(req).map { response =>
-      Logger.debug(s"Response from cancellation for orderId=$orderId")
+      logger.debug(s"Response from cancellation for orderId=$orderId")
       if (response.status != AssessmentCancelAcknowledgementResponse.completedStatus) {
-        Logger.debug(s"Cancellation failed with errors: ${response.details}")
+        logger.debug(s"Cancellation failed with errors: ${response.details}")
         throw TestCancellationException(s"appId=$appId, orderId=$orderId")
       } else {
         audit("TestCancelledForCandidate", userId)
@@ -230,7 +230,7 @@ class Phase2TestService2 @Inject() (val appRepository: GeneralApplicationReposit
     FutureEx.traverseSerial(applicationsWithTheSameType) { application =>
       registerCandidateForTests(application, standardTests).recover {
         case e: Exception =>
-          Logger.error(s"Error occurred registering candidate ${application.applicationId} with phase 2 tests - ${e.getMessage}")
+          logger.error(s"Error occurred registering candidate ${application.applicationId} with phase 2 tests - ${e.getMessage}")
       }
     }.map { _ => () }
   }
@@ -247,7 +247,7 @@ class Phase2TestService2 @Inject() (val appRepository: GeneralApplicationReposit
         val testIds = tests.getOrElse(testName, throw new Exception(s"Unable to find test ids when registering phase 2 candidate for $testName"))
         val delay = (delayModifier * integrationGatewayConfig.phase2Tests.testRegistrationDelayInSecs).second
         akka.pattern.after(delay, actor.scheduler) {
-          Logger.debug(s"Phase2TestService - about to call registerPsiApplicant for application=$application with testIds=$testIds")
+          logger.debug(s"Phase2TestService - about to call registerPsiApplicant for application=$application with testIds=$testIds")
           registerAndInviteForTestGroup2(application, testIds).map(_ => ())
         }
     }
@@ -290,7 +290,7 @@ class Phase2TestService2 @Inject() (val appRepository: GeneralApplicationReposit
     def identifyInventoryIdsCandidateIsMissing(registeredIds: Set[String], allIds: Set[String]) = allIds.diff(registeredIds)
 
     def registerCandidateForMissingTest(applicationId: String, psiTestIds: PsiTestIds) = {
-      Logger.warn(s"Candidate $applicationId needs to register for inventoryId:${psiTestIds.inventoryId}")
+      logger.warn(s"Candidate $applicationId needs to register for inventoryId:${psiTestIds.inventoryId}")
       implicit val hc = HeaderCarrier()
       for {
         onlineTestApplicationOpt <- testRepository2.applicationReadyForOnlineTesting(applicationId)
@@ -305,8 +305,8 @@ class Phase2TestService2 @Inject() (val appRepository: GeneralApplicationReposit
       } yield ()
     }
 
-    Logger.warn(s"Attempting to invite candidate $applicationId to missing P2 tests")
-    Logger.warn(s"Candidate $applicationId - the full set of inventoryIds=${allInventoryIds.mkString(",")}")
+    logger.warn(s"Attempting to invite candidate $applicationId to missing P2 tests")
+    logger.warn(s"Candidate $applicationId - the full set of inventoryIds=${allInventoryIds.mkString(",")}")
     for {
       status <- appRepository.findStatus(applicationId)
       _ = if (ApplicationStatus.PHASE2_TESTS.toString != status.status) {
@@ -314,7 +314,7 @@ class Phase2TestService2 @Inject() (val appRepository: GeneralApplicationReposit
       }
       phase2TestGroupOpt <- testRepository2.getTestGroup(applicationId)
       registeredInventoryIds = getCurrentlyRegisteredInventoryIds(phase2TestGroupOpt)
-      _ = Logger.warn(s"Candidate $applicationId is currently registered with tests whose inventory ids=${registeredInventoryIds.mkString(",")}")
+      _ = logger.warn(s"Candidate $applicationId is currently registered with tests whose inventory ids=${registeredInventoryIds.mkString(",")}")
       idsToRegisterFor = identifyInventoryIdsCandidateIsMissing(registeredInventoryIds, allInventoryIds)
       _ = if (idsToRegisterFor.size != 1) {
         val idsToRegisterForText = if (idsToRegisterFor.isEmpty){ "empty" } else { idsToRegisterFor.mkString(",") }
@@ -394,7 +394,7 @@ class Phase2TestService2 @Inject() (val appRepository: GeneralApplicationReposit
       if (aoa.status != AssessmentOrderAcknowledgement.acknowledgedStatus) {
         val msg = s"Received response status of ${aoa.status} when registering candidate " +
           s"${application.applicationId} to phase2 tests with Ids=$testIds"
-        Logger.warn(msg)
+        logger.warn(msg)
         throw TestRegistrationException(msg)
       } else {
         val psiTest = PsiTest(
@@ -607,7 +607,7 @@ class Phase2TestService2 @Inject() (val appRepository: GeneralApplicationReposit
         } else {
           val msg = s"Did not update progress status to ${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED} for $appId - " +
             s"not all active tests have a testResult saved"
-          Logger.warn(msg)
+          logger.warn(msg)
           Future.successful(())
         }
       }
@@ -616,11 +616,11 @@ class Phase2TestService2 @Inject() (val appRepository: GeneralApplicationReposit
     def markTestAsCompleted(profile: Phase2TestGroupWithAppId2): Future[Unit] = {
       profile.testGroup.tests.find(_.orderId == orderId).map { test =>
         if (!test.isCompleted) {
-          Logger.info(s"Processing real time results - setting completed date on psi test whose orderId=$orderId")
+          logger.info(s"Processing real time results - setting completed date on psi test whose orderId=$orderId")
           markAsCompleted2(orderId)
         }
         else {
-          Logger.info(s"Processing real time results - completed date is already set on psi test whose orderId=$orderId " +
+          logger.info(s"Processing real time results - completed date is already set on psi test whose orderId=$orderId " +
             s"so will not mark as complete")
           Future.successful(())
         }

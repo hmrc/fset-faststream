@@ -18,26 +18,28 @@ package services.onlinetesting.phase1
 
 import akka.actor.ActorSystem
 import com.google.inject.name.Named
-import common.{ FutureEx, Phase1TestConcern }
-import config.{ MicroserviceAppConfig, OnlineTestsGatewayConfig }
+import common.{FutureEx, Phase1TestConcern}
+import config.{MicroserviceAppConfig, OnlineTestsGatewayConfig}
 import connectors.ExchangeObjects._
-import connectors.{ OnlineTestEmailClient, OnlineTestsGatewayClient }
-import factories.{ DateTimeFactory, UUIDFactory }
-import javax.inject.{ Inject, Singleton }
+import connectors.{OnlineTestEmailClient, OnlineTestsGatewayClient}
+import factories.{DateTimeFactory, UUIDFactory}
+
+import javax.inject.{Inject, Singleton}
 import model.Exceptions.ApplicationNotFound
 import model.OnlineTestCommands._
 import model._
-import model.exchange.{ CubiksTestResultReady, Phase1TestGroupWithNames, PsiRealTimeResults }
-import model.persisted.{ CubiksTest, Phase1TestGroupWithUserIds, Phase1TestProfile, TestResult => _, _ }
-import model.stc.{ AuditEvents, DataStoreEvents }
+import model.exchange.{CubiksTestResultReady, Phase1TestGroupWithNames, PsiRealTimeResults}
+import model.persisted.{CubiksTest, Phase1TestGroupWithUserIds, Phase1TestProfile, TestResult => _, _}
+import model.stc.{AuditEvents, DataStoreEvents}
 import org.joda.time.DateTime
+import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
-import services.onlinetesting.{ CubiksSanitizer, OnlineTestService }
+import services.onlinetesting.{CubiksSanitizer, OnlineTestService}
 import services.sift.ApplicationSiftService
 import services.stc.StcEventService
 import uk.gov.hmrc.http.HeaderCarrier
@@ -45,7 +47,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import scala.util.{ Failure, Success }
+import scala.util.{Failure, Success}
 
 @Singleton
 class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
@@ -60,7 +62,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
                                    actor: ActorSystem,
                                    val eventService: StcEventService,
                                    val siftService: ApplicationSiftService
-                                  ) extends OnlineTestService with Phase1TestConcern with ResetPhase1Test {
+                                  ) extends OnlineTestService with Phase1TestConcern with ResetPhase1Test with Logging {
   type TestRepository2 = Phase1TestRepository
 
   val gatewayConfig: OnlineTestsGatewayConfig = appConfig.onlineTestsGatewayConfig
@@ -185,7 +187,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
         val scheduleId = scheduleIdByName(scheduleName) // sjq = 16196, bq = 16194
       val delay = (delayModifier * delaySecsBetweenRegistrations).second
         akka.pattern.after(delay, actor.scheduler) {
-          play.api.Logger.debug(s"Phase1TestService - about to call registerAndInviteApplicant with scheduleId - $scheduleId")
+          logger.debug(s"Phase1TestService - about to call registerAndInviteApplicant with scheduleId - $scheduleId")
           registerAndInviteApplicant(application, scheduleId, invitationDate, expirationDate)
         }
     }

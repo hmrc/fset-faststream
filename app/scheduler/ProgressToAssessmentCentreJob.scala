@@ -21,7 +21,7 @@ import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.clustering.SingleInstanceScheduledJob
 //import ProgressToAssessmentCentreJobConfig.conf
 import javax.inject.Inject
-import play.api.{ Configuration, Logger }
+import play.api.{ Configuration, Logging }
 import services.assessmentcentre.AssessmentCentreService
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -34,7 +34,7 @@ class ProgressToAssessmentCentreJobImpl @Inject() (val assessmentCentreService: 
   //  val config = ProgressToAssessmentCentreJobConfig
 }
 
-trait ProgressToAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
+trait ProgressToAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {
   val assessmentCentreService: AssessmentCentreService
 
   val batchSize: Int = config.conf.batchSize.getOrElse(10)
@@ -42,10 +42,10 @@ trait ProgressToAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobC
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     assessmentCentreService.nextApplicationsForAssessmentCentre(batchSize).flatMap {
       case Nil =>
-        Logger.info("Progress to assessment centre complete - no candidates found")
+        logger.info("Progress to assessment centre complete - no candidates found")
         Future.successful(())
       case applications => assessmentCentreService.progressApplicationsToAssessmentCentre(applications).map { result =>
-        Logger.info(
+        logger.info(
           s"Progress to assessment centre complete - ${result.successes.size} updated and ${result.failures.size} failed to update"
         )
       }

@@ -25,7 +25,6 @@ import model.ProgressStatuses._
 import model.persisted._
 import model.{ ApplicationStatus, ReminderNotice }
 import org.joda.time.DateTime
-import play.api.Logger
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.bson.{ BSONArray, BSONDocument, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -115,7 +114,7 @@ class Phase2TestMongoRepository2 @Inject() (dateTime: DateTimeFactory, mongoComp
   }
 
   override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] = {
-    Logger.warn(s"Looking for candidates to invite to $phaseName with a batch size of $maxBatchSize...")
+    logger.warn(s"Looking for candidates to invite to $phaseName with a batch size of $maxBatchSize...")
     val query = inviteToTestBSON(PHASE1_TESTS_PASSED) ++ BSONDocument("applicationRoute" -> BSONDocument("$nin" -> BSONArray("Sdip", "Edip")))
 
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)

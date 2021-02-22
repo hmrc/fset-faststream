@@ -18,7 +18,7 @@ package scheduler.fsb
 
 import config.WaitingScheduledJobConfig
 import javax.inject.{ Inject, Singleton }
-import play.api.{ Configuration, Logger }
+import play.api.{ Configuration, Logging }
 import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
@@ -34,20 +34,20 @@ class EvaluateFsbJobImpl @Inject() (val fsbService: FsbService,
                                    ) extends EvaluateFsbJob {
 }
 
-trait EvaluateFsbJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
+trait EvaluateFsbJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {
   val fsbService: FsbService
 
   //  val config: EvaluateFsbJobConfig.type = EvaluateFsbJobConfig
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
-    Logger.debug(s"EvaluateFsbJob starting")
+    logger.debug(s"EvaluateFsbJob starting")
     fsbService.nextFsbCandidateReadyForEvaluation.flatMap { appIdOpt =>
       appIdOpt.map { appId =>
-        Logger.debug(s"EvaluateFsbJob found a candidate - now evaluating...")
+        logger.debug(s"EvaluateFsbJob found a candidate - now evaluating...")
         fsbService.evaluateFsbCandidate(appId)
       }.getOrElse {
-        Logger.debug(s"EvaluateFsbJob no candidates found - going back to sleep...")
+        logger.debug(s"EvaluateFsbJob no candidates found - going back to sleep...")
         Future.successful(())
       }
     }

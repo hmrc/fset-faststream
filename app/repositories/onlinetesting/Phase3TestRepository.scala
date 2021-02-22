@@ -27,7 +27,6 @@ import model.persisted.phase3tests.Phase3TestGroup
 import model.persisted.{ NotificationExpiringOnlineTest, PassmarkEvaluation, Phase3TestGroupWithAppId, SchemeEvaluationResult }
 import model.{ ApplicationStatus, ProgressStatuses, ReminderNotice }
 import org.joda.time.DateTime
-import play.api.Logger
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.bson.{ BSONDocument, _ }
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -128,7 +127,7 @@ class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
   }
 
   override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] = {
-    Logger.warn(s"Looking for candidates to invite to $phaseName with a batch size of $maxBatchSize...")
+    logger.warn(s"Looking for candidates to invite to $phaseName with a batch size of $maxBatchSize...")
     val query = inviteToTestBSON(PHASE2_TESTS_PASSED) ++ BSONDocument("applicationRoute" -> BSONDocument("$nin" -> BSONArray("Sdip", "Edip")))
 
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
@@ -298,7 +297,7 @@ class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
   }
 
   private def defaultUpdateErrorHandler(launchpadInviteId: String) = {
-    Logger.error(s"""Failed to update launchpad test: $launchpadInviteId""")
+    logger.error(s"""Failed to update launchpad test: $launchpadInviteId""")
     throw CannotFindTestByLaunchpadId(s"Cannot find test group by launchpad Id: $launchpadInviteId")
   }
 }

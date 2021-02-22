@@ -20,7 +20,7 @@ import com.google.inject.ImplementedBy
 import connectors.{ CSREmailClient, EmailClient, OnlineTestEmailClient }
 import javax.inject.{ Inject, Named, Singleton }
 import model.stc.{ EmailEvent, EmailEvents }
-import play.api.Logger
+import play.api.Logging
 import play.api.mvc.RequestHeader
 
 import scala.concurrent.Future
@@ -32,11 +32,11 @@ class EmailEventHandlerImpl @Inject() (@Named("CSREmailClient") val emailClient:
 }
 
 @ImplementedBy(classOf[EmailEventHandlerImpl])
-trait EmailEventHandler extends StcEventHandler[EmailEvent] {
+trait EmailEventHandler extends StcEventHandler[EmailEvent] with Logging {
   val emailClient: EmailClient
 
   def handle(event: EmailEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    Logger.info(s"Email event ${event.name}")
+    logger.info(s"Email event ${event.name}")
     event match {
       case _: EmailEvents.ApplicationWithdrawn => emailClient.sendWithdrawnConfirmation(event.to, event.name)
       case _: EmailEvents.ApplicationSubmitted => emailClient.sendApplicationSubmittedConfirmation(event.to, event.name)

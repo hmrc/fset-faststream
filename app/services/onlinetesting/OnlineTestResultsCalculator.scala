@@ -18,9 +18,9 @@ package services.onlinetesting
 
 import model.EvaluationResults.{ Amber, Green, Red, Result }
 import model.exchange.passmarksettings.PassMarkThreshold
-import play.api.Logger
+import play.api.Logging
 
-trait OnlineTestResultsCalculator {
+trait OnlineTestResultsCalculator extends Logging {
 
   def evaluateTestResult(threshold: PassMarkThreshold)(tScore: Option[Double]): Result = {
     val failmark = threshold.failThreshold
@@ -40,7 +40,7 @@ trait OnlineTestResultsCalculator {
       case _ if results.contains(Amber) => Amber
       case _ if results.forall(_ == Green) => Green
     }
-    Logger.info(s"Combining results $results = $result")
+    logger.info(s"Combining results $results = $result")
     result
   }
 }

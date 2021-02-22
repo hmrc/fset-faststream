@@ -29,7 +29,7 @@ import model.exchange.CubiksTestResultReady
 import model.persisted.CubiksTest
 import model.persisted.sift.{ SiftTestGroup, SiftTestGroupWithAppId }
 import model.stc.DataStoreEvents
-import play.api.Logger
+import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
@@ -53,7 +53,7 @@ class NumericalTestService @Inject() (applicationRepo: GeneralApplicationReposit
                                       @Named("CSREmailClient") emailClient: OnlineTestEmailClient, // Changed the type
                                       contactDetailsRepo: ContactDetailsRepository,
                                       val eventService: StcEventService
-                                     ) extends EventSink {
+                                     ) extends EventSink with Logging {
 
   val gatewayConfig: OnlineTestsGatewayConfig = appConfig.onlineTestsGatewayConfig
 
@@ -82,7 +82,7 @@ class NumericalTestService @Inject() (applicationRepo: GeneralApplicationReposit
           _ <- emailInvitedCandidates(invitedApplicants)
           _ <- updateProgressStatuses(invitedApplicants.map(_.application.applicationId), SIFT_TEST_INVITED)
         } yield {
-          Logger.warn(s"Successfully invited candidates to take a sift numerical test with Ids: " +
+          logger.warn(s"Successfully invited candidates to take a sift numerical test with Ids: " +
             s"${invitedApplicants.map(_.application.applicationId)} - moved to $SIFT_TEST_INVITED")
         }
     }
@@ -175,7 +175,7 @@ class NumericalTestService @Inject() (applicationRepo: GeneralApplicationReposit
       } yield {
         implicit val hc = HeaderCarrier()
         val msg = s"Sending sift numeric test invite email to candidate ${applicant.application.applicationId}..."
-        Logger.info(msg)
+        logger.info(msg)
         notificationExpiringSiftOpt.map { notification =>
           emailClient.sendSiftNumericTestInvite(emailAddress, notification.preferredName, notification.expiryDate)
         }.getOrElse(throw new IllegalStateException(s"No sift notification details found for candidate ${applicant.application.applicationId}"))
@@ -195,10 +195,10 @@ class NumericalTestService @Inject() (applicationRepo: GeneralApplicationReposit
         val activeCompletedTests = tests.forall(_.completedDateTime.isDefined)
         if(activeCompletedTests) {
           applicationRepo.addProgressStatusAndUpdateAppStatus(appId, SIFT_TEST_COMPLETED).map { _ =>
-            Logger.info(s"Successfully updated to $SIFT_TEST_COMPLETED for cubiksId: $cubiksUserId and appId: $appId")
+            logger.info(s"Successfully updated to $SIFT_TEST_COMPLETED for cubiksId: $cubiksUserId and appId: $appId")
           }
         } else {
-          Logger.info(s"No tests to mark as completed for cubiksId: $cubiksUserId and applicationId: $appId")
+          logger.info(s"No tests to mark as completed for cubiksId: $cubiksUserId and applicationId: $appId")
           Future.successful(())
         }
       }
@@ -228,10 +228,10 @@ class NumericalTestService @Inject() (applicationRepo: GeneralApplicationReposit
         val activeCompletedTest = tests.forall(_.completedDateTime.isDefined)
         if (activeCompletedTest) {
           applicationRepo.addProgressStatusAndUpdateAppStatus(appId, SIFT_TEST_RESULTS_READY).map { _ =>
-            Logger.info(s"Successfully updated to $SIFT_TEST_RESULTS_READY for cubiksId: $cubiksUserId and appId: $appId")
+            logger.info(s"Successfully updated to $SIFT_TEST_RESULTS_READY for cubiksId: $cubiksUserId and appId: $appId")
           }
         } else {
-          Logger.info(s"No tests to mark as results ready for cubiksId: $cubiksUserId and applicationId: $appId")
+          logger.info(s"No tests to mark as results ready for cubiksId: $cubiksUserId and applicationId: $appId")
           Future.successful(())
         }
       }
@@ -264,7 +264,7 @@ class NumericalTestService @Inject() (applicationRepo: GeneralApplicationReposit
               DataStoreEvents.SiftTestResultsReceived(appId) :: Nil
             }
           } yield {
-            Logger.info(s"Successfully retrieved sift numerical results for Id $appId - " +
+            logger.info(s"Successfully retrieved sift numerical results for Id $appId - " +
               s"moved to ${ProgressStatuses.SIFT_TEST_RESULTS_RECEIVED}")
           }
         } else {
@@ -301,16 +301,16 @@ class NumericalTestService @Inject() (applicationRepo: GeneralApplicationReposit
           } yield {
             if (schemesPassedRequiringSift.isEmpty) {
               // Candidate has no schemes that require a form to be filled so we can process the candidate
-              Logger.info(s"Candidate $appId has no schemes that require a form to be filled in so we will process this one")
+              logger.info(s"Candidate $appId has no schemes that require a form to be filled in so we will process this one")
               applicationId
             } else { // Candidate has schemes that require forms to be filled
               if (progressResponse.siftProgressResponse.siftFormsCompleteNumericTestPending) {
                 // Forms have already been filled in so can process this candidate
-                Logger.info(s"Candidate $appId has schemes that require a form to be filled in and has already " +
+                logger.info(s"Candidate $appId has schemes that require a form to be filled in and has already " +
                   "submitted the answers so we will process this one")
                 applicationId
               } else {
-                Logger.info(s"Candidate $appId has schemes that require a form to be filled in and has not yet submitted " +
+                logger.info(s"Candidate $appId has schemes that require a form to be filled in and has not yet submitted " +
                   "the answers so not processing this one")
                 None
               }
@@ -322,7 +322,7 @@ class NumericalTestService @Inject() (applicationRepo: GeneralApplicationReposit
 
   def progressToSiftReady(applicationId: String): Future[Unit] = {
     applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_READY).map { _ =>
-      Logger.info(s"Successfully moved $applicationId to ${ProgressStatuses.SIFT_READY}")
+      logger.info(s"Successfully moved $applicationId to ${ProgressStatuses.SIFT_READY}")
     }
   }
 }
