@@ -16,14 +16,13 @@
 
 package repositories.onlinetesting
 
-import config.TestIntegrationGatewayConfig
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.{ ApplicationNotFound, CannotFindTestByCubiksId, CannotFindTestByOrderIdException }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.ProgressStatus
 import model._
-import model.exchange.{ CubiksTestResultReady, PsiTestResultReady }
+import model.exchange.PsiTestResultReady
 import model.persisted._
 import org.joda.time.DateTime
 import reactivemongo.bson.{ BSONDocument, _ }
@@ -56,6 +55,8 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     phaseTestProfileByQuery(query, phase)
   }
 
+  //TODO: cubiks delete
+  /*
   def getTestProfileByToken(token: String, phase: String = "PHASE1"): Future[T] = {
     val query = BSONDocument(s"testGroups.$phase.tests" -> BSONDocument(
       "$elemMatch" -> BSONDocument("token" -> token)
@@ -64,15 +65,16 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     phaseTestProfileByQuery(query, phase).map { x =>
       x.getOrElse(cannotFindTestByToken(token))
     }
-  }
+  }*/
 
-  //TODO: delete
+  //TODO: cubiks delete
+  /*
   def updateTestStartTime(cubiksUserId: Int, startedTime: DateTime): Future[Unit] = {
     val update = BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phaseName.tests.$$.startedDateTime" -> Some(startedTime)
     ))
     findAndUpdateCubiksTest(cubiksUserId, update)
-  }
+  }*/
 
   def updateTestStartTime(orderId: String, startedTime: DateTime): Future[Unit] = {
     val update = BSONDocument("$set" -> BSONDocument(
@@ -81,13 +83,14 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     findAndUpdateTest(orderId, update)
   }
 
-  //TODO: delete
+  //TODO: cubiks delete
+  /*
   def markTestAsInactive(cubiksUserId: Int): Future[Unit] = {
     val update = BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phaseName.tests.$$.usedForResults" -> false
     ))
     findAndUpdateCubiksTest(cubiksUserId, update)
-  }
+  }*/
 
   /// psi specific code start
   def markTestAsInactive2(psiOrderId: String): Future[Unit] = {
@@ -208,6 +211,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
 
   /// psi specific code end
 
+  /*
   def insertCubiksTests[P <: CubiksTestProfile](applicationId: String, newTestProfile: P): Future[Unit] = {
     val query = BSONDocument(
       "applicationId" -> applicationId
@@ -225,8 +229,9 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     val validator = singleUpdateValidator(applicationId, actionDesc = s"inserting tests during $phaseName", ApplicationNotFound(applicationId))
 
     collection.update(ordered = false).one(query, update) map validator
-  }
+  }*/
 
+  /*
   def updateTestCompletionTime(cubiksUserId: Int, completedTime: DateTime): Future[Unit] = {
     import repositories.BSONDateTimeHandler
     val update = BSONDocument("$set" -> BSONDocument(
@@ -234,8 +239,9 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     ))
 
     findAndUpdateCubiksTest(cubiksUserId, update, ignoreNotFound = true)
-  }
+  }*/
 
+  /*
   def updateTestReportReady(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit] = {
     val update = BSONDocument("$set" -> BSONDocument(
       s"testGroups.$phaseName.tests.$$.resultsReadyToDownload" -> (reportReady.reportStatus == "Ready"),
@@ -244,15 +250,17 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
       s"testGroups.$phaseName.tests.$$.reportStatus" -> Some(reportReady.reportStatus)
     ))
     findAndUpdateCubiksTest(cubiksUserId, update)
-  }
+  }*/
 
+  /*
   def cannotFindTestByCubiksId(cubiksUserId: Int) = {
     throw CannotFindTestByCubiksId(s"Cannot find test group by cubiks Id: $cubiksUserId")
-  }
+  }*/
 
+  /*
   def cannotFindTestByToken(token: String) = {
     throw CannotFindTestByCubiksId(s"Cannot find test group by token: $token")
-  }
+  }*/
 
   private def phaseTestProfileByQuery(query: BSONDocument, phase: String): Future[Option[T]] = {
     val projection = BSONDocument(s"testGroups.$phase" -> 1, "_id" -> 0)
@@ -335,6 +343,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     collection.update(ordered = false).one(query, update) map validator
   }
 
+  // TODO: cubiks specific
   def nextTestGroupWithReportReady[TestGroup](implicit reader: BSONDocumentReader[TestGroup]): Future[Option[TestGroup]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> thisApplicationStatus),
@@ -348,6 +357,8 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     selectOneRandom[TestGroup](query)
   }
 
+  // TODO: cubiks should be deleted
+  /*
   private def findAndUpdateCubiksTest(cubiksUserId: Int, update: BSONDocument, ignoreNotFound: Boolean = false): Future[Unit] = {
     val find = BSONDocument(
       s"testGroups.$phaseName.tests" -> BSONDocument(
@@ -363,7 +374,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     }
 
     collection.update(ordered = false).one(find, update) map validator
-  }
+  }*/
 
   private def findAndUpdateTest(orderId: String, update: BSONDocument,
                                 ignoreNotFound: Boolean = false): Future[Unit] = {
@@ -383,7 +394,8 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     collection.update(ordered = false).one(find, update) map validator
   }
 
-  //TODO: should be deleted
+  //TODO: cubiks should be deleted
+  /*
   def insertTestResult(appId: String, phase1Test: CubiksTest, testResult: TestResult): Future[Unit] = {
     val query = BSONDocument(
       "applicationId" -> appId,
@@ -398,7 +410,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     val validator = singleUpdateValidator(appId, actionDesc = s"inserting $phaseName test result")
 
     collection.update(ordered = false).one(query, update) map validator
-  }
+  }*/
 
   def upsertTestGroupEvaluationResult(applicationId: String, passmarkEvaluation: PassmarkEvaluation): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)

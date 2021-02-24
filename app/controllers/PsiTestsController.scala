@@ -22,27 +22,27 @@ import model.exchange.PsiRealTimeResults
 import play.api.Logging
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent, ControllerComponents, Result }
-import services.NumericalTestService2
-import services.onlinetesting.phase1.Phase1TestService2
-import services.onlinetesting.phase2.Phase2TestService2
+import services.NumericalTestService
+import services.onlinetesting.phase1.Phase1TestService
+import services.onlinetesting.phase2.Phase2TestService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
 class PsiTestsController @Inject() (cc: ControllerComponents,
-                                    phase1TestService2: Phase1TestService2,
-                                    phase2TestService2: Phase2TestService2,
-                                    numericalTestService2: NumericalTestService2) extends BackendController(cc) with Logging {
+                                    phase1TestService: Phase1TestService,
+                                    phase2TestService: Phase2TestService,
+                                    numericalTestService: NumericalTestService) extends BackendController(cc) with Logging {
 
   def start(orderId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     logger.info(s"Psi assessment started orderId=$orderId")
 
-    phase1TestService2.markAsStarted2(orderId)
+    phase1TestService.markAsStarted2(orderId)
       .recoverWith {
         case e =>
           logger.warn(s"Something went wrong while saving start time: ${e.getMessage}")
-          phase2TestService2.markAsStarted2(orderId)
+          phase2TestService.markAsStarted2(orderId)
       }.map(_ => Ok)
         .recover(recoverNotFound)
   }
@@ -54,11 +54,11 @@ class PsiTestsController @Inject() (cc: ControllerComponents,
     */
   def completeTestByOrderId(orderId: String): Action[AnyContent] = Action.async { implicit request =>
     logger.info(s"Complete psi test by orderId=$orderId")
-    phase1TestService2.markAsCompleted2(orderId)
+    phase1TestService.markAsCompleted2(orderId)
       .recoverWith { case _: CannotFindTestByOrderIdException =>
-          phase2TestService2.markAsCompleted2(orderId).recoverWith {
+          phase2TestService.markAsCompleted2(orderId).recoverWith {
             case _: CannotFindTestByOrderIdException =>
-                numericalTestService2.markAsCompletedByOrderId(orderId)
+                numericalTestService.markAsCompletedByOrderId(orderId)
             }
       }.map(_ => Ok).recover(recoverNotFound)
   }
@@ -68,11 +68,11 @@ class PsiTestsController @Inject() (cc: ControllerComponents,
       logger.info(s"We have received real time results for psi test orderId=$orderId. " +
         s"Payload(json) = [${Json.toJson(realTimeResults).toString}], (deserialized) = [$realTimeResults]")
 
-      phase1TestService2.storeRealTimeResults(orderId, realTimeResults)
+      phase1TestService.storeRealTimeResults(orderId, realTimeResults)
         .recoverWith { case _: CannotFindTestByOrderIdException =>
-          phase2TestService2.storeRealTimeResults(orderId, realTimeResults).recoverWith {
+          phase2TestService.storeRealTimeResults(orderId, realTimeResults).recoverWith {
             case _: CannotFindTestByOrderIdException =>
-              numericalTestService2.storeRealTimeResults(orderId, realTimeResults)
+              numericalTestService.storeRealTimeResults(orderId, realTimeResults)
           }
         }.map(_ => Ok).recover(recoverNotFound)
     }

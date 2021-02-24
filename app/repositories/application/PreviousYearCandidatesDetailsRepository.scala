@@ -1213,7 +1213,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     val phase1TestSection = testGroups.flatMap(_.getAs[BSONDocument]("PHASE1"))
     val phase1Tests = phase1TestSection.flatMap(_.getAs[List[BSONDocument]]("tests"))
 
-    val phase1TestConfig = appConfig.testIntegrationGatewayConfig.phase1Tests.tests
+    val phase1TestConfig = appConfig.onlineTestsGatewayConfig.phase1Tests.tests
 
     val test1InventoryId = getInventoryId(phase1TestConfig, "test1", "phase1")
     val test2InventoryId = getInventoryId(phase1TestConfig, "test2", "phase1")
@@ -1242,7 +1242,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     )
 
     // Phase2 data
-    val phase2TestConfig = appConfig.testIntegrationGatewayConfig.phase2Tests.tests
+    val phase2TestConfig = appConfig.onlineTestsGatewayConfig.phase2Tests.tests
 
     val phase2Test1InventoryId = getInventoryId(phase2TestConfig, "test1", "phase2")
     val phase2Test2InventoryId = getInventoryId(phase2TestConfig, "test2", "phase2")
@@ -1262,7 +1262,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     )
 
     // Sift data
-    val siftTestConfig = appConfig.testIntegrationGatewayConfig.numericalTests.tests
+    val siftTestConfig = appConfig.onlineTestsGatewayConfig.numericalTests.tests
 
     val siftTestInventoryId = getInventoryId(siftTestConfig, "test1", "sift")
 

@@ -31,8 +31,6 @@ class ProgressToFsbOrOfferJobImpl @Inject() (val progressionToFsbOrOfferService:
                                              val mongoComponent: ReactiveMongoComponent,
                                              val config: ProgressToFsbOrOfferJobConfig
                                             ) extends ProgressToFsbOrOfferJob {
-  //  val progressionToFsbOrOfferService = ProgressionToFsbOrOfferService
-  //  val config = ProgressToFsbOrOfferJobConfig
 }
 
 trait ProgressToFsbOrOfferJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {
@@ -42,13 +40,14 @@ trait ProgressToFsbOrOfferJob extends SingleInstanceScheduledJob[BasicJobConfig[
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc = HeaderCarrier()
+    val intro = s"Progress to fsb or job offer complete - batchSize=$batchSize"
     progressionToFsbOrOfferService.nextApplicationsForFsbOrJobOffer(batchSize).flatMap {
       case Nil =>
-        logger.info("Progress to fsb or job offer complete - no candidates found")
+        logger.warn(s"$intro no candidates found")
         Future.successful(())
       case applications => progressionToFsbOrOfferService.progressApplicationsToFsbOrJobOffer(applications).map { result =>
-        logger.info(
-          s"Progress to fsb or job offer complete - ${result.successes.size} processed successfully and ${result.failures.size} failed to update"
+        logger.warn(
+          s"$intro ${result.successes.size} candidate(s) processed successfully and ${result.failures.size} failed to update"
         )
       }
     }

@@ -22,21 +22,19 @@ import play.api.{ Configuration, Logging }
 import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-import services.NumericalTestService2
+import services.NumericalTestService
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class ProcessSiftNumericalResultsReceivedJobImpl @Inject() (val numericalTestService: NumericalTestService2,
+class ProcessSiftNumericalResultsReceivedJobImpl @Inject() (val numericalTestService: NumericalTestService,
                                                             val mongoComponent: ReactiveMongoComponent,
                                                             val config: ProcessSiftNumericalResultsReceivedJobConfig
                                                            ) extends ProcessSiftNumericalResultsReceivedJob {
-  //  val numericalTestService = NumericalTestService2
-  //  val config = ProcessSiftNumericalResultsReceivedJobConfig
 }
 
 trait ProcessSiftNumericalResultsReceivedJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {
-  val numericalTestService: NumericalTestService2
+  val numericalTestService: NumericalTestService
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     val intro = "Processing candidates in SIFT who have received numerical test results"

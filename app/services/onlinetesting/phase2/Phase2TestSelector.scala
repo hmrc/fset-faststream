@@ -16,43 +16,15 @@
 
 package services.onlinetesting.phase2
 
-import config.{ Phase2Schedule, Phase2TestsConfig }
-import play.api.Logging
+import config.OnlineTestsGatewayConfig
+import model.persisted.PsiTest
 
-import scala.util.Random
+trait Phase2TestSelector {
+  val gatewayConfig: OnlineTestsGatewayConfig
 
-trait Phase2TestSelector extends Logging {
-  def testConfig: Phase2TestsConfig
+  def findFirstTest1Test(tests: List[PsiTest]): Option[PsiTest] = tests find (_.inventoryId == inventoryIdForTest("test1"))
 
-  def schedulesAvailable(currentScheduleIds: List[Int]) = true
+  def findFirstTest2Test(tests: List[PsiTest]): Option[PsiTest] = tests find (_.inventoryId == inventoryIdForTest("test2"))
 
-  def getNextSchedule(currentScheduleIds: List[Int] = Nil): (String, Phase2Schedule) = {
-    val unallocatedExists = getUnallocatedSchedules(currentScheduleIds) != List.empty
-    val numberOfSelectors = testConfig.schedules.size
-
-    val result = if (unallocatedExists) {
-      getRandomScheduleWithName(currentScheduleIds)
-    } else {
-      val schedule = testConfig.schedules.values.find(_.scheduleId == currentScheduleIds(currentScheduleIds.size % numberOfSelectors)).head
-      getAlwaysChooseSchedule.getOrElse((testConfig.scheduleNameByScheduleId(schedule.scheduleId), schedule))
-    }
-    testConfig.alwaysChooseSchedule.foreach { scheduleName =>
-      logger.info(s"AlwaysChooseSchedule is configured so all candidates will be invited to take Etray schedule: $scheduleName")
-    }
-    result
-  }
-
-  private def getRandomScheduleWithName(currentScheduleIds: List[Int]): (String, Phase2Schedule) = {
-    val schedules = getUnallocatedSchedules(currentScheduleIds)
-
-    require(schedules.nonEmpty, "Phase2 schedule list cannot be empty")
-    val schedule = schedules.toSeq(Random.nextInt(schedules.size))
-    getAlwaysChooseSchedule.getOrElse((testConfig.scheduleNameByScheduleId(schedule.scheduleId), schedule))
-  }
-
-  private def getUnallocatedSchedules(currentScheduleIds: List[Int])=
-    testConfig.schedules.values.filter(schedule => !currentScheduleIds.contains(schedule.scheduleId))
-
-  private def getAlwaysChooseSchedule=
-    testConfig.alwaysChooseSchedule.map ( scheduleName => (scheduleName, testConfig.schedules(scheduleName)) )
+  private[onlinetesting] def inventoryIdForTest(testName: String) = gatewayConfig.phase2Tests.tests(testName).inventoryId
 }

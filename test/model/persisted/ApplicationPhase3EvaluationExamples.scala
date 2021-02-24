@@ -16,16 +16,16 @@
 
 package persisted
 
-import model.persisted.ApplicationReadyForEvaluation2
+import model.persisted.ApplicationReadyForEvaluation
 import model.{ ApplicationStatus, SelectedSchemesExamples, _ }
 import org.joda.time.DateTime
 
 object ApplicationPhase3EvaluationExamples {
-  def faststreamPsiApplication(implicit now: DateTime) = ApplicationReadyForEvaluation2("app1", ApplicationStatus.PHASE3_TESTS,
-    ApplicationRoute.Faststream, isGis = false, activePsiTests = Phase2TestProfileExamples.profile2.activeTests,
+  def faststreamPsiApplication(implicit now: DateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE3_TESTS,
+    ApplicationRoute.Faststream, isGis = false, activePsiTests = Phase2TestProfileExamples.profile.activeTests,
     activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
 
-  def sdipFaststreamPsiApplication(implicit now: DateTime) = ApplicationReadyForEvaluation2("app1", ApplicationStatus.PHASE3_TESTS,
-    ApplicationRoute.SdipFaststream, isGis = false, activePsiTests = Phase2TestProfileExamples.profile2.activeTests,
+  def sdipFaststreamPsiApplication(implicit now: DateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE3_TESTS,
+    ApplicationRoute.SdipFaststream, isGis = false, activePsiTests = Phase2TestProfileExamples.profile.activeTests,
     activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
 }

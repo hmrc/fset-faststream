@@ -19,28 +19,16 @@ package common
 import model.persisted._
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 
-trait Phase1TestConcern { //TODO delete
-  type U = CubiksTest
+trait Phase1TestConcern {
+  type U = PsiTest
   type T = Phase1TestProfile
   type RichTestGroup = Phase1TestGroupWithUserIds
 }
 
-trait Phase1TestConcern2 {
+trait Phase2TestConcern {
   type U = PsiTest
-  type T = Phase1TestProfile2
-  type RichTestGroup = Phase1TestGroupWithUserIds2
-}
-
-trait Phase2TestConcern { //TODO delete
-  type U = CubiksTest
   type T = Phase2TestGroup
   type RichTestGroup = Phase2TestGroupWithAppId
-}
-
-trait Phase2TestConcern2 {
-  type U = PsiTest
-  type T = Phase2TestGroup2
-  type RichTestGroup = Phase2TestGroupWithAppId2
 }
 
 trait Phase3TestConcern {

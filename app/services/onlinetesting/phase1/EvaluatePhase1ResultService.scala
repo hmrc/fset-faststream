@@ -19,19 +19,18 @@ package services.onlinetesting.phase1
 import com.google.inject.name.Named
 import config.MicroserviceAppConfig
 import factories.UUIDFactory
+import services.passmarksettings.PassMarkSettingsService
 import javax.inject.{ Inject, Singleton }
 import model.exchange.passmarksettings.Phase1PassMarkSettings
-import model.persisted.{ ApplicationReadyForEvaluation, CubiksTest }
+import model.persisted.{ ApplicationReadyForEvaluation, PsiTest }
 import model.{ Phase, SchemeId }
 import play.api.Logging
 import repositories.onlinetesting.{ OnlineTestEvaluationRepository, Phase1EvaluationMongoRepository }
 import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
-import services.passmarksettings.PassMarkSettingsService
 
 import scala.concurrent.Future
 
-// Cubiks version guice injected
 @Singleton
 class EvaluatePhase1ResultService @Inject() (@Named("Phase1EvaluationRepository") val evaluationRepository: OnlineTestEvaluationRepository,
                                              val passMarkSettingsRepo: Phase1PassMarkSettingsMongoRepository,
@@ -40,33 +39,50 @@ class EvaluatePhase1ResultService @Inject() (@Named("Phase1EvaluationRepository"
                                             ) extends EvaluateOnlineTestResultService[Phase1PassMarkSettings] with Phase1TestSelector with
   Phase1TestEvaluation with PassMarkSettingsService[Phase1PassMarkSettings] with Logging {
 
-  override val gatewayConfig = appConfig.onlineTestsGatewayConfig
-  override val phase = Phase.PHASE1
+  val phase = Phase.PHASE1
+  val gatewayConfig = appConfig.onlineTestsGatewayConfig
 
   def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettings): Future[Unit] = {
     if (application.isSdipFaststream && !passmark.schemes.exists(_.schemeId == SchemeId("Sdip"))) {
-      logger.info(s"Evaluating Phase1 Sdip Faststream candidate with no Sdip passmarks set, so skipping - appId=${application.applicationId}")
+      logger.warn(s"Evaluating Phase1 Sdip Faststream candidate with no Sdip passmarks set, so skipping - appId=${application.applicationId}")
       Future.successful(())
     } else {
-      logger.info(s"Evaluating Phase1 appId=${application.applicationId}")
-      val activeTests = application.activeCubiksTests
-      require(activeTests.nonEmpty && activeTests.length <= 2, "Allowed active number of tests is 1 or 2")
-      val sjqTestOpt = findFirstSjqTest(activeTests)
-      val bqTestOpt = findFirstBqTest(activeTests)
-      savePassMarkEvaluation(application, getSchemeResults(sjqTestOpt, bqTestOpt), passmark)
+      logger.warn(s"Evaluating Phase1 appId=${application.applicationId}")
+
+      val activeTests = application.activePsiTests
+      require(activeTests.nonEmpty && (activeTests.length == 2 || activeTests.length == 4), "Allowed active number of tests is 2 or 4")
+      // TODO: change to list of tests?
+      val test1Opt = findFirstTest1Test(activeTests)
+      val test2Opt = findFirstTest2Test(activeTests)
+      val test3Opt = findFirstTest3Test(activeTests)
+      val test4Opt = findFirstTest4Test(activeTests)
+
+      savePassMarkEvaluation(application, getSchemeResults(test1Opt, test2Opt, test3Opt, test4Opt), passmark)
     }
   }
 
-  private def getSchemeResults(sjqTestOpt: Option[CubiksTest], bqTestOpt: Option[CubiksTest])
-                              (implicit application: ApplicationReadyForEvaluation,passmark: Phase1PassMarkSettings) =
-    (sjqTestOpt, bqTestOpt) match {
-      case (Some(sjqTest), None) if application.isGis && sjqTest.testResult.isDefined =>
-        evaluateForGis(getSchemesToEvaluate(application), sjqTest.testResult.get, passmark)
-      case (Some(sjqTest), Some(bqTest)) if application.nonGis && sjqTest.testResult.isDefined && bqTest.testResult.isDefined =>
-        evaluateForNonGis(getSchemesToEvaluate(application), sjqTest.testResult.get, bqTest.testResult.get, passmark)
+  //scalastyle:off cyclomatic.complexity
+  private def getSchemeResults(test1Opt: Option[PsiTest], test2Opt: Option[PsiTest], test3Opt: Option[PsiTest], test4Opt: Option[PsiTest])
+                              (implicit application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettings) =
+    (test1Opt, test2Opt, test3Opt, test4Opt) match {
+      case (Some(test1), None, None, Some(test4)) if application.isGis && test1.testResult.isDefined && test4.testResult.isDefined =>
+        evaluateForGis(getSchemesToEvaluate(application), test1.testResult.get, test4.testResult.get, passmark)
+      case (Some(test1), Some(test2), Some(test3), Some(test4)) if application.nonGis &&
+        test1.testResult.isDefined && test2.testResult.isDefined && test3.testResult.isDefined && test4.testResult.isDefined =>
+        evaluateForNonGis(getSchemesToEvaluate(application),
+          test1.testResult.get, test2.testResult.get, test3.testResult.get, test4.testResult.get, passmark)
       case _ =>
-        throw new IllegalStateException(s"Illegal number of active tests with results for this application: ${application.applicationId}")
-  }
+        val testCount = List(test1Opt, test2Opt, test3Opt, test4Opt).count(test => test.isDefined && test.get.testResult.isDefined)
+        val gis = if (application.isGis) {
+          s"This application is GIS so expecting ${gatewayConfig.phase1Tests.gis.size} tests with results in phase1 but found $testCount"
+        } else {
+          s"This application is not GIS so expecting ${gatewayConfig.phase1Tests.standard.size} tests " +
+            s"with results in phase1 but found $testCount"
+        }
+        val msg = s"Illegal number of active tests with results for this application: ${application.applicationId}. $gis"
+        throw new IllegalStateException(msg)
+    }
+  //scalastyle:on
 
   private def getSchemesToEvaluate(implicit application: ApplicationReadyForEvaluation) =
     application.preferences.schemes

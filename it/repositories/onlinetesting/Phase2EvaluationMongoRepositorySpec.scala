@@ -35,7 +35,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
     "return nothing if application does not have PHASE2_TESTS" in {
       insertApplication2("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1Tests))
-      val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation2("version1", batchSize = 1).futureValue
+      val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
       result mustBe empty
     }
 
@@ -44,14 +44,14 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       insertApplication2("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
         Some(phase2TestWithResult), phase1Evaluation = Some(phase1Evaluation))
 
-      val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation2("phase1_version1", batchSize = 1).futureValue
+      val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("phase1_version1", batchSize = 1).futureValue
 
-      result.head mustBe ApplicationReadyForEvaluation2(
+      result.head mustBe ApplicationReadyForEvaluation(
         "app1",
         ApplicationStatus.PHASE2_TESTS,
         ApplicationRoute.Faststream,
         isGis = false,
-        Phase2TestGroup2(now, phase2TestWithResult).activeTests,
+        Phase2TestGroup(now, phase2TestWithResult).activeTests,
         None,
         Some(phase1Evaluation),
         selectedSchemes(List(SchemeId("Commercial"))))
@@ -62,14 +62,14 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       insertApplication2("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
         Some(phase2TestWithResult), phase1Evaluation = Some(phase1Evaluation), applicationRoute = None)
 
-      val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation2("phase1_version1", batchSize = 1).futureValue
+      val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("phase1_version1", batchSize = 1).futureValue
 
-      result.head mustBe ApplicationReadyForEvaluation2(
+      result.head mustBe ApplicationReadyForEvaluation(
         "app1",
         ApplicationStatus.PHASE2_TESTS,
         ApplicationRoute.Faststream,
         isGis = false,
-        Phase2TestGroup2(now, phase2TestWithResult).activeTests,
+        Phase2TestGroup(now, phase2TestWithResult).activeTests,
         None,
         Some(phase1Evaluation),
         selectedSchemes(List(SchemeId("Commercial"))))
@@ -83,7 +83,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val phase2Evaluation = PassmarkEvaluation("phase2_version1", Some("phase1_version1"), resultToSave, "phase1-version1-res", None)
       phase2EvaluationRepo.savePassmarkEvaluation("app1", phase2Evaluation, None).futureValue
 
-      val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation2("phase2_version1", batchSize = 1).futureValue
+      val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("phase2_version1", batchSize = 1).futureValue
       result mustBe empty
     }
 
@@ -93,7 +93,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         Some(phase2TestWithResult), phase1Evaluation = Some(phase1Evaluation),
         additionalProgressStatuses = List(ProgressStatuses.PHASE2_TESTS_EXPIRED -> true))
 
-      val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation2("phase1_version1", batchSize = 1).futureValue
+      val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("phase1_version1", batchSize = 1).futureValue
 
       result mustBe empty
     }
@@ -106,13 +106,13 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val phase2Evaluation = PassmarkEvaluation("phase2_version1", Some("phase1_version1"), resultToSave, "phase2-version1-res", None)
       phase2EvaluationRepo.savePassmarkEvaluation("app1", phase2Evaluation, None).futureValue
 
-      val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation2("phase2_version2", batchSize = 1).futureValue
-      result.head mustBe ApplicationReadyForEvaluation2(
+      val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("phase2_version2", batchSize = 1).futureValue
+      result.head mustBe ApplicationReadyForEvaluation(
         "app1",
         ApplicationStatus.PHASE2_TESTS,
         ApplicationRoute.Faststream,
         isGis = false,
-        Phase2TestGroup2(now, phase2TestWithResult).activeTests,
+        Phase2TestGroup(now, phase2TestWithResult).activeTests,
         None,
         Some(phase1Evaluation),
         selectedSchemes(List(SchemeId("Commercial"))))
@@ -126,13 +126,13 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val phase2Evaluation = PassmarkEvaluation("phase2_version1", Some("phase1_version1"), resultToSave, "phase2-version1-res", None)
       phase2EvaluationRepo.savePassmarkEvaluation("app1", phase2Evaluation, None).futureValue
 
-      val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation2("phase2_version1", batchSize = 1).futureValue
-      result.head mustBe ApplicationReadyForEvaluation2(
+      val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("phase2_version1", batchSize = 1).futureValue
+      result.head mustBe ApplicationReadyForEvaluation(
         "app1",
         ApplicationStatus.PHASE2_TESTS,
         ApplicationRoute.Faststream,
         isGis = false,
-        Phase2TestGroup2(now, phase2TestWithResult).activeTests,
+        Phase2TestGroup(now, phase2TestWithResult).activeTests,
         None,
         Some(phase1Evaluation),
         selectedSchemes(List(SchemeId("Commercial"))))
@@ -145,7 +145,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         insertApplication2(s"app$id", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
           Some(phase2TestWithResult), phase1Evaluation = Some(phase1Evaluation))
       }
-      val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation2("phase2_version1", batchSizeLimit).futureValue
+      val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("phase2_version1", batchSizeLimit).futureValue
       result.size mustBe batchSizeLimit
     }
 
@@ -156,7 +156,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         insertApplication2(s"app$id", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
           Some(phase2TestWithResult), phase1Evaluation = Some(phase1Evaluation))
       }
-      val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation2("version1", batchSizeLimit).futureValue
+      val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSizeLimit).futureValue
       result.size mustBe 2
     }
   }
@@ -185,7 +185,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       .one[BSONDocument].map(_.map { doc =>
       val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
       val bsonPhase2 = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument]("PHASE2"))
-      val phase2 = bsonPhase2.map(Phase2TestGroup2.bsonHandler.read).get
+      val phase2 = bsonPhase2.map(Phase2TestGroup.bsonHandler.read).get
       (applicationStatus, phase2)
     }).futureValue
   }

@@ -16,12 +16,13 @@
 
 package services.onlinetesting.phase2
 
+import config.{ MicroserviceAppConfig, Phase2TestsConfig, PsiTestIds, OnlineTestsGatewayConfig }
 import factories.UUIDFactory
 import model.EvaluationResults.{ Amber, Green }
 import model.ProgressStatuses.ProgressStatus
 import model._
 import model.exchange.passmarksettings.Phase2PassMarkSettingsExamples
-import model.persisted.{ ApplicationPhase1EvaluationExamples, CubiksTest, PassmarkEvaluation, SchemeEvaluationResult }
+import model.persisted._
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
@@ -38,26 +39,26 @@ class EvaluatePhase2ResultServiceSpec extends BaseServiceSpec {
 
     import Phase2TestExamples._
 
-    val oneTest = List(firstTest)
+    val twoTests = List(fifthPsiTest, sixthPsiTest)
 
     "throw an exception if there are no active tests" in new TestFixture {
       val thrown = intercept[IllegalArgumentException] {
         val application = createAppWithTestGroup(Nil).copy(applicationStatus = ApplicationStatus.PHASE1_TESTS_PASSED)
         service.evaluate(application, passmarkSettings).futureValue
       }
-      thrown.getMessage mustBe "requirement failed: Allowed active number of tests is 1"
+      thrown.getMessage startsWith "requirement failed: Allowed active number of tests for phase2 is 2 - found 0"
     }
 
     "throw an exception if there is no previous phase evaluation" in new TestFixture {
       val thrown = intercept[IllegalArgumentException] {
-        val application = createAppWithTestGroup(oneTest).copy(applicationStatus = ApplicationStatus.PHASE1_TESTS_PASSED)
+        val application = createAppWithTestGroup(twoTests).copy(applicationStatus = ApplicationStatus.PHASE1_TESTS_PASSED)
         service.evaluate(application, passmarkSettings).futureValue
       }
-      thrown.getMessage mustBe "requirement failed: Phase1 results required to evaluate phase2"
+      thrown.getMessage mustBe "requirement failed: Phase1 results are required before we can evaluate phase2"
     }
 
     "evaluate the expected schemes when processing a faststream candidate" in new TestFixture {
-      val application = createAppWithTestGroup(oneTest).copy(
+      val application = createAppWithTestGroup(twoTests).copy(
         applicationStatus = ApplicationStatus.PHASE1_TESTS_PASSED, prevPhaseEvaluation = previousPhaseEvaluation)
 
       service.evaluate(application, passmarkSettings).futureValue
@@ -79,7 +80,7 @@ class EvaluatePhase2ResultServiceSpec extends BaseServiceSpec {
     }
 
     "include sdip evaluation read from current scheme status when saving evaluation for sdip faststream candidate" in new TestFixture {
-      val application = createSdipFaststreamAppWithTestGroup(oneTest).copy(
+      val application = createSdipFaststreamAppWithTestGroup(twoTests).copy(
         applicationStatus = ApplicationStatus.PHASE1_TESTS_PASSED, prevPhaseEvaluation = previousPhaseEvaluation)
 
       when(mockApplicationRepository.getCurrentSchemeStatus(eqTo(appId))).thenReturn(
@@ -134,21 +135,40 @@ class EvaluatePhase2ResultServiceSpec extends BaseServiceSpec {
         previousPhaseResultVersion = Some("res-v1"))
     )
 
-    val service = new EvaluatePhase2ResultService (
+    val mockOnlineTestsGatewayConfig = mock[OnlineTestsGatewayConfig]
+    val mockAppConfig = mock[MicroserviceAppConfig]
+    when(mockAppConfig.onlineTestsGatewayConfig).thenReturn(mockOnlineTestsGatewayConfig)
+
+    def testIds(idx: Int): PsiTestIds =
+      PsiTestIds(s"inventoryId$idx", s"assessmentId$idx", s"reportId$idx", s"normId$idx")
+
+    val tests = Map[String, PsiTestIds](
+      "test1" -> testIds(5),
+      "test2" -> testIds(6)
+    )
+
+    val mockPhase2TestConfig = Phase2TestsConfig(
+      expiryTimeInDays = 5, expiryTimeInDaysForInvigilatedETray = 10, gracePeriodInSecs = 0, testRegistrationDelayInSecs = 1,
+      tests, List("test1", "test2")
+    )
+    when(mockOnlineTestsGatewayConfig.phase2Tests).thenReturn(mockPhase2TestConfig)
+
+    val service = new EvaluatePhase2ResultService(
       mockPhase2EvaluationRepository,
       mockPhase2PassMarkSettingsRepository,
       mockApplicationRepository,
+      mockAppConfig,
       UUIDFactory
     )
 
-    def createAppWithTestGroup(tests: List[CubiksTest]) = {
+    def createAppWithTestGroup(tests: List[PsiTest]) = {
       val phase2 = Phase2TestProfileExamples.profile.copy(tests = tests)
-      ApplicationPhase1EvaluationExamples.faststreamApplication.copy(activeCubiksTests = phase2.activeTests)
+      ApplicationPhase1EvaluationExamples.faststreamApplication.copy(activePsiTests = phase2.activeTests)
     }
 
-    def createSdipFaststreamAppWithTestGroup(tests: List[CubiksTest]) = {
+    def createSdipFaststreamAppWithTestGroup(tests: List[PsiTest]) = {
       val phase2 = Phase2TestProfileExamples.profile.copy(tests = tests)
-      ApplicationPhase1EvaluationExamples.sdipFaststreamApplication.copy(activeCubiksTests = phase2.activeTests)
+      ApplicationPhase1EvaluationExamples.sdipFaststreamApplication.copy(activePsiTests = phase2.activeTests)
     }
   }
 }

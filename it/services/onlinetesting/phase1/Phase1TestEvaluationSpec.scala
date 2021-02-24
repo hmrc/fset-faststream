@@ -1,6 +1,6 @@
 package services.onlinetesting.phase1
 
-import config.Phase1TestsConfig
+import config.{ Phase1TestsConfig, PsiTestIds }
 import factories.UUIDFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
@@ -29,11 +29,22 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   override val additionalCollections = List(CollectionNames.PHASE1_PASS_MARK_SETTINGS)
 
   def phase1TestEvaluationService = {
-    when(mockAppConfig.onlineTestsGatewayConfig).thenReturn(mockGatewayConfig)
+    when(mockAppConfig.onlineTestsGatewayConfig).thenReturn(mockOnlineTestsGatewayConfig)
 
-    val phase1TestsConfigMock: Phase1TestsConfig = mock[Phase1TestsConfig]
-    when(mockGatewayConfig.phase1Tests).thenReturn(phase1TestsConfigMock)
-    when(phase1TestsConfigMock.scheduleIds).thenReturn(Map("sjq" -> 16196, "bq" -> 16194))
+    def testIds(idx: Int): PsiTestIds =
+      PsiTestIds(s"inventoryId$idx", s"assessmentId$idx", s"reportId$idx", s"normId$idx")
+
+    val tests = Map[String, PsiTestIds](
+      "test1" -> testIds(1),
+      "test2" -> testIds(2),
+      "test3" -> testIds(3),
+      "test4" -> testIds(4)
+    )
+    val mockPhase1TestsConfig: Phase1TestsConfig = mock[Phase1TestsConfig]
+    when(mockOnlineTestsGatewayConfig.phase1Tests).thenReturn(mockPhase1TestsConfig)
+    when(mockPhase1TestsConfig.tests).thenReturn(tests)
+    when(mockPhase1TestsConfig.gis).thenReturn(List("test1", "test4"))
+    when(mockPhase1TestsConfig.standard).thenReturn(List("test1", "test2", "test3", "test4"))
 
     new EvaluatePhase1ResultService(
       phase1EvaluationRepo,
@@ -49,20 +60,20 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     //scalastyle:off
     val phase1PassMarkSettingsTable = Table[SchemeId, Double, Double, Double, Double, Double, Double, Double, Double](
       ("Scheme Name",                                   "Test1 Fail", "Test1 Pass", "Test2 Fail", "Test2 Pass", "Test3 Fail", "Test3 Pass", "Test4 Fail", "Test4 Pass"),
-      (SchemeId("Commercial"),                            20.0,         80.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
-      (SchemeId("DigitalAndTechnology"),                  20.001,       20.001,       20.01,        20.05,        20.0,         80.0,         20.0,         80.0),
+      (SchemeId("Commercial"),                            20.0,         80.0,         30.0,         70.0,         30.0,         70.0,         20.0,         70.0),
+      (SchemeId("DigitalAndTechnology"),                  20.001,       20.001,       20.01,        20.05,        19.0,         20.0,         19.0,         20.0),
       (SchemeId("DiplomaticService"),                     20.01,        20.02,        20.01,        20.02,        20.0,         80.0,         20.0,         80.0),
-      (SchemeId("DiplomaticServiceEconomics"),            30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
-      (SchemeId("DiplomaticServiceEuropean"),             30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
-      (SchemeId("European"),                              40.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
-      (SchemeId("Finance"),                               25.01,        25.02,        25.01,        25.02,        20.0,         80.0,         20.0,         80.0),
-      (SchemeId("Generalist"),                            30.0,         30.0,         30.0,         30.0,         20.0,         80.0,         20.0,         80.0),
+      (SchemeId("DiplomaticServiceEconomics"),            30.0,         70.0,         30.0,         70.0,         30.0,         70.0,         30.0,         70.0),
+      (SchemeId("DiplomaticServiceEuropean"),             30.0,         70.0,         30.0,         70.0,         30.0,         70.0,         30.0,         70.0),
+      (SchemeId("European"),                              40.0,         70.0,         30.0,         70.0,         30.0,         70.0,         30.0,         70.0),
+      (SchemeId("Finance"),                               25.01,        25.02,        25.01,        25.02,        25.01,        25.02,        25.01,        25.02),
+      (SchemeId("Generalist"),                            30.0,         30.0,         30.0,         30.0,         30.0,         30.0,         30.0,         30.0),
       (SchemeId("GovernmentCommunicationService"),        30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
       (SchemeId("GovernmentEconomicsService"),            30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
       (SchemeId("GovernmentOperationalResearchService"),  30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
       (SchemeId("GovernmentSocialResearchService"),       30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
       (SchemeId("GovernmentStatisticalService"),          30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
-      (SchemeId("HousesOfParliament"),                    30.0,         79.999,       30.0,         78.08,        20.0,         80.0,         20.0,         80.0),
+      (SchemeId("HousesOfParliament"),                    30.0,         79.999,       30.0,         78.08,        20.0,         77.77,        20.0,         76.66),
       (SchemeId("HumanResources"),                        30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
       (SchemeId("ProjectDelivery"),                       30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
       (SchemeId("ScienceAndEngineering"),                 69.00,        69.00,        78.99,        78.99,        20.0,         80.0,         20.0,         80.0)
@@ -81,27 +92,31 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
     var passMarkEvaluation: PassmarkEvaluation = _
 
-    def gisApplicationEvaluation(applicationId:String, sjqScore: Double, selectedSchemes: SchemeId*): TestFixture = {
-      applicationReadyForEvaluation = insertApplicationWithPhase1TestResults(applicationId, sjqScore, None, isGis = true)(selectedSchemes: _*)
+    def gisApplicationEvaluation(applicationId:String, t1Score: Double, t4Score: Double, selectedSchemes: SchemeId*): TestFixture = {
+      applicationReadyForEvaluation = insertApplicationWithPhase1TestResults2(
+        applicationId, t1Score, None, None, t4Score, isGis = true)(selectedSchemes: _*)
       phase1TestEvaluationService.evaluate(applicationReadyForEvaluation, phase1PassMarkSettings).futureValue
       this
     }
 
-    def applicationEvaluationWithPassMarks(passmarks: Phase1PassMarkSettings, applicationId:String, sjqScore: Double, bjqScore: Double,
-      selectedSchemes: SchemeId*)(implicit applicationRoute: ApplicationRoute = ApplicationRoute.Faststream): TestFixture = {
-      applicationReadyForEvaluation = insertApplicationWithPhase1TestResults(applicationId, sjqScore, Some(bjqScore),
-        applicationRoute = applicationRoute)(selectedSchemes: _*)
+    def applicationEvaluationWithPassMarks(passmarks: Phase1PassMarkSettings, applicationId:String,
+                                           t1Score: Double, t2Score: Double,
+                                           t3Score: Double, t4Score: Double, selectedSchemes: SchemeId*)(
+                                            implicit applicationRoute: ApplicationRoute = ApplicationRoute.Faststream): TestFixture = {
+      applicationReadyForEvaluation = insertApplicationWithPhase1TestResults2(
+        applicationId, t1Score, Some(t2Score), Some(t3Score), t4Score, applicationRoute = applicationRoute)(selectedSchemes: _*)
       phase1TestEvaluationService.evaluate(applicationReadyForEvaluation, passmarks).futureValue
       this
     }
 
-    def applicationEvaluation(applicationId: String, sjqScore: Double, bjqScore: Double, selectedSchemes: SchemeId*)
-      (implicit applicationRoute: ApplicationRoute = ApplicationRoute.Faststream): TestFixture = {
-      applicationEvaluationWithPassMarks(phase1PassMarkSettings, applicationId, sjqScore, bjqScore, selectedSchemes:_*)
+    def applicationEvaluation(applicationId: String, t1Score: Double, t2Score: Double,
+                              t3Score: Double, t4Score: Double, selectedSchemes: SchemeId*)
+                             (implicit applicationRoute: ApplicationRoute = ApplicationRoute.Faststream): TestFixture = {
+      applicationEvaluationWithPassMarks(phase1PassMarkSettings, applicationId, t1Score, t2Score, t3Score, t4Score, selectedSchemes:_*)
     }
 
     def mustResultIn(expApplicationStatus: ApplicationStatus, expProgressStatus: Option[ProgressStatus],
-      expSchemeResults: (SchemeId , Result)*): TestFixture = {
+                     expSchemeResults: (SchemeId , Result)*): TestFixture = {
       passMarkEvaluation = phase1EvaluationRepo.getPassMarkEvaluation(applicationReadyForEvaluation.applicationId).futureValue
       val applicationDetails = applicationRepository.findStatus(applicationReadyForEvaluation.applicationId).futureValue
       val applicationStatus = ApplicationStatus.withName(applicationDetails.status)
@@ -122,8 +137,9 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     }
 
     def getPassMarkSettingWithNewSettings(
-      phase1PassMarkSettingsTable: TableFor9[SchemeId, Double, Double, Double, Double, Double, Double, Double, Double],
-      newSchemeSettings: (SchemeId, Double, Double, Double, Double, Double, Double, Double, Double)*) = {
+                                           phase1PassMarkSettingsTable: TableFor9[SchemeId,
+                                             Double, Double, Double, Double, Double, Double, Double, Double],
+                                           newSchemeSettings: (SchemeId, Double, Double, Double, Double, Double, Double, Double, Double)*) = {
       phase1PassMarkSettingsTable.filterNot(schemeSetting =>
         newSchemeSettings.map(_._1).contains(schemeSetting._1)) ++ newSchemeSettings
     }
@@ -139,13 +155,14 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     def createPhase1PassMarkSettings(phase1PassMarkSettingsTable: TableFor9[SchemeId, Double, Double, Double, Double,
       Double, Double, Double, Double]): Future[Phase1PassMarkSettings] = {
       val schemeThresholds = phase1PassMarkSettingsTable.map {
-        fields => Phase1PassMark(fields._1,
-          Phase1PassMarkThresholds(
-            PassMarkThreshold(fields._2, fields._3),
-            PassMarkThreshold(fields._4, fields._5),
-            PassMarkThreshold(fields._6, fields._7),
-            PassMarkThreshold(fields._8, fields._9)
-          ))
+        case (schemeName, t1Fail, t1Pass, t2Fail, t2Pass, t3Fail, t3Pass, t4Fail, t4Pass) =>
+          Phase1PassMark(schemeName,
+            Phase1PassMarkThresholds(
+              PassMarkThreshold(t1Fail, t1Pass),
+              PassMarkThreshold(t2Fail, t2Pass),
+              PassMarkThreshold(t3Fail, t3Pass),
+              PassMarkThreshold(t4Fail, t4Pass)
+            ))
       }.toList
 
       val phase1PassMarkSettings = Phase1PassMarkSettings(

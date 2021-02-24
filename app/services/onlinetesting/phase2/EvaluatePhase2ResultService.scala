@@ -17,11 +17,12 @@
 package services.onlinetesting.phase2
 
 import com.google.inject.name.Named
+import config.MicroserviceAppConfig
 import factories.UUIDFactory
-import javax.inject.{ Inject, Singleton }
 import model.Phase
 import model.exchange.passmarksettings.Phase2PassMarkSettings
-import model.persisted.ApplicationReadyForEvaluation
+import model.persisted.{ApplicationReadyForEvaluation, PsiTestResult}
+import play.api.Logging
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.OnlineTestEvaluationRepository
 import repositories.passmarksettings.Phase2PassMarkSettingsMongoRepository
@@ -29,35 +30,33 @@ import scheduler.onlinetesting.EvaluateOnlineTestResultService
 import services.onlinetesting.CurrentSchemeStatusHelper
 import services.passmarksettings.PassMarkSettingsService
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-// Cubiks version guice injected
 @Singleton
 class EvaluatePhase2ResultService @Inject() (@Named("Phase2EvaluationRepository") val evaluationRepository: OnlineTestEvaluationRepository,
                                              val passMarkSettingsRepo: Phase2PassMarkSettingsMongoRepository,
                                              val generalAppRepository: GeneralApplicationRepository,
+                                             appConfig: MicroserviceAppConfig,
                                              val uuidFactory: UUIDFactory
-                                            ) extends EvaluateOnlineTestResultService[Phase2PassMarkSettings] with Phase2TestEvaluation
-  with PassMarkSettingsService[Phase2PassMarkSettings] with CurrentSchemeStatusHelper {
+                                            ) extends EvaluateOnlineTestResultService[Phase2PassMarkSettings] with Phase2TestSelector
+  with Phase2TestEvaluation with PassMarkSettingsService[Phase2PassMarkSettings] with CurrentSchemeStatusHelper with Logging {
 
-  override val phase = Phase.PHASE2
+  val phase = Phase.PHASE2
+  val gatewayConfig = appConfig.onlineTestsGatewayConfig
 
   def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase2PassMarkSettings): Future[Unit] = {
-    logger.debug(s"Evaluating phase2 appId=${application.applicationId}")
+    logger.warn(s"Evaluating phase2 appId=${application.applicationId}")
 
-    val activeTests = application.activeCubiksTests
-    require(activeTests.nonEmpty && activeTests.length == 1, "Allowed active number of tests is 1")
-    require(application.prevPhaseEvaluation.isDefined, "Phase1 results required to evaluate phase2")
+    val activeTests = application.activePsiTests
+    require(activeTests.nonEmpty && activeTests.length == 2,
+      s"Allowed active number of tests for phase2 is 2 - found ${activeTests.size} for AppId=${application.applicationId}")
+    require(application.prevPhaseEvaluation.isDefined, "Phase1 results are required before we can evaluate phase2")
 
-    val optEtrayResult = activeTests.headOption.flatMap(_.testResult)
-
-    val schemeResults = (optEtrayResult, application.prevPhaseEvaluation) match {
-      case (Some(etrayTest), Some(prevPhaseEvaluation)) =>
-        evaluate(application.preferences.schemes, etrayTest, prevPhaseEvaluation.result, passmark)
-      case _ => throw new IllegalStateException(s"Illegal number of phase2 active tests with results " +
-        s"for this application: ${application.applicationId}")
-    }
+    val test1ResultOpt = findFirstTest1Test(activeTests).flatMap(_.testResult)
+    val test2ResultOpt = findFirstTest2Test(activeTests).flatMap(_.testResult)
+    val schemeResults = getSchemeResults(test1ResultOpt, test2ResultOpt)
 
     getSdipResults(application).flatMap { sdip =>
       if (application.isSdipFaststream) {
@@ -66,5 +65,18 @@ class EvaluatePhase2ResultService @Inject() (@Named("Phase2EvaluationRepository"
       }
       savePassMarkEvaluation(application, schemeResults ++ sdip , passmark)
     }
+  }
+
+  private def getSchemeResults(test1ResultOpt: Option[PsiTestResult], test2ResultOpt: Option[PsiTestResult])
+                              (implicit application: ApplicationReadyForEvaluation, passmark: Phase2PassMarkSettings) = {
+    val schemeResults = (test1ResultOpt, test2ResultOpt, application.prevPhaseEvaluation) match {
+      case (Some(test1Result), Some(test2Result), Some(prevPhaseEvaluation)) =>
+        evaluate(application.preferences.schemes, test1Result, test2Result, prevPhaseEvaluation.result, passmark)
+      case _ => throw new IllegalStateException(s"Illegal number of phase2 active tests with results " +
+        s"for this application: ${application.applicationId} - expecting a result for each of the 2 tests and the " +
+        s"previous phase evaluation. Test1Result defined=${test1ResultOpt.isDefined}, test2Result defined=${test2ResultOpt.isDefined}, " +
+        s"previous phase evaluation defined=${application.prevPhaseEvaluation.isDefined}")
+    }
+    schemeResults
   }
 }

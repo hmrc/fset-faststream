@@ -24,29 +24,25 @@ import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
-import services.onlinetesting.phase1.Phase1TestService2
-import services.onlinetesting.phase2.Phase2TestService2
+import services.onlinetesting.phase1.Phase1TestService
+import services.onlinetesting.phase2.Phase2TestService
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class RetrievePhase1ResultsJob @Inject() (val onlineTestingService: Phase1TestService2,
+class RetrievePhase1ResultsJob @Inject() (val onlineTestingService: Phase1TestService,
                                           val mongoComponent: ReactiveMongoComponent,
                                           val config: RetrievePhase1ResultsJobConfig
                                          ) extends RetrieveResultsJob {
-  //  val onlineTestingService = Phase1TestService2
-  //  val config = RetrievePhase1ResultsJobConfig
   val phase = "PHASE1"
 }
 
 @Singleton
-class RetrievePhase2ResultsJob @Inject() (val onlineTestingService: Phase2TestService2,
+class RetrievePhase2ResultsJob @Inject() (val onlineTestingService: Phase2TestService,
                                           val mongoComponent: ReactiveMongoComponent,
                                           val config: RetrievePhase2ResultsJobConfig
                                          ) extends RetrieveResultsJob {
-  //  val onlineTestingService = Phase2TestService2
-  //  val config = RetrievePhase2ResultsJobConfig
   val phase = "PHASE2"
 }
 

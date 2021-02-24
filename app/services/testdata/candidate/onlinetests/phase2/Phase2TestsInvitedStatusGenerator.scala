@@ -16,15 +16,15 @@
 
 package services.testdata.candidate.onlinetests.phase2
 
-import config.{ MicroserviceAppConfig, TestIntegrationGatewayConfig }
+import config.{ MicroserviceAppConfig, OnlineTestsGatewayConfig }
 import javax.inject.{ Inject, Singleton }
 import model.Adjustments
 import model.exchange.testdata.CreateCandidateResponse.{ TestGroupResponse2, TestResponse2 }
-import model.persisted.{ Phase2TestGroup2, PsiTest }
+import model.persisted.{ Phase2TestGroup, PsiTest }
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
-import repositories.onlinetesting.Phase2TestRepository2
+import repositories.onlinetesting.Phase2TestRepository
 import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.candidate.onlinetests.Phase1TestsPassedStatusGenerator
 import services.testdata.faker.DataFaker
@@ -32,31 +32,25 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-//object Phase2TestsInvitedStatusGenerator extends Phase2TestsInvitedStatusGenerator {
-//  override val previousStatusGenerator = Phase1TestsPassedStatusGenerator
-//  override val otRepository = phase2TestRepository2
-//  override val onlineTestGatewayConfig = testIntegrationGatewayConfig
-//}
-
 @Singleton
 class Phase2TestsInvitedStatusGenerator @Inject() (val previousStatusGenerator: Phase1TestsPassedStatusGenerator,
-                                                   otRepository: Phase2TestRepository2,
+                                                   otRepository: Phase2TestRepository,
                                                    appConfig: MicroserviceAppConfig,
                                                    dataFaker: DataFaker
                                                   ) extends ConstructiveGenerator {
 
-  val onlineTestGatewayConfig: TestIntegrationGatewayConfig = appConfig.testIntegrationGatewayConfig
+  val onlineTestsGatewayConfig: OnlineTestsGatewayConfig = appConfig.onlineTestsGatewayConfig
 
   //scalastyle:off method.length
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
-    val psiTests = onlineTestGatewayConfig.phase2Tests.standard.map { testName =>
+    val psiTests = onlineTestsGatewayConfig.phase2Tests.standard.map { testName =>
       (
         testName,
-        onlineTestGatewayConfig.phase2Tests.tests(testName).inventoryId,
-        onlineTestGatewayConfig.phase2Tests.tests(testName).assessmentId,
-        onlineTestGatewayConfig.phase2Tests.tests(testName).reportId,
-        onlineTestGatewayConfig.phase2Tests.tests(testName).normId
+        onlineTestsGatewayConfig.phase2Tests.tests(testName).inventoryId,
+        onlineTestsGatewayConfig.phase2Tests.tests(testName).assessmentId,
+        onlineTestsGatewayConfig.phase2Tests.tests(testName).reportId,
+        onlineTestsGatewayConfig.phase2Tests.tests(testName).normId
       )
     }.map { case (testName, inventoryId, assessmentId, reportId, normId) =>
       val orderId = java.util.UUID.randomUUID.toString
@@ -80,7 +74,7 @@ class Phase2TestsInvitedStatusGenerator @Inject() (val previousStatusGenerator: 
       test
     }
 
-    val phase2TestGroup = Phase2TestGroup2(
+    val phase2TestGroup = Phase2TestGroup(
       expirationDate = generatorConfig.phase2TestData.flatMap(_.expiry).getOrElse(DateTime.now().plusDays(7)),
       tests = psiTests
     )

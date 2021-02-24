@@ -147,7 +147,10 @@ DELETE      /diagnostic/application/:applicationId/eTray                        
 DELETE      /diagnostic/application/:applicationId/progress/:progress                                               @controllers.fixdata.FixDataConsistencyController.removeProgressStatus(applicationId: String, progress: String)
 DELETE      /diagnostic/application/:applicationId/failedVideoEvaluation                                            @controllers.fixdata.FixDataConsistencyController.removeVideoInterviewFailed(applicationId: String)
 PUT         /diagnostic/application/:applicationId/fastPassPromotion                                                @controllers.fixdata.FixDataConsistencyController.promoteToFastPassAccepted(applicationId: String)
-GET         /diagnostic/application/:applicationId/rollback-to-phase2-completed-from-phase2-failed                  @controllers.fixdata.FixDataConsistencyController.rollbackToPhase2CompletedFromPhase2Failed(applicationId: String)
+
+# TODO: cubiks specific
+#GET         /diagnostic/application/:applicationId/rollback-to-phase2-completed-from-phase2-failed                  @controllers.fixdata.FixDataConsistencyController.rollbackToPhase2CompletedFromPhase2Failed(applicationId: String)
+
 GET         /diagnostic/application/:applicationId/rollback-to-phase1-results-received-from-phase1-failed           @controllers.fixdata.FixDataConsistencyController.rollbackToPhase1ResultsReceivedFromPhase1FailedNotified(applicationId: String)
 GET         /diagnostic/application/:applicationId/rollback-to-phase2-results-received-from-phase2-failed           @controllers.fixdata.FixDataConsistencyController.rollbackToPhase2ResultsReceivedFromPhase2FailedNotified(applicationId: String)
 GET         /diagnostic/application/:applicationId/rollback-to-submitted-with-fast-pass-from-online-tests-expired   @controllers.fixdata.FixDataConsistencyController.rollbackToSubmittedWithFastPassFromOnlineTestsExpired(applicationId: String, fastPass: Int, sdipFaststream: Boolean)
@@ -211,7 +214,10 @@ GET         /diagnostic/rollbackToRetakePhase3FromSift                          
 GET         /diagnostic/removePhase1TestEvaluation                                                      @controllers.fixdata.FixDataConsistencyController.removePhase1TestEvaluation(applicationId: String)
 GET         /diagnostic/removePhase2TestEvaluation                                                      @controllers.fixdata.FixDataConsistencyController.removePhase2TestEvaluation(applicationId: String)
 GET         /diagnostic/removePhase3TestEvaluation                                                      @controllers.fixdata.FixDataConsistencyController.removePhase3TestEvaluation(applicationId: String)
-GET         /diagnostic/fixPhase2PartialCallbackCandidate                                               @controllers.fixdata.FixDataConsistencyController.fixPhase2PartialCallbackCandidate(applicationId: String)
+
+# TODO: cubiks specific
+#GET         /diagnostic/fixPhase2PartialCallbackCandidate                                               @controllers.fixdata.FixDataConsistencyController.fixPhase2PartialCallbackCandidate(applicationId: String)
+
 GET         /diagnostic/fixPhase3ExpiredCandidate                                                       @controllers.fixdata.FixDataConsistencyController.fixPhase3ExpiredCandidate(applicationId: String)
 GET         /diagnostic/fsac/resetFastPassCandidate                                                     @controllers.fixdata.FixDataConsistencyController.fsacResetFastPassCandidate(applicationId: String)
 GET         /diagnostic/fsac/rollbackWithdraw                                                           @controllers.fixdata.FixDataConsistencyController.fsacRollbackWithdraw(applicationId: String)
@@ -225,7 +231,7 @@ GET         /diagnostic/application/:applicationId/setGis/:newGis               
 #Diagnostic routes end
 
 GET         /online-test/psi/phase1/candidate/:applicationId             @controllers.OnlineTestController.getPhase1OnlineTest2(applicationId: String)
-
+# TODO: cubiks this is the same as the line above
 GET         /online-test/phase1/candidate/:applicationId                 @controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 @controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)
 GET         /online-test/phase1/candidate/orderId/:orderId               @controllers.OnlineTestController.getPhase1OnlineTestByOrderId(orderId: String)

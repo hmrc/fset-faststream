@@ -21,7 +21,7 @@ import factories.{ DateTimeFactory, UUIDFactory }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model._
-import model.exchange.{ CubiksTestResultReady, PsiRealTimeResults }
+import model.exchange.PsiRealTimeResults
 import model.persisted._
 import model.stc.StcEventTypes._
 import model.stc.{ AuditEvents, DataStoreEvents }
@@ -44,7 +44,7 @@ trait OnlineTestService extends TimeExtension with EventSink with Logging {
   type U <: Test
   type T <: TestProfile[U]
   type RichTestGroup <: TestGroupWithIds[U, T]
-  type TestRepository2 <: OnlineTestRepository // TestRepository2 must be a class that implements trait OnlineTestRepository2
+  type TestRepository <: OnlineTestRepository // TestRepository must be a class that implements trait OnlineTestRepository
 
   val emailClient: OnlineTestEmailClient
   val auditService: AuditService
@@ -52,7 +52,7 @@ trait OnlineTestService extends TimeExtension with EventSink with Logging {
   val dateTimeFactory: DateTimeFactory
   val cdRepository: ContactDetailsRepository
   val appRepository: GeneralApplicationRepository
-  val testRepository: TestRepository2
+  val testRepository: TestRepository
   val siftService: ApplicationSiftService
 
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
@@ -60,7 +60,9 @@ trait OnlineTestService extends TimeExtension with EventSink with Logging {
   def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]]
   def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
+  // PSI specific
   def registerAndInvite(applications: List[OnlineTestApplication])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
+  // PSI specific
   def storeRealTimeResults(orderId: String, results: PsiRealTimeResults)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest, emailAddress: String, reminder: ReminderNotice)
                                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
@@ -163,22 +165,28 @@ trait OnlineTestService extends TimeExtension with EventSink with Logging {
     } yield ()
   }
 
+  // TODO: cubiks specific
+  /*
   def updateTestReportReady(cubiksTest: CubiksTest, reportReady: CubiksTestResultReady) = cubiksTest.copy(
     resultsReadyToDownload = reportReady.reportStatus == "Ready",
     reportId = reportReady.reportId,
     reportLinkURL = reportReady.reportLinkURL,
     reportStatus = Some(reportReady.reportStatus)
-  )
+  )*/
 
+  // TODO: cubiks specific
+  /*
   def updateCubiksTestsById(cubiksUserId: Int, cubiksTests: List[CubiksTest], updateFn: CubiksTest => CubiksTest) = cubiksTests.collect {
     case t if t.cubiksUserId == cubiksUserId => updateFn(t)
     case t => t
-  }
+  }*/
 
+  // TODO: cubiks specific
+  /*
   def assertUniqueTestByCubiksUserId(cubiksTests: List[CubiksTest], cubiksUserId: Int) = {
     val requireUserIdOnOnlyOneTestCount = cubiksTests.count(_.cubiksUserId == cubiksUserId)
     require(requireUserIdOnOnlyOneTestCount == 1, s"Cubiks userid $cubiksUserId was on $requireUserIdOnOnlyOneTestCount tests!")
-  }
+  }*/
 
   private[services] def getAdjustedTime(minimum: Int, maximum: Int, percentageToIncrease: Int) = {
     val adjustedValue = math.ceil(minimum.toDouble * (1 + percentageToIncrease / 100.0))

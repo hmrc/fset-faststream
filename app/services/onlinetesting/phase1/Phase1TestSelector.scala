@@ -17,17 +17,18 @@
 package services.onlinetesting.phase1
 
 import config.OnlineTestsGatewayConfig
-import model.persisted.CubiksTest
+import model.persisted.PsiTest
 
 trait Phase1TestSelector {
   val gatewayConfig: OnlineTestsGatewayConfig
 
-  def findFirstSjqTest(tests: List[CubiksTest]): Option[CubiksTest] = tests find (_.scheduleId == sjq)
+  def findFirstTest1Test(tests: List[PsiTest]): Option[PsiTest] = tests find (_.inventoryId == inventoryIdForTest("test1"))
 
-  def findFirstBqTest(tests: List[CubiksTest]): Option[CubiksTest] = tests find (_.scheduleId == bq)
+  def findFirstTest2Test(tests: List[PsiTest]): Option[PsiTest] = tests find (_.inventoryId == inventoryIdForTest("test2"))
 
-  private[onlinetesting] def sjq = gatewayConfig.phase1Tests.scheduleIds("sjq")
+  def findFirstTest3Test(tests: List[PsiTest]): Option[PsiTest] = tests find (_.inventoryId == inventoryIdForTest("test3"))
 
-  private[onlinetesting] def bq = gatewayConfig.phase1Tests.scheduleIds("bq")
+  def findFirstTest4Test(tests: List[PsiTest]): Option[PsiTest] = tests find (_.inventoryId == inventoryIdForTest("test4"))
 
+  private[onlinetesting] def inventoryIdForTest(testName: String) = gatewayConfig.phase1Tests.tests(testName).inventoryId
 }

@@ -22,7 +22,7 @@ import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
-import services.onlinetesting.phase1.Phase1TestService2
+import services.onlinetesting.phase1.Phase1TestService
 import services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -31,7 +31,7 @@ import scala.concurrent.Future
 
 @Singleton
 class Phase1TestsStartedStatusGenerator @Inject() (val previousStatusGenerator: Phase1TestsInvitedStatusGenerator,
-                                                   otService: Phase1TestService2
+                                                   otService: Phase1TestService
                                                   ) extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)

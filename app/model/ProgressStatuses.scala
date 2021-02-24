@@ -119,6 +119,7 @@ object ProgressStatuses {
   case object SIFT_FIRST_REMINDER extends ProgressStatus(ApplicationStatus.SIFT)
   case object SIFT_SECOND_REMINDER extends ProgressStatus(ApplicationStatus.SIFT)
   case object SIFT_FORMS_COMPLETE_NUMERIC_TEST_PENDING extends ProgressStatus(ApplicationStatus.SIFT)
+  // TODO: cubiks - think this is now redundant
   case object SIFT_TEST_RESULTS_READY extends ProgressStatus(ApplicationStatus.SIFT)
   case object SIFT_TEST_RESULTS_RECEIVED extends ProgressStatus(ApplicationStatus.SIFT)
   case object SIFT_READY extends ProgressStatus(ApplicationStatus.SIFT)

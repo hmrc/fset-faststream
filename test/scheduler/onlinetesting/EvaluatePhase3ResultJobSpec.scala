@@ -18,7 +18,7 @@ package scheduler.onlinetesting
 
 import model._
 import model.exchange.passmarksettings._
-import model.persisted.ApplicationReadyForEvaluation2
+import model.persisted.ApplicationReadyForEvaluation
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
@@ -35,7 +35,7 @@ class EvaluatePhase3ResultJobSpec extends UnitWithAppSpec {
 
   "Scheduler execution" should {
     "evaluate applications ready for evaluation" in new TestFixture {
-      when(mockEvaluateService2.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase3PassMarkSettings]]))
+      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase3PassMarkSettings]]))
         .thenReturn(Future.successful(Some((apps.toList, passmark))))
 
       scheduler.tryExecute().futureValue
@@ -43,10 +43,10 @@ class EvaluatePhase3ResultJobSpec extends UnitWithAppSpec {
     }
 
     "evaluate all applications even when some of them fail" in new TestFixture {
-      when(mockEvaluateService2.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase3PassMarkSettings]]))
+      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase3PassMarkSettings]]))
         .thenReturn(Future.successful(Some((apps.toList, passmark))))
-      when(mockEvaluateService2.evaluate(apps(0), passmark)).thenReturn(Future.failed(new IllegalStateException("first application fails")))
-      when(mockEvaluateService2.evaluate(apps(5), passmark)).thenReturn(Future.failed(new Exception("fifth application fails")))
+      when(mockEvaluateService.evaluate(apps(0), passmark)).thenReturn(Future.failed(new IllegalStateException("first application fails")))
+      when(mockEvaluateService.evaluate(apps(5), passmark)).thenReturn(Future.failed(new Exception("fifth application fails")))
 
       val exception = scheduler.tryExecute().failed.futureValue
 
@@ -55,34 +55,32 @@ class EvaluatePhase3ResultJobSpec extends UnitWithAppSpec {
     }
 
     "do not evaluate candidate if none of them are ready to evaluate" in new TestFixture {
-      when(mockEvaluateService2.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase3PassMarkSettings]]))
+      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase3PassMarkSettings]]))
         .thenReturn(Future.successful(None))
       scheduler.tryExecute().futureValue
 
-      verify(mockEvaluateService2, never).evaluate(any[ApplicationReadyForEvaluation2], any[Phase3PassMarkSettings])
+      verify(mockEvaluateService, never).evaluate(any[ApplicationReadyForEvaluation], any[Phase3PassMarkSettings])
     }
   }
 
   trait TestFixture {
-//    val mockEvaluateService = mock[EvaluateOnlineTestResultService[Phase3PassMarkSettings]]
-    val mockEvaluateService2 = mock[EvaluateOnlineTestResultService2[Phase3PassMarkSettings]]
+    val mockEvaluateService = mock[EvaluateOnlineTestResultService[Phase3PassMarkSettings]]
     val profile = Phase3TestProfileExamples.phase3Test
     val schemes = SelectedSchemesExamples.TwoSchemes
     val passmark = Phase3PassMarkSettingsExamples.passmark
 
     val apps = 1 to 10 map { id =>
-      ApplicationReadyForEvaluation2(s"app$id", ApplicationStatus.PHASE3_TESTS, ApplicationRoute.Faststream, isGis = false,
+      ApplicationReadyForEvaluation(s"app$id", ApplicationStatus.PHASE3_TESTS, ApplicationRoute.Faststream, isGis = false,
         Nil, profile.activeTests.headOption, None, schemes)
     }
 
     apps.foreach { app =>
-      when(mockEvaluateService2.evaluate(app, passmark)).thenReturn(Future.successful(()))
+      when(mockEvaluateService.evaluate(app, passmark)).thenReturn(Future.successful(()))
     }
 
     lazy val scheduler = new EvaluateOnlineTestResultJob[Phase3PassMarkSettings] {
       val phase = Phase.PHASE3
-//      val evaluateService = mockEvaluateService
-      val evaluateService2 = mockEvaluateService2
+      val evaluateService = mockEvaluateService
       override val mongoComponent = mock[ReactiveMongoComponent]
       override lazy val batchSize = 1
       override val lockId = "1"
@@ -94,8 +92,8 @@ class EvaluatePhase3ResultJobSpec extends UnitWithAppSpec {
       def config = ??? //EvaluatePhase3ResultJobConfig
     }
 
-    def assertAllApplicationsWereEvaluated(apps: Seq[ApplicationReadyForEvaluation2]) = apps foreach { app =>
-      verify(mockEvaluateService2).evaluate(app, passmark)
+    def assertAllApplicationsWereEvaluated(apps: Seq[ApplicationReadyForEvaluation]) = apps foreach { app =>
+      verify(mockEvaluateService).evaluate(app, passmark)
     }
   }
 }

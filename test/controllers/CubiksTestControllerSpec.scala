@@ -23,30 +23,31 @@ import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import play.api.test.Helpers._
-import services.NumericalTestService
+//import services.NumericalTestService
 import services.stc.StcEventService
-import services.onlinetesting.phase1.Phase1TestService
-import services.onlinetesting.phase2.Phase2TestService
+//import services.onlinetesting.phase1.Phase1TestService
+//import services.onlinetesting.phase2.Phase2TestService
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
+//TODO: cubiks delete this class
 class CubiksTestControllerSpec extends UnitWithAppSpec {
 
-  val mockPhase1TestService = mock[Phase1TestService]
-  val mockPhase2TestService = mock[Phase2TestService]
-  val mockNumericalTestService = mock[NumericalTestService]
+//  val mockPhase1TestService = mock[Phase1TestService]
+//  val mockPhase2TestService = mock[Phase2TestService]
+//  val mockNumericalTestService = mock[NumericalTestService]
   val mockEventService = mock[StcEventService]
 
   def controllerUnderTest = new CubiksTestsController(
     stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
-    mockPhase1TestService,
-    mockPhase2TestService,
-    mockNumericalTestService,
+//    mockPhase1TestService,
+//    mockPhase2TestService,
+//    mockNumericalTestService,
     mockEventService
   )
-
+/*
   "start" should {
     "mark the phase1 test as started" in {
       val cubiksUserId = 1
@@ -186,5 +187,5 @@ class CubiksTestControllerSpec extends UnitWithAppSpec {
       val response = controllerUnderTest.markResultsReady(cubiksUserId)(fakeRequest(cubiksTestResult))
       status(response) mustBe NOT_FOUND
     }
-  }
+  }*/
 }

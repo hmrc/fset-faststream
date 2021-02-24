@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package model.exchange.sift
+package services.onlinetesting
 
-import model.persisted.PsiTest
-import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.{ Json, OFormat }
-
-case class SiftTestGroupWithActiveTest2(expirationDate: DateTime, activeTest: PsiTest)
-
-object SiftTestGroupWithActiveTest2 {
-  implicit val siftTestGroupWithActiveTestFormat: OFormat[SiftTestGroupWithActiveTest2] =
-    Json.format[SiftTestGroupWithActiveTest2]
+object TextSanitizer {
+  def sanitizeFreeText(value: String): String =
+    value
+      .replaceAll("[\\<\\>\\&]", " ")
+      .replaceAll("\\s+", " ")
+      .trim
 }
-

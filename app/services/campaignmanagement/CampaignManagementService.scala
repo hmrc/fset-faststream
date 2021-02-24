@@ -36,9 +36,7 @@ class CampaignManagementService @Inject() (afterDeadlineCodeRepository: Campaign
                                            uuidFactory: UUIDFactory,
                                            appRepo: GeneralApplicationRepository,
                                            phase1TestRepo: Phase1TestRepository,
-                                           phase1TestRepo2: Phase1TestRepository2,
                                            phase2TestRepo: Phase2TestRepository,
-                                           phase2TestRepo2: Phase2TestRepository2,
                                            questionnaireRepo: QuestionnaireRepository,
                                            mediaRepo: MediaRepository,
                                            contactDetailsRepo: ContactDetailsRepository) {
@@ -84,7 +82,7 @@ class CampaignManagementService @Inject() (afterDeadlineCodeRepository: Campaign
 
   private def verifyPhase1TestScoreData(tScoreRequest: SetTScoreRequest, isGis: Boolean): Future[Boolean] = {
     for {
-      phase1TestProfileOpt <- phase1TestRepo2.getTestGroup(tScoreRequest.applicationId)
+      phase1TestProfileOpt <- phase1TestRepo.getTestGroup(tScoreRequest.applicationId)
     } yield {
       val testsPresentWithResultsSaved = phase1TestProfileOpt.exists { phase1TestProfile =>
         val expectedNumberOfTests = if (isGis) { 2 } else { 4 }
@@ -96,7 +94,7 @@ class CampaignManagementService @Inject() (afterDeadlineCodeRepository: Campaign
     }
   }
 
-  private def updatePhase1TestProfile(tScoreRequest: SetTScoreRequest, phase1TestProfile: Phase1TestProfile2): Phase1TestProfile2 = {
+  private def updatePhase1TestProfile(tScoreRequest: SetTScoreRequest, phase1TestProfile: Phase1TestProfile): Phase1TestProfile = {
     tScoreRequest.inventoryId match {
       case Some(_) =>
         phase1TestProfile.copy(tests = updateTest(tScoreRequest, phase1TestProfile.tests))
@@ -139,8 +137,8 @@ class CampaignManagementService @Inject() (afterDeadlineCodeRepository: Campaign
       val msg = "Phase1 data is not in the correct state to set tScores"
       if (dataIsValid) {
         for {
-          phase1TestProfileOpt <- phase1TestRepo2.getTestGroup(tScoreRequest.applicationId)
-          _ <- phase1TestRepo2.insertOrUpdateTestGroup(
+          phase1TestProfileOpt <- phase1TestRepo.getTestGroup(tScoreRequest.applicationId)
+          _ <- phase1TestRepo.insertOrUpdateTestGroup(
             tScoreRequest.applicationId, updatePhase1TestProfile(tScoreRequest, phase1TestProfileOpt
               .getOrElse(throw new IllegalStateException(msg))))
         } yield ()
@@ -157,8 +155,8 @@ class CampaignManagementService @Inject() (afterDeadlineCodeRepository: Campaign
       val msg = "Phase2 data is not in the correct state to set tScores"
       if (dataIsValid) {
         for {
-          phase2TestGroupOpt <- phase2TestRepo2.getTestGroup(tScoreRequest.applicationId)
-          _ <- phase2TestRepo2.insertOrUpdateTestGroup(
+          phase2TestGroupOpt <- phase2TestRepo.getTestGroup(tScoreRequest.applicationId)
+          _ <- phase2TestRepo.insertOrUpdateTestGroup(
             tScoreRequest.applicationId, updatePhase2TestGroup(tScoreRequest, phase2TestGroupOpt
               .getOrElse(throw new IllegalStateException(msg))))
         } yield ()
@@ -170,7 +168,7 @@ class CampaignManagementService @Inject() (afterDeadlineCodeRepository: Campaign
 
   private def verifyPhase2TestScoreData(tScoreRequest: SetTScoreRequest): Future[Boolean] = {
     for {
-      phase2TestProfileOpt <- phase2TestRepo2.getTestGroup(tScoreRequest.applicationId)
+      phase2TestProfileOpt <- phase2TestRepo.getTestGroup(tScoreRequest.applicationId)
     } yield {
       val testsPresentWithResultsSaved = phase2TestProfileOpt.exists { phase2TestProfile =>
         val allTestsPresent = phase2TestProfile.activeTests.size == 2
@@ -181,7 +179,7 @@ class CampaignManagementService @Inject() (afterDeadlineCodeRepository: Campaign
     }
   }
 
-  private def updatePhase2TestGroup(tScoreRequest: SetTScoreRequest, phase2TestGroup: Phase2TestGroup2): Phase2TestGroup2 = {
+  private def updatePhase2TestGroup(tScoreRequest: SetTScoreRequest, phase2TestGroup: Phase2TestGroup): Phase2TestGroup = {
     phase2TestGroup.copy(tests = updateTests(tScoreRequest, phase2TestGroup.tests))
   }
 }

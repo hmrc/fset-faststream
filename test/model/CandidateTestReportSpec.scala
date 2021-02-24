@@ -16,14 +16,13 @@
 
 package model
 
-import model.OnlineTestCommands.TestResult
-import model.PersistedObjects.CandidateTestReport
+//import model.OnlineTestCommands.TestResult
 import org.scalatest.prop.TableDrivenPropertyChecks
 import testkit.UnitSpec
 
 class CandidateTestReportSpec extends UnitSpec with TableDrivenPropertyChecks {
-  import CandidateTestReportSpec._
-
+//  import CandidateTestReportSpec._
+/*
   // format: OFF
   // t means TestResult in the format: t(tScore, raw, percentile, sten)
   val TestResultCasesNonGIS = Table(
@@ -95,9 +94,9 @@ class CandidateTestReportSpec extends UnitSpec with TableDrivenPropertyChecks {
     VALID
   } else {
     INVALID
-  }
+  }*/
 }
-
+/*
 // DSL
 object CandidateTestReportSpec {
   def t(tScore: Option[Double], raw: Option[Double], percentile: Option[Double], sten: Option[Double]): Option[TestResult] =
@@ -108,4 +107,4 @@ object CandidateTestReportSpec {
   sealed trait Status
   case object VALID extends Status
   case object INVALID extends Status
-}
+}*/

@@ -75,9 +75,9 @@ object ExchangeObjects {
     implicit val cancelCandidateTestRequestFormat: OFormat[CancelCandidateTestRequest] = Json.format[CancelCandidateTestRequest]
   }
 
-  // Cubiks Gateway Requests
-  case class RegisterApplicant(firstName: String, lastName: String, email: String)
-  object RegisterApplicant { implicit val registerApplicantFormat: OFormat[RegisterApplicant] = Json.format[RegisterApplicant] }
+  // TODO: Cubiks Gateway Requests delete
+//  case class RegisterApplicant(firstName: String, lastName: String, email: String)
+//  object RegisterApplicant { implicit val registerApplicantFormat: OFormat[RegisterApplicant] = Json.format[RegisterApplicant] }
 
   case class TimeAdjustments(assessmentId: Int,
     sectionId: Int,
@@ -85,19 +85,21 @@ object ExchangeObjects {
   )
   object TimeAdjustments { implicit val timeAdjustmentsFormat: OFormat[TimeAdjustments] = Json.format[TimeAdjustments] }
 
-  case class InviteApplicant(scheduleID: Int, userId: Int, scheduleCompletionURL: String, resultsURL: Option[String] = None,
-                             timeAdjustments: List[TimeAdjustments] = Nil)
-  object InviteApplicant { implicit val inviteApplicantFormat: OFormat[InviteApplicant] = Json.format[InviteApplicant] }
+  // TODO: Cubiks delete
+//  case class InviteApplicant(scheduleID: Int, userId: Int, scheduleCompletionURL: String, resultsURL: Option[String] = None,
+//                             timeAdjustments: List[TimeAdjustments] = Nil)
+//  object InviteApplicant { implicit val inviteApplicantFormat: OFormat[InviteApplicant] = Json.format[InviteApplicant] }
 
-  // Cubiks Gateway Response
-  case class Registration(userId: Int)
-  object Registration { implicit val registrationFormat: OFormat[Registration] = Json.format[Registration] }
+  // TODO: Cubiks Gateway Response delete
+//  case class Registration(userId: Int)
+//  object Registration { implicit val registrationFormat: OFormat[Registration] = Json.format[Registration] }
 
-  case class Invitation(userId: Int,
-    email: String, accessCode: String, logonUrl: String, authenticateUrl: String,
-    participantScheduleId: Int
-  )
-  object Invitation { implicit val invitationFormat: OFormat[Invitation] = Json.format[Invitation] }
+  // TODO: Cubiks delete
+//  case class Invitation(userId: Int,
+//    email: String, accessCode: String, logonUrl: String, authenticateUrl: String,
+//    participantScheduleId: Int
+//  )
+//  object Invitation { implicit val invitationFormat: OFormat[Invitation] = Json.format[Invitation] }
 
   case class AllocationDetails(location: String, venueDescription: String, attendanceDateTime: DateTime, expirationDate: Option[LocalDate])
   object AllocationDetails { implicit val allocationDetailsFormat: OFormat[AllocationDetails] = Json.format[AllocationDetails] }

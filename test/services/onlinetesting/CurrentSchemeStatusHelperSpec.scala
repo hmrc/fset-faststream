@@ -17,7 +17,7 @@
 package services.onlinetesting
 
 import model.EvaluationResults.Amber
-import model.persisted.{ ApplicationReadyForEvaluation2, SchemeEvaluationResult }
+import model.persisted.{ ApplicationReadyForEvaluation, SchemeEvaluationResult }
 import model.{ ApplicationRoute, ApplicationStatus, SchemeId, SelectedSchemes }
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito.when
@@ -49,11 +49,11 @@ class CurrentSchemeStatusHelperSpec extends UnitSpec {
   trait TestFixture {
     val mockAppRepo = mock[GeneralApplicationRepository]
 
-    val helper = new CurrentSchemeStatusHelper2 {
+    val helper = new CurrentSchemeStatusHelper {
       override val generalAppRepository: GeneralApplicationRepository = mockAppRepo
     }
 
-    val application = ApplicationReadyForEvaluation2(
+    val application = ApplicationReadyForEvaluation(
       "app1",
       ApplicationStatus.PHASE1_TESTS,
       ApplicationRoute.Faststream,

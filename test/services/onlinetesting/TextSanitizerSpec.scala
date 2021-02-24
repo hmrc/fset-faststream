@@ -18,8 +18,8 @@ package services.onlinetesting
 
 import testkit.UnitSpec
 
-class CubiksSanitizerSpec extends UnitSpec {
-  "Cubiks Sanitizer" should {
+class TextSanitizerSpec extends UnitSpec {
+  "Text sanitizer" should {
     "remove new lines" in new TestFixture {
       val input = "hello\nworld"
       val expected = "hello world"
@@ -63,6 +63,6 @@ class CubiksSanitizerSpec extends UnitSpec {
     }
   }
   trait TestFixture {
-    val sanitizer = CubiksSanitizer
+    val sanitizer = TextSanitizer
   }
 }

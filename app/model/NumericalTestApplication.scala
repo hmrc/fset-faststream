@@ -22,10 +22,12 @@ import play.api.libs.json.{ Json, OFormat }
 
 case class NumericalTestApplication(applicationId: String,
                                     userId: String,
+                                    testAccountId: String,
                                     applicationStatus: ApplicationStatus,
-                                    needsOnlineAdjustments: Boolean,
-                                    eTrayAdjustments: Option[AdjustmentDetail],
-                                    currentSchemeStatus: Seq[SchemeEvaluationResult])
+                                    preferredName: String,
+                                    lastName: String,
+                                    currentSchemeStatus: Seq[SchemeEvaluationResult]
+                                   )
 
 object NumericalTestApplication {
   implicit val applicationForNumericTest: OFormat[NumericalTestApplication] =

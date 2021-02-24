@@ -22,41 +22,44 @@ import model.exchange.CubiksTestResultReady
 import play.api.Logging
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, ControllerComponents, Result }
-import services.NumericalTestService
-import services.onlinetesting.phase1.Phase1TestService
-import services.onlinetesting.phase2.Phase2TestService
+//import services.NumericalTestService
+//import services.onlinetesting.phase1.Phase1TestService
+//import services.onlinetesting.phase2.Phase2TestService
 import services.stc.StcEventService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
+//TODO: cubiks delete this class
 @Singleton
 class CubiksTestsController @Inject() (cc: ControllerComponents,
-                                       phase1TestService: Phase1TestService,
-                                       phase2TestService: Phase2TestService,
-                                       numericalTestService: NumericalTestService,
+//                                       phase1TestService: Phase1TestService,
+//                                       phase2TestService: Phase2TestService,
+//                                       numericalTestService: NumericalTestService,
                                        eventService: StcEventService
                                       ) extends BackendController(cc) with Logging {
 
   def start(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     logger.info(s"Cubiks userId $cubiksUserId assessment started")
-    phase1TestService.markAsStarted(cubiksUserId)
+    ???
+/*    phase1TestService.markAsStarted(cubiksUserId)
       .recoverWith { case _: CannotFindTestByCubiksId =>
           phase2TestService.markAsStarted(cubiksUserId)
       }.map( _ => Ok )
-      .recover(recoverNotFound)
+      .recover(recoverNotFound)*/
   }
 
   def complete(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     logger.info(s"Cubiks userId $cubiksUserId assessment completed")
-    phase1TestService.markAsCompleted(cubiksUserId).recoverWith {
+    ???
+/*    phase1TestService.markAsCompleted(cubiksUserId).recoverWith {
       case _: CannotFindTestByCubiksId =>
           phase2TestService.markAsCompleted(cubiksUserId).recoverWith {
             case _: CannotFindTestByCubiksId =>
               numericalTestService.markAsCompleted(cubiksUserId)
           }
     }.map( _ => Ok )
-      .recover(recoverNotFound)
+      .recover(recoverNotFound)*/
   }
 
   /**
@@ -66,28 +69,30 @@ class CubiksTestsController @Inject() (cc: ControllerComponents,
     */
   def completeTestByToken(token: String) = Action.async { implicit request =>
     logger.info(s"Complete test by token $token")
-    phase1TestService.markAsCompleted(token)
+    ???
+/*    phase1TestService.markAsCompleted(token)
       .recoverWith { case _: CannotFindTestByCubiksId =>
           phase2TestService.markAsCompleted(token).recoverWith {
             case _: CannotFindTestByCubiksId =>
               numericalTestService.markAsCompleted(token)
           }
       }.map( _ => Ok )
-      .recover(recoverNotFound)
+      .recover(recoverNotFound)*/
   }
 
   def markResultsReady(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     withJsonBody[CubiksTestResultReady] { testResultReady =>
       logger.info(s"Cubiks user $cubiksUserId has xml results report ready to download. " +
         s"Payload(json) = [${Json.toJson(testResultReady).toString}], (deserialized) = [$testResultReady]")
-      phase1TestService.markAsReportReadyToDownload(cubiksUserId, testResultReady)
+      ???
+/*      phase1TestService.markAsReportReadyToDownload(cubiksUserId, testResultReady)
         .recoverWith { case _: CannotFindTestByCubiksId =>
             phase2TestService.markAsReportReadyToDownload(cubiksUserId, testResultReady).recoverWith {
               case _: CannotFindTestByCubiksId =>
                 numericalTestService.markAsReportReadyToDownload(cubiksUserId, testResultReady)
             }
         }.map( _ => Ok )
-        .recover(recoverNotFound)
+        .recover(recoverNotFound)*/
     }
   }
 

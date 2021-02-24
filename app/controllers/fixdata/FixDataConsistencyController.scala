@@ -30,7 +30,7 @@ import services.application.{ ApplicationService, FsbService }
 import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAssessmentScoreEvaluationException
 import services.assessmentcentre.{ AssessmentCentreService, ProgressionToFsbOrOfferService }
 import services.fastpass.FastPassService
-import services.onlinetesting.phase2.Phase2TestService2
+import services.onlinetesting.phase2.Phase2TestService
 import services.onlinetesting.phase3.Phase3TestService
 import services.sift.{ ApplicationSiftService, SiftAnswersService }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -49,7 +49,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
                                              assessmentCentreService: AssessmentCentreService,
                                              progressionToFsbOrOfferService: ProgressionToFsbOrOfferService,
                                              fsbService: FsbService,
-                                             phase2TestService: Phase2TestService2,
+                                             phase2TestService: Phase2TestService,
                                              phase3TestService: Phase3TestService,
                                              uuidFactory: UUIDFactory
                                             ) extends BackendController(cc) with Logging {
@@ -96,9 +96,11 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
   }
 
+  // TODO: cubiks this is cubiks specific
+  /*
   def rollbackToPhase2CompletedFromPhase2Failed(applicationId: String): Action[AnyContent] = Action.async {
     rollbackApplicationState(applicationId, applicationService.rollbackCandidateToPhase2CompletedFromPhase2Failed)
-  }
+  }*/
 
   def rollbackToPhase1ResultsReceivedFromPhase1FailedNotified(applicationId: String): Action[AnyContent] = Action.async {
     rollbackApplicationState(applicationId, applicationService.rollbackToPhase1ResultsReceivedFromPhase1FailedNotified)
@@ -535,6 +537,8 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       }
     }
 
+  // TODO: cubiks this is cubiks specific
+  /*
   def fixPhase2PartialCallbackCandidate(applicationId: String): Action[AnyContent] =
     Action.async { implicit request =>
       applicationService.fixPhase2PartialCallbackCandidate(applicationId).map(_ =>
@@ -543,7 +547,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
         case ex: Throwable =>
           BadRequest(s"Could not fix partial callback candidate $applicationId - message: ${ex.getMessage}")
       }
-    }
+    }*/
 
   def fixPhase3ExpiredCandidate(applicationId: String): Action[AnyContent] =
     Action.async { implicit request =>

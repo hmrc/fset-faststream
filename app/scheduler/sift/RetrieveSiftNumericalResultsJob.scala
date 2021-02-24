@@ -24,25 +24,27 @@ import play.api.{ Configuration, Logging }
 import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-import services.NumericalTestService2
+import services.NumericalTestService
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+// Cubiks specific class - redundant
 
 @Singleton
-class RetrieveSiftNumericalResultsJobImpl @Inject() (val numericalTestService: NumericalTestService2,
+class RetrieveSiftNumericalResultsJobImpl @Inject() (val numericalTestService: NumericalTestService,
                                                      val mongoComponent: ReactiveMongoComponent,
                                                      val config: RetrieveSiftNumericalResultsJobConfig
                                                     ) extends RetrieveSiftNumericalResultsJob {
 }
 
+// TODO: cubiks specific can delete
 trait RetrieveSiftNumericalResultsJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {
-  val numericalTestService: NumericalTestService2
+  val numericalTestService: NumericalTestService
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     val intro = "Retrieving xml results for candidates in SIFT"
     logger.info(intro)
-
+/*
     numericalTestService.nextTestGroupWithReportReady.flatMap {
       case Some(testGroup) =>
         logger.info(s"$intro - processing candidate with applicationId: ${testGroup.applicationId}")
@@ -53,7 +55,8 @@ trait RetrieveSiftNumericalResultsJob extends SingleInstanceScheduledJob[BasicJo
       case None =>
         logger.info(s"$intro - found no candidates")
         Future.successful(())
-    }
+    }*/
+    Future.successful(())
   }
 }
 

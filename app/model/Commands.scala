@@ -16,19 +16,7 @@
 
 package model
 
-import controllers._
-import model.ApplicationRoute.ApplicationRoute
-import model.Exceptions.{ NoResultsReturned, TooManyEntries }
-import model.OnlineTestCommands.Implicits._
-import model.OnlineTestCommands.TestResult
-import model.assessmentscores.AssessmentScoresAllExercises
-import org.joda.time.{ DateTime, LocalDate, LocalTime }
-import play.api.libs.json._
-
 import scala.language.implicitConversions
-import model.command.ProgressResponse
-import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
-import model.report.QuestionnaireReportItem
 
 //scalastyle:off
 object Commands {

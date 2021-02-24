@@ -17,31 +17,30 @@
 package connectors
 
 //import config.WSHttp
-import config.{ MicroserviceAppConfig, OnlineTestsGatewayConfig, WSHttpT }
+import config.{MicroserviceAppConfig, OnlineTestsGatewayConfig, WSHttpT}
 import connectors.ExchangeObjects._
-import mockws.MockWS
 import model.Exceptions.ConnectorException
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import play.api.libs.json.{ Json, _ }
+import play.api.libs.json.{Json, _}
 import play.api.mvc.Action
 import play.api.mvc.Results._
 import play.api.test.Helpers._
-import testkit.{ ShortTimeout, UnitSpec }
+import testkit.{ShortTimeout, UnitSpec}
 import uk.gov.hmrc.play.http._
 
-import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse }
+import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
 
 class OnlineTestsGatewayClientSpec extends UnitSpec with ShortTimeout {
   val FirstName = "firstName"
   val LastName = "lastName"
   val Email = "emailfsdferr@mailinator.com"
-  val registerApplicant = RegisterApplicant(FirstName, LastName, Email)
+//  val registerApplicant = RegisterApplicant(FirstName, LastName, Email)
 
-  val CubiksUserId = 112923
-  val registration = Registration(CubiksUserId)
-  val registrationHttpResponse = HttpResponse(OK, Some(Json.toJson(registration)))
+//  val CubiksUserId = 112923
+//  val registration = Registration(CubiksUserId)
+//  val registrationHttpResponse = HttpResponse(OK, Some(Json.toJson(registration)))
 
   // Invitation data
   val ScheduleId = 1111
@@ -56,15 +55,17 @@ class OnlineTestsGatewayClientSpec extends UnitSpec with ShortTimeout {
   val LogonUrl = "http://cubiks.com/logonUrl"
   val AuthenticatedUrl = "http://cubiks/authenticatedUrl"
   val timeAdjustments = TimeAdjustments(VerbalAndNumericalAssessmentId, NumericalSectionId, verbalTimeAdjustment)
-  val inviteApplicant = InviteApplicant(ScheduleId, CubiksUserId, "completeurl.com", None, List(timeAdjustments))
-  val invitation = Invitation(CubiksUserId, Email, AccessCode, LogonUrl, AuthenticatedUrl, ScheduleId)
-  val invitationHttpResponse = HttpResponse(OK, Some(Json.toJson(invitation)))
+//  val inviteApplicant = InviteApplicant(ScheduleId, CubiksUserId, "completeurl.com", None, List(timeAdjustments))
+//  val invitation = Invitation(CubiksUserId, Email, AccessCode, LogonUrl, AuthenticatedUrl, ScheduleId)
+//  val invitationHttpResponse = HttpResponse(OK, Some(Json.toJson(invitation)))
 
   // pdf report
   val reportId = 1
   val pdfReport = "pdfReport"
   val pdfReportContent = Array[Byte](0x20, 0x20, 0x20, 0x20, 0x20, 0x20)
 
+  // TODO: cubiks specific
+  /*
   "register applicant" should {
     "return a ConnectorException when online test gateway returns HTTP status Bad Gateway" in new GatewayTest {
       mockPost[RegisterApplicant].thenReturn(Future.successful(HttpResponse(BAD_GATEWAY)))
@@ -81,8 +82,10 @@ class OnlineTestsGatewayClientSpec extends UnitSpec with ShortTimeout {
       val result = onlineTestsGatewayClient.registerApplicant(registerApplicant)
       result.futureValue.userId must be(CubiksUserId)
     }
-  }
+  }*/
 
+  // TODO: cubiks delete
+  /*
   "invite application" should {
     "return a ConnectorException when online test gateway returns HTTP status Bad Gateway" in new GatewayTest {
       mockPost[InviteApplicant].thenReturn(Future.successful(HttpResponse(BAD_GATEWAY)))
@@ -99,7 +102,7 @@ class OnlineTestsGatewayClientSpec extends UnitSpec with ShortTimeout {
       val result = onlineTestsGatewayClient.inviteApplicant(inviteApplicant)
       result.futureValue must be(invitation)
     }
-  }
+  }*/
 
   trait GatewayTest {
     implicit val hc = HeaderCarrier()

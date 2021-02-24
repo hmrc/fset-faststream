@@ -16,20 +16,10 @@
 
 package model
 
-import model.persisted.{ CubiksTest, PsiTest, PsiTestResult, TestResult }
+import model.persisted.{ PsiTest, PsiTestResult }
 import org.joda.time.DateTime
 
 object Phase1TestExamples {
-  val testResult = TestResult(status = "Ready", norm = "norm", tScore = Some(12.5), percentile = None, raw = None, sten = None)
-
-  def createTestResult(tScore: Double) = TestResult("Ready", "norm", Some(tScore), None, None, None)
-
-  def firstTest(implicit now: DateTime) = CubiksTest(16196, usedForResults = true, 2, "cubiks", "token", "http://localhost", now, 3,
-    testResult = Some(testResult))
-
-  def secondTest(implicit now: DateTime) = firstTest.copy(scheduleId = 16194)
-
-  def thirdTest(implicit now: DateTime) = firstTest.copy(scheduleId = 16196)
 
   val psiTestResult = PsiTestResult(tScore = 12.5, rawScore = 5.5, None)
 

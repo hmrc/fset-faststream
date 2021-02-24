@@ -47,7 +47,7 @@ import repositories.personaldetails.PersonalDetailsRepository
 import repositories.schemepreferences.SchemePreferencesRepository
 import repositories.sift.ApplicationSiftRepository
 import scheduler.fixer.FixBatch
-import scheduler.onlinetesting.EvaluateOnlineTestResultService2
+import scheduler.onlinetesting.EvaluateOnlineTestResultService
 import services.allocation.CandidateAllocationService
 import services.application.ApplicationService.NoChangeInCurrentSchemeStatusException
 import services.events.EventsService
@@ -76,18 +76,15 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
                                     mediaRepo: MediaRepository,
 
                                     @Named("Phase1EvaluationService")
-                                    evaluateP1ResultService: EvaluateOnlineTestResultService2[Phase1PassMarkSettings],
+                                    evaluateP1ResultService: EvaluateOnlineTestResultService[Phase1PassMarkSettings],
                                     @Named("Phase2EvaluationService")
-                                    evaluateP2ResultService: EvaluateOnlineTestResultService2[Phase2PassMarkSettings],
+                                    evaluateP2ResultService: EvaluateOnlineTestResultService[Phase2PassMarkSettings],
                                     @Named("Phase3EvaluationService")
-                                    evaluateP3ResultService: EvaluateOnlineTestResultService2[Phase3PassMarkSettings],
+                                    evaluateP3ResultService: EvaluateOnlineTestResultService[Phase3PassMarkSettings],
 
                                     @Named("Phase1EvaluationRepository") phase1EvaluationRepository: OnlineTestEvaluationRepository,
                                     @Named("Phase2EvaluationRepository") phase2EvaluationRepository: OnlineTestEvaluationRepository,
                                     @Named("Phase3EvaluationRepository") phase3EvaluationRepository: OnlineTestEvaluationRepository,
-
-                                    phase1TestRepository2: Phase1TestMongoRepository2,
-                                    phase2TestRepository2: Phase2TestMongoRepository2,
 
                                     siftService: ApplicationSiftService,
                                     siftAnswersService: SiftAnswersService,
@@ -353,6 +350,8 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
     }
   }
 
+  // TODO: cubiks this is cubiks specific
+/*
   def rollbackCandidateToPhase2CompletedFromPhase2Failed(applicationId: String): Future[Unit] = {
     val statuses = List(
       ProgressStatuses.PHASE2_TESTS_FAILED,
@@ -383,7 +382,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
       newTestGroup = phase2TestGroup.copy(tests = cubiksTests)
       _ <- phase2TestRepository.saveTestGroup(applicationId, newTestGroup)
     } yield ()
-  }
+  }*/
 
   def rollbackToPhase1ResultsReceivedFromPhase1FailedNotified(applicationId: String): Future[Unit] = {
     val statuses = List(
@@ -923,6 +922,8 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
     } yield ()
   }
 
+  //TODO: cubiks this is cubiks specific
+  /*
   def fixPhase2PartialCallbackCandidate(applicationId: String): Future[Unit] = {
     for {
       _ <- phase2TestRepository.updateGroupExpiryTime(applicationId, new DateTime().plusDays(1), phase2TestRepository.phaseName)
@@ -936,7 +937,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
       _ <- fixPartiallyExecutedCompletedCallback(cubiksUserId, testProfile)
       _ <- fixPartiallyExecutedResultsReadyCallback(cubiksUserId, testProfile)
     } yield ()
-  }
+  }*/
 
   def fixPhase3ExpiredCandidate(applicationId: String): Future[Unit] = {
     (for {
@@ -948,13 +949,15 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
     } yield ()).flatMap(identity)
   }
 
+  //TODO: cubiks this is cubiks specific
+  /*
   private def extractCubiksUserId(applicationId: String, phase2TestGroupOpt: Option[Phase2TestGroup]) = {
     phase2TestGroupOpt.map { p2TestGroup =>
       val msg = s"Active tests cannot be found when marking phase2 test complete for applicationId: $applicationId"
       require(p2TestGroup.activeTests.nonEmpty, msg)
       p2TestGroup.activeTests.head.cubiksUserId
     }.getOrElse(throw new Exception(s"Failed to find phase2 cubiks user id for application id: $applicationId"))
-  }
+  }*/
 
   private def fixPartiallyExecutedCompletedCallback(cubiksUserId: Int, phase2TestGroup: Phase2TestGroupWithAppId) = {
     val msg = s"Active tests cannot be found when marking phase2 test complete for cubiksId: $cubiksUserId"
@@ -1122,7 +1125,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
 
   def setPhase2UsedForResults(applicationId: String, inventoryId: String, orderId: String, newUsedForResults: Boolean): Future[Unit] = {
     for {
-      phase2TestGroupOpt <- phase2TestRepository2.getTestGroup(applicationId)
+      phase2TestGroupOpt <- phase2TestRepository.getTestGroup(applicationId)
       phase2TestGroup = phase2TestGroupOpt.getOrElse(throw UnexpectedException(s"Unable to find PHASE2 TestGroup for $applicationId"))
 
       _ = if (!phase2TestGroup.tests.exists( t => t.inventoryId == inventoryId && t.orderId == orderId)) {
@@ -1132,13 +1135,13 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
       updatedTests = phase2TestGroup.tests.map { test =>
         if (test.inventoryId == inventoryId && test.orderId == orderId) test.copy(usedForResults = newUsedForResults) else test }
       newPhase2TestGroup = phase2TestGroup.copy(tests = updatedTests)
-      _ <- phase2TestRepository2.insertOrUpdateTestGroup(applicationId, newPhase2TestGroup)
+      _ <- phase2TestRepository.insertOrUpdateTestGroup(applicationId, newPhase2TestGroup)
     } yield ()
   }
 
   def setPhase1UsedForResults(applicationId: String, inventoryId: String, orderId: String, newUsedForResults: Boolean): Future[Unit] = {
     for {
-      phase1TestProfileOpt <- phase1TestRepository2.getTestGroup(applicationId)
+      phase1TestProfileOpt <- phase1TestRepository.getTestGroup(applicationId)
       phase1TestProfile = phase1TestProfileOpt.getOrElse(throw UnexpectedException(s"Unable to find PHASE1 TestProfile for $applicationId"))
 
       _ = if (!phase1TestProfile.tests.exists( t => t.inventoryId == inventoryId && t.orderId == orderId)) {
@@ -1148,7 +1151,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
       updatedTests = phase1TestProfile.tests.map { test =>
         if (test.inventoryId == inventoryId && test.orderId == orderId) test.copy(usedForResults = newUsedForResults) else test }
       newPhase1TestProfile = phase1TestProfile.copy(tests = updatedTests)
-      _ <- phase1TestRepository2.insertOrUpdateTestGroup(applicationId, newPhase1TestProfile)
+      _ <- phase1TestRepository.insertOrUpdateTestGroup(applicationId, newPhase1TestProfile)
     } yield ()
   }
 

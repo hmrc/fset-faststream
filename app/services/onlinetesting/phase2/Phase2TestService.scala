@@ -19,41 +19,42 @@ package services.onlinetesting.phase2
 import services.AuditService
 import akka.actor.ActorSystem
 import com.google.inject.name.Named
-import common.Phase2TestConcern
-import config.{MicroserviceAppConfig, OnlineTestsGatewayConfig, Phase2Schedule, Phase2TestsConfig}
+import common.{ FutureEx, Phase2TestConcern }
+import config._
 import connectors.ExchangeObjects._
-import connectors.{AuthProviderClient, OnlineTestEmailClient, OnlineTestsGatewayClient, Phase2OnlineTestEmailClient}
-import factories.{DateTimeFactory, UUIDFactory}
-import javax.inject.{Inject, Singleton}
+import connectors.{ AuthProviderClient, OnlineTestEmailClient, OnlineTestsGatewayClient }
+import factories.{ DateTimeFactory, UUIDFactory }
+import javax.inject.{ Inject, Singleton }
 import model.Exceptions._
 import model.OnlineTestCommands._
 import model.ProgressStatuses._
-import model.command.{Phase3ProgressResponse, ProgressResponse}
-import model.exchange.{CubiksTestResultReady, Phase2TestGroupWithActiveTest, PsiRealTimeResults}
+import model._
+import model.command.{ Phase3ProgressResponse, ProgressResponse }
+import model.exchange.{ Phase2TestGroupWithActiveTest, PsiRealTimeResults, PsiTestResultReady }
 import model.persisted._
 import model.stc.StcEventTypes.StcEventType
-import model.stc.{AuditEvent, AuditEvents, DataStoreEvents}
-import model.{ApplicationStatus, _}
+import model.stc.{ AuditEvent, AuditEvents, DataStoreEvents }
 import org.joda.time.DateTime
+import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase2TestRepository
-import services.onlinetesting.Exceptions.{CannotResetPhase2Tests, NoActiveTestException}
-import services.onlinetesting.OnlineTestService
+import services.onlinetesting.Exceptions.{ TestCancellationException, TestRegistrationException }
 import services.onlinetesting.phase3.Phase3TestService
+import services.onlinetesting.{ TextSanitizer, OnlineTestService }
 import services.sift.ApplicationSiftService
 import services.stc.StcEventService
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
+import scala.concurrent.duration._
 import scala.language.postfixOps
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 // scalastyle:off number.of.methods
 @Singleton
-class Phase2TestService @Inject() (appConfig: MicroserviceAppConfig,
-                                   val appRepository: GeneralApplicationRepository,
+class Phase2TestService @Inject() (val appRepository: GeneralApplicationRepository,
                                    val cdRepository: ContactDetailsRepository,
                                    val testRepository: Phase2TestRepository,
                                    val onlineTestsGatewayClient: OnlineTestsGatewayClient,
@@ -61,36 +62,41 @@ class Phase2TestService @Inject() (appConfig: MicroserviceAppConfig,
                                    val dateTimeFactory: DateTimeFactory,
                                    @Named("Phase2OnlineTestEmailClient") val emailClient: OnlineTestEmailClient,
                                    val auditService: AuditService,
-                                   val actor: ActorSystem,
+                                   authProvider: AuthProviderClient,
+                                   phase3TestService: Phase3TestService,
+                                   val siftService: ApplicationSiftService,
+                                   appConfig: MicroserviceAppConfig,
                                    val eventService: StcEventService,
-                                   val authProvider: AuthProviderClient,
-                                   val phase3TestService: Phase3TestService,
-                                   val siftService: ApplicationSiftService
-                                  ) extends OnlineTestService with Phase2TestConcern with Phase2TestSelector with ResetPhase2Test {
-  type TestRepository2 = Phase2TestRepository
+                                   actor: ActorSystem
+                                  ) extends OnlineTestService with Phase2TestConcern with ResetPhase2Test with Logging {
+  type TestRepository = Phase2TestRepository
 
-  val gatewayConfig: OnlineTestsGatewayConfig = appConfig.onlineTestsGatewayConfig
-  val testConfig: Phase2TestsConfig = gatewayConfig.phase2Tests
+  val onlineTestsGatewayConfig = appConfig.onlineTestsGatewayConfig
 
+  def testConfig: Phase2TestsConfig = onlineTestsGatewayConfig.phase2Tests
 
-  case class Phase2TestInviteData(application: OnlineTestApplication,
-                                  scheduleId: Int,
-                                  token: String,
-                                  registration: Registration,
-                                  invitation: Invitation)
-
+  case class Phase2TestInviteData(application: OnlineTestApplication, psiTest: PsiTest)
 
   def getTestGroup(applicationId: String): Future[Option[Phase2TestGroupWithActiveTest]] = {
     for {
       phase2Opt <- testRepository.getTestGroup(applicationId)
     } yield phase2Opt.map { phase2 =>
-      val test = phase2.activeTests
-        .find(_.usedForResults)
-        .getOrElse(throw NoActiveTestException(s"No active phase 2 test found for $applicationId"))
       Phase2TestGroupWithActiveTest(
         phase2.expirationDate,
-        test,
-        schedulesAvailable(phase2.tests.map(_.scheduleId))
+        phase2.activeTests,
+        resetAllowed = true
+      )
+    }
+  }
+
+  def getTestGroupByOrderId(orderId: String): Future[Option[Phase2TestGroupWithActiveTest]] = {
+    for {
+      phase2Opt <- testRepository.getTestGroupByOrderId(orderId)
+    } yield phase2Opt.map { phase2 =>
+      Phase2TestGroupWithActiveTest(
+        phase2.expirationDate,
+        phase2.activeTests,
+        resetAllowed = true
       )
     }
   }
@@ -98,7 +104,7 @@ class Phase2TestService @Inject() (appConfig: MicroserviceAppConfig,
   def verifyAccessCode(email: String, accessCode: String): Future[String] = for {
     userId <- cdRepository.findUserIdByEmail(email)
     testGroupOpt <- testRepository.getTestGroupByUserId(userId)
-    testUrl <- Future.fromTry(processEtrayToken(testGroupOpt, accessCode))
+    testUrl <- Future.fromTry(processInvigilatedEtrayAccessCode(testGroupOpt, accessCode))
   } yield testUrl
 
   override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] = {
@@ -119,24 +125,67 @@ class Phase2TestService @Inject() (appConfig: MicroserviceAppConfig,
     }
   }
 
-  def resetTests(application: OnlineTestApplication, actionTriggeredBy: String)
-                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    import ApplicationStatus._
+  def resetTest(application: OnlineTestApplication, orderIdToReset: String, actionTriggeredBy: String)
+               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
-    ApplicationStatus.withName(application.applicationStatus) match {
-      case PHASE2_TESTS | PHASE2_TESTS_PASSED | PHASE2_TESTS_FAILED =>
-        resetPhase2Tests(application, actionTriggeredBy)
-      case PHASE3_TESTS =>
-        inPhase3TestsInvited(application.applicationId).flatMap { result =>
-          if (result) {
-            phase3TestService.removeTestGroup(application.applicationId).flatMap { _ =>
-              resetPhase2Tests(application, actionTriggeredBy)
-            }
-          } else {
-            throw CannotResetPhase2Tests()
-          }
-        }
-      case _ => throw CannotResetPhase2Tests()
+    val (invitationDate, expirationDate) = calcOnlineTestDates(onlineTestsGatewayConfig.phase2Tests.expiryTimeInDays)
+
+    for {
+      // Fetch existing test group that should exist
+      testGroupOpt <- testRepository.getTestGroup(application.applicationId)
+      testGroup = testGroupOpt
+        .getOrElse(throw CannotFindTestGroupByApplicationIdException(s"appId - ${application.applicationId}"))
+
+      // Extract test that requires reset
+      testToReset = testGroup.tests.find(_.orderId == orderIdToReset)
+        .getOrElse(throw CannotFindTestByOrderIdException(s"OrderId - $orderIdToReset"))
+      _ = logger.info(s"testToReset -- $testToReset")
+
+      // Create PsiIds to use for re-invitation
+      psiIds = onlineTestsGatewayConfig.phase2Tests.tests.find {
+        case (_, ids) => ids.inventoryId == testToReset.inventoryId
+      }.getOrElse(throw CannotFindTestByInventoryIdException(s"InventoryId - ${testToReset.inventoryId}"))._2
+      _ = logger.info(s"psiIds -- $psiIds")
+
+      // Register applicant
+      testInvite <- registerPsiApplicant(application, psiIds, invitationDate)
+      newPsiTest = testInvite.psiTest
+      _ = logger.info(s"newPsiTest -- $newPsiTest")
+
+      // Set old test to inactive
+      testsWithInactiveTest = testGroup.tests
+        .map { t => if (t.orderId == orderIdToReset) { t.copy(usedForResults = false) } else t }
+      _ = logger.info(s"testsWithInactiveTest -- $testsWithInactiveTest")
+
+      // insert new test and maintain test order
+      idxOfResetTest = testGroup.tests.indexWhere(_.orderId == orderIdToReset)
+      updatedTests = insertTest(testsWithInactiveTest, idxOfResetTest, newPsiTest)
+      _ = logger.info(s"updatedTests -- $updatedTests")
+
+      _ <- insertOrUpdateTestGroup(application)(testGroup.copy(expirationDate = expirationDate, tests = updatedTests))
+      _ <- emailInviteToApplicant(application)(hc, rh, invitationDate, expirationDate)
+
+    } yield ()
+  }
+
+  private def insertTest(ls: List[PsiTest], i: Int, value: PsiTest): List[PsiTest] = {
+    val (front, back) = ls.splitAt(i)
+    front ++ List(value) ++ back
+  }
+
+  private def cancelPsiTest(appId: String,
+                            userId: String,
+                            orderId: String): Future[AssessmentCancelAcknowledgementResponse] = {
+    val req = CancelCandidateTestRequest(orderId)
+    onlineTestsGatewayClient.psiCancelTest(req).map { response =>
+      logger.debug(s"Response from cancellation for orderId=$orderId")
+      if (response.status != AssessmentCancelAcknowledgementResponse.completedStatus) {
+        logger.debug(s"Cancellation failed with errors: ${response.details}")
+        throw TestCancellationException(s"appId=$appId, orderId=$orderId")
+      } else {
+        audit("TestCancelledForCandidate", userId)
+        response
+      }
     }
   }
 
@@ -151,44 +200,6 @@ class Phase2TestService @Inject() (appConfig: MicroserviceAppConfig,
     }
   }
 
-  private def resetPhase2Tests(application: OnlineTestApplication, actionTriggeredBy: String)
-                              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-
-    def getNewExpirationDate(phase2TestGroup: Phase2TestGroup, application: OnlineTestApplication, expiryTimeInDays: Int) = {
-      require(phase2TestGroup.activeTests.nonEmpty, "Active e-tray tests not found")
-      val hasInvigilatedEtray = phase2TestGroup.activeTests.head.invigilatedAccessCode.isDefined
-      if (application.isInvigilatedETray == hasInvigilatedEtray && phase2TestGroup.expirationDate.isAfterNow) {
-        phase2TestGroup.expirationDate
-      } else {
-        calcOnlineTestDates(expiryTimeInDays)._2
-      }
-    }
-
-    testRepository.getTestGroup(application.applicationId).flatMap {
-      case Some(phase2TestGroup) if !application.isInvigilatedETray =>
-        val (_, schedule) = getNextSchedule(phase2TestGroup.tests.map(_.scheduleId))
-
-        registerAndInviteForTestGroup(List(application), schedule,
-          Some(getNewExpirationDate(phase2TestGroup, application, gatewayConfig.phase2Tests.expiryTimeInDays))
-        ).map { _ =>
-          AuditEvents.Phase2TestsReset(Map("userId" -> application.userId, "tests" -> "e-tray")) ::
-            DataStoreEvents.ETrayReset(application.applicationId, actionTriggeredBy) :: Nil
-        }
-
-      case Some(phase2TestGroup) if application.isInvigilatedETray =>
-        val scheduleInv = testConfig.scheduleForInvigilatedETray
-        val (_, schedule) = (testConfig.scheduleNameByScheduleId(scheduleInv.scheduleId), scheduleInv)
-        registerAndInviteForTestGroup(List(application), schedule,
-          Some(getNewExpirationDate(phase2TestGroup, application, gatewayConfig.phase2Tests.expiryTimeInDaysForInvigilatedETray))).map { _ =>
-          AuditEvents.Phase2TestsReset(Map("userId" -> application.userId, "tests" -> "e-tray")) ::
-            DataStoreEvents.ETrayReset(application.applicationId, actionTriggeredBy) :: Nil
-        }
-
-      case _ =>
-        throw CannotResetPhase2Tests()
-    }
-  }
-
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)
                                             (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     registerAndInviteForTestGroup(List(application))
@@ -196,132 +207,254 @@ class Phase2TestService @Inject() (appConfig: MicroserviceAppConfig,
 
   override def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     testRepository.nextExpiringApplication(expiryTest).flatMap {
-      case Some(expired) => processExpiredTest(expired, expiryTest)
-      case None => Future.successful(())
+      case Some(expired) =>
+        logger.warn(s"Expiring candidates for PHASE2 - expiring candidate ${expired.applicationId}")
+        processExpiredTest(expired, expiryTest)
+      case None =>
+        logger.warn(s"Expiring candidates for PHASE2 - none found")
+        Future.successful(())
     }
   }
 
-  // Not private so tests can access
-  protected[phase2] def registerApplicants(candidates: List[OnlineTestApplication], tokens: Seq[String])
-                                          (implicit hc: HeaderCarrier): Future[Map[Int, (OnlineTestApplication, String, Registration)]] = {
-    onlineTestsGatewayClient.registerApplicants(candidates.size).map(_.zipWithIndex.map { case (registration, idx) =>
-      val candidate = candidates(idx)
-      audit("Phase2TestRegistered", candidate.userId)
-      (registration.userId, (candidate, tokens(idx), registration))
-    }.toMap)
-  }
-
-  // Not private so tests can access
-  protected[phase2] def inviteApplicants(candidateData: Map[Int, (OnlineTestApplication, String, Registration)],
-                                         schedule: Phase2Schedule)
-                                        (implicit hc: HeaderCarrier): Future[List[Phase2TestInviteData]] = {
-    val invites = candidateData.values.map { case (application, token, registration) =>
-      buildInviteApplication(application, token, registration.userId, schedule)
-    }.toList
-
-    // Cubiks does not accept invite batch request with different time adjustments
-    // TODO LT: The filter based on the head should be done before registration, not after
-    val firstInvite = invites.head
-    val filteredInvites = invites.filter(_.timeAdjustments == firstInvite.timeAdjustments)
-
-    onlineTestsGatewayClient.inviteApplicants(filteredInvites).map(_.map { invitation =>
-      val (application, token, registration) = candidateData(invitation.userId)
-      audit("Phase2TestInvited", application.userId)
-      Phase2TestInviteData(application, schedule.scheduleId, token, registration, invitation)
-    })
+  override def registerAndInvite(applications: List[OnlineTestApplication])
+                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    registerAndInviteForTestGroup(applications)
   }
 
   override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
                                             (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    // Cubiks does not accept invite batch request with different scheduleId.
-    // Due to this limitation we cannot have multiple types of invitations, and the filtering is needed
     val firstApplication = applications.head
     val applicationsWithTheSameType = applications filter (_.isInvigilatedETray == firstApplication.isInvigilatedETray)
 
-    val isInvigilatedETrayBatch = applicationsWithTheSameType.head.isInvigilatedETray
-    val (scheduleName, schedule) = if (isInvigilatedETrayBatch) {
-      val schedule = testConfig.scheduleForInvigilatedETray
-      (testConfig.scheduleNameByScheduleId(schedule.scheduleId), schedule)
-    } else {
-      getNextSchedule()
-    }
-    registerAndInviteForTestGroup(applicationsWithTheSameType, schedule) flatMap { candidatesToProgress =>
-      eventSink {
-        Future.successful {
-          candidatesToProgress.flatMap(candidate => {
-            // TODO LT: This events should be emit one level down to also be logged by reset path
-            DataStoreEvents.OnlineExerciseResultSent(candidate.applicationId) ::
-              AuditEvents.Phase2TestInvitationProcessComplete(Map(
-                "userId" -> candidate.userId,
-                "absoluteTime" -> s"${calculateAbsoluteTimeWithAdjustments(candidate)}",
-                "scheduleName" -> s"$scheduleName")) ::
-              Nil
-          })
-        }
+    val standardTests = onlineTestsGatewayConfig.phase2Tests.standard // use this for the order of tests
+
+    FutureEx.traverseSerial(applicationsWithTheSameType) { application =>
+      registerCandidateForTests(application, standardTests).recover {
+        case e: Exception =>
+          logger.error(s"Error occurred registering candidate ${application.applicationId} with phase 2 tests - ${e.getMessage}")
       }
-    }
+    }.map { _ => () }
   }
 
-  // New PSI based method should not be implemented by cubiks based class
-  override def registerAndInvite(applications: List[OnlineTestApplication])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
+  // Register a single candidate with all the phase 2 tests.
+  private def registerCandidateForTests(application: OnlineTestApplication, testNames: List[String])(
+    implicit hc: HeaderCarrier, request: RequestHeader) = {
 
-  // New PSI based method should not be implemented by cubiks based class
-  override def storeRealTimeResults(orderId: String, results: PsiRealTimeResults)
-                                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
+    val tests = onlineTestsGatewayConfig.phase2Tests.tests
+    logger.warn(s"Processing phase2 candidate ${application.applicationId} - inviting to ${tests.size} tests")
 
-  private def processEtrayToken(phase: Option[Phase2TestGroup], accessCode: String): Try[String] = {
+    // Register the 2 tests with a delay between each test
+    val candidateRegistrations = FutureEx.traverseToTry(testNames.zipWithIndex) {
+      case (testName, delayModifier) =>
+        val testIds = tests.getOrElse(testName, throw new Exception(s"Unable to find test ids when registering phase 2 candidate for $testName"))
+        val delay = (delayModifier * onlineTestsGatewayConfig.phase2Tests.testRegistrationDelayInSecs).second
+        akka.pattern.after(delay, actor.scheduler) {
+          logger.debug(s"Phase2TestService - about to call registerPsiApplicant for application=$application with testIds=$testIds")
+          registerAndInviteForTestGroup2(application, testIds).map(_ => ())
+        }
+    }
+
+    val processFailedRegistrations = candidateRegistrations.flatMap { phase2TestsRegistrations =>
+      phase2TestsRegistrations.collect {
+        case Failure(e) => throw e
+      }
+      Future.successful(())
+    }
+
+    for {
+      _ <- processFailedRegistrations
+      emailAddress <- candidateEmailAddress(application.userId)
+      (invitationDate, expirationDate) = calculateDates(application)
+      _ <- emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
+    } yield audit("Phase2InvitationComplete", application.userId)
+  }
+
+  //scalastyle:off method.length
+  def inviteP2CandidateToMissingTest(applicationId: String): Future[Unit] = {
+
+    def allInventoryIds = {
+      val standardTests = onlineTestsGatewayConfig.phase2Tests.standard
+      standardTests.map { testName =>
+        onlineTestsGatewayConfig.phase2Tests.tests.getOrElse(testName, throw new Exception(s"Unable to find inventoryId for $testName"))
+      }.map(_.inventoryId).toSet
+    }
+
+    def getPsiTestsIds(inventoryId: String) = {
+      onlineTestsGatewayConfig.phase2Tests.tests.values.filter( _.inventoryId == inventoryId ).head
+    }
+
+    def getCurrentlyRegisteredInventoryIds(phase2TestGroupOpt: Option[Phase2TestGroup]) = {
+      phase2TestGroupOpt.map { phase2TestGroup =>
+        phase2TestGroup.tests.map( _.inventoryId )
+      }.getOrElse(Nil).toSet
+    }
+
+    def identifyInventoryIdsCandidateIsMissing(registeredIds: Set[String], allIds: Set[String]) = allIds.diff(registeredIds)
+
+    def registerCandidateForMissingTest(applicationId: String, psiTestIds: PsiTestIds) = {
+      logger.warn(s"Candidate $applicationId needs to register for inventoryId:${psiTestIds.inventoryId}")
+      implicit val hc = HeaderCarrier()
+      for {
+        onlineTestApplicationOpt <- testRepository.applicationReadyForOnlineTesting(applicationId)
+        application = onlineTestApplicationOpt.getOrElse(throw new Exception(s"No application found for $applicationId"))
+        invitationDate = dateTimeFactory.nowLocalTimeZone
+        registeredApplicant <- registerPsiApplicant(application, psiTestIds, invitationDate)
+
+        currentTestGroupOpt <- testRepository.getTestGroup(applicationId)
+        currentTestGroup = currentTestGroupOpt.getOrElse(throw new Exception(s"No existing p2 test group found for $applicationId"))
+
+        _ <- insertPhase2TestGroups(registeredApplicant)(invitationDate, currentTestGroup.expirationDate, hc)
+      } yield ()
+    }
+
+    logger.warn(s"Attempting to invite candidate $applicationId to missing P2 tests")
+    logger.warn(s"Candidate $applicationId - the full set of inventoryIds=${allInventoryIds.mkString(",")}")
+    for {
+      status <- appRepository.findStatus(applicationId)
+      _ = if (ApplicationStatus.PHASE2_TESTS.toString != status.status) {
+        throw new Exception(s"Candidate $applicationId application status is ${status.status}. Expecting ${ApplicationStatus.PHASE2_TESTS}")
+      }
+      phase2TestGroupOpt <- testRepository.getTestGroup(applicationId)
+      registeredInventoryIds = getCurrentlyRegisteredInventoryIds(phase2TestGroupOpt)
+      _ = logger.warn(s"Candidate $applicationId is currently registered with tests whose inventory ids=${registeredInventoryIds.mkString(",")}")
+      idsToRegisterFor = identifyInventoryIdsCandidateIsMissing(registeredInventoryIds, allInventoryIds)
+      _ = if (idsToRegisterFor.size != 1) {
+        val idsToRegisterForText = if (idsToRegisterFor.isEmpty){ "empty" } else { idsToRegisterFor.mkString(",") }
+        val msg = s"Candidate $applicationId has incorrect number of tests to register for (should be 1). " +
+          s"InventoryIds to register for = $idsToRegisterForText"
+        throw new Exception(msg)
+      }
+      _ <- registerCandidateForMissingTest(applicationId, getPsiTestsIds(idsToRegisterFor.head))
+    } yield ()
+  } //scalastyle:on
+
+  private def processInvigilatedEtrayAccessCode(phase: Option[Phase2TestGroup], accessCode: String): Try[String] = {
     phase.fold[Try[String]](Failure(new NotFoundException(Some("No Phase2TestGroup found")))){
-      group => {
-        val eTrayTest = group.activeTests.head
-        val accessCodeOpt = eTrayTest.invigilatedAccessCode
+      phase2TestGroup => {
 
-        if (accessCodeOpt.contains(accessCode)) {
-          if(group.expirationDate.isBefore(dateTimeFactory.nowLocalTimeZone)) {
-            Failure(ExpiredTestForTokenException("Test expired for token"))
+        val psiTestOpt = phase2TestGroup.activeTests.find( _.invigilatedAccessCode == Option(accessCode) )
+
+        psiTestOpt.map { psiTest =>
+          if(phase2TestGroup.expirationDate.isBefore(dateTimeFactory.nowLocalTimeZone)) {
+            Failure(ExpiredTestForTokenException("Phase 2 test expired for invigilated access code"))
           } else {
-            Success(eTrayTest.testUrl)
+            Success(psiTest.testUrl)
           }
-        } else {
-          Failure(InvalidTokenException("Token mismatch"))
-        }
+
+        }.getOrElse(Failure(InvalidTokenException("Invigilated access code not found")))
       }
     }
   }
 
-  private def registerAndInviteForTestGroup(applications: List[OnlineTestApplication], schedule: Phase2Schedule,
-                                            expiresDate: Option[DateTime] = None)
-                                           (implicit hc: HeaderCarrier, rh: RequestHeader): Future[List[OnlineTestApplication]] = {
-    require(applications.map(_.isInvigilatedETray).distinct.size <= 1, "the batch can have only one type of invigilated e-tray")
+  private def calculateDates(application: OnlineTestApplication, expiresDate: Option[DateTime] = None) = {
+    val isInvigilatedETray = application.isInvigilatedETray
+    val expiryTimeInDays = if (isInvigilatedETray) {
+      onlineTestsGatewayConfig.phase2Tests.expiryTimeInDaysForInvigilatedETray
+    } else {
+      onlineTestsGatewayConfig.phase2Tests.expiryTimeInDays
+    }
 
-    applications match {
-      case Nil => Future.successful(Nil)
-      case candidatesToProcess =>
-        val tokens = (1 to candidatesToProcess.size).map(_ => tokenFactory.generateUUID())
-        val isInvigilatedETrayBatch = applications.head.isInvigilatedETray
-        val expiryTimeInDays = if (isInvigilatedETrayBatch) {
-          gatewayConfig.phase2Tests.expiryTimeInDaysForInvigilatedETray
-        } else {
-          gatewayConfig.phase2Tests.expiryTimeInDays
-        }
+    val (invitationDate, expirationDate) = expiresDate match {
+      case Some(expDate) => (dateTimeFactory.nowLocalTimeZone, expDate)
+      case _ => calcOnlineTestDates(expiryTimeInDays)
+    }
 
-        implicit val (invitationDate, expirationDate) = expiresDate match {
-          case Some(expDate) => (dateTimeFactory.nowLocalTimeZone, expDate)
-          case _ => calcOnlineTestDates(expiryTimeInDays)
-        }
+    invitationDate -> expirationDate
+  }
 
-        for {
-          registeredApplicants <- registerApplicants(candidatesToProcess, tokens)
-          invitedApplicants <- inviteApplicants(registeredApplicants, schedule)
-          _ <- insertPhase2TestGroups(invitedApplicants)(invitationDate, expirationDate, hc)
-          _ <- emailInviteToApplicants(candidatesToProcess)(hc, rh, invitationDate, expirationDate)
-        } yield {
-          candidatesToProcess
-        }
+  private def registerAndInviteForTestGroup2(application: OnlineTestApplication,
+                                             testIds: PsiTestIds,
+                                             expiresDate: Option[DateTime] = None)
+                                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[OnlineTestApplication] = {
+    //TODO: Do we need to worry about this for PSI?
+    //    require(applications.map(_.isInvigilatedETray).distinct.size <= 1, "the batch can have only one type of invigilated e-tray")
+
+    implicit val (invitationDate, expirationDate) = calculateDates(application, expiresDate)
+
+    for {
+      registeredApplicant <- registerPsiApplicant(application, testIds, invitationDate)
+      _ <- insertPhase2TestGroups(registeredApplicant)(invitationDate, expirationDate, hc)
+    } yield {
+      logger.warn(s"Phase2 candidate ${application.applicationId} successfully invited to P2 test - inventoryId:${testIds.inventoryId}")
+      application
     }
   }
 
-  def buildInviteApplication(application: OnlineTestApplication, token: String, userId: Int, schedule: Phase2Schedule) = {
-    val scheduleCompletionBaseUrl = s"${gatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/phase2"
+  def registerPsiApplicants(applications: List[OnlineTestApplication],
+                            testIds: PsiTestIds, invitationDate: DateTime)
+                           (implicit hc: HeaderCarrier): Future[List[Phase2TestInviteData]] = {
+    Future.sequence(
+      applications.map { application =>
+        registerPsiApplicant(application, testIds, invitationDate)
+      })
+  }
+
+  private def registerPsiApplicant(application: OnlineTestApplication,
+                                   testIds: PsiTestIds,
+                                   invitationDate: DateTime)
+                                  (implicit hc: HeaderCarrier): Future[Phase2TestInviteData] = {
+    registerApplicant2(application, testIds).map { aoa =>
+      if (aoa.status != AssessmentOrderAcknowledgement.acknowledgedStatus) {
+        val msg = s"Received response status of ${aoa.status} when registering candidate " +
+          s"${application.applicationId} to phase2 tests with Ids=$testIds"
+        logger.warn(msg)
+        throw TestRegistrationException(msg)
+      } else {
+        val psiTest = PsiTest(
+          inventoryId = testIds.inventoryId,
+          orderId = aoa.orderId,
+          usedForResults = true,
+          testUrl = aoa.testLaunchUrl,
+          invitationDate = invitationDate,
+          assessmentId = testIds.assessmentId,
+          reportId = testIds.reportId,
+          normId = testIds.normId
+        )
+        Phase2TestInviteData(application, psiTest)
+      }
+    }
+  }
+
+  private def registerApplicant2(application: OnlineTestApplication, testIds: PsiTestIds)
+                                (implicit hc: HeaderCarrier): Future[AssessmentOrderAcknowledgement] = {
+
+    val orderId = tokenFactory.generateUUID()
+    val preferredName = TextSanitizer.sanitizeFreeText(application.preferredName)
+    val lastName = TextSanitizer.sanitizeFreeText(application.lastName)
+
+    val maybePercentage = application.eTrayAdjustments.flatMap(_.percentage)
+
+    val registerCandidateRequest = RegisterCandidateRequest(
+      inventoryId = testIds.inventoryId, // Read from config to identify the test we are registering for
+      orderId = orderId, // Identifier we generate to uniquely identify the test
+      accountId = application.testAccountId, // Candidate's account across all tests
+      preferredName = preferredName,
+      lastName = lastName,
+      // The url psi will redirect to when the candidate completes the test
+      redirectionUrl = buildRedirectionUrl(orderId, testIds.inventoryId),
+      adjustment = maybePercentage.map(TestAdjustment.apply),
+      assessmentId = testIds.assessmentId,
+      reportId = testIds.reportId,
+      normId = testIds.normId
+    )
+
+    onlineTestsGatewayClient.psiRegisterApplicant(registerCandidateRequest).map { response =>
+      audit("UserRegisteredForPhase2Test", application.userId)
+      response
+    }
+  }
+
+  private def buildRedirectionUrl(orderId: String, inventoryId: String) = {
+    val appUrl = onlineTestsGatewayConfig.candidateAppUrl
+    val scheduleCompletionBaseUrl = s"$appUrl/fset-fast-stream/online-tests/psi/phase2"
+    s"$scheduleCompletionBaseUrl/complete/$orderId"
+  }
+
+  // TODO: cubiks delete
+  /*
+  def buildInviteApplication(application: OnlineTestApplication, token: String,
+                             userId: Int, schedule: Phase2Schedule): InviteApplicant = {
+    val scheduleCompletionBaseUrl = s"${onlineTestsGatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/phase2"
 
     InviteApplicant(schedule.scheduleId,
       userId,
@@ -329,10 +462,11 @@ class Phase2TestService @Inject() (appConfig: MicroserviceAppConfig,
       resultsURL = None,
       timeAdjustments = buildTimeAdjustments(schedule.assessmentId, application)
     )
-  }
+  }*/
 
   private def insertPhase2TestGroups(o: List[Phase2TestInviteData])
-                                    (implicit invitationDate: DateTime, expirationDate: DateTime, hc: HeaderCarrier): Future[Unit] =
+                                    (implicit invitationDate: DateTime,
+                                     expirationDate: DateTime, hc: HeaderCarrier): Future[Unit] = {
     Future.sequence(o.map { completedInvite =>
       val maybeInvigilatedAccessCodeFut = if (completedInvite.application.isInvigilatedETray) {
         authProvider.generateAccessCode.map(ac => Some(ac.token))
@@ -342,20 +476,33 @@ class Phase2TestService @Inject() (appConfig: MicroserviceAppConfig,
 
       for {
         maybeInvigilatedAccessCode <- maybeInvigilatedAccessCodeFut
-        newTestGroup = Phase2TestGroup(expirationDate = expirationDate,
-          List(CubiksTest(scheduleId = completedInvite.scheduleId,
-            usedForResults = true,
-            cubiksUserId = completedInvite.registration.userId,
-            token = completedInvite.token,
-            testUrl = completedInvite.invitation.authenticateUrl,
-            invitationDate = invitationDate,
-            participantScheduleId = completedInvite.invitation.participantScheduleId,
-            invigilatedAccessCode = maybeInvigilatedAccessCode
-          ))
-        )
+        testWithAccessCode = completedInvite.psiTest.copy(invigilatedAccessCode = maybeInvigilatedAccessCode)
+        newTestGroup = Phase2TestGroup(expirationDate = expirationDate, List(testWithAccessCode))
         _ <- insertOrUpdateTestGroup(completedInvite.application)(newTestGroup)
       } yield {}
     }).map(_ => ())
+  }
+
+  private def insertPhase2TestGroups(completedInvite: Phase2TestInviteData)
+                                    (implicit invitationDate: DateTime,
+                                     expirationDate: DateTime, hc: HeaderCarrier): Future[Unit] = {
+
+    val maybeInvigilatedAccessCodeFut = if (completedInvite.application.isInvigilatedETray) {
+      authProvider.generateAccessCode.map(ac => Some(ac.token))
+    } else {
+      Future.successful(None)
+    }
+    val appId = completedInvite.application.applicationId
+
+    for {
+      maybeInvigilatedAccessCode <- maybeInvigilatedAccessCodeFut
+      currentTestGroupOpt <- testRepository.getTestGroup(appId)
+      existingTests = currentTestGroupOpt.map(_.tests).getOrElse(Nil)
+      testWithAccessCode = completedInvite.psiTest.copy(invigilatedAccessCode = maybeInvigilatedAccessCode)
+      newTestGroup = Phase2TestGroup(expirationDate = expirationDate, existingTests :+ testWithAccessCode)
+      _ <- insertOrUpdateTestGroup(completedInvite.application)(newTestGroup)
+    } yield {}
+  }
 
   private def insertOrUpdateTestGroup(application: OnlineTestApplication)
                                      (newOnlineTestProfile: Phase2TestGroup): Future[Unit] = for {
@@ -364,34 +511,47 @@ class Phase2TestService @Inject() (appConfig: MicroserviceAppConfig,
     _ <- testRepository.resetTestProfileProgresses(application.applicationId, determineStatusesToRemove(updatedTestProfile))
   } yield ()
 
-  private def insertOrAppendNewTests(applicationId: String, currentProfile: Option[Phase2TestGroup],
+  private def insertOrAppendNewTests(applicationId: String,
+                                     currentProfile: Option[Phase2TestGroup],
                                      newProfile: Phase2TestGroup): Future[Phase2TestGroup] = {
-    (currentProfile match {
-      case None => testRepository.insertOrUpdateTestGroup(applicationId, newProfile)
-      case Some(profile) =>
-        val existingActiveTests = profile.tests.filter(_.usedForResults).map(_.cubiksUserId)
-        Future.traverse(existingActiveTests)(testRepository.markTestAsInactive).flatMap { _ =>
-          testRepository.insertCubiksTests(applicationId, newProfile)
-        }
-    }).flatMap { _ => testRepository.getTestGroup(applicationId)
-    }.map {
-      case Some(testProfile) => testProfile
-      case None => throw ApplicationNotFound(applicationId)
+
+    val insertFut = testRepository.insertOrUpdateTestGroup(applicationId, newProfile)
+
+    insertFut.flatMap { _ =>
+      testRepository.getTestGroup(applicationId).map {
+        case Some(testProfile) => testProfile
+        case None => throw ApplicationNotFound(applicationId)
+      }
     }
   }
 
-  def markAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
-                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    updatePhase2Test(cubiksUserId, testRepository.updateTestStartTime(_: Int, startedTime)).flatMap { u =>
+  def markAsStarted2(orderId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
+                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    updatePhase2Test2(orderId, testRepository.updateTestStartTime(_: String, startedTime)).flatMap { u =>
+      //TODO: remove the next line and comment in the following line at end of campaign 2019
       testRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_STARTED) map { _ =>
+        //      maybeMarkAsStarted(u.applicationId).map { _ =>
         DataStoreEvents.ETrayStarted(u.applicationId) :: Nil
       }
     }
   }
 
-  def markAsCompleted(cubiksUserId: Int)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    updatePhase2Test(cubiksUserId, testRepository.updateTestCompletionTime(_: Int, dateTimeFactory.nowLocalTimeZone)).flatMap { u =>
-      require(u.testGroup.activeTests.nonEmpty, s"Active tests cannot be found when marking phase2 test complete for cubiksId: $cubiksUserId")
+  private def maybeMarkAsStarted(appId: String): Future[Unit] = {
+    appRepository.getProgressStatusTimestamps(appId).map { timestamps =>
+      val hasStarted = timestamps.exists { case (progressStatus, _) => progressStatus == PHASE2_TESTS_STARTED.key }
+      if (hasStarted) {
+        Future.successful(())
+      } else {
+        testRepository.updateProgressStatus(appId, PHASE2_TESTS_STARTED)
+      }
+    }
+  }
+
+  def markAsCompleted2(orderId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    val updateTestFunc = testRepository.updateTestCompletionTime2(_: String, dateTimeFactory.nowLocalTimeZone)
+    updatePhase2Test2(orderId, updateTestFunc).flatMap { u =>
+      val msg = s"Active tests cannot be found when marking phase2 test complete for orderId: $orderId"
+      require(u.testGroup.activeTests.nonEmpty, msg)
       val activeTestsCompleted = u.testGroup.activeTests forall (_.completedDateTime.isDefined)
       if (activeTestsCompleted) {
         testRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE2_TESTS_COMPLETED) map { _ =>
@@ -403,15 +563,8 @@ class Phase2TestService @Inject() (appConfig: MicroserviceAppConfig,
     }
   }
 
-  def markAsCompleted(token: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    testRepository.getTestProfileByToken(token).flatMap { p =>
-      p.tests.find(_.token == token).map { test => markAsCompleted(test.cubiksUserId) }
-        .getOrElse(Future.successful(()))
-    }
-  }
-
-  def markAsReportReadyToDownload(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit] = {
-    updatePhase2Test(cubiksUserId, testRepository.updateTestReportReady(_: Int, reportReady)).flatMap { updated =>
+  def markAsReportReadyToDownload2(orderId: String, reportReady: PsiTestResultReady): Future[Unit] = {
+    updatePhase2Test2(orderId, testRepository.updateTestReportReady2(_: String, reportReady)).flatMap { updated =>
       if (updated.testGroup.activeTests forall (_.resultsReadyToDownload)) {
         testRepository.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE2_TESTS_RESULTS_READY)
       } else {
@@ -419,31 +572,105 @@ class Phase2TestService @Inject() (appConfig: MicroserviceAppConfig,
       }
     }
   }
-
-  private def updatePhase2Test(cubiksUserId: Int, updateCubiksTest: Int => Future[Unit]): Future[Phase2TestGroupWithAppId] = {
-    for {
-      _ <- updateCubiksTest(cubiksUserId)
-      updated <- testRepository.getTestProfileByCubiksId(cubiksUserId)
-    } yield {
-      updated
+  /*
+    private def updatePhase2Test(cubiksUserId: Int, updateCubiksTest: Int => Future[Unit]): Future[Phase2TestGroupWithAppId] = {
+      for {
+        _ <- updateCubiksTest(cubiksUserId)
+        updated <- testRepository.getTestProfileByCubiksId(cubiksUserId)
+      } yield {
+        updated
+      }
+    }
+  */
+  private def updatePhase2Test2(orderId: String,
+                                updatePsiTest: String => Future[Unit]): Future[Phase2TestGroupWithAppId] = {
+    updatePsiTest(orderId).flatMap { _ =>
+      testRepository.getTestProfileByOrderId(orderId).map(testGroup => testGroup)
     }
   }
 
-  def buildTimeAdjustments(assessmentId: Int, application: OnlineTestApplication) = {
+  //scalastyle:off method.length
+  override def storeRealTimeResults(orderId: String, results: PsiRealTimeResults)
+                                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+
+    def insertResults(applicationId: String, orderId: String, testProfile: Phase2TestGroupWithAppId,
+                      results: PsiRealTimeResults): Future[Unit] =
+      testRepository.insertTestResult2(
+        applicationId,
+        testProfile.testGroup.tests.find(_.orderId == orderId)
+          .getOrElse(throw CannotFindTestByOrderIdException(s"Test not found for orderId=$orderId")),
+        model.persisted.PsiTestResult.fromCommandObject(results)
+      )
+
+    def maybeUpdateProgressStatus(appId: String) = {
+      testRepository.getTestGroup(appId).flatMap { testProfileOpt =>
+        val latestProfile = testProfileOpt.getOrElse(throw new Exception(s"No test profile returned for $appId"))
+        if (latestProfile.activeTests.forall(_.testResult.isDefined)) {
+          testRepository.updateProgressStatus(appId, ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED).map(_ =>
+            audit(s"ProgressStatusSet${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}", appId))
+        } else {
+          val msg = s"Did not update progress status to ${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED} for $appId - " +
+            s"not all active tests have a testResult saved"
+          logger.warn(msg)
+          Future.successful(())
+        }
+      }
+    }
+
+    def markTestAsCompleted(profile: Phase2TestGroupWithAppId): Future[Unit] = {
+      profile.testGroup.tests.find(_.orderId == orderId).map { test =>
+        if (!test.isCompleted) {
+          logger.info(s"Processing real time results - setting completed date on psi test whose orderId=$orderId")
+          markAsCompleted2(orderId)
+        }
+        else {
+          logger.info(s"Processing real time results - completed date is already set on psi test whose orderId=$orderId " +
+            s"so will not mark as complete")
+          Future.successful(())
+        }
+      }.getOrElse(throw CannotFindTestByOrderIdException(s"Test not found for orderId=$orderId"))
+    }
+
+    (for {
+      appIdOpt <- testRepository.getApplicationIdForOrderId(orderId, "PHASE2")
+    } yield {
+      val appId = appIdOpt.getOrElse(throw CannotFindTestByOrderIdException(s"Application not found for test for orderId=$orderId"))
+      for {
+        profile <- testRepository.getTestProfileByOrderId(orderId)
+        _ <- markTestAsCompleted(profile)
+        _ <- profile.testGroup.tests.find(_.orderId == orderId).map { test => insertResults(appId, test.orderId, profile, results) }
+          .getOrElse(throw CannotFindTestByOrderIdException(s"Test not found for orderId=$orderId"))
+        _ <- maybeUpdateProgressStatus(appId)
+      } yield ()
+    }).flatMap(identity)
+  }
+  //scalastyle:on
+
+  def buildTimeAdjustments(assessmentId: Int, application: OnlineTestApplication): List[TimeAdjustments] = {
     application.eTrayAdjustments.flatMap(_.timeNeeded).map { _ =>
       List(TimeAdjustments(assessmentId, sectionId = 1, absoluteTime = calculateAbsoluteTimeWithAdjustments(application)))
     }.getOrElse(Nil)
   }
 
   def emailInviteToApplicants(candidates: List[OnlineTestApplication])
-                             (implicit hc: HeaderCarrier, rh: RequestHeader, invitationDate: DateTime, expirationDate: DateTime): Future[Unit] =
+                             (implicit hc: HeaderCarrier, rh: RequestHeader,
+                              invitationDate: DateTime, expirationDate: DateTime): Future[Unit] = {
     Future.sequence(candidates.map { candidate =>
-      if (candidate.isInvigilatedETray) {
-        Future.successful(())
-      } else {
-        candidateEmailAddress(candidate.userId).flatMap(emailInviteToApplicant(candidate, _ , invitationDate, expirationDate))
-      }
-    }).map( _ => () )
+      emailInviteToApplicant(candidate)(hc, rh, invitationDate, expirationDate)
+    }).map(_ => ())
+  }
+
+  private def emailInviteToApplicant(candidate: OnlineTestApplication)
+                                    (implicit hc: HeaderCarrier,
+                                     rh: RequestHeader,
+                                     invitationDate: DateTime,
+                                     expirationDate: DateTime): Future[Unit] = {
+    if (candidate.isInvigilatedETray) {
+      Future.successful(())
+    } else {
+      candidateEmailAddress(candidate.userId).flatMap(emailInviteToApplicant(candidate, _ , invitationDate, expirationDate))
+    }
+  }
 
   def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTriggeredBy: String)
                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
@@ -507,42 +734,46 @@ class Phase2TestService @Inject() (appConfig: MicroserviceAppConfig,
   // CubiksTestService/Repository layer as it will be different for Launchapd.
   // Still feels wrong to leave it here when it's 99% the same as phase1.
   def retrieveTestResult(testProfile: RichTestGroup)(implicit hc: HeaderCarrier): Future[Unit] = {
-
-    def insertTests(testResults: List[(OnlineTestCommands.TestResult, U)]): Future[Unit] = {
-      Future.sequence(testResults.map {
-        case (result, phase1Test) => testRepository.insertTestResult(
-          testProfile.applicationId,
-          phase1Test, model.persisted.TestResult.fromCommandObject(result)
-        )
-      }).map(_ => ())
-    }
-
-    def maybeUpdateProgressStatus(appId: String) = {
-      testRepository.getTestGroup(appId).flatMap { eventualProfile =>
-
-        val latestProfile = eventualProfile.getOrElse(throw new Exception(s"No profile returned for $appId"))
-        if (latestProfile.activeTests.forall(_.testResult.isDefined)) {
-          testRepository.updateProgressStatus(appId, ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED).map(_ =>
-            audit(s"ProgressStatusSet${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}", appId))
-        } else {
-          Future.successful(())
+    /*
+        def insertTests(testResults: List[(OnlineTestCommands.PsiTestResult, U)]): Future[Unit] = {
+          Future.sequence(testResults.map {
+            case (result, phaseTest) => testRepository2.insertTestResult2(
+              testProfile.applicationId,
+              phaseTest, model.persisted.PsiTestResult.fromCommandObject(result)
+            )
+          }).map(_ => ())
         }
-      }
-    }
-    val testResults = Future.sequence(testProfile.testGroup.activeTests.flatMap { test =>
-      test.reportId.map { reportId =>
-        onlineTestsGatewayClient.downloadXmlReport(reportId)
-      }.map(_.map(_ -> test))
-    })
-    for {
-      eventualTestResults <- testResults
-      _ <- insertTests(eventualTestResults)
-      _ <- maybeUpdateProgressStatus(testProfile.applicationId)
-    } yield {
-      eventualTestResults.foreach { _ =>
-        audit(s"ResultsRetrievedForSchedule", testProfile.applicationId)
-      }
-    }
+
+        def maybeUpdateProgressStatus(appId: String) = {
+          testRepository2.getTestGroup(appId).flatMap { eventualProfile =>
+
+            val latestProfile = eventualProfile.getOrElse(throw new Exception(s"No profile returned for $appId"))
+            if (latestProfile.activeTests.forall(_.testResult.isDefined)) {
+              testRepository.updateProgressStatus(appId, ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED).map(_ =>
+                audit(s"ProgressStatusSet${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}", appId))
+            } else {
+              Future.successful(())
+            }
+          }
+        }
+
+        val testResults = Future.sequence(testProfile.testGroup.activeTests.flatMap { test =>
+          test.reportId.map { reportId =>
+            onlineTestsGatewayClient.downloadPsiTestResults(reportId)
+          }.map(_.map(_ -> test))
+        })
+
+        for {
+          eventualTestResults <- testResults
+          _ <- insertTests(eventualTestResults)
+          _ <- maybeUpdateProgressStatus(testProfile.applicationId)
+        } yield {
+          eventualTestResults.foreach { _ =>
+            audit(s"ResultsRetrievedForSchedule", testProfile.applicationId)
+          }
+        }
+    */
+    Future.successful(())
   }
 }
 

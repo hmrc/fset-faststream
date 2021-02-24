@@ -28,11 +28,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
 class Phase1TestGroupController @Inject() (cc: ControllerComponents,
-                                           phase1Repository2: Phase1TestRepository2,
+                                           phase1Repository: Phase1TestRepository,
                                            phase1TestExtensionService: OnlineTestExtensionService) extends BackendController(cc) {
 
   def getTests(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
-    phase1Repository2.getTestGroup(applicationId).map { maybeTestProfile =>
+    phase1Repository.getTestGroup(applicationId).map { maybeTestProfile =>
       maybeTestProfile
         .map(testProfile => Ok(Json.toJson(testProfile.tests)))
         .getOrElse(Ok(Json.toJson(Seq.empty[PsiTest])))

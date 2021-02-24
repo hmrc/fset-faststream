@@ -5,7 +5,7 @@ import model.EvaluationResults._
 import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
 import model.{ ApplicationRoute, ProgressStatuses, _ }
 
-class SdipFaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluation2Spec {
+class SdipFaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluationSpec {
 
   "phase2 evaluation process" should {
     "give pass for SdipFaststream when all schemes and sdip are green" in new TestFixture {
