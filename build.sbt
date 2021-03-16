@@ -68,9 +68,13 @@ lazy val microservice = Project(appName, file("."))
   //        "Firstnames.scala" ||
   //       "Lastnames.scala"))
 
-  .settings(compileScalastyle := scalastyle.in(Compile).toTask("").value,
-    (compile in Compile) := ((compile in Compile) dependsOn compileScalastyle).value
-  )
+// Temporarily remove due to the following error on jenkins:
+//  [error] java.lang.StackOverflowError
+//  [error]    at scalariform.utils.Utils$.$anonfun$groupBy$1(Utils.scala:38)
+//  .settings(compileScalastyle := scalastyle.in(Compile).toTask("").value,
+//    (compile in Compile) := ((compile in Compile) dependsOn compileScalastyle).value
+//  )
+
   .settings(
     Keys.fork in IntegrationTest := false,
     unmanagedSourceDirectories in IntegrationTest := (baseDirectory in IntegrationTest)(base => Seq(
