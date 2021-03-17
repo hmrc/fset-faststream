@@ -16,7 +16,7 @@
 
 package model.report.onlinetestpassmark
 
-import model.OnlineTestCommands.{ PsiTestResult, TestResult }
+import model.OnlineTestCommands.PsiTestResult
 import model.report.TestResultsForOnlineTestPassMarkReportItem
 
 import scala.util.Random
@@ -28,7 +28,6 @@ object TestResultsForOnlineTestPassMarkReportItemExamples {
 
   private def someDouble = Some(Random.nextDouble())
 
-//  def newTestResult = TestResult("Completed", "Example Norm", someDouble, someDouble, someDouble, someDouble)
   def newTestResult = PsiTestResult("Completed", someDouble.get, someDouble.get)
 
   def maybe[A](value: => A) = if (Random.nextBoolean()) Some(value) else None

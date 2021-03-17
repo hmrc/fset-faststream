@@ -1,20 +1,21 @@
 package repositories.sift
 
 import model.ApplicationRoute.ApplicationRoute
-import model.EvaluationResults.{ Green, Red, Withdrawn }
+import model.EvaluationResults.{Green, Red, Withdrawn}
 import model.Phase3TestProfileExamples.phase3TestWithResult
 import model.ProgressStatuses.PHASE3_TESTS_PASSED
 import model._
 import model.command.ApplicationForSift
-import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
+import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.prop.TableDrivenPropertyChecks
+import play.api.Logging
 import reactivemongo.bson.BSONDocument
-import repositories.{ CollectionNames, CommonRepository }
-import testkit.{ MockitoSugar, MongoRepositorySpec }
+import repositories.{CollectionNames, CommonRepository}
+import testkit.{MockitoSugar, MongoRepositorySpec}
 
 class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFutures with CommonRepository
-  with MockitoSugar with TableDrivenPropertyChecks {
+  with MockitoSugar with TableDrivenPropertyChecks with Logging {
 
   val collectionName: String = CollectionNames.APPLICATION
 
@@ -86,8 +87,8 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     ("return no results when there are only applications that aren't in Passed_Notified which apply for sift or don't have Green/Passed "
       + "results") in {
 
-      insertApplicationWithPhase1TestResults("appId5", 5.5d, applicationRoute = ApplicationRoute.Edip)(Edip)
-      insertApplicationWithPhase1TestResults("appId6", 5.5d, applicationRoute = ApplicationRoute.Sdip)(Sdip)
+      insertApplicationWithPhase1TestResults2("appId5", 5.5d, None, None, 5.5d, applicationRoute = ApplicationRoute.Edip)(Edip)
+      insertApplicationWithPhase1TestResults2("appId6", 5.5d, None, None, 5.5d, applicationRoute = ApplicationRoute.Sdip)(Sdip)
 
       insertApplicationWithPhase3TestResults("appId7", None,
         PassmarkEvaluation("1", None, List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString)), "1", None))(Finance)
@@ -128,7 +129,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
         repository.siftApplicationForScheme(appId, SchemeEvaluationResult(scheme, "Green"),
           Seq(BSONDocument(s"testGroups.SIFT.evaluation.dummy" -> "test"))).futureValue
         val candidatesForSift = repository.findApplicationsReadyForSchemeSift(scheme).futureValue
-        play.api.Logger.error(s"\n\n$candidatesForSift - $scheme")
+        logger.error(s"\n\n$candidatesForSift - $scheme")
         candidatesForSift.size mustBe 0
       }
     }

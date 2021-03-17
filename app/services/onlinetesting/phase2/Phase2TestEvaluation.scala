@@ -19,12 +19,12 @@ package services.onlinetesting.phase2
 import model.EvaluationResults.Result
 import model.SchemeId
 import model.exchange.passmarksettings.Phase2PassMarkSettings
-import model.persisted.{ SchemeEvaluationResult, TestResult }
+import model.persisted.{ PsiTestResult, SchemeEvaluationResult }
 import services.onlinetesting.OnlineTestResultsCalculator
 
 trait Phase2TestEvaluation extends OnlineTestResultsCalculator {
 
-  def evaluate(schemes: List[SchemeId], etrayTestResult: TestResult,
+  def evaluate(schemes: List[SchemeId], test1Result: PsiTestResult, test2Result: PsiTestResult,
                phase1SchemesEvaluation: List[SchemeEvaluationResult],
                passmark: Phase2PassMarkSettings): List[SchemeEvaluationResult] = {
     for {
@@ -32,14 +32,21 @@ trait Phase2TestEvaluation extends OnlineTestResultsCalculator {
       schemePassmark <- passmark.schemes find (_.schemeId == schemeToEvaluate)
       phase1SchemeEvaluation <- phase1SchemesEvaluation.find(_.schemeId == schemeToEvaluate)
     } yield {
-      val phase2Result = evaluateTestResult(schemePassmark.schemeThresholds.test1)(etrayTestResult.tScore)
-      logger.debug(s"processing scheme $schemeToEvaluate, " +
-        s"etray score = ${etrayTestResult.tScore}, " +
-        s"etray fail = ${schemePassmark.schemeThresholds.test1.failThreshold}, " +
-        s"etray pass = ${schemePassmark.schemeThresholds.test1.passThreshold}, " +
-        s"etray result = $phase2Result")
+      val p2Test1Result = evaluateTestResult(schemePassmark.schemeThresholds.test1)(test1Result.tScore)
+      val p2Test2Result = evaluateTestResult(schemePassmark.schemeThresholds.test2)(test2Result.tScore)
       val phase1Result = Result(phase1SchemeEvaluation.result)
-      SchemeEvaluationResult(schemeToEvaluate, combineTestResults(phase1Result, phase2Result).toString)
+      logger.debug(s"processing scheme $schemeToEvaluate, " +
+        s"p1 result = $phase1Result, " +
+        s"p2 test1 score = ${test1Result.tScore}, " +
+        s"p2 test1 fail = ${schemePassmark.schemeThresholds.test1.failThreshold}, " +
+        s"p2 test1 pass = ${schemePassmark.schemeThresholds.test1.passThreshold}, " +
+        s"p2 test1 result = $p2Test1Result, " +
+        s"p2 test2 score = ${test2Result.tScore}, " +
+        s"p2 test2 fail = ${schemePassmark.schemeThresholds.test2.failThreshold}, " +
+        s"p2 test2 pass = ${schemePassmark.schemeThresholds.test2.passThreshold}, " +
+        s"p2 test2 result = $p2Test2Result")
+
+      SchemeEvaluationResult(schemeToEvaluate, combineTestResults(schemeToEvaluate, phase1Result, p2Test1Result, p2Test2Result).toString)
     }
   }
 }

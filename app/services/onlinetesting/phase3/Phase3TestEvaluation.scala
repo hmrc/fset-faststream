@@ -38,14 +38,14 @@ trait Phase3TestEvaluation extends OnlineTestResultsCalculator {
       phase2SchemeEvaluation <- phase2SchemesEvaluation.find(_.schemeId == schemeToEvaluate)
     } yield {
       val phase3Result = evaluateTestResult(schemePassmark.schemeThresholds.videoInterview)(
-        Some(launchpadTestResult.calculateTotalScore()))
+        launchpadTestResult.calculateTotalScore())
       logger.debug(s"processing scheme $schemeToEvaluate, " +
         s"video score = ${launchpadTestResult.calculateTotalScore()}, " +
         s"video fail = ${schemePassmark.schemeThresholds.videoInterview.failThreshold}, " +
         s"video pass = ${schemePassmark.schemeThresholds.videoInterview.passThreshold}, " +
         s"video result = $phase3Result")
       val phase2Result = Result(phase2SchemeEvaluation.result)
-      SchemeEvaluationResult(schemeToEvaluate, combineTestResults(phase2Result, phase3Result).toString)
+      SchemeEvaluationResult(schemeToEvaluate, combineTestResults(schemeToEvaluate, phase2Result, phase3Result).toString)
     }
   }
 }

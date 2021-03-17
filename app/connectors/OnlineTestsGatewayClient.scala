@@ -16,7 +16,6 @@
 
 package connectors
 
-//import config.MicroserviceAppConfig._
 import config.{ MicroserviceAppConfig, WSHttpT }
 import connectors.ExchangeObjects._
 import model.Exceptions.ConnectorException
@@ -43,6 +42,8 @@ trait OnlineTestsGatewayClient extends Logging {
   // for whitelisting in the LPG as well (even though they've gone from front -> back -> LPG), which leads to undesirable behaviour.
   implicit def blankedHeaderCarrier = HeaderCarrier()
 
+  // TODO: cubiks delete this code
+  /*
   def registerApplicants(batchSize: Int): Future[List[Registration]] = {
     logger.debug(s"$root registerApplicants E-tray/numeric test GET request - $url/$root/faststream/register/$batchSize")
 
@@ -54,8 +55,10 @@ trait OnlineTestsGatewayClient extends Logging {
         throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
       }
     }
-  }
+  }*/
 
+  // TODO: cubiks delete this code
+  /*
   def registerApplicant(registerApplicant: RegisterApplicant): Future[Registration] = {
     logger.debug(s"$root registerApplicant POST request, body=${play.api.libs.json.Json.toJson(registerApplicant).toString}")
 
@@ -67,7 +70,7 @@ trait OnlineTestsGatewayClient extends Logging {
         throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
       }
     }
-  }
+  }*/
 
   def psiRegisterApplicant(request: RegisterCandidateRequest): Future[AssessmentOrderAcknowledgement] = {
     logger.debug(s"$root psi registerApplicant POST request, body=${Json.toJson(request).toString}")
@@ -108,6 +111,8 @@ trait OnlineTestsGatewayClient extends Logging {
     }
   }
 
+  // TODO: cubiks delete
+  /*
   def inviteApplicant(inviteApplicant: InviteApplicant): Future[Invitation] = {
     logger.debug(s"$root inviteApplicant POST request, body=${play.api.libs.json.Json.toJson(inviteApplicant).toString}")
 
@@ -119,8 +124,10 @@ trait OnlineTestsGatewayClient extends Logging {
         throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
       }
     }
-  }
+  }*/
 
+  // TODO: cubiks delete
+  /*
   def inviteApplicants(invitations: List[InviteApplicant]): Future[List[Invitation]] = {
     logger.debug(s"$root inviteApplicants POST request, body=${play.api.libs.json.Json.toJson(invitations).toString}")
 
@@ -132,8 +139,10 @@ trait OnlineTestsGatewayClient extends Logging {
         throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
       }
     }
-  }
+  }*/
 
+  // TODO: cubiks specific
+  /*
   def downloadXmlReport(reportId: Int): Future[TestResult] = {
     logger.debug(s"$root downloadXmlReport GET request - $url/$root/faststream/report-xml/$reportId")
 
@@ -145,7 +154,7 @@ trait OnlineTestsGatewayClient extends Logging {
         throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
       }
     }
-  }
+  }*/
 }
 
 @Singleton

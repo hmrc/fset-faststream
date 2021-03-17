@@ -48,7 +48,6 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
   val expiredProgressStatus: ProgressStatus
 
   implicit val applicationReadyForEvaluationBSONReader: BSONDocumentReader[ApplicationReadyForEvaluation]
-  implicit val applicationReadyForEvaluation2BSONReader: BSONDocumentReader[ApplicationReadyForEvaluation2]
 
   val nextApplicationQuery: String => BSONDocument
 
@@ -60,14 +59,10 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
     ApplicationStatus.values.filter(s =>
       s >= phase && s < ApplicationStatus.PHASE3_TESTS_PASSED && !statusesToIgnore.contains(s))
   }
-  // Cubiks code
-  def nextApplicationsReadyForEvaluation(currentPassmarkVersion: String, batchSize: Int): Future[List[ApplicationReadyForEvaluation]] =
-    selectRandom[ApplicationReadyForEvaluation](nextApplicationQuery(currentPassmarkVersion), batchSize)
 
-  // PSI code
-  def nextApplicationsReadyForEvaluation2(currentPassmarkVersion: String, batchSize: Int): Future[List[ApplicationReadyForEvaluation2]] = {
+  def nextApplicationsReadyForEvaluation(currentPassmarkVersion: String, batchSize: Int): Future[List[ApplicationReadyForEvaluation]] = {
     preEvaluationLogging()
-    selectRandom[ApplicationReadyForEvaluation2](nextApplicationQuery(currentPassmarkVersion), batchSize)
+    selectRandom[ApplicationReadyForEvaluation](nextApplicationQuery(currentPassmarkVersion), batchSize)
   }
 
   def savePassmarkEvaluation(applicationId: String, evaluation: PassmarkEvaluation,
@@ -114,7 +109,7 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
     }
   }
 
-  def applicationEvaluationBuilder(activeCubiksTests: List[CubiksTest],
+  def applicationEvaluationBuilder(activePsiTests: List[PsiTest],
                                    activeLaunchPadTest: Option[LaunchpadTest],
                                    prevPhaseEvaluation: Option[PassmarkEvaluation])(doc: BSONDocument) = {
     val applicationId = doc.getAs[String]("applicationId").get
@@ -122,19 +117,7 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
     val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
     val isGis = doc.getAs[BSONDocument]("assistance-details").exists(_.getAs[Boolean]("guaranteedInterview").contains(true))
     val preferences = doc.getAs[SelectedSchemes]("scheme-preferences").get
-    ApplicationReadyForEvaluation(applicationId, applicationStatus, applicationRoute, isGis, activeCubiksTests,
-      activeLaunchPadTest, prevPhaseEvaluation, preferences)
-  }
-
-  def applicationEvaluationBuilder2(activePsiTests: List[PsiTest],
-                                    activeLaunchPadTest: Option[LaunchpadTest],
-                                    prevPhaseEvaluation: Option[PassmarkEvaluation])(doc: BSONDocument) = {
-    val applicationId = doc.getAs[String]("applicationId").get
-    val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
-    val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
-    val isGis = doc.getAs[BSONDocument]("assistance-details").exists(_.getAs[Boolean]("guaranteedInterview").contains(true))
-    val preferences = doc.getAs[SelectedSchemes]("scheme-preferences").get
-    ApplicationReadyForEvaluation2(applicationId, applicationStatus, applicationRoute, isGis, activePsiTests,
+    ApplicationReadyForEvaluation(applicationId, applicationStatus, applicationRoute, isGis, activePsiTests,
       activeLaunchPadTest, prevPhaseEvaluation, preferences)
   }
 
@@ -170,12 +153,6 @@ class Phase1EvaluationMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
     val bsonPhase1: Option[BSONDocument] = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument](phase))
     val phase1: Phase1TestProfile = bsonPhase1.map(Phase1TestProfile.bsonHandler.read).get
     applicationEvaluationBuilder(phase1.activeTests, None, None)(doc)
-  })
-
-  implicit val applicationReadyForEvaluation2BSONReader: BSONDocumentReader[ApplicationReadyForEvaluation2] = bsonReader(doc => {
-    val bsonPhase1: Option[BSONDocument] = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument](phase))
-    val phase1: Phase1TestProfile2 = bsonPhase1.map(Phase1TestProfile2.bsonHandler.read).get
-    applicationEvaluationBuilder2(phase1.activeTests, None, None)(doc)
   })
 
   val nextApplicationQuery = (currentPassmarkVersion: String) => {
@@ -214,14 +191,6 @@ class Phase2EvaluationMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
     applicationEvaluationBuilder(phase2.activeTests, None, Some(phase1Evaluation))(doc)
   })
 
-  implicit val applicationReadyForEvaluation2BSONReader: BSONDocumentReader[ApplicationReadyForEvaluation2] = bsonReader(doc => {
-    val applicationId = doc.getAs[String]("applicationId").get
-    val bsonPhase2 = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument](phase))
-    val phase2 = bsonPhase2.map(Phase2TestGroup2.bsonHandler.read).get
-    val phase1Evaluation = passMarkEvaluationReader(prevPhase, applicationId, Some(doc))
-    applicationEvaluationBuilder2(phase2.activeTests, None, Some(phase1Evaluation))(doc)
-  })
-
   val nextApplicationQuery = (currentPassmarkVersion: String) =>
     BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> BSONDocument("$in" -> evaluationApplicationStatuses)),
@@ -239,8 +208,7 @@ class Phase2EvaluationMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
 }
 
 @Singleton
-class Phase3EvaluationMongoRepository @Inject() (//launchpadGatewayConfig: LaunchpadGatewayConfig,
-                                                 appConfig: MicroserviceAppConfig,
+class Phase3EvaluationMongoRepository @Inject() (appConfig: MicroserviceAppConfig,
                                                  val dateTimeFactory: DateTimeFactory,
                                                  mongoComponent: ReactiveMongoComponent
                                                 )
@@ -266,14 +234,6 @@ class Phase3EvaluationMongoRepository @Inject() (//launchpadGatewayConfig: Launc
     val phase3 = bsonPhase3.map(Phase3TestGroup.bsonHandler.read).get
     val phase2Evaluation = passMarkEvaluationReader(prevPhase, applicationId, Some(doc))
     applicationEvaluationBuilder(Nil, phase3.activeTests.headOption, Some(phase2Evaluation))(doc)
-  })
-
-  implicit val applicationReadyForEvaluation2BSONReader: BSONDocumentReader[ApplicationReadyForEvaluation2] = bsonReader(doc => {
-    val applicationId = doc.getAs[String]("applicationId").get
-    val bsonPhase3 = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument](phase))
-    val phase3 = bsonPhase3.map(Phase3TestGroup.bsonHandler.read).get
-    val phase2Evaluation = passMarkEvaluationReader(prevPhase, applicationId, Some(doc))
-    applicationEvaluationBuilder2(Nil, phase3.activeTests.headOption, Some(phase2Evaluation))(doc)
   })
 
   override def preEvaluationLogging(): Unit =

@@ -21,12 +21,12 @@ import connectors.launchpadgateway.exchangeobjects.in.reviewed.{ ReviewSectionQu
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.{ apply => _ }
 import model.CivilServantAndInternshipType.CivilServantAndInternshipType
-import model.OnlineTestCommands.{ PsiTestResult, TestResult }
+import model.OnlineTestCommands.PsiTestResult
 import model.Phase.Phase
 import model._
 import model.command._
 import model.persisted._
-import model.persisted.sift.SiftTestGroup2
+import model.persisted.sift.SiftTestGroup
 import model.report._
 import play.api.Logger.logger
 import reactivemongo.bson.{ BSONDocument, _ }
@@ -293,8 +293,8 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       }
 
       val gis = booleanTranslator(doc.getAs[BSONDocument]("assistance-details").exists(_.getAs[Boolean]("guaranteedInterview").contains(true)))
-      val p1TestsCount = tests(Phase.PHASE1, Phase1TestProfile2.bsonHandler.read _).getOrElse(0)
-      val p2TestsCount = tests(Phase.PHASE2, Phase2TestGroup2.bsonHandler.read _).getOrElse(0)
+      val p1TestsCount = tests(Phase.PHASE1, Phase1TestProfile.bsonHandler.read _).getOrElse(0)
+      val p2TestsCount = tests(Phase.PHASE2, Phase2TestGroup.bsonHandler.read _).getOrElse(0)
 
       ApplicationForOnlineActiveTestCountReport(userId,applicationId, gis, p1TestsCount, p2TestsCount)
     }
@@ -329,11 +329,11 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
   private[application] def toPhase1TestResults(testGroupsDoc: Option[BSONDocument]): Seq[Option[PsiTestResult]] = {
     testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE1)).map { phase1Doc =>
-      val phase1TestProfile = Phase1TestProfile2.bsonHandler.read(phase1Doc)
+      val phase1TestProfile = Phase1TestProfile.bsonHandler.read(phase1Doc)
 
       // Sort the tests in config based on their names eg. test1, test2, test3, test4
-      val p1TestNamesSorted = appConfig.testIntegrationGatewayConfig.phase1Tests.tests.keys.toList.sorted
-      val p1TestIds = p1TestNamesSorted.map(testName => appConfig.testIntegrationGatewayConfig.phase1Tests.tests(testName))
+      val p1TestNamesSorted = appConfig.onlineTestsGatewayConfig.phase1Tests.tests.keys.toList.sorted
+      val p1TestIds = p1TestNamesSorted.map(testName => appConfig.onlineTestsGatewayConfig.phase1Tests.tests(testName))
 
       toPhaseXTestResults(phase1TestProfile.activeTests, p1TestIds)
     }.getOrElse(Seq.fill(4)(None))
@@ -341,11 +341,11 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
   private[application] def toPhase2TestResults(testGroupsDoc: Option[BSONDocument]): Seq[Option[PsiTestResult]] = {
     testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE2)).map { phase2Doc =>
-      val phase2TestProfile = Phase2TestGroup2.bsonHandler.read(phase2Doc)
+      val phase2TestProfile = Phase2TestGroup.bsonHandler.read(phase2Doc)
 
       // Sort the tests in config based on their names eg. test1, test2
-      val p2TestNamesSorted = appConfig.testIntegrationGatewayConfig.phase2Tests.tests.keys.toList.sorted
-      val p2TestIds = p2TestNamesSorted.map(testName => appConfig.testIntegrationGatewayConfig.phase2Tests.tests(testName))
+      val p2TestNamesSorted = appConfig.onlineTestsGatewayConfig.phase2Tests.tests.keys.toList.sorted
+      val p2TestIds = p2TestNamesSorted.map(testName => appConfig.onlineTestsGatewayConfig.phase2Tests.tests(testName))
 
       toPhaseXTestResults(phase2TestProfile.activeTests, p2TestIds)
     }.getOrElse(Seq.fill(2)(None))
@@ -394,15 +394,11 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       question.reviewCriteria2.score)
   }
 
-  private[this] def toTestResult(tr: model.persisted.TestResult) = {
-    TestResult(status = tr.status, norm = tr.norm, tScore = tr.tScore, raw = tr.raw, percentile = tr.percentile, sten = tr.sten)
-  }
-
   private[application] def toSiftTestResults(applicationId: String,
                                              testGroupsDoc: Option[BSONDocument]): Option[PsiTestResult] = {
     val siftDocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument]("SIFT_PHASE"))
     siftDocOpt.flatMap { siftDoc =>
-      val siftTestProfile = SiftTestGroup2.bsonHandler.read(siftDoc)
+      val siftTestProfile = SiftTestGroup.bsonHandler.read(siftDoc)
       siftTestProfile.activeTests.size match {
         case 1 => siftTestProfile.activeTests.head.testResult.map { tr => PsiTestResult("", tr.tScore, tr.rawScore) }
         case 0 => None

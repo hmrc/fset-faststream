@@ -22,25 +22,13 @@ import play.api.libs.json.JodaReads._ // This is needed for DateTime serializati
 import play.api.libs.json.{ Json, OFormat }
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-// TODO: remove Cubiks code
 case class Phase2TestGroup(expirationDate: DateTime,
-  tests: List[CubiksTest],
+  tests: List[PsiTest],
   evaluation: Option[PassmarkEvaluation] = None
-) extends CubiksTestProfile
+) extends PsiTestProfile
 
 object Phase2TestGroup {
   import repositories.BSONDateTimeHandler
   implicit val bsonHandler: BSONHandler[BSONDocument, Phase2TestGroup] = Macros.handler[Phase2TestGroup]
   implicit val phase2TestProfileFormat = Json.format[Phase2TestGroup]
-}
-
-
-case class Phase2TestGroup2(expirationDate: DateTime,
-                           tests: List[PsiTest],
-                           evaluation: Option[PassmarkEvaluation] = None) extends PsiTestProfile
-
-object Phase2TestGroup2 {
-  import repositories.BSONDateTimeHandler
-  implicit val bsonHandler: BSONHandler[BSONDocument, Phase2TestGroup2] = Macros.handler[Phase2TestGroup2]
-  implicit val phase2TestProfileFormat: OFormat[Phase2TestGroup2] = Json.format[Phase2TestGroup2]
 }

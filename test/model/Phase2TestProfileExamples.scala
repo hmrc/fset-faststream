@@ -22,21 +22,8 @@ import org.joda.time.{ DateTime, DateTimeZone }
 object Phase2TestProfileExamples {
 
   val now = DateTime.now().withZone(DateTimeZone.UTC)
-  val testResult = TestResult("Ready", "norm", Some(12.5), None, None, None)
 
-  def getEtrayTest(implicit now: DateTime) = CubiksTest(16196, usedForResults = true, 2, "cubiks", "token", "http://localhost", now, 3,
-    testResult = Some(testResult))
-
-  def profile(implicit now: DateTime) = Phase2TestGroup(now, List(getEtrayTest))
-
-  def profile2(implicit now: DateTime) = Phase2TestGroup2(now, List(firstP2PsiTest, secondP2PsiTest))
-
-  val phase2Test = List(CubiksTest(16196, usedForResults = true, 100, "cubiks", "token1", "http://localhost", now, 2000))
-  val phase2TestWithResult = phase2TestWithResults(TestResult("Ready", "norm", Some(20.5), None, None, None))
-
-  def phase2TestWithResults(testResult: TestResult) = {
-    phase2Test.map(t => t.copy(testResult = Some(testResult)))
-  }
+  def profile(implicit now: DateTime) = Phase2TestGroup(now, List(firstP2PsiTest, secondP2PsiTest))
 
   val psiTestResult = PsiTestResult(tScore = 12.5, rawScore = 5.5, None)
 

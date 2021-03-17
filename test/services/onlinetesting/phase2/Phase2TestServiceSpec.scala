@@ -17,24 +17,20 @@
 package services.onlinetesting.phase2
 
 import akka.actor.ActorSystem
-import config.Phase2ScheduleExamples._
 import config._
-import connectors.ExchangeObjects.{ Invitation, InviteApplicant, RegisterApplicant, Registration, TimeAdjustments, toString => _ }
-import connectors.{ OnlineTestsGatewayClient, Phase2OnlineTestEmailClient }
-import factories.{ DateTimeFactory, DateTimeFactoryImpl, UUIDFactory }
+import connectors.ExchangeObjects.{ toString => _, _ }
+import connectors.{ OnlineTestEmailClient, OnlineTestsGatewayClient }
+import factories.{ DateTimeFactory, DateTimeFactoryMock, UUIDFactory }
 import model.Commands.PostCode
-import model.Exceptions.{ ContactDetailsNotFoundForEmail, ExpiredTestForTokenException, InvalidTokenException }
+import model.Exceptions._
 import model.OnlineTestCommands.OnlineTestApplication
+import model.Phase2TestExamples._
 import model.ProgressStatuses.{ toString => _, _ }
 import model._
-import model.command.{ Phase2ProgressResponse, Phase3ProgressResponse, ProgressResponse }
-import model.exchange.CubiksTestResultReady
-import model.persisted.{ ContactDetails, Phase2TestGroup, _ }
-import model.stc.AuditEvents.Phase2TestInvitationProcessComplete
-import model.stc.DataStoreEvents
-import model.stc.DataStoreEvents.OnlineExerciseResultSent
-import org.joda.time.{ DateTime, DateTimeZone }
-import org.mockito.ArgumentCaptor
+import model.command.{ Phase2ProgressResponse, ProgressResponse }
+import model.exchange.PsiRealTimeResults
+import model.persisted.{ ContactDetails, Phase2TestGroup, Phase2TestGroupWithAppId, _ }
+import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
@@ -42,26 +38,29 @@ import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase2TestRepository
 import services.AuditService
-import services.onlinetesting.Exceptions.CannotResetPhase2Tests
+import services.onlinetesting.Exceptions.{ TestCancellationException, TestRegistrationException }
 import services.onlinetesting.phase3.Phase3TestService
 import services.sift.ApplicationSiftService
-import services.stc.{ StcEventService, StcEventServiceFixture }
+import services.stc.StcEventServiceFixture
+import testkit.MockitoImplicits._
 import testkit.{ ExtendedTimeout, UnitSpec }
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ Await, Future }
-import scala.concurrent.duration._
+import scala.concurrent.Future
 import scala.language.postfixOps
 
 class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
   "Verify access code" should {
     "return an invigilated test url for a valid candidate" in new TestFixture {
-      when(cdRepositoryMock.findUserIdByEmail(any[String])).thenReturn(Future.successful(authenticateUrl))
+      when(cdRepositoryMock.findUserIdByEmail(any[String])).thenReturnAsync(userId)
 
       val accessCode = "TEST-CODE"
-      val phase2TestGroup = Phase2TestGroup(expirationDate, List(phase2Test.copy(invigilatedAccessCode = Some(accessCode))))
-      when(phase2TestRepositoryMock.getTestGroupByUserId(any[String])).thenReturn(Future.successful(Some(phase2TestGroup)))
+      val phase2TestGroup = Phase2TestGroup(
+        expirationDate,
+        List(phase2Test.copy(invigilatedAccessCode = Some(accessCode)))
+      )
+      when(phase2TestRepositoryMock.getTestGroupByUserId(any[String])).thenReturnAsync(Some(phase2TestGroup))
 
       val result = phase2TestService.verifyAccessCode("test-email.com", accessCode).futureValue
       result mustBe authenticateUrl
@@ -71,8 +70,11 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       when(cdRepositoryMock.findUserIdByEmail(any[String])).thenReturn(Future.successful(authenticateUrl))
 
       val accessCode = "TEST-CODE"
-      val phase2TestGroup = Phase2TestGroup(expirationDate, List(phase2Test.copy(invigilatedAccessCode = Some(accessCode))))
-      when(phase2TestRepositoryMock.getTestGroupByUserId(any[String])).thenReturn(Future.successful(Some(phase2TestGroup)))
+      val phase2TestGroup = Phase2TestGroup(
+        expirationDate,
+        phase2Test.copy(invigilatedAccessCode = Some(accessCode)) :: Nil
+      )
+      when(phase2TestRepositoryMock.getTestGroupByUserId(any[String])).thenReturnAsync(Some(phase2TestGroup))
 
       val result = phase2TestService.verifyAccessCode("test-email.com", "I-DO-NOT-MATCH").failed.futureValue
       result mustBe an[InvalidTokenException]
@@ -86,110 +88,83 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     }
 
     "return A Failure if the test is Expired" in new TestFixture {
-      when(cdRepositoryMock.findUserIdByEmail(any[String])).thenReturn(Future.successful(authenticateUrl))
+      when(cdRepositoryMock.findUserIdByEmail(any[String])).thenReturnAsync(authenticateUrl)
 
       val accessCode = "TEST-CODE"
-      val phase2TestGroup = Phase2TestGroup(expiredDate, List(phase2Test.copy(invigilatedAccessCode = Some(accessCode))))
-      when(phase2TestRepositoryMock.getTestGroupByUserId(any[String])).thenReturn(Future.successful(Some(phase2TestGroup)))
+      val phase2TestGroup = Phase2TestGroup(
+        expiredDate,
+        List(phase2Test.copy(invigilatedAccessCode = Some(accessCode)))
+      )
+      when(phase2TestRepositoryMock.getTestGroupByUserId(any[String])).thenReturnAsync(Some(phase2TestGroup))
 
       val result = phase2TestService.verifyAccessCode("test-email.com", accessCode).failed.futureValue
       result mustBe an[ExpiredTestForTokenException]
     }
   }
 
-  "Register applicants" should {
-    "correctly register a batch of candidates" in new TestFixture {
-      val result = phase2TestService.registerApplicants(candidates, tokens).futureValue
-      result.size mustBe 2
-      val head = result.values.head
-      val last = result.values.last
-      head._1 mustBe onlineTestApplication
-      head._2 mustBe tokens.head
-      head._3 mustBe registrations.head
-      last._1 mustBe onlineTestApplication2
-      last._2 mustBe tokens.last
-      last._3 mustBe registrations.last
+  "Invite applicants to PHASE 2" must {
+    "successfully register 2 candidates" in new TestFixture {
+      when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile))
+      when(phase2TestRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])).thenReturnAsync()
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+          .thenReturnAsync(aoa)
 
-      verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestRegistered"), any[Map[String, String]])
-    }
-  }
+      phase2TestService.registerAndInvite(candidates).futureValue
 
-  "Invite applicants" must {
-    "correctly invite a batch of candidates" in new TestFixture {
-      override def availableSchedules = Map("daro" -> DaroSchedule)
-      override val phase2TestProfile = Phase2TestGroup(expirationDate, List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId)))
-      when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfile)))
-
-      val result = phase2TestService.inviteApplicants(registeredMap, DaroSchedule).futureValue
-
-      result mustBe List(phase2TestService.Phase2TestInviteData(onlineTestApplication, DaroSchedule.scheduleId, tokens.head,
-        registrations.head, invites.head),
-        phase2TestService.Phase2TestInviteData(onlineTestApplication2, scheduleId = DaroSchedule.scheduleId, tokens.last,
-          registrations.last, invites.last)
-      )
-      verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestInvited"), any[Map[String, String]])
-    }
-  }
-
-  "Register and Invite applicants" must {
-    "email the candidate and send audit events" in new TestFixture {
-      override val phase2TestProfile = Phase2TestGroup(expirationDate,
-        List(phase2Test)
-      )
-      when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfile)))
-      when(phase2TestRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
-      when(phase2TestRepositoryMock.insertCubiksTests(any[String], any[Phase2TestGroup])).thenReturn(Future.successful(()))
-      phase2TestService.registerAndInviteForTestGroup(candidates).futureValue
-
-      verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestRegistered"), any[Map[String, String]])
-      verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("Phase2TestInvited"), any[Map[String, String]])
-      verify(auditEventHandlerMock, times(2)).handle(any[Phase2TestInvitationProcessComplete])(any[HeaderCarrier],
-        any[RequestHeader])
-      verify(dataStoreEventHandlerMock, times(2)).handle(any[OnlineExerciseResultSent])(any[HeaderCarrier],
-        any[RequestHeader])
-      verify(auditServiceMock, times(2)).logEventNoRequest(eqTo("OnlineTestInvitationEmailSent"), any[Map[String, String]])
-
-      verify(phase2TestRepositoryMock, times(2)).insertCubiksTests(any[String], any[Phase2TestGroup])
-      verify(phase2TestRepositoryMock, times(2)).markTestAsInactive(any[Int])
+      verify(onlineTestsGatewayClientMock, times(4)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      verify(phase2TestRepositoryMock, times(4)).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])
+      verify(emailClientMock, times(2)).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier])
     }
 
-    "process adjustment candidates first and individually" ignore new TestFixture {
-      val adjustmentCandidates = candidates :+ adjustmentApplication :+ adjustmentApplication2
-      when(onlineTestsGatewayClientMock.registerApplicants(any[Int]))
-        .thenReturn(Future.successful(List(registrations.head)))
+    "deal with a failed registration when registering a single candidate" in new TestFixture {
+      when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile))
+      when(phase2TestRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])).thenReturnAsync()
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+          .thenReturn(Future.failed(new Exception("Dummy error for test")))
 
-      when(onlineTestsGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
-        .thenReturn(Future.successful(List(invites.head)))
+      phase2TestService.registerAndInvite(List(onlineTestApplication)).futureValue
 
-      phase2TestService.registerAndInviteForTestGroup(adjustmentCandidates).futureValue
-
-      verify(auditServiceMock).logEventNoRequest(eqTo("Phase2TestRegistered"), any[Map[String, String]])
-      verify(auditServiceMock).logEventNoRequest(eqTo("Phase2TestInvited"), any[Map[String, String]])
-      verify(auditServiceMock).logEventNoRequest(eqTo("Phase2TestInvitationProcessComplete"), any[Map[String, String]])
-      verify(phase2TestRepositoryMock).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])
-      verifyDataStoreEvents(1, "OnlineExerciseResultSent")
+      verify(onlineTestsGatewayClientMock, times(2)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      verify(phase2TestRepositoryMock, never).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])
+      verify(emailClientMock, never).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier])
     }
 
-    "register and invite an invigilated e-tray candidate to DARO schedule" in new TestFixture {
-      val application = onlineTestApplication.copy(
-        needsOnlineAdjustments = true,
-        eTrayAdjustments = Some(AdjustmentDetail(invigilatedInfo = Some("e-tray help needed")))
-      )
-      when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfile)))
+    "first candidate registers successfully, 2nd candidate fails" in new TestFixture {
+      when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile))
+      when(phase2TestRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])).thenReturnAsync()
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+        .thenReturnAsync(aoa) // candidate 1 test 1
+        .thenReturnAsync(aoa) // candidate 1 test 2
+        .thenReturnAsync(aoa) // candidate 2 test 1
+        .thenReturn(Future.failed(new Exception("Dummy error for test"))) // candidate 2 test 2
 
-      when(onlineTestsGatewayClientMock.registerApplicants(any[Int])).thenReturn(Future.successful(List(registrations.head)))
-      when(onlineTestsGatewayClientMock.inviteApplicants(any[List[InviteApplicant]])).thenReturn(Future.successful(List(invites.head)))
-      when(phase2TestRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
-      when(phase2TestRepositoryMock.insertCubiksTests(any[String], any[Phase2TestGroup])).thenReturn(Future.successful(()))
+      phase2TestService.registerAndInvite(candidates).futureValue
 
-      phase2TestService.registerAndInviteForTestGroup(List(application)).futureValue
+      verify(onlineTestsGatewayClientMock, times(4)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      // Called 2 times for 1st candidate who registered successfully for both tests and once for 2nd candidate whose
+      // 1st registration was successful only
+      verify(phase2TestRepositoryMock, times(3)).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])
+      // Called for 1st candidate only who registered successfully
+      verify(emailClientMock, times(1)).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier])
+    }
 
-      val invitation = InviteApplicant(DaroSchedule.scheduleId, cubiksUserId, inviteApplicant.scheduleCompletionURL, None)
-      verify(onlineTestsGatewayClientMock).inviteApplicants(List(invitation))
-      verify(phase2TestRepositoryMock).insertCubiksTests(
-        application.applicationId,
-        invigilatedTestProfile
-      )
+    "first candidate fails registration, 2nd candidate is successful" in new TestFixture {
+      when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile))
+      when(phase2TestRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])).thenReturnAsync()
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+        .thenReturnAsync(aoa) // candidate 1 test 1
+        .thenReturn(Future.failed(new Exception("Dummy error for test"))) // candidate 1 test 2
+        .thenReturnAsync(aoa) // candidate 2 test 1
+        .thenReturnAsync(aoa) // candidate 2 test 2
+
+      phase2TestService.registerAndInvite(candidates).futureValue
+
+      verify(onlineTestsGatewayClientMock, times(4)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      // Called once for 1st candidate who registered successfully for 1st test only tests and twice for 2nd candidate whose
+      // registrations were both successful
+      verify(phase2TestRepositoryMock, times(3)).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])
+      // Called for 2nd candidate only who registered successfully
+      verify(emailClientMock, times(1)).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier])
     }
   }
 
@@ -197,15 +172,18 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     val phase2ExpirationEvent = Phase2ExpirationEvent(gracePeriodInSecs = 0)
 
     "do nothing if there is no expired application to process" in new TestFixture {
-      when(phase2TestRepositoryMock.nextExpiringApplication(phase2ExpirationEvent)).thenReturn(Future.successful(None))
+      when(phase2TestRepositoryMock.nextExpiringApplication(phase2ExpirationEvent)).thenReturnAsync(None)
       phase2TestService.processNextExpiredTest(phase2ExpirationEvent).futureValue mustBe unit
     }
 
     "update progress status and send an email to the user when a Faststream application is expired" in new TestFixture {
-      when(phase2TestRepositoryMock.nextExpiringApplication(phase2ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
-      when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
-      when(appRepositoryMock.getApplicationRoute(any[String])).thenReturn(Future.successful(ApplicationRoute.Faststream))
+      when(phase2TestRepositoryMock.nextExpiringApplication(phase2ExpirationEvent))
+        .thenReturnAsync(Some(expiredApplication))
+      when(cdRepositoryMock.find(any[String])).thenReturnAsync(contactDetails)
+      when(appRepositoryMock.getApplicationRoute(any[String])).thenReturnAsync(ApplicationRoute.Faststream)
+
       val results = List(SchemeEvaluationResult("Commercial", "Green"))
+
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
 
       when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
@@ -224,12 +202,14 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     }
 
     "update progress status and send an email to the user when an sdip faststream application is expired" in new TestFixture {
-      when(phase2TestRepositoryMock.nextExpiringApplication(phase2ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
-      when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
+      when(phase2TestRepositoryMock.nextExpiringApplication(phase2ExpirationEvent))
+        .thenReturnAsync(Some(expiredApplication))
+      when(cdRepositoryMock.find(any[String])).thenReturnAsync(contactDetails)
       when(appRepositoryMock.getApplicationRoute(any[String])).thenReturn(Future.successful(ApplicationRoute.SdipFaststream))
-      val results = List(SchemeEvaluationResult("Sdip", "Green"), SchemeEvaluationResult("Commercial", "Green"))
-      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
 
+      val results = List(SchemeEvaluationResult("Sdip", "Green"), SchemeEvaluationResult("Commercial", "Green"))
+
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
       when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
 
       val result = phase2TestService.processNextExpiredTest(phase2ExpirationEvent)
@@ -248,353 +228,165 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
   "mark as started" should {
     "change progress to started" in new TestFixture {
-      when(phase2TestRepositoryMock.updateTestStartTime(any[Int], any[DateTime])).thenReturn(Future.successful(()))
-      when(phase2TestRepositoryMock.getTestProfileByCubiksId(cubiksUserId))
-        .thenReturn(Future.successful(Phase2TestGroupWithAppId("appId123", phase2TestProfile)))
-      when(phase2TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_STARTED)).thenReturn(Future.successful(()))
-      phase2TestService.markAsStarted(cubiksUserId).futureValue
+      when(phase2TestRepositoryMock.updateTestStartTime(any[String], any[DateTime])).thenReturnAsync()
+      when(phase2TestRepositoryMock.getTestProfileByOrderId(orderId))
+        .thenReturnAsync(Phase2TestGroupWithAppId("appId123", phase2TestProfile))
+      when(phase2TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_STARTED))
+        .thenReturnAsync()
+      when(appRepositoryMock.getProgressStatusTimestamps(anyString())).thenReturnAsync(Nil)
 
-      verify(phase2TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_STARTED)
+      phase2TestService.markAsStarted2(orderId).futureValue
+
+      verify(phase2TestRepositoryMock, times(1)).updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_STARTED)
+    }
+
+    //TODO: add back in at end of campaign 2019
+    "not change progress to started if status exists" ignore new TestFixture {
+      when(phase2TestRepositoryMock.updateTestStartTime(any[String], any[DateTime])).thenReturnAsync()
+      when(phase2TestRepositoryMock.getTestProfileByOrderId(orderId))
+        .thenReturnAsync(Phase2TestGroupWithAppId("appId123", phase2TestProfile))
+      when(phase2TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_STARTED))
+        .thenReturnAsync()
+      when(appRepositoryMock.getProgressStatusTimestamps(anyString()))
+        .thenReturnAsync(List(("FAKE_STATUS", DateTime.now()), ("PHASE2_TESTS_STARTED", DateTime.now())))
+
+      phase2TestService.markAsStarted2(orderId).futureValue
+
+      verify(phase2TestRepositoryMock, never()).updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_STARTED)
     }
   }
 
   "mark as completed" should {
     "change progress to completed if there are all tests completed" in new TestFixture {
-      when(phase2TestRepositoryMock.updateTestCompletionTime(any[Int], any[DateTime])).thenReturn(Future.successful(()))
+      when(phase2TestRepositoryMock.updateTestCompletionTime2(any[String], any[DateTime])).thenReturnAsync()
       val phase2Tests = phase2TestProfile.copy(tests = phase2TestProfile.tests.map(t => t.copy(completedDateTime = Some(DateTime.now()))),
         expirationDate = DateTime.now().plusDays(2)
       )
 
-      when(phase2TestRepositoryMock.getTestProfileByCubiksId(cubiksUserId))
-        .thenReturn(Future.successful(Phase2TestGroupWithAppId("appId123", phase2Tests)))
-      when(phase2TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_COMPLETED)).thenReturn(Future.successful(()))
+      when(phase2TestRepositoryMock.getTestProfileByOrderId(orderId))
+        .thenReturnAsync(Phase2TestGroupWithAppId("appId123", phase2Tests))
+      when(phase2TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_COMPLETED))
+        .thenReturnAsync()
 
-      phase2TestService.markAsCompleted(cubiksUserId).futureValue
+      phase2TestService.markAsCompleted2(orderId).futureValue
 
       verify(phase2TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_COMPLETED)
     }
   }
 
-  "mark report as ready to download" should {
-    "not change progress if not all the active tests have reports ready" in new TestFixture {
-      val reportReady = CubiksTestResultReady(reportId = Some(1), reportStatus = "Ready", reportLinkURL = Some("www.report.com"))
+  "Reset tests" should {
+    "throw exception if test group cannot be found" in new TestFixture {
+      when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(None)
 
-      when(phase2TestRepositoryMock.getTestProfileByCubiksId(cubiksUserId)).thenReturn(
-        Future.successful(Phase2TestGroupWithAppId("appId", phase2TestProfile.copy(
-          tests = List(phase2Test.copy(usedForResults = false, cubiksUserId = 123),
-            phase2Test,
-            phase2Test.copy(cubiksUserId = 789, resultsReadyToDownload = false)
-          )
-        )))
-      )
-      when(phase2TestRepositoryMock.updateTestReportReady(cubiksUserId, reportReady)).thenReturn(Future.successful(()))
-      when(phase2TestRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
+      val result = phase2TestService.resetTest(onlineTestApplication, phase2Test.orderId, "")
 
-      val result = phase2TestService.markAsReportReadyToDownload(cubiksUserId, reportReady).futureValue
-
-      verify(phase2TestRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus])
+      result.failed.futureValue mustBe an[CannotFindTestGroupByApplicationIdException]
     }
 
-    "change progress to reports ready if all the active tests have reports ready" in new TestFixture {
-      val reportReady = CubiksTestResultReady(reportId = Some(1), reportStatus = "Ready", reportLinkURL = Some("www.report.com"))
-
-      when(phase2TestRepositoryMock.getTestProfileByCubiksId(cubiksUserId)).thenReturn(
-        Future.successful(Phase2TestGroupWithAppId("appId", phase2TestProfile.copy(
-          tests = List(phase2Test.copy(usedForResults = false, cubiksUserId = 123),
-            phase2Test.copy(resultsReadyToDownload = true),
-            phase2Test.copy(cubiksUserId = 789, resultsReadyToDownload = true)
-          )
-        )))
-      )
-      when(phase2TestRepositoryMock.updateTestReportReady(cubiksUserId, reportReady)).thenReturn(Future.successful(()))
-      when(phase2TestRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
-
-      val result = phase2TestService.markAsReportReadyToDownload(cubiksUserId, reportReady).futureValue
-
-      verify(phase2TestRepositoryMock).updateProgressStatus("appId", ProgressStatuses.PHASE2_TESTS_RESULTS_READY)
-    }
-  }
-
-  "reset phase2 tests" should {
-    "remove progress and register for new tests" in new TestFixture {
-      val currentExpirationDate = now.plusDays(2)
-      override val phase2TestProfile = Phase2TestGroup(currentExpirationDate,
-        List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId))
-      )
-
-      val onlineTestApplicationForReset = onlineTestApplication.copy(applicationStatus = ApplicationStatus.PHASE2_TESTS_PASSED)
-
-      val expectedRegistration = registrations.head
-      val expectedInvite = invites.head
-      val phase2TestProfileWithStartedTests = phase2TestProfile.copy(tests = phase2TestProfile.tests
-        .map(t => t.copy(scheduleId = 3, startedDateTime = Some(startedDate))))
-      val phase2TestProfileWithNewTest = phase2TestProfileWithStartedTests.copy(tests =
-        List(phase2Test.copy(usedForResults = false), phase2Test))
-
-      // expectations for 3 invocations
+    "throw exception if test by orderId cannot be found" in new TestFixture {
+      val newTests = phase2Test.copy(orderId = "unknown-uuid") :: Nil
       when(phase2TestRepositoryMock.getTestGroup(any[String]))
-        .thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
-        .thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
-        .thenReturn(Future.successful(Some(phase2TestProfileWithNewTest)))
+        .thenReturnAsync(Some(phase2TestProfile.copy(tests = newTests)))
 
-      when(phase2TestRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
-      when(phase2TestRepositoryMock.insertCubiksTests(any[String], any[Phase2TestGroup])).thenReturn(Future.successful(()))
-      when(onlineTestsGatewayClientMock.registerApplicants(any[Int]))
-        .thenReturn(Future.successful(List(expectedRegistration)))
-      when(onlineTestsGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
-        .thenReturn(Future.successful(List(expectedInvite)))
+      val result = phase2TestService.resetTest(onlineTestApplication, phase2Test.orderId, "")
 
-      phase2TestService.resetTests(onlineTestApplicationForReset, "createdBy").futureValue
-
-      verify(phase2TestRepositoryMock).resetTestProfileProgresses("appId",
-        List(PHASE2_TESTS_STARTED, PHASE2_TESTS_COMPLETED, PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY,
-          PHASE2_TESTS_FAILED, PHASE2_TESTS_EXPIRED, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED_NOTIFIED, PHASE2_TESTS_FAILED_SDIP_AMBER))
-      verify(phase2TestRepositoryMock).markTestAsInactive(cubiksUserId)
-
-      val phase2TestGroupCaptor: ArgumentCaptor[Phase2TestGroup] = ArgumentCaptor.forClass(classOf[Phase2TestGroup])
-      verify(phase2TestRepositoryMock).insertCubiksTests(any[String], phase2TestGroupCaptor.capture)
-
-      val phase2TestGroup = phase2TestGroupCaptor.getValue
-      phase2TestGroup.expirationDate mustBe currentExpirationDate
-
-      verify(dataStoreEventHandlerMock).handle(DataStoreEvents.ETrayReset("appId", "createdBy"))(hc, rh)
+      result.failed.futureValue mustBe an[CannotFindTestByOrderIdException]
     }
 
-    "reset and set 5 days expiry date for non invigilated e-tray" in new TestFixture {
-      val currentExpiryDate = now.minusDays(2)
-      override val phase2TestProfile = Phase2TestGroup(currentExpiryDate,
-        List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId))
-      )
+    // we are not sending a cancellation request anymore so this test should be ignored for now
+    "not register candidate if cancellation request fails" ignore new TestFixture {
+      when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile))
+      when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest]))
+        .thenReturnAsync(acaError)
 
-      val onlineTestApplicationForReset = onlineTestApplication.copy(applicationStatus = ApplicationStatus.PHASE2_TESTS_PASSED)
+      val result = phase2TestService.resetTest(onlineTestApplication, phase2Test.orderId, "")
 
-      val expectedRegistration = registrations.head
-      val expectedInvite = invites.head
-      val phase2TestProfileWithStartedTests = phase2TestProfile.copy(tests = phase2TestProfile.tests
-        .map(t => t.copy(scheduleId = 3, startedDateTime = Some(startedDate))))
-      val phase2TestProfileWithNewTest = phase2TestProfileWithStartedTests.copy(tests =
-        List(phase2Test.copy(usedForResults = false), phase2Test))
+      result.failed.futureValue mustBe a[TestCancellationException]
 
-      // expectations for 3 invocations
-      when(phase2TestRepositoryMock.getTestGroup(any[String]))
-        .thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
-        .thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
-        .thenReturn(Future.successful(Some(phase2TestProfileWithNewTest)))
+      verify(onlineTestsGatewayClientMock, times(0)).psiRegisterApplicant(any[RegisterCandidateRequest])
 
-      when(phase2TestRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
-      when(phase2TestRepositoryMock.insertCubiksTests(any[String], any[Phase2TestGroup])).thenReturn(Future.successful(()))
-      when(onlineTestsGatewayClientMock.registerApplicants(any[Int]))
-        .thenReturn(Future.successful(List(expectedRegistration)))
-      when(onlineTestsGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
-        .thenReturn(Future.successful(List(expectedInvite)))
-
-      phase2TestService.resetTests(onlineTestApplicationForReset, "createdBy").futureValue
-
-      verify(phase2TestRepositoryMock).resetTestProfileProgresses("appId",
-        List(PHASE2_TESTS_STARTED, PHASE2_TESTS_COMPLETED, PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY,
-          PHASE2_TESTS_FAILED, PHASE2_TESTS_EXPIRED, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED_NOTIFIED, PHASE2_TESTS_FAILED_SDIP_AMBER))
-      verify(phase2TestRepositoryMock).markTestAsInactive(cubiksUserId)
-
-      val phase2TestGroupCaptor: ArgumentCaptor[Phase2TestGroup] = ArgumentCaptor.forClass(classOf[Phase2TestGroup])
-      verify(phase2TestRepositoryMock).insertCubiksTests(any[String], phase2TestGroupCaptor.capture)
-
-      val phase2TestGroup = phase2TestGroupCaptor.getValue
-      phase2TestGroup.expirationDate.toLocalDate mustBe now.plusDays(5).toLocalDate
-
-      verify(dataStoreEventHandlerMock).handle(DataStoreEvents.ETrayReset("appId", "createdBy"))(hc, rh)
+      verify(auditServiceMock, times(0)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
+      verify(auditServiceMock, times(0)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+      verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
+      verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvited", auditDetails)
     }
 
-    "reset and reinstate expiry date from remaining days for invigilated e-tray" in new TestFixture {
-      val currentExpiryDate = now.plusDays(30)
-      override val phase2TestProfile = Phase2TestGroup(currentExpiryDate,
-        List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId, invigilatedAccessCode = Some("ABC")))
-      )
+    "throw exception if config can't be found" in new TestFixture {
+      val newTests = phase2Test.copy(inventoryId = "unknown-uuid") :: Nil
+      when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile.copy(tests = newTests)))
+      when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest]))
+        .thenReturnAsync(acaCompleted)
 
-      val invigilatedOnlineTestApplicationForReset = onlineTestApplication.copy(
-        applicationStatus = ApplicationStatus.PHASE2_TESTS_PASSED,
-        needsOnlineAdjustments = true,
-        eTrayAdjustments = Some(AdjustmentDetail(invigilatedInfo = Some("")))
-      )
+      val result = phase2TestService.resetTest(onlineTestApplication, phase2Test.orderId, "")
 
-      val expectedRegistration = registrations.head
-      val expectedInvite = invites.head
-      val phase2TestProfileWithStartedTests = phase2TestProfile.copy(tests = phase2TestProfile.tests
-        .map(t => t.copy(scheduleId = 3, startedDateTime = Some(startedDate))))
-      val phase2TestProfileWithNewTest = phase2TestProfileWithStartedTests.copy(tests =
-        List(phase2Test.copy(usedForResults = false), phase2Test))
-
-      // expectations for 3 invocations
-      when(phase2TestRepositoryMock.getTestGroup(any[String]))
-        .thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
-        .thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
-        .thenReturn(Future.successful(Some(phase2TestProfileWithNewTest)))
-
-      when(phase2TestRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
-      when(phase2TestRepositoryMock.insertCubiksTests(any[String], any[Phase2TestGroup])).thenReturn(Future.successful(()))
-      when(onlineTestsGatewayClientMock.registerApplicants(any[Int]))
-        .thenReturn(Future.successful(List(expectedRegistration)))
-      when(onlineTestsGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
-        .thenReturn(Future.successful(List(expectedInvite)))
-
-      phase2TestService.resetTests(invigilatedOnlineTestApplicationForReset, "createdBy").futureValue
-
-      verify(phase2TestRepositoryMock).resetTestProfileProgresses("appId",
-        List(PHASE2_TESTS_STARTED, PHASE2_TESTS_COMPLETED, PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY,
-          PHASE2_TESTS_FAILED, PHASE2_TESTS_EXPIRED, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED_NOTIFIED, PHASE2_TESTS_FAILED_SDIP_AMBER))
-      verify(phase2TestRepositoryMock).markTestAsInactive(cubiksUserId)
-
-      val phase2TestGroupCaptor: ArgumentCaptor[Phase2TestGroup] = ArgumentCaptor.forClass(classOf[Phase2TestGroup])
-      verify(phase2TestRepositoryMock).insertCubiksTests(any[String], phase2TestGroupCaptor.capture)
-
-      val phase2TestGroup = phase2TestGroupCaptor.getValue
-      phase2TestGroup.expirationDate mustBe currentExpiryDate
-
-      verify(dataStoreEventHandlerMock).handle(DataStoreEvents.ETrayReset("appId", "createdBy"))(hc, rh)
+      result.failed.futureValue mustBe a[CannotFindTestByInventoryIdException]
     }
 
-    "reset and set 90 days expiry date for invigilated e-tray" in new TestFixture {
-      val currentExpiryDate = now.minusDays(2)
-      override val phase2TestProfile = Phase2TestGroup(currentExpiryDate,
-        List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId))
-      )
+    "not complete invitation if re-registration request connection fails"  in new TestFixture {
+      val newTests = phase2Test.copy(inventoryId = "inventory-id-1") :: Nil
+      when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile.copy(tests = newTests)))
+      when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest]))
+        .thenReturnAsync(acaCompleted)
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+        .thenReturn(Future.failed(new ConnectorException(connectorErrorMessage)))
 
-      val invigilatedOnlineTestApplicationForReset = onlineTestApplication.copy(
-        applicationStatus = ApplicationStatus.PHASE2_TESTS_PASSED,
-        needsOnlineAdjustments = true,
-        eTrayAdjustments = Some(AdjustmentDetail(invigilatedInfo = Some("")))
-      )
+      val result = phase2TestService.resetTest(onlineTestApplication, phase2Test.orderId, "")
 
-      val expectedRegistration = registrations.head
-      val expectedInvite = invites.head
-      val phase2TestProfileWithStartedTests = phase2TestProfile.copy(tests = phase2TestProfile.tests
-        .map(t => t.copy(scheduleId = 3, startedDateTime = Some(startedDate))))
-      val phase2TestProfileWithNewTest = phase2TestProfileWithStartedTests.copy(tests =
-        List(phase2Test.copy(usedForResults = false), phase2Test))
+      result.failed.futureValue mustBe a[ConnectorException]
 
-      // expectations for 3 invocations
-      when(phase2TestRepositoryMock.getTestGroup(any[String]))
-        .thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
-        .thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
-        .thenReturn(Future.successful(Some(phase2TestProfileWithNewTest)))
+      verify(onlineTestsGatewayClientMock, times(1)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      verify(emailClientMock, times(0))
+        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(any[HeaderCarrier])
 
-      when(phase2TestRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
-      when(phase2TestRepositoryMock.insertCubiksTests(any[String], any[Phase2TestGroup])).thenReturn(Future.successful(()))
-      when(onlineTestsGatewayClientMock.registerApplicants(any[Int]))
-        .thenReturn(Future.successful(List(expectedRegistration)))
-      when(onlineTestsGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
-        .thenReturn(Future.successful(List(expectedInvite)))
-
-      phase2TestService.resetTests(invigilatedOnlineTestApplicationForReset, "createdBy").futureValue
-
-      verify(phase2TestRepositoryMock).resetTestProfileProgresses("appId",
-        List(PHASE2_TESTS_STARTED, PHASE2_TESTS_COMPLETED, PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY,
-          PHASE2_TESTS_FAILED, PHASE2_TESTS_EXPIRED, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED_NOTIFIED, PHASE2_TESTS_FAILED_SDIP_AMBER))
-      verify(phase2TestRepositoryMock).markTestAsInactive(cubiksUserId)
-
-      val phase2TestGroupCaptor: ArgumentCaptor[Phase2TestGroup] = ArgumentCaptor.forClass(classOf[Phase2TestGroup])
-      verify(phase2TestRepositoryMock).insertCubiksTests(any[String], phase2TestGroupCaptor.capture)
-
-      val phase2TestGroup = phase2TestGroupCaptor.getValue
-      phase2TestGroup.expirationDate.toLocalDate mustBe now.plusDays(90).toLocalDate
-
-      verify(dataStoreEventHandlerMock).handle(DataStoreEvents.ETrayReset("appId", "createdBy"))(hc, rh)
+      verify(auditServiceMock, times(0)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
+      verify(auditServiceMock, times(0)).logEventNoRequest("UserRegisteredForPhase2Test", auditDetails)
+      verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
+      verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvited", auditDetails)
     }
 
-    "reset invigilated e-tray by removing adjustments and set 5 days expiry date" in new TestFixture {
-      val currentExpiryDate = now.plusDays(30)
-      override val phase2TestProfile = Phase2TestGroup(currentExpiryDate,
-        List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId, invigilatedAccessCode = Some("ABC")))
-      )
+    "not complete invitation if re-registration fails"  in new TestFixture {
+      val newTests = phase2Test.copy(inventoryId = "inventory-id-1") :: Nil
+      when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile.copy(tests = newTests)))
 
-      val onlineTestApplicationForReset = onlineTestApplication.copy(
-        applicationStatus = ApplicationStatus.PHASE2_TESTS_PASSED
-      )
+      when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest]))
+        .thenReturnAsync(acaCompleted)
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+        .thenReturnAsync(aoaFailed)
 
-      val expectedRegistration = registrations.head
-      val expectedInvite = invites.head
-      val phase2TestProfileWithStartedTests = phase2TestProfile.copy(tests = phase2TestProfile.tests
-        .map(t => t.copy(scheduleId = 3, startedDateTime = Some(startedDate))))
-      val phase2TestProfileWithNewTest = phase2TestProfileWithStartedTests.copy(tests =
-        List(phase2Test.copy(usedForResults = false), phase2Test))
+      val result = phase2TestService.resetTest(onlineTestApplication, phase2Test.orderId, "")
 
-      // expectations for 3 invocations
-      when(phase2TestRepositoryMock.getTestGroup(any[String]))
-        .thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
-        .thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
-        .thenReturn(Future.successful(Some(phase2TestProfileWithNewTest)))
+      result.failed.futureValue mustBe a[TestRegistrationException]
 
-      when(phase2TestRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
-      when(phase2TestRepositoryMock.insertCubiksTests(any[String], any[Phase2TestGroup])).thenReturn(Future.successful(()))
-      when(onlineTestsGatewayClientMock.registerApplicants(any[Int]))
-        .thenReturn(Future.successful(List(expectedRegistration)))
-      when(onlineTestsGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
-        .thenReturn(Future.successful(List(expectedInvite)))
+      verify(onlineTestsGatewayClientMock, times(1)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      verify(emailClientMock, times(0))
+        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(any[HeaderCarrier])
 
-      phase2TestService.resetTests(onlineTestApplicationForReset, "createdBy").futureValue
-
-      verify(phase2TestRepositoryMock).resetTestProfileProgresses("appId",
-        List(PHASE2_TESTS_STARTED, PHASE2_TESTS_COMPLETED, PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY,
-          PHASE2_TESTS_FAILED, PHASE2_TESTS_EXPIRED, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED_NOTIFIED, PHASE2_TESTS_FAILED_SDIP_AMBER))
-      verify(phase2TestRepositoryMock).markTestAsInactive(cubiksUserId)
-
-      val phase2TestGroupCaptor: ArgumentCaptor[Phase2TestGroup] = ArgumentCaptor.forClass(classOf[Phase2TestGroup])
-      verify(phase2TestRepositoryMock).insertCubiksTests(any[String], phase2TestGroupCaptor.capture)
-
-      val phase2TestGroup = phase2TestGroupCaptor.getValue
-      phase2TestGroup.expirationDate.toLocalDate mustBe now.plusDays(5).toLocalDate
-
-      verify(dataStoreEventHandlerMock).handle(DataStoreEvents.ETrayReset("appId", "createdBy"))(hc, rh)
+      verify(auditServiceMock, times(0)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
+      verify(auditServiceMock, times(1)).logEventNoRequest("UserRegisteredForPhase2Test", auditDetails)
+      verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
+      verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvited", auditDetails)
     }
 
-    "remove phase 3 tests and reset phase 2 tests" in new TestFixture {
-      override val phase2TestProfile = Phase2TestGroup(expirationDate,
-        List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId))
-      )
+    "complete reset successfully" in new TestFixture {
+      val newTests = phase2Test.copy(inventoryId = "inventory-id-1") :: Nil
+      when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile.copy(tests = newTests)))
 
-      val onlineTestApplicationForReset = onlineTestApplication.copy(applicationStatus = ApplicationStatus.PHASE3_TESTS)
-      val progressResponse = ProgressResponse("appId", phase3ProgressResponse =
-        Phase3ProgressResponse(phase3TestsInvited = true))
+      when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest]))
+        .thenReturnAsync(acaCompleted)
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+        .thenReturnAsync(aoa)
 
-      when(appRepositoryMock.findProgress(any[String])).
-        thenReturn(Future.successful(progressResponse))
+      val result = phase2TestService.resetTest(onlineTestApplication, phase2Test.orderId, "")
 
-      when(phase3TestServiceMock.removeTestGroup("appId")).thenReturn(Future.successful(()))
+      result.futureValue mustBe unit
 
-      val expectedRegistration = registrations.head
-      val expectedInvite = invites.head
-      val phase2TestProfileWithStartedTests = phase2TestProfile.copy(tests = phase2TestProfile.tests
-        .map(t => t.copy(scheduleId = 3, startedDateTime = Some(startedDate))))
-      val phase2TestProfileWithNewTest = phase2TestProfileWithStartedTests.copy(tests =
-        List(phase2Test.copy(usedForResults = false), phase2Test))
+      verify(onlineTestsGatewayClientMock, times(1)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      verify(emailClientMock, times(1))
+        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(onlineTestApplication.preferredName), eqTo(expirationDate))(any[HeaderCarrier])
 
-      // expectations for 3 invocations
-      when(phase2TestRepositoryMock.getTestGroup(any[String]))
-        .thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
-        .thenReturn(Future.successful(Some(phase2TestProfileWithStartedTests)))
-        .thenReturn(Future.successful(Some(phase2TestProfileWithNewTest)))
-
-      when(phase2TestRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
-      when(phase2TestRepositoryMock.insertCubiksTests(any[String], any[Phase2TestGroup])).thenReturn(Future.successful(()))
-      when(onlineTestsGatewayClientMock.registerApplicants(any[Int]))
-        .thenReturn(Future.successful(List(expectedRegistration)))
-      when(onlineTestsGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
-        .thenReturn(Future.successful(List(expectedInvite)))
-
-      phase2TestService.resetTests(onlineTestApplicationForReset, "createdBy").futureValue
-
-      verify(phase2TestRepositoryMock).resetTestProfileProgresses("appId",
-        List(PHASE2_TESTS_STARTED, PHASE2_TESTS_COMPLETED, PHASE2_TESTS_RESULTS_RECEIVED, PHASE2_TESTS_RESULTS_READY,
-          PHASE2_TESTS_FAILED, PHASE2_TESTS_EXPIRED, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED_NOTIFIED, PHASE2_TESTS_FAILED_SDIP_AMBER))
-      verify(phase2TestRepositoryMock).markTestAsInactive(cubiksUserId)
-      verify(phase2TestRepositoryMock).insertCubiksTests(any[String], any[Phase2TestGroup])
-      verify(dataStoreEventHandlerMock).handle(DataStoreEvents.ETrayReset("appId", "createdBy"))(hc, rh)
-    }
-
-    "return cannot reset phase2 tests exception" in new TestFixture {
-      when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(None))
-
-      an[CannotResetPhase2Tests] must be thrownBy
-        Await.result(phase2TestService.resetTests(onlineTestApplication, "createdBy"), 1 seconds)
+      verify(auditServiceMock, times(0)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
+      verify(auditServiceMock, times(1)).logEventNoRequest("UserRegisteredForPhase2Test", auditDetails)
+      verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
     }
   }
 
@@ -606,7 +398,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
         phase2TestsSecondReminder = true
       ))
 
-    "extend the test to 5 days from now and remove: expired and two reminder progresses" in new TestFixture {
+    "extend the test to 5 days from now and remove: expired and two reminder progress statuses" in new TestFixture {
       when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(progress))
       val phase2TestProfileWithExpirationInPast = Phase2TestGroup(now.minusDays(1), List(phase2Test))
       when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfileWithExpirationInPast)))
@@ -619,7 +411,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       )
     }
 
-    "extend the test to 3 days from now and remove: expired and only one reminder progresses" in new TestFixture {
+    "extend the test to 3 days from now and remove: expired and only one reminder progress status" in new TestFixture {
       when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(progress))
       val phase2TestProfileWithExpirationInPast = Phase2TestGroup(now.minusDays(1), List(phase2Test))
       when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfileWithExpirationInPast)))
@@ -632,7 +424,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       )
     }
 
-    "extend the test to 1 day from now and remove: expired progress" in new TestFixture {
+    "extend the test to 1 day from now and remove: expired progress status" in new TestFixture {
       when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(progress))
       val phase2TestProfileWithExpirationInPast = Phase2TestGroup(now.minusDays(1), List(phase2Test))
       when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfileWithExpirationInPast)))
@@ -641,90 +433,6 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       verify(phase2TestRepositoryMock).updateGroupExpiryTime("appId", now.plusDays(1), "phase2")
       verify(appRepositoryMock).removeProgressStatuses("appId", List(PHASE2_TESTS_EXPIRED))
-    }
-  }
-
-  "retrieve phase 2 test report" should {
-    "return an exception if there is an error retrieving one of the reports" in new TestFixture {
-      val failedTest = phase2Test.copy(scheduleId = 555, reportId = Some(2))
-
-      when(onlineTestsGatewayClientMock.downloadXmlReport(eqTo(failedTest.reportId.get)))
-        .thenReturn(Future.failed(new Exception))
-
-      val result = phase2TestService.retrieveTestResult(Phase2TestGroupWithAppId(
-        "appId", phase2TestProfile.copy(tests = List(failedTest))
-      ))
-
-      result.failed.futureValue mustBe an[Exception]
-      verify(auditServiceMock, times(0)).logEventNoRequest(eqTo("ResultsRetrievedForSchedule"), any[Map[String, String]])
-      verify(auditServiceMock, times(0)).logEventNoRequest(eqTo(s"ProgressStatusSet${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}"),
-        any[Map[String, String]])
-      verify(phase2TestRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus])
-      verify(phase2TestRepositoryMock, times(0)).insertTestResult(any[String], eqTo(failedTest), any[TestResult])
-    }
-
-    "Not update anything if the active test has no report Id" in new TestFixture {
-      val usedTest = phase2Test.copy(usedForResults = true, reportId = None, resultsReadyToDownload = false)
-      val unusedTest = phase2Test.copy(usedForResults = false, reportId = Some(123), resultsReadyToDownload = true)
-      val testProfile = phase2TestProfile.copy(tests = List(usedTest, unusedTest))
-
-      when(phase2TestRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
-
-      phase2TestService.retrieveTestResult(Phase2TestGroupWithAppId(
-        "appId", testProfile
-      )).futureValue
-
-      verify(auditServiceMock, times(0)).logEventNoRequest(eqTo("ResultsRetrievedForSchedule"), any[Map[String, String]])
-      verify(auditServiceMock, times(0)).logEventNoRequest(eqTo(s"ProgressStatusSet${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}"),
-        any[Map[String, String]])
-      verify(phase2TestRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus])
-      verify(phase2TestRepositoryMock, times(0)).insertTestResult(any[String], eqTo(usedTest), any[TestResult])
-      verify(phase2TestRepositoryMock, times(0)).insertTestResult(any[String], eqTo(unusedTest), any[TestResult])
-    }
-
-    "save a phase2 report for a candidate and update progress status" in new TestFixture {
-      val test = phase2Test.copy(reportId = Some(123), resultsReadyToDownload = true)
-      val testProfile = phase2TestProfile.copy(tests = List(test))
-
-      when(onlineTestsGatewayClientMock.downloadXmlReport(any[Int]))
-        .thenReturn(Future.successful(testResult))
-
-      when(phase2TestRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[model.persisted.TestResult]))
-        .thenReturn(Future.successful(()))
-      when(phase2TestRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
-      when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturn(
-        Future.successful(Some(testProfile.copy(tests = List(test.copy(testResult = Some(savedResult))))))
-      )
-
-      phase2TestService.retrieveTestResult(Phase2TestGroupWithAppId(
-        "appId", testProfile
-      )).futureValue
-
-      verify(auditServiceMock, times(2)).logEventNoRequest(any[String], any[Map[String, String]])
-      verify(phase2TestRepositoryMock).updateProgressStatus(any[String], any[ProgressStatus])
-    }
-
-    "save a phase2 report for a candidate and not update progress status" in new TestFixture {
-      val testReady = phase2Test.copy(reportId = Some(123), resultsReadyToDownload = true)
-      val testNotReady = phase2Test.copy(reportId = None, resultsReadyToDownload = false)
-      val testProfile = phase2TestProfile.copy(tests = List(testReady, testNotReady))
-
-      when(onlineTestsGatewayClientMock.downloadXmlReport(any[Int]))
-        .thenReturn(Future.successful(testResult))
-
-      when(phase2TestRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[model.persisted.TestResult]))
-        .thenReturn(Future.successful(()))
-      when(phase2TestRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
-      when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturn(
-        Future.successful(Some(testProfile.copy(tests = List(testReady.copy(testResult = Some(savedResult)), testNotReady))))
-      )
-
-      phase2TestService.retrieveTestResult(Phase2TestGroupWithAppId(
-        "appId", testProfile
-      )).futureValue
-
-      verify(auditServiceMock, times(1)).logEventNoRequest(any[String], any[Map[String, String]])
-      verify(phase2TestRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus])
     }
   }
 
@@ -838,35 +546,143 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     }
   }
 
+  // PSI specific no cubiks equivalent
+  "store real time results" should {
+    "handle not finding an application for the given order id" in new TestFixture {
+      when(phase2TestRepositoryMock.getApplicationIdForOrderId(any[String], any[String])).thenReturnAsync(None)
+
+      val result = phase2TestService.storeRealTimeResults(orderId, realTimeResults)
+
+      val exception = result.failed.futureValue
+      exception mustBe an[CannotFindTestByOrderIdException]
+      exception.getMessage mustBe s"Application not found for test for orderId=$orderId"
+    }
+
+    "handle not finding a test profile for the given order id" in new TestFixture {
+      when(phase2TestRepositoryMock.getApplicationIdForOrderId(any[String], any[String])).thenReturnAsync(Some(applicationId))
+
+      when(phase2TestRepositoryMock.getTestProfileByOrderId(any[String])).thenReturn(Future.failed(
+        CannotFindTestByOrderIdException(s"Cannot find test group by orderId=$orderId")
+      ))
+
+      val result = phase2TestService.storeRealTimeResults(orderId, realTimeResults)
+
+      val exception = result.failed.futureValue
+      exception mustBe an[CannotFindTestByOrderIdException]
+      exception.getMessage mustBe s"Cannot find test group by orderId=$orderId"
+    }
+
+    "handle not finding the test group when checking to update the progress status" in new TestFixture {
+      when(phase2TestRepositoryMock.getApplicationIdForOrderId(any[String], any[String])).thenReturnAsync(Some(applicationId))
+
+      when(phase2TestRepositoryMock.getTestProfileByOrderId(any[String])).thenReturnAsync(phase2CompletedTestGroupWithAppId)
+      when(phase2TestRepositoryMock.insertTestResult2(any[String], any[PsiTest], any[model.persisted.PsiTestResult])).thenReturnAsync()
+      when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(None)
+
+      val result = phase2TestService.storeRealTimeResults(orderId, realTimeResults)
+
+      val exception = result.failed.futureValue
+      exception mustBe an[Exception]
+      exception.getMessage mustBe s"No test profile returned for $applicationId"
+
+      verify(phase2TestRepositoryMock, never()).updateTestCompletionTime2(any[String], any[DateTime])
+      verify(phase2TestRepositoryMock, never()).updateProgressStatus(any[String], any[ProgressStatuses.ProgressStatus])
+    }
+
+    "process the real time results and update the progress status" in new TestFixture {
+      when(phase2TestRepositoryMock.getApplicationIdForOrderId(any[String], any[String])).thenReturnAsync(Some(applicationId))
+
+      when(phase2TestRepositoryMock.getTestProfileByOrderId(any[String])).thenReturnAsync(phase2CompletedTestGroupWithAppId)
+      when(phase2TestRepositoryMock.insertTestResult2(any[String], any[PsiTest], any[model.persisted.PsiTestResult])).thenReturnAsync()
+
+      val phase2TestGroup = Phase2TestGroup(expirationDate = now, tests = List(fifthPsiTest, sixthPsiTest))
+      when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestGroup))
+      when(phase2TestRepositoryMock.updateProgressStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturnAsync()
+
+      phase2TestService.storeRealTimeResults(orderId, realTimeResults).futureValue
+
+      verify(phase2TestRepositoryMock, never()).updateTestCompletionTime2(any[String], any[DateTime])
+      verify(phase2TestRepositoryMock, times(1)).updateProgressStatus(any[String],
+        eqTo(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED))
+    }
+
+    "process the real time results, mark the test as completed and update the progress status" in new TestFixture {
+      when(phase2TestRepositoryMock.getApplicationIdForOrderId(any[String], any[String])).thenReturnAsync(Some(applicationId))
+
+      //First call return tests that are not completed second call return tests that are are completed
+      when(phase2TestRepositoryMock.getTestProfileByOrderId(any[String]))
+        .thenReturnAsync(phase2NotCompletedTestGroupWithAppId)
+        .thenReturnAsync(phase2CompletedTestGroupWithAppId)
+
+      when(phase2TestRepositoryMock.insertTestResult2(any[String], any[PsiTest], any[model.persisted.PsiTestResult])).thenReturnAsync()
+      when(phase2TestRepositoryMock.updateTestCompletionTime2(any[String], any[DateTime])).thenReturnAsync()
+
+      when(phase2TestRepositoryMock.updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE2_TESTS_COMPLETED))).thenReturnAsync()
+
+      val phase2TestGroup = Phase2TestGroup(expirationDate = now, tests = List(fifthPsiTest, sixthPsiTest))
+      val phase2TestsCompleted: Phase2TestGroup = phase2TestGroup.copy(
+        tests = phase2TestGroup.tests.map(t => t.copy(orderId = orderId, completedDateTime = Some(DateTime.now()))),
+        expirationDate = DateTime.now().plusDays(2)
+      )
+
+      when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestsCompleted))
+      when(phase2TestRepositoryMock.updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED))).thenReturnAsync()
+
+      phase2TestService.storeRealTimeResults(orderId, realTimeResults).futureValue
+
+      verify(phase2TestRepositoryMock, times(1)).updateTestCompletionTime2(any[String], any[DateTime])
+      verify(phase2TestRepositoryMock, times(1)).updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE2_TESTS_COMPLETED))
+      verify(phase2TestRepositoryMock, times(1)).updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED))
+    }
+  }
+
   private def phase2Progress(phase2ProgressResponse: Phase2ProgressResponse) =
     ProgressResponse("appId", phase2ProgressResponse = phase2ProgressResponse)
 
   trait TestFixture extends StcEventServiceFixture {
 
-    implicit val hc = mock[HeaderCarrier]
-    implicit val rh = mock[RequestHeader]
+    implicit val hc: HeaderCarrier = mock[HeaderCarrier]
+    implicit val rh: RequestHeader = mock[RequestHeader]
 
-    val dateTimeFactoryMock = mock[DateTimeFactory]
-    val now = new DateTimeFactoryImpl().nowLocalTimeZone.withZone(DateTimeZone.UTC)
+    val dateTimeFactoryMock: DateTimeFactory = mock[DateTimeFactory]
+    implicit val now: DateTime = DateTimeFactoryMock.nowLocalTimeZone.withZone(DateTimeZone.UTC)
     when(dateTimeFactoryMock.nowLocalTimeZone).thenReturn(now)
 
     val scheduleCompletionBaseUrl = "http://localhost:9284/fset-fast-stream/online-tests/phase2"
-    def availableSchedules = Map("oria" -> OriaSchedule, "daro" -> DaroSchedule)
-    val testGatewayConfig =  OnlineTestsGatewayConfig(
-      "",
-      Phase1TestsConfig(expiryTimeInDays = 5,
-        scheduleIds = Map("sjq" -> 16196, "bq" -> 16194),
-        List("sjq", "bq"),
-        List("sjq")
-      ),
-      phase2Tests = Phase2TestsConfig(expiryTimeInDays = 5, expiryTimeInDaysForInvigilatedETray = 90, availableSchedules, None),
-      numericalTests = NumericalTestsConfig(Map(NumericalTestsConfig.numericalTestScheduleName -> NumericalTestSchedule(12345, 123))),
+    val inventoryIds: Map[String, String] = Map[String, String]("test3" -> "test3-uuid", "test4" -> "test4-uuid")
+
+    def testIds(idx: Int): PsiTestIds =
+      PsiTestIds(s"inventory-id-$idx", s"assessment-id-$idx", s"report-id-$idx", s"norm-id-$idx")
+
+    val tests = Map[String, PsiTestIds](
+      "test1" -> testIds(1),
+      "test2" -> testIds(2),
+      "test3" -> testIds(3),
+      "test4" -> testIds(4)
+    )
+
+    val mockPhase1TestConfig = Phase1TestsConfig(
+      expiryTimeInDays = 5, gracePeriodInSecs = 0, testRegistrationDelayInSecs = 1, tests, standard = List("test1", "test2", "test3", "test4"),
+      gis = List("test1", "test4")
+    )
+
+    val mockPhase2TestConfig = Phase2TestsConfig(
+      expiryTimeInDays = 5, expiryTimeInDaysForInvigilatedETray = 90, gracePeriodInSecs = 0, testRegistrationDelayInSecs = 1, tests,
+      standard = List("test1", "test2")
+    )
+
+    val mockNumericalTestsConfig = NumericalTestsConfig(gracePeriodInSecs = 0, tests = tests, standard = List("test1"))
+    val gatewayConfig = OnlineTestsGatewayConfig(
+      url = "",
+      phase1Tests = mockPhase1TestConfig,
+      phase2Tests = mockPhase2TestConfig,
+      numericalTests = mockNumericalTestsConfig,
       reportConfig = ReportConfig(1, 2, "en-GB"),
       candidateAppUrl = "http://localhost:9284",
       emailDomain = "test.com"
     )
 
-    val cubiksUserId = 123
+    val orderId = uuid
     val token = "token"
     val authenticateUrl = "http://localhost/authenticate"
     val invitationDate = now
@@ -879,24 +695,47 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     val preferredName = "Preferred\tName"
     val expiredApplication = ExpiringOnlineTest(applicationId, userId, preferredName)
 
+    val aoa = AssessmentOrderAcknowledgement(
+      customerId = "cust-id", receiptId = "receipt-id", orderId = orderId, testLaunchUrl = authenticateUrl,status =
+        AssessmentOrderAcknowledgement.acknowledgedStatus, statusDetails = "", statusDate = LocalDate.now())
+
+    val aoaFailed = AssessmentOrderAcknowledgement(
+      customerId = "cust-id", receiptId = "receipt-id", orderId = orderId, testLaunchUrl = authenticateUrl,
+      status = AssessmentOrderAcknowledgement.errorStatus, statusDetails = "", statusDate = LocalDate.now())
+
+    val acaCompleted = AssessmentCancelAcknowledgementResponse(
+      AssessmentCancelAcknowledgementResponse.completedStatus,
+      "Everything is fine!", statusDate = LocalDate.now()
+    )
+
+    val acaError = AssessmentCancelAcknowledgementResponse(
+      AssessmentCancelAcknowledgementResponse.errorStatus,
+      "Something went wrong!", LocalDate.now()
+    )
+
     val postcode : Option[PostCode]= Some("WC2B 4")
     val emailContactDetails = "emailfjjfjdf@mailinator.com"
     val contactDetails = ContactDetails(outsideUk = false, Address("Aldwych road"), postcode, Some("UK"), emailContactDetails, "111111")
+
+    val connectorErrorMessage = "Error in connector"
+    val auditDetails = Map("userId" -> userId)
+    val auditDetailsWithEmail = auditDetails + ("email" -> emailContactDetails)
 
     val success = Future.successful(unit)
     val appRepositoryMock = mock[GeneralApplicationRepository]
     val cdRepositoryMock = mock[ContactDetailsRepository]
     val phase2TestRepositoryMock = mock[Phase2TestRepository]
     val onlineTestsGatewayClientMock = mock[OnlineTestsGatewayClient]
-    val emailClientMock = mock[Phase2OnlineTestEmailClient]
+    val tokenFactoryMock = mock[UUIDFactory]
+    val emailClientMock = mock[OnlineTestEmailClient]
     val auditServiceMock = mock[AuditService]
-    val uuidFactoryMock = mock[UUIDFactory]
-    val eventServiceMock = mock[StcEventService]
+
     val phase3TestServiceMock = mock[Phase3TestService]
     val siftServiceMock = mock[ApplicationSiftService]
 
-    val tokens = UUIDFactory.generateUUID :: UUIDFactory.generateUUID :: Nil
-    val registrations = Registration(123) :: Registration(456) :: Nil
+    val appConfigMock = mock[MicroserviceAppConfig]
+    when(appConfigMock.onlineTestsGatewayConfig).thenReturn(gatewayConfig)
+
     val onlineTestApplication = OnlineTestApplication(applicationId = "appId",
       applicationStatus = ApplicationStatus.SUBMITTED,
       userId = "userId",
@@ -905,70 +744,51 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       needsOnlineAdjustments = false,
       needsAtVenueAdjustments = false,
       preferredName = "Optimus",
-      lastName = "Prime",
+      lastName = "Prime1",
       None,
       None
     )
 
     val preferredNameSanitized = "Preferred Name"
     val lastName = ""
-    val emailCubiks = token + "@" + testGatewayConfig.emailDomain
-    val registerApplicant = RegisterApplicant(preferredNameSanitized, lastName, emailCubiks)
-    val registration = Registration(cubiksUserId)
-    val scheduleId = 1
-
-    val inviteApplicant = InviteApplicant(scheduleId,
-      cubiksUserId, s"$scheduleCompletionBaseUrl/complete/$token",
-      resultsURL = None, timeAdjustments = Nil
-    )
-
-    val onlineTestApplication2 = onlineTestApplication.copy(applicationId = "appId2", userId = "userId2")
+    val onlineTestApplication2 = onlineTestApplication.copy(applicationId = "appId2", userId = "userId2", lastName = "Prime2")
     val adjustmentApplication = onlineTestApplication.copy(applicationId = "appId3", userId = "userId3", needsOnlineAdjustments = true)
     val adjustmentApplication2 = onlineTestApplication.copy(applicationId = "appId4", userId = "userId4", needsOnlineAdjustments = true)
     val candidates = List(onlineTestApplication, onlineTestApplication2)
 
-    val registeredMap = Map(
-      (registrations.head.userId, (onlineTestApplication, tokens.head, registrations.head)),
-      (registrations.last.userId, (onlineTestApplication2, tokens.last, registrations.last))
-    )
+    def uuid: String = UUIDFactory.generateUUID()
 
-    val invites = List(Invitation(userId = registrations.head.userId, email = "email@test.com", accessCode = "accessCode",
-      logonUrl = "logon.com", authenticateUrl = authenticateUrl, participantScheduleId = 999
-    ),
-      Invitation(userId = registrations.last.userId, email = "email@test.com", accessCode = "accessCode", logonUrl = "logon.com",
-        authenticateUrl = authenticateUrl, participantScheduleId = 888
-      ))
-
-    val phase2Test = CubiksTest(scheduleId = OriaSchedule.scheduleId,
-      usedForResults = true,
-      cubiksUserId = cubiksUserId,
-      token = token,
-      testUrl = authenticateUrl,
-      invitationDate = invitationDate,
-      participantScheduleId = 999
+    val phase2Test = PsiTest(
+      inventoryId = uuid, orderId = uuid, assessmentId = uuid, reportId = uuid, normId = uuid, usedForResults = true,
+      testUrl = authenticateUrl, invitationDate = invitationDate
     )
 
     val phase2TestProfile = Phase2TestGroup(expirationDate,
-      List(phase2Test, phase2Test.copy(scheduleId = DaroSchedule.scheduleId))
+      List(phase2Test, phase2Test.copy(inventoryId = uuid))
     )
+
+    val phase2TestProfileWithNoTest = Phase2TestGroup(expirationDate, Nil)
+
+    val phase2CompletedTestGroupWithAppId: Phase2TestGroupWithAppId = Phase2TestGroupWithAppId(
+      applicationId,
+      testGroup = phase2TestProfile.copy(
+        tests = phase2TestProfile.tests.map( t =>
+          t.copy(orderId = orderId, completedDateTime = Some(DateTime.now()))
+        )
+      )
+    )
+
+    val phase2NotCompletedTestGroupWithAppId: Phase2TestGroupWithAppId = Phase2TestGroupWithAppId(
+      applicationId,
+      testGroup = phase2TestProfile.copy(
+        tests = phase2TestProfile.tests.map( t =>
+          t.copy(orderId = orderId, completedDateTime = None)
+        )
+      )
+    )
+
     val invigilatedTestProfile = Phase2TestGroup(
-      invigilatedExpirationDate, List(phase2Test.copy(scheduleId = DaroSchedule.scheduleId, invigilatedAccessCode = Some("accessCode")))
-    )
-
-    val testResult = OnlineTestCommands.TestResult(status = "Completed",
-      norm = "some norm",
-      tScore = Some(23.9999d),
-      percentile = Some(22.4d),
-      raw = Some(66.9999d),
-      sten = Some(1.333d)
-    )
-
-    val savedResult = model.persisted.TestResult(status = "Completed",
-      norm = "some norm",
-      tScore = Some(23.9999d),
-      percentile = Some(22.4d),
-      raw = Some(66.9999d),
-      sten = Some(1.333d)
+      invigilatedExpirationDate, List(phase2Test.copy(inventoryId = uuid, invigilatedAccessCode = Some("accessCode")))
     )
 
     val invigilatedETrayApp = onlineTestApplication.copy(
@@ -977,52 +797,48 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     )
     val nonInvigilatedETrayApp = onlineTestApplication.copy(needsOnlineAdjustments = false)
 
-    when(onlineTestsGatewayClientMock.registerApplicants(any[Int]))
-      .thenReturn(Future.successful(registrations))
-
-    when(onlineTestsGatewayClientMock.inviteApplicants(any[List[InviteApplicant]]))
-      .thenReturn(Future.successful(invites))
-
     when(phase2TestRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup]))
-      .thenReturn(Future.successful(()))
+        .thenReturnAsync()
 
     when(phase2TestRepositoryMock.getTestGroup(any[String]))
-      .thenReturn(Future.successful(Some(phase2TestProfile)))
+      .thenReturnAsync(Some(phase2TestProfile))
 
     when(phase2TestRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]]))
-      .thenReturn(Future.successful(()))
+      .thenReturnAsync()
 
-    when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(
-      ContactDetails(outsideUk = false, Address("Aldwych road"), Some("QQ1 1QQ"), Some("UK"), "email@test.com", "111111")))
+//    when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(
+//      ContactDetails(outsideUk = false, Address("Aldwych road"), Some("QQ1 1QQ"), Some("UK"), "email@test.com", "111111")))
+
+    when(cdRepositoryMock.find(any[String])).thenReturnAsync(contactDetails)
 
     when(emailClientMock.sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier]))
-      .thenReturn(Future.successful(()))
+        .thenReturnAsync()
 
-    when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfile)))
-    when(phase2TestRepositoryMock.updateGroupExpiryTime(any[String], any[DateTime], any[String])).thenReturn(Future.successful(()))
-    when(appRepositoryMock.removeProgressStatuses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
+    when(phase2TestRepositoryMock.updateGroupExpiryTime(any[String], any[DateTime], any[String]))
+      .thenReturnAsync()
+    when(appRepositoryMock.removeProgressStatuses(any[String], any[List[ProgressStatus]]))
+      .thenReturnAsync()
     when(phase2TestRepositoryMock.phaseName).thenReturn("phase2")
 
-    when(uuidFactoryMock.generateUUID()).thenReturn(token)
+    val realTimeResults = PsiRealTimeResults(tScore = 10.0, rawScore = 20.0, reportUrl = None)
 
-    val appConfigMock = mock[MicroserviceAppConfig]
-    when(appConfigMock.onlineTestsGatewayConfig).thenReturn(testGatewayConfig)
+    val actor = ActorSystem()
 
     val phase2TestService = new Phase2TestService(
-      appConfigMock,
       appRepositoryMock,
       cdRepositoryMock,
       phase2TestRepositoryMock,
       onlineTestsGatewayClientMock,
-      uuidFactoryMock,
+      tokenFactoryMock,
       dateTimeFactoryMock,
       emailClientMock,
       auditServiceMock,
-      ActorSystem(),
-      stcEventServiceMock,
       authProviderClientMock,
       phase3TestServiceMock,
-      siftServiceMock
+      siftServiceMock,
+      appConfigMock,
+      stcEventServiceMock,
+      actor
     )
   }
 }

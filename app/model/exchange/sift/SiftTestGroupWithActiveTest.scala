@@ -16,13 +16,13 @@
 
 package model.exchange.sift
 
-import model.persisted.CubiksTest
+import model.persisted.PsiTest
 import org.joda.time.DateTime
 import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
 import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.Json
 
-case class SiftTestGroupWithActiveTest(expirationDate: DateTime, activeTest: CubiksTest)
+case class SiftTestGroupWithActiveTest(expirationDate: DateTime, activeTest: PsiTest)
 
 object SiftTestGroupWithActiveTest {
   implicit val siftTestGroupWithActiveTestFormat = Json.format[SiftTestGroupWithActiveTest]

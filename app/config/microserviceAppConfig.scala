@@ -19,7 +19,7 @@ package config
 import javax.inject.{Inject, Singleton}
 import model.persisted.eventschedules.{Location, Venue}
 import net.ceedubs.ficus.Ficus._
-import play.api.{ Configuration, Environment, Logger }
+import play.api.{ Configuration, Environment }
 
 //scalastyle:off number.of.types
 
@@ -81,74 +81,27 @@ case class OnlineTestsGatewayConfig(url: String,
                                     emailDomain: String
 )
 
-case class TestIntegrationGatewayConfig(url: String,
-                                    phase1Tests: Phase1TestsConfig2,
-                                    phase2Tests: Phase2TestsConfig2,
-                                    numericalTests: NumericalTestsConfig2,
-                                    reportConfig: ReportConfig,
-                                    candidateAppUrl: String,
-                                    emailDomain: String
-)
-
-case class PsiTestIds(inventoryId: String, assessmentId: String,
-                      reportId: String, normId: String)
-
-case class Phase1TestsConfig2(expiryTimeInDays: Int,
-                              gracePeriodInSecs: Int,
-                              testRegistrationDelayInSecs: Int,
-                              tests: Map[String, PsiTestIds],
-                              standard: List[String],
-                              gis: List[String])
+case class PsiTestIds(inventoryId: String, assessmentId: String, reportId: String, normId: String) {
+  override def toString = s"inventoryId:$inventoryId,assessmentId:$assessmentId,reportId:$reportId,normId:$normId"
+}
 
 case class Phase1TestsConfig(expiryTimeInDays: Int,
-                             scheduleIds: Map[String, Int],
+                             gracePeriodInSecs: Int,
+                             testRegistrationDelayInSecs: Int,
+                             tests: Map[String, PsiTestIds],
                              standard: List[String],
                              gis: List[String])
 
 case class Phase2Schedule(scheduleId: Int, assessmentId: Int)
 
-case class Phase2TestsConfig2(expiryTimeInDays: Int,
-                              expiryTimeInDaysForInvigilatedETray: Int,
-                              gracePeriodInSecs: Int,
-                              testRegistrationDelayInSecs: Int,
-                              tests: Map[String, PsiTestIds],
-                              standard: List[String])
-
 case class Phase2TestsConfig(expiryTimeInDays: Int,
                              expiryTimeInDaysForInvigilatedETray: Int,
-                             schedules: Map[String, Phase2Schedule],
-                             alwaysChooseSchedule: Option[String]) {
-  require(schedules.contains("daro"), "Daro schedule must be present as it is used for the invigilated e-tray applications")
-  alwaysChooseSchedule.foreach { s =>
-    require(schedules.contains(s), s"The alwaysChooseSchedule value: $s is not in the schedule names: ${schedules.keys}")
-    Logger.info(s"The alwaysChooseSchedule key is configured so phase2 invitation job will always invite candidates to take $s Etray")
-  }
+                             gracePeriodInSecs: Int,
+                             testRegistrationDelayInSecs: Int,
+                             tests: Map[String, PsiTestIds],
+                             standard: List[String])
 
-  def scheduleNameByScheduleId(scheduleId: Int): String = {
-    val scheduleNameOpt = schedules.find { case (_, s) =>
-      s.scheduleId == scheduleId
-    }
-    val (scheduleName, _) = scheduleNameOpt.getOrElse(throw new IllegalArgumentException(s"Schedule id cannot be found: $scheduleId"))
-    scheduleName
-  }
-
-  def scheduleForInvigilatedETray = schedules("daro")
-}
-
-case class NumericalTestSchedule(scheduleId: Int, assessmentId: Int)
-case class NumericalTestsConfig(schedules: Map[String, NumericalTestSchedule])
-
-case object NumericalTestsConfig {
-  val numericalTestScheduleName = "numericalTest"
-}
-
-case class NumericalTestsConfig2(gracePeriodInSecs: Int, tests: Map[String, PsiTestIds], standard: List[String])
-
-trait CubiksGatewayAssessment {
-  val assessmentId: Int
-}
-
-case class CubiksGatewayStandardAssessment(assessmentId: Int) extends CubiksGatewayAssessment
+case class NumericalTestsConfig(gracePeriodInSecs: Int, tests: Map[String, PsiTestIds], standard: List[String])
 
 case class ReportConfig(xmlReportId: Int, pdfReportId: Int, localeCode: String, suppressValidation: Boolean = false)
 
@@ -184,9 +137,7 @@ class MicroserviceAppConfig @Inject() (val config: Configuration, val environmen
   lazy val schemeConfig = underlyingConfiguration.as[SchemeConfig]("microservice.schemes")
   lazy val eventsConfig = underlyingConfiguration.as[EventsConfig]("microservice.events")
   lazy val userManagementConfig = underlyingConfiguration.as[UserManagementConfig]("microservice.services.user-management")
-  lazy val onlineTestsGatewayConfig = underlyingConfiguration.as[OnlineTestsGatewayConfig]("microservice.services.cubiks-gateway")
-  lazy val testIntegrationGatewayConfig = underlyingConfiguration
-    .as[TestIntegrationGatewayConfig]("microservice.services.test-integration-gateway")
+  lazy val onlineTestsGatewayConfig = underlyingConfiguration.as[OnlineTestsGatewayConfig]("microservice.services.test-integration-gateway")
   lazy val launchpadGatewayConfig = underlyingConfiguration.as[LaunchpadGatewayConfig]("microservice.services.launchpad-gateway")
   lazy val disableSdipFaststreamForSift = underlyingConfiguration.as[Boolean]("microservice.services.disableSdipFaststreamForSift")
   lazy val maxNumberOfDocuments = underlyingConfiguration.as[Int]("maxNumberOfDocuments")

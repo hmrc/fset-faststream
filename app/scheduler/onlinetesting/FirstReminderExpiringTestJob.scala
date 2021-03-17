@@ -37,9 +37,7 @@ class FirstPhase1ReminderExpiringTestJob @Inject() (val service: Phase1TestServi
                                                     val mongoComponent: ReactiveMongoComponent,
                                                     val config: FirstPhase1ReminderExpiringTestJobConfig
                                                    ) extends FirstReminderExpiringTestJob {
-  //  override val service = Phase1TestService
   override val reminderNotice: ReminderNotice = Phase1FirstReminder
-  //  val config = FirstPhase1ReminderExpiringTestJobConfig2
 }
 
 @Singleton
@@ -47,9 +45,7 @@ class FirstPhase2ReminderExpiringTestJob @Inject() (val service: Phase2TestServi
                                                     val mongoComponent: ReactiveMongoComponent,
                                                     val config: FirstPhase2ReminderExpiringTestJobConfig
                                                    ) extends FirstReminderExpiringTestJob {
-  //  override val service = Phase2TestService
   override val reminderNotice: ReminderNotice = Phase2FirstReminder
-  //  val config = FirstPhase2ReminderExpiringTestJobConfig2
 }
 
 @Singleton
@@ -57,9 +53,7 @@ class FirstPhase3ReminderExpiringTestJob @Inject() (val service: Phase3TestServi
                                                     val mongoComponent: ReactiveMongoComponent,
                                                     val config: FirstPhase3ReminderExpiringTestJobConfig
                                                    ) extends FirstReminderExpiringTestJob {
-  //  override val service = Phase3TestService
   override val reminderNotice: ReminderNotice = Phase3FirstReminder
-  //  val config = FirstPhase3ReminderExpiringTestJobConfig2
 }
 
 trait FirstReminderExpiringTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {

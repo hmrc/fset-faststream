@@ -31,8 +31,6 @@ class ProgressSdipForFaststreamCandidateJobImpl @Inject() (val service: Phase1Te
                                                            val mongoComponent: ReactiveMongoComponent,
                                                            val config: ProgressSdipForFaststreamCandidateJobConfig
                                                           ) extends ProgressSdipForFaststreamCandidateJob {
-  //  override val service = Phase1TestService
-  //  val config = ProgressSdipForFaststreamCandidateJobConfig
 }
 
 trait ProgressSdipForFaststreamCandidateJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {

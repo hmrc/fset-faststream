@@ -17,16 +17,9 @@
 package model
 
 import model.Phase1TestExamples.firstPsiTest
-import model.persisted.CubiksTest
-import model.persisted.TestResult
 import org.joda.time.DateTime
 
 object Phase2TestExamples {
-  val testResult = TestResult("Ready", "norm", tScore = Some(12.5), percentile = None, raw = None, sten = None)
-
-  def firstTest(implicit now: DateTime) = CubiksTest(17815, usedForResults = true, 2, "cubiks", "token", "http://localhost", now, 3,
-    testResult = Some(testResult))
-
   def fifthPsiTest(implicit now: DateTime) = firstPsiTest.copy(inventoryId = "inventoryId5", orderId = "orderId5")
 
   def sixthPsiTest(implicit now: DateTime) = firstPsiTest.copy(inventoryId = "inventoryId6", orderId = "orderId6")

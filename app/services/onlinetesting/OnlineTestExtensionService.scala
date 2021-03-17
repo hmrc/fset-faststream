@@ -20,13 +20,13 @@ import factories.DateTimeFactory
 import javax.inject.{ Inject, Singleton }
 import model.ProgressStatuses._
 import model.command.ProgressResponse
-import model.persisted.Phase1TestProfile2
+import model.persisted.Phase1TestProfile
 import model.stc.{ AuditEvent, AuditEvents, DataStoreEvents }
 import model.{ Phase1FirstReminder, Phase1SecondReminder }
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
-import repositories.onlinetesting.Phase1TestRepository2
+import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import services.onlinetesting.Exceptions.TestExtensionException
 import services.stc.{ EventSink, StcEventService }
@@ -37,7 +37,7 @@ import scala.concurrent.Future
 
 @Singleton
 class OnlineTestExtensionService @Inject() (appRepository: GeneralApplicationRepository,
-                                            otRepository: Phase1TestRepository2,
+                                            otRepository: Phase1TestRepository,
                                             auditService: AuditService,
                                             dateTimeFactory: DateTimeFactory,
                                             val eventService: StcEventService) extends EventSink {
@@ -85,14 +85,14 @@ class OnlineTestExtensionService @Inject() (appRepository: GeneralApplicationRep
 }
 
 private final case class Extension(extendedExpiryDate: DateTime, expired: Boolean,
-                                   profile: Phase1TestProfile2, progress: ProgressResponse)
+                                   profile: Phase1TestProfile, progress: ProgressResponse)
 
 object OnlineTestExtensionServiceImpl {
 
   val NoOp: Future[Unit] = Future.successful(())
 
   def getProgressStatusesToRemove(extendedExpiryDate: DateTime,
-                                  profile: Phase1TestProfile2,
+                                  profile: Phase1TestProfile,
                                   progress: ProgressResponse): Option[List[ProgressStatus]] = {
 
     val today = DateTime.now()

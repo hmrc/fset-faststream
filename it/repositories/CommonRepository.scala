@@ -33,9 +33,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
 
   import reactivemongo.play.json.ImplicitBSONHandlers._
 
-  val mockGatewayConfig = mock[OnlineTestsGatewayConfig]
-
-  val mockTestIntegrationGatewayConfig = mock[TestIntegrationGatewayConfig]
+  val mockOnlineTestsGatewayConfig = mock[OnlineTestsGatewayConfig]
 
   val mockEventsConfig = mock[EventsConfig]
 
@@ -58,9 +56,9 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
   def assistanceDetailsRepository = new AssistanceDetailsMongoRepository(mongo)
 
   def phase1TestRepository = new Phase1TestMongoRepository(ITDateTimeFactoryMock, mongo)
-  def phase1TestRepository2 = new Phase1TestMongoRepository2(ITDateTimeFactoryMock, mongo)
+
   def phase2TestRepository = new Phase2TestMongoRepository(ITDateTimeFactoryMock, mongo)
-  def phase2TestRepository2 = new Phase2TestMongoRepository2(ITDateTimeFactoryMock, mongo)
+
   def phase3TestRepository = new Phase3TestMongoRepository(ITDateTimeFactoryMock, mongo)
 
   def phase1EvaluationRepo = new Phase1EvaluationMongoRepository(ITDateTimeFactoryMock, mongo)
@@ -91,6 +89,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
   def selectedSchemes(schemeTypes: List[SchemeId]) = SelectedSchemes(schemeTypes, orderAgreed = true, eligible = true)
 
   // TODO: this should be removed when we strip out cubiks code
+/*
   def insertApplicationWithPhase1TestResults(appId: String, sjq: Double, bq: Option[Double] = None, isGis: Boolean = false,
                                              applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
                                             )(schemes: SchemeId*): ApplicationReadyForEvaluation = {
@@ -101,20 +100,20 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
     ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE1_TESTS, applicationRoute, isGis,
       Phase1TestProfile(now, phase1Tests).activeTests, None, None, selectedSchemes(schemes.toList)
     )
-  }
+  }*/
 
   def insertApplicationWithPhase1TestResults2(appId: String, t1Score: Double, t2Score: Option[Double] = None,
                                               t3Score: Option[Double] = None, t4Score: Double, isGis: Boolean = false,
                                               applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
-                                             )(schemes: SchemeId*): ApplicationReadyForEvaluation2 = {
+                                             )(schemes: SchemeId*): ApplicationReadyForEvaluation = {
     val test1 = firstPsiTest.copy(testResult = Some(PsiTestResult(tScore = t1Score, rawScore = 10.0, None)))
     val test2 = secondPsiTest.copy(testResult = Some(PsiTestResult(tScore = t2Score.getOrElse(0.0), rawScore = 10.0, None)))
     val test3 = thirdPsiTest.copy(testResult = Some(PsiTestResult(tScore = t3Score.getOrElse(0.0), rawScore = 10.0, None)))
     val test4 = fourthPsiTest.copy(testResult = Some(PsiTestResult(tScore = t4Score, rawScore = 10.0, None)))
     val phase1Tests = if(isGis) List(test1, test4) else List(test1, test2, test3, test4)
     insertApplication2(appId, ApplicationStatus.PHASE1_TESTS, Some(phase1Tests), applicationRoute = Some(applicationRoute))
-    ApplicationReadyForEvaluation2(appId, ApplicationStatus.PHASE1_TESTS, applicationRoute, isGis,
-      Phase1TestProfile2(now, phase1Tests).activeTests, None, None, selectedSchemes(schemes.toList)
+    ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE1_TESTS, applicationRoute, isGis,
+      Phase1TestProfile(now, phase1Tests).activeTests, None, None, selectedSchemes(schemes.toList)
     )
   }
 
@@ -158,27 +157,10 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
     updateApplicationStatus(appId, ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED)
   }
 
-  // TODO: this should be removed when we strip out cubiks code
-  def insertApplicationWithPhase2TestResults(appId: String, etray: Double,
+  def insertApplicationWithPhase2TestResults(appId: String, t1Score: Double, t2Score: Double,
                                              phase1PassMarkEvaluation: PassmarkEvaluation,
                                              applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
                                             )(schemes: SchemeId*): ApplicationReadyForEvaluation = {
-    val sjqTest = firstTest.copy(cubiksUserId = 1, testResult = Some(TestResult("Ready", "norm", Some(45.0), None, None, None)))
-    val bqTest = secondTest.copy(cubiksUserId = 2, testResult = Some(TestResult("Ready", "norm", Some(45.0), None, None, None)))
-    val etrayTest = getEtrayTest.copy(cubiksUserId = 3, testResult = Some(TestResult("Ready", "norm", Some(etray), None, None, None)))
-    val phase1Tests = List(sjqTest, bqTest)
-    insertApplication(appId, ApplicationStatus.PHASE2_TESTS, Some(phase1Tests), Some(List(etrayTest)))
-    phase1EvaluationRepo.savePassmarkEvaluation(appId, phase1PassMarkEvaluation, None).futureValue
-    ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE2_TESTS, applicationRoute, isGis = false,
-      List(etrayTest), None, Some(phase1PassMarkEvaluation), selectedSchemes(schemes.toList))
-  }
-
-  // PSI based version
-  def insertApplicationWithPhase2TestResults2(appId: String, t1Score: Double, t2Score: Double,
-                                              phase1PassMarkEvaluation: PassmarkEvaluation,
-                                              applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
-                                             )(schemes: SchemeId*): ApplicationReadyForEvaluation2 = {
-
     val p1Test1 = firstPsiTest.copy(testResult = Some(PsiTestResult(tScore = 45.0, rawScore = 10.0, None)))
     val p1Test2 = secondPsiTest.copy(testResult = Some(PsiTestResult(tScore = 45.0, rawScore = 10.0, None)))
     val p1Test3 = thirdPsiTest.copy(testResult = Some(PsiTestResult(tScore = 45.0, rawScore = 10.0, None)))
@@ -190,18 +172,18 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
     val phase2Tests = List(p2Test1, p2Test2)
     insertApplication2(appId, ApplicationStatus.PHASE2_TESTS, Some(phase1Tests), Some(phase2Tests))
     phase1EvaluationRepo.savePassmarkEvaluation(appId, phase1PassMarkEvaluation, None).futureValue
-    ApplicationReadyForEvaluation2(appId, ApplicationStatus.PHASE2_TESTS, applicationRoute, isGis = false,
+    ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE2_TESTS, applicationRoute, isGis = false,
       List(p2Test1, p2Test2), None, Some(phase1PassMarkEvaluation), selectedSchemes(schemes.toList))
   }
 
   def insertApplicationWithPhase3TestResults(appId: String, videoInterviewScore: Option[Double],
                                              phase2PassMarkEvaluation: PassmarkEvaluation,
                                              applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
-                                            )(schemes: SchemeId*): ApplicationReadyForEvaluation2 = {
+                                            )(schemes: SchemeId*): ApplicationReadyForEvaluation = {
     val launchPadTests = phase3TestWithResults(videoInterviewScore).activeTests
-    insertApplication(appId, ApplicationStatus.PHASE3_TESTS, None, None, Some(launchPadTests))
+    insertApplication2(appId, ApplicationStatus.PHASE3_TESTS, None, None, Some(launchPadTests))
     phase2EvaluationRepo.savePassmarkEvaluation(appId, phase2PassMarkEvaluation, None).futureValue
-    ApplicationReadyForEvaluation2(appId, ApplicationStatus.PHASE3_TESTS, applicationRoute, isGis = false,
+    ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE3_TESTS, applicationRoute, isGis = false,
       Nil, launchPadTests.headOption, Some(phase2PassMarkEvaluation), selectedSchemes(schemes.toList))
   }
 
@@ -213,7 +195,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
     val phase3PassMarkEvaluation = PassmarkEvaluation("", Some(""), results, "", Some(""))
 
     val launchPadTests = phase3TestWithResults(videoInterviewScore).activeTests
-    insertApplication(appId, ApplicationStatus.PHASE3_TESTS, None, None, Some(launchPadTests), applicationRoute = Some(applicationRoute),
+    insertApplication2(appId, ApplicationStatus.PHASE3_TESTS, None, None, Some(launchPadTests), applicationRoute = Some(applicationRoute),
       schemes = schemes
     )
 
@@ -248,6 +230,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
 
   //TODO: this should be removed when we strip out cubiks code
   // scalastyle:off
+  /*
   def insertApplication(appId: String, applicationStatus: ApplicationStatus, phase1Tests: Option[List[CubiksTest]] = None,
                         phase2Tests: Option[List[CubiksTest]] = None, phase3Tests: Option[List[LaunchpadTest]] = None,
                         isGis: Boolean = false, schemes: List[SchemeId] = List(SchemeId("Commercial")),
@@ -280,8 +263,8 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
     assistanceDetailsRepository.update(appId, appId, ad).futureValue
 
     schemePreferencesRepository.save(appId, selectedSchemes(schemes)).futureValue
-    insertPhase1Tests(appId, phase1Tests, phase1Evaluation)
-    insertPhase2Tests(appId, phase2Tests, phase2Evaluation)
+//    insertPhase1Tests(appId, phase1Tests, phase1Evaluation)
+//    insertPhase2Tests(appId, phase2Tests, phase2Evaluation)
     phase3Tests.foreach { t =>
       phase3TestRepository.insertOrUpdateTestGroup(appId, Phase3TestGroup(now, t)).futureValue
       if(t.headOption.exists(_.callbacks.reviewed.nonEmpty)) {
@@ -291,7 +274,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
     applicationRepository.collection.update(ordered = false).one(
       BSONDocument("applicationId" -> appId),
       BSONDocument("$set" -> BSONDocument("applicationStatus" -> applicationStatus))).futureValue
-  }
+  }*/
   // scalastyle:on
 
   // scalastyle:off
@@ -327,7 +310,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
     assistanceDetailsRepository.update(appId, appId, ad).futureValue
 
     schemePreferencesRepository.save(appId, selectedSchemes(schemes)).futureValue
-    insertPhase1Tests2(appId, phase1Tests, phase1Evaluation)
+    insertPhase1Tests(appId, phase1Tests, phase1Evaluation)
     insertPhase2Tests2(appId, phase2Tests, phase2Evaluation)
     phase3Tests.foreach { t =>
       phase3TestRepository.insertOrUpdateTestGroup(appId, Phase3TestGroup(now, t)).futureValue
@@ -341,7 +324,18 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
   }
   // scalastyle:on
 
-  def insertPhase2Tests(appId: String, phase2Tests: Option[List[CubiksTest]], phase2Evaluation: Option[PassmarkEvaluation]): Unit = {
+  // TODO: cubiks this is cubiks specific
+/*
+  private def insertPhase2Tests(appId: String, phase2Tests: Option[List[CubiksTest]], phase2Evaluation: Option[PassmarkEvaluation]): Unit = {
+    phase2Tests.foreach { t =>
+      phase2TestRepository.insertOrUpdateTestGroup(appId, Phase2TestGroup(now, t, phase2Evaluation)).futureValue
+      if (t.exists(_.testResult.isDefined)) {
+        phase2TestRepository.updateProgressStatus(appId, ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED).futureValue
+      }
+    }
+  }*/
+
+  private def insertPhase2Tests2(appId: String, phase2Tests: Option[List[PsiTest]], phase2Evaluation: Option[PassmarkEvaluation]): Unit = {
     phase2Tests.foreach { t =>
       phase2TestRepository.insertOrUpdateTestGroup(appId, Phase2TestGroup(now, t, phase2Evaluation)).futureValue
       if (t.exists(_.testResult.isDefined)) {
@@ -350,16 +344,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
     }
   }
 
-  def insertPhase2Tests2(appId: String, phase2Tests: Option[List[PsiTest]], phase2Evaluation: Option[PassmarkEvaluation]): Unit = {
-    phase2Tests.foreach { t =>
-      phase2TestRepository2.insertOrUpdateTestGroup(appId, Phase2TestGroup2(now, t, phase2Evaluation)).futureValue
-      if (t.exists(_.testResult.isDefined)) {
-        phase2TestRepository2.updateProgressStatus(appId, ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED).futureValue
-      }
-    }
-  }
-
-  def insertPhase1Tests(appId: String, phase1Tests: Option[List[CubiksTest]], phase1Evaluation: Option[PassmarkEvaluation]): Unit = {
+  private def insertPhase1Tests(appId: String, phase1Tests: Option[List[PsiTest]], phase1Evaluation: Option[PassmarkEvaluation]): Unit = {
     phase1Tests.foreach { t =>
       phase1TestRepository.insertOrUpdateTestGroup(appId, Phase1TestProfile(now, t, phase1Evaluation)).futureValue
       if (t.exists(_.testResult.isDefined)) {
@@ -368,14 +353,16 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
     }
   }
 
+  // TODO: cubiks delete this method
+  /*
   def insertPhase1Tests2(appId: String, phase1Tests: Option[List[PsiTest]], phase1Evaluation: Option[PassmarkEvaluation]): Unit = {
     phase1Tests.foreach { t =>
-      phase1TestRepository2.insertOrUpdateTestGroup(appId, Phase1TestProfile2(now, t, phase1Evaluation)).futureValue
+      phase1TestRepository.insertOrUpdateTestGroup(appId, Phase1TestProfile(now, t, phase1Evaluation)).futureValue
       if (t.exists(_.testResult.isDefined)) {
-        phase1TestRepository2.updateProgressStatus(appId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).futureValue
+        phase1TestRepository.updateProgressStatus(appId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).futureValue
       }
     }
-  }
+  }*/
 
   private def questionnaire() = {
     BSONDocument(

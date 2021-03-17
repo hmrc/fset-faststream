@@ -17,30 +17,28 @@
 package services.onlinetesting
 
 import model.EvaluationResults.{ Amber, Green, Red, Result }
+import model.SchemeId
 import model.exchange.passmarksettings.PassMarkThreshold
 import play.api.Logging
 
 trait OnlineTestResultsCalculator extends Logging {
 
-  def evaluateTestResult(threshold: PassMarkThreshold)(tScore: Option[Double]): Result = {
+  def evaluateTestResult(threshold: PassMarkThreshold)(tScore: Double): Result = {
     val failmark = threshold.failThreshold
     val passmark = threshold.passThreshold
-    tScore match {
-      case Some(score) if score >= passmark => Green
-      case Some(score) if score < failmark => Red
-      case Some(_) => Amber
-      case _ => throw new IllegalArgumentException("Score not found")
-    }
+    if (tScore >= passmark) { Green }
+    else if (tScore < failmark) { Red }
+    else { Amber }
   }
 
-  def combineTestResults(results: Result*) = {
+  def combineTestResults(schemeToEvaluate: SchemeId, results: Result*) = {
     require(results.nonEmpty, "Test results not found")
     val result = results match {
       case _ if results.contains(Red) => Red
       case _ if results.contains(Amber) => Amber
       case _ if results.forall(_ == Green) => Green
     }
-    logger.info(s"Combining results $results = $result")
+    logger.info(s"Combining results for $schemeToEvaluate: $results = $result")
     result
   }
 }

@@ -26,7 +26,7 @@ import model.Exceptions.{ SiftResultsAlreadyExistsException, UnexpectedException
 import model.ProgressStatuses.SIFT_ENTERED
 import model._
 import model.command.{ ApplicationForSift, ApplicationForSiftExpiry }
-import model.exchange.sift.{ SiftState, SiftTestGroupWithActiveTest, SiftTestGroupWithActiveTest2 }
+import model.exchange.sift.{ SiftState, SiftTestGroupWithActiveTest }
 import model.persisted.SchemeEvaluationResult
 import model.persisted.sift.NotificationExpiringSift
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered, SiftReminderNotice }
@@ -68,7 +68,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     applicationSiftRepo.nextApplicationForSecondSiftReminder(timeInHours)
   }
 
-  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int) : Future[Seq[NumericalTestApplication2]] = {
+  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int) : Future[Seq[NumericalTestApplication]] = {
     val numericalSchemeIds = schemeRepo.numericTestSiftRequirementSchemeIds
     applicationSiftRepo.nextApplicationsReadyForNumericTestsInvitation(batchSize, numericalSchemeIds)
   }
@@ -202,20 +202,6 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     }
   }
 
-  def getTestGroup2(applicationId: String): Future[Option[SiftTestGroupWithActiveTest2]] = {
-    for {
-      siftOpt <- applicationSiftRepo.getTestGroup2(applicationId)
-    } yield siftOpt.map { sift =>
-      val test = sift.tests.getOrElse(throw UnexpectedException(s"No tests found for $applicationId in SIFT"))
-        .find(_.usedForResults)
-        .getOrElse(throw NoActiveTestException(s"No active sift test found for $applicationId"))
-      SiftTestGroupWithActiveTest2(
-        sift.expirationDate,
-        test
-      )
-    }
-  }
-
   def markTestAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone): Future[Unit] = {
     for {
       _ <- applicationSiftRepo.updateTestStartTime(cubiksUserId, startedTime)
@@ -224,6 +210,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     } yield {}
   }
 
+  // TODO: cubiks rename this without the 2
   def markTestAsStarted2(orderId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone): Future[Unit] = {
     for {
       _ <- applicationSiftRepo.updateTestStartTime(orderId, startedTime)

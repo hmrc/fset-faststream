@@ -35,10 +35,10 @@ import services.BaseServiceSpec
 
 import scala.concurrent.Future
 
-class EvaluatePhase3ResultService2Spec extends BaseServiceSpec {
+class EvaluatePhase3ResultServiceSpec extends BaseServiceSpec {
 
   "evaluate candidate" should {
-    "throw an exception if there are no active tests" ignore new TestFixture {
+    "throw an exception if there are no active tests" in new TestFixture {
       val thrown = intercept[IllegalArgumentException] {
         val application = createApplication(None).copy(applicationStatus = ApplicationStatus.PHASE2_TESTS_PASSED)
         service.evaluate(application, passmarkSettings).futureValue
@@ -46,7 +46,7 @@ class EvaluatePhase3ResultService2Spec extends BaseServiceSpec {
       thrown.getMessage mustBe "requirement failed: Active launchpad test not found"
     }
 
-    "throw an exception if there is no previous phase evaluation" ignore new TestFixture {
+    "throw an exception if there is no previous phase evaluation" in new TestFixture {
       val thrown = intercept[IllegalArgumentException] {
         val application = createApplication(Some(launchPadTest)).copy(applicationStatus = ApplicationStatus.PHASE2_TESTS_PASSED)
         service.evaluate(application, passmarkSettings).futureValue
@@ -54,7 +54,7 @@ class EvaluatePhase3ResultService2Spec extends BaseServiceSpec {
       thrown.getMessage mustBe "requirement failed: Phase2 results required to evaluate Phase3"
     }
 
-    "evaluate the expected schemes when processing a faststream candidate" ignore new TestFixture {
+    "evaluate the expected schemes when processing a faststream candidate" in new TestFixture {
       val application = createApplication(
         Some(launchPadTest.copy(callbacks = LaunchpadTestCallbacks(reviewed = List(sampleReviewedCallback(Some(30.0))))))
       ).copy(applicationStatus = ApplicationStatus.PHASE2_TESTS_PASSED, prevPhaseEvaluation = previousPhaseEvaluation)
@@ -158,11 +158,11 @@ class EvaluatePhase3ResultService2Spec extends BaseServiceSpec {
     }
 
     def createApplication(test: Option[LaunchpadTest]) = {
-      ApplicationPhase2EvaluationExamples.faststreamPsiApplication.copy(activeLaunchpadTest = test)
+      ApplicationPhase2EvaluationExamples.faststreamApplication.copy(activeLaunchpadTest = test)
     }
 
     def createSdipFaststreamApplication(test: Option[LaunchpadTest]) = {
-      ApplicationPhase2EvaluationExamples.sdipFaststreamPsiApplication.copy(activeLaunchpadTest = test)
+      ApplicationPhase2EvaluationExamples.sdipFaststreamApplication.copy(activeLaunchpadTest = test)
     }
   }
 }

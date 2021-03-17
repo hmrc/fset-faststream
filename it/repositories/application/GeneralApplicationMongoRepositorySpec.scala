@@ -336,8 +336,10 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
+  //TODO: cubiks this uses phase1TestGroup which is cubiks specific
+  /*
   "fix a ResetPhase1TestInvitedSubmitted issue" should {
-    "update the renove PHASE1_TESTS_INVITED and the test group" in {
+    "update the remove PHASE1_TESTS_INVITED and the test group" in {
 
       val statuses = (ProgressStatuses.SUBMITTED, true) :: (ProgressStatuses.PHASE1_TESTS_INVITED, true) :: Nil
 
@@ -353,10 +355,10 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       applicationResponse.applicationStatus mustBe ApplicationStatus.SUBMITTED.toString
       applicationResponse.progressResponse.phase1ProgressResponse.phase1TestsInvited mustBe false
 
-      val testGroup: Option[Phase1TestProfile] = phase1TestRepo.getTestGroup("appId123").futureValue
+      val testGroup: Option[Phase1TestProfile2] = phase1TestRepo.getTestGroup("appId123").futureValue
       testGroup mustBe None
     }
-  }
+  }*/
 
   "findAdjustments" should {
     "return None if assistance-details does not exist" in {
@@ -365,6 +367,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
+  //TODO cubiks - all these tests use phase1TestGroup which is cubiks specific
+  /*
   "fix PassToPhase1TestPassed" should {
     "get None for PHASE1_TESTS_PASSED but with PHASE2_TESTS_INVITED" in {
       val statuses = (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: (ProgressStatuses.PHASE2_TESTS_INVITED, true) :: Nil
@@ -405,7 +409,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val applicationResponse = repository.findByUserId("userId", "FastStream-2016").futureValue
       applicationResponse.applicationStatus mustBe ApplicationStatus.PHASE2_TESTS.toString
     }
-  }
+  }*/
 
   "findTestForNotification" should {
     "find an edip candidate that needs to be notified of successful phase1 test results" in new NewApplication {
@@ -606,6 +610,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
+  // TODO: cubiks looks like this is cubiks specific. Should we delete this?
+/*
   "AddMissingPhase2ResultReceived" should {
     val testResult = TestResult("Ready", "norm", Some(10.0), Some(20.0), Some(30.0), Some(40.0))
 
@@ -639,7 +645,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val applicationResponse = repository.findByUserId(UserId, FrameworkId).futureValue
       applicationResponse.progressResponse.phase2ProgressResponse.phase2TestsResultsReceived mustBe true
     }
-  }
+  }*/
 
   "Remove video interview failed" should {
     "Remove evaluation section, progress failed statuses and update application status" in {
@@ -780,13 +786,15 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     ).map(_ => ())
   }
 
+  // TODO: cubiks specific. Looks like this should be deleted
+  /*
   private def createAppWithTestResult(progressStatuses: List[(ProgressStatus, Boolean)], testResult: Option[TestResult]) = {
     testDataRepo.createApplicationWithAllFields(UserId, AppId, TestAccountId, FrameworkId, ApplicationStatus.PHASE2_TESTS,
       additionalProgressStatuses = progressStatuses).futureValue
     val test = CubiksTest(1, usedForResults = true, 1, "cubiks", "token", "testUrl", DateTime.now, 1, testResult = testResult)
     val phase2TestGroup = Phase2TestGroup(DateTime.now, List(test))
     phase2TestRepo.insertOrUpdateTestGroup(AppId, phase2TestGroup).futureValue
-  }
+  }*/
 
   val candidate = Candidate("userId", Some("appId123"), Some("testAccountId"), Some("test@test123.com"), None, None, None, None,
     None, None, None, None, None)
@@ -798,6 +806,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "dateOfBirth" -> "1986-05-01"
   )
 
+  //TODO: cubiks specific
+  /*
   val phase1TestGroup = BSONDocument (
     "testGroups" -> BSONDocument(
       "PHASE1" -> BSONDocument(
@@ -829,7 +839,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         )
       )
     )
-  )
+  )*/
 
   val phase3TestGroup = BSONDocument (
     "testGroups" -> BSONDocument(

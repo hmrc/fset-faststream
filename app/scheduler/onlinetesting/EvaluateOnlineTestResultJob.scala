@@ -23,7 +23,7 @@ import javax.inject.{ Inject, Singleton }
 import model.Phase
 import model.Phase.Phase
 import model.exchange.passmarksettings.{ PassMarkSettings, Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings }
-import model.persisted.ApplicationReadyForEvaluation2
+import model.persisted.ApplicationReadyForEvaluation
 import play.api.libs.json.Format
 import play.api.{ Configuration, Logging }
 import play.modules.reactivemongo.ReactiveMongoComponent
@@ -35,52 +35,42 @@ import scala.util.{ Failure, Success, Try }
 
 @Singleton
 class EvaluatePhase1ResultJob @Inject() (@Named("Phase1EvaluationService")
-                                         val evaluateService2: EvaluateOnlineTestResultService2[Phase1PassMarkSettings],
+                                         val evaluateService: EvaluateOnlineTestResultService[Phase1PassMarkSettings],
                                          val mongoComponent: ReactiveMongoComponent,
                                          val config: EvaluatePhase1ResultJobConfig
                                         ) extends EvaluateOnlineTestResultJob[Phase1PassMarkSettings] {
-  //  val evaluateService = EvaluatePhase1ResultService
-  //  val evaluateService2 = EvaluatePhase1ResultService2X
   val phase = Phase.PHASE1
-  //  val config = EvaluatePhase1ResultJobConfig
 }
 
 @Singleton
 class EvaluatePhase2ResultJob @Inject() (@Named("Phase2EvaluationService")
-                                         val evaluateService2: EvaluateOnlineTestResultService2[Phase2PassMarkSettings],
+                                         val evaluateService: EvaluateOnlineTestResultService[Phase2PassMarkSettings],
                                          val mongoComponent: ReactiveMongoComponent,
                                          val config: EvaluatePhase2ResultJobConfig
                                         ) extends EvaluateOnlineTestResultJob[Phase2PassMarkSettings] {
-  //  val evaluateService = EvaluatePhase2ResultService
-  //  val evaluateService2 = EvaluatePhase2ResultService2
   val phase = Phase.PHASE2
-  //  val config = EvaluatePhase2ResultJobConfig
 }
 
 @Singleton
 class EvaluatePhase3ResultJob @Inject() (@Named("Phase3EvaluationService")
-                                         val evaluateService2: EvaluateOnlineTestResultService2[Phase3PassMarkSettings],
+                                         val evaluateService: EvaluateOnlineTestResultService[Phase3PassMarkSettings],
                                          val mongoComponent: ReactiveMongoComponent,
                                          val config: EvaluatePhase3ResultJobConfig
                                         ) extends EvaluateOnlineTestResultJob[Phase3PassMarkSettings] {
-  //  val evaluateService = EvaluatePhase3ResultService
-  //  val evaluateService2 = EvaluatePhase3ResultService2
   val phase = Phase.PHASE3
-  override val errorLog = (app: ApplicationReadyForEvaluation2) =>
+  override val errorLog = (app: ApplicationReadyForEvaluation) =>
     s"${app.applicationId}, Launchpad test Id: ${app.activeLaunchpadTest.map(_.token)}"
-  //  val config = EvaluatePhase3ResultJobConfig
 }
 
 abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettings](implicit jsonFormat: Format[T]) extends
   SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] with Logging {
 
-  //  val evaluateService: EvaluateOnlineTestResultService[T]
-  val evaluateService2: EvaluateOnlineTestResultService2[T]
+  val evaluateService: EvaluateOnlineTestResultService[T]
   val phase: Phase
   lazy val batchSize = config.conf.batchSize.getOrElse(throw new IllegalArgumentException("Batch size must be defined"))
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    evaluateService2.nextCandidatesReadyForEvaluation(batchSize) flatMap {
+    evaluateService.nextCandidatesReadyForEvaluation(batchSize) flatMap {
       case Some((apps, passmarkSettings)) =>
         evaluateInBatch(apps, passmarkSettings)
       case None =>
@@ -89,17 +79,17 @@ abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettings](implicit jsonF
     }
   }
 
-  val errorLog = (app: ApplicationReadyForEvaluation2) =>
+  val errorLog = (app: ApplicationReadyForEvaluation) =>
     s"${app.applicationId}, psi order ids: ${app.activePsiTests.map(_.orderId).mkString(",")}"
 
-  private def evaluateInBatch(apps: List[ApplicationReadyForEvaluation2],
+  private def evaluateInBatch(apps: List[ApplicationReadyForEvaluation],
                               passmarkSettings: T)(implicit ec: ExecutionContext): Future[Unit] = {
     // Warn level so we see it in the prod logs
     val applicationIds = apps.map ( _.applicationId ).mkString(",")
     logger.warn(s"Evaluate $phase job found ${apps.size} application(s), applicationIds=$applicationIds, " +
       s"passmarkVersion=${passmarkSettings.version}")
     val evaluationResultsFut = FutureEx.traverseToTry(apps) { app =>
-      Try(evaluateService2.evaluate(app, passmarkSettings)) match {
+      Try(evaluateService.evaluate(app, passmarkSettings)) match {
         case Success(fut) => fut
         case Failure(e) => Future.failed(e)
       }

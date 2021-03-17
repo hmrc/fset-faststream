@@ -25,15 +25,15 @@ import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
-import services.onlinetesting.phase1.Phase1TestService2
-import services.onlinetesting.phase2.Phase2TestService2
+import services.onlinetesting.phase1.Phase1TestService
+import services.onlinetesting.phase2.Phase2TestService
 import services.onlinetesting.phase3.Phase3TestService
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class FailedPhase1TestJob @Inject() (val service: Phase1TestService2,
+class FailedPhase1TestJob @Inject() (val service: Phase1TestService,
                                      val mongoComponent: ReactiveMongoComponent,
                                      val config: FailedPhase1TestJobConfig
                                     ) extends FailedTestJob {
@@ -44,7 +44,7 @@ class FailedPhase1TestJob @Inject() (val service: Phase1TestService2,
 }
 
 @Singleton
-class FailedPhase2TestJob @Inject() (val service: Phase2TestService2,
+class FailedPhase2TestJob @Inject() (val service: Phase2TestService,
                                      val mongoComponent: ReactiveMongoComponent,
                                      val config: FailedPhase2TestJobConfig) extends FailedTestJob {
   //  override val service = Phase2TestService

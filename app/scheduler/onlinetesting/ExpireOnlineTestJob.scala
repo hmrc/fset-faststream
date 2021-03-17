@@ -35,9 +35,7 @@ class ExpirePhase1TestJob @Inject() (@Named("Phase1OnlineTestService") val onlin
                                      val mongoComponent: ReactiveMongoComponent,
                                      val config: ExpirePhase1TestJobConfig,
                                      appConfig: MicroserviceAppConfig) extends ExpireOnlineTestJob {
-  //  override val onlineTestingService = Phase1TestService2
-  override val expiryTest = Phase1ExpirationEvent(gracePeriodInSecs = appConfig.testIntegrationGatewayConfig.phase1Tests.gracePeriodInSecs)
-  //  val config = ExpirePhase1TestJobConfig
+  override val expiryTest = Phase1ExpirationEvent(gracePeriodInSecs = appConfig.onlineTestsGatewayConfig.phase1Tests.gracePeriodInSecs)
 }
 
 @Singleton
@@ -46,9 +44,7 @@ class ExpirePhase2TestJob @Inject() (@Named("Phase2OnlineTestService") val onlin
                                      val config: ExpirePhase2TestJobConfig,
                                      appConfig: MicroserviceAppConfig
                                     ) extends ExpireOnlineTestJob {
-  //  override val onlineTestingService = Phase2TestService2
-  override val expiryTest = Phase2ExpirationEvent(gracePeriodInSecs = appConfig.testIntegrationGatewayConfig.phase2Tests.gracePeriodInSecs)
-  //  val config = ExpirePhase2TestJobConfig
+  override val expiryTest = Phase2ExpirationEvent(gracePeriodInSecs = appConfig.onlineTestsGatewayConfig.phase2Tests.gracePeriodInSecs)
 }
 
 @Singleton
@@ -56,9 +52,7 @@ class ExpirePhase3TestJob @Inject() (@Named("Phase3OnlineTestService") val onlin
                                      val mongoComponent: ReactiveMongoComponent,
                                      val config: ExpirePhase3TestJobConfig,
                                      appConfig: MicroserviceAppConfig) extends ExpireOnlineTestJob {
-  //  override val onlineTestingService = Phase3TestService
   override val expiryTest = Phase3ExpirationEvent(gracePeriodInSecs = appConfig.launchpadGatewayConfig.phase3Tests.gracePeriodInSecs)
-  //  val config = ExpirePhase3TestJobConfig
 }
 
 trait ExpireOnlineTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] with Logging {

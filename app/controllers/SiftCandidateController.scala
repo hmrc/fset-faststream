@@ -57,8 +57,9 @@ class SiftCandidateController @Inject() (cc: ControllerComponents,
     }
   }
 
+  // TODO: cubiks we need to remove this method
   def getSiftTestGroup2(applicationId: String) = Action.async { implicit request =>
-    applicationSiftService.getTestGroup2(applicationId) map {
+    applicationSiftService.getTestGroup(applicationId) map {
       case Some(siftTest) =>
         Ok(Json.toJson(siftTest))
       case None => logger.debug(s"No sift test group found for applicationId: $applicationId")
@@ -66,6 +67,7 @@ class SiftCandidateController @Inject() (cc: ControllerComponents,
     }
   }
 
+  // TODO: cubiks we need to remove this method
   def startTest(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
     logger.info(s"Sift test started for cubiks id: $cubiksUserId")
     applicationSiftService.markTestAsStarted(cubiksUserId)
@@ -75,6 +77,7 @@ class SiftCandidateController @Inject() (cc: ControllerComponents,
       }
   }
 
+  // TODO: cubiks rename this without the 2
   def startTest2(orderId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     logger.info(s"Sift test started for order id: $orderId")
     applicationSiftService.markTestAsStarted2(orderId)

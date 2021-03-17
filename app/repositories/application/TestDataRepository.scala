@@ -284,6 +284,7 @@ class TestDataMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
       ))
   }
 
+  // TODO: Cubiks code need to replace with psi
   private def createOnlineTests(id: Int) = id match {
     case x if x % 12 == 0 => None
     case _ =>

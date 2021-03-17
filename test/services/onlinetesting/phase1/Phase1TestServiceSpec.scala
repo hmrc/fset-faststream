@@ -17,21 +17,22 @@
 package services.onlinetesting.phase1
 
 import akka.actor.ActorSystem
-import config._
+import config.{MicroserviceAppConfig, _}
 import connectors.ExchangeObjects._
-import connectors.{ CSREmailClient, OnlineTestsGatewayClient }
-import factories.{ DateTimeFactory, UUIDFactory }
+import connectors.{OnlineTestEmailClient, OnlineTestsGatewayClient}
+import factories.{DateTimeFactory, UUIDFactory}
 import model.Commands.PostCode
-import model.Exceptions.ConnectorException
+import model.Exceptions._
 import model.OnlineTestCommands._
-import model.ProgressStatuses.{ toString => _, _ }
-import model._
-import model.exchange.CubiksTestResultReady
+import model.Phase1TestExamples._
+import model.ProgressStatuses.{toString => _, _}
+import model.exchange.PsiRealTimeResults
 import model.persisted._
-import model.stc.StcEventTypes.{ toString => _ }
-import org.joda.time.DateTime
+import model.stc.StcEventTypes.{toString => _}
+import model.{ProgressStatuses, _}
+import org.joda.time.{DateTime, LocalDate}
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatest.PrivateMethodTester
 import play.api.mvc.RequestHeader
@@ -39,41 +40,63 @@ import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
+import services.onlinetesting.Exceptions.{TestCancellationException, TestRegistrationException}
 import services.sift.ApplicationSiftService
-import services.stc.{ StcEventService, StcEventServiceFixture }
-import testkit.{ ExtendedTimeout, UnitSpec }
+import testkit.MockitoImplicits._
+import testkit.{ExtendedTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.duration.TimeUnit
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
-class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout with PrivateMethodTester {
+class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
+  with PrivateMethodTester {
   implicit val ec: ExecutionContext = ExecutionContext.global
   val scheduleCompletionBaseUrl = "http://localhost:9284/fset-fast-stream/online-tests/phase1"
-  val testGatewayConfig = OnlineTestsGatewayConfig(
-    "",
-    Phase1TestsConfig(expiryTimeInDays = 5,
-      scheduleIds = Map("sjq" -> 16196, "bq" -> 16194),
-      List("sjq", "bq"),
-      List("sjq")
-    ),
-    phase2Tests = Phase2TestsConfig(expiryTimeInDays = 5, expiryTimeInDaysForInvigilatedETray = 90,
-      Map("daro" -> Phase2ScheduleExamples.DaroSchedule), None),
-    numericalTests = NumericalTestsConfig(Map(NumericalTestsConfig.numericalTestScheduleName -> NumericalTestSchedule(12345, 123))),
+
+  val inventoryIds: Map[String, String] = Map[String, String](
+  "test1" -> "test1-uuid",
+  "test2" -> "test2-uuid",
+  "test3" -> "test3-uuid",
+  "test4"->"test4-uuid")
+
+  def testIds(idx: Int): PsiTestIds =
+    PsiTestIds(s"inventory-id-$idx", s"assessment-id-$idx", s"report-id-$idx", s"norm-id-$idx")
+
+  val tests = Map[String, PsiTestIds](
+    "test1" -> testIds(1),
+    "test2" -> testIds(2),
+    "test3" -> testIds(3),
+    "test4" -> testIds(4)
+  )
+
+  val mockPhase1TestConfig = Phase1TestsConfig(
+    expiryTimeInDays = 5, gracePeriodInSecs = 0, testRegistrationDelayInSecs = 1, tests, standard = List("test1", "test2", "test3", "test4"),
+    gis = List("test1", "test4")
+  )
+  val mockPhase2TestConfig = Phase2TestsConfig(
+    expiryTimeInDays = 5, expiryTimeInDaysForInvigilatedETray = 90, gracePeriodInSecs = 0, testRegistrationDelayInSecs = 1,
+    tests, standard = List("test1", "test2")
+  )
+
+  val mockNumericalTestsConfig2 = NumericalTestsConfig(gracePeriodInSecs = 0, tests = tests, standard = List("test1"))
+
+  val gatewayConfig = OnlineTestsGatewayConfig(
+    url = "",
+    phase1Tests = mockPhase1TestConfig,
+    phase2Tests = mockPhase2TestConfig,
+    numericalTests = mockNumericalTestsConfig2,
     reportConfig = ReportConfig(1, 2, "en-GB"),
     candidateAppUrl = "http://localhost:9284",
     emailDomain = "test.com"
   )
 
-  val sjqScheduleId = testGatewayConfig.phase1Tests.scheduleIds("sjq")
-  val bqScheduleId = testGatewayConfig.phase1Tests.scheduleIds("bq")
-
   val preferredName = "Preferred\tName"
   val preferredNameSanitized = "Preferred Name"
   val lastName = ""
   val userId = "testUserId"
+  val appId = "appId"
 
-  val onlineTestApplication = OnlineTestApplication(applicationId = "appId",
+  val onlineTestApplication = OnlineTestApplication(applicationId = appId,
     applicationStatus = ApplicationStatus.SUBMITTED,
     userId = userId,
     testAccountId = "testAccountId",
@@ -86,46 +109,20 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout with PrivateMe
     None
   )
 
-  val cubiksUserId = 98765
-  val token = "token"
-  val emailCubiks = token + "@" + testGatewayConfig.emailDomain
-  val registerApplicant = RegisterApplicant(preferredNameSanitized, lastName, emailCubiks)
-  val registration = Registration(cubiksUserId)
-
-  val inviteApplicant = InviteApplicant(sjqScheduleId,
-    cubiksUserId, s"$scheduleCompletionBaseUrl/complete/$token",
-    resultsURL = None, timeAdjustments = Nil
-  )
-
+  def uuid: String = UUIDFactory.generateUUID()
+  val orderId: String = uuid
   val accessCode = "fdkfdfj"
   val logonUrl = "http://localhost/logonUrl"
   val authenticateUrl = "http://localhost/authenticate"
-  val invitation = Invitation(cubiksUserId, emailCubiks, accessCode, logonUrl, authenticateUrl, sjqScheduleId)
 
   val invitationDate = DateTime.parse("2016-05-11")
   val startedDate = invitationDate.plusDays(1)
   val expirationDate = invitationDate.plusDays(5)
 
-  val phase1TestBq = CubiksTest(scheduleId = testGatewayConfig.phase1Tests.scheduleIds("bq"),
-    usedForResults = true,
-    cubiksUserId = cubiksUserId,
-    token = token,
-    testUrl = authenticateUrl,
-    invitationDate = invitationDate,
-    participantScheduleId = 235
-  )
+  val phase1Test = PsiTest(inventoryId = uuid, orderId = uuid, assessmentId = uuid, reportId = uuid, normId = uuid,
+    usedForResults = true, testUrl = authenticateUrl, invitationDate = invitationDate)
 
-  val phase1Test = CubiksTest(scheduleId = testGatewayConfig.phase1Tests.scheduleIds("sjq"),
-    usedForResults = true,
-    cubiksUserId = cubiksUserId,
-    token = token,
-    testUrl = authenticateUrl,
-    invitationDate = invitationDate,
-    participantScheduleId = 234
-  )
-  val phase1TestProfile = Phase1TestProfile(expirationDate,
-    List(phase1Test)
-  )
+  val phase1TestProfile = Phase1TestProfile(expirationDate, List(phase1Test))
 
   val candidate = model.Candidate(userId = "user123", applicationId = Some("appId123"), testAccountId = Some("testAccountId"),
     email = Some("test@test.com"), firstName = Some("Cid"),lastName = Some("Highwind"), preferredName = None,
@@ -142,21 +139,9 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout with PrivateMe
 
   val connectorErrorMessage = "Error in connector"
 
-  val result = OnlineTestCommands.TestResult(status = "Completed",
-    norm = "some norm",
-    tScore = Some(23.9999d),
-    percentile = Some(22.4d),
-    raw = Some(66.9999d),
-    sten = Some(1.333d)
-  )
+  val result = OnlineTestCommands.PsiTestResult(status = "Completed", tScore = 23.9999d, raw = 66.9999d)
 
-  val savedResult = persisted.TestResult(status = "Completed",
-    norm = "some norm",
-    tScore = Some(23.9999d),
-    percentile = Some(22.4d),
-    raw = Some(66.9999d),
-    sten = Some(1.333d)
-  )
+  val savedResult = persisted.PsiTestResult(tScore = 23.9999d, rawScore = 66.9999d, None)
 
   val applicationId = "31009ccc-1ac3-4d55-9c53-1908a13dc5e1"
   val expiredApplication = ExpiringOnlineTest(applicationId, userId, preferredName)
@@ -165,67 +150,61 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout with PrivateMe
 
   "get online test" should {
     "return None if the application id does not exist" in new OnlineTest {
-      when(phase1TestRepositoryMock.getTestGroup(any())).thenReturn(Future.successful(None))
-      val result = phase1TestService.getTestGroup("nonexistent-userid").futureValue
+      when(phase1TestRepositoryMock.getTestGroup(any())).thenReturnAsync(None)
+      val result = phase1TestService.getTestGroup2("nonexistent-userid").futureValue
       result mustBe None
     }
 
     val validExpireDate = new DateTime(2016, 6, 9, 0, 0)
 
     "return a valid set of aggregated online test data if the user id is valid" in new OnlineTest {
-      when(appRepositoryMock.findCandidateByUserId(any[String])).thenReturn(Future.successful(
-        Some(candidate)
-      ))
+      when(appRepositoryMock.findCandidateByUserId(any[String]))
+        .thenReturnAsync(Some(candidate))
 
-      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(
-        Some(Phase1TestProfile(expirationDate = validExpireDate,
-          tests = List(phase1Test)
-        ))
-      ))
+      when(phase1TestRepositoryMock.getTestGroup(any[String]))
+        .thenReturnAsync(Some(Phase1TestProfile(expirationDate = validExpireDate, tests = List(phase1Test))))
 
-      val result = phase1TestService.getTestGroup("valid-userid").futureValue
+      val result = phase1TestService.getTestGroup2("valid-userid").futureValue
 
       result.get.expirationDate must equal(validExpireDate)
     }
   }
 
   "register and invite application" should {
-    "issue one email for invites to SJQ for GIS candidates" in new SuccessfulTestInviteFixture {
-      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
-      when(phase1TestRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
-      when(phase1TestRepositoryMock.insertCubiksTests(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
+    "Invite to two tests and issue one email for GIS candidates" in new SuccessfulTestInviteFixture {
+      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
 
       val result = phase1TestService
-        .registerAndInviteForTestGroup(onlineTestApplication.copy(guaranteedInterview = true))
+        .registerAndInvite(List(onlineTestApplication.copy(guaranteedInterview = true)))
 
       result.futureValue mustBe unit
 
+      verify(onlineTestsGatewayClientMock, times(2)).psiRegisterApplicant(any[RegisterCandidateRequest])
       verify(emailClientMock, times(1)).sendOnlineTestInvitation(
         eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate)
       )(any[HeaderCarrier])
 
-      verify(auditServiceMock, times(1)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
-      verify(auditServiceMock, times(1)).logEventNoRequest("UserInvitedToOnlineTest", auditDetails)
+      verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationProcessComplete", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvited", auditDetails)
       verify(auditServiceMock, times(5)).logEventNoRequest(any[String], any[Map[String, String]])
     }
 
-    "issue one email for invites to SJQ and BQ tests for non GIS candidates" in new SuccessfulTestInviteFixture {
-      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
-      when(phase1TestRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
-      when(phase1TestRepositoryMock.insertCubiksTests(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
-      val result = phase1TestService.registerAndInviteForTestGroup(onlineTestApplication)
+    "Invite to 4 tests and issue one email for non-GIS candidates" in new SuccessfulTestInviteFixture {
+      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
+
+      val result = phase1TestService
+        .registerAndInvite(List(onlineTestApplication.copy(guaranteedInterview = false)))
 
       result.futureValue mustBe unit
 
+      verify(onlineTestsGatewayClientMock, times(4)).psiRegisterApplicant(any[RegisterCandidateRequest])
       verify(emailClientMock, times(1)).sendOnlineTestInvitation(
         eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate)
       )(any[HeaderCarrier])
 
-      verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
-      verify(auditServiceMock, times(2)).logEventNoRequest("UserInvitedToOnlineTest", auditDetails)
+      verify(auditServiceMock, times(4)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationProcessComplete", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvited", auditDetails)
@@ -233,119 +212,91 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout with PrivateMe
     }
 
     "fail if registration fails" in new OnlineTest {
-      when(onlineTestsGatewayClientMock.registerApplicant(any[RegisterApplicant]))
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
         .thenReturn(Future.failed(new ConnectorException(connectorErrorMessage)))
 
-      val result = phase1TestService.registerAndInviteForTestGroup(onlineTestApplication)
+      val result = phase1TestService.registerAndInvite(onlineTestApplication :: Nil)
       result.failed.futureValue mustBe a[ConnectorException]
 
-      verify(auditServiceMock, times(0)).logEventNoRequest(any[String], any[Map[String, String]])
+      verify(auditServiceMock, never()).logEventNoRequest(any[String], any[Map[String, String]])
     }
 
-    "fail and audit 'UserRegisteredForOnlineTest' if invitation fails" in new OnlineTest {
-      when(onlineTestsGatewayClientMock.registerApplicant(any[RegisterApplicant]))
-        .thenReturn(Future.successful(registration))
-      when(onlineTestsGatewayClientMock.inviteApplicant(any[InviteApplicant])).thenReturn(
-        Future.failed(new ConnectorException(connectorErrorMessage))
-      )
+    "fail, audit 'UserRegisteredForOnlineTest' and audit 'OnlineTestInvited' " +
+      "if there is an exception retrieving the contact details" in new OnlineTest  {
+      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
+      when(phase1TestRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile])).thenReturnAsync()
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest])).thenReturnAsync(aoa)
+      when(cdRepositoryMock.find(anyString())).thenReturn(Future.failed(new Exception))
 
-      val result = phase1TestService.registerAndInviteForTestGroup(onlineTestApplication)
-      result.failed.futureValue mustBe a[ConnectorException]
-
-      verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
-      verify(auditServiceMock, times(2)).logEventNoRequest(any[String], any[Map[String, String]])
-    }
-
-    "fail, audit 'UserRegisteredForOnlineTest' and audit 'UserInvitedToOnlineTest' " +
-      "if there is an exception retrieving the contact details" in new OnlineTest {
-      when(onlineTestsGatewayClientMock.registerApplicant(eqTo(registerApplicant)))
-        .thenReturn(Future.successful(registration))
-      when(onlineTestsGatewayClientMock.inviteApplicant(any[InviteApplicant]))
-        .thenReturn(Future.successful(invitation))
-      when(cdRepositoryMock.find(userId))
-        .thenReturn(Future.failed(new Exception))
-
-      val result = phase1TestService.registerAndInviteForTestGroup(onlineTestApplication)
+      val result = phase1TestService.registerAndInvite(List(onlineTestApplication))
       result.failed.futureValue mustBe an[Exception]
 
-      verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
-      verify(auditServiceMock, times(2)).logEventNoRequest("UserInvitedToOnlineTest", auditDetails)
-      verify(auditServiceMock, times(4)).logEventNoRequest(any[String], any[Map[String, String]])
+      verify(auditServiceMock, times(4)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+      verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvited", auditDetails)
+      verify(auditServiceMock, times(5)).logEventNoRequest(any[String], any[Map[String, String]])
     }
 
-    "fail, audit 'UserRegisteredForOnlineTest' and audit 'UserInvitedToOnlineTest'" +
+    "fail, audit 'UserRegisteredForOnlineTest' and audit 'OnlineTestInvited'" +
       " if there is an exception sending the invitation email" in new OnlineTest {
-      when(onlineTestsGatewayClientMock.registerApplicant(any[RegisterApplicant]))
-        .thenReturn(Future.successful(registration))
-      when(onlineTestsGatewayClientMock.inviteApplicant(any[InviteApplicant]))
-        .thenReturn(Future.successful(invitation))
-      when(cdRepositoryMock.find(userId))
-        .thenReturn(Future.successful(contactDetails))
+      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
+      when(phase1TestRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile]))
+        .thenReturnAsync()
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+        .thenReturnAsync(aoa)
+
+      when(cdRepositoryMock.find(userId)).thenReturnAsync(contactDetails)
 
       when(emailClientMock.sendOnlineTestInvitation(
         eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate)
       )(any[HeaderCarrier]))
         .thenReturn(Future.failed(new Exception))
 
-      val result = phase1TestService.registerAndInviteForTestGroup(onlineTestApplication)
+      val result = phase1TestService.registerAndInvite(List(onlineTestApplication))
       result.failed.futureValue mustBe an[Exception]
 
-      verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
-      verify(auditServiceMock, times(2)).logEventNoRequest("UserInvitedToOnlineTest", auditDetails)
-      verify(auditServiceMock, times(4)).logEventNoRequest(any[String], any[Map[String, String]])
+      verify(auditServiceMock, times(4)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+      verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvited", auditDetails)
+      verify(auditServiceMock, times(5)).logEventNoRequest(any[String], any[Map[String, String]])
     }
 
     "fail, audit 'UserRegisteredForOnlineTest', audit 'UserInvitedToOnlineTest'" +
-      ", not send invitation email to user" +
-      "if there is an exception storing the status and the online profile data to database" in new OnlineTest {
-      when(onlineTestsGatewayClientMock.registerApplicant(eqTo(registerApplicant)))
-        .thenReturn(Future.successful(registration))
-      when(onlineTestsGatewayClientMock.inviteApplicant(any[InviteApplicant]))
-        .thenReturn(Future.successful(invitation))
-      when(cdRepositoryMock.find(userId)).thenReturn(Future.successful(contactDetails))
-      when(emailClientMock.sendOnlineTestInvitation(
-        eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(any[HeaderCarrier])
-      ).thenReturn(Future.successful(()))
-
-      when(phase1TestRepositoryMock.insertOrUpdateTestGroup("appId", phase1TestProfile))
+      ", not send invitation email to user " +
+      "if there is an exception storing the test profile data to database" in new OnlineTest {
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest])).thenReturnAsync(aoa)
+      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
+      when(phase1TestRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile]))
         .thenReturn(Future.failed(new Exception))
 
-      val result = phase1TestService.registerAndInviteForTestGroup(onlineTestApplication)
+      val result = phase1TestService.registerAndInvite(List(onlineTestApplication))
       result.failed.futureValue mustBe an[Exception]
 
-      verify(emailClientMock, times(0)).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(
+      verify(emailClientMock, never()).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(
         any[HeaderCarrier]
       )
-      verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
-      verify(auditServiceMock, times(2)).logEventNoRequest("UserInvitedToOnlineTest", auditDetails)
+      verify(auditServiceMock, times(4)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+      verify(auditServiceMock, never()).logEventNoRequest("OnlineTestInvited", auditDetails)
       verify(auditServiceMock, times(4)).logEventNoRequest(any[String], any[Map[String, String]])
     }
 
     "audit 'OnlineTestInvitationProcessComplete' on success" in new OnlineTest {
-      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase1TestProfile)))
-      when(onlineTestsGatewayClientMock.registerApplicant(eqTo(registerApplicant)))
-        .thenReturn(Future.successful(registration))
-      when(onlineTestsGatewayClientMock.inviteApplicant(any[InviteApplicant]))
-        .thenReturn(Future.successful(invitation))
-      when(phase1TestRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
-      when(phase1TestRepositoryMock.insertCubiksTests(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
-      when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest])).thenReturnAsync(aoa)
+      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
+      when(cdRepositoryMock.find(any[String])).thenReturnAsync(contactDetails)
       when(emailClientMock.sendOnlineTestInvitation(
         eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(
         any[HeaderCarrier]
-      )).thenReturn(Future.successful(()))
+      )).thenReturnAsync()
       when(phase1TestRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile]))
-        .thenReturn(Future.successful(()))
+        .thenReturnAsync()
 
-      val result = phase1TestService.registerAndInviteForTestGroup(onlineTestApplication)
+      val result = phase1TestService.registerAndInvite(List(onlineTestApplication))
       result.futureValue mustBe unit
 
       verify(emailClientMock, times(1)).sendOnlineTestInvitation(
         eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate)
       )(any[HeaderCarrier])
 
-      verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
-      verify(auditServiceMock, times(2)).logEventNoRequest("UserInvitedToOnlineTest", auditDetails)
+      verify(auditServiceMock, times(4)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationProcessComplete", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvited", auditDetails)
@@ -356,341 +307,301 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout with PrivateMe
   "get adjusted time" should {
     "return minimum if percentage is zero" in new OnlineTest {
       val result = phase1TestService.getAdjustedTime(minimum = 6, maximum = 12, percentageToIncrease = 0)
-      result must be(6)
+      result mustBe 6
     }
 
     "return maximum if percentage is 100%" in new OnlineTest {
       val result = phase1TestService.getAdjustedTime(minimum = 6, maximum = 12, percentageToIncrease = 100)
-      result must be(12)
+      result mustBe 12
     }
 
     "return maximum if percentage is over 100%" in new OnlineTest {
       val result = phase1TestService.getAdjustedTime(minimum = 6, maximum = 12, percentageToIncrease = 101)
-      result must be(12)
+      result mustBe 12
     }
 
     "return adjusted time if percentage is above zero and below 100%" in new OnlineTest {
       val result = phase1TestService.getAdjustedTime(minimum = 6, maximum = 12, percentageToIncrease = 50)
-      result must be(9)
+      result mustBe 9
     }
     "return adjusted time round up if percentage is above zero and below 100%" in new OnlineTest {
       val result = phase1TestService.getAdjustedTime(minimum = 6, maximum = 12, percentageToIncrease = 51)
-      result must be(10)
-    }
-  }
-
-  "build invite application" should {
-    "return an InviteApplication for a GIS candidate" in new OnlineTest {
-      val result = phase1TestService.buildInviteApplication(
-        onlineTestApplication.copy(guaranteedInterview = true),
-        token, cubiksUserId, sjqScheduleId
-      )
-
-      result mustBe inviteApplicant.copy(
-        scheduleCompletionURL = s"$scheduleCompletionBaseUrl/complete/$token"
-      )
-    }
-
-    "return an InviteApplication for a non GIS candidate" in new OnlineTest {
-      val sjqInvite = phase1TestService.buildInviteApplication(onlineTestApplication,
-        token, cubiksUserId, testGatewayConfig.phase1Tests.scheduleIds("sjq"))
-
-      sjqInvite mustBe inviteApplicant.copy(
-        scheduleID = sjqScheduleId,
-        scheduleCompletionURL = s"$scheduleCompletionBaseUrl/continue/$token"
-      )
-
-      val bqInvite = phase1TestService.buildInviteApplication(onlineTestApplication,
-        token, cubiksUserId, bqScheduleId)
-
-      bqInvite mustBe inviteApplicant.copy(
-        scheduleID = bqScheduleId,
-        scheduleCompletionURL = s"$scheduleCompletionBaseUrl/complete/$token"
-      )
+      result mustBe 10
     }
   }
 
   "mark as started" should {
     "change progress to started" in new OnlineTest {
-      when(phase1TestRepositoryMock.updateTestStartTime(any[Int], any[DateTime])).thenReturn(Future.successful(()))
-      when(phase1TestRepositoryMock.getTestProfileByCubiksId(cubiksUserId))
-        .thenReturn(Future.successful(Phase1TestGroupWithUserIds("appId123", "userId", phase1TestProfile)))
-      when(phase1TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED)).thenReturn(Future.successful(()))
-      phase1TestService.markAsStarted(cubiksUserId).futureValue
+      when(phase1TestRepositoryMock.updateTestStartTime(any[String], any[DateTime])).thenReturnAsync()
+      when(phase1TestRepositoryMock.getTestGroupByOrderId(anyString()))
+        .thenReturnAsync(Phase1TestGroupWithUserIds("appId123", userId, phase1TestProfile))
+      when(phase1TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED))
+        .thenReturnAsync()
+      when(appRepositoryMock.getProgressStatusTimestamps(anyString())).thenReturnAsync(Nil)
 
-      verify(phase1TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED)
+      phase1TestService.markAsStarted2(orderId).futureValue
+
+      verify(phase1TestRepositoryMock, times(1)).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED)
+    }
+
+    //TODO: add back in at end of campaign 2019
+    "not change progress to started if status exists" ignore new OnlineTest {
+      when(phase1TestRepositoryMock.updateTestStartTime(any[String], any[DateTime])).thenReturnAsync()
+      when(phase1TestRepositoryMock.getTestGroupByOrderId(anyString()))
+        .thenReturnAsync(Phase1TestGroupWithUserIds("appId123", userId, phase1TestProfile))
+      when(phase1TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED))
+        .thenReturnAsync()
+      when(appRepositoryMock.getProgressStatusTimestamps(anyString()))
+        .thenReturnAsync(List(("FAKE_STATUS", DateTime.now()), ("PHASE1_TESTS_STARTED", DateTime.now())))
+
+      phase1TestService.markAsStarted2(orderId).futureValue
+
+      verify(phase1TestRepositoryMock, never()).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED)
     }
   }
 
   "mark as completed" should {
     "change progress to completed if there are all tests completed and the test profile hasn't expired" in new OnlineTest {
-      when(phase1TestRepositoryMock.updateTestCompletionTime(any[Int], any[DateTime])).thenReturn(Future.successful(()))
-      val phase1Tests = phase1TestProfile.copy(tests = phase1TestProfile.tests.map(t => t.copy(completedDateTime = Some(DateTime.now()))),
+      when(phase1TestRepositoryMock.updateTestCompletionTime2(any[String], any[DateTime])).thenReturnAsync()
+      val phase1Tests: Phase1TestProfile = phase1TestProfile.copy(
+        tests = phase1TestProfile.tests.map(t => t.copy(orderId = orderId, completedDateTime = Some(DateTime.now()))),
         expirationDate = DateTime.now().plusDays(2)
       )
+      when(phase1TestRepositoryMock.getTestProfileByOrderId(anyString()))
+        .thenReturnAsync(phase1Tests)
+      when(phase1TestRepositoryMock.getTestGroupByOrderId(anyString()))
+        .thenReturnAsync(Phase1TestGroupWithUserIds("appId123", userId, phase1Tests))
+      when(phase1TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED))
+        .thenReturnAsync()
 
-      when(phase1TestRepositoryMock.getTestProfileByCubiksId(cubiksUserId))
-        .thenReturn(Future.successful(Phase1TestGroupWithUserIds("appId123", "userId", phase1Tests)))
-      when(phase1TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)).thenReturn(Future.successful(()))
-
-      phase1TestService.markAsCompleted(cubiksUserId).futureValue
+      phase1TestService.markAsCompleted2(orderId).futureValue
 
       verify(phase1TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)
     }
   }
 
-  "mark report as ready to download" should {
-    "not change progress if not all the active tests have reports ready" in new OnlineTest {
-      val reportReady =
-        CubiksTestResultReady(reportId = Some(1), reportStatus = "Ready", reportLinkURL = Some("www.report.com"))
+  "Reset tests" should {
+    "throw exception if test group cannot be found" in new OnlineTest {
+      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(None)
 
-      when(phase1TestRepositoryMock.getTestProfileByCubiksId(cubiksUserId)).thenReturn(
-        Future.successful(Phase1TestGroupWithUserIds("appId", "userId", phase1TestProfile.copy(
-          tests = List(phase1Test.copy(usedForResults = false, cubiksUserId = 123),
-            phase1Test,
-            phase1TestBq.copy(cubiksUserId = 789, resultsReadyToDownload = false)
-          )
-        )))
-      )
-      when(phase1TestRepositoryMock.updateTestReportReady(cubiksUserId, reportReady)).thenReturn(Future.successful(()))
-      when(phase1TestRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
+      val result = phase1TestService.resetTest(onlineTestApplication, phase1Test.orderId, "")
 
-      val result = phase1TestService.markAsReportReadyToDownload(cubiksUserId, reportReady).futureValue
-
-      verify(phase1TestRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus])
+      result.failed.futureValue mustBe an[CannotFindTestGroupByApplicationIdException]
     }
 
-    "change progress to reports ready if all the active tests have reports ready" in new OnlineTest {
-      val reportReady = CubiksTestResultReady(reportId = Some(1), reportStatus = "Ready", reportLinkURL = Some("www.report.com"))
+    "throw exception if test by orderId cannot be found" in new OnlineTest {
+      val newTests = phase1Test.copy(orderId = "unknown-uuid") :: Nil
+      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile.copy(tests = newTests)))
 
-      when(phase1TestRepositoryMock.getTestProfileByCubiksId(cubiksUserId)).thenReturn(
-        Future.successful(Phase1TestGroupWithUserIds("appId", "userId", phase1TestProfile.copy(
-          tests = List(phase1Test.copy(usedForResults = false, cubiksUserId = 123),
-            phase1Test.copy(resultsReadyToDownload = true),
-            phase1TestBq.copy(cubiksUserId = 789, resultsReadyToDownload = true)
-          )
-        )))
-      )
-      when(phase1TestRepositoryMock.updateTestReportReady(cubiksUserId, reportReady)).thenReturn(Future.successful(()))
-      when(phase1TestRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
+      val result = phase1TestService.resetTest(onlineTestApplication, phase1Test.orderId, "")
 
-      val result = phase1TestService.markAsReportReadyToDownload(cubiksUserId, reportReady).futureValue
+      result.failed.futureValue mustBe an[CannotFindTestByOrderIdException]
+    }
 
-      verify(phase1TestRepositoryMock).updateProgressStatus("appId", ProgressStatuses.PHASE1_TESTS_RESULTS_READY)
+    // we are not sending a cancellation request anymore so this test should be ignored for now
+    "not register candidate if cancellation request fails" ignore new OnlineTest {
+      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
+      when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest]))
+        .thenReturnAsync(acaError)
+
+      val result = phase1TestService.resetTest(onlineTestApplication, phase1Test.orderId, "")
+
+      result.failed.futureValue mustBe a[TestCancellationException]
+
+      verify(onlineTestsGatewayClientMock, times(0)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      verify(emailClientMock, times(0))
+        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(any[HeaderCarrier])
+
+      verify(auditServiceMock, times(0)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
+      verify(auditServiceMock, times(0)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+      verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
+      verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvited", auditDetails)
+    }
+
+    "throw exception if config cant be found" in new OnlineTest {
+      val newTests = phase1Test.copy(inventoryId = "unknown-uuid") :: Nil
+      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile.copy(tests = newTests)))
+      when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest]))
+        .thenReturnAsync(acaCompleted)
+
+      val result = phase1TestService.resetTest(onlineTestApplication, phase1Test.orderId, "")
+
+      result.failed.futureValue mustBe a[CannotFindTestByInventoryIdException]
+    }
+
+    "not complete invitation if re-registration request connection fails"  in new OnlineTest {
+      val newTests = phase1Test.copy(inventoryId = "inventory-id-1") :: Nil
+      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile.copy(tests = newTests)))
+      when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest]))
+        .thenReturnAsync(acaCompleted)
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+        .thenReturn(Future.failed(new ConnectorException(connectorErrorMessage)))
+
+      val result = phase1TestService.resetTest(onlineTestApplication, phase1Test.orderId, "")
+
+      result.failed.futureValue mustBe a[ConnectorException]
+
+      verify(onlineTestsGatewayClientMock, times(1)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      verify(emailClientMock, times(0))
+        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(any[HeaderCarrier])
+
+      verify(auditServiceMock, times(0)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
+      verify(auditServiceMock, times(0)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+      verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
+      verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvited", auditDetails)
+    }
+
+    "not complete invitation if re-registration fails"  in new OnlineTest {
+      val newTests = phase1Test.copy(inventoryId = "inventory-id-1") :: Nil
+      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile.copy(tests = newTests)))
+
+      when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest]))
+        .thenReturnAsync(acaCompleted)
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+        .thenReturnAsync(aoaFailed)
+
+      val result = phase1TestService.resetTest(onlineTestApplication, phase1Test.orderId, "")
+
+      result.failed.futureValue mustBe a[TestRegistrationException]
+
+      verify(onlineTestsGatewayClientMock, times(1)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      verify(emailClientMock, times(0))
+        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(any[HeaderCarrier])
+
+      verify(auditServiceMock, times(0)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
+      verify(auditServiceMock, times(1)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+      verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
+      verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvited", auditDetails)
+    }
+
+    "complete reset successfully" in new SuccessfulTestInviteFixture {
+      val newTests = phase1Test.copy(inventoryId = "inventory-id-1") :: Nil
+      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile.copy(tests = newTests)))
+
+      when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest]))
+        .thenReturnAsync(acaCompleted)
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+        .thenReturnAsync(aoa)
+
+      val result = phase1TestService.resetTest(onlineTestApplication, phase1Test.orderId, "")
+
+      result.futureValue mustBe unit
+
+      verify(onlineTestsGatewayClientMock, times(1)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      verify(emailClientMock, times(1))
+        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(any[HeaderCarrier])
+
+      verify(auditServiceMock, times(0)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
+      verify(auditServiceMock, times(1)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+      verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
+      verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvited", auditDetails)
     }
   }
 
-  "reset phase1 tests" should {
-    "remove progress and register for new tests" in new SuccessfulTestInviteFixture {
-      import ProgressStatuses._
+  "store real time results" should {
+    "handle not finding an application for the given order id" in new OnlineTest {
+      when(phase1TestRepositoryMock.getApplicationIdForOrderId(any[String], any[String])).thenReturnAsync(None)
 
-      when(appRepositoryMock.findCandidateByUserId(any[String])).thenReturn(Future.successful(Some(candidate)))
+      val result = phase1TestService.storeRealTimeResults(orderId, realTimeResults)
 
-      val phase1TestProfileWithStartedTests = phase1TestProfile.copy(tests = phase1TestProfile.tests
-        .map(t => t.copy(startedDateTime = Some(startedDate))))
-
-      val phase1TestProfileWithNewTest = phase1TestProfileWithStartedTests.copy(tests =
-        List(phase1Test.copy(usedForResults = false), phase1Test))
-
-      // expectations for 2 invocations
-      when(phase1TestRepositoryMock.getTestGroup(any[String]))
-        .thenReturn(Future.successful(Some(phase1TestProfileWithStartedTests)))
-        .thenReturn(Future.successful(Some(phase1TestProfileWithNewTest)))
-
-      when(phase1TestRepositoryMock.markTestAsInactive(any[Int])).thenReturn(Future.successful(()))
-      when(phase1TestRepositoryMock.insertCubiksTests(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
-      when(phase1TestRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
-      phase1TestService.resetTests(onlineTestApplication, List("sjq"), "createdBy").futureValue
-
-      verify(phase1TestRepositoryMock).resetTestProfileProgresses("appId",
-        List(PHASE1_TESTS_STARTED, PHASE1_TESTS_COMPLETED, PHASE1_TESTS_RESULTS_RECEIVED, PHASE1_TESTS_RESULTS_READY,
-          PHASE1_TESTS_FAILED, PHASE1_TESTS_FAILED_NOTIFIED, PHASE1_TESTS_FAILED_SDIP_AMBER, PHASE1_TESTS_FAILED_SDIP_GREEN))
-      val expectedTestsAfterReset = List(phase1TestProfileWithStartedTests.tests.head.copy(usedForResults = false),
-        phase1Test.copy(participantScheduleId = invitation.participantScheduleId))
-
-      verify(phase1TestRepositoryMock).markTestAsInactive(cubiksUserId)
-      verify(phase1TestRepositoryMock).insertCubiksTests(any[String], any[Phase1TestProfile])
+      val exception = result.failed.futureValue
+      exception mustBe an[CannotFindTestByOrderIdException]
+      exception.getMessage mustBe s"Application not found for test for orderId=$orderId"
     }
-  }
 
-  "retrieve phase 1 test report" should {
-    "return an exception if there is an error retrieving one of the reports" in new OnlineTest {
-      val failedTest = phase1Test.copy(scheduleId = 555, reportId = Some(2))
-      val successfulTest = phase1Test.copy(scheduleId = 444, reportId = Some(1))
+    "handle not finding a test profile for the given order id" in new OnlineTest {
+      when(phase1TestRepositoryMock.getApplicationIdForOrderId(any[String], any[String])).thenReturnAsync(Some(appId))
 
-      when(onlineTestsGatewayClientMock.downloadXmlReport(eqTo(successfulTest.reportId.get)))
-        .thenReturn(Future.successful(OnlineTestCommands.TestResult(status = "Completed",
-          norm = "some norm",
-          tScore = Some(23.9999d),
-          percentile = Some(22.4d),
-          raw = Some(66.9999d),
-          sten = Some(1.333d)
-        )))
-
-      when(onlineTestsGatewayClientMock.downloadXmlReport(eqTo(failedTest.reportId.get)))
-        .thenReturn(Future.failed(new Exception))
-
-      val result = phase1TestService.retrieveTestResult(Phase1TestGroupWithUserIds(
-        "appId", "userId", phase1TestProfile.copy(tests = List(successfulTest, failedTest))
+      when(phase1TestRepositoryMock.getTestProfileByOrderId(any[String])).thenReturn(Future.failed(
+        CannotFindTestByOrderIdException(s"Cannot find test group by orderId=$orderId")
       ))
 
-      result.failed.futureValue mustBe an[Exception]
+      val result = phase1TestService.storeRealTimeResults(orderId, realTimeResults)
+
+      val exception = result.failed.futureValue
+      exception mustBe an[CannotFindTestByOrderIdException]
+      exception.getMessage mustBe s"Cannot find test group by orderId=$orderId"
     }
 
-    "save a phase1 report for a candidate and update progress status" in new OnlineTest {
-      val test = phase1Test.copy(reportId = Some(123), resultsReadyToDownload = true)
-      val testProfile = phase1TestProfile.copy(tests = List(test))
+    "handle not finding the test group when checking to update the progress status" in new OnlineTest {
+      when(phase1TestRepositoryMock.getApplicationIdForOrderId(any[String], any[String])).thenReturnAsync(Some(appId))
 
-      when(onlineTestsGatewayClientMock.downloadXmlReport(any[Int]))
-        .thenReturn(Future.successful(result))
-
-      when(phase1TestRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[persisted.TestResult])).thenReturn(Future.successful(()))
-      when(phase1TestRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
-      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturn(
-        Future.successful(Some(testProfile.copy(tests = List(test.copy(testResult = Some(savedResult))))))
+      val phase1Tests: Phase1TestProfile = phase1TestProfile.copy(
+        tests = phase1TestProfile.tests.map(t => t.copy(orderId = orderId, completedDateTime = Some(DateTime.now()))),
+        expirationDate = DateTime.now().plusDays(2)
       )
 
-      phase1TestService.retrieveTestResult(Phase1TestGroupWithUserIds(
-        "appId", "userId", testProfile
-      )).futureValue
+      when(phase1TestRepositoryMock.getTestProfileByOrderId(any[String])).thenReturnAsync(phase1Tests)
+      when(phase1TestRepositoryMock.insertTestResult2(any[String], any[PsiTest], any[model.persisted.PsiTestResult])).thenReturnAsync()
+      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(None)
 
-      verify(auditServiceMock, times(2)).logEventNoRequest(any[String], any[Map[String, String]])
-      verify(phase1TestRepositoryMock).updateProgressStatus(any[String], any[ProgressStatus])
+      val result = phase1TestService.storeRealTimeResults(orderId, realTimeResults)
+
+      val exception = result.failed.futureValue
+      exception mustBe an[Exception]
+      exception.getMessage mustBe s"No test profile returned for $appId"
+
+      verify(phase1TestRepositoryMock, never()).updateTestCompletionTime2(any[String], any[DateTime])
+      verify(phase1TestRepositoryMock, never()).updateProgressStatus(any[String], any[ProgressStatuses.ProgressStatus])
     }
 
-    "save a phase1 report for a candidate and not update progress status" in new OnlineTest {
-      val testReady = phase1Test.copy(reportId = Some(123), resultsReadyToDownload = true)
-      val testNotReady = phase1Test.copy(reportId = None, resultsReadyToDownload = false)
-      val testProfile = phase1TestProfile.copy(tests = List(testReady, testNotReady))
+    "process the real time results and update the progress status" in new OnlineTest {
+      when(phase1TestRepositoryMock.getApplicationIdForOrderId(any[String], any[String])).thenReturnAsync(Some(appId))
 
-      when(onlineTestsGatewayClientMock.downloadXmlReport(any[Int]))
-        .thenReturn(Future.successful(result))
-
-      when(phase1TestRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[persisted.TestResult])).thenReturn(Future.successful(()))
-      when(phase1TestRepositoryMock.updateProgressStatus(any[String], any[ProgressStatus])).thenReturn(Future.successful(()))
-      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturn(
-        Future.successful(Some(testProfile.copy(tests = List(testReady.copy(testResult = Some(savedResult)), testNotReady))))
+      val phase1Tests: Phase1TestProfile = phase1TestProfile.copy(
+        tests = phase1TestProfile.tests.map(t => t.copy(orderId = orderId, completedDateTime = Some(DateTime.now()))),
+        expirationDate = DateTime.now().plusDays(2)
       )
 
-      phase1TestService.retrieveTestResult(Phase1TestGroupWithUserIds(
-        "appId", "userId", testProfile
-      )).futureValue
+      when(phase1TestRepositoryMock.getTestProfileByOrderId(any[String])).thenReturnAsync(phase1Tests)
+      when(phase1TestRepositoryMock.insertTestResult2(any[String], any[PsiTest], any[model.persisted.PsiTestResult])).thenReturnAsync()
 
-      verify(auditServiceMock, times(1)).logEventNoRequest(any[String], any[Map[String, String]])
-      verify(phase1TestRepositoryMock, times(0)).updateProgressStatus(any[String], any[ProgressStatus])
+      val phase1TestProfile2 = Phase1TestProfile(expirationDate = now, tests = List(firstPsiTest, secondPsiTest, thirdPsiTest, fourthPsiTest))
+      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile2))
+      when(phase1TestRepositoryMock.updateProgressStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturnAsync()
+
+      phase1TestService.storeRealTimeResults(orderId, realTimeResults).futureValue
+
+      verify(phase1TestRepositoryMock, never()).updateTestCompletionTime2(any[String], any[DateTime])
+      verify(phase1TestRepositoryMock, times(1)).updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED))
     }
 
-    "retrieve only reports which are not already saved" in new OnlineTest {
-      when(onlineTestsGatewayClientMock.downloadXmlReport(123)).thenReturn(Future.successful(result))
-      when(phase1TestRepositoryMock.insertTestResult(any[String], any[CubiksTest], any[model.persisted.TestResult]))
-        .thenReturn(Future.successful(()))
-      when(phase1TestRepositoryMock.updateProgressStatus("appId", PHASE1_TESTS_RESULTS_RECEIVED)).thenReturn(Future.successful(()))
+    "process the real time results, mark the test as completed and update the progress status" in new OnlineTest {
+      when(phase1TestRepositoryMock.getApplicationIdForOrderId(any[String], any[String])).thenReturnAsync(Some(appId))
 
-      val testWithoutResult = phase1Test.copy(reportId = Some(123), resultsReadyToDownload = true)
-      val testWithResult = phase1Test.copy(reportId = Some(456), resultsReadyToDownload = true, testResult = Some(savedResult))
-      val testProfileAfterTestResultInsertion = phase1TestProfile.copy(tests = List(
-        testWithoutResult.copy(testResult = Some(savedResult)),
-        testWithResult
-      ))
-      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(testProfileAfterTestResultInsertion)))
+      val phase1TestsNotCompleted: Phase1TestProfile = phase1TestProfile.copy(
+        tests = phase1TestProfile.tests.map(t => t.copy(orderId = orderId)),
+        expirationDate = DateTime.now().plusDays(2)
+      )
 
-      val testProfile = phase1TestProfile.copy(tests = List(testWithoutResult, testWithResult))
-      phase1TestService.retrieveTestResult(Phase1TestGroupWithUserIds("appId", "userId", testProfile)).futureValue
+      when(phase1TestRepositoryMock.getTestProfileByOrderId(any[String])).thenReturnAsync(phase1TestsNotCompleted)
+      when(phase1TestRepositoryMock.insertTestResult2(any[String], any[PsiTest], any[model.persisted.PsiTestResult])).thenReturnAsync()
+      when(phase1TestRepositoryMock.updateTestCompletionTime2(any[String], any[DateTime])).thenReturnAsync()
 
-      verify(phase1TestRepositoryMock).insertTestResult("appId", testWithoutResult, savedResult)
-      verify(phase1TestRepositoryMock).updateProgressStatus("appId", PHASE1_TESTS_RESULTS_RECEIVED)
-      verify(onlineTestsGatewayClientMock, never).downloadXmlReport(456)
-    }
-  }
+      val phase1TestsCompleted: Phase1TestProfile = phase1TestProfile.copy(
+        tests = phase1TestProfile.tests.map(t => t.copy(orderId = orderId, completedDateTime = Some(DateTime.now()))),
+        expirationDate = DateTime.now().plusDays(2)
+      )
 
-  "processNextExpiredTest" should {
-    val phase1ExpirationEvent = Phase1ExpirationEvent(gracePeriodInSecs = 0)
+      val phase1TestGroupWithUserIds2 = Phase1TestGroupWithUserIds(applicationId = "appId", userId = "userId", testGroup = phase1TestsCompleted)
 
-    "do nothing if there are no expired application to process" in new OnlineTest {
-      when(phase1TestRepositoryMock.nextExpiringApplication(phase1ExpirationEvent)).thenReturn(Future.successful(None))
-      phase1TestService.processNextExpiredTest(phase1ExpirationEvent).futureValue mustBe unit
-    }
+      when(phase1TestRepositoryMock.getTestGroupByOrderId(any[String])).thenReturnAsync(phase1TestGroupWithUserIds2)
+      when(phase1TestRepositoryMock.updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE1_TESTS_COMPLETED))).thenReturnAsync()
 
-    "update progress status and send an email to the user when a Faststream application is expired" in new OnlineTest {
-      when(phase1TestRepositoryMock.nextExpiringApplication(phase1ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
-      when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
-      when(appRepositoryMock.getApplicationRoute(any[String])).thenReturn(Future.successful(ApplicationRoute.Faststream))
-      val results = List(SchemeEvaluationResult("Sdip", "Green"))
-      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
+      val phase1TestProfile2 = Phase1TestProfile(expirationDate = now, tests = List(firstPsiTest, secondPsiTest, thirdPsiTest, fourthPsiTest))
+      when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile2))
+      when(phase1TestRepositoryMock.updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED))).thenReturnAsync()
 
-      when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
+      phase1TestService.storeRealTimeResults(orderId, realTimeResults).futureValue
 
-      val result = phase1TestService.processNextExpiredTest(phase1ExpirationEvent)
-
-      result.futureValue mustBe unit
-
-      verify(cdRepositoryMock).find(userId)
-      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(applicationId, PHASE1_TESTS_EXPIRED)
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
-      verify(appRepositoryMock, never()).getCurrentSchemeStatus(applicationId)
-      verify(appRepositoryMock, never()).updateCurrentSchemeStatus(applicationId, results)
-      verify(siftServiceMock, never()).sendSiftEnteredNotification(applicationId)
-      verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, TestExpirationEmailTemplates.phase1ExpirationTemplate)
-    }
-
-    "not attempt progressing SdipFS application to SIFT_ENTERED in PHASE1" in new OnlineTest {
-      when(phase1TestRepositoryMock.nextExpiringApplication(phase1ExpirationEvent)).thenReturn(Future.successful(Some(expiredApplication)))
-      when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
-      when(appRepositoryMock.getApplicationRoute(any[String])).thenReturn(Future.successful(ApplicationRoute.SdipFaststream))
-      val results = Nil
-      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturn(Future.successful(results))
-      when(appRepositoryMock.updateCurrentSchemeStatus(any[String], any[List[SchemeEvaluationResult]])).thenReturn(Future.successful(unit))
-      when(phase1TestRepositoryMock.upsertTestGroupEvaluationResult(any[String], any[PassmarkEvaluation])).thenReturn(Future.successful(unit))
-      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
-      when(siftServiceMock.sendSiftEnteredNotification(applicationId)).thenReturn(Future.successful(()))
-
-      when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
-
-      val result = phase1TestService.processNextExpiredTest(phase1ExpirationEvent)
-
-      result.futureValue mustBe unit
-
-      verify(cdRepositoryMock).find(userId)
-      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(applicationId, PHASE1_TESTS_EXPIRED)
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
-      verify(appRepositoryMock, never()).getCurrentSchemeStatus(applicationId)
-      verify(appRepositoryMock, never()).updateCurrentSchemeStatus(applicationId, results)
-      verify(siftServiceMock, never()).sendSiftEnteredNotification(applicationId)
-      verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, TestExpirationEmailTemplates.phase1ExpirationTemplate)
-    }
-  }
-
-  "processNextTestForReminder" should {
-    "do nothing if there are no application to process for reminders" in new OnlineTest {
-      when(phase1TestRepositoryMock.nextTestForReminder(Phase1FirstReminder)).thenReturn(Future.successful(None))
-      phase1TestService.processNextTestForReminder(Phase1FirstReminder).futureValue mustBe unit
-    }
-
-    "update progress status and send an email to the user when an application is about to expire" in new OnlineTest {
-      when(phase1TestRepositoryMock.nextTestForReminder(Phase1FirstReminder)).thenReturn(Future.successful(Some(expiryReminder)))
-      when(cdRepositoryMock.find(userId)).thenReturn(Future.successful(contactDetails))
-      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
-      when(emailClientMock.sendTestExpiringReminder(any[String], any[String], any[Int], any[TimeUnit], any[DateTime])
-      (any[HeaderCarrier])).thenReturn(success)
-
-      val result = phase1TestService.processNextTestForReminder(Phase1FirstReminder)
-
-      result.futureValue mustBe unit
-
-      verify(cdRepositoryMock).find(userId)
-      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(applicationId, PHASE1_TESTS_FIRST_REMINDER)
-      verify(emailClientMock).sendTestExpiringReminder(
-        emailContactDetails,
-        preferredName,
-        Phase1FirstReminder.hoursBeforeReminder,
-        Phase1FirstReminder.timeUnit,
-        expiryReminder.expiryDate)
+      verify(phase1TestRepositoryMock, times(1)).updateTestCompletionTime2(any[String], any[DateTime])
+      verify(phase1TestRepositoryMock, times(1)).updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE1_TESTS_COMPLETED))
+      verify(phase1TestRepositoryMock, times(1)).updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED))
     }
   }
 
   "Progress Sdip for SdipFaststream candidate" should {
     "Set the progress status the candidate has passed Sdip" in new OnlineTest {
-      import scala.collection.JavaConversions._
       when(phase1TestRepositoryMock.updateProgressStatusOnly(any[String], any[ProgressStatus])).thenReturn(Future.successful(unit))
 
       val testProfileWithEvaluation = phase1TestProfile.copy(
@@ -706,11 +617,13 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout with PrivateMe
       val result = phase1TestService.progressSdipFaststreamCandidateForSdip(phase1TestGroup).futureValue
 
       verify(phase1TestRepositoryMock).updateProgressStatusOnly(any[String], eventCaptor.capture)
-      eventCaptor.getAllValues.head.toString mustBe ProgressStatuses.getProgressStatusForSdipFsSuccess(ApplicationStatus.PHASE1_TESTS).toString
+
+      import scala.collection.JavaConverters._
+      eventCaptor.getAllValues.asScala.head.toString mustBe
+        ProgressStatuses.getProgressStatusForSdipFsSuccess(ApplicationStatus.PHASE1_TESTS).toString
     }
 
     "Set the progress status the candidate has failed Sdip" in new OnlineTest {
-      import scala.collection.JavaConversions._
       when(phase1TestRepositoryMock.updateProgressStatusOnly(any[String], any[ProgressStatus])).thenReturn(Future.successful(unit))
 
       val testProfileWithEvaluation = phase1TestProfile.copy(
@@ -721,37 +634,64 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout with PrivateMe
       )
 
       val phase1TestGroup = Phase1TestGroupWithUserIds("appId1", "userId1", testProfileWithEvaluation)
-
-      val eventCaptor = ArgumentCaptor.forClass(classOf[ProgressStatuses.ProgressStatus])
-
       val result = phase1TestService.progressSdipFaststreamCandidateForSdip(phase1TestGroup).futureValue
 
+      val eventCaptor = ArgumentCaptor.forClass(classOf[ProgressStatuses.ProgressStatus])
       verify(phase1TestRepositoryMock).updateProgressStatusOnly(any[String], eventCaptor.capture)
-      eventCaptor.getAllValues.head.toString mustBe ProgressStatuses.getProgressStatusForSdipFsFailed(ApplicationStatus.PHASE1_TESTS).toString
+
+      import scala.collection.JavaConverters._
+      eventCaptor.getAllValues.asScala.head.toString mustBe
+        ProgressStatuses.getProgressStatusForSdipFsFailed(ApplicationStatus.PHASE1_TESTS).toString
     }
   }
 
-  trait OnlineTest extends StcEventServiceFixture {
-    implicit val hc = HeaderCarrier()
-    implicit val rh = mock[RequestHeader]
+  import services.stc.StcEventServiceFixture
 
+  trait OnlineTest extends StcEventServiceFixture {
+    implicit val hc: HeaderCarrier = HeaderCarrier()
+    implicit val rh: RequestHeader = mock[RequestHeader]
+    implicit val now: DateTime = DateTime.now
+
+    val appConfigMock = mock[MicroserviceAppConfig]
     val appRepositoryMock = mock[GeneralApplicationRepository]
     val cdRepositoryMock = mock[ContactDetailsRepository]
     val phase1TestRepositoryMock = mock[Phase1TestRepository]
     val onlineTestsGatewayClientMock = mock[OnlineTestsGatewayClient]
-    val emailClientMock = mock[CSREmailClient]
-    val auditServiceMock = mock[AuditService]
-    val uuidFactoryMock = mock[UUIDFactory]
+    val tokenFactoryMock = mock[UUIDFactory]
     val dateTimeFactoryMock = mock[DateTimeFactory]
-    val eventServiceMock = mock[StcEventService]
     val siftServiceMock = mock[ApplicationSiftService]
+    //    val emailClientMock = mock[CSREmailClient] //TODO:fix changed type
+    val emailClientMock = mock[OnlineTestEmailClient] //TODO:fix changed type
+    val auditServiceMock = mock[AuditService]
 
-    when(uuidFactoryMock.generateUUID()).thenReturn(token)
+    def aoa = AssessmentOrderAcknowledgement(
+      customerId = "cust-id", receiptId = "receipt-id", orderId = orderId, testLaunchUrl = authenticateUrl,
+      status = AssessmentOrderAcknowledgement.acknowledgedStatus, statusDetails = "", statusDate = LocalDate.now())
+
+    def aoaFailed = AssessmentOrderAcknowledgement(
+      customerId = "cust-id", receiptId = "receipt-id", orderId = orderId, testLaunchUrl = authenticateUrl,
+      status = AssessmentOrderAcknowledgement.errorStatus, statusDetails = "", statusDate = LocalDate.now())
+
+    def acaCompleted = AssessmentCancelAcknowledgementResponse(
+      AssessmentCancelAcknowledgementResponse.completedStatus,
+      "Everything is fine!", statusDate = LocalDate.now()
+    )
+
+    def acaError = AssessmentCancelAcknowledgementResponse(
+      AssessmentCancelAcknowledgementResponse.errorStatus,
+      "Something went wrong!", LocalDate.now()
+    )
+
+    when(tokenFactoryMock.generateUUID()).thenReturn(uuid)
     when(dateTimeFactoryMock.nowLocalTimeZone).thenReturn(invitationDate)
-    when(phase1TestRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
+    when(phase1TestRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]]))
+      .thenReturnAsync()
 
-    val appConfigMock = mock[MicroserviceAppConfig]
-    when(appConfigMock.onlineTestsGatewayConfig).thenReturn(testGatewayConfig)
+    when(appConfigMock.onlineTestsGatewayConfig).thenReturn(gatewayConfig)
+
+    val realTimeResults = PsiRealTimeResults(tScore = 10.0, rawScore = 20.0, reportUrl = None)
+
+    val actor = ActorSystem()
 
     val phase1TestService = new Phase1TestService(
       appConfigMock,
@@ -759,27 +699,24 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout with PrivateMe
       cdRepositoryMock,
       phase1TestRepositoryMock,
       onlineTestsGatewayClientMock,
-      uuidFactoryMock,
+      tokenFactoryMock,
       dateTimeFactoryMock,
       emailClientMock,
       auditServiceMock,
-      ActorSystem(),
+      siftServiceMock,
       stcEventServiceMock,
-      siftServiceMock
+      actor
     )
   }
 
   trait SuccessfulTestInviteFixture extends OnlineTest {
-    when(onlineTestsGatewayClientMock.registerApplicant(eqTo(registerApplicant)))
-      .thenReturn(Future.successful(registration))
-    when(onlineTestsGatewayClientMock.inviteApplicant(any[InviteApplicant]))
-      .thenReturn(Future.successful(invitation))
-    when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(contactDetails))
+    when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest])).thenReturnAsync(aoa)
+    when(cdRepositoryMock.find(any[String])).thenReturnAsync(contactDetails)
     when(emailClientMock.sendOnlineTestInvitation(
       eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(
       any[HeaderCarrier]
-    )).thenReturn(Future.successful(()))
-    when(phase1TestRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile])).thenReturn(Future.successful(()))
-    when(phase1TestRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturn(Future.successful(()))
+    )).thenReturnAsync()
+    when(phase1TestRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile])).thenReturnAsync()
+    when(phase1TestRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturnAsync()
   }
 }

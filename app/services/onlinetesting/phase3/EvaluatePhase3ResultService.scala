@@ -23,24 +23,16 @@ import factories.UUIDFactory
 import javax.inject.{ Inject, Singleton }
 import model.Phase
 import model.exchange.passmarksettings.Phase3PassMarkSettings
-import model.persisted.ApplicationReadyForEvaluation2
+import model.persisted.ApplicationReadyForEvaluation
 import play.api.Logging
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.OnlineTestEvaluationRepository
 import repositories.passmarksettings.Phase3PassMarkSettingsMongoRepository
-import scheduler.onlinetesting.EvaluateOnlineTestResultService2
-import services.onlinetesting.{ ApplicationStatusCalculator, CurrentSchemeStatusHelper2 }
+import scheduler.onlinetesting.EvaluateOnlineTestResultService
+import services.onlinetesting.{ ApplicationStatusCalculator, CurrentSchemeStatusHelper }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-
-//object EvaluatePhase3ResultService2X extends EvaluatePhase3ResultService2X {
-//  val evaluationRepository: OnlineTestEvaluationRepository = repositories.faststreamPhase3EvaluationRepository
-//  val passMarkSettingsRepo = phase3PassMarkSettingsRepository
-//  val generalAppRepository = repositories.applicationRepository
-//  val launchpadGWConfig = launchpadGatewayConfig
-//  val phase = Phase.PHASE3
-//}
 
 @Singleton
 class EvaluatePhase3ResultService @Inject() (@Named("Phase3EvaluationRepository") val evaluationRepository: OnlineTestEvaluationRepository,
@@ -48,13 +40,13 @@ class EvaluatePhase3ResultService @Inject() (@Named("Phase3EvaluationRepository"
                                              val generalAppRepository: GeneralApplicationRepository,
                                              appConfig: MicroserviceAppConfig,
                                              val uuidFactory: UUIDFactory
-                                            ) extends EvaluateOnlineTestResultService2[Phase3PassMarkSettings] with Phase3TestEvaluation
-  with PassMarkSettingsService[Phase3PassMarkSettings] with ApplicationStatusCalculator with CurrentSchemeStatusHelper2 with Logging {
+                                            ) extends EvaluateOnlineTestResultService[Phase3PassMarkSettings] with Phase3TestEvaluation
+  with PassMarkSettingsService[Phase3PassMarkSettings] with ApplicationStatusCalculator with CurrentSchemeStatusHelper with Logging {
 
   val phase = Phase.PHASE3
   val launchpadGWConfig = appConfig.launchpadGatewayConfig
 
-  def evaluate(implicit application: ApplicationReadyForEvaluation2, passmark: Phase3PassMarkSettings): Future[Unit] = {
+  def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase3PassMarkSettings): Future[Unit] = {
     logger.warn(s"Evaluating Phase3 appId=${application.applicationId}")
 
     val optLaunchpadTest = application.activeLaunchpadTest

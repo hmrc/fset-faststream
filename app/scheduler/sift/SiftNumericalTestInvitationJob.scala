@@ -24,7 +24,7 @@ import play.api.{ Configuration, Logging }
 import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-import services.NumericalTestService2
+import services.NumericalTestService
 import services.sift.ApplicationSiftService
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -32,18 +32,15 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class SiftNumericalTestInvitationJobImpl @Inject() (val siftService: ApplicationSiftService,
-                                                    val numericalTestService: NumericalTestService2,
+                                                    val numericalTestService: NumericalTestService,
                                                     val mongoComponent: ReactiveMongoComponent,
                                                     val config: SiftNumericalTestInvitationConfig
                                                    ) extends SiftNumericalTestInvitationJob {
-  //  val siftService = ApplicationSiftService
-  //  val config = SiftNumericalTestInvitationConfig
-  //  val numericalTestService: NumericalTestService2 = NumericalTestService2
 }
 
 trait SiftNumericalTestInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {
   val siftService: ApplicationSiftService
-  val numericalTestService: NumericalTestService2
+  val numericalTestService: NumericalTestService
   lazy val batchSize = config.conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
@@ -55,7 +52,7 @@ trait SiftNumericalTestInvitationJob extends SingleInstanceScheduledJob[BasicJob
         log("No application found for sift numerical test invitation")
         Future.successful(())
       case applications =>
-        log(s"${applications.size} application(s) found for sift numerical test invitation")
+        log(s"${applications.size} application(s) found for sift numerical test invitation - $applications")
         log(s"Inviting candidates to take a sift numerical test with IDs: ${applications.map(_.applicationId)}")
         numericalTestService.registerAndInviteForTests(applications.toList).map(_ => ())
           .recover { case e: Throwable =>

@@ -35,7 +35,7 @@ class SiftExpiryJobImpl @Inject() (val siftService: ApplicationSiftService,
                                    val appConfig: MicroserviceAppConfig
                                   ) extends SiftExpiryJob {
   //  override val siftService = ApplicationSiftService
-  override val gracePeriodInSecs = appConfig.testIntegrationGatewayConfig.numericalTests.gracePeriodInSecs
+  override val gracePeriodInSecs = appConfig.onlineTestsGatewayConfig.numericalTests.gracePeriodInSecs
   //  override val config = SiftExpiryJobConfig
 }
 

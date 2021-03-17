@@ -291,7 +291,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
     }
   }
 
-  private lazy val psiUrlFromConfig: String = appConfig.testIntegrationGatewayConfig.url
+  private lazy val psiUrlFromConfig: String = appConfig.onlineTestsGatewayConfig.url
 
   def createCandidatesPOST(numberToGenerate: Int): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateCandidateRequest] { createRequest =>

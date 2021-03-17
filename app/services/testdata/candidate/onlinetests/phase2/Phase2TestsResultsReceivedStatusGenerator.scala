@@ -22,7 +22,7 @@ import model.exchange.PsiRealTimeResults
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import model.testdata.candidate.Phase2TestData
 import play.api.mvc.RequestHeader
-import services.onlinetesting.phase2.Phase2TestService2
+import services.onlinetesting.phase2.Phase2TestService
 import services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -31,7 +31,7 @@ import scala.concurrent.Future
 
 @Singleton
 class Phase2TestsResultsReceivedStatusGenerator @Inject() (val previousStatusGenerator: Phase2TestsCompletedStatusGenerator,
-                                                           otService: Phase2TestService2
+                                                           otService: Phase2TestService
                                                           ) extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {

@@ -6,7 +6,7 @@ import model.ApplicationStatus.{ apply => _, _ }
 import model.EvaluationResults.{ Amber, _ }
 import model.Exceptions.PassMarkEvaluationNotFound
 import model.exchange.passmarksettings._
-import model.persisted.{ ApplicationReadyForEvaluation2, PassmarkEvaluation, SchemeEvaluationResult }
+import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
 import model.{ ApplicationStatus, SchemeId }
 import org.joda.time.DateTime
 import org.mockito.Mockito.when
@@ -211,7 +211,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
     var phase3PassMarkSettings: Phase3PassMarkSettings = createPhase3PassMarkSettings(phase3PassMarkSettingsTable)
 
-    var applicationReadyForEvaluation: ApplicationReadyForEvaluation2 = _
+    var applicationReadyForEvaluation: ApplicationReadyForEvaluation = _
 
     var passMarkEvaluation: PassmarkEvaluation = _
 

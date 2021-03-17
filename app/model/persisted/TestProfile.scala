@@ -18,10 +18,6 @@ package model.persisted
 
 import org.joda.time.DateTime
 
-abstract class CubiksTestProfile() extends TestProfile[CubiksTest] {
-  def hasNotResultReadyToDownloadForAllTestsYet: Boolean = activeTests.exists(!_.resultsReadyToDownload)
-}
-
 abstract class PsiTestProfile() extends TestProfile[PsiTest] {
   def hasNotResultReadyToDownloadForAllTestsYet: Boolean = activeTests.exists(!_.resultsReadyToDownload)
 }

@@ -15,7 +15,7 @@
  */
 
 import com.google.inject.name.Names
-import com.google.inject.{AbstractModule, Provider, TypeLiteral}
+import com.google.inject.{AbstractModule, TypeLiteral}
 import connectors.{CSREmailClientImpl, OnlineTestEmailClient, Phase2OnlineTestEmailClient, Phase3OnlineTestEmailClient}
 import model.exchange.passmarksettings.{Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings}
 import play.api.{Configuration, Environment, Logging}
@@ -37,12 +37,12 @@ import repositories.sift._
 import repositories.stc.{StcEventMongoRepository, StcEventRepository}
 import repositories.testdata.{ApplicationRemovalMongoRepository, ApplicationRemovalRepository}
 import scheduler.Scheduler
-import scheduler.onlinetesting.EvaluateOnlineTestResultService2
+import scheduler.onlinetesting.EvaluateOnlineTestResultService
 import services.assessmentscores._
 import services.events.{EventsService, EventsServiceImpl}
 import services.onlinetesting.OnlineTestService
-import services.onlinetesting.phase1.{EvaluatePhase1ResultService2, Phase1TestService2}
-import services.onlinetesting.phase2.{EvaluatePhase2ResultService2, Phase2TestService2}
+import services.onlinetesting.phase1.{EvaluatePhase1ResultService, Phase1TestService}
+import services.onlinetesting.phase2.{EvaluatePhase2ResultService, Phase2TestService}
 import services.onlinetesting.phase3.{EvaluatePhase3ResultService, Phase3TestService}
 import services.testdata.admin.{AdminCreatedStatusGenerator, AdminUserBaseGenerator}
 
@@ -76,9 +76,7 @@ class Module(val environment: Environment, val configuration: Configuration) ext
     bind(classOf[ContactDetailsRepository]).to(classOf[ContactDetailsMongoRepository]).asEagerSingleton()
 
     bind(classOf[Phase1TestRepository]).to(classOf[Phase1TestMongoRepository]).asEagerSingleton()
-    bind(classOf[Phase1TestRepository2]).to(classOf[Phase1TestMongoRepository2]).asEagerSingleton()
     bind(classOf[Phase2TestRepository]).to(classOf[Phase2TestMongoRepository]).asEagerSingleton()
-    bind(classOf[Phase2TestRepository2]).to(classOf[Phase2TestMongoRepository2]).asEagerSingleton()
 
     bind(classOf[PersonalDetailsRepository]).to(classOf[PersonalDetailsMongoRepository]).asEagerSingleton()
 
@@ -114,29 +112,30 @@ class Module(val environment: Environment, val configuration: Configuration) ext
     bind(classOf[FlagCandidateRepository]).to(classOf[FlagCandidateMongoRepository]).asEagerSingleton()
 
     // Bind the named implementations for the online test service
+    // TODO: cubiks - look at line 79 above
     bind(classOf[OnlineTestService]).annotatedWith(Names.named("Phase1OnlineTestService"))
-      .to(classOf[Phase1TestService2])
+      .to(classOf[Phase1TestService])
     bind(classOf[OnlineTestService]).annotatedWith(Names.named("Phase2OnlineTestService"))
-      .to(classOf[Phase2TestService2])
+      .to(classOf[Phase2TestService])
     bind(classOf[OnlineTestService]).annotatedWith(Names.named("Phase3OnlineTestService"))
       .to(classOf[Phase3TestService])
 
     // Bind the named implementations for the online test repository
     bind(classOf[OnlineTestRepository]).annotatedWith(Names.named("Phase1OnlineTestRepo"))
-      .to(classOf[Phase1TestMongoRepository2])
+      .to(classOf[Phase1TestMongoRepository])
     bind(classOf[OnlineTestRepository]).annotatedWith(Names.named("Phase2OnlineTestRepo"))
-      .to(classOf[Phase2TestMongoRepository2])
+      .to(classOf[Phase2TestMongoRepository])
     bind(classOf[OnlineTestRepository]).annotatedWith(Names.named("Phase3OnlineTestRepo"))
       .to(classOf[Phase3TestMongoRepository])
 
     // You need TypeLiterals to keep the parameterised type information for guice to bind at runtime
-    bind(new TypeLiteral[EvaluateOnlineTestResultService2[Phase1PassMarkSettings]] {})
+    bind(new TypeLiteral[EvaluateOnlineTestResultService[Phase1PassMarkSettings]] {})
       .annotatedWith(Names.named("Phase1EvaluationService"))
-      .to(classOf[EvaluatePhase1ResultService2])
-    bind(new TypeLiteral[EvaluateOnlineTestResultService2[Phase2PassMarkSettings]] {})
+      .to(classOf[EvaluatePhase1ResultService])
+    bind(new TypeLiteral[EvaluateOnlineTestResultService[Phase2PassMarkSettings]] {})
       .annotatedWith(Names.named("Phase2EvaluationService"))
-      .to(classOf[EvaluatePhase2ResultService2])
-    bind(new TypeLiteral[EvaluateOnlineTestResultService2[Phase3PassMarkSettings]] {})
+      .to(classOf[EvaluatePhase2ResultService])
+    bind(new TypeLiteral[EvaluateOnlineTestResultService[Phase3PassMarkSettings]] {})
       .annotatedWith(Names.named("Phase3EvaluationService"))
       .to(classOf[EvaluatePhase3ResultService])
 

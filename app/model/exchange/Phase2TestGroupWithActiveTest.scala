@@ -16,20 +16,14 @@
 
 package model.exchange
 
-import model.persisted.{ CubiksTest, PsiTest }
+import model.persisted.PsiTest
 import org.joda.time.DateTime
 import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
 import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.Json
 
-case class Phase2TestGroupWithActiveTest(expirationDate: DateTime, activeTest: CubiksTest, resetAllowed: Boolean)
+case class Phase2TestGroupWithActiveTest(expirationDate: DateTime, activeTests: Seq[PsiTest], resetAllowed: Boolean)
 
 object Phase2TestGroupWithActiveTest {
   implicit val phase2TestGroupWithActiveTestFormat = Json.format[Phase2TestGroupWithActiveTest]
-}
-
-case class Phase2TestGroupWithActiveTest2(expirationDate: DateTime, activeTests: Seq[PsiTest], resetAllowed: Boolean)
-
-object Phase2TestGroupWithActiveTest2 {
-  implicit val phase2TestGroupWithActiveTestFormat = Json.format[Phase2TestGroupWithActiveTest2]
 }

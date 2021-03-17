@@ -29,8 +29,8 @@ import play.api.libs.json.{ JsValue, Json, OFormat }
 import play.api.mvc._
 import repositories.application.GeneralApplicationRepository
 import services.onlinetesting.Exceptions.{ CannotResetPhase2Tests, ResetLimitExceededException }
-import services.onlinetesting.phase1.{ Phase1TestService, Phase1TestService2 }
-import services.onlinetesting.phase2.{ Phase2TestService, Phase2TestService2 }
+import services.onlinetesting.phase1.Phase1TestService
+import services.onlinetesting.phase2.Phase2TestService
 import services.onlinetesting.phase3.Phase3TestService
 import services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -84,14 +84,12 @@ object UserIdWrapper {
 class OnlineTestController @Inject() (cc: ControllerComponents,
                                       appRepository: GeneralApplicationRepository,
                                       phase1TestService: Phase1TestService,
-                                      phase1TestService2: Phase1TestService2,
                                       phase2TestService: Phase2TestService,
-                                      phase2TestService2: Phase2TestService2,
                                       phase3TestService: Phase3TestService
                                      ) extends BackendController(cc) with Logging {
-
+  //TODO: cubiks replace this with the method that follows
   def getPhase1OnlineTest(applicationId: String) = Action.async { implicit request =>
-    phase1TestService.getTestGroup(applicationId) map {
+    phase1TestService.getTestGroup2(applicationId) map {
       case Some(phase1TestProfileWithNames) => Ok(Json.toJson(phase1TestProfileWithNames))
       case None => logger.debug(s"No phase 1 tests found for applicationId '$applicationId'")
         NotFound
@@ -100,7 +98,7 @@ class OnlineTestController @Inject() (cc: ControllerComponents,
 
   //TODO: remove this
   def getPhase1OnlineTest2(applicationId: String) = Action.async { implicit request =>
-    phase1TestService2.getTestGroup2(applicationId) map {
+    phase1TestService.getTestGroup2(applicationId) map {
       case Some(phase1TestProfileWithNames) =>
         val response = Json.toJson(phase1TestProfileWithNames)
         logger.debug(s"**** getPhase1OnlineTest2 response=$response")
@@ -111,7 +109,7 @@ class OnlineTestController @Inject() (cc: ControllerComponents,
   }
 
   def getPhase2OnlineTest(applicationId: String) = Action.async { implicit request =>
-    phase2TestService2.getTestGroup(applicationId) map {
+    phase2TestService.getTestGroup(applicationId) map {
       case Some(phase2TestGroupWithNames) => Ok(Json.toJson(phase2TestGroupWithNames))
       case None => logger.debug(s"No phase 2 tests found for applicationId '$applicationId'")
         NotFound
@@ -119,7 +117,7 @@ class OnlineTestController @Inject() (cc: ControllerComponents,
   }
 
   def getPhase1OnlineTestByOrderId(orderId: String) = Action.async { implicit request =>
-    phase1TestService2.getTestGroupByOrderId(orderId).map { phase1TestGroupWithNames =>
+    phase1TestService.getTestGroupByOrderId(orderId).map { phase1TestGroupWithNames =>
       Ok(Json.toJson(phase1TestGroupWithNames))
     }.recover {
       case _: CannotFindTestByOrderIdException =>
@@ -129,7 +127,7 @@ class OnlineTestController @Inject() (cc: ControllerComponents,
   }
 
   def getPhase2OnlineTestByOrderId(orderId: String) = Action.async { implicit request =>
-    phase2TestService2.getTestGroupByOrderId(orderId) map {
+    phase2TestService.getTestGroupByOrderId(orderId) map {
       case Some(phase2TestGroupWithActiveTest) => Ok(Json.toJson(phase2TestGroupWithActiveTest))
       case None => logger.debug(s"No phase 2 tests found for orderId '$orderId'")
         NotFound
@@ -155,7 +153,7 @@ class OnlineTestController @Inject() (cc: ControllerComponents,
       logger.debug(s"resetPhase1OnlineTest - $resetOnlineTest")
       appRepository.getOnlineTestApplication(applicationId).flatMap {
         case Some(onlineTestApp) =>
-          phase1TestService2.resetTest(onlineTestApp, resetOnlineTest.orderId, resetOnlineTest.actionTriggeredBy)
+          phase1TestService.resetTest(onlineTestApp, resetOnlineTest.orderId, resetOnlineTest.actionTriggeredBy)
             .map ( _ => Ok )
         case _ => Future.successful(NotFound)
       }
@@ -167,7 +165,7 @@ class OnlineTestController @Inject() (cc: ControllerComponents,
       logger.debug(s"resetPhase2OnlineTests - $resetOnlineTest")
       appRepository.getOnlineTestApplication(applicationId).flatMap {
         case Some(onlineTestApp) =>
-          phase2TestService2.resetTest(onlineTestApp, resetOnlineTest.orderId, resetOnlineTest.actionTriggeredBy)
+          phase2TestService.resetTest(onlineTestApp, resetOnlineTest.orderId, resetOnlineTest.actionTriggeredBy)
             .map(_ => Ok)
             .recover {
               case _: ResetLimitExceededException =>
@@ -199,7 +197,7 @@ class OnlineTestController @Inject() (cc: ControllerComponents,
 
   def verifyAccessCode() = Action.async(parse.json) { implicit request =>
     withJsonBody[VerifyAccessCode] { verifyAccessCode =>
-      phase2TestService2.verifyAccessCode(verifyAccessCode.email, verifyAccessCode.accessCode).map {
+      phase2TestService.verifyAccessCode(verifyAccessCode.email, verifyAccessCode.accessCode).map {
         invigilatedTestUrl => Ok(Json.toJson(InvigilatedTestUrl(invigilatedTestUrl)))
       }.recover {
         case _: ExpiredTestForTokenException => Forbidden

@@ -22,36 +22,9 @@ import play.api.libs.json.JodaReads._ // This is needed for DateTime serializati
 import play.api.libs.json.{ Json, OFormat }
 import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
-// TODO: Cubiks based code - delete
-case class CubiksTest(scheduleId: Int,
-                      usedForResults: Boolean,
-                      cubiksUserId: Int,
-                      testProvider: String = "cubiks",
-                      token: String,
-                      testUrl: String,
-                      invitationDate: DateTime,
-                      participantScheduleId: Int,
-                      startedDateTime: Option[DateTime] = None,
-                      completedDateTime: Option[DateTime] = None,
-                      resultsReadyToDownload: Boolean = false,
-                      reportId: Option[Int] = None,
-                      reportLinkURL: Option[String] = None,
-                      reportStatus: Option[String] = None,
-                      testResult: Option[model.persisted.TestResult] = None,
-                      invigilatedAccessCode: Option[String] = None
-                     ) extends Test
-
-object CubiksTest {
-
-  import repositories.BSONDateTimeHandler
-
-  implicit val phase1TestHandler: BSONHandler[BSONDocument, CubiksTest] = Macros.handler[CubiksTest]
-  implicit val phase1TestFormat = Json.format[CubiksTest]
-}
-// TODO: Cubiks based code - delete
 case class Phase1TestProfile(expirationDate: DateTime,
-                             tests: List[CubiksTest],
-                             evaluation: Option[PassmarkEvaluation] = None) extends CubiksTestProfile
+                             tests: List[PsiTest],
+                             evaluation: Option[PassmarkEvaluation] = None) extends PsiTestProfile
 
 object Phase1TestProfile {
 
@@ -76,7 +49,8 @@ case class PsiTest(inventoryId: String,
                    reportLinkURL: Option[String] = None,
                    reportStatus: Option[String] = None,
                    testResult: Option[model.persisted.PsiTestResult] = None,
-                   invigilatedAccessCode: Option[String] = None) extends Test {
+                   invigilatedAccessCode: Option[String] = None
+                  ) extends Test {
   def isCompleted = completedDateTime.isDefined
 }
 
@@ -85,15 +59,4 @@ object PsiTest {
 
   implicit val psiTestHandler: BSONHandler[BSONDocument, PsiTest] = Macros.handler[PsiTest]
   implicit val psiTestFormat: OFormat[PsiTest] = Json.format[PsiTest]
-}
-
-case class Phase1TestProfile2(expirationDate: DateTime,
-                              tests: List[PsiTest],
-                              evaluation: Option[PassmarkEvaluation] = None) extends PsiTestProfile
-object Phase1TestProfile2 {
-
-  import repositories.BSONDateTimeHandler
-
-  implicit val bsonHandler: BSONHandler[BSONDocument, Phase1TestProfile2] = Macros.handler[Phase1TestProfile2]
-  implicit val phase1TestProfile2Format = Json.format[Phase1TestProfile2]
 }

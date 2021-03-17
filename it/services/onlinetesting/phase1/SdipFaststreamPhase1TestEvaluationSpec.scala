@@ -4,7 +4,7 @@ import model.ApplicationStatus.{ apply => _, _ }
 import model.EvaluationResults._
 import model.{ ApplicationStatus => _, _ }
 
-class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluation2Spec {
+class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
 
   "phase1 evaluation process" should {
 
@@ -71,7 +71,6 @@ class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluation2Spec {
 
     "re-evaluate sdip scheme to Red for SdipFaststream candidate after changing passmarks" in new TestFixture {
       applicationEvaluation("application-1", 80, 80, 80, 80, SchemeId("Commercial"), SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))
-        (ApplicationRoute.SdipFaststream)
       mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
         SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
 
@@ -83,7 +82,6 @@ class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluation2Spec {
 
     "re-evaluate sdip scheme to Green for SdipFaststream candidate after changing passmarks" in new TestFixture {
       applicationEvaluation("application-1", 80, 80, 80, 80, SchemeId("Commercial"), SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))
-        (ApplicationRoute.SdipFaststream)
       mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
         SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
 
@@ -94,7 +92,6 @@ class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluation2Spec {
 
     "do not evaluate sdip scheme for SdipFaststream candidate until there are sdip passmarks" in new TestFixture {
       applicationEvaluation("application-1", 80, 80, 80, 80, SchemeId("Commercial"), SchemeId("DigitalAndTechnology"), SchemeId("Sdip"))
-        (ApplicationRoute.SdipFaststream)
       mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
         SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
 

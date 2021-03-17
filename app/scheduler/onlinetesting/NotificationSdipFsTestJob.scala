@@ -25,18 +25,16 @@ import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
-import services.onlinetesting.phase1.Phase1TestService2
+import services.onlinetesting.phase1.Phase1TestService
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class FailedSdipFsTestJob @Inject() (val service: Phase1TestService2,
+class FailedSdipFsTestJob @Inject() (val service: Phase1TestService,
                                      val mongoComponent: ReactiveMongoComponent,
                                      val config: FailedSdipFsTestJobConfig) extends NotificationSdipFsTestJob {
-  //  override val service = Phase1TestService2X
   override val notificationType = FailedSdipFsTestType
-  //  val config = FailedPhase1TestJobConfig2
 }
 
 trait NotificationSdipFsTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {

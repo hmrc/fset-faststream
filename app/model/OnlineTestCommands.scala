@@ -16,8 +16,6 @@
 
 package model
 
-import model.PersistedObjects.CandidateTestReport
-import model.exchange.passmarksettings.Phase1PassMarkSettings
 import play.api.libs.json.{ Json, OFormat }
 
 object OnlineTestCommands {
@@ -37,24 +35,12 @@ object OnlineTestCommands {
     def isInvigilatedVideo = videoInterviewAdjustments.exists(_.invigilatedInfo.isDefined)
   }
 
-  case class OnlineTestApplicationWithCubiksUser(applicationId: String, userId: String, cubiksUserId: Int)
-
   case class OnlineTestReportAvailability(reportId: Int, available: Boolean)
 
   case class OnlineTestReport(xml: Option[String])
 
-  case class CandidateScoresWithPreferencesAndPassmarkSettings(
-                                                                passmarkSettings: Phase1PassMarkSettings, // pass and fail mark
-                                                                preferences: Preferences, // preferences which scheme candidates like
-                                                                scores: CandidateTestReport, // applicationId + scores
-                                                                applicationStatus: String
-                                                              )
-
   case class TimeAdjustmentsOnlineTestApplication(etrayTimeAdjustmentPercentage: Int,
                                                   videoInterviewTimeAdjustmentPercentage: Int)
-
-  case class TestResult(status: String, norm: String,
-                        tScore: Option[Double], percentile: Option[Double], raw: Option[Double], sten: Option[Double])
 
   case class PsiTestResult(status: String, tScore: Double, raw: Double)
 
@@ -65,8 +51,6 @@ object OnlineTestCommands {
   object Implicits {
     implicit val TimeAdjustmentsOnlineTestApplicationFormats = Json.format[TimeAdjustmentsOnlineTestApplication]
     implicit val ApplicationForOnlineTestingFormats = Json.format[OnlineTestApplication]
-    implicit val OnlineTestApplicationUserFormats = Json.format[OnlineTestApplicationWithCubiksUser]
     implicit val OnlineTestReportIdMRAFormats = Json.format[OnlineTestReportAvailability]
-    implicit val testFormat = Json.format[TestResult]
   }
 }

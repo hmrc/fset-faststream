@@ -16,43 +16,42 @@
 
 package services.testdata.candidate.onlinetests.phase1
 
-import config.{ MicroserviceAppConfig, OnlineTestsGatewayConfig, TestIntegrationGatewayConfig }
-import javax.inject.{ Inject, Singleton }
-import model.exchange.testdata.CreateCandidateResponse.{ TestGroupResponse2, TestResponse2 }
-import model.persisted.{ Phase1TestProfile2, PsiTest }
+import config.{MicroserviceAppConfig, OnlineTestsGatewayConfig}
+import model.exchange.testdata.CreateCandidateResponse.{TestGroupResponse2, TestResponse2}
+import model.persisted.{Phase1TestProfile, PsiTest}
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
-import repositories.onlinetesting.Phase1TestRepository2
-import services.testdata.candidate.{ ConstructiveGenerator, SubmittedStatusGenerator }
+import repositories.onlinetesting.Phase1TestRepository
+import services.testdata.candidate.{ConstructiveGenerator, SubmittedStatusGenerator}
 import uk.gov.hmrc.http.HeaderCarrier
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
 class Phase1TestsInvitedStatusGenerator @Inject() (val previousStatusGenerator: SubmittedStatusGenerator,
-                                                   otRepository: Phase1TestRepository2,
+                                                   otRepository: Phase1TestRepository,
                                                    appConfig: MicroserviceAppConfig
                                                   ) extends ConstructiveGenerator {
   private val OneDay = 86400000
-  val gatewayConfig: OnlineTestsGatewayConfig = appConfig.onlineTestsGatewayConfig
-  val onlineTestGatewayConfig: TestIntegrationGatewayConfig = appConfig.testIntegrationGatewayConfig
+  val onlineTestsGatewayConfig: OnlineTestsGatewayConfig = appConfig.onlineTestsGatewayConfig
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
 
     val testsNames = if (generatorConfig.assistanceDetails.setGis) {
-      onlineTestGatewayConfig.phase1Tests.gis
+      onlineTestsGatewayConfig.phase1Tests.gis
     } else {
-      onlineTestGatewayConfig.phase1Tests.standard
+      onlineTestsGatewayConfig.phase1Tests.standard
     }
 
     val psiTests = testsNames.map{ testName =>
       (
         testName,
-        onlineTestGatewayConfig.phase1Tests.tests(testName).inventoryId,
-        onlineTestGatewayConfig.phase1Tests.tests(testName).assessmentId,
-        onlineTestGatewayConfig.phase1Tests.tests(testName).reportId,
-        onlineTestGatewayConfig.phase1Tests.tests(testName).normId
+        onlineTestsGatewayConfig.phase1Tests.tests(testName).inventoryId,
+        onlineTestsGatewayConfig.phase1Tests.tests(testName).assessmentId,
+        onlineTestsGatewayConfig.phase1Tests.tests(testName).reportId,
+        onlineTestsGatewayConfig.phase1Tests.tests(testName).normId
       )
     }.map { case (testName, inventoryId, assessmentId, reportId, normId) =>
       val orderId = java.util.UUID.randomUUID.toString
@@ -70,14 +69,14 @@ class Phase1TestsInvitedStatusGenerator @Inject() (val previousStatusGenerator: 
       test
     }
 
-    val phase1TestProfile2 = Phase1TestProfile2(
+    val phase1TestProfile = Phase1TestProfile(
       expirationDate = generatorConfig.phase1TestData.flatMap(_.expiry).getOrElse(DateTime.now().plusDays(7)),
       tests = psiTests
     )
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- otRepository.insertOrUpdateTestGroup(candidateInPreviousStatus.applicationId.get, phase1TestProfile2)
+      _ <- otRepository.insertOrUpdateTestGroup(candidateInPreviousStatus.applicationId.get, phase1TestProfile)
     } yield {
       val testResponses = psiTests.map(test => TestResponse2(test.inventoryId, test.orderId, test.testUrl))
       candidateInPreviousStatus.copy(phase1TestGroup = Some(

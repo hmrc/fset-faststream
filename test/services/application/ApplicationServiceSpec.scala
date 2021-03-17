@@ -44,8 +44,8 @@ import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ PassToPhase2, ResetPhase1TestInvitedSubmitted }
 import services.allocation.CandidateAllocationService
 import services.events.EventsService
-import services.onlinetesting.phase1.EvaluatePhase1ResultService2
-import services.onlinetesting.phase2.EvaluatePhase2ResultService2
+import services.onlinetesting.phase1.EvaluatePhase1ResultService
+import services.onlinetesting.phase2.EvaluatePhase2ResultService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import services.sift.{ ApplicationSiftService, SiftAnswersService }
 import services.stc.StcEventServiceFixture
@@ -1103,16 +1103,16 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val cdRepositoryMock          = mock[ContactDetailsRepository]
     val schemePreferencesRepoMock = mock[SchemePreferencesRepository]
     val mediaRepoMock             = mock[MediaRepository]
-    val evalPhase1ResultMock      = mock[EvaluatePhase1ResultService2]
-    val evalPhase2ResultMock      = mock[EvaluatePhase2ResultService2]
+    val evalPhase1ResultMock      = mock[EvaluatePhase1ResultService]
+    val evalPhase2ResultMock      = mock[EvaluatePhase2ResultService]
     val evalPhase3ResultMock      = mock[EvaluatePhase3ResultService]
 
     val phase1EvaluationRepositoryMock = mock[OnlineTestEvaluationRepository]
     val phase2EvaluationRepositoryMock = mock[OnlineTestEvaluationRepository]
     val phase3EvaluationRepositoryMock = mock[OnlineTestEvaluationRepository]
 
-    val phase1TestRepository2Mock = mock[Phase1TestMongoRepository2]
-    val phase2TestRepository2Mock = mock[Phase2TestMongoRepository2]
+//    val phase1TestRepository2Mock = mock[Phase1TestMongoRepository2]
+//    val phase2TestRepository2Mock = mock[Phase2TestMongoRepository2]
 
     val siftServiceMock          = mock[ApplicationSiftService]
     val siftAnswersServiceMock   = mock[SiftAnswersService]
@@ -1172,8 +1172,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       phase1EvaluationRepositoryMock,
       phase2EvaluationRepositoryMock,
       phase3EvaluationRepositoryMock,
-      phase1TestRepository2Mock,
-      phase2TestRepository2Mock,
+//      phase1TestRepository2Mock,
+//      phase2TestRepository2Mock,
       siftServiceMock,
       siftAnswersServiceMock,
       schemeRepoMock,

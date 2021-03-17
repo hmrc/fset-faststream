@@ -63,7 +63,7 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
                                    val eventService: StcEventService,
                                    val siftService: ApplicationSiftService,
                                    appConfig: MicroserviceAppConfig) extends OnlineTestService with Phase3TestConcern {
-  type TestRepository2 = Phase3TestRepository
+  type TestRepository = Phase3TestRepository
 
   val gatewayConfig = appConfig.launchpadGatewayConfig
 

@@ -17,7 +17,6 @@
 package model
 
 import model.Commands.PhoneNumber
-import model.OnlineTestCommands.TestResult
 import org.joda.time.LocalDate
 import model.ApplicationStatus._
 import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
@@ -34,29 +33,6 @@ object PersistedObjects {
 
   case class UserIdAndPhoneNumber(userId: String, phoneNumber: Option[PhoneNumber])
 
-  case class CandidateTestReport(applicationId: String, reportType: String,
-    competency: Option[TestResult] = None, numerical: Option[TestResult] = None,
-    verbal: Option[TestResult] = None, situational: Option[TestResult] = None) {
-
-    def isValid(gis: Boolean) = {
-      val competencyValid = competency.exists(testIsValid(tScore = true))
-      val situationalValid = situational.exists(testIsValid(tScore = true, raw = true, percentile = true, sten = true))
-      val numericalValid = numerical.exists(testIsValid(tScore = true, raw = true, percentile = true))
-      val verbalValid = verbal.exists(testIsValid(tScore = true, raw = true, percentile = true))
-
-      competencyValid && situationalValid && (gis ^ (numericalValid && verbalValid))
-    }
-
-    private def testIsValid(tScore: Boolean, raw: Boolean = false, percentile: Boolean = false, sten: Boolean = false)(result: TestResult) = {
-      !((tScore && result.tScore.isEmpty) ||
-        (raw && result.raw.isEmpty) ||
-        (percentile && result.percentile.isEmpty) ||
-        (sten && result.sten.isEmpty))
-    }
-  }
-
-  case class OnlineTestPDFReport(applicationId: String)
-
   case class AllocatedCandidate(candidateDetails: PersonalDetailsWithUserId, applicationId: String, expireDate: LocalDate)
 
   case class ApplicationProgressStatus(name: String, value: Boolean)
@@ -70,13 +46,9 @@ object PersistedObjects {
   object Implicits {
     implicit val addressFormats = Json.format[Address]
     implicit val personalDetailsWithUserIdFormats = Json.format[PersonalDetailsWithUserId]
-    implicit val testFormats = Json.format[TestResult]
-    implicit val candidateTestReportFormats = Json.format[CandidateTestReport]
     implicit val allocatedCandidateFormats = Json.format[AllocatedCandidate]
     implicit val applicationProgressStatusFormats = Json.format[ApplicationProgressStatus]
     implicit val applicationProgressStatusesFormats = Json.format[ApplicationProgressStatuses]
     implicit val applicationUserFormats = Json.format[ApplicationUser]
-
-    implicit val onlineTestPdfReportFormats = Json.format[OnlineTestPDFReport]
   }
 }

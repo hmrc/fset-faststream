@@ -52,7 +52,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
     "return nothing if application does not have PHASE3_TESTS" in {
       insertApplication2("app1", ApplicationStatus.PHASE2_TESTS, phase1Tests = None, Some(phase2Test))
-      val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation2("version1", batchSize = 1).futureValue
+      val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
       result mustBe empty
     }
 
@@ -62,7 +62,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       insertApplication2("app1", ApplicationStatus.PHASE3_TESTS, phase1Tests = None, Some(phase2TestWithResult),
         Some(phase3TestWithResult), phase2Evaluation = Some(phase2Evaluation))
 
-      val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation2("phase2_version1", batchSize = 1).futureValue
+      val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation("phase2_version1", batchSize = 1).futureValue
       assertApplication(result.head, phase2Evaluation)
     }
 
@@ -88,7 +88,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         "phase3-version1-res", Some("phase2-version1-res"))
       phase3EvaluationRepo.savePassmarkEvaluation("app1", phase3Evaluation, None).futureValue
 
-      val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation2("phase3_version2", batchSize = 1).futureValue
+      val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation("phase3_version2", batchSize = 1).futureValue
       assertApplication(result.head, phase2Evaluation, ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER)
     }
 
@@ -101,7 +101,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         "phase3_version1-res", Some("phase2_version1-res"))
       phase3EvaluationRepo.savePassmarkEvaluation("app1", phase3Evaluation, None).futureValue
 
-      val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation2("phase3_version2", batchSize = 1).futureValue
+      val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation("phase3_version2", batchSize = 1).futureValue
       assertApplication(result.head, phase2Evaluation)
     }
 
@@ -126,7 +126,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val phase3Evaluation = PassmarkEvaluation("phase3_version1", Some("phase2_version1"), resultToSave, "phase3_version1-res", None)
       phase3EvaluationRepo.savePassmarkEvaluation("app1", phase3Evaluation, None).futureValue
 
-      val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation2("phase3_version1", batchSize = 1).futureValue
+      val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation("phase3_version1", batchSize = 1).futureValue
       assertApplication(result.head, phase2Evaluation)
     }
 
@@ -139,7 +139,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         "phase3_version1-res", Some("phase2_version1-res"))
       phase3EvaluationRepo.savePassmarkEvaluation("app1", phase3Evaluation, None).futureValue
 
-      val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation2("phase3_version1", batchSize = 1).futureValue
+      val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation("phase3_version1", batchSize = 1).futureValue
 
       assertApplication(result.head, phase2Evaluation)
     }
@@ -215,7 +215,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     }
   }
 
-  private def assertApplication(application: ApplicationReadyForEvaluation2, phase2Evaluation: PassmarkEvaluation,
+  private def assertApplication(application: ApplicationReadyForEvaluation, phase2Evaluation: PassmarkEvaluation,
                                 expectedApplicationStatus: ApplicationStatus = ApplicationStatus.PHASE3_TESTS) = {
     application.applicationId mustBe "app1"
     application.applicationStatus mustBe expectedApplicationStatus

@@ -20,7 +20,7 @@ import java.util.UUID
 import java.util.regex.Pattern
 
 import com.github.nscala_time.time.OrderingImplicits.DateTimeOrdering
-import config.{ EventsConfig, MicroserviceAppConfig, OnlineTestsGatewayConfig, TestIntegrationGatewayConfig }
+import config.MicroserviceAppConfig
 import factories.DateTimeFactory
 import javax.inject.{ Inject, Singleton }
 import model.ApplicationRoute.ApplicationRoute
