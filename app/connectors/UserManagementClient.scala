@@ -84,7 +84,10 @@ class UserManagementClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(
 
   def updateDetails(userId: UniqueIdentifier, firstName: String, lastName: String,
     preferredName: Option[String])(implicit hc: HeaderCarrier): Future[Unit] =
-    http.PUT(s"${url.host}/details/$userId", UpdateDetails(firstName, lastName, preferredName, ServiceName)).map(_ => ())
+    http.PUT(
+      s"${url.host}/$urlPrefix/service/$ServiceName/details/$userId",
+      UpdateDetails(firstName, lastName, preferredName, ServiceName)
+    ).map(_ => ())
 
   def failedLogin(email: String)(implicit hc: HeaderCarrier): Future[UserResponse] = {
     import uk.gov.hmrc.http.HttpReads.Implicits._
