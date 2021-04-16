@@ -16,14 +16,16 @@
 
 package repositories
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.Preferences
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.DB
-import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+//import play.modules.reactivemongo.ReactiveMongoComponent
+//import reactivemongo.api.DB
+//import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
+//import reactivemongo.play.json.ImplicitBSONHandlers._
+//import uk.gov.hmrc.mongo.ReactiveRepository
+//import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -34,14 +36,15 @@ trait FrameworkPreferenceRepository {
 }
 
 @Singleton
-class FrameworkPreferenceMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[Preferences, BSONObjectID](
-    CollectionNames.APPLICATION,
-    mongoComponent.mongoConnector.db,
-    Preferences.jsonFormat,
-    ReactiveMongoFormats.objectIdFormats
+class FrameworkPreferenceMongoRepository @Inject() (mongoComponent: MongoComponent)
+  extends PlayMongoRepository[Preferences](
+    collectionName = CollectionNames.APPLICATION,
+    mongoComponent = mongoComponent,
+    domainFormat = Preferences.jsonFormat,
+    indexes = Nil
   ) with FrameworkPreferenceRepository with ReactiveRepositoryHelpers {
 
+  /*
   override def savePreferences(applicationId: String, preferences: Preferences): Future[Unit] = {
     require(preferences.isValid, "Preferences must be valid when saving to repository")
 
@@ -55,13 +58,16 @@ class FrameworkPreferenceMongoRepository @Inject() (mongoComponent: ReactiveMong
     val validator = singleUpdateValidator(applicationId, actionDesc = "deleting allocation")
 
     collection.update(ordered = false).one(query, preferencesBSON) map validator
-  }
+  }*/
+  override def savePreferences(applicationId: String, preferences: Preferences): Future[Unit] = ???
 
+  /*
   override def tryGetPreferences(applicationId: String): Future[Option[Preferences]] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("framework-preferences" -> 1, "_id" -> 0)
     collection.find(query, Some(projection)).one[BSONDocument].map { rootDocument =>
       rootDocument.flatMap(_.getAs[Preferences]("framework-preferences"))
     }
-  }
+  }*/
+  override def tryGetPreferences(applicationId: String): Future[Option[Preferences]] = ???
 }

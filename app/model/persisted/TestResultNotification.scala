@@ -17,8 +17,7 @@
 package model.persisted
 
 import play.api.libs.json.Json
-import reactivemongo.bson.BSONDocument
-
+//import reactivemongo.bson.BSONDocument
 
 case class TestResultNotification(
   applicationId: String,
@@ -26,13 +25,14 @@ case class TestResultNotification(
   preferredName: String)
 
 object TestResultNotification {
+/*
   def fromBson(doc: BSONDocument) = {
     val applicationId = doc.getAs[String]("applicationId").get
     val userId = doc.getAs[String]("userId").get
     val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
     val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
     TestResultNotification(applicationId, userId, preferredName)
-  }
+  }*/
 
   implicit val testResultNotificationFormat = Json.format[TestResultNotification]
 }

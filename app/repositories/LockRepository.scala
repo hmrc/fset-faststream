@@ -16,17 +16,19 @@
 
 package repositories
 
-import javax.inject.{ Inject, Singleton }
-import org.joda.time.{ DateTime, Duration }
-import play.api.libs.json.{ Format, JsObject, JsValue, Json }
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.DB
-import reactivemongo.api.indexes.Index
-import reactivemongo.api.indexes.IndexType.Ascending
-import reactivemongo.core.errors.DatabaseException
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import javax.inject.{Inject, Singleton}
+import org.joda.time.{DateTime, Duration}
+import play.api.libs.json.{Format, JsObject, JsValue, Json}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+//import play.modules.reactivemongo.ReactiveMongoComponent
+//import reactivemongo.api.DB
+//import reactivemongo.api.indexes.Index
+//import reactivemongo.api.indexes.IndexType.Ascending
+//import reactivemongo.core.errors.DatabaseException
+//import reactivemongo.play.json.ImplicitBSONHandlers._
+//import uk.gov.hmrc.mongo.ReactiveRepository
+//import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext, Future }
@@ -36,10 +38,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 case class Lock(id: String, owner: String, timeCreated: DateTime, expiryTime: DateTime)
 
 object LockFormats {
-  implicit val dateFormat = ReactiveMongoFormats.dateTimeFormats
-  implicit val format = ReactiveMongoFormats.mongoEntity({
-    Format(Json.reads[Lock], Json.writes[Lock])
-  })
+//  implicit val dateFormat = ReactiveMongoFormats.dateTimeFormats
+//  implicit val format = ReactiveMongoFormats.mongoEntity({
+//    Format(Json.reads[Lock], Json.writes[Lock])
+//  })
 
   val id = "_id"
   val owner = "owner"
@@ -48,30 +50,34 @@ object LockFormats {
 }
 
 trait LockRepository {
-  def lock(reqLockId: String, reqOwner: String, forceReleaseAfter: Duration): Future[Boolean]
-
-  def isLocked(reqLockId: String, reqOwner: String): Future[Boolean]
-
-  def releaseLock(reqLockId: String, reqOwner: String): Future[Unit]
+//  def lock(reqLockId: String, reqOwner: String, forceReleaseAfter: Duration): Future[Boolean]
+//  def isLocked(reqLockId: String, reqOwner: String): Future[Boolean]
+//  def releaseLock(reqLockId: String, reqOwner: String): Future[Unit]
 }
 
 @Singleton
-class LockMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[Lock, String](
-    CollectionNames.LOCKS,
-    mongoComponent.mongoConnector.db,
-    LockFormats.format,
-    implicitly[Format[String]]) with LockRepository {
+class LockMongoRepository @Inject() (mongoComponent: MongoComponent)
+  extends PlayMongoRepository[Lock](
+    collectionName = CollectionNames.LOCKS,
+    mongoComponent = mongoComponent,
+//    domainFormat = LockFormats.format,
+    domainFormat = ???,
+//    implicitly[Format[String]]) with LockRepository {
+    indexes = Nil
+  ) with LockRepository {
   private val DuplicateKey = 11000
 
   import LockFormats._
 
+  // TODO: test the indexes
+/*
   override def indexes: Seq[Index] = Seq(
     Index(Seq((owner, Ascending)), unique = false),
     Index(Seq((timeCreated, Ascending)), unique = false),
     Index(Seq((expiryTime, Ascending)), unique = false)
-  )
+  )*/
 
+/*
   def lock(reqLockId: String, reqOwner: String, forceReleaseAfter: Duration): Future[Boolean] = withCurrentTime { now =>
     collection.delete().one(Json.obj(id -> reqLockId, expiryTime -> Json.obj("$lte" -> now))).flatMap { writeResult =>
       if (writeResult.n != 0) {
@@ -90,17 +96,19 @@ class LockMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
             false
         }
     }
-  }
+  }*/
 
+/*
   def isLocked(reqLockId: String, reqOwner: String): Future[Boolean] = withCurrentTime { now =>
     collection.find(
       Json.obj(id -> reqLockId, owner -> reqOwner, expiryTime -> Json.obj("$gt" -> now)),
       projection = Option.empty[JsObject])
       .one[JsValue].map(_.isDefined)
-  }
+  }*/
 
+/*
   def releaseLock(reqLockId: String, reqOwner: String): Future[Unit] = {
     logger.debug(s"Releasing lock '$reqLockId' for '$reqOwner'")
     collection.delete().one(Json.obj(id -> reqLockId, owner -> reqOwner)).map(_ => ())
-  }
+  }*/
 }

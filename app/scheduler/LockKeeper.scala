@@ -19,20 +19,21 @@ package scheduler
 import java.util.UUID
 
 import org.joda.time.Duration
-import play.modules.reactivemongo.ReactiveMongoComponent
+//import play.modules.reactivemongo.ReactiveMongoComponent
 import repositories._
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 trait LockKeeper {
-  val repo: LockRepository
+//  val repo: LockRepository
   val lockId: String
   val serverId: String
   val forceLockReleaseAfter: Duration
   val greedyLockingEnabled: Boolean
 
-  def isLocked(implicit ec: ExecutionContext): Future[Boolean] = repo.isLocked(lockId, serverId)
+//  def isLocked(implicit ec: ExecutionContext): Future[Boolean] = repo.isLocked(lockId, serverId)
 
+/* //TODO: fix
   def tryLock[T](body: => Future[T])(implicit ec: ExecutionContext): Future[Option[T]] = {
     repo.lock(lockId, serverId, forceLockReleaseAfter)
       .flatMap { acquired =>
@@ -48,13 +49,14 @@ trait LockKeeper {
           Future.successful(None)
         }
       }
-  }
+  }*/
 }
 
 object LockKeeper {
 
   lazy val generatedServerId = UUID.randomUUID().toString
 
+/*
   def apply(mongoComponent: ReactiveMongoComponent,
             lockIdToUse: String,
             forceLockReleaseAfterToUse: scala.concurrent.duration.Duration) = new LockKeeper {
@@ -62,6 +64,16 @@ object LockKeeper {
     val serverId = generatedServerId
     val lockId = lockIdToUse
     val repo = new LockMongoRepository(mongoComponent)
+    val greedyLockingEnabled: Boolean = true
+  }*/
+
+  def apply(
+            lockIdToUse: String,
+            forceLockReleaseAfterToUse: scala.concurrent.duration.Duration) = new LockKeeper {
+    val forceLockReleaseAfter: Duration = Duration.millis(forceLockReleaseAfterToUse.toMillis)
+    val serverId = generatedServerId
+    val lockId = lockIdToUse
+//    val repo = new LockMongoRepository(mongoComponent)
     val greedyLockingEnabled: Boolean = true
   }
 }

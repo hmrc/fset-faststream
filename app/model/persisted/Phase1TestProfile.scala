@@ -20,7 +20,7 @@ import org.joda.time.DateTime
 import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
 import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.{ Json, OFormat }
-import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
+//import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class Phase1TestProfile(expirationDate: DateTime,
                              tests: List[PsiTest],
@@ -28,9 +28,9 @@ case class Phase1TestProfile(expirationDate: DateTime,
 
 object Phase1TestProfile {
 
-  import repositories.BSONDateTimeHandler
+//  import repositories.BSONDateTimeHandler
 
-  implicit val bsonHandler: BSONHandler[BSONDocument, Phase1TestProfile] = Macros.handler[Phase1TestProfile]
+//  implicit val bsonHandler: BSONHandler[BSONDocument, Phase1TestProfile] = Macros.handler[Phase1TestProfile]
   implicit val phase1TestProfileFormat = Json.format[Phase1TestProfile]
 }
 
@@ -55,8 +55,8 @@ case class PsiTest(inventoryId: String,
 }
 
 object PsiTest {
-  import repositories.BSONDateTimeHandler
+//  import repositories.BSONDateTimeHandler
 
-  implicit val psiTestHandler: BSONHandler[BSONDocument, PsiTest] = Macros.handler[PsiTest]
+//  implicit val psiTestHandler: BSONHandler[BSONDocument, PsiTest] = Macros.handler[PsiTest]
   implicit val psiTestFormat: OFormat[PsiTest] = Json.format[PsiTest]
 }

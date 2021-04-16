@@ -18,20 +18,20 @@ package model.exchange
 
 import model.SchemeId
 import play.api.libs.json.{ Format, Json }
-import reactivemongo.bson.Macros
+//import reactivemongo.bson.Macros
 
 case class ApplicationResult(applicationId: String, result: String)
 
 object ApplicationResult {
   implicit val format = Json.format[ApplicationResult]
-  implicit val bsonHandler = Macros.handler[ApplicationResult]
+//  implicit val bsonHandler = Macros.handler[ApplicationResult]
 }
 
 case class FsbEvaluationResults(schemeId: SchemeId, applicationResults: List[ApplicationResult])
 
 object FsbEvaluationResults {
   implicit val format = Json.format[FsbEvaluationResults]
-  implicit val bsonHandler = Macros.handler[FsbEvaluationResults]
+//  implicit val bsonHandler = Macros.handler[FsbEvaluationResults]
 }
 
 case class FsbScoresAndFeedback(

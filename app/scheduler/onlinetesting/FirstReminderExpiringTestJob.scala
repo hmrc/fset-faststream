@@ -21,7 +21,7 @@ import javax.inject.{ Inject, Singleton }
 import model._
 import play.api.Configuration
 import play.api.mvc.RequestHeader
-import play.modules.reactivemongo.ReactiveMongoComponent
+//import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
@@ -34,7 +34,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class FirstPhase1ReminderExpiringTestJob @Inject() (val service: Phase1TestService,
-                                                    val mongoComponent: ReactiveMongoComponent,
+//                                                    val mongoComponent: ReactiveMongoComponent,
                                                     val config: FirstPhase1ReminderExpiringTestJobConfig
                                                    ) extends FirstReminderExpiringTestJob {
   override val reminderNotice: ReminderNotice = Phase1FirstReminder
@@ -42,7 +42,7 @@ class FirstPhase1ReminderExpiringTestJob @Inject() (val service: Phase1TestServi
 
 @Singleton
 class FirstPhase2ReminderExpiringTestJob @Inject() (val service: Phase2TestService,
-                                                    val mongoComponent: ReactiveMongoComponent,
+//                                                    val mongoComponent: ReactiveMongoComponent,
                                                     val config: FirstPhase2ReminderExpiringTestJobConfig
                                                    ) extends FirstReminderExpiringTestJob {
   override val reminderNotice: ReminderNotice = Phase2FirstReminder
@@ -50,7 +50,7 @@ class FirstPhase2ReminderExpiringTestJob @Inject() (val service: Phase2TestServi
 
 @Singleton
 class FirstPhase3ReminderExpiringTestJob @Inject() (val service: Phase3TestService,
-                                                    val mongoComponent: ReactiveMongoComponent,
+//                                                    val mongoComponent: ReactiveMongoComponent,
                                                     val config: FirstPhase3ReminderExpiringTestJobConfig
                                                    ) extends FirstReminderExpiringTestJob {
   override val reminderNotice: ReminderNotice = Phase3FirstReminder

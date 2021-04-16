@@ -22,7 +22,7 @@ import org.joda.time.LocalDate
 import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
 import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json._
-import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
+//import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 object AssessmentScoresCommands {
 
@@ -47,11 +47,12 @@ object AssessmentScoresCommands {
       def writes(scheme: AssessmentScoresSectionType) = JsString(scheme.toString)
     }
 
+/*
     implicit object BSONEnumHandler extends BSONHandler[BSONString, AssessmentScoresSectionType] {
       def read(doc: BSONString) = AssessmentScoresSectionType.withName(doc.value)
 
       def write(scheme: AssessmentScoresSectionType) = BSON.write(scheme.toString)
-    }
+    }*/
   }
 
   case class AssessmentScoresSubmitExerciseRequest(

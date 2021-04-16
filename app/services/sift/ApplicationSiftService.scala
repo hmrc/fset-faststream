@@ -32,7 +32,7 @@ import model.persisted.sift.NotificationExpiringSift
 import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered, SiftReminderNotice }
 import org.joda.time.DateTime
 import play.api.Logging
-import reactivemongo.bson.BSONDocument
+//import reactivemongo.bson.BSONDocument
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.sift.ApplicationSiftRepository
@@ -122,6 +122,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     applicationSiftRepo.findApplicationsReadyForSchemeSift(schemeId)
   }
 
+/*
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
     applicationSiftRepo.siftResultsExistsForScheme(applicationId, result.schemeId).flatMap { siftResultsExists =>
       if(siftResultsExists) {
@@ -136,7 +137,8 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
         }
       }
     }
-  }
+  }*/
+  def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = ???
 
   def processExpiredCandidates(batchSize: Int, gracePeriodInSecs: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
     def processApplication(appForExpiry: ApplicationForSiftExpiry): Future[Unit] = {
@@ -248,6 +250,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     }
   }
 
+/*
   private def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult,
                                        updateBuilder: (Seq[SchemeEvaluationResult], Seq[SchemeEvaluationResult]) => Seq[BSONDocument]
                                       ): Future[Unit] = {
@@ -260,8 +263,9 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
       applicationSiftRepo.siftApplicationForScheme(applicationId, result, settableFields)
 
     }) flatMap identity
-  }
+  }*/
 
+/*
   private def buildSiftSettableFields(result: SchemeEvaluationResult, schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId])
                                      (currentSchemeStatus: Seq[SchemeEvaluationResult], currentSiftEvaluation: Seq[SchemeEvaluationResult]
                                      ): Seq[BSONDocument] = {
@@ -280,28 +284,31 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
         case _ => acc :+ doc
       }
     }
-  }
+  }*/
 
+/*
   private def maybeSetProgressStatus(siftedSchemes: Set[SchemeId], candidatesSiftableSchemes: Set[SchemeId]) = {
     if (candidatesSiftableSchemes subsetOf siftedSchemes) {
       progressStatusOnlyBSON(ProgressStatuses.SIFT_COMPLETED)
     } else {
       BSONDocument.empty
     }
-  }
+  }*/
 
+/*
   private def maybeFailSdip(result: SchemeEvaluationResult) = {
     if (Scheme.isSdip(result.schemeId) && result.result == Red.toString) {
       progressStatusOnlyBSON(ProgressStatuses.SDIP_FAILED_AT_SIFT)
     } else {
       BSONDocument.empty
     }
-  }
+  }*/
 
   def getSiftEvaluations(applicationId: String): Future[Seq[SchemeEvaluationResult]] = {
     applicationSiftRepo.getSiftEvaluations(applicationId)
   }
 
+/*
   // we need to consider that all siftable schemes have been sifted with a fail or the candidate has withdrawn from them
   // and sdip has been sifted with a pass
   private def maybeSetSdipFaststreamProgressStatus(newSchemeEvaluationResult: Seq[SchemeEvaluationResult],
@@ -322,8 +329,9 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     } else {
       BSONDocument.empty
     }
-  }
+  }*/
 
+/*
   def findStuckUsersCalculateCorrectProgressStatus(currentSchemeStatus: Seq[SchemeEvaluationResult],
                                                    currentSiftEvaluation: Seq[SchemeEvaluationResult]): BSONDocument = {
 
@@ -332,8 +340,9 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     val siftedSchemes = currentSiftEvaluation.map(_.schemeId).distinct
 
     maybeSetProgressStatus(siftedSchemes.toSet, candidatesSiftableSchemes.toSet)
-  }
+  }*/
 
+/*
   def findUsersInSiftReadyWhoShouldHaveBeenCompleted: Future[Seq[(FixStuckUser, Boolean)]] = {
 
     applicationSiftRepo.findAllUsersInSiftReady.map(_.map { potentialStuckUser =>
@@ -344,7 +353,8 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
 
       (potentialStuckUser, !result.isEmpty)
     })
-  }
+  }*/
+  def findUsersInSiftReadyWhoShouldHaveBeenCompleted: Future[Seq[(FixStuckUser, Boolean)]] = ???
 
   def fixUserInSiftReadyWhoShouldHaveBeenCompleted(applicationId: String): Future[Unit] = {
     (for {

@@ -16,14 +16,16 @@
 
 package repositories.application
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.FlagCandidatePersistedObject.FlagCandidate
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.bson.{ BSONDocument, BSONObjectID }
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+//import play.modules.reactivemongo.ReactiveMongoComponent
+//import reactivemongo.bson.{ BSONDocument, BSONObjectID }
+//import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+//import uk.gov.hmrc.mongo.ReactiveRepository
+//import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -33,7 +35,7 @@ trait FlagCandidateRepository {
   def save(flagCandidate: FlagCandidate): Future[Unit]
   def remove(appId: String): Future[Unit]
 }
-
+/*
 @Singleton
 class FlagCandidateMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
   extends ReactiveRepository[FlagCandidate, BSONObjectID](
@@ -41,7 +43,17 @@ class FlagCandidateMongoRepository @Inject() (mongoComponent: ReactiveMongoCompo
     mongoComponent.mongoConnector.db,
     FlagCandidate.FlagCandidateFormats,
     ReactiveMongoFormats.objectIdFormats) with FlagCandidateRepository with ReactiveRepositoryHelpers {
+*/
 
+@Singleton
+class FlagCandidateMongoRepository @Inject() (mongo: MongoComponent)
+  extends PlayMongoRepository[FlagCandidate](
+    collectionName = CollectionNames.APPLICATION,
+    mongoComponent = mongo,
+    domainFormat = FlagCandidate.FlagCandidateFormats,
+    indexes = Nil
+  ) with FlagCandidateRepository with ReactiveRepositoryHelpers {
+  /*
   def tryGetCandidateIssue(appId: String): Future[Option[FlagCandidate]] = {
     val query = BSONDocument("applicationId" -> appId)
     val projection = BSONDocument("applicationId" -> 1, "issue" -> 1)
@@ -52,8 +64,10 @@ class FlagCandidateMongoRepository @Inject() (mongoComponent: ReactiveMongoCompo
         case _ => None
       }
     }
-  }
+  }*/
+  def tryGetCandidateIssue(appId: String): Future[Option[FlagCandidate]] = ???
 
+  /*
   def save(flagCandidate: FlagCandidate): Future[Unit] = {
     val query = BSONDocument("applicationId" -> flagCandidate.applicationId)
     val result = BSONDocument("$set" -> BSONDocument(
@@ -62,13 +76,16 @@ class FlagCandidateMongoRepository @Inject() (mongoComponent: ReactiveMongoCompo
 
     val validator = singleUpdateValidator(flagCandidate.applicationId, actionDesc = "saving flag")
     collection.update(ordered = false).one(query, result) map validator
-  }
+  }*/
+  def save(flagCandidate: FlagCandidate): Future[Unit] = ???
 
+  /*
   def remove(appId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> appId)
     val result = BSONDocument("$unset" -> BSONDocument("issue" -> ""))
 
     val validator = singleUpdateValidator(appId, actionDesc = "removing flag")
     collection.update(ordered = false).one(query, result) map validator
-  }
+  }*/
+  def remove(appId: String): Future[Unit] = ???
 }

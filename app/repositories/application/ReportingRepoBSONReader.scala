@@ -29,11 +29,12 @@ import model.persisted._
 import model.persisted.sift.SiftTestGroup
 import model.report._
 import play.api.Logger.logger
-import reactivemongo.bson.{ BSONDocument, _ }
+//import reactivemongo.bson.{ BSONDocument, _ }
 import repositories.{ BaseBSONReader, CommonBSONDocuments }
 
 trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
+/*
   implicit val toCandidateProgressReportItem: BSONDocumentReader[CandidateProgressReportItem] = bsonReader {
     doc: BSONDocument => {
       val schemesDoc = doc.getAs[BSONDocument]("scheme-preferences")
@@ -88,8 +89,9 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
         schemes.getOrElse(Nil), disability, onlineAdjustments, assessmentCentreAdjustments, phoneAdjustments, gis, csedCivilServant,
         edipReportColumn, csedSdip, otherInternshipColumn, fastPassCertificate, assessmentCentre, applicationRoute)
     }
-  }
+  }*/
 
+/*
   implicit val toApplicationForInternshipReport: BSONDocumentReader[ApplicationForInternshipReport] = bsonReader {
     doc: BSONDocument => {
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
@@ -132,8 +134,9 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
         situationalTScore = situationalTScore
       )
     }
-  }
+  }*/
 
+/*
   implicit val toApplicationForAnalyticalSchemesReport: BSONDocumentReader[ApplicationForAnalyticalSchemesReport] = bsonReader {
     doc: BSONDocument => {
       val applicationId = doc.getAs[String]("applicationId").getOrElse("")
@@ -170,8 +173,9 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
         overallVideoScore = overallVideoScore
       )
     }
-  }
+  }*/
 
+/*
   implicit val toApplicationForDiversityReport: BSONDocumentReader[ApplicationForDiversityReport] = bsonReader {
     doc: BSONDocument => {
       val applicationRoute = doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
@@ -201,8 +205,9 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
         schemes.getOrElse(List.empty), disability, gis, onlineAdjustments,
         assessmentCentreAdjustments, civilServiceExperience, curSchemeStatus)
     }
-  }
+  }*/
 
+/*
   implicit val toApplicationForOnlineTestPassMarkReport: BSONDocumentReader[ApplicationForOnlineTestPassMarkReport] = bsonReader {
     doc: BSONDocument => {
       val userId = doc.getAs[String]("userId").getOrElse("")
@@ -234,8 +239,9 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
         toTestResultsForOnlineTestPassMarkReportItem(doc, applicationId),
         curSchemeStatus)
     }
-  }
+  }*/
 
+/*
   implicit val toApplicationForNumericTestExtractReport: BSONDocumentReader[ApplicationForNumericTestExtractReport] = bsonReader {
     doc: BSONDocument => {
       val userId = doc.getAs[String]("userId").getOrElse("")
@@ -277,8 +283,9 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
         currentSchemeStatus
       )
     }
-  }
+  }*/
 
+/*
   implicit val toApplicationForOnlineActiveTestCountReport: BSONDocumentReader[ApplicationForOnlineActiveTestCountReport]
   = bsonReader {
     doc: BSONDocument => {
@@ -298,15 +305,17 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
       ApplicationForOnlineActiveTestCountReport(userId,applicationId, gis, p1TestsCount, p2TestsCount)
     }
-  }
+  }*/
 
+/*
   private[application] def toCivilServiceExperienceDetailsReportItem(applicationRoute: ApplicationRoute,
                                                                      doc: BSONDocument
                                                                     ): Option[CivilServiceExperienceDetailsForDiversityReport] = {
     val civilServiceExperienceDetails = repositories.getCivilServiceExperienceDetails(applicationRoute, doc)
     Some(CivilServiceExperienceDetailsForDiversityReport(civilServiceExperienceDetails))
-  }
+  }*/
 
+/*
   private[application] def toTestResultsForOnlineTestPassMarkReportItem(
     appDoc: BSONDocument, applicationId: String): TestResultsForOnlineTestPassMarkReportItem = {
 
@@ -322,11 +331,12 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       videoInterviewResults,
       siftTestResults,
       None, None, None, None)
-  }
+  }*/
 
   // Just declaring that implementations needs to provide a MicroserviceAppConfig impl
   def appConfig: MicroserviceAppConfig
 
+/*
   private[application] def toPhase1TestResults(testGroupsDoc: Option[BSONDocument]): Seq[Option[PsiTestResult]] = {
     testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE1)).map { phase1Doc =>
       val phase1TestProfile = Phase1TestProfile.bsonHandler.read(phase1Doc)
@@ -337,8 +347,9 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
       toPhaseXTestResults(phase1TestProfile.activeTests, p1TestIds)
     }.getOrElse(Seq.fill(4)(None))
-  }
+  }*/
 
+/*
   private[application] def toPhase2TestResults(testGroupsDoc: Option[BSONDocument]): Seq[Option[PsiTestResult]] = {
     testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE2)).map { phase2Doc =>
       val phase2TestProfile = Phase2TestGroup.bsonHandler.read(phase2Doc)
@@ -349,7 +360,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
       toPhaseXTestResults(phase2TestProfile.activeTests, p2TestIds)
     }.getOrElse(Seq.fill(2)(None))
-  }
+  }*/
 
   private[application] def toPhaseXTestResults(activeTests: Seq[PsiTest],
                                                allTestIds: Seq[PsiTestIds]): Seq[Option[PsiTestResult]] = {
@@ -362,6 +373,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     allTestIds.map{ testIds => getTestResult(testIds.inventoryId) }
   }
 
+/*
   private[application] def toPhase3TestResults(testGroupsDoc: Option[BSONDocument]): Option[VideoInterviewTestResult] = {
     val reviewedDocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument](Phase.PHASE3))
       .flatMap(_.getAs[BSONArray]("tests"))
@@ -386,7 +398,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
         latestReviewed.calculateTotalScore()
       )
     }
-  }
+  }*/
 
   private[this] def toVideoInterviewQuestionTestResult(question: ReviewSectionQuestionRequest) = {
     VideoInterviewQuestionTestResult(
@@ -394,6 +406,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       question.reviewCriteria2.score)
   }
 
+/*
   private[application] def toSiftTestResults(applicationId: String,
                                              testGroupsDoc: Option[BSONDocument]): Option[PsiTestResult] = {
     val siftDocOpt = testGroupsDoc.flatMap(_.getAs[BSONDocument]("SIFT_PHASE"))
@@ -407,5 +420,5 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
           None
       }
     }
-  }
+  }*/
 }

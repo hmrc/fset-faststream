@@ -17,11 +17,11 @@
 package model
 
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+//import reactivemongo.bson.Macros
 
 case class SelectedSchemes(schemes: List[SchemeId], orderAgreed: Boolean, eligible: Boolean)
 
 object SelectedSchemes {
   implicit val selectedSchemesFormat = Json.format[SelectedSchemes]
-  implicit val selectedSchemesHandler = Macros.handler[SelectedSchemes]
+//  implicit val selectedSchemesHandler = Macros.handler[SelectedSchemes]
 }

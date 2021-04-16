@@ -17,17 +17,20 @@
 package repositories.personaldetails
 
 import factories.DateTimeFactory
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.ApplicationStatus
 import model.Exceptions.PersonalDetailsNotFound
 import model.persisted.PersonalDetails
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.{ Cursor, DB }
-import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+//import play.modules.reactivemongo.ReactiveMongoComponent
+//import reactivemongo.api.{ Cursor, DB }
+//import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
+//import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.{ CollectionNames, CommonBSONDocuments, ReactiveRepositoryHelpers }
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+//import uk.gov.hmrc.mongo.ReactiveRepository
+//import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -40,13 +43,17 @@ trait PersonalDetailsRepository {
   def findByIds(appIds: Seq[String]): Future[List[(String, Option[PersonalDetails])]]
 }
 
-@Singleton //TODO:fix CommonBSONDocuments2
-class PersonalDetailsMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory, mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[PersonalDetails, BSONObjectID](
-    CollectionNames.APPLICATION, mongoComponent.mongoConnector.db, PersonalDetails.personalDetailsFormat,
-    ReactiveMongoFormats.objectIdFormats) with PersonalDetailsRepository with CommonBSONDocuments with ReactiveRepositoryHelpers {
+@Singleton
+class PersonalDetailsMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory, mongo: MongoComponent)
+  extends PlayMongoRepository[PersonalDetails](
+    collectionName = CollectionNames.APPLICATION,
+    mongoComponent = mongo,
+    domainFormat = PersonalDetails.personalDetailsFormat,
+    indexes = Nil
+  ) with PersonalDetailsRepository with CommonBSONDocuments with ReactiveRepositoryHelpers {
   val PersonalDetailsCollection = "personal-details"
 
+  /*
   def update(applicationId: String, userId: String, personalDetails: PersonalDetails,
              requiredStatuses: Seq[ApplicationStatus.Value], newApplicationStatus: ApplicationStatus.Value): Future[Unit] = {
     val query = BSONDocument("$and" -> BSONArray(
@@ -67,8 +74,11 @@ class PersonalDetailsMongoRepository @Inject() (val dateTimeFactory: DateTimeFac
       PersonalDetailsNotFound(applicationId))
 
     collection.update(ordered = false).one(query, personalDetailsBSON) map validator
-  }
+  }*/
+  def update(applicationId: String, userId: String, personalDetails: PersonalDetails,
+             requiredStatuses: Seq[ApplicationStatus.Value], newApplicationStatus: ApplicationStatus.Value): Future[Unit] = ???
 
+  /*
   def updateWithoutStatusChange(appId: String, userId: String, personalDetails: PersonalDetails): Future[Unit] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> appId, "userId" -> userId),
@@ -83,8 +93,10 @@ class PersonalDetailsMongoRepository @Inject() (val dateTimeFactory: DateTimeFac
     val validator = singleUpdateValidator(appId, actionDesc = "update personal details without status change")
 
     collection.update(ordered = false).one(query, personalDetailsBSON) map validator
-  }
+  }*/
+  def updateWithoutStatusChange(appId: String, userId: String, personalDetails: PersonalDetails): Future[Unit] = ???
 
+  /*
   override def find(applicationId: String): Future[PersonalDetails] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument(PersonalDetailsCollection -> 1, "_id" -> 0)
@@ -94,8 +106,10 @@ class PersonalDetailsMongoRepository @Inject() (val dateTimeFactory: DateTimeFac
         document.getAs[PersonalDetails](PersonalDetailsCollection).get
       case _ => throw PersonalDetailsNotFound(applicationId)
     }
-  }
+  }*/
+  override def find(applicationId: String): Future[PersonalDetails] = ???
 
+  /*
   override def findByIds(applicationIds: Seq[String]): Future[List[(String, Option[PersonalDetails])]] = {
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
     val projection = BSONDocument(
@@ -111,5 +125,6 @@ class PersonalDetailsMongoRepository @Inject() (val dateTimeFactory: DateTimeFac
         (appId, personalDetailsOpt)
       }
     }
-  }
+  }*/
+  override def findByIds(applicationIds: Seq[String]): Future[List[(String, Option[PersonalDetails])]] = ???
 }

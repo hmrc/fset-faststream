@@ -20,7 +20,7 @@ import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
 import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
+//import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class ViewPracticeQuestionCallbackRequest(received: DateTime, candidateId: String, customCandidateId: String, interviewId: Int,
   customInterviewId: Option[String], customInviteId: String, deadline: LocalDate)
@@ -29,7 +29,7 @@ object ViewPracticeQuestionCallbackRequest {
   // Should match LaunchpadTestsCallback case class
   val key = "viewPracticeQuestion"
   implicit val viewPracticeQuestionCallbackFormat = Json.format[ViewPracticeQuestionCallbackRequest]
-  import repositories.BSONDateTimeHandler
-  import repositories.BSONLocalDateHandler
-  implicit val bsonHandler: BSONHandler[BSONDocument, ViewPracticeQuestionCallbackRequest] = Macros.handler[ViewPracticeQuestionCallbackRequest]
+//  import repositories.BSONDateTimeHandler
+//  import repositories.BSONLocalDateHandler
+//  implicit val bsonHandler: BSONHandler[BSONDocument, ViewPracticeQuestionCallbackRequest] = Macros.handler[ViewPracticeQuestionCallbackRequest]
 }

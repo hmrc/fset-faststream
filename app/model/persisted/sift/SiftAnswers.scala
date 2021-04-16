@@ -18,7 +18,7 @@ package model.persisted.sift
 
 import model.persisted.sift.SiftAnswersStatus.SiftAnswersStatus
 import play.api.libs.json._
-import reactivemongo.bson.{ BSON, BSONDocument, BSONElement, BSONHandler, BSONString, Macros }
+//import reactivemongo.bson.{ BSON, BSONDocument, BSONElement, BSONHandler, BSONString, Macros }
 
 import scala.util.Try
 
@@ -32,10 +32,11 @@ object SiftAnswersStatus extends Enumeration {
     override def writes(eventType: SiftAnswersStatus): JsValue = JsString(eventType.toString)
   }
 
+/*
   implicit object SiftAnswersStatusHandler extends BSONHandler[BSONString, SiftAnswersStatus] {
     override def write(eventType: SiftAnswersStatus): BSONString = BSON.write(eventType.toString)
     override def read(bson: BSONString): SiftAnswersStatus = SiftAnswersStatus.withName(bson.value.toUpperCase)
-  }
+  }*/
 }
 
 case class SiftAnswers(applicationId: String,
@@ -46,8 +47,8 @@ case class SiftAnswers(applicationId: String,
 //TODO: Ian mongo 3.2 -> 3.4
 object SiftAnswers
 {
+/*
   implicit object siftAnswersMapHandler extends BSONHandler[BSONDocument, Map[String, SchemeSpecificAnswer]] {
-
     override def read(bson: BSONDocument): Map[String, SchemeSpecificAnswer] = {
       bson.elements.map { bsonElement =>
         bsonElement.name -> SchemeSpecificAnswer.schemeSpecificAnswerHandler.read(bsonElement.value.asInstanceOf[BSONDocument])
@@ -60,8 +61,8 @@ object SiftAnswers
       }.toStream
       BSONDocument(stream)
     }
-  }
+  }*/
 
   implicit val siftAnswersFormat = Json.format[SiftAnswers]
-  implicit val siftAnswersHandler = Macros.handler[SiftAnswers]
+//  implicit val siftAnswersHandler = Macros.handler[SiftAnswers]
 }

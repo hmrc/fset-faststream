@@ -17,7 +17,7 @@
 package model
 
 import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
-import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
+//import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 object CivilServantAndInternshipType extends Enumeration {
 
@@ -30,8 +30,9 @@ object CivilServantAndInternshipType extends Enumeration {
     def writes(myEnum: CivilServantAndInternshipType) = JsString(myEnum.toString)
   }
 
+/*
   implicit object BSONEnumHandler extends BSONHandler[BSONString, CivilServantAndInternshipType] {
     def read(doc: BSONString) = CivilServantAndInternshipType.withName(doc.value)
     def write(stats: CivilServantAndInternshipType) = BSON.write(stats.toString)
-  }
+  }*/
 }

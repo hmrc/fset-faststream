@@ -18,7 +18,7 @@ package scheduler.sift
 
 import config.{ MicroserviceAppConfig, WaitingScheduledJobConfig }
 import play.api.{ Configuration, Logging }
-import play.modules.reactivemongo.ReactiveMongoComponent
+//import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 //import ProgressToSiftJobConfig.conf
@@ -30,7 +30,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class SiftExpiryJobImpl @Inject() (val siftService: ApplicationSiftService,
-                                   val mongoComponent: ReactiveMongoComponent,
+//                                   val mongoComponent: ReactiveMongoComponent,
                                    val config: SiftExpiryJobConfig,
                                    val appConfig: MicroserviceAppConfig
                                   ) extends SiftExpiryJob {

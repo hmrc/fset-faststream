@@ -20,7 +20,7 @@ package scheduler.onlinetesting
 import config.WaitingScheduledJobConfig
 import javax.inject.{ Inject, Singleton }
 import play.api.{ Configuration, Logging }
-import play.modules.reactivemongo.ReactiveMongoComponent
+//import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
@@ -32,7 +32,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class RetrievePhase1ResultsJob @Inject() (val onlineTestingService: Phase1TestService,
-                                          val mongoComponent: ReactiveMongoComponent,
+//                                          val mongoComponent: ReactiveMongoComponent,
                                           val config: RetrievePhase1ResultsJobConfig
                                          ) extends RetrieveResultsJob {
   val phase = "PHASE1"
@@ -40,7 +40,7 @@ class RetrievePhase1ResultsJob @Inject() (val onlineTestingService: Phase1TestSe
 
 @Singleton
 class RetrievePhase2ResultsJob @Inject() (val onlineTestingService: Phase2TestService,
-                                          val mongoComponent: ReactiveMongoComponent,
+//                                          val mongoComponent: ReactiveMongoComponent,
                                           val config: RetrievePhase2ResultsJobConfig
                                          ) extends RetrieveResultsJob {
   val phase = "PHASE2"

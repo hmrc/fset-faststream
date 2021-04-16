@@ -21,7 +21,7 @@ import javax.inject.{ Inject, Singleton }
 import model.EmptyRequestHeader
 import play.api.mvc.RequestHeader
 import play.api.{ Configuration, Logging }
-import play.modules.reactivemongo.ReactiveMongoComponent
+//import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.NumericalTestService
@@ -33,7 +33,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 @Singleton
 class SiftNumericalTestInvitationJobImpl @Inject() (val siftService: ApplicationSiftService,
                                                     val numericalTestService: NumericalTestService,
-                                                    val mongoComponent: ReactiveMongoComponent,
+//                                                    val mongoComponent: ReactiveMongoComponent,
                                                     val config: SiftNumericalTestInvitationConfig
                                                    ) extends SiftNumericalTestInvitationJob {
 }

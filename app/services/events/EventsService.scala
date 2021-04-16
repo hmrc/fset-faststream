@@ -53,6 +53,8 @@ class EventsServiceImpl @Inject() (eventsRepo: EventsRepository,
                                    allocationServiceCommon: AllocationServiceCommon, // Breaks circular dependencies
                                    eventsConfigRepo: EventsConfigRepository) extends EventsService with Logging {
 
+  //TODO: fix
+/*
   def saveAssessmentEvents(): Future[Unit] = {
     eventsRepo.countLong.flatMap {
       case eventCount if eventCount >= 1 =>
@@ -63,7 +65,8 @@ class EventsServiceImpl @Inject() (eventsRepo: EventsRepository,
           eventsRepo.save(events)
         }
     }
-  }
+  }*/
+  def saveAssessmentEvents(): Future[Unit] = ???
 
   def save(event: Event): Future[Unit] = eventsRepo.save(event :: Nil)
 

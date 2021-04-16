@@ -18,12 +18,13 @@ package model
 
 import model.ApplicationStatus._
 import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
-import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
+//import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 import scala.language.implicitConversions
 
 // scalastyle:off number.of.methods number.of.types
 object ProgressStatuses {
+
   sealed abstract class ProgressStatus(val applicationStatus: ApplicationStatus) {
     def key = toString
   }
@@ -34,10 +35,11 @@ object ProgressStatuses {
       def writes(progressStatus: ProgressStatus) = JsString(progressStatus.key)
     }
 
+/*
     implicit object BSONEnumHandler extends BSONHandler[BSONString, ProgressStatus] {
       def read(doc: BSONString) = nameToProgressStatus(doc.value)
       def write(progressStatus: ProgressStatus) = BSON.write(progressStatus.key)
-    }
+    }*/
 
     implicit def progressStatusToString(progressStatus: ProgressStatus): String = progressStatus.getClass.getSimpleName
   }
@@ -289,7 +291,6 @@ object ProgressStatuses {
   def progressesByApplicationStatus(applicationStatuses: ApplicationStatus*): Seq[ProgressStatus] = {
     allStatuses.filter(st => applicationStatuses.contains(st.applicationStatus))
   }
-
 
   object EventProgressStatuses {
 

@@ -22,7 +22,7 @@ import play.api.libs.json.JodaWrites._ // This is needed for DateTime serializat
 import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import repositories._
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+//import reactivemongo.bson.Macros
 
 trait PassMarkSettings {
   def schemes: List[PassMark]
@@ -42,7 +42,7 @@ object Phase1PassMarkSettings {
   // Do not remove this as it is needed to serialize the date as epoch millis
   import model.persisted.Play25DateCompatibility.epochMillisDateFormat
   implicit val jsonFormat = Json.format[Phase1PassMarkSettings]
-  implicit val bsonHandler = Macros.handler[Phase1PassMarkSettings]
+//  implicit val bsonHandler = Macros.handler[Phase1PassMarkSettings]
 
   def merge(oldPassMarkSettings: Option[Phase1PassMarkSettings],
             newPassMarkSettings: Phase1PassMarkSettings): Phase1PassMarkSettings = {
@@ -84,7 +84,7 @@ object Phase2PassMarkSettings {
   // Do not remove this as it is needed to serialize the date as epoch millis
   import model.persisted.Play25DateCompatibility.epochMillisDateFormat
   implicit val jsonFormat = Json.format[Phase2PassMarkSettings]
-  implicit val bsonHandler = Macros.handler[Phase2PassMarkSettings]
+//  implicit val bsonHandler = Macros.handler[Phase2PassMarkSettings]
 }
 
 case class Phase3PassMarkSettings(
@@ -98,7 +98,7 @@ object Phase3PassMarkSettings {
   // Do not remove this as it is needed to serialize the date as epoch millis
   import model.persisted.Play25DateCompatibility.epochMillisDateFormat
   implicit val jsonFormat = Json.format[Phase3PassMarkSettings]
-  implicit val bsonHandler = Macros.handler[Phase3PassMarkSettings]
+//  implicit val bsonHandler = Macros.handler[Phase3PassMarkSettings]
 }
 
 case class AssessmentCentrePassMarkSettings(
@@ -116,5 +116,5 @@ object AssessmentCentrePassMarkSettings {
   // Do not remove this as it is needed to serialize the date as epoch millis
   import model.persisted.Play25DateCompatibility.epochMillisDateFormat
   implicit val jsonFormat = Json.format[AssessmentCentrePassMarkSettings]
-  implicit val bsonHandler = Macros.handler[AssessmentCentrePassMarkSettings]
+//  implicit val bsonHandler = Macros.handler[AssessmentCentrePassMarkSettings]
 }

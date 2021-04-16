@@ -20,7 +20,7 @@ import org.joda.time.DateTime
 import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
 import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.{ Json, OFormat }
-import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
+//import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class Phase2TestGroup(expirationDate: DateTime,
   tests: List[PsiTest],
@@ -28,7 +28,7 @@ case class Phase2TestGroup(expirationDate: DateTime,
 ) extends PsiTestProfile
 
 object Phase2TestGroup {
-  import repositories.BSONDateTimeHandler
-  implicit val bsonHandler: BSONHandler[BSONDocument, Phase2TestGroup] = Macros.handler[Phase2TestGroup]
+//  import repositories.BSONDateTimeHandler
+//  implicit val bsonHandler: BSONHandler[BSONDocument, Phase2TestGroup] = Macros.handler[Phase2TestGroup]
   implicit val phase2TestProfileFormat = Json.format[Phase2TestGroup]
 }

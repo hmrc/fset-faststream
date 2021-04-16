@@ -19,7 +19,7 @@ package scheduler.fsb
 import config.WaitingScheduledJobConfig
 import javax.inject.{ Inject, Singleton }
 import play.api.{ Configuration, Logging }
-import play.modules.reactivemongo.ReactiveMongoComponent
+//import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.application.FsbService
@@ -29,7 +29,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class EvaluateFsbJobImpl @Inject() (val fsbService: FsbService,
-                                    val mongoComponent: ReactiveMongoComponent,
+//                                    val mongoComponent: ReactiveMongoComponent,
                                     val config: EvaluateFsbJobConfig
                                    ) extends EvaluateFsbJob {
 }

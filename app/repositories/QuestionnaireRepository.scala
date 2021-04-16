@@ -16,17 +16,19 @@
 
 package repositories
 
-import javax.inject.{ Inject, Singleton }
-import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
+import javax.inject.{Inject, Singleton}
+import model.persisted.{QuestionnaireAnswer, QuestionnaireQuestion}
 import model.report.QuestionnaireReportItem
 import play.api.libs.json._
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.{ Cursor, ReadPreference }
-import reactivemongo.bson._
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+//import play.modules.reactivemongo.ReactiveMongoComponent
+//import reactivemongo.api.{ Cursor, ReadPreference }
+//import reactivemongo.bson._
+//import reactivemongo.play.json.ImplicitBSONHandlers._
 import services.reporting.SocioEconomicScoreCalculator
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+//import uk.gov.hmrc.mongo.ReactiveRepository
+//import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -58,14 +60,15 @@ trait QuestionnaireRepository {
 
 @Singleton
 class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEconomicScoreCalculator,
-                                              mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[QuestionnaireAnswer, BSONObjectID](
-    CollectionNames.QUESTIONNAIRE,
-    mongoComponent.mongoConnector.db,
-    QuestionnaireAnswer.answerFormats,
-    ReactiveMongoFormats.objectIdFormats) with QuestionnaireRepository
-    with ReactiveRepositoryHelpers with BaseBSONReader {
+                                              mongoComponent: MongoComponent)
+  extends PlayMongoRepository[QuestionnaireAnswer](
+    collectionName = CollectionNames.QUESTIONNAIRE,
+    mongoComponent = mongoComponent,
+    domainFormat = QuestionnaireAnswer.answerFormats,
+    indexes = Nil
+  ) with QuestionnaireRepository with ReactiveRepositoryHelpers with BaseBSONReader {
 
+  /*
   override def addQuestions(applicationId: String, questions: List[QuestionnaireQuestion]): Future[Unit] = {
 
     val appId = "applicationId" -> applicationId
@@ -77,7 +80,8 @@ class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEcon
       BSONDocument("$set" -> questions.map(q => s"questions.${q.question}" -> q.answer).foldLeft(document ++ appId)((d, v) => d ++ v)),
       upsert = true
     ) map validator
-  }
+  }*/
+  override def addQuestions(applicationId: String, questions: List[QuestionnaireQuestion]): Future[Unit] = ???
 
   override def findQuestions(applicationId: String): Future[Map[String, QuestionnaireAnswer]] = {
     find(applicationId).map { questions =>
@@ -90,6 +94,7 @@ class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEcon
     }
   }
 
+  /*
   override def findForOnlineTestPassMarkReport(applicationIds: List[String]): Future[Map[String, QuestionnaireReportItem]] = {
     // We need to ensure that the candidates have completed the last page of the questionnaire
     // however, only the first question on the employment page is mandatory, as if the answer is
@@ -99,30 +104,40 @@ class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEcon
       BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
 
     findAllAsReportItem(query)
-  }
+  }*/
+  override def findForOnlineTestPassMarkReport(applicationIds: List[String]): Future[Map[String, QuestionnaireReportItem]] = ???
 
+  /*
   override def findAllForDiversityReport: Future[Map[String, QuestionnaireReportItem]] = {
     findAllAsReportItem(BSONDocument.empty)
-  }
+  }*/
+  override def findAllForDiversityReport: Future[Map[String, QuestionnaireReportItem]] = ???
 
+  /*
   override def findQuestionsByIds(applicationIds: List[String]): Future[Map[String, QuestionnaireReportItem]] = {
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
     findAllAsReportItem(query)
-  }
+  }*/
+  override def findQuestionsByIds(applicationIds: List[String]): Future[Map[String, QuestionnaireReportItem]] = ???
 
+  //TODO: fix
+  /*
   protected def findAllAsReportItem(query: BSONDocument): Future[Map[String, QuestionnaireReportItem]] = {
     implicit val reader = bsonReader(docToReport)
     val queryResult = bsonCollection.find(query, projection = Option.empty[JsObject])
       .cursor[(String, QuestionnaireReportItem)](ReadPreference.nearest)
       .collect[List](maxDocs = -1, Cursor.FailOnError[List[(String, QuestionnaireReportItem)]]())
     queryResult.map(_.toMap)
-  }
+  }*/
 
+  /*
   override def removeQuestions(applicationId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     collection.delete().one(query, limit = Some(1)).map(_ => ())
-  }
+  }*/
+  override def removeQuestions(applicationId: String): Future[Unit] = ???
 
+  /*
   private[repositories] def find(applicationId: String): Future[List[QuestionnaireQuestion]] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("questions" -> 1, "_id" -> 0)
@@ -141,8 +156,10 @@ class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEcon
       case Some(q) => q.questions.map((q: (String, QuestionnaireAnswer)) => QuestionnaireQuestion(q._1, q._2)).toList
       case None => List()
     }
-  }
+  }*/
+  private[repositories] def find(applicationId: String): Future[List[QuestionnaireQuestion]] = ???
 
+  /*
   //scalastyle:off method.length
   private def docToReport(document: BSONDocument): (String, QuestionnaireReportItem) = {
     val questionsDoc = document.getAs[BSONDocument]("questions")
@@ -194,5 +211,5 @@ class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEcon
       socioEconomicScore,
       university
     )
-  }
+  }*/
 }

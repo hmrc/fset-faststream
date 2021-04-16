@@ -22,7 +22,7 @@ import javax.inject.{ Inject, Singleton }
 import model._
 import play.api.mvc.RequestHeader
 import play.api.{ Configuration, Logging }
-import play.modules.reactivemongo.ReactiveMongoComponent
+//import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting._
@@ -32,7 +32,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class ExpirePhase1TestJob @Inject() (@Named("Phase1OnlineTestService") val onlineTestingService: OnlineTestService,
-                                     val mongoComponent: ReactiveMongoComponent,
+//                                     val mongoComponent: ReactiveMongoComponent,
                                      val config: ExpirePhase1TestJobConfig,
                                      appConfig: MicroserviceAppConfig) extends ExpireOnlineTestJob {
   override val expiryTest = Phase1ExpirationEvent(gracePeriodInSecs = appConfig.onlineTestsGatewayConfig.phase1Tests.gracePeriodInSecs)
@@ -40,7 +40,7 @@ class ExpirePhase1TestJob @Inject() (@Named("Phase1OnlineTestService") val onlin
 
 @Singleton
 class ExpirePhase2TestJob @Inject() (@Named("Phase2OnlineTestService") val onlineTestingService: OnlineTestService,
-                                     val mongoComponent: ReactiveMongoComponent,
+//                                     val mongoComponent: ReactiveMongoComponent,
                                      val config: ExpirePhase2TestJobConfig,
                                      appConfig: MicroserviceAppConfig
                                     ) extends ExpireOnlineTestJob {
@@ -49,7 +49,7 @@ class ExpirePhase2TestJob @Inject() (@Named("Phase2OnlineTestService") val onlin
 
 @Singleton
 class ExpirePhase3TestJob @Inject() (@Named("Phase3OnlineTestService") val onlineTestingService: OnlineTestService,
-                                     val mongoComponent: ReactiveMongoComponent,
+//                                     val mongoComponent: ReactiveMongoComponent,
                                      val config: ExpirePhase3TestJobConfig,
                                      appConfig: MicroserviceAppConfig) extends ExpireOnlineTestJob {
   override val expiryTest = Phase3ExpirationEvent(gracePeriodInSecs = appConfig.launchpadGatewayConfig.phase3Tests.gracePeriodInSecs)

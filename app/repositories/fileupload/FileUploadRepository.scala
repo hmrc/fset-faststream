@@ -18,19 +18,20 @@ package repositories.fileupload
 
 import java.io.ByteArrayInputStream
 import java.util.UUID
-
 import com.google.inject.ImplementedBy
-import javax.inject.{ Inject, Singleton }
-import model.persisted.fileupload.{ FileUpload, FileUploadInfo }
-import org.joda.time.{ DateTime, DateTimeZone }
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.gridfs.{ DefaultFileToSave, ReadFile }
-import reactivemongo.play.iteratees.GridFS
-import reactivemongo.api._
-import reactivemongo.bson.{ BSONDocument, BSONValue }
+
+import javax.inject.{Inject, Singleton}
+import model.persisted.fileupload.{FileUpload, FileUploadInfo}
+import org.joda.time.{DateTime, DateTimeZone}
+import uk.gov.hmrc.mongo.MongoComponent
+//import play.modules.reactivemongo.ReactiveMongoComponent
+//import reactivemongo.api.gridfs.{ DefaultFileToSave, ReadFile }
+//import reactivemongo.play.iteratees.GridFS
+//import reactivemongo.api._
+//import reactivemongo.bson.{ BSONDocument, BSONValue }
 import repositories.CollectionNames
 import repositories.fileupload.FileUploadRepository.FileUploadNotFoundException
-import reactivemongo.api.gridfs.Implicits._
+//import reactivemongo.api.gridfs.Implicits._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -48,18 +49,21 @@ trait FileUploadRepository {
 }
 
 @Singleton
-class FileUploadMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent) extends FileUploadRepository {
+class FileUploadMongoRepository @Inject() (mongoComponent: MongoComponent) extends FileUploadRepository {
 
-  private lazy val gridFS = GridFS[BSONSerializationPack.type](mongoComponent.mongoConnector.db(), CollectionNames.FILE_UPLOAD)
+  //  private lazy val gridFS = GridFS[BSONSerializationPack.type](mongoComponent.mongoConnector.db(), CollectionNames.FILE_UPLOAD)
 
+  /*
   override def add(contentType: String, fileContents: Array[Byte]): Future[String] = {
     val newId = UUID.randomUUID().toString
 
     val fileToSave = DefaultFileToSave(Some(newId), Some(contentType), Some(DateTime.now.getMillis))
 
     gridFS.writeFromInputStream(fileToSave, new ByteArrayInputStream(fileContents)) map(_ => newId)
-  }
+  }*/
+  override def add(contentType: String, fileContents: Array[Byte]): Future[String] = ???
 
+  /*
   override def retrieve(fileId: String): Future[FileUpload] = {
      gridFS.find(BSONDocument("filename" -> fileId)).headOption.map {
       case Some(res) =>
@@ -72,8 +76,10 @@ class FileUploadMongoRepository @Inject() (mongoComponent: ReactiveMongoComponen
         )
       case _ => throw FileUploadNotFoundException(s"No file upload found with id $fileId")
     }
-  }
+  }*/
+  override def retrieve(fileId: String): Future[FileUpload] = ???
 
+  /*
   override def retrieveAllIdsAndSizes: Future[List[FileUploadInfo]] = {
     val unlimitedMaxDocs = -1
     gridFS.find(BSONDocument.empty)
@@ -87,8 +93,10 @@ class FileUploadMongoRepository @Inject() (mongoComponent: ReactiveMongoComponen
         )
       }
     }
-  }
+  }*/
+  override def retrieveAllIdsAndSizes: Future[List[FileUploadInfo]] = ???
 
+  /*
   override def retrieveMetaData(fileId: String): Future[Option[FileUploadInfo]] = {
     gridFS.find(BSONDocument("filename" -> fileId)).headOption.map {
       _.map { file =>
@@ -100,5 +108,7 @@ class FileUploadMongoRepository @Inject() (mongoComponent: ReactiveMongoComponen
         )
       }
     }
-  }
+  }*/
+  override def retrieveMetaData(fileId: String): Future[Option[FileUploadInfo]] = ???
 }
+

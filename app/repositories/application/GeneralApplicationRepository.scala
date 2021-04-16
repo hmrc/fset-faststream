@@ -18,39 +18,42 @@ package repositories.application
 
 import java.util.UUID
 import java.util.regex.Pattern
-
 import com.github.nscala_time.time.OrderingImplicits.DateTimeOrdering
 import config.MicroserviceAppConfig
 import factories.DateTimeFactory
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
 import model.Exceptions._
 import model.OnlineTestCommands.OnlineTestApplication
-import model.ProgressStatuses.{ EventProgressStatuses, PREVIEW }
+import model.ProgressStatuses.{EventProgressStatuses, PREVIEW}
 import model.command._
-import model.exchange.{ CandidateEligibleForEvent, CandidatesEligibleForEventResponse }
+import model.exchange.{CandidateEligibleForEvent, CandidatesEligibleForEventResponse}
 import model.persisted._
 import model.persisted.eventschedules.EventType
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.fsb.ScoresAndFeedback
-import model.{ ApplicationStatus, _ }
+import model.{ApplicationStatus, _}
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{ DateTime, LocalDate }
-import play.api.libs.json.{ JsNumber, JsObject, Json }
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.Cursor.FailOnError
-import reactivemongo.api._
-import reactivemongo.api.indexes.Index
-import reactivemongo.api.indexes.IndexType.Ascending
-import reactivemongo.bson.{ BSONDocument, _ }
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import reactivemongo.play.json.collection.JSONCollection
-import repositories.{ BSONDateTimeHandler, _ }
+import org.joda.time.{DateTime, LocalDate}
+import play.api.libs.json.{JsNumber, JsObject, Json}
+import repositories.{CollectionNames, CommonBSONDocuments, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+//import play.modules.reactivemongo.ReactiveMongoComponent
+//import reactivemongo.api.Cursor.FailOnError
+//import reactivemongo.api._
+//import reactivemongo.api.indexes.Index
+//import reactivemongo.api.indexes.IndexType.Ascending
+//import reactivemongo.bson.{ BSONDocument, _ }
+//import reactivemongo.play.json.ImplicitBSONHandlers._
+//import reactivemongo.play.json.collection.JSONCollection
+//import repositories.{ BSONDateTimeHandler, _ }
 import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ AddMissingPhase2ResultReceived, PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted }
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+//import uk.gov.hmrc.mongo.ReactiveRepository
+//import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ ExecutionContext, Future }
@@ -117,8 +120,8 @@ trait GeneralApplicationRepository {
   def getProgressStatusTimestamps(applicationId: String): Future[List[(String, DateTime)]]
 
   // Implemented by Hmrc ReactiveRepository class - don't use until it gets fixed. Use countLong instead
-  @deprecated("At runtime throws a JsResultException: errmsg=readConcern.level must be either 'local', 'majority' or 'linearizable'", "")
-  def count(implicit ec: scala.concurrent.ExecutionContext) : Future[Int]
+//  @deprecated("At runtime throws a JsResultException: errmsg=readConcern.level must be either 'local', 'majority' or 'linearizable'", "")
+//  def count(implicit ec: scala.concurrent.ExecutionContext) : Future[Int] //TODO: fix
 
   // Implemented in ReactiveRespositoryHelpers
   def countLong(implicit ec: scala.concurrent.ExecutionContext) : Future[Long]
@@ -134,6 +137,7 @@ trait GeneralApplicationRepository {
 
 // scalastyle:off number.of.methods
 // scalastyle:off file.size.limit
+/*
 @Singleton
 class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
                                                    appConfig: MicroserviceAppConfig,
@@ -144,10 +148,25 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     mongoComponent.mongoConnector.db,
     CreateApplicationRequest.createApplicationRequestFormat,
     ReactiveMongoFormats.objectIdFormats) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
+    with GeneralApplicationRepoBSONReader with ReactiveRepositoryHelpers with CurrentSchemeStatusHelper {*/
+
+@Singleton
+class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
+                                                   appConfig: MicroserviceAppConfig,
+                                                   mongo: MongoComponent
+                                                  )
+  extends PlayMongoRepository[CreateApplicationRequest](
+    collectionName = CollectionNames.APPLICATION,
+    mongoComponent = mongo,
+    domainFormat = CreateApplicationRequest.createApplicationRequestFormat,
+    indexes = Nil
+  ) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
     with GeneralApplicationRepoBSONReader with ReactiveRepositoryHelpers with CurrentSchemeStatusHelper {
 
   private val unlimitedMaxDocs = -1
 
+  //TODO: test that these indexes are created as expected
+  /*
   override def indexes: Seq[Index] = Seq(
     Index(Seq(("applicationId", Ascending), ("userId", Ascending)), unique = true),
     Index(Seq(("userId", Ascending), ("frameworkId", Ascending)), unique = true),
@@ -155,8 +174,8 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     Index(Seq(("assistance-details.needsSupportForOnlineAssessment", Ascending)), unique = false),
     Index(Seq(("assistance-details.needsSupportAtVenue", Ascending)), unique = false),
     Index(Seq(("assistance-details.guaranteedInterview", Ascending)), unique = false)
-  )
-
+  )*/
+  /*
   override def getApplicationStatusForCandidates(applicationIds: Seq[String]): Future[Seq[(String, ApplicationStatus)]] = {
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
     val projection = BSONDocument(
@@ -172,9 +191,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
           applicationId -> applicationStatus
         }
       }
-  }
+  }*/
+  override def getApplicationStatusForCandidates(applicationIds: Seq[String]): Future[Seq[(String, ApplicationStatus)]] = ???
 
-/*
+  /*
   override def countLong(implicit ec: ExecutionContext): Future[Long] =
     collection.withReadPreference(ReadPreference.primary).count(
       selector = Option.empty[JsObject],
@@ -184,7 +204,9 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       readConcern = ReadConcern.Local
     )
 */
+  override def countLong(implicit ec: ExecutionContext): Future[Long] = ???
 
+  /*
   override def create(userId: String, frameworkId: String, route: ApplicationRoute): Future[ApplicationResponse] = {
     val applicationId = UUID.randomUUID().toString
     val testAccountId = UUID.randomUUID().toString
@@ -201,8 +223,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
         ApplicationResponse(applicationId, CREATED, route, userId, testAccountId, p, None, None)
       }
     }
-  }
+  }*/
+  override def create(userId: String, frameworkId: String, route: ApplicationRoute): Future[ApplicationResponse] = ???
 
+  /*
   def findAllFileInfo: Future[List[CandidateFileInfo]] = {
     val query = BSONDocument("testGroups.FSAC.tests.analysisExercise" -> BSONDocument("$exists" -> true))
     val projection = BSONDocument("_id" -> 0, "applicationId" -> 1, "testGroups.FSAC.tests.analysisExercise" -> 1)
@@ -220,19 +244,25 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
         )
       }
     }
-  }
+  }*/
+  def findAllFileInfo: Future[List[CandidateFileInfo]] = ???
 
+  /*
   def find(applicationId: String): Future[Option[Candidate]] = {
     val query = BSONDocument("applicationId" -> applicationId)
     bsonCollection.find(query, projection = Option.empty[JsObject]).one[Candidate]
-  }
+  }*/
+  def find(applicationId: String): Future[Option[Candidate]] = ???
 
+  /*
   def find(applicationIds: Seq[String]): Future[List[Candidate]] = {
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
     bsonCollection.find(query, projection = Option.empty[JsObject]).cursor[Candidate]()
       .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
-  }
+  }*/
+  def find(applicationIds: Seq[String]): Future[List[Candidate]] = ???
 
+  /*
   override def findProgress(applicationId: String): Future[ProgressResponse] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("progress-status" -> 2, "_id" -> 0)
@@ -241,8 +271,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       case Some(document) => toProgressResponse(applicationId).read(document)
       case None => throw ApplicationNotFound(s"No application found for $applicationId")
     }
-  }
+  }*/
+  override def findProgress(applicationId: String): Future[ProgressResponse] = ???
 
+  /*
   def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]] = {
     collection.find(
       BSONDocument("applicationId" -> applicationId),
@@ -250,8 +282,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     ).one[BSONDocument].map(_.flatMap{ doc =>
       doc.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus")
     }.getOrElse(Nil))
-  }
+  }*/
+  def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]] = ???
 
+  /*
   def findStatus(applicationId: String): Future[ApplicationStatusDetails] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument(
@@ -292,8 +326,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
       case None => throw ApplicationNotFound(applicationId)
     }
-  }
+  }*/
+  def findStatus(applicationId: String): Future[ApplicationStatusDetails] = ???
 
+  /*
   def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse] = {
     val query = BSONDocument("userId" -> userId, "frameworkId" -> frameworkId)
 
@@ -313,13 +349,17 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
         }
       case None => throw ApplicationNotFound(userId)
     }
-  }
+  }*/
+  def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse] = ???
 
+  /*
   def findCandidateByUserId(userId: String): Future[Option[Candidate]] = {
     val query = BSONDocument("userId" -> userId)
     bsonCollection.find(query, projection = Option.empty[JsObject]).one[Candidate]
-  }
+  }*/
+  def findCandidateByUserId(userId: String): Future[Option[Candidate]] = ???
 
+  /*
   def findByCriteria(firstOrPreferredNameOpt: Option[String],
                      lastNameOpt: Option[String],
                      dateOfBirthOpt: Option[LocalDate],
@@ -349,8 +389,15 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       "applicationStatus" -> true, "personal-details" -> true)
 
     bsonCollection.find(query, Some(projection)).cursor[Candidate]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
-  }
+  }*/
 
+  def findByCriteria(firstOrPreferredNameOpt: Option[String],
+                     lastNameOpt: Option[String],
+                     dateOfBirthOpt: Option[LocalDate],
+                     filterToUserIds: List[String]
+                    ): Future[List[Candidate]] = ???
+
+  /*
   override def findApplicationIdsByLocation(location: String): Future[List[String]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("$and" -> BSONArray(
@@ -372,8 +419,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
         doc.getAs[String]("applicationId").get
       }
     }
-  }
+  }*/
+  override def findApplicationIdsByLocation(location: String): Future[List[String]] = ???
 
+  /*
   override def findSdipFaststreamInvitedToVideoInterview: Future[Seq[Candidate]] = {
     val query = BSONDocument(
       "applicationRoute" -> ApplicationRoute.SdipFaststream,
@@ -384,8 +433,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       "applicationStatus" -> true, "personal-details" -> true)
 
     bsonCollection.find(query, Some(projection)).cursor[Candidate]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
-  }
+  }*/
+  override def findSdipFaststreamInvitedToVideoInterview: Future[Seq[Candidate]] = ???
 
+  /*
   override def findSdipFaststreamExpiredPhase2InvitedToSift: Future[Seq[Candidate]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationRoute" -> ApplicationRoute.SdipFaststream),
@@ -400,8 +451,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       "applicationStatus" -> true, "personal-details" -> true)
 
     bsonCollection.find(query, Some(projection)).cursor[Candidate]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
-  }
+  }*/
+  override def findSdipFaststreamExpiredPhase2InvitedToSift: Future[Seq[Candidate]] = ???
 
+  /*
   override def findSdipFaststreamExpiredPhase3InvitedToSift: Future[Seq[Candidate]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationRoute" -> ApplicationRoute.SdipFaststream),
@@ -416,8 +469,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       "applicationStatus" -> true, "personal-details" -> true)
 
     bsonCollection.find(query, Some(projection)).cursor[Candidate]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
-  }
+  }*/
+  override def findSdipFaststreamExpiredPhase3InvitedToSift: Future[Seq[Candidate]] = ???
 
+  /*
   override def submit(applicationId: String): Future[Unit] = {
     val guard = progressStatusGuardBSON(PREVIEW)
     val query = BSONDocument("applicationId" -> applicationId) ++ guard
@@ -428,8 +483,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       new IllegalStateException(s"Already submitted $applicationId"))
 
     collection.update(ordered = false).one(query, updateBSON) map validator
-  }
+  }*/
+  override def submit(applicationId: String): Future[Unit] = ???
 
+  /*
   override def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val applicationBSON = BSONDocument("$set" -> BSONDocument(
@@ -442,8 +499,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     val validator = singleUpdateValidator(applicationId, actionDesc = "withdrawing")
 
     collection.update(ordered = false).one(query, applicationBSON) map validator
-  }
+  }*/
+  override def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit] = ???
 
+  /*
   override def removeWithdrawReason(applicationId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val update = BSONDocument("$unset" -> BSONDocument(
@@ -453,8 +512,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     val validator = singleUpdateValidator(applicationId, actionDesc = "removing withdrawal reason")
 
     collection.update(ordered = false).one(query, update) map validator
-  }
+  }*/
+  override def removeWithdrawReason(applicationId: String): Future[Unit] = ???
 
+  /*
   override def withdrawScheme(applicationId: String, withdrawScheme: WithdrawScheme, schemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = {
 
     val update = BSONDocument("$set" -> BSONDocument(
@@ -466,8 +527,12 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     )
 
     collection.update(ordered = false).one(predicate, update).map(_ => ())
-  }
+  }*/
+  override def withdrawScheme(applicationId: String,
+                              withdrawScheme: WithdrawScheme,
+                              schemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = ???
 
+  /*
   override def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val progressStatusBSON = BSONDocument("$set" -> BSONDocument(
@@ -477,8 +542,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     val validator = singleUpdateValidator(applicationId, actionDesc = "update questionnaire status")
 
     collection.update(ordered = false).one(query, progressStatusBSON) map validator
-  }
+  }*/
+  override def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit] = ???
 
+  /*
   override def preview(applicationId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val progressStatusBSON = BSONDocument("$set" -> BSONDocument(
@@ -489,8 +556,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       CannotUpdatePreview(s"preview $applicationId"))
 
     collection.update(ordered = false).one(query, progressStatusBSON) map validator
-  }
+  }*/
+  override def preview(applicationId: String): Future[Unit] = ???
 
+  /*
   override def findTestForNotification(notificationType: NotificationTestType): Future[Option[TestResultNotification]] = {
     val query = Try{ notificationType match {
       case s: SuccessTestType if s.applicationRoutes.isEmpty =>
@@ -518,9 +587,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       q <- Future.fromTry(query)
       result <- selectOneRandom[TestResultNotification](q)
     } yield result
+  }*/
+  override def findTestForNotification(notificationType: NotificationTestType): Future[Option[TestResultNotification]] = ???
 
-  }
-
+  /*
   def findTestForSdipFsNotification(notificationType: NotificationTestTypeSdipFs): Future[Option[TestResultSdipFsNotification]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationRoute" -> notificationType.applicationRoute),
@@ -530,8 +600,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
     implicit val reader = bsonReader(TestResultSdipFsNotification.fromBson)
     selectOneRandom[TestResultSdipFsNotification](query)
-  }
+  }*/
+  def findTestForSdipFsNotification(notificationType: NotificationTestTypeSdipFs): Future[Option[TestResultSdipFsNotification]] = ???
 
+  /*
   override def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]] = {
     issue.fix match {
       case PassToPhase2 =>
@@ -571,8 +643,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
         selectRandom[Candidate](query, issue.batchSize)
     }
-  }
+  }*/
+  override def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]] = ???
 
+  /*
   override def fix(application: Candidate, issue: FixBatch): Future[Option[Candidate]] = {
     issue.fix match {
       case PassToPhase2 =>
@@ -620,8 +694,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
         findAndModify(query, updateOp).map(_.result[Candidate])
     }
-  }
+  }*/
+  override def fix(application: Candidate, issue: FixBatch): Future[Option[Candidate]] = ???
 
+  /*
   def fixDataByRemovingETray(appId: String): Future[Unit] = {
     import ProgressStatuses._
 
@@ -659,8 +735,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     )
 
     findAndModify(query, updateOp).map(_ => ())
-  }
+  }*/
+  def fixDataByRemovingETray(appId: String): Future[Unit] = ???
 
+  /*
   def fixDataByRemovingVideoInterviewFailed(appId: String): Future[Unit] = {
     import ProgressStatuses._
 
@@ -682,8 +760,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     )
 
     findAndModify(query, updateOp).map(_ => ())
-  }
+  }*/
+  def fixDataByRemovingVideoInterviewFailed(appId: String): Future[Unit] = ???
 
+  /*
   def fixDataByRemovingProgressStatus(appId: String, progressStatus: String): Future[Unit] = {
     val query = BSONDocument(
       "applicationId" -> appId,
@@ -695,7 +775,8 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     ))
 
     findAndModify(query, updateOp).map(_ => ())
-  }
+  }*/
+  def fixDataByRemovingProgressStatus(appId: String, progressStatus: String): Future[Unit] = ???
 
   private[application] def isNonSubmittedStatus(progress: ProgressResponse): Boolean = {
     val isNotSubmitted = !progress.submitted
@@ -703,7 +784,8 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     isNotWithdrawn && isNotSubmitted
   }
 
-  def extract(key: String)(root: Option[BSONDocument]): Option[String] = root.flatMap(_.getAs[String](key))
+  //TODO: fix
+  //  def extract(key: String)(root: Option[BSONDocument]): Option[String] = root.flatMap(_.getAs[String](key))
 
   /*private def getAdjustmentsConfirmed(assistance: Option[BSONDocument]): Option[String] = {
     assistance.flatMap(_.getAs[Boolean]("adjustmentsConfirmed")).getOrElse(false) match {
@@ -711,7 +793,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       case true => Some("Confirmed")
     }
   }*/
-
+  /*
   def confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit] = {
 
     val query = BSONDocument("applicationId" -> applicationId)
@@ -734,8 +816,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     collection.update(ordered = false).one(query, resetExerciseAdjustmentsBSON).map(resetValidator).flatMap { _ =>
       collection.update(ordered = false).one(query, adjustmentsConfirmationBSON) map adjustmentValidator
     }
-  }
+  }*/
+  def confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit] = ???
 
+  /*
   def findAdjustments(applicationId: String): Future[Option[Adjustments]] = {
 
     val query = BSONDocument("applicationId" -> applicationId)
@@ -753,8 +837,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
         }
       }
     }
-  }
+  }*/
+  def findAdjustments(applicationId: String): Future[Option[Adjustments]] = ???
 
+  /*
   def removeAdjustmentsComment(applicationId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
 
@@ -767,8 +853,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       notFound = CannotRemoveAdjustmentsComment(applicationId))
 
     collection.update(ordered = false).one(query, removeBSON) map validator
-  }
+  }*/
+  def removeAdjustmentsComment(applicationId: String): Future[Unit] = ???
 
+  /*
   def updateAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
 
@@ -781,8 +869,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       notFound = CannotUpdateAdjustmentsComment(applicationId))
 
     collection.update(ordered = false).one(query, updateBSON) map validator
-  }
+  }*/
+  def updateAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit] = ???
 
+  /*
   def findAdjustmentsComment(applicationId: String): Future[AdjustmentsComment] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument("assistance-details" -> 1, "_id" -> 0)
@@ -800,8 +890,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
         }
       case None => throw ApplicationNotFound(applicationId)
     }
-  }
+  }*/
+  def findAdjustmentsComment(applicationId: String): Future[AdjustmentsComment] = ???
 
+  /*
   def rejectAdjustment(applicationId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
 
@@ -815,8 +907,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       notFound = CannotRemoveAdjustmentsComment(applicationId))
 
     collection.update(ordered = false).one(query, adjustmentRejection) map validator
-  }
+  }*/
+  def rejectAdjustment(applicationId: String): Future[Unit] = ???
 
+  /*
   def gisByApplication(applicationId: String): Future[Boolean] = {
     val query = BSONDocument("applicationId" -> applicationId)
 
@@ -829,8 +923,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
         doc.getAs[BSONDocument]("assistance-details").map(_.getAs[Boolean]("guaranteedInterview").contains(true))
       }.getOrElse(false)
     }
-  }
+  }*/
+  def gisByApplication(applicationId: String): Future[Boolean] = ???
 
+  /*
   def allocationExpireDateByApplicationId(applicationId: String): Future[Option[LocalDate]] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val format = DateTimeFormat.forPattern("yyyy-MM-dd")
@@ -843,37 +939,47 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
         doc.getAs[String]("allocation-expire-date").map(d => format.parseDateTime(d).toLocalDate)
       }
     }
-  }
+  }*/
+  def allocationExpireDateByApplicationId(applicationId: String): Future[Option[LocalDate]] = ???
 
+  /*
   def updateStatus(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating status")
 
     collection.update(ordered = false).one(query, BSONDocument("$set" -> applicationStatusBSON(applicationStatus))) map validator
-  }
+  }*/
+  def updateStatus(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit] = ???
 
+  /*
   def updateApplicationStatusOnly(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val updateOp = BSONDocument("$set" -> BSONDocument("applicationStatus" -> applicationStatus.toString))
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating application status")
 
     collection.update(ordered = false).one(query, updateOp) map validator
-  }
+  }*/
+  def updateApplicationStatusOnly(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit] = ???
 
+  /*
   def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating submission deadline")
 
     collection.update(ordered = false).one(query, BSONDocument("$set" -> BSONDocument("submissionDeadline" -> newDeadline))) map validator
-  }
+  }*/
+  def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime): Future[Unit] = ???
 
+  /*
   override def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = {
     val query = BSONDocument("applicationId" -> appId)
     collection.find(query, projection = Option.empty[JsObject]).one[BSONDocument] map {
       _.map(bsonDocToOnlineTestApplication)
     }
-  }
+  }*/
+  override def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = ???
 
+  /*
   override def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating progress and app status")
@@ -881,8 +987,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     collection.update(ordered = false).one(query, BSONDocument("$set" ->
       applicationStatusBSON(progressStatus))
     ) map validator
-  }
+  }*/
+  override def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = ???
 
+  /*
   override def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
     require(progressStatuses.nonEmpty, "Progress statuses to remove cannot be empty")
 
@@ -901,8 +1009,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     val validator = singleUpdateValidator(applicationId, actionDesc = "removing progress and app status")
 
     collection.update(ordered = false).one(query, unsetDoc) map validator
-  }
+  }*/
+  override def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = ???
 
+  /*
   override def updateApplicationRoute(appId: String, appRoute:ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationId" -> appId),
@@ -915,8 +1025,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
     val validator = singleUpdateValidator(appId, actionDesc = "updating application route")
     collection.update(ordered = false).one(query, updateAppRoute) map validator
-  }
+  }*/
+  override def updateApplicationRoute(appId: String, appRoute: ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit] = ???
 
+  /*
   override def archive(appId: String, originalUserId: String, userIdToArchiveWith: String,
                        frameworkId: String, appRoute: ApplicationRoute): Future[Unit] = {
     val query = BSONDocument("$and" -> BSONArray(
@@ -935,8 +1047,11 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
     val validator = singleUpdateValidator(appId, actionDesc = "archiving application")
     collection.update(ordered = false).one(query, updateWithArchiveUserId) map validator
-  }
+  }*/
+  override def archive(appId: String, originalUserId: String, userIdToArchiveWith: String,
+                       frameworkId: String, appRoute: ApplicationRoute): Future[Unit] = ???
 
+  /*
   override def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse] = {
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
     val projection = BSONDocument(
@@ -958,15 +1073,19 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       }.flatMap { result =>
       Future.successful(CandidatesEligibleForEventResponse(result, -1))
     }
-  }
+  }*/
+  override def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse] = ???
 
+  //TODO:fix
+  /*
   private def countDocuments(query: BSONDocument) = {
     val unlimitedMaxDocs = -1
     collection.find(query, projection = Option.empty[JsObject]).cursor[BSONDocument]()
       .collect[List](unlimitedMaxDocs, FailOnError[List[BSONDocument]]())
       .map( _.size )
-  }
+  }*/
 
+  /*
   override def findCandidatesEligibleForEventAllocation(locations: List[String],
                                                         eventType: EventType,
                                                         schemeId: Option[SchemeId]
@@ -1014,17 +1133,26 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
         }
       }
     }
-  }
+  }*/
+  override def findCandidatesEligibleForEventAllocation(locations: List[String],
+                                                        eventType: EventType,
+                                                        schemeId: Option[SchemeId]
+                                                       ): Future[CandidatesEligibleForEventResponse] = ???
 
+  /*
   override def resetApplicationAllocationStatus(applicationId: String, eventType: EventType): Future[Unit] = {
     replaceAllocationStatus(applicationId, EventProgressStatuses.get(eventType.applicationStatus).awaitingAllocation)
-  }
+  }*/
+  override def resetApplicationAllocationStatus(applicationId: String, eventType: EventType): Future[Unit] = ???
 
+  /*
   override def setFailedToAttendAssessmentStatus(applicationId: String, eventType: EventType): Future[Unit] = {
     replaceAllocationStatus(applicationId, EventProgressStatuses.get(eventType.applicationStatus).failedToAttend)
-  }
+  }*/
+  override def setFailedToAttendAssessmentStatus(applicationId: String, eventType: EventType): Future[Unit] = ???
 
   import ProgressStatuses._
+
   private val progressStatuses = Map(
     ASSESSMENT_CENTRE -> List(
       ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,
@@ -1039,6 +1167,8 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     )
   )
 
+  //TODO: fix
+  /*
   private def replaceAllocationStatus(applicationId: String, newStatus: ProgressStatuses.ProgressStatus) = {
     val query = BSONDocument("applicationId" -> applicationId)
     val statusesToRemove = progressStatuses(newStatus.applicationStatus)
@@ -1049,8 +1179,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       "$set" -> BSONDocument(s"progress-status.${newStatus.key}" -> true)
     )
     collection.update(ordered = false).one(query, updateQuery).map(_ => ())
-  }
+  }*/
 
+  //TODO:fix
+  /*
   private def bsonDocToCandidatesEligibleForEvent(doc: BSONDocument) = {
     val applicationId = doc.getAs[String]("applicationId").get
     val personalDetails = doc.getAs[BSONDocument]("personal-details").get
@@ -1080,8 +1212,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       fsbScoresAndFeedbackSubmitted,
       model.FSACIndicator(fsacIndicator),
       dateReady.getOrElse(DateTime.now()))
-  }
+  }*/
 
+  //TODO:fix
+  /*
   private def applicationRouteCriteria(appRoute: ApplicationRoute) = appRoute match {
     case ApplicationRoute.Faststream =>
       BSONDocument("$or" -> BSONArray(
@@ -1089,16 +1223,18 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
         BSONDocument("applicationRoute" -> BSONDocument("$exists" -> false))
       ))
     case _ => BSONDocument("applicationRoute" -> appRoute)
-  }
+  }*/
 
-  def getApplicationRoute(applicationId: String): Future[ApplicationRoute] = {
+  /*  def getApplicationRoute(applicationId: String): Future[ApplicationRoute] = {
     val projection = BSONDocument("_id" -> false, "applicationRoute" -> true)
     val predicate = BSONDocument("applicationId" -> applicationId)
     collection.find(predicate, Some(projection)).one[BSONDocument].map(_.flatMap { doc =>
       doc.getAs[ApplicationRoute]("applicationRoute")
     }.getOrElse(throw ApplicationNotFound(s"No application found for $applicationId")))
-  }
+  }*/
+  def getApplicationRoute(applicationId: String): Future[ApplicationRoute] = ???
 
+  /*
   def getLatestProgressStatuses: Future[List[String]] = {
     val projection = BSONDocument("_id" -> false, "progress-status-timestamp" -> 2)
     val query = BSONDocument()
@@ -1113,8 +1249,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
         }
       }
     }
-  }
+  }*/
+  def getLatestProgressStatuses: Future[List[String]] = ???
 
+  /*
   override def countByStatus(applicationStatus: ApplicationStatus): Future[Long] = {
     val query = Json.obj("applicationStatus" -> applicationStatus.toString)
     collection.count(
@@ -1123,8 +1261,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       skip = 0,
       hint = None,
       readConcern = reactivemongo.api.ReadConcern.Local)
-  }
+  }*/
+  override def countByStatus(applicationStatus: ApplicationStatus): Future[Long] = ???
 
+  /*
   def getProgressStatusTimestamps(applicationId: String): Future[List[(String, DateTime)]] = {
 
     //TODO Ian mongo 3.2 -> 3.4
@@ -1147,24 +1287,30 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
         }.getOrElse(Nil)
       case _ => Nil
     }
-  }
+  }*/
+  def getProgressStatusTimestamps(applicationId: String): Future[List[(String, DateTime)]] = ???
 
+  /*
   def updateCurrentSchemeStatus(applicationId: String, results: Seq[SchemeEvaluationResult]): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val updateBSON = BSONDocument("$set" -> currentSchemeStatusBSON(results))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = s"Saving currentSchemeStatus for $applicationId")
     collection.update(ordered = false).one(query, updateBSON).map(validator)
-  }
+  }*/
+  def updateCurrentSchemeStatus(applicationId: String, results: Seq[SchemeEvaluationResult]): Future[Unit] = ???
 
+  /*
   override def removeCurrentSchemeStatus(applicationId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val update = BSONDocument("$unset" -> BSONDocument(s"currentSchemeStatus" -> ""))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = s"removing current scheme status for $applicationId")
     collection.update(ordered = false).one(query, update).map(validator)
-  }
+  }*/
+  override def removeCurrentSchemeStatus(applicationId: String): Future[Unit] = ???
 
+  /*
   def findEligibleForJobOfferCandidatesWithFsbStatus: Future[Seq[String]] = {
     val query = BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> BSONDocument("$eq" -> FSB.toString)),
@@ -1179,18 +1325,25 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
         doc.getAs[String]("applicationId").get
       }
     }
-  }
+  }*/
+  def findEligibleForJobOfferCandidatesWithFsbStatus: Future[Seq[String]] = ???
 
+  /*
   override def listCollections: Future[List[String]] = {
     mongoComponent.mongoConnector.db().collectionNames
-  }
+  }*/
+  override def listCollections: Future[List[String]] = ???
 
+  /*
   override def removeCollection(name: String): Future[Unit] = {
     mongo().collection[JSONCollection](name).drop(failIfNotFound = true).map(_ => {})
-  }
+  }*/
+  override def removeCollection(name: String): Future[Unit] = ???
 
+  /*
   override def removeCandidate(applicationId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     collection.delete().one(query, limit = Some(1)).map(_ => ())
-  }
+  }*/
+  override def removeCandidate(applicationId: String): Future[Unit] = ???
 }

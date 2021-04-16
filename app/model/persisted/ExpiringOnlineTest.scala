@@ -17,7 +17,7 @@
 package model.persisted
 
 import play.api.libs.json.Json
-import reactivemongo.bson.BSONDocument
+//import reactivemongo.bson.BSONDocument
 
 case class ExpiringOnlineTest(
   applicationId: String,
@@ -26,13 +26,14 @@ case class ExpiringOnlineTest(
 )
 
 object ExpiringOnlineTest {
-   def fromBson(doc: BSONDocument): ExpiringOnlineTest = {
+/*
+  def fromBson(doc: BSONDocument): ExpiringOnlineTest = {
     val applicationId = doc.getAs[String]("applicationId").get
     val userId = doc.getAs[String]("userId").get
     val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
     val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
     ExpiringOnlineTest(applicationId, userId, preferredName)
-  }
+  }*/
 
   implicit val expiringOnlineTestFormats = Json.format[ExpiringOnlineTest]
 }

@@ -17,13 +17,14 @@
 package model.persisted
 
 import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, BSONDocumentReader }
+//import reactivemongo.bson.{ BSONDocument, BSONDocumentReader }
 
 case class FsbSchemeResult(applicationId: String, results: List[SchemeEvaluationResult])
 
 object FsbSchemeResult {
   implicit val jsonFormat = Json.format[FsbSchemeResult]
 
+/*
   implicit object FsbResultReader extends BSONDocumentReader[Option[FsbSchemeResult]] {
     def read(document: BSONDocument): Option[FsbSchemeResult] = {
       for {
@@ -32,6 +33,5 @@ object FsbSchemeResult {
         fsbTestGroup <- testGroups.getAs[FsbTestGroup]("FSB")
       } yield FsbSchemeResult(applicationId, fsbTestGroup.evaluation.result)
     }
-  }
-
+  }*/
 }

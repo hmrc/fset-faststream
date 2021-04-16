@@ -18,7 +18,7 @@ package model.persisted.eventschedules
 
 import model.ApplicationStatus
 import play.api.libs.json._
-import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
+//import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 object EventType extends Enumeration {
   type EventType = Value
@@ -40,11 +40,12 @@ object EventType extends Enumeration {
     override def writes(eventType: EventType): JsValue = JsString(eventType.toString)
   }
 
+/*
   implicit object BSONEnumHandler extends BSONHandler[BSONString, EventType] {
     override def write(eventType: EventType): BSONString = BSON.write(eventType.toString)
 
     override def read(bson: BSONString): EventType = EventType.withName(bson.value.toUpperCase)
-  }
+  }*/
 
   implicit class RichEventType(eventType: EventType) {
 

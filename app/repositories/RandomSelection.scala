@@ -17,13 +17,13 @@
 package repositories
 
 import play.api.libs.json.JsObject
-import reactivemongo.api.Cursor.FailOnError
-import reactivemongo.api.{ Cursor, QueryOpts, ReadPreference }
-import reactivemongo.api.collections.bson.BSONCollection
-import reactivemongo.bson.{ BSONDocument, BSONDocumentReader }
-import reactivemongo.play.json.collection.JSONBatchCommands.JSONCountCommand
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import uk.gov.hmrc.mongo.ReactiveRepository
+//import reactivemongo.api.Cursor.FailOnError
+//import reactivemongo.api.{ Cursor, QueryOpts, ReadPreference }
+//import reactivemongo.api.collections.bson.BSONCollection
+//import reactivemongo.bson.{ BSONDocument, BSONDocumentReader }
+//import reactivemongo.play.json.collection.JSONBatchCommands.JSONCountCommand
+//import reactivemongo.play.json.ImplicitBSONHandlers._
+//import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.Random
@@ -37,10 +37,11 @@ object RandomSelection {
 }
 
 trait RandomSelection {
-  this: ReactiveRepository[_, _] =>
+//  this: ReactiveRepository[_, _] =>
 
-  protected val bsonCollection: BSONCollection
+//  protected val bsonCollection: BSONCollection
 
+/*
   // In Mongo 3.2.0 it would be more efficient and safer to use `db.aggregate` with the new `$sample` aggregation
   // to randomly select a single record.
   protected def selectRandom[T](query: BSONDocument, batchSize: Int = 1, projection: BSONDocument = BSONDocument.empty)(
@@ -66,10 +67,11 @@ trait RandomSelection {
           .cursor[T]().collect[List](newBatchSize, Cursor.FailOnError[List[T]]())
       }
     }
-  }
+  }*/
 
+/*
   protected def selectOneRandom[T](query: BSONDocument)(
     implicit reader: BSONDocumentReader[T], ec: ExecutionContext): Future[Option[T]] = {
     selectRandom[T](query, 1).map(_.headOption)
-  }
+  }*/
 }

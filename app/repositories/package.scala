@@ -25,27 +25,31 @@ import model.persisted.{ AssistanceDetails, ContactDetails, QuestionnaireAnswer 
 import model.{ AdjustmentDetail, ApplicationRoute, CivilServantAndInternshipType }
 import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalTime }
 import play.api.libs.json._
-import reactivemongo.bson._
+//import reactivemongo.bson._
 
 import scala.language.postfixOps
 
 package object repositories {
 
+/*
   implicit object BSONDateTimeHandler extends BSONHandler[BSONDateTime, DateTime] {
     def read(bdtime: BSONDateTime) = new DateTime(bdtime.value, DateTimeZone.UTC)
     def write(jdtime: DateTime) = BSONDateTime(jdtime.getMillis)
-  }
+  }*/
 
+/*
   implicit object BSONLocalDateHandler extends BSONHandler[BSONString, LocalDate] {
     def read(time: BSONString) = LocalDate.parse(time.value)
     def write(jdtime: LocalDate) = BSONString(jdtime.toString("yyyy-MM-dd"))
-  }
+  }*/
 
+/*
   implicit object BSONLocalTimeHandler extends BSONHandler[BSONString, LocalTime] {
     def read(time: BSONString) = LocalTime.parse(time.value)
     def write(jdtime: LocalTime) = BSONString(jdtime.toString("HH:mm"))
-  }
+  }*/
 
+/*
   implicit object BSONMapStringIntHandler extends BSONHandler[BSONDocument, Map[String, Int]] {
     override def write(map: Map[String, Int]): BSONDocument = {
       val elements = map.toStream.map { case (key, value) =>
@@ -61,8 +65,9 @@ package object repositories {
       }
       elements.toMap
     }
-  }
+  }*/
 
+/*
   implicit object BSONMapStringStringHandler extends BSONHandler[BSONDocument, Map[String, String]] {
     override def write(map: Map[String, String]): BSONDocument = {
       val elements = map.toStream.map { case (key, value ) =>
@@ -78,8 +83,9 @@ package object repositories {
       }
       elements.toMap
     }
-  }
+  }*/
 
+/*
   implicit object BSONMapOfListOfLocalDateHandler extends BSONHandler[BSONDocument, Map[String, List[LocalDate]]] {
     import Producer._
 
@@ -98,7 +104,7 @@ package object repositories {
       }
       elements.toMap
     }
-  }
+  }*/
 
   implicit object OFormatHelper {
     def oFormat[T](implicit format:Format[T]) : OFormat[T] = {
@@ -110,6 +116,7 @@ package object repositories {
     }
   }
 
+/*
   implicit val withdrawHandler: BSONHandler[BSONDocument, WithdrawApplication] = Macros.handler[WithdrawApplication]
   implicit val cdHandler: BSONHandler[BSONDocument, ContactDetails] = Macros.handler[ContactDetails]
   implicit val assistanceDetailsHandler: BSONHandler[BSONDocument, AssistanceDetails] = Macros.handler[AssistanceDetails]
@@ -127,7 +134,9 @@ package object repositories {
     Macros.handler[CompetencyAverageResult]
   implicit val flagCandidateHandler: BSONHandler[BSONDocument, FlagCandidate] = Macros.handler[FlagCandidate]
   implicit val adjustmentDetailHandler: BSONHandler[BSONDocument, AdjustmentDetail] = Macros.handler[AdjustmentDetail]
+ */
 
+/*
   def bsonDocToOnlineTestApplication(doc: BSONDocument) = {
     val applicationId = doc.getAs[String]("applicationId").get
     val applicationStatus = doc.getAs[String]("applicationStatus").get
@@ -151,8 +160,9 @@ package object repositories {
       needsAdjustmentForOnlineTests, needsAdjustmentsAtVenue, preferredName, lastName,
       etrayAdjustments, videoInterviewAdjustments
     )
-  }
+  }*/
 
+  /*
   //scalastyle:off method.length cyclomatic.complexity
   def getCivilServiceExperienceDetails(applicationRoute: ApplicationRoute,
                                        doc: BSONDocument
@@ -220,4 +230,5 @@ package object repositories {
       otherInternshipColumnOpt, otherInternshipNameColumnOpt, otherInternshipYearColumnOpt, Some(fastPassCertificate)
     )
   } //scalastyle:on method.length cyclomatic.complexity
+   */
 }

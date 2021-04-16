@@ -17,20 +17,24 @@
 package repositories.application
 
 import connectors.ExchangeObjects
-import javax.inject.{ Inject, Singleton }
-import model.{ ApplicationStatus, _ }
+
+import javax.inject.{Inject, Singleton}
+import model.{ApplicationStatus, _}
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.ProgressStatuses.ProgressStatus
 import model.persisted.ContactDetails
-import org.joda.time.{ DateTime, LocalDate }
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.commands.WriteResult
-import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import org.joda.time.{DateTime, LocalDate}
+import org.mongodb.scala.bson.collection.immutable.Document
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+//import play.modules.reactivemongo.ReactiveMongoComponent
+//import reactivemongo.api.commands.WriteResult
+//import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
+//import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+//import uk.gov.hmrc.mongo.ReactiveRepository
+//import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -49,6 +53,7 @@ trait TestDataContactDetailsRepository {
   def createContactDetails(num: Int): Future[Unit]
 }
 
+/*
 @Singleton
 class TestDataContactDetailsMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
   extends ReactiveRepository[ContactDetails, BSONObjectID](
@@ -56,17 +61,29 @@ class TestDataContactDetailsMongoRepository @Inject() (mongoComponent: ReactiveM
     mongoComponent.mongoConnector.db,
     ContactDetails.contactDetailsFormat,
     ReactiveMongoFormats.objectIdFormats) with TestDataContactDetailsRepository with ReactiveRepositoryHelpers {
+*/
+@Singleton
+class TestDataContactDetailsMongoRepository @Inject() (mongo: MongoComponent)
+  extends PlayMongoRepository[ContactDetails](
+    collectionName = CollectionNames.CONTACT_DETAILS,
+    mongoComponent = mongo,
+    domainFormat = ContactDetails.contactDetailsFormat,
+    indexes = Nil
+  ) with TestDataContactDetailsRepository with ReactiveRepositoryHelpers {
 
   import Utils.chooseOne
 
   val postcodes = Seq("AB1 3CD", "BC1 2DE", "CD28 7EF", "DE23 8FG")
 
+/*
   override def createContactDetails(num: Int): Future[Unit] = Future.successful {
     for (i <- 0 until num) {
       createSingleContactDetail(i)
     }
-  }
+  }*/
+  override def createContactDetails(num: Int): Future[Unit] = ???
 
+/*
   private def createSingleContactDetail(id: Int): Future[Unit] = {
     val contactDetails = ContactDetails(outsideUk = false, Address("1st High Street"), Some(chooseOne(postcodes)), None,
       s"test_$id@test.com", "123456789")
@@ -76,16 +93,17 @@ class TestDataContactDetailsMongoRepository @Inject() (mongoComponent: ReactiveM
 
     val validator = singleUpsertValidator(id.toString, actionDesc = "creating contact test data")
     collection.update(ordered = false).one(BSONDocument("userId" -> id.toString), contactDetailsBson, upsert = true) map validator
-  }
+  }*/
 }
 
 @Singleton
-class TestDataMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[ContactDetails, BSONObjectID](
-    CollectionNames.APPLICATION,
-    mongoComponent.mongoConnector.db,
-    ContactDetails.contactDetailsFormat,
-    ReactiveMongoFormats.objectIdFormats) with TestDataRepository with ReactiveRepositoryHelpers {
+class TestDataMongoRepository @Inject() (mongo: MongoComponent)
+  extends PlayMongoRepository[ContactDetails](
+    collectionName = CollectionNames.APPLICATION,
+    mongoComponent = mongo,
+    domainFormat = ContactDetails.contactDetailsFormat,
+    indexes = Nil
+  ) with TestDataRepository with ReactiveRepositoryHelpers {
 
   import Utils.chooseOne
 
@@ -107,11 +125,14 @@ class TestDataMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
     LocalDate.parse("1982-12-12"), LocalDate.parse("1983-12-12"), LocalDate.parse("1984-12-12"), LocalDate.parse("1985-12-12"),
     LocalDate.parse("1987-12-12"), LocalDate.parse("1987-12-12"))
 
+/*
   override def createApplications(num: Int): Future[Unit] =
     Future.sequence(
       (0 until num).map { i => createSingleApplication(i) }
-    ).map(_ => ())
+    ).map(_ => ())*/
+  override def createApplications(num: Int): Future[Unit] = ???
 
+/*
   // scalastyle:off parameter.number method.length
   def createApplicationWithAllFields(userId: String, appId: String, testAccountId: String, frameworkId: String,
                                      appStatus: ApplicationStatus = ApplicationStatus.IN_PROGRESS, hasDisability: String = "Yes",
@@ -169,7 +190,9 @@ class TestDataMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
     collection.insert(ordered = false).one(document)
   }
   // scalastyle:on parameter.number method.length
+*/
 
+/*
   def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {
     val baseDoc = BSONDocument(
       "personal-details" -> true,
@@ -187,7 +210,8 @@ class TestDataMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
     )
 
     args.foldLeft(baseDoc)((acc, v) => acc ++ (v._1.toString -> v._2))
-  }
+  }*/
+  def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): Document = ???
 
   val testCandidate = Map(
     "firstName" -> "George",
@@ -196,22 +220,25 @@ class TestDataMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
     "dateOfBirth" -> "1986-05-01"
   )
 
+/*
   def createMinimumApplication(userId: String, appId: String, frameworkId: String): Future[WriteResult] = {
     collection.insert(ordered = false).one(BSONDocument(
       "applicationId" -> appId,
       "userId" -> userId,
       "frameworkId" -> frameworkId
     )) //.futureValue
-  }
+  }*/
 
+/*
   private def createSingleApplication(id: Int): Future[Unit] = {
     val document = buildSingleApplication(id)
 
     val validator = singleUpsertValidator(id.toString, actionDesc = "creating application test data")
 
     collection.update(ordered = false).one(BSONDocument("userId" -> id.toString), document, upsert = true) map validator
-  }
+  }*/
 
+/*
   private def createProgress(
                               personalDetails: Option[BSONDocument],
                               assistance: Option[BSONDocument],
@@ -226,8 +253,9 @@ class TestDataMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
     progress = isWithdrawn.map(_ => progress ++ ("withdrawn" -> true)).getOrElse(progress)
 
     progress
-  }
+  }*/
 
+/*
   private def buildSingleApplication(id: Int): BSONDocument = {
     val personalDetails = createPersonalDetails(id)
     val assistance = createAssistance(id)
@@ -251,12 +279,14 @@ class TestDataMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
     document = document ++ ("progress-status" -> progress)
 
     document
-  }
+  }*/
 
+/*
   private def buildDocument(document: BSONDocument)(f: Option[(String, BSONDocument)]) = {
     f.map(d => document ++ d).getOrElse(document)
-  }
+  }*/
 
+/*
   private def createAssistance(id: Int) = id match {
     case x if x % 7 == 0 => None
     case _ =>
@@ -269,8 +299,9 @@ class TestDataMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
         "guaranteedInterview" -> true,
         "hasDisabilityDescription" -> "Wooden leg"
       ))
-  }
+  }*/
 
+/*
   private def createPersonalDetails(id: Int) = id match {
     case x if x % 5 == 0 => None
     case _ =>
@@ -282,9 +313,10 @@ class TestDataMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
         "aLevel" -> true,
         "stemLevel" -> true
       ))
-  }
+  }*/
 
   // TODO: Cubiks code need to replace with psi
+/*
   private def createOnlineTests(id: Int) = id match {
     case x if x % 12 == 0 => None
     case _ =>
@@ -299,15 +331,17 @@ class TestDataMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
         "participantScheduleId" -> 149245,
         "completionDate" -> DateTime.now()
       ))
-  }
+  }*/
 
+/*
   private def isSubmitted(id: Int)(ps: Option[BSONDocument], as: Option[BSONDocument]) = (ps, as) match {
     case (Some(_), Some(_)) if id % 2 == 0 => Some(true)
     case _ => None
-  }
+  }*/
 
+/*
   private def isWithdrawn(id: Int)(ps: Option[BSONDocument], as: Option[BSONDocument]) = (ps, as) match {
     case (Some(_), Some(_)) if id % 3 == 0 => Some(true)
     case _ => None
-  }
+  }*/
 }

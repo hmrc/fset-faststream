@@ -17,9 +17,10 @@
 package repositories
 
 import model.ProgressStatuses.ProgressStatus
-import reactivemongo.bson.{ BSONArray, BSONDocument }
+//import reactivemongo.bson.{ BSONArray, BSONDocument }
 
 trait OnlineTestCommonBSONDocuments {
+/*
   def inviteToTestBSON[P <: ProgressStatus](targetProgressStatus: P) = {
     BSONDocument("$and" -> BSONArray(
       BSONDocument("applicationStatus" -> targetProgressStatus.applicationStatus.toString),
@@ -32,5 +33,5 @@ trait OnlineTestCommonBSONDocuments {
         BSONDocument("assistance-details.adjustmentsConfirmed" -> true)
         ))
       ))
-  }
+  }*/
 }

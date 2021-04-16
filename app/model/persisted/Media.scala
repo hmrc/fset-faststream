@@ -17,11 +17,11 @@
 package model.persisted
 
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+//import reactivemongo.bson.Macros
 
 case class Media(userId: String, media: String, originalUserId: Option[String] = None)
 
 object Media {
   implicit val mediaFormat = Json.format[Media]
-  implicit val mediaHandler = Macros.handler[Media]
+//  implicit val mediaHandler = Macros.handler[Media]
 }

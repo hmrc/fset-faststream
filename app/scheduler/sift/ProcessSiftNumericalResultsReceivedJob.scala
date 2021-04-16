@@ -19,7 +19,7 @@ package scheduler.sift
 import config.WaitingScheduledJobConfig
 import javax.inject.{ Inject, Singleton }
 import play.api.{ Configuration, Logging }
-import play.modules.reactivemongo.ReactiveMongoComponent
+//import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.NumericalTestService
@@ -28,7 +28,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class ProcessSiftNumericalResultsReceivedJobImpl @Inject() (val numericalTestService: NumericalTestService,
-                                                            val mongoComponent: ReactiveMongoComponent,
+//                                                            val mongoComponent: ReactiveMongoComponent,
                                                             val config: ProcessSiftNumericalResultsReceivedJobConfig
                                                            ) extends ProcessSiftNumericalResultsReceivedJob {
 }

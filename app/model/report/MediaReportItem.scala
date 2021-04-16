@@ -17,11 +17,11 @@
 package model.report
 
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+//import reactivemongo.bson.Macros
 
 case class MediaReportItem(media: String)
 
 object MediaReportItem {
   implicit val mediaFormat = Json.format[MediaReportItem]
-  implicit val mediaHandler = Macros.handler[MediaReportItem]
+//  implicit val mediaHandler = Macros.handler[MediaReportItem]
 }

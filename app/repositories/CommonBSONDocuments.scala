@@ -21,7 +21,7 @@ import model.ApplicationStatus._
 import model.ProgressStatuses.ProgressStatus
 import model.command._
 import model.{ ApplicationStatus, FailedSdipFsTestType, ProgressStatuses, SuccessfulSdipFsTestType }
-import reactivemongo.bson.{ BSONBoolean, BSONDocument, BSONDocumentReader, BSONReader, BSONValue }
+//import reactivemongo.bson.{ BSONBoolean, BSONDocument, BSONDocumentReader, BSONReader, BSONValue }
 
 import scala.language.implicitConversions
 
@@ -29,6 +29,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
 
   def dateTimeFactory: DateTimeFactory // Guice impl
 
+  /*
   protected def applicationStatusBSON(applicationStatus: ApplicationStatus) = {
     // TODO the progress status should be propagated up to the caller, rather than default, but that will
     // require widespread changes, and using a default in here is better than the previous implementation
@@ -54,30 +55,38 @@ trait CommonBSONDocuments extends BaseBSONReader {
           "applicationStatus" -> applicationStatus
         )
     }
-  }
+  }*/
+  protected def applicationStatusBSON(applicationStatus: ApplicationStatus) = ???
 
+  /*
   protected def applicationStatusBSON(progressStatus: ProgressStatus) = {
     BSONDocument(
       "applicationStatus" -> progressStatus.applicationStatus,
       s"progress-status.${progressStatus.key}" -> true,
       s"progress-status-timestamp.${progressStatus.key}" -> dateTimeFactory.nowLocalTimeZone
     )
-  }
+  }*/
+  protected def applicationStatusBSON(progressStatus: ProgressStatus) = ???
 
+  /*
   def progressStatusOnlyBSON(progressStatus: ProgressStatus) = {
     BSONDocument(
       s"progress-status.${progressStatus.key}" -> true,
       s"progress-status-timestamp.${progressStatus.key}" -> dateTimeFactory.nowLocalTimeZone
     )
-  }
+  }*/
+  def progressStatusOnlyBSON(progressStatus: ProgressStatus) = ???
 
+  /*
   def progressStatusGuardBSON(progressStatus: ProgressStatus) = {
     BSONDocument(
       "applicationStatus" -> progressStatus.applicationStatus,
       s"progress-status.${progressStatus.key}" -> true
     )
-  }
+  }*/
+  def progressStatusGuardBSON(progressStatus: ProgressStatus) = ???
 
+  /*
   // scalastyle:off method.length
   def toProgressResponse(applicationId: String): BSONDocumentReader[ProgressResponse] = bsonReader {
     doc: BSONDocument => {
@@ -211,4 +220,5 @@ trait CommonBSONDocuments extends BaseBSONReader {
     }
   }
   // scalastyle:on method.length
+  */
 }

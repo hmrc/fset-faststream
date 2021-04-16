@@ -16,18 +16,20 @@
 
 package repositories.application
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.CreateApplicationRequest
 import model.Exceptions.ApplicationNotFound
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{ JsObject, JsValue, Json }
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.{ Cursor, ReadPreference }
-import reactivemongo.bson.BSONObjectID
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import play.api.libs.json.{JsObject, JsValue, Json}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+//import play.modules.reactivemongo.ReactiveMongoComponent
+//import reactivemongo.api.{ Cursor, ReadPreference }
+//import reactivemongo.bson.BSONObjectID
+//import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.CollectionNames
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+//import uk.gov.hmrc.mongo.ReactiveRepository
+//import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -37,13 +39,23 @@ trait DiagnosticReportingRepository {
   def findAll(): Enumerator[JsValue]
 }
 
+/*
 @Singleton
 class DiagnosticReportingMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
   extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](
     CollectionNames.APPLICATION,
     mongoComponent.mongoConnector.db,
     CreateApplicationRequest.createApplicationRequestFormat,
-    ReactiveMongoFormats.objectIdFormats) with DiagnosticReportingRepository {
+    ReactiveMongoFormats.objectIdFormats) with DiagnosticReportingRepository {*/
+
+@Singleton
+class DiagnosticReportingMongoRepository @Inject() (mongo: MongoComponent)
+  extends PlayMongoRepository[CreateApplicationRequest](
+    collectionName = CollectionNames.APPLICATION,
+    mongoComponent = mongo,
+    domainFormat = CreateApplicationRequest.createApplicationRequestFormat,
+    indexes = Nil
+  ) with DiagnosticReportingRepository {
 
   private val defaultExclusions = Json.obj(
     "_id" -> 0,
@@ -62,7 +74,7 @@ class DiagnosticReportingMongoRepository @Inject() (mongoComponent: ReactiveMong
     "testGroups.PHASE3.tests.callbacks.finished" -> 0,
     "testGroups.PHASE3.tests.callbacks.reviewed.reviews" -> 0
   )
-
+/*
   def findByApplicationId(userId: String): Future[List[JsObject]] = {
     val projection = defaultExclusions
 
@@ -74,13 +86,15 @@ class DiagnosticReportingMongoRepository @Inject() (mongoComponent: ReactiveMong
       if (r.isEmpty) { throw ApplicationNotFound(userId) }
       else { r }
     }
-  }
-
+  }*/
+  def findByApplicationId(userId: String): Future[List[JsObject]] = ???
+/*
   def findAll(): Enumerator[JsValue] = {
     import reactivemongo.play.iteratees.cursorProducer
     val projection = defaultExclusions ++ largeFields
     collection.find(Json.obj(), Some(projection))
       .cursor[JsValue](ReadPreference.primaryPreferred)
       .enumerator()
-  }
+  }*/
+  def findAll(): Enumerator[JsValue] = ???
 }

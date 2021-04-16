@@ -17,11 +17,11 @@
 package model.persisted.fsb
 
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+//import reactivemongo.bson.Macros
 
 case class ScoresAndFeedback(overallScore: Double, feedback: String)
 
 object ScoresAndFeedback {
   implicit val scoresAndFeedbackFormat = Json.format[ScoresAndFeedback]
-  implicit val scoresAndFeedbackHandler = Macros.handler[ScoresAndFeedback]
+//  implicit val scoresAndFeedbackHandler = Macros.handler[ScoresAndFeedback]
 }

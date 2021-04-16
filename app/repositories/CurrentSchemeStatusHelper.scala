@@ -19,7 +19,7 @@ package repositories
 import model.EvaluationResults._
 import model.{ Scheme, SchemeId }
 import model.persisted.SchemeEvaluationResult
-import reactivemongo.bson.BSONDocument
+//import reactivemongo.bson.BSONDocument
 
 import scala.annotation.tailrec
 
@@ -47,26 +47,29 @@ trait CurrentSchemeStatusHelper {
     accumulateStatus(existingEvaluations, newEvaluations, Nil)
   }
 
+/*
   def currentSchemeStatusBSON(latestResults: Seq[SchemeEvaluationResult]): BSONDocument = {
     BSONDocument("currentSchemeStatus" -> latestResults.map { r =>
       SchemeEvaluationResult.bsonHandler.write(r)
     })
-  }
+  }*/
 
-  def currentSchemeStatusGreen(schemeIds: SchemeId*): BSONDocument = currentSchemeStatus(Green, schemeIds:_*)
+//  def currentSchemeStatusGreen(schemeIds: SchemeId*): BSONDocument = currentSchemeStatus(Green, schemeIds:_*)
 
-  def currentSchemeStatusRed(schemeIds: SchemeId*): BSONDocument = currentSchemeStatus(Red, schemeIds:_*)
+//  def currentSchemeStatusRed(schemeIds: SchemeId*): BSONDocument = currentSchemeStatus(Red, schemeIds:_*)
 
-  def currentSchemeStatusAmber(schemeIds: SchemeId*): BSONDocument = currentSchemeStatus(Amber, schemeIds:_*)
+//  def currentSchemeStatusAmber(schemeIds: SchemeId*): BSONDocument = currentSchemeStatus(Amber, schemeIds:_*)
 
-  def currentSchemeStatusWithdrawn(schemeIds: SchemeId*): BSONDocument = currentSchemeStatus(Withdrawn, schemeIds:_*)
+//  def currentSchemeStatusWithdrawn(schemeIds: SchemeId*): BSONDocument = currentSchemeStatus(Withdrawn, schemeIds:_*)
 
+/*
   private def currentSchemeStatus(status: Result, schemeIds: SchemeId*): BSONDocument = {
     schemeIds.foldLeft(BSONDocument.empty) { case (doc, id) =>
       doc ++ BSONDocument(s"currentSchemeStatus" -> BSONDocument("$elemMatch" -> SchemeEvaluationResult(id, status.toString)))
     }
-  }
+  }*/
 
+/*
   def isFirstResidualPreference(schemeId: SchemeId): BSONDocument = {
     BSONDocument("$where" ->
       s"""
@@ -77,7 +80,7 @@ trait CurrentSchemeStatusHelper {
         |);
         |greens.length > 0 && greens[0].schemeId=="$schemeId";
       """.stripMargin)
-  }
+  }*/
 
   def firstResidualPreference(results: Seq[SchemeEvaluationResult], ignoreSdip: Boolean = false): Option[SchemeEvaluationResult] = {
     val resultsWithIndex = results.zipWithIndex

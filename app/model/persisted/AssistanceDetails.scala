@@ -18,7 +18,7 @@ package model.persisted
 
 import model.exchange.AssistanceDetailsExchange
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+//import reactivemongo.bson.Macros
 
 case class AssistanceDetails(
                               hasDisability: String,
@@ -36,7 +36,7 @@ case class AssistanceDetails(
 
 object AssistanceDetails {
   implicit val assistanceDetailsFormat = Json.format[AssistanceDetails]
-  implicit val assistanceDetailsHandler = Macros.handler[AssistanceDetails]
+//  implicit val assistanceDetailsHandler = Macros.handler[AssistanceDetails]
 
   def apply(ex: AssistanceDetailsExchange): AssistanceDetails =
     AssistanceDetails(ex.hasDisability, ex.disabilityImpact, ex.disabilityCategories,

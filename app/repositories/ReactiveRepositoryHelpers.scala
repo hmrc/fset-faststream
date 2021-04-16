@@ -18,43 +18,48 @@ package repositories
 
 import model.Exceptions.{ CannotUpdateRecord, NotFoundException, TooManyEntries }
 import play.api.libs.json.JsObject
-import reactivemongo.api.{ ReadConcern, ReadPreference, WriteConcern }
-import reactivemongo.api.collections.bson.BSONBatchCommands.FindAndModifyCommand
-import reactivemongo.api.collections.bson.BSONCollection
-import reactivemongo.api.commands.{ Collation, UpdateWriteResult, WriteResult }
-import reactivemongo.bson.BSONDocument
-import uk.gov.hmrc.mongo.ReactiveRepository
+//import reactivemongo.api.{ ReadConcern, ReadPreference, WriteConcern }
+//import reactivemongo.api.collections.bson.BSONBatchCommands.FindAndModifyCommand
+//import reactivemongo.api.collections.bson.BSONCollection
+//import reactivemongo.api.commands.{ Collation, UpdateWriteResult, WriteResult }
+//import reactivemongo.bson.BSONDocument
+//import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future }
 
 trait ReactiveRepositoryHelpers {
-  this: ReactiveRepository[_, _] =>
+//  this: ReactiveRepository[_, _] =>
 
-  protected lazy val bsonCollection: BSONCollection = collection.db.collection[BSONCollection](collection.name)
+//  protected lazy val bsonCollection: BSONCollection = collection.db.collection[BSONCollection](collection.name)
 
+/*
   def singleUpdateValidator(id: String,
                             actionDesc: String,
                             notFound: => Exception): UpdateWriteResult => Unit = {
     singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = false, notFound, upsert = false)
-  }
+  }*/
 
+/*
   def singleUpdateValidator(id: String, actionDesc: String, ignoreNotFound: Boolean = false): UpdateWriteResult => Unit = {
 
     singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound,
       new NotFoundException(s"could not find id $id whilst $actionDesc"), upsert = false)
-  }
+  }*/
 
+/*
   def singleUpsertValidator(id: String, actionDesc: String): UpdateWriteResult => Unit = {
 
     singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, new Exception, upsert = true)
-  }
+  }*/
 
+/*
   def singleUpsertValidator(id: String, actionDesc: String, notFound: => Exception): UpdateWriteResult => Unit = {
 
     singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, notFound, upsert = true)
-  }
+  }*/
 
+/*
   def multipleRemoveValidator(expected: Int, actionDesc: String): WriteResult => Unit = (result: WriteResult) => {
     if (result.ok) {
       if (result.n == expected) {
@@ -72,8 +77,9 @@ trait ReactiveRepositoryHelpers {
       logger.error(msg)
       throw CannotUpdateRecord(msg)
     }
-  }
+  }*/
 
+/*
   def singleRemovalValidator(id: String, actionDesc: String): WriteResult => Unit = (result: WriteResult) => {
     if (result.ok) {
       if (result.n == 1) {
@@ -89,8 +95,9 @@ trait ReactiveRepositoryHelpers {
       logger.error(msg)
       throw CannotUpdateRecord(msg)
     }
-  }
+  }*/
 
+/*
   private[this] def singleUpdateValidatorImpl(id: String, actionDesc: String, ignoreNotFound: Boolean,
                                               notFound: => Exception, upsert: Boolean)(result: UpdateWriteResult): Unit = {
     if (result.ok) {
@@ -110,8 +117,9 @@ trait ReactiveRepositoryHelpers {
       logger.error(msg)
       throw CannotUpdateRecord(msg)
     }
-  }
+  }*/
 
+/*
   // Wrap the findAndModify method to provide all the defaults
   def findAndModify(query: BSONDocument, updateOp: FindAndModifyCommand.Update) = {
     implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
@@ -120,8 +128,9 @@ trait ReactiveRepositoryHelpers {
       writeConcern = WriteConcern.Default, maxTime = Option.empty[FiniteDuration], collation = Option.empty[Collation],
       arrayFilters = Seq.empty[BSONDocument]
     )
-  }
+  }*/
 
+/*
   // Alternative to the count implemented by Hmrc ReactiveRepository class, which throws a JsResultException at runtime:
   // errmsg=readConcern.level must be either 'local', 'majority' or 'linearizable'", "")
   def countLong(implicit ec: ExecutionContext): Future[Long] =
@@ -131,5 +140,5 @@ trait ReactiveRepositoryHelpers {
       skip = 0,
       hint =  None,
       readConcern = ReadConcern.Local
-    )
+    )*/
 }

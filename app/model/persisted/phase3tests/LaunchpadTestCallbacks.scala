@@ -19,7 +19,7 @@ package model.persisted.phase3tests
 import connectors.launchpadgateway.exchangeobjects.in._
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest
 import play.api.libs.json.Json
-import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
+//import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
 
 case class LaunchpadTestCallbacks(
                                  viewBrandedVideo: List[ViewBrandedVideoCallbackRequest] = Nil,
@@ -38,5 +38,5 @@ case class LaunchpadTestCallbacks(
 
 object LaunchpadTestCallbacks {
   implicit val launchpadTestCallbacksFormat = Json.format[LaunchpadTestCallbacks]
-  implicit val bsonHandler: BSONHandler[BSONDocument, LaunchpadTestCallbacks] = Macros.handler[LaunchpadTestCallbacks]
+//  implicit val bsonHandler: BSONHandler[BSONDocument, LaunchpadTestCallbacks] = Macros.handler[LaunchpadTestCallbacks]
 }

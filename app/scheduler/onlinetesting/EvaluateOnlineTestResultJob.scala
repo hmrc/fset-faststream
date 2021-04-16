@@ -26,7 +26,7 @@ import model.exchange.passmarksettings.{ PassMarkSettings, Phase1PassMarkSetting
 import model.persisted.ApplicationReadyForEvaluation
 import play.api.libs.json.Format
 import play.api.{ Configuration, Logging }
-import play.modules.reactivemongo.ReactiveMongoComponent
+//import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 
@@ -36,7 +36,7 @@ import scala.util.{ Failure, Success, Try }
 @Singleton
 class EvaluatePhase1ResultJob @Inject() (@Named("Phase1EvaluationService")
                                          val evaluateService: EvaluateOnlineTestResultService[Phase1PassMarkSettings],
-                                         val mongoComponent: ReactiveMongoComponent,
+//                                         val mongoComponent: ReactiveMongoComponent,
                                          val config: EvaluatePhase1ResultJobConfig
                                         ) extends EvaluateOnlineTestResultJob[Phase1PassMarkSettings] {
   val phase = Phase.PHASE1
@@ -45,7 +45,7 @@ class EvaluatePhase1ResultJob @Inject() (@Named("Phase1EvaluationService")
 @Singleton
 class EvaluatePhase2ResultJob @Inject() (@Named("Phase2EvaluationService")
                                          val evaluateService: EvaluateOnlineTestResultService[Phase2PassMarkSettings],
-                                         val mongoComponent: ReactiveMongoComponent,
+//                                         val mongoComponent: ReactiveMongoComponent,
                                          val config: EvaluatePhase2ResultJobConfig
                                         ) extends EvaluateOnlineTestResultJob[Phase2PassMarkSettings] {
   val phase = Phase.PHASE2
@@ -54,7 +54,7 @@ class EvaluatePhase2ResultJob @Inject() (@Named("Phase2EvaluationService")
 @Singleton
 class EvaluatePhase3ResultJob @Inject() (@Named("Phase3EvaluationService")
                                          val evaluateService: EvaluateOnlineTestResultService[Phase3PassMarkSettings],
-                                         val mongoComponent: ReactiveMongoComponent,
+//                                         val mongoComponent: ReactiveMongoComponent,
                                          val config: EvaluatePhase3ResultJobConfig
                                         ) extends EvaluateOnlineTestResultJob[Phase3PassMarkSettings] {
   val phase = Phase.PHASE3

@@ -17,7 +17,7 @@
 package model
 
 import play.api.libs.json._
-import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
+//import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 import services.testdata.candidate.ApplicationStatusOnlyForTest
 
 import scala.language.implicitConversions
@@ -40,8 +40,9 @@ object ApplicationStatus extends Enumeration with ApplicationStatusOnlyForTest {
     def writes(myEnum: ApplicationStatus) = JsString(myEnum.toString)
   }
 
+/*
   implicit object BSONEnumHandler extends BSONHandler[BSONString, ApplicationStatus] {
     def read(doc: BSONString) = ApplicationStatus.withName(doc.value.toUpperCase())
     def write(status: ApplicationStatus) = BSON.write(status.toString)
-  }
+  }*/
 }

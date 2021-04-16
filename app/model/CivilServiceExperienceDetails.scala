@@ -18,7 +18,7 @@ package model
 
 import model.CivilServantAndInternshipType.CivilServantAndInternshipType
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+//import reactivemongo.bson.Macros
 
 case class CivilServiceExperienceDetails(
   applicable:Boolean,
@@ -46,5 +46,5 @@ case class CivilServiceExperienceDetails(
 
 object CivilServiceExperienceDetails {
   implicit val civilServiceExperienceDetailsFormat = Json.format[CivilServiceExperienceDetails]
-  implicit val civilServiceExperienceDetailsHandler = Macros.handler[CivilServiceExperienceDetails]
+//  implicit val civilServiceExperienceDetailsHandler = Macros.handler[CivilServiceExperienceDetails]
 }

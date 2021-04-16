@@ -18,7 +18,7 @@ package scheduler.clustering
 
 import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 
-import play.modules.reactivemongo.ReactiveMongoComponent
+//import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.{ BasicJobConfig, LockKeeper }
 import uk.gov.hmrc.play.scheduling.ExclusiveScheduledJob
 
@@ -37,12 +37,12 @@ trait SingleInstanceScheduledJob[C <: BasicJobConfig[_]] extends ExclusiveSchedu
   def name = config.name
   def enabled = config.enabled
 
-  val mongoComponent: ReactiveMongoComponent
+//  val mongoComponent: ReactiveMongoComponent
 
   @volatile
   var running = false
 
-  lazy val lockKeeper: LockKeeper = LockKeeper(mongoComponent, lockId, forceLockReleaseAfter)
+//  lazy val lockKeeper: LockKeeper = LockKeeper(mongoComponent, lockId, forceLockReleaseAfter)
 
   implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(
     new ThreadPoolExecutor(2, 2, 180, TimeUnit.SECONDS, new ArrayBlockingQueue(4)))
@@ -57,6 +57,7 @@ trait SingleInstanceScheduledJob[C <: BasicJobConfig[_]] extends ExclusiveSchedu
     */
   override def isRunning: Future[Boolean] = Future.successful(running)
 
+/*
   def executeInMutex(implicit ec: ExecutionContext): Future[this.Result] = lockKeeper.tryLock {
     running = true
     val v = Try(tryExecute)
@@ -65,5 +66,6 @@ trait SingleInstanceScheduledJob[C <: BasicJobConfig[_]] extends ExclusiveSchedu
   }.map {
     case Some(_) => Result("Done")
     case None => Result("Nothing")
-  }
+  }*/
+  def executeInMutex(implicit ec: ExecutionContext): Future[this.Result] = ???
 }

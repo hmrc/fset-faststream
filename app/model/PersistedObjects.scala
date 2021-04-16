@@ -22,7 +22,6 @@ import model.ApplicationStatus._
 import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
 import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json._
-import reactivemongo.bson.Macros
 
 @deprecated("fasttrack version. Create one case class in one file. All persisted case classes are in model.persisted package", "July 2016")
 object PersistedObjects {

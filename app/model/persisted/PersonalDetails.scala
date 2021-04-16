@@ -20,7 +20,7 @@ import org.joda.time.LocalDate
 import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
 import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.Json
-import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
+//import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
 
 case class PersonalDetails(firstName: String,
                            lastName: String,
@@ -34,8 +34,8 @@ case class PersonalDetails(firstName: String,
                           )
 
 object PersonalDetails {
-  import repositories.BSONLocalDateHandler
+//  import repositories.BSONLocalDateHandler
 
   implicit val personalDetailsFormat = Json.format[PersonalDetails]
-  implicit val personalDetailsHandler = Macros.handler[PersonalDetails]
+//  implicit val personalDetailsHandler = Macros.handler[PersonalDetails]
 }

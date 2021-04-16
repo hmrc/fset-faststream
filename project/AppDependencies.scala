@@ -15,6 +15,7 @@
  */
 
 import play.sbt.PlayImport._
+import sbt.Keys.scalaBinaryVersion
 import sbt._
 
 //scalastyle:off line.size.limit
@@ -22,16 +23,21 @@ object AppDependencies {
   import play.core.PlayVersion
 
   val compile = Seq(
-    "uk.gov.hmrc"       %% "simple-reactivemongo"             % "7.30.0-play-27",
+    "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-27"               % "0.48.0",
+//    "uk.gov.hmrc"       %% "simple-reactivemongo"             % "7.30.0-play-27",
     "uk.gov.hmrc"       %% "bootstrap-backend-play-27"        % "2.24.0",
+//    "uk.gov.hmrc"       %% "bootstrap-backend-play-27"        % "4.2.0",
     // Needed to get an Enumerator of documents from ReactiveMongo. Note the version specified is the version of the ReactiveMongo driver
     // which matches the current version used in the HMRC simple-reactivemongo lib
     // ReactiveMongo version used is here: https://github.com/hmrc/simple-reactivemongo/blob/master/project/LibraryDependencies.scala
-    "org.reactivemongo" %% "reactivemongo-iteratees"          % "0.18.8",
+//    "org.reactivemongo" %% "reactivemongo-iteratees"          % "0.18.8",
     "com.typesafe.play" %% "play-iteratees"                   % "2.6.1",
     "com.typesafe.play" %% "play-iteratees-reactive-streams"  % "2.6.1",
     "com.typesafe.play" %% "play-json-joda"                   % "2.6.10",
-    "uk.gov.hmrc"       %% "play-scheduling-play-27"          % "7.10.0",
+    "uk.gov.hmrc"       %% "play-scheduling-play-27"          % "7.10.0" excludeAll(
+      ExclusionRule(organization = "org.reactivemongo"),
+      ExclusionRule(organization = "uk.gov.hmrc", name="simple-reactivemongo_2.12") // Need to specify the scala version here
+      ),
     "org.webjars"       %% "webjars-play"                     % "2.7.3",
     "org.webjars"       %  "bootstrap"                        % "3.1.1",
     "org.webjars"       %  "jquery"                           % "1.11.0",

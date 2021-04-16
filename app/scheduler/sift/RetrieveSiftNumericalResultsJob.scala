@@ -21,18 +21,18 @@ import javax.inject.{ Inject, Singleton }
 import model.EmptyRequestHeader
 import play.api.mvc.RequestHeader
 import play.api.{ Configuration, Logging }
-import play.modules.reactivemongo.ReactiveMongoComponent
+//import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.NumericalTestService
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
-// Cubiks specific class - redundant
 
+// Cubiks specific class - redundant
 @Singleton
 class RetrieveSiftNumericalResultsJobImpl @Inject() (val numericalTestService: NumericalTestService,
-                                                     val mongoComponent: ReactiveMongoComponent,
+//                                                     val mongoComponent: ReactiveMongoComponent,
                                                      val config: RetrieveSiftNumericalResultsJobConfig
                                                     ) extends RetrieveSiftNumericalResultsJob {
 }

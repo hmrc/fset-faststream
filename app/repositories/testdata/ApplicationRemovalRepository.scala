@@ -16,15 +16,17 @@
 
 package repositories.testdata
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.CreateApplicationRequest
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.Cursor
-import reactivemongo.bson.{ BSONDocument, BSONObjectID }
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+//import play.modules.reactivemongo.ReactiveMongoComponent
+//import reactivemongo.api.Cursor
+//import reactivemongo.bson.{ BSONDocument, BSONObjectID }
+//import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+//import uk.gov.hmrc.mongo.ReactiveRepository
+//import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -34,13 +36,14 @@ trait ApplicationRemovalRepository {
 }
 
 @Singleton
-class ApplicationRemovalMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](
-    CollectionNames.APPLICATION,
-    mongoComponent.mongoConnector.db,
-    CreateApplicationRequest.createApplicationRequestFormat,
-    ReactiveMongoFormats.objectIdFormats) with ApplicationRemovalRepository with ReactiveRepositoryHelpers
-{
+class ApplicationRemovalMongoRepository @Inject() (mongoComponent: MongoComponent)
+  extends PlayMongoRepository[CreateApplicationRequest](
+    collectionName = CollectionNames.APPLICATION,
+    mongoComponent = mongoComponent,
+    domainFormat = CreateApplicationRequest.createApplicationRequestFormat,
+    indexes = Nil
+  ) with ApplicationRemovalRepository with ReactiveRepositoryHelpers {
+  /*
   def remove(applicationStatus: Option[String]): Future[List[String]] = {
     val query = applicationStatus.map(as => BSONDocument("applicationStatus" -> as)).getOrElse(BSONDocument())
 
@@ -54,5 +57,6 @@ class ApplicationRemovalMongoRepository @Inject() (mongoComponent: ReactiveMongo
       collection.delete().one(query).map(_.n)
       userIds
     }
-  }
+  }*/
+  def remove(applicationStatus: Option[String]): Future[List[String]] = ???
 }

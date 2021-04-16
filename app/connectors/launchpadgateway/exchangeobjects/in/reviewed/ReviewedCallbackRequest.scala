@@ -20,7 +20,7 @@ import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
 import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
+//import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class ReviewedCallbackRequest(
   received: DateTime,
@@ -71,9 +71,9 @@ case class ReviewedCallbackRequest(
 object ReviewedCallbackRequest {
   val key = "reviewed"
   implicit val reviewedCallbackFormat = Json.format[ReviewedCallbackRequest]
-  import repositories.BSONDateTimeHandler
-  import repositories.BSONLocalDateHandler
-  implicit val bsonHandler: BSONHandler[BSONDocument, ReviewedCallbackRequest] = Macros.handler[ReviewedCallbackRequest]
+//  import repositories.BSONDateTimeHandler
+//  import repositories.BSONLocalDateHandler
+//  implicit val bsonHandler: BSONHandler[BSONDocument, ReviewedCallbackRequest] = Macros.handler[ReviewedCallbackRequest]
 
   def getLatestReviewed(reviewCallBacks: List[ReviewedCallbackRequest]): Option[ReviewedCallbackRequest] =
     reviewCallBacks.sortWith { (r1, r2) => r1.received.isAfter(r2.received) }.headOption

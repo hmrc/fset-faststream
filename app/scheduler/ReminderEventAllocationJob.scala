@@ -20,7 +20,7 @@ import config.ScheduledJobConfig
 import javax.inject.{ Inject, Singleton }
 import model.EmptyRequestHeader
 import play.api.Configuration
-import play.modules.reactivemongo.ReactiveMongoComponent
+//import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.allocation.CandidateAllocationService
 import uk.gov.hmrc.http.HeaderCarrier
@@ -28,7 +28,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.{ ExecutionContext, Future }
 
 class ReminderEventAllocationJobImpl @Inject() (val service: CandidateAllocationService,
-                                                val mongoComponent: ReactiveMongoComponent,
+//                                                val mongoComponent: ReactiveMongoComponent,
                                                 val config: ReminderEventAllocationJobConfig
                                                ) extends ReminderEventAllocationJob {
 }

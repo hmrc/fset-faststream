@@ -21,7 +21,7 @@ import javax.inject.{ Inject, Singleton }
 import model.EmptyRequestHeader
 import play.api.Configuration
 import play.api.mvc.RequestHeader
-import play.modules.reactivemongo.ReactiveMongoComponent
+//import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.application.ApplicationService
@@ -31,7 +31,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class FixerJobImpl @Inject() (val service: ApplicationService,
-                              val mongoComponent: ReactiveMongoComponent,
+//                              val mongoComponent: ReactiveMongoComponent,
                               val config: FixerJobConfig) extends FixerJob {
   //  override val service = ApplicationService
   //  val config = FixerJobConfig

@@ -19,7 +19,7 @@ package scheduler
 import config.WaitingScheduledJobConfig
 import javax.inject.{ Inject, Singleton }
 import play.api.{ Configuration, Logging }
-import play.modules.reactivemongo.ReactiveMongoComponent
+//import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.clustering.SingleInstanceScheduledJob
 //import scheduler.ProgressToFsbOrOfferJobConfig.conf
 import services.assessmentcentre.ProgressionToFsbOrOfferService
@@ -28,7 +28,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.{ ExecutionContext, Future }
 
 class ProgressToFsbOrOfferJobImpl @Inject() (val progressionToFsbOrOfferService: ProgressionToFsbOrOfferService,
-                                             val mongoComponent: ReactiveMongoComponent,
+//                                             val mongoComponent: ReactiveMongoComponent,
                                              val config: ProgressToFsbOrOfferJobConfig
                                             ) extends ProgressToFsbOrOfferJob {
 }

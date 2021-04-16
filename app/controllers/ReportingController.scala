@@ -707,6 +707,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
       "\"" + ret + "\""
     }.mkString(",")
 
+  /*
   // scalastyle:off method.length
   def assessorAllocationReport: Action[AnyContent] = Action.async { implicit request =>
 
@@ -769,6 +770,8 @@ class ReportingController @Inject() (cc: ControllerComponents,
     }
   }
   // scalastyle:on
+  */
+  def assessorAllocationReport: Action[AnyContent] = ??? //TODO: fix
 
   def adjustmentReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     val reports =

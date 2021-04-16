@@ -16,38 +16,39 @@
 
 package repositories.schemepreferences
 
-import javax.inject.{ Inject, Singleton }
-import model.Exceptions.{ CannotUpdateSchemePreferences, SchemePreferencesNotFound }
-import model.{ SchemeId, SelectedSchemes }
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import javax.inject.{Inject, Singleton}
+import model.Exceptions.{CannotUpdateSchemePreferences, SchemePreferencesNotFound}
+import model.{SchemeId, SelectedSchemes}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+//import play.modules.reactivemongo.ReactiveMongoComponent
+//import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
+//import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+//import uk.gov.hmrc.mongo.ReactiveRepository
+//import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait SchemePreferencesRepository {
   def find(applicationId: String): Future[SelectedSchemes]
-
   def save(applicationId: String, schemePreferences: SelectedSchemes): Future[Unit]
-
   def add(applicationId: String, newScheme: SchemeId): Future[Unit]
 }
 
 @Singleton
-class SchemePreferencesMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[SelectedSchemes, BSONObjectID](
-    CollectionNames.APPLICATION,
-    mongoComponent.mongoConnector.db,
-    SelectedSchemes.selectedSchemesFormat,
-    ReactiveMongoFormats.objectIdFormats
+class SchemePreferencesMongoRepository @Inject() (mongo: MongoComponent)
+  extends PlayMongoRepository[SelectedSchemes](
+    collectionName = CollectionNames.APPLICATION,
+    mongoComponent = mongo,
+    domainFormat = SelectedSchemes.selectedSchemesFormat,
+    indexes = Nil
   ) with SchemePreferencesRepository with ReactiveRepositoryHelpers {
 
   private val SchemePreferencesDocumentKey = "scheme-preferences"
 
+  /*
   def find(applicationId: String): Future[SelectedSchemes] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val projection = BSONDocument(SchemePreferencesDocumentKey -> 1, "_id" -> 0)
@@ -57,8 +58,10 @@ class SchemePreferencesMongoRepository @Inject() (mongoComponent: ReactiveMongoC
         document.getAs[SelectedSchemes](SchemePreferencesDocumentKey).get
       case _ => throw SchemePreferencesNotFound(applicationId)
     }
-  }
+  }*/
+  def find(applicationId: String): Future[SelectedSchemes] = ???
 
+  /*
   def save(applicationId: String, schemePreference: SelectedSchemes): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val preferencesBSON = BSONDocument("$set" -> BSONDocument(
@@ -70,8 +73,10 @@ class SchemePreferencesMongoRepository @Inject() (mongoComponent: ReactiveMongoC
       CannotUpdateSchemePreferences(applicationId))
 
     collection.update(ordered = false).one(query, preferencesBSON) map validator
-  }
+  }*/
+  def save(applicationId: String, schemePreference: SelectedSchemes): Future[Unit] = ???
 
+  /*
   def add(applicationId: String, newScheme: SchemeId): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     val update = BSONDocument(
@@ -83,5 +88,6 @@ class SchemePreferencesMongoRepository @Inject() (mongoComponent: ReactiveMongoC
     val validator = singleUpdateValidator(applicationId, actionDesc = s"inserting sdip scheme")
 
     collection.update(ordered = false).one(query, update) map validator
-  }
+  }*/
+  def add(applicationId: String, newScheme: SchemeId): Future[Unit] = ???
 }

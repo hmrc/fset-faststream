@@ -19,7 +19,7 @@ package scheduler.assessment
 import config.WaitingScheduledJobConfig
 import javax.inject.{ Inject, Singleton }
 import play.api.{ Configuration, Logging }
-import play.modules.reactivemongo.ReactiveMongoComponent
+//import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.assessmentcentre.AssessmentCentreService
@@ -29,7 +29,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 @Singleton
 class EvaluateAssessmentCentreJobImpl @Inject() (val applicationAssessmentService: AssessmentCentreService,
                                                  val config: EvaluateAssessmentCentreJobConfig,
-                                                 val mongoComponent: ReactiveMongoComponent
+//                                                 val mongoComponent: ReactiveMongoComponent
                                                 ) extends EvaluateAssessmentCentreJob {
   //  val applicationAssessmentService: AssessmentCentreService = AssessmentCentreService
 }

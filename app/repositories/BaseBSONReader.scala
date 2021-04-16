@@ -16,14 +16,15 @@
 
 package repositories
 
-import reactivemongo.bson.{ BSONDocument, BSONDocumentReader }
+//import reactivemongo.bson.{ BSONDocument, BSONDocumentReader }
 
 trait BaseBSONReader {
+/*
   protected def bsonReader[T](f: BSONDocument => T): BSONDocumentReader[T] = {
     new BSONDocumentReader[T] {
       def read(bson: BSONDocument) = f(bson)
     }
-  }
+  }*/
 
   protected def booleanTranslator(bool: Boolean) = if (bool) { "Yes" } else { "No" }
   protected def booleanYnTranslator(bool: Boolean) = if (bool) { "Y" } else { "N" }

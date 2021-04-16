@@ -18,8 +18,7 @@ package model.persisted
 
 import model.ApplicationStatus.ApplicationStatus
 import play.api.libs.json.Json
-import reactivemongo.bson.BSONDocument
-
+//import reactivemongo.bson.BSONDocument
 
 case class TestResultSdipFsNotification(
   applicationId: String,
@@ -28,6 +27,7 @@ case class TestResultSdipFsNotification(
   preferredName: String)
 
 object TestResultSdipFsNotification {
+/*
   def fromBson(doc: BSONDocument) = {
     val applicationId = doc.getAs[String]("applicationId").get
     val userId = doc.getAs[String]("userId").get
@@ -35,7 +35,7 @@ object TestResultSdipFsNotification {
     val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
     val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
     TestResultSdipFsNotification(applicationId, userId, applicationStatus, preferredName)
-  }
+  }*/
 
   implicit val testResultSdipFsNotificationFormat = Json.format[TestResultSdipFsNotification]
 }

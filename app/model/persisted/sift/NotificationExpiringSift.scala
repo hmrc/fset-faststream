@@ -20,8 +20,8 @@ import org.joda.time.DateTime
 import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
 import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.Json
-import reactivemongo.bson.BSONDocument
-import repositories.BSONDateTimeHandler
+//import reactivemongo.bson.BSONDocument
+//import repositories.BSONDateTimeHandler
 
 case class NotificationExpiringSift(
   applicationId: String,
@@ -31,6 +31,7 @@ case class NotificationExpiringSift(
 )
 
 object NotificationExpiringSift {
+/*
   def fromBson(doc: BSONDocument, phase: String) = {
     val applicationId = doc.getAs[String]("applicationId").get
     val userId = doc.getAs[String]("userId").get
@@ -40,7 +41,7 @@ object NotificationExpiringSift {
     val PHASERoot = testGroupsRoot.getAs[BSONDocument](phase).get
     val expiryDate = PHASERoot.getAs[DateTime]("expirationDate").get
     NotificationExpiringSift(applicationId, userId, preferredName, expiryDate)
-  }
+  }*/
 
   implicit val notificationExpiringSiftFormat = Json.format[NotificationExpiringSift]
 }
