@@ -229,6 +229,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
   "assessor allocation report" must {
     "return the allocation report when all data is present" in new TestFixture {
       val underTest = testableReportingController
+/*
       when(mockEventsRepository.findAll(any())(any[ExecutionContext]())).thenReturnAsync(
         List(
           EventExamples.e1,
@@ -275,6 +276,8 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       result(1) mustBe
         """"userId1","Bob Smith","assessor","NO","ASSESSOR, QUALITY_ASSURANCE_COORDINATOR","",
           |"bob@bob.com"," ","External","ASSESSOR (CONFIRMED)"," """".stripMargin.replaceAll("\n", "")
+ */
+      ???
     }
 
     "numeric text extract report" must {

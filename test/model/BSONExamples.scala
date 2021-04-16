@@ -16,10 +16,12 @@
 
 package model
 
-import reactivemongo.bson.{ BSONArray, BSONDocument }
+//import reactivemongo.bson.{ BSONArray, BSONDocument }
 
+//TODO: fix me
 object BSONExamples {
   val SubmittedSdipCandidateWithEdipAndOtherInternshipCompleted = {
+/*
     BSONDocument(
       "_id" -> "58454b6261ae24a4609f0e4f",
       "applicationId" -> "a665043b-8317-4d28-bdf6-086859ac17ff",
@@ -77,9 +79,11 @@ object BSONExamples {
         "guaranteedInterview" -> false
       )
     )
+ */
   }
 
   val SubmittedFsCandidate = {
+/*
     BSONDocument(
       "_id" -> "58454b6261ae24a4609f0e4f",
       "applicationId" -> "a665043b-8317-4d28-bdf6-086859ac17ff",
@@ -138,5 +142,6 @@ object BSONExamples {
         "guaranteedInterview" -> false
       )
     )
+ */
   }
 }

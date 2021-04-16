@@ -21,7 +21,7 @@ import factories.DateTimeFactory
 import model.command.ApplicationForSiftExamples
 import model.{ ProgressStatuses, SchemeId, SerialUpdateResult }
 import org.joda.time.{ DateTime, LocalDate }
-import play.modules.reactivemongo.ReactiveMongoComponent
+//import play.modules.reactivemongo.ReactiveMongoComponent TODO: fix me
 import scheduler.sift.ProgressToSiftJob
 import services.sift.ApplicationSiftService
 import testkit.ScalaMockImplicits._
@@ -35,14 +35,14 @@ class ProgressToSiftJobSpec extends ScalaMockUnitWithAppSpec {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val mockApplicationSiftService = mock[ApplicationSiftService]
-  val mockMongoComponent = mock[ReactiveMongoComponent]
+//  val mockMongoComponent = mock[ReactiveMongoComponent]
   val mockDateTimeFactory = mock[DateTimeFactory]
 
   val mockConfiguration = mock[play.api.Configuration]
 
   object TestProgressToSiftJob extends ProgressToSiftJob {
     override val siftService: ApplicationSiftService = mockApplicationSiftService
-    override val mongoComponent: ReactiveMongoComponent = mockMongoComponent
+//    override val mongoComponent: ReactiveMongoComponent = mockMongoComponent
     override lazy val batchSize = 10
     val config = BasicJobConfig[WaitingScheduledJobConfig](mockConfiguration, "", "")
   }

@@ -27,11 +27,12 @@ import model.persisted.sift.{ NotificationExpiringSift, SiftTestGroup }
 import model.persisted.{ ContactDetails, ContactDetailsExamples, SchemeEvaluationResult }
 import model.sift.{ FixUserStuckInSiftEntered, SiftFirstReminder, SiftSecondReminder }
 import org.joda.time.{ DateTime, LocalDate }
-import reactivemongo.bson.BSONDocument
+//import reactivemongo.bson.BSONDocument
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.sift.ApplicationSiftRepository
-import repositories.{ BSONDateTimeHandler, TestSchemeRepository }
+//import repositories.{ BSONDateTimeHandler, TestSchemeRepository }
+import repositories.TestSchemeRepository
 import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
@@ -117,7 +118,9 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     )
   }
 
+  //TODO: fix this test
   trait SiftUpdateTest extends TestFixture {
+/*
     val progressStatusUpdateBson: ProgressStatus => BSONDocument = (status: ProgressStatus) => BSONDocument(
       s"progress-status.$status" -> true,
       s"progress-status-timestamp.$status" -> BSONDateTimeHandler.write(DateTimeFactoryMock.nowLocalTimeZone)
@@ -134,6 +137,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     val updateBson = BSONDocument("test" -> "test")
 
     (mockApplicationSiftRepo.siftResultsExistsForScheme _).expects(appId, schemeSiftResult.schemeId).returningAsync(false)
+ */
   }
 
   "progressApplicationToSiftStage" must {
@@ -216,6 +220,8 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
 
   "siftApplicationForScheme" must {
     "sift and update progress status for a candidate" in new SiftUpdateTest {
+      ???
+/*
       (mockApplicationSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Nil)
       val expectedUpdateBson = Seq(
         currentSchemeUpdateBson(schemeSiftResult),
@@ -229,11 +235,13 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       (mockApplicationRepo.getApplicationRoute _).expects(appId).returningAsync(ApplicationRoute.Faststream)
 
       whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
+ */
     }
 
     "sift a faststream scheme to RED and update progress status for an SdipFaststream candidate whose other fast stream " +
       "schemes are Red or Withdrawn, all require a sift and have been sifted" in new SiftUpdateTest {
-
+      ???
+/*
       (mockApplicationSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Seq(
         SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Withdrawn.toString),
         SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString)
@@ -260,7 +268,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       )
       (mockApplicationSiftRepo.siftApplicationForScheme _).expects(appId, schemeSiftResult, expectedUpdateBson).returningAsync
 
-      whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
+      whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }*/
     }
 
     "sift a faststream to RED and update progress status for an SdipFaststream candidate whose other fast stream " +
@@ -276,6 +284,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
         SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString)
       ))
 
+/*
       override lazy val schemeSiftResult = SchemeEvaluationResult(SchemeId("GovernmentEconomicsService"), EvaluationResults.Red.toString)
       val expectedUpdateBson = Seq(
         currentSchemeUpdateBson(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Withdrawn.toString) ::
@@ -289,6 +298,8 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       (mockApplicationSiftRepo.siftApplicationForScheme _).expects(appId, schemeSiftResult, expectedUpdateBson).returningAsync
 
       whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
+      */
+      ???
     }
 
     "sift and update progress status for an SdipFaststream candidate whose fast stream " +
@@ -307,7 +318,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
         SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString),
         SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Green.toString)
       ))
-
+/*
       override lazy val schemeSiftResult = SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString)
       val expectedUpdateBson = Seq(
         currentSchemeUpdateBson(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Withdrawn.toString) ::
@@ -319,9 +330,12 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       (mockApplicationSiftRepo.siftApplicationForScheme _).expects(appId, schemeSiftResult, expectedUpdateBson).returningAsync
 
       whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
+ */
+      ???
     }
 
     "sift a candidate with remaining schemes to sift" in new SiftUpdateTest {
+/*
       (mockApplicationSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Nil)
 
       val currentStatus = Seq(
@@ -337,11 +351,13 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       (mockApplicationSiftRepo.siftApplicationForScheme _).expects("applicationId", schemeSiftResult, expectedUpdateBson).returningAsync
 
       whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
+ */
+      ???
     }
 
     "sift candidate and update progress status if remaining schemes don't require sift" in new SiftUpdateTest {
       (mockApplicationSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Nil)
-
+/*
       val currentStatus = Seq(
         SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Green.toString),
         SchemeEvaluationResult(SchemeId("HousesOfParliament"), EvaluationResults.Green.toString),
@@ -359,11 +375,13 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       (mockApplicationSiftRepo.siftApplicationForScheme _).expects("applicationId", schemeSiftResult, expectedUpdateBson).returningAsync
 
       whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
+ */
+      ???
     }
 
     "sift candidate and update progress status if remaining schemes are generalists and/or dont require sift" in new SiftUpdateTest {
       (mockApplicationSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Nil)
-
+/*
       val currentStatus = Seq(
         SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Green.toString),
         SchemeEvaluationResult(SchemeId("HousesOfParliament"), EvaluationResults.Green.toString),
@@ -382,6 +400,8 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       (mockApplicationSiftRepo.siftApplicationForScheme _).expects("applicationId", schemeSiftResult, expectedUpdateBson).returningAsync
 
       whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
+ */
+      ???
     }
   }
 

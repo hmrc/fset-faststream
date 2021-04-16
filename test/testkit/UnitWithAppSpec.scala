@@ -26,7 +26,7 @@ import play.api.libs.json.{ JsValue, Json, Writes }
 import play.api.mvc.Results
 import play.api.test.{ FakeHeaders, FakeRequest }
 import play.api.{ Application, Play }
-import play.modules.reactivemongo.ReactiveMongoHmrcModule
+//import play.modules.reactivemongo.ReactiveMongoHmrcModule TODO: fix me
 
 /**
   * Common base class for all controller tests
@@ -41,7 +41,7 @@ trait WithAppSpec extends GuiceOneAppPerSuite with Results with FutureHelper wit
 
   override implicit lazy val app: Application = new GuiceApplicationBuilder()
     .disable[PlayModule]
-    .disable[ReactiveMongoHmrcModule]
+//    .disable[ReactiveMongoHmrcModule]
     .build
 
   implicit def materializer: Materializer = Play.materializer(app)
