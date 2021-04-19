@@ -28,8 +28,8 @@ import model.command.testdata.CreateCandidateRequest.{ AdjustmentsRequest, Assis
 import model.persisted._
 import model.report.{ AdjustmentReportItem, CandidateProgressReportItem }
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers._
+//import reactivemongo.bson.BSONDocument
+//import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.CollectionNames
 import services.GBTimeZoneService2
 import services.testdata.faker.DataFaker
@@ -63,7 +63,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       val userId = generateUUID()
       val appId = generateUUID()
       val testAccountId = generateUUID()
-      testDataRepo.createApplicationWithAllFields(userId, appId, testAccountId, "FastStream-2016").futureValue
+//      testDataRepo.createApplicationWithAllFields(userId, appId, testAccountId, "FastStream-2016").futureValue
 
       val result = repository.candidateProgressReport("FastStream-2016").futureValue
 
@@ -78,7 +78,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
     "work for the minimum application" in {
       val userId = generateUUID()
       val appId = generateUUID()
-      testDataRepo.createMinimumApplication(userId, appId, "FastStream-2016").futureValue
+//      testDataRepo.createMinimumApplication(userId, appId, "FastStream-2016").futureValue
 
       val result = repository.candidateProgressReport("FastStream-2016").futureValue
 
@@ -94,7 +94,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
     "work for for the minimum application" in {
       val userId = generateUUID()
       val appId = generateUUID()
-      testDataRepo.createMinimumApplication(userId, appId, "FastStream-2016").futureValue
+//      testDataRepo.createMinimumApplication(userId, appId, "FastStream-2016").futureValue
 
       val result = repository.diversityReport("FastStream-2016").futureValue
 
@@ -120,10 +120,10 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       val testAccountId2 = generateUUID()
       val testAccountId3 = generateUUID()
 
-      testDataRepo.createApplicationWithAllFields(userId1, appId1, testAccountId1,"FastStream-2016", guaranteedInterview = true,
-        needsSupportForOnlineAssessment = true).futureValue
-      testDataRepo.createApplicationWithAllFields(userId2, appId2, testAccountId2,"FastStream-2016", hasDisability = "No").futureValue
-      testDataRepo.createApplicationWithAllFields(userId3, appId3, testAccountId3,"FastStream-2016", needsSupportAtVenue = true).futureValue
+//      testDataRepo.createApplicationWithAllFields(userId1, appId1, testAccountId1,"FastStream-2016", guaranteedInterview = true,
+//        needsSupportForOnlineAssessment = true).futureValue
+//      testDataRepo.createApplicationWithAllFields(userId2, appId2, testAccountId2,"FastStream-2016", hasDisability = "No").futureValue
+//      testDataRepo.createApplicationWithAllFields(userId3, appId3, testAccountId3,"FastStream-2016", needsSupportAtVenue = true).futureValue
 
       val result = repository.diversityReport("FastStream-2016").futureValue
 
@@ -337,8 +337,9 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
   }
 
   private def create(application: UserApplicationProfile) = {
-    import repositories.BSONLocalDateHandler
+//    import repositories.BSONLocalDateHandler
 
+/*
     repository.collection.insert(ordered = false).one(BSONDocument(
       "applicationId" -> application.userId,
       "applicationRoute" -> ApplicationRoute.Faststream,
@@ -351,15 +352,20 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
         "dateOfBirth" -> application.dateOfBirth
       )
     )).futureValue
+ */
+    ???
   }
 
   private def createWithoutPersonalDetails(userId: String, latestProgressStatus: String) = {
 //    import repositories.BSONLocalDateHandler
 
+/*
     repository.collection.insert(ordered = false).one(BSONDocument(
       "userId" -> userId,
       "frameworkId" -> FrameworkId,
       "progress-status" -> BSONDocument(latestProgressStatus -> true)
     )).futureValue
+ */
+    ???
   }
 }

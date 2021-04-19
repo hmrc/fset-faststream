@@ -24,7 +24,7 @@ import model.ProgressStatuses.{ PHASE1_TESTS_COMPLETED, PHASE1_TESTS_EXPIRED, PH
 import model.persisted._
 import model.{ ApplicationStatus, ProgressStatuses, persisted, _ }
 import org.joda.time.{ DateTime, DateTimeZone }
-import reactivemongo.bson.BSONDocument
+//import reactivemongo.bson.BSONDocument
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 
@@ -58,16 +58,22 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "return an online test for the specific user id" in {
+/*
       insertApplication("appId", "userId")
       phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
       val result = phase1TestRepo.getTestGroup("appId").futureValue
       result mustBe Some(TestProfile)
+ */
+      ???
     }
 
     "return None if there is an application without test group" in {
+/*
       insertApplication("appId", "userId")
       val result = phase1TestRepo.getTestGroup("appId").futureValue
       result mustBe None
+ */
+      ???
     }
   }
 
@@ -78,10 +84,13 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "return an online test for the specific orderId" in {
+/*
       insertApplication("appId", "userId")
       phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
       val result = phase1TestRepo.getTestProfileByOrderId("orderId1").futureValue
       result mustBe TestProfile
+ */
+      ???
     }
   }
 
@@ -116,24 +125,31 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
   "Next application ready for online testing" should {
     "return no application if there is only one and it is a fast pass candidate" in {
+/*
       createApplicationWithAllFields("appId", "userId", "testAccountId", "frameworkId", "SUBMITTED",
         fastPassApplicable = true, fastPassReceived = true
       ).futureValue
 
       val result = phase1TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
       result mustBe Nil
+ */
+      ???
     }
 
     "return no application if there is one fast pass approved candidate" in {
+/*
       createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "SUBMITTED", fastPassApplicable = true,
         fastPassReceived = true, fastPassAccepted = Some(true)
       ).futureValue
 
       val result = phase1TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
       result mustBe Nil
+ */
+      ???
     }
 
     "return no application if there is one fast pass rejected candidate" in {
+/*
       createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "SUBMITTED", fastPassApplicable = true,
         fastPassReceived = true, fastPassAccepted = Some(false)
       ).futureValue
@@ -143,9 +159,12 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       results.length mustBe 1
       results.head.applicationId mustBe "appId"
       results.head.userId mustBe "userId"
+ */
+      ???
     }
 
     "return one application if there is only one and it is not a fast pass candidate" in {
+/*
       createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "SUBMITTED").futureValue
 
       val results = phase1TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
@@ -153,6 +172,8 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       results.length mustBe 1
       results.head.applicationId mustBe "appId"
       results.head.userId mustBe "userId"
+ */
+      ???
     }
   }
 
@@ -162,13 +183,14 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
       )
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
+/*
       createApplicationWithAllFields("userId1", "app1",  "testAccountId", appStatus = ApplicationStatus.PHASE1_TESTS,
         phase1TestProfile = Some(TestProfile.copy(evaluation = Some(evaluation))), applicationRoute = ApplicationRoute.SdipFaststream.toString
       ).futureValue
       createApplicationWithAllFields("userId2", "app2",  "testAccountId", appStatus = ApplicationStatus.PHASE2_TESTS,
         phase1TestProfile = Some(TestProfile.copy(evaluation = Some(evaluation))), applicationRoute = ApplicationRoute.Sdip.toString
       ).futureValue
-
+*/
       val results = phase1TestRepo.nextSdipFaststreamCandidateReadyForSdipProgression.futureValue
       results.isDefined mustBe true
     }
@@ -178,13 +200,14 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         SchemeEvaluationResult(SchemeId("Sdip"), Amber.toString)
       )
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
+/*
       createApplicationWithAllFields("userId1", "app1", "testAccountId", appStatus = ApplicationStatus.PHASE1_TESTS,
         phase1TestProfile = Some(TestProfile.copy(evaluation = Some(evaluation))), applicationRoute = ApplicationRoute.SdipFaststream.toString
       ).futureValue
       createApplicationWithAllFields("userId2", "app2", "testAccountId", appStatus = ApplicationStatus.PHASE2_TESTS,
         phase1TestProfile = Some(TestProfile.copy(evaluation = Some(evaluation))), applicationRoute = ApplicationRoute.Sdip.toString
       ).futureValue
-
+ */
       val results = phase1TestRepo.nextSdipFaststreamCandidateReadyForSdipProgression.futureValue
       results.isDefined mustBe false
     }
@@ -192,21 +215,23 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
   "Next phase1 test group with report ready" should {
     "not return a test group if the progress status is not appropriately set" in {
+/*
       createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "PHASE1_TESTS",
         additionalProgressStatuses = List((PHASE1_TESTS_COMPLETED, false))
       ).futureValue
-
+*/
       val result = phase1TestRepo.nextTestGroupWithReportReady.futureValue
 
       result.isDefined mustBe false
     }
 
     "return a test group if the progress status is set to PHASE1_TEST_RESULTS_READY" in {
+/*
       createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "PHASE1_TESTS",
         additionalProgressStatuses = List((PHASE1_TESTS_COMPLETED, true), (PHASE1_TESTS_RESULTS_READY, true)),
         phase1TestProfile = Some(testProfileWithAppId.testGroup)
       ).futureValue
-
+*/
       val phase1TestResultsReady = phase1TestRepo.nextTestGroupWithReportReady.futureValue
       phase1TestResultsReady.isDefined mustBe true
       phase1TestResultsReady.get mustBe testProfileWithAppId
@@ -214,12 +239,12 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
     "return a test group if only one report is ready to download" in {
       val profile = testProfileWithAppId.testGroup.copy(tests = List(phase1Test, phase1Test.copy(resultsReadyToDownload = true)))
-
+/*
       createApplicationWithAllFields("userId2", "appId2", "testAccountId", "frameworkId", "PHASE1_TESTS",
         additionalProgressStatuses = List((PHASE1_TESTS_COMPLETED, true), (PHASE1_TESTS_RESULTS_READY, true)),
         phase1TestProfile = Some(profile)
       ).futureValue
-
+*/
       val phase1TestResultsReady = phase1TestRepo.nextTestGroupWithReportReady.futureValue
       phase1TestResultsReady.isDefined mustBe true
       phase1TestResultsReady.get mustBe Phase1TestGroupWithUserIds("appId2", "userId2", profile)
@@ -228,11 +253,12 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
   "Insert test result" should {
     "correctly update a test group with results" in {
+/*
       createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "PHASE1_TESTS",
         additionalProgressStatuses = List((PHASE1_TESTS_RESULTS_READY, true)),
         phase1TestProfile = Some(testProfileWithAppId.testGroup)
       ).futureValue
-
+*/
       //      val testResult = persisted.TestResult(status = "completed", norm = "some norm",
       //        tScore = Some(55.33d), percentile = Some(34.876d), raw = Some(65.32d), sten = Some(12.1d))
 
@@ -256,7 +282,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
   "The OnlineTestApplication case model" should {
     "be correctly read from mongo" in {
-      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "SUBMITTED", isGis = true).futureValue
+//      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "SUBMITTED", isGis = true).futureValue
 
       val onlineTestApplications = phase1TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
@@ -281,7 +307,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "be correctly read from mongo with lower case submitted status" in {
-      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "submitted", isGis = true).futureValue
+//      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "submitted", isGis = true).futureValue
 
       val onlineTestApplications = phase1TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
@@ -313,7 +339,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
     "return one result" when {
       "there is an application in PHASE1_TESTS and should be expired" in {
-        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
+//        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
         phase1TestRepo.nextExpiringApplication(phase1ExpirationEvent).futureValue mustBe Some(ExpiringOnlineTest(AppId, UserId, "Georgy"))
       }
@@ -321,14 +347,14 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
     "return no results" when {
       "there are no applications in PHASE1_TESTS" in {
-        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
+//        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
-        updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS), AppId).futureValue
+//        updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS), AppId).futureValue
         phase1TestRepo.nextExpiringApplication(phase1ExpirationEvent).futureValue mustBe None
       }
 
       "the date is not expired yet" in {
-        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
+//        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(
           AppId,
           Phase1TestProfile(expirationDate = new DateTime().plusHours(2), tests = List(phase1Test))).futureValue
@@ -336,26 +362,30 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       }
 
       "the test is already expired" in {
-        import repositories.BSONDateTimeHandler
-        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
+//        import repositories.BSONDateTimeHandler
+//        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
+/*
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE1_TESTS_EXPIRED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_EXPIRED" -> true,
           s"progress-status-timestamp.$PHASE1_TESTS_EXPIRED" -> DateTime.now()
         )), AppId).futureValue
+ */
         phase1TestRepo.nextExpiringApplication(phase1ExpirationEvent).futureValue mustBe None
       }
 
       "the test is completed" in {
-        import repositories.BSONDateTimeHandler
-        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
+//        import repositories.BSONDateTimeHandler
+//        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
+/*
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE1_TESTS_COMPLETED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_COMPLETED" -> true,
           s"progress-status-timestamp.$PHASE1_TESTS_COMPLETED" -> DateTime.now()
         )), AppId).futureValue
+ */
         phase1TestRepo.nextExpiringApplication(phase1ExpirationEvent).futureValue mustBe None
       }
     }
@@ -366,7 +396,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       "there is an application in PHASE1_TESTS and is about to expire in the next 72 hours" in {
         val date = DateTime.now().plusHours(Phase1FirstReminder.hoursBeforeReminder - 1).plusMinutes(55)
         val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
-        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
+//        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
         val notification = phase1TestRepo.nextTestForReminder(Phase1FirstReminder).futureValue
         notification.isDefined mustBe true
@@ -381,7 +411,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       "there is an application in PHASE1_TESTS and is about to expire in the next 24 hours" in {
         val date = DateTime.now().plusHours(Phase1SecondReminder.hoursBeforeReminder - 1).plusMinutes(55)
         val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
-        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
+//        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
         val notification = phase1TestRepo.nextTestForReminder(Phase1SecondReminder).futureValue
         notification.isDefined mustBe true
@@ -396,14 +426,14 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       val date = DateTime.now().plusHours(22)
       val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
       "there are no application in PHASE1_TESTS" in {
-        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
+//        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
-        updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS), AppId).futureValue
+//        updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS), AppId).futureValue
         phase1TestRepo.nextTestForReminder(Phase1FirstReminder).futureValue mustBe None
       }
 
       "the expiration date is in 26h but we send the second reminder only after 24h" in {
-        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
+//        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(
           AppId,
           Phase1TestProfile(expirationDate = new DateTime().plusHours(30), tests = List(phase1Test))).futureValue
@@ -411,36 +441,42 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       }
 
       "the test is expired" in {
-        import repositories.BSONDateTimeHandler
-        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
+//        import repositories.BSONDateTimeHandler
+//        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
+/*
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE1_TESTS_EXPIRED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_EXPIRED" -> true,
           s"progress-status-timestamp.$PHASE1_TESTS_EXPIRED" -> DateTime.now()
         )), AppId).futureValue
+*/
         phase1TestRepo.nextTestForReminder(Phase1SecondReminder).futureValue mustBe None
       }
 
       "the test is completed" in {
-        import repositories.BSONDateTimeHandler
-        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
+//        import repositories.BSONDateTimeHandler
+//        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
+/*
         updateApplication(BSONDocument("$set" -> BSONDocument(
           "applicationStatus" -> PHASE1_TESTS_COMPLETED.applicationStatus,
           s"progress-status.$PHASE1_TESTS_COMPLETED" -> true,
           s"progress-status-timestamp.$PHASE1_TESTS_COMPLETED" -> DateTime.now()
         )), AppId).futureValue
+ */
         phase1TestRepo.nextTestForReminder(Phase1SecondReminder).futureValue mustBe None
       }
 
       "we already sent a second reminder" in {
-        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
+//        createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
+/*
         updateApplication(BSONDocument("$set" -> BSONDocument(
           s"progress-status.$PHASE1_TESTS_SECOND_REMINDER" -> true
         )), AppId).futureValue
         phase1TestRepo.nextTestForReminder(Phase1SecondReminder).futureValue mustBe None
+ */
       }
     }
   }
@@ -450,7 +486,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
 
     "remove the test group" in {
-      createApplicationWithAllFields("userId", "appId", "testAccountId", appStatus = ApplicationStatus.PHASE1_TESTS).futureValue
+//      createApplicationWithAllFields("userId", "appId", "testAccountId", appStatus = ApplicationStatus.PHASE1_TESTS).futureValue
       phase1TestRepo.insertOrUpdateTestGroup("appId", testProfile).futureValue
 
       phase1TestRepo.getTestGroup("appId").futureValue mustBe defined
@@ -463,7 +499,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
   "Progress status" should {
     "update progress status to PHASE1_TESTS_STARTED" in {
-      createApplicationWithAllFields("userId", "appId", "testAccountId", appStatus = ApplicationStatus.PHASE1_TESTS).futureValue
+//      createApplicationWithAllFields("userId", "appId", "testAccountId", appStatus = ApplicationStatus.PHASE1_TESTS).futureValue
 
       phase1TestRepo.updateProgressStatus("appId", PHASE1_TESTS_STARTED).futureValue
 
@@ -475,7 +511,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "update progress status should not update if the Application Status is different from that which is being set" in {
-      createApplicationWithAllFields("userId", "appId", "testAccountId", appStatus = ApplicationStatus.PHASE2_TESTS).futureValue
+//      createApplicationWithAllFields("userId", "appId", "testAccountId", appStatus = ApplicationStatus.PHASE2_TESTS).futureValue
 
       val result = phase1TestRepo.updateProgressStatus("appId", PHASE1_TESTS_STARTED).futureValue
       result mustBe unit
@@ -486,9 +522,9 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "reset progress statuses" in {
-      createApplicationWithAllFields("userId", "appId", "testAccountId", appStatus = ApplicationStatus.PHASE1_TESTS,
-        additionalProgressStatuses = List(ProgressStatuses.PHASE1_TESTS_INVITED -> true,
-          ProgressStatuses.PHASE1_TESTS_COMPLETED -> true)).futureValue
+//      createApplicationWithAllFields("userId", "appId", "testAccountId", appStatus = ApplicationStatus.PHASE1_TESTS,
+//        additionalProgressStatuses = List(ProgressStatuses.PHASE1_TESTS_INVITED -> true,
+//          ProgressStatuses.PHASE1_TESTS_COMPLETED -> true)).futureValue
 
       phase1TestRepo.resetTestProfileProgresses("appId", List(
         ProgressStatuses.PHASE1_TESTS_INVITED,
@@ -503,10 +539,10 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     "reset progress statuses when phase1 tests are failed" in {
       import Phase1EvaluationMongoRepositorySpec._
 
-      createApplicationWithAllFields("userId", "appId", "testAccountId", appStatus = ApplicationStatus.PHASE1_TESTS_FAILED,
-        additionalProgressStatuses = List(ProgressStatuses.PHASE1_TESTS_INVITED -> true,
-          ProgressStatuses.PHASE1_TESTS_COMPLETED -> true,
-          ProgressStatuses.PHASE1_TESTS_FAILED -> true)).futureValue
+//      createApplicationWithAllFields("userId", "appId", "testAccountId", appStatus = ApplicationStatus.PHASE1_TESTS_FAILED,
+//        additionalProgressStatuses = List(ProgressStatuses.PHASE1_TESTS_INVITED -> true,
+//          ProgressStatuses.PHASE1_TESTS_COMPLETED -> true,
+//          ProgressStatuses.PHASE1_TESTS_FAILED -> true)).futureValue
       phase1TestRepo.insertOrUpdateTestGroup("appId", Phase1TestProfile(now, phase1TestsWithResult)).futureValue
 
       val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString))
@@ -532,7 +568,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
   "update psi test" should {
     "add the start time for a psi test" in {
-      insertApplication("appId", "userId")
+//      insertApplication("appId", "userId")
       phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
 
       val startedDateTime = DateTime.now()
@@ -548,8 +584,8 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       val now = DateTime.now(DateTimeZone.UTC)
       val input = Phase1TestProfile(expirationDate = now.plusDays(5), tests = List(phase1Test))
 
-      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "PHASE1_TESTS", phase1TestProfile = Some(input))
-        .futureValue
+//      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "PHASE1_TESTS", phase1TestProfile = Some(input))
+//        .futureValue
 
       phase1TestRepo.updateTestCompletionTime2("orderId1", now).futureValue
       val result = phase1TestRepo.getTestGroupByOrderId("orderId1").futureValue
@@ -557,7 +593,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "mark the psi test as inactive" in {
-      insertApplication("appId", "userId")
+//      insertApplication("appId", "userId")
       phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
 
       phase1TestRepo.markTestAsInactive2(TestProfile.tests.head.orderId).futureValue
@@ -568,7 +604,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "mark the psi test as inactive and insert new tests" in {
-      insertApplication("appId", "userId")
+//      insertApplication("appId", "userId")
       phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
 
       phase1TestRepo.markTestAsInactive2(TestProfile.tests.head.orderId).futureValue

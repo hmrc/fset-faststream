@@ -3,7 +3,7 @@ package repositories.allocation
 import model.AllocationStatuses
 import model.persisted.AssessorAllocation
 import model.persisted.eventschedules.SkillType
-import reactivemongo.api.indexes.IndexType.Ascending
+//import reactivemongo.api.indexes.IndexType.Ascending
 import repositories.{ AssessorAllocationMongoRepository, CollectionNames }
 import testkit.MongoRepositorySpec
 
@@ -20,12 +20,15 @@ class AssessorAllocationRepositorySpec extends MongoRepositorySpec {
 
   "AssessorAllocationRepository" must {
     "create indexes for the repository" in {
+/*
       val indexes = indexesWithFields(repository)
       indexes must contain theSameElementsAs
         Seq(
           IndexDetails(key = Seq(("_id", Ascending)), unique = false),
           IndexDetails(key = Seq(("id", Ascending), ("eventId", Ascending)), unique = false)
         )
+ */
+      ???
     }
 
     "correctly retrieve documents" in {
@@ -37,8 +40,9 @@ class AssessorAllocationRepositorySpec extends MongoRepositorySpec {
     }
 
     "findAll documents" in {
-      repository.save(allocations).futureValue
-      repository.findAll().futureValue must contain theSameElementsAs allocations
+//      repository.save(allocations).futureValue
+//      repository.findAll().futureValue must contain theSameElementsAs allocations
+      ???
     }
 
     "find assessor allocations" in {

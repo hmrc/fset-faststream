@@ -9,14 +9,14 @@ import model.persisted.phase3tests.Phase3TestGroup
 import model.{ ApplicationStatus, ProgressStatuses, SchemeId }
 import org.mockito.Mockito.when
 import play.api.libs.json.JsObject
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers
+//import reactivemongo.bson.BSONDocument
+//import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
 class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with CommonRepository {
 
-  import ImplicitBSONHandlers._
+//  import ImplicitBSONHandlers._
   import Phase2EvaluationMongoRepositorySpec._
   import model.Phase3TestProfileExamples._
 
@@ -185,7 +185,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
 
       phase3EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ProgressStatuses.PHASE3_TESTS_PASSED)).futureValue
-
+/*
       val resultWithAppStatus = getOnePhase3Profile("app1")
       resultWithAppStatus mustBe defined
       val (appStatus, result) = resultWithAppStatus.get
@@ -193,6 +193,8 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       result.evaluation mustBe Some(PassmarkEvaluation("version1", None, List(
         SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString)
       ), "version1-res", None))
+ */
+      ???
     }
   }
 
@@ -227,6 +229,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   }
 
   private def getOnePhase3Profile(appId: String) = {
+/*
     phase3EvaluationRepo.collection.find(BSONDocument("applicationId" -> appId), projection = Option.empty[JsObject])
       .one[BSONDocument].map(_.map { doc =>
       val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
@@ -234,5 +237,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val phase3 = bsonPhase3.map(Phase3TestGroup.bsonHandler.read).get
       (applicationStatus, phase3)
     }).futureValue
+ */
+    ???
   }
 }

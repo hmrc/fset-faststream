@@ -1,13 +1,13 @@
 package repositories
 
 import model.persisted.Media
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers
+//import reactivemongo.bson.BSONDocument
+//import reactivemongo.play.json.ImplicitBSONHandlers
 import testkit.MongoRepositorySpec
 
 class MediaRepositorySpec extends MongoRepositorySpec {
 
-  import ImplicitBSONHandlers._
+//  import ImplicitBSONHandlers._
 
   override val collectionName: String = CollectionNames.MEDIA
 
@@ -54,5 +54,5 @@ class MediaRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  private def insert(doc: BSONDocument) = repository.collection.insert(ordered = false).one(doc)
+//  private def insert(doc: BSONDocument) = repository.collection.insert(ordered = false).one(doc)
 }

@@ -16,8 +16,8 @@ import net.ceedubs.ficus.readers.ValueReader
 import org.joda.time.DateTime
 import play.Logger
 import play.api.libs.json.{ JsObject, Json }
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers
+//import reactivemongo.bson.BSONDocument
+//import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories._
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.assessmentcentre.AssessmentCentreMongoRepository
@@ -201,19 +201,21 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
   }
 
   // Import required for mongo db interaction
-  import ImplicitBSONHandlers._
+//  import ImplicitBSONHandlers._
   private def createApplicationInDb(appId: String) = Try(findApplicationInDb(appId)) match {
     case Success(_) =>
       val msg = s"Found application in database for applicationId $appId - this should not happen. Are you using a unique applicationId ?"
       throw new IllegalStateException(msg)
     case Failure(_) =>
       Logger.info(s"$prefix creating db application")
+/*
       applicationRepo.collection.insert(ordered = false).one(
         BSONDocument(
           "applicationId" -> appId,
           "userId" -> ("user" + appId)
         )
       ).futureValue
+ */
       for {
         _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED)
       } yield ()
@@ -221,8 +223,9 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
 
   private def findApplicationInDb(appId: String): ActualResult = {
     import com.github.nscala_time.time.OrderingImplicits.DateTimeOrdering
-    import repositories.BSONDateTimeHandler
+//    import repositories.BSONDateTimeHandler
 
+/*
     applicationRepo.collection.find(BSONDocument("applicationId" -> appId), projection = Option.empty[JsObject])
       .one[BSONDocument].map { docOpt =>
       require(docOpt.isDefined)
@@ -257,6 +260,8 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
 
       ActualResult(applicationStatusOpt, latestProgressStatusOpt, passmarkVersionOpt, competencyAverageOpt, schemesEvaluationOpt)
     }.futureValue
+ */
+    ???
   }
 
   private def assert(testCase: File, testName: String, expected: AssessmentScoreEvaluationTestExpectation, actual: ActualResult) = {

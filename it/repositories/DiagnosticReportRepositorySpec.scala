@@ -20,13 +20,13 @@ import factories.DateTimeFactoryImpl
 import model.Exceptions.ApplicationNotFound
 import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.JsValue
-import reactivemongo.bson.{ BSONBoolean, BSONDocument }
-import reactivemongo.play.json.ImplicitBSONHandlers
+//import reactivemongo.bson.{ BSONBoolean, BSONDocument }
+//import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.application.{ DiagnosticReportingMongoRepository, GeneralApplicationMongoRepository }
 import testkit.MongoRepositorySpec
 
 class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
-  import ImplicitBSONHandlers._
+//  import ImplicitBSONHandlers._
 
   override val collectionName: String = CollectionNames.APPLICATION
   
@@ -41,9 +41,9 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
     }
 
     "return user's application with the specific Id" in {
-      helperRepo.collection.insert(ordered = false).one(userWithAllDetails("user1", "app1", "FastStream-2016")).futureValue
-      helperRepo.collection.insert(ordered = false).one(userWithAllDetails("user1", "app2", "SDIP-2016")).futureValue
-      helperRepo.collection.insert(ordered = false).one(userWithAllDetails("user2", "app3", "FastStream-2016")).futureValue
+//      helperRepo.collection.insert(ordered = false).one(userWithAllDetails("user1", "app1", "FastStream-2016")).futureValue
+//      helperRepo.collection.insert(ordered = false).one(userWithAllDetails("user1", "app2", "SDIP-2016")).futureValue
+//      helperRepo.collection.insert(ordered = false).one(userWithAllDetails("user2", "app3", "FastStream-2016")).futureValue
 
       val result = diagnosticReportRepo.findByApplicationId("app1").futureValue
       result.length mustBe 1
@@ -56,9 +56,9 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
 
   "Find all users" should {
     "return user's application with the specific Id" in {
-      helperRepo.collection.insert(ordered = false).one(userWithAllDetails("user1", "app1", "FastStream-2016")).futureValue
-      helperRepo.collection.insert(ordered = false).one(userWithAllDetails("user1", "app2", "SDIP-2016")).futureValue
-      helperRepo.collection.insert(ordered = false).one(userWithAllDetails("user2", "app3", "FastStream-2016")).futureValue
+//      helperRepo.collection.insert(ordered = false).one(userWithAllDetails("user1", "app1", "FastStream-2016")).futureValue
+//      helperRepo.collection.insert(ordered = false).one(userWithAllDetails("user1", "app2", "SDIP-2016")).futureValue
+//      helperRepo.collection.insert(ordered = false).one(userWithAllDetails("user2", "app3", "FastStream-2016")).futureValue
 
       val resultE = diagnosticReportRepo.findAll()
 
@@ -81,6 +81,7 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
     }
   }
 
+/*
   def userWithAllDetails(userId: String, appId: String, frameworkId: String) = BSONDocument(
     "applicationId" -> appId,
     "userId" -> userId,
@@ -110,4 +111,5 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
       "online_test_completed" -> BSONBoolean(true),
       "awaiting_online_test_allocation" -> BSONBoolean(true)
     ))
+ */
 }

@@ -6,7 +6,7 @@ import model.persisted.assessor.{ Assessor, AssessorAvailability, AssessorStatus
 import model.persisted.eventschedules.{ Location, SkillType }
 import model.{ SchemeId, UniqueIdentifier }
 import org.joda.time.LocalDate
-import reactivemongo.api.indexes.IndexType.Ascending
+//import reactivemongo.api.indexes.IndexType.Ascending
 import testkit.MongoRepositorySpec
 
 class AssessorRepositorySpec extends MongoRepositorySpec {
@@ -25,12 +25,15 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
 
   "Assessor repository" should {
     "create indexes for the repository" in {
+/*
       val indexes = indexesWithFields(repository)
       indexes must contain theSameElementsAs
         Seq(
           IndexDetails(key = Seq(("_id", Ascending)), unique = false),
           IndexDetails(key = Seq(("userId", Ascending)), unique = true)
         )
+ */
+      ???
     }
 
     "save and find the assessor" in {
@@ -49,10 +52,11 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
         repository.save(assessor).futureValue
       }
 
-      val result = repository.findAll().futureValue
+//      val result = repository.findAll().futureValue
 
-      result must contain(AssessorWithAvailabilities)
-      result must contain(secondAssessor)
+//      result must contain(AssessorWithAvailabilities)
+//      result must contain(secondAssessor)
+      ???
     }
 
     "save and find assessors by ids" in {

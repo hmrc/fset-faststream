@@ -25,7 +25,7 @@ class SingleInstanceScheduledJobSpec extends MongoRepositorySpec {
         override def initialDelay = Duration(200, MILLISECONDS)
         override def interval: FiniteDuration = aLongTime
 
-        override val mongoComponent = mongo
+//        override val mongoComponent = mongo
 
         override implicit val ec: ExecutionContext = global
 

@@ -20,10 +20,10 @@ import model.SchemeId
 import model.exchange.passmarksettings._
 import org.joda.time.DateTime
 import play.api.libs.json.{ Format, OFormat }
-import reactivemongo.api.indexes.IndexType.Ascending
+//import reactivemongo.api.indexes.IndexType.Ascending
 import repositories.passmarksettings._
 import testkit.MongoRepositorySpec
-import uk.gov.hmrc.mongo.ReactiveRepository
+//import uk.gov.hmrc.mongo.ReactiveRepository
 
 class Phase1PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   type T = Phase1PassMarkSettings
@@ -127,10 +127,13 @@ trait PassMarkRepositoryFixture extends MongoRepositorySpec {
 
   "Pass-mark-settings collection" should {
     "create indexes for the repository" in {
+/*
       val indexes = indexesWithFields(passMarkSettingsRepo.asInstanceOf[ReactiveRepository[_, _]])
       indexes must contain (IndexDetails(key = Seq(("_id", Ascending)), unique = false))
       indexes must contain (IndexDetails(key = Seq(("createDate", Ascending)), unique = true))
       indexes.size mustBe 2
+ */
+      ???
     }
   }
 

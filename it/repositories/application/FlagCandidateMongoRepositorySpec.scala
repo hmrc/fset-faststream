@@ -19,13 +19,13 @@ package repositories.application
 import factories.{ ITDateTimeFactoryMock, UUIDFactory }
 import model.Exceptions.NotFoundException
 import model.FlagCandidatePersistedObject.FlagCandidate
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers
+//import reactivemongo.bson.BSONDocument
+//import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 
 class FlagCandidateMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
-  import ImplicitBSONHandlers._
+//  import ImplicitBSONHandlers._
 
   val collectionName = CollectionNames.APPLICATION
   def repository = new FlagCandidateMongoRepository(mongo)
@@ -97,8 +97,11 @@ class FlagCandidateMongoRepositorySpec extends MongoRepositorySpec with UUIDFact
   }
 
   def createApplication() = {
+/*
     val appId = generateUUID()
     helperRepo.collection.insert(ordered = false).one(BSONDocument("applicationId" -> appId)).futureValue
     appId
+ */
+    ???
   }
 }

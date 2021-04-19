@@ -3,9 +3,9 @@ package repositories.campaignmanagement
 import model.persisted.CampaignManagementAfterDeadlineCode
 import org.joda.time.DateTime
 import play.api.libs.json.JsObject
-import reactivemongo.api.indexes.IndexType.{ Ascending, Descending }
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers._
+//import reactivemongo.api.indexes.IndexType.{ Ascending, Descending }
+//import reactivemongo.bson.BSONDocument
+//import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 
@@ -17,11 +17,14 @@ class CampaignManagementAfterDeadlineSignupCodeRepositorySpec extends MongoRepos
 
   "the repository" should {
     "create indexes" in {
+/*
       val indexes = indexesWithFields(repository)
       indexes must contain(IndexDetails(key = Seq(("_id", Ascending)), unique = false))
       indexes must contain(IndexDetails(key = Seq(("code", Ascending)), unique = true))
       indexes must contain(IndexDetails(key = Seq(("expires", Descending)), unique = false))
       indexes.size mustBe 3
+ */
+      ???
     }
   }
 
@@ -33,7 +36,7 @@ class CampaignManagementAfterDeadlineSignupCodeRepositorySpec extends MongoRepos
         DateTime.now.plusDays(2),
         None
       )
-
+/*
       val result = (for {
         _ <- repository.save(newCode)
         code <- repository.collection.find(BSONDocument("code" -> "1234"), projection = Option.empty[JsObject])
@@ -41,6 +44,8 @@ class CampaignManagementAfterDeadlineSignupCodeRepositorySpec extends MongoRepos
       } yield code).futureValue.head
 
       result mustBe newCode
+ */
+      ???
     }
   }
 

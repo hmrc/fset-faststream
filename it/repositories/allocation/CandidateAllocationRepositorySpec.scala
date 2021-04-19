@@ -5,7 +5,7 @@ import model.AllocationStatuses._
 import model.exchange.candidateevents.CandidateRemoveReason
 import model.persisted.CandidateAllocation
 import org.joda.time.LocalDate
-import reactivemongo.api.indexes.IndexType.Ascending
+//import reactivemongo.api.indexes.IndexType.Ascending
 import repositories.{ CandidateAllocationMongoRepository, CollectionNames }
 import testkit.MongoRepositorySpec
 
@@ -23,10 +23,13 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
 
   "CandidateAllocationRepository" must {
     "create indexes for the repository" in {
+/*
       val indexes = indexesWithFields(repository)
       indexes must contain(IndexDetails(key = Seq(("_id", Ascending)), unique = false))
       indexes must contain(IndexDetails(key = Seq(("id", Ascending), ("eventId", Ascending), ("sessionId", Ascending)), unique = false))
       indexes.size mustBe 2
+ */
+      ???
     }
 
     "correctly find allocations by session" in {

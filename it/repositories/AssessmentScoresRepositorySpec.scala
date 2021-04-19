@@ -24,7 +24,7 @@ import model.assessmentscores._
 import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
 import model.fsacscores.AssessmentScoresFinalFeedbackExamples
 import org.joda.time.DateTimeZone
-import reactivemongo.api.indexes.IndexType.Ascending
+//import reactivemongo.api.indexes.IndexType.Ascending
 import testkit.MongoRepositorySpec
 
 class AssessorAssessmentScoresRepositorySpec extends AssessmentScoresRepositorySpec {
@@ -42,12 +42,15 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
 
   "Assessment Scores Repository" should {
     "create indexes for the repository" in new TestFixture {
+/*
       val indexes = indexesWithFields(repository)
       indexes must contain theSameElementsAs
         Seq(
           IndexDetails(key = Seq(("_id", Ascending)), unique = false),
           IndexDetails(key = Seq(("applicationId", Ascending)), unique = true)
         )
+ */
+      ???
     }
   }
 

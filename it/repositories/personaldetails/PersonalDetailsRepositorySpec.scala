@@ -5,14 +5,14 @@ import model.ApplicationStatus._
 import model.Exceptions.PersonalDetailsNotFound
 import model.persisted.PersonalDetailsExamples._
 import org.joda.time.DateTime
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers
+//import reactivemongo.bson.BSONDocument
+//import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.CollectionNames
 import repositories.application.GeneralApplicationMongoRepository
 import testkit.MongoRepositorySpec
 
 class PersonalDetailsRepositorySpec extends MongoRepositorySpec {
-  import ImplicitBSONHandlers._
+//  import ImplicitBSONHandlers._
 
   override val collectionName: String = CollectionNames.APPLICATION
 
@@ -22,7 +22,7 @@ class PersonalDetailsRepositorySpec extends MongoRepositorySpec {
   "update candidate" should {
     "modify the details and find the personal details successfully" in {
       val personalDetails = (for {
-        _ <- insert(BSONDocument("applicationId" -> AppId, "userId" -> UserId, "applicationStatus" -> CREATED))
+//        _ <- insert(BSONDocument("applicationId" -> AppId, "userId" -> UserId, "applicationStatus" -> CREATED))
         _ <- repository.update(AppId, UserId, JohnDoe, List(CREATED), IN_PROGRESS)
         pd <- repository.find(AppId)
       } yield pd).futureValue
@@ -36,7 +36,7 @@ class PersonalDetailsRepositorySpec extends MongoRepositorySpec {
 
     "do not update the application in different status than required" in {
       val actualException = (for {
-        _ <- insert(BSONDocument("applicationId" -> AppId, "userId" -> UserId, "applicationStatus" -> SUBMITTED))
+//        _ <- insert(BSONDocument("applicationId" -> AppId, "userId" -> UserId, "applicationStatus" -> SUBMITTED))
         _ <- repository.update(AppId, UserId, JohnDoe, List(CREATED), IN_PROGRESS)
         pd <- repository.find(AppId)
       } yield pd).failed.futureValue
@@ -46,7 +46,7 @@ class PersonalDetailsRepositorySpec extends MongoRepositorySpec {
 
     "modify the details and find the personal details successfully without changing application status" in {
       val personalDetails = (for {
-        _ <- insert(BSONDocument("applicationId" -> AppId, "userId" -> UserId, "applicationStatus" -> SUBMITTED))
+//        _ <- insert(BSONDocument("applicationId" -> AppId, "userId" -> UserId, "applicationStatus" -> SUBMITTED))
         _ <- repository.updateWithoutStatusChange(AppId, UserId, JohnDoe)
         pd <- repository.find(AppId)
       } yield pd).futureValue
@@ -62,5 +62,5 @@ class PersonalDetailsRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  private def insert(doc: BSONDocument) = repository.collection.insert(ordered = false).one(doc)
+//  private def insert(doc: BSONDocument) = repository.collection.insert(ordered = false).one(doc)
 }

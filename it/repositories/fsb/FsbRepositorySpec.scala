@@ -21,15 +21,15 @@ import model.EvaluationResults.{ Green, Red }
 import model.command.ApplicationForProgression
 import model.persisted._
 import model.{ ApplicationStatus, ProgressStatuses, SchemeId }
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers
+//import reactivemongo.bson.BSONDocument
+//import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
 class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonRepository {
 
-  import ImplicitBSONHandlers._
+//  import ImplicitBSONHandlers._
 
   val collectionName = CollectionNames.APPLICATION
 //  lazy val repository = repositories.fsbRepository
@@ -150,10 +150,13 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
   //private def applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactory, cubiksGatewayConfig)
 
   private def createApplication(): String = {
+/*
     val applicationId = generateUUID()
     applicationRepo.collection.insert(ordered = false)
       .one(BSONDocument("applicationId" -> applicationId, "userId" -> generateUUID())).futureValue
     applicationId
+ */
+    ???
   }
 }
 

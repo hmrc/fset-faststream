@@ -17,7 +17,7 @@
 package repositories
 
 import org.joda.time.Duration
-import reactivemongo.api.indexes.IndexType.Ascending
+//import reactivemongo.api.indexes.IndexType.Ascending
 import testkit.MongoRepositorySpec
 
 class LockRepositorySpec extends MongoRepositorySpec {
@@ -29,6 +29,7 @@ class LockRepositorySpec extends MongoRepositorySpec {
 
   "Lock Repository" should {
     "create indexes" in {
+/*
       val indexes = indexesWithFields(repo)
       indexes must contain theSameElementsAs
         Seq(
@@ -37,39 +38,46 @@ class LockRepositorySpec extends MongoRepositorySpec {
           IndexDetails(key = Seq(("timeCreated", Ascending)), unique = false),
           IndexDetails(key = Seq(("expiryTime", Ascending)), unique = false)
         )
+ */
+      ???
     }
 
     "insert a lock when the database is empty" in {
-      val result = repo.lock("lockId", "owner", lockTimeout).futureValue
-      result mustBe true
+//      val result = repo.lock("lockId", "owner", lockTimeout).futureValue
+//      result mustBe true
+      ???
     }
 
     "fail to insert another lock when the first one has not yet expired" in {
-      repo.lock("lockId", "owner", lockTimeout).futureValue
-      val result = repo.lock("lockId", "owner", lockTimeout).futureValue
-      result mustBe false
+//      repo.lock("lockId", "owner", lockTimeout).futureValue
+//      val result = repo.lock("lockId", "owner", lockTimeout).futureValue
+//      result mustBe false
+      ???
     }
 
     "be locked when one lock has expired, but another one has been created afterwards" in {
-      repo.lock("lockId", "owner", new Duration(500L)).futureValue
-      Thread.sleep(505L)
-      repo.lock("lockId", "owner", new Duration(500L)).futureValue
-      val isLocked = repo.isLocked("lockId", "owner").futureValue
-      isLocked mustBe true
+//      repo.lock("lockId", "owner", new Duration(500L)).futureValue
+//      Thread.sleep(505L)
+//      repo.lock("lockId", "owner", new Duration(500L)).futureValue
+//      val isLocked = repo.isLocked("lockId", "owner").futureValue
+//      isLocked mustBe true
+      ???
     }
 
     "is not locked when the lock has expired" in {
-      repo.lock("lockId", "owner", new Duration(500L)).futureValue
-      Thread.sleep(501L)
-      val result = repo.isLocked("lockId", "owner").futureValue
-      result mustBe false
+//      repo.lock("lockId", "owner", new Duration(500L)).futureValue
+//      Thread.sleep(501L)
+//      val result = repo.isLocked("lockId", "owner").futureValue
+//      result mustBe false
+      ???
     }
 
     "has no lock when the lock has been released" in {
-      repo.lock("lockId", "owner", lockTimeout).futureValue
-      repo.releaseLock("lockId", "owner").futureValue
-      val result = repo.isLocked("lockId", "owner").futureValue
-      result mustBe false
+//      repo.lock("lockId", "owner", lockTimeout).futureValue
+//      repo.releaseLock("lockId", "owner").futureValue
+//      val result = repo.isLocked("lockId", "owner").futureValue
+//      result mustBe false
+      ???
     }
   }
 }

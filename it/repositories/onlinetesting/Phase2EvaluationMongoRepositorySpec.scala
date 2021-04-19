@@ -7,15 +7,15 @@ import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses, SchemeId }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.JsObject
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers
+//import reactivemongo.bson.BSONDocument
+//import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
 // Test PSI based code with guice injection
 class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with CommonRepository with MockitoSugar {
 
-  import ImplicitBSONHandlers._
+//  import ImplicitBSONHandlers._
   import Phase1EvaluationMongoRepositorySpec._
   import Phase2EvaluationMongoRepositorySpec._
 
@@ -171,16 +171,20 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       phase2EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ProgressStatuses.PHASE2_TESTS_PASSED)).futureValue
 
       val resultWithAppStatus = getOnePhase2Profile("app1")
-      resultWithAppStatus mustBe defined
+//      resultWithAppStatus mustBe defined
+/*
       val (appStatus, result) = resultWithAppStatus.get
       appStatus mustBe ApplicationStatus.PHASE2_TESTS_PASSED
       result.evaluation mustBe Some(PassmarkEvaluation("version1", None, List(
         SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString)
       ), "version1-res", None))
+ */
+      ???
     }
   }
 
   private def getOnePhase2Profile(appId: String) = {
+/*
     phase2EvaluationRepo.collection.find(BSONDocument("applicationId" -> appId), projection = Option.empty[JsObject])
       .one[BSONDocument].map(_.map { doc =>
       val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
@@ -188,6 +192,8 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val phase2 = bsonPhase2.map(Phase2TestGroup.bsonHandler.read).get
       (applicationStatus, phase2)
     }).futureValue
+ */
+    ???
   }
 }
 

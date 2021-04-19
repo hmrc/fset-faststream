@@ -24,9 +24,9 @@ import model.persisted.AssistanceDetails
 import model.{ ApplicationRoute, ProgressStatuses }
 import org.joda.time.DateTime
 import play.api.libs.json.JsObject
-import reactivemongo.api.indexes.IndexType.Ascending
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers._
+//import reactivemongo.api.indexes.IndexType.Ascending
+//import reactivemongo.bson.BSONDocument
+//import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import testkit.MongoRepositorySpec
@@ -46,7 +46,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
   "Application repository" should {
     "create indexes for the repository" in {
       val repo = applicationRepo
-
+/*
       val indexes = indexesWithFields(repo)
       indexes must contain theSameElementsAs
         Seq(
@@ -58,6 +58,8 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
           IndexDetails(key = Seq(("assistance-details.needsSupportAtVenue", Ascending)), unique = false),
           IndexDetails(key = Seq(("assistance-details.guaranteedInterview", Ascending)), unique = false)
         )
+ */
+      ???
     }
 
     "return the gis parameter" in {
@@ -95,6 +97,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     }
 
     "throw an exception not of the type ApplicationNotFound when application is corrupt" in {
+/*
       Await.ready(applicationRepo.collection.insert(ordered = false).one(BSONDocument(
         "userId" -> "validUser",
         "frameworkId" -> "validFrameworkField"
@@ -104,6 +107,8 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       val thrown = the[Exception] thrownBy Await.result(applicationRepo
         .findByUserId("validUser", "validFrameworkField"), timeout)
       thrown must not be an[ApplicationNotFound]
+ */
+      ???
     }
   }
 
@@ -167,6 +172,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
   "preview" should {
     "change progress status to preview" in {
+      /*
       createApplication("app1", IN_PROGRESS)
 
       applicationRepo.preview("app1").futureValue
@@ -176,26 +182,35 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
       val progressResponse = applicationRepo.findProgress("app1").futureValue
       progressResponse.preview mustBe true
+       */
+      ???
     }
   }
 
   def getApplicationStatus(appId: String) = {
+    /*
     applicationRepo.collection.find(BSONDocument("applicationId" -> "app1"), projection = Option.empty[JsObject])
       .one[BSONDocument].map { docOpt =>
       docOpt must not be empty
       val doc = docOpt.get
       doc.getAs[String]("applicationStatus").get
     }.futureValue
+     */
+    ???
   }
 
   private def createApplication(appId: String, appStatus: String): Unit = {
+/*
     applicationRepo.collection.insert(ordered = false).one(BSONDocument(
       "applicationId" -> appId,
       "applicationStatus" -> appStatus
     )).futureValue
+ */
+    ???
   }
 
   private def createApplicationWithPassmark(appId: String, appStatus: String, passmarkVersion: String): Unit = {
+/*
     applicationRepo.collection.insert(ordered = false).one(BSONDocument(
       "applicationId" -> appId,
       "applicationStatus" -> appStatus,
@@ -203,5 +218,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
         "passmarkVersion" -> passmarkVersion
       )
     )).futureValue
+ */
+    ???
   }
 }

@@ -2,13 +2,13 @@ package repositories.fsacindicator
 
 import model.Exceptions.FSACIndicatorNotFound
 import model.persisted.FSACIndicator
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers
+//import reactivemongo.bson.BSONDocument
+//import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 
 class FSACIndicatorRepositorySpec extends MongoRepositorySpec {
-  import ImplicitBSONHandlers._
+//  import ImplicitBSONHandlers._
 
   override val collectionName: String = CollectionNames.APPLICATION
 
@@ -20,6 +20,7 @@ class FSACIndicatorRepositorySpec extends MongoRepositorySpec {
     val FSACIndicatorExample2 = FSACIndicator("Newcastle", "Newcastle", "1")
 
     "create new fsac indicator if they do not exist" in {
+/*
       val result = (for {
         _ <- insert(minimumApplicationBSON(applicationId(1), userId(1)))
         _ <- repository.update(applicationId(1), userId(1), FSACIndicatorExample1)
@@ -27,9 +28,12 @@ class FSACIndicatorRepositorySpec extends MongoRepositorySpec {
       } yield ad).futureValue
 
       result mustBe FSACIndicatorExample1
+ */
+      ???
     }
 
     "update fsac indicator when they exist and find them successfully" in {
+/*
       val result = (for {
         _ <- insert(applicationBSONWithFullAssistanceDetails(applicationId(3), userId(3)))
         _ <- repository.update(applicationId(3), userId(3), FSACIndicatorExample2)
@@ -37,6 +41,8 @@ class FSACIndicatorRepositorySpec extends MongoRepositorySpec {
       } yield ad).futureValue
 
       result mustBe FSACIndicatorExample2
+ */
+      ???
     }
   }
 
@@ -47,17 +53,19 @@ class FSACIndicatorRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  private def insert(doc: BSONDocument) = repository.collection.insert(ordered = false).one(doc)
+//  private def insert(doc: BSONDocument) = repository.collection.insert(ordered = false).one(doc)
 
   private def userId(i: Int) = "UserId" + i
   private def applicationId(i: Int) = "AppId" + i
 
+/*
   private def minimumApplicationBSON(applicationId: String, userId: String) = BSONDocument(
     "applicationId" -> applicationId,
     "userId" -> userId,
     "frameworkId" -> FrameworkId
-  )
+  )*/
 
+/*
   private def applicationBSONWithFullAssistanceDetails(applicationId: String, userId: String) = BSONDocument(
     "applicationId" -> applicationId,
     "userId" -> userId,
@@ -68,4 +76,5 @@ class FSACIndicatorRepositorySpec extends MongoRepositorySpec {
       "version" -> "1"
     )
   )
+ */
 }

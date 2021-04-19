@@ -3,8 +3,8 @@ package repositories.application
 import factories.{ ITDateTimeFactoryMock, UUIDFactory }
 import model.ProgressStatuses
 import model.persisted.SchemeEvaluationResult
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers._
+//import reactivemongo.bson.BSONDocument
+//import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories.CollectionNames
 import repositories.fsb.FsbMongoRepository
 import testkit.MongoRepositorySpec
@@ -70,6 +70,7 @@ class FinalOutcomeRepositorySpec extends MongoRepositorySpec with UUIDFactory {
   }
 
   private def createApplication(): String = {
+/*
     val applicationId = generateUUID()
     applicationRepo.collection.insert(ordered = false).one(
       BSONDocument(
@@ -78,5 +79,7 @@ class FinalOutcomeRepositorySpec extends MongoRepositorySpec with UUIDFactory {
       )
     ).futureValue
     applicationId
+ */
+    ???
   }
 }

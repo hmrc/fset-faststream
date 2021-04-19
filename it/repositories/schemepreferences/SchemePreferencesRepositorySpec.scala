@@ -5,14 +5,14 @@ import model.ApplicationStatus._
 import model.Exceptions.{ CannotUpdateSchemePreferences, SchemePreferencesNotFound }
 import model.SchemeId
 import model.SelectedSchemesExamples._
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers
+//import reactivemongo.bson.BSONDocument
+//import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.CollectionNames
 import repositories.application.GeneralApplicationMongoRepository
 import testkit.MongoRepositorySpec
 
 class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
-  import ImplicitBSONHandlers._
+//  import ImplicitBSONHandlers._
 
   val collectionName: String = CollectionNames.APPLICATION
 
@@ -21,6 +21,7 @@ class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
 
   "save and find" should {
     "save and return scheme preferences" in {
+/*
       val (persistedSchemes, application) = (for {
         _ <- insert(BSONDocument("applicationId" -> AppId, "userId" -> UserId, "testAccountId" -> TestAccountId,
           "applicationStatus" -> CREATED, "frameworkId" -> FrameworkId))
@@ -28,9 +29,11 @@ class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
         appResponse <- applicationRepository.findByUserId(UserId, FrameworkId)
         schemes <- repository.find(AppId)
       } yield (schemes, appResponse)).futureValue
+ */
 
-      persistedSchemes mustBe TwoSchemes
-      application.progressResponse.schemePreferences mustBe true
+//      persistedSchemes mustBe TwoSchemes
+//      application.progressResponse.schemePreferences mustBe true
+      ???
     }
 
     "return an exception when application does not exist" in {
@@ -45,12 +48,15 @@ class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
 
   "find" should {
     "return an exception when scheme-preferences does not exist" in {
+/*
       val exception = (for {
         _ <- insert(BSONDocument("applicationId" -> AppId, "userId" -> UserId, "applicationStatus" -> CREATED))
         _ <- repository.find(AppId)
       } yield ()).failed.futureValue
 
       exception mustBe SchemePreferencesNotFound(AppId)
+ */
+      ???
     }
   }
 
@@ -76,11 +82,14 @@ class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
   }
 
   private def createTwoSchemes(): List[SchemeId] = {
+/*
     insert(BSONDocument("applicationId" -> AppId, "userId" -> UserId,
       "applicationStatus" -> CREATED, "frameworkId" -> FrameworkId)).futureValue
     repository.save(AppId, TwoSchemes).futureValue
     TwoSchemes.schemes
+ */
+    ???
   }
 
-  private def insert(doc: BSONDocument) = repository.collection.insert(ordered = false).one(doc)
+//  private def insert(doc: BSONDocument) = repository.collection.insert(ordered = false).one(doc)
 }

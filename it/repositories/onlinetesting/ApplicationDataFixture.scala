@@ -5,9 +5,9 @@ import model.ProgressStatuses.ProgressStatus
 import model.SchemeId
 import model.persisted.phase3tests.Phase3TestGroup
 import model.persisted.{ Phase1TestProfile, Phase2TestGroup }
-import reactivemongo.api.commands.{ UpdateWriteResult, WriteResult }
-import reactivemongo.bson.{ BSONArray, BSONDocument }
-import reactivemongo.play.json.ImplicitBSONHandlers
+//import reactivemongo.api.commands.{ UpdateWriteResult, WriteResult }
+//import reactivemongo.bson.{ BSONArray, BSONDocument }
+//import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.CollectionNames
 import repositories.application.GeneralApplicationMongoRepository
 import testkit.MongoRepositorySpec
@@ -25,13 +25,14 @@ trait ApplicationDataFixture {
 
   def phase3TestRepo = new Phase3TestMongoRepository(ITDateTimeFactoryMock, mongo)
 
-  import ImplicitBSONHandlers._
+//  import ImplicitBSONHandlers._
 
   override val collectionName: String = CollectionNames.APPLICATION
 
-  def updateApplication(doc: BSONDocument, appId: String): Future[UpdateWriteResult] =
-    phase1TestRepo.collection.update(ordered = false).one(BSONDocument("applicationId" -> appId), doc)
+//  def updateApplication(doc: BSONDocument, appId: String): Future[UpdateWriteResult] =
+//    phase1TestRepo.collection.update(ordered = false).one(BSONDocument("applicationId" -> appId), doc)
 
+/*
   def createApplication(appId: String, userId: String, frameworkId: String, appStatus: String,
                         needsSupportForOnlineAssessment: Boolean, adjustmentsConfirmed: Boolean, timeExtensionAdjustments: Boolean,
                         fastPassApplicable: Boolean = false): WriteResult = {
@@ -46,8 +47,9 @@ trait ApplicationDataFixture {
       "civil-service-experience-details.applicable" -> fastPassApplicable,
       "assistance-details" -> createAssistanceDetails(needsSupportForOnlineAssessment, adjustmentsConfirmed, timeExtensionAdjustments)
     )).futureValue
-  }
+  }*/
 
+/*
   def createAssistanceDetails(needsSupportForOnlineAssessment: Boolean,
                               adjustmentsConfirmed: Boolean,
                               timeExtensionAdjustments: Boolean): BSONDocument = {
@@ -80,41 +82,42 @@ trait ApplicationDataFixture {
         "needsSupportForOnlineAssessment" -> "No"
       )
     }
-  }
+  }*/
 
   def createOnlineTestApplication(appId: String, applicationStatus: String, xmlReportSavedOpt: Option[Boolean] = None,
                                   alreadyEvaluatedAgainstPassmarkVersionOpt: Option[String] = None): String = {
     val result = (xmlReportSavedOpt, alreadyEvaluatedAgainstPassmarkVersionOpt) match {
       case (None, None) =>
-        helperRepo.collection.insert(ordered = false).one(BSONDocument(
-          "applicationId" -> appId,
-          "applicationStatus" -> applicationStatus
-        ))
+//        helperRepo.collection.insert(ordered = false).one(BSONDocument(
+//          "applicationId" -> appId,
+//          "applicationStatus" -> applicationStatus
+//        ))
       case (Some(xmlReportSaved), None) =>
-        helperRepo.collection.insert(ordered = false).one(BSONDocument(
-          "applicationId" -> appId,
-          "applicationStatus" -> applicationStatus,
-          "online-tests" -> BSONDocument("xmlReportSaved" -> xmlReportSaved)
-        ))
+//        helperRepo.collection.insert(ordered = false).one(BSONDocument(
+//          "applicationId" -> appId,
+//          "applicationStatus" -> applicationStatus,
+//          "online-tests" -> BSONDocument("xmlReportSaved" -> xmlReportSaved)
+//        ))
       case (None, Some(alreadyEvaluatedAgainstPassmarkVersion)) =>
-        helperRepo.collection.insert(ordered = false).one(BSONDocument(
-          "applicationId" -> appId,
-          "applicationStatus" -> applicationStatus,
-          "passmarkEvaluation" -> BSONDocument("passmarkVersion" -> alreadyEvaluatedAgainstPassmarkVersion)
-        ))
+//        helperRepo.collection.insert(ordered = false).one(BSONDocument(
+//          "applicationId" -> appId,
+//          "applicationStatus" -> applicationStatus,
+//          "passmarkEvaluation" -> BSONDocument("passmarkVersion" -> alreadyEvaluatedAgainstPassmarkVersion)
+//        ))
       case (Some(xmlReportSaved), Some(alreadyEvaluatedAgainstPassmarkVersion)) =>
-        helperRepo.collection.insert(ordered = false).one(BSONDocument(
-          "applicationId" -> appId,
-          "applicationStatus" -> applicationStatus,
-          "online-tests" -> BSONDocument("xmlReportSaved" -> xmlReportSaved),
-          "passmarkEvaluation" -> BSONDocument("passmarkVersion" -> alreadyEvaluatedAgainstPassmarkVersion)
-        ))
+//        helperRepo.collection.insert(ordered = false).one(BSONDocument(
+//          "applicationId" -> appId,
+//          "applicationStatus" -> applicationStatus,
+//          "online-tests" -> BSONDocument("xmlReportSaved" -> xmlReportSaved),
+//          "passmarkEvaluation" -> BSONDocument("passmarkVersion" -> alreadyEvaluatedAgainstPassmarkVersion)
+//        ))
     }
 
-    result.futureValue
+//    result.futureValue
     appId
   }
 
+/*
   // scalastyle:off parameter.number
   // scalastyle:off method.length
   def createApplicationWithAllFields(userId: String,
@@ -169,19 +172,22 @@ trait ApplicationDataFixture {
   }
   // scalastyle:on method.length
   // scalastyle:on parameter.number
+ */
 
   val Commercial = SchemeId("Commercial")
   val Edip = SchemeId("Edip")
   val Finance = SchemeId("Finance")
-  private def schemes: BSONDocument = BSONDocument("schemes" -> List(Commercial, Edip, Finance))
+//  private def schemes: BSONDocument = BSONDocument("schemes" -> List(Commercial, Edip, Finance))
 
+/*
   private def testGroups(p1: Option[Phase1TestProfile], p2: Option[Phase2TestGroup], p3: Option[Phase3TestGroup]): BSONDocument = {
     BSONDocument("PHASE1" -> p1.map(Phase1TestProfile.bsonHandler.write),
       "PHASE2" -> p2.map(Phase2TestGroup.bsonHandler.write),
       "PHASE3" -> p3.map(Phase3TestGroup.bsonHandler.write)
     )
-  }
+  }*/
 
+/*
   def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {
     val baseDoc = BSONDocument(
       "personal-details" -> true,
@@ -195,7 +201,9 @@ trait ApplicationDataFixture {
 
     args.foldLeft(baseDoc)((acc, v) => acc.++(v._1.toString -> v._2))
   }
+ */
 
+/*
   private def questionnaire = {
     BSONDocument(
       "start_questionnaire" -> true,
@@ -203,14 +211,16 @@ trait ApplicationDataFixture {
       "education_questionnaire" -> true,
       "occupation_questionnaire" -> true
     )
-  }
+  }*/
 
+  //scalastyle:off
   private def createAssistanceDetails(needsSupportForOnlineAssessment: Boolean, adjustmentsConfirmed: Boolean,
                                       timeExtensionAdjustments: Boolean, needsSupportAtVenue: Boolean = false, isGis: Boolean = false,
                                       typeOfAdjustments: List[String] = List("etrayTimeExtension", "etrayOther")) = {
     if (needsSupportForOnlineAssessment) {
       if (adjustmentsConfirmed) {
         if (timeExtensionAdjustments) {
+/*
           BSONDocument(
             "hasDisability" -> "No",
             "needsSupportForOnlineAssessment" -> true,
@@ -223,7 +233,9 @@ trait ApplicationDataFixture {
             ),
             "guaranteedInterview" -> isGis
           )
+ */
         } else {
+/*
           BSONDocument(
             "needsSupportForOnlineAssessment" -> true,
             "needsSupportAtVenue" -> needsSupportAtVenue,
@@ -231,8 +243,10 @@ trait ApplicationDataFixture {
             "adjustmentsConfirmed" -> true,
             "guaranteedInterview" -> isGis
           )
+ */
         }
       } else {
+/*
         BSONDocument(
           "needsSupportForOnlineAssessment" -> true,
           "needsSupportAtVenue" -> needsSupportAtVenue,
@@ -240,16 +254,19 @@ trait ApplicationDataFixture {
           "adjustmentsConfirmed" -> false,
           "guaranteedInterview" -> isGis
         )
+ */
       }
     } else {
+/*
       BSONDocument(
         "needsSupportForOnlineAssessment" -> false,
         "needsSupportAtVenue" -> needsSupportAtVenue,
         "guaranteedInterview" -> isGis,
         "adjustmentsConfirmed" -> adjustmentsConfirmed
       )
+ */
     }
-  }
+  }//scalastyle:on TODO: remove
 
   val testCandidate = Map(
     "firstName" -> "George",
@@ -258,6 +275,7 @@ trait ApplicationDataFixture {
     "dateOfBirth" -> "1986-05-01"
   )
 
+/*
   def insertApplication(appId: String, userId: String): WriteResult = {
     helperRepo.collection.insert(ordered = false).one(BSONDocument(
       "applicationId" -> appId,
@@ -271,4 +289,5 @@ trait ApplicationDataFixture {
         "stemLevel" -> true
       ))).futureValue
   }
+ */
 }

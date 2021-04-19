@@ -22,18 +22,19 @@ import org.joda.time.DateTime
 import org.joda.time.Seconds._
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{ Millis, Span }
-import org.scalatestplus.play.{ OneAppPerTest, PlaySpec }
-import play.api.{ Application, Play }
+import org.scalatest.time.{Millis, Span}
+import org.scalatestplus.play.{OneAppPerTest, PlaySpec}
+import play.api.{Application, Play}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import play.modules.reactivemongo.{ MongoDbConnection, ReactiveMongoComponent }
-import reactivemongo.api.DefaultDB
-import reactivemongo.api.indexes.IndexType
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers
-import reactivemongo.play.json.collection.JSONCollection
-import uk.gov.hmrc.mongo.ReactiveRepository
+import uk.gov.hmrc.mongo.MongoComponent
+//import play.modules.reactivemongo.{ MongoDbConnection, ReactiveMongoComponent }
+//import reactivemongo.api.DefaultDB
+//import reactivemongo.api.indexes.IndexType
+//import reactivemongo.bson.BSONDocument
+//import reactivemongo.play.json.ImplicitBSONHandlers
+//import reactivemongo.play.json.collection.JSONCollection
+//import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.{ Await, ExecutionContext }
 import scala.concurrent.duration._
@@ -41,7 +42,7 @@ import scala.language.postfixOps
 
 abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Inside with ScalaFutures with IndexesReader
   with BeforeAndAfterEach with BeforeAndAfterAll {
-  import ImplicitBSONHandlers._
+//  import ImplicitBSONHandlers._
 
   val timeout: FiniteDuration = 60 seconds
   val collectionName: String
@@ -64,7 +65,8 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
 
   implicit val context: ExecutionContext = play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-  lazy val mongo: ReactiveMongoComponent = app.injector.instanceOf(classOf[ReactiveMongoComponent])
+//  lazy val mongo: ReactiveMongoComponent = app.injector.instanceOf(classOf[ReactiveMongoComponent])
+  lazy val mongo: MongoComponent = app.injector.instanceOf(classOf[MongoComponent])
 
   lazy val appConfig: MicroserviceAppConfig = app.injector.instanceOf(classOf[MicroserviceAppConfig])
 
@@ -77,19 +79,20 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
   }
 
   override def beforeEach(): Unit = {
-    val collection = mongo.mongoConnector.db().collection[JSONCollection](collectionName)
-    Await.ready(collection.delete.one(Json.obj()), timeout)
+//    val collection = mongo.mongoConnector.db().collection[JSONCollection](collectionName)
+//    Await.ready(collection.delete.one(Json.obj()), timeout)
   }
 }
 
 trait IndexesReader {
   this: ScalaFutures =>
 
+/*
   def indexesWithFields(repo: ReactiveRepository[_, _])(implicit ec: ExecutionContext): List[IndexDetails] = {
     val indexesManager = repo.collection.indexesManager
     val indexes = indexesManager.list().futureValue
     indexes.map( index => IndexDetails(index.key, index.unique) )
-  }
+  }*/
 
-  case class IndexDetails(key: Seq[(String, IndexType)], unique: Boolean)
+//  case class IndexDetails(key: Seq[(String, IndexType)], unique: Boolean)
 }

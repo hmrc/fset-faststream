@@ -4,16 +4,16 @@ import model.Address
 import model.Exceptions.{ ContactDetailsNotFound, ContactDetailsNotFoundForEmail }
 import model.persisted.ContactDetailsExamples._
 import model.persisted.{ ContactDetails, UserIdWithEmail }
-import reactivemongo.api.indexes.IndexType.Ascending
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers
+//import reactivemongo.api.indexes.IndexType.Ascending
+//import reactivemongo.bson.BSONDocument
+//import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 
 import scala.concurrent.Await
 
 class ContactDetailsRepositorySpec extends MongoRepositorySpec {
-  import ImplicitBSONHandlers._
+//  import ImplicitBSONHandlers._
 
   override val collectionName = CollectionNames.CONTACT_DETAILS
 
@@ -21,18 +21,22 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
 
   "contact details repository " should {
     "create indexes" in {
+/*
       val indexes = indexesWithFields(repository)
       indexes must contain theSameElementsAs
         Seq(
           IndexDetails(key = Seq(("_id", Ascending)), unique = false),
           IndexDetails(key = Seq(("userId", Ascending)), unique = true)
         )
+ */
+      ???
     }
   }
 
   "update contact details" should {
     "update contact details and find them successfully" in {
       val UpdatedContactDetails = ContactDetailsUK.copy(email = "newemail@test.com", phone = "111333444")
+/*
       val result = (for {
         _ <- insert(BSONDocument(collectionName -> ContactDetailsUK))
         _ <- repository.update(UserId, UpdatedContactDetails)
@@ -40,6 +44,8 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
       } yield cd).futureValue
 
       result mustBe UpdatedContactDetails
+ */
+      ???
     }
 
     "create new contact details if they do not exist" in {
@@ -66,12 +72,15 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
     }
 
     "return the user id when a user does exist with the given email" in {
+/*
       val result = (for {
         _ <- insert(BSONDocument("userId" -> UserId, "contact-details" -> ContactDetailsUK))
         userId <- repository.findUserIdByEmail(ContactDetailsUK.email)
       } yield userId).futureValue
 
       result mustBe UserId
+ */
+      ???
     }
   }
 
@@ -81,8 +90,8 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
     }
 
     "return list of contact details" in {
-      insert("1", ContactDetails(outsideUk = false, Address("line1a"), Some("123"), Some("UK"), "email1@email.com", "12345"))
-      insert("2", ContactDetails(outsideUk = false, Address("line1b"), Some("456"), Some("UK"), "email2@email.com", "67890"))
+//      insert("1", ContactDetails(outsideUk = false, Address("line1a"), Some("123"), Some("UK"), "email1@email.com", "12345"))
+//      insert("2", ContactDetails(outsideUk = false, Address("line1b"), Some("456"), Some("UK"), "email2@email.com", "67890"))
 
       val result = repository.findAll.futureValue
       result.size mustBe 2
@@ -90,7 +99,7 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
 
     "return only the first 10 documents if there is more than 10" in {
       for (i <- 1 to 11) {
-        insert(i.toString, ContactDetails(outsideUk = false, Address(s"line$i"), Some(s"123$i"), Some("UK"), s"email$i@email.com", s"12345$i"))
+//        insert(i.toString, ContactDetails(outsideUk = false, Address(s"line$i"), Some(s"123$i"), Some("UK"), s"email$i@email.com", s"12345$i"))
       }
 
       val result = repository.findAll.futureValue
@@ -105,27 +114,33 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
     }
 
     "return an empty map if the present records have no post code" in {
+/*
       val result = (for {
         _ <- insert(BSONDocument("userId" -> UserId, "contact-details" -> ContactDetailsOutsideUK))
         res <- repository.findAllPostcodes()
       } yield res).futureValue
 
       result.isEmpty mustBe true
+ */
+      ???
     }
 
     "return the postcode for a given user Id if present" in {
+/*
       val result: Map[String, String] = (for {
         _ <- insert(BSONDocument("userId" -> UserId, "contact-details" -> ContactDetailsUK))
         res <- repository.findAllPostcodes()
       } yield res).futureValue
 
       result.get(UserId) mustBe Some("A1 B23")
+ */
+      ???
     }
   }
 
   "Archive" should {
     "archive the existing contact details" in {
-      insert(BSONDocument("userId" -> UserId, "contact-details" -> ContactDetailsUK)).futureValue
+//      insert(BSONDocument("userId" -> UserId, "contact-details" -> ContactDetailsUK)).futureValue
 
       val userIdToArchiveWith = "newUserId"
 
@@ -144,8 +159,8 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
     }
 
     "return list of users with emails" in {
-      insert(BSONDocument("userId" -> "1", "contact-details" -> ContactDetailsUK)).futureValue
-      insert(BSONDocument("userId" -> "2", "contact-details" -> ContactDetailsOutsideUK)).futureValue
+//      insert(BSONDocument("userId" -> "1", "contact-details" -> ContactDetailsUK)).futureValue
+//      insert(BSONDocument("userId" -> "2", "contact-details" -> ContactDetailsOutsideUK)).futureValue
       val result = repository.findEmails.futureValue
 
       result mustBe List(
@@ -155,7 +170,7 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  private def insert(doc: BSONDocument) = repository.collection.insert(ordered = false).one(doc)
+//  private def insert(doc: BSONDocument) = repository.collection.insert(ordered = false).one(doc)
 
-  private def insert(userId: String, cd: ContactDetails) = repository.update(userId, cd).futureValue
+//  private def insert(userId: String, cd: ContactDetails) = repository.update(userId, cd).futureValue
 }

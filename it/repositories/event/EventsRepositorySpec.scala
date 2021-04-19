@@ -4,7 +4,7 @@ import model.Exceptions.EventNotFoundException
 import model.persisted.EventExamples
 import model.persisted.eventschedules.{ EventType, SkillType, VenueType }
 import org.joda.time.DateTime
-import reactivemongo.api.indexes.IndexType.Ascending
+//import reactivemongo.api.indexes.IndexType.Ascending
 import repositories.CollectionNames
 import repositories.events.EventsMongoRepository
 import testkit.MongoRepositorySpec
@@ -19,6 +19,7 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
   "Events Repository" should {
     "create indexes for the repository" in {
+/*
       val indexes = indexesWithFields(repository)
       indexes must contain theSameElementsAs
         Seq(
@@ -26,6 +27,8 @@ class EventsRepositorySpec extends MongoRepositorySpec {
           IndexDetails(key = Seq(("eventType", Ascending), ("date", Ascending), ("location", Ascending), ("venue", Ascending)),
             unique = false)
         )
+ */
+      ???
     }
   }
 
@@ -52,10 +55,13 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
   "findAll" should {
     "find all events" in {
+/*
       repository.save(EventExamples.EventsNew).futureValue
       val result = repository.findAll().futureValue
       result.size mustBe 5
       result must contain theSameElementsAs EventExamples.EventsNew
+ */
+      ???
     }
   }
 

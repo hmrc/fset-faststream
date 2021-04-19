@@ -14,7 +14,7 @@ import model.persisted._
 import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.scalatest.concurrent.ScalaFutures
-import reactivemongo.bson.BSONDocument
+//import reactivemongo.bson.BSONDocument
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.assessmentcentre.AssessmentCentreMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
@@ -31,7 +31,7 @@ import scala.concurrent.Future
 trait CommonRepository extends CurrentSchemeStatusHelper {
   this: MongoRepositorySpec with ScalaFutures =>
 
-  import reactivemongo.play.json.ImplicitBSONHandlers._
+//  import reactivemongo.play.json.ImplicitBSONHandlers._
 
   val mockOnlineTestsGatewayConfig = mock[OnlineTestsGatewayConfig]
 
@@ -221,11 +221,14 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
   }
 
   def updateApplicationStatus(appId: String, newStatus: ApplicationStatus): Future[Unit] = {
+/*
     val application = BSONDocument("applicationId" -> appId)
     val update = BSONDocument(
       "$set" -> BSONDocument(s"applicationStatus" -> newStatus)
     )
     applicationRepository.collection.update(ordered = false).one(application, update).map {_ => ()}
+ */
+    ???
   }
 
   //TODO: this should be removed when we strip out cubiks code
@@ -286,6 +289,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
                          additionalProgressStatuses: List[(ProgressStatus, Boolean)] = List.empty,
                          applicationRoute: Option[ApplicationRoute] = Some(ApplicationRoute.Faststream)
                         ): Unit = {
+/*
     val gis = if (isGis) Some(true) else None
     applicationRepository.collection.insert(ordered = false).one(
       BSONDocument(
@@ -321,6 +325,8 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
     applicationRepository.collection.update(ordered = false).one(
       BSONDocument("applicationId" -> appId),
       BSONDocument("$set" -> BSONDocument("applicationStatus" -> applicationStatus))).futureValue
+ */
+    ???
   }
   // scalastyle:on
 
@@ -365,14 +371,18 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
   }*/
 
   private def questionnaire() = {
+    /*
     BSONDocument(
       "start_questionnaire" -> true,
       "diversity_questionnaire" -> true,
       "education_questionnaire" -> true,
       "occupation_questionnaire" -> true
     )
+     */
+    ???
   }
 
+/*
   def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {
     val baseDoc = BSONDocument(
       "personal-details" -> true,
@@ -386,5 +396,6 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
 
     args.foldLeft(baseDoc)((acc, v) => acc.++(v._1.toString -> v._2))
   }
+ */
 }
 //scalastyle:on

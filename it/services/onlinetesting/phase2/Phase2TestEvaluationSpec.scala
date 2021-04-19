@@ -12,9 +12,9 @@ import model.{ ApplicationRoute, _ }
 import org.joda.time.DateTime
 import org.mockito.Mockito.when
 import org.scalatest.prop._
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers
-import reactivemongo.play.json.collection.JSONCollection
+//import reactivemongo.bson.BSONDocument
+//import reactivemongo.play.json.ImplicitBSONHandlers
+//import reactivemongo.play.json.collection.JSONCollection
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
@@ -23,7 +23,7 @@ import scala.concurrent.Future
 class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   with TableDrivenPropertyChecks {
 
-  import ImplicitBSONHandlers._
+//  import ImplicitBSONHandlers._
 
   val collectionName: String = CollectionNames.APPLICATION
   override val additionalCollections = List(CollectionNames.PHASE2_PASS_MARK_SETTINGS)
@@ -145,10 +145,11 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       }
     }
 
-    val appCollection: JSONCollection = mongo.mongoConnector.db().collection[JSONCollection](collectionName)
+//    val appCollection: JSONCollection = mongo.mongoConnector.db().collection[JSONCollection](collectionName)
 
     def createUser(userId: String, appId: String) = {
-      appCollection.insert(ordered = false).one(BSONDocument("applicationId" -> appId, "userId" -> userId, "applicationStatus" -> CREATED))
+//      appCollection.insert(ordered = false).one(BSONDocument("applicationId" -> appId, "userId" -> userId, "applicationStatus" -> CREATED))
+      ???
     }
 
     Future.sequence(List(
