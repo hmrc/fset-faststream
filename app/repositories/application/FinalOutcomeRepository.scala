@@ -75,7 +75,11 @@ class FinaOutcomeMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory
   //    "currentSchemeStatus.result" -> BSONDocument("$nin" -> BSONArray(Green.toString, Amber.toString))
   //  )
 
-  val allRedOrWithdrawnQuery = ???
+  //TODO: fix me
+  val allRedOrWithdrawnQuery = Document(
+//    "currentSchemeStatus.result" -> Document("$nin" -> BSONArray(Green.toString, Amber.toString))
+  )
+
 
   val doNothingQuery = Document.empty
 

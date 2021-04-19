@@ -20,13 +20,14 @@ import com.kenshoo.play.metrics.PlayModule
 import config.MicroserviceAppConfig
 import org.joda.time.DateTime
 import org.joda.time.Seconds._
+import org.mongodb.scala.Document
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Span}
 import org.scalatestplus.play.{OneAppPerTest, PlaySpec}
 import play.api.{Application, Play}
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.Json
+//import play.api.libs.json.Json
 import uk.gov.hmrc.mongo.MongoComponent
 //import play.modules.reactivemongo.{ MongoDbConnection, ReactiveMongoComponent }
 //import reactivemongo.api.DefaultDB
@@ -78,9 +79,14 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
     Play.stop(app)
   }
 
-  override def beforeEach(): Unit = {
+//  override def beforeEach(): Unit = {
 //    val collection = mongo.mongoConnector.db().collection[JSONCollection](collectionName)
 //    Await.ready(collection.delete.one(Json.obj()), timeout)
+//  }
+
+  override def beforeEach(): Unit = {
+    val collection = mongo.database.getCollection(collectionName)
+    Await.ready(collection.deleteMany(Document.empty).toFuture(), timeout)
   }
 }
 

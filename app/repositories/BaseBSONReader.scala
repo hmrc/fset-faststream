@@ -16,13 +16,18 @@
 
 package repositories
 
+import org.bson.BsonDocumentReader
+import org.mongodb.scala.bson.BsonDocument
+
 //import reactivemongo.bson.{ BSONDocument, BSONDocumentReader }
 
 trait BaseBSONReader {
+
+  //TODO: mongo
 /*
-  protected def bsonReader[T](f: BSONDocument => T): BSONDocumentReader[T] = {
-    new BSONDocumentReader[T] {
-      def read(bson: BSONDocument) = f(bson)
+  protected def bsonReader[T](f: BsonDocument => T): BsonDocumentReader[T] = {
+    new BsonDocumentReader[T] {
+      def read(bson: BsonDocument) = f(bson)
     }
   }*/
 

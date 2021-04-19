@@ -1,13 +1,9 @@
 package repositories
 
 import model.persisted.Media
-//import reactivemongo.bson.BSONDocument
-//import reactivemongo.play.json.ImplicitBSONHandlers
 import testkit.MongoRepositorySpec
 
 class MediaRepositorySpec extends MongoRepositorySpec {
-
-//  import ImplicitBSONHandlers._
 
   override val collectionName: String = CollectionNames.MEDIA
 
@@ -17,24 +13,19 @@ class MediaRepositorySpec extends MongoRepositorySpec {
     "return Some media when exists" in {
       val testUserId = "userId1"
       val testMediaStr = "Test Media"
-
-      repository.create(Media(
-        testUserId,
-        testMediaStr
-      )).futureValue
+      repository.create(Media(testUserId, testMediaStr)).futureValue
 
       val fetchMedia = repository.find(testUserId).futureValue
-
-      fetchMedia must not be empty
-      fetchMedia.get mustBe Media(testUserId, testMediaStr)
+      fetchMedia mustBe Some(Media(testUserId, testMediaStr))
     }
 
     "Return no media when does not exist" in {
       val fetchMedia = repository.find("randomUserId").futureValue
-
       fetchMedia mustBe empty
     }
   }
+
+  // TODO: mongo add test for findAll
 
   "Clone media" should {
     "archive the existing media item and create a new one" in {
@@ -54,5 +45,16 @@ class MediaRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-//  private def insert(doc: BSONDocument) = repository.collection.insert(ordered = false).one(doc)
+  "remove" should {
+    "remove the media" in {
+      val mediaItem = Media(UserId, "media")
+      repository.create(mediaItem).futureValue
+
+      val returnedMediaOpt = repository.find(UserId).futureValue
+      returnedMediaOpt mustBe Some(mediaItem)
+
+      repository.removeMedia(UserId).futureValue
+      repository.find(UserId).futureValue mustBe None
+    }
+  }
 }
