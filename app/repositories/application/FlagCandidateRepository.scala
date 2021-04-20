@@ -16,8 +16,11 @@
 
 package repositories.application
 
+import model.Exceptions.NotFoundException
+
 import javax.inject.{Inject, Singleton}
 import model.FlagCandidatePersistedObject.FlagCandidate
+import org.mongodb.scala.bson.collection.immutable.Document
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 //import play.modules.reactivemongo.ReactiveMongoComponent
@@ -27,6 +30,8 @@ import repositories._
 //import uk.gov.hmrc.mongo.ReactiveRepository
 //import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
+import org.mongodb.scala.model.Projections
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -35,15 +40,6 @@ trait FlagCandidateRepository {
   def save(flagCandidate: FlagCandidate): Future[Unit]
   def remove(appId: String): Future[Unit]
 }
-/*
-@Singleton
-class FlagCandidateMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[FlagCandidate, BSONObjectID](
-    CollectionNames.APPLICATION,
-    mongoComponent.mongoConnector.db,
-    FlagCandidate.FlagCandidateFormats,
-    ReactiveMongoFormats.objectIdFormats) with FlagCandidateRepository with ReactiveRepositoryHelpers {
-*/
 
 @Singleton
 class FlagCandidateMongoRepository @Inject() (mongo: MongoComponent)
@@ -65,7 +61,16 @@ class FlagCandidateMongoRepository @Inject() (mongo: MongoComponent)
       }
     }
   }*/
-  def tryGetCandidateIssue(appId: String): Future[Option[FlagCandidate]] = ???
+
+  override def tryGetCandidateIssue(appId: String): Future[Option[FlagCandidate]] = {
+    val query = Document("applicationId" -> appId)
+    val projection = Projections.include("applicationId", "issue")
+
+    collection.find(query).projection(projection).first().toFutureOption().map {
+      case flag @ Some(FlagCandidate(_, Some(_))) => flag
+      case _ => None
+    }
+  }
 
   /*
   def save(flagCandidate: FlagCandidate): Future[Unit] = {
@@ -77,7 +82,16 @@ class FlagCandidateMongoRepository @Inject() (mongo: MongoComponent)
     val validator = singleUpdateValidator(flagCandidate.applicationId, actionDesc = "saving flag")
     collection.update(ordered = false).one(query, result) map validator
   }*/
-  def save(flagCandidate: FlagCandidate): Future[Unit] = ???
+
+  def save(flagCandidate: FlagCandidate): Future[Unit] = {
+    val query = Document("applicationId" -> flagCandidate.applicationId)
+    val update = Document("$set" -> Document("issue" -> flagCandidate.issue))
+
+    val validator = singleUpdateValidator(flagCandidate.applicationId, actionDesc = "saving flag")
+//    collection.updateOne(query, update).toFuture().map( ss => validator(ss))
+//    collection.updateOne(query, update).toFuture().map(updateResult => validator(updateResult))
+    collection.updateOne(query, update).toFuture().map(updateResult => validator(updateResult))
+  }
 
   /*
   def remove(appId: String): Future[Unit] = {
@@ -87,5 +101,12 @@ class FlagCandidateMongoRepository @Inject() (mongo: MongoComponent)
     val validator = singleUpdateValidator(appId, actionDesc = "removing flag")
     collection.update(ordered = false).one(query, result) map validator
   }*/
-  def remove(appId: String): Future[Unit] = ???
+
+  def remove(appId: String): Future[Unit] = {
+    val filter = Document("applicationId" -> appId)
+    val update = Document("$unset" -> Document("issue" -> ""))
+
+    val validator = singleUpdateValidator(appId, actionDesc = "removing flag")
+    collection.updateOne(filter, update).toFuture().map(updateResult => validator(updateResult))
+  }
 }

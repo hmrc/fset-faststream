@@ -16,8 +16,10 @@
 
 package repositories
 
-import model.Exceptions.{ CannotUpdateRecord, NotFoundException, TooManyEntries }
-import play.api.libs.json.JsObject
+import model.Exceptions.{CannotUpdateRecord, NotFoundException, TooManyEntries}
+import org.mongodb.scala.result.UpdateResult
+import play.api.Logging
+//import play.api.libs.json.JsObject
 //import reactivemongo.api.{ ReadConcern, ReadPreference, WriteConcern }
 //import reactivemongo.api.collections.bson.BSONBatchCommands.FindAndModifyCommand
 //import reactivemongo.api.collections.bson.BSONCollection
@@ -28,7 +30,7 @@ import play.api.libs.json.JsObject
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future }
 
-trait ReactiveRepositoryHelpers {
+trait ReactiveRepositoryHelpers extends Logging {
 //  this: ReactiveRepository[_, _] =>
 
 //  protected lazy val bsonCollection: BSONCollection = collection.db.collection[BSONCollection](collection.name)
@@ -40,6 +42,12 @@ trait ReactiveRepositoryHelpers {
     singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = false, notFound, upsert = false)
   }*/
 
+  def singleUpdateValidator(id: String,
+                            actionDesc: String,
+                            notFound: => Exception): UpdateResult => Unit = {
+    singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = false, notFound, upsert = false)
+  }
+
 /*
   def singleUpdateValidator(id: String, actionDesc: String, ignoreNotFound: Boolean = false): UpdateWriteResult => Unit = {
 
@@ -47,17 +55,31 @@ trait ReactiveRepositoryHelpers {
       new NotFoundException(s"could not find id $id whilst $actionDesc"), upsert = false)
   }*/
 
+  def singleUpdateValidator(id: String, actionDesc: String, ignoreNotFound: Boolean = false): UpdateResult => Unit = {
+    singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound,
+      new NotFoundException(s"could not find id $id whilst $actionDesc"), upsert = false
+    )
+  }
+
 /*
   def singleUpsertValidator(id: String, actionDesc: String): UpdateWriteResult => Unit = {
 
     singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, new Exception, upsert = true)
   }*/
 
+  def singleUpsertValidator(id: String, actionDesc: String): UpdateResult => Unit = {
+    singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, new Exception, upsert = true)
+  }
+
 /*
   def singleUpsertValidator(id: String, actionDesc: String, notFound: => Exception): UpdateWriteResult => Unit = {
 
     singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, notFound, upsert = true)
   }*/
+
+  def singleUpsertValidator(id: String, actionDesc: String, notFound: => Exception): UpdateResult => Unit = {
+    singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, notFound, upsert = true)
+  }
 
 /*
   def multipleRemoveValidator(expected: Int, actionDesc: String): WriteResult => Unit = (result: WriteResult) => {
@@ -118,6 +140,33 @@ trait ReactiveRepositoryHelpers {
       throw CannotUpdateRecord(msg)
     }
   }*/
+
+  private[this] def singleUpdateValidatorImpl(id: String,
+                                              actionDesc: String,
+                                              ignoreNotFound: Boolean,
+                                              notFound: => Exception,
+                                              upsert: Boolean)(result: UpdateResult): Unit = {
+    if (result.wasAcknowledged()) {
+      if (result.getModifiedCount == 1) {
+        logger.debug(s"Successfully updated ${result.getModifiedCount} document(s) whilst $actionDesc for id $id")
+        ()
+      } else if (result.getModifiedCount == 0 && ignoreNotFound) {
+        val msg = s"Failed to find record whilst $actionDesc for id: $id"
+        logger.debug(msg)
+      } else if (result.getModifiedCount == 0) {
+        throw notFound
+      } else if (result.getModifiedCount > 1) {
+        throw TooManyEntries(s"Update successful, but too many documents updated whilst $actionDesc for id $id")
+      }
+    } else {
+      //TODO: mongo fix
+//      val mongoError = result.writeConcernError.map(_.errmsg).mkString(",")
+      val mongoError = "FIX ME"
+      val msg = s"Failed to $actionDesc for id: $id -> $mongoError"
+      logger.error(msg)
+      throw CannotUpdateRecord(msg)
+    }
+  }
 
 /*
   // Wrap the findAndModify method to provide all the defaults

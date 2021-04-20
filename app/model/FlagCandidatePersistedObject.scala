@@ -24,5 +24,4 @@ object FlagCandidatePersistedObject {
   object FlagCandidate {
     implicit val FlagCandidateFormats: Format[FlagCandidate] = Json.format[FlagCandidate]
   }
-
 }
