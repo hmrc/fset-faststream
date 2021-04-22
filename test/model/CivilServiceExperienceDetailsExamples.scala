@@ -19,6 +19,13 @@ package model
 object CivilServiceExperienceDetailsExamples {
   val civilServant = CivilServiceExperienceDetails(
     applicable = true,
-    civilServantAndInternshipTypes = Some(Seq(CivilServantAndInternshipType.CivilServant))
+    civilServantAndInternshipTypes = Some(Seq(CivilServantAndInternshipType.CivilServant)),
+    edipYear = Some("2020"),
+    sdipYear = Some("2020"),
+    otherInternshipName = Some("OtherInternshipName"),
+    otherInternshipYear = Some("2020"),
+    fastPassReceived = Some(true),
+    fastPassAccepted = Some(true),
+    certificateNumber = Some("1234567")
   )
 }

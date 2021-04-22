@@ -67,7 +67,7 @@ class ContactDetailsMongoRepository @Inject() (mongo: MongoComponent, appConfig:
 
   private val unlimitedMaxDocs = -1
 
-  // TODO: test the index
+  // TODO: mongo test the index
   /*
   override def indexes: Seq[Index] = Seq(
     Index(Seq(("userId", Ascending)), unique = true)
