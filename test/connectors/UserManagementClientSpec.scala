@@ -22,7 +22,7 @@ import config.{AuthConfig, FrontendAppConfig, UserManagementConfig, UserManageme
 import connectors.UserManagementClient.EmailTakenException
 import connectors.exchange.{AddUserRequest, UserResponse}
 import models.UniqueIdentifier
-import org.mockito.Matchers.{any, eq => eqTo}
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
 import org.mockito.Mockito.when
 import play.api.libs.json.Writes
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, UpstreamErrorResponse}

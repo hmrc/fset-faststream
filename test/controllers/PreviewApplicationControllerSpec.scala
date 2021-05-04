@@ -23,7 +23,7 @@ import connectors.exchange.{AssistanceDetailsExamples, GeneralDetailsExamples, S
 import forms.AssistanceDetailsFormExamples
 import models.SecurityUserExamples._
 import models._
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.test.Helpers._
 import testkit.TestableSecureActions

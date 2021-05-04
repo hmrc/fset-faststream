@@ -20,7 +20,7 @@ import connectors.ApplicationClient.TestForTokenExpiredException
 import connectors.UserManagementClient.TokenEmailPairInvalidException
 import connectors.exchange.InvigilatedTestUrl
 import forms.VerifyCodeForm
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.test.Helpers._
 import testkit.TestableSecureActions

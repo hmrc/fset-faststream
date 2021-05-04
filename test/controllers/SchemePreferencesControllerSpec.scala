@@ -21,7 +21,7 @@ import connectors.SchemeClient.SchemePreferencesNotFound
 import connectors.exchange.SchemePreferencesExamples
 import forms.SelectedSchemesForm._
 import models._
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.test.Helpers._
 import testkit.MockitoImplicits._

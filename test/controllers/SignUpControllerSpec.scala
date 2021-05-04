@@ -25,7 +25,7 @@ import models.ApplicationRoute._
 import models.SecurityUserExamples._
 import models.{CachedDataExample, CachedDataWithApp}
 import org.joda.time.DateTime
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import play.api.test.Helpers._
 import testkit.MockitoImplicits._

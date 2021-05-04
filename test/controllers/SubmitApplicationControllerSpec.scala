@@ -19,7 +19,7 @@ package controllers
 import models.ApplicationRoute._
 import models.SecurityUserExamples._
 import models.{CachedDataExample, CachedDataWithApp, ProgressResponseExamples}
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.test.Helpers._
 import testkit.TestableSecureActions

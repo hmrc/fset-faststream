@@ -23,7 +23,7 @@ import connectors.exchange.candidatescores.{AssessmentScoresAllExercises, Compet
 import mappings.Address
 import models.UniqueIdentifier
 import org.joda.time.LocalDate
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import play.api.test.Helpers._
 import testkit.TestableSecureActions

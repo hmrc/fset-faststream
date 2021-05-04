@@ -49,7 +49,7 @@ class CSRHttp @Inject() (
   application: Application)
   extends WSHttp with WSBinaryPost {
   override val hooks = NoneRequired
-  override lazy val configuration: Option[Config] = Option(application.configuration.underlying)
+  override lazy val configuration: Config = application.configuration.underlying
   override lazy val actorSystem: ActorSystem = application.actorSystem
 }
 

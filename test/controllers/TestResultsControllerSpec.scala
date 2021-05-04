@@ -23,7 +23,7 @@ import connectors.exchange._
 import models.ApplicationData.ApplicationStatus.WITHDRAWN
 import models._
 import org.joda.time.DateTime
-import org.mockito.Matchers.{any, eq => eqTo}
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
 import org.mockito.Mockito.when
 import play.api.test.Helpers._
 import testkit.TestableSecureActions

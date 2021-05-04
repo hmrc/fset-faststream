@@ -31,7 +31,7 @@ import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 import security.RolesSpec
 import connectors.exchange.ProgressExamples._
-import org.mockito.Matchers.{any, anyString}
+import org.mockito.ArgumentMatchers.{any, anyString}
 import org.mockito.Mockito.when
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
@@ -49,12 +49,12 @@ class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks with Ins
   when(mockMessages.messages).thenReturn(mockMessages)
   when(mockMessages.apply(anyString(), any())).thenAnswer(new Answer[String]() {
     override def answer(invocationOnMock: InvocationOnMock): String = {
-      invocationOnMock.getArgumentAt(0, classOf[String])
+      invocationOnMock.getArgument(0, classOf[String])
     }
   })
   when(mockMessages.apply(any[Seq[String]], any())).thenAnswer(new Answer[String]() {
     override def answer(invocationOnMock: InvocationOnMock): String = {
-      invocationOnMock.getArgumentAt(0, classOf[String])
+      invocationOnMock.getArgument(0, classOf[String])
     }
   })
 

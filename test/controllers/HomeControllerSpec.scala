@@ -35,7 +35,7 @@ import models.SecurityUserExamples._
 import models._
 import models.events.AllocationStatuses
 import org.joda.time.DateTime
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.libs.Files
 import play.api.mvc.MultipartFormData.FilePart

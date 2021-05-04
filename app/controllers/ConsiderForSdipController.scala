@@ -31,7 +31,6 @@ import security.Roles.{ ActiveUserRole, ContinueAsSdipRole }
 import security.SilhouetteComponent
 
 import scala.concurrent.{ ExecutionContext, Future }
-import play.api.i18n.Messages.Implicits._
 import play.api.mvc.MessagesControllerComponents
 
 @Singleton
