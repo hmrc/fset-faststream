@@ -20,7 +20,7 @@ import com.mohiva.play.silhouette.api.services.AuthenticatorResult
 import com.mohiva.play.silhouette.impl.authenticators.SessionAuthenticator
 import forms.SignInForm
 import models.CachedDataExample
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.mvc._
 import play.api.test.Helpers._

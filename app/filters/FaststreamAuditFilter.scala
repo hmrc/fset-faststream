@@ -17,23 +17,26 @@
 package filters
 
 import akka.stream.Materializer
-import forms.{ SignInForm, SignUpForm }
-import javax.inject.{ Inject, Singleton }
+import forms.{SignInForm, SignUpForm}
+import play.api.Configuration
+
+import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.bootstrap.config.{ ControllerConfigs, HttpAuditEvent }
+import uk.gov.hmrc.play.bootstrap.config.{ControllerConfigs, HttpAuditEvent}
 import uk.gov.hmrc.play.bootstrap.frontend.filters.DefaultFrontendAuditFilter
 
 import scala.concurrent.ExecutionContext
 
 @Singleton
 class FaststreamAuditFilter @Inject() (
+  override val config: Configuration,
   val controllerConfigs: ControllerConfigs,
   override val auditConnector: AuditConnector,
   httpAuditEvent: HttpAuditEvent,
   override val mat: Materializer,
   formWrapper: SignInForm
 )(implicit ec: ExecutionContext)
-  extends DefaultFrontendAuditFilter(controllerConfigs, auditConnector, httpAuditEvent, mat) {
+  extends DefaultFrontendAuditFilter(config, controllerConfigs, auditConnector, httpAuditEvent, mat) {
   override val maskedFormFields = Seq(
     formWrapper.passwordField,
     formWrapper.passwordField,

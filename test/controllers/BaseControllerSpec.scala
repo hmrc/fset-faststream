@@ -27,7 +27,7 @@ import connectors._
 import models.ApplicationRoute.{ApplicationRoute => _}
 import models.SecurityUserExamples._
 import models._
-import org.mockito.Matchers.{any, anyString}
+import org.mockito.ArgumentMatchers.{any, anyString}
 import org.mockito.Mockito.when
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
@@ -136,23 +136,23 @@ abstract class BaseControllerSpec extends BaseSpec {
     when(mockMessages.messages).thenReturn(mockMessages)
     when(mockMessages.apply(anyString(), any())).thenAnswer(new Answer[String]() {
       override def answer(invocationOnMock: InvocationOnMock): String = {
-        invocationOnMock.getArgumentAt(0, classOf[String])
+        invocationOnMock.getArgument(0, classOf[String])
       }
     })
     when(mockMessages.apply(any[Seq[String]], any())).thenAnswer(new Answer[String]() {
       override def answer(invocationOnMock: InvocationOnMock): String = {
-        invocationOnMock.getArgumentAt(0, classOf[String])
+        invocationOnMock.getArgument(0, classOf[String])
       }
     })
     when(mockMessagesApi.preferred(any[RequestHeader])).thenReturn(mockMessages)
     when(mockMessagesApi.apply(anyString(), any())(any())).thenAnswer(new Answer[String]() {
       override def answer(invocationOnMock: InvocationOnMock): String = {
-        invocationOnMock.getArgumentAt(0, classOf[String])
+        invocationOnMock.getArgument(0, classOf[String])
       }
     })
     when(mockMessagesApi.apply(any[Seq[String]], any())(any())).thenAnswer(new Answer[String]() {
       override def answer(invocationOnMock: InvocationOnMock): String = {
-        invocationOnMock.getArgumentAt(0, classOf[String])
+        invocationOnMock.getArgument(0, classOf[String])
       }
     })
 
@@ -172,22 +172,22 @@ abstract class BaseControllerSpec extends BaseSpec {
     val mockNotificationTypeHelper = mock[NotificationTypeHelper]
     when(mockNotificationTypeHelper.success(anyString(), any())(any())).thenAnswer(new Answer[(NotificationType, String)]() {
       override def answer(invocationOnMock: InvocationOnMock): (NotificationType, String) = {
-        NotificationType.Success -> invocationOnMock.getArgumentAt(0, classOf[String])
+        NotificationType.Success -> invocationOnMock.getArgument(0, classOf[String])
       }
     })
     when(mockNotificationTypeHelper.warning(anyString(), any())(any())).thenAnswer(new Answer[(NotificationType, String)]() {
       override def answer(invocationOnMock: InvocationOnMock): (NotificationType, String) = {
-        NotificationType.Warning -> invocationOnMock.getArgumentAt(0, classOf[String])
+        NotificationType.Warning -> invocationOnMock.getArgument(0, classOf[String])
       }
     })
     when(mockNotificationTypeHelper.info(anyString(), any())(any())).thenAnswer(new Answer[(NotificationType, String)]() {
       override def answer(invocationOnMock: InvocationOnMock): (NotificationType, String) = {
-        NotificationType.Info -> invocationOnMock.getArgumentAt(0, classOf[String])
+        NotificationType.Info -> invocationOnMock.getArgument(0, classOf[String])
       }
     })
     when(mockNotificationTypeHelper.danger(anyString(), any())(any())).thenAnswer(new Answer[(NotificationType, String)]() {
       override def answer(invocationOnMock: InvocationOnMock): (NotificationType, String) = {
-        NotificationType.Danger -> invocationOnMock.getArgumentAt(0, classOf[String])
+        NotificationType.Danger -> invocationOnMock.getArgument(0, classOf[String])
       }
     })
 

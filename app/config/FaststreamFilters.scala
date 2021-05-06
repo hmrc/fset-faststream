@@ -17,15 +17,14 @@
 package config
 
 import akka.stream.Materializer
-import filters.{ CookiePolicyFilter, FaststreamAuditFilter, FaststreamWhitelistFilter }
+import filters.{CookiePolicyFilter, FaststreamAuditFilter, FaststreamAllowlistFilter}
 import play.api.Logging
-import play.api.http.DefaultHttpFilters
-import uk.gov.hmrc.play.bootstrap.frontend.filters.FrontendFilters
+import play.api.http.{DefaultHttpFilters, EnabledFilters}
 
 import javax.inject.Inject
 
-class FaststreamFilters @Inject() (
-  defaultFilters: FrontendFilters,
+class DevFaststreamFilters @Inject() (
+  defaultFilters: EnabledFilters,
   auditFilter: FaststreamAuditFilter,
   cookiePolicyFilter: CookiePolicyFilter)(
   implicit
@@ -33,18 +32,18 @@ class FaststreamFilters @Inject() (
   extends DefaultHttpFilters(
     defaultFilters.filters.updated(defaultFilters.filters.indexWhere(_.toString.contains("AuditFilter")), auditFilter)
       :+ cookiePolicyFilter: _*) with Logging {
-  logger.info("White list filter NOT enabled")
+  logger.info("Allow list filter is NOT enabled")
 }
 
 class ProductionFaststreamFilters @Inject() (
-  defaultFilters: FrontendFilters,
-  auditFilter: FaststreamAuditFilter,
-  whilelistFilter: FaststreamWhitelistFilter,
-  cookiePolicyFilter: CookiePolicyFilter)(
+                                              defaultFilters: EnabledFilters,
+                                              auditFilter: FaststreamAuditFilter,
+                                              allowlistFilter: FaststreamAllowlistFilter,
+                                              cookiePolicyFilter: CookiePolicyFilter)(
   implicit
   val materializer: Materializer)
-  extends DefaultHttpFilters((Seq(whilelistFilter) ++
+  extends DefaultHttpFilters((Seq(allowlistFilter) ++
     defaultFilters.filters.updated(defaultFilters.filters.indexWhere(_.toString.contains("AuditFilter")), auditFilter)
   ) :+ cookiePolicyFilter: _*) with Logging {
-  logger.info("White list filter enabled")
+  logger.info("Allow list filter is enabled")
 }

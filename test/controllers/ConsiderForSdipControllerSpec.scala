@@ -24,7 +24,7 @@ import connectors.exchange.UserResponse
 import helpers.NotificationType.{apply => _}
 import models.ApplicationRoute._
 import models._
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.mvc.Request
 import play.api.test.Helpers._

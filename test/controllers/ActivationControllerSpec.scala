@@ -20,7 +20,7 @@ import connectors.UserManagementClient.{TokenEmailPairInvalidException, TokenExp
 import forms.ActivateAccountForm
 import models.CachedData
 import models.SecurityUserExamples._
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.mvc.{Request, Result, Results}
 import play.api.test.Helpers._

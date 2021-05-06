@@ -16,15 +16,15 @@
 
 package security
 
-import com.mohiva.play.silhouette.api.actions.{ SecuredRequest, UserAwareRequest }
-import com.mohiva.play.silhouette.api.{ LoginEvent, LoginInfo, LogoutEvent }
+import com.mohiva.play.silhouette.api.actions.{SecuredRequest, UserAwareRequest}
+import com.mohiva.play.silhouette.api.{LoginEvent, LoginInfo, LogoutEvent}
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import config.FrontendAppConfig
 import connectors.ApplicationClient
 import connectors.ApplicationClient.ApplicationNotFound
 import connectors.UserManagementClient.InvalidCredentialsException
 import connectors.exchange.FrameworkId
-import controllers.Assets.Redirect
+import play.api.mvc.Results.Redirect
 import controllers.routes
 import forms.SignInForm
 import forms.SignInForm.Data

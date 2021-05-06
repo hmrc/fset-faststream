@@ -19,7 +19,7 @@ package controllers
 import connectors.SchoolsClient
 import connectors.SchoolsClient.SchoolsNotFound
 import connectors.exchange.School
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.test.Helpers._
 import testkit.TestableSecureActions

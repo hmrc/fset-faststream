@@ -27,7 +27,6 @@ import security.ProgressStatusRoleUtils._
 import security.Roles.AssistanceDetailsRole
 
 import scala.concurrent.{ ExecutionContext, Future }
-import play.api.i18n.Messages.Implicits._
 import play.api.mvc.MessagesControllerComponents
 import helpers.NotificationTypeHelper
 

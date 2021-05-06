@@ -21,7 +21,7 @@ import java.util.UUID
 import connectors.ApplicationClient
 import connectors.exchange.Phase3TestGroupExamples
 import models.UniqueIdentifier
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import testkit.BaseSpec
 
