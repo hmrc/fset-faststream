@@ -28,10 +28,10 @@ object AppDependencies {
 
   val compile = Seq(
     "com.iheart"                %% "ficus"                                    % "1.5.0",
-    "uk.gov.hmrc"               %% "http-caching-client"                      % "9.1.0-play-26",
+    "uk.gov.hmrc"               %% "http-caching-client"                      % "9.4.0-play-28",
     "uk.gov.hmrc"               %% "bootstrap-frontend-play-28"               % playVersion,
     "com.typesafe.play"         %% "play-json-joda"                           % "2.6.10",
-    "uk.gov.hmrc"               %% "url-builder"                              % "3.4.0-play-27",
+    "uk.gov.hmrc"               %% "url-builder"                              % "3.5.0-play-28",
     "org.apache.httpcomponents" %  "httpclient"                               % "4.5.3",
     "org.apache.httpcomponents" %  "httpcore"                                 % "4.4.5",
     "com.mohiva"                %% "play-silhouette"                          % silhouetteVersion,
