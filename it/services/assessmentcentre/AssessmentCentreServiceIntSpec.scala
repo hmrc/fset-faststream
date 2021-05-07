@@ -1,8 +1,7 @@
 package services.assessmentcentre
 
 import java.io.File
-
-import com.typesafe.config.{ Config, ConfigFactory }
+import com.typesafe.config.{Config, ConfigFactory}
 import factories.ITDateTimeFactoryMock
 import model.ApplicationStatus._
 import model.EvaluationResults.CompetencyAverageResult
@@ -14,8 +13,8 @@ import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import net.ceedubs.ficus.readers.ValueReader
 import org.joda.time.DateTime
-import play.Logger
-import play.api.libs.json.{ JsObject, Json }
+import play.api.Logging
+import play.api.libs.json.{JsObject, Json}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories._
@@ -26,9 +25,9 @@ import services.passmarksettings.AssessmentCentrePassMarkSettingsService
 import testkit.MongoRepositorySpec
 
 import scala.io.Source
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
-class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
+class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
 
   import AssessmentCentreServiceIntSpec._
 
@@ -114,12 +113,12 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
   private def locateSuites: Array[File] = {
     val suites = new File(TestPath).listFiles.filterNot(_.getName == PassmarkSettingsFile).sortBy(_.getName)
     require(suites.nonEmpty, s"No test suites found in $TestPath")
-    suites.foreach( s => Logger.info(s"$prefix suite located = $s" ) )
+    suites.foreach( s => logger.info(s"$prefix suite located = $s" ) )
     suites
   }
 
   private def executeSuite(suiteName: File) = {
-    Logger.info(s"$prefix executing suites found in directory = $suiteName...")
+    logger.info(s"$prefix executing suites found in directory = $suiteName...")
 
     // Reads the passmarkSettings.conf file
     def loadPassmarkSettings: AssessmentCentrePassMarkSettings = {
@@ -141,16 +140,16 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
     }
 
     val passmarkSettings = loadPassmarkSettings
-    Logger.info(s"$prefix pass marks loaded = ${passmarkSettings.toString.substring(0, 600)}...<<truncated>>")
+    logger.info(s"$prefix pass marks loaded = ${passmarkSettings.toString.substring(0, 600)}...<<truncated>>")
     val testSuites = loadTestSuites
-    testSuites.foreach (ts => Logger.info(s"$prefix testSuite loaded = $ts"))
+    testSuites.foreach (ts => logger.info(s"$prefix testSuite loaded = $ts"))
     testSuites foreach (executeTestCases(_, passmarkSettings))
   }
 
   // Execute a single test suite file (which may consist of several test cases within it)
   private def executeTestCases(testSuite: File,
                                passmarks: AssessmentCentrePassMarkSettings) = {
-    Logger.info(s"$prefix START: Processing test suite: ${testSuite.getAbsolutePath}")
+    logger.info(s"$prefix START: Processing test suite: ${testSuite.getAbsolutePath}")
 
     if (DebugRunTestSuitePathPatternOnly.isEmpty || testSuite.getAbsolutePath.contains(DebugRunTestSuitePathPatternOnly.get)) {
       val tests: List[AssessmentServiceTest] = loadTestCases(testSuite)
@@ -158,11 +157,11 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
         val testName = t.testName
         if (DebugRunTestNameOnly.isEmpty || testName == DebugRunTestNameOnly.get) {
           if (DebugRunTestNameOnly.isDefined) {
-            Logger.info(s"$prefix Tests are restricted to only running $testName")
+            logger.info(s"$prefix Tests are restricted to only running $testName")
           } else {
-            Logger.info(s"$prefix Tests are not restricted so all tests will run")
+            logger.info(s"$prefix Tests are not restricted so all tests will run")
           }
-          Logger.info(s"$prefix Now running test case $testName...")
+          logger.info(s"$prefix Now running test case $testName...")
           logTestData(t)
           val appId = t.scores.applicationId.toString()
           createApplicationInDb(appId)
@@ -172,32 +171,32 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
 
           val applicationId = t.scores.applicationId.toString()
           val actualResult = findApplicationInDb(t.scores.applicationId.toString())
-          Logger.info(s"$prefix data read from db for appId $applicationId = $actualResult")
+          logger.info(s"$prefix data read from db for appId $applicationId = $actualResult")
 
           val expectedResult = t.expected
           assert(testSuite, testName, expectedResult, actualResult)
         } else {
-          Logger.info(s"$prefix --> Skipped test case: $testName because we are only running <<${DebugRunTestNameOnly.getOrElse("")}>>")
+          logger.info(s"$prefix --> Skipped test case: $testName because we are only running <<${DebugRunTestNameOnly.getOrElse("")}>>")
         }
       }
-      Logger.info(s"$prefix END: Processed test cases: ${tests.size}")
+      logger.info(s"$prefix END: Processed test cases: ${tests.size}")
     } else {
-      Logger.info(s"$prefix END: --> Skipped file: $testSuite")
+      logger.info(s"$prefix END: --> Skipped file: $testSuite")
     }
   }
 
   // Uses the ficus library to read the config into case classes
   private def loadTestCases(testCase: File): List[AssessmentServiceTest] = {
     val tests = ConfigFactory.parseFile(new File(testCase.getAbsolutePath)).as[List[AssessmentServiceTest]]("tests")
-    Logger.info(s"$prefix Found ${tests.length} test ${if(tests.length == 1) "case" else "cases"}")
+    logger.info(s"$prefix Found ${tests.length} test ${if(tests.length == 1) "case" else "cases"}")
     tests
   }
 
   private def logTestData(data: AssessmentServiceTest) = {
-    Logger.info(s"$prefix The following test data was read from config in ${data.testName}:")
-    Logger.info(s"$prefix schemes: List[SchemeId] = ${data.schemes}")
-    Logger.info(s"$prefix scores: AssessmentScoresAllExercises = ${data.scores}")
-    Logger.info(s"$prefix expected: AssessmentScoreEvaluationTestExpectation = ${data.expected}")
+    logger.info(s"$prefix The following test data was read from config in ${data.testName}:")
+    logger.info(s"$prefix schemes: List[SchemeId] = ${data.schemes}")
+    logger.info(s"$prefix scores: AssessmentScoresAllExercises = ${data.scores}")
+    logger.info(s"$prefix expected: AssessmentScoreEvaluationTestExpectation = ${data.expected}")
   }
 
   // Import required for mongo db interaction
@@ -207,7 +206,7 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
       val msg = s"Found application in database for applicationId $appId - this should not happen. Are you using a unique applicationId ?"
       throw new IllegalStateException(msg)
     case Failure(_) =>
-      Logger.info(s"$prefix creating db application")
+      logger.info(s"$prefix creating db application")
       applicationRepo.collection.insert(ordered = false).one(
         BSONDocument(
           "applicationId" -> appId,
@@ -263,15 +262,15 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
 
     val testMessage = s"file=${testCase.getAbsolutePath}, testName=$testName"
     val message = s"Test location: $testMessage:"
-    Logger.info(s"$prefix $message - now performing checks...")
+    logger.info(s"$prefix $message - now performing checks...")
 
     def doIt(dataName: String)(fun: => org.scalatest.Assertion) = {
-      Logger.info(s"$prefix $dataName check")
+      logger.info(s"$prefix $dataName check")
       // If the test fails, withClue will display a helpful message
       withClue(s"$message $dataName") {
         fun
       }
-      Logger.info(s"$prefix $dataName passed")
+      logger.info(s"$prefix $dataName passed")
     }
 
     doIt("applicationStatus"){ actual.applicationStatus mustBe expected.applicationStatus }
@@ -285,24 +284,24 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec {
 
     val allSchemes = actualSchemes.keys ++ expectedSchemes.keys
 
-    Logger.info(s"$prefix schemesEvaluation check")
+    logger.info(s"$prefix schemesEvaluation check")
     allSchemes.foreach { s =>
       withClue(s"$message schemesEvaluation for scheme: $s") {
         actualSchemes(s) mustBe expectedSchemes(s)
       }
     }
-    Logger.info(s"$prefix schemesEvaluation passed")
+    logger.info(s"$prefix schemesEvaluation passed")
 
     doIt("competencyAverage"){ actual.competencyAverageResult mustBe expected.competencyAverage }
 
-    Logger.info(s"$prefix competencyAverage overallScore check")
+    logger.info(s"$prefix competencyAverage overallScore check")
     withClue(s"$message competencyAverage overallScore") {
       expected.overallScore.foreach { overallScore =>
         actual.competencyAverageResult.get.overallScore mustBe overallScore
       }
     }
-    Logger.info(s"$prefix competencyAverage overallScore passed")
-    Logger.info(s"$prefix $testName passed")
+    logger.info(s"$prefix competencyAverage overallScore passed")
+    logger.info(s"$prefix $testName passed")
   }
 }
 

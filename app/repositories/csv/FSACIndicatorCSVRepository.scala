@@ -44,7 +44,7 @@ class FSACIndicatorCSVRepositoryImpl @Inject() (application: Application) extend
   override def expectedNumberOfHeaders = 3
 
   override private[repositories] val indicators: Map[String, FSACIndicator] =  {
-    val input = managed(application.resourceAsStream(CsvFileName).get)
+    val input = managed(application.environment.resourceAsStream(CsvFileName).get)
     input.acquireAndGet { inputStream =>
       val rawData = Source.fromInputStream(inputStream).getLines.map(parseLine).toList
       val headers = rawData.head

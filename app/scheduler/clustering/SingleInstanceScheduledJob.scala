@@ -16,14 +16,13 @@
 
 package scheduler.clustering
 
-import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
-
+import java.util.concurrent.{ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit}
 import play.modules.reactivemongo.ReactiveMongoComponent
-import scheduler.{ BasicJobConfig, LockKeeper }
-import uk.gov.hmrc.play.scheduling.ExclusiveScheduledJob
+import scheduler.scheduling.ExclusiveScheduledJob
+import scheduler.{BasicJobConfig, LockKeeper}
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 trait SingleInstanceScheduledJob[C <: BasicJobConfig[_]] extends ExclusiveScheduledJob {
@@ -57,13 +56,13 @@ trait SingleInstanceScheduledJob[C <: BasicJobConfig[_]] extends ExclusiveSchedu
     */
   override def isRunning: Future[Boolean] = Future.successful(running)
 
-  def executeInMutex(implicit ec: ExecutionContext): Future[this.Result] = lockKeeper.tryLock {
+  override def executeInMutex(implicit ec: ExecutionContext): Future[this.Result] = lockKeeper.tryLock {
     running = true
     val v = Try(tryExecute)
     running = false
     v.get
   }.map {
-    case Some(_) => Result("Done")
+    case Some(_) => Result("Success")
     case None => Result("Nothing")
   }
 }

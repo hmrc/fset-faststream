@@ -36,5 +36,5 @@ class HttpVerbs @Inject() (@Named("appName") val appName: String, val auditConne
                            val actorSystem: ActorSystem, config: Configuration)
   extends WSHttpT with HttpAuditing {
   override val hooks = Seq(AuditingHook)
-  override def configuration: Option[Config] = Option(config.underlying)
+  override def configuration: Config = config.underlying
 }

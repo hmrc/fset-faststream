@@ -95,7 +95,7 @@ class EventsConfigRepositoryImpl @Inject() (application: Application,
   protected def eventScheduleConfig: String = getConfig(appConfig.eventsConfig.scheduleFilePath)
 
   private def getConfig(filePath: String): String = {
-    val input = managed(application.resourceAsStream(filePath).get)
+    val input = managed(application.environment.resourceAsStream(filePath).get)
     input.acquireAndGet(stream => Source.fromInputStream(stream).mkString)
   }
 

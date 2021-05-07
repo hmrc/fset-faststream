@@ -63,7 +63,7 @@ class LocationsWithVenuesInMemoryYamlRepository @Inject() (application: Applicat
   val locationsAndVenuesFilePath: String = appConfig.locationsAndVenuesConfig.yamlFilePath
 
   private lazy val locationsAndVenuesCached = Future {
-    val input = managed(application.resourceAsStream(locationsAndVenuesFilePath).get)
+    val input = managed(application.environment.resourceAsStream(locationsAndVenuesFilePath).get)
     input.acquireAndGet(file => asLocationWithVenues(new Yaml().load(file)))
   }
 

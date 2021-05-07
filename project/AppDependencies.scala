@@ -19,11 +19,10 @@ import sbt._
 
 //scalastyle:off line.size.limit
 object AppDependencies {
-  import play.core.PlayVersion
 
   val compile = Seq(
-    "uk.gov.hmrc"       %% "simple-reactivemongo"             % "7.30.0-play-27",
-    "uk.gov.hmrc"       %% "bootstrap-backend-play-27"        % "2.24.0",
+    "uk.gov.hmrc"       %% "simple-reactivemongo"             % "8.0.0-play-28",
+    "uk.gov.hmrc"       %% "bootstrap-backend-play-28"        % "4.2.0",
     // Needed to get an Enumerator of documents from ReactiveMongo. Note the version specified is the version of the ReactiveMongo driver
     // which matches the current version used in the HMRC simple-reactivemongo lib
     // ReactiveMongo version used is here: https://github.com/hmrc/simple-reactivemongo/blob/master/project/LibraryDependencies.scala
@@ -31,7 +30,6 @@ object AppDependencies {
     "com.typesafe.play" %% "play-iteratees"                   % "2.6.1",
     "com.typesafe.play" %% "play-iteratees-reactive-streams"  % "2.6.1",
     "com.typesafe.play" %% "play-json-joda"                   % "2.6.10",
-    "uk.gov.hmrc"       %% "play-scheduling-play-27"          % "7.10.0",
     "org.webjars"       %% "webjars-play"                     % "2.7.3",
     "org.webjars"       %  "bootstrap"                        % "3.1.1",
     "org.webjars"       %  "jquery"                           % "1.11.0",
@@ -48,11 +46,12 @@ object AppDependencies {
 
   abstract class TestDependencies(scope: String) {
     lazy val test: Seq[ModuleID] = Seq(
-      "org.pegdown"               %  "pegdown"                      % "1.6.0"             % scope,
       "de.leanovate.play-mockws"  %% "play-mockws"                  % "2.7.1"             % sbt.Test,
       "org.mockito"               %  "mockito-core"                 % "3.0.0"             % scope,
-      "org.scalatestplus.play"    %% "scalatestplus-play"           % "4.0.3"             % scope,
-      "com.typesafe.play"         %% "play-test"                    % PlayVersion.current % scope excludeAll ExclusionRule(organization = "org.specs2"),
+      "org.scalatestplus.play"    %% "scalatestplus-play"           % "5.1.0"             % scope,
+      // Gives you access to MockitoSugar as it is no longer available in scalatestplus-play
+      "org.scalatestplus"         %% "mockito-3-4"              % "3.2.8.0"               % scope,
+      "com.vladsch.flexmark"      %  "flexmark-all"             % "0.36.8"                % scope,
       "org.scalamock"             %% "scalamock-scalatest-support"  % "3.5.0"             % scope,
       "org.scalacheck"            %% "scalacheck"                   % "1.13.4"            % sbt.Test
     )

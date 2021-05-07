@@ -28,7 +28,7 @@ import model.command._
 import model.persisted._
 import model.persisted.sift.SiftTestGroup
 import model.report._
-import play.api.Logger.logger
+import org.slf4j.{Logger, LoggerFactory}
 import reactivemongo.bson.{ BSONDocument, _ }
 import repositories.{ BaseBSONReader, CommonBSONDocuments }
 
@@ -393,6 +393,8 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       question.reviewCriteria1.score,
       question.reviewCriteria2.score)
   }
+
+  private val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   private[application] def toSiftTestResults(applicationId: String,
                                              testGroupsDoc: Option[BSONDocument]): Option[PsiTestResult] = {
