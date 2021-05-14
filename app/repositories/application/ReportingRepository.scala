@@ -18,23 +18,25 @@ package repositories.application
 
 import config.MicroserviceAppConfig
 import factories.DateTimeFactory
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
 import model.ProgressStatuses.ProgressStatus
 import model.command._
 import model.persisted._
 import model.report._
-import model.{ ApplicationStatus, _ }
+import model.{ApplicationStatus, _}
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{ DateTime, LocalDate }
+import org.joda.time.{DateTime, LocalDate}
+import play.api.Logger
 import play.api.libs.json.Format
 import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.Cursor.{ ContOnError, FailOnError }
-import reactivemongo.api.{ Cursor, ReadPreference }
-import reactivemongo.bson.{ BSONDocument, BSONDocumentReader, _ }
+import reactivemongo.api.Cursor.{ContOnError, FailOnError}
+import reactivemongo.api.{Cursor, ReadPreference}
+import reactivemongo.bson.{BSONDocument, BSONDocumentReader, _}
 import reactivemongo.play.json.ImplicitBSONHandlers._
-import repositories.{ BSONDateTimeHandler, _ }
+import repositories.{BSONDateTimeHandler, _}
 import services.TimeZoneService2
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats

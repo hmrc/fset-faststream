@@ -52,7 +52,6 @@ class Module(val environment: Environment, val configuration: Configuration) ext
   override def configure(): Unit = {
     startUpMessage()
 
-    // Scheduled jobs
     bind(classOf[Scheduler]).asEagerSingleton()
 
     bind(classOf[AdminUserBaseGenerator]).annotatedWith(Names.named("AdminCreatedStatusGenerator"))

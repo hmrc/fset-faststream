@@ -16,14 +16,14 @@
 
 package common
 
-import play.api.Logger
+import play.api.Logging
 
 import scala.collection.generic.CanBuildFrom
-import scala.concurrent.{ ExecutionContext, Future, Promise }
+import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.language.higherKinds
 import scala.util.Try
 
-object FutureEx {
+object FutureEx extends Logging {
   /**
    * Serial alternative to Future.traverse. Transforms a `TraversableOnce[A]` into a `Future[TraversableOnce[B]]` using
    * the provided function `A => Future[B]`. This is useful for performing a serial map. For example, to apply a function
@@ -64,7 +64,7 @@ object FutureEx {
   }
 
   def withErrLogging[T](logPrefix: String)(f: Future[T])(implicit ec: ExecutionContext): Future[T] = {
-    f.recoverWith { case ex => Logger.warn(s"$logPrefix: ${ex.getMessage}"); f }
+    f.recoverWith { case ex => logger.warn(s"$logPrefix: ${ex.getMessage}"); f }
   }
 }
 

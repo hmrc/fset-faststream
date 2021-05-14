@@ -23,7 +23,7 @@ import model.exchange.testdata.CreateCandidateResponse.{CreateCandidateResponse,
 import model.persisted.SchemeEvaluationResult
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import model.{ApplicationRoute, ApplicationStatus, EvaluationResults}
-import play.api.Logger
+import play.api.{Logger, Logging}
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import services.sift.ApplicationSiftService
@@ -47,7 +47,7 @@ class SiftEnteredStatusGenerator @Inject() (val previousStatusGenerator: Phase3T
                                             candidateStatusGeneratorFactory: Provider[CandidateStatusGeneratorFactory],
                                             appRepo: GeneralApplicationRepository,
                                             siftService: ApplicationSiftService
-                                           ) extends ConstructiveGenerator {
+                                           ) extends ConstructiveGenerator with Logging {
 //  val appRepo: GeneralApplicationRepository
 //  val siftService: ApplicationSiftService
 
@@ -91,7 +91,7 @@ class SiftEnteredStatusGenerator @Inject() (val previousStatusGenerator: Phase3T
 
     for {
       (previousApplicationStatus, previousStatusGenerator) <- Future.successful(getPreviousStatusGenerator(generatorConfig))
-      _ <- Future.successful(Logger.error(s"previousApplicationStatus=$previousApplicationStatus, " +
+      _ <- Future.successful(logger.error(s"previousApplicationStatus=$previousApplicationStatus, " +
         s"previousStatusGenerator=$previousStatusGenerator."))
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- siftService.progressApplicationToSiftStage(Seq(ApplicationForSift(candidateInPreviousStatus.applicationId.get,

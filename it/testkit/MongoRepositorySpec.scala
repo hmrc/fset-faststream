@@ -23,14 +23,12 @@ import org.joda.time.Seconds._
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{ Millis, Span }
-import org.scalatestplus.play.{ OneAppPerTest, PlaySpec }
+import org.scalatestplus.play.PlaySpec
 import play.api.{ Application, Play }
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import play.modules.reactivemongo.{ MongoDbConnection, ReactiveMongoComponent }
-import reactivemongo.api.DefaultDB
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.indexes.IndexType
-import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers
 import reactivemongo.play.json.collection.JSONCollection
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -62,7 +60,7 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
 
   override implicit def patienceConfig = PatienceConfig(timeout = scaled(Span(timeout.toMillis, Millis)))
 
-  implicit val context: ExecutionContext = play.api.libs.concurrent.Execution.Implicits.defaultContext
+  implicit lazy val executionContext = app.injector.instanceOf[ExecutionContext]
 
   lazy val mongo: ReactiveMongoComponent = app.injector.instanceOf(classOf[ReactiveMongoComponent])
 

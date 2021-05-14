@@ -59,7 +59,7 @@ trait SendInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[Schedu
   val phase: String
   lazy val batchSize: Int = config.conf.batchSize.getOrElse(1)
 
-  def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
+  override def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     onlineTestingService.nextApplicationsReadyForOnlineTesting(batchSize).flatMap {
       case Nil =>
         logger.warn(s"No candidates found to invite to phase $phase")

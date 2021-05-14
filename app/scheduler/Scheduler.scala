@@ -17,14 +17,13 @@
 package scheduler
 
 import play.api.Application
-import play.api.Logger.logger
 import play.api.inject.ApplicationLifecycle
 import scheduler.assessment.{EvaluateAssessmentCentreJobConfig, EvaluateAssessmentCentreJobImpl}
 import scheduler.fixer.{FixerJobConfig, FixerJobImpl}
 import scheduler.fsb.{EvaluateFsbJobConfig, EvaluateFsbJobImpl}
 import scheduler.onlinetesting._
+import scheduler.scheduling.{RunningOfScheduledJobs, ScheduledJob}
 import scheduler.sift._
-import uk.gov.hmrc.play.scheduling.{RunningOfScheduledJobs, ScheduledJob}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext

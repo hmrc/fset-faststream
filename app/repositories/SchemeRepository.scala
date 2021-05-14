@@ -78,7 +78,7 @@ class SchemeYamlRepository @Inject() (implicit application: Application, appConf
   //  import play.api.Play.current
 
   private lazy val rawConfig = {
-    val input = managed(application.resourceAsStream(appConfig.schemeConfig.yamlFilePath).get)
+    val input = managed(application.environment.resourceAsStream(appConfig.schemeConfig.yamlFilePath).get)
     input.acquireAndGet(stream => Source.fromInputStream(stream).mkString)
   }
 
