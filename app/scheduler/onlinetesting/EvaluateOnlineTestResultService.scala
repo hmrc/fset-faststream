@@ -40,13 +40,22 @@ trait EvaluateOnlineTestResultService[T <: PassMarkSettings] extends Application
 
   def nextCandidatesReadyForEvaluation(batchSize: Int)(implicit jsonFormat: Format[T]):
   Future[Option[(List[ApplicationReadyForEvaluation], T)]] = {
-    logger.warn(s"Looking for candidates for $phase evaluation. Batch size=$batchSize")
+    logger.warn(s"Evaluate $phase job - looking for candidates. Batch size=$batchSize")
     getLatestPassMarkSettings flatMap {
       case Some(passmark) =>
         evaluationRepository.nextApplicationsReadyForEvaluation(passmark.version, batchSize) map { candidates =>
+          val appIds = if (candidates.nonEmpty) {
+            candidates.map(_.applicationId).mkString(",")
+          } else {
+            "none found"
+          }
+          val msg = s"Evaluate $phase job - There are pass marks. Processing the following candidates: $appIds"
+          logger.warn(msg)
           Some(candidates -> passmark)
         }
-      case _ => Future.successful(None)
+      case _ =>
+        logger.warn(s"Evaluate $phase job. No pass marks found")
+        Future.successful(None)
     }
   }
 
