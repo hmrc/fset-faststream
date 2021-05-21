@@ -18,20 +18,25 @@ package controllers
 
 import config.TestFixtureBase
 import model.EvaluationResults.Green
-import model.Exceptions.{ ApplicationNotFound, CannotUpdateFSACIndicator }
-import model.command.{ ProgressResponse, WithdrawApplication }
-import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
-import model.{ ApplicationResponse, ApplicationRoute, SchemeId }
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import model.Exceptions.{ApplicationNotFound, CannotUpdateFSACIndicator}
+import model.command.{ProgressResponse, WithdrawApplication}
+import model.persisted.fileupload.FileUpload
+import model.persisted.fsac.{AnalysisExercise, AssessmentCentreTests}
+import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
+import model.{ApplicationResponse, ApplicationRoute, SchemeId}
+import org.joda.time.DateTime
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
+import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.test.Helpers._
-import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
+import play.api.test.{FakeHeaders, FakeRequest, Helpers}
 import repositories.application.GeneralApplicationRepository
 import repositories.fileupload.FileUploadMongoRepository
 import services.application.ApplicationService
 import services.assessmentcentre.AssessmentCentreService
+import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAnalysisExerciseException
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import services.personaldetails.PersonalDetailsService
 import services.sift.ApplicationSiftService
@@ -208,6 +213,37 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     }
   }
 
+  "Download analysis exercise" must {
+    "return the streamed file contents" in new TestFixture {
+      val fileId = "testFileId"
+      val fileContents = "Test contents"
+      val fsacTests = AssessmentCentreTests(Some(AnalysisExercise(fileId = fileId)))
+      when(mockAssessmentCentreService.getTests(any[String])).thenReturnAsync(fsacTests)
+
+      val fileUpload = FileUpload(
+        id = fileId,
+        contentType = "application/pdf",
+        created = DateTime.now,
+        fileContents = Enumerator(fileContents.toCharArray.map(_.toByte))
+      )
+      when(mockFileUploadRepository.retrieve(any[String])).thenReturnAsync(fileUpload)
+
+      val result = testApplicationController.downloadAnalysisExercise(ApplicationId)(downloadAnalysisExerciseRequest(ApplicationId)).run
+      status(result) mustBe OK
+      contentAsString(result) mustBe fileContents
+    }
+
+    //TODO: it would be better if we explicitly returned a NOT_FOUND instead of the error bubbling up and it being handed
+    // as an internal server error
+    "blow up if no analysis exercise exists" in new TestFixture {
+      val fsacTestsNoAnalysisExercise = AssessmentCentreTests()
+      when(mockAssessmentCentreService.getTests(any[String])).thenReturnAsync(fsacTestsNoAnalysisExercise)
+
+      val result = testApplicationController.downloadAnalysisExercise(ApplicationId)(downloadAnalysisExerciseRequest(ApplicationId)).run
+      result.failed.futureValue mustBe an[CandidateHasNoAnalysisExerciseException]
+    }
+  }
+
   trait TestFixture extends TestFixtureBase {
     val mockApplicationRepository = mock[GeneralApplicationRepository]
     val mockApplicationService = mock[ApplicationService]
@@ -254,6 +290,10 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     def getPhase3ResultsRequest(applicationId: String) = {
       FakeRequest(Helpers.GET, controllers.routes.ApplicationController.getPhase3Results(applicationId).url, FakeHeaders(), "")
         .withHeaders("Content-Type" -> "application/json")
+    }
+
+    def downloadAnalysisExerciseRequest(applicationId: String) = {
+      FakeRequest(Helpers.GET, controllers.routes.ApplicationController.downloadAnalysisExercise(applicationId).url, FakeHeaders(), "")
     }
   }
 }
