@@ -19,44 +19,60 @@ package repositories
 import factories.DateTimeFactory
 import model.ApplicationStatus._
 import model.ProgressStatuses.ProgressStatus
-import model.command._
-import model.{ ApplicationStatus, FailedSdipFsTestType, ProgressStatuses, SuccessfulSdipFsTestType }
+import org.mongodb.scala.model.Updates
+//import model.command._
+import model.{ApplicationStatus, FailedSdipFsTestType, ProgressStatuses, SuccessfulSdipFsTestType}
+import org.mongodb.scala.bson.BsonDocument
+//import org.mongodb.scala.bson.collection.immutable.Document
+import play.api.libs.json.JodaWrites.JodaDateTimeWrites
 //import reactivemongo.bson.{ BSONBoolean, BSONDocument, BSONDocumentReader, BSONReader, BSONValue }
+import uk.gov.hmrc.mongo.play.json.Codecs
+import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats
+//import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits._
+
 
 import scala.language.implicitConversions
 
-trait CommonBSONDocuments extends BaseBSONReader {
+trait CommonBSONDocuments extends BaseBSONReader with MongoJodaFormats {
 
-  def dateTimeFactory: DateTimeFactory // Guice impl
+  def dateTimeFactory: DateTimeFactory
 
-  /*
   protected def applicationStatusBSON(applicationStatus: ApplicationStatus) = {
     // TODO the progress status should be propagated up to the caller, rather than default, but that will
     // require widespread changes, and using a default in here is better than the previous implementation
     // that just set the progress status to applicationStatus.toString, which produced invalid progress statuses
     val defaultProgressStatus = ProgressStatuses.tryToGetDefaultProgressStatus(applicationStatus)
+
     defaultProgressStatus match {
       case Some(progressStatus) =>
-        BSONDocument(
-          "applicationStatus" -> applicationStatus,
-          s"progress-status.${progressStatus.key}" -> true,
-          s"progress-status-timestamp.${progressStatus.key}" -> dateTimeFactory.nowLocalTimeZone
+        Updates.combine(
+          Updates.set("applicationStatus", applicationStatus.toBson),
+          Updates.set(s"progress-status.${progressStatus.key}", true),
+          Updates.set(s"progress-status-timestamp.${progressStatus.key}",Codecs.toBson(dateTimeFactory.nowLocalTimeZone))
         )
+/*        BsonDocument(
+          "applicationStatus" -> applicationStatus.toBson,
+          s"progress-status.${progressStatus.key}" -> true,
+          s"progress-status-timestamp.${progressStatus.key}" -> Codecs.toBson(dateTimeFactory.nowLocalTimeZone)
+        )*/
       // For in progress application status we store application status in
       // progress-status-timestamp.
       case _ if applicationStatus == ApplicationStatus.IN_PROGRESS =>
-        BSONDocument(
-          "applicationStatus" -> applicationStatus,
+        Updates.combine(
+          Updates.set("applicationStatus", applicationStatus.toBson),
+          Updates.set(s"progress-status.${ApplicationStatus.IN_PROGRESS}", true),
+          Updates.set(s"progress-status-timestamp.${ApplicationStatus.IN_PROGRESS}",Codecs.toBson(dateTimeFactory.nowLocalTimeZone))
+        )
+/*
+        BsonDocument(
+          "applicationStatus" -> applicationStatus.toBson,
           s"progress-status.${ApplicationStatus.IN_PROGRESS}" -> true,
-          s"progress-status-timestamp.${ApplicationStatus.IN_PROGRESS}" -> dateTimeFactory.nowLocalTimeZone
-        )
+          s"progress-status-timestamp.${ApplicationStatus.IN_PROGRESS}" -> Codecs.toBson(dateTimeFactory.nowLocalTimeZone)
+        )*/
       case _ =>
-        BSONDocument(
-          "applicationStatus" -> applicationStatus
-        )
+        Updates.set("applicationStatus", applicationStatus.toBson)
     }
-  }*/
-  protected def applicationStatusBSON(applicationStatus: ApplicationStatus) = ???
+  }
 
   /*
   protected def applicationStatusBSON(progressStatus: ProgressStatus) = {

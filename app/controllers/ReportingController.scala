@@ -114,7 +114,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
     }
   }
 
-  private def contactDetailsToMap(contactDetailsList: List[ContactDetailsWithId]) = contactDetailsList.map(cd => cd.userId -> cd).toMap
+  private def contactDetailsToMap(contactDetailsList: Seq[ContactDetailsWithId]) = contactDetailsList.map(cd => cd.userId -> cd).toMap
 
   def analyticalSchemesReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
 

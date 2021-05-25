@@ -16,25 +16,15 @@
 
 package repositories
 
-import javax.inject.{Inject, Singleton}
 import model.ApplicationRoute.{apply => _}
 import model.Exceptions.CannotAddMedia
 import model.persisted.Media
-import model.persisted.Media._
 import org.mongodb.scala.MongoException
-import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.bson.collection.immutable.Document
-//import play.api.libs.json.JsObject
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-//import play.modules.reactivemongo.ReactiveMongoComponent
-//import reactivemongo.api.commands.WriteResult
-//import reactivemongo.api.{ Cursor, DB, ReadPreference }
-//import reactivemongo.bson.{ BSONDocument, BSONObjectID }
-//import reactivemongo.play.json.ImplicitBSONHandlers._
-//import uk.gov.hmrc.mongo.ReactiveRepository
-//import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -51,7 +41,7 @@ class MediaMongoRepository @Inject() (mongoComponent: MongoComponent)
   extends PlayMongoRepository[Media](
     collectionName = CollectionNames.MEDIA,
     mongoComponent = mongoComponent,
-    domainFormat = mediaFormat,
+    domainFormat = Media.mongoFormat,
     indexes = Nil
   ) with MediaRepository with BaseBSONReader with ReactiveRepositoryHelpers {
 
@@ -73,7 +63,7 @@ class MediaMongoRepository @Inject() (mongoComponent: MongoComponent)
   }*/
   override def find(userId: String): Future[Option[Media]] = {
     val query = Document("userId" -> userId)
-    collection.find(query).first().toFutureOption()
+    collection.find(query).headOption()
   }
 
 /*
@@ -84,14 +74,18 @@ class MediaMongoRepository @Inject() (mongoComponent: MongoComponent)
       .cursor[(String, Media)](ReadPreference.nearest).collect[List](maxDocs = -1, Cursor.FailOnError[List[(String, Media)]]())
     queryResult.map(_.toMap)
   }*/
-  //TODO: mongo
-  override def findAll(): Future[Map[String, Media]] = ???
+  override def findAll(): Future[Map[String, Media]] = {
+    val query = Document.empty
+    val result = collection.find(query).toFuture()
 
+    result.map(_.map ( data => data.userId -> data ).toMap)
+  }
+/*
   private def docToMedia(document: BsonDocument): (String, Media) = {
     val userId = document.getString("userId").getValue
     val media = document.getString("media").getValue
     userId -> Media(userId, media)
-  }
+  }*/
 
   override def cloneAndArchive(originalUserId: String, userIdToArchiveWith: String): Future[Unit] = {
     find(originalUserId).flatMap {
@@ -104,12 +98,4 @@ class MediaMongoRepository @Inject() (mongoComponent: MongoComponent)
     val query = Document("userId" -> userId)
     collection.deleteOne(query).toFuture().map(_ => ())
   }
-
-  /*
-  private def docToMedia(document: BSONDocument): (String, Media) = {
-    val userId = document.getAs[String]("userId").get
-    val media = document.getAs[String]("media").get
-
-    (userId, Media(userId, media))
-  }*/
 }

@@ -16,28 +16,19 @@
 
 package repositories.contactdetails
 
+import com.mongodb.client.model.{Projections, Updates}
 import config.MicroserviceAppConfig
+import model.Exceptions.{ContactDetailsNotFound, ContactDetailsNotFoundForEmail}
+import model.persisted._
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.Indexes.ascending
+import org.mongodb.scala.model.{IndexModel, IndexOptions, UpdateOptions}
+import repositories.{CollectionNames, ReactiveRepositoryHelpers}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}
 
 import javax.inject.{Inject, Singleton}
-import model.Address
-import model.Commands._
-import model.Exceptions.{ContactDetailsNotFound, ContactDetailsNotFoundForEmail}
-import model.persisted.{ContactDetails, ContactDetailsWithId, UserIdWithEmail}
-import play.api.libs.functional.syntax._
-import play.api.libs.json.Reads._
-import play.api.libs.json._
-import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-//import play.modules.reactivemongo.ReactiveMongoComponent
-//import reactivemongo.api.indexes.Index
-//import reactivemongo.api.indexes.IndexType.Ascending
-//import reactivemongo.api.{ Cursor, ReadPreference }
-//import reactivemongo.bson.{ BSONDocument, BSONObjectID }
-//import reactivemongo.play.json.ImplicitBSONHandlers._
-import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
-//import uk.gov.hmrc.mongo.ReactiveRepository
-//import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -45,12 +36,12 @@ trait ContactDetailsRepository {
   def update(userId: String, contactDetails: ContactDetails): Future[Unit]
   def find(userId: String): Future[ContactDetails]
   def findUserIdByEmail(email: String): Future[String]
-  def findAll: Future[List[ContactDetailsWithId]]
+  def findAll: Future[Seq[ContactDetailsWithId]]
   def findAllPostcodes(): Future[Map[String, String]]
-  def findByPostCode(postCode: String): Future[List[ContactDetailsWithId]]
-  def findByUserIds(userIds: List[String]): Future[List[ContactDetailsWithId]]
+  def findByPostCode(postCode: String): Future[Seq[ContactDetailsWithId]]
+  def findByUserIds(userIds: List[String]): Future[Seq[ContactDetailsWithId]]
   def archive(originalUserId: String, userIdToArchiveWith: String): Future[Unit]
-  def findEmails: Future[List[UserIdWithEmail]]
+  def findEmails: Future[Seq[UserIdWithEmail]]
   def removeContactDetails(userId: String): Future[Unit]
 }
 
@@ -59,21 +50,45 @@ class ContactDetailsMongoRepository @Inject() (mongo: MongoComponent, appConfig:
   extends PlayMongoRepository[ContactDetails](
     collectionName = CollectionNames.CONTACT_DETAILS,
     mongoComponent = mongo,
-    domainFormat = ContactDetails.contactDetailsFormat,
-    indexes = Nil
+    domainFormat = ContactDetails.mongoFormat,
+    indexes = Seq(
+      IndexModel(ascending("userId"), IndexOptions().unique(true))
+    )
   ) with ContactDetailsRepository with ReactiveRepositoryHelpers {
+
+  // Additional collections configured to work with the appropriate domainFormat and automatically register the
+  // codec to work with BSON serialization
+  val userIdCollection: MongoCollection[ContactDetailsUserId] =
+    CollectionFactory.collection(
+      collectionName = CollectionNames.CONTACT_DETAILS,
+      db = mongo.database,
+      domainFormat = ContactDetailsUserId.mongoFormat
+    )
+
+  val contactDetailsWithIdCollection: MongoCollection[ContactDetailsWithId] =
+    CollectionFactory.collection(
+      collectionName = CollectionNames.CONTACT_DETAILS,
+      db = mongo.database,
+      domainFormat = ContactDetailsWithId.mongoFormat
+    )
+
+  val userIdWithEmailCollection: MongoCollection[UserIdWithEmail] =
+    CollectionFactory.collection(
+      collectionName = CollectionNames.CONTACT_DETAILS,
+      db = mongo.database,
+      domainFormat = UserIdWithEmail.mongoFormat
+    )
+
+  val contactDetailsUserIdPostcodeCollection: MongoCollection[ContactDetailsUserIdPostcode] =
+    CollectionFactory.collection(
+      collectionName = CollectionNames.CONTACT_DETAILS,
+      db = mongo.database,
+      domainFormat = ContactDetailsUserIdPostcode.mongoFormat
+    )
 
   val ContactDetailsDocumentKey = "contact-details"
 
-  private val unlimitedMaxDocs = -1
-
-  // TODO: mongo test the index
-  /*
-  override def indexes: Seq[Index] = Seq(
-    Index(Seq(("userId", Ascending)), unique = true)
-  )*/
-
-  /*
+  /* //TODO: mongo remove old code
   override def update(userId: String, contactDetails: ContactDetails): Future[Unit] = {
     val query = BSONDocument("userId" -> userId)
     val contactDetailsBson = BSONDocument("$set" -> BSONDocument(ContactDetailsDocumentKey -> contactDetails))
@@ -82,7 +97,17 @@ class ContactDetailsMongoRepository @Inject() (mongo: MongoComponent, appConfig:
 
     collection.update(ordered = false).one(query, contactDetailsBson, upsert = true) map validator
   }*/
-  override def update(userId: String, contactDetails: ContactDetails): Future[Unit] = ???
+//  override def update(userId: String, contactDetails: ContactDetails): Future[Unit] = ???
+
+  override def update(userId: String, contactDetails: ContactDetails): Future[Unit] = {
+    val query = Document("userId" -> userId)
+    val update = Updates.set(ContactDetailsDocumentKey, Codecs.toBson(contactDetails))
+
+    val validator = singleUpsertValidator(userId, actionDesc = s"updating contact details for $userId")
+
+    val insertNewDocIfNoMatchesToTheQueryFilter = true
+    collection.updateOne(query, update, UpdateOptions().upsert(insertNewDocIfNoMatchesToTheQueryFilter)).toFuture() map validator
+  }
 
   /*
   override def find(userId: String): Future[ContactDetails] = {
@@ -95,7 +120,19 @@ class ContactDetailsMongoRepository @Inject() (mongo: MongoComponent, appConfig:
       case None => throw ContactDetailsNotFound(userId)
     }
   }*/
-  override def find(userId: String): Future[ContactDetails] = ???
+  override def find(userId: String): Future[ContactDetails] = {
+    val query = Document("userId" -> userId)
+    val projection = Projections.include(ContactDetailsDocumentKey) // This is the sub-document key
+
+    for {
+      contactDetailsOpt <- collection.find(query).projection(projection).headOption()
+    } yield {
+      contactDetailsOpt match {
+        case Some(cd) => cd
+        case _ => throw ContactDetailsNotFound(userId)
+      }
+    }
+  }
 
   /*
   override def findUserIdByEmail(email: String): Future[String] = {
@@ -108,7 +145,20 @@ class ContactDetailsMongoRepository @Inject() (mongo: MongoComponent, appConfig:
       case None => throw ContactDetailsNotFoundForEmail()
     }
   }*/
-  override def findUserIdByEmail(email: String): Future[String] = ???
+  // TODO: This works but it seems a bit wasteful to have the ContactDetailsUserId which just wraps a single string
+  override def findUserIdByEmail(email: String): Future[String] = {
+    val query = Document("contact-details.email" -> email)
+    val projection = Projections.include("userId")
+
+    for {
+      userIdOpt <- userIdCollection.find(query).projection(projection).headOption()
+    } yield {
+      userIdOpt match {
+        case Some(id) => id.userId
+        case _ => throw ContactDetailsNotFoundForEmail()
+      }
+    }
+  }
 
   /*
   override def findAll: Future[List[ContactDetailsWithId]] = {
@@ -127,7 +177,10 @@ class ContactDetailsMongoRepository @Inject() (mongo: MongoComponent, appConfig:
       ContactDetailsWithId(id, address, postCode, outsideUk, email, phone)
     })
   }*/
-  override def findAll: Future[List[ContactDetailsWithId]] = ???
+  override def findAll: Future[Seq[ContactDetailsWithId]] = {
+    val query = Document.empty
+    contactDetailsWithIdCollection.find(query).limit(appConfig.maxNumberOfDocuments).toFuture()
+  }
 
   /*
   override def findAllPostcodes(): Future[Map[String, String]] = {
@@ -141,7 +194,16 @@ class ContactDetailsMongoRepository @Inject() (mongo: MongoComponent, appConfig:
       .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[(String, String)]]())
     result.map(_.toMap)
   }*/
-  override def findAllPostcodes(): Future[Map[String, String]] = ???
+//  override def findAllPostcodes(): Future[Map[String, String]] = ???
+
+
+  override def findAllPostcodes(): Future[Map[String, String]] = {
+    val query = Document("contact-details.postCode" -> Document("$exists" -> true))
+    val projection = Projections.include("userId", "contact-details.postCode")
+    val result = contactDetailsUserIdPostcodeCollection.find(query).projection(projection).toFuture()
+
+    result.map(_.map ( data => data.userId -> data.postcode ).toMap)
+  }
 
   /*
   override def findByPostCode(postCode: String): Future[List[ContactDetailsWithId]] = {
@@ -161,7 +223,10 @@ class ContactDetailsMongoRepository @Inject() (mongo: MongoComponent, appConfig:
       ContactDetailsWithId(id, address, postCode, outsideUk, email, phone)
     })
   }*/
-  override def findByPostCode(postCode: String): Future[List[ContactDetailsWithId]] = ???
+  override def findByPostCode(postCode: String): Future[Seq[ContactDetailsWithId]] = {
+    val query = Document("contact-details.postCode" -> postCode)
+    contactDetailsWithIdCollection.find(query).toFuture()
+  }
 
   /*
   override def findByUserIds(userIds: List[String]): Future[List[ContactDetailsWithId]] = {
@@ -180,7 +245,10 @@ class ContactDetailsMongoRepository @Inject() (mongo: MongoComponent, appConfig:
       ContactDetailsWithId(id, address, postCode, outsideUk, email, phone)
     })
   }*/
-  override def findByUserIds(userIds: List[String]): Future[List[ContactDetailsWithId]] = ???
+  override def findByUserIds(userIds: List[String]): Future[Seq[ContactDetailsWithId]] = {
+    val query = Document("userId" -> Document("$in" -> userIds))
+    contactDetailsWithIdCollection.find(query).toFuture()
+  }
 
   /*
   override def archive(originalUserId: String, userIdToArchiveWith: String): Future[Unit] = {
@@ -194,7 +262,17 @@ class ContactDetailsMongoRepository @Inject() (mongo: MongoComponent, appConfig:
     val validator = singleUpdateValidator(originalUserId, actionDesc = "archiving contact details")
     collection.update(ordered = false).one(query, updateWithArchiveUserId) map validator
   }*/
-  override def archive(originalUserId: String, userIdToArchiveWith: String): Future[Unit] = ???
+  override def archive(originalUserId: String, userIdToArchiveWith: String): Future[Unit] = {
+    val query = Document("userId" -> originalUserId)
+
+    val updateWithArchiveUserId = Document("$set" -> Document(
+      "originalUserId" -> originalUserId,
+      "userId" -> userIdToArchiveWith
+    ))
+
+    val validator = singleUpdateValidator(originalUserId, actionDesc = "archiving contact details")
+    collection.updateOne(query, updateWithArchiveUserId).toFuture() map validator
+  }
 
   /*
   override def findEmails: Future[List[UserIdWithEmail]] = {
@@ -214,12 +292,18 @@ class ContactDetailsMongoRepository @Inject() (mongo: MongoComponent, appConfig:
       UserIdWithEmail(id, email)
     })
   }*/
-  override def findEmails: Future[List[UserIdWithEmail]] = ???
+  override def findEmails: Future[Seq[UserIdWithEmail]] = {
+    val query = Document("contact-details" -> Document("$exists" -> true))
+    userIdWithEmailCollection.find(query).toFuture()
+  }
 
   /*
   override def removeContactDetails(userId: String): Future[Unit] = {
     val query = BSONDocument("userId" -> userId)
     collection.delete().one(query, limit = Some(1)).map(_ => ())
   }*/
-  override def removeContactDetails(userId: String): Future[Unit] = ???
+  override def removeContactDetails(userId: String): Future[Unit] = {
+    val query = Document("userId" -> userId)
+    collection.deleteOne(query).toFuture().map(_ => ())
+  }
 }

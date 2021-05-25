@@ -24,5 +24,4 @@ object Commands {
   type PostCode = String
   type PhoneNumber = String
   type IsNonSubmitted = Boolean
-
 }

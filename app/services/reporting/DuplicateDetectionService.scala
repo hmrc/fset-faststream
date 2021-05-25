@@ -36,7 +36,7 @@ class DuplicateDetectionService @Inject() (reportingRepository: ReportingReposit
   private val MediumProbabilityMatchGroup = 2
 
   def findAll: Future[List[DuplicateApplicationGroup]] = {
-    def toUserIdToEmailMap(cds: List[UserIdWithEmail]) = {
+    def toUserIdToEmailMap(cds: Seq[UserIdWithEmail]) = {
       cds.map(cd => cd.userId -> cd.email).toMap
     }
 

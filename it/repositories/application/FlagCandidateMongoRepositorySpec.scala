@@ -20,21 +20,18 @@ import factories.{ITDateTimeFactoryMock, UUIDFactory}
 import model.Exceptions.NotFoundException
 import model.FlagCandidatePersistedObject.FlagCandidate
 import org.mongodb.scala.MongoCollection
-//import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.bson.collection.immutable.Document
-//import reactivemongo.bson.BSONDocument
-//import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 
 class FlagCandidateMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
-//  import ImplicitBSONHandlers._
 
   val collectionName = CollectionNames.APPLICATION
   def repository = new FlagCandidateMongoRepository(mongo)
 
-  def helperRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, appConfig, mongo) //TODO: mongo
-  val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName) //TODO: mongo
+  def helperRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, appConfig, mongo) //TODO: mongo - waiting to convert this repo
+  //TODO: mongo this here until the helperRepo is converted
+  val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
 
   "Flag Candidate repository" should {
     "create and get an issue for the candidate" in {

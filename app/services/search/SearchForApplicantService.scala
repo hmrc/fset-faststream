@@ -63,7 +63,7 @@ class SearchForApplicantService @Inject() (appRepository: GeneralApplicationRepo
 
   private def searchByPostCode(postCode: String): Future[List[Candidate]] =
     cdRepository.findByPostCode(postCode).flatMap { cdList =>
-      Future.sequence(cdList.map { cd =>
+      Future.sequence(cdList.toList.map { cd =>
         appRepository.findCandidateByUserId(cd.userId).map(_.map { candidate =>
           candidate.copy(address = Some(cd.address), postCode = cd.postCode)
         }).recover {
@@ -79,7 +79,7 @@ class SearchForApplicantService @Inject() (appRepository: GeneralApplicationRepo
                                                     )(implicit hc: HeaderCarrier): Future[List[Candidate]] =
     for {
       contactDetailsFromPostcode <- postCodeOpt.map(cdRepository.findByPostCode).getOrElse(Future.successful(List.empty))
-      candidates <- appRepository.findByCriteria(firstOrPreferredName, lastName, dateOfBirth, contactDetailsFromPostcode.map(_.userId))
+      candidates <- appRepository.findByCriteria(firstOrPreferredName, lastName, dateOfBirth, contactDetailsFromPostcode.map(_.userId).toList)
       authProviderResults <- searchAuthProviderByFirstAndLastName(firstOrPreferredName, lastName)
       combinedCandidates = candidates ++ authProviderResults.filter(
         authProviderCandidate => !candidates.exists(_.userId == authProviderCandidate.userId)

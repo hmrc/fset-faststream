@@ -16,22 +16,14 @@
 
 package repositories.application
 
-import model.Exceptions.NotFoundException
-
-import javax.inject.{Inject, Singleton}
 import model.FlagCandidatePersistedObject.FlagCandidate
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.Projections
+import repositories._
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-//import play.modules.reactivemongo.ReactiveMongoComponent
-//import reactivemongo.bson.{ BSONDocument, BSONObjectID }
-//import reactivemongo.play.json.ImplicitBSONHandlers._
-import repositories._
-//import uk.gov.hmrc.mongo.ReactiveRepository
-//import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
-import org.mongodb.scala.model.Projections
-
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -49,7 +41,7 @@ class FlagCandidateMongoRepository @Inject() (mongo: MongoComponent)
     domainFormat = FlagCandidate.FlagCandidateFormats,
     indexes = Nil
   ) with FlagCandidateRepository with ReactiveRepositoryHelpers {
-  /*
+  /* //TODO: mongo remove old code
   def tryGetCandidateIssue(appId: String): Future[Option[FlagCandidate]] = {
     val query = BSONDocument("applicationId" -> appId)
     val projection = BSONDocument("applicationId" -> 1, "issue" -> 1)

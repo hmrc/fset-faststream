@@ -10,7 +10,7 @@ class MediaRepositorySpec extends MongoRepositorySpec {
   def repository = new MediaMongoRepository(mongo)
 
   "find media" should {
-    "return Some media when exists" in {
+    "return media when it exists" in {
       val testUserId = "userId1"
       val testMediaStr = "Test Media"
       repository.create(Media(testUserId, testMediaStr)).futureValue
@@ -25,7 +25,16 @@ class MediaRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-  // TODO: mongo add test for findAll
+  "find all media" should {
+    "return media when it exists" in {
+      val testUserId = "userId1"
+      val testMediaStr = "Test Media"
+      repository.create(Media(testUserId, testMediaStr)).futureValue
+
+      val fetchMedia = repository.findAll().futureValue
+      fetchMedia mustBe Map(testUserId -> Media(testUserId, testMediaStr))
+    }
+  }
 
   "Clone media" should {
     "archive the existing media item and create a new one" in {

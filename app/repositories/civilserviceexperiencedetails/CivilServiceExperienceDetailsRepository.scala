@@ -69,13 +69,12 @@ class CivilServiceExperienceDetailsMongoRepository @Inject() (mongo: MongoCompon
       BsonDocument("applicationId" -> applicationId),
       BsonDocument(s"$CivilServiceExperienceDetailsDocumentKey.fastPassReceived" -> true)
     ))
-    val updateBSON = Document("$set" -> Document(
-      s"$CivilServiceExperienceDetailsDocumentKey.fastPassAccepted" -> accepted
-    ))
+    val updateBSON = Document("$set" ->
+      Document(s"$CivilServiceExperienceDetailsDocumentKey.fastPassAccepted" -> accepted)
+    )
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "evaluating fast pass candidate",
       CannotUpdateCivilServiceExperienceDetails(applicationId))
-
     collection.updateOne(query, updateBSON).toFuture() map validator
   }
 }
