@@ -16,14 +16,12 @@
 
 package repositories.csv
 
-import model.report.CandidateProgressReportItem
-import model.{ ApplicationRoute, FSACIndicator }
-import resource._
-import com.github.ghik.silencer.silent
 import com.google.inject.ImplementedBy
-import javax.inject.{ Inject, Singleton }
-import play.api.{ Application, Play }
+import model.FSACIndicator
+import play.api.Application
+import resource._
 
+import javax.inject.{Inject, Singleton}
 import scala.io.Source
 
 @ImplementedBy(classOf[FSACIndicatorCSVRepositoryImpl])
@@ -44,7 +42,7 @@ class FSACIndicatorCSVRepositoryImpl @Inject() (application: Application) extend
   override def expectedNumberOfHeaders = 3
 
   override private[repositories] val indicators: Map[String, FSACIndicator] =  {
-    val input = managed(application.resourceAsStream(CsvFileName).get)
+    val input = managed(application.environment.resourceAsStream(CsvFileName).get)
     input.acquireAndGet { inputStream =>
       val rawData = Source.fromInputStream(inputStream).getLines.map(parseLine).toList
       val headers = rawData.head

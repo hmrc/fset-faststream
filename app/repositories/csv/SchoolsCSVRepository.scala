@@ -36,7 +36,7 @@ class SchoolsCSVRepository @Inject() (application: Application) extends SchoolsR
 
   private lazy val schoolsCached = Future.successful {
 
-    val input = managed(application.resourceAsStream("UK_schools_data_v2.csv").get)
+    val input = managed(application.environment.resourceAsStream("UK_schools_data_v2.csv").get)
     input.acquireAndGet { inputStream =>
       val rawData = Source.fromInputStream(inputStream).getLines.map(parseLine).toList
       val headers = rawData.head
