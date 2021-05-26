@@ -21,11 +21,11 @@ import model.ApplicationStatus
 import model.Exceptions.PersonalDetailsNotFound
 import model.persisted.PersonalDetails
 import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
-import org.mongodb.scala.bson.{BsonArray, BsonDocument}
 import org.mongodb.scala.model.{Filters, Projections, Updates}
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{Format, Json, __}
+import play.api.libs.json.{Format, __}
 import repositories.{CollectionNames, CommonBSONDocuments, ReactiveRepositoryHelpers}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}
@@ -96,9 +96,9 @@ class PersonalDetailsMongoRepository @Inject() (val dateTimeFactory: DateTimeFac
   override def update(applicationId: String, userId: String, personalDetails: PersonalDetails,
                       requiredStatuses: Seq[ApplicationStatus.Value], newApplicationStatus: ApplicationStatus.Value): Future[Unit] = {
 
-    val query = BsonDocument("$and" -> BsonArray(
-      BsonDocument("applicationId" -> applicationId, "userId" -> userId),
-      BsonDocument("applicationStatus" -> BsonDocument("$in" -> requiredStatuses.map(status => status.toBson)))
+    val query = Document("$and" -> BsonArray(
+      Document("applicationId" -> applicationId, "userId" -> userId),
+      Document("applicationStatus" -> Document("$in" -> requiredStatuses.map(status => status.toBson)))
     ))
 
     val update = Updates.combine(
@@ -130,9 +130,9 @@ class PersonalDetailsMongoRepository @Inject() (val dateTimeFactory: DateTimeFac
     collection.update(ordered = false).one(query, personalDetailsBSON) map validator
   }*/
   override def updateWithoutStatusChange(appId: String, userId: String, personalDetails: PersonalDetails): Future[Unit] = {
-    val query = BsonDocument("$and" -> BsonArray(
-      BsonDocument("applicationId" -> appId, "userId" -> userId),
-      BsonDocument("applicationStatus" -> BsonDocument("$ne" -> ApplicationStatus.WITHDRAWN.toBson))
+    val query = Document("$and" -> BsonArray(
+      Document("applicationId" -> appId, "userId" -> userId),
+      Document("applicationStatus" -> Document("$ne" -> ApplicationStatus.WITHDRAWN.toBson))
     ))
 
     val update = Updates.combine(
@@ -178,7 +178,7 @@ class PersonalDetailsMongoRepository @Inject() (val dateTimeFactory: DateTimeFac
   }
 
   def findByIds2(applicationIds: Seq[String]): Future[Seq[(String, Option[PersonalDetails])]] = {
-    val query = BsonDocument("applicationId" -> BsonDocument("$in" -> applicationIds))
+    val query = Document("applicationId" -> Document("$in" -> applicationIds))
     val projection = Projections.include("applicationId", PersonalDetailsDocumentKey)
 
     val personalDetailsCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
@@ -206,7 +206,7 @@ class PersonalDetailsMongoRepository @Inject() (val dateTimeFactory: DateTimeFac
   }
 
   override def findByIds(applicationIds: Seq[String]): Future[Seq[(String, Option[PersonalDetails])]] = {
-    val query = BsonDocument("applicationId" -> BsonDocument("$in" -> applicationIds))
+    val query = Document("applicationId" -> Document("$in" -> applicationIds))
     val projection = Projections.include("applicationId", PersonalDetailsDocumentKey)
 
     appIdPersonalDetailsCollection.find(query).projection(projection).toFuture().map {
