@@ -37,6 +37,8 @@ import model.persisted.fsb.ScoresAndFeedback
 import model.{ApplicationStatus, _}
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, LocalDate}
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.Projections
 import play.api.libs.json.{JsNumber, JsObject, Json}
 import repositories.{CollectionNames, CommonBSONDocuments, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers}
 import uk.gov.hmrc.mongo.MongoComponent
@@ -273,6 +275,17 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     }
   }*/
   override def findProgress(applicationId: String): Future[ProgressResponse] = ???
+/*
+  override def findProgress(applicationId: String): Future[ProgressResponse] = {
+    val query = Document("applicationId" -> applicationId)
+    val projection = Projections.include("progress-status")
+
+    collection.find(query).projection(projection).headOption map {
+      //TODO: mongo need to implement toProgressResponse in CommonBSONDocuments
+      case Some(document) => toProgressResponse(applicationId).read(document)
+      case None => throw ApplicationNotFound(s"No application found for $applicationId")
+    }
+  }*/
 
   /*
   def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]] = {
@@ -393,7 +406,32 @@ def findByUserId(userId: String, frameworkId: String): Future[ApplicationRespons
     case None => throw ApplicationNotFound(userId)
   }
 }*/
-def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse] = ???
+
+  def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse] = {
+    val query = Document("userId" -> userId, "frameworkId" -> frameworkId)
+
+    for {
+      myOpt <- collection.find(query).headOption()
+    } yield {
+/*
+      case Some(document) =>
+        val applicationId = document.getAs[String]("applicationId").get
+        val testAccountId = document.getAs[String]("testAccountId").get
+        val applicationStatus = document.getAs[ApplicationStatus]("applicationStatus").get
+        val applicationRoute = document.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
+        val fastPassReceived = document.getAs[CivilServiceExperienceDetails]("civil-service-experience-details")
+        val submissionDeadline = document.getAs[DateTime]("submissionDeadline")
+        findProgress(applicationId).map { progress =>
+          ApplicationResponse(
+            applicationId, applicationStatus, applicationRoute, userId, testAccountId,
+            progress, fastPassReceived, submissionDeadline
+          )
+        }
+      case None => throw ApplicationNotFound(userId)
+*/
+      ???
+    }
+  }
 
 /*
 def findCandidateByUserId(userId: String): Future[Option[Candidate]] = {
@@ -1031,7 +1069,15 @@ override def addProgressStatusAndUpdateAppStatus(applicationId: String, progress
     applicationStatusBSON(progressStatus))
   ) map validator
 }*/
-override def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = ???
+
+  override def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+    val validator = singleUpdateValidator(applicationId, actionDesc = "updating progress and app status")
+
+    collection.updateOne(query, Document("$set" ->
+      applicationStatusBSON(progressStatus))
+    ).toFuture() map validator
+  }
 
 /*
 override def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {

@@ -48,5 +48,8 @@ class StcEventMongoRepository @Inject() (mongo: MongoComponent)
     val doc = StcEvent.eventHandler.write(event)
     collection.insert(ordered = false).one(doc) map (_ => ())
   }*/
-  override def create(event: StcEvent): Future[Unit] = ???
+
+  override def create(event: StcEvent): Future[Unit] = {
+    collection.insertOne(event).toFuture() map (_ => ())
+  }
 }

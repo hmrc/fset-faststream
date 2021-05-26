@@ -19,6 +19,9 @@ package repositories
 import factories.DateTimeFactory
 import model.ApplicationStatus._
 import model.ProgressStatuses.ProgressStatus
+import model.command.ProgressResponse
+import org.bson.BsonDocumentReader
+import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Updates
 //import model.command._
 import model.{ApplicationStatus, FailedSdipFsTestType, ProgressStatuses, SuccessfulSdipFsTestType}
@@ -82,7 +85,13 @@ trait CommonBSONDocuments extends BaseBSONReader with MongoJodaFormats {
       s"progress-status-timestamp.${progressStatus.key}" -> dateTimeFactory.nowLocalTimeZone
     )
   }*/
-  protected def applicationStatusBSON(progressStatus: ProgressStatus) = ???
+  protected def applicationStatusBSON(progressStatus: ProgressStatus) = {
+    BsonDocument(
+      "applicationStatus" -> Codecs.toBson(progressStatus.applicationStatus),
+      s"progress-status.${progressStatus.key}" -> true,
+      s"progress-status-timestamp.${progressStatus.key}" -> Codecs.toBson(dateTimeFactory.nowLocalTimeZone)
+    )
+  }
 
   /*
   def progressStatusOnlyBSON(progressStatus: ProgressStatus) = {
@@ -102,6 +111,10 @@ trait CommonBSONDocuments extends BaseBSONReader with MongoJodaFormats {
   }*/
   def progressStatusGuardBSON(progressStatus: ProgressStatus) = ???
 
+  // scalastyle:off method.length
+//  def toProgressResponse(applicationId: String): BsonDocumentReader[ProgressResponse] = bsonReader {
+//  }
+
   /*
   // scalastyle:off method.length
   def toProgressResponse(applicationId: String): BSONDocumentReader[ProgressResponse] = bsonReader {
@@ -115,7 +128,6 @@ trait CommonBSONDocuments extends BaseBSONReader with MongoJodaFormats {
             .getOrElse(false)
         }
 
-        //TODO: Ian mongo 3.2 -> 3.4
         def questionnaire = root.getAs[BSONDocument]("questionnaire").map { doc =>
           doc.elements.collect {
             case bsonElement => bsonElement.name

@@ -28,9 +28,11 @@ import model.command.ApplicationForProgression
 import model.persisted.fsb.ScoresAndFeedback
 import model.persisted.{FsbSchemeResult, FsbTestGroup, SchemeEvaluationResult}
 import org.joda.time.DateTime
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.bson.{BsonArray, BsonDocument}
 import play.api.libs.json.JsObject
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 //import play.modules.reactivemongo.ReactiveMongoComponent
 //import reactivemongo.api.{ Cursor, ReadPreference }
 //import reactivemongo.bson.{ BSON, BSONArray, BSONDocument, BSONObjectID }
@@ -263,7 +265,24 @@ class FsbMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
     )
     collection.update(ordered = false).one(selector, modifier) map validator
   }*/
-  override def saveResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = ???
+
+  override def saveResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
+    val query = BsonDocument("$and" -> BsonArray(
+      BsonDocument(APPLICATION_ID -> applicationId),
+      BsonDocument(
+        s"$FSB_TEST_GROUPS.evaluation.result.schemeId" -> BsonDocument("$nin" -> BsonArray(result.schemeId.value))
+      )
+    ))
+
+    val update = BsonDocument(
+      "$addToSet" -> BsonDocument(s"$FSB_TEST_GROUPS.evaluation.result" -> Codecs.toBson(result))
+    )
+    val message = s"Fsb evaluation already done for application $applicationId for scheme ${result.schemeId}"
+    val validator = singleUpdateValidator(
+      applicationId, actionDesc = s"saving fsb assessment result $result", AlreadyEvaluatedForSchemeException(message)
+    )
+    collection.updateOne(query, update).toFuture() map validator
+  }
 
   /*
   override def findScoresAndFeedback(applicationId: String): Future[Option[ScoresAndFeedback]] = {
@@ -362,7 +381,19 @@ class FsbMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
 
     collection.update(ordered = false).one(query, update) map validator
   }*/
-  override def updateCurrentSchemeStatus(applicationId: String, newCurrentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = ???
+  override def updateCurrentSchemeStatus(applicationId: String, newCurrentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+
+    val update = Document(
+      "$set" -> Document("currentSchemeStatus" -> Codecs.toBson(newCurrentSchemeStatus))
+    )
+
+    val validator = singleUpdateValidator(
+      applicationId, actionDesc = s"Updating current scheme status"
+    )
+
+    collection.updateOne(query, update).toFuture() map validator
+  }
 
   /*
   override def addFsbProgressStatuses(applicationId: String, progressStatuses: List[(String, DateTime)]): Future[Unit] = {
