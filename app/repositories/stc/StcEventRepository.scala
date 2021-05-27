@@ -16,17 +16,12 @@
 
 package repositories.stc
 
-import javax.inject.{Inject, Singleton}
 import model.persisted.StcEvent
+import repositories.CollectionNames
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-//import play.modules.reactivemongo.ReactiveMongoComponent
-//import reactivemongo.bson.BSONObjectID
-//import reactivemongo.play.json.ImplicitBSONHandlers._
-import repositories.CollectionNames
-//import uk.gov.hmrc.mongo.ReactiveRepository
-//import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -42,12 +37,6 @@ class StcEventMongoRepository @Inject() (mongo: MongoComponent)
     domainFormat = StcEvent.eventFormat,
     indexes = Nil
   ) with StcEventRepository {
-
-/*
-  override def create(event: StcEvent): Future[Unit] = {
-    val doc = StcEvent.eventHandler.write(event)
-    collection.insert(ordered = false).one(doc) map (_ => ())
-  }*/
 
   override def create(event: StcEvent): Future[Unit] = {
     collection.insertOne(event).toFuture() map (_ => ())
