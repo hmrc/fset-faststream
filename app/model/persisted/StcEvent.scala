@@ -30,7 +30,5 @@ case class StcEvent(
 )
 
 object StcEvent {
-//  import repositories.BSONDateTimeHandler
   implicit val eventFormat = Json.format[StcEvent]
-//  implicit val eventHandler: BSONHandler[BSONDocument, StcEvent] = Macros.handler[StcEvent]
 }
