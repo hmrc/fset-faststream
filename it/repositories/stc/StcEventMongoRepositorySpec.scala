@@ -1,10 +1,8 @@
 package repositories.stc
 
+import factories.DateTimeFactoryImpl
 import model.persisted.StcEvent
-import org.joda.time.{DateTime, DateTimeZone}
-import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
-import play.api.libs.json.JsObject
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.mongo.MongoComponent
@@ -13,12 +11,13 @@ import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import javax.inject.Inject
 import scala.concurrent.Future
 
-//TODO: mongo fix the tests
 class StcEventMongoRepositorySpec extends MongoRepositorySpec {
 
   override val collectionName = CollectionNames.EVENT
 
   lazy val repository = new StcEventMongoRepository(mongo)
+
+  val dateTimeFactory = new DateTimeFactoryImpl
 
   // Just here so we can read back the event data
   class StcEventMongoRepositoryForTest @Inject() (mongo: MongoComponent)
@@ -33,11 +32,7 @@ class StcEventMongoRepositorySpec extends MongoRepositorySpec {
         eventOpt <- collection.find(Document.empty).headOption()
       } yield {
         eventOpt match {
-          case Some(event) =>
-            //scalastyle:off
-            println(s"**** read data from db: $event")
-            //scalastyle:on
-            event
+          case Some(event) => event
           case _ => throw new RuntimeException("No event found")
         }
       }
@@ -46,13 +41,9 @@ class StcEventMongoRepositorySpec extends MongoRepositorySpec {
 
   val eventTestRepo = new StcEventMongoRepositoryForTest(mongo)
 
-  "Stop the Clock Event repository" should {
+  "Stop the Clock event repository" should {
     "insert new event" in {
-      val event = StcEvent("ExampleEvent", DateTime.now(DateTimeZone.UTC), Some("appId"), Some("userId"))
-      //scalastyle:off
-      println(s"**** storing event: $event")
-      //scalastyle:on
-
+      val event = StcEvent("ExampleEvent", dateTimeFactory.nowLocalTimeZone, Some("appId"), Some("userId"))
       repository.create(event).futureValue
       val result = eventTestRepo.getEvent.futureValue
       result mustBe event
