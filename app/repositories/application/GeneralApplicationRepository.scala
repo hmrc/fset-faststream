@@ -37,12 +37,13 @@ import model.persisted.fsb.ScoresAndFeedback
 import model.{ApplicationStatus, _}
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, LocalDate}
+import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
 import play.api.libs.json.{JsNumber, JsObject, Json}
 import repositories.{CollectionNames, CommonBSONDocuments, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers}
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.mongo.play.json.{CollectionFactory, PlayMongoRepository}
 //import play.modules.reactivemongo.ReactiveMongoComponent
 //import reactivemongo.api.Cursor.FailOnError
 //import reactivemongo.api._
@@ -74,6 +75,7 @@ trait GeneralApplicationRepository {
   def findProgress(applicationId: String): Future[ProgressResponse]
   def findStatus(applicationId: String): Future[ApplicationStatusDetails]
   def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse]
+  def findByUserId2(userId: String, frameworkId: String): Future[ApplicationResponse2] //TODO: mongo remove
   def findCandidateByUserId(userId: String): Future[Option[Candidate]]
   def findByCriteria(firstOrPreferredName: Option[String], lastName: Option[String],
                      dateOfBirth: Option[LocalDate], userIds: List[String] = List.empty): Future[List[Candidate]]
@@ -165,7 +167,18 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
   ) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
     with GeneralApplicationRepoBSONReader with ReactiveRepositoryHelpers with CurrentSchemeStatusHelper {
 
-  private val unlimitedMaxDocs = -1
+//  private val unlimitedMaxDocs = -1
+
+  // Additional collections configured to work with the appropriate domainFormat and automatically register the
+  // codec to work with BSON serialization
+  val applicationResponseCollection: MongoCollection[ApplicationResponse2] =
+  CollectionFactory.collection(
+    collectionName = CollectionNames.APPLICATION,
+    db = mongo.database,
+    domainFormat = ApplicationResponse2.mongoFormat
+  )
+
+
 
   //TODO: test that these indexes are created as expected
   /*
@@ -407,12 +420,15 @@ def findByUserId(userId: String, frameworkId: String): Future[ApplicationRespons
   }
 }*/
 
-  def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse] = {
+  def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse] = ???
+
+  def findByUserId2(userId: String, frameworkId: String): Future[ApplicationResponse2] = {
     val query = Document("userId" -> userId, "frameworkId" -> frameworkId)
 
-    for {
-      myOpt <- collection.find(query).headOption()
-    } yield {
+    applicationResponseCollection.find(query).headOption().map {
+      case Some(applicationResponse) => applicationResponse
+      case None => throw ApplicationNotFound(userId)
+    }
 /*
       case Some(document) =>
         val applicationId = document.getAs[String]("applicationId").get
@@ -429,8 +445,7 @@ def findByUserId(userId: String, frameworkId: String): Future[ApplicationRespons
         }
       case None => throw ApplicationNotFound(userId)
 */
-      ???
-    }
+//    }
   }
 
 /*

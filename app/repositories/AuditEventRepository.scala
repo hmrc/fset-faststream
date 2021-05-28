@@ -21,11 +21,6 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 import javax.inject.Inject
-//import reactivemongo.api.DB
-//import reactivemongo.bson.BSONObjectID
-//import reactivemongo.play.json.ImplicitBSONHandlers._
-//import uk.gov.hmrc.mongo.ReactiveRepository
-//import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -34,8 +29,6 @@ trait AuditEventRepository {
   def create(event: AuditEvent): Future[Unit]
 }
 
-// TODO: look at the implicit!!!
-//class AuditEventMongoRepository(implicit mongo: () => DB)
 class AuditEventMongoRepository @Inject() (mongo: MongoComponent)
   extends PlayMongoRepository[AuditEvent](
     collectionName = CollectionNames.EVENT,
@@ -44,10 +37,6 @@ class AuditEventMongoRepository @Inject() (mongo: MongoComponent)
     indexes = Nil
   ) with AuditEventRepository {
 
-  /*
-  def create(event: AuditEvent): Future[Unit] = {
-    val doc = AuditEvent.eventHandler.write(event)
-    collection.insert(ordered = false).one(doc) map (_ => ())
-  }*/
-  def create(event: AuditEvent): Future[Unit] = ???
+  def create(event: AuditEvent): Future[Unit] =
+    collection.insertOne(event).toFuture() map (_ => ())
 }

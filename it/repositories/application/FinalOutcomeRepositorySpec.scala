@@ -52,7 +52,7 @@ class FinalOutcomeRepositorySpec extends MongoRepositorySpec with UUIDFactory {
       val appToProgress = ApplicationForProgression(appId, ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN.applicationStatus, css)
 
       repository.progressToAssessmentCentreFailedSdipGreenNotified(appToProgress).futureValue
-      // TODO: mongo Now read back the data and verify the new ps has been added
+      // TODO: mongo Now read back the data and verify the new ps has been added (we need toProgressResponse in CommonBSONDocuments)
     }
   }
 

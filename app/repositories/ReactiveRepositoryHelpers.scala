@@ -44,8 +44,8 @@ trait ReactiveRepositoryHelpers extends Logging {
 
   def singleUpdateValidator(id: String,
                             actionDesc: String,
-                            notFound: => Exception): UpdateResult => Unit = {
-    singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = false, notFound, upsert = false)
+                            error: => Exception): UpdateResult => Unit = {
+    singleUpdateValidatorImpl(id, actionDesc, ignoreNoRecordUpdated = false, error, upsert = false)
   }
 
 /*
@@ -57,7 +57,7 @@ trait ReactiveRepositoryHelpers extends Logging {
 
   def singleUpdateValidator(id: String, actionDesc: String, ignoreNotFound: Boolean = false): UpdateResult => Unit = {
     singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound,
-      new NotFoundException(s"could not find id $id whilst $actionDesc"), upsert = false
+      new CannotUpdateRecord(s"Failed to update document for applicationId $id whilst $actionDesc"), upsert = false
     )
   }
 
@@ -68,7 +68,7 @@ trait ReactiveRepositoryHelpers extends Logging {
   }*/
 
   def singleUpsertValidator(id: String, actionDesc: String): UpdateResult => Unit = {
-    singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, new Exception, upsert = true)
+    singleUpdateValidatorImpl(id, actionDesc, ignoreNoRecordUpdated = true, new Exception, upsert = true)
   }
 
 /*
@@ -77,8 +77,8 @@ trait ReactiveRepositoryHelpers extends Logging {
     singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, notFound, upsert = true)
   }*/
 
-  def singleUpsertValidator(id: String, actionDesc: String, notFound: => Exception): UpdateResult => Unit = {
-    singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, notFound, upsert = true)
+  def singleUpsertValidator(id: String, actionDesc: String, error: => Exception): UpdateResult => Unit = {
+    singleUpdateValidatorImpl(id, actionDesc, ignoreNoRecordUpdated = true, error, upsert = true)
   }
 
 /*
@@ -140,21 +140,20 @@ trait ReactiveRepositoryHelpers extends Logging {
       throw CannotUpdateRecord(msg)
     }
   }*/
-
   private[this] def singleUpdateValidatorImpl(id: String,
                                               actionDesc: String,
-                                              ignoreNotFound: Boolean,
-                                              notFound: => Exception,
+                                              ignoreNoRecordUpdated: Boolean,
+                                              error: => Exception,
                                               upsert: Boolean)(result: UpdateResult): Unit = {
     if (result.wasAcknowledged()) {
       if (result.getModifiedCount == 1) {
         logger.debug(s"Successfully updated ${result.getModifiedCount} document(s) whilst $actionDesc for id $id")
         ()
-      } else if (result.getModifiedCount == 0 && ignoreNotFound) {
-        val msg = s"Failed to find record whilst $actionDesc for id: $id"
-        logger.debug(msg)
+      } else if (result.getModifiedCount == 0 && ignoreNoRecordUpdated) {
+        val msg = s"Failed to update record whilst $actionDesc for id: $id. IgnoreNoRecordUpdated is on for this operation"
+        logger.warn(msg)
       } else if (result.getModifiedCount == 0) {
-        throw notFound
+        throw error
       } else if (result.getModifiedCount > 1) {
         throw TooManyEntries(s"Update successful, but too many documents updated whilst $actionDesc for id $id")
       }
@@ -166,7 +165,7 @@ trait ReactiveRepositoryHelpers extends Logging {
       logger.error(msg)
       throw CannotUpdateRecord(msg)
     }
-  }
+  }//scalastyle:on
 
 /*
   // Wrap the findAndModify method to provide all the defaults
