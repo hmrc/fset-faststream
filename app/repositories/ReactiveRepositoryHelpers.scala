@@ -17,7 +17,7 @@
 package repositories
 
 import model.Exceptions.{CannotUpdateRecord, NotFoundException, TooManyEntries}
-import org.mongodb.scala.result.UpdateResult
+import org.mongodb.scala.result.{DeleteResult, UpdateResult}
 import play.api.Logging
 //import play.api.libs.json.JsObject
 //import reactivemongo.api.{ ReadConcern, ReadPreference, WriteConcern }
@@ -119,6 +119,25 @@ trait ReactiveRepositoryHelpers extends Logging {
     }
   }*/
 
+  def singleRemovalValidator(id: String, actionDesc: String): DeleteResult => Unit = (result: DeleteResult) => {
+    if (result.wasAcknowledged()) {
+      if (result.getDeletedCount == 1) {
+        ()
+      } else if (result.getDeletedCount == 0) {
+        throw new NotFoundException(s"No document found whilst $actionDesc for id $id")
+      } else if (result.getDeletedCount > 1) {
+        throw TooManyEntries(s"Deletion successful, but too many documents deleted whilst $actionDesc for id $id")
+      }
+    } else {
+      //TODO: mongo fix
+//      val mongoError = result.writeConcernError.map(_.errmsg).mkString(",")
+      val mongoError = "FIX ME"
+      val msg = s"Failed to $actionDesc for appId: $id -> $mongoError"
+      logger.error(msg)
+      throw CannotUpdateRecord(msg)
+    }
+  }
+
 /*
   private[this] def singleUpdateValidatorImpl(id: String, actionDesc: String, ignoreNotFound: Boolean,
                                               notFound: => Exception, upsert: Boolean)(result: UpdateWriteResult): Unit = {
@@ -161,7 +180,7 @@ trait ReactiveRepositoryHelpers extends Logging {
       //TODO: mongo fix
 //      val mongoError = result.writeConcernError.map(_.errmsg).mkString(",")
       val mongoError = "FIX ME"
-      val msg = s"Failed to $actionDesc for id: $id -> $mongoError"
+      val msg = s"Failed to $actionDesc for appId: $id -> $mongoError"
       logger.error(msg)
       throw CannotUpdateRecord(msg)
     }

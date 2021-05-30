@@ -19,16 +19,16 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
   "Events Repository" should {
     "create indexes for the repository" in {
-/*
-      val indexes = indexesWithFields(repository)
+      val indexes = indexDetails(repository).futureValue
       indexes must contain theSameElementsAs
         Seq(
-          IndexDetails(key = Seq(("_id", Ascending)), unique = false),
-          IndexDetails(key = Seq(("eventType", Ascending), ("date", Ascending), ("location", Ascending), ("venue", Ascending)),
-            unique = false)
+          IndexDetails(name = "_id_", keys = Seq(("_id", "Ascending")), unique = false),
+          IndexDetails(
+            name = "eventType_1_date_1_location_1_venue_1",
+            keys = Seq(("eventType", "Ascending"), ("date", "Ascending"), ("location", "Ascending"), ("venue", "Ascending")),
+            unique = false
+          )
         )
- */
-      ???
     }
   }
 
@@ -55,13 +55,10 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
   "findAll" should {
     "find all events" in {
-/*
       repository.save(EventExamples.EventsNew).futureValue
-      val result = repository.findAll().futureValue
+      val result = repository.findAll.futureValue
       result.size mustBe 5
       result must contain theSameElementsAs EventExamples.EventsNew
- */
-      ???
     }
   }
 
@@ -87,7 +84,6 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
       result.size mustBe 1
       result.head.venue mustBe EventExamples.VenueNewcastle
-
     }
 
     "filter by skills and Location" in {
@@ -103,7 +99,7 @@ class EventsRepositorySpec extends MongoRepositorySpec {
       val result = repository.getEvents(Some(EventType.ALL_EVENTS), Some(EventExamples.VenueLondon)).futureValue
       result.size mustBe 3
       result.exists(_.eventType == EventType.FSB) mustBe true
-      result.forall(_.venue == VenueType.LONDON_FSAC)
+      result.forall(_.venue == EventExamples.VenueLondon) mustBe true
       result.exists(_.eventType == EventType.FSAC) mustBe true
     }
 
@@ -175,6 +171,19 @@ class EventsRepositorySpec extends MongoRepositorySpec {
       // Look for events whose bulkUpload status is false and which have been created 1 minute after the createdAt1DayAgo time stamp
       val result = repository.getEventsManuallyCreatedAfter(createdAt1DayAgo.plusMinutes(1)).futureValue
       result mustBe newEvents
+    }
+  }
+
+  "updateStructure" should {
+    "update the expected fields" in {
+      val bulkUploadedEvent = EventExamples.e1.copy(wasBulkUploaded = true)
+      repository.save(List(bulkUploadedEvent)).futureValue
+      val result = repository.getEvent(EventExamples.e1.id).futureValue
+      result mustBe bulkUploadedEvent
+      repository.updateStructure() // Sets wasBulkUploaded to false and updates the createdAt timestamp
+      val resultAfterUpdate = repository.getEvent(EventExamples.e1.id).futureValue
+      resultAfterUpdate.wasBulkUploaded mustBe false
+      resultAfterUpdate.createdAt must not be bulkUploadedEvent.createdAt
     }
   }
 }

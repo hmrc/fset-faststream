@@ -17,7 +17,6 @@
 package model.persisted.eventschedules
 
 import play.api.libs.json._
-//import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 object VenueType extends Enumeration {
   type VenueType = Value
