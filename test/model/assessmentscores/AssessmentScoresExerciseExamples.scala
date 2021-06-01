@@ -25,6 +25,9 @@ object AssessmentScoresExerciseExamples {
   val Example3 = getExample(2)
   val Example4 = getExample(2.5)
   lazy val dateTimeNow = DateTime.now(DateTimeZone.UTC)
+
+//  dateTimeFactory.nowLocalTimeZone
+
   lazy val updatedBy = UniqueIdentifier.randomUniqueIdentifier
 
   private def getExample(baseValue: Double): AssessmentScoresExercise = {

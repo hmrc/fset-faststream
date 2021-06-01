@@ -23,9 +23,12 @@ import model.Exceptions.NotFoundException
 import model.UniqueIdentifier
 import model.assessmentscores._
 import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.Indexes.ascending
+import org.mongodb.scala.model.{IndexModel, IndexOptions, UpdateOptions}
 import play.api.libs.json.JsObject
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 //import play.modules.reactivemongo.ReactiveMongoComponent
 //import reactivemongo.api.indexes.Index
 //import reactivemongo.api.indexes.IndexType.Ascending
@@ -62,14 +65,10 @@ abstract class AssessmentScoresMongoRepository @Inject() (collectionName: String
     collectionName = collectionName,
     mongoComponent = mongoComponent,
     domainFormat = AssessmentScoresAllExercises.jsonFormat,
-    indexes = Nil
+    indexes = Seq(
+      IndexModel(ascending("applicationId"), IndexOptions().unique(true))
+    )
   ) with AssessmentScoresRepository with BaseBSONReader with ReactiveRepositoryHelpers {
-
-  //TODO: test the index
-  /*
-  override def indexes: Seq[Index] = Seq(
-    Index(Seq(("applicationId", Ascending)), unique = true)
-  )*/
 
   /*
   override def saveExercise(applicationId: UniqueIdentifier,
@@ -158,14 +157,25 @@ abstract class AssessmentScoresMongoRepository @Inject() (collectionName: String
     val validator = singleUpsertValidator(applicationId, actionDesc = "saving assessment scores")
     collection.update(ordered = false).one(query, updateBSON, upsert = true) map validator
   }*/
-  override def save(allExercisesScores: AssessmentScoresAllExercises): Future[Unit] = ???
+  override def save(allExercisesScores: AssessmentScoresAllExercises): Future[Unit] = {
+    val applicationId = allExercisesScores.applicationId.toString()
+    val query = Document("applicationId" -> applicationId)
+//    val updateBSON = Document("$set" -> AssessmentScoresAllExercises.bsonHandler.write(allExercisesScores))
+    val updateBSON = Document("$set" -> Codecs.toBson(allExercisesScores))
+    val validator = singleUpsertValidator(applicationId, actionDesc = "saving assessment scores")
+    val insertNewDocIfQueryMatchesNoDocs = true
+    collection.updateOne(query, updateBSON, UpdateOptions().upsert(insertNewDocIfQueryMatchesNoDocs)).toFuture() map validator
+  }
 
   /*
   override def find(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = {
     val query = BSONDocument("applicationId" -> applicationId.toString())
     collection.find(query, projection = Option.empty[JsObject]).one[BSONDocument].map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
   }*/
-  override def find(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = ???
+  override def find(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = {
+    val query = Document("applicationId" -> applicationId.toString())
+    collection.find(query).headOption()
+  }
 
   /*
   override def findAccepted(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = {

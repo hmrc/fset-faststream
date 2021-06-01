@@ -30,6 +30,7 @@ import play.api.Logging
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future }
 
+//TODO: mongo the upsert setting does nothing!!!!
 trait ReactiveRepositoryHelpers extends Logging {
 //  this: ReactiveRepository[_, _] =>
 

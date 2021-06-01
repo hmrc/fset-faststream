@@ -16,19 +16,17 @@
 
 package repositories.events
 
-import java.util
-
-import com.github.ghik.silencer.silent
 import config.MicroserviceAppConfig
-import javax.inject.{ Inject, Singleton }
 import model.persisted.ReferenceData
-import model.persisted.eventschedules.{ Location, Venue }
+import model.persisted.eventschedules.{Location, Venue}
 import org.yaml.snakeyaml.Yaml
-import play.api.{ Application, Play }
-import play.api.libs.json.{ Json, OFormat }
+import play.api.Application
+import play.api.libs.json.{Json, OFormat}
 import resource._
 
-import scala.collection.JavaConversions._
+import java.util
+import javax.inject.{Inject, Singleton}
+import scala.collection.JavaConversions._ //TODO: mongo fix this warning. AND WE NEED A TEST FOR THIS CLASS
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -46,13 +44,9 @@ case class UnknownVenueException(m: String) extends Exception(m)
 
 trait LocationsWithVenuesRepository {
   def locationsWithVenuesList: Future[List[LocationWithVenue]]
-
   def locations: Future[ReferenceData[Location]]
-
   def location(name: String): Future[Location]
-
   def venues: Future[ReferenceData[Venue]]
-
   def venue(name: String): Future[Venue]
 }
 
@@ -63,7 +57,7 @@ class LocationsWithVenuesInMemoryYamlRepository @Inject() (application: Applicat
   val locationsAndVenuesFilePath: String = appConfig.locationsAndVenuesConfig.yamlFilePath
 
   private lazy val locationsAndVenuesCached = Future {
-    val input = managed(application.resourceAsStream(locationsAndVenuesFilePath).get)
+    val input = managed(application.environment.resourceAsStream(locationsAndVenuesFilePath).get)
     input.acquireAndGet(file => asLocationWithVenues(new Yaml().load(file)))
   }
 
@@ -71,29 +65,29 @@ class LocationsWithVenuesInMemoryYamlRepository @Inject() (application: Applicat
 
   private lazy val venuesCached = locationsAndVenuesCached.map { lv => lv.flatMap(_.venues) }
 
-  def locations: Future[ReferenceData[Location]] = {
+  override def locations: Future[ReferenceData[Location]] = {
     for (locations <- locationsCached) yield {
       ReferenceData(locations, locations.head, appConfig.AllLocations)
     }
   }
 
-  def location(name: String): Future[Location] = {
+  override def location(name: String): Future[Location] = {
     locations.map(_.allValues.find(_.name == name)
       .getOrElse(throw UnknownLocationException(s"$name is not a known location for this campaign")))
   }
 
-  def venues: Future[ReferenceData[Venue]] =
+  override def venues: Future[ReferenceData[Venue]] =
     for (venues <- venuesCached) yield {
       ReferenceData(venues, venues.head, appConfig.AllVenues)
     }
 
-  def venue(name: String): Future[Venue] = {
+  override def venue(name: String): Future[Venue] = {
     venues.map(_.allValues.find(_.name == name).getOrElse(throw UnknownVenueException(s"$name is not a known venue for this campaign")))
   }
 
-  def locationsWithVenuesList: Future[List[LocationWithVenue]] = locationsAndVenuesCached
+  override def locationsWithVenuesList: Future[List[LocationWithVenue]] = locationsAndVenuesCached
 
-  def asLocationWithVenues[A](obj: A): List[LocationWithVenue] = {
+  private def asLocationWithVenues[A](obj: A): List[LocationWithVenue] = {
     // TODO: This java library forces creation of this complex statement. Investigate alternatives.
     val root = obj.asInstanceOf[util.LinkedHashMap[String, util.ArrayList[util.LinkedHashMap[String, util.LinkedHashMap[String, _]]]]].asScala
 
@@ -110,11 +104,3 @@ class LocationsWithVenuesInMemoryYamlRepository @Inject() (application: Applicat
     locations
   }
 }
-
-//@Singleton
-//class LocationsWithVenuesInMemoryRepository @Inject() (appConfig: MicroserviceAppConfig) extends LocationsWithVenuesYamlRepository {
-//
-//  val locationsAndVenuesConfig = appConfig.locationsAndVenuesConfig
-//
-//  val locationsAndVenuesFilePath: String = locationsAndVenuesConfig.yamlFilePath
-//}

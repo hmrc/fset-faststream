@@ -2,6 +2,7 @@ package repositories.stc
 
 import factories.DateTimeFactoryImpl
 import model.persisted.StcEvent
+import org.joda.time.{DateTime, DateTimeZone}
 import org.mongodb.scala.bson.collection.immutable.Document
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
@@ -43,7 +44,14 @@ class StcEventMongoRepositorySpec extends MongoRepositorySpec {
 
   "Stop the Clock event repository" should {
     "insert new event" in {
-      val event = StcEvent("ExampleEvent", dateTimeFactory.nowLocalTimeZone, Some("appId"), Some("userId"))
+      val date = dateTimeFactory.nowLocalTimeZone
+      lazy val dateTimeNow = DateTime.now(DateTimeZone.UTC)
+      //scalastyle:off
+      println(s"**** date=$date")
+      println(s"**** date=$dateTimeNow")
+      //scalastyle:on
+//      val event = StcEvent("ExampleEvent", dateTimeFactory.nowLocalTimeZone, Some("appId"), Some("userId"))
+      val event = StcEvent("ExampleEvent", DateTime.now(DateTimeZone.UTC), Some("appId"), Some("userId"))
       repository.create(event).futureValue
       val result = eventTestRepo.getEvent.futureValue
       result mustBe event
