@@ -102,6 +102,27 @@ trait ReactiveRepositoryHelpers extends Logging {
     }
   }*/
 
+  def multipleRemoveValidator(expected: Int, actionDesc: String): DeleteResult => Unit = (result: DeleteResult) => {
+    if (result.wasAcknowledged()) {
+      if (result.getDeletedCount == expected) {
+        ()
+      } else if (result.getDeletedCount == 0) {
+        throw new NotFoundException(s"No documents found whilst $actionDesc")
+      } else if (result.getDeletedCount > expected) {
+        throw TooManyEntries(s"Deletion successful, but too many documents deleted whilst $actionDesc")
+      } else if (result.getDeletedCount < expected) {
+        logger.error(s"Not enough documents deleted for $actionDesc")
+      }
+    } else {
+      // TODO: mongo fix
+//      val mongoError = result.writeConcernError.map(_.errmsg).mkString(",")
+      val mongoError = "FIX ME"
+      val msg = s"Failed to $actionDesc -> $mongoError"
+      logger.error(msg)
+      throw CannotUpdateRecord(msg)
+    }
+  }
+
 /*
   def singleRemovalValidator(id: String, actionDesc: String): WriteResult => Unit = (result: WriteResult) => {
     if (result.ok) {

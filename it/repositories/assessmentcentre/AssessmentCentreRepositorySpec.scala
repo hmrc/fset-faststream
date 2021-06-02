@@ -72,8 +72,8 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
       }
     }
 
-    ("return no results when there are only phase 3 applications that aren't in Passed_Notified which don't apply for sift or don't have "
-      + "Green/Passed results") in {
+    "return no results when there are only phase 3 applications that aren't in Passed_Notified which don't apply for sift or don't have " +
+      "Green/Passed results" in {
       insertApplicationWithPhase3TestNotifiedResults("appId7",
         List(SchemeEvaluationResult(SchemeId("Finance"), EvaluationResults.Green.toString))).futureValue
       insertApplicationWithPhase3TestNotifiedResults("appId8",

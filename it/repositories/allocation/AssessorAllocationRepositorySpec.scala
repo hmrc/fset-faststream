@@ -20,15 +20,12 @@ class AssessorAllocationRepositorySpec extends MongoRepositorySpec {
 
   "AssessorAllocationRepository" must {
     "create indexes for the repository" in {
-/*
-      val indexes = indexesWithFields(repository)
+      val indexes = indexDetails(repository).futureValue
       indexes must contain theSameElementsAs
         Seq(
-          IndexDetails(key = Seq(("_id", Ascending)), unique = false),
-          IndexDetails(key = Seq(("id", Ascending), ("eventId", Ascending)), unique = false)
+          IndexDetails(name = "_id_", keys = Seq(("_id", "Ascending")), unique = false),
+          IndexDetails(name = "id_1_eventId_1", keys = Seq(("id", "Ascending"), ("eventId", "Ascending")), unique = false)
         )
- */
-      ???
     }
 
     "correctly retrieve documents" in {
@@ -40,9 +37,8 @@ class AssessorAllocationRepositorySpec extends MongoRepositorySpec {
     }
 
     "findAll documents" in {
-//      repository.save(allocations).futureValue
-//      repository.findAll().futureValue must contain theSameElementsAs allocations
-      ???
+      repository.save(allocations).futureValue
+      repository.findAll.futureValue must contain theSameElementsAs allocations
     }
 
     "find assessor allocations" in {

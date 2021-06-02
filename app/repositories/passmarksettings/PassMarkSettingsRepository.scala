@@ -19,6 +19,9 @@ package repositories.passmarksettings
 import javax.inject.{Inject, Singleton}
 import model.PassMarkSettingsCreateResponse
 import model.exchange.passmarksettings._
+import org.mongodb.scala.Document
+import org.mongodb.scala.model.Indexes.ascending
+import org.mongodb.scala.model.{IndexModel, IndexOptions}
 import play.api.libs.json.{Format, JsNumber, JsObject}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
@@ -41,14 +44,10 @@ class Phase1PassMarkSettingsMongoRepository @Inject() (mongo: MongoComponent)
     collectionName = CollectionNames.PHASE1_PASS_MARK_SETTINGS,
     mongoComponent = mongo,
     domainFormat = Phase1PassMarkSettings.jsonFormat,
-    indexes = Nil
+    indexes = Seq(
+      IndexModel(ascending("createDate"), IndexOptions().unique(true))
+    )
   ) with PassMarkSettingsRepository[Phase1PassMarkSettings] {
-
-  //TODO: test the index
-/*
-  override def indexes: Seq[Index] = Seq(
-    Index(Seq(("createDate", Ascending)), unique = true)
-  )*/
 }
 
 @Singleton
@@ -57,14 +56,10 @@ class Phase2PassMarkSettingsMongoRepository @Inject() (mongo: MongoComponent)
     collectionName = CollectionNames.PHASE2_PASS_MARK_SETTINGS,
     mongoComponent = mongo,
     domainFormat = Phase2PassMarkSettings.jsonFormat,
-    indexes = Nil
+    indexes = Seq(
+      IndexModel(ascending("createDate"), IndexOptions().unique(true))
+    )
   ) with PassMarkSettingsRepository[Phase2PassMarkSettings] {
-
-  //TODO: test the index
-/*
-  override def indexes: Seq[Index] = Seq(
-    Index(Seq(("createDate", Ascending)), unique = true)
-  )*/
 }
 
 @Singleton
@@ -73,14 +68,10 @@ class Phase3PassMarkSettingsMongoRepository @Inject() (mongo: MongoComponent)
     collectionName = CollectionNames.PHASE3_PASS_MARK_SETTINGS,
     mongoComponent = mongo,
     domainFormat = Phase3PassMarkSettings.jsonFormat,
-    indexes = Nil
+    indexes = Seq(
+      IndexModel(ascending("createDate"), IndexOptions().unique(true))
+    )
   ) with PassMarkSettingsRepository[Phase3PassMarkSettings] {
-
-  //TODO: test the index
-/*
-  override def indexes: Seq[Index] = Seq(
-    Index(Seq(("createDate", Ascending)), unique = true)
-  )*/
 }
 
 @Singleton
@@ -89,18 +80,15 @@ class AssessmentCentrePassMarkSettingsMongoRepository @Inject() (mongo: MongoCom
     collectionName = CollectionNames.ASSESSMENT_CENTRE_PASS_MARK_SETTINGS,
     mongoComponent = mongo,
     domainFormat = AssessmentCentrePassMarkSettings.jsonFormat,
-    indexes = Nil
+    indexes = Seq(
+      IndexModel(ascending("createDate"), IndexOptions().unique(true))
+    )
   ) with PassMarkSettingsRepository[AssessmentCentrePassMarkSettings] {
-
-  //TODO: test the index
-/*
-  override def indexes: Seq[Index] = Seq(
-    Index(Seq(("createDate", Ascending)), unique = true)
-  )*/
 }
 
 trait PassMarkSettingsRepository[T <: PassMarkSettings] {
-  //  this: ReactiveRepository[T, _] =>
+//  this: ReactiveRepository[T, _] =>
+//  this: PlayMongoRepository[T, _] =>
 
   //  implicit val oFormats = OFormatHelper.oFormat(domainFormatImplicit)
 
@@ -115,11 +103,28 @@ trait PassMarkSettingsRepository[T <: PassMarkSettings] {
       )
     }
   }*/
+/*
+  def create(passMarkSettings: T)(implicit jsonFormat: Format[T]): Future[PassMarkSettingsCreateResponse] = {
+    collection.insertOne(passMarkSettings).toFuture() flatMap { _ =>
+      getLatestVersion.map(createResponse =>
+        PassMarkSettingsCreateResponse(
+          createResponse.map(_.version).get,
+          createResponse.map(_.createDate).get
+        )
+      )
+    }
+  }*/
   def create(passMarkSettings: T)(implicit jsonFormat: Format[T]): Future[PassMarkSettingsCreateResponse] = ???
 
   /*
   def getLatestVersion(implicit jsonFormat: Format[T]): Future[Option[T]] = {
     val query = BSONDocument.empty
+    val descending = -1
+    val sort = JsObject(Seq("createDate" -> JsNumber(descending)))
+    collection.find(query, projection = Option.empty[JsObject]).sort(sort).one[T]
+  }*/
+/*  def getLatestVersion(implicit jsonFormat: Format[T]): Future[Option[T]] = {
+    val query = Document.empty
     val descending = -1
     val sort = JsObject(Seq("createDate" -> JsNumber(descending)))
     collection.find(query, projection = Option.empty[JsObject]).sort(sort).one[T]
