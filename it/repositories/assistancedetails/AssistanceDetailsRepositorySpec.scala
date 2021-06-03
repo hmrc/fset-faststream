@@ -2,21 +2,21 @@ package repositories.assistancedetails
 
 import model.Exceptions.AssistanceDetailsNotFound
 import model.persisted.AssistanceDetailsExamples
-//import reactivemongo.bson.BSONDocument
-//import reactivemongo.play.json.ImplicitBSONHandlers
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.collection.immutable.Document
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 
 class AssistanceDetailsRepositorySpec extends MongoRepositorySpec {
-//  import ImplicitBSONHandlers._
-  
+
   override val collectionName: String = CollectionNames.APPLICATION
 
   def repository = new AssistanceDetailsMongoRepository(mongo)
+  val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
+  def insert(doc: Document) = applicationCollection.insertOne(doc).toFuture()
 
   "update" should {
     "create new assistance details if they do not exist" in {
-/*
       val result = (for {
         _ <- insert(minimumApplicationBSON(applicationId(1), userId(1)))
         _ <- repository.update(applicationId(1), userId(1), AssistanceDetailsExamples.DisabilityGisAndAdjustments)
@@ -24,12 +24,9 @@ class AssistanceDetailsRepositorySpec extends MongoRepositorySpec {
       } yield ad).futureValue
 
       result mustBe AssistanceDetailsExamples.DisabilityGisAndAdjustments
- */
-      ???
     }
 
     "update assistance details when they exist and find them successfully" in {
-/*
       val result = (for {
         _ <- insert(applicationBSONWithFullAssistanceDetails(applicationId(3), userId(3)))
         _ <- repository.update(applicationId(3), userId(3), AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments )
@@ -37,8 +34,6 @@ class AssistanceDetailsRepositorySpec extends MongoRepositorySpec {
       } yield ad).futureValue
 
       result mustBe AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments
- */
-      ???
     }
   }
 
@@ -49,24 +44,20 @@ class AssistanceDetailsRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-//  private def insert(doc: BSONDocument) = repository.collection.insert(ordered = false).one(doc)
+  private def userId(i: Int) = s"UserId$i"
+  private def applicationId(i: Int) = s"AppId$i"
 
-  private def userId(i: Int) = "UserId" + i
-  private def applicationId(i: Int) = "AppId" + i
-
-/*
-  private def minimumApplicationBSON(applicationId: String, userId: String) = BSONDocument(
+  private def minimumApplicationBSON(applicationId: String, userId: String) = Document(
     "applicationId" -> applicationId,
     "userId" -> userId,
     "frameworkId" -> FrameworkId
-  )*/
+  )
 
-/*
-  private def applicationBSONWithFullAssistanceDetails(applicationId: String, userId: String) = BSONDocument(
+  private def applicationBSONWithFullAssistanceDetails(applicationId: String, userId: String) = Document(
     "applicationId" -> applicationId,
     "userId" -> userId,
     "frameworkId" -> FrameworkId,
-    "assistance-details" -> BSONDocument(
+    "assistance-details" -> Document(
       "hasDisability" -> "Yes",
       "disabilityImpact" -> "No",
       "disabilityCategories" -> List("Other"),
@@ -78,5 +69,4 @@ class AssistanceDetailsRepositorySpec extends MongoRepositorySpec {
       "needsSupportAtVenueDescription" -> "needsSupportAtVenueDescription"
     )
   )
- */
 }

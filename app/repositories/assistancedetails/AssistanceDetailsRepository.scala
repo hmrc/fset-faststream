@@ -19,15 +19,11 @@ package repositories.assistancedetails
 import javax.inject.{Inject, Singleton}
 import model.Exceptions.{AssistanceDetailsNotFound, CannotUpdateAssistanceDetails}
 import model.persisted.AssistanceDetails
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.{Filters, Projections}
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-//import play.modules.reactivemongo.ReactiveMongoComponent
-//import reactivemongo.api.DB
-//import reactivemongo.bson.{ BSONDocument, _ }
-//import reactivemongo.play.json.ImplicitBSONHandlers._
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
-//import uk.gov.hmrc.mongo.ReactiveRepository
-//import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -42,7 +38,7 @@ class AssistanceDetailsMongoRepository @Inject() (mongo: MongoComponent)
   extends PlayMongoRepository[AssistanceDetails](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongo,
-    domainFormat = AssistanceDetails.assistanceDetailsFormat,
+    domainFormat = AssistanceDetails.mongoFormat,
     indexes = Nil
   ) with AssistanceDetailsRepository with ReactiveRepositoryHelpers {
 
@@ -61,7 +57,18 @@ class AssistanceDetailsMongoRepository @Inject() (mongo: MongoComponent)
 
     collection.update(ordered = false).one(query, updateBSON) map validator
   }*/
-  override def update(applicationId: String, userId: String, ad: AssistanceDetails): Future[Unit] = ???
+  override def update(applicationId: String, userId: String, ad: AssistanceDetails): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId, "userId" -> userId)
+    val updateBSON = Document("$set" -> Document(
+      "progress-status.assistance-details" -> true,
+      AssistanceDetailsDocumentKey -> Codecs.toBson(ad)
+    ))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "updating assistance details",
+      CannotUpdateAssistanceDetails(userId))
+
+    collection.updateOne(query, updateBSON).toFuture() map validator
+  }
 
   /*
   override def find(applicationId: String): Future[AssistanceDetails] = {
@@ -74,5 +81,16 @@ class AssistanceDetailsMongoRepository @Inject() (mongo: MongoComponent)
       case _ => throw AssistanceDetailsNotFound(s"AssistanceDetails not found for $applicationId")
     }
   }*/
-  override def find(applicationId: String): Future[AssistanceDetails] = ???
+  override def find(applicationId: String): Future[AssistanceDetails] = {
+    val query = Filters.and(
+      Filters.equal("applicationId", applicationId),
+      Filters.exists(AssistanceDetailsDocumentKey)
+    )
+    val projection = Projections.include(AssistanceDetailsDocumentKey)
+
+    collection.find(query).projection(projection).headOption() map {
+      case Some(ad) => ad
+      case _ => throw AssistanceDetailsNotFound(s"AssistanceDetails not found for $applicationId")
+    }
+  }
 }
