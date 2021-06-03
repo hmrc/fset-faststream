@@ -230,7 +230,7 @@ class EventsMongoRepository @Inject() (mongoComponent: MongoComponent, appConfig
   }*/
   override def updateStructure(): Future[Unit] = {
     val updateQuery = Document("$set" -> Document("wasBulkUploaded" -> false, "createdAt" -> DateTime.now.getMillis))
-    collection.updateOne(Document.empty, updateQuery).toFuture().map(_ => ())
+    collection.updateMany(Document.empty, updateQuery).toFuture().map(_ => ())
   }
 
 
