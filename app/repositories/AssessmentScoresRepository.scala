@@ -160,11 +160,9 @@ abstract class AssessmentScoresMongoRepository @Inject() (collectionName: String
   override def save(allExercisesScores: AssessmentScoresAllExercises): Future[Unit] = {
     val applicationId = allExercisesScores.applicationId.toString()
     val query = Document("applicationId" -> applicationId)
-//    val updateBSON = Document("$set" -> AssessmentScoresAllExercises.bsonHandler.write(allExercisesScores))
     val updateBSON = Document("$set" -> Codecs.toBson(allExercisesScores))
     val validator = singleUpsertValidator(applicationId, actionDesc = "saving assessment scores")
-    val insertNewDocIfQueryMatchesNoDocs = true
-    collection.updateOne(query, updateBSON, UpdateOptions().upsert(insertNewDocIfQueryMatchesNoDocs)).toFuture() map validator
+    collection.updateOne(query, updateBSON, UpdateOptions().upsert(insertNewIfQueryMatchesNoDocs)).toFuture() map validator
   }
 
   /*
