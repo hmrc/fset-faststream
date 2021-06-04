@@ -29,7 +29,6 @@ import repositories.application.{ DiagnosticReportingMongoRepository, GeneralApp
 import testkit.MongoRepositorySpec
 
 class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
-//  import ImplicitBSONHandlers._
 
   override val collectionName: String = CollectionNames.APPLICATION
   
@@ -37,8 +36,6 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
 
   val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
   def insert(doc: Document) = applicationCollection.insertOne(doc).toFuture()
-
-
 
   "Find by user id" should {
     "return an empty list if there is nobody with this userId" in {
