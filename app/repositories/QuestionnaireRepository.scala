@@ -19,6 +19,8 @@ package repositories
 import javax.inject.{Inject, Singleton}
 import model.persisted.{QuestionnaireAnswer, QuestionnaireQuestion}
 import model.report.QuestionnaireReportItem
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.UpdateOptions
 import play.api.libs.json._
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
@@ -80,6 +82,18 @@ class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEcon
       BSONDocument("$set" -> questions.map(q => s"questions.${q.question}" -> q.answer).foldLeft(document ++ appId)((d, v) => d ++ v)),
       upsert = true
     ) map validator
+  }*/
+/*
+  override def addQuestions(applicationId: String, questions: List[QuestionnaireQuestion]): Future[Unit] = {
+    val appId = "applicationId" -> applicationId
+
+    val validator = singleUpsertValidator(applicationId, actionDesc = "adding questions")
+
+    collection.updateOne(
+      Document(appId),
+      Document("$set" -> questions.map(q => s"questions.${q.question}" -> q.answer).foldLeft(document ++ appId)((d, v) => d ++ v)),
+      UpdateOptions().upsert(insertNewIfQueryMatchesNoDocs)
+    ).toFuture() map validator
   }*/
   override def addQuestions(applicationId: String, questions: List[QuestionnaireQuestion]): Future[Unit] = ???
 

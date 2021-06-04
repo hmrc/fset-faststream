@@ -16,24 +16,23 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
   def repository = new AssessorMongoRepository(mongo)
 
   private val userId = UniqueIdentifier.randomUniqueIdentifier.toString
-  private val AssessorWithAvailabilities = Assessor(userId, None,
-    List("assessor", "qac"), List(SchemeId("Sdip")), civilServant = true,
-    Set(AssessorAvailability(EventExamples.LocationLondon, new LocalDate(2017, 9, 11)),
-      AssessorAvailability(EventExamples.LocationNewcastle, new LocalDate(2017, 9, 12))),
-    AssessorStatus.AVAILABILITIES_SUBMITTED
+  private val AssessorWithAvailabilities = Assessor(userId, version = None,
+    skills = List("assessor", "qac"), sifterSchemes = List(SchemeId("Sdip")), civilServant = true,
+    availability = Set(
+      AssessorAvailability(EventExamples.LocationLondon, new LocalDate(2017, 9, 11)),
+      AssessorAvailability(EventExamples.LocationNewcastle, new LocalDate(2017, 9, 12))
+    ),
+    status = AssessorStatus.AVAILABILITIES_SUBMITTED
   )
 
   "Assessor repository" should {
     "create indexes for the repository" in {
-/*
-      val indexes = indexesWithFields(repository)
+      val indexes = indexDetails(repository).futureValue
       indexes must contain theSameElementsAs
         Seq(
-          IndexDetails(key = Seq(("_id", Ascending)), unique = false),
-          IndexDetails(key = Seq(("userId", Ascending)), unique = true)
+          IndexDetails(name = "_id_", keys = Seq(("_id", "Ascending")), unique = false),
+          IndexDetails(name = "userId_1", keys = Seq(("userId", "Ascending")), unique = true)
         )
- */
-      ???
     }
 
     "save and find the assessor" in {
@@ -45,18 +44,14 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
 
     "save and find all assessors" in {
       val secondAssessor = AssessorWithAvailabilities.copy(userId = "456")
-      List(
-        AssessorWithAvailabilities,
-        secondAssessor
-      ).foreach { assessor =>
+      List(AssessorWithAvailabilities, secondAssessor).foreach { assessor =>
         repository.save(assessor).futureValue
       }
 
-//      val result = repository.findAll().futureValue
+      val result = repository.findAll.futureValue
 
-//      result must contain(AssessorWithAvailabilities)
-//      result must contain(secondAssessor)
-      ???
+      result must contain(AssessorWithAvailabilities)
+      result must contain(secondAssessor)
     }
 
     "save and find assessors by ids" in {
@@ -140,9 +135,7 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
 
     "save and remove assessor" in {
       repository.save(AssessorWithAvailabilities).futureValue
-
       repository.remove(UniqueIdentifier(userId)).futureValue
-
       val result = repository.find(userId.toString).futureValue
       result mustBe None
     }

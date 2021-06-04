@@ -58,7 +58,7 @@ trait ReactiveRepositoryHelpers extends Logging {
 
   def singleUpdateValidator(id: String, actionDesc: String, ignoreNotFound: Boolean = false): UpdateResult => Unit = {
     singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound,
-      new CannotUpdateRecord(s"Failed to update document for applicationId $id whilst $actionDesc"), upsert = false
+      new CannotUpdateRecord(s"Failed to update document for applicationId $id whilst performing operation $actionDesc"), upsert = false
     )
   }
 

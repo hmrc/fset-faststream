@@ -162,7 +162,7 @@ abstract class AssessmentScoresMongoRepository @Inject() (collectionName: String
     val query = Document("applicationId" -> applicationId)
     val updateBSON = Document("$set" -> Codecs.toBson(allExercisesScores))
     val validator = singleUpsertValidator(applicationId, actionDesc = "saving assessment scores")
-    collection.updateOne(query, updateBSON, UpdateOptions().upsert(insertNewIfQueryMatchesNoDocs)).toFuture() map validator
+    collection.updateOne(query, updateBSON, UpdateOptions().upsert(insertIfNoRecordFound)).toFuture() map validator
   }
 
   /*

@@ -44,7 +44,7 @@ class AssessorsEventsSummaryJobsMongoRepository @Inject() (mongoComponent: Mongo
     collection.updateOne(
       Document.empty,
       Document("$set" -> Codecs.toBson(info)),
-      UpdateOptions().upsert(insertNewIfQueryMatchesNoDocs)
+      UpdateOptions().upsert(insertIfNoRecordFound)
     ).toFuture() map(_ => ())
   }
 

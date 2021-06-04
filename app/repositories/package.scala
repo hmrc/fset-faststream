@@ -30,7 +30,7 @@ import play.api.libs.json._
 import scala.language.postfixOps
 
 package object repositories {
-  val insertNewIfQueryMatchesNoDocs = true
+  val insertIfNoRecordFound = true
 
 /*
   implicit object BSONDateTimeHandler extends BSONHandler[BSONDateTime, DateTime] {
