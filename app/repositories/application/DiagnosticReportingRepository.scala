@@ -17,16 +17,13 @@
 package repositories.application
 
 import javax.inject.{Inject, Singleton}
-import model.CreateApplicationRequest
 import model.Exceptions.ApplicationNotFound
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{JsObject, JsValue, Json}
-import repositories.contactdetails.ContactDetailsMongoRepository
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 //import play.modules.reactivemongo.ReactiveMongoComponent
 //import reactivemongo.api.{ Cursor, ReadPreference }
 //import reactivemongo.bson.BSONObjectID
@@ -54,42 +51,15 @@ class DiagnosticReportingMongoRepository @Inject() (mongoComponent: ReactiveMong
     ReactiveMongoFormats.objectIdFormats) with DiagnosticReportingRepository {*/
 
 @Singleton
-/*
-class DiagnosticReportingMongoRepository @Inject() (mongo: MongoComponent)
-  extends PlayMongoRepository[CreateApplicationRequest](
-    collectionName = CollectionNames.APPLICATION,
-    mongoComponent = mongo,
-    domainFormat = CreateApplicationRequest.createApplicationRequestFormat,
-    indexes = Nil
-  ) with DiagnosticReportingRepository {
-*/
-  class DiagnosticReportingMongoRepository @Inject() (mongo: MongoComponent)
-  extends DiagnosticReportingRepository {
+class DiagnosticReportingMongoRepository @Inject() (mongo: MongoComponent) extends DiagnosticReportingRepository {
 
   val collection: MongoCollection[Document] = mongo.database.getCollection(CollectionNames.APPLICATION)
-
-//  private val defaultExclusions = Json.obj(
-//    "_id" -> 0,
-//    "personal-details" -> 0)  // these reports should not export personally identifiable data
 
   private val defaultExclusions = Projections.exclude(
     "_id",
     "personal-details"
   )
-/*
-  private val largeFields = Json.obj(
-    "testGroups.PHASE1.tests.reportLinkURL" -> 0,
-    "testGroups.PHASE1.tests.testUrl" -> 0,
-    "testGroups.PHASE2.tests.reportLinkURL" -> 0,
-    "testGroups.PHASE2.tests.testUrl" -> 0,
-    "testGroups.PHASE3.tests.callbacks.viewBrandedVideo" -> 0,
-    "testGroups.PHASE3.tests.callbacks.setupProcess" -> 0,
-    "testGroups.PHASE3.tests.callbacks.viewPracticeQuestion" -> 0,
-    "testGroups.PHASE3.tests.callbacks.question" -> 0,
-    "testGroups.PHASE3.tests.callbacks.finalCallback" -> 0,
-    "testGroups.PHASE3.tests.callbacks.finished" -> 0,
-    "testGroups.PHASE3.tests.callbacks.reviewed.reviews" -> 0
-  )*/
+
   private val largeFields = Projections.exclude(
     "testGroups.PHASE1.tests.reportLinkURL",
     "testGroups.PHASE1.tests.testUrl",
