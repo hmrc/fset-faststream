@@ -19,8 +19,12 @@ package repositories.application
 import javax.inject.{Inject, Singleton}
 import model.CreateApplicationRequest
 import model.Exceptions.ApplicationNotFound
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.Projections
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{JsObject, JsValue, Json}
+import repositories.contactdetails.ContactDetailsMongoRepository
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 //import play.modules.reactivemongo.ReactiveMongoComponent
@@ -36,6 +40,7 @@ import scala.concurrent.Future
 
 trait DiagnosticReportingRepository {
   def findByApplicationId(userId: String): Future[List[JsObject]]
+  def findByApplicationId2(userId: String): Future[JsValue]
   def findAll(): Enumerator[JsValue]
 }
 
@@ -49,6 +54,7 @@ class DiagnosticReportingMongoRepository @Inject() (mongoComponent: ReactiveMong
     ReactiveMongoFormats.objectIdFormats) with DiagnosticReportingRepository {*/
 
 @Singleton
+/*
 class DiagnosticReportingMongoRepository @Inject() (mongo: MongoComponent)
   extends PlayMongoRepository[CreateApplicationRequest](
     collectionName = CollectionNames.APPLICATION,
@@ -56,11 +62,21 @@ class DiagnosticReportingMongoRepository @Inject() (mongo: MongoComponent)
     domainFormat = CreateApplicationRequest.createApplicationRequestFormat,
     indexes = Nil
   ) with DiagnosticReportingRepository {
+*/
+  class DiagnosticReportingMongoRepository @Inject() (mongo: MongoComponent)
+  extends DiagnosticReportingRepository {
 
-  private val defaultExclusions = Json.obj(
-    "_id" -> 0,
-    "personal-details" -> 0)  // these reports should not export personally identifiable data
+  val collection: MongoCollection[Document] = mongo.database.getCollection(CollectionNames.APPLICATION)
 
+//  private val defaultExclusions = Json.obj(
+//    "_id" -> 0,
+//    "personal-details" -> 0)  // these reports should not export personally identifiable data
+
+  private val defaultExclusions = Projections.exclude(
+    "_id",
+    "personal-details"
+  )
+/*
   private val largeFields = Json.obj(
     "testGroups.PHASE1.tests.reportLinkURL" -> 0,
     "testGroups.PHASE1.tests.testUrl" -> 0,
@@ -73,6 +89,19 @@ class DiagnosticReportingMongoRepository @Inject() (mongo: MongoComponent)
     "testGroups.PHASE3.tests.callbacks.finalCallback" -> 0,
     "testGroups.PHASE3.tests.callbacks.finished" -> 0,
     "testGroups.PHASE3.tests.callbacks.reviewed.reviews" -> 0
+  )*/
+  private val largeFields = Projections.exclude(
+    "testGroups.PHASE1.tests.reportLinkURL",
+    "testGroups.PHASE1.tests.testUrl",
+    "testGroups.PHASE2.tests.reportLinkURL",
+    "testGroups.PHASE2.tests.testUrl",
+    "testGroups.PHASE3.tests.callbacks.viewBrandedVideo",
+    "testGroups.PHASE3.tests.callbacks.setupProcess",
+    "testGroups.PHASE3.tests.callbacks.viewPracticeQuestion",
+    "testGroups.PHASE3.tests.callbacks.question",
+    "testGroups.PHASE3.tests.callbacks.finalCallback",
+    "testGroups.PHASE3.tests.callbacks.finished",
+    "testGroups.PHASE3.tests.callbacks.reviewed.reviews"
   )
 /*
   def findByApplicationId(userId: String): Future[List[JsObject]] = {
@@ -88,6 +117,19 @@ class DiagnosticReportingMongoRepository @Inject() (mongo: MongoComponent)
     }
   }*/
   def findByApplicationId(userId: String): Future[List[JsObject]] = ???
+
+  def findByApplicationId2(userId: String): Future[JsValue] = {
+    val projection = defaultExclusions
+    val result = collection.find(Document("applicationId" -> userId)).projection(projection).headOption()
+
+    result.map { r =>
+      if (r.isEmpty) { throw ApplicationNotFound(userId) }
+      else {
+        Json.parse(r.head.toJson())
+      }
+    }
+  }
+
 /*
   def findAll(): Enumerator[JsValue] = {
     import reactivemongo.play.iteratees.cursorProducer
@@ -97,4 +139,9 @@ class DiagnosticReportingMongoRepository @Inject() (mongo: MongoComponent)
       .enumerator()
   }*/
   def findAll(): Enumerator[JsValue] = ???
+//  def findAll(): Enumerator[JsValue] = {
+//    import reactivemongo.play.iteratees.cursorProducer
+//    val projection = Projections.fields(defaultExclusions, largeFields)
+//    collection.find(Document.empty).projection(projection).enumerator()
+//  }
 }

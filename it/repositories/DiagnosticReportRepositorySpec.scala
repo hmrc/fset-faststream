@@ -18,8 +18,11 @@ package repositories
 
 import factories.DateTimeFactoryImpl
 import model.Exceptions.ApplicationNotFound
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.collection.immutable.Document
 import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.JsValue
+import repositories.contactdetails.ContactDetailsMongoRepository
 //import reactivemongo.bson.{ BSONBoolean, BSONDocument }
 //import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.application.{ DiagnosticReportingMongoRepository, GeneralApplicationMongoRepository }
@@ -31,34 +34,40 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
   override val collectionName: String = CollectionNames.APPLICATION
   
   def diagnosticReportRepo = new DiagnosticReportingMongoRepository(mongo)
-  def helperRepo = new GeneralApplicationMongoRepository(new DateTimeFactoryImpl, appConfig, mongo)
+
+  val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
+  def insert(doc: Document) = applicationCollection.insertOne(doc).toFuture()
+
 
 
   "Find by user id" should {
     "return an empty list if there is nobody with this userId" in {
-      val result = diagnosticReportRepo.findByApplicationId("123").failed.futureValue
+      val result = diagnosticReportRepo.findByApplicationId2("123").failed.futureValue
       result mustBe an[ApplicationNotFound]
     }
 
     "return user's application with the specific Id" in {
-//      helperRepo.collection.insert(ordered = false).one(userWithAllDetails("user1", "app1", "FastStream-2016")).futureValue
-//      helperRepo.collection.insert(ordered = false).one(userWithAllDetails("user1", "app2", "SDIP-2016")).futureValue
-//      helperRepo.collection.insert(ordered = false).one(userWithAllDetails("user2", "app3", "FastStream-2016")).futureValue
+      applicationCollection.insertOne(userWithAllDetails("user1", "app1", "FastStream-2016")).toFuture().futureValue
+      applicationCollection.insertOne(userWithAllDetails("user1", "app2", "SDIP-2016")).toFuture().futureValue
+      applicationCollection.insertOne(userWithAllDetails("user2", "app3", "FastStream-2016")).toFuture().futureValue
 
-      val result = diagnosticReportRepo.findByApplicationId("app1").futureValue
-      result.length mustBe 1
-      (result.head \ "applicationId").as[String] mustBe "app1"
-      (result.head \ "progress-status" \ "registered").as[Boolean] mustBe true
-      (result.head \ "progress-status" \ "questionnaire" \ "start_diversity_questionnaire").as[Boolean] mustBe true
-      (result.head \\ "personal-details") mustBe Nil
+      val result = diagnosticReportRepo.findByApplicationId2("app1").futureValue
+      //scalastyle:off
+      println(s"**** $result")
+      //scalastyle:on
+//      result.length mustBe 1
+      (result \ "applicationId").as[String] mustBe "app1"
+      (result \ "progress-status" \ "registered").as[Boolean] mustBe true
+      (result \ "progress-status" \ "questionnaire" \ "start_diversity_questionnaire").as[Boolean] mustBe true
+      (result \\ "personal-details") mustBe Nil
     }
   }
 
   "Find all users" should {
-    "return user's application with the specific Id" in {
-//      helperRepo.collection.insert(ordered = false).one(userWithAllDetails("user1", "app1", "FastStream-2016")).futureValue
-//      helperRepo.collection.insert(ordered = false).one(userWithAllDetails("user1", "app2", "SDIP-2016")).futureValue
-//      helperRepo.collection.insert(ordered = false).one(userWithAllDetails("user2", "app3", "FastStream-2016")).futureValue
+    "return user's application with the specific Id" ignore {
+      applicationCollection.insertOne(userWithAllDetails("user1", "app1", "FastStream-2016")).toFuture().futureValue
+      applicationCollection.insertOne(userWithAllDetails("user1", "app2", "SDIP-2016")).toFuture().futureValue
+      applicationCollection.insertOne(userWithAllDetails("user2", "app3", "FastStream-2016")).toFuture().futureValue
 
       val resultE = diagnosticReportRepo.findAll()
 
@@ -81,35 +90,33 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
     }
   }
 
-/*
-  def userWithAllDetails(userId: String, appId: String, frameworkId: String) = BSONDocument(
+  def userWithAllDetails(userId: String, appId: String, frameworkId: String) = Document(
     "applicationId" -> appId,
     "userId" -> userId,
     "frameworkId" -> frameworkId,
     "applicationStatus" -> "AWAITING_ALLOCATION",
-    "personal-details" -> BSONDocument(
+    "personal-details" -> Document(
       "firstName" -> "Testy",
       "lastName" -> "McTestface",
       "preferredName" -> "Reginald",
       "dateOfBirth" -> "1987-12-22"
     ),
-    "progress-status" -> BSONDocument(
-      "registered" -> BSONBoolean(true),
-      "personal_details_completed" -> BSONBoolean(true),
-      "schemes_and_locations_completed" -> BSONBoolean(true),
-      "assistance_details_completed" -> BSONBoolean(true),
-      "preview_completed" -> BSONBoolean(true),
-      "questionnaire" -> BSONDocument(
-        "start_diversity_questionnaire" -> BSONBoolean(true),
-        "diversity_questions_completed" -> BSONBoolean(true),
-        "education_questions_completed" -> BSONBoolean(true),
-        "occupation_questions_completed" -> BSONBoolean(true)
+    "progress-status" -> Document(
+      "registered" -> true,
+      "personal_details_completed" -> true,
+      "schemes_and_locations_completed" -> true,
+      "assistance_details_completed" -> true,
+      "preview_completed" -> true,
+      "questionnaire" -> Document(
+        "start_diversity_questionnaire" -> true,
+        "diversity_questions_completed" -> true,
+        "education_questions_completed" -> true,
+        "occupation_questions_completed" -> true
       ),
-      "submitted" -> BSONBoolean(true),
-      "online_test_invited" -> BSONBoolean(true),
-      "online_test_started" -> BSONBoolean(true),
-      "online_test_completed" -> BSONBoolean(true),
-      "awaiting_online_test_allocation" -> BSONBoolean(true)
+      "submitted" -> true,
+      "online_test_invited" -> true,
+      "online_test_started" -> true,
+      "online_test_completed" -> true,
+      "awaiting_online_test_allocation" -> true
     ))
- */
 }
