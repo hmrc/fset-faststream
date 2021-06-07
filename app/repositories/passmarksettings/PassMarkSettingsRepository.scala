@@ -99,7 +99,7 @@ trait PassMarkSettingsRepository[T <: PassMarkSettings] {
 
   def create(passMarkSettings: T): Future[PassMarkSettingsCreateResponse] = {
     collection.insertOne(passMarkSettings).toFuture() flatMap { _ =>
-      getLatestVersion.map(createResponse =>
+      getLatestVersion.map( createResponse =>
         PassMarkSettingsCreateResponse(
           createResponse.map(_.version).get,
           createResponse.map(_.createDate).get
