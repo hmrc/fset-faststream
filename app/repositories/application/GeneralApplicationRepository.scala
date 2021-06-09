@@ -178,8 +178,6 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     domainFormat = ApplicationResponse2.mongoFormat
   )
 
-
-
   //TODO: test that these indexes are created as expected
   /*
   override def indexes: Seq[Index] = Seq(

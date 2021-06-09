@@ -17,9 +17,10 @@
 package repositories
 
 import model.EvaluationResults._
-import model.{ Scheme, SchemeId }
+import model.{Scheme, SchemeId}
 import model.persisted.SchemeEvaluationResult
-//import reactivemongo.bson.BSONDocument
+import org.mongodb.scala.bson.collection.immutable.Document
+import uk.gov.hmrc.mongo.play.json.Codecs
 
 import scala.annotation.tailrec
 
@@ -54,24 +55,26 @@ trait CurrentSchemeStatusHelper {
     })
   }*/
 
-//  def currentSchemeStatusGreen(schemeIds: SchemeId*): BSONDocument = currentSchemeStatus(Green, schemeIds:_*)
+  def currentSchemeStatusBSON(latestResults: Seq[SchemeEvaluationResult]): Document = {
+    Document("currentSchemeStatus" -> Codecs.toBson(latestResults))
+  }
 
-//  def currentSchemeStatusRed(schemeIds: SchemeId*): BSONDocument = currentSchemeStatus(Red, schemeIds:_*)
+  def currentSchemeStatusGreen(schemeIds: SchemeId*): Document = currentSchemeStatus(Green, schemeIds:_*)
 
-//  def currentSchemeStatusAmber(schemeIds: SchemeId*): BSONDocument = currentSchemeStatus(Amber, schemeIds:_*)
+  def currentSchemeStatusRed(schemeIds: SchemeId*): Document = currentSchemeStatus(Red, schemeIds:_*)
 
-//  def currentSchemeStatusWithdrawn(schemeIds: SchemeId*): BSONDocument = currentSchemeStatus(Withdrawn, schemeIds:_*)
+  def currentSchemeStatusAmber(schemeIds: SchemeId*): Document = currentSchemeStatus(Amber, schemeIds:_*)
 
-/*
-  private def currentSchemeStatus(status: Result, schemeIds: SchemeId*): BSONDocument = {
-    schemeIds.foldLeft(BSONDocument.empty) { case (doc, id) =>
-      doc ++ BSONDocument(s"currentSchemeStatus" -> BSONDocument("$elemMatch" -> SchemeEvaluationResult(id, status.toString)))
+  def currentSchemeStatusWithdrawn(schemeIds: SchemeId*): Document = currentSchemeStatus(Withdrawn, schemeIds:_*)
+
+  private def currentSchemeStatus(status: Result, schemeIds: SchemeId*): Document = {
+    schemeIds.foldLeft(Document.empty) { case (doc, id) =>
+      doc ++ Document(s"currentSchemeStatus" -> Document("$elemMatch" -> SchemeEvaluationResult(id, status.toString).toBson))
     }
-  }*/
+  }
 
-/*
-  def isFirstResidualPreference(schemeId: SchemeId): BSONDocument = {
-    BSONDocument("$where" ->
+  def isFirstResidualPreference(schemeId: SchemeId): Document = {
+    Document("$where" ->
       s"""
         |var greens = this.currentSchemeStatus.filter(
         |   function(e){
@@ -80,7 +83,7 @@ trait CurrentSchemeStatusHelper {
         |);
         |greens.length > 0 && greens[0].schemeId=="$schemeId";
       """.stripMargin)
-  }*/
+  }
 
   def firstResidualPreference(results: Seq[SchemeEvaluationResult], ignoreSdip: Boolean = false): Option[SchemeEvaluationResult] = {
     val resultsWithIndex = results.zipWithIndex

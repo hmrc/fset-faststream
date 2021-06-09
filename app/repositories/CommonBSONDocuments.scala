@@ -27,12 +27,12 @@ import org.mongodb.scala.model.Updates
 import model.{ApplicationStatus, FailedSdipFsTestType, ProgressStatuses, SuccessfulSdipFsTestType}
 import org.mongodb.scala.bson.BsonDocument
 //import org.mongodb.scala.bson.collection.immutable.Document
-import play.api.libs.json.JodaWrites.JodaDateTimeWrites
+//import play.api.libs.json.JodaWrites.JodaDateTimeWrites
 //import reactivemongo.bson.{ BSONBoolean, BSONDocument, BSONDocumentReader, BSONReader, BSONValue }
 import uk.gov.hmrc.mongo.play.json.Codecs
 import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats
 //import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits._
-
+import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
 
 import scala.language.implicitConversions
 
@@ -86,7 +86,7 @@ trait CommonBSONDocuments extends BaseBSONReader with MongoJodaFormats {
     )
   }*/
   protected def applicationStatusBSON(progressStatus: ProgressStatus) = {
-    BsonDocument(
+    Document(
       "applicationStatus" -> Codecs.toBson(progressStatus.applicationStatus),
       s"progress-status.${progressStatus.key}" -> true,
       s"progress-status-timestamp.${progressStatus.key}" -> Codecs.toBson(dateTimeFactory.nowLocalTimeZone)

@@ -48,6 +48,7 @@ object Phase3TestRepository {
 
 trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
 //  this: ReactiveRepository[_, _] =>
+  this: PlayMongoRepository[_] =>
 
   //TODO: fix me
 //  def appendCallback[A](token: String, callbacksKey: String, callback: A)(implicit format: BSONHandler[BSONDocument, A]): Future[Unit]

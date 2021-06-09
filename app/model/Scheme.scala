@@ -16,7 +16,9 @@
 
 package model
 
+import org.mongodb.scala.bson.BsonValue
 import play.api.libs.json._
+import uk.gov.hmrc.mongo.play.json.Codecs
 //import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 case class SchemeId(value: String) {
@@ -36,6 +38,10 @@ object SchemeId {
       override def write(schemeId: SchemeId): BSONString = BSON.write(schemeId.value)
       override def read(bson: BSONString): SchemeId = SchemeId(bson.value)
   }*/
+
+  implicit class BsonOps(val schemeId: SchemeId) extends AnyVal {
+    def toBson: BsonValue = Codecs.toBson(schemeId)
+  }
 }
 
 case class Degree(

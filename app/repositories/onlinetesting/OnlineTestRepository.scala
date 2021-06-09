@@ -18,13 +18,15 @@ package repositories.onlinetesting
 
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.{ ApplicationNotFound, CannotFindTestByCubiksId, CannotFindTestByOrderIdException }
+import model.Exceptions.{ApplicationNotFound, CannotFindTestByCubiksId, CannotFindTestByOrderIdException}
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.ProgressStatus
 import model._
 import model.exchange.PsiTestResultReady
 import model.persisted._
 import org.joda.time.DateTime
+import org.mongodb.scala.bson.collection.immutable.Document
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 //import reactivemongo.bson.{ BSONDocument, _ }
 //import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
@@ -37,6 +39,7 @@ import scala.concurrent.Future
 //scalastyle:off number.of.methods
 trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelpers with CommonBSONDocuments with OnlineTestCommonBSONDocuments {
   //  this: ReactiveRepository[_, _] =>
+  this: PlayMongoRepository[_] =>
 
   val thisApplicationStatus: ApplicationStatus
   val phaseName: String
@@ -338,27 +341,29 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
 
 //  def updateProgressStatus(appId: String, progressStatus: ProgressStatus): Future[Unit] =
 //    updateProgressStatus(appId, progressStatus, applicationStatusBSON)
-  def updateProgressStatus(appId: String, progressStatus: ProgressStatus): Future[Unit] = ???
+  def updateProgressStatus(appId: String, progressStatus: ProgressStatus): Future[Unit] =
+    updateProgressStatus(appId, progressStatus, applicationStatusBSON)
+
 
 //  def updateProgressStatusOnly(appId: String, progressStatus: ProgressStatus): Future[Unit] =
 //    updateProgressStatusForSdipFaststream(appId, progressStatus, progressStatusOnlyBSON)
   def updateProgressStatusOnly(appId: String, progressStatus: ProgressStatus): Future[Unit] = ???
 
-  /*
+
   private def updateProgressStatus(appId: String, progressStatus: ProgressStatus,
-                                   updateGenerator: ProgressStatus => BSONDocument): Future[Unit] = {
+                                   updateGenerator: ProgressStatus => Document): Future[Unit] = {
     require(progressStatus.applicationStatus == thisApplicationStatus, "Forbidden progress status update")
 
-    val query = BSONDocument(
+    val query = Document(
       "applicationId" -> appId,
-      "applicationStatus" -> thisApplicationStatus
+      "applicationStatus" -> thisApplicationStatus.toBson
     )
 
-    val update = BSONDocument("$set" -> updateGenerator(progressStatus))
+    val update = Document("$set" -> updateGenerator(progressStatus))
     val validator = singleUpdateValidator(appId, actionDesc = "updating progress status", ignoreNotFound = true)
 
-    collection.update(ordered = false).one(query, update) map validator
-  }*/
+    collection.updateOne(query, update).toFuture() map validator
+  }
 
   /*
   private def updateProgressStatusForSdipFaststream(appId: String, progressStatus: ProgressStatus,

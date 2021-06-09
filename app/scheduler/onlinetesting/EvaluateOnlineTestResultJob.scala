@@ -82,7 +82,7 @@ abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettings](implicit jsonF
   val errorLog = (app: ApplicationReadyForEvaluation) =>
     s"${app.applicationId}, psi order ids: ${app.activePsiTests.map(_.orderId).mkString(",")}"
 
-  private def evaluateInBatch(apps: List[ApplicationReadyForEvaluation],
+  private def evaluateInBatch(apps: Seq[ApplicationReadyForEvaluation],
                               passmarkSettings: T)(implicit ec: ExecutionContext): Future[Unit] = {
     // Warn level so we see it in the prod logs
     val applicationIds = apps.map ( _.applicationId ).mkString(",")

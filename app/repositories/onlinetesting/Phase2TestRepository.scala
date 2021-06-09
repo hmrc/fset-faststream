@@ -40,6 +40,7 @@ import scala.concurrent.Future
 
 trait Phase2TestRepository extends OnlineTestRepository with Phase2TestConcern {
 //  this: ReactiveRepository[_, _] =>
+  this: PlayMongoRepository[_] =>
 
   def getTestGroup(applicationId: String): Future[Option[Phase2TestGroup]]
   def getTestGroupByUserId(userId: String): Future[Option[Phase2TestGroup]]

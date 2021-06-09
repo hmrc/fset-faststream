@@ -24,9 +24,17 @@ import org.mongodb.scala.bson.BsonDocument
 trait BaseBSONReader {
 
   //TODO: mongo
+  // the purpose of this is to accept a function that converts from a BsonDocument to a Case Class of type T
+  // and execute that function returning the populated Case Class
 /*
   protected def bsonReader[T](f: BsonDocument => T): BsonDocumentReader[T] = {
     new BsonDocumentReader[T] {
+      def read(bson: BsonDocument) = f(bson)
+    }
+  }*/
+/*
+  protected def bsonReader[T](f: BsonDocument => T): BsonDocumentReader[T] = {
+    new DocumentReader[T] {
       def read(bson: BsonDocument) = f(bson)
     }
   }*/

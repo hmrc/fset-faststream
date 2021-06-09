@@ -21,7 +21,11 @@ import model.ApplicationStatus._
 import model.{ ApplicationRoute, SelectedSchemes }
 import model.persisted.phase3tests.LaunchpadTest
 import play.api.libs.json._
+import play.api.libs.functional.syntax._
+import play.api.libs.json.{Format, Json, __}
 
+//TODO: mongo it is not the intention to read directly from mongo into this case class via the codecs mechanism
+// it is more a case of processing the document manually and populate a new instance of this case class manually with the data items read
 case class ApplicationReadyForEvaluation(
   applicationId: String,
   applicationStatus: ApplicationStatus,
@@ -38,4 +42,34 @@ case class ApplicationReadyForEvaluation(
 
 object ApplicationReadyForEvaluation {
   implicit val applicationReadyForEvaluationFormats = Json.format[ApplicationReadyForEvaluation]
+}
+
+case class ReadApplicationReadyForEvaluation(
+  applicationId: String,
+  applicationStatus: ApplicationStatus,
+  applicationRoute: ApplicationRoute,
+  assistanceDetails: AssistanceDetails,
+  activePsiTests: List[PsiTest],
+//  activeLaunchpadTest: Option[LaunchpadTest]//,
+//  prevPhaseEvaluation: Option[PassmarkEvaluation],
+  preferences: SelectedSchemes
+) {
+  def isGis = assistanceDetails.guaranteedInterview.contains(true)
+}
+
+object ReadApplicationReadyForEvaluation {
+  implicit val readApplicationReadyForEvaluationFormat = Json.format[ReadApplicationReadyForEvaluation]
+
+  // Provide an explicit mongo format here to deal with the sub-document root
+  // This data lives in the application collection
+  val mongoFormat: Format[ReadApplicationReadyForEvaluation] = (
+    (__ \ "applicationId").format[String] and
+      (__ \ "applicationStatus").format[ApplicationStatus] and
+      (__ \ "applicationRoute").format[ApplicationRoute] and
+      (__ \ AssistanceDetails.root).format[AssistanceDetails] and
+      (__ \ "testGroups" \ "PHASE1" \ "tests").format[List[PsiTest]] and //TODO: mongo the problem here is PHASE1 is hardcoded
+//      (__ \ "testGroups" \ "PHASE3" \ "test").formatNullable[LaunchpadTest] //TODO: mongo the problem here is PHASE1 is hardcoded
+      (__ \ SelectedSchemes.root).format[SelectedSchemes]
+
+    )(ReadApplicationReadyForEvaluation.apply, unlift(ReadApplicationReadyForEvaluation.unapply))
 }

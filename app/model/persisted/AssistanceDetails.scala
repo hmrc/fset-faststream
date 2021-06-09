@@ -32,7 +32,19 @@ case class AssistanceDetails(
                               needsSupportAtVenueDescription: Option[String],
                               needsSupportForPhoneInterview: Option[Boolean],
                               needsSupportForPhoneInterviewDescription: Option[String]
-)
+) {
+  override def toString = s"hasDisability=$hasDisability," +
+    s"disabilityImpact=$disabilityImpact," +
+    s"disabilityCategories=$disabilityCategories," +
+    s"otherDisabilityDescription=$otherDisabilityDescription," +
+    s"guaranteedInterview=$guaranteedInterview," +
+    s"needsSupportForOnlineAssessment=$needsSupportForOnlineAssessment," +
+    s"needsSupportForOnlineAssessmentDescription=$needsSupportForOnlineAssessmentDescription," +
+    s"needsSupportAtVenue=$needsSupportAtVenue," +
+    s"needsSupportAtVenueDescription=$needsSupportAtVenueDescription," +
+    s"needsSupportForPhoneInterview=$needsSupportForPhoneInterview," +
+    s"needsSupportForPhoneInterviewDescription=$needsSupportForPhoneInterviewDescription"
+}
 
 object AssistanceDetails {
   implicit val assistanceDetailsFormat = Json.format[AssistanceDetails]

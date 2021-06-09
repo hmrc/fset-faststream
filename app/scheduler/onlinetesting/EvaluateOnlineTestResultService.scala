@@ -39,7 +39,7 @@ trait EvaluateOnlineTestResultService[T <: PassMarkSettings] extends Application
   val uuidFactory: UUIDFactory
 
   def nextCandidatesReadyForEvaluation(batchSize: Int)(implicit jsonFormat: Format[T]):
-  Future[Option[(List[ApplicationReadyForEvaluation], T)]] = {
+  Future[Option[(Seq[ApplicationReadyForEvaluation], T)]] = {
     logger.warn(s"Looking for candidates for $phase evaluation. Batch size=$batchSize")
     getLatestPassMarkSettings flatMap {
       case Some(passmark) =>

@@ -28,6 +28,7 @@ import model._
 import model.persisted.{NotificationExpiringOnlineTest, Phase1TestGroupWithUserIds}
 import model.persisted.Phase1TestProfile
 import org.joda.time.DateTime
+import org.mongodb.scala.bson.collection.immutable.Document
 import play.api.libs.json.JsObject
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
@@ -43,6 +44,7 @@ import scala.concurrent.Future
 
 trait Phase1TestRepository extends OnlineTestRepository with Phase1TestConcern {
 //  this: ReactiveRepository[_, _] =>
+  this: PlayMongoRepository[_] =>
 
   def getTestGroup(applicationId: String): Future[Option[Phase1TestProfile]]
 
@@ -202,7 +204,16 @@ class Phase1TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongo: Mon
     val validator = singleUpdateValidator(applicationId, actionDesc = "inserting test group")
     collection.update(ordered = false).one(query, update) map validator
   }*/
-  override def insertOrUpdateTestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit] = ???
+  override def insertOrUpdateTestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+
+    val update = Document("$set" -> (applicationStatusBSON(PHASE1_TESTS_INVITED) ++
+      Document(s"testGroups.$phaseName" -> phase1TestProfile.toBson))
+    )
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "inserting test group")
+    collection.updateOne(query, update).toFuture() map validator
+  }
 
   // Needed to satisfy OnlineTestRepository trait
   /*

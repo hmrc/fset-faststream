@@ -35,7 +35,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
 //  lazy val applicationRepo = repositories.applicationRepository
   lazy val applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, appConfig, mongo)
 
-  val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
+//  val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
   def insert(doc: Document) = applicationCollection.insertOne(doc).toFuture()
 
   def createApplication(): String = {

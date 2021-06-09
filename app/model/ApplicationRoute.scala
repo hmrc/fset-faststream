@@ -16,8 +16,9 @@
 
 package model
 
-import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
-//import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
+import org.mongodb.scala.bson.BsonValue
+import play.api.libs.json.{Format, JsString, JsSuccess, JsValue}
+import uk.gov.hmrc.mongo.play.json.Codecs
 
 object ApplicationRoute extends Enumeration {
 
@@ -28,6 +29,10 @@ object ApplicationRoute extends Enumeration {
   implicit val applicationRouteFormat = new Format[ApplicationRoute] {
     def reads(json: JsValue) = JsSuccess(ApplicationRoute.withName(json.as[String]))
     def writes(myEnum: ApplicationRoute) = JsString(myEnum.toString)
+  }
+
+  implicit class BsonOps(val applicationRoute: ApplicationRoute) extends AnyVal {
+    def toBson: BsonValue = Codecs.toBson(applicationRoute)
   }
 
 /*

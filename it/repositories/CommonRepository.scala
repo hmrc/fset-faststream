@@ -11,8 +11,10 @@ import model.Phase3TestProfileExamples._
 import model.ProgressStatuses.ProgressStatus
 import model._
 import model.persisted._
-import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
-import org.joda.time.{ DateTime, DateTimeZone }
+import model.persisted.phase3tests.{LaunchpadTest, Phase3TestGroup}
+import org.joda.time.{DateTime, DateTimeZone}
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.collection.immutable.Document
 import org.scalatest.concurrent.ScalaFutures
 //import reactivemongo.bson.BSONDocument
 import repositories.application.GeneralApplicationMongoRepository
@@ -51,6 +53,9 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
 
   def applicationRepository = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, mockAppConfig, mongo)
 
+  val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(CollectionNames.APPLICATION)
+
+
   def schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository(mongo)
 
   def assistanceDetailsRepository = new AssistanceDetailsMongoRepository(mongo)
@@ -62,6 +67,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
   def phase3TestRepository = new Phase3TestMongoRepository(ITDateTimeFactoryMock, mongo)
 
   def phase1EvaluationRepo = new Phase1EvaluationMongoRepository(ITDateTimeFactoryMock, mongo)
+  def phase1EvaluationRepo2 = new Phase1EvaluationMongoRepository2(ITDateTimeFactoryMock, mongo)
 
   def phase2EvaluationRepo = new Phase2EvaluationMongoRepository(ITDateTimeFactoryMock, mongo)
   // TODO:fix needs MicroserviceAppConfig2
@@ -289,22 +295,22 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
                          additionalProgressStatuses: List[(ProgressStatus, Boolean)] = List.empty,
                          applicationRoute: Option[ApplicationRoute] = Some(ApplicationRoute.Faststream)
                         ): Unit = {
-/*
+
     val gis = if (isGis) Some(true) else None
-    applicationRepository.collection.insert(ordered = false).one(
-      BSONDocument(
+    applicationCollection.insertOne(
+      Document(
         "applicationId" -> appId,
         "userId" -> appId,
-        "applicationStatus" -> applicationStatus,
+        "applicationStatus" -> applicationStatus.toBson,
         "progress-status" -> progressStatus(additionalProgressStatuses)
       ) ++ {
         if (applicationRoute.isDefined) {
-          BSONDocument("applicationRoute" -> applicationRoute.get)
+          Document("applicationRoute" -> applicationRoute.get.toBson)
         } else {
-          BSONDocument.empty
+          Document.empty
         }
       }
-    ).futureValue
+    ).toFuture().futureValue
 
     val ad = AssistanceDetails(hasDisability = "No", disabilityImpact = None, disabilityCategories = None,
       otherDisabilityDescription = None, guaranteedInterview = gis, needsSupportForOnlineAssessment = Some(false),
@@ -322,11 +328,9 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
         phase3TestRepository.updateProgressStatus(appId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED).futureValue
       }
     }
-    applicationRepository.collection.update(ordered = false).one(
-      BSONDocument("applicationId" -> appId),
-      BSONDocument("$set" -> BSONDocument("applicationStatus" -> applicationStatus))).futureValue
- */
-    ???
+    applicationRepository.collection.updateOne(
+      Document("applicationId" -> appId),
+      Document("$set" -> Document("applicationStatus" -> applicationStatus.toBson))).toFuture().futureValue
   }
   // scalastyle:on
 
@@ -371,20 +375,16 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
   }*/
 
   private def questionnaire() = {
-    /*
-    BSONDocument(
+    Document(
       "start_questionnaire" -> true,
       "diversity_questionnaire" -> true,
       "education_questionnaire" -> true,
       "occupation_questionnaire" -> true
     )
-     */
-    ???
   }
 
-/*
-  def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {
-    val baseDoc = BSONDocument(
+  def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): Document = {
+    val baseDoc = Document(
       "personal-details" -> true,
       "in_progress" -> true,
       "scheme-preferences" -> true,
@@ -394,8 +394,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
       "submitted" -> true
     )
 
-    args.foldLeft(baseDoc)((acc, v) => acc.++(v._1.toString -> v._2))
+    args.foldLeft(baseDoc)((acc, v) => acc.++( Document(v._1.toString -> v._2)) )
   }
- */
 }
 //scalastyle:on
