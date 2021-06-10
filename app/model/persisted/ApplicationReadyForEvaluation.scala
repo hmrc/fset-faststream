@@ -67,8 +67,8 @@ object ReadApplicationReadyForEvaluation {
       (__ \ "applicationStatus").format[ApplicationStatus] and
       (__ \ "applicationRoute").format[ApplicationRoute] and
       (__ \ AssistanceDetails.root).format[AssistanceDetails] and
-      (__ \ "testGroups" \ "PHASE1" \ "tests").format[List[PsiTest]] and //TODO: mongo the problem here is PHASE1 is hardcoded
-//      (__ \ "testGroups" \ "PHASE3" \ "test").formatNullable[LaunchpadTest] //TODO: mongo the problem here is PHASE1 is hardcoded
+      (__ \ "testGroups" \ "PHASE2" \ "tests").format[List[PsiTest]] and //TODO: mongo the problem here is PHASE is hardcoded
+//      (__ \ "testGroups" \ "PHASE3" \ "test").formatNullable[LaunchpadTest] //TODO: mongo the problem here is PHASE is hardcoded
       (__ \ SelectedSchemes.root).format[SelectedSchemes]
 
     )(ReadApplicationReadyForEvaluation.apply, unlift(ReadApplicationReadyForEvaluation.unapply))

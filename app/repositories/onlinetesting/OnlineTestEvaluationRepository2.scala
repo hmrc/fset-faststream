@@ -276,3 +276,44 @@ class Phase1EvaluationMongoRepository2 @Inject() (val dateTimeFactory: DateTimeF
     ))
   }
 }
+
+@Singleton
+class Phase2EvaluationMongoRepository2 @Inject() (val dateTimeFactory: DateTimeFactory, mongo: MongoComponent)
+  extends PlayMongoRepository[ReadApplicationReadyForEvaluation](
+    collectionName = CollectionNames.APPLICATION,
+    mongoComponent = mongo,
+    domainFormat = ReadApplicationReadyForEvaluation.mongoFormat,
+    indexes = Nil
+  ) with OnlineTestEvaluationRepository2 with CommonBSONDocuments {
+
+  val phase = PHASE2
+  val prevPhase = PHASE1
+  val evaluationApplicationStatuses = validEvaluationPhaseStatuses(ApplicationStatus.PHASE2_TESTS)
+  val evaluationProgressStatus = ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED
+  val expiredProgressStatus = ProgressStatuses.PHASE2_TESTS_EXPIRED
+
+  //  implicit val applicationReadyForEvaluationBSONReader: BsonDocumentReader[ApplicationReadyForEvaluation] = ???
+  /*
+    implicit val applicationReadyForEvaluationBSONReader: BSONDocumentReader[ApplicationReadyForEvaluation] = bsonReader(doc => {
+      val applicationId = doc.getAs[String]("applicationId").get
+      val bsonPhase2 = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument](phase))
+      val phase2 = bsonPhase2.map(Phase2TestGroup.bsonHandler.read).get
+      val phase1Evaluation = passMarkEvaluationReader(prevPhase, applicationId, Some(doc))
+      applicationEvaluationBuilder(phase2.activeTests, None, Some(phase1Evaluation))(doc)
+    })*/
+
+  val nextApplicationQuery = (currentPassmarkVersion: String) =>
+    Document("$and" -> BsonArray(
+      Document("applicationStatus" -> Document("$in" -> Codecs.toBson(evaluationApplicationStatuses))),
+      Document(s"progress-status.$evaluationProgressStatus" -> true),
+      Document(s"progress-status.${ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_GREEN}" -> Document("$exists" -> false)),
+      Document(s"progress-status.$expiredProgressStatus" -> Document("$ne" -> true)),
+      Document(s"testGroups.$prevPhase.evaluation.passmarkVersion" -> Document("$exists" -> true)),
+      Document("$or" -> BsonArray(
+        Document(s"testGroups.$phase.evaluation.passmarkVersion" -> Document("$exists" -> false)),
+        Document(s"testGroups.$phase.evaluation.passmarkVersion" -> Document("$ne" -> currentPassmarkVersion)),
+        Document("$where" ->
+          s"this.testGroups.$phase.evaluation.previousPhasePassMarkVersion != this.testGroups.$prevPhase.evaluation.passmarkVersion"))
+      )
+    ))
+}

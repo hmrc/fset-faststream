@@ -26,6 +26,7 @@ import model.ProgressStatuses._
 import model.persisted._
 import model.{ApplicationStatus, ReminderNotice}
 import org.joda.time.DateTime
+import org.mongodb.scala.bson.collection.immutable.Document
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 //import play.modules.reactivemongo.ReactiveMongoComponent
@@ -200,7 +201,15 @@ class Phase2TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
 
     collection.update(ordered = false).one(query, updateBson) map validator
   }*/
-  override def insertOrUpdateTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup): Future[Unit] = ???
+  override def insertOrUpdateTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup): Future[Unit] = {
+    val filter = Document("applicationId" -> applicationId)
+    val update = Document("$set" ->
+      (applicationStatusBSON(PHASE2_TESTS_INVITED) ++ Document("testGroups.PHASE2" -> phase2TestProfile.toBson))
+    )
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "inserting test group")
+    collection.updateOne(filter, update).toFuture() map validator
+  }
 
   def upsertTestGroupEvaluation(applicationId: String, passmarkEvaluation: PassmarkEvaluation): Future[Unit] = {
     upsertTestGroupEvaluationResult(applicationId, passmarkEvaluation)
