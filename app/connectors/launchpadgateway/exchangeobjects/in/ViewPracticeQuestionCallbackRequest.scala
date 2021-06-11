@@ -17,8 +17,9 @@
 package connectors.launchpadgateway.exchangeobjects.in
 
 import org.joda.time.{ DateTime, LocalDate }
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
+//import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+//import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
+import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format
 import play.api.libs.json.Json
 //import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
@@ -31,5 +32,6 @@ object ViewPracticeQuestionCallbackRequest {
   implicit val viewPracticeQuestionCallbackFormat = Json.format[ViewPracticeQuestionCallbackRequest]
 //  import repositories.BSONDateTimeHandler
 //  import repositories.BSONLocalDateHandler
-//  implicit val bsonHandler: BSONHandler[BSONDocument, ViewPracticeQuestionCallbackRequest] = Macros.handler[ViewPracticeQuestionCallbackRequest]
+//  implicit val bsonHandler: BSONHandler[BSONDocument, ViewPracticeQuestionCallbackRequest] =
+  //  Macros.handler[ViewPracticeQuestionCallbackRequest]
 }

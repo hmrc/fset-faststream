@@ -50,11 +50,20 @@ case class ReadApplicationReadyForEvaluation(
   applicationRoute: ApplicationRoute,
   assistanceDetails: AssistanceDetails,
   activePsiTests: List[PsiTest],
-//  activeLaunchpadTest: Option[LaunchpadTest]//,
+  activeLaunchpadTest: Option[List[LaunchpadTest]], // TODO: mongo rename launchpadTests
 //  prevPhaseEvaluation: Option[PassmarkEvaluation],
   preferences: SelectedSchemes
 ) {
   def isGis = assistanceDetails.guaranteedInterview.contains(true)
+  def myActiveLaunchpadTest = {
+    val activeLaunchpadTests = activeLaunchpadTest
+    val xx = activeLaunchpadTests.map { tests =>
+      val result = tests.filter( _.usedForResults )
+      require(result.size <= 1, "There is more than one active launchpad test.")
+      result
+    }
+    xx.flatMap ( _.headOption )
+  }
 }
 
 object ReadApplicationReadyForEvaluation {
@@ -68,7 +77,7 @@ object ReadApplicationReadyForEvaluation {
       (__ \ "applicationRoute").format[ApplicationRoute] and
       (__ \ AssistanceDetails.root).format[AssistanceDetails] and
       (__ \ "testGroups" \ "PHASE2" \ "tests").format[List[PsiTest]] and //TODO: mongo the problem here is PHASE is hardcoded
-//      (__ \ "testGroups" \ "PHASE3" \ "test").formatNullable[LaunchpadTest] //TODO: mongo the problem here is PHASE is hardcoded
+      (__ \ "testGroups" \ "PHASE3" \ "tests").formatNullable[List[LaunchpadTest]] and //TODO: mongo the problem here is PHASE is hardcoded
       (__ \ SelectedSchemes.root).format[SelectedSchemes]
 
     )(ReadApplicationReadyForEvaluation.apply, unlift(ReadApplicationReadyForEvaluation.unapply))

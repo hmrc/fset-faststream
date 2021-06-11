@@ -86,7 +86,7 @@ trait OnlineTestEvaluationRepository2 extends CommonBSONDocuments with ReactiveR
     val mappedResult = futureResult.map { appsReadyForEvaluation =>
       appsReadyForEvaluation.map { app =>
         ApplicationReadyForEvaluation(app.applicationId, app.applicationStatus, app.applicationRoute, app.isGis, app.activePsiTests,
-          activeLaunchpadTest = None, prevPhaseEvaluation = None, app.preferences)
+          activeLaunchpadTest = app.myActiveLaunchpadTest, prevPhaseEvaluation = None, app.preferences)
       }
     }
     mappedResult
@@ -316,4 +316,167 @@ class Phase2EvaluationMongoRepository2 @Inject() (val dateTimeFactory: DateTimeF
           s"this.testGroups.$phase.evaluation.previousPhasePassMarkVersion != this.testGroups.$prevPhase.evaluation.passmarkVersion"))
       )
     ))
+}
+
+@Singleton
+class Phase3EvaluationMongoRepository2 @Inject() (appConfig: MicroserviceAppConfig,
+                                                 val dateTimeFactory: DateTimeFactory,
+                                                 mongoComponent: MongoComponent
+                                                )
+  extends PlayMongoRepository[ReadApplicationReadyForEvaluation](
+    collectionName = CollectionNames.APPLICATION,
+    mongoComponent = mongoComponent,
+    domainFormat = ReadApplicationReadyForEvaluation.mongoFormat,
+    indexes = Nil
+  ) with OnlineTestEvaluationRepository2 with BaseBSONReader {
+
+  //  import repositories.BSONDateTimeHandler
+
+  val launchpadGatewayConfig: LaunchpadGatewayConfig = appConfig.launchpadGatewayConfig
+
+  val phase = PHASE3
+  val prevPhase = PHASE2
+  val evaluationApplicationStatuses = validEvaluationPhaseStatuses(ApplicationStatus.PHASE3_TESTS)
+  val evaluationProgressStatus = ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED
+  val expiredProgressStatus = ProgressStatuses.PHASE3_TESTS_EXPIRED
+
+  //  implicit val applicationReadyForEvaluationBSONReader: BsonDocumentReader[ApplicationReadyForEvaluation] = ???
+  /*
+    implicit val applicationReadyForEvaluationBSONReader: BSONDocumentReader[ApplicationReadyForEvaluation] = bsonReader(doc => {
+      val applicationId = doc.getAs[String]("applicationId").get
+      val bsonPhase3 = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument](phase))
+      val phase3 = bsonPhase3.map(Phase3TestGroup.bsonHandler.read).get
+      val phase2Evaluation = passMarkEvaluationReader(prevPhase, applicationId, Some(doc))
+      applicationEvaluationBuilder(Nil, phase3.activeTests.headOption, Some(phase2Evaluation))(doc)
+    })*/
+
+
+  override def preEvaluationLogging(): Unit =
+    logger.warn("Phase 3 evaluation is looking for candidates with results received " +
+      s"${launchpadGatewayConfig.phase3Tests.evaluationWaitTimeAfterResultsReceivedInHours} hours ago...")
+
+
+  val nextApplicationQueryTest = (currentPassmarkVersion: String) => {
+    // The where clause specifies evaluation will trigger for this phase if the either the previous phase passmark version
+    // is changed or the previous phase result version is changed, which can happen if the phase 1 pass marks were changed.
+    // This allows us to trigger a phase 3 evaluation from a phase 1 pass mark change (and also a phase 2 evaluation)
+    val whereClause =
+    s"this.testGroups.$phase.evaluation.previousPhasePassMarkVersion != this.testGroups.$prevPhase.evaluation.passmarkVersion" +
+      s" || this.testGroups.$phase.evaluation.previousPhaseResultVersion != this.testGroups.$prevPhase.evaluation.resultVersion"
+
+    import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+
+    val xx = dateTimeFactory.nowLocalTimeZone.minusHours(
+      launchpadGatewayConfig.phase3Tests.evaluationWaitTimeAfterResultsReceivedInHours
+    )
+/*
+    //scalastyle:off
+    println(s"**** $xx")
+    val vv = Document(
+      "callbacks.reviewed" -> Document("$elemMatch" -> Document("received" -> Document("$lte" ->
+        Codecs.toBson(dateTimeFactory.nowLocalTimeZone.minusHours(
+          launchpadGatewayConfig.phase3Tests.evaluationWaitTimeAfterResultsReceivedInHours
+        ))
+      )))
+    ).toJson()
+    println(s"**** $vv")
+    //scalastyle:on
+*/
+
+    /*
+    Document("$and" -> BsonArray(
+      Document("applicationStatus" -> Document("$in" -> Codecs.toBson(evaluationApplicationStatuses))),
+      Document(s"progress-status.$evaluationProgressStatus" -> true),
+      Document(s"progress-status.${ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_GREEN}" -> Document("$exists" -> false)),
+      Document(s"progress-status.$expiredProgressStatus" -> Document("$ne" -> true)),
+      Document(s"testGroups.$prevPhase.evaluation.passmarkVersion" -> Document("$exists" -> true)),
+
+      Document(s"testGroups.$phase.tests" ->
+        Document("$elemMatch" -> Document(
+          "usedForResults" -> true, "callbacks.reviewed" -> Document("$exists" -> true),
+
+          "callbacks.reviewed" -> Document("$elemMatch" -> Document("received" -> Document("$lte" ->
+            Codecs.toBson(dateTimeFactory.nowLocalTimeZone.minusHours(
+              launchpadGatewayConfig.phase3Tests.evaluationWaitTimeAfterResultsReceivedInHours
+            ))
+          )))
+
+        ))
+      ),
+
+      Document("$or" -> BsonArray(
+        Document(s"testGroups.$phase.evaluation.passmarkVersion" -> Document("$exists" -> false)),
+        Document(s"testGroups.$phase.evaluation.passmarkVersion" -> Document("$ne" -> currentPassmarkVersion)),
+        Document("$where" -> whereClause)
+      ))
+    ))
+*/
+//    import play.api.libs.json.JodaWrites._
+
+    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats._
+    val cc = Document("$and" -> BsonArray(
+      Document("applicationStatus" -> Document("$in" -> Codecs.toBson(evaluationApplicationStatuses))),
+      Document(s"testGroups.$phase.tests" ->
+        Document("$elemMatch" -> Document(
+          "usedForResults" -> true, "callbacks.reviewed" -> Document("$exists" -> true),
+
+          "callbacks.reviewed" -> Document("$elemMatch" -> Document("received" -> Document("$lte" ->
+            Codecs.toBson(dateTimeFactory.nowLocalTimeZone.minusHours(
+              launchpadGatewayConfig.phase3Tests.evaluationWaitTimeAfterResultsReceivedInHours
+            ))
+          )))
+
+        ))
+      )
+    ))
+
+    //scalastyle:off
+    println(s"**** $cc")
+//    println(s"**** ${play.api.libs.json.Json.toJson(cc).toString}")
+
+    val zz = Codecs.toBson(dateTimeFactory.nowLocalTimeZone.minusHours(
+      launchpadGatewayConfig.phase3Tests.evaluationWaitTimeAfterResultsReceivedInHours
+    ))
+    println(s"**** $zz")
+    //scalastyle:on
+    cc
+  }
+
+  val nextApplicationQuery = (currentPassmarkVersion: String) => {
+    // The where clause specifies evaluation will trigger for this phase if the either the previous phase passmark version
+    // is changed or the previous phase result version is changed, which can happen if the phase 1 pass marks were changed.
+    // This allows us to trigger a phase 3 evaluation from a phase 1 pass mark change (and also a phase 2 evaluation)
+    val whereClause =
+    s"this.testGroups.$phase.evaluation.previousPhasePassMarkVersion != this.testGroups.$prevPhase.evaluation.passmarkVersion" +
+      s" || this.testGroups.$phase.evaluation.previousPhaseResultVersion != this.testGroups.$prevPhase.evaluation.resultVersion"
+
+    import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+
+    Document("$and" -> BsonArray(
+      Document("applicationStatus" -> Document("$in" -> Codecs.toBson(evaluationApplicationStatuses))),
+      Document(s"progress-status.$evaluationProgressStatus" -> true),
+      Document(s"progress-status.${ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_GREEN}" -> Document("$exists" -> false)),
+      Document(s"progress-status.$expiredProgressStatus" -> Document("$ne" -> true)),
+      Document(s"testGroups.$prevPhase.evaluation.passmarkVersion" -> Document("$exists" -> true)),
+
+      Document(s"testGroups.$phase.tests" ->
+        Document("$elemMatch" -> Document(
+          "usedForResults" -> true, "callbacks.reviewed" -> Document("$exists" -> true),
+/*
+          "callbacks.reviewed" -> Document("$elemMatch" -> Document("received" -> Document("$lte" ->
+            Codecs.toBson(dateTimeFactory.nowLocalTimeZone.minusHours(
+              launchpadGatewayConfig.phase3Tests.evaluationWaitTimeAfterResultsReceivedInHours
+            ))
+          )))
+*/
+        ))
+      ),
+
+      Document("$or" -> BsonArray(
+        Document(s"testGroups.$phase.evaluation.passmarkVersion" -> Document("$exists" -> false)),
+        Document(s"testGroups.$phase.evaluation.passmarkVersion" -> Document("$ne" -> currentPassmarkVersion)),
+        Document("$where" -> whereClause)
+      ))
+    ))
+  }
 }
