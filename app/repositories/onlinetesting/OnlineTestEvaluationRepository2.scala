@@ -99,19 +99,8 @@ trait OnlineTestEvaluationRepository2 extends CommonBSONDocuments with ReactiveR
     preEvaluationLogging()
     //    selectRandom[ApplicationReadyForEvaluation](nextApplicationQuery(currentPassmarkVersion), batchSize) //TODO: mongo fix select random
     // TODO: mongo temp code until we get the selectRandom migrated
-
-    //scalastyle:off
-    println("**** 1")
     val futureResult = collection.find[BsonDocument](nextApplicationQuery(currentPassmarkVersion)).limit(batchSize).toFuture()
-    val mappedResult = futureResult.map { bsonDocs =>
-      bsonDocs.map { doc =>
-        println("**** 2")
-        applicationReadyForEvaluationBSONReader(doc)
-//        ApplicationReadyForEvaluation(doc.applicationId, doc.applicationStatus, doc.applicationRoute, doc.isGis, doc.activePsiTests,
-//          activeLaunchpadTest = doc.myActiveLaunchpadTest, prevPhaseEvaluation = None, doc.preferences)
-      }
-    }
-    //scalastyle:off
+    val mappedResult = futureResult.map(_.map ( doc => applicationReadyForEvaluationBSONReader(doc) ))
     mappedResult
   }
 
