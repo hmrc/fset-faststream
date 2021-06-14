@@ -42,8 +42,8 @@ import scala.util.Try
 trait OnlineTestEvaluationRepository2 extends CommonBSONDocuments with ReactiveRepositoryHelpers with RandomSelection
   with CurrentSchemeStatusHelper {
 
-  // Enforce that the class implementing the trait must be a PlayMongoRepository[ReadApplicationReadyForEvaluation]
-  this: PlayMongoRepository[ReadApplicationReadyForEvaluation] =>
+  // Enforce that the class implementing the trait must be a PlayMongoRepository[ApplicationReadyForEvaluation]
+  this: PlayMongoRepository[ApplicationReadyForEvaluation] =>
 
   val phase: Phase
   val evaluationApplicationStatuses: Set[ApplicationStatus]
@@ -149,10 +149,10 @@ trait OnlineTestEvaluationRepository2 extends CommonBSONDocuments with ReactiveR
 
 @Singleton
 class Phase1EvaluationMongoRepository2 @Inject() (val dateTimeFactory: DateTimeFactory, mongo: MongoComponent)
-  extends PlayMongoRepository[ReadApplicationReadyForEvaluation](
+  extends PlayMongoRepository[ApplicationReadyForEvaluation](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongo,
-    domainFormat = ReadApplicationReadyForEvaluation.mongoFormat,
+    domainFormat = ApplicationReadyForEvaluation.applicationReadyForEvaluationFormat,
     indexes = Nil
   ) with OnlineTestEvaluationRepository2 with CommonBSONDocuments {
 
@@ -183,10 +183,10 @@ class Phase1EvaluationMongoRepository2 @Inject() (val dateTimeFactory: DateTimeF
 
 @Singleton
 class Phase2EvaluationMongoRepository2 @Inject() (val dateTimeFactory: DateTimeFactory, mongo: MongoComponent)
-  extends PlayMongoRepository[ReadApplicationReadyForEvaluation](
+  extends PlayMongoRepository[ApplicationReadyForEvaluation](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongo,
-    domainFormat = ReadApplicationReadyForEvaluation.mongoFormat,
+    domainFormat = ApplicationReadyForEvaluation.applicationReadyForEvaluationFormat,
     indexes = Nil
   ) with OnlineTestEvaluationRepository2 with CommonBSONDocuments {
 
@@ -225,10 +225,10 @@ class Phase3EvaluationMongoRepository2 @Inject() (appConfig: MicroserviceAppConf
                                                  val dateTimeFactory: DateTimeFactory,
                                                  mongoComponent: MongoComponent
                                                 )
-  extends PlayMongoRepository[ReadApplicationReadyForEvaluation](
+  extends PlayMongoRepository[ApplicationReadyForEvaluation](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongoComponent,
-    domainFormat = ReadApplicationReadyForEvaluation.mongoFormat,
+    domainFormat = ApplicationReadyForEvaluation.applicationReadyForEvaluationFormat,
     indexes = Nil
   ) with OnlineTestEvaluationRepository2 with BaseBSONReader {
 

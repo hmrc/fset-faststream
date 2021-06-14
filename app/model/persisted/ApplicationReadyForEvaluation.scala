@@ -18,14 +18,10 @@ package model.persisted
 
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
-import model.{ ApplicationRoute, SelectedSchemes }
 import model.persisted.phase3tests.LaunchpadTest
-import play.api.libs.json._
-import play.api.libs.functional.syntax._
-import play.api.libs.json.{Format, Json, __}
+import model.{ApplicationRoute, SelectedSchemes}
+import play.api.libs.json.Json
 
-//TODO: mongo it is not the intention to read directly from mongo into this case class via the codecs mechanism
-// it is more a case of processing the document manually and populate a new instance of this case class manually with the data items read
 case class ApplicationReadyForEvaluation(
   applicationId: String,
   applicationStatus: ApplicationStatus,
@@ -41,44 +37,5 @@ case class ApplicationReadyForEvaluation(
 }
 
 object ApplicationReadyForEvaluation {
-  implicit val applicationReadyForEvaluationFormats = Json.format[ApplicationReadyForEvaluation]
-}
-
-case class ReadApplicationReadyForEvaluation(
-  applicationId: String,
-  applicationStatus: ApplicationStatus,
-  applicationRoute: ApplicationRoute,
-  assistanceDetails: AssistanceDetails,
-  activePsiTests: List[PsiTest],
-  activeLaunchpadTest: Option[List[LaunchpadTest]], // TODO: mongo rename launchpadTests
-//  prevPhaseEvaluation: Option[PassmarkEvaluation],
-  preferences: SelectedSchemes
-) {
-  def isGis = assistanceDetails.guaranteedInterview.contains(true)
-  def myActiveLaunchpadTest = {
-    val activeLaunchpadTests = activeLaunchpadTest
-    val xx = activeLaunchpadTests.map { tests =>
-      val result = tests.filter( _.usedForResults )
-      require(result.size <= 1, "There is more than one active launchpad test.")
-      result
-    }
-    xx.flatMap ( _.headOption )
-  }
-}
-
-object ReadApplicationReadyForEvaluation {
-  implicit val readApplicationReadyForEvaluationFormat = Json.format[ReadApplicationReadyForEvaluation]
-
-  // Provide an explicit mongo format here to deal with the sub-document root
-  // This data lives in the application collection
-  val mongoFormat: Format[ReadApplicationReadyForEvaluation] = (
-    (__ \ "applicationId").format[String] and
-      (__ \ "applicationStatus").format[ApplicationStatus] and
-      (__ \ "applicationRoute").format[ApplicationRoute] and
-      (__ \ AssistanceDetails.root).format[AssistanceDetails] and
-      (__ \ "testGroups" \ "PHASE2" \ "tests").format[List[PsiTest]] and //TODO: mongo the problem here is PHASE is hardcoded
-      (__ \ "testGroups" \ "PHASE3" \ "tests").formatNullable[List[LaunchpadTest]] and //TODO: mongo the problem here is PHASE is hardcoded
-      (__ \ SelectedSchemes.root).format[SelectedSchemes]
-
-    )(ReadApplicationReadyForEvaluation.apply, unlift(ReadApplicationReadyForEvaluation.unapply))
+  implicit val applicationReadyForEvaluationFormat = Json.format[ApplicationReadyForEvaluation]
 }

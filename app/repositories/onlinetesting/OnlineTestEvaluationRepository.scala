@@ -181,7 +181,7 @@ class Phase1EvaluationMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
   extends PlayMongoRepository[ApplicationReadyForEvaluation](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongo,
-    domainFormat = ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
+    domainFormat = ApplicationReadyForEvaluation.applicationReadyForEvaluationFormat,
     indexes = Nil
   ) with OnlineTestEvaluationRepository with CommonBSONDocuments {
 
@@ -218,7 +218,7 @@ class Phase2EvaluationMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
   extends PlayMongoRepository[ApplicationReadyForEvaluation](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongo,
-    domainFormat = ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
+    domainFormat = ApplicationReadyForEvaluation.applicationReadyForEvaluationFormat,
     indexes = Nil
   ) with OnlineTestEvaluationRepository with CommonBSONDocuments {
 
@@ -262,7 +262,7 @@ class Phase3EvaluationMongoRepository @Inject() (appConfig: MicroserviceAppConfi
   extends PlayMongoRepository[ApplicationReadyForEvaluation](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongoComponent,
-    domainFormat = ApplicationReadyForEvaluation.applicationReadyForEvaluationFormats,
+    domainFormat = ApplicationReadyForEvaluation.applicationReadyForEvaluationFormat,
     indexes = Nil
   ) with OnlineTestEvaluationRepository with BaseBSONReader {
 
