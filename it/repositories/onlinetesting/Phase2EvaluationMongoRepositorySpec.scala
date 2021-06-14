@@ -11,7 +11,6 @@ import repositories.{CollectionNames, CommonRepository}
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.mongo.play.json.Codecs
 
-// Test PSI based code with guice injection
 class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with CommonRepository with MockitoSugar {
 
   import Phase1EvaluationMongoRepositorySpec._
