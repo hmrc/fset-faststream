@@ -45,23 +45,6 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       )
 
       val result = phase2EvaluationRepo2.nextApplicationsReadyForEvaluation("phase1_version1", batchSize = 1).futureValue
-//scalastyle:off
-
-      val expected = ApplicationReadyForEvaluation(
-        "app1",
-        ApplicationStatus.PHASE2_TESTS,
-        ApplicationRoute.Faststream,
-        isGis = false,
-        activePsiTests = Phase2TestGroup(now, phase2TestWithResult).activeTests,
-        activeLaunchpadTest = None,
-        prevPhaseEvaluation = None,//Some(phase1Evaluation),
-        selectedSchemes(List(SchemeId("Commercial")))
-      )
-
-      println(s"**** actual  =${result.head}")
-      println(s"**** expected=$expected")
-
-//scalastyle:on
       result.head mustBe ApplicationReadyForEvaluation(
         "app1",
         ApplicationStatus.PHASE2_TESTS,
@@ -69,13 +52,12 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         isGis = false,
         activePsiTests = Phase2TestGroup(now, phase2TestWithResult).activeTests,
         activeLaunchpadTest = None,
-        prevPhaseEvaluation = None,//Some(phase1Evaluation), //TODO: mongo fix
+        prevPhaseEvaluation = Some(phase1Evaluation),
         selectedSchemes(List(SchemeId("Commercial")))
       )
     }
 
-    // TODO: mongo the issue is with the new impl we expect applicationRoute to be populated when reading the data
-    "return application in PHASE2_TESTS with results when applicationRoute is not set" ignore {
+    "return application in PHASE2_TESTS with results when applicationRoute is not set" in {
       val phase1Evaluation = PassmarkEvaluation(
         "phase1_version1", previousPhasePassMarkVersion = None, resultToSave, "phase1-version1-res", previousPhaseResultVersion = None
       )
@@ -91,7 +73,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         isGis = false,
         activePsiTests = Phase2TestGroup(now, phase2TestWithResult).activeTests,
         activeLaunchpadTest = None,
-        prevPhaseEvaluation = None, //Some(phase1Evaluation), //TODO: mongo fix
+        prevPhaseEvaluation = Some(phase1Evaluation),
         selectedSchemes(List(SchemeId("Commercial")))
       )
     }
@@ -145,7 +127,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         isGis = false,
         Phase2TestGroup(now, phase2TestWithResult).activeTests,
         activeLaunchpadTest = None,
-        None,//Some(phase1Evaluation), TODO:mongo fix
+        Some(phase1Evaluation),
         selectedSchemes(List(SchemeId("Commercial")))
       )
     }
@@ -170,7 +152,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         isGis = false,
         Phase2TestGroup(now, phase2TestWithResult).activeTests,
         activeLaunchpadTest = None,
-        prevPhaseEvaluation = None, //Some(phase1Evaluation), //TODO: mongo fix
+        prevPhaseEvaluation = Some(phase1Evaluation),
         selectedSchemes(List(SchemeId("Commercial"))))
     }
 

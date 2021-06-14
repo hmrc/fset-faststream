@@ -336,7 +336,7 @@ class Phase2EvaluationMongoRepository2 @Inject() (val dateTimeFactory: DateTimeF
 
   def applicationReadyForEvaluationBSONReader(doc: Document) : ApplicationReadyForEvaluation = {
     val applicationId = doc.get("applicationId").get.asString().getValue
-    val bsonPhase2 = doc.get("testGroups").map(_.asDocument().get(phase).asDocument() )
+    val bsonPhase2 = doc.get("testGroups").map(_.asDocument().get(phase.toString).asDocument() )
     val phase2 = bsonPhase2.map( Codecs.fromBson[Phase2TestGroup] ).get
     val phase1Evaluation = passMarkEvaluationReader(prevPhase, applicationId, Some(doc))
     applicationEvaluationBuilder(phase2.activeTests, None, Some(phase1Evaluation))(doc)
