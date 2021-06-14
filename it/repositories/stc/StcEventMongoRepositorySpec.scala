@@ -1,16 +1,12 @@
 package repositories.stc
 
-import factories.DateTimeFactoryImpl
 import model.persisted.StcEvent
 import org.joda.time.{DateTime, DateTimeZone}
+import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.bson.collection.immutable.Document
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
-import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-
-import javax.inject.Inject
-import scala.concurrent.Future
+import uk.gov.hmrc.mongo.play.json.Codecs
 
 class StcEventMongoRepositorySpec extends MongoRepositorySpec {
 
@@ -18,42 +14,20 @@ class StcEventMongoRepositorySpec extends MongoRepositorySpec {
 
   lazy val repository = new StcEventMongoRepository(mongo)
 
-  val dateTimeFactory = new DateTimeFactoryImpl
-
-  // Just here so we can read back the event data
-  class StcEventMongoRepositoryForTest @Inject() (mongo: MongoComponent)
-  extends PlayMongoRepository[StcEvent](
-    collectionName = CollectionNames.EVENT,
-    mongoComponent = mongo,
-    domainFormat = StcEvent.eventFormat,
-    indexes = Nil
-  ) {
-    def getEvent: Future[StcEvent] = {
-      for {
-        eventOpt <- collection.find(Document.empty).headOption()
-      } yield {
-        eventOpt match {
-          case Some(event) => event
-          case _ => throw new RuntimeException("No event found")
-        }
-      }
+  def getEvent = {
+    val eventOpt = repository.collection
+      .find[BsonDocument](Document.empty).headOption().map( _.map( Codecs.fromBson[StcEvent]) ).futureValue
+    eventOpt match {
+      case Some(event) => event
+      case _ => throw new RuntimeException("No event found")
     }
   }
 
-  val eventTestRepo = new StcEventMongoRepositoryForTest(mongo)
-
   "Stop the Clock event repository" should {
     "insert new event" in {
-      val date = dateTimeFactory.nowLocalTimeZone
-      lazy val dateTimeNow = DateTime.now(DateTimeZone.UTC)
-      //scalastyle:off
-      println(s"**** date=$date")
-      println(s"**** date=$dateTimeNow")
-      //scalastyle:on
-//      val event = StcEvent("ExampleEvent", dateTimeFactory.nowLocalTimeZone, Some("appId"), Some("userId"))
       val event = StcEvent("ExampleEvent", DateTime.now(DateTimeZone.UTC), Some("appId"), Some("userId"))
       repository.create(event).futureValue
-      val result = eventTestRepo.getEvent.futureValue
+      val result = getEvent
       result mustBe event
     }
   }
