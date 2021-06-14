@@ -9,16 +9,12 @@ import model.persisted.phase3tests.Phase3TestGroup
 import model.{ApplicationStatus, ProgressStatuses, SchemeId}
 import org.mockito.Mockito.when
 import org.mongodb.scala.bson.collection.immutable.Document
-import play.api.libs.json.JsObject
 import uk.gov.hmrc.mongo.play.json.Codecs
-//import reactivemongo.bson.BSONDocument
-//import reactivemongo.play.json.ImplicitBSONHandlers
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
 class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with CommonRepository {
 
-//  import ImplicitBSONHandlers._
   import Phase2EvaluationMongoRepositorySpec._
   import model.Phase3TestProfileExamples._
 
@@ -233,9 +229,9 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     application.applicationId mustBe "app1"
     application.applicationStatus mustBe expectedApplicationStatus
     application.isGis mustBe false
-//    application.activePsiTests mustBe Nil //TODO: mongo fix
+    application.activePsiTests mustBe Nil
     application.activeLaunchpadTest.isDefined mustBe true
-//    application.prevPhaseEvaluation mustBe Some(phase2Evaluation) //TODO: mongo fix
+    application.prevPhaseEvaluation mustBe Some(phase2Evaluation)
     application.preferences mustBe selectedSchemes(List(SchemeId("Commercial")))
   }
 

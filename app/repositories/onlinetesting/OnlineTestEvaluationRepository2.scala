@@ -392,7 +392,7 @@ class Phase3EvaluationMongoRepository2 @Inject() (appConfig: MicroserviceAppConf
 
   def applicationReadyForEvaluationBSONReader(doc: Document) : ApplicationReadyForEvaluation = {
     val applicationId = doc.get("applicationId").get.asString().getValue
-    val bsonPhase3 = doc.get("testGroups").map(_.asDocument().get(phase).asDocument() )
+    val bsonPhase3 = doc.get("testGroups").map(_.asDocument().get(phase.toString).asDocument() )
     val phase3 = bsonPhase3.map( Codecs.fromBson[Phase3TestGroup] ).get
     val phase2Evaluation = passMarkEvaluationReader(prevPhase, applicationId, Some(doc))
     applicationEvaluationBuilder(activePsiTests = Nil, phase3.activeTests.headOption, Some(phase2Evaluation))(doc)
