@@ -259,7 +259,7 @@ class Phase3EvaluationMongoRepository @Inject() (appConfig: MicroserviceAppConfi
     s"this.testGroups.$phase.evaluation.previousPhasePassMarkVersion != this.testGroups.$prevPhase.evaluation.passmarkVersion" +
       s" || this.testGroups.$phase.evaluation.previousPhaseResultVersion != this.testGroups.$prevPhase.evaluation.resultVersion"
 
-    import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
 
     Document("$and" -> BsonArray(
       Document("applicationStatus" -> Document("$in" -> Codecs.toBson(evaluationApplicationStatuses))),
@@ -271,13 +271,13 @@ class Phase3EvaluationMongoRepository @Inject() (appConfig: MicroserviceAppConfi
       Document(s"testGroups.$phase.tests" ->
         Document("$elemMatch" -> Document(
           "usedForResults" -> true, "callbacks.reviewed" -> Document("$exists" -> true),
-/*
+
           "callbacks.reviewed" -> Document("$elemMatch" -> Document("received" -> Document("$lte" ->
             Codecs.toBson(dateTimeFactory.nowLocalTimeZone.minusHours(
               launchpadGatewayConfig.phase3Tests.evaluationWaitTimeAfterResultsReceivedInHours
             ))
           )))
-*/
+
         ))
       ),
 

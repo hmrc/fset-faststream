@@ -106,8 +106,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       assertApplication(result.head, phase2Evaluation)
     }
 
-    //TODO: mongo put this back once the dates are working
-    "return nothing when phase3 test results are not reviewed before 72 hours" ignore {
+    "return nothing when phase3 test results are not reviewed before 72 hours" in {
       val phase2Evaluation = PassmarkEvaluation("phase2_version1", previousPhasePassMarkVersion = None, resultToSave,
         "phase2_version1-res", previousPhaseResultVersion = None)
       insertApplication2("app1", ApplicationStatus.PHASE3_TESTS, phase1Tests = None, Some(phase2TestWithResult),
