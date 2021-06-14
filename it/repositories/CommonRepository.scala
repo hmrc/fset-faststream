@@ -67,16 +67,13 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
   def phase3TestRepository = new Phase3TestMongoRepository(ITDateTimeFactoryMock, mongo)
 
   def phase1EvaluationRepo = new Phase1EvaluationMongoRepository(ITDateTimeFactoryMock, mongo)
-  def phase1EvaluationRepo2 = new Phase1EvaluationMongoRepository2(ITDateTimeFactoryMock, mongo) //TODO: mongo delete
 
   def phase2EvaluationRepo = new Phase2EvaluationMongoRepository(ITDateTimeFactoryMock, mongo)
-  def phase2EvaluationRepo2 = new Phase2EvaluationMongoRepository2(ITDateTimeFactoryMock, mongo) //TODO: mongo delete
   // TODO:fix needs MicroserviceAppConfig2
 
   //  lazy val appConfig = app.injector.instanceOf(classOf[MicroserviceAppConfig2])
 
   def phase3EvaluationRepo = new Phase3EvaluationMongoRepository(mockAppConfig, ITDateTimeFactoryMock, mongo)
-  def phase3EvaluationRepo2 = new Phase3EvaluationMongoRepository2(mockAppConfig, ITDateTimeFactoryMock, mongo) //TODO: mongo delete
 
   def phase1PassMarkSettingRepo = new Phase1PassMarkSettingsMongoRepository(mongo)
   def phase2PassMarkSettingRepo = new Phase2PassMarkSettingsMongoRepository(mongo)
