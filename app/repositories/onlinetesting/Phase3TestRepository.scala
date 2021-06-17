@@ -28,10 +28,10 @@ import model.persisted.phase3tests.Phase3TestGroup
 import model.persisted.{NotificationExpiringOnlineTest, PassmarkEvaluation, Phase3TestGroupWithAppId, SchemeEvaluationResult}
 import model.{ApplicationStatus, ProgressStatuses, ReminderNotice}
 import org.joda.time.DateTime
-import org.mongodb.scala.bson.BsonArray
+import org.mongodb.scala.bson.{BsonArray, BsonDocument, BsonString}
 import org.mongodb.scala.bson.collection.immutable.Document
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 //import play.modules.reactivemongo.ReactiveMongoComponent
 //import reactivemongo.bson.{ BSONDocument, _ }
 //import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -140,6 +140,19 @@ class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
     collection.update(ordered = false).one(query, update) map validator
   }*/
   override def appendCallback[A](token: String, callbacksKey: String, callback: A): Future[Unit] = ???
+/*
+  override def appendCallback[A](token: String, callbacksKey: String, callback: A)
+                                (implicit handler: BSONHandler[BSONDocument, A]): Future[Unit] = {
+    val query = Document(s"testGroups.$phaseName.tests" -> Document(
+      "$elemMatch" -> Document("token" -> token)
+    ))
+
+    val update = Document("$push" -> Document(s"testGroups.$phaseName.tests.$$.callbacks.$callbacksKey" -> Codecs.toBson(callback)))
+
+    val validator = singleUpdateValidator(token, actionDesc = "appending phase 3 callback")
+
+    collection.updateOne(query, update).toFuture() map validator
+  }*/
 
 /*
   override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] = {
@@ -149,7 +162,18 @@ class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
     selectRandom[OnlineTestApplication](query, maxBatchSize)
   }*/
-  override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] = ???
+  override def nextApplicationsReadyForOnlineTesting(batchSize: Int): Future[List[OnlineTestApplication]] = {
+    logger.warn(s"Looking for candidates to invite to $phaseName with a batch size of $batchSize...")
+    val query = inviteToTestBSON(PHASE2_TESTS_PASSED) ++ Document("applicationRoute" -> Document("$nin" -> BsonArray("Sdip", "Edip")))
+
+//    implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
+//    selectRandom[OnlineTestApplication](query, maxBatchSize)
+
+    // TODO: mongo temp code until we get the selectRandom migrated
+    val futureResult = collection.find[BsonDocument](query).limit(batchSize).toFuture()
+    val mappedResult = futureResult.map(_.map ( doc => repositories.bsonDocToOnlineTestApplication(doc) ).toList) // TODO: mongo Seq -> List
+    mappedResult
+  }
 
 /*
   override def insertOrUpdateTestGroup(applicationId: String, phase3TestGroup: Phase3TestGroup): Future[Unit] = {
@@ -202,7 +226,32 @@ class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
     val validator = singleUpdateValidator(applicationId, "removing test group", ApplicationNotFound(applicationId))
     collection.update(ordered = false).one(query, updateQuery, upsert = false) map validator
   }*/
-  override def removeTestGroup(applicationId: String): Future[Unit] = ???
+  override def removeTestGroup(applicationId: String): Future[Unit] = {
+    val appStatuses = List(ApplicationStatus.PHASE3_TESTS,
+      ApplicationStatus.PHASE3_TESTS_FAILED,
+      ApplicationStatus.PHASE3_TESTS_PASSED)
+
+    val phase3Progresses = ProgressStatuses.progressesByApplicationStatus(appStatuses: _*)
+
+//    val query = Document("$and" -> BsonArray(
+//      Document("applicationId" -> applicationId),
+//      Document("applicationStatus" -> Document("$in" -> Codecs.toBson(appStatuses)))))
+
+    val query = Document(
+      "applicationId" -> applicationId,
+      "applicationStatus" -> Document("$in" -> Codecs.toBson(appStatuses))
+    )
+
+    val progressesToRemove = phase3Progresses map (p => s"progress-status.$p" -> BsonString(""))
+
+    val updateQuery = Document(
+      "$unset" -> Document(progressesToRemove),
+      "$unset" -> Document(s"testGroups.$phaseName" -> "")
+    )
+
+    val validator = singleUpdateValidator(applicationId, "removing test group", ApplicationNotFound(applicationId))
+    collection.updateOne(query, updateQuery).toFuture() map validator
+  }
 
   // Note this is the same impl as the default removeTestGroup in OnlineTestRepository. Provided here because
   // the default impl is overridden above
@@ -273,7 +322,10 @@ class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
   override def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]] = {
     getTestGroup(applicationId, phaseName)
   }*/
-  override def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]] = ???
+  override def getTestGroup(applicationId: String): Future[Option[Phase3TestGroup]] = {
+//    getTestGroup(applicationId, phaseName)
+    getTestGroupP3(applicationId, phaseName)
+  }
 
 /*
   override def getTestGroupByToken(token: String): Future[Phase3TestGroupWithAppId] = {
@@ -324,7 +376,15 @@ class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
 
     nextTestForReminder(reminder, progressStatusQuery)
   }*/
-  override def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = ???
+  override def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = {
+    val progressStatusQuery = Document("$and" -> BsonArray(
+      Document(s"progress-status.$PHASE3_TESTS_COMPLETED" -> Document("$ne" -> true)),
+      Document(s"progress-status.$PHASE3_TESTS_EXPIRED" -> Document("$ne" -> true)),
+      Document(s"progress-status.${reminder.progressStatuses}" -> Document("$ne" -> true))
+    ))
+
+    nextTestForReminder(reminder, progressStatusQuery)
+  }
 
 /*
   private def findAndUpdateLaunchpadTest(launchpadInviteId: String, update: BSONDocument,

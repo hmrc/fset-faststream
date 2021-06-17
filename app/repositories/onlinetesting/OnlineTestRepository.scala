@@ -24,8 +24,9 @@ import model.ProgressStatuses.ProgressStatus
 import model._
 import model.exchange.PsiTestResultReady
 import model.persisted._
+import model.persisted.phase3tests.Phase3TestGroup
 import org.joda.time.DateTime
-import org.mongodb.scala.bson.{BsonArray, BsonDocument}
+import org.mongodb.scala.bson.{BsonArray, BsonDocument, BsonString, BsonValue}
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
@@ -117,6 +118,33 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     }
     xx.map{ ss =>
       println("***** getTestGroupP2 end")
+      println(s"**** $ss")
+      //scalastyle:on
+      ss
+    }
+    xx
+  }
+
+  def getTestGroupP3(applicationId: String, phase: String = "PHASE1"): Future[Option[Phase3TestGroup]] = {
+    val query = Document("applicationId" -> applicationId)
+
+    val projection = Projections.include(s"testGroups.$phase")
+
+    //scalastyle:off
+    println("***** getTestGroupP3 start")
+
+    val xx = collection.find[Document](query).projection(projection).headOption().map { docOpt =>
+      println("***** getTestGroupP3 - 1")
+      docOpt.flatMap{ doc =>
+        println("***** getTestGroupP3 - 2")
+        doc.get("testGroups").map(_.asDocument().get(phase).asDocument() ).map { p3 =>
+          println("***** getTestGroupP3 - 3")
+          Codecs.fromBson[Phase3TestGroup](p3)
+        }
+      }
+    }
+    xx.map{ ss =>
+      println("***** getTestGroupP3 end")
       println(s"**** $ss")
       //scalastyle:on
       ss
@@ -713,7 +741,30 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
 
     collection.update(ordered = false).one(query, updateQuery) map validator
   }*/
-  def resetTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = ???
+  def resetTestProfileProgresses(appId: String, progressStatuses: List[ProgressStatus]): Future[Unit] = {
+    require(progressStatuses.nonEmpty)
+    require(progressStatuses forall (ps =>
+      resetStatuses.contains(ps.applicationStatus.toString)), s"Cannot reset some of the $phaseName progress statuses $progressStatuses")
+
+    val query = Document("$and" -> BsonArray(
+      Document("applicationId" -> appId),
+      Document("applicationStatus" -> Document("$in" -> resetStatuses))
+    ))
+
+    val progressesToRemoveQueryPartial: Seq[(String, BsonValue)] = progressStatuses.flatMap(p =>
+      Seq(s"progress-status.$p" -> BsonString(""),
+        s"progress-status-timestamp.$p" -> BsonString(""))
+    )
+
+    val updateQuery = Document(
+      "$set" -> Document("applicationStatus" -> thisApplicationStatus.toBson),
+      "$unset" -> (Document(progressesToRemoveQueryPartial) ++ Document(s"testGroups.$phaseName.evaluation" -> ""))
+    )
+
+    val validator = singleUpdateValidator(appId, actionDesc = s"resetting $phaseName test progresses", ApplicationNotFound(appId))
+
+    collection.updateOne(query, updateQuery).toFuture() map validator
+  }
 
   // Caution - for administrative fixes only (dataconsistency)
   /*

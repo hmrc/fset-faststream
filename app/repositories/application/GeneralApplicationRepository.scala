@@ -417,7 +417,7 @@ def findByUserId(userId: String, frameworkId: String): Future[ApplicationRespons
 }*/
 
   def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse] = ???
-
+//TODO: mongo fix this
   def findByUserId2(userId: String, frameworkId: String): Future[ApplicationResponse2] = {
     val query = Document("userId" -> userId, "frameworkId" -> frameworkId)
 
