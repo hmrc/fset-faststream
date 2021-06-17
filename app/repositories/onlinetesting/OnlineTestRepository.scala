@@ -70,6 +70,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
   }
 
   //TODO: mongo new methods here start
+  // these need to be generic - work out how to impl that
   def getTestGroupP1(applicationId: String, phase: String = "PHASE1"): Future[Option[Phase1TestProfile]] = {
     val query = Document("applicationId" -> applicationId)
 
@@ -90,6 +91,32 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     }
     xx.map{ ss =>
       println("***** getTestGroupP1 end")
+      println(s"**** $ss")
+      //scalastyle:on
+      ss
+    }
+    xx
+  }
+  def getTestGroupP2(applicationId: String, phase: String = "PHASE1"): Future[Option[Phase2TestGroup]] = {
+    val query = Document("applicationId" -> applicationId)
+
+    val projection = Projections.include(s"testGroups.$phase")
+
+    //scalastyle:off
+    println("***** getTestGroupP2 start")
+
+    val xx = collection.find[Document](query).projection(projection).headOption().map { docOpt =>
+      println("***** getTestGroupP2 - 1")
+      docOpt.flatMap{ doc =>
+        println("***** getTestGroupP2 - 2")
+        doc.get("testGroups").map(_.asDocument().get(phase).asDocument() ).map { p2 =>
+          println("***** getTestGroupP2 - 3")
+          Codecs.fromBson[Phase2TestGroup](p2)
+        }
+      }
+    }
+    xx.map{ ss =>
+      println("***** getTestGroupP2 end")
       println(s"**** $ss")
       //scalastyle:on
       ss

@@ -26,10 +26,11 @@ import model.ProgressStatuses._
 import model.persisted._
 import model.{ApplicationStatus, ReminderNotice}
 import org.joda.time.DateTime
-import org.mongodb.scala.bson.BsonArray
+import org.mongodb.scala.bson.{BsonArray, BsonDocument}
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.Projections
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 //import play.modules.reactivemongo.ReactiveMongoComponent
 //import reactivemongo.bson.{ BSONArray, BSONDocument, _ }
 //import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -92,7 +93,10 @@ class Phase2TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
   override def getTestGroup(applicationId: String): Future[Option[Phase2TestGroup]] = {
     getTestGroup(applicationId, phaseName)
   }*/
-  override def getTestGroup(applicationId: String): Future[Option[Phase2TestGroup]] = ???
+  override def getTestGroup(applicationId: String): Future[Option[Phase2TestGroup]] = {
+//    getTestGroup(applicationId, phaseName)
+    getTestGroupP2(applicationId, phaseName)
+  }
 
   /*
   override def getTestGroupByUserId(userId: String): Future[Option[Phase2TestGroup]] = {
@@ -105,7 +109,19 @@ class Phase2TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
         .map {x => bsonHandler.read(x)}
     }
   }*/
-  override def getTestGroupByUserId(userId: String): Future[Option[Phase2TestGroup]] = ???
+  override def getTestGroupByUserId(userId: String): Future[Option[Phase2TestGroup]] = {
+    val query = Document("userId" -> userId)
+    val projection = Projections.include("testGroups.PHASE2")
+
+    collection.find[Document](query).projection(projection).headOption() map { optDocument =>
+      optDocument.flatMap { doc =>
+
+        doc.get("testGroups").map(_.asDocument().get("PHASE2").asDocument()).map { p =>
+          Codecs.fromBson[Phase2TestGroup](p)
+        }
+      }
+    }
+  }
 
   /*
   override def getTestGroupByOrderId(orderId: String): Future[Option[Phase2TestGroup]] = {
@@ -147,7 +163,18 @@ class Phase2TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
     implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
     selectRandom[OnlineTestApplication](query, maxBatchSize)
   }*/
-  override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] = ???
+  override def nextApplicationsReadyForOnlineTesting(batchSize: Int): Future[List[OnlineTestApplication]] = {
+    logger.warn(s"Looking for candidates to invite to $phaseName with a batch size of $batchSize...")
+    val query = inviteToTestBSON(PHASE1_TESTS_PASSED) ++ Document("applicationRoute" -> Document("$nin" -> BsonArray("Sdip", "Edip")))
+
+//    implicit val reader = bsonReader(repositories.bsonDocToOnlineTestApplication)
+//    selectRandom[OnlineTestApplication](query, maxBatchSize)
+
+    // TODO: mongo temp code until we get the selectRandom migrated
+    val futureResult = collection.find[BsonDocument](query).limit(batchSize).toFuture()
+    val mappedResult = futureResult.map(_.map ( doc => repositories.bsonDocToOnlineTestApplication(doc) ).toList) // TODO: mongo Seq -> List
+    mappedResult
+  }
 
   // TODO: cubiks specific
   /*
@@ -184,7 +211,23 @@ class Phase2TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
       case _ => cannotFindTestByOrderId(orderId)
     }
   }*/
-  def getTestProfileByOrderId(orderId: String): Future[Phase2TestGroupWithAppId] = ???
+//  def getTestProfileByOrderId(orderId: String): Future[Phase2TestGroupWithAppId] = ???
+  override def getTestProfileByOrderId(orderId: String): Future[Phase2TestGroupWithAppId] = {
+    val query = Document("testGroups.PHASE2.tests" -> Document(
+      "$elemMatch" -> Document("orderId" -> orderId)
+    ))
+    val projection = Projections.include("applicationId", s"testGroups.$phaseName")
+
+    collection.find[Document](query).projection(projection).headOption() map {
+      case Some(doc) =>
+        val applicationId = doc.get("applicationId").get.asString().getValue
+        val bsonPhase2 = doc.get("testGroups").map( _.asDocument().get(phaseName).asDocument() )
+        val phase2TestGroup = bsonPhase2.map( Codecs.fromBson[Phase2TestGroup] )
+          .getOrElse(cannotFindTestByOrderId(orderId))
+        Phase2TestGroupWithAppId(applicationId, phase2TestGroup)
+      case _ => cannotFindTestByOrderId(orderId)
+    }
+  }
 
   override def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit] = {
     updateGroupExpiryTime(applicationId, expirationDate, phaseName)
@@ -255,7 +298,16 @@ class Phase2TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
 
     nextTestForReminder(reminder, progressStatusQuery)
   }*/
-  override def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = ???
+  override def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = {
+    val progressStatusQuery = Document("$and" -> BsonArray(
+      Document(s"progress-status.$PHASE2_TESTS_COMPLETED" -> Document("$ne" -> true)),
+      Document(s"progress-status.$PHASE2_TESTS_EXPIRED" -> Document("$ne" -> true)),
+      Document(s"progress-status.${reminder.progressStatuses}" -> Document("$ne" -> true))
+    ))
+
+    nextTestForReminder(reminder, progressStatusQuery)
+  }
+
 
   /*
   override def nextTestGroupWithReportReady: Future[Option[Phase2TestGroupWithAppId]] = {
