@@ -285,18 +285,16 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       case None => throw ApplicationNotFound(s"No application found for $applicationId")
     }
   }*/
-  override def findProgress(applicationId: String): Future[ProgressResponse] = ???
-/*
   override def findProgress(applicationId: String): Future[ProgressResponse] = {
     val query = Document("applicationId" -> applicationId)
     val projection = Projections.include("progress-status")
 
-    collection.find(query).projection(projection).headOption map {
+    collection.find(query).projection(projection).headOption() map {
       //TODO: mongo need to implement toProgressResponse in CommonBSONDocuments
-      case Some(document) => toProgressResponse(applicationId).read(document)
+      case Some(document) => ???//toProgressResponse(applicationId).read(document)
       case None => throw ApplicationNotFound(s"No application found for $applicationId")
     }
-  }*/
+  }
 
   /*
   def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]] = {

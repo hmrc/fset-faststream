@@ -26,6 +26,7 @@ import model.ProgressStatuses._
 import model.persisted._
 import model.{ApplicationStatus, ReminderNotice}
 import org.joda.time.DateTime
+import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
@@ -77,13 +78,13 @@ class Phase2TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
   override val resetStatuses = List[String](ApplicationStatus.PHASE2_TESTS, ApplicationStatus.PHASE2_TESTS_FAILED,
     ApplicationStatus.PHASE2_TESTS_PASSED, ApplicationStatus.PHASE3_TESTS)
   override val dateTimeFactory = dateTime
-  /*
-  override val expiredTestQuery: BSONDocument = {
-    BSONDocument("$and" -> BSONArray(
-      BSONDocument(s"progress-status.$PHASE2_TESTS_COMPLETED" -> BSONDocument("$ne" -> true)),
-      BSONDocument(s"progress-status.$PHASE2_TESTS_EXPIRED" -> BSONDocument("$ne" -> true))
+
+  override val expiredTestQuery: Document = {
+    Document("$and" -> BsonArray(
+      Document(s"progress-status.$PHASE2_TESTS_COMPLETED" -> Document("$ne" -> true)),
+      Document(s"progress-status.$PHASE2_TESTS_EXPIRED" -> Document("$ne" -> true))
     ))
-  }*/
+  }
 
   //  override implicit val bsonHandler: BSONHandler[BSONDocument, Phase2TestGroup] = Phase2TestGroup.bsonHandler
 

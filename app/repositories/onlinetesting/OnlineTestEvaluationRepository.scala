@@ -161,7 +161,7 @@ class Phase1EvaluationMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
   val expiredProgressStatus = ProgressStatuses.PHASE1_TESTS_EXPIRED
 
   def applicationReadyForEvaluationBSONReader(doc: Document) : ApplicationReadyForEvaluation = {
-    val bsonPhase1 = doc.get("testGroups").map(_.asDocument().get(phase.toString).asDocument() )
+    val bsonPhase1 = doc.get("testGroups").map( _.asDocument().get(phase.toString).asDocument() )
     val phase1: Phase1TestProfile = bsonPhase1.map( Codecs.fromBson[Phase1TestProfile] ).get
     applicationEvaluationBuilder(phase1.activeTests, activeLaunchPadTest = None, prevPhaseEvaluation = None)(doc)
   }

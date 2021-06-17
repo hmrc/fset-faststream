@@ -19,7 +19,6 @@ package model.assessmentscores
 import model.UniqueIdentifier
 import model.fsacscores.AssessmentScoresFinalFeedbackExamples
 
-
 object AssessmentScoresAllExercisesExamples {
   val AppId1 = UniqueIdentifier.randomUniqueIdentifier
   val AppId2 = UniqueIdentifier.randomUniqueIdentifier

@@ -55,7 +55,7 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     "create new assessment scores when it does not exist" in new TestFixture  {
       getRepository.save(Scores).futureValue
       val result = repository.find(ApplicationId).futureValue
-      result mustBe Some(Scores) // TODO: mongo Date is being stored in utc and then read back as bst +1 so are not matching
+      result mustBe Some(Scores)
       // local time is 13:53:20
       // submittedDate:Some(2021-06-01T13:53:20.067+01:00)
       // submittedDate:Some(2021-06-01T12:53:20.067Z)

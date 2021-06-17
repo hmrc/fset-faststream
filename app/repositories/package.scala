@@ -15,16 +15,21 @@
  */
 
 import model.ApplicationRoute.ApplicationRoute
+import model.ApplicationStatus.ApplicationStatus
 import model.CivilServantAndInternshipType.CivilServantAndInternshipType
 import model.EvaluationResults._
 import model.FlagCandidatePersistedObject.FlagCandidate
 import model.OnlineTestCommands.OnlineTestApplication
 import model.assessmentscores._
 import model.command.WithdrawApplication
-import model.persisted.{ AssistanceDetails, ContactDetails, QuestionnaireAnswer }
-import model.{ AdjustmentDetail, ApplicationRoute, CivilServantAndInternshipType }
-import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalTime }
+import model.persisted.{AssistanceDetails, ContactDetails, QuestionnaireAnswer}
+import model.{AdjustmentDetail, ApplicationRoute, CivilServantAndInternshipType}
+import org.joda.time.{DateTime, DateTimeZone, LocalDate, LocalTime}
+import org.mongodb.scala.bson.collection.immutable.Document
 import play.api.libs.json._
+import uk.gov.hmrc.mongo.play.json.Codecs
+
+import scala.util.Try
 //import reactivemongo.bson._
 
 import scala.language.postfixOps
@@ -137,6 +142,23 @@ package object repositories {
   implicit val adjustmentDetailHandler: BSONHandler[BSONDocument, AdjustmentDetail] = Macros.handler[AdjustmentDetail]
  */
 
+  /*
+  def applicationEvaluationBuilder(activePsiTests: List[PsiTest],
+                                   activeLaunchPadTest: Option[LaunchpadTest],
+                                   prevPhaseEvaluation: Option[PassmarkEvaluation])(doc: Document) = {
+
+    val applicationId = doc.get("applicationId").get.asString().getValue
+    val applicationStatus = Codecs.fromBson[ApplicationStatus](doc.get("applicationStatus").get)
+    val applicationRoute = Codecs.fromBson[ApplicationRoute](doc.get("applicationRoute").getOrElse(ApplicationRoute.Faststream.toBson))
+    val isGis = Try(doc.get("assistance-details").exists(_.asDocument().getBoolean("guaranteedInterview").getValue)).getOrElse(false)
+    val schemePreferencesBsonValue = doc.get("scheme-preferences").map(_.asDocument())
+    val preferences = schemePreferencesBsonValue.map( bson => Codecs.fromBson[SelectedSchemes](bson) ).get
+
+    ApplicationReadyForEvaluation(applicationId, applicationStatus, applicationRoute, isGis, activePsiTests,
+      activeLaunchPadTest, prevPhaseEvaluation, preferences)
+  }
+ */
+
 /*
   def bsonDocToOnlineTestApplication(doc: BSONDocument) = {
     val applicationId = doc.getAs[String]("applicationId").get
@@ -162,6 +184,37 @@ package object repositories {
       etrayAdjustments, videoInterviewAdjustments
     )
   }*/
+
+  def bsonDocToOnlineTestApplication(doc: Document) = {
+    val applicationId = doc.get("applicationId").get.asString().getValue
+    val applicationStatus = Codecs.fromBson[ApplicationStatus](doc.get("applicationStatus").get)
+    val userId = doc.get("userId").get.asString().getValue
+    val testAccountId = doc.get("testAccountId").get.asString().getValue
+
+    val personalDetailsRoot = doc.get("personal-details").map(_.asDocument()).get
+    val preferredName = personalDetailsRoot.get("preferredName").asString().getValue
+    val lastName = personalDetailsRoot.get("lastName").asString().getValue
+
+    val assistanceDetailsRoot = doc.get("assistance-details").map(_.asDocument()).get
+    val guaranteedInterview = Try(assistanceDetailsRoot.get("guaranteedInterview").asBoolean().getValue).getOrElse(false)
+    val needsAdjustmentForOnlineTests = Try(assistanceDetailsRoot.get("needsSupportForOnlineAssessment").asBoolean().getValue).getOrElse(false)
+    val needsAdjustmentsAtVenue = Try(assistanceDetailsRoot.get("needsSupportAtVenue").asBoolean().getValue).getOrElse(false)
+
+//    val schemePreferencesBsonValue = doc.get("scheme-preferences").map(_.asDocument())
+//    val preferences = schemePreferencesBsonValue.map( bson => Codecs.fromBson[SelectedSchemes](bson) ).get
+
+    val etrayAdjustmentsBsonValue = assistanceDetailsRoot.get("etray")
+//    val etrayAdjustments = assistanceDetailsRoot.getAs[AdjustmentDetail]("etray")
+//    val videoInterviewAdjustments = assistanceDetailsRoot.getAs[AdjustmentDetail]("video")
+    val etrayAdjustments = None //TODO: mongo fix
+    val videoInterviewAdjustments = None //TODO: mongo fix
+
+    OnlineTestApplication(
+      applicationId, applicationStatus, userId, testAccountId, guaranteedInterview,
+      needsAdjustmentForOnlineTests, needsAdjustmentsAtVenue, preferredName, lastName,
+      etrayAdjustments, videoInterviewAdjustments
+    )
+  }
 
   /*
   //scalastyle:off method.length cyclomatic.complexity

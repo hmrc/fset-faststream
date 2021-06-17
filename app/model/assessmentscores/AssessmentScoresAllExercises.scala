@@ -19,8 +19,6 @@ package model.assessmentscores
 import model.UniqueIdentifier
 import play.api.libs.json.Json
 
-//import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
-
 // finalFeedback should be None in case of Reviewer Assessment scores
 case class AssessmentScoresAllExercises(
                                          applicationId: UniqueIdentifier,
@@ -53,6 +51,4 @@ case class AssessmentScoresAllExercises(
 
 object AssessmentScoresAllExercises {
   implicit val jsonFormat = Json.format[AssessmentScoresAllExercises]
-//  implicit val bsonHandler: BSONHandler[BSONDocument, AssessmentScoresAllExercises] =
-//    Macros.handler[AssessmentScoresAllExercises]
 }

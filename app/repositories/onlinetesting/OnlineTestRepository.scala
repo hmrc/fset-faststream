@@ -25,8 +25,10 @@ import model._
 import model.exchange.PsiTestResultReady
 import model.persisted._
 import org.joda.time.DateTime
+import org.mongodb.scala.bson.{BsonArray, BsonDocument}
 import org.mongodb.scala.bson.collection.immutable.Document
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import org.mongodb.scala.model.Projections
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 //import reactivemongo.bson.{ BSONDocument, _ }
 //import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
@@ -43,8 +45,8 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
 
   val thisApplicationStatus: ApplicationStatus
   val phaseName: String
-  val dateTimeFactory: DateTimeFactory // Guice impl
-  //  val expiredTestQuery: BSONDocument
+  val dateTimeFactory: DateTimeFactory
+  val expiredTestQuery: Document
   val resetStatuses: List[String]
   //  implicit val bsonHandler: BSONHandler[BSONDocument, T]
 
@@ -60,7 +62,41 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     val query = BSONDocument("applicationId" -> applicationId)
     phaseTestProfileByQuery(query, phase)
   }*/
-  def getTestGroup(applicationId: String, phase: String = "PHASE1"): Future[Option[T]] = ???
+  def getTestGroup(applicationId: String, phase: String = "PHASE1"): Future[Option[T]] = {
+//    val query = Document("applicationId" -> applicationId)
+//    phaseTestProfileByQuery(query, phase)
+//    getPhase1TestGroup(applicationId, phase)
+    ???
+  }
+
+  //TODO: mongo new methods here start
+  def getTestGroupP1(applicationId: String, phase: String = "PHASE1"): Future[Option[Phase1TestProfile]] = {
+    val query = Document("applicationId" -> applicationId)
+
+    val projection = Projections.include(s"testGroups.$phase")
+
+    //scalastyle:off
+    println("***** getTestGroupP1 start")
+
+    val xx = collection.find[Document](query).projection(projection).headOption().map { docOpt =>
+      println("***** getTestGroupP1 - 1")
+      docOpt.flatMap{ doc =>
+        println("***** getTestGroupP1 - 2")
+        doc.get("testGroups").map(_.asDocument().get(phase).asDocument() ).map { p1 =>
+          println("***** getTestGroupP1 - 3")
+          Codecs.fromBson[Phase1TestProfile](p1)
+        }
+      }
+    }
+    xx.map{ ss =>
+      println("***** getTestGroupP1 end")
+      println(s"**** $ss")
+      //scalastyle:on
+      ss
+    }
+    xx
+  }
+  //TODO: mongo new methods here finish
 
   //TODO: cubiks delete
   /*
@@ -90,7 +126,14 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     ))
     findAndUpdateTest(orderId, update)
   }*/
-  def updateTestStartTime(orderId: String, startedTime: DateTime): Future[Unit] = ???
+//  def updateTestStartTime(orderId: String, startedTime: DateTime): Future[Unit] = ???
+  def updateTestStartTime(orderId: String, startedTime: DateTime): Future[Unit] = {
+  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+    val update = Document("$set" -> Document(
+      s"testGroups.$phaseName.tests.$$.startedDateTime" -> Some(Codecs.toBson(startedTime))
+    ))
+    findAndUpdateTest(orderId, update)
+  }
 
   //TODO: cubiks delete
   /*
@@ -109,7 +152,12 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     ))
     findAndUpdatePsiTest(psiOrderId, update)
   }*/
-  def markTestAsInactive2(psiOrderId: String): Future[Unit] = ???
+  def markTestAsInactive2(psiOrderId: String): Future[Unit] = {
+    val update = Document("$set" -> Document(
+      s"testGroups.$phaseName.tests.$$.usedForResults" -> false
+    ))
+    findAndUpdatePsiTest(psiOrderId, update)
+  }
 
   /*
   private def findAndUpdatePsiTest(orderId: String, update: BSONDocument, ignoreNotFound: Boolean = false): Future[Unit] = {
@@ -128,6 +176,23 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
 
     collection.update(ordered = false).one(find, update) map validator
   }*/
+
+  private def findAndUpdatePsiTest(orderId: String, update: Document, ignoreNotFound: Boolean = false): Future[Unit] = {
+    val find = Document(
+      s"testGroups.$phaseName.tests" -> Document(
+        "$elemMatch" -> Document("orderId" -> orderId)
+      )
+    )
+
+    val validator = if (ignoreNotFound) {
+      singleUpdateValidator(orderId.toString, actionDesc = s"updating $phaseName tests", ignoreNotFound = true)
+    } else {
+      singleUpdateValidator(orderId.toString, actionDesc = s"updating $phaseName tests",
+        CannotFindTestByOrderIdException(s"Cannot find test group by orderId=$orderId"))
+    }
+
+    collection.updateOne(find, update).toFuture() map validator
+  }
 
   /*
   def insertPsiTests(applicationId: String, newTestProfile: PsiTestProfile): Future[Unit] = {
@@ -149,7 +214,28 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
 
     collection.update(ordered = false).one(query, update) map validator
   }*/
-  def insertPsiTests(applicationId: String, newTestProfile: PsiTestProfile): Future[Unit] = ???
+  def insertPsiTests(applicationId: String, newTestProfile: PsiTestProfile): Future[Unit] = {
+    //  def insertPsiTests[P <: PsiTestProfile](applicationId: String, newTestProfile: P) = {
+
+    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+
+    val query = Document(
+      "applicationId" -> applicationId
+    )
+    val update = Document(
+      "$push" -> Document(
+        s"testGroups.$phaseName.tests" -> Document(
+          "$each" -> Codecs.toBson(newTestProfile.tests)
+        )),
+      "$set" -> Document(
+        s"testGroups.$phaseName.expirationDate" -> Codecs.toBson(newTestProfile.expirationDate)
+      )
+    )
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = s"inserting tests during $phaseName", ApplicationNotFound(applicationId))
+
+    collection.updateOne(query, update).toFuture() map validator
+  }
 
   /*
   def getTestProfileByOrderId(orderId: String, phase: String = "PHASE1"): Future[T] = {
@@ -162,6 +248,28 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     }
   }*/
   def getTestProfileByOrderId(orderId: String, phase: String = "PHASE1"): Future[T] = ???
+
+  def getTestProfileByOrderIdP1(orderId: String, phase: String = "PHASE1"): Future[Phase1TestProfile] = {
+    val query = Document(s"testGroups.$phase.tests" -> Document(
+      "$elemMatch" -> Document("orderId" -> orderId)
+    ))
+
+    phaseTestProfileByQueryP1(query, phase).map { x =>
+      x.getOrElse(cannotFindTestByOrderId(orderId))
+    }
+  }
+
+  private def phaseTestProfileByQueryP1(query: Document, phase: String): Future[Option[Phase1TestProfile]] = {
+    val projection = Projections.include(s"testGroups.$phase")
+
+    collection.find[Document](query).projection(projection).headOption().map { docOpt =>
+      docOpt.flatMap{ doc =>
+        doc.get("testGroups").map(_.asDocument().get(phase).asDocument() ).map { p1 =>
+          Codecs.fromBson[Phase1TestProfile](p1)
+        }
+      }
+    }
+  }
 
   def cannotFindTestByOrderId(orderId: String) = {
     throw CannotFindTestByOrderIdException(s"Cannot find test group by orderId=$orderId")
@@ -176,7 +284,14 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
 
     findAndUpdatePsiTest(orderId, update, ignoreNotFound = true)
   }*/
-  def updateTestCompletionTime2(orderId: String, completedTime: DateTime): Future[Unit] = ???
+  def updateTestCompletionTime2(orderId: String, completedTime: DateTime): Future[Unit] = {
+    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+    val update = Document("$set" -> Document(
+      s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(Codecs.toBson(completedTime))
+    ))
+
+    findAndUpdatePsiTest(orderId, update, ignoreNotFound = true)
+  }
 
   /*
   def updateTestReportReady2(orderId: String, reportReady: PsiTestResultReady): Future[Unit] = {
@@ -205,7 +320,21 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
 
     collection.update(ordered = false).one(query, update) map validator
   }*/
-  def insertTestResult2(appId: String, psiTest: PsiTest, testResult: PsiTestResult): Future[Unit] = ???
+  def insertTestResult2(appId: String, psiTest: PsiTest, testResult: PsiTestResult): Future[Unit] = {
+    val query = Document(
+      "applicationId" -> appId,
+      s"testGroups.$phaseName.tests" -> Document(
+        "$elemMatch" -> Document("orderId" -> psiTest.orderId)
+      )
+    )
+    val update = Document("$set" -> Document(
+      s"testGroups.$phaseName.tests.$$.testResult" -> Codecs.toBson(testResult)
+    ))
+
+    val validator = singleUpdateValidator(appId, actionDesc = s"inserting $phaseName test result")
+
+    collection.updateOne(query, update).toFuture() map validator
+  }
 
   /*
   def getApplicationIdForOrderId(orderId: String, phase: String = "PHASE1"): Future[Option[String]] = {
@@ -218,7 +347,17 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
       optDocument.flatMap {_.getAs[String]("applicationId")}
     }
   }*/
-  def getApplicationIdForOrderId(orderId: String, phase: String = "PHASE1"): Future[Option[String]] = ???
+  // TODO: mongo test this
+  def getApplicationIdForOrderId(orderId: String, phase: String = "PHASE1"): Future[Option[String]] = {
+    val projection = Projections.include("applicationId")
+    val query = Document(s"testGroups.$phase.tests" -> Document(
+      "$elemMatch" -> Document("orderId" -> orderId)
+    ))
+
+    collection.find[Document](query).projection(projection).headOption() map { optDocument =>
+      optDocument.map( doc => doc.get("applicationId").get.asString().getValue)
+    }
+  }
 
   /*
   def nextTestGroupWithReportReady2[TestGroup](implicit reader: BSONDocumentReader[TestGroup]): Future[Option[TestGroup]] = {
@@ -287,16 +426,20 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     throw CannotFindTestByCubiksId(s"Cannot find test group by token: $token")
   }*/
 
+  //TODO: mongo look at this generic function
   /*
-  private def phaseTestProfileByQuery(query: BSONDocument, phase: String): Future[Option[T]] = {
-    val projection = BSONDocument(s"testGroups.$phase" -> 1, "_id" -> 0)
+  private def phaseTestProfileByQuery(query: Document, phase: String): Future[Option[T]] = {
+    val projection = Projections.include(s"testGroups.$phase")
 
-    collection.find(query, Some(projection)).one[BSONDocument] map { optDocument =>
+    val xx = collection.find(query).projection(projection).headOption()
+
+    collection.find(query).projection(projection).headOption() map { optDocument =>
       optDocument.flatMap {_.getAs[BSONDocument]("testGroups")}
         .flatMap {_.getAs[BSONDocument](phase)}
         .map {x => bsonHandler.read(x)}
     }
   }*/
+
 
   /*
   def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime, phase: String = "PHASE1"): Future[Unit] = {
@@ -322,9 +465,28 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     implicit val reader = bsonReader(ExpiringOnlineTest.fromBson)
     selectOneRandom[ExpiringOnlineTest](query)
   }*/
-  def nextExpiringApplication(expiryTest: TestExpirationEvent): Future[Option[ExpiringOnlineTest]] = ???
+  def nextExpiringApplication(expiryTest: TestExpirationEvent): Future[Option[ExpiringOnlineTest]] = {
+    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+    val query = Document("$and" -> BsonArray(
+      Document("applicationStatus" -> thisApplicationStatus.toBson),
+      Document(s"testGroups.${expiryTest.phase}.expirationDate" ->
+        Document("$lte" ->
+          Codecs.toBson(dateTimeFactory.nowLocalTimeZone.minusSeconds(expiryTest.gracePeriodInSecs)) // Serialises to UTC.
+        )
+      ),
+      expiredTestQuery
+    ))
 
-  /* TODO:fix
+//    implicit val reader = bsonReader(ExpiringOnlineTest.fromBson)
+//    selectOneRandom[ExpiringOnlineTest](query) //TODO:mongo fix this
+
+    // TODO: mongo temp code until we get the selectRandom migrated
+    val futureResult = collection.find[Document](query).headOption()
+    val mappedResult = futureResult.map(_.map ( doc => ExpiringOnlineTest.fromBson(doc) ))
+    mappedResult
+  }
+
+/*
   protected[this] def nextTestForReminder(reminder: ReminderNotice, progressStatusQuery: BSONDocument):
   Future[Option[NotificationExpiringOnlineTest]] = {
     val query = BSONDocument("$and" -> BSONArray(
@@ -338,6 +500,27 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     implicit val reader = bsonReader(x => NotificationExpiringOnlineTest.fromBson(x, reminder.phase))
     selectOneRandom[NotificationExpiringOnlineTest](query)
   }*/
+
+  protected[this] def nextTestForReminder(reminder: ReminderNotice, progressStatusQuery: Document):
+  Future[Option[NotificationExpiringOnlineTest]] = {
+    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+
+    val query = Document("$and" -> BsonArray(
+      Document("applicationStatus" -> thisApplicationStatus.toBson),
+      Document(s"testGroups.${reminder.phase}.expirationDate" ->
+        Document( "$lte" -> Codecs.toBson(dateTimeFactory.nowLocalTimeZone.plusHours(reminder.hoursBeforeReminder))) // Serialises to UTC.
+      ),
+      progressStatusQuery
+    ))
+
+//    implicit val reader = bsonReader(x => NotificationExpiringOnlineTest.fromBson(x, reminder.phase))
+//    selectOneRandom[NotificationExpiringOnlineTest](query)
+
+    // TODO: mongo temp code until we get the selectRandom migrated
+    val futureResult = collection.find[BsonDocument](query).headOption()
+    val mappedResult = futureResult.map(_.map ( doc => NotificationExpiringOnlineTest.fromBson(doc, reminder.phase) ))
+    mappedResult
+  }
 
 //  def updateProgressStatus(appId: String, progressStatus: ProgressStatus): Future[Unit] =
 //    updateProgressStatus(appId, progressStatus, applicationStatusBSON)
@@ -433,6 +616,24 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     collection.update(ordered = false).one(find, update) map validator
   }*/
 
+  private def findAndUpdateTest(orderId: String, update: Document,
+                                ignoreNotFound: Boolean = false): Future[Unit] = {
+    val find = Document(
+      s"testGroups.$phaseName.tests" -> Document(
+        "$elemMatch" -> Document("orderId" -> orderId)
+      )
+    )
+
+    val validator = if (ignoreNotFound) {
+      singleUpdateValidator(orderId, actionDesc = s"updating $phaseName tests", ignoreNotFound = true)
+    } else {
+      singleUpdateValidator(orderId, actionDesc = s"updating $phaseName tests",
+        CannotFindTestByCubiksId(s"Cannot find test group by Order ID: $orderId"))
+    }
+
+    collection.updateOne(find, update).toFuture() map validator
+  }
+
   //TODO: cubiks should be deleted
   /*
   def insertTestResult(appId: String, phase1Test: CubiksTest, testResult: TestResult): Future[Unit] = {
@@ -498,7 +699,15 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
 
     collection.update(ordered = false).one(query, update) map validator
   }*/
-  def removeTestGroup(applicationId: String): Future[Unit] = ???
+  def removeTestGroup(applicationId: String): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+
+    val update = Document("$unset" -> Document(s"testGroups.$phaseName" -> ""))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "removing test group")
+
+    collection.updateOne(query, update).toFuture() map validator
+  }
 
   /*
   def removeTestGroupEvaluation(applicationId: String): Future[Unit] = {
