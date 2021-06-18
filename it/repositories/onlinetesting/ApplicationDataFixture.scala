@@ -221,9 +221,9 @@ trait ApplicationDataFixture {
         "firstName" -> s"${testCandidate("firstName")}",
         "lastName" -> s"${testCandidate("lastName")}",
         "preferredName" -> s"${testCandidate("preferredName")}",
-        "dateOfBirth" -> s"${testCandidate("dateOfBirth")}",
-        "aLevel" -> true,
-        "stemLevel" -> true
+        "dateOfBirth" -> s"${testCandidate("dateOfBirth")}"//,
+//        "aLevel" -> true, //TODO: mongo no longer needed
+//        "stemLevel" -> true
       ),
       "civil-service-experience-details" -> civilServiceExperienceDetails(fastPassApplicable, fastPassReceived, fastPassAccepted),
       "assistance-details" -> createAssistanceDetails(needsSupportForOnlineAssessment, adjustmentsConfirmed, timeExtensionAdjustments,

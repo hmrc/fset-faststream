@@ -8,7 +8,6 @@ import model._
 import org.joda.time.{DateTime, DateTimeZone, LocalDate}
 import org.mongodb.scala.bson.collection.immutable.Document
 import uk.gov.hmrc.mongo.play.json.Codecs
-//import reactivemongo.bson.BSONDocument
 import testkit.MongoRepositorySpec
 
 class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataFixture {
@@ -185,7 +184,6 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   }
 
   "Next application ready for online testing" should {
-
     "exclude applications with SDIP or EDIP application routes" in {
       createApplicationWithAllFields("userId0", "appId0","testAccountId", "frameworkId", "PHASE2_TESTS_PASSED",
         additionalProgressStatuses = List((PHASE2_TESTS_PASSED, true)), applicationRoute = "Sdip").futureValue
@@ -295,7 +293,6 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       }
 
       "the test is expired" in {
-//        import repositories.BSONDateTimeHandler
         import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
 
         createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
@@ -309,7 +306,6 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       }
 
       "the test is completed" in {
-//        import repositories.BSONDateTimeHandler
         import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
 
         createApplicationWithAllFields(UserId, AppId, TestAccountId,"frameworkId", "SUBMITTED").futureValue
@@ -334,7 +330,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   }
 
   "reset progress statuses" should {
-    "reset PHASE3_TESTS status for an application at PHASE3_TESTS_RESULTS_RECEIVED" ignore { //TODO: mongo fix
+    "reset PHASE3_TESTS status for an application at PHASE3_TESTS_RESULTS_RECEIVED" in {
       createApplicationWithAllFields("userId", "appId", "testAccountId", appStatus = ApplicationStatus.PHASE3_TESTS,
         additionalProgressStatuses = List(
           ProgressStatuses.PHASE3_TESTS_INVITED -> true,

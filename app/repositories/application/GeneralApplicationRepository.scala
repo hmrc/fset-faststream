@@ -43,7 +43,7 @@ import org.mongodb.scala.model.Projections
 import play.api.libs.json.{JsNumber, JsObject, Json}
 import repositories.{CollectionNames, CommonBSONDocuments, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers}
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.{CollectionFactory, PlayMongoRepository}
+import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}
 //import play.modules.reactivemongo.ReactiveMongoComponent
 //import reactivemongo.api.Cursor.FailOnError
 //import reactivemongo.api._
@@ -75,7 +75,6 @@ trait GeneralApplicationRepository {
   def findProgress(applicationId: String): Future[ProgressResponse]
   def findStatus(applicationId: String): Future[ApplicationStatusDetails]
   def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse]
-  def findByUserId2(userId: String, frameworkId: String): Future[ApplicationResponse2] //TODO: mongo remove
   def findCandidateByUserId(userId: String): Future[Option[Candidate]]
   def findByCriteria(firstOrPreferredName: Option[String], lastName: Option[String],
                      dateOfBirth: Option[LocalDate], userIds: List[String] = List.empty): Future[List[Candidate]]
@@ -289,9 +288,8 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     val query = Document("applicationId" -> applicationId)
     val projection = Projections.include("progress-status")
 
-    collection.find(query).projection(projection).headOption() map {
-      //TODO: mongo need to implement toProgressResponse in CommonBSONDocuments
-      case Some(document) => ???//toProgressResponse(applicationId).read(document)
+    collection.find[Document](query).projection(projection).headOption() map {
+      case Some(document) => toProgressResponse(applicationId)(document)
       case None => throw ApplicationNotFound(s"No application found for $applicationId")
     }
   }
@@ -416,32 +414,32 @@ def findByUserId(userId: String, frameworkId: String): Future[ApplicationRespons
   }
 }*/
 
-  def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse] = ???
-//TODO: mongo fix this
-  def findByUserId2(userId: String, frameworkId: String): Future[ApplicationResponse2] = {
+  def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse] = {
     val query = Document("userId" -> userId, "frameworkId" -> frameworkId)
 
-    applicationResponseCollection.find(query).headOption().map {
-      case Some(applicationResponse) => applicationResponse
-      case None => throw ApplicationNotFound(userId)
-    }
-/*
-      case Some(document) =>
-        val applicationId = document.getAs[String]("applicationId").get
-        val testAccountId = document.getAs[String]("testAccountId").get
-        val applicationStatus = document.getAs[ApplicationStatus]("applicationStatus").get
-        val applicationRoute = document.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream)
-        val fastPassReceived = document.getAs[CivilServiceExperienceDetails]("civil-service-experience-details")
-        val submissionDeadline = document.getAs[DateTime]("submissionDeadline")
+    collection.find[Document](query).headOption() flatMap {
+      case Some(doc) =>
+        val applicationId = doc.get("applicationId").get.asString().getValue
+        val testAccountId = doc.get("testAccountId").get.asString().getValue
+        val applicationStatus = Codecs.fromBson[ApplicationStatus](doc.get("applicationStatus").get)
+        val applicationRoute = Codecs.fromBson[ApplicationRoute](doc.get("applicationRoute").getOrElse(ApplicationRoute.Faststream.toBson))
+        val civilServiceExperienceDetails = doc.get("civil-service-experience-details").map(_.asDocument()).map { doc =>
+          Codecs.fromBson[CivilServiceExperienceDetails](doc)
+        }
+
+        import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+        val submissionDeadline = doc.get("submissionDeadline").map { bsonValue =>
+          Codecs.fromBson[DateTime](bsonValue.asDateTime())
+        }
+
         findProgress(applicationId).map { progress =>
           ApplicationResponse(
             applicationId, applicationStatus, applicationRoute, userId, testAccountId,
-            progress, fastPassReceived, submissionDeadline
+            progress, civilServiceExperienceDetails, submissionDeadline
           )
         }
       case None => throw ApplicationNotFound(userId)
-*/
-//    }
+    }
   }
 
 /*

@@ -28,12 +28,12 @@ class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
           "applicationStatus" -> Codecs.toBson(CREATED), "frameworkId" -> FrameworkId,
           "applicationRoute" -> Codecs.toBson(ApplicationRoute.Faststream)))
         _ <- repository.save(AppId, TwoSchemes)
-        appResponse <- applicationRepository.findByUserId2(UserId, FrameworkId)
+        appResponse <- applicationRepository.findByUserId(UserId, FrameworkId)
         schemes <- repository.find(AppId)
       } yield (schemes, appResponse)).futureValue
 
       persistedSchemes mustBe TwoSchemes
-//      application.progressResponse.schemePreferences mustBe true //TODO: mongo fix
+      application.progressResponse.schemePreferences mustBe true
     }
 
     "return an exception when application does not exist" in {
