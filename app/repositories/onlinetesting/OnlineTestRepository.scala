@@ -76,39 +76,25 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
   // these need to be generic - work out how to impl that
   def getTestGroupP1(applicationId: String, phase: String = "PHASE1"): Future[Option[Phase1TestProfile]] = {
     val query = Document("applicationId" -> applicationId)
-
     val projection = Projections.include(s"testGroups.$phase")
 
-    //scalastyle:off
-    println("***** getTestGroupP1 start")
-
-    val xx = collection.find[Document](query).projection(projection).headOption().map { docOpt =>
-      println("***** getTestGroupP1 - 1")
+    collection.find[Document](query).projection(projection).headOption().map { docOpt =>
       docOpt.flatMap{ doc =>
-        println("***** getTestGroupP1 - 2")
-        doc.get("testGroups").map(_.asDocument().get(phase).asDocument() ).map { p1 =>
-          println("***** getTestGroupP1 - 3")
-          Codecs.fromBson[Phase1TestProfile](p1)
+        doc.get("testGroups").map(_.asDocument().get(phase) ).flatMap { p1 =>
+          Try(Codecs.fromBson[Phase1TestProfile](p1)).toOption
         }
       }
     }
-    xx.map{ ss =>
-      println("***** getTestGroupP1 end")
-      println(s"**** $ss")
-      //scalastyle:on
-      ss
-    }
-    xx
   }
+
   def getTestGroupP2(applicationId: String, phase: String = "PHASE1"): Future[Option[Phase2TestGroup]] = {
     val query = Document("applicationId" -> applicationId)
-
     val projection = Projections.include(s"testGroups.$phase")
 
     //scalastyle:off
     println("***** getTestGroupP2 start")
 
-    val xx = collection.find[Document](query).projection(projection).headOption().map { docOpt =>
+    collection.find[Document](query).projection(projection).headOption().map { docOpt =>
       println("***** getTestGroupP2 - 1")
       docOpt.flatMap{ doc =>
         println("***** getTestGroupP2 - 2")
@@ -118,13 +104,6 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
         }
       }
     }
-    xx.map{ ss =>
-      println("***** getTestGroupP2 end")
-      println(s"**** $ss")
-      //scalastyle:on
-      ss
-    }
-    xx
   }
 
   def getTestGroupP3(applicationId: String, phase: String = "PHASE1"): Future[Option[Phase3TestGroup]] = {

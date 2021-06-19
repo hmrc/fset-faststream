@@ -238,7 +238,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   }
 
   "Insert test result" should {
-    "correctly update a test group with results" ignore { //TODO: mongo fix
+    "correctly update a test group with results" in {
       createApplicationWithAllFields("userId", "appId", "testAccountId","frameworkId", "PHASE2_TESTS",
         additionalProgressStatuses = List((PHASE2_TESTS_RESULTS_READY, true)), phase2TestGroup = Some(testProfileWithAppId.testGroup)
       ).futureValue
@@ -310,7 +310,6 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       }
 
       "the test is expired" in {
-//        import repositories.BSONDateTimeHandler
         import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
 
         createApplicationWithAllFields(UserId, AppId, TestAccountId,"frameworkId", "SUBMITTED").futureValue
@@ -324,7 +323,6 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       }
 
       "the test is completed" in {
-//        import repositories.BSONDateTimeHandler
         import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
 
         createApplicationWithAllFields(UserId, AppId, TestAccountId,"frameworkId", "SUBMITTED").futureValue

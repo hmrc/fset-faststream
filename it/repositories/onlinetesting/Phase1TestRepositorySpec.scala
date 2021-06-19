@@ -340,7 +340,6 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       }
 
       "the test is already expired" in {
-//        import repositories.BSONDateTimeHandler
         import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
 
         createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
@@ -356,7 +355,6 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       }
 
       "the test is completed" in {
-//        import repositories.BSONDateTimeHandler
         import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
         createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
@@ -423,7 +421,6 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       }
 
       "the test is expired" in {
-//        import repositories.BSONDateTimeHandler
         import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed for ISODate
 
         createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
@@ -439,7 +436,6 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       }
 
       "the test is completed" in {
-//        import repositories.BSONDateTimeHandler
         import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed for ISODate
 
         createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
@@ -470,8 +466,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     val date = DateTime.now().plusHours(22)
     val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
 
-    //TODO: mongo fix this NullPointerException
-    "remove the test group" ignore {
+    "remove the test group" in {
       createApplicationWithAllFields("userId", "appId", "testAccountId", appStatus = ApplicationStatus.PHASE1_TESTS).futureValue
       phase1TestRepo.insertOrUpdateTestGroup("appId", testProfile).futureValue
 
@@ -496,7 +491,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       appStatusDetails.status mustBe ApplicationStatus.PHASE1_TESTS.toString
     }
 
-    "update progress status should not update if the Application Status is different from that which is being set" ignore {
+    "update progress status should not update if the Application Status is different from that which is being set" in {
       createApplicationWithAllFields("userId", "appId", "testAccountId", appStatus = ApplicationStatus.PHASE2_TESTS).futureValue
 
       val result = phase1TestRepo.updateProgressStatus("appId", PHASE1_TESTS_STARTED).futureValue
