@@ -30,6 +30,8 @@ import org.mongodb.scala.bson.{BsonArray, BsonDocument, BsonString, BsonValue}
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
+
+import scala.util.Try
 //import reactivemongo.bson.{ BSONDocument, _ }
 //import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
@@ -127,29 +129,15 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
 
   def getTestGroupP3(applicationId: String, phase: String = "PHASE1"): Future[Option[Phase3TestGroup]] = {
     val query = Document("applicationId" -> applicationId)
-
     val projection = Projections.include(s"testGroups.$phase")
 
-    //scalastyle:off
-    println("***** getTestGroupP3 start")
-
-    val xx = collection.find[Document](query).projection(projection).headOption().map { docOpt =>
-      println("***** getTestGroupP3 - 1")
+    collection.find[Document](query).projection(projection).headOption().map { docOpt =>
       docOpt.flatMap{ doc =>
-        println("***** getTestGroupP3 - 2")
-        doc.get("testGroups").map(_.asDocument().get(phase).asDocument() ).map { p3 =>
-          println("***** getTestGroupP3 - 3")
-          Codecs.fromBson[Phase3TestGroup](p3)
+        doc.get("testGroups").map( _.asDocument().get(phase) ).flatMap { p3 =>
+          Try(Codecs.fromBson[Phase3TestGroup](p3)).toOption
         }
       }
     }
-    xx.map{ ss =>
-      println("***** getTestGroupP3 end")
-      println(s"**** $ss")
-      //scalastyle:on
-      ss
-    }
-    xx
   }
   //TODO: mongo new methods here finish
 

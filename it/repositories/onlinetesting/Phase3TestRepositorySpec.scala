@@ -226,7 +226,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   }
 
   "Remove a phase 3 test" should {
-    "remove test when requested" ignore { //TODO: mongo NullPointerException
+    "remove test when requested" in {
       createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "PHASE3",
         additionalProgressStatuses = List((ProgressStatuses.PHASE3_TESTS_INVITED, true))
       ).futureValue
