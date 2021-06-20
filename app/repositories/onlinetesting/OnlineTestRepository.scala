@@ -80,7 +80,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
 
     collection.find[Document](query).projection(projection).headOption().map { docOpt =>
       docOpt.flatMap{ doc =>
-        doc.get("testGroups").map(_.asDocument().get(phase) ).flatMap { p1 =>
+        doc.get("testGroups").map( _.asDocument().get(phase) ).flatMap { p1 =>
           Try(Codecs.fromBson[Phase1TestProfile](p1)).toOption
         }
       }
@@ -91,16 +91,10 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     val query = Document("applicationId" -> applicationId)
     val projection = Projections.include(s"testGroups.$phase")
 
-    //scalastyle:off
-    println("***** getTestGroupP2 start")
-
     collection.find[Document](query).projection(projection).headOption().map { docOpt =>
-      println("***** getTestGroupP2 - 1")
       docOpt.flatMap{ doc =>
-        println("***** getTestGroupP2 - 2")
-        doc.get("testGroups").map(_.asDocument().get(phase).asDocument() ).map { p2 =>
-          println("***** getTestGroupP2 - 3")
-          Codecs.fromBson[Phase2TestGroup](p2)
+        doc.get("testGroups").map( _.asDocument().get(phase) ).flatMap { p2 =>
+          Try(Codecs.fromBson[Phase2TestGroup](p2)).toOption
         }
       }
     }
@@ -762,7 +756,15 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
 
     collection.update(ordered = false).one(query, update) map validator
   }*/
-  def removeTestGroupEvaluation(applicationId: String): Future[Unit] = ???
+//TODO: mongo write a test for this
+  def removeTestGroupEvaluation(applicationId: String): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+    val update = Document("$unset" -> Document(s"testGroups.$phaseName.evaluation" -> ""))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "removing test group evaluation")
+
+    collection.updateOne(query, update).toFuture() map validator
+  }
 
   /*
   def findEvaluation(applicationId: String): Future[Option[Seq[SchemeEvaluationResult]]] = {
@@ -780,6 +782,19 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
       }
     }
   }*/
-  def findEvaluation(applicationId: String): Future[Option[Seq[SchemeEvaluationResult]]] = ???
+  //TODO: mongo write a test for this
+  def findEvaluation(applicationId: String): Future[Option[Seq[SchemeEvaluationResult]]] = {
+    val query = Document("applicationId" -> applicationId)
+    val projection = Projections.include(s"testGroups.$phaseName.evaluation.result")
+/*
+    collection.find(query).projection(projection).headOption() map { optDocument =>
+      optDocument.flatMap {_.getAs[BSONDocument]("testGroups")
+        .flatMap(_.getAs[BSONDocument](phaseName))
+        .flatMap(_.getAs[BSONDocument]("evaluation"))
+        .flatMap(_.getAs[Seq[SchemeEvaluationResult]]("result"))
+      }
+    }*/
+    ???
+  }
 }
 //scalastyle:on
