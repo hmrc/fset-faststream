@@ -252,9 +252,8 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         profile.tests.head.testResult.get mustBe testResult
       }
 
-      // TODO: mongo implement
-//      val status = helperRepo.findProgress("appId").futureValue
-//      status.phase1ProgressResponse.phase1TestsResultsReceived mustBe false
+      val status = helperRepo.findProgress("appId").futureValue
+      status.phase1ProgressResponse.phase1TestsResultsReceived mustBe false
     }
   }
 
