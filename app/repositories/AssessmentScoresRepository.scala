@@ -239,8 +239,9 @@ abstract class AssessmentScoresMongoRepository @Inject() (collectionName: String
       Map(s"$exercise" -> "")
     }
 
+    val validator = singleUpdateValidator(applicationId.toString, actionDesc = "resetting exercises")
     val unsetDoc = Document("$unset" -> Document(exercisesToUnset))
-    collection.updateOne(query, unsetDoc).toFuture() map( _ => () )
+    collection.updateOne(query, unsetDoc).toFuture() map validator
   }
 }
 
