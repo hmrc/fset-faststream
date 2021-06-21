@@ -259,6 +259,21 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     }
   }
 
+  "findAllByIds" should {
+    "return empty list when there are no assessment scores" in new TestFixture  {
+      val result = repository.findAllByIds(Seq(UniqueIdentifier.randomUniqueIdentifier.toString)).futureValue
+      result mustBe Nil
+    }
+
+    "return all assessment scores when there are some" in new TestFixture {
+      repository.save(Scores).futureValue
+      repository.save(Scores2).futureValue
+
+      val result = repository.findAllByIds(Seq(ApplicationId.toString, ApplicationId2.toString)).futureValue
+      result must contain theSameElementsAs Seq(Scores, Scores2)
+    }
+  }
+
   trait TestFixture {
     val ApplicationId = UniqueIdentifier(UUID.fromString(UUIDFactory.generateUUID()))
     val ApplicationId2 = UniqueIdentifier(UUID.fromString(UUIDFactory.generateUUID()))

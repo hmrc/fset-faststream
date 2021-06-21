@@ -207,7 +207,10 @@ abstract class AssessmentScoresMongoRepository @Inject() (collectionName: String
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
     findByQuery(query)
   }*/
-  override def findAllByIds(applicationIds: Seq[String]): Future[List[AssessmentScoresAllExercises]] = ???
+  override def findAllByIds(applicationIds: Seq[String]): Future[List[AssessmentScoresAllExercises]] = {
+    val query = Document("applicationId" -> Document("$in" -> applicationIds))
+    findByQuery(query)
+  }
 
   /*
   private def findByQuery(query: BSONDocument): Future[List[AssessmentScoresAllExercises]] = {
