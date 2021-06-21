@@ -517,9 +517,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       app.progressResponse.phase1ProgressResponse.phase1TestsCompleted mustBe false
     }
 
-    //TODO: mongo Expected exception model.Exceptions$PassMarkEvaluationNotFound to be thrown, but
-    // java.lang.NullPointerException was thrown
-    "reset progress statuses when phase1 tests are failed" ignore {
+    "reset progress statuses when phase1 tests are failed" in {
       import Phase1EvaluationMongoRepositorySpec._
 
       createApplicationWithAllFields("userId", "appId", "testAccountId", appStatus = ApplicationStatus.PHASE1_TESTS_FAILED,

@@ -129,10 +129,12 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
       activeLaunchPadTest, prevPhaseEvaluation, preferences)
   }
 
-  def passMarkEvaluationReader(passMarkPhase: String, applicationId: String, optDoc: Option[Document]): PassmarkEvaluation = {
+  private[onlinetesting] def passMarkEvaluationReader(passMarkPhase: String,
+                                                      applicationId: String, optDoc: Option[Document]): PassmarkEvaluation = {
     optDoc.map { doc =>
-      val bsonPassmarkEvaluation = doc.get("testGroups").map(_.asDocument().get(passMarkPhase).asDocument().get("evaluation").asDocument() )
-      bsonPassmarkEvaluation.map( bson => Codecs.fromBson[PassmarkEvaluation](bson) ).get
+      val bsonPassmarkEvaluation = doc.get("testGroups").map(_.asDocument().get(passMarkPhase).asDocument().get("evaluation") )
+      bsonPassmarkEvaluation.map( bson =>
+        Try(Codecs.fromBson[PassmarkEvaluation](bson)).getOrElse(throw PassMarkEvaluationNotFound(applicationId))).get
     }.getOrElse(throw PassMarkEvaluationNotFound(applicationId))
   }
 
