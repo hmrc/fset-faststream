@@ -56,9 +56,6 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
       getRepository.save(Scores).futureValue
       val result = repository.find(ApplicationId).futureValue
       result mustBe Some(Scores)
-      // local time is 13:53:20
-      // submittedDate:Some(2021-06-01T13:53:20.067+01:00)
-      // submittedDate:Some(2021-06-01T12:53:20.067Z)
     }
 
     "override existing assessment scores when it exists" in new TestFixture  {
@@ -86,7 +83,9 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
 
       val result = repository.find(ApplicationId).futureValue
       val ExerciseScoresExpected = ExerciseScores.copy(submittedDate = None, version = Some(NewVersion))
-      val ExpectedScores = AssessmentScoresAllExercises(ApplicationId, None, None, Some(ExerciseScoresExpected), None)
+      val ExpectedScores = AssessmentScoresAllExercises(
+        ApplicationId, analysisExercise = None, groupExercise = None, Some(ExerciseScoresExpected), finalFeedback = None
+      )
       result mustBe Some(ExpectedScores)
     }
 
@@ -167,7 +166,9 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
 
       val result = repository.find(ApplicationId).futureValue
       val FinalFeedbackExpected = FinalFeedback.copy(acceptedDate = LocalTime.withZone(DateTimeZone.UTC), version = Some(NewVersion))
-      val ExpectedScores = AssessmentScoresAllExercises(ApplicationId, None, None, None, Some(FinalFeedbackExpected))
+      val ExpectedScores = AssessmentScoresAllExercises(
+        ApplicationId, analysisExercise = None, groupExercise = None, leadershipExercise = None, Some(FinalFeedbackExpected)
+      )
       result mustBe Some(ExpectedScores)
     }
 
@@ -274,11 +275,32 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     }
   }
 
+  "resetExercise" should {
+    "reset the expected exercises" in new TestFixture  {
+      repository.save(Scores3).futureValue
+
+      val resultBeforeReset = repository.find(ApplicationId).futureValue
+      resultBeforeReset mustBe Some(Scores3)
+
+      val exercisesToRemove = List(
+        AssessmentScoresSectionType.analysisExercise.toString,
+        AssessmentScoresSectionType.groupExercise.toString,
+        AssessmentScoresSectionType.leadershipExercise.toString,
+        AssessmentScoresSectionType.finalFeedback.toString
+      )
+      repository.resetExercise(ApplicationId, exercisesToRemove).futureValue
+
+      val resultAfterReset = repository.find(ApplicationId).futureValue
+      resultAfterReset mustBe Some(AssessmentScoresAllExercisesExamples.NoExercises.copy(applicationId = ApplicationId))
+    }
+  }
+
   trait TestFixture {
     val ApplicationId = UniqueIdentifier(UUID.fromString(UUIDFactory.generateUUID()))
     val ApplicationId2 = UniqueIdentifier(UUID.fromString(UUIDFactory.generateUUID()))
     val Scores = AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise.copy(applicationId = ApplicationId)
     val Scores2 = AssessmentScoresAllExercisesExamples.AssessorOnlyGroupExercise.copy(applicationId = ApplicationId2)
+    val Scores3 = AssessmentScoresAllExercisesExamples.AllExercises.copy(applicationId = ApplicationId)
     val ExerciseScores = AssessmentScoresExerciseExamples.Example3
     val ExerciseScores2 = AssessmentScoresExerciseExamples.Example2
     val FinalFeedback = AssessmentScoresFinalFeedbackExamples.Example1

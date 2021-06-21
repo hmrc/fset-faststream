@@ -232,7 +232,16 @@ abstract class AssessmentScoresMongoRepository @Inject() (collectionName: String
     val unsetDoc = BSONDocument("$unset" -> BSONDocument(exercisesToUnset))
     collection.update(ordered = false).one(query, unsetDoc) map( _ => () )
   }*/
-  override def resetExercise(applicationId: UniqueIdentifier, exercisesToRemove: List[String]): Future[Unit] = ???
+  override def resetExercise(applicationId: UniqueIdentifier, exercisesToRemove: List[String]): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId.toBson)
+
+    val exercisesToUnset = exercisesToRemove.flatMap { exercise =>
+      Map(s"$exercise" -> "")
+    }
+
+    val unsetDoc = Document("$unset" -> Document(exercisesToUnset))
+    collection.updateOne(query, unsetDoc).toFuture() map( _ => () )
+  }
 }
 
 @Singleton
