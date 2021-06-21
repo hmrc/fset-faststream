@@ -145,6 +145,7 @@ abstract class AssessmentScoresMongoRepository @Inject() (collectionName: String
       singleUpdateValidator(applicationId.toString(), actionDesc = s"saving assessment score for final feedback")
     }
 
+    //TODO: mongo take a closer look at this: when performing the upsert the validator shows no modified count
     collection.updateOne(query, update, UpdateOptions().upsert(oldVersion.isEmpty)).toFuture().map(validator).recover {
       case ex: Throwable if ex.getMessage.startsWith("DatabaseException['E11000 duplicate key error collection") =>
         throw new NotFoundException(s"You are trying to update a version of a [$section] " +
@@ -185,7 +186,13 @@ abstract class AssessmentScoresMongoRepository @Inject() (collectionName: String
       "finalFeedback" -> BSONDocument("$exists" -> BSONBoolean(true)))
     collection.find(query, projection = Option.empty[JsObject]).one[BSONDocument].map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
   }*/
-  override def findAccepted(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = ???
+  override def findAccepted(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = {
+    val query = Document(
+      "applicationId" -> applicationId.toString(),
+      "finalFeedback" -> Document("$exists" -> true)
+    )
+    collection.find(query).headOption()
+  }
 
   /*
   override def findAll: Future[List[AssessmentScoresAllExercises]] = {

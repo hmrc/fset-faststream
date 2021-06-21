@@ -217,6 +217,48 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     }
   }
 
+  "findAccepted" should {
+    "return None when there are no assessment scores" in new TestFixture  {
+      val nonExistantApplicationId = UniqueIdentifier.randomUniqueIdentifier
+
+      if (collectionName == CollectionNames.ASSESSOR_ASSESSMENT_SCORES) {
+        // Not applicable for an assessor
+        try {
+          repository.findAccepted(nonExistantApplicationId).failed.futureValue
+        } catch {
+          case ex: Exception => ex.getClass mustBe classOf[UnsupportedOperationException]
+        }
+      } else {
+        // Only applicable for a reviewer
+        val result = repository.findAccepted(nonExistantApplicationId).futureValue
+        result mustBe None
+      }
+    }
+
+    "return all assessment scores when there are some" in new TestFixture {
+      val finalFeedbackToSave = FinalFeedback.copy(version = None, acceptedDate = LocalTime)
+      repository.saveFinalFeedback(ApplicationId, finalFeedbackToSave, Some(NewVersion)).futureValue
+
+      if (collectionName == CollectionNames.ASSESSOR_ASSESSMENT_SCORES) {
+        // Not applicable for an assessor
+        try {
+          repository.findAccepted(ApplicationId).failed.futureValue
+        } catch {
+          case ex: Exception => ex.getClass mustBe classOf[UnsupportedOperationException]
+        }
+      } else {
+        // Only applicable for a reviewer
+        val result = repository.findAccepted(ApplicationId).futureValue
+
+        val FinalFeedbackExpected = FinalFeedback.copy(acceptedDate = LocalTime.withZone(DateTimeZone.UTC), version = Some(NewVersion))
+        val ExpectedScores = AssessmentScoresAllExercises(
+          ApplicationId, analysisExercise = None, groupExercise = None, leadershipExercise = None, finalFeedback = Some(FinalFeedbackExpected)
+        )
+        result mustBe Some(ExpectedScores)
+      }
+    }
+  }
+
   trait TestFixture {
     val ApplicationId = UniqueIdentifier(UUID.fromString(UUIDFactory.generateUUID()))
     val ApplicationId2 = UniqueIdentifier(UUID.fromString(UUIDFactory.generateUUID()))

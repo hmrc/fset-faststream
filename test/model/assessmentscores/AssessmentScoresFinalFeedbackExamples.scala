@@ -20,7 +20,6 @@ import model.UniqueIdentifier
 import model.assessmentscores.AssessmentScoresFinalFeedback
 import org.joda.time.{ DateTime, DateTimeZone }
 
-
 object AssessmentScoresFinalFeedbackExamples {
   val Example1 = AssessmentScoresFinalFeedback("feedback1", UniqueIdentifier.randomUniqueIdentifier, DateTime.now(DateTimeZone.UTC))
   val Example2 = AssessmentScoresFinalFeedback("feedback2", UniqueIdentifier.randomUniqueIdentifier, DateTime.now(DateTimeZone.UTC))
