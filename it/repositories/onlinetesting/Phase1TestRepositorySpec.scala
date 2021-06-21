@@ -195,7 +195,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   }
 
   "Next phase1 test group with report ready" should {
-    //TODO: mongo fix these
+    //TODO: mongo fix these (nextTestGroupWithReportReady)
     "not return a test group if the progress status is not appropriately set" ignore {
       createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "PHASE1_TESTS",
         additionalProgressStatuses = List((PHASE1_TESTS_COMPLETED, false))
@@ -372,7 +372,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
   "nextTestForReminder" should {
     "return one result" when {
-      "there is an application in PHASE1_TESTS and is about to expire in the next 72 hours" ignore {
+      "there is an application in PHASE1_TESTS and is about to expire in the next 72 hours" in {
         val date = DateTime.now().plusHours(Phase1FirstReminder.hoursBeforeReminder - 1).plusMinutes(55)
         val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
         createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
@@ -387,7 +387,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         phase1TestRepo.nextTestForReminder(Phase1SecondReminder).futureValue mustBe None
       }
 
-      "there is an application in PHASE1_TESTS and is about to expire in the next 24 hours" ignore {
+      "there is an application in PHASE1_TESTS and is about to expire in the next 24 hours" in {
         val date = DateTime.now().plusHours(Phase1SecondReminder.hoursBeforeReminder - 1).plusMinutes(55)
         val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
         createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
@@ -487,7 +487,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
       app.progressResponse.phase1ProgressResponse.phase1TestsStarted mustBe true
 
-      val appStatusDetails = helperRepo.findStatus(app.applicationId).futureValue
+      val appStatusDetails = helperRepo.findStatus(app.applicationId).futureValue //TODO: mongo need to implement
       appStatusDetails.status mustBe ApplicationStatus.PHASE1_TESTS.toString
     }
 
@@ -502,7 +502,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       app.applicationStatus mustBe ApplicationStatus.PHASE2_TESTS.toString
     }
 
-    "reset progress statuses" ignore {
+    "reset progress statuses" in {
       createApplicationWithAllFields("userId", "appId", "testAccountId", appStatus = ApplicationStatus.PHASE1_TESTS,
         additionalProgressStatuses = List(ProgressStatuses.PHASE1_TESTS_INVITED -> true,
           ProgressStatuses.PHASE1_TESTS_COMPLETED -> true)).futureValue
@@ -517,6 +517,8 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       app.progressResponse.phase1ProgressResponse.phase1TestsCompleted mustBe false
     }
 
+    //TODO: mongo Expected exception model.Exceptions$PassMarkEvaluationNotFound to be thrown, but
+    // java.lang.NullPointerException was thrown
     "reset progress statuses when phase1 tests are failed" ignore {
       import Phase1EvaluationMongoRepositorySpec._
 

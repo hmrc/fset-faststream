@@ -60,7 +60,7 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
       // submittedDate:Some(2021-06-01T13:53:20.067+01:00)
       // submittedDate:Some(2021-06-01T12:53:20.067Z)
     }
-/*
+
     "override existing assessment scores when it exists" in new TestFixture  {
       repository.save(Scores).futureValue
       val ScoresRead = repository.find(ApplicationId).futureValue
@@ -73,9 +73,9 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
 
       Some(ScoresModified) mustBe ScoresModifiedRead
       ScoresRead must not be ScoresModifiedRead
-    }*/
+    }
   }
-/*
+
   "save exercise" should {
     "create new assessment scores with one exercise " +
       "when assessment scores do not exist" in new TestFixture  {
@@ -216,7 +216,7 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
       result must contain(Scores2)
     }
   }
-*/
+
   trait TestFixture {
     val ApplicationId = UniqueIdentifier(UUID.fromString(UUIDFactory.generateUUID()))
     val ApplicationId2 = UniqueIdentifier(UUID.fromString(UUIDFactory.generateUUID()))

@@ -16,12 +16,14 @@
 
 package model.command
 
-import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresExercise, AssessmentScoresFinalFeedback }
+import model.assessmentscores.{AssessmentScoresAllExercises, AssessmentScoresExercise, AssessmentScoresFinalFeedback}
 import model.UniqueIdentifier
 import org.joda.time.LocalDate
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
+import org.mongodb.scala.bson.BsonValue
+import play.api.libs.json.JodaWrites._
+import play.api.libs.json.JodaReads._
 import play.api.libs.json._
+import uk.gov.hmrc.mongo.play.json.Codecs
 //import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 object AssessmentScoresCommands {
@@ -53,6 +55,10 @@ object AssessmentScoresCommands {
 
       def write(scheme: AssessmentScoresSectionType) = BSON.write(scheme.toString)
     }*/
+
+    implicit class BsonOps(val sectionType: AssessmentScoresSectionType) extends AnyVal {
+      def toBson: BsonValue = Codecs.toBson(sectionType)
+    }
   }
 
   case class AssessmentScoresSubmitExerciseRequest(

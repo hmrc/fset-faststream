@@ -4,6 +4,7 @@ import factories.ITDateTimeFactoryMock
 import model.ApplicationStatus._
 import model.Exceptions.PersonalDetailsNotFound
 import model.persisted.PersonalDetailsExamples._
+import org.joda.time.DateTime
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
 import repositories.CollectionNames
@@ -28,7 +29,6 @@ class PersonalDetailsRepositorySpec extends MongoRepositorySpec {
         pd <- repository.find(AppId)
       } yield pd).futureValue
 
-      //TODO: mongo fix this
 //      val applicationStatus = appRepository.findStatus(AppId).futureValue
 
       personalDetails mustBe JohnDoe
