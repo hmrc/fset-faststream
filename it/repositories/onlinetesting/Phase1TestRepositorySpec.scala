@@ -479,7 +479,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   }
 
   "Progress status" should {
-    "update progress status to PHASE1_TESTS_STARTED" ignore {
+    "update progress status to PHASE1_TESTS_STARTED" in {
       createApplicationWithAllFields("userId", "appId", "testAccountId", appStatus = ApplicationStatus.PHASE1_TESTS).futureValue
 
       phase1TestRepo.updateProgressStatus("appId", PHASE1_TESTS_STARTED).futureValue
@@ -487,7 +487,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       val app = helperRepo.findByUserId("userId", "frameworkId").futureValue
       app.progressResponse.phase1ProgressResponse.phase1TestsStarted mustBe true
 
-      val appStatusDetails = helperRepo.findStatus(app.applicationId).futureValue //TODO: mongo need to implement
+      val appStatusDetails = helperRepo.findStatus(app.applicationId).futureValue
       appStatusDetails.status mustBe ApplicationStatus.PHASE1_TESTS.toString
     }
 

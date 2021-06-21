@@ -329,5 +329,6 @@ class Phase1TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongo: Mon
 
     nextTestGroupWithReportReady[Phase1TestGroupWithUserIds]
   }*/
+  // TODO: mongo is this now redundant???
   override def nextTestGroupWithReportReady: Future[Option[Phase1TestGroupWithUserIds]] = ???
 }
