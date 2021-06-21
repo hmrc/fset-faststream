@@ -49,7 +49,6 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
       }
 
       val result = repository.findAll.futureValue
-
       result must contain(AssessorWithAvailabilities)
       result must contain(secondAssessor)
     }
@@ -66,7 +65,6 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
       }
       val ids = AssessorWithAvailabilities.userId :: secondAssessor.userId :: Nil
       val result = repository.findByIds(ids).futureValue
-
       result.size mustBe 2
     }
 
@@ -96,7 +94,6 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
       repository.save(availability2).futureValue
 
       val result = repository.countSubmittedAvailability.futureValue
-
       result mustBe 2
     }
 
@@ -136,7 +133,7 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
     "save and remove assessor" in {
       repository.save(AssessorWithAvailabilities).futureValue
       repository.remove(UniqueIdentifier(userId)).futureValue
-      val result = repository.find(userId.toString).futureValue
+      val result = repository.find(userId).futureValue
       result mustBe None
     }
   }
