@@ -345,7 +345,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       assertResetPhase3ApplicationAndProgressStatus(app)
     }
 
-    "reset PHASE3_TESTS_PASSED status" ignore {
+    "reset PHASE3_TESTS_PASSED status" in {
       createApplicationWithAllFields("userId", "appId", "testAccountId", appStatus = ApplicationStatus.PHASE3_TESTS_PASSED,
         additionalProgressStatuses = List(
           ProgressStatuses.PHASE3_TESTS_INVITED -> true,
@@ -361,7 +361,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       assertResetPhase3ApplicationAndProgressStatus(app)
     }
 
-    "reset PHASE3_TESTS_FAILED status at PHASE3_TESTS_FAILED_NOTIFIED" ignore {
+    "reset PHASE3_TESTS_FAILED status at PHASE3_TESTS_FAILED_NOTIFIED" in {
       createApplicationWithAllFields("userId", "appId", "testAccountId", appStatus = ApplicationStatus.PHASE3_TESTS_FAILED,
         additionalProgressStatuses = List(
           ProgressStatuses.PHASE3_TESTS_INVITED -> true,
@@ -378,7 +378,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       assertResetPhase3ApplicationAndProgressStatus(app)
     }
 
-    "reset PHASE3_TESTS_PASSED_WITH_AMBER status" ignore {
+    "reset PHASE3_TESTS_PASSED_WITH_AMBER status" in {
       createApplicationWithAllFields("userId", "appId", "testAccountId", appStatus = ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER,
         additionalProgressStatuses = List(
           ProgressStatuses.PHASE3_TESTS_INVITED -> true,
