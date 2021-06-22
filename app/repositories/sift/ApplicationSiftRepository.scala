@@ -31,9 +31,11 @@ import model.persisted.sift._
 import model.report.SiftPhaseReportItem
 import model.sift.{FixStuckUser, FixUserStuckInSiftEntered}
 import org.joda.time.DateTime
+import org.mongodb.scala.bson.{BsonArray, BsonDocument}
+import org.mongodb.scala.bson.collection.immutable.Document
 import play.api.libs.json.JsObject
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 //import play.modules.reactivemongo.ReactiveMongoComponent
 //import reactivemongo.api.Cursor
 //import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
@@ -134,6 +136,17 @@ class ApplicationSiftMongoRepository @Inject() (
     val currentSchemeStatus = document.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(Nil)
     ApplicationForSift(applicationId, userId, appStatus, currentSchemeStatus)
   }*/
+
+  private def applicationForSiftBsonReads(document: Document): ApplicationForSift = {
+    val applicationId = document.get("applicationId").get.asString().getValue
+    val userId = document.get("userId").get.asString().getValue
+    val appStatus = Codecs.fromBson[ApplicationStatus](document.get("applicationStatus").get)
+    val currentSchemeStatus = document.get("currentSchemeStatus").map { bsonValue =>
+      Codecs.fromBson[Seq[SchemeEvaluationResult]](bsonValue)
+    }.getOrElse(Nil)
+
+    ApplicationForSift(applicationId, userId, appStatus, currentSchemeStatus)
+  }
 
   /*
   def updateTestStartTime(cubiksUserId: Int, startedTime: DateTime): Future[Unit] = {
@@ -352,7 +365,62 @@ class ApplicationSiftMongoRepository @Inject() (
       _.map { document => applicationForSiftBsonReads(document) }
     }
   }*/
-  def nextApplicationsForSiftStage(batchSize: Int): Future[List[ApplicationForSift]] = ???
+
+  def nextApplicationsForSiftStage(batchSize: Int): Future[List[ApplicationForSift]] = {
+    val fsQuery = () => Document("$and" -> BsonArray(
+      Document("applicationRoute" -> ApplicationRoute.Faststream.toBson),
+      Document("applicationStatus" -> prevPhase.toBson),
+      Document(s"testGroups.$prevTestGroup.evaluation.result" -> Document("$elemMatch" ->
+        Document("schemeId" -> Document("$in" -> Codecs.toBson(schemeRepository.siftableSchemeIds)),
+          "result" -> EvaluationResults.Green.toString)
+      ))))
+
+    val sdipFsQuery = () => Document("$and" -> BsonArray(
+      Document("applicationRoute" -> ApplicationRoute.SdipFaststream.toBson),
+      Document("applicationStatus" -> Document("$in" ->
+        Seq(ApplicationStatus.PHASE1_TESTS.toString, ApplicationStatus.PHASE2_TESTS.toString,
+          ApplicationStatus.PHASE3_TESTS.toString, ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED.toString))
+      ),
+      Document("$or" -> BsonArray(
+        Document(s"progress-status.${ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_GREEN}" -> true),
+        Document(s"progress-status.${ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_GREEN}" -> true),
+        Document(s"progress-status.${ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_GREEN}" -> true),
+        Document(s"progress-status.${ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED}" -> true)
+      )),
+      Document(s"currentSchemeStatus" -> Document("$elemMatch" ->
+        Document("schemeId" -> Document("$in" -> Codecs.toBson(schemeRepository.siftableSchemeIds)),
+          "result" -> EvaluationResults.Green.toString)
+      ))))
+
+    val xdipQuery = (route: ApplicationRoute) => Document(
+      "applicationRoute" -> route.toBson,
+      "applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED.toBson
+    )
+
+    lazy val eligibleForSiftQuery =
+      if (appConfig.disableSdipFaststreamForSift) { // FSET-1803. Disable sdipfaststream in sift temporarily
+        Document("$or" -> BsonArray(
+          fsQuery(),
+          xdipQuery(ApplicationRoute.Edip),
+          xdipQuery(ApplicationRoute.Sdip)
+        ))
+      } else {
+        Document("$or" -> BsonArray(
+          fsQuery(),
+          sdipFsQuery(),
+          xdipQuery(ApplicationRoute.Edip),
+          xdipQuery(ApplicationRoute.Sdip)
+        ))
+      }
+
+    // TODO: mongo temp code until we get the selectRandom migrated
+    val futureResult = collection.find[Document](eligibleForSiftQuery).limit(batchSize).toFuture()
+    val mappedResult = futureResult.map(_.map ( doc => applicationForSiftBsonReads(doc) ).toList)
+    mappedResult
+  }
+
+  //    selectRandom[BSONDocument](eligibleForSiftQuery, batchSize).map {
+  //      _.map { document => applicationForSiftBsonReads(document) }
 
   /*
   def nextApplicationForFirstSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]] = {

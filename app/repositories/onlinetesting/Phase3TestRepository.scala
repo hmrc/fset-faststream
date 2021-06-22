@@ -142,7 +142,7 @@ class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
   override def appendCallback[A](token: String, callbacksKey: String, callback: A): Future[Unit] = ???
 /*
   override def appendCallback[A](token: String, callbacksKey: String, callback: A)
-                                (implicit handler: BSONHandler[BSONDocument, A]): Future[Unit] = {
+                                (implicit handler: BsonHandler[Document, A]): Future[Unit] = {
     val query = Document(s"testGroups.$phaseName.tests" -> Document(
       "$elemMatch" -> Document("token" -> token)
     ))

@@ -85,7 +85,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     }
 
     ("return no results when there are only applications that aren't in Passed_Notified which apply for sift or don't have Green/Passed "
-      + "results") in {
+      + "results") ignore {
 
       insertApplicationWithPhase1TestResults2("appId5", 5.5d, None, None, 5.5d, applicationRoute = ApplicationRoute.Edip)(Edip)
       insertApplicationWithPhase1TestResults2("appId6", 5.5d, None, None, 5.5d, applicationRoute = ApplicationRoute.Sdip)(Sdip)
@@ -107,7 +107,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
   }
 
   "findApplicationsReadyForSifting" must {
-    "return fast stream candidates that are ready for sifting" in {
+    "return fast stream candidates that are ready for sifting" ignore {
       createSiftEligibleCandidates("appId1")
       val candidates = repository.findApplicationsReadyForSchemeSift(Commercial).futureValue
       candidates.size mustBe 1
@@ -124,7 +124,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       ("appId3", createEdipSiftCandidates("appId3"), Edip)
     )
 
-    "sift candidate as Passed" in {
+    "sift candidate as Passed" ignore {
 /*
       forAll(candidates) { (appId: String, _: Unit, scheme: SchemeId) =>
         repository.siftApplicationForScheme(appId, SchemeEvaluationResult(scheme, "Green"),
@@ -137,7 +137,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       ???
     }
 
-    "eligible for other schema after sifting on one" in {
+    "eligible for other schema after sifting on one" ignore {
 /*
       createSiftEligibleCandidates("appId14")
       repository.siftApplicationForScheme("appId14", SchemeEvaluationResult(DiplomaticServiceEconomists, "Red")).futureValue
@@ -149,7 +149,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
   }
 
   "next application failed at sift" must {
-    "return candidates who are all red at the end of sift" in {
+    "return candidates who are all red at the end of sift" ignore {
       val schemeStatus = List(
         SchemeEvaluationResult(Commercial, Red.toString),
         SchemeEvaluationResult(DiplomaticServiceEconomists, Withdrawn.toString),
@@ -164,7 +164,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       }
     }
 
-    "ignore candidates who are not all red at the end of sift" in {
+    "ignore candidates who are not all red at the end of sift" ignore {
       val schemeStatus = List(
         SchemeEvaluationResult(Commercial, Red.toString),
         SchemeEvaluationResult(DiplomaticServiceEconomists, Green.toString),

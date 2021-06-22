@@ -224,16 +224,19 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
     FutureEx.traverseSerial(results) { result => fsbRepository.saveResult(appId, result) }.futureValue
     applicationRepository.addProgressStatusAndUpdateAppStatus(appId, progressStatus).futureValue
   }
-
-  def updateApplicationStatus(appId: String, newStatus: ApplicationStatus): Future[Unit] = {
 /*
+  def updateApplicationStatus(appId: String, newStatus: ApplicationStatus): Future[Unit] = {
     val application = BSONDocument("applicationId" -> appId)
     val update = BSONDocument(
       "$set" -> BSONDocument(s"applicationStatus" -> newStatus)
     )
     applicationRepository.collection.update(ordered = false).one(application, update).map {_ => ()}
- */
-    ???
+  }*/
+
+  def updateApplicationStatus(appId: String, newStatus: ApplicationStatus): Future[Unit] = {
+    val filter = Document("applicationId" -> appId)
+    val update = Document("$set" -> Document(s"applicationStatus" -> newStatus.toBson))
+    applicationRepository.collection.updateOne(filter, update).toFuture() map (_ => ())
   }
 
   //TODO: this should be removed when we strip out cubiks code
