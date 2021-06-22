@@ -7,6 +7,7 @@ import model.ProgressStatuses.PHASE3_TESTS_PASSED
 import model._
 import model.command.ApplicationForSift
 import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
+import org.mongodb.scala.bson.collection.immutable.Document
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.prop.TableDrivenPropertyChecks
 import play.api.Logging
@@ -84,8 +85,8 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       appsForSift.size mustBe 5
     }
 
-    ("return no results when there are only applications that aren't in Passed_Notified which apply for sift or don't have Green/Passed "
-      + "results") ignore {
+    "return no results when there are only applications that aren't in Passed_Notified which apply for sift " +
+      "or don't have Green/Passed results" in {
 
       insertApplicationWithPhase1TestResults2("appId5", 5.5d, None, None, 5.5d, applicationRoute = ApplicationRoute.Edip)(Edip)
       insertApplicationWithPhase1TestResults2("appId6", 5.5d, None, None, 5.5d, applicationRoute = ApplicationRoute.Sdip)(Sdip)
@@ -107,7 +108,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
   }
 
   "findApplicationsReadyForSifting" must {
-    "return fast stream candidates that are ready for sifting" ignore {
+    "return fast stream candidates that are ready for sifting" in {
       createSiftEligibleCandidates("appId1")
       val candidates = repository.findApplicationsReadyForSchemeSift(Commercial).futureValue
       candidates.size mustBe 1
@@ -124,32 +125,26 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       ("appId3", createEdipSiftCandidates("appId3"), Edip)
     )
 
-    "sift candidate as Passed" ignore {
-/*
+    "sift candidate as Passed" in {
       forAll(candidates) { (appId: String, _: Unit, scheme: SchemeId) =>
         repository.siftApplicationForScheme(appId, SchemeEvaluationResult(scheme, "Green"),
-          Seq(BSONDocument(s"testGroups.SIFT.evaluation.dummy" -> "test"))).futureValue
+          Seq(Document(s"testGroups.SIFT.evaluation.dummy" -> "test"))).futureValue
         val candidatesForSift = repository.findApplicationsReadyForSchemeSift(scheme).futureValue
         logger.error(s"\n\n$candidatesForSift - $scheme")
         candidatesForSift.size mustBe 0
       }
- */
-      ???
     }
 
-    "eligible for other schema after sifting on one" ignore {
-/*
+    "eligible for other schema after sifting on one" in {
       createSiftEligibleCandidates("appId14")
       repository.siftApplicationForScheme("appId14", SchemeEvaluationResult(DiplomaticServiceEconomists, "Red")).futureValue
       val candidates = repository.findApplicationsReadyForSchemeSift(Commercial).futureValue
       candidates.size mustBe 1
- */
-      ???
     }
   }
 
   "next application failed at sift" must {
-    "return candidates who are all red at the end of sift" ignore {
+    "return candidates who are all red at the end of sift" in {
       val schemeStatus = List(
         SchemeEvaluationResult(Commercial, Red.toString),
         SchemeEvaluationResult(DiplomaticServiceEconomists, Withdrawn.toString),
@@ -164,7 +159,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       }
     }
 
-    "ignore candidates who are not all red at the end of sift" ignore {
+    "ignore candidates who are not all red at the end of sift" in {
       val schemeStatus = List(
         SchemeEvaluationResult(Commercial, Red.toString),
         SchemeEvaluationResult(DiplomaticServiceEconomists, Green.toString),
