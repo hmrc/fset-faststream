@@ -2,7 +2,7 @@ package repositories.sift
 
 import model.ApplicationRoute.ApplicationRoute
 import model.EvaluationResults.{Green, Red, Withdrawn}
-import model.Exceptions.{CannotFindTestByOrderIdException, CannotUpdateRecord, NotFoundException, PassMarkEvaluationNotFound}
+import model.Exceptions.{ApplicationNotFound, CannotFindTestByOrderIdException, CannotUpdateRecord, NotFoundException, PassMarkEvaluationNotFound}
 import model.Phase3TestProfileExamples.phase3TestWithResult
 import model.ProgressStatuses.PHASE3_TESTS_PASSED
 import model._
@@ -331,6 +331,31 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
       val appsForSift = repository.nextApplicationsReadyForNumericTestsInvitation(10, Seq(Commercial)).futureValue
       appsForSift mustBe Nil
+    }
+  }
+
+  "is sift expired" must {
+    "reeturn true true when the application is expired" in {
+      val appId = "appId1"
+      insertApplicationWithSiftEntered(appId,
+        List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)))
+      applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_EXPIRED).futureValue
+
+      val result = repository.isSiftExpired(appId).futureValue
+      result mustBe true
+    }
+
+    "return an exception when the application does not exist" in {
+      val result = repository.isSiftExpired("appId").failed.futureValue
+      result mustBe an[ApplicationNotFound]
+    }
+
+    "return false when the application is not expired" in {
+      insertApplicationWithSiftEntered("appId1",
+        List(SchemeEvaluationResult(Generalist, EvaluationResults.Green.toString)))
+
+      val result = repository.isSiftExpired("appId1").futureValue
+      result mustBe false
     }
   }
 

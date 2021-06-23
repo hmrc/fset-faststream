@@ -64,9 +64,10 @@ trait ApplicationSiftRepository {
   def findAllResults: Future[Seq[SiftPhaseReportItem]]
   def findAllResultsByIds(applicationIds: Seq[String]): Future[Seq[SiftPhaseReportItem]]
   def getSiftEvaluations(applicationId: String): Future[Seq[SchemeEvaluationResult]]
+  //TODO: mongo no usages
   def siftResultsExistsForScheme(applicationId: String, schemeId: SchemeId): Future[Boolean]
-  //TODO: fix
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult, settableFields: Seq[Document] = Nil ): Future[Unit]
+  //TODO: mongo no usages
 //  def update(applicationId: String, predicate: BSONDocument, update: BSONDocument, action: String): Future[Unit]
   def saveSiftExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit]
   def isSiftExpired(applicationId: String): Future[Boolean]
@@ -517,7 +518,19 @@ class ApplicationSiftMongoRepository @Inject() (
         throw ApplicationNotFound(applicationId)
     }
   }*/
-  def isSiftExpired(applicationId: String): Future[Boolean] = ???
+  def isSiftExpired(applicationId: String): Future[Boolean] = {
+    val query = Document("applicationId" -> applicationId)
+    val projection = Projections.include("applicationId", s"progress-status.${ProgressStatuses.SIFT_EXPIRED}")
+
+    collection.find[Document](query).projection(projection).headOption() map {
+      case Some(doc) =>
+        val siftExpiredStatus = Try(doc.get("progress-status")
+          .map(_.asDocument().get(ProgressStatuses.SIFT_EXPIRED.toString)).exists(_.asBoolean().getValue)).getOrElse(false)
+        siftExpiredStatus
+      case _ =>
+        throw ApplicationNotFound(applicationId)
+    }
+  }
 
   /*
   def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int,
