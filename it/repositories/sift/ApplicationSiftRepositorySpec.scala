@@ -30,7 +30,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
   def repository: ApplicationSiftMongoRepository = applicationSiftRepository
 
-  "next Application for sift" must {
+  "next application for sift" must {
     "ignore applications in incorrect statuses and return only the PhaseX Passed_Notified applications that are eligible for sift" in {
 
       insertApplicationWithPhase3TestNotifiedResults("appId1",
@@ -310,6 +310,27 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
       val result = repository.findAllResultsByIds(Seq(appId)).futureValue
       result mustBe Seq(SiftPhaseReportItem(appId, Some(Seq(schemeEvaluationResult))))
+    }
+  }
+
+  "next application for sift numeric test invitation" must {
+    "fetch applications that are eligible for the sift numeric test" in {
+      insertApplicationWithSiftEntered("appId1",
+        List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)))
+
+      val appsForSift = repository.nextApplicationsReadyForNumericTestsInvitation(10, Seq(Commercial)).futureValue
+      appsForSift must contain theSameElementsAs List(
+        NumericalTestApplication("appId1", "appId1", "testAccountId", ApplicationStatus.SIFT, "preferredName", "lastName",
+          List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)))
+      )
+    }
+
+    "return no applications when none are eligible" in {
+      insertApplicationWithSiftEntered("appId1",
+        List(SchemeEvaluationResult(Generalist, EvaluationResults.Green.toString)))
+
+      val appsForSift = repository.nextApplicationsReadyForNumericTestsInvitation(10, Seq(Commercial)).futureValue
+      appsForSift mustBe Nil
     }
   }
 

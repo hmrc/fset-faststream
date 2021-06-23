@@ -373,7 +373,7 @@ class ApplicationSiftMongoRepository @Inject() (
     }
   }*/
 
-  def nextApplicationsForSiftStage(batchSize: Int): Future[List[ApplicationForSift]] = {
+  override def nextApplicationsForSiftStage(batchSize: Int): Future[List[ApplicationForSift]] = {
     val fsQuery = () => Document("$and" -> BsonArray(
       Document("applicationRoute" -> ApplicationRoute.Faststream.toBson),
       Document("applicationStatus" -> prevPhase.toBson),
@@ -553,8 +553,58 @@ class ApplicationSiftMongoRepository @Inject() (
       }
     }
   }*/
-  def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int,
-                                                     numericSchemes: Seq[SchemeId]): Future[Seq[NumericalTestApplication]] = ???
+
+  override def nextApplicationsReadyForNumericTestsInvitation(batchSize: Int,
+                                                     numericSchemes: Seq[SchemeId]): Future[Seq[NumericalTestApplication]] = {
+    val greenNumericSchemes = numericSchemes.map { scheme =>
+      Document("currentSchemeStatus" ->
+        Document("$elemMatch" -> Document("schemeId" -> scheme.toString, "result" -> Green.toString)))
+    }
+
+    val query = Document("$and" -> BsonArray(
+      Document("applicationStatus" -> ApplicationStatus.SIFT.toBson),
+      Document(s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> true),
+      Document(s"progress-status.${ProgressStatuses.SIFT_READY}" -> Document("$exists" -> false)),
+      Document(s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> Document("$exists" -> false)),
+      Document(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> Document("$exists" -> false)),
+      Document(s"progress-status.${ProgressStatuses.SIFT_TEST_INVITED}" -> Document("$exists" -> false)),
+      Document("$or" -> greenNumericSchemes)
+    ))
+/*
+    selectRandom[BSONDocument](query, batchSize).map {
+      _.map { doc =>
+        val applicationId = doc.getAs[String]("applicationId").get
+        val testAccountId = doc.getAs[String]("testAccountId").get
+        val userId = doc.getAs[String]("userId").get
+        val appStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
+        val currentSchemeStatus = doc.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(Nil)
+        val personalDetails = doc.getAs[BSONDocument]("personal-details").get
+        val preferredName = personalDetails.getAs[String]("preferredName").get
+        val lastName = personalDetails.getAs[String]("lastName").get
+
+        NumericalTestApplication(
+          applicationId, userId, testAccountId, appStatus, preferredName, lastName, currentSchemeStatus)
+      }
+    }*/
+
+    // TODO: mongo temp code until we get the selectRandom migrated
+    collection.find[Document](query).limit(batchSize).toFuture().map {
+      _.map { doc =>
+        val applicationId = doc.get("applicationId").get.asString().getValue
+        val testAccountId = doc.get("testAccountId").get.asString().getValue
+        val userId = doc.get("userId").get.asString().getValue
+        val appStatus = Codecs.fromBson[ApplicationStatus](doc.get("applicationStatus").get)
+        val currentSchemeStatus = doc.get("currentSchemeStatus").map { bsonValue =>
+          Codecs.fromBson[Seq[SchemeEvaluationResult]](bsonValue)
+        }.getOrElse(Nil)
+        val personalDetailsRoot = doc.get("personal-details").map(_.asDocument()).get
+        val preferredName = personalDetailsRoot.get("preferredName").asString().getValue
+        val lastName = personalDetailsRoot.get("lastName").asString().getValue
+        NumericalTestApplication(
+          applicationId, userId, testAccountId, appStatus, preferredName, lastName, currentSchemeStatus)
+      }
+    }
+  }
 
   /*
   def nextApplicationFailedAtSift: Future[Option[ApplicationForSift]] = {

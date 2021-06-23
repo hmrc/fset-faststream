@@ -92,15 +92,15 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
 
   "progressToAssessmentCentre" must {
     "ignore candidates who only have Sdip/Edip green at the end of sifting" in {
-      insertApplicationWithSiftComplete("appId1",
+      insertApplicationWithSiftCompleted("appId1",
         List(SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString),
           SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
           SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Red.toString)))
-      insertApplicationWithSiftComplete("appId2",
+      insertApplicationWithSiftCompleted("appId2",
         List(SchemeEvaluationResult(Edip, EvaluationResults.Green.toString),
           SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
           SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Red.toString)))
-      insertApplicationWithSiftComplete("appId3",
+      insertApplicationWithSiftCompleted("appId3",
         List(SchemeEvaluationResult(SchemeId("Finance"), EvaluationResults.Green.toString),
           SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
           SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Green.toString)))
@@ -115,7 +115,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     }
 
     "progress candidates who have completed the sift phase" in {
-      insertApplicationWithSiftComplete("appId11",
+      insertApplicationWithSiftCompleted("appId11",
         List(SchemeEvaluationResult(SchemeId("Finance"), EvaluationResults.Green.toString),
           SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
           SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Green.toString)))

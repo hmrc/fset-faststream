@@ -16,6 +16,8 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.scalatest.concurrent.ScalaFutures
+import play.api.libs.json.Json
+import uk.gov.hmrc.mongo.play.json.Codecs
 //import reactivemongo.bson.BSONDocument
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.assessmentcentre.AssessmentCentreMongoRepository
@@ -209,18 +211,24 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
     updateApplicationStatus(appId, ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED)
   }
 
-  def insertApplicationWithSiftComplete(appId: String, results: Seq[SchemeEvaluationResult],
+  def insertApplicationWithSiftEntered(appId: String, results: Seq[SchemeEvaluationResult],
                                         applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
                                        ): Unit = {
     insertApplicationWithPhase3TestNotifiedResults(appId, results.toList, applicationRoute = applicationRoute).futureValue
     applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_ENTERED).futureValue
+  }
+
+  def insertApplicationWithSiftCompleted(appId: String, results: Seq[SchemeEvaluationResult],
+                                         applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
+                                       ): Unit = {
+    insertApplicationWithSiftEntered(appId, results.toList, applicationRoute = applicationRoute)
     applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_COMPLETED).futureValue
   }
 
   def insertApplicationAtFsbWithStatus(appId: String, results: Seq[SchemeEvaluationResult], progressStatus: ProgressStatus,
                                        applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
                                       ): Unit = {
-    insertApplicationWithSiftComplete(appId, results, applicationRoute)
+    insertApplicationWithSiftCompleted(appId, results, applicationRoute)
     FutureEx.traverseSerial(results) { result => fsbRepository.saveResult(appId, result) }.futureValue
     applicationRepository.addProgressStatusAndUpdateAppStatus(appId, progressStatus).futureValue
   }
@@ -303,8 +311,10 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
       Document(
         "applicationId" -> appId,
         "userId" -> appId,
+        "testAccountId" -> "testAccountId",
         "applicationStatus" -> applicationStatus.toBson,
-        "progress-status" -> progressStatus(additionalProgressStatuses)
+        "progress-status" -> progressStatus(additionalProgressStatuses),
+        "personal-details" -> Codecs.toBson(Json.parse("""{"lastName":"lastName","preferredName":"preferredName"}"""))
       ) ++ {
         if (applicationRoute.isDefined) {
           Document("applicationRoute" -> applicationRoute.get.toBson)
