@@ -631,6 +631,29 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     }
   }
 
+  "fix data by removing sift phase evaluation" must {
+    "correct the specified application" in {
+      val appId = "appId1"
+      createSiftEligibleCandidates(appId)
+      val schemeEvaluationResult = SchemeEvaluationResult(Commercial, Red.toString)
+      repository.siftApplicationForScheme(appId, schemeEvaluationResult, Nil).futureValue
+      applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FAILED_AT_SIFT).futureValue
+
+      repository.fixDataByRemovingSiftEvaluation(appId).futureValue
+
+      val evaluations = repository.getSiftEvaluations(appId).failed.futureValue
+      evaluations mustBe a[PassMarkEvaluationNotFound]
+
+      val appStatuses = applicationRepository.getApplicationStatusForCandidates(Seq(appId)).futureValue
+      appStatuses mustBe Seq(appId -> ApplicationStatus.SIFT)
+    }
+
+    "throw an exception if the specified application cannot be found" in {
+      val result = repository.fixDataByRemovingSiftEvaluation("appId1").failed.futureValue
+      result mustBe a[NotFoundException]
+    }
+  }
+
   private def createSiftEligibleCandidates(appAndUserId: String, resultToSave: List[SchemeEvaluationResult] = List(
     SchemeEvaluationResult(Commercial, Green.toString),
     SchemeEvaluationResult(DiplomaticServiceEconomists, Green.toString),

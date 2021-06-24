@@ -76,7 +76,6 @@ trait ApplicationSiftRepository {
   def findAllUsersInSiftEntered: Future[Seq[FixUserStuckInSiftEntered]]
   def fixDataByRemovingSiftPhaseEvaluationAndFailureStatus(appId: String): Future[Unit]
   def fixSchemeEvaluation(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
-  //TODO: mongo no test
   def fixDataByRemovingSiftEvaluation(applicationId: String): Future[Unit]
   def nextApplicationForFirstSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]]
   def nextApplicationForSecondSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]]
@@ -1094,7 +1093,19 @@ class ApplicationSiftMongoRepository @Inject() (
       else { () }
     }
   }*/
-  def fixDataByRemovingSiftEvaluation(applicationId: String): Future[Unit] = ???
+  override def fixDataByRemovingSiftEvaluation(applicationId: String): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+
+    val update = Document(
+        "$set" -> Document("applicationStatus" -> ApplicationStatus.SIFT.toBson),
+        "$unset" -> Document(s"testGroups.$phaseName" -> "")
+      )
+
+    collection.updateOne(query, update).toFuture().map { result =>
+      if (result.getModifiedCount != 1) { throw new NotFoundException(s"Failed to match a document to fix for id $applicationId") }
+      else { () }
+    }
+  }
 
   /*
   def fixSchemeEvaluation(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
