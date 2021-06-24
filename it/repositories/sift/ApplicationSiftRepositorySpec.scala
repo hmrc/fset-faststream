@@ -539,6 +539,22 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     }
   }
 
+  "next application with results received" must {
+    "fetch eligible application id" in {
+      val appId = "appId1"
+      insertApplicationWithSiftEntered(appId, List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)))
+      applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_TEST_RESULTS_RECEIVED).futureValue
+
+      val result = repository.nextApplicationWithResultsReceived.futureValue
+      result mustBe Some(appId)
+    }
+
+    "fetch no results if there are no eligible applications" in {
+      val result = repository.nextApplicationWithResultsReceived.futureValue
+      result mustBe None
+    }
+  }
+
   private def createSiftEligibleCandidates(appAndUserId: String, resultToSave: List[SchemeEvaluationResult] = List(
     SchemeEvaluationResult(Commercial, Green.toString),
     SchemeEvaluationResult(DiplomaticServiceEconomists, Green.toString),

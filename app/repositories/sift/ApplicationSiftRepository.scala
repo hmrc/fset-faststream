@@ -97,7 +97,7 @@ trait ApplicationSiftRepository {
 //  def insertNumericalTests(applicationId: String, tests: List[CubiksTest]): Future[Unit]
   // TODO: cubiks rename this without the 2
   def insertNumericalTests2(applicationId: String, tests: List[PsiTest]): Future[Unit]
-  //TODO: fix
+  //TODO: cubiks specific so now redundant
 //  def findAndUpdateTest(cubiksUserId: Int, update: BSONDocument, ignoreNotFound: Boolean = false): Future[Unit]
   //TODO: Cubiks specific so now redundant
 //  def updateTestCompletionTime(cubiksUserId: Int, completedTime: DateTime): Future[Unit]
@@ -107,7 +107,6 @@ trait ApplicationSiftRepository {
 //  def nextTestGroupWithReportReady: Future[Option[SiftTestGroupWithAppId]]
 //  def insertCubiksTestResult(appId: String, cubiksTest: CubiksTest, testResult: TestResult): Future[Unit]
   def insertPsiTestResult(appId: String, psiTest: PsiTest, testResult: PsiTestResult): Future[Unit]
-  //TODO: mongo no test
   def nextApplicationWithResultsReceived: Future[Option[String]]
   def getNotificationExpiringSift(applicationId: String): Future[Option[NotificationExpiringSift]]
   def removeEvaluation(applicationId: String): Future[Unit]
@@ -325,7 +324,25 @@ class ApplicationSiftMongoRepository @Inject() (
       }
     }
   }*/
-  def nextApplicationWithResultsReceived: Future[Option[String]] = ???
+  override def nextApplicationWithResultsReceived: Future[Option[String]] = {
+    val query = Document("$and" -> BsonArray(
+      Document("applicationStatus" -> thisApplicationStatus.toBson),
+      Document(s"progress-status.${ProgressStatuses.SIFT_TEST_RESULTS_RECEIVED}" -> true),
+      Document(s"progress-status.${ProgressStatuses.SIFT_READY}" -> Document("$ne" -> true)),
+      Document(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> Document("$ne" -> true))
+    ))
+
+    /*
+    selectOneRandom[BSONDocument](query).map {
+      _.map { doc =>
+        doc.getAs[String]("applicationId").get
+      }
+    }*/
+    // TODO: mongo temp code until we get the selectRandom migrated
+    collection.find[Document](query).headOption().map {
+      _.map( doc => doc.get("applicationId").get.asString().getValue )
+    }
+  }
 
   /*
   def getApplicationIdForCubiksId(cubiksUserId: Int): Future[String] = {
