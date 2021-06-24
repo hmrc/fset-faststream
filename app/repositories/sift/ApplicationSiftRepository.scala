@@ -76,7 +76,6 @@ trait ApplicationSiftRepository {
   def findAllUsersInSiftEntered: Future[Seq[FixUserStuckInSiftEntered]]
   //TODO: mongo no test
   def fixDataByRemovingSiftPhaseEvaluationAndFailureStatus(appId: String): Future[Unit]
-  //TODO: mongo no test
   def fixSchemeEvaluation(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
   //TODO: mongo no test
   def fixDataByRemovingSiftEvaluation(applicationId: String): Future[Unit]
@@ -1110,7 +1109,36 @@ class ApplicationSiftMongoRepository @Inject() (
       _ <- collection.update(ordered = false).one(setPredicate, setDoc) map validator
     } yield ()
   }*/
-  def fixSchemeEvaluation(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = ???
+  override def fixSchemeEvaluation(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
+    val removeDoc = Document(
+      "$pull" -> Document(s"testGroups.$phaseName.evaluation.result" -> Document("schemeId" -> result.schemeId.value))
+    )
+
+    val saveEvaluationResultsDoc = Document(s"testGroups.$phaseName.evaluation.result" -> Codecs.toBson(result))
+    val setDoc = Document(
+      "$addToSet" -> saveEvaluationResultsDoc
+    )
+
+    val removePredicate = Document("$and" -> BsonArray(
+      Document("applicationId" -> applicationId),
+      Document(
+        s"testGroups.$phaseName.evaluation.result.schemeId" -> Document("$in" -> BsonArray(result.schemeId.value))
+      )
+    ))
+    val setPredicate = Document("$and" -> BsonArray(
+      Document("applicationId" -> applicationId),
+      Document(
+        s"testGroups.$phaseName.evaluation.result.schemeId" -> Document("$nin" -> BsonArray(result.schemeId.value))
+      )
+    ))
+
+    val validator = singleUpdateValidator(applicationId, s"fixing sift results for ${result.schemeId}", ApplicationNotFound(applicationId))
+
+    for {
+      _ <- collection.updateOne(removePredicate, removeDoc).toFuture() map validator
+      _ <- collection.updateOne(setPredicate, setDoc).toFuture() map validator
+    } yield ()
+  }
 
   /*
   def getTestGroup(applicationId: String): Future[Option[SiftTestGroup]] = {

@@ -558,8 +558,8 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
   "sift results exists for scheme" must {
     "return true when there are results" in {
       val appId = "appId1"
-      val schemeEvaluationResult = SchemeEvaluationResult(Commercial, Green.toString)
       createSiftEligibleCandidates(appId)
+      val schemeEvaluationResult = SchemeEvaluationResult(Commercial, Green.toString)
       repository.siftApplicationForScheme(appId, schemeEvaluationResult, Nil).futureValue
 
       val result = repository.siftResultsExistsForScheme(appId, Commercial).futureValue
@@ -568,8 +568,8 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
     "return false when there are no results" in {
       val appId = "appId1"
-      val schemeEvaluationResult = SchemeEvaluationResult(Commercial, Green.toString)
       createSiftEligibleCandidates(appId)
+      val schemeEvaluationResult = SchemeEvaluationResult(Commercial, Green.toString)
       repository.siftApplicationForScheme(appId, schemeEvaluationResult, Nil).futureValue
 
       val result = repository.siftResultsExistsForScheme(appId, Generalist).futureValue
@@ -587,6 +587,21 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
       val result = repository.siftResultsExistsForScheme(appId, Generalist).futureValue
       result mustBe false
+    }
+  }
+
+  "fix scheme evaluation" must {
+    "update the schemes to the expected results" in {
+      val appId = "appId1"
+      createSiftEligibleCandidates(appId)
+      val schemeEvaluationResult = SchemeEvaluationResult(Commercial, Green.toString)
+      repository.siftApplicationForScheme(appId, schemeEvaluationResult, Nil).futureValue
+
+      val updatedSchemes = SchemeEvaluationResult(Commercial, Red.toString)
+      repository.fixSchemeEvaluation(appId, updatedSchemes).futureValue
+
+      val result = repository.getSiftEvaluations(appId).futureValue
+      result mustBe Seq(updatedSchemes)
     }
   }
 
