@@ -72,20 +72,29 @@ trait ApplicationSiftRepository {
   def saveSiftExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit]
   def isSiftExpired(applicationId: String): Future[Boolean]
   def removeTestGroup(applicationId: String): Future[Unit]
+  //TODO: mongo no usages
   def findAllUsersInSiftReady: Future[Seq[FixStuckUser]]
   def findAllUsersInSiftEntered: Future[Seq[FixUserStuckInSiftEntered]]
+  //TODO: mongo no test
   def fixDataByRemovingSiftPhaseEvaluationAndFailureStatus(appId: String): Future[Unit]
+  //TODO: mongo no test
   def fixSchemeEvaluation(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
+  //TODO: mongo no test
   def fixDataByRemovingSiftEvaluation(applicationId: String): Future[Unit]
+  //TODO: mongo no test HERE
   def nextApplicationForFirstSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]]
+  //TODO: mongo no test HERE
   def nextApplicationForSecondSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]]
   def getTestGroup(applicationId: String): Future[Option[SiftTestGroup]]
 //  def getTestGroupByCubiksId(cubiksId: Int): Future[MaybeSiftTestGroupWithAppId]
 //  def getTestGroupByToken(token: String): Future[MaybeSiftTestGroupWithAppId]
   def getTestGroupByOrderId(orderId: String): Future[MaybeSiftTestGroupWithAppId]
   def updateExpiryTime(applicationId: String, expiryDateTime: DateTime): Future[Unit]
+  //TODO: this is cubiks specific
   def updateTestStartTime(cubiksUserId: Int, startedTime: DateTime): Future[Unit]
+  //TODO: mongo no test
   def updateTestStartTime(orderId: String, startedTime: DateTime): Future[Unit]
+  //TODO cubiks specific
   def getApplicationIdForCubiksId(cubiksUserId: Int): Future[String]
   def getApplicationIdForOrderId(orderId: String): Future[String]
 //  def insertNumericalTests(applicationId: String, tests: List[CubiksTest]): Future[Unit]
@@ -100,8 +109,11 @@ trait ApplicationSiftRepository {
 //  def updateTestReportReady(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit]
 //  def nextTestGroupWithReportReady: Future[Option[SiftTestGroupWithAppId]]
 //  def insertCubiksTestResult(appId: String, cubiksTest: CubiksTest, testResult: TestResult): Future[Unit]
+  //TODO: mongo no test
   def insertPsiTestResult(appId: String, psiTest: PsiTest, testResult: PsiTestResult): Future[Unit]
+  //TODO: mongo no test
   def nextApplicationWithResultsReceived: Future[Option[String]]
+  //TODO: mongo no test
   def getNotificationExpiringSift(applicationId: String): Future[Option[NotificationExpiringSift]]
   def removeEvaluation(applicationId: String): Future[Unit]
 }
@@ -319,7 +331,17 @@ class ApplicationSiftMongoRepository @Inject() (
       case _ => throw CannotFindApplicationByOrderIdException(s"Cannot find application by orderId Id: $orderId")
     }
   }*/
-  def getApplicationIdForOrderId(orderId: String): Future[String] = ???
+  override def getApplicationIdForOrderId(orderId: String): Future[String] = {
+    val query = Document(s"testGroups.$phaseName.tests" -> Document(
+      "$elemMatch" -> Document("orderId" -> orderId)
+    ))
+    val projection = Projections.include("applicationId")
+
+    collection.find[Document](query).projection(projection).headOption() map {
+      case Some(doc) => doc.get("applicationId").get.asString().getValue
+      case _ => throw CannotFindApplicationByOrderIdException(s"Cannot find application by orderId Id: $orderId")
+    }
+  }
 
   /*
   def nextApplicationsForSiftStage(batchSize: Int): Future[List[ApplicationForSift]] = {
@@ -518,7 +540,7 @@ class ApplicationSiftMongoRepository @Inject() (
         throw ApplicationNotFound(applicationId)
     }
   }*/
-  def isSiftExpired(applicationId: String): Future[Boolean] = {
+  override def isSiftExpired(applicationId: String): Future[Boolean] = {
     val query = Document("applicationId" -> applicationId)
     val projection = Projections.include("applicationId", s"progress-status.${ProgressStatuses.SIFT_EXPIRED}")
 

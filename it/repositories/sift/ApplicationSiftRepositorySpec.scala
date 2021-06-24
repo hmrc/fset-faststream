@@ -2,7 +2,7 @@ package repositories.sift
 
 import model.ApplicationRoute.ApplicationRoute
 import model.EvaluationResults.{Green, Red, Withdrawn}
-import model.Exceptions.{ApplicationNotFound, CannotFindTestByOrderIdException, CannotUpdateRecord, NotFoundException, PassMarkEvaluationNotFound}
+import model.Exceptions._
 import model.Phase3TestProfileExamples.phase3TestWithResult
 import model.ProgressStatuses.PHASE3_TESTS_PASSED
 import model._
@@ -335,7 +335,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
   }
 
   "is sift expired" must {
-    "reeturn true true when the application is expired" in {
+    "return true when the application is expired" in {
       val appId = "appId1"
       insertApplicationWithSiftEntered(appId,
         List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)))
@@ -356,6 +356,25 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
       val result = repository.isSiftExpired("appId1").futureValue
       result mustBe false
+    }
+  }
+
+  "get application id for order id" must {
+    "throw an exception if no record is found" in {
+      val result = repository.getApplicationIdForOrderId("orderId").failed.futureValue
+      result mustBe a[CannotFindApplicationByOrderIdException]
+    }
+
+    "return a record" in {
+      val appId = "appId1"
+      createSiftEligibleCandidates(appId)
+      val test = PsiTest(inventoryId = "inventoryUuid", orderId = "orderUuid", assessmentId = "assessmentUuid",
+        reportId = "reportUuid", normId = "normUuid", usedForResults = true,
+        testUrl = "http://testUrl.com", invitationDate = now)
+      repository.insertNumericalTests2(appId, List(test))
+
+      val result = repository.getApplicationIdForOrderId("orderUuid").futureValue
+      result mustBe appId
     }
   }
 
