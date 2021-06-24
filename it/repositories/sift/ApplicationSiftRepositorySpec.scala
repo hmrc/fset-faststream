@@ -378,6 +378,100 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     }
   }
 
+  "next application for first sift reminder" must {
+    "fetch applications that are eligible for the first sift reminder" in {
+      val appId = "appId1"
+      insertApplicationWithSiftEntered(appId, List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)))
+      repository.saveSiftExpiryDate(appId, now).futureValue
+
+      // Fetch the application if the expiry date is before now plus 1 hour
+      val result = repository.nextApplicationForFirstSiftReminder(1).futureValue
+      result mustBe defined
+    }
+
+    "return no applications when a reminder has already been sent" in {
+      val appId = "appId1"
+      insertApplicationWithSiftEntered(appId, List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)))
+      // This progress status indicates a reminder has already been sent
+      applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_FIRST_REMINDER).futureValue
+      repository.saveSiftExpiryDate(appId, now).futureValue
+
+      val result = repository.nextApplicationForFirstSiftReminder(1).futureValue
+      result mustBe None
+    }
+
+    "return no applications if they have already expired" in {
+      val appId = "appId1"
+      insertApplicationWithSiftEntered(appId, List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)))
+      // Deliberately do not set the SIFT_FIRST_REMINDER progress status so we test SIFT_EXPIRED in isolation
+      applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_EXPIRED).futureValue
+      repository.saveSiftExpiryDate(appId, now).futureValue
+
+      // In reality the expiry date would be in the past but we just want to check the progress status excludes the application
+      val result = repository.nextApplicationForFirstSiftReminder(1).futureValue
+      result mustBe None
+    }
+
+    "return no applications expiry date is after the time period" in {
+      val appId = "appId1"
+      insertApplicationWithSiftEntered(appId, List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)))
+      repository.saveSiftExpiryDate(appId, now.plusMinutes(61)).futureValue
+
+      // Fetch the application if the expiry date is before now plus 1 hour, so it should not happen as the date is 61 minutes from now
+      val result = repository.nextApplicationForFirstSiftReminder(1).futureValue
+      result mustBe None
+    }
+  }
+
+  "next application for second sift reminder" must {
+    "fetch applications that are eligible for the second sift reminder" in {
+      val appId = "appId1"
+      insertApplicationWithSiftEntered(appId, List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)))
+      applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_FIRST_REMINDER).futureValue
+      repository.saveSiftExpiryDate(appId, now).futureValue
+
+      // Fetch the application if the expiry date is before now plus 1 hour
+      val result = repository.nextApplicationForSecondSiftReminder(1).futureValue
+      result mustBe defined
+    }
+
+    "return no applications when a reminder has already been sent" in {
+      val appId = "appId1"
+      insertApplicationWithSiftEntered(appId, List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)))
+      applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_FIRST_REMINDER).futureValue
+      // This progress status indicates a reminder has already been sent
+      applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_SECOND_REMINDER).futureValue
+      repository.saveSiftExpiryDate(appId, now).futureValue
+
+      val result = repository.nextApplicationForSecondSiftReminder(1).futureValue
+      result mustBe None
+    }
+
+    "return no applications if they have already expired" in {
+      val appId = "appId1"
+      insertApplicationWithSiftEntered(appId, List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)))
+      applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_FIRST_REMINDER).futureValue
+      // Deliberately do not set the SIFT_SECOND_REMINDER progress status so we test SIFT_EXPIRED in isolation
+      applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_EXPIRED).futureValue
+      repository.saveSiftExpiryDate(appId, now).futureValue
+
+      // In reality the expiry date would be in the past but we just want to check the progress status excludes the application
+      val result = repository.nextApplicationForSecondSiftReminder(1).futureValue
+      result mustBe None
+    }
+
+    "return no applications expiry date is after the time period" in {
+      val appId = "appId1"
+      insertApplicationWithSiftEntered(appId, List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)))
+      applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_FIRST_REMINDER).futureValue
+      repository.saveSiftExpiryDate(appId, now.plusMinutes(61)).futureValue
+
+      // Fetch the application if the expiry date is before now plus 1 hour, so it should not happen as the date is 61 minutes from now
+      val result = repository.nextApplicationForSecondSiftReminder(1).futureValue
+      result mustBe None
+    }
+  }
+
   private def createSiftEligibleCandidates(appAndUserId: String, resultToSave: List[SchemeEvaluationResult] = List(
     SchemeEvaluationResult(Commercial, Green.toString),
     SchemeEvaluationResult(DiplomaticServiceEconomists, Green.toString),

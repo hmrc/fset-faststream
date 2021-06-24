@@ -72,7 +72,7 @@ trait ApplicationSiftRepository {
   def saveSiftExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit]
   def isSiftExpired(applicationId: String): Future[Boolean]
   def removeTestGroup(applicationId: String): Future[Unit]
-  //TODO: mongo no usages
+  //TODO: mongo no usages (commented out code)
   def findAllUsersInSiftReady: Future[Seq[FixStuckUser]]
   def findAllUsersInSiftEntered: Future[Seq[FixUserStuckInSiftEntered]]
   //TODO: mongo no test
@@ -81,9 +81,7 @@ trait ApplicationSiftRepository {
   def fixSchemeEvaluation(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
   //TODO: mongo no test
   def fixDataByRemovingSiftEvaluation(applicationId: String): Future[Unit]
-  //TODO: mongo no test HERE
   def nextApplicationForFirstSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]]
-  //TODO: mongo no test HERE
   def nextApplicationForSecondSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]]
   def getTestGroup(applicationId: String): Future[Option[SiftTestGroup]]
 //  def getTestGroupByCubiksId(cubiksId: Int): Future[MaybeSiftTestGroupWithAppId]
@@ -469,7 +467,27 @@ class ApplicationSiftMongoRepository @Inject() (
     implicit val reader = bsonReader(x => NotificationExpiringSift.fromBson(x, phaseName))
     selectOneRandom[NotificationExpiringSift](query)
   }*/
-  def nextApplicationForFirstSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]] = ???
+  override def nextApplicationForFirstSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]] = {
+    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+
+    val query = Document("$and" -> BsonArray(
+      Document("applicationStatus" -> ApplicationStatus.SIFT.toBson),
+      Document(s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> true),
+      Document(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> Document("$exists" -> false)),
+      Document(s"progress-status.${ProgressStatuses.SIFT_READY}" -> Document("$exists" -> false)),
+      Document(s"progress-status.${ProgressStatuses.SIFT_FIRST_REMINDER}" -> Document("$exists" -> false)),
+
+      Document(s"testGroups.$phaseName.expirationDate" ->
+        Document( "$lte" -> Codecs.toBson(dateTime.nowLocalTimeZone.plusHours(timeInHours))) // Serialises to UTC.
+      )
+    ))
+
+//    implicit val reader = bsonReader(x => NotificationExpiringSift.fromBson(x, phaseName))
+//    selectOneRandom[NotificationExpiringSift](query)
+    // TODO: mongo temp code until we get the selectRandom migrated
+    val futureResult = collection.find[Document](query).headOption()
+    futureResult.map(_.map ( doc => NotificationExpiringSift.fromBson(doc, phaseName) ))
+  }
 
   /*
   def nextApplicationForSecondSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]] = {
@@ -489,7 +507,28 @@ class ApplicationSiftMongoRepository @Inject() (
     implicit val reader = bsonReader(x => NotificationExpiringSift.fromBson(x, phaseName))
     selectOneRandom[NotificationExpiringSift](query)
   }*/
-  def nextApplicationForSecondSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]] = ???
+  override def nextApplicationForSecondSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]] = {
+    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+
+    val query = Document("$and" -> BsonArray(
+      Document("applicationStatus" -> ApplicationStatus.SIFT.toBson),
+      Document(s"progress-status.${ProgressStatuses.SIFT_ENTERED}" -> true),
+      Document(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> Document("$exists" -> false)),
+      Document(s"progress-status.${ProgressStatuses.SIFT_READY}" -> Document("$exists" -> false)),
+      Document(s"progress-status.${ProgressStatuses.SIFT_FIRST_REMINDER}" -> true),
+      Document(s"progress-status.${ProgressStatuses.SIFT_SECOND_REMINDER}" -> Document("$exists" -> false)),
+
+      Document(s"testGroups.$phaseName.expirationDate" ->
+        Document( "$lte" -> Codecs.toBson(dateTime.nowLocalTimeZone.plusHours(timeInHours))) // Serialises to UTC.
+      )
+    ))
+
+//    implicit val reader = bsonReader(x => NotificationExpiringSift.fromBson(x, phaseName))
+//    selectOneRandom[NotificationExpiringSift](query)
+    // TODO: mongo temp code until we get the selectRandom migrated
+    val futureResult = collection.find[Document](query).headOption()
+    futureResult.map(_.map ( doc => NotificationExpiringSift.fromBson(doc, phaseName) ))
+  }
 
   /*
   def getNotificationExpiringSift(applicationId: String): Future[Option[NotificationExpiringSift]] = {
