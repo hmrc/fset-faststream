@@ -20,17 +20,19 @@ import com.google.inject.name.Named
 import common.FutureEx
 import connectors.OnlineTestEmailClient
 import factories.DateTimeFactory
-import javax.inject.{ Inject, Singleton }
-import model.EvaluationResults.{ Green, Red, Withdrawn }
-import model.Exceptions.{ SiftResultsAlreadyExistsException, UnexpectedException }
+
+import javax.inject.{Inject, Singleton}
+import model.EvaluationResults.{Green, Red, Withdrawn}
+import model.Exceptions.{SiftResultsAlreadyExistsException, UnexpectedException}
 import model.ProgressStatuses.SIFT_ENTERED
 import model._
-import model.command.{ ApplicationForSift, ApplicationForSiftExpiry }
-import model.exchange.sift.{ SiftState, SiftTestGroupWithActiveTest }
+import model.command.{ApplicationForSift, ApplicationForSiftExpiry}
+import model.exchange.sift.{SiftState, SiftTestGroupWithActiveTest}
 import model.persisted.SchemeEvaluationResult
 import model.persisted.sift.NotificationExpiringSift
-import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered, SiftReminderNotice }
+import model.sift.{FixStuckUser, FixUserStuckInSiftEntered, SiftReminderNotice}
 import org.joda.time.DateTime
+import org.mongodb.scala.bson.collection.immutable.Document
 import play.api.Logging
 //import reactivemongo.bson.BSONDocument
 import repositories.application.GeneralApplicationRepository
@@ -122,7 +124,6 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     applicationSiftRepo.findApplicationsReadyForSchemeSift(schemeId)
   }
 
-/*
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
     applicationSiftRepo.siftResultsExistsForScheme(applicationId, result.schemeId).flatMap { siftResultsExists =>
       if(siftResultsExists) {
@@ -133,12 +134,11 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
             case ApplicationRoute.SdipFaststream => buildSiftSettableFields(result, sdipFaststreamSchemeFilter) _
             case _ => buildSiftSettableFields(result, schemeFilter) _
           }
-          siftApplicationForScheme(applicationId, result, updateFunction)
+          siftApplicationForScheme(applicationId, result)
         }
       }
     }
-  }*/
-  def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = ???
+  }
 
   def processExpiredCandidates(batchSize: Int, gracePeriodInSecs: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
     def processApplication(appForExpiry: ApplicationForSiftExpiry): Future[Unit] = {
@@ -265,50 +265,47 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     }) flatMap identity
   }*/
 
-/*
   private def buildSiftSettableFields(result: SchemeEvaluationResult, schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId])
                                      (currentSchemeStatus: Seq[SchemeEvaluationResult], currentSiftEvaluation: Seq[SchemeEvaluationResult]
-                                     ): Seq[BSONDocument] = {
+                                     ): Seq[Document] = {
     val newSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, result :: Nil)
     val candidatesGreenSchemes = currentSchemeStatus.collect { schemeFilter }
     val candidatesSiftableSchemes = schemeRepo.siftableAndEvaluationRequiredSchemeIds.filter(s => candidatesGreenSchemes.contains(s))
     val siftedSchemes = (currentSiftEvaluation.map(_.schemeId) :+ result.schemeId).distinct
 
+    val empty = Document()
     Seq(currentSchemeStatusBSON(newSchemeStatus),
       maybeSetProgressStatus(siftedSchemes.toSet, candidatesSiftableSchemes.toSet),
       maybeFailSdip(result),
       maybeSetSdipFaststreamProgressStatus(newSchemeStatus, siftedSchemes, candidatesSiftableSchemes)
-    ).foldLeft(Seq.empty[BSONDocument]) { (acc, doc) =>
+    ).foldLeft(Seq.empty[Document]) { (acc, doc) =>
       doc match {
-        case _ @BSONDocument.empty => acc
+        case _ @empty => acc
         case _ => acc :+ doc
       }
     }
-  }*/
+  }
 
-/*
   private def maybeSetProgressStatus(siftedSchemes: Set[SchemeId], candidatesSiftableSchemes: Set[SchemeId]) = {
     if (candidatesSiftableSchemes subsetOf siftedSchemes) {
       progressStatusOnlyBSON(ProgressStatuses.SIFT_COMPLETED)
     } else {
-      BSONDocument.empty
+      Document.empty
     }
-  }*/
+  }
 
-/*
   private def maybeFailSdip(result: SchemeEvaluationResult) = {
     if (Scheme.isSdip(result.schemeId) && result.result == Red.toString) {
       progressStatusOnlyBSON(ProgressStatuses.SDIP_FAILED_AT_SIFT)
     } else {
-      BSONDocument.empty
+      Document.empty
     }
-  }*/
+  }
 
   def getSiftEvaluations(applicationId: String): Future[Seq[SchemeEvaluationResult]] = {
     applicationSiftRepo.getSiftEvaluations(applicationId)
   }
 
-/*
   // we need to consider that all siftable schemes have been sifted with a fail or the candidate has withdrawn from them
   // and sdip has been sifted with a pass
   private def maybeSetSdipFaststreamProgressStatus(newSchemeEvaluationResult: Seq[SchemeEvaluationResult],
@@ -327,9 +324,9 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     if ((!sdipNeededSiftEvaluation || sdipPassedSift) && faststreamSchemesRedOrWithdrawn) {
       progressStatusOnlyBSON(ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN)
     } else {
-      BSONDocument.empty
+      Document.empty
     }
-  }*/
+  }
 
 /*
   def findStuckUsersCalculateCorrectProgressStatus(currentSchemeStatus: Seq[SchemeEvaluationResult],

@@ -64,7 +64,6 @@ trait ApplicationSiftRepository {
   def findAllResults: Future[Seq[SiftPhaseReportItem]]
   def findAllResultsByIds(applicationIds: Seq[String]): Future[Seq[SiftPhaseReportItem]]
   def getSiftEvaluations(applicationId: String): Future[Seq[SchemeEvaluationResult]]
-  //TODO: mongo no usages
   def siftResultsExistsForScheme(applicationId: String, schemeId: SchemeId): Future[Boolean]
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult, settableFields: Seq[Document] = Nil ): Future[Unit]
   //TODO: mongo no usages

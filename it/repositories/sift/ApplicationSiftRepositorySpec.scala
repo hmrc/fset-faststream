@@ -555,6 +555,41 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     }
   }
 
+  "sift results exists for scheme" must {
+    "return true when there are results" in {
+      val appId = "appId1"
+      val schemeEvaluationResult = SchemeEvaluationResult(Commercial, Green.toString)
+      createSiftEligibleCandidates(appId)
+      repository.siftApplicationForScheme(appId, schemeEvaluationResult, Nil).futureValue
+
+      val result = repository.siftResultsExistsForScheme(appId, Commercial).futureValue
+      result mustBe true
+    }
+
+    "return false when there are no results" in {
+      val appId = "appId1"
+      val schemeEvaluationResult = SchemeEvaluationResult(Commercial, Green.toString)
+      createSiftEligibleCandidates(appId)
+      repository.siftApplicationForScheme(appId, schemeEvaluationResult, Nil).futureValue
+
+      val result = repository.siftResultsExistsForScheme(appId, Generalist).futureValue
+      result mustBe false
+    }
+
+    "return false when there is no matching application" in {
+      val result = repository.siftResultsExistsForScheme("appId1", Generalist).futureValue
+      result mustBe false
+    }
+
+    "return false if no evaluation is saved" in {
+      val appId = "appId1"
+      createSiftEligibleCandidates(appId)
+
+      val result = repository.siftResultsExistsForScheme(appId, Generalist).futureValue
+      result mustBe false
+    }
+  }
+
   private def createSiftEligibleCandidates(appAndUserId: String, resultToSave: List[SchemeEvaluationResult] = List(
     SchemeEvaluationResult(Commercial, Green.toString),
     SchemeEvaluationResult(DiplomaticServiceEconomists, Green.toString),

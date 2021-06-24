@@ -1336,7 +1336,16 @@ private def applicationRouteCriteria(appRoute: ApplicationRoute) = appRoute matc
     doc.getAs[ApplicationRoute]("applicationRoute")
   }.getOrElse(throw ApplicationNotFound(s"No application found for $applicationId")))
 }*/
-def getApplicationRoute(applicationId: String): Future[ApplicationRoute] = ???
+  override def getApplicationRoute(applicationId: String): Future[ApplicationRoute] = {
+    def error = throw ApplicationNotFound(s"No application found for $applicationId")
+    val predicate = Document("applicationId" -> applicationId)
+    val projection = Projections.include("applicationRoute")
+    collection.find[Document](predicate).projection(projection).headOption().map {
+      _.map { doc =>
+        Codecs.fromBson[ApplicationRoute](doc.get("applicationRoute").getOrElse(error))
+      }.getOrElse(error)
+    }
+  }
 
 /*
 def getLatestProgressStatuses: Future[List[String]] = {
