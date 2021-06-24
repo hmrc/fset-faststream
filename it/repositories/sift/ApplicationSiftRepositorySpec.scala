@@ -216,6 +216,29 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     }
   }
 
+  "update test started time" must {
+    "throw an exception if no record is found" in {
+      val result = repository.updateTestStartTime("orderId", now).failed.futureValue
+      result mustBe a[CannotFindTestByOrderIdException]
+    }
+
+    "return a record" in {
+      val appId = "appId1"
+      createSiftEligibleCandidates(appId)
+      repository.saveSiftExpiryDate(appId, now).futureValue
+      val test = PsiTest(inventoryId = "inventoryUuid", orderId = "orderUuid", assessmentId = "assessmentUuid",
+        reportId = "reportUuid", normId = "normUuid", usedForResults = true,
+        testUrl = "http://testUrl.com", invitationDate = now)
+      repository.insertNumericalTests2(appId, List(test))
+
+      val startedTime = DateTime.now(DateTimeZone.UTC)
+      repository.updateTestStartTime("orderUuid", startedTime).futureValue
+
+      val result = repository.getTestGroupByOrderId("orderUuid").futureValue
+      result mustBe MaybeSiftTestGroupWithAppId(appId, now, Some(List(test.copy(startedDateTime = Some(startedTime)))))
+    }
+  }
+
   "update test completion time" must {
     "throw an exception if no record is found" in {
       val result = repository.updateTestCompletionTime("orderId", now).failed.futureValue

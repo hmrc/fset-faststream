@@ -90,7 +90,6 @@ trait ApplicationSiftRepository {
   def updateExpiryTime(applicationId: String, expiryDateTime: DateTime): Future[Unit]
   //TODO: this is cubiks specific
   def updateTestStartTime(cubiksUserId: Int, startedTime: DateTime): Future[Unit]
-  //TODO: mongo no test
   def updateTestStartTime(orderId: String, startedTime: DateTime): Future[Unit]
   //TODO cubiks specific
   def getApplicationIdForCubiksId(cubiksUserId: Int): Future[String]
@@ -202,7 +201,24 @@ class ApplicationSiftMongoRepository @Inject() (
 
     collection.update(ordered = false).one(find, query) map validator
   }*/
-  def updateTestStartTime(orderId: String, startedTime: DateTime): Future[Unit] = ???
+
+  override def updateTestStartTime(orderId: String, startedTime: DateTime): Future[Unit] = {
+    val filter = Document(
+      s"testGroups.$phaseName.tests" -> Document(
+        "$elemMatch" -> Document("orderId" -> orderId)
+      )
+    )
+
+    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format
+    val update = Document("$set" -> Document(
+      s"testGroups.$phaseName.tests.$$.startedDateTime" -> Codecs.toBson(startedTime)
+    ))
+
+    val validator = singleUpdateValidator(orderId, actionDesc = s"updating test group start time in $phaseName",
+      CannotFindTestByOrderIdException(s"Cannot find sift test group by order Id: $orderId"))
+
+    collection.updateOne(filter, update).toFuture() map validator
+  }
 
   // TODO: cubiks specific
   /*
