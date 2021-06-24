@@ -205,7 +205,19 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
         }
       }
   }*/
-  override def getApplicationStatusForCandidates(applicationIds: Seq[String]): Future[Seq[(String, ApplicationStatus)]] = ???
+  override def getApplicationStatusForCandidates(applicationIds: Seq[String]): Future[Seq[(String, ApplicationStatus)]] = {
+    val query = Document("applicationId" -> Document("$in" -> applicationIds))
+    val projection = Projections.include("applicationId", "applicationStatus")
+
+    collection.find[Document](query).projection(projection).toFuture()
+      .map { docList =>
+        docList.map { doc =>
+          val applicationId = doc.get("applicationId").get.asString().getValue
+          val applicationStatus = Codecs.fromBson[ApplicationStatus](doc.get("applicationStatus").get)
+          applicationId -> applicationStatus
+        }
+      }
+  }
 
   /*
   override def countLong(implicit ec: ExecutionContext): Future[Long] =

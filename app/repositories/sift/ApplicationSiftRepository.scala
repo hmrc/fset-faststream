@@ -74,7 +74,6 @@ trait ApplicationSiftRepository {
   //TODO: mongo no usages (commented out code)
   def findAllUsersInSiftReady: Future[Seq[FixStuckUser]]
   def findAllUsersInSiftEntered: Future[Seq[FixUserStuckInSiftEntered]]
-  //TODO: mongo no test
   def fixDataByRemovingSiftPhaseEvaluationAndFailureStatus(appId: String): Future[Unit]
   def fixSchemeEvaluation(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
   //TODO: mongo no test
@@ -1058,7 +1057,26 @@ class ApplicationSiftMongoRepository @Inject() (
       else { () }
     }
   }*/
-  def fixDataByRemovingSiftPhaseEvaluationAndFailureStatus(applicationId: String): Future[Unit] = ???
+  override def fixDataByRemovingSiftPhaseEvaluationAndFailureStatus(applicationId: String): Future[Unit] = {
+    val query = Document(
+      "applicationId" -> applicationId,
+      "applicationStatus" -> ApplicationStatus.FAILED_AT_SIFT.toBson
+    )
+
+    val update = Document(
+        "$set" -> Document("applicationStatus" -> ApplicationStatus.SIFT.toBson),
+        "$unset" -> Document(
+          s"testGroups.$phaseName.evaluation" -> "",
+          s"progress-status.${ProgressStatuses.FAILED_AT_SIFT}" -> "",
+          s"progress-status-timestamp.${ProgressStatuses.FAILED_AT_SIFT}" -> ""
+        )
+      )
+
+    collection.updateOne(query, update).toFuture().map { result =>
+      if (result.getModifiedCount != 1) { throw new NotFoundException(s"Failed to match a document to fix for id $applicationId") }
+      else { () }
+    }
+  }
 
   /*
   def fixDataByRemovingSiftEvaluation(applicationId: String): Future[Unit] = {

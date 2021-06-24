@@ -1,6 +1,6 @@
 package repositories.sift
 
-import model.ApplicationRoute.ApplicationRoute
+import model.ApplicationRoute.{ApplicationRoute, applicationRouteFormat}
 import model.EvaluationResults.{Green, Red, Withdrawn}
 import model.Exceptions._
 import model.Phase3TestProfileExamples.phase3TestWithResult
@@ -602,6 +602,32 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
       val result = repository.getSiftEvaluations(appId).futureValue
       result mustBe Seq(updatedSchemes)
+    }
+  }
+
+  "fix data by removing sift phase evaluation and failure status" must {
+    "correct the specified application" in {
+      val appId = "appId1"
+      createSiftEligibleCandidates(appId)
+      val schemeEvaluationResult = SchemeEvaluationResult(Commercial, Red.toString)
+      repository.siftApplicationForScheme(appId, schemeEvaluationResult, Nil).futureValue
+      applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FAILED_AT_SIFT).futureValue
+
+      repository.fixDataByRemovingSiftPhaseEvaluationAndFailureStatus(appId).futureValue
+
+      val evaluations = repository.getSiftEvaluations(appId).failed.futureValue
+      evaluations mustBe a[PassMarkEvaluationNotFound]
+
+      val progressResponse = applicationRepository.findProgress(appId).futureValue
+      progressResponse.siftProgressResponse.failedAtSift mustBe false
+
+      val appStatuses = applicationRepository.getApplicationStatusForCandidates(Seq(appId)).futureValue
+      appStatuses mustBe Seq(appId -> ApplicationStatus.SIFT)
+    }
+
+    "throw an exception if the specified application cannot be found" in {
+      val result = repository.fixDataByRemovingSiftPhaseEvaluationAndFailureStatus("appId1").failed.futureValue
+      result mustBe a[NotFoundException]
     }
   }
 
