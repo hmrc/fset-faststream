@@ -109,7 +109,6 @@ trait ApplicationSiftRepository {
   def insertPsiTestResult(appId: String, psiTest: PsiTest, testResult: PsiTestResult): Future[Unit]
   //TODO: mongo no test
   def nextApplicationWithResultsReceived: Future[Option[String]]
-  //TODO: mongo no test
   def getNotificationExpiringSift(applicationId: String): Future[Option[NotificationExpiringSift]]
   def removeEvaluation(applicationId: String): Future[Unit]
 }
@@ -562,7 +561,12 @@ class ApplicationSiftMongoRepository @Inject() (
       _.map(doc => NotificationExpiringSift.fromBson(doc, phaseName))
     }
   }*/
-  def getNotificationExpiringSift(applicationId: String): Future[Option[NotificationExpiringSift]] = ???
+  override def getNotificationExpiringSift(applicationId: String): Future[Option[NotificationExpiringSift]] = {
+    val query = Document("applicationId" -> applicationId)
+    collection.find[Document](query).headOption() map {
+      _.map(doc => NotificationExpiringSift.fromBson(doc, phaseName))
+    }
+  }
 
   /*
   def nextApplicationsForSiftExpiry(maxBatchSize: Int, gracePeriodInSecs: Int): Future[List[ApplicationForSiftExpiry]] = {

@@ -7,7 +7,7 @@ import model.Phase3TestProfileExamples.phase3TestWithResult
 import model.ProgressStatuses.PHASE3_TESTS_PASSED
 import model._
 import model.command.ApplicationForSift
-import model.persisted.sift.{MaybeSiftTestGroupWithAppId, SiftTestGroup}
+import model.persisted.sift.{MaybeSiftTestGroupWithAppId, NotificationExpiringSift, SiftTestGroup}
 import model.persisted.{PassmarkEvaluation, PsiTest, PsiTestResult, SchemeEvaluationResult}
 import model.report.SiftPhaseReportItem
 import org.joda.time.{DateTime, DateTimeZone}
@@ -520,6 +520,22 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
       val result = repository.getTestGroupByOrderId("orderUuid").futureValue
       result mustBe MaybeSiftTestGroupWithAppId(appId, now, Some(List(test.copy(testResult = Some(testResult)))))
+    }
+  }
+
+  "get notification expiring sift" must {
+    "return an application" in {
+      val appId = "appId1"
+      insertApplicationWithSiftEntered(appId, List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)))
+      repository.saveSiftExpiryDate(appId, now).futureValue
+
+      val result = repository.getNotificationExpiringSift(appId).futureValue
+      result mustBe defined
+    }
+
+    "return None if there is no matching application" in {
+      val result = repository.getNotificationExpiringSift("appId1").futureValue
+      result mustBe None
     }
   }
 
