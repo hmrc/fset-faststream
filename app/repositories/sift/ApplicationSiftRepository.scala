@@ -106,7 +106,6 @@ trait ApplicationSiftRepository {
 //  def updateTestReportReady(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit]
 //  def nextTestGroupWithReportReady: Future[Option[SiftTestGroupWithAppId]]
 //  def insertCubiksTestResult(appId: String, cubiksTest: CubiksTest, testResult: TestResult): Future[Unit]
-  //TODO: mongo no test
   def insertPsiTestResult(appId: String, psiTest: PsiTest, testResult: PsiTestResult): Future[Unit]
   //TODO: mongo no test
   def nextApplicationWithResultsReceived: Future[Option[String]]
@@ -277,7 +276,17 @@ class ApplicationSiftMongoRepository @Inject() (
 
     collection.update(ordered = false).one(query, update) map validator
   }*/
-  def insertPsiTestResult(appId: String, psiTest: PsiTest, testResult: PsiTestResult): Future[Unit] = ???
+  override def insertPsiTestResult(appId: String, psiTest: PsiTest, testResult: PsiTestResult): Future[Unit] = {
+    val query = Document(
+      "applicationId" -> appId,
+      s"testGroups.$phaseName.tests" -> Document("$elemMatch" -> Document("orderId" -> psiTest.orderId))
+    )
+    val update = Document("$set" -> Document(s"testGroups.$phaseName.tests.$$.testResult" -> Codecs.toBson(testResult)))
+
+    val validator = singleUpdateValidator(appId, actionDesc = s"inserting $phaseName test results")
+
+    collection.updateOne(query, update).toFuture() map validator
+  }
 
   // TODO: cubiks specific
   /*

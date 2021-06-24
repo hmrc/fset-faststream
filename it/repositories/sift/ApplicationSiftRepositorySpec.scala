@@ -8,7 +8,7 @@ import model.ProgressStatuses.PHASE3_TESTS_PASSED
 import model._
 import model.command.ApplicationForSift
 import model.persisted.sift.{MaybeSiftTestGroupWithAppId, SiftTestGroup}
-import model.persisted.{PassmarkEvaluation, PsiTest, SchemeEvaluationResult}
+import model.persisted.{PassmarkEvaluation, PsiTest, PsiTestResult, SchemeEvaluationResult}
 import model.report.SiftPhaseReportItem
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mongodb.scala.bson.collection.immutable.Document
@@ -209,7 +209,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       val test = PsiTest(inventoryId = "inventoryUuid", orderId = "orderUuid", assessmentId = "assessmentUuid",
         reportId = "reportUuid", normId = "normUuid", usedForResults = true,
         testUrl = "http://testUrl.com", invitationDate = now)
-      repository.insertNumericalTests2(appId, List(test))
+      repository.insertNumericalTests2(appId, List(test)).futureValue
 
       val result = repository.getTestGroupByOrderId("orderUuid").futureValue
       result mustBe MaybeSiftTestGroupWithAppId(appId, now, Some(List(test)))
@@ -229,7 +229,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       val test = PsiTest(inventoryId = "inventoryUuid", orderId = "orderUuid", assessmentId = "assessmentUuid",
         reportId = "reportUuid", normId = "normUuid", usedForResults = true,
         testUrl = "http://testUrl.com", invitationDate = now)
-      repository.insertNumericalTests2(appId, List(test))
+      repository.insertNumericalTests2(appId, List(test)).futureValue
 
       val startedTime = DateTime.now(DateTimeZone.UTC)
       repository.updateTestStartTime("orderUuid", startedTime).futureValue
@@ -252,7 +252,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       val test = PsiTest(inventoryId = "inventoryUuid", orderId = "orderUuid", assessmentId = "assessmentUuid",
         reportId = "reportUuid", normId = "normUuid", usedForResults = true,
         testUrl = "http://testUrl.com", invitationDate = now)
-      repository.insertNumericalTests2(appId, List(test))
+      repository.insertNumericalTests2(appId, List(test)).futureValue
 
       val completedTime = DateTime.now(DateTimeZone.UTC)
       repository.updateTestCompletionTime("orderUuid", completedTime).futureValue
@@ -394,7 +394,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       val test = PsiTest(inventoryId = "inventoryUuid", orderId = "orderUuid", assessmentId = "assessmentUuid",
         reportId = "reportUuid", normId = "normUuid", usedForResults = true,
         testUrl = "http://testUrl.com", invitationDate = now)
-      repository.insertNumericalTests2(appId, List(test))
+      repository.insertNumericalTests2(appId, List(test)).futureValue
 
       val result = repository.getApplicationIdForOrderId("orderUuid").futureValue
       result mustBe appId
@@ -492,6 +492,34 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       // Fetch the application if the expiry date is before now plus 1 hour, so it should not happen as the date is 61 minutes from now
       val result = repository.nextApplicationForSecondSiftReminder(1).futureValue
       result mustBe None
+    }
+  }
+
+  "insert psi test result" must {
+    "throw an exception if no record is found" in {
+      val test = PsiTest(inventoryId = "inventoryUuid", orderId = "orderUuid", assessmentId = "assessmentUuid",
+        reportId = "reportUuid", normId = "normUuid", usedForResults = true,
+        testUrl = "http://testUrl.com", invitationDate = now)
+      val testResult = PsiTestResult(tScore = 55.33d, rawScore = 65.32d, testReportUrl = None)
+
+      val result = repository.insertPsiTestResult("appId", test, testResult).failed.futureValue
+      result mustBe a[CannotUpdateRecord]
+    }
+
+    "save the test results" in {
+      val appId = "appId1"
+      createSiftEligibleCandidates(appId)
+      repository.saveSiftExpiryDate(appId, now).futureValue
+      val test = PsiTest(inventoryId = "inventoryUuid", orderId = "orderUuid", assessmentId = "assessmentUuid",
+        reportId = "reportUuid", normId = "normUuid", usedForResults = true,
+        testUrl = "http://testUrl.com", invitationDate = now)
+      repository.insertNumericalTests2(appId, List(test)).futureValue
+      val testResult = PsiTestResult(tScore = 55.33d, rawScore = 65.32d, testReportUrl = Some("http://testReportUrl.com"))
+
+      repository.insertPsiTestResult(appId, test, testResult).futureValue
+
+      val result = repository.getTestGroupByOrderId("orderUuid").futureValue
+      result mustBe MaybeSiftTestGroupWithAppId(appId, now, Some(List(test.copy(testResult = Some(testResult)))))
     }
   }
 
