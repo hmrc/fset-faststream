@@ -25,16 +25,13 @@ import model.ApplicationStatus.ApplicationStatus
 import model.ProgressStatuses.ProgressStatus
 import model.persisted.ContactDetails
 import org.joda.time.{DateTime, LocalDate}
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.UpdateOptions
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-//import play.modules.reactivemongo.ReactiveMongoComponent
-//import reactivemongo.api.commands.WriteResult
-//import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
-//import reactivemongo.play.json.ImplicitBSONHandlers._
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import repositories._
-//import uk.gov.hmrc.mongo.ReactiveRepository
-//import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -75,25 +72,22 @@ class TestDataContactDetailsMongoRepository @Inject() (mongo: MongoComponent)
 
   val postcodes = Seq("AB1 3CD", "BC1 2DE", "CD28 7EF", "DE23 8FG")
 
-/*
   override def createContactDetails(num: Int): Future[Unit] = Future.successful {
     for (i <- 0 until num) {
       createSingleContactDetail(i)
     }
-  }*/
-  override def createContactDetails(num: Int): Future[Unit] = ???
+  }
 
-/*
   private def createSingleContactDetail(id: Int): Future[Unit] = {
     val contactDetails = ContactDetails(outsideUk = false, Address("1st High Street"), Some(chooseOne(postcodes)), None,
       s"test_$id@test.com", "123456789")
-    val contactDetailsBson = BSONDocument("$set" -> BSONDocument(
-      "contact-details" -> contactDetails
+    val contactDetailsBson = Document("$set" -> Document(
+      "contact-details" -> Codecs.toBson(contactDetails)
     ))
 
     val validator = singleUpsertValidator(id.toString, actionDesc = "creating contact test data")
-    collection.update(ordered = false).one(BSONDocument("userId" -> id.toString), contactDetailsBson, upsert = true) map validator
-  }*/
+    collection.updateOne(Document("userId" -> id.toString), contactDetailsBson, UpdateOptions().upsert(true)).toFuture() map validator
+  }
 }
 
 @Singleton
@@ -106,6 +100,9 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)
   ) with TestDataRepository with ReactiveRepositoryHelpers {
 
   import Utils.chooseOne
+
+  // Use this collection when using hand written bson documents
+  val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(CollectionNames.APPLICATION)
 
   val applicationStatuses = Seq("CREATED", "IN_PROGRESS", "SUBMITTED", "WITHDRAWN")
   val firstNames = Seq("John", "Chris", "James", "Paul")
@@ -122,17 +119,15 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)
     "Coventry" -> "West-midlands", "Telford" -> "West-midlands", "Bradford" -> "Yorkshire-humberside",
     "Shipley" -> "Yorkshire-humberside", "Leeds / Sheffield" -> "Yorkshire-humberside")
   val dateOfBirth = Seq(LocalDate.parse("1980-12-12"), LocalDate.parse("1981-12-12"),
-    LocalDate.parse("1982-12-12"), LocalDate.parse("1983-12-12"), LocalDate.parse("1984-12-12"), LocalDate.parse("1985-12-12"),
-    LocalDate.parse("1987-12-12"), LocalDate.parse("1987-12-12"))
+    LocalDate.parse("1982-12-12"), LocalDate.parse("1983-12-12"), LocalDate.parse("1984-12-12"),
+    LocalDate.parse("1985-12-12"), LocalDate.parse("1987-12-12"), LocalDate.parse("1987-12-12")
+  )
 
-/*
   override def createApplications(num: Int): Future[Unit] =
     Future.sequence(
       (0 until num).map { i => createSingleApplication(i) }
-    ).map(_ => ())*/
-  override def createApplications(num: Int): Future[Unit] = ???
+    ).map(_ => ())
 
-/*
   // scalastyle:off parameter.number method.length
   def createApplicationWithAllFields(userId: String, appId: String, testAccountId: String, frameworkId: String,
                                      appStatus: ApplicationStatus = ApplicationStatus.IN_PROGRESS, hasDisability: String = "Yes",
@@ -140,33 +135,34 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)
                                      needsSupportAtVenue: Boolean = false, guaranteedInterview: Boolean = false, lastName: Option[String] = None,
                                      firstName: Option[String] = None, preferredName: Option[String] = None,
                                      additionalProgressStatuses: List[(ProgressStatus, Boolean)] = Nil,
-                                     additionalDoc: BSONDocument = BSONDocument.empty,
+                                     additionalDoc: Document = Document.empty,
                                      applicationRoute: Option[ApplicationRoute] = None
-                                    ): Future[WriteResult] = {
-    import repositories.BSONLocalDateHandler
-    val document = BSONDocument(
+                                    ) = {
+    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+    val document = Document(
       "applicationId" -> appId,
       "testAccountId" -> testAccountId,
-      "applicationStatus" -> appStatus,
-      "applicationRoute" -> applicationRoute,
+      "applicationStatus" -> appStatus.toBson,
+      //TODO: mongo this impl has changed so we do not store null when the value is None
+      "applicationRoute" -> Codecs.toBson(applicationRoute.getOrElse(ApplicationRoute.Faststream)),
       "userId" -> userId,
       "frameworkId" -> frameworkId,
-      "scheme-preferences" -> BSONDocument(
-        "schemes" -> BSONArray(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService"))
+      "scheme-preferences" -> Document(
+        "schemes" -> BsonArray(SchemeId("DiplomaticService").toBson, SchemeId("GovernmentOperationalResearchService").toBson)
       ),
-      "personal-details" -> BSONDocument(
+      "personal-details" -> Document(
         "firstName" -> firstName.getOrElse(s"${testCandidate("firstName")}"),
         "lastName" -> lastName.getOrElse(s"${testCandidate("lastName")}"),
         "preferredName" -> preferredName.getOrElse(s"${testCandidate("preferredName")}"),
         "dateOfBirth" -> s"${testCandidate("dateOfBirth")}"
       ),
-      "civil-service-experience-details" -> BSONDocument(
+      "civil-service-experience-details" -> Document(
         "applicable" -> true,
-        "civilServantAndInternshipTypes" -> BSONArray(
-          CivilServantAndInternshipType.CivilServant,
-          CivilServantAndInternshipType.EDIP,
-          CivilServantAndInternshipType.SDIP,
-          CivilServantAndInternshipType.OtherInternship
+        "civilServantAndInternshipTypes" -> BsonArray(
+          CivilServantAndInternshipType.CivilServant.toBson,
+          CivilServantAndInternshipType.EDIP.toBson,
+          CivilServantAndInternshipType.SDIP.toBson,
+          CivilServantAndInternshipType.OtherInternship.toBson
         ),
         "edipYear" -> "2018",
         "sdipYear" -> "2019",
@@ -175,7 +171,7 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)
         "fastPassReceived" -> true,
         "certificateNumber" -> "1234567"
       ),
-      "assistance-details" -> BSONDocument(
+      "assistance-details" -> Document(
         "hasDisability" -> "Yes",
         "needsSupportForOnlineAssessment" -> needsSupportForOnlineAssessment,
         "needsSupportAtVenue" -> needsSupportAtVenue,
@@ -183,23 +179,21 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)
       ),
       "issue" -> "this candidate has changed the email",
       "progress-status" -> progressStatus(additionalProgressStatuses),
-      "progress-status-dates" -> BSONDocument(
-        "submitted" -> LocalDate.now()
+      "progress-status-dates" -> Document(
+        "submitted" -> Codecs.toBson(LocalDate.now())
       )
-    ) ++ additionalDoc //.futureValue
-    collection.insert(ordered = false).one(document)
+    ) ++ additionalDoc
+    applicationCollection.insertOne(document).toFuture()
   }
   // scalastyle:on parameter.number method.length
-*/
 
-/*
-  def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {
-    val baseDoc = BSONDocument(
+  def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): Document = {
+    val baseDoc = Document(
       "personal-details" -> true,
       "in_progress" -> true,
       "scheme-preferences" -> true,
       "assistance-details" -> true,
-      "questionnaire" -> BSONDocument(
+      "questionnaire" -> Document(
         "start_questionnaire" -> true,
         "diversity_questionnaire" -> true,
         "education_questionnaire" -> true,
@@ -209,9 +203,8 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)
       "submitted" -> true
     )
 
-    args.foldLeft(baseDoc)((acc, v) => acc ++ (v._1.toString -> v._2))
-  }*/
-  def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): Document = ???
+    args.foldLeft(baseDoc)((acc, v) => acc ++ Document(v._1.toString -> v._2))
+  }
 
   val testCandidate = Map(
     "firstName" -> "George",
@@ -220,43 +213,40 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)
     "dateOfBirth" -> "1986-05-01"
   )
 
-/*
-  def createMinimumApplication(userId: String, appId: String, frameworkId: String): Future[WriteResult] = {
-    collection.insert(ordered = false).one(BSONDocument(
+  def createMinimumApplication(userId: String, appId: String, frameworkId: String) = {
+    applicationCollection.insertOne(Document(
       "applicationId" -> appId,
       "userId" -> userId,
       "frameworkId" -> frameworkId
-    )) //.futureValue
-  }*/
+    )).toFuture()
+  }
 
-/*
+
   private def createSingleApplication(id: Int): Future[Unit] = {
     val document = buildSingleApplication(id)
 
     val validator = singleUpsertValidator(id.toString, actionDesc = "creating application test data")
 
-    collection.update(ordered = false).one(BSONDocument("userId" -> id.toString), document, upsert = true) map validator
-  }*/
+    collection.updateOne(Document("userId" -> id.toString), document, UpdateOptions().upsert(true)).toFuture() map validator
+  }
 
-/*
   private def createProgress(
-                              personalDetails: Option[BSONDocument],
-                              assistance: Option[BSONDocument],
+                              personalDetails: Option[Document],
+                              assistance: Option[Document],
                               isSubmitted: Option[Boolean],
                               isWithdrawn: Option[Boolean]
                             ) = {
-    var progress = BSONDocument.empty
+    var progress = Document.empty
 
-    progress = personalDetails.map(_ => progress ++ ("personal-details" -> true)).getOrElse(progress)
-    progress = assistance.map(_ => progress ++ ("assistance-details" -> true)).getOrElse(progress)
-    progress = isSubmitted.map(_ => progress ++ ("submitted" -> true)).getOrElse(progress)
-    progress = isWithdrawn.map(_ => progress ++ ("withdrawn" -> true)).getOrElse(progress)
+    progress = personalDetails.map(_ => progress ++ Document("personal-details" -> true)).getOrElse(progress)
+    progress = assistance.map(_ => progress ++ Document("assistance-details" -> true)).getOrElse(progress)
+    progress = isSubmitted.map(_ => progress ++ Document("submitted" -> true)).getOrElse(progress)
+    progress = isWithdrawn.map(_ => progress ++ Document("withdrawn" -> true)).getOrElse(progress)
 
     progress
-  }*/
+  }
 
-/*
-  private def buildSingleApplication(id: Int): BSONDocument = {
+  private def buildSingleApplication(id: Int): Document = {
     val personalDetails = createPersonalDetails(id)
     val assistance = createAssistance(id)
     val onlineTests = createOnlineTests(id)
@@ -267,7 +257,7 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)
 
     val applicationStatus = chooseOne(applicationStatuses)
 
-    var document = BSONDocument(
+    var document = Document(
       "applicationId" -> id.toString,
       "userId" -> id.toString,
       "frameworkId" -> ExchangeObjects.frameworkId,
@@ -276,21 +266,19 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)
     document = buildDocument(document)(personalDetails.map(d => "personal-details" -> d))
     document = buildDocument(document)(assistance.map(d => "assistance-details" -> d))
     document = buildDocument(document)(onlineTests.map(d => "online-tests" -> d))
-    document = document ++ ("progress-status" -> progress)
+    document = document ++ Document("progress-status" -> progress)
 
     document
-  }*/
+  }
 
-/*
-  private def buildDocument(document: BSONDocument)(f: Option[(String, BSONDocument)]) = {
-    f.map(d => document ++ d).getOrElse(document)
-  }*/
+  private def buildDocument(document: Document)(f: Option[(String, Document)]) = {
+    f.map(pair => document ++ Document(pair._1 -> pair._2)).getOrElse(document)
+  }
 
-/*
   private def createAssistance(id: Int) = id match {
     case x if x % 7 == 0 => None
     case _ =>
-      Some(BSONDocument(
+      Some(Document(
         "hasDisability" -> "Yes",
         "needsSupportForOnlineAssessment" -> true,
         "needsSupportAtVenue" -> true,
@@ -299,49 +287,47 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)
         "guaranteedInterview" -> true,
         "hasDisabilityDescription" -> "Wooden leg"
       ))
-  }*/
+  }
 
-/*
   private def createPersonalDetails(id: Int) = id match {
     case x if x % 5 == 0 => None
     case _ =>
-      Some(BSONDocument(
-        "firstName" -> chooseOne(firstNames),
-        "lastName" -> chooseOne(lastNames),
-        "preferredName" -> chooseOne(preferredName),
-        "dateOfBirth" -> chooseOne(dateOfBirth),
-        "aLevel" -> true,
-        "stemLevel" -> true
+      import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+      Some(Document(
+        "firstName" -> chooseOne[String](firstNames),
+        "lastName" -> chooseOne[String](lastNames),
+        "preferredName" -> chooseOne[String](preferredName),
+        "dateOfBirth" -> Codecs.toBson(chooseOne[LocalDate](dateOfBirth))//,
+//        "aLevel" -> true,
+//        "stemLevel" -> true
       ))
-  }*/
+  }
 
   // TODO: Cubiks code need to replace with psi
-/*
   private def createOnlineTests(id: Int) = id match {
     case x if x % 12 == 0 => None
     case _ =>
-      Some(BSONDocument(
+      import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+      Some(Document(
         "cubiksUserId" -> 117344,
         "token" -> "32cf213b-697e-414b-a954-7d92f3e3e682",
         "onlineTestUrl" -> "https://uat.cubiksonline.com/CubiksOnline/Standalone/PEnterFromExt.aspx?key=fc831fb6-1cb7-4c6d-9e9b".concat(
           "-1e508db76711&hash=A07B3B39025E6F34639E5CEA70A6F668402E4673"
         ),
-        "invitationDate" -> DateTime.now().minusDays(5),
-        "expirationDate" -> DateTime.now().plusDays(2),
+        "invitationDate" -> Codecs.toBson(DateTime.now().minusDays(5)),
+        "expirationDate" -> Codecs.toBson(DateTime.now().plusDays(2)),
         "participantScheduleId" -> 149245,
-        "completionDate" -> DateTime.now()
+        "completionDate" -> Codecs.toBson(DateTime.now())
       ))
-  }*/
+  }
 
-/*
-  private def isSubmitted(id: Int)(ps: Option[BSONDocument], as: Option[BSONDocument]) = (ps, as) match {
+  private def isSubmitted(id: Int)(ps: Option[Document], as: Option[Document]) = (ps, as) match {
     case (Some(_), Some(_)) if id % 2 == 0 => Some(true)
     case _ => None
-  }*/
+  }
 
-/*
-  private def isWithdrawn(id: Int)(ps: Option[BSONDocument], as: Option[BSONDocument]) = (ps, as) match {
+  private def isWithdrawn(id: Int)(ps: Option[Document], as: Option[Document]) = (ps, as) match {
     case (Some(_), Some(_)) if id % 3 == 0 => Some(true)
     case _ => None
-  }*/
+  }
 }

@@ -57,7 +57,6 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
 
   val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(CollectionNames.APPLICATION)
 
-
   def schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository(mongo)
 
   def assistanceDetailsRepository = new AssistanceDetailsMongoRepository(mongo)

@@ -38,9 +38,9 @@ import model.{ApplicationStatus, _}
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, LocalDate}
 import org.mongodb.scala.MongoCollection
-import org.mongodb.scala.bson.BsonDocument
+import org.mongodb.scala.bson.{BsonArray, BsonDocument}
 import org.mongodb.scala.bson.collection.immutable.Document
-import org.mongodb.scala.model.Projections
+import org.mongodb.scala.model.{Filters, Projections}
 import play.api.libs.json.{JsNumber, JsObject, Json}
 import repositories.{CollectionNames, CommonBSONDocuments, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers}
 import uk.gov.hmrc.mongo.MongoComponent
@@ -167,16 +167,18 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
   ) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
     with GeneralApplicationRepoBSONReader with ReactiveRepositoryHelpers with CurrentSchemeStatusHelper {
 
-//  private val unlimitedMaxDocs = -1
-
   // Additional collections configured to work with the appropriate domainFormat and automatically register the
   // codec to work with BSON serialization
-  val applicationResponseCollection: MongoCollection[ApplicationResponse2] =
-  CollectionFactory.collection(
-    collectionName = CollectionNames.APPLICATION,
-    db = mongo.database,
-    domainFormat = ApplicationResponse2.mongoFormat
-  )
+  val applicationResponseCollection: MongoCollection[ApplicationResponse2] = {
+    CollectionFactory.collection(
+      collectionName = CollectionNames.APPLICATION,
+      db = mongo.database,
+      domainFormat = ApplicationResponse2.mongoFormat
+    )
+  }
+
+  // Use this collection when using hand written bson documents
+  val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(CollectionNames.APPLICATION)
 
   //TODO: test that these indexes are created as expected
   /*
@@ -249,7 +251,34 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       }
     }
   }*/
-  override def create(userId: String, frameworkId: String, route: ApplicationRoute): Future[ApplicationResponse] = ???
+  override def create(userId: String, frameworkId: String, route: ApplicationRoute): Future[ApplicationResponse] = {
+    val applicationId = UUID.randomUUID().toString
+    val testAccountId = UUID.randomUUID().toString
+    val applicationBSON = Document(
+      "applicationId" -> applicationId,
+      "userId" -> userId,
+      "testAccountId" -> testAccountId,
+      "frameworkId" -> frameworkId,
+      "applicationStatus" -> CREATED.toBson,
+      "applicationRoute" -> route.toBson
+    )
+
+    applicationCollection.insertOne(applicationBSON).toFuture() flatMap { _ =>
+      findProgress(applicationId).map { p =>
+        ApplicationResponse(
+          applicationId, CREATED, route, userId, testAccountId, p, civilServiceExperienceDetails = None, overriddenSubmissionDeadline = None
+        )
+      }
+    }
+/*
+    collection.insertOne(applicationBSON).toFuture() map { _ =>
+      findProgress(applicationId).map { p =>
+        ApplicationResponse(
+          applicationId, CREATED, route, userId, testAccountId, p, civilServiceExperienceDetails = None, overriddenSubmissionDeadline = None
+        )
+      }
+    }*/
+  }
 
   /*
   def findAllFileInfo: Future[List[CandidateFileInfo]] = {
@@ -465,7 +494,10 @@ def findCandidateByUserId(userId: String): Future[Option[Candidate]] = {
   val query = BSONDocument("userId" -> userId)
   bsonCollection.find(query, projection = Option.empty[JsObject]).one[Candidate]
 }*/
-def findCandidateByUserId(userId: String): Future[Option[Candidate]] = ???
+  def findCandidateByUserId(userId: String): Future[Option[Candidate]] = {
+    val query = Document("userId" -> userId)
+    collection.find[BsonDocument](query).headOption().map( _.map( bson => Codecs.fromBson[Candidate](bson) ))
+  }
 
 /*
 def findByCriteria(firstOrPreferredNameOpt: Option[String],
@@ -499,11 +531,43 @@ def findByCriteria(firstOrPreferredNameOpt: Option[String],
   bsonCollection.find(query, Some(projection)).cursor[Candidate]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
 }*/
 
-def findByCriteria(firstOrPreferredNameOpt: Option[String],
-                   lastNameOpt: Option[String],
-                   dateOfBirthOpt: Option[LocalDate],
-                   filterToUserIds: List[String]
-                  ): Future[List[Candidate]] = ???
+  override def findByCriteria(firstOrPreferredNameOpt: Option[String],
+                              lastNameOpt: Option[String],
+                              dateOfBirthOpt: Option[LocalDate],
+                              filterToUserIds: List[String]
+                             ): Future[List[Candidate]] = ???
+
+/*
+  override def findByCriteria(firstOrPreferredNameOpt: Option[String],
+                     lastNameOpt: Option[String],
+                     dateOfBirthOpt: Option[LocalDate],
+                     filterToUserIds: List[String]
+                    ): Future[List[Candidate]] = {
+
+    def matchIfSome(value: Option[String]) = value.map(v => Filters.regex(v, "^" + Pattern.quote(v) + "$", "i"))
+
+    val innerQuery = BsonArray(
+      Document("$or" -> BsonArray(
+        Document("personal-details.firstName" -> matchIfSome(firstOrPreferredNameOpt)),
+        Document("personal-details.preferredName" -> matchIfSome(firstOrPreferredNameOpt))
+      )),
+      Document("personal-details.lastName" -> matchIfSome(lastNameOpt)),
+      Document("personal-details.dateOfBirth" -> dateOfBirthOpt)
+    )
+
+    val fullQuery = if (filterToUserIds.isEmpty) {
+      innerQuery
+    } else {
+      innerQuery ++ Document("userId" -> Document("$in" -> filterToUserIds))
+    }
+
+    val query = Document("$and" -> fullQuery)
+
+    val projection = Projections.include("userId", "applicationId", "applicationRoute",
+      "applicationStatus", "personal-details")
+
+    applicationCollection.find[Document](query).projection(projection).toFuture()
+  }*/
 
 /*
 override def findApplicationIdsByLocation(location: String): Future[List[String]] = {
@@ -696,7 +760,37 @@ override def findTestForNotification(notificationType: NotificationTestType): Fu
     result <- selectOneRandom[TestResultNotification](q)
   } yield result
 }*/
-override def findTestForNotification(notificationType: NotificationTestType): Future[Option[TestResultNotification]] = ???
+//override def findTestForNotification(notificationType: NotificationTestType): Future[Option[TestResultNotification]] = ???
+
+  override def findTestForNotification(notificationType: NotificationTestType): Future[Option[TestResultNotification]] = {
+    val query = Try{ notificationType match {
+      case s: SuccessTestType if s.applicationRoutes.isEmpty =>
+        Document("$and" -> BsonArray(
+          Document("applicationStatus" -> s.appStatus.toBson),
+          Document(s"progress-status.${s.notificationProgress}" -> Document("$ne" -> true))
+        ))
+      case s: SuccessTestType if s.applicationRoutes.nonEmpty =>
+        Document("$and" -> BsonArray(
+          Document("applicationStatus" -> s.appStatus.toBson),
+          Document(s"progress-status.${s.notificationProgress}" -> Document("$ne" -> true)),
+          Document("applicationRoute" -> Document("$in" -> Codecs.toBson(s.applicationRoutes)))
+        ))
+      case f: FailedTestType =>
+        Document("$and" -> BsonArray(
+          Document("applicationStatus" -> f.appStatus.toBson),
+          Document(s"progress-status.${f.notificationProgress}" -> Document("$ne" -> true)),
+          Document(s"progress-status.${f.receiveStatus}" -> true)
+        ))
+      case unknown => throw new RuntimeException(s"Unsupported NotificationTestType: $unknown")
+    }}
+
+    for {
+      query <- Future.fromTry(query)
+//      result <- selectOneRandom[TestResultNotification](q)
+      // TODO: mongo temp code until we get the selectRandom migrated
+      result <- collection.find[BsonDocument](query).headOption().map(_.map ( doc => TestResultNotification.fromBson(doc) ))
+    } yield result
+  }
 
 /*
 def findTestForSdipFsNotification(notificationType: NotificationTestTypeSdipFs): Future[Option[TestResultSdipFsNotification]] = {
@@ -752,7 +846,63 @@ override def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]] = {
       selectRandom[Candidate](query, issue.batchSize)
   }
 }*/
-override def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]] = ???
+
+  //scalastyle:off method.length
+  override def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]] = {
+    issue.fix match {
+      case PassToPhase2 =>
+        val query = Document("$and" -> BsonArray(
+          Document("applicationStatus" -> ApplicationStatus.PHASE1_TESTS.toBson),
+          Document(s"progress-status.${ProgressStatuses.PHASE1_TESTS_PASSED}" -> true),
+          Document(s"progress-status.${ProgressStatuses.PHASE2_TESTS_INVITED}" -> true)
+        ))
+
+//        selectRandom[Candidate](query, issue.batchSize)
+        // TODO: mongo temp code until we get the selectRandom migrated
+        val futureResult = collection.find[BsonDocument](query).limit(issue.batchSize).toFuture()
+        futureResult.map(_.map ( doc => Codecs.fromBson[Candidate](doc) ).toList)
+
+      case PassToPhase1TestPassed =>
+        val query = Document("$and" -> BsonArray(
+          Document("applicationStatus" -> ApplicationStatus.PHASE1_TESTS.toBson),
+          Document(s"progress-status.${ProgressStatuses.PHASE1_TESTS_PASSED}" -> true),
+          Document(s"progress-status.${ProgressStatuses.PHASE2_TESTS_INVITED}" -> Document("$ne" -> true))
+        ))
+
+//        selectRandom[Candidate](query, issue.batchSize)
+        // TODO: mongo temp code until we get the selectRandom migrated
+        val futureResult = collection.find[BsonDocument](query).limit(issue.batchSize).toFuture()
+        futureResult.map(_.map ( doc => Codecs.fromBson[Candidate](doc) ).toList)
+
+      case ResetPhase1TestInvitedSubmitted =>
+        val query = Document("$and" -> BsonArray(
+          Document("applicationStatus" -> ApplicationStatus.SUBMITTED.toBson),
+          Document(s"progress-status.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> true)
+        ))
+
+//        selectRandom[Candidate](query, issue.batchSize)
+        // TODO: mongo temp code until we get the selectRandom migrated
+        val futureResult = collection.find[BsonDocument](query).limit(issue.batchSize).toFuture()
+        futureResult.map(_.map ( doc => Codecs.fromBson[Candidate](doc) ).toList)
+
+      case AddMissingPhase2ResultReceived =>
+        val query = Document("$and" -> BsonArray(
+          Document("applicationStatus" -> ApplicationStatus.PHASE2_TESTS.toBson),
+          Document(s"progress-status.${ProgressStatuses.PHASE2_TESTS_RESULTS_READY}" -> true),
+          Document(s"progress-status.${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}" -> Document("$ne" -> true)),
+          Document(s"testGroups.PHASE2.tests" ->
+            Document("$elemMatch" -> Document(
+              "usedForResults" -> true, "testResult" -> Document("$exists" -> true)
+            ))
+          )
+        ))
+
+//        selectRandom[Candidate](query, issue.batchSize)
+        // TODO: mongo temp code until we get the selectRandom migrated
+        val futureResult = collection.find[BsonDocument](query).limit(issue.batchSize).toFuture()
+        futureResult.map(_.map ( doc => Codecs.fromBson[Candidate](doc) ).toList)
+    }
+  }//scalastyle:on
 
 /*
 override def fix(application: Candidate, issue: FixBatch): Future[Option[Candidate]] = {
@@ -869,7 +1019,28 @@ def fixDataByRemovingVideoInterviewFailed(appId: String): Future[Unit] = {
 
   findAndModify(query, updateOp).map(_ => ())
 }*/
-def fixDataByRemovingVideoInterviewFailed(appId: String): Future[Unit] = ???
+  override def fixDataByRemovingVideoInterviewFailed(appId: String): Future[Unit] = {
+    import ProgressStatuses._
+
+    val query = Document("$and" ->
+      BsonArray(
+        Document("applicationId" -> appId),
+        Document("applicationStatus" -> ApplicationStatus.PHASE3_TESTS_FAILED.toBson)
+      ))
+
+    val updateOp = Document(
+      "$set" -> Document("applicationStatus" -> ApplicationStatus.PHASE3_TESTS.toBson),
+      "$unset" -> Document(
+        s"progress-status.${PHASE3_TESTS_FAILED.key}" -> "",
+        s"progress-status.${PHASE3_TESTS_FAILED_NOTIFIED.key}" -> "",
+        s"progress-status-timestamp.${PHASE3_TESTS_FAILED.key}" -> "",
+        s"progress-status-timestamp.${PHASE3_TESTS_FAILED_NOTIFIED.key}" -> "",
+        s"testGroups.PHASE3.evaluation" -> ""
+      )
+    )
+
+    collection.updateOne(query, updateOp).toFuture().map(_ => ())
+  }
 
 /*
 def fixDataByRemovingProgressStatus(appId: String, progressStatus: String): Future[Unit] = {
@@ -925,7 +1096,28 @@ def confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit] =
     collection.update(ordered = false).one(query, adjustmentsConfirmationBSON) map adjustmentValidator
   }
 }*/
-def confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit] = ???
+  override def confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+
+    val resetExerciseAdjustmentsBSON = Document("$unset" -> Document(
+      "assistance-details.etray" -> "",
+      "assistance-details.video" -> ""
+    ))
+
+    val adjustmentsConfirmationBSON = Document("$set" -> Document(
+      "assistance-details.typeOfAdjustments" -> data.adjustments.getOrElse(List.empty[String]),
+      "assistance-details.adjustmentsConfirmed" -> true,
+      "assistance-details.etray" -> Codecs.toBson(data.etray),
+      "assistance-details.video" -> Codecs.toBson(data.video)
+    ))
+
+    val resetValidator = singleUpdateValidator(applicationId, actionDesc = "resetting adjustments")
+    val adjustmentValidator = singleUpdateValidator(applicationId, actionDesc = "updating adjustments")
+
+    collection.updateOne(query, resetExerciseAdjustmentsBSON).toFuture().map(resetValidator).flatMap { _ =>
+      collection.updateOne(query, adjustmentsConfirmationBSON).toFuture() map adjustmentValidator
+    }
+  }
 
 /*
 def findAdjustments(applicationId: String): Future[Option[Adjustments]] = {
@@ -946,7 +1138,25 @@ def findAdjustments(applicationId: String): Future[Option[Adjustments]] = {
     }
   }
 }*/
-def findAdjustments(applicationId: String): Future[Option[Adjustments]] = ???
+
+  override def findAdjustments(applicationId: String): Future[Option[Adjustments]] = {
+    val query = Document("$and" -> BsonArray(
+      Document("applicationId" -> applicationId),
+      Document("assistance-details" -> Document("$exists" -> true))
+    ))
+    val projection = Projections.include("assistance-details")
+
+    collection.find[Document](query).projection(projection).headOption().map { docOpt =>
+      docOpt.map { document =>
+        val rootOpt = document.get("assistance-details")
+        val adjustmentList = rootOpt.map( bson => Codecs.fromBson[List[String]](bson.asDocument().get("typeOfAdjustments")) )
+        val adjustmentsConfirmed = rootOpt.map( _.asDocument().get("adjustmentsConfirmed").asBoolean().getValue )
+        val etray = rootOpt.map( bson => Codecs.fromBson[AdjustmentDetail](bson.asDocument().get("etray")) )
+        val video = rootOpt.map( bson => Codecs.fromBson[AdjustmentDetail](bson.asDocument().get("video")) )
+        Adjustments(adjustmentList, adjustmentsConfirmed, etray, video)
+      }
+    }
+  }
 
 /*
 def removeAdjustmentsComment(applicationId: String): Future[Unit] = {
@@ -1142,7 +1352,19 @@ override def updateApplicationRoute(appId: String, appRoute:ApplicationRoute, ne
   val validator = singleUpdateValidator(appId, actionDesc = "updating application route")
   collection.update(ordered = false).one(query, updateAppRoute) map validator
 }*/
-override def updateApplicationRoute(appId: String, appRoute: ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit] = ???
+  override def updateApplicationRoute(appId: String, appRoute:ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit] = {
+    val query = Document("$and" -> BsonArray(
+      Document("applicationId" -> appId),
+      applicationRouteCriteria(appRoute)
+    ))
+
+    val updateAppRoute = Document("$set" -> Document(
+      "applicationRoute" -> newAppRoute.toBson
+    ))
+
+    val validator = singleUpdateValidator(appId, actionDesc = "updating application route")
+    collection.updateOne(query, updateAppRoute).toFuture() map validator
+  }
 
 /*
 override def archive(appId: String, originalUserId: String, userIdToArchiveWith: String,
@@ -1330,16 +1552,14 @@ private def bsonDocToCandidatesEligibleForEvent(doc: BSONDocument) = {
     dateReady.getOrElse(DateTime.now()))
 }*/
 
-//TODO:fix
-/*
-private def applicationRouteCriteria(appRoute: ApplicationRoute) = appRoute match {
-  case ApplicationRoute.Faststream =>
-    BSONDocument("$or" -> BSONArray(
-      BSONDocument("applicationRoute" -> appRoute),
-      BSONDocument("applicationRoute" -> BSONDocument("$exists" -> false))
-    ))
-  case _ => BSONDocument("applicationRoute" -> appRoute)
-}*/
+  private def applicationRouteCriteria(appRoute: ApplicationRoute) = appRoute match {
+    case ApplicationRoute.Faststream =>
+      Document("$or" -> BsonArray(
+        Document("applicationRoute" -> appRoute.toBson),
+        Document("applicationRoute" -> Document("$exists" -> false))
+      ))
+    case _ => Document("applicationRoute" -> appRoute.toBson)
+  }
 
 /*  def getApplicationRoute(applicationId: String): Future[ApplicationRoute] = {
   val projection = BSONDocument("_id" -> false, "applicationRoute" -> true)
