@@ -63,7 +63,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
         Updates.combine(
           Updates.set("applicationStatus", applicationStatus.toBson),
           Updates.set(s"progress-status.${ApplicationStatus.IN_PROGRESS}", true),
-          Updates.set(s"progress-status-timestamp.${ApplicationStatus.IN_PROGRESS}",Codecs.toBson(dateTimeFactory.nowLocalTimeZone))
+          Updates.set(s"progress-status-timestamp.${ApplicationStatus.IN_PROGRESS}", Codecs.toBson(dateTimeFactory.nowLocalTimeZone))
         )
 /*
         BsonDocument(
@@ -73,6 +73,31 @@ trait CommonBSONDocuments extends BaseBSONReader {
         )*/
       case _ =>
         Updates.set("applicationStatus", applicationStatus.toBson)
+    }
+  }
+
+  protected def applicationStatusBSON2(applicationStatus: ApplicationStatus) = {
+    // TODO the progress status should be propagated up to the caller, rather than default, but that will
+    // require widespread changes, and using a default in here is better than the previous implementation
+    // that just set the progress status to applicationStatus.toString, which produced invalid progress statuses
+    val defaultProgressStatus = ProgressStatuses.tryToGetDefaultProgressStatus(applicationStatus)
+
+    defaultProgressStatus match {
+      case Some(progressStatus) =>
+        Document(
+          "applicationStatus" -> applicationStatus.toBson,
+          s"progress-status.${progressStatus.key}" -> true,
+          s"progress-status-timestamp.${progressStatus.key}" -> Codecs.toBson(dateTimeFactory.nowLocalTimeZone)
+        )
+      // For in progress application status we store application status in progress-status-timestamp
+      case _ if applicationStatus == ApplicationStatus.IN_PROGRESS =>
+        Document(
+          "applicationStatus" -> applicationStatus.toBson,
+          s"progress-status.${ApplicationStatus.IN_PROGRESS}" -> true,
+          s"progress-status-timestamp.${ApplicationStatus.IN_PROGRESS}" -> Codecs.toBson(dateTimeFactory.nowLocalTimeZone)
+        )
+      case _ =>
+        Document("applicationStatus" -> applicationStatus.toBson)
     }
   }
 
@@ -108,7 +133,12 @@ trait CommonBSONDocuments extends BaseBSONReader {
       s"progress-status.${progressStatus.key}" -> true
     )
   }*/
-  def progressStatusGuardBSON(progressStatus: ProgressStatus) = ???
+  def progressStatusGuardBSON(progressStatus: ProgressStatus) = {
+    Document(
+      "applicationStatus" -> progressStatus.applicationStatus.toBson,
+      s"progress-status.${progressStatus.key}" -> true
+    )
+  }
 
   // scalastyle:off method.length
   // TODO: mongo the new impl means you need to always pass root - can we fix this?

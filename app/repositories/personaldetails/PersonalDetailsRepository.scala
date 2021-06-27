@@ -101,12 +101,20 @@ class PersonalDetailsMongoRepository @Inject() (val dateTimeFactory: DateTimeFac
       Document("applicationStatus" -> Document("$in" -> requiredStatuses.map(status => status.toBson)))
     ))
 
+    // TODO: mongo 2 approaches to updates:
+    val update = Document("$set" ->
+      (Document(
+        "progress-status.personal-details" -> true,
+        PersonalDetailsDocumentKey -> Codecs.toBson(personalDetails)
+      ) ++ applicationStatusBSON2(newApplicationStatus))
+    )
+/*
     val update = Updates.combine(
       Updates.set(s"progress-status.$PersonalDetailsDocumentKey", true),
       Updates.set(PersonalDetailsDocumentKey, Codecs.toBson(personalDetails)),
       applicationStatusBSON(newApplicationStatus)
     )
-
+*/
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating personal details",
       PersonalDetailsNotFound(applicationId))
 

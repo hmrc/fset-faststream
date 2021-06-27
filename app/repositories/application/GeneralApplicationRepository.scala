@@ -314,7 +314,12 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     bsonCollection.find(query, projection = Option.empty[JsObject]).cursor[Candidate]()
       .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
   }*/
-  def find(applicationIds: Seq[String]): Future[List[Candidate]] = ???
+  override def find(applicationIds: Seq[String]): Future[List[Candidate]] = {
+    val query = Document("applicationId" -> Document("$in" -> applicationIds))
+    collection.find[BsonDocument](query).toFuture().map { _.map { doc =>
+      Codecs.fromBson[Candidate](doc)
+    }.toList }
+  }
 
   /*
   override def findProgress(applicationId: String): Future[ProgressResponse] = {
@@ -656,7 +661,17 @@ override def submit(applicationId: String): Future[Unit] = {
 
   collection.update(ordered = false).one(query, updateBSON) map validator
 }*/
-override def submit(applicationId: String): Future[Unit] = ???
+  override def submit(applicationId: String): Future[Unit] = {
+    val guard = progressStatusGuardBSON(PREVIEW)
+    val query = Document("applicationId" -> applicationId) ++ guard
+
+    val updateBSON = Document("$set" -> applicationStatusBSON2(SUBMITTED))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "submitting",
+      new IllegalStateException(s"Already submitted $applicationId"))
+
+    collection.updateOne(query, updateBSON).toFuture() map validator
+  }
 
 /*
 override def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit] = {
@@ -672,7 +687,13 @@ override def withdraw(applicationId: String, reason: WithdrawApplication): Futur
 
   collection.update(ordered = false).one(query, applicationBSON) map validator
 }*/
-override def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit] = ???
+  override def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+    val applicationBSON = Document("$set" -> (Document("withdraw" -> reason.toBson) ++ applicationStatusBSON2(WITHDRAWN)))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "withdrawing application")
+    collection.updateOne(query, applicationBSON).toFuture() map validator
+  }
 
 /*
 override def removeWithdrawReason(applicationId: String): Future[Unit] = {
@@ -729,7 +750,17 @@ override def preview(applicationId: String): Future[Unit] = {
 
   collection.update(ordered = false).one(query, progressStatusBSON) map validator
 }*/
-override def preview(applicationId: String): Future[Unit] = ???
+  override def preview(applicationId: String): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+    val progressStatusBSON = Document("$set" -> Document(
+      "progress-status.preview" -> true
+    ))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "preview",
+      CannotUpdatePreview(s"preview $applicationId"))
+
+    collection.updateOne(query, progressStatusBSON).toFuture() map validator
+  }
 
 /*
 override def findTestForNotification(notificationType: NotificationTestType): Future[Option[TestResultNotification]] = {
@@ -1242,7 +1273,17 @@ def gisByApplication(applicationId: String): Future[Boolean] = {
     }.getOrElse(false)
   }
 }*/
-def gisByApplication(applicationId: String): Future[Boolean] = ???
+  def gisByApplication(applicationId: String): Future[Boolean] = {
+    val query = Document("applicationId" -> applicationId)
+    val projection = Projections.include("assistance-details.guaranteedInterview")
+
+    collection.find[Document](query).projection(projection).headOption().map {
+      _.exists { doc =>
+        val assistanceDetailsRoot = doc.get("assistance-details").map(_.asDocument()).get
+        Try(assistanceDetailsRoot.get("guaranteedInterview").asBoolean().getValue).getOrElse(false)
+      }
+    }
+  }
 
 /*
 def allocationExpireDateByApplicationId(applicationId: String): Future[Option[LocalDate]] = {
@@ -1286,7 +1327,13 @@ def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime): Futu
 
   collection.update(ordered = false).one(query, BSONDocument("$set" -> BSONDocument("submissionDeadline" -> newDeadline))) map validator
 }*/
-def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime): Future[Unit] = ???
+  override def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+    val validator = singleUpdateValidator(applicationId, actionDesc = "updating submission deadline")
+
+    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+    collection.updateOne(query, Document("$set" -> Document("submissionDeadline" -> Codecs.toBson(newDeadline)))).toFuture() map validator
+  }
 
 /*
 override def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = {
