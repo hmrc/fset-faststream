@@ -34,7 +34,6 @@ object FSACIndicator {
       (__ \ root \ "version").format[String]
     )(FSACIndicator.apply, unlift(FSACIndicator.unapply))
 
-
   def apply(indicator: model.FSACIndicator, fsacIndicatorVersion: String): FSACIndicator = {
     FSACIndicator(indicator.area, indicator.assessmentCentre, fsacIndicatorVersion)
   }

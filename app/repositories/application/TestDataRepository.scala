@@ -223,11 +223,11 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)
 
 
   private def createSingleApplication(id: Int): Future[Unit] = {
-    val document = buildSingleApplication(id)
+    val update = Document("$set" -> buildSingleApplication(id))
 
     val validator = singleUpsertValidator(id.toString, actionDesc = "creating application test data")
 
-    collection.updateOne(Document("userId" -> id.toString), document, UpdateOptions().upsert(true)).toFuture() map validator
+    collection.updateOne(Document("userId" -> id.toString), update, UpdateOptions().upsert(true)).toFuture() map validator
   }
 
   private def createProgress(

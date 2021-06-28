@@ -76,6 +76,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
     }
   }
 
+  //TODO: mongo fix this
   protected def applicationStatusBSON2(applicationStatus: ApplicationStatus) = {
     // TODO the progress status should be propagated up to the caller, rather than default, but that will
     // require widespread changes, and using a default in here is better than the previous implementation
