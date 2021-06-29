@@ -72,16 +72,13 @@ import scala.util.Try
 // scalastyle:off number.of.methods
 trait GeneralApplicationRepository {
   def create(userId: String, frameworkId: String, applicationRoute: ApplicationRoute): Future[ApplicationResponse]
-//TODO: test
   def find(applicationId: String): Future[Option[Candidate]]
 //TODO: test
   def findAllFileInfo: Future[List[CandidateFileInfo]]
-//TODO: test
   def find(applicationIds: Seq[String]): Future[List[Candidate]]
   def findProgress(applicationId: String): Future[ProgressResponse]
   def findStatus(applicationId: String): Future[ApplicationStatusDetails]
   def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse]
-//TODO: test
   def findCandidateByUserId(userId: String): Future[Option[Candidate]]
   def findByCriteria(firstOrPreferredName: Option[String], lastName: Option[String],
                      dateOfBirth: Option[LocalDate], userIds: List[String] = List.empty): Future[List[Candidate]]
@@ -89,7 +86,6 @@ trait GeneralApplicationRepository {
   def findApplicationIdsByLocation(location: String): Future[List[String]]
   def submit(applicationId: String): Future[Unit]
   def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit]
-//TODO: test
   def withdrawScheme(applicationId: String, schemeWithdraw: WithdrawScheme, schemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
   def preview(applicationId: String): Future[Unit]
 //TODO: test
@@ -106,7 +102,7 @@ trait GeneralApplicationRepository {
 //TODO: no usages
   def rejectAdjustment(applicationId: String): Future[Unit]
   def gisByApplication(applicationId: String): Future[Boolean]
-//TODO: np usages
+//TODO: no usages
   def allocationExpireDateByApplicationId(applicationId: String): Future[Option[LocalDate]]
 //TODO: test
   def updateStatus(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit]
@@ -343,7 +339,14 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     val query = BSONDocument("applicationId" -> applicationId)
     bsonCollection.find(query, projection = Option.empty[JsObject]).one[Candidate]
   }*/
-  def find(applicationId: String): Future[Option[Candidate]] = ???
+  def find(applicationId: String): Future[Option[Candidate]] = {
+    val query = Document("applicationId" -> applicationId)
+    applicationCollection.find[BsonDocument](query).headOption().map {
+      _.map { doc =>
+        Codecs.fromBson[Candidate](doc)
+      }
+    }
+  }
 
   /*
   def find(applicationIds: Seq[String]): Future[List[Candidate]] = {
@@ -772,9 +775,19 @@ override def withdrawScheme(applicationId: String, withdrawScheme: WithdrawSchem
 
   collection.update(ordered = false).one(predicate, update).map(_ => ())
 }*/
-override def withdrawScheme(applicationId: String,
-                            withdrawScheme: WithdrawScheme,
-                            schemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = ???
+  override def withdrawScheme(applicationId: String, withdrawScheme: WithdrawScheme, schemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = {
+    // Note that the info about who performed the withdraw operation is not persisted even though it is contained
+    // in the WithdrawScheme class
+    val update = Document("$set" -> (Document(
+      s"withdraw.schemes.${withdrawScheme.schemeId}" -> withdrawScheme.reason
+    ) ++ (currentSchemeStatusBSON(schemeStatus))))
+
+    val predicate = Document(
+      "applicationId" -> applicationId
+    )
+
+    collection.updateOne(predicate, update).toFuture().map(_ => ())
+  }
 
 /*
 override def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit] = {

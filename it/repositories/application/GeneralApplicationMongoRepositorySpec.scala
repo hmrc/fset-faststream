@@ -22,13 +22,17 @@ import model.ApplicationStatus._
 import model.EvaluationResults.{Green, Red}
 import model.Exceptions.{ApplicationNotFound, CannotUpdateRecord}
 import model.ProgressStatuses.{PHASE1_TESTS_PASSED => _, PHASE3_TESTS_FAILED => _, SUBMITTED => _, _}
-import model.command.ProgressResponse
+import model.command.{ProgressResponse, WithdrawRequest, WithdrawScheme}
 import model.exchange.CandidatesEligibleForEventResponse
 import model.persisted._
 import model.persisted.eventschedules.EventType
 import model.{ApplicationStatus, Candidate, _}
 import org.joda.time.LocalDate
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.Projections
+import play.api.libs.json.Json
 import repositories.CollectionNames
 import repositories.onlinetesting.{Phase1TestMongoRepository, Phase2TestMongoRepository}
 import scheduler.fixer.FixBatch
@@ -37,6 +41,7 @@ import testkit.MongoRepositorySpec
 import uk.gov.hmrc.mongo.play.json.Codecs
 
 import scala.concurrent.{Await, Future}
+import scala.util.Try
 
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
@@ -65,7 +70,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         )
     }
 
-    "find user by id" in {
+    "find application by userId and frameworkId" in {
       val userId = "fastPassUser"
       val appId = "fastPassApp"
       val testAccountId = "testAccountId"
@@ -91,6 +96,38 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
           otherInternshipYear = Some("2020"),
           fastPassReceived = Some(true),
           certificateNumber = Some("1234567"))
+    }
+
+    "find application by userId only" in {
+      val userId = "fastPassUser"
+      val appId = "fastPassApp"
+      val testAccountId = "testAccountId"
+      val frameworkId = "FastStream-2016"
+
+      testDataRepo.createApplicationWithAllFields(userId, appId, testAccountId, frameworkId).futureValue
+
+      val applicationResponse = repository.findCandidateByUserId(userId).futureValue
+
+      applicationResponse mustBe defined
+      applicationResponse.get.applicationId mustBe Some(appId)
+    }
+
+    "find application by appId" in {
+      val userId = "fastPassUser"
+      val appId = "fastPassApp"
+      val testAccountId = "testAccountId"
+      val frameworkId = "FastStream-2016"
+
+      testDataRepo.createApplicationWithAllFields(userId, appId, testAccountId, frameworkId).futureValue
+
+      val applicationResponse = repository.find(appId).futureValue
+      applicationResponse mustBe defined
+      applicationResponse.get.applicationId mustBe Some(appId)
+    }
+
+    "return None when finding application by appId and the application does not exist" in {
+      val applicationResponse = repository.find(AppId).futureValue
+      applicationResponse mustBe None
     }
 
     "Find application status" in {
@@ -852,6 +889,60 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       repository.getCurrentSchemeStatus(newCandidate.applicationId).futureValue mustBe Nil
     }
   }
+
+  lazy val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
+
+  def findWithdrawReasonForScheme(applicationId: String, scheme: SchemeId) = {
+    applicationCollection.find[BsonDocument](Document("applicationId" -> applicationId))
+      .projection(Projections.include("withdraw")).headOption().map {
+      _.flatMap { doc =>
+        Try(doc.get("withdraw").asDocument().get("schemes").asDocument().get(scheme.toString).asString().getValue).toOption
+      }
+    }
+  }
+
+  "withdraw scheme" should {
+    "add the withdraw section to the application" in {
+      val newCandidate = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
+
+      val css = Seq(SchemeEvaluationResult("Commercial", Green.toString), SchemeEvaluationResult("Generalist", Green.toString))
+      repository.updateCurrentSchemeStatus(newCandidate.applicationId, css).futureValue
+
+      val result = repository.getCurrentSchemeStatus(newCandidate.applicationId).futureValue
+      result mustBe css
+
+      val commercial = SchemeId("Commercial")
+      repository.withdrawScheme(
+        newCandidate.applicationId, WithdrawScheme(commercial, reason = "test withdraw reason", withdrawer = "test withdrawer"),
+        Seq(SchemeEvaluationResult(commercial, Green.toString))
+      ).futureValue
+
+      findWithdrawReasonForScheme(newCandidate.applicationId, SchemeId("Generalist")).futureValue mustBe None
+      findWithdrawReasonForScheme(newCandidate.applicationId, commercial).futureValue mustBe Some("test withdraw reason")
+    }
+  }
+
+/*
+  val applicationCollection: MongoCollection[Document] = mongoComponent.database.getCollection(collectionName)
+
+  def remove(applicationStatus: Option[String]): Future[Seq[String]] = {
+    val query = applicationStatus.map(as => Document("applicationStatus" -> as)).getOrElse(Document.empty)
+    val projection = Projections.include("userId")
+
+    applicationCollection.find(query).projection(projection).toFuture().map { docList =>
+      docList.map { doc => doc.getString("userId") }
+    }.map { userIds =>
+      collection.deleteMany(query).toFuture().map(_.getDeletedCount).map { deletedCount =>
+        logger.debug(s"Deleted $deletedCount document(s) where applicationStatus=$applicationStatus")
+      }
+      userIds
+    }
+  }
+
+
+
+
+ */
 
 
 
