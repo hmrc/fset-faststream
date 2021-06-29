@@ -72,41 +72,61 @@ import scala.util.Try
 // scalastyle:off number.of.methods
 trait GeneralApplicationRepository {
   def create(userId: String, frameworkId: String, applicationRoute: ApplicationRoute): Future[ApplicationResponse]
+//TODO: test
   def find(applicationId: String): Future[Option[Candidate]]
+//TODO: test
   def findAllFileInfo: Future[List[CandidateFileInfo]]
+//TODO: test
   def find(applicationIds: Seq[String]): Future[List[Candidate]]
   def findProgress(applicationId: String): Future[ProgressResponse]
   def findStatus(applicationId: String): Future[ApplicationStatusDetails]
   def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse]
+//TODO: test
   def findCandidateByUserId(userId: String): Future[Option[Candidate]]
   def findByCriteria(firstOrPreferredName: Option[String], lastName: Option[String],
                      dateOfBirth: Option[LocalDate], userIds: List[String] = List.empty): Future[List[Candidate]]
+//TODO: no usages
   def findApplicationIdsByLocation(location: String): Future[List[String]]
   def submit(applicationId: String): Future[Unit]
   def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit]
+//TODO: test
   def withdrawScheme(applicationId: String, schemeWithdraw: WithdrawScheme, schemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
   def preview(applicationId: String): Future[Unit]
+//TODO: test
   def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit]
+//TODO: additional test
   def confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit]
   def findAdjustments(applicationId: String): Future[Option[Adjustments]]
+//TODO: test
   def updateAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit]
+//TODO: test
   def findAdjustmentsComment(applicationId: String): Future[AdjustmentsComment]
+//TODO: test
   def removeAdjustmentsComment(applicationId: String): Future[Unit]
+//TODO: no usages
   def rejectAdjustment(applicationId: String): Future[Unit]
   def gisByApplication(applicationId: String): Future[Boolean]
+//TODO: np usages
   def allocationExpireDateByApplicationId(applicationId: String): Future[Option[LocalDate]]
+//TODO: test
   def updateStatus(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit]
+//TODO: test
   def updateApplicationStatusOnly(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit]
   def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime): Future[Unit]
+//TODO: test
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]]
   def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit]
+//TODO: test
   def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit]
   def findTestForNotification(notificationType: NotificationTestType): Future[Option[TestResultNotification]]
+//TODO: test
   def findTestForSdipFsNotification(notificationType: NotificationTestTypeSdipFs): Future[Option[TestResultSdipFsNotification]]
   def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]]
   def fix(candidate: Candidate, issue: FixBatch): Future[Option[Candidate]]
+//TODO: test
   def fixDataByRemovingETray(appId: String): Future[Unit]
   def fixDataByRemovingVideoInterviewFailed(appId: String): Future[Unit]
+//TODO: test
   def fixDataByRemovingProgressStatus(appId: String, progressStatus: String): Future[Unit]
   def updateApplicationRoute(appId: String, appRoute: ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit]
   def archive(appId: String, originalUserId: String, userIdToArchiveWith: String,
@@ -114,30 +134,45 @@ trait GeneralApplicationRepository {
   def findCandidatesEligibleForEventAllocation(locations: List[String], eventType: EventType,
                                                schemeId: Option[SchemeId]): Future[CandidatesEligibleForEventResponse]
   def resetApplicationAllocationStatus(applicationId: String, eventType: EventType): Future[Unit]
+//TODO: test
   def setFailedToAttendAssessmentStatus(applicationId: String, eventType: EventType): Future[Unit]
+//TODO: test
   def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse]
   def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]]
+//TODO: test
   def findSdipFaststreamInvitedToVideoInterview: Future[Seq[Candidate]]
+//TODO: test
   def findSdipFaststreamExpiredPhase2InvitedToSift: Future[Seq[Candidate]]
+//TODO: test
   def findSdipFaststreamExpiredPhase3InvitedToSift: Future[Seq[Candidate]]
+//TODO: test
   def getApplicationRoute(applicationId: String): Future[ApplicationRoute]
+//TODO: test
   def getLatestProgressStatuses: Future[List[String]]
+//TODO: test
   def countByStatus(applicationStatus: ApplicationStatus): Future[Long]
+//TODO: test
   def getProgressStatusTimestamps(applicationId: String): Future[List[(String, DateTime)]]
 
   // Implemented by Hmrc ReactiveRepository class - don't use until it gets fixed. Use countLong instead
 //  @deprecated("At runtime throws a JsResultException: errmsg=readConcern.level must be either 'local', 'majority' or 'linearizable'", "")
 //  def count(implicit ec: scala.concurrent.ExecutionContext) : Future[Int] //TODO: fix
 
+  //TODO: test
   // Implemented in ReactiveRespositoryHelpers
   def countLong(implicit ec: scala.concurrent.ExecutionContext) : Future[Long]
   def updateCurrentSchemeStatus(applicationId: String, results: Seq[SchemeEvaluationResult]): Future[Unit]
   def removeCurrentSchemeStatus(applicationId: String): Future[Unit]
+//TODO: test
   def removeWithdrawReason(applicationId: String): Future[Unit]
+//TODO: test
   def findEligibleForJobOfferCandidatesWithFsbStatus: Future[Seq[String]]
+//TODO: test
   def listCollections: Future[List[String]]
   def removeCollection(name: String): Future[Unit]
+//TODO: test
   def removeCandidate(applicationId: String): Future[Unit]
+//TODO: test
   def getApplicationStatusForCandidates(applicationIds: Seq[String]): Future[Seq[(String, ApplicationStatus)]]
 }
 
@@ -352,7 +387,18 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       doc.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus")
     }.getOrElse(Nil))
   }*/
-  def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]] = ???
+//  def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]] = ???
+
+  override def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]] = {
+    val projection = Projections.include("currentSchemeStatus")
+    collection.find[Document](Document("applicationId" -> applicationId)).projection(projection).headOption().map {
+      _.map { doc =>
+        doc.get("currentSchemeStatus").map { bsonValue =>
+          Codecs.fromBson[Seq[SchemeEvaluationResult]](bsonValue)
+        }.getOrElse(Nil)
+      }.getOrElse(Nil)
+    }
+  }
 
   /*
   def findStatus(applicationId: String): Future[ApplicationStatusDetails] = {
@@ -1199,6 +1245,7 @@ def confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit] =
     collection.update(ordered = false).one(query, adjustmentsConfirmationBSON) map adjustmentValidator
   }
 }*/
+  //scalastyle:off
   override def confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit] = {
     val query = Document("applicationId" -> applicationId)
 
@@ -1207,18 +1254,29 @@ def confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit] =
       "assistance-details.video" -> ""
     ))
 
-    val adjustmentsConfirmationBSON = Document("$set" -> Document(
+    val adjustmentsConfirmationBSON = Document("$set" -> (Document(
       "assistance-details.typeOfAdjustments" -> data.adjustments.getOrElse(List.empty[String]),
-      "assistance-details.adjustmentsConfirmed" -> true,
-      "assistance-details.etray" -> Codecs.toBson(data.etray),
-      "assistance-details.video" -> Codecs.toBson(data.video)
+      "assistance-details.adjustmentsConfirmed" -> true//,
+//      "assistance-details.etray" -> data.etray.map( etray => Codecs.toBson(etray) ).getOrElse(Document.empty),
+//      "assistance-details.video" -> data.video.map( video => Codecs.toBson(video) ).getOrElse(Document.empty)
+    ) ++ data.etray.map( adjustment => Document("assistance-details.etray" -> Codecs.toBson(adjustment) )).getOrElse(Document.empty)
+      ++ data.video.map( adjustment => Document("assistance-details.video" -> Codecs.toBson(adjustment) )).getOrElse(Document.empty)
     ))
 
     val resetValidator = singleUpdateValidator(applicationId, actionDesc = "resetting adjustments")
     val adjustmentValidator = singleUpdateValidator(applicationId, actionDesc = "updating adjustments")
 
-    collection.updateOne(query, resetExerciseAdjustmentsBSON).toFuture().map(resetValidator).flatMap { _ =>
-      collection.updateOne(query, adjustmentsConfirmationBSON).toFuture() map adjustmentValidator
+//    collection.updateOne(query, resetExerciseAdjustmentsBSON).toFuture().map(resetValidator).flatMap { _ =>
+//      collection.updateOne(query, adjustmentsConfirmationBSON).toFuture() map adjustmentValidator
+//    }
+//    collection.updateOne(query, adjustmentsConfirmationBSON).toFuture() map adjustmentValidator
+
+    collection.updateOne(query, resetExerciseAdjustmentsBSON).toFuture().map { _ =>
+      println("**** reset successful")
+      collection.updateOne(query, adjustmentsConfirmationBSON).toFuture() map { _ =>
+        println("**** update successful")
+        ()
+      }
     }
   }
 
@@ -1847,7 +1905,14 @@ def updateCurrentSchemeStatus(applicationId: String, results: Seq[SchemeEvaluati
   val validator = singleUpdateValidator(applicationId, actionDesc = s"Saving currentSchemeStatus for $applicationId")
   collection.update(ordered = false).one(query, updateBSON).map(validator)
 }*/
-def updateCurrentSchemeStatus(applicationId: String, results: Seq[SchemeEvaluationResult]): Future[Unit] = ???
+//def updateCurrentSchemeStatus(applicationId: String, results: Seq[SchemeEvaluationResult]): Future[Unit] = ???
+  override def updateCurrentSchemeStatus(applicationId: String, results: Seq[SchemeEvaluationResult]): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+    val updateBSON = Document("$set" -> currentSchemeStatusBSON(results))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = s"Saving currentSchemeStatus for $applicationId")
+    collection.updateOne(query, updateBSON).toFuture() map validator
+  }
 
 /*
 override def removeCurrentSchemeStatus(applicationId: String): Future[Unit] = {
@@ -1857,7 +1922,13 @@ override def removeCurrentSchemeStatus(applicationId: String): Future[Unit] = {
   val validator = singleUpdateValidator(applicationId, actionDesc = s"removing current scheme status for $applicationId")
   collection.update(ordered = false).one(query, update).map(validator)
 }*/
-override def removeCurrentSchemeStatus(applicationId: String): Future[Unit] = ???
+  override def removeCurrentSchemeStatus(applicationId: String): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+    val update = Document("$unset" -> Document(s"currentSchemeStatus" -> ""))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = s"removing current scheme status for $applicationId")
+    collection.updateOne(query, update).toFuture().map(validator)
+  }
 
 /*
 def findEligibleForJobOfferCandidatesWithFsbStatus: Future[Seq[String]] = {

@@ -20,7 +20,7 @@ import factories.{ITDateTimeFactoryMock, UUIDFactory}
 import model.ApplicationRoute.{ApplicationRoute, apply => _}
 import model.ApplicationStatus._
 import model.EvaluationResults.{Green, Red}
-import model.Exceptions.{ApplicationNotFound, CannotUpdateRecord, NotFoundException}
+import model.Exceptions.{ApplicationNotFound, CannotUpdateRecord}
 import model.ProgressStatuses.{PHASE1_TESTS_PASSED => _, PHASE3_TESTS_FAILED => _, SUBMITTED => _, _}
 import model.command.ProgressResponse
 import model.exchange.CandidatesEligibleForEventResponse
@@ -770,6 +770,90 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       eligibleCandidatesAfterReset.size mustBe 10
     }
   }
+
+  //TODO: mongo this needs to be fixed and moved back above
+  "findAdjustments xx" should {
+    "save and fetch adjustments all data provided" ignore {
+      val result = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
+
+      val adjustments = Adjustments(
+        adjustments = Some(List("Test adjustment")),
+        adjustmentsConfirmed = Some(true),
+        etray = Some(AdjustmentDetail(timeNeeded = Some(10), percentage = Some(10))),
+        video = Some(AdjustmentDetail(timeNeeded = Some(10), percentage = Some(10)))
+      )
+      repository.confirmAdjustments(result.applicationId, adjustments).futureValue
+
+      repository.findAdjustments(result.applicationId).futureValue mustBe Some(adjustments)
+    }
+
+    "save and fetch adjustments all data provided 2" ignore {
+      val result = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
+
+      val adjustments = Adjustments(
+        adjustments = Some(List("Test adjustment")),
+        adjustmentsConfirmed = Some(true),
+        etray = Some(AdjustmentDetail(timeNeeded = Some(10), percentage = Some(10))),
+        video = Some(AdjustmentDetail(timeNeeded = Some(10), percentage = Some(10)))
+      )
+      repository.confirmAdjustments(result.applicationId, adjustments).futureValue
+
+      // Note the data needs to change otherwise the modified count = 0
+      val updatedAdjustments = adjustments.copy(
+        adjustments = Some(List("Test adjustment1","Test adjustment2")),
+        etray = None,
+        video = None
+      )
+      repository.confirmAdjustments(result.applicationId, updatedAdjustments).futureValue
+
+      repository.findAdjustments(result.applicationId).futureValue mustBe Some(updatedAdjustments)
+    }
+  }
+
+  "get current scheme status" should {
+    "return an empty list if the candidate does not exist" in {
+      val result = repository.getCurrentSchemeStatus("appId").futureValue
+      result mustBe Nil
+    }
+
+    "return an empty list if the candidate has no css" in {
+      val newCandidate = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
+      val result = repository.getCurrentSchemeStatus(newCandidate.applicationId).futureValue
+      result mustBe Nil
+    }
+
+    "return css when the candidate has one" in {
+      val newCandidate = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
+
+      val css = Seq(SchemeEvaluationResult("Commercial", Green.toString))
+      repository.updateCurrentSchemeStatus(newCandidate.applicationId, css).futureValue
+
+      val result = repository.getCurrentSchemeStatus(newCandidate.applicationId).futureValue
+      result mustBe css
+    }
+  }
+
+  "remove current scheme status" should {
+    "throw an exception if the application does not exist" in {
+      val result = repository.removeCurrentSchemeStatus("appId").failed.futureValue
+      result mustBe a[CannotUpdateRecord]
+    }
+
+    "remove the css" in {
+      val newCandidate = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
+
+      val css = Seq(SchemeEvaluationResult("Commercial", Green.toString))
+      repository.updateCurrentSchemeStatus(newCandidate.applicationId, css).futureValue
+
+      val result = repository.getCurrentSchemeStatus(newCandidate.applicationId).futureValue
+      result mustBe css
+
+      repository.removeCurrentSchemeStatus(newCandidate.applicationId).futureValue
+      repository.getCurrentSchemeStatus(newCandidate.applicationId).futureValue mustBe Nil
+    }
+  }
+
+
 
   private def createUnAllocatedFSACApplications(num: Int): Future[Unit] = {
     val additionalProgressStatuses = List(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION -> true)
