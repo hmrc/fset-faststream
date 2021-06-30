@@ -20,7 +20,7 @@ import factories.{ITDateTimeFactoryMock, UUIDFactory}
 import model.ApplicationRoute.{ApplicationRoute, apply => _}
 import model.ApplicationStatus._
 import model.EvaluationResults.{Green, Red}
-import model.Exceptions.{ApplicationNotFound, CannotUpdateRecord}
+import model.Exceptions.{AdjustmentsCommentNotFound, ApplicationNotFound, CannotRemoveAdjustmentsComment, CannotUpdateRecord, NotFoundException}
 import model.ProgressStatuses.{PHASE1_TESTS_PASSED => _, PHASE3_TESTS_FAILED => _, SUBMITTED => _, _}
 import model.command.{ProgressResponse, WithdrawRequest, WithdrawScheme}
 import model.exchange.CandidatesEligibleForEventResponse
@@ -922,29 +922,136 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
-/*
-  val applicationCollection: MongoCollection[Document] = mongoComponent.database.getCollection(collectionName)
-
-  def remove(applicationStatus: Option[String]): Future[Seq[String]] = {
-    val query = applicationStatus.map(as => Document("applicationStatus" -> as)).getOrElse(Document.empty)
-    val projection = Projections.include("userId")
-
-    applicationCollection.find(query).projection(projection).toFuture().map { docList =>
-      docList.map { doc => doc.getString("userId") }
-    }.map { userIds =>
-      collection.deleteMany(query).toFuture().map(_.getDeletedCount).map { deletedCount =>
-        logger.debug(s"Deleted $deletedCount document(s) where applicationStatus=$applicationStatus")
-      }
-      userIds
+  /**
+    * Handle this json:
+    *
+    * "progress-status" : {
+    *   "questionnaire" : {
+    *     "section" : true
+    *   }
+    * }
+    */
+  def findQuestionnaireSection(applicationId: String, section: String) = {
+    applicationCollection.find[BsonDocument](Document("applicationId" -> applicationId))
+      .projection(Projections.include("progress-status")).headOption().map {
+      _.flatMap { doc =>
+        Try(doc.get("progress-status").asDocument().get("questionnaire").asDocument().get(section).asBoolean().getValue).toOption
+      }.getOrElse(false)
     }
   }
 
+  "update questionnaire status" should {
+    "store the questionnaire progress status as expected" in {
+      val sectionKey = "testSection"
+      val newCandidate = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
+      repository.updateQuestionnaireStatus(newCandidate.applicationId, sectionKey)
+      findQuestionnaireSection(newCandidate.applicationId, "missing").futureValue mustBe false
+      findQuestionnaireSection(newCandidate.applicationId, sectionKey).futureValue mustBe true
+    }
+  }
+
+  "update status" should {
+    "store the new application status as expected" in {
+      val newCandidate = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
+      val result = repository.find(newCandidate.applicationId).futureValue
+      result mustBe defined
+      result.get.applicationStatus mustBe Some(ApplicationStatus.CREATED.toString)
+
+      repository.updateStatus(newCandidate.applicationId, ApplicationStatus.IN_PROGRESS).futureValue
+      val afterUpdateResult = repository.find(newCandidate.applicationId).futureValue
+      afterUpdateResult mustBe defined
+      afterUpdateResult.get.applicationStatus mustBe Some(ApplicationStatus.IN_PROGRESS.toString)
+    }
+
+    "throw an exception if the application does not exist" in {
+      val result = repository.updateStatus(AppId, ApplicationStatus.IN_PROGRESS).failed.futureValue
+      result mustBe a[CannotUpdateRecord]
+    }
+  }
+
+  "update application status only" should {
+    "store the new application status as expected" in {
+      val newCandidate = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
+      val result = repository.find(newCandidate.applicationId).futureValue
+      result mustBe defined
+      result.get.applicationStatus mustBe Some(ApplicationStatus.CREATED.toString)
+
+      repository.updateApplicationStatusOnly(newCandidate.applicationId, ApplicationStatus.IN_PROGRESS).futureValue
+      val afterUpdateResult = repository.find(newCandidate.applicationId).futureValue
+      afterUpdateResult mustBe defined
+      afterUpdateResult.get.applicationStatus mustBe Some(ApplicationStatus.IN_PROGRESS.toString)
+    }
+
+    "throw an exception if the application does not exist" in {
+      val result = repository.updateApplicationStatusOnly(AppId, ApplicationStatus.IN_PROGRESS).failed.futureValue
+      result mustBe a[CannotUpdateRecord]
+    }
+  }
+
+  "remove candidate" should {
+    "remove a candidate as expected" in {
+      val newCandidate = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
+      val result = repository.find(newCandidate.applicationId).futureValue
+      result mustBe defined
+
+      repository.removeCandidate(newCandidate.applicationId).futureValue
+      val resultAfterDeletion = repository.find(newCandidate.applicationId).futureValue
+      resultAfterDeletion mustBe empty
+    }
+
+    "throw an exception if the application does not exist" in {
+      val result = repository.removeCandidate(AppId).failed.futureValue
+      result mustBe a[NotFoundException]
+    }
+  }
+
+  "find adjustments comment" should {
+    "throw an exception if there is no application" in {
+      val result = repository.findAdjustmentsComment(AppId).failed.futureValue
+      result mustBe an[ApplicationNotFound]
+    }
+
+    "throw an exception if there is an application but no assistance-details section" in {
+      repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
+      val result = repository.findAdjustmentsComment(AppId).failed.futureValue
+      result mustBe an[ApplicationNotFound]
+    }
+
+    //TODO: mongo implement this once we can confirm adjustments
+    "throw an exception if there is an application with assistance-details but no comment" ignore {
+      pending
+    }
+
+    "save and fetch the comment" in {
+      val newCandidate = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
+      val comment = AdjustmentsComment("test comment")
+      repository.updateAdjustmentsComment(newCandidate.applicationId, comment)
+      val result = repository.findAdjustmentsComment(newCandidate.applicationId).futureValue
+      result mustBe comment
+    }
+  }
+
+  "remove adjustments comment" should {
+    "throw an exception if there is no application" in {
+      val result = repository.removeAdjustmentsComment(AppId).failed.futureValue
+      result mustBe an[CannotRemoveAdjustmentsComment]
+    }
+
+    "remove the comment" in {
+      val newCandidate = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
+      val comment = AdjustmentsComment("test comment")
+      repository.updateAdjustmentsComment(newCandidate.applicationId, comment)
+      val result = repository.findAdjustmentsComment(newCandidate.applicationId).futureValue
+      result mustBe comment
+
+      repository.removeAdjustmentsComment(newCandidate.applicationId).futureValue
+      val removalResult = repository.findAdjustmentsComment(newCandidate.applicationId).failed.futureValue
+      removalResult mustBe an[AdjustmentsCommentNotFound]
+    }
 
 
 
- */
-
-
+  }
 
   private def createUnAllocatedFSACApplications(num: Int): Future[Unit] = {
     val additionalProgressStatuses = List(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION -> true)

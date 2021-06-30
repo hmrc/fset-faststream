@@ -88,25 +88,20 @@ trait GeneralApplicationRepository {
   def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit]
   def withdrawScheme(applicationId: String, schemeWithdraw: WithdrawScheme, schemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
   def preview(applicationId: String): Future[Unit]
-//TODO: test
   def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit]
-//TODO: additional test
+//TODO: additional test (tricky one - do later)
   def confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit]
   def findAdjustments(applicationId: String): Future[Option[Adjustments]]
-//TODO: test
+//TODO: test (1 pending)
   def updateAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit]
-//TODO: test
   def findAdjustmentsComment(applicationId: String): Future[AdjustmentsComment]
-//TODO: test
   def removeAdjustmentsComment(applicationId: String): Future[Unit]
 //TODO: no usages
   def rejectAdjustment(applicationId: String): Future[Unit]
   def gisByApplication(applicationId: String): Future[Boolean]
 //TODO: no usages
   def allocationExpireDateByApplicationId(applicationId: String): Future[Option[LocalDate]]
-//TODO: test
   def updateStatus(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit]
-//TODO: test
   def updateApplicationStatusOnly(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit]
   def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime): Future[Unit]
 //TODO: test
@@ -166,9 +161,7 @@ trait GeneralApplicationRepository {
 //TODO: test
   def listCollections: Future[List[String]]
   def removeCollection(name: String): Future[Unit]
-//TODO: test
   def removeCandidate(applicationId: String): Future[Unit]
-//TODO: test
   def getApplicationStatusForCandidates(applicationIds: Seq[String]): Future[Seq[(String, ApplicationStatus)]]
 }
 
@@ -800,7 +793,16 @@ override def updateQuestionnaireStatus(applicationId: String, sectionKey: String
 
   collection.update(ordered = false).one(query, progressStatusBSON) map validator
 }*/
-override def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit] = ???
+  override def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+    val progressStatusBSON = Document("$set" -> Document(
+      s"progress-status.questionnaire.$sectionKey" -> true
+    ))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "update questionnaire status")
+
+    collection.updateOne(query, progressStatusBSON).toFuture() map validator
+  }
 
 /*
 override def preview(applicationId: String): Future[Unit] = {
@@ -1346,7 +1348,19 @@ def removeAdjustmentsComment(applicationId: String): Future[Unit] = {
 
   collection.update(ordered = false).one(query, removeBSON) map validator
 }*/
-def removeAdjustmentsComment(applicationId: String): Future[Unit] = ???
+  def removeAdjustmentsComment(applicationId: String): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+
+    val removeBSON = Document("$unset" -> Document(
+      "assistance-details.adjustmentsComment" -> ""
+    ))
+
+    val validator = singleUpdateValidator(applicationId,
+      actionDesc = "remove adjustments comment",
+      error = CannotRemoveAdjustmentsComment(applicationId))
+
+    collection.updateOne(query, removeBSON).toFuture() map validator
+  }
 
 /*
 def updateAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit] = {
@@ -1362,7 +1376,20 @@ def updateAdjustmentsComment(applicationId: String, adjustmentsComment: Adjustme
 
   collection.update(ordered = false).one(query, updateBSON) map validator
 }*/
-def updateAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit] = ???
+//def updateAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit] = ???
+  def updateAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+
+    val updateBSON = Document("$set" -> Document(
+      "assistance-details.adjustmentsComment" -> adjustmentsComment.comment
+    ))
+
+    val validator = singleUpdateValidator(applicationId,
+      actionDesc = "save adjustments comment",
+      error = CannotUpdateAdjustmentsComment(applicationId))
+
+    collection.updateOne(query, updateBSON).toFuture() map validator
+  }
 
 /*
 def findAdjustmentsComment(applicationId: String): Future[AdjustmentsComment] = {
@@ -1383,7 +1410,23 @@ def findAdjustmentsComment(applicationId: String): Future[AdjustmentsComment] = 
     case None => throw ApplicationNotFound(applicationId)
   }
 }*/
-def findAdjustmentsComment(applicationId: String): Future[AdjustmentsComment] = ???
+  def findAdjustmentsComment(applicationId: String): Future[AdjustmentsComment] = {
+    val query = Document("applicationId" -> applicationId)
+    val projection = Projections.include("assistance-details")
+
+    collection.find[Document](query).projection(projection).headOption().map {
+      case Some(document) =>
+        val root = document.get("assistance-details").map(_.asDocument())
+        root match {
+          case Some(doc) =>
+            val comment = Try(doc.get("adjustmentsComment").asString().getValue).getOrElse(throw AdjustmentsCommentNotFound(applicationId))
+            AdjustmentsComment(comment)
+          case None => throw AdjustmentsCommentNotFound(applicationId)
+        }
+      case None =>
+        throw ApplicationNotFound(s"No application found when looking for adjustments comment for $applicationId")
+    }
+  }
 
 /*
 def rejectAdjustment(applicationId: String): Future[Unit] = {
@@ -1451,7 +1494,12 @@ def updateStatus(applicationId: String, applicationStatus: ApplicationStatus): F
 
   collection.update(ordered = false).one(query, BSONDocument("$set" -> applicationStatusBSON(applicationStatus))) map validator
 }*/
-def updateStatus(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit] = ???
+  def updateStatus(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+    val validator = singleUpdateValidator(applicationId, actionDesc = "updating status")
+
+    collection.updateOne(query, Document("$set" -> applicationStatusBSON2(applicationStatus))).toFuture() map validator
+  }
 
 /*
 def updateApplicationStatusOnly(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit] = {
@@ -1461,7 +1509,13 @@ def updateApplicationStatusOnly(applicationId: String, applicationStatus: Applic
 
   collection.update(ordered = false).one(query, updateOp) map validator
 }*/
-def updateApplicationStatusOnly(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit] = ???
+  def updateApplicationStatusOnly(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+    val updateOp = Document("$set" -> Document("applicationStatus" -> applicationStatus.toBson))
+    val validator = singleUpdateValidator(applicationId, actionDesc = "updating application status")
+
+    collection.updateOne(query, updateOp).toFuture() map validator
+  }
 
 /*
 def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime): Future[Unit] = {
@@ -1527,6 +1581,26 @@ override def removeProgressStatuses(applicationId: String, progressStatuses: Lis
   collection.update(ordered = false).one(query, unsetDoc) map validator
 }*/
 override def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = ???
+  /*
+  override def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
+    require(progressStatuses.nonEmpty, "Progress statuses to remove cannot be empty")
+
+    val query = Document("applicationId" -> applicationId)
+
+    val statusesToUnset = progressStatuses.map { progressStatus =>
+      Map(
+        s"progress-status.$progressStatus" -> "",
+        s"progress-status-dates.$progressStatus" -> "",
+        s"progress-status-timestamp.$progressStatus" -> ""
+      )
+    }
+
+    val unsetDoc = Document("$unset" -> Document(statusesToUnset))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "removing progress statuses")
+
+    collection.updateOne(query, unsetDoc).toFuture() map validator
+  }*/
 
 /*
 override def updateApplicationRoute(appId: String, appRoute:ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit] = {
@@ -1978,5 +2052,9 @@ override def removeCandidate(applicationId: String): Future[Unit] = {
   val query = BSONDocument("applicationId" -> applicationId)
   collection.delete().one(query, limit = Some(1)).map(_ => ())
 }*/
-override def removeCandidate(applicationId: String): Future[Unit] = ???
+  override def removeCandidate(applicationId: String): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+    val validator = singleRemovalValidator(applicationId, actionDesc = s"removing application")
+    collection.deleteOne(query).toFuture().map(validator)
+  }
 }
