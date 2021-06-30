@@ -21,6 +21,7 @@ import model.ApplicationRoute.{ApplicationRoute, apply => _}
 import model.ApplicationStatus._
 import model.EvaluationResults.{Green, Red}
 import model.Exceptions.{AdjustmentsCommentNotFound, ApplicationNotFound, CannotRemoveAdjustmentsComment, CannotUpdateRecord, NotFoundException}
+import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{PHASE1_TESTS_PASSED => _, PHASE3_TESTS_FAILED => _, SUBMITTED => _, _}
 import model.command.{ProgressResponse, WithdrawRequest, WithdrawScheme}
 import model.exchange.CandidatesEligibleForEventResponse
@@ -1048,9 +1049,31 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val removalResult = repository.findAdjustmentsComment(newCandidate.applicationId).failed.futureValue
       removalResult mustBe an[AdjustmentsCommentNotFound]
     }
+  }
 
+  "get online test application" should {
+    "return None if the application does not exist" in {
+      repository.getOnlineTestApplication(AppId).futureValue mustBe None
+    }
 
+    "return data if a minimum application exists" in {
+      createApplications(num = 1, ApplicationStatus.SUBMITTED, additionalProgressStatuses = Nil).futureValue
 
+      val expected = OnlineTestApplication("AppId1", ApplicationStatus.SUBMITTED, "UserId1", "TestAccountId1",
+        guaranteedInterview = false, needsOnlineAdjustments = false, needsAtVenueAdjustments = false,
+        preferredName = "Georgy", lastName = "Jetson01", eTrayAdjustments = None, videoInterviewAdjustments = None)
+      repository.getOnlineTestApplication("AppId1").futureValue mustBe Some(expected)
+    }
+
+    //TODO: mongo implement this
+    "return data if a fully populated application exists" ignore {
+      createApplications(num = 1, ApplicationStatus.SUBMITTED, additionalProgressStatuses = Nil).futureValue
+
+      val expected = OnlineTestApplication("AppId1", ApplicationStatus.SUBMITTED, "UserId1", "TestAccountId1",
+        guaranteedInterview = false, needsOnlineAdjustments = false, needsAtVenueAdjustments = false,
+        preferredName = "Georgy", lastName = "Jetson01", eTrayAdjustments = None, videoInterviewAdjustments = None)
+      repository.getOnlineTestApplication("AppId1").futureValue mustBe Some(expected)
+    }
   }
 
   private def createUnAllocatedFSACApplications(num: Int): Future[Unit] = {
@@ -1070,7 +1093,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   private def createApplications(
     num: Int,
-    appStatus1: ApplicationStatus,
+    appStatus: ApplicationStatus,
     additionalProgressStatuses: List[(ProgressStatus, Boolean)],
     schemes: List[SchemeEvaluationResult] = List.empty): Future[Unit] = {
 
@@ -1086,7 +1109,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     Future.sequence(
       (0 until num).map { i =>
         testDataRepo.createApplicationWithAllFields(
-          UserId + (i + 1), AppId + (i + 1), TestAccountId + (i + 1), FrameworkId, appStatus = appStatus1,
+          UserId + (i + 1), AppId + (i + 1), TestAccountId + (i + 1), FrameworkId, appStatus,
           firstName = Some("George" + f"${i + 1}%02d"), lastName = Some("Jetson" + f"${i + 1}%02d"),
           additionalDoc = additionalDoc, additionalProgressStatuses = additionalProgressStatuses
         )

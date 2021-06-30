@@ -199,15 +199,8 @@ package object repositories {
     val guaranteedInterview = Try(assistanceDetailsRoot.get("guaranteedInterview").asBoolean().getValue).getOrElse(false)
     val needsAdjustmentForOnlineTests = Try(assistanceDetailsRoot.get("needsSupportForOnlineAssessment").asBoolean().getValue).getOrElse(false)
     val needsAdjustmentsAtVenue = Try(assistanceDetailsRoot.get("needsSupportAtVenue").asBoolean().getValue).getOrElse(false)
-
-//    val schemePreferencesBsonValue = doc.get("scheme-preferences").map(_.asDocument())
-//    val preferences = schemePreferencesBsonValue.map( bson => Codecs.fromBson[SelectedSchemes](bson) ).get
-
-    val etrayAdjustmentsBsonValue = assistanceDetailsRoot.get("etray")
-//    val etrayAdjustments = assistanceDetailsRoot.getAs[AdjustmentDetail]("etray")
-//    val videoInterviewAdjustments = assistanceDetailsRoot.getAs[AdjustmentDetail]("video")
-    val etrayAdjustments = None //TODO: mongo fix
-    val videoInterviewAdjustments = None //TODO: mongo fix
+    val etrayAdjustments = Try(Codecs.fromBson[AdjustmentDetail](assistanceDetailsRoot.get("etray"))).toOption
+    val videoInterviewAdjustments = Try(Codecs.fromBson[AdjustmentDetail](assistanceDetailsRoot.get("video"))).toOption
 
     OnlineTestApplication(
       applicationId, applicationStatus, userId, testAccountId, guaranteedInterview,

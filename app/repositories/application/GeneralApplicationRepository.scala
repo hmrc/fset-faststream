@@ -44,22 +44,11 @@ import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Sorts.{ascending, descending}
 import org.mongodb.scala.model.{Filters, Projections}
 import play.api.libs.json.{JsNumber, JsObject, Json}
-import repositories.{CollectionNames, CommonBSONDocuments, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers}
+import repositories._
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}
-//import play.modules.reactivemongo.ReactiveMongoComponent
-//import reactivemongo.api.Cursor.FailOnError
-//import reactivemongo.api._
-//import reactivemongo.api.indexes.Index
-//import reactivemongo.api.indexes.IndexType.Ascending
-//import reactivemongo.bson.{ BSONDocument, _ }
-//import reactivemongo.play.json.ImplicitBSONHandlers._
-//import reactivemongo.play.json.collection.JSONCollection
-//import repositories.{ BSONDateTimeHandler, _ }
 import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{ AddMissingPhase2ResultReceived, PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted }
-//import uk.gov.hmrc.mongo.ReactiveRepository
-//import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ ExecutionContext, Future }
@@ -104,7 +93,6 @@ trait GeneralApplicationRepository {
   def updateStatus(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit]
   def updateApplicationStatusOnly(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit]
   def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime): Future[Unit]
-//TODO: test
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]]
   def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit]
 //TODO: test
@@ -1539,7 +1527,12 @@ override def getOnlineTestApplication(appId: String): Future[Option[OnlineTestAp
     _.map(bsonDocToOnlineTestApplication)
   }
 }*/
-override def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = ???
+  override def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]] = {
+    val query = Document("applicationId" -> appId)
+    collection.find[Document](query).headOption() map {
+      _.map(bsonDocToOnlineTestApplication)
+    }
+  }
 
 /*
 override def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {
