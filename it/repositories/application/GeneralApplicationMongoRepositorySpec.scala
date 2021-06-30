@@ -1076,6 +1076,29 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
+  "find next test for sdip notification" should {
+    "return None if there are no eligible candidates" in {
+      val notificationType = FailedSdipFsTestType
+      repository.findTestForSdipFsNotification(notificationType).futureValue mustBe None
+    }
+
+    "return an eligible candidate" in {
+      val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.PHASE1_TESTS_INVITED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_STARTED, true) :: (ProgressStatuses.PHASE1_TESTS_COMPLETED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED, true) ::
+        (ProgressStatuses.getProgressStatusForSdipFsFailed(ApplicationStatus.PHASE1_TESTS), true) :: Nil
+
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016",
+        ApplicationStatus.PHASE1_TESTS, additionalProgressStatuses = statuses.toList,
+        applicationRoute = Some(ApplicationRoute.SdipFaststream)).futureValue
+
+      val notificationType = FailedSdipFsTestType
+      val result = repository.findTestForSdipFsNotification(notificationType).futureValue
+      result mustBe Some(TestResultSdipFsNotification("appId123", "userId", PHASE1_TESTS, "Georgy"))
+    }
+  }
+
+
   private def createUnAllocatedFSACApplications(num: Int): Future[Unit] = {
     val additionalProgressStatuses = List(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION -> true)
     createApplications(num, ApplicationStatus.ASSESSMENT_CENTRE, additionalProgressStatuses)

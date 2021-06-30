@@ -888,7 +888,17 @@ def findTestForSdipFsNotification(notificationType: NotificationTestTypeSdipFs):
   implicit val reader = bsonReader(TestResultSdipFsNotification.fromBson)
   selectOneRandom[TestResultSdipFsNotification](query)
 }*/
-def findTestForSdipFsNotification(notificationType: NotificationTestTypeSdipFs): Future[Option[TestResultSdipFsNotification]] = ???
+  override def findTestForSdipFsNotification(notificationType: NotificationTestTypeSdipFs): Future[Option[TestResultSdipFsNotification]] = {
+    val query = Document("$and" -> BsonArray(
+      Document("applicationRoute" -> notificationType.applicationRoute.toBson),
+      Document(s"progress-status.${notificationType.progressStatus}" -> true),
+      Document(s"progress-status.${notificationType.notificationProgress}" -> Document("$ne" -> true))
+    ))
+
+//    selectOneRandom[TestResultSdipFsNotification](query)
+    // TODO: mongo temp code until we get the selectRandom migrated
+    collection.find[BsonDocument](query).headOption().map(_.map ( doc => TestResultSdipFsNotification.fromBson(doc) ))
+  }
 
 /*
 override def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]] = {
