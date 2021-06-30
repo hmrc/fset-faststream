@@ -98,7 +98,6 @@ trait GeneralApplicationRepository {
 //TODO: test
   def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit]
   def findTestForNotification(notificationType: NotificationTestType): Future[Option[TestResultNotification]]
-//TODO: test
   def findTestForSdipFsNotification(notificationType: NotificationTestTypeSdipFs): Future[Option[TestResultSdipFsNotification]]
   def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]]
   def fix(candidate: Candidate, issue: FixBatch): Future[Option[Candidate]]
@@ -124,7 +123,6 @@ trait GeneralApplicationRepository {
   def findSdipFaststreamExpiredPhase2InvitedToSift: Future[Seq[Candidate]]
 //TODO: test
   def findSdipFaststreamExpiredPhase3InvitedToSift: Future[Seq[Candidate]]
-//TODO: test
   def getApplicationRoute(applicationId: String): Future[ApplicationRoute]
 //TODO: test
   def getLatestProgressStatuses: Future[List[String]]

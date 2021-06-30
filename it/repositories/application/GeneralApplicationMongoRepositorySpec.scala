@@ -1076,7 +1076,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
-  "find next test for sdip notification" should {
+  "find next test for sdip faststream notification" should {
     "return None if there are no eligible candidates" in {
       val notificationType = FailedSdipFsTestType
       repository.findTestForSdipFsNotification(notificationType).futureValue mustBe None
@@ -1098,6 +1098,18 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
+  "get application route" should {
+    "throw an exception if there is no application" in {
+      val result = repository.getApplicationRoute(AppId).failed.futureValue
+      result mustBe an[ApplicationNotFound]
+    }
+
+    "return the application route" in {
+      testDataRepo.createApplicationWithAllFields("userId", AppId, "testAccountId", "FastStream-2016",
+        applicationRoute = Some(ApplicationRoute.SdipFaststream)).futureValue
+      repository.getApplicationRoute(AppId).futureValue mustBe ApplicationRoute.SdipFaststream
+    }
+  }
 
   private def createUnAllocatedFSACApplications(num: Int): Future[Unit] = {
     val additionalProgressStatuses = List(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION -> true)
