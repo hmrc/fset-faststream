@@ -140,7 +140,6 @@ trait GeneralApplicationRepository {
   def countLong(implicit ec: scala.concurrent.ExecutionContext) : Future[Long]
   def updateCurrentSchemeStatus(applicationId: String, results: Seq[SchemeEvaluationResult]): Future[Unit]
   def removeCurrentSchemeStatus(applicationId: String): Future[Unit]
-//TODO: test
   def removeWithdrawReason(applicationId: String): Future[Unit]
   def findEligibleForJobOfferCandidatesWithFsbStatus: Future[Seq[String]]
   def listCollections: Future[Seq[String]]
@@ -737,7 +736,14 @@ override def removeWithdrawReason(applicationId: String): Future[Unit] = {
 
   collection.update(ordered = false).one(query, update) map validator
 }*/
-override def removeWithdrawReason(applicationId: String): Future[Unit] = ???
+  override def removeWithdrawReason(applicationId: String): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+    val update = Document("$unset" -> Document("withdraw" -> ""))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "removing withdrawal reason")
+
+    collection.updateOne(query, update).toFuture() map validator
+  }
 
 /*
 override def withdrawScheme(applicationId: String, withdrawScheme: WithdrawScheme, schemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = {

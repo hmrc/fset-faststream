@@ -18,13 +18,15 @@ package repositories
 
 import factories.ITDateTimeFactoryMock
 import model.ApplicationStatus._
-import model.Exceptions.ApplicationNotFound
+import model.Exceptions.{ApplicationNotFound, CannotUpdateRecord}
 import model.command.WithdrawApplication
 import model.persisted.AssistanceDetails
 import model.{ApplicationRoute, ProgressStatuses}
 import org.joda.time.DateTime
 import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.Projections
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import testkit.MongoRepositorySpec
@@ -160,12 +162,41 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     "capture the withdrawn date and change the application status to withdrawn" in {
       val applicationStatus = (for {
         app <- applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream)
-        _ <- applicationRepo.withdraw(app.applicationId, WithdrawApplication("test", None, "test"))
+        _ <- applicationRepo.withdraw(app.applicationId, WithdrawApplication("test", otherReason = None, "test"))
         appStatus <- applicationRepo.findStatus(app.applicationId)
       } yield appStatus).futureValue
 
       applicationStatus.status mustBe WITHDRAWN.toString
       timesApproximatelyEqual(applicationStatus.statusDate.get, DateTime.now()) mustBe true
+    }
+  }
+
+  def hasWithdrawSection(applicationId: String) = {
+    val query = Document(
+      "applicationId" -> applicationId,
+      "withdraw" -> Document("$exists" -> true)
+    )
+    applicationCollection.find[BsonDocument](query)
+      .projection(Projections.include("withdraw")).headOption().map { doc => doc.isDefined }
+  }
+
+  "remove withdraw reason" should {
+    "throw an exception if there is no application" in {
+      val result = applicationRepo.removeWithdrawReason(AppId).failed.futureValue
+      result mustBe a[CannotUpdateRecord]
+    }
+
+    "remove the withdraw reason" in {
+      val (appId, applicationStatus) = (for {
+        app <- applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream)
+        _ <- applicationRepo.withdraw(app.applicationId, WithdrawApplication("test", otherReason = None, "test"))
+        appStatus <- applicationRepo.findStatus(app.applicationId)
+      } yield app.applicationId -> appStatus).futureValue
+
+      hasWithdrawSection(appId).futureValue mustBe true
+      applicationStatus.status mustBe WITHDRAWN.toString
+      applicationRepo.removeWithdrawReason(appId)
+      hasWithdrawSection(appId).futureValue mustBe false
     }
   }
 
