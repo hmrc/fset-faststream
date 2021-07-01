@@ -95,7 +95,7 @@ trait GeneralApplicationRepository {
   def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime): Future[Unit]
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]]
   def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit]
-//TODO: test
+//TODO: test (tricky one)
   def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit]
   def findTestForNotification(notificationType: NotificationTestType): Future[Option[TestResultNotification]]
   def findTestForSdipFsNotification(notificationType: NotificationTestTypeSdipFs): Future[Option[TestResultSdipFsNotification]]
@@ -1694,7 +1694,26 @@ override def findAllocatedApplications(applicationIds: List[String]): Future[Can
     Future.successful(CandidatesEligibleForEventResponse(result, -1))
   }
 }*/
-override def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse] = ???
+
+  override def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse] = {
+    val query = Document("applicationId" -> Document("$in" -> applicationIds))
+    val projection = Projections.include(
+      "applicationId",
+      "personal-details.firstName",
+      "personal-details.lastName",
+      "assistance-details.needsSupportAtVenue",
+      "assistance-details.needsSupportForOnlineAssessment",
+      "progress-status-timestamp",
+      "fsac-indicator",
+      "testGroups.FSB.scoresAndFeedback"
+    )
+
+    collection.find[Document](query).projection(projection).toFuture()
+      .map { _.map { doc => bsonDocToCandidatesEligibleForEvent(doc) }.toList
+      }.flatMap { result =>
+      Future.successful(CandidatesEligibleForEventResponse(result, -1))
+    }
+  }
 
   private def countDocuments(query: Document) = {
     collection.find(query).toFuture()
@@ -1794,10 +1813,7 @@ override def findCandidatesEligibleForEventAllocation(locations: List[String],
         val sort = ascending(s"progress-status-timestamp.${ApplicationStatus.PHASE3_TESTS_PASSED}")
 
         collection.find[Document](query).projection(projection).sort(sort).limit(appConfig.eventsConfig.maxNumberOfCandidates).toFuture()
-          .map { docList =>
-            docList.map { doc =>
-              bsonDocToCandidatesEligibleForEvent(doc)
-            }.toList
+          .map { _.map { doc => bsonDocToCandidatesEligibleForEvent(doc) }.toList
           }.flatMap { result =>
           Future.successful(CandidatesEligibleForEventResponse(result, count))
         }

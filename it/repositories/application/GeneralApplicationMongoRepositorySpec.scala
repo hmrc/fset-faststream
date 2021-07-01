@@ -782,6 +782,16 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
+  "find allocated applications" should {
+    "return eligible candidates" in {
+      createUnAllocatedFSACApplications(1).futureValue
+      val candidate = findFsacCandidatesCall.candidates.head
+
+      val result = repository.findAllocatedApplications(List(candidate.applicationId)).futureValue
+      result.candidates.size mustBe 1
+    }
+  }
+
   "reset application status" should {
     "set progress status to awaiting allocation" in {
       createUnAllocatedFSACApplications(10).futureValue
