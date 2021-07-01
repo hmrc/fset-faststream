@@ -1111,6 +1111,29 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
+  "list collections" should {
+    "return the collection names" in {
+      val collections = repository.listCollections.futureValue
+      collections must contain(collectionName)
+    }
+  }
+
+  "find eligible for job offer candidates with fsb status" should {
+    "return an empty collection when there are no eligible candidates" in {
+      repository.findEligibleForJobOfferCandidatesWithFsbStatus.futureValue mustBe Nil
+    }
+
+    "return eligible candidates" in {
+      val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER -> true) :: Nil
+
+      testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016",
+        ApplicationStatus.FSB, additionalProgressStatuses = statuses.toList,
+        applicationRoute = Some(ApplicationRoute.SdipFaststream)).futureValue
+
+      repository.findEligibleForJobOfferCandidatesWithFsbStatus.futureValue.size mustBe 1
+    }
+  }
+
   private def createUnAllocatedFSACApplications(num: Int): Future[Unit] = {
     val additionalProgressStatuses = List(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION -> true)
     createApplications(num, ApplicationStatus.ASSESSMENT_CENTRE, additionalProgressStatuses)

@@ -142,10 +142,8 @@ trait GeneralApplicationRepository {
   def removeCurrentSchemeStatus(applicationId: String): Future[Unit]
 //TODO: test
   def removeWithdrawReason(applicationId: String): Future[Unit]
-//TODO: test
   def findEligibleForJobOfferCandidatesWithFsbStatus: Future[Seq[String]]
-//TODO: test
-  def listCollections: Future[List[String]]
+  def listCollections: Future[Seq[String]]
   def removeCollection(name: String): Future[Unit]
   def removeCandidate(applicationId: String): Future[Unit]
   def getApplicationStatusForCandidates(applicationIds: Seq[String]): Future[Seq[(String, ApplicationStatus)]]
@@ -2034,13 +2032,27 @@ def findEligibleForJobOfferCandidatesWithFsbStatus: Future[Seq[String]] = {
     }
   }
 }*/
-def findEligibleForJobOfferCandidatesWithFsbStatus: Future[Seq[String]] = ???
+  def findEligibleForJobOfferCandidatesWithFsbStatus: Future[Seq[String]] = {
+    val query = Document("$and" -> BsonArray(
+      Document("applicationStatus" -> Document("$eq" -> FSB.toString)),
+      Document(s"progress-status.${ELIGIBLE_FOR_JOB_OFFER.toString}" -> Document("$exists" -> true))
+    ))
+    val projection = Projections.include("applicationId")
+
+    collection.find[Document](query).projection(projection).toFuture().map { docList =>
+      docList.map { doc =>
+        doc.get("applicationId").get.asString().getValue
+      }
+    }
+  }
 
 /*
 override def listCollections: Future[List[String]] = {
   mongoComponent.mongoConnector.db().collectionNames
 }*/
-override def listCollections: Future[List[String]] = ???
+  override def listCollections: Future[Seq[String]] = {
+    mongo.database.listCollectionNames().toFuture()
+  }
 
 /*
 override def removeCollection(name: String): Future[Unit] = {
