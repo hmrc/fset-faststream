@@ -34,7 +34,7 @@ import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
 import repositories.CollectionNames
-import repositories.onlinetesting.{Phase1TestMongoRepository, Phase2TestMongoRepository}
+import repositories.onlinetesting.{Phase1EvaluationMongoRepository, Phase1TestMongoRepository, Phase2TestMongoRepository}
 import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{PassToPhase2, ResetPhase1TestInvitedSubmitted}
 import testkit.MongoRepositorySpec
@@ -1151,6 +1151,79 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       result.size mustBe 2
       result.head._1 mustBe "IN_PROGRESS"
       result(1)._1 mustBe "SUBMITTED"
+    }
+  }
+
+  "find sdip faststream invited to video interview" should {
+    "return an empty list if there are no candidates" in {
+      repository.findSdipFaststreamInvitedToVideoInterview.futureValue mustBe Nil
+    }
+
+    "return candidates when they match" in {
+      val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.PHASE3_TESTS_INVITED -> true) :: Nil
+
+      testDataRepo.createApplicationWithAllFields("userId", AppId, "testAccountId", "FastStream-2016",
+        ApplicationStatus.FSB, additionalProgressStatuses = statuses.toList,
+        applicationRoute = Some(ApplicationRoute.SdipFaststream)).futureValue
+
+      val result = repository.findSdipFaststreamInvitedToVideoInterview.futureValue
+      result.size mustBe 1
+      result.head.applicationId mustBe Some(AppId)
+    }
+  }
+
+  def savePassmarkEvaluation(applicationId: String, phase: String, evaluation: PassmarkEvaluation): Future[Unit] = {
+    val filter = Document("applicationId" -> applicationId)
+    val update = Document("$set" -> Document(s"testGroups.$phase.evaluation" -> evaluation.toBson))
+
+    applicationCollection.updateOne(filter, update).toFuture() map( _ => () )
+  }
+
+  "find sdip faststream phase2 expired invited to sift" should {
+    "return an empty list if there are no candidates" in {
+      repository.findSdipFaststreamExpiredPhase2InvitedToSift.futureValue mustBe Nil
+    }
+
+    "return candidates when they match" in {
+      val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.PHASE2_TESTS_EXPIRED -> true) :: Nil
+
+      testDataRepo.createApplicationWithAllFields("userId", AppId, "testAccountId", "FastStream-2016",
+        ApplicationStatus.SIFT, additionalProgressStatuses = statuses.toList,
+        applicationRoute = Some(ApplicationRoute.SdipFaststream)).futureValue
+
+      val resultToSave = List(SchemeEvaluationResult(SchemeId("Sdip"), Green.toString))
+      val phase1Evaluation = PassmarkEvaluation(
+        "phase1_version2", Some("phase1_version1"), resultToSave, "phase1-version1-res", previousPhaseResultVersion = None
+      )
+      savePassmarkEvaluation(AppId, "PHASE1", phase1Evaluation).futureValue
+
+      val result = repository.findSdipFaststreamExpiredPhase2InvitedToSift.futureValue
+      result.size mustBe 1
+      result.head.applicationId mustBe Some(AppId)
+    }
+  }
+
+  "find sdip faststream phase3 expired invited to sift" should {
+    "return an empty list if there are no candidates" in {
+      repository.findSdipFaststreamExpiredPhase3InvitedToSift.futureValue mustBe Nil
+    }
+
+    "return candidates when they match" in {
+      val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.PHASE3_TESTS_EXPIRED -> true) :: Nil
+
+      testDataRepo.createApplicationWithAllFields("userId", AppId, "testAccountId", "FastStream-2016",
+        ApplicationStatus.SIFT, additionalProgressStatuses = statuses.toList,
+        applicationRoute = Some(ApplicationRoute.SdipFaststream)).futureValue
+
+      val resultToSave = List(SchemeEvaluationResult(SchemeId("Sdip"), Green.toString))
+      val phase1Evaluation = PassmarkEvaluation(
+        "phase2_version2", Some("phase2_version1"), resultToSave, "phase2-version1-res", previousPhaseResultVersion = None
+      )
+      savePassmarkEvaluation(AppId, "PHASE2", phase1Evaluation).futureValue
+
+      val result = repository.findSdipFaststreamExpiredPhase3InvitedToSift.futureValue
+      result.size mustBe 1
+      result.head.applicationId mustBe Some(AppId)
     }
   }
 

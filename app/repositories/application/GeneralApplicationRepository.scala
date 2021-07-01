@@ -116,11 +116,8 @@ trait GeneralApplicationRepository {
   def setFailedToAttendAssessmentStatus(applicationId: String, eventType: EventType): Future[Unit]
   def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse]
   def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]]
-//TODO: test
   def findSdipFaststreamInvitedToVideoInterview: Future[Seq[Candidate]]
-//TODO: test
   def findSdipFaststreamExpiredPhase2InvitedToSift: Future[Seq[Candidate]]
-//TODO: test
   def findSdipFaststreamExpiredPhase3InvitedToSift: Future[Seq[Candidate]]
   def getApplicationRoute(applicationId: String): Future[ApplicationRoute]
 //TODO: test (dashing dashboards)
@@ -639,7 +636,19 @@ override def findSdipFaststreamInvitedToVideoInterview: Future[Seq[Candidate]] =
 
   bsonCollection.find(query, Some(projection)).cursor[Candidate]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
 }*/
-override def findSdipFaststreamInvitedToVideoInterview: Future[Seq[Candidate]] = ???
+  override def findSdipFaststreamInvitedToVideoInterview: Future[Seq[Candidate]] = {
+    val query = Document(
+      "applicationRoute" -> ApplicationRoute.SdipFaststream.toBson,
+      s"progress-status.${ProgressStatuses.PHASE3_TESTS_INVITED}" -> Document("$exists" -> true)
+    )
+
+    val projection = Projections.include("userId", "applicationId", "applicationRoute",
+      "applicationStatus", "personal-details")
+
+    applicationCollection.find[BsonDocument](query).projection(projection).toFuture().map { _.map {
+      doc => Codecs.fromBson[Candidate](doc)
+    }}
+  }
 
 /*
 override def findSdipFaststreamExpiredPhase2InvitedToSift: Future[Seq[Candidate]] = {
@@ -657,7 +666,23 @@ override def findSdipFaststreamExpiredPhase2InvitedToSift: Future[Seq[Candidate]
 
   bsonCollection.find(query, Some(projection)).cursor[Candidate]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
 }*/
-override def findSdipFaststreamExpiredPhase2InvitedToSift: Future[Seq[Candidate]] = ???
+  override def findSdipFaststreamExpiredPhase2InvitedToSift: Future[Seq[Candidate]] = {
+    val query = Document("$and" -> BsonArray(
+      Document("applicationRoute" -> ApplicationRoute.SdipFaststream.toBson),
+      Document("applicationStatus" -> ApplicationStatus.SIFT.toBson),
+      Document(s"progress-status.${ProgressStatuses.PHASE2_TESTS_EXPIRED}" -> Document("$exists" -> true)),
+      Document(s"testGroups.PHASE1.evaluation.result" -> Document("$elemMatch" ->
+        Document("schemeId" -> "Sdip", "result" -> EvaluationResults.Green.toString)
+      ))
+    ))
+
+    val projection = Projections.include("userId", "applicationId", "applicationRoute",
+      "applicationStatus", "personal-details")
+
+    applicationCollection.find[BsonDocument](query).projection(projection).toFuture().map { _.map {
+      doc => Codecs.fromBson[Candidate](doc)
+    }}
+}
 
 /*
 override def findSdipFaststreamExpiredPhase3InvitedToSift: Future[Seq[Candidate]] = {
@@ -675,7 +700,23 @@ override def findSdipFaststreamExpiredPhase3InvitedToSift: Future[Seq[Candidate]
 
   bsonCollection.find(query, Some(projection)).cursor[Candidate]().collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
 }*/
-override def findSdipFaststreamExpiredPhase3InvitedToSift: Future[Seq[Candidate]] = ???
+  override def findSdipFaststreamExpiredPhase3InvitedToSift: Future[Seq[Candidate]] = {
+    val query = Document("$and" -> BsonArray(
+      Document("applicationRoute" -> ApplicationRoute.SdipFaststream.toBson),
+      Document("applicationStatus" -> ApplicationStatus.SIFT.toBson),
+      Document(s"progress-status.${ProgressStatuses.PHASE3_TESTS_EXPIRED}" -> Document("$exists" -> true)),
+      Document(s"testGroups.PHASE2.evaluation.result" -> Document("$elemMatch" ->
+        Document("schemeId" -> "Sdip", "result" -> EvaluationResults.Green.toString)
+      ))
+    ))
+
+    val projection = Projections.include("userId", "applicationId", "applicationRoute",
+      "applicationStatus", "personal-details")
+
+    applicationCollection.find[BsonDocument](query).projection(projection).toFuture().map { _.map {
+      doc => Codecs.fromBson[Candidate](doc)
+    }}
+  }
 
 /*
 override def submit(applicationId: String): Future[Unit] = {

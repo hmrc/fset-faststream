@@ -32,11 +32,7 @@ import org.mongodb.scala.model.Projections
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
 import scala.util.Try
-//import reactivemongo.bson.{ BSONDocument, _ }
-//import reactivemongo.play.json.ImplicitBSONHandlers._
 import repositories._
-//import repositories.{ BSONDateTimeHandler, _ } //TODO: fix
-//import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
