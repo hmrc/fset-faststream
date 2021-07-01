@@ -1227,6 +1227,34 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
+  "fix data by removing etray" should {
+    "fix the data" in {
+      val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.PHASE1_TESTS_INVITED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_STARTED, true) :: (ProgressStatuses.PHASE1_TESTS_COMPLETED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_RESULTS_READY, true) :: (ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: (ProgressStatuses.PHASE2_TESTS_INVITED, true) ::
+        (ProgressStatuses.PHASE2_TESTS_STARTED, true) :: (ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER, true) ::
+        (ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER, true) :: (ProgressStatuses.PHASE2_TESTS_EXPIRED, true) :: Nil
+
+      testDataRepo.createApplicationWithAllFields("userId", AppId, "testAccountId",
+        "FastStream-2016", ApplicationStatus.PHASE2_TESTS,
+        additionalProgressStatuses = statuses.toList).futureValue
+
+      repository.fixDataByRemovingETray(AppId).futureValue
+      val progressResponse = repository.findProgress(AppId).futureValue
+      progressResponse.phase2ProgressResponse.phase2TestsInvited mustBe false
+      progressResponse.phase2ProgressResponse.phase2TestsStarted mustBe false
+      progressResponse.phase2ProgressResponse.phase2TestsFirstReminder mustBe false
+      progressResponse.phase2ProgressResponse.phase2TestsSecondReminder mustBe false
+      progressResponse.phase2ProgressResponse.phase2TestsExpired mustBe false
+
+      val ss = repository.getApplicationStatusForCandidates(Seq(AppId))
+        .futureValue mustBe Seq(AppId -> ApplicationStatus.PHASE1_TESTS_PASSED)
+    }
+  }
+
+
+
   private def createUnAllocatedFSACApplications(num: Int): Future[Unit] = {
     val additionalProgressStatuses = List(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION -> true)
     createApplications(num, ApplicationStatus.ASSESSMENT_CENTRE, additionalProgressStatuses)

@@ -101,7 +101,6 @@ trait GeneralApplicationRepository {
   def findTestForSdipFsNotification(notificationType: NotificationTestTypeSdipFs): Future[Option[TestResultSdipFsNotification]]
   def getApplicationsToFix(issue: FixBatch): Future[List[Candidate]]
   def fix(candidate: Candidate, issue: FixBatch): Future[Option[Candidate]]
-//TODO: test
   def fixDataByRemovingETray(appId: String): Future[Unit]
   def fixDataByRemovingVideoInterviewFailed(appId: String): Future[Unit]
 //TODO: test
@@ -1197,7 +1196,44 @@ def fixDataByRemovingETray(appId: String): Future[Unit] = {
 
   findAndModify(query, updateOp).map(_ => ())
 }*/
-def fixDataByRemovingETray(appId: String): Future[Unit] = ???
+  override def fixDataByRemovingETray(appId: String): Future[Unit] = {
+    import ProgressStatuses._
+
+    val query = Document(
+      "applicationId" -> appId,
+      "applicationStatus" -> ApplicationStatus.PHASE2_TESTS.toBson
+    )
+
+    val updateOp =
+      Document(
+        "$set" -> Document("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED.toBson),
+        "$unset" -> Document(
+          s"progress-status.${PHASE2_TESTS_INVITED.key}" -> "",
+          s"progress-status.${PHASE2_TESTS_STARTED.key}" -> "",
+          s"progress-status.${PHASE2_TESTS_FIRST_REMINDER.key}" -> "",
+          s"progress-status.${PHASE2_TESTS_SECOND_REMINDER.key}" -> "",
+          s"progress-status.${PHASE2_TESTS_COMPLETED.key}" -> "",
+          s"progress-status.${PHASE2_TESTS_EXPIRED.key}" -> "",
+          s"progress-status.${PHASE2_TESTS_RESULTS_RECEIVED.key}" -> "",
+          s"progress-status.${PHASE2_TESTS_PASSED.key}" -> "",
+          s"progress-status.${PHASE2_TESTS_FAILED.key}" -> "",
+          s"progress-status.${PHASE2_TESTS_FAILED_NOTIFIED.key}" -> "",
+          s"progress-status-timestamp.${PHASE2_TESTS_INVITED.key}" -> "",
+          s"progress-status-timestamp.${PHASE2_TESTS_STARTED.key}" -> "",
+          s"progress-status-timestamp.${PHASE2_TESTS_FIRST_REMINDER.key}" -> "",
+          s"progress-status-timestamp.${PHASE2_TESTS_SECOND_REMINDER.key}" -> "",
+          s"progress-status-timestamp.${PHASE2_TESTS_COMPLETED.key}" -> "",
+          s"progress-status-timestamp.${PHASE2_TESTS_EXPIRED.key}" -> "",
+          s"progress-status-timestamp.${PHASE2_TESTS_RESULTS_RECEIVED.key}" -> "",
+          s"progress-status-timestamp.${PHASE2_TESTS_PASSED.key}" -> "",
+          s"progress-status-timestamp.${PHASE2_TESTS_FAILED.key}" -> "",
+          s"progress-status-timestamp.${PHASE2_TESTS_FAILED_NOTIFIED.key}" -> "",
+          s"testGroups.PHASE2" -> ""
+        )
+      )
+
+    collection.updateOne(query, updateOp).toFuture().map(_ => ())
+  }
 
 /*
 def fixDataByRemovingVideoInterviewFailed(appId: String): Future[Unit] = {
