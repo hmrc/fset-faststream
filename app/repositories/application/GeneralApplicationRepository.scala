@@ -114,7 +114,6 @@ trait GeneralApplicationRepository {
   def resetApplicationAllocationStatus(applicationId: String, eventType: EventType): Future[Unit]
 //TODO: test
   def setFailedToAttendAssessmentStatus(applicationId: String, eventType: EventType): Future[Unit]
-//TODO: test
   def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse]
   def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]]
 //TODO: test
@@ -124,11 +123,10 @@ trait GeneralApplicationRepository {
 //TODO: test
   def findSdipFaststreamExpiredPhase3InvitedToSift: Future[Seq[Candidate]]
   def getApplicationRoute(applicationId: String): Future[ApplicationRoute]
-//TODO: test
+//TODO: test (dashing dashboards)
   def getLatestProgressStatuses: Future[List[String]]
-//TODO: test
+//TODO: test (dashing dashboards)
   def countByStatus(applicationStatus: ApplicationStatus): Future[Long]
-//TODO: test
   def getProgressStatusTimestamps(applicationId: String): Future[List[(String, DateTime)]]
 
   // Implemented by Hmrc ReactiveRepository class - don't use until it gets fixed. Use countLong instead
@@ -442,7 +440,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       }
     }
 
-  collection.find[Document](query).projection(projection).headOption() map {
+    collection.find[Document](query).projection(projection).headOption() map {
       case Some(doc) =>
         val applicationStatus = Codecs.fromBson[ApplicationStatus](doc.get("applicationStatus").get)
         val applicationRoute = Codecs.fromBson[ApplicationRoute](doc.get("applicationRoute").getOrElse(ApplicationRoute.Faststream.toBson))
@@ -464,7 +462,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
           .orElse(
             progressStatusDateFallback(applicationStatus, doc)
           )
-        val submissionDeadline = doc.get("submissionDeadline").map( ss => Codecs.fromBson[DateTime](ss) )
+        val submissionDeadline = doc.get("submissionDeadline").map( sd => Codecs.fromBson[DateTime](sd) )
         ApplicationStatusDetails(applicationStatus, applicationRoute, latestProgressStatus, progressStatusTimeStamp, submissionDeadline)
 
       case None => throw ApplicationNotFound(applicationId)
@@ -1769,10 +1767,6 @@ override def findCandidatesEligibleForEventAllocation(locations: List[String],
     }
   }
 }*/
-//override def findCandidatesEligibleForEventAllocation(locations: List[String],
-//                                                      eventType: EventType,
-//                                                      schemeId: Option[SchemeId]
-//                                                     ): Future[CandidatesEligibleForEventResponse] = ???
 
   override def findCandidatesEligibleForEventAllocation(locations: List[String],
                                                         eventType: EventType,
@@ -2003,7 +1997,25 @@ def getProgressStatusTimestamps(applicationId: String): Future[List[(String, Dat
     case _ => Nil
   }
 }*/
-def getProgressStatusTimestamps(applicationId: String): Future[List[(String, DateTime)]] = ???
+
+  override def getProgressStatusTimestamps(applicationId: String): Future[List[(String, DateTime)]] = {
+    val query = Document("applicationId" -> applicationId)
+    val projection = Projections.include("progress-status-timestamp")
+
+    import scala.collection.JavaConverters._
+    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+
+    collection.find[Document](query).projection(projection).headOption.map {
+      case Some(doc) =>
+        doc.get("progress-status-timestamp").map { timestamps =>
+          val convertedTimestamps = timestamps.asDocument().entrySet().asScala.toSet
+          convertedTimestamps.map { element =>
+            element.getKey -> Codecs.fromBson[DateTime](element.getValue)
+          }.toList
+        }.getOrElse(Nil)
+      case _ => Nil
+    }
+  }
 
 /*
 def updateCurrentSchemeStatus(applicationId: String, results: Seq[SchemeEvaluationResult]): Future[Unit] = {

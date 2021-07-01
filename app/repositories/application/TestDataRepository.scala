@@ -179,8 +179,9 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)
       ),
       "issue" -> "this candidate has changed the email",
       "progress-status" -> progressStatus(additionalProgressStatuses),
-      "progress-status-dates" -> Document(
-        "submitted" -> Codecs.toBson(LocalDate.now())
+      "progress-status-timestamp" -> Document(
+        "IN_PROGRESS" -> Codecs.toBson(DateTime.now()),
+        "SUBMITTED" -> Codecs.toBson(DateTime.now())
       )
     ) ++ additionalDoc
     applicationCollection.insertOne(document).toFuture()

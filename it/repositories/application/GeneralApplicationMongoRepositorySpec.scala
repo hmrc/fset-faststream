@@ -33,7 +33,6 @@ import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
-import play.api.libs.json.Json
 import repositories.CollectionNames
 import repositories.onlinetesting.{Phase1TestMongoRepository, Phase2TestMongoRepository}
 import scheduler.fixer.FixBatch
@@ -142,7 +141,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val applicationStatusDetails = repository.findStatus(appId).futureValue
 
       applicationStatusDetails.status mustBe SUBMITTED.toString
-      applicationStatusDetails.statusDate.get mustBe LocalDate.now().toDateTimeAtStartOfDay
+      applicationStatusDetails.statusDate.get.toLocalDate mustBe LocalDate.now()
     }
   }
 
@@ -1141,6 +1140,17 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         applicationRoute = Some(ApplicationRoute.SdipFaststream)).futureValue
 
       repository.findEligibleForJobOfferCandidatesWithFsbStatus.futureValue.size mustBe 1
+    }
+  }
+
+  "get progress status timestamps" should {
+    "return the timestamps" in {
+      testDataRepo.createApplicationWithAllFields("userId", AppId, "testAccountId",
+        "FastStream-2016", ApplicationStatus.PHASE1_TESTS).futureValue
+      val result = repository.getProgressStatusTimestamps(AppId).futureValue
+      result.size mustBe 2
+      result.head._1 mustBe "IN_PROGRESS"
+      result(1)._1 mustBe "SUBMITTED"
     }
   }
 
