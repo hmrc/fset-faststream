@@ -1275,6 +1275,59 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
+
+  "set failed to attend assessment status" should {
+    "update the data for fsac candidate" in {
+      val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] =
+        (ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION, true) ::
+        (ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED, true) ::
+        (ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED, true) :: Nil
+
+      testDataRepo.createApplicationWithAllFields("userId", AppId, "testAccountId",
+        "FastStream-2016", ApplicationStatus.ASSESSMENT_CENTRE,
+        additionalProgressStatuses = statuses.toList).futureValue
+
+      val progressResponse = repository.findProgress(AppId).futureValue
+      progressResponse.assessmentCentre.awaitingAllocation mustBe true
+      progressResponse.assessmentCentre.allocationUnconfirmed mustBe true
+      progressResponse.assessmentCentre.allocationConfirmed mustBe true
+      progressResponse.assessmentCentre.failedToAttend mustBe false
+
+      repository.setFailedToAttendAssessmentStatus(AppId, EventType.FSAC).futureValue
+
+      val progressResponseAfterUpdate = repository.findProgress(AppId).futureValue
+      progressResponseAfterUpdate.assessmentCentre.awaitingAllocation mustBe false
+      progressResponseAfterUpdate.assessmentCentre.allocationUnconfirmed mustBe false
+      progressResponseAfterUpdate.assessmentCentre.allocationConfirmed mustBe false
+      progressResponseAfterUpdate.assessmentCentre.failedToAttend mustBe true
+    }
+
+    "update the data for fsb candidate" in {
+      val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] =
+        (ProgressStatuses.FSB_AWAITING_ALLOCATION, true) ::
+        (ProgressStatuses.FSB_ALLOCATION_UNCONFIRMED, true) ::
+        (ProgressStatuses.FSB_ALLOCATION_CONFIRMED, true) :: Nil
+
+      testDataRepo.createApplicationWithAllFields("userId", AppId, "testAccountId",
+        "FastStream-2016", ApplicationStatus.FSB,
+        additionalProgressStatuses = statuses.toList).futureValue
+
+      val progressResponse = repository.findProgress(AppId).futureValue
+      progressResponse.fsb.awaitingAllocation mustBe true
+      progressResponse.fsb.allocationUnconfirmed mustBe true
+      progressResponse.fsb.allocationConfirmed mustBe true
+      progressResponse.fsb.failedToAttend mustBe false
+
+      repository.setFailedToAttendAssessmentStatus(AppId, EventType.FSB).futureValue
+
+      val progressResponseAfterUpdate = repository.findProgress(AppId).futureValue
+      progressResponseAfterUpdate.fsb.awaitingAllocation mustBe false
+      progressResponseAfterUpdate.fsb.allocationUnconfirmed mustBe false
+      progressResponseAfterUpdate.fsb.allocationConfirmed mustBe false
+      progressResponseAfterUpdate.fsb.failedToAttend mustBe true
+    }
+  }
+
   private def createUnAllocatedFSACApplications(num: Int): Future[Unit] = {
     val additionalProgressStatuses = List(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION -> true)
     createApplications(num, ApplicationStatus.ASSESSMENT_CENTRE, additionalProgressStatuses)

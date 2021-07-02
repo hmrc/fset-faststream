@@ -110,7 +110,6 @@ trait GeneralApplicationRepository {
   def findCandidatesEligibleForEventAllocation(locations: List[String], eventType: EventType,
                                                schemeId: Option[SchemeId]): Future[CandidatesEligibleForEventResponse]
   def resetApplicationAllocationStatus(applicationId: String, eventType: EventType): Future[Unit]
-//TODO: test
   def setFailedToAttendAssessmentStatus(applicationId: String, eventType: EventType): Future[Unit]
   def findAllocatedApplications(applicationIds: List[String]): Future[CandidatesEligibleForEventResponse]
   def getCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]]
@@ -129,7 +128,7 @@ trait GeneralApplicationRepository {
 //  def count(implicit ec: scala.concurrent.ExecutionContext) : Future[Int] //TODO: fix
 
   //TODO: test
-  // Implemented in ReactiveRespositoryHelpers
+  // Previously implemented in ReactiveRespositoryHelpers
   def countLong(implicit ec: scala.concurrent.ExecutionContext) : Future[Long]
   def updateCurrentSchemeStatus(applicationId: String, results: Seq[SchemeEvaluationResult]): Future[Unit]
   def removeCurrentSchemeStatus(applicationId: String): Future[Unit]
@@ -301,7 +300,23 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       }
     }
   }*/
-  def findAllFileInfo: Future[List[CandidateFileInfo]] = ???
+  def findAllFileInfo: Future[List[CandidateFileInfo]] = {
+    val query = Document("testGroups.FSAC.tests.analysisExercise" -> Document("$exists" -> true))
+    val projection = Projections.include("applicationId", "testGroups.FSAC.tests.analysisExercise")
+    collection.find[Document](query).projection(projection).toFuture().map { docs =>
+      docs.map { doc =>
+        val testGroups = doc.get("testGroups")
+        val fsac = testGroups.map(_.asDocument().get("FSAC"))
+        val tests = fsac.map(_.asDocument().get("tests"))
+        val analysisExercise = tests.map(_.asDocument())
+
+        CandidateFileInfo(
+          doc.get("applicationId").get.asString().getValue,
+          analysisExercise.map(_.get("fileId").asString().getValue).get // TODO: Calling get on an option!!
+        )
+      }.toList
+    }
+  }
 
   /*
   def find(applicationId: String): Future[Option[Candidate]] = {
@@ -1916,7 +1931,9 @@ override def resetApplicationAllocationStatus(applicationId: String, eventType: 
 override def setFailedToAttendAssessmentStatus(applicationId: String, eventType: EventType): Future[Unit] = {
   replaceAllocationStatus(applicationId, EventProgressStatuses.get(eventType.applicationStatus).failedToAttend)
 }*/
-  override def setFailedToAttendAssessmentStatus(applicationId: String, eventType: EventType): Future[Unit] = ???
+  override def setFailedToAttendAssessmentStatus(applicationId: String, eventType: EventType): Future[Unit] = {
+    replaceAllocationStatus(applicationId, EventProgressStatuses.get(eventType.applicationStatus).failedToAttend)
+  }
 
   import ProgressStatuses._
 
