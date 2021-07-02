@@ -16,13 +16,9 @@
 
 package repositories.application
 
-import java.util.UUID
-import java.util.regex.Pattern
 import com.github.nscala_time.time.OrderingImplicits.DateTimeOrdering
 import config.MicroserviceAppConfig
 import factories.DateTimeFactory
-
-import javax.inject.{Inject, Singleton}
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
 import model.Exceptions._
@@ -35,23 +31,23 @@ import model.persisted.eventschedules.EventType
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.fsb.ScoresAndFeedback
 import model.{ApplicationStatus, _}
-import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, LocalDate}
 import org.mongodb.scala.MongoCollection
-import org.mongodb.scala.bson.{BsonArray, BsonDocument, BsonRegularExpression, BsonValue}
 import org.mongodb.scala.bson.collection.immutable.Document
-import org.mongodb.scala.bson.conversions.Bson
-import org.mongodb.scala.model.Sorts.{ascending, descending}
-import org.mongodb.scala.model.{Filters, Projections}
-import play.api.libs.json.{JsNumber, JsObject, Json}
+import org.mongodb.scala.bson.{BsonArray, BsonDocument, BsonRegularExpression}
+import org.mongodb.scala.model.Projections
+import org.mongodb.scala.model.Sorts.ascending
 import repositories._
+import scheduler.fixer.FixBatch
+import scheduler.fixer.RequiredFixes.{AddMissingPhase2ResultReceived, PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}
-import scheduler.fixer.FixBatch
-import scheduler.fixer.RequiredFixes.{ AddMissingPhase2ResultReceived, PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted }
 
+import java.util.UUID
+import java.util.regex.Pattern
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 // TODO FAST STREAM
@@ -70,17 +66,15 @@ trait GeneralApplicationRepository {
   def findCandidateByUserId(userId: String): Future[Option[Candidate]]
   def findByCriteria(firstOrPreferredName: Option[String], lastName: Option[String],
                      dateOfBirth: Option[LocalDate], userIds: List[String] = List.empty): Future[List[Candidate]]
-//TODO: no usages
-  def findApplicationIdsByLocation(location: String): Future[List[String]]
   def submit(applicationId: String): Future[Unit]
   def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit]
   def withdrawScheme(applicationId: String, schemeWithdraw: WithdrawScheme, schemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
   def preview(applicationId: String): Future[Unit]
   def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit]
-//TODO: additional test (tricky one - do later)
+//TODO: additional test (tricky one - do later) NEXT
   def confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit]
   def findAdjustments(applicationId: String): Future[Option[Adjustments]]
-//TODO: test (1 pending)
+//TODO: test (1 pending) NEXT
   def updateAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit]
   def findAdjustmentsComment(applicationId: String): Future[AdjustmentsComment]
   def removeAdjustmentsComment(applicationId: String): Future[Unit]
@@ -94,7 +88,6 @@ trait GeneralApplicationRepository {
   def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime): Future[Unit]
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]]
   def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit]
-//TODO: test (tricky one)
   def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit]
   def findTestForNotification(notificationType: NotificationTestType): Future[Option[TestResultNotification]]
   def findTestForSdipFsNotification(notificationType: NotificationTestTypeSdipFs): Future[Option[TestResultSdipFsNotification]]
@@ -440,6 +433,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     )
 
     import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+
     import scala.collection.JavaConverters._
 
     def progressStatusDateFallback(applicationStatus: ApplicationStatus, document: Document) = {
@@ -610,31 +604,6 @@ def findByCriteria(firstOrPreferredNameOpt: Option[String],
       Codecs.fromBson[Candidate](doc)
     }.toList }
   }
-
-/*
-override def findApplicationIdsByLocation(location: String): Future[List[String]] = {
-  val query = BSONDocument("$and" -> BSONArray(
-    BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> BSONDocument("$ne" -> "CREATED")),
-      BSONDocument("applicationStatus" -> BSONDocument("$ne" -> "WITHDRAWN")),
-      BSONDocument("applicationStatus" -> BSONDocument("$ne" -> "IN_PROGRESS"))
-    )),
-    BSONDocument("$or" -> BSONArray(
-      BSONDocument("framework-preferences.firstLocation.location" -> location),
-      BSONDocument("framework-preferences.secondLocation.location" -> location)
-    ))
-  ))
-
-  val projection = BSONDocument("applicationId" -> 1)
-
-  collection.find(query, Some(projection)).cursor[BSONDocument]()
-    .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docList =>
-    docList.map { doc =>
-      doc.getAs[String]("applicationId").get
-    }
-  }
-}*/
-override def findApplicationIdsByLocation(location: String): Future[List[String]] = ???
 
 /*
 override def findSdipFaststreamInvitedToVideoInterview: Future[Seq[Candidate]] = {
@@ -1702,6 +1671,7 @@ override def removeProgressStatuses(applicationId: String, progressStatuses: Lis
       )
     }
 
+    // Fold the list of maps into one map
     val foldedStatuses = statusesToUnset.foldLeft(Map.empty[String, String])((acc, v) => acc ++ v)
     val update = Document("$unset" -> Document(foldedStatuses))
 
@@ -2108,8 +2078,9 @@ def getProgressStatusTimestamps(applicationId: String): Future[List[(String, Dat
     val query = Document("applicationId" -> applicationId)
     val projection = Projections.include("progress-status-timestamp")
 
-    import scala.collection.JavaConverters._
     import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+
+    import scala.collection.JavaConverters._
 
     collection.find[Document](query).projection(projection).headOption.map {
       case Some(doc) =>
