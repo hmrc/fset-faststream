@@ -1253,7 +1253,27 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
+  "fix data by removing progress status" should {
+    "fix the data" in {
+      val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.PHASE1_TESTS_INVITED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_STARTED, true) :: (ProgressStatuses.PHASE1_TESTS_COMPLETED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_RESULTS_READY, true) :: (ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: Nil
 
+      testDataRepo.createApplicationWithAllFields("userId", AppId, "testAccountId",
+        "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+        additionalProgressStatuses = statuses.toList).futureValue
+
+      val progressResponse = repository.findProgress(AppId).futureValue
+      progressResponse.phase1ProgressResponse.phase1TestsPassed mustBe true
+
+      repository.fixDataByRemovingETray(AppId).futureValue
+      repository.fixDataByRemovingProgressStatus(AppId, ProgressStatuses.PHASE1_TESTS_PASSED.toString).futureValue
+
+      val progressResponseAfterDeletion = repository.findProgress(AppId).futureValue
+      progressResponseAfterDeletion.phase1ProgressResponse.phase1TestsPassed mustBe false
+    }
+  }
 
   private def createUnAllocatedFSACApplications(num: Int): Future[Unit] = {
     val additionalProgressStatuses = List(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION -> true)

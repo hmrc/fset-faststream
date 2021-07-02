@@ -103,7 +103,6 @@ trait GeneralApplicationRepository {
   def fix(candidate: Candidate, issue: FixBatch): Future[Option[Candidate]]
   def fixDataByRemovingETray(appId: String): Future[Unit]
   def fixDataByRemovingVideoInterviewFailed(appId: String): Future[Unit]
-//TODO: test
   def fixDataByRemovingProgressStatus(appId: String, progressStatus: String): Future[Unit]
   def updateApplicationRoute(appId: String, appRoute: ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit]
   def archive(appId: String, originalUserId: String, userIdToArchiveWith: String,
@@ -1294,13 +1293,26 @@ def fixDataByRemovingProgressStatus(appId: String, progressStatus: String): Futu
 
   findAndModify(query, updateOp).map(_ => ())
 }*/
-def fixDataByRemovingProgressStatus(appId: String, progressStatus: String): Future[Unit] = ???
+  def fixDataByRemovingProgressStatus(appId: String, progressStatus: String): Future[Unit] = {
+    val query = Document(
+      "applicationId" -> appId,
+      s"progress-status.$progressStatus" -> true
+    )
+    val updateOp = Document(
+      "$unset" -> Document(
+        s"progress-status.$progressStatus" -> "",
+        s"progress-status-timestamp.$progressStatus" -> ""
+      )
+    )
 
-private[application] def isNonSubmittedStatus(progress: ProgressResponse): Boolean = {
-  val isNotSubmitted = !progress.submitted
-  val isNotWithdrawn = !progress.withdrawn
-  isNotWithdrawn && isNotSubmitted
-}
+    collection.updateOne(query, updateOp).toFuture().map(_ => ())
+  }
+
+  private[application] def isNonSubmittedStatus(progress: ProgressResponse): Boolean = {
+    val isNotSubmitted = !progress.submitted
+    val isNotWithdrawn = !progress.withdrawn
+    isNotWithdrawn && isNotSubmitted
+  }
 
 //TODO: fix
 //  def extract(key: String)(root: Option[BSONDocument]): Option[String] = root.flatMap(_.getAs[String](key))
