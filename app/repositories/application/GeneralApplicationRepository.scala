@@ -62,8 +62,7 @@ import scala.util.Try
 trait GeneralApplicationRepository {
   def create(userId: String, frameworkId: String, applicationRoute: ApplicationRoute): Future[ApplicationResponse]
   def find(applicationId: String): Future[Option[Candidate]]
-//TODO: test
-  def findAllFileInfo: Future[List[CandidateFileInfo]]
+  def findAllFileInfo: Future[Seq[CandidateFileInfo]]
   def find(applicationIds: Seq[String]): Future[List[Candidate]]
   def findProgress(applicationId: String): Future[ProgressResponse]
   def findStatus(applicationId: String): Future[ApplicationStatusDetails]
@@ -127,7 +126,7 @@ trait GeneralApplicationRepository {
 //  @deprecated("At runtime throws a JsResultException: errmsg=readConcern.level must be either 'local', 'majority' or 'linearizable'", "")
 //  def count(implicit ec: scala.concurrent.ExecutionContext) : Future[Int] //TODO: fix
 
-  //TODO: test
+  //TODO: test (dashing dashboards)
   // Previously implemented in ReactiveRespositoryHelpers
   def countLong(implicit ec: scala.concurrent.ExecutionContext) : Future[Long]
   def updateCurrentSchemeStatus(applicationId: String, results: Seq[SchemeEvaluationResult]): Future[Unit]
@@ -300,7 +299,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       }
     }
   }*/
-  def findAllFileInfo: Future[List[CandidateFileInfo]] = {
+  def findAllFileInfo: Future[Seq[CandidateFileInfo]] = {
     val query = Document("testGroups.FSAC.tests.analysisExercise" -> Document("$exists" -> true))
     val projection = Projections.include("applicationId", "testGroups.FSAC.tests.analysisExercise")
     collection.find[Document](query).projection(projection).toFuture().map { docs =>
@@ -308,13 +307,13 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
         val testGroups = doc.get("testGroups")
         val fsac = testGroups.map(_.asDocument().get("FSAC"))
         val tests = fsac.map(_.asDocument().get("tests"))
-        val analysisExercise = tests.map(_.asDocument())
+        val analysisExercise = tests.map(_.asDocument().get("analysisExercise"))
 
         CandidateFileInfo(
           doc.get("applicationId").get.asString().getValue,
-          analysisExercise.map(_.get("fileId").asString().getValue).get // TODO: Calling get on an option!!
+          analysisExercise.map(_.asDocument().get("fileId").asString().getValue).get
         )
-      }.toList
+      }
     }
   }
 

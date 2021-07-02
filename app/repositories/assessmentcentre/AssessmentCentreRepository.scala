@@ -28,8 +28,9 @@ import model.assessmentscores.FixUserStuckInScoresAccepted
 import model.command.{ApplicationForProgression, ApplicationForSift}
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.AssessmentCentreTests
+import org.mongodb.scala.bson.collection.immutable.Document
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 //import play.modules.reactivemongo.ReactiveMongoComponent
 //import reactivemongo.api.Cursor
 //import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
@@ -322,7 +323,14 @@ class AssessmentCentreMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
     val validator = singleUpdateValidator(applicationId, actionDesc = "Updating assessment centre tests")
     collection.update(ordered = false).one(query, update) map validator
   }*/
-  def updateTests(applicationId: String, tests: AssessmentCentreTests): Future[Unit] = ???
+//  def updateTests(applicationId: String, tests: AssessmentCentreTests): Future[Unit] = ???
+  def updateTests(applicationId: String, tests: AssessmentCentreTests): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+    val update = Document("$set" -> Document(s"testGroups.$fsacKey.tests" -> Codecs.toBson(tests)))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = "Updating assessment centre tests")
+    collection.updateOne(query, update).toFuture() map validator
+  }
 
   /*
   override def removeFsacTestGroup(applicationId: String): Future[Unit] = {

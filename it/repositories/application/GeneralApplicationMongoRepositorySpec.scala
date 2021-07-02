@@ -27,13 +27,15 @@ import model.command.{ProgressResponse, WithdrawRequest, WithdrawScheme}
 import model.exchange.CandidatesEligibleForEventResponse
 import model.persisted._
 import model.persisted.eventschedules.EventType
+import model.persisted.fsac.{AnalysisExercise, AssessmentCentreTests}
 import model.{ApplicationStatus, Candidate, _}
 import org.joda.time.LocalDate
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
-import repositories.CollectionNames
+import repositories.{CollectionNames, SchemeRepository}
+import repositories.assessmentcentre.{AssessmentCentreMongoRepository, AssessmentCentreRepository}
 import repositories.onlinetesting.{Phase1EvaluationMongoRepository, Phase1TestMongoRepository, Phase2TestMongoRepository}
 import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{PassToPhase2, ResetPhase1TestInvitedSubmitted}
@@ -51,6 +53,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
   def phase1TestRepo = new Phase1TestMongoRepository(ITDateTimeFactoryMock, mongo)
   def phase2TestRepo = new Phase2TestMongoRepository(ITDateTimeFactoryMock, mongo)
   def testDataRepo = new TestDataMongoRepository(mongo)
+  val schemeRepositoryMock = mock[SchemeRepository]
+  def assessmentCentreRepo = new AssessmentCentreMongoRepository(ITDateTimeFactoryMock, schemeRepositoryMock, mongo)
 
   "General Application repository" should {
     "create indexes" in {
@@ -1325,6 +1329,22 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       progressResponseAfterUpdate.fsb.allocationUnconfirmed mustBe false
       progressResponseAfterUpdate.fsb.allocationConfirmed mustBe false
       progressResponseAfterUpdate.fsb.failedToAttend mustBe true
+    }
+  }
+
+  "find all file info" should {
+    "handle no eligible candidates" in {
+      testDataRepo.createApplicationWithAllFields("userId", AppId, "testAccountId", "FastStream-2016",
+        applicationRoute = Some(ApplicationRoute.Faststream)).futureValue
+      repository.findAllFileInfo.futureValue mustBe Nil
+    }
+
+    "handle eligible candidates" in {
+      testDataRepo.createApplicationWithAllFields("userId", AppId, "testAccountId", "FastStream-2016",
+        applicationRoute = Some(ApplicationRoute.Faststream)).futureValue
+
+      assessmentCentreRepo.updateTests(AppId, AssessmentCentreTests(Some(AnalysisExercise("testFileId")))).futureValue
+      repository.findAllFileInfo.futureValue mustBe List(CandidateFileInfo(AppId, "testFileId"))
     }
   }
 
