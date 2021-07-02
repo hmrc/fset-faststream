@@ -1348,6 +1348,46 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
+  "remove progress statuses" should {
+    "throw an exception if there is no matching application" in {
+      val result = repository.removeProgressStatuses(AppId, List(ProgressStatuses.SUBMITTED)).failed.futureValue
+      result mustBe a[CannotUpdateRecord]
+    }
+
+    "remove the expected progress statuses" in {
+      val statuses: Seq[(ProgressStatuses.ProgressStatus, Boolean)] = (ProgressStatuses.PHASE1_TESTS_INVITED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_STARTED, true) :: (ProgressStatuses.PHASE1_TESTS_COMPLETED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED, true) ::
+        (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: Nil
+
+      testDataRepo.createApplicationWithAllFields("userId", AppId, "testAccountId",
+        "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
+        additionalProgressStatuses = statuses.toList).futureValue
+
+      val progressResponse = repository.findProgress(AppId).futureValue
+      progressResponse.phase1ProgressResponse.phase1TestsInvited mustBe true
+      progressResponse.phase1ProgressResponse.phase1TestsStarted mustBe true
+      progressResponse.phase1ProgressResponse.phase1TestsCompleted mustBe true
+      progressResponse.phase1ProgressResponse.phase1TestsResultsReceived mustBe true
+      progressResponse.phase1ProgressResponse.phase1TestsPassed mustBe true
+
+      val progressStatuses = List(
+        ProgressStatuses.PHASE1_TESTS_STARTED,
+        ProgressStatuses.PHASE1_TESTS_COMPLETED,
+        ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED,
+        ProgressStatuses.PHASE1_TESTS_PASSED
+      )
+      repository.removeProgressStatuses(AppId, progressStatuses).futureValue
+
+      val progressResponseAfterUpdate = repository.findProgress(AppId).futureValue
+      progressResponseAfterUpdate.phase1ProgressResponse.phase1TestsInvited mustBe true
+      progressResponseAfterUpdate.phase1ProgressResponse.phase1TestsStarted mustBe false
+      progressResponseAfterUpdate.phase1ProgressResponse.phase1TestsCompleted mustBe false
+      progressResponseAfterUpdate.phase1ProgressResponse.phase1TestsResultsReceived mustBe false
+      progressResponseAfterUpdate.phase1ProgressResponse.phase1TestsPassed mustBe false
+    }
+  }
+
   private def createUnAllocatedFSACApplications(num: Int): Future[Unit] = {
     val additionalProgressStatuses = List(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION -> true)
     createApplications(num, ApplicationStatus.ASSESSMENT_CENTRE, additionalProgressStatuses)

@@ -1140,9 +1140,12 @@ override def fix(application: Candidate, issue: FixBatch): Future[Option[Candida
           Document(s"progress-status.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> true)
         ))
         val updateOp = Document("$unset" ->
-          Document(s"progress-status.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> "",
+          Document(
+            s"progress-status.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> "",
             s"progress-status-timestamp.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> "",
-            "testGroups" -> ""))
+            "testGroups" -> ""
+          )
+        )
 
         collection.updateOne(query, updateOp).toFuture().flatMap { _ =>
           collection.find[BsonDocument](Document("applicationId" -> application.applicationId)).headOption().map { _.map { doc =>
@@ -1686,8 +1689,6 @@ override def removeProgressStatuses(applicationId: String, progressStatuses: Lis
 
   collection.update(ordered = false).one(query, unsetDoc) map validator
 }*/
-override def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = ???
-  /*
   override def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
     require(progressStatuses.nonEmpty, "Progress statuses to remove cannot be empty")
 
@@ -1696,17 +1697,17 @@ override def removeProgressStatuses(applicationId: String, progressStatuses: Lis
     val statusesToUnset = progressStatuses.map { progressStatus =>
       Map(
         s"progress-status.$progressStatus" -> "",
-        s"progress-status-dates.$progressStatus" -> "",
+        s"progress-status-dates.$progressStatus" -> "", // TODO: mongo looks like an out-of-date key!!
         s"progress-status-timestamp.$progressStatus" -> ""
       )
     }
 
-    val unsetDoc = Document("$unset" -> Document(statusesToUnset))
+    val foldedStatuses = statusesToUnset.foldLeft(Map.empty[String, String])((acc, v) => acc ++ v)
+    val update = Document("$unset" -> Document(foldedStatuses))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "removing progress statuses")
-
-    collection.updateOne(query, unsetDoc).toFuture() map validator
-  }*/
+    collection.updateOne(query, update).toFuture() map validator
+  }
 
 /*
 override def updateApplicationRoute(appId: String, appRoute:ApplicationRoute, newAppRoute: ApplicationRoute): Future[Unit] = {
