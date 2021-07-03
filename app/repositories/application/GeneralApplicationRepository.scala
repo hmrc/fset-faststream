@@ -71,10 +71,8 @@ trait GeneralApplicationRepository {
   def withdrawScheme(applicationId: String, schemeWithdraw: WithdrawScheme, schemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
   def preview(applicationId: String): Future[Unit]
   def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit]
-//TODO: additional test (tricky one - do later) NEXT
   def confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit]
   def findAdjustments(applicationId: String): Future[Option[Adjustments]]
-//TODO: test (1 pending) NEXT
   def updateAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit]
   def findAdjustmentsComment(applicationId: String): Future[AdjustmentsComment]
   def removeAdjustmentsComment(applicationId: String): Future[Unit]
@@ -1333,20 +1331,14 @@ def confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit] =
     collection.update(ordered = false).one(query, adjustmentsConfirmationBSON) map adjustmentValidator
   }
 }*/
-  //scalastyle:off
   override def confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit] = {
     val query = Document("applicationId" -> applicationId)
-
-    val resetExerciseAdjustmentsBSON = Document("$unset" -> Document(
-      "assistance-details.etray" -> "",
-      "assistance-details.video" -> ""
-    ))
+    // Clear at the root level so the modified count in the validator works as expected
+    val resetAdjustmentsBSON = Document("$unset" -> Document("assistance-details" -> ""))
 
     val adjustmentsConfirmationBSON = Document("$set" -> (Document(
       "assistance-details.typeOfAdjustments" -> data.adjustments.getOrElse(List.empty[String]),
-      "assistance-details.adjustmentsConfirmed" -> true//,
-//      "assistance-details.etray" -> data.etray.map( etray => Codecs.toBson(etray) ).getOrElse(Document.empty),
-//      "assistance-details.video" -> data.video.map( video => Codecs.toBson(video) ).getOrElse(Document.empty)
+      "assistance-details.adjustmentsConfirmed" -> true
     ) ++ data.etray.map( adjustment => Document("assistance-details.etray" -> Codecs.toBson(adjustment) )).getOrElse(Document.empty)
       ++ data.video.map( adjustment => Document("assistance-details.video" -> Codecs.toBson(adjustment) )).getOrElse(Document.empty)
     ))
@@ -1354,16 +1346,16 @@ def confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit] =
     val resetValidator = singleUpdateValidator(applicationId, actionDesc = "resetting adjustments")
     val adjustmentValidator = singleUpdateValidator(applicationId, actionDesc = "updating adjustments")
 
-//    collection.updateOne(query, resetExerciseAdjustmentsBSON).toFuture().map(resetValidator).flatMap { _ =>
-//      collection.updateOne(query, adjustmentsConfirmationBSON).toFuture() map adjustmentValidator
-//    }
-//    collection.updateOne(query, adjustmentsConfirmationBSON).toFuture() map adjustmentValidator
-
-    collection.updateOne(query, resetExerciseAdjustmentsBSON).toFuture().map { _ =>
-      println("**** reset successful")
-      collection.updateOne(query, adjustmentsConfirmationBSON).toFuture() map { _ =>
-        println("**** update successful")
-        ()
+    // Only if the candidate already has adjustments do we attempt a reset. Otherwise performing a reset
+    // on an application with no adjustments results in a modified count of zero and the validator fails
+    val hasAdjustmentsFuture = findAdjustments(applicationId).map(_.isDefined)
+    hasAdjustmentsFuture.flatMap { hasAdjustments =>
+      if (hasAdjustments) {
+        collection.updateOne(query, resetAdjustmentsBSON).toFuture().map(resetValidator).flatMap { _ =>
+          collection.updateOne(query, adjustmentsConfirmationBSON).toFuture() map adjustmentValidator
+        }
+      } else {
+        collection.updateOne(query, adjustmentsConfirmationBSON).toFuture() map adjustmentValidator
       }
     }
   }
@@ -1387,7 +1379,6 @@ def findAdjustments(applicationId: String): Future[Option[Adjustments]] = {
     }
   }
 }*/
-
   override def findAdjustments(applicationId: String): Future[Option[Adjustments]] = {
     val query = Document("$and" -> BsonArray(
       Document("applicationId" -> applicationId),
@@ -1400,8 +1391,8 @@ def findAdjustments(applicationId: String): Future[Option[Adjustments]] = {
         val rootOpt = document.get("assistance-details")
         val adjustmentList = rootOpt.map( bson => Codecs.fromBson[List[String]](bson.asDocument().get("typeOfAdjustments")) )
         val adjustmentsConfirmed = rootOpt.map( _.asDocument().get("adjustmentsConfirmed").asBoolean().getValue )
-        val etray = rootOpt.map( bson => Codecs.fromBson[AdjustmentDetail](bson.asDocument().get("etray")) )
-        val video = rootOpt.map( bson => Codecs.fromBson[AdjustmentDetail](bson.asDocument().get("video")) )
+        val etray = rootOpt.flatMap( bson => Try(Codecs.fromBson[AdjustmentDetail](bson.asDocument().get("etray")) ).toOption)
+        val video = rootOpt.flatMap( bson => Try(Codecs.fromBson[AdjustmentDetail](bson.asDocument().get("video")) ).toOption)
         Adjustments(adjustmentList, adjustmentsConfirmed, etray, video)
       }
     }

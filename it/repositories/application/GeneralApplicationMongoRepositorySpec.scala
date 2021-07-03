@@ -410,16 +410,37 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val result = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
       repository.findAdjustments(result.applicationId).futureValue mustBe None
     }
-//TODO: mongo write this test
-    "return adjustments" ignore {
+
+    "save and fetch adjustments" in {
+      val result = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
+
       val adjustments = Adjustments(
         adjustments = Some(List("Test adjustment")),
         adjustmentsConfirmed = Some(true),
         etray = Some(AdjustmentDetail(timeNeeded = Some(10), percentage = Some(10))),
+        video = Some(AdjustmentDetail(timeNeeded = Some(10), percentage = Some(10)))
+      )
+      repository.confirmAdjustments(result.applicationId, adjustments).futureValue
+      repository.findAdjustments(result.applicationId).futureValue mustBe Some(adjustments)
+    }
+
+    "save adjustments twice and then fetch them" in {
+      val result = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
+
+      val adjustments = Adjustments(
+        adjustments = Some(List("Test adjustment")),
+        adjustmentsConfirmed = Some(true),
+        etray = Some(AdjustmentDetail(timeNeeded = Some(20), percentage = Some(20))),
+        video = Some(AdjustmentDetail(timeNeeded = Some(20), percentage = Some(20)))
+      )
+      repository.confirmAdjustments(result.applicationId, adjustments).futureValue
+
+      val updatedAdjustments = adjustments.copy(
+        etray = None,
         video = None
       )
-
-//      repository.confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit] = {
+      repository.confirmAdjustments(result.applicationId, updatedAdjustments).futureValue
+      repository.findAdjustments(result.applicationId).futureValue mustBe Some(updatedAdjustments)
     }
   }
 
@@ -822,45 +843,6 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
-  //TODO: mongo this needs to be fixed and moved back above
-  "findAdjustments xx" should {
-    "save and fetch adjustments all data provided" ignore {
-      val result = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
-
-      val adjustments = Adjustments(
-        adjustments = Some(List("Test adjustment")),
-        adjustmentsConfirmed = Some(true),
-        etray = Some(AdjustmentDetail(timeNeeded = Some(10), percentage = Some(10))),
-        video = Some(AdjustmentDetail(timeNeeded = Some(10), percentage = Some(10)))
-      )
-      repository.confirmAdjustments(result.applicationId, adjustments).futureValue
-
-      repository.findAdjustments(result.applicationId).futureValue mustBe Some(adjustments)
-    }
-
-    "save and fetch adjustments all data provided 2" ignore {
-      val result = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
-
-      val adjustments = Adjustments(
-        adjustments = Some(List("Test adjustment")),
-        adjustmentsConfirmed = Some(true),
-        etray = Some(AdjustmentDetail(timeNeeded = Some(10), percentage = Some(10))),
-        video = Some(AdjustmentDetail(timeNeeded = Some(10), percentage = Some(10)))
-      )
-      repository.confirmAdjustments(result.applicationId, adjustments).futureValue
-
-      // Note the data needs to change otherwise the modified count = 0
-      val updatedAdjustments = adjustments.copy(
-        adjustments = Some(List("Test adjustment1","Test adjustment2")),
-        etray = None,
-        video = None
-      )
-      repository.confirmAdjustments(result.applicationId, updatedAdjustments).futureValue
-
-      repository.findAdjustments(result.applicationId).futureValue mustBe Some(updatedAdjustments)
-    }
-  }
-
   "get current scheme status" should {
     "return an empty list if the candidate does not exist" in {
       val result = repository.getCurrentSchemeStatus("appId").futureValue
@@ -1031,9 +1013,19 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       result mustBe an[ApplicationNotFound]
     }
 
-    //TODO: mongo implement this once we can confirm adjustments
-    "throw an exception if there is an application with assistance-details but no comment" ignore {
-      pending
+    "throw an exception if there is an application with assistance-details but no comment" in {
+      val newCandidate = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
+
+      val adjustments = Adjustments(
+        adjustments = Some(List("Test adjustment")),
+        adjustmentsConfirmed = Some(true),
+        etray = Some(AdjustmentDetail(timeNeeded = Some(20), percentage = Some(20))),
+        video = Some(AdjustmentDetail(timeNeeded = Some(20), percentage = Some(20)))
+      )
+      repository.confirmAdjustments(newCandidate.applicationId, adjustments).futureValue
+
+      val result = repository.findAdjustmentsComment(newCandidate.applicationId).failed.futureValue
+      result mustBe an[AdjustmentsCommentNotFound]
     }
 
     "save and fetch the comment" in {
