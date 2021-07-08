@@ -206,7 +206,7 @@ trait ReactiveRepositoryHelpers extends Logging {
       logger.error(msg)
       throw CannotUpdateRecord(msg)
     }
-  }//scalastyle:on
+  }
 
 /*
   // Wrap the findAndModify method to provide all the defaults

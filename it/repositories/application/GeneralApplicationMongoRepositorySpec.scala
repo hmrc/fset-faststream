@@ -1070,14 +1070,26 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       repository.getOnlineTestApplication("AppId1").futureValue mustBe Some(expected)
     }
 
-    //TODO: mongo implement this
-    "return data if a fully populated application exists" ignore {
+    "return data if a fully populated application exists" in {
       createApplications(num = 1, ApplicationStatus.SUBMITTED, additionalProgressStatuses = Nil).futureValue
 
-      val expected = OnlineTestApplication("AppId1", ApplicationStatus.SUBMITTED, "UserId1", "TestAccountId1",
+      val adjustments = Adjustments(
+        adjustments = Some(List("Test adjustment")),
+        adjustmentsConfirmed = Some(true),
+        etray = Some(AdjustmentDetail(timeNeeded = Some(10), percentage = Some(20))),
+        video = Some(AdjustmentDetail(timeNeeded = Some(30), percentage = Some(40)))
+      )
+
+      val appId = "AppId1"
+      repository.confirmAdjustments(appId, adjustments).futureValue
+
+      val expected = OnlineTestApplication(appId, ApplicationStatus.SUBMITTED, "UserId1", "TestAccountId1",
         guaranteedInterview = false, needsOnlineAdjustments = false, needsAtVenueAdjustments = false,
-        preferredName = "Georgy", lastName = "Jetson01", eTrayAdjustments = None, videoInterviewAdjustments = None)
-      repository.getOnlineTestApplication("AppId1").futureValue mustBe Some(expected)
+        preferredName = "Georgy", lastName = "Jetson01",
+        eTrayAdjustments = Some(AdjustmentDetail(timeNeeded = Some(10), percentage = Some(20))),
+        videoInterviewAdjustments = Some(AdjustmentDetail(timeNeeded = Some(30), percentage = Some(40)))
+      )
+      repository.getOnlineTestApplication(appId).futureValue mustBe Some(expected)
     }
   }
 

@@ -1389,10 +1389,10 @@ def findAdjustments(applicationId: String): Future[Option[Adjustments]] = {
     collection.find[Document](query).projection(projection).headOption().map { docOpt =>
       docOpt.map { document =>
         val rootOpt = document.get("assistance-details")
-        val adjustmentList = rootOpt.map( bson => Codecs.fromBson[List[String]](bson.asDocument().get("typeOfAdjustments")) )
-        val adjustmentsConfirmed = rootOpt.map( _.asDocument().get("adjustmentsConfirmed").asBoolean().getValue )
-        val etray = rootOpt.flatMap( bson => Try(Codecs.fromBson[AdjustmentDetail](bson.asDocument().get("etray")) ).toOption)
-        val video = rootOpt.flatMap( bson => Try(Codecs.fromBson[AdjustmentDetail](bson.asDocument().get("video")) ).toOption)
+        val adjustmentList = rootOpt.flatMap( bson => Try(Codecs.fromBson[List[String]](bson.asDocument().get("typeOfAdjustments"))).toOption )
+        val adjustmentsConfirmed = rootOpt.flatMap( bson => Try(bson.asDocument.get("adjustmentsConfirmed").asBoolean().getValue).toOption )
+        val etray = rootOpt.flatMap( bson => Try(Codecs.fromBson[AdjustmentDetail](bson.asDocument().get("etray")) ).toOption )
+        val video = rootOpt.flatMap( bson => Try(Codecs.fromBson[AdjustmentDetail](bson.asDocument().get("video")) ).toOption )
         Adjustments(adjustmentList, adjustmentsConfirmed, etray, video)
       }
     }
