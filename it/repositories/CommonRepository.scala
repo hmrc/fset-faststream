@@ -17,6 +17,7 @@ import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.scalatest.concurrent.ScalaFutures
 import play.api.libs.json.Json
+import repositories.sift.SiftAnswersMongoRepository
 import uk.gov.hmrc.mongo.play.json.Codecs
 //import reactivemongo.bson.BSONDocument
 import repositories.application.GeneralApplicationMongoRepository
@@ -85,6 +86,8 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
   //TODO:fix guice just inject the list siftableSchemeDefinitions instead of the whole repo
   //  def applicationSiftRepository = new ApplicationSiftMongoRepository(DateTimeFactory, siftableSchemeDefinitions)
   def applicationSiftRepository = new ApplicationSiftMongoRepository(ITDateTimeFactoryMock, schemeRepository, mongo, mockAppConfig)
+
+  def siftAnswersRepository = new SiftAnswersMongoRepository(mongo)
 
   def assessmentCentreRepository = new AssessmentCentreMongoRepository(ITDateTimeFactoryMock, schemeRepository, mongo)
 

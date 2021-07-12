@@ -17,10 +17,9 @@
 package model.persisted.sift
 
 import model.persisted.sift.SiftAnswersStatus.SiftAnswersStatus
+import org.mongodb.scala.bson.BsonValue
 import play.api.libs.json._
-//import reactivemongo.bson.{ BSON, BSONDocument, BSONElement, BSONHandler, BSONString, Macros }
-
-import scala.util.Try
+import uk.gov.hmrc.mongo.play.json.Codecs
 
 object SiftAnswersStatus extends Enumeration {
   type SiftAnswersStatus = Value
@@ -37,6 +36,10 @@ object SiftAnswersStatus extends Enumeration {
     override def write(eventType: SiftAnswersStatus): BSONString = BSON.write(eventType.toString)
     override def read(bson: BSONString): SiftAnswersStatus = SiftAnswersStatus.withName(bson.value.toUpperCase)
   }*/
+  implicit class BsonOps(val status: SiftAnswersStatus) extends AnyVal {
+    def toBson: BsonValue = Codecs.toBson(status)
+  }
+
 }
 
 case class SiftAnswers(applicationId: String,
