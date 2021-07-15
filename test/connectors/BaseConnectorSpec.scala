@@ -17,13 +17,17 @@
 package connectors
 
 import config.CSRHttp
+import org.mockito.Mockito.when
+import org.mockito.ArgumentMatchers.any
 import play.api.libs.ws.WSClient
-import play.api.{Configuration, Environment}
+import play.api.{ConfigLoader, Configuration, Environment}
 import testkit.BaseSpec
 
 trait BaseConnectorSpec extends BaseSpec {
   trait BaseConnectorTestFixture {
     val mockConfiguration = mock[Configuration]
+    when(mockConfiguration.getOptional(any[String])(any[ConfigLoader[String]])).thenReturn(None)
+
     val mockEnvironment = mock[Environment]
     val mockHttp = mock[CSRHttp]
     val mockApplicationClient = mock[ApplicationClient]

@@ -14,8 +14,8 @@
  * limitations under the License.
  *@
 
-@import config.AnalyticsConfig
-@(form: Form[forms.PersonalDetailsForm.Data], updateStatus: Boolean, schemesRequiringQualifications: Seq[String])(implicit request: Request[_], flash: Flash, optCachedData: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
+@import config.TrackingConsentConfig
+@(form: Form[forms.PersonalDetailsForm.Data], updateStatus: Boolean, schemesRequiringQualifications: Seq[String])(implicit request: Request[_], flash: Flash, optCachedData: Option[CachedData], feedbackUrl: String, trackingConsentConfig: TrackingConsentConfig, messages: Messages)
 
 @import views.html.application.personaldetails.{ contactDetails, nameAndDateOfBirth }
 @import views.html.application.civilServiceExperienceDetails.civilServiceExperienceDetailsPanel

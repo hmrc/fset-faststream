@@ -17,9 +17,9 @@
 @import models.page.SchemeWithdrawPage
 @import views.html.widgets.{ yesNoRadioWithTogglePanel, selectValueDifferentFromDisplayedText }
 @import helpers.CSRFieldConstructor._
-@import config.AnalyticsConfig
 
-@(page: SchemeWithdrawPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
+@import config.TrackingConsentConfig
+@(page: SchemeWithdrawPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, trackingConsentConfig: TrackingConsentConfig, messages: Messages)
 
 @main_template(title = "Withdraw from a scheme") {
     <h1 class="heading-xlarge">Withdraw from a scheme</h1>

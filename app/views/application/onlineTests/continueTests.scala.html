@@ -14,9 +14,9 @@
  * limitations under the License.
  *@
 
-@import config.AnalyticsConfig
+@import config.TrackingConsentConfig
 @(testCompletedName: String)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl:
-        String, analyticsConfig: AnalyticsConfig, messages: Messages)
+        String, trackingConsentConfig: TrackingConsentConfig, messages: Messages)
 
 @main_template(title = s"$testCompletedName complete | Apply for the Civil Service Fast Stream") {
 

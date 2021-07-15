@@ -14,8 +14,8 @@
  * limitations under the License.
  *@
 
-@import config.AnalyticsConfig
-@(acceptanceForm: Form[_root_.forms.DiversityQuestionnaireForm.AcceptanceTerms])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
+@import config.TrackingConsentConfig
+@(acceptanceForm: Form[_root_.forms.DiversityQuestionnaireForm.AcceptanceTerms])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, trackingConsentConfig: TrackingConsentConfig, messages: Messages)
 
 @import views.html.widgets.{pageProgress, checkbox}
 

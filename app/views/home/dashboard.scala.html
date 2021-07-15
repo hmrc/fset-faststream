@@ -30,14 +30,14 @@
 @import security.ProgressStatusRoleUtils._
 @import views.html.widgets.{ onlineTestProgress, sdipFaststreamBanner }
 @import models.ConsiderMeForSdipHelper._
-@import config.AnalyticsConfig
 
+@import config.TrackingConsentConfig
 @(usr: CachedData, dashboardPage: DashboardPage,
         assistanceDetails: Option[connectors.exchange.AssistanceDetails] = None,
         adjustments: Option[Adjustments] = None,
         submitApplicationsEnabled: Boolean,
         displaySdipEligibilityInfo: Boolean)(implicit request: Request[_], flash: Flash,
-        user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
+        user: Option[CachedData], feedbackUrl: String, trackingConsentConfig: TrackingConsentConfig, messages: Messages)
 
 @renderProgressElement(showLink: Boolean, checked: Boolean, id: String)(link: Call)(body: Html) = {
     <li id="@id"><i id="@id-icon" class='fa @if(checked) { fa-check } else {fa-minus} the-icon' aria-hidden="true"></i> @if(showLink) {

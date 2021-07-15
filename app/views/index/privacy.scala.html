@@ -14,8 +14,8 @@
  * limitations under the License.
  *@
 
-@import config.AnalyticsConfig
-@()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
+@import config.TrackingConsentConfig
+@()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, trackingConsentConfig: TrackingConsentConfig, messages: Messages)
 
 @faststreamEmail = {
     <a href="mailto:faststream.applicationsupport@@cabinetoffice.gov.uk">faststream.applicationsupport@@cabinetoffice.gov.uk</a>

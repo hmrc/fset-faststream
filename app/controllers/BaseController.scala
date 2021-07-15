@@ -31,5 +31,5 @@ abstract class BaseController(
   extends FrontendController(mcc) with SecureActions with Logging {
 
   implicit val feedbackUrl = config.feedbackUrl
-  implicit val analyticsConfig = config.analyticsConfig
+  implicit val trackingConsentConfig = config.trackingConsentConfig
 }

@@ -17,8 +17,8 @@
 package config
 
 import javax.inject.Inject
-import play.api.i18n.MessagesApi
-import play.api.mvc.{ Request, RequestHeader }
+import play.api.i18n.{Messages, MessagesApi}
+import play.api.mvc.{Request, RequestHeader}
 import play.twirl.api.Html
 import uk.gov.hmrc.play.bootstrap.frontend.http.FrontendErrorHandler
 
@@ -30,6 +30,9 @@ class FaststreamErrorHandler @Inject() (
 
   private implicit def rhToRequest(rh: RequestHeader): Request[_] = Request(rh, "")
 
-  override def standardErrorTemplate(pageTitle: String, heading: String, message: String)(implicit rh: Request[_]): Html =
-    views.html.error_template(pageTitle, heading, message)(rh, config.feedbackUrl, config.analyticsConfig)
+  override def standardErrorTemplate(pageTitle: String, heading: String, message: String)(implicit rh: Request[_]): Html = {
+    val messages = implicitly[Messages]
+    views.html.error_template(pageTitle, heading, message)(
+      rh, config.feedbackUrl, config.trackingConsentConfig, messages)
+  }
 }

@@ -16,9 +16,9 @@
 
 @import models.page.TestResultsPage
 @import models.page.PsiTestPage
-@import config.AnalyticsConfig
 
-@(page: TestResultsPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
+@import config.TrackingConsentConfig
+@(page: TestResultsPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, trackingConsentConfig: TrackingConsentConfig, messages: Messages)
 
 @generatePsiTestId(psiTestPage: PsiTestPage) = {@Messages(psiTestPage.testNameKey).replace(" ", "").concat("LinkResultsReport")}
 

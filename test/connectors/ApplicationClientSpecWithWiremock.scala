@@ -46,7 +46,7 @@ class ApplicationClientSpecWithWiremock extends BaseConnectorWithWiremockSpec {
     val endpoint = s"/faststream/campaign-management/afterDeadlineSignupCodeUnusedAndValid?code=$code"
 
     "return afterDeadlineSignupCodeUnusedAndValid value" in new TestFixture {
-      val response = AfterDeadlineSignupCodeUnused(true, Some(DateTime.now()))
+      val response = AfterDeadlineSignupCodeUnused(unused = true, Some(DateTime.now()))
       stubFor(get(urlPathEqualTo(endpoint)).willReturn(
         aResponse().withStatus(OK).withBody(Json.toJson(response).toString())
       ))

@@ -21,10 +21,9 @@
 @import forms.sift.UndergradDegreeInfoForm
 @import forms.sift.GeneralQuestionsForm
 @import helpers.CSRFieldConstructor._
-@import config.AnalyticsConfig
 
-@import config.AnalyticsConfig
-@(page: GeneralQuestionsPage, saveAndContinueAction: String, saveAndReturnAction: String)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticsConfig: AnalyticsConfig, messages: Messages)
+@import config.TrackingConsentConfig
+@(page: GeneralQuestionsPage, saveAndContinueAction: String, saveAndReturnAction: String)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, trackingConsentConfig: TrackingConsentConfig, messages: Messages)
 
 @main_template(title = "Nationality and higher education", additionalJavascriptFilenames = List("vendor/chosen.jquery.js", "generalQuestions.js")) {
     <h1 class="heading-xlarge">Nationality and higher education</h1>

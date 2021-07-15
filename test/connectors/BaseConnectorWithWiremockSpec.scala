@@ -19,10 +19,12 @@ package connectors
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration._
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.{Application, Configuration, Environment}
+import play.api.{Application, ConfigLoader, Configuration, Environment}
 import testkit.BaseSpec
 
 trait BaseConnectorWithWiremockSpec extends BaseSpec with BeforeAndAfterEach with BeforeAndAfterAll with GuiceOneServerPerSuite {
@@ -55,6 +57,7 @@ trait BaseConnectorWithWiremockSpec extends BaseSpec with BeforeAndAfterEach wit
 
   trait BaseConnectorTestFixture {
     val mockConfiguration = mock[Configuration]
+    when(mockConfiguration.getOptional(any[String])(any[ConfigLoader[String]])).thenReturn(None)
     val mockEnvironment = mock[Environment]
   }
 }

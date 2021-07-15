@@ -14,9 +14,9 @@
  * limitations under the License.
  *@
 
-@import config.AnalyticsConfig
+@import config.TrackingConsentConfig
 @(schemeSpecificQuestionsForm: Form[_root_.connectors.exchange.sift.SchemeSpecificAnswer], scheme: _root_.connectors.exchange.referencedata.Scheme,
-    saveAndContinueAction: String, saveAndReturnAction: String)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
+    saveAndContinueAction: String, saveAndReturnAction: String)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, trackingConsentConfig: TrackingConsentConfig, messages: Messages)
 
 @import controllers.SiftQuestionsController
 @import helpers.CSRFieldConstructor._

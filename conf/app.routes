@@ -5,6 +5,7 @@ GET         /                                                       @controllers
 GET         /terms                                                  @controllers.ApplicationController.terms
 GET         /helpdesk                                               @controllers.ApplicationController.helpdesk
 GET         /cookies                                                @controllers.ApplicationController.cookies
+GET         /trackingConsentCookies                                 @controllers.ApplicationController.trackingConsentCookies
 GET         /privacy                                                @controllers.ApplicationController.privacy
 GET         /accessibility                                          @controllers.ApplicationController.accessibility
 

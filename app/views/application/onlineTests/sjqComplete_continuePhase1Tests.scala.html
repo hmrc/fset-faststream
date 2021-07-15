@@ -14,8 +14,8 @@
  * limitations under the License.
  *@
 
-@import config.AnalyticsConfig
-@()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
+@import config.TrackingConsentConfig
+@()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, trackingConsentConfig: TrackingConsentConfig, messages: Messages)
 
 @main_template(title = "Situational judgement questionnaire complete | Apply for the Civil Service Fast Stream") {
 

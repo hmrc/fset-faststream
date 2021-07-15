@@ -73,7 +73,7 @@ class SignInService @Inject() (
   def showErrorLogin(data: Data, errorMsg: String = "signIn.invalid")(
     implicit user: Option[CachedData], request: Request[_], flash: Flash, messages: Messages): Result = {
     implicit val feedBackUrl = config.feedbackUrl
-    implicit val analyticsConfig = config.analyticsConfig
+    implicit val trackingConsentConfig = config.trackingConsentConfig
     play.api.mvc.Results.Ok(views.html.index.signin(
       formWrapper.form.fill(SignInForm.Data(signIn = data.signIn, signInPassword = "", route = data.route)),
       Some(danger(errorMsg))

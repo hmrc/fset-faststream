@@ -50,6 +50,14 @@ class ApplicationController @Inject() (
       Future.successful(Ok(views.html.index.cookies()))
   }
 
+  // For this to work on a dev machine you need to run the following service manager command:
+  // sm --start TRACKING_CONSENT_FRONTEND
+  def trackingConsentCookies = CSRUserAwareAction { implicit request =>
+    implicit user =>
+      require(config.trackingConsentConfig.trackingConsentHost.isDefined, "Tracking consent host must be defined")
+      Future.successful(Redirect(s"${config.trackingConsentConfig.trackingConsentHost.get}/tracking-consent/cookie-settings"))
+  }
+
   def privacy = CSRUserAwareAction { implicit request =>
     implicit user =>
       Future.successful(Ok(views.html.index.privacy()))
