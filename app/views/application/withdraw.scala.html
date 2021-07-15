@@ -14,8 +14,8 @@
  * limitations under the License.
  *@
 
-@import config.AnalyticsConfig
-@(withdrawForm: Form[_root_.forms.WithdrawApplicationForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
+@import config.TrackingConsentConfig
+@(withdrawForm: Form[_root_.forms.WithdrawApplicationForm.Data])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, trackingConsentConfig: TrackingConsentConfig, messages: Messages)
 
     @import views.html.widgets.{ radioBoxHorizontal, select_guard }
     @import helpers.CSRFieldConstructor._

@@ -46,7 +46,21 @@ case class ApplicationRouteFrontendConfig(timeZone: Option[String],
 
 case class AddressLookupConfig(url: String)
 
-case class AnalyticsConfig(host: String, token: String)
+// Based on the following class:
+// https://github.com/hmrc/play-frontend-hmrc/src/main/scala/uk/gov/hmrc/hmrcfrontend/config/TrackingConsentConfig.scala
+// to get the GA cookie consent tracking working
+case class TrackingConsentConfig(platformHost: Option[String],
+                                 trackingConsentHost: Option[String],
+                                 trackingConsentPath: Option[String],
+                                 gtmContainer: Option[String]
+                                ) {
+  def trackingUrl(): Option[String] =
+    for {
+      host <- trackingConsentHost
+      path <- trackingConsentPath
+      _    <- gtmContainer
+    } yield s"$host$path"
+}
 
 object ApplicationRouteFrontendConfig {
   def read(timeZone: Option[String], startNewAccountsDate: Option[String], blockNewAccountsDate: Option[String],
@@ -65,7 +79,6 @@ class FrontendAppConfig @Inject() (val config: Configuration, val environment: E
   lazy val authConfig = config.underlying.as[AuthConfig](s"microservice.services.auth")
   lazy val userManagementConfig = config.underlying.as[UserManagementConfig]("microservice.services.user-management")
   lazy val faststreamBackendConfig = config.underlying.as[FaststreamBackendConfig]("microservice.services.faststream")
-  lazy val analyticsConfig: AnalyticsConfig = config.underlying.as[AnalyticsConfig]("microservice.services.google-analytics")
 
   lazy val addressLookupConfig = config.underlying.as[AddressLookupConfig]("microservice.services.address-lookup")
 
@@ -81,6 +94,20 @@ class FrontendAppConfig @Inject() (val config: Configuration, val environment: E
     Sdip -> loadAppRouteConfig("sdip"),
     SdipFaststream -> loadAppRouteConfig("faststream")
   )
+
+  private lazy val platformHost: Option[String] =
+    config.getOptional[String]("platform.frontend.host")
+  private lazy val trackingConsentHost: Option[String] =
+    platformHost.map(_ => "").orElse(config.getOptional[String]("tracking-consent-frontend.host"))
+  private lazy val trackingConsentPath: Option[String] = config.getOptional[String]("tracking-consent-frontend.path")
+  private lazy val gtmContainer: Option[String] = config.getOptional[String]("tracking-consent-frontend.gtm.container")
+
+  logger.warn(s"GA platformHost=$platformHost")
+  logger.warn(s"GA trackingConsentHost=$trackingConsentHost")
+  logger.warn(s"GA trackingConsentPath=$trackingConsentPath")
+  logger.warn(s"GA gtmContainer=$gtmContainer")
+
+  lazy val trackingConsentConfig = TrackingConsentConfig(platformHost, trackingConsentHost, trackingConsentPath, gtmContainer)
 
   def loadAppRouteConfig(routeKey: String): ApplicationRouteState = {
     val timeZone = config.getOptional[String]("applicationRoute.timeZone")

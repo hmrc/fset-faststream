@@ -14,9 +14,9 @@
  * limitations under the License.
  *@
 
-@import config.AnalyticsConfig
+@import config.TrackingConsentConfig
 @(email: String, activationForm: Form[_root_.forms.ActivateAccountForm.Data],
-        notification: Option[(helpers.NotificationType, String)] = None, marketingTrackingEnabled: Boolean = false)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
+        notification: Option[(helpers.NotificationType, String)] = None, marketingTrackingEnabled: Boolean = false)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, trackingConsentConfig: TrackingConsentConfig, messages: Messages)
 
     @import helpers.CSRFieldConstructor._
 

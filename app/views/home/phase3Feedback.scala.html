@@ -16,9 +16,9 @@
 
 @import models.page.Phase3CompetencyFeedback
 @import models.page.Phase3FeedbackPage
-@import config.AnalyticsConfig
 
-@(page: Phase3FeedbackPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
+@import config.TrackingConsentConfig
+@(page: Phase3FeedbackPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, trackingConsentConfig: TrackingConsentConfig, messages: Messages)
 
 @returnToHomePage = {
     <a href="@routes.HomeController.present()">Return to homepage</a>

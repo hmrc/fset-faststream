@@ -15,8 +15,8 @@
  *@
 
 @import models.page.AssessmentFeedbackPage
-@import config.AnalyticsConfig
-@(page: AssessmentFeedbackPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
+@import config.TrackingConsentConfig
+@(page: AssessmentFeedbackPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, trackingConsentConfig: TrackingConsentConfig, messages: Messages)
 
 @returnToHomePage = {
     <a href="@routes.HomeController.present()">Return to homepage</a>

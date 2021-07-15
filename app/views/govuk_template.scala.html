@@ -14,9 +14,10 @@
  * limitations under the License.
  *@
 
-@import config.AnalyticsConfig
+@import config.TrackingConsentConfig
 @import views.html.template.userDetails
-@(title: String, user: Option[CachedData] = None, additionalJavascriptFilenames: List[String] = Nil, idElementFirstError: Option[String] = None)(mainContent: Html)(implicit request: Request[_], feedbackUrl: String, analyticsConfig: AnalyticsConfig)
+@import views.html.helper.CSPNonce
+@(title: String, user: Option[CachedData] = None, additionalJavascriptFilenames: List[String] = Nil, idElementFirstError: Option[String] = None)(mainContent: Html)(implicit request: Request[_], feedbackUrl: String, trackingConsentConfig: TrackingConsentConfig, messages: Messages)
 
 <!DOCTYPE html>
 <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
@@ -50,7 +51,7 @@
             <link rel="apple-touch-icon" sizes="120x120" href='@routes.Assets.versioned("img/apple-touch-icon-114x114.png")'>
             <link rel="apple-touch-icon" sizes="152x152" href='@routes.Assets.versioned("img/apple-touch-icon-144x144.png")'>
             <link href='@routes.Assets.versioned("css/font-awesome/css/font-awesome.min.css")' rel="stylesheet" type="text/css">
-            <script>
+            <script @CSPNonce.attr>
                 var html = document.documentElement;
                 html.className += " js-enabled";
 
@@ -59,26 +60,27 @@
                 }
             </script>
 
-            <script src='@routes.Assets.versioned("js/vendor/modernizr-custom.js")'></script>
+            <script @CSPNonce.attr src='@routes.Assets.versioned("js/vendor/modernizr-custom.js")'></script>
 
             @helper.javascriptRouter("jsRoutes")(
                 routes.javascript.SchoolsController.getSchools
             )
+
+            @trackingConsentConfig.trackingUrl.map { url =>
+                <!--[if !IE]>-->
+                <script
+                @CSPNonce.attr
+                src="@url"
+                id="tracking-consent-script-tag"
+                data-gtm-container="@trackingConsentConfig.gtmContainer"
+                data-language="@messages.lang.code"></script>
+                <!--<![endif]-->
+            }
         </head>
 
         <body @idElementFirstError.map{id => onload="document.getElementById('@id'+'_errorSummaryItem').focus()"}>
 
             <div id="focus-container">
-                @if(!CookiePolicy.bannerSeen(request)) {
-                <div id="global-cookie-message" class="cookie-banner">
-                    <div class="content-container" role="alert">
-                        <span class="copy-16">GOV.UK uses cookies to make the site simpler.
-                            <a href="@routes.ApplicationController.cookies()">Find out more about cookies</a>
-                        </span>
-                    </div>
-                </div>
-                }
-
                 <div class="skiplink-container">
                     <div>
                         <a href="#main" class="skiplink">Skip to main content</a>
@@ -176,25 +178,13 @@
             </div>
             <!-- end of modal dialog -->
 
-            @if(analyticsConfig.token != "N/A") {
-                <script type="text/javascript">
-                    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-                    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-                    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-                    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-                    ga('create', '@analyticsConfig.token', '@analyticsConfig.host');
-                    ga('send', 'pageview', { 'anonymizeIp': true });
-                </script>
-            }
-
-            <script src='@routes.Assets.versioned("js/vendor/jquery-1.11.1.min.js")'></script>
-            <script src='@routes.Assets.versioned("js/vendor/jquery-ui-1.10.4.custom.min.js")'></script>
+            <script @CSPNonce.attr src='@routes.Assets.versioned("js/vendor/jquery-1.11.1.min.js")'></script>
+            <script @CSPNonce.attr src='@routes.Assets.versioned("js/vendor/jquery-ui-1.10.4.custom.min.js")'></script>
             @for(additionalJavascriptFilename <- additionalJavascriptFilenames) {
-                <script src='@routes.Assets.versioned("js/" + additionalJavascriptFilename)'></script>
+                <script @CSPNonce.attr src='@routes.Assets.versioned("js/" + additionalJavascriptFilename)'></script>
             }
-            <script src='@routes.Assets.versioned("js/vendor/fastclick-1.0.6.min.js")'></script>
-            <script src='@routes.Assets.versioned("js/scripts.js")'></script>
+            <script @CSPNonce.attr src='@routes.Assets.versioned("js/vendor/fastclick-1.0.6.min.js")'></script>
+            <script @CSPNonce.attr src='@routes.Assets.versioned("js/scripts.js")'></script>
 
         </body>
     </html>
-

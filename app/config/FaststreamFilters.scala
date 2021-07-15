@@ -17,7 +17,7 @@
 package config
 
 import akka.stream.Materializer
-import filters.{CookiePolicyFilter, FaststreamAuditFilter, FaststreamAllowlistFilter}
+import filters.{FaststreamAllowlistFilter, FaststreamAuditFilter}
 import play.api.Logging
 import play.api.http.{DefaultHttpFilters, EnabledFilters}
 
@@ -25,25 +25,22 @@ import javax.inject.Inject
 
 class DevFaststreamFilters @Inject() (
   defaultFilters: EnabledFilters,
-  auditFilter: FaststreamAuditFilter,
-  cookiePolicyFilter: CookiePolicyFilter)(
+  auditFilter: FaststreamAuditFilter)(
   implicit
   val materializer: Materializer)
   extends DefaultHttpFilters(
-    defaultFilters.filters.updated(defaultFilters.filters.indexWhere(_.toString.contains("AuditFilter")), auditFilter)
-      :+ cookiePolicyFilter: _*) with Logging {
+    defaultFilters.filters.updated(defaultFilters.filters.indexWhere(_.toString.contains("AuditFilter")), auditFilter): _*) with Logging {
   logger.info("Allow list filter is NOT enabled")
 }
 
 class ProductionFaststreamFilters @Inject() (
                                               defaultFilters: EnabledFilters,
                                               auditFilter: FaststreamAuditFilter,
-                                              allowlistFilter: FaststreamAllowlistFilter,
-                                              cookiePolicyFilter: CookiePolicyFilter)(
+                                              allowlistFilter: FaststreamAllowlistFilter)(
   implicit
   val materializer: Materializer)
   extends DefaultHttpFilters((Seq(allowlistFilter) ++
     defaultFilters.filters.updated(defaultFilters.filters.indexWhere(_.toString.contains("AuditFilter")), auditFilter)
-  ) :+ cookiePolicyFilter: _*) with Logging {
+  ): _*) with Logging {
   logger.info("Allow list filter is enabled")
 }

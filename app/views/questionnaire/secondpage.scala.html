@@ -14,8 +14,8 @@
  * limitations under the License.
  *@
 
-@import config.AnalyticsConfig
-@(questionnaireForm: Form[_root_.forms.EducationQuestionnaireForm.Data], isCandidateCivilServant: String)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
+@import config.TrackingConsentConfig
+@(questionnaireForm: Form[_root_.forms.EducationQuestionnaireForm.Data], isCandidateCivilServant: String)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, trackingConsentConfig: TrackingConsentConfig, messages: Messages)
 
 @import views.html.questionnaire.components.{ postcode, school, universitySection }
 @import views.html.widgets.{ pageProgress, radioBoxHorizontal }

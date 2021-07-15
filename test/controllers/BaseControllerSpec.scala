@@ -17,12 +17,11 @@
 package controllers
 
 import java.util.UUID
-
 import _root_.helpers.{NotificationType, NotificationTypeHelper}
 import com.github.nscala_time.time.Imports.DateTime
 import com.mohiva.play.silhouette.api.{EventBus, LoginInfo}
 import com.mohiva.play.silhouette.impl.authenticators.{SessionAuthenticator, SessionAuthenticatorService}
-import config.{AnalyticsConfig, CSRHttp, FrontendAppConfig}
+import config.{CSRHttp, FrontendAppConfig, TrackingConsentConfig}
 import connectors._
 import models.ApplicationRoute.{ApplicationRoute => _}
 import models.SecurityUserExamples._
@@ -100,7 +99,9 @@ abstract class BaseControllerSpec extends BaseSpec {
     val mockMessagesApi = mock[MessagesApi]
     val stubMcc = stubMessagesControllerComponents(messagesApi = mockMessagesApi)
     val mockConfig = mock[FrontendAppConfig]
-    when(mockConfig.analyticsConfig).thenReturn(new AnalyticsConfig("host", "token"))
+    when(mockConfig.trackingConsentConfig).thenReturn(TrackingConsentConfig(
+      platformHost = None, trackingConsentHost = Some("http://localhost"), trackingConsentPath = Some("/testPath.js"), gtmContainer = None
+    ))
     val mockSilhouetteComponent = mock[SilhouetteComponent]
     val mockApplication = mock[Application]
     val mockHttp = mock[CSRHttp]

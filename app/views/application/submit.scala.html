@@ -14,8 +14,8 @@
  * limitations under the License.
  *@
 
-@import config.AnalyticsConfig
-@()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
+@import config.TrackingConsentConfig
+@()(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, trackingConsentConfig: TrackingConsentConfig, messages: Messages)
 
 @main_template(title = "Submit your application") {
 
@@ -25,14 +25,11 @@
         <p>After your application is submitted, you will receive an invitation to complete your online exercises. Your timer will start and you will have <b>5 days</b> to complete your online exercises once you have received your invitation.</p>
     </div>
 
-        @helper.form(action = routes.SubmitApplicationController.submit(), 'novalidate -> "novalidate") {
-            @helper.CSRF.formField
-            <div>
-
-                <button id="submit" type="submit" value="submit" class="button">Submit application</button>
-                <a id="saveLater" href="@routes.HomeController.present()" class="button-link">Save to submit later</a>
-            </div>
-
-        }
-
+    @helper.form(action = routes.SubmitApplicationController.submit(), 'novalidate -> "novalidate") {
+        @helper.CSRF.formField
+        <div>
+            <button id="submit" type="submit" value="submit" class="button">Submit application</button>
+            <a id="saveLater" href="@routes.HomeController.present()" class="button-link">Save to submit later</a>
+        </div>
+    }
 }

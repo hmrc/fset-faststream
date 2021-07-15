@@ -20,9 +20,9 @@
 @import security.Roles._
 @import security.RoleUtils._
 @import views.html.widgets.sdipFaststreamBanner
-@import config.AnalyticsConfig
 
-@(page: PostOnlineTestsPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, analyticisConfig: AnalyticsConfig, messages: Messages)
+@import config.TrackingConsentConfig
+@(page: PostOnlineTestsPage)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, trackingConsentConfig: TrackingConsentConfig, messages: Messages)
 
 @getOrder(pos: Int) = @{
   pos match {

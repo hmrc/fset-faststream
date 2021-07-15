@@ -14,8 +14,8 @@
  * limitations under the License.
  *@
 
-@import config.AnalyticsConfig
-@(pageTitle: String, heading: String, message: String)(implicit request: Request[_], feedbackUrl: String, analyticsConfig: AnalyticsConfig)
+@import config.TrackingConsentConfig
+@(pageTitle: String, heading: String, message: String)(implicit request: Request[_], feedbackUrl: String, trackingConsentConfig: TrackingConsentConfig, messages: Messages)
 
 @mainContent = {
   <h1 class="heading-xlarge">@heading</h1>

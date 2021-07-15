@@ -39,8 +39,8 @@ class UserManagementClientSpec extends BaseConnectorSpec {
       "faststream")
 
     "return user upon success" in new TestFixture {
-      val userResponse = UserResponse("peter", "griffin", None, true, userId1, "test@email.com",
-        false, "UNLOCKED", List("candidate"), "faststream", None)
+      val userResponse = UserResponse("peter", "griffin", preferredName = None, isActive = true, userId1, "test@email.com",
+        disabled = false, "UNLOCKED", List("candidate"), "faststream", phoneNumber = None)
 
       when(mockHttp.POST[AddUserRequest, UserResponse](eqTo(endpoint), eqTo(addRequest), any[Seq[(String, String)]])(
         any[Writes[AddUserRequest]],
