@@ -20,6 +20,7 @@
 @import views.html.widgets.pageProgress
 @import views.html.widgets.{checkbox, radioBox, yesNoQuestion}
 @import views.html.application.schemePreferences.schemesCheckboxGroup
+@import views.html.helper.CSPNonce
 
 @selectedSchemes = @{
     form.value match {
@@ -87,4 +88,4 @@
         </div>
     }
 }
-<script src='@routes.Assets.versioned("js/schemeSelection.js")' type="text/javascript"></script>
+<script @CSPNonce.attr src='@routes.Assets.versioned("js/schemeSelection.js")' type="text/javascript"></script>

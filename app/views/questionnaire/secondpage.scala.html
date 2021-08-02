@@ -15,6 +15,7 @@
  *@
 
 @import config.TrackingConsentConfig
+@import views.html.helper.CSPNonce
 @(questionnaireForm: Form[_root_.forms.EducationQuestionnaireForm.Data], isCandidateCivilServant: String)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, trackingConsentConfig: TrackingConsentConfig, messages: Messages)
 
 @import views.html.questionnaire.components.{ postcode, school, universitySection }
@@ -71,5 +72,5 @@
     }
 }
 
-<script src='@routes.Assets.versioned("js/vendor/jquery-ui-1.10.4.custom.min.js")' type="text/javascript"></script>
-<script src='@routes.Assets.versioned("js/universities.js")' type="text/javascript"></script>
+<script @CSPNonce.attr src='@routes.Assets.versioned("js/vendor/jquery-ui-1.10.4.custom.min.js")' type="text/javascript"></script>
+<script @CSPNonce.attr src='@routes.Assets.versioned("js/universities.js")' type="text/javascript"></script>

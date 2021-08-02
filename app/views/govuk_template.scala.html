@@ -39,7 +39,7 @@
                 <!--[if lte IE 8]><link href='@routes.Assets.versioned("css/main-ie8.css")' media="all" rel="stylesheet" type="text/css"><![endif]-->
                 <!--[if lte IE 8]>
                 <link href='@routes.Assets.versioned("css/fonts-ie8.css")' media="all" rel="stylesheet" type="text/css" />
-                <script src='@routes.Assets.versioned("js/vendor/ie.js")'></script>
+                <script @CSPNonce.attr src='@routes.Assets.versioned("js/vendor/ie.js")'></script>
                 <![endif]-->
                 <!--[if gte IE 9]><!-->
             <link href='@routes.Assets.versioned("css/fonts.css")' media="all" rel="stylesheet" type="text/css"
