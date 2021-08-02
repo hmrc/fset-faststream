@@ -15,6 +15,7 @@
  *@
 
 @import config.TrackingConsentConfig
+@import views.html.helper.CSPNonce
 @(form: Form[_root_.forms.AssistanceDetailsForm.Data], disabilityCategories: List[String])(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, trackingConsentConfig: TrackingConsentConfig, messages: Messages)
 
     @import views.html.application.assistancedetails.{ hasDisability, needsSupportOnlineAssessments, needsSupportAtVenue, needsSupportPhoneInterview }
@@ -45,4 +46,4 @@
             @saveAndContinueButton()
         }
     }
-<script src='@routes.Assets.versioned("js/disabilityCategorySelection.js")' type="text/javascript"></script>
+<script @CSPNonce.attr src='@routes.Assets.versioned("js/disabilityCategorySelection.js")' type="text/javascript"></script>
