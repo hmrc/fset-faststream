@@ -162,7 +162,7 @@ eligible.required=You can only select preferences you''re eligible for
 alternatives.required=Select whether or not you would consider other schemes
 
 scheme.Commercial.description=Commercial
-scheme.DigitalAndTechnology.description=Digital, Data & Technology
+scheme.DigitalDataTechnologyAndCyber.description=Digital, Data, Technology & Cyber
 scheme.DiplomaticService.description=Diplomatic Service
 scheme.DiplomaticServiceEconomists.description=Diplomatic Service (Economists)
 scheme.Finance.description=Finance
