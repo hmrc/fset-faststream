@@ -88,7 +88,7 @@ trait PreviousYearCandidatesDetailsRepository {
   }
 
   def dataAnalystApplicationDetailsHeader(numOfSchemes: Int) =
-    "ApplicationId,Application status,Route,All FS schemes failed SDIP not failed," +
+    "ApplicationId,Date of Birth,Application status,Route,All FS schemes failed SDIP not failed," +
     "Civil servant,EDIP,EDIP year,SDIP,SDIP year,Other internship,Other internship name,Other internship year,Fast Pass No," +
     "Scheme preferences," +
     "Do you have a disability,Disability impact,Deaf,Learning disability,Long-standing disability,Mental health condition,Neurodiverse," +
@@ -291,7 +291,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
             List(doc.getAs[String]("frameworkId")) :::
             List(doc.getAs[String]("applicationStatus")) :::
             List(doc.getAs[String]("applicationRoute")) :::
-            personalDetails(doc) :::
+            personalDetails(doc, isAnalystReport = false) :::
             List(progressResponseReachedYesNo(progressResponse.personalDetails)) :::
             List(progressResponseReachedYesNo(progressResponse.personalDetails)) :::
             repositories.getCivilServiceExperienceDetails(doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream), doc).toList :::
@@ -484,6 +484,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
         val applicationIdOpt = doc.getAs[String]("applicationId")
         val csvContent = makeRow(
           List(applicationIdOpt) :::
+            personalDetails(doc, isAnalystReport = true) :::
             List(doc.getAs[String]("applicationStatus")) :::
             List(doc.getAs[String]("applicationRoute")) :::
             List(Some(isSdipFsWithFsFailedAndSdipNotFailed(doc).toString)) :::
@@ -1388,14 +1389,10 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
       )
   }
 
-  private def personalDetails(doc: BSONDocument) = {
+  private def personalDetails(doc: BSONDocument, isAnalystReport: Boolean) = {
+    val columns = if (isAnalystReport) { List("dateOfBirth") } else { List("firstName", "lastName","preferredName", "dateOfBirth") }
     val personalDetails = doc.getAs[BSONDocument]("personal-details")
-    List(
-      personalDetails.getAs[String]("firstName"),
-      personalDetails.getAs[String]("lastName"),
-      personalDetails.getAs[String]("preferredName"),
-      personalDetails.getAs[String]("dateOfBirth")
-    )
+    columns.map ( personalDetails.getAs[String] )
   }
 
   private def makeRow(values: Option[String]*) =
