@@ -158,7 +158,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
   "Next SdipFasttream test ready for SDIP progression" should {
     "return an SdipFaststream application that already has SDIP scores evaluated to Green/Red" in {
-      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString),
+      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString),
         SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
       )
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
@@ -174,7 +174,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "do not return an SdipFaststream application that has SDIP scores evaluated to Ambers" in {
-      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString),
+      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString),
         SchemeEvaluationResult(SchemeId("Sdip"), Amber.toString)
       )
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
@@ -509,7 +509,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
           ProgressStatuses.PHASE1_TESTS_FAILED -> true)).futureValue
       phase1TestRepo.insertOrUpdateTestGroup("appId", Phase1TestProfile(now, phase1TestsWithResult)).futureValue
 
-      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString))
+      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Red.toString))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
 
       phase1EvaluationRepo.savePassmarkEvaluation("appId", evaluation, Some(ProgressStatuses.PHASE1_TESTS_FAILED)).futureValue

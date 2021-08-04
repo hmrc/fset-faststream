@@ -25,7 +25,7 @@ class CurrentSchemeStatusHelperSpec extends UnitSpec {
 
   val helper = new CurrentSchemeStatusHelper {}
   val commercial = "Commercial"
-  val digitalAndTechnology = "DigitalAndTechnology"
+  val digitalDataTechnologyAndCyber = "DigitalDataTechnologyAndCyber"
   val diplomaticService = "DiplomaticService"
   val governmentSocialResearchService = "GovernmentSocialResearchService"
   val sdip = "Sdip"
@@ -44,18 +44,18 @@ class CurrentSchemeStatusHelperSpec extends UnitSpec {
         SchemeEvaluationResult(SchemeId(governmentSocialResearchService), Green.toString) :: Nil
 
       val newStatus = SchemeEvaluationResult(SchemeId(commercial), Red.toString) ::
-       SchemeEvaluationResult(SchemeId(digitalAndTechnology), Red.toString) :: Nil
+       SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), Red.toString) :: Nil
 
       helper.calculateCurrentSchemeStatus(currentStatus, newStatus) mustBe
        SchemeEvaluationResult(SchemeId(commercial), Red.toString) ::
        SchemeEvaluationResult(SchemeId(governmentSocialResearchService), Green.toString) ::
-       SchemeEvaluationResult(SchemeId(digitalAndTechnology), Red.toString) :: Nil
+       SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), Red.toString) :: Nil
     }
 
     "not return a first residual preference when faststream schemes are red or withdrawn, sdip is green and we are a " +
       "sdip faststream candidate (we ignore the sdip scheme)" in {
       helper.firstResidualPreference(Seq(
-        SchemeEvaluationResult(SchemeId(digitalAndTechnology), Red.toString),
+        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), Red.toString),
         SchemeEvaluationResult(SchemeId(commercial), Withdrawn.toString),
         SchemeEvaluationResult(SchemeId(sdip), Green.toString)), ignoreSdip = true
       ) mustBe None
@@ -63,7 +63,7 @@ class CurrentSchemeStatusHelperSpec extends UnitSpec {
 
     "return a first residual preference when a faststream candidate has at least one green scheme" in {
       helper.firstResidualPreference(Seq(
-        SchemeEvaluationResult(SchemeId(digitalAndTechnology), Red.toString),
+        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), Red.toString),
         SchemeEvaluationResult(SchemeId(commercial), Withdrawn.toString),
         SchemeEvaluationResult(SchemeId(diplomaticService), Green.toString))
       ) mustBe Some(SchemeEvaluationResult(SchemeId(diplomaticService), Green.toString))
@@ -71,7 +71,7 @@ class CurrentSchemeStatusHelperSpec extends UnitSpec {
 
     "return the correct first residual preference when a faststream candidate has at least one green scheme" in {
       helper.firstResidualPreference(Seq(
-        SchemeEvaluationResult(SchemeId(digitalAndTechnology), Red.toString),
+        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), Red.toString),
         SchemeEvaluationResult(SchemeId(commercial), Green.toString),
         SchemeEvaluationResult(SchemeId(diplomaticService), Green.toString))
       ) mustBe Some(SchemeEvaluationResult(SchemeId(commercial), Green.toString))

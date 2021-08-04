@@ -40,54 +40,54 @@ class SdipFaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluationSpec {
     "give fail for SdipFaststream when sdip and faststream schemes are red" in new TestFixture {
       phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
         List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
-          SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString),
+          SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString),
           SchemeEvaluationResult(SchemeId("Sdip"), Red.toString)
         ),
         "phase1-version1-res", None)
-      applicationEvaluation("application-1", 10, 10, SchemeId("Commercial"), SchemeId("DigitalAndTechnology")
+      applicationEvaluation("application-1", 10, 10, SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber")
       )(ApplicationRoute.SdipFaststream) mustResultIn(
         PHASE2_TESTS_FAILED, Some(ProgressStatuses.PHASE2_TESTS_FAILED),
-        SchemeId("Commercial") -> Red, SchemeId("DigitalAndTechnology") -> Red, SchemeId("Sdip") -> Red)
+        SchemeId("Commercial") -> Red, SchemeId("DigitalDataTechnologyAndCyber") -> Red, SchemeId("Sdip") -> Red)
     }
 
     "not fail SdipFastStream with failed faststream when sdip scheme is green and faststream schemes are red" in new TestFixture {
       phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
         List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
-          SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString),
+          SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString),
           SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
         ),
         "phase1-version1-res", None)
-      applicationEvaluation("application-1", 10, 10, SchemeId("Commercial"), SchemeId("DigitalAndTechnology")
+      applicationEvaluation("application-1", 10, 10, SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber")
       )(ApplicationRoute.SdipFaststream) mustResultIn(
         PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_GREEN),
-        SchemeId("Commercial") -> Red, SchemeId("DigitalAndTechnology") -> Red, SchemeId("Sdip") -> Green)
+        SchemeId("Commercial") -> Red, SchemeId("DigitalDataTechnologyAndCyber") -> Red, SchemeId("Sdip") -> Green)
     }
 
     "give pass for SdipFaststream when sdip failed and faststream schemes passed" in new TestFixture {
       phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
         List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
-          SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString),
+          SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString),
           SchemeEvaluationResult(SchemeId("Sdip"), Red.toString)
         ),
         "phase1-version1-res", None)
-      applicationEvaluation("application-1", 80, 80, SchemeId("Commercial"), SchemeId("DigitalAndTechnology")
+      applicationEvaluation("application-1", 80, 80, SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber")
       )(ApplicationRoute.SdipFaststream) mustResultIn(
         PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED),
-        SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green, SchemeId("Sdip") -> Red)
+        SchemeId("Commercial") -> Green, SchemeId("DigitalDataTechnologyAndCyber") -> Green, SchemeId("Sdip") -> Red)
     }
 
     "give pass when all schemes and sdip are green" in new TestFixture {
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
           List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
-            SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString),
+            SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString),
             SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
           ),
           "phase1-version1-res", None)
-        applicationEvaluation("application-1", 80, 80, SchemeId("Commercial"), SchemeId("DigitalAndTechnology")
+        applicationEvaluation("application-1", 80, 80, SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber")
         )(ApplicationRoute.SdipFaststream) mustResultIn(
           PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED),
-          SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green, SchemeId("Sdip") -> Green)
+          SchemeId("Commercial") -> Green, SchemeId("DigitalDataTechnologyAndCyber") -> Green, SchemeId("Sdip") -> Green)
       }
     }
   }

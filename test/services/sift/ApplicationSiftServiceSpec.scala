@@ -59,9 +59,9 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
             siftRequirement = Some(SiftRequirement.NUMERIC_TEST), siftEvaluationRequired = true, fsbType = None,
             schemeGuide = None, schemeQuestion = None
           ),
-          Scheme(id = "DigitalAndTechnology", code = "DaT", name = "Digital and Technology", civilServantEligible = false,
-            degree = None, siftRequirement = Some(SiftRequirement.FORM), siftEvaluationRequired = false, fsbType = None,
-            schemeGuide = None, schemeQuestion = None
+          Scheme(id = "DigitalDataTechnologyAndCyber", code = "DDTaC", name = "Digital, Data, Technology & Cyber Fast Stream",
+            civilServantEligible = false, degree = None, siftRequirement = Some(SiftRequirement.FORM), siftEvaluationRequired = false,
+            fsbType = None, schemeGuide = None, schemeQuestion = None
           ),
           Scheme(id = "Generalist", code = "GFS", name = "Generalist", civilServantEligible = true, degree = None, siftRequirement = None,
             siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None
@@ -142,7 +142,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
         ApplicationForSift("appId1", "userId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))),
         ApplicationForSift("appId2", "userId2", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-          List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Green.toString))),
+          List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), EvaluationResults.Green.toString))),
         ApplicationForSift("appId3", "userId3", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
             List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)))
       )
@@ -305,7 +305,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
         SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Withdrawn.toString),
         SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString),
         SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString),
-        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Green.toString)
+        SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), EvaluationResults.Green.toString)
       ))
 
       override lazy val schemeSiftResult = SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString)
@@ -313,7 +313,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
         currentSchemeUpdateBson(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Withdrawn.toString) ::
           SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString) ::
           schemeSiftResult ::
-          SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Green.toString) :: Nil: _*),
+          SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), EvaluationResults.Green.toString) :: Nil: _*),
         progressStatusUpdateBson(ProgressStatuses.SIFT_COMPLETED)
       )
       (mockApplicationSiftRepo.siftApplicationForScheme _).expects(appId, schemeSiftResult, expectedUpdateBson).returningAsync
@@ -343,7 +343,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       (mockApplicationSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Nil)
 
       val currentStatus = Seq(
-        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Green.toString),
+        SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), EvaluationResults.Green.toString),
         SchemeEvaluationResult(SchemeId("HousesOfParliament"), EvaluationResults.Green.toString),
         SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
       )
@@ -365,7 +365,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       (mockApplicationSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Nil)
 
       val currentStatus = Seq(
-        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Green.toString),
+        SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), EvaluationResults.Green.toString),
         SchemeEvaluationResult(SchemeId("HousesOfParliament"), EvaluationResults.Green.toString),
         SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
         SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
@@ -496,7 +496,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
   "findUsersInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes" must {
     "return candidates if the candidates still have numeric test schemes and have withdrawn from all form schemes" in new TestFixture {
       val oneCandidate = FixUserStuckInSiftEntered("app1", Seq(
-        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Withdrawn.toString),
+        SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), EvaluationResults.Withdrawn.toString),
         SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
       ))
 
@@ -508,7 +508,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     "return no candidates if the candidates have no green numeric test schemes" in new TestFixture {
       (mockApplicationSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(
         FixUserStuckInSiftEntered("app1", Seq(
-          SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Withdrawn.toString),
+          SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), EvaluationResults.Withdrawn.toString),
           SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
           SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Red.toString)
         ))
@@ -520,7 +520,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     "return no candidates if the candidates have no withdrawn schemes" in new TestFixture {
       (mockApplicationSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(
         FixUserStuckInSiftEntered("app1", Seq(
-          SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Red.toString),
+          SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), EvaluationResults.Red.toString),
           SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
           SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
         ))

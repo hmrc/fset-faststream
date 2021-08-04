@@ -9,9 +9,9 @@
   siftEvaluationRequired: true
   fsbType: CFS - Skype interview
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Commercial.pdf
-- id: DigitalAndTechnology
-  code: DAT
-  name: Digital, Data & Technology
+- id: DigitalDataTechnologyAndCyber
+  code: DDTAC
+  name: Digital, Data, Technology & Cyber
   civilServantEligible: true
   degree:
     required: Degree_22

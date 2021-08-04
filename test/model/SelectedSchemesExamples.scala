@@ -17,8 +17,8 @@
 package model
 
 object SelectedSchemesExamples {
-  val TwoSchemes = SelectedSchemes(List(SchemeId("DigitalAndTechnology"), SchemeId("Commercial")), orderAgreed = true, eligible = true)
+  val TwoSchemes = SelectedSchemes(List(SchemeId("DigitalDataTechnologyAndCyber"), SchemeId("Commercial")), orderAgreed = true, eligible = true)
 
   val siftableSchemes = SelectedSchemes(
-    List(SchemeId("Commercial"), SchemeId("Finance"), SchemeId("DigitalAndTechnology")), orderAgreed = true, eligible = true)
+    List(SchemeId("Commercial"), SchemeId("Finance"), SchemeId("DigitalDataTechnologyAndCyber")), orderAgreed = true, eligible = true)
 }

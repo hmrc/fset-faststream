@@ -106,7 +106,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   }
 
   "save passmark evaluation" should {
-    val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString))
+    val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString))
 
     "save result and update the status" in {
       insertApplication2("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult))
@@ -119,7 +119,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val (appStatus, result) = resultWithAppStatus.get
       appStatus mustBe ApplicationStatus.PHASE1_TESTS_PASSED
       result.evaluation mustBe Some(PassmarkEvaluation("version1", previousPhasePassMarkVersion = None, List(
-        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString)
+        SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString)
       ), "version1-res", previousPhaseResultVersion = None))
     }
 
@@ -168,7 +168,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       insertApplication2("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
         applicationRoute = Some(ApplicationRoute.SdipFaststream))
 
-      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString),
+      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString),
         SchemeEvaluationResult(SchemeId("Sdip"), Green.toString))
       val evaluation = PassmarkEvaluation("version1", previousPhasePassMarkVersion = None, resultToSave, "version1-res",
         previousPhaseResultVersion = None)
@@ -185,7 +185,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       insertApplication2("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
         applicationRoute = Some(ApplicationRoute.SdipFaststream))
 
-      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString),
+      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Red.toString),
         SchemeEvaluationResult(SchemeId("Sdip"), Red.toString))
       val evaluation = PassmarkEvaluation("version1", previousPhasePassMarkVersion = None, resultToSave, "version1-res",
         previousPhaseResultVersion = None)
@@ -202,7 +202,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       insertApplication2("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
         applicationRoute = Some(ApplicationRoute.SdipFaststream))
 
-      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString),
+      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString),
         SchemeEvaluationResult(SchemeId("Sdip"), Amber.toString))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
 
@@ -220,7 +220,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       insertApplication2("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
         applicationRoute = Some(ApplicationRoute.SdipFaststream))
 
-      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString))
+      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
 
@@ -230,8 +230,10 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
       val passmarkEvaluation = phase1EvaluationRepo.getPassMarkEvaluation("app1").futureValue
 
-      passmarkEvaluation.result must contain theSameElementsAs List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString),
-        SchemeEvaluationResult(SchemeId("Sdip"), Green.toString))
+      passmarkEvaluation.result must contain theSameElementsAs List(
+        SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString),
+        SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
+      )
     }
 
     "update sdip results in pass mark evaluation" in {
