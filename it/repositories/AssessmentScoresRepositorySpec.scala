@@ -94,7 +94,7 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
         Some(NewVersion)).futureValue
 
       val ExerciseScoresToSave2 = ExerciseScores2.copy(version = None, submittedDate = None)
-      repository.saveExercise(ApplicationId, AssessmentScoresSectionType.analysisExercise, ExerciseScoresToSave2,
+      repository.saveExercise(ApplicationId, AssessmentScoresSectionType.writtenExercise, ExerciseScoresToSave2,
         Some(NewVersion2)).futureValue
 
       val result = repository.find(ApplicationId).futureValue
@@ -108,11 +108,11 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     "update analysis exercise in existing assessment scores " +
       "when assessment scores with analysis exercise was saved before by same user" in new TestFixture {
       val ExerciseScoresToSave = ExerciseScores.copy(version = None, submittedDate = None, updatedBy = UpdatedBy)
-      repository.saveExercise(ApplicationId, AssessmentScoresSectionType.analysisExercise, ExerciseScoresToSave,
+      repository.saveExercise(ApplicationId, AssessmentScoresSectionType.writtenExercise, ExerciseScoresToSave,
         Some(NewVersion)).futureValue
 
       val ExerciseScoresToSave2 = ExerciseScores2.copy(version = Some(NewVersion), submittedDate = None, updatedBy = UpdatedBy)
-        repository.saveExercise(ApplicationId, AssessmentScoresSectionType.analysisExercise, ExerciseScoresToSave2,
+        repository.saveExercise(ApplicationId, AssessmentScoresSectionType.writtenExercise, ExerciseScoresToSave2,
           Some(NewVersion2)).futureValue
 
       val result = repository.find(ApplicationId).futureValue
@@ -125,13 +125,13 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     "throw Not Found Exception " +
       "when the exercise to be updated was updated before by another user" in new TestFixture {
       val ExerciseScoresToSave = ExerciseScores.copy(version = None, submittedDate = None, updatedBy = UpdatedBy)
-      repository.saveExercise(ApplicationId, AssessmentScoresSectionType.analysisExercise, ExerciseScoresToSave,
+      repository.saveExercise(ApplicationId, AssessmentScoresSectionType.writtenExercise, ExerciseScoresToSave,
         Some(NewVersion)).futureValue
 
       val ExerciseScoresToSave2 = ExerciseScores2.copy(version = None, submittedDate = None, updatedBy = UpdatedBy2)
 
       try {
-        repository.saveExercise(ApplicationId, AssessmentScoresSectionType.analysisExercise, ExerciseScoresToSave2,
+        repository.saveExercise(ApplicationId, AssessmentScoresSectionType.writtenExercise, ExerciseScoresToSave2,
           Some(NewVersion2)).failed.futureValue
       } catch {
         case ex: Exception => ex.getClass mustBe classOf[model.Exceptions.NotFoundException]
@@ -141,13 +141,13 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     "throw Not Found Exception " +
       "when the exercise to be updated is an old version of the existing one" in new TestFixture {
       val ExerciseScoresToSave = ExerciseScores.copy(version = None, submittedDate = None, updatedBy = UpdatedBy)
-      repository.saveExercise(ApplicationId, AssessmentScoresSectionType.analysisExercise, ExerciseScoresToSave,
+      repository.saveExercise(ApplicationId, AssessmentScoresSectionType.writtenExercise, ExerciseScoresToSave,
         Some(NewVersion)).futureValue
 
       val ExerciseScoresToSave2 = ExerciseScores2.copy(version = Some(OldVersion), submittedDate = None, updatedBy = UpdatedBy)
 
       try {
-        repository.saveExercise(ApplicationId, AssessmentScoresSectionType.analysisExercise, ExerciseScoresToSave2,
+        repository.saveExercise(ApplicationId, AssessmentScoresSectionType.writtenExercise, ExerciseScoresToSave2,
           Some(NewVersion2)).failed.futureValue
       } catch {
         case ex: Exception => ex.getClass mustBe classOf[model.Exceptions.NotFoundException]

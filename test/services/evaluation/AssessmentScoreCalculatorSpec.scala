@@ -33,12 +33,12 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
 
       val assessmentScores = AssessmentScoresAllExercises(
         applicationId = UniqueIdentifier.randomUniqueIdentifier,
-        analysisExercise = Some(AssessmentScoresExercise(
+        writtenExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
           makingEffectiveDecisionsAverage = Some(3.231)
         )),
-        groupExercise = Some(AssessmentScoresExercise(
+        teamExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
           makingEffectiveDecisionsAverage = Some(2.345)
@@ -63,8 +63,8 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
 
       val assessmentScores = AssessmentScoresAllExercises(
         applicationId = UniqueIdentifier.randomUniqueIdentifier,
-        analysisExercise = None,
-        groupExercise = Some(AssessmentScoresExercise(
+        writtenExercise = None,
+        teamExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
           workingTogetherDevelopingSelfAndOthersAverage = Some(2.345)
@@ -93,12 +93,12 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
 
       val assessmentScores = AssessmentScoresAllExercises(
         applicationId = UniqueIdentifier.randomUniqueIdentifier,
-        analysisExercise = Some(AssessmentScoresExercise(
+        writtenExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
           communicatingAndInfluencingAverage = Some(2.345)
         )),
-        groupExercise = Some(AssessmentScoresExercise(
+        teamExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
           communicatingAndInfluencingAverage = Some(2.345)
@@ -127,7 +127,7 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
 
       val assessmentScores = AssessmentScoresAllExercises(
         applicationId = UniqueIdentifier.randomUniqueIdentifier,
-        analysisExercise = Some(AssessmentScoresExercise(
+        writtenExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
           seeingTheBigPictureAverage = Some(2.345)
@@ -154,7 +154,7 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
     "handle all averages" in {
       val assessmentScores = AssessmentScoresAllExercises(
         applicationId = UniqueIdentifier.randomUniqueIdentifier,
-        analysisExercise = Some(AssessmentScoresExercise(
+        writtenExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
           seeingTheBigPictureAverage = Some(5.544),
@@ -162,7 +162,7 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
           communicatingAndInfluencingAverage = Some(5.544),
           workingTogetherDevelopingSelfAndOthersAverage = Some(5.544)
         )),
-        groupExercise = Some(AssessmentScoresExercise(
+        teamExercise = Some(AssessmentScoresExercise(
           attended = true,
           updatedBy = updatedBy,
           seeingTheBigPictureAverage = Some(5.544),

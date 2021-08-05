@@ -111,7 +111,7 @@ abstract class AssessmentScoresController(cc: ControllerComponents) extends Back
         service.save(scores).map { _ =>
           val auditDetails = Map(
             "applicationId" -> scores.applicationId.toString(),
-            "assessorId" -> scores.analysisExercise.map(_.updatedBy.toString).getOrElse("Unknown")
+            "assessorId" -> scores.writtenExercise.map(_.updatedBy.toString).getOrElse("Unknown")
           )
           auditService.logEvent(AssessmentScoresAllExercisesSubmitted, auditDetails)
         }.map(_ => Ok).recover {
@@ -172,15 +172,15 @@ abstract class AssessmentScoresController(cc: ControllerComponents) extends Back
   def resetExercises(applicationId: UniqueIdentifier) = Action.async(parse.json) {
     implicit request =>
       withJsonBody[ResetExercisesRequest] { resetExercisesRequest =>
-        val withAnalysis = if (resetExercisesRequest.analysis) List("analysisExercise") else List.empty[String]
-        val withGroup = if (resetExercisesRequest.group) withAnalysis ++ List("groupExercise") else withAnalysis
-        val exercisesToRemove = if (resetExercisesRequest.leadership) withGroup ++ List("leadershipExercise") else withGroup
+        val withWritten = if (resetExercisesRequest.written) List("writtenExercise") else List.empty[String]
+        val withTeam = if (resetExercisesRequest.team) withWritten ++ List("teamExercise") else withWritten
+        val exercisesToRemove = if (resetExercisesRequest.leadership) withTeam ++ List("leadershipExercise") else withTeam
 
         repository.resetExercise(applicationId, exercisesToRemove).map { _ =>
           val auditDetails = Map(
             "applicationId" -> applicationId.toString(),
-            "resetAnalysisExercise" -> resetExercisesRequest.analysis.toString,
-            "resetGroupExercise" -> resetExercisesRequest.group.toString,
+            "resetWrittenExercise" -> resetExercisesRequest.written.toString,
+            "resetTeamExercise" -> resetExercisesRequest.team.toString,
             "resetLeadershipExercise" -> resetExercisesRequest.leadership.toString
           )
           auditService.logEvent("AssessmentScoresReset", auditDetails)

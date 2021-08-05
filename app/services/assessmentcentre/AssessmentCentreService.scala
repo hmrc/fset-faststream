@@ -155,17 +155,17 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
           logger.debug(s"$prefix - found AssessmentScoresAllExercises data for applicationId=$applicationId")
           // Find the exercise, which matches the version
           logger.debug(s"$prefix - looking for an exercise whose version=$version")
-          val analysisExercise = scores.analysisExercise.filter { e => e.version.contains(version) }
-          val groupExercise = scores.groupExercise.filter { e => e.version.contains(version) }
+          val writtenExercise = scores.writtenExercise.filter { e => e.version.contains(version) }
+          val groupExercise = scores.teamExercise.filter { e => e.version.contains(version) }
           val leadershipExercise = scores.leadershipExercise.filter { e => e.version.contains(version) }
 
           val assessmentScoresSectionType =
-            if (analysisExercise.isDefined) {
-              logger.debug(s"$prefix - found analysisExercise for version=$version")
-              AssessmentScoresSectionType.analysisExercise
+            if (writtenExercise.isDefined) {
+              logger.debug(s"$prefix - found writtenExercise for version=$version")
+              AssessmentScoresSectionType.writtenExercise
             } else if (groupExercise.isDefined) {
               logger.debug(s"$prefix - found groupExercise for version=$version")
-              AssessmentScoresSectionType.groupExercise
+              AssessmentScoresSectionType.teamExercise
             } else if (leadershipExercise.isDefined) {
               logger.debug(s"$prefix - found leadershipExercise for version=$version")
               AssessmentScoresSectionType.leadershipExercise
@@ -175,7 +175,7 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
             }
 
           // Remove the empty options
-          val singleExerciseOpt = List(analysisExercise, groupExercise, leadershipExercise).flatten.headOption
+          val singleExerciseOpt = List(writtenExercise, groupExercise, leadershipExercise).flatten.headOption
 
           def getAssessmentScoresExercise(singleExerciseOpt: Option[AssessmentScoresExercise]) =  singleExerciseOpt.getOrElse(
             throw new Exception(s"Failed to find AssessmentScoresExercise in which to set $averageScoreName")

@@ -52,7 +52,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
         version = "v1", createDate = DateTime.now(), "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
-        analysisExercise = Some(
+        writtenExercise = Some(
           AssessmentScoresExercise(
             attended = true,
             seeingTheBigPictureAverage = Some(0.99),
@@ -60,7 +60,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
             communicatingAndInfluencingAverage = Some(3.1),
             updatedBy = updatedBy
           )),
-        groupExercise = Some(
+        teamExercise = Some(
           AssessmentScoresExercise(
             attended = true,
             makingEffectiveDecisionsAverage = Some(3.1),
@@ -98,7 +98,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
         version = "v1", createDate = DateTime.now(), "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
-        analysisExercise = Some(
+        writtenExercise = Some(
           AssessmentScoresExercise(
             attended = true,
             seeingTheBigPictureAverage = Some(2.0),
@@ -106,7 +106,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
             communicatingAndInfluencingAverage = Some(3.1),
             updatedBy = updatedBy
           )),
-        groupExercise = Some(
+        teamExercise = Some(
           AssessmentScoresExercise(
             attended = true,
             makingEffectiveDecisionsAverage = Some(3.1),
@@ -144,7 +144,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
         version = "v1", createDate = DateTime.now(), "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
-        analysisExercise = Some(
+        writtenExercise = Some(
           AssessmentScoresExercise(
             attended = true,
             seeingTheBigPictureAverage = Some(3.0),
@@ -152,7 +152,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
             communicatingAndInfluencingAverage = Some(3.1),
             updatedBy = updatedBy
           )),
-        groupExercise = Some(
+        teamExercise = Some(
           AssessmentScoresExercise(
             attended = true,
             makingEffectiveDecisionsAverage = Some(3.1),
@@ -190,7 +190,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
         version = "v1", createDate = DateTime.now(), "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
-        analysisExercise = Some(
+        writtenExercise = Some(
           AssessmentScoresExercise(
             attended = true,
             seeingTheBigPictureAverage = Some(2.0),
@@ -198,7 +198,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
             communicatingAndInfluencingAverage = Some(0.99),
             updatedBy = updatedBy
           )),
-        groupExercise = Some(
+        teamExercise = Some(
           AssessmentScoresExercise(
             attended = true,
             makingEffectiveDecisionsAverage = Some(3.1),
@@ -236,7 +236,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
         version = "v1", createDate = DateTime.now(), "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
-        analysisExercise = Some(
+        writtenExercise = Some(
           AssessmentScoresExercise(
             attended = true,
             seeingTheBigPictureAverage = Some(1.0),
@@ -244,7 +244,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
             communicatingAndInfluencingAverage = Some(1.0),
             updatedBy = updatedBy
           )),
-        groupExercise = Some(
+        teamExercise = Some(
           AssessmentScoresExercise(
             attended = true,
             makingEffectiveDecisionsAverage = Some(1.0),
@@ -295,11 +295,11 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
         version = "v1", DateTime.now(), "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
-        analysisExercise = Some(
+        writtenExercise = Some(
           AssessmentScoresExercise(makingEffectiveDecisionsAverage = Some(2.5), communicatingAndInfluencingAverage = Some(3.5),
             seeingTheBigPictureAverage = Some(4.0), updatedBy = updatedBy, attended = true
           )),
-        groupExercise = Some(
+        teamExercise = Some(
           AssessmentScoresExercise(makingEffectiveDecisionsAverage = Some(3.0), workingTogetherDevelopingSelfAndOthersAverage = Some(4.5),
             communicatingAndInfluencingAverage = Some(3.5), updatedBy = updatedBy, attended = true
           )),

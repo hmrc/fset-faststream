@@ -811,7 +811,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
         siftEvaluation
       }
     }
-    val exercisesToRemove = List(analysisExercise.toString, groupExercise.toString, leadershipExercise.toString)
+    val exercisesToRemove = List(writtenExercise.toString, teamExercise.toString, leadershipExercise.toString)
     val reviewerExercisesToRemove = exercisesToRemove :+ finalFeedback.toString
 
     for {
@@ -828,7 +828,8 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
   }
 
   def rollbackToFsacAwaitingAllocationFromFsacFailed(applicationId: String): Future[Unit] = {
-    val exercisesToRemove = List("analysisExercise", "groupExercise", "leadershipExercise", "finalFeedback")
+    import model.command.AssessmentScoresCommands.AssessmentScoresSectionType._
+    val exercisesToRemove = List(writtenExercise.toString, teamExercise.toString, leadershipExercise.toString, finalFeedback.toString)
     val statuses = List(
       ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,
       ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED,

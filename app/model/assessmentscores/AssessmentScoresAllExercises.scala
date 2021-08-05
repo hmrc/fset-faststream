@@ -23,26 +23,26 @@ import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 // finalFeedback should be None in case of Reviewer Assessment scores
 case class AssessmentScoresAllExercises(
                                          applicationId: UniqueIdentifier,
-                                         analysisExercise: Option[AssessmentScoresExercise] = None,
-                                         groupExercise: Option[AssessmentScoresExercise] = None,
+                                         writtenExercise: Option[AssessmentScoresExercise] = None,
+                                         teamExercise: Option[AssessmentScoresExercise] = None,
                                          leadershipExercise: Option[AssessmentScoresExercise] = None,
                                          finalFeedback: Option[AssessmentScoresFinalFeedback] = None
                                        ) {
 
   def seeingTheBigPictureAvg: Double = {
-    average(List(analysisExercise, leadershipExercise).flatMap(_.flatMap(_.seeingTheBigPictureAverage)), 2)
+    average(List(writtenExercise, leadershipExercise).flatMap(_.flatMap(_.seeingTheBigPictureAverage)), 2)
   }
 
   def workingTogetherDevelopingSelfAndOthersAvg: Double = {
-    average(List(groupExercise, leadershipExercise).flatMap(_.flatMap(_.workingTogetherDevelopingSelfAndOthersAverage)), 2)
+    average(List(teamExercise, leadershipExercise).flatMap(_.flatMap(_.workingTogetherDevelopingSelfAndOthersAverage)), 2)
   }
 
   def makingEffectiveDecisionsAvg: Double = {
-    average(List(analysisExercise, groupExercise).flatMap(_.flatMap(_.makingEffectiveDecisionsAverage)), 2)
+    average(List(writtenExercise, teamExercise).flatMap(_.flatMap(_.makingEffectiveDecisionsAverage)), 2)
   }
 
   def communicatingAndInfluencingAvg: Double = {
-    average(List(analysisExercise, groupExercise, leadershipExercise).flatMap(_.flatMap(_.communicatingAndInfluencingAverage)), 3)
+    average(List(writtenExercise, teamExercise, leadershipExercise).flatMap(_.flatMap(_.communicatingAndInfluencingAverage)), 3)
   }
 
   private def average(list: List[Double], mandatoryNumberOfElements: Int): Double = {
