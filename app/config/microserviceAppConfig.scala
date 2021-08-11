@@ -33,7 +33,7 @@ case class EventSubtypeConfig(yamlFilePath: String)
 
 case class AuthConfig(serviceName: String)
 
-case class EmailConfig(url: String)
+case class EmailConfig(enabled: Boolean, url: String)
 
 case class UserManagementConfig(url: String)
 
