@@ -17,12 +17,13 @@
 package connectors
 
 import java.util.TimeZone
-
-import config.{ EmailConfig, MicroserviceAppConfig, WSHttpT }
+import config.{EmailConfig, MicroserviceAppConfig, WSHttpT}
 import connectors.ExchangeObjects._
-import javax.inject.{ Inject, Singleton }
-import model.stc.EmailEvents.{ CandidateAllocationConfirmationReminder, CandidateAllocationConfirmationRequest }
-import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalDateTime }
+
+import javax.inject.{Inject, Singleton}
+import model.stc.EmailEvents.{CandidateAllocationConfirmationReminder, CandidateAllocationConfirmationRequest}
+import org.joda.time.{DateTime, DateTimeZone, LocalDate, LocalDateTime}
+import play.api.Logging
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -186,7 +187,7 @@ trait AssessmentCentreEmailClient {
   def sendAssessmentCentreFailed(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit]
 }
 
-trait EmailClient {
+trait EmailClient extends Logging {
   val http: WSHttpT
   val emailConfig: EmailConfig
 
@@ -196,7 +197,12 @@ trait EmailClient {
       template,
       parameters ++ Map("programme" -> "faststream")
     )
-    http.POST(s"${emailConfig.url}/fsetfaststream/email", data, Seq()).map(_ => (): Unit)
+    if (emailConfig.enabled) {
+      http.POST(s"${emailConfig.url}/fsetfaststream/email", data, Seq()).map(_ => (): Unit)
+    } else {
+      logger.warn(s"EmailClient is attempting to send out template $template but is DISABLED")
+      Future.successful(())
+    }
   }
 
   def sendApplicationSubmittedConfirmation(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] =
