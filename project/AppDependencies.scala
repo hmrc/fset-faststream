@@ -22,7 +22,7 @@ object AppDependencies {
 
   val compile = Seq(
     "uk.gov.hmrc"       %% "simple-reactivemongo"             % "8.0.0-play-28",
-    "uk.gov.hmrc"       %% "bootstrap-backend-play-28"        % "4.2.0",
+    "uk.gov.hmrc"       %% "bootstrap-backend-play-28"        % "5.10.0",
     // Needed to get an Enumerator of documents from ReactiveMongo. Note the version specified is the version of the ReactiveMongo driver
     // which matches the current version used in the HMRC simple-reactivemongo lib
     // ReactiveMongo version used is here: https://github.com/hmrc/simple-reactivemongo/blob/master/project/LibraryDependencies.scala
