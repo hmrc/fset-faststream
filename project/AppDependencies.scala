@@ -20,7 +20,7 @@ import play.sbt.PlayImport.ws
 object AppDependencies {
 
   object Versions {
-    val playVersion       = "5.10.0"
+    val bootstrapVersion  = "5.10.0"
     val silhouetteVersion = "6.1.1"
   }
 
@@ -29,7 +29,7 @@ object AppDependencies {
   val compile = Seq(
     "com.iheart"                %% "ficus"                                    % "1.5.0",
     "uk.gov.hmrc"               %% "http-caching-client"                      % "9.4.0-play-28",
-    "uk.gov.hmrc"               %% "bootstrap-frontend-play-28"               % playVersion,
+    "uk.gov.hmrc"               %% "bootstrap-frontend-play-28"               % bootstrapVersion,
     "com.typesafe.play"         %% "play-json-joda"                           % "2.6.10",
     "uk.gov.hmrc"               %% "url-builder"                              % "3.5.0-play-28",
     "org.apache.httpcomponents" %  "httpclient"                               % "4.5.3",
@@ -44,15 +44,14 @@ object AppDependencies {
   )
 
   val test = Seq(
-    "org.scalatestplus.play"    %% "scalatestplus-play"           % "5.1.0"           % sbt.Test,
+    "org.scalatestplus.play"    %% "scalatestplus-play"           % "5.1.0"           % Test,
     // Gives you access to MockitoSugar as it is no longer available in scalatestplus-play
     "org.scalatestplus"         %% "mockito-3-4"                  % "3.2.8.0"         % Test,
     "com.vladsch.flexmark"      %  "flexmark-all"                 % "0.36.8"          % Test,
-    "org.mockito"               %  "mockito-core"                 % "3.9.0"           % sbt.Test,
-    "org.jsoup"                 %  "jsoup"                        % "1.7.3"           % sbt.Test,
-    "com.github.tomakehurst"    %  "wiremock"                     % "1.57"            % sbt.Test,
-    "com.mohiva"                %% "play-silhouette-testkit"      % silhouetteVersion % sbt.Test,
-    "uk.gov.hmrc"               %% "bootstrap-test-play-28"       % playVersion       % sbt.Test
+    "org.mockito"               %  "mockito-core"                 % "3.9.0"           % Test,
+    "com.github.tomakehurst"    %  "wiremock"                     % "1.57"            % Test,
+    "com.mohiva"                %% "play-silhouette-testkit"      % silhouetteVersion % Test,
+    "uk.gov.hmrc"               %% "bootstrap-test-play-28"       % bootstrapVersion  % Test
   )
 
   def apply() = compile ++ test
