@@ -20,7 +20,7 @@ import play.sbt.PlayImport.ws
 object AppDependencies {
 
   object Versions {
-    val playVersion       = "4.2.0"
+    val playVersion       = "5.10.0"
     val silhouetteVersion = "6.1.1"
   }
 
