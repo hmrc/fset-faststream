@@ -58,7 +58,7 @@ $processingNewcastle = $argc == 3 && strtolower($argv[2]) == "newcastle";
 
 $city = $processingNewcastle ? "newcastle" : "london";
 
-$csvRoot = "../../fs-calendar-events/spreadsheets/2020-2021v5";
+$csvRoot = "../../fs-calendar-events/spreadsheets/2021-2022v2";
 $csvFilename = "${csvRoot}/${city}.csv";
 
 $csv = array_map('str_getcsv', file($csvFilename));
@@ -135,12 +135,23 @@ function checkFsbEventDescription($lineCount, $eventType, $eventDesc) {
     }
 }
 
+function checkDateFormat($lineCount, $eventDate) {
+    $dateRegex = "/^\d{4}-\d{2}-\d{2}$/";
+    if (preg_match($dateRegex, $eventDate)) {
+        return $eventDate;
+    } else {
+        console("ERROR - line number: $lineCount date format is invalid <<$eventDate>>. It should be yyyy-mm-dd");
+    }
+}
+
 function checkEventDescriptionSuggestCorrection($lineCount, $eventDesc) {
     // Incorrect description supplied in spreadsheet => correct description
     $descriptions = array(
         "EAC-DS" => "EAC_DS",
-        "Commercial"  => "CFS - Skype interview",
-        "Property"  => "PRO - Skype interview",
+        "Commercial" => "CFS - Skype interview",
+        "Property" => "PRO - Skype interview",
+        "CFS"  => "CFS - Skype interview",
+        "PRO"  => "PRO - Skype interview",
         "PDFS" => "PDFS - Skype interview",
         "EDIP" => "EDIP - Telephone interview",
         "SDIP" => "SDIP - Telephone interview");
@@ -244,7 +255,7 @@ foreach ($csv as $line) {
             console("ERROR - line number: $lineCount has an invalid venue specified <<$eventVenue>>");
         }
         checkVirtualLocation($lineCount, $eventVenue, $eventLocation);
-        $eventDate = $line[$i++];
+        $eventDate = checkDateFormat($lineCount, $line[$i++]);
         $eventStartTime = formatTime($line[$i++]);
         $eventEndTime = formatTime($line[$i++]);
 
