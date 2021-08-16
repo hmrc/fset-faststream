@@ -15,6 +15,7 @@
  *@
 
 @import config.TrackingConsentConfig
+@import views.html.helper.CSPNonce
 @(email: String, activationForm: Form[_root_.forms.ActivateAccountForm.Data],
         notification: Option[(helpers.NotificationType, String)] = None, marketingTrackingEnabled: Boolean = false)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, trackingConsentConfig: TrackingConsentConfig, messages: Messages)
 
@@ -40,11 +41,15 @@
             'autocorrect -> "off",
             'class -> "form-control",
             '_showConstraints -> false)
-            <p class="hide-nojs"><a class="hide-nojs" id="resend" href="#" onclick="$('#resendForm').submit()">Resend code</a></p>
+            <p class="hide-nojs"><a class="hide-nojs" id="resend" href="#">Resend code</a></p>
             <div class="form-group">
                 <button id="submit" type="submit" class="button activate-page-btn">Activate account</button>
             </div>
         }
+
+        <script @CSPNonce.attr>
+            document.getElementById('resend').onclick = function(event) { document.getElementById('resendForm').submit(); };
+        </script>
 
         @helper.form(action = routes.ActivationController.resendCode(), 'id -> "resendForm", 'novalidate -> "novalidate") {
             @helper.CSRF.formField
