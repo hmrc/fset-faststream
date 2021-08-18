@@ -278,7 +278,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
       logRpt(s"started report for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses")
       prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes, applicationStatuses).flatMap { candidates =>
         logRpt(s"fetched ${candidates.size} candidates")
-        val appIds = candidates.flatMap(_.applicationId)
+        val appIds = candidates.map(_.applicationId)
         val userIds = candidates.map(_.userId)
 
         enrichPreviousYearCandidateDetails(appIds, userIds) {
@@ -308,7 +308,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
     logDataAnalystRpt(s"started report for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses")
     prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes, applicationStatuses).flatMap { candidates =>
       logDataAnalystRpt(s"fetched ${candidates.size} candidates")
-      val appIds = candidates.flatMap(_.applicationId)
+      val appIds = candidates.map(_.applicationId)
       val userIds = candidates.map(_.userId)
       commonEnrichDataAnalystReport(appIds, userIds, applicationRoutes, applicationStatuses)
     }
@@ -321,7 +321,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
   ): Action[AnyContent] = Action.async { implicit request =>
     logRpt(s"started report for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses, part: $part")
     prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes, applicationStatuses, part).flatMap { candidates =>
-      val appIds = candidates.flatMap(_.applicationId)
+      val appIds = candidates.map(_.applicationId)
       val userIds = candidates.map(_.userId)
 
       enrichPreviousYearCandidateDetails(appIds, userIds) {
@@ -353,7 +353,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
     logDataAnalystRpt(s"started report for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses, part: $part")
     prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes, applicationStatuses, part).flatMap { candidates =>
       logDataAnalystRpt(s"fetched ${candidates.size} candidates")
-      val appIds = candidates.flatMap(_.applicationId)
+      val appIds = candidates.map(_.applicationId)
       val userIds = candidates.map(_.userId)
       commonEnrichDataAnalystReport(appIds, userIds, applicationRoutes, applicationStatuses)
     }
@@ -361,10 +361,10 @@ class ReportingController @Inject() (cc: ControllerComponents,
 
   private def streamPreviousYearCandidatesDetailsReport(
     applicationRoutes: Seq[ApplicationRoute],
-    filter: Candidate => Boolean): Action[AnyContent] = Action.async { implicit request =>
+    filter: CandidateIds => Boolean): Action[AnyContent] = Action.async { implicit request =>
     logRpt(s"started report for appRoutes: $applicationRoutes")
       prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes).flatMap { candidates =>
-        val appIds = candidates.collect { case c if filter(c) => c.applicationId }.flatten
+        val appIds = candidates.collect { case c if filter(c) => c.applicationId }
         val userIds = candidates.collect { case c if filter(c) => c.userId }
 
         enrichPreviousYearCandidateDetails(appIds, userIds) {
@@ -391,11 +391,11 @@ class ReportingController @Inject() (cc: ControllerComponents,
   }
 
   private def streamDataAnalystReport(applicationRoutes: Seq[ApplicationRoute],
-                                      filter: Candidate => Boolean): Action[AnyContent] = Action.async { implicit request =>
+                                      filter: CandidateIds => Boolean): Action[AnyContent] = Action.async { implicit request =>
     logDataAnalystRpt(s"started report for appRoutes: $applicationRoutes")
     prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes).flatMap { candidates =>
       logDataAnalystRpt(s"fetched ${candidates.size} candidates")
-      val appIds = candidates.collect { case c if filter(c) => c.applicationId }.flatten
+      val appIds = candidates.collect { case c if filter(c) => c.applicationId }
       val userIds = candidates.collect { case c if filter(c) => c.userId }
       commonEnrichDataAnalystReport(appIds, userIds, applicationRoutes, Nil)
     }
