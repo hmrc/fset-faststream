@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import play.sbt.PlayImport.PlayKeys.playDefaultPort
 import play.sbt.routes.RoutesKeys._
 import sbt.Keys._
 import sbt.Tests.{Group, SubProcess}
@@ -40,6 +41,7 @@ lazy val microservice = Project(appName, file("."))
   .settings(scalaSettings: _*)
   .settings(publishingSettings)
   .settings(defaultSettings(): _*)
+  .settings(playDefaultPort := 8101)
   .settings(
     routesImport += "controllers.Binders._",
     targetJvm := "jvm-1.8",
