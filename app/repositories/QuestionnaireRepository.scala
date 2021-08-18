@@ -16,12 +16,14 @@
 
 package repositories
 
-import javax.inject.{ Inject, Singleton }
-import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
+import javax.inject.{Inject, Singleton}
+import model.persisted.{QuestionnaireAnswer, QuestionnaireQuestion}
 import model.report.QuestionnaireReportItem
 import play.api.libs.json._
 import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.{ Cursor, ReadPreference }
+import reactivemongo.api.indexes.Index
+import reactivemongo.api.indexes.IndexType.Ascending
+import reactivemongo.api.{Cursor, ReadPreference}
 import reactivemongo.bson._
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import services.reporting.SocioEconomicScoreCalculator
@@ -65,6 +67,10 @@ class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEcon
     QuestionnaireAnswer.answerFormats,
     ReactiveMongoFormats.objectIdFormats) with QuestionnaireRepository
     with ReactiveRepositoryHelpers with BaseBSONReader {
+
+  override def indexes: Seq[Index] = Seq(
+    Index(Seq(("applicationId", Ascending)), unique = true)
+  )
 
   override def addQuestions(applicationId: String, questions: List[QuestionnaireQuestion]): Future[Unit] = {
 
