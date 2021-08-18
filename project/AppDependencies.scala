@@ -50,8 +50,8 @@ object AppDependencies {
       "org.mockito"               %  "mockito-core"                 % "3.0.0"             % scope,
       "org.scalatestplus.play"    %% "scalatestplus-play"           % "5.1.0"             % scope,
       // Gives you access to MockitoSugar as it is no longer available in scalatestplus-play
-      "org.scalatestplus"         %% "mockito-3-4"              % "3.2.8.0"               % scope,
-      "com.vladsch.flexmark"      %  "flexmark-all"             % "0.36.8"                % scope,
+      "org.scalatestplus"         %% "mockito-3-4"                  % "3.2.8.0"           % scope,
+      "com.vladsch.flexmark"      %  "flexmark-all"                 % "0.36.8"            % scope,
       "org.scalamock"             %% "scalamock-scalatest-support"  % "3.5.0"             % scope,
       "org.scalacheck"            %% "scalacheck"                   % "1.13.4"            % sbt.Test
     )

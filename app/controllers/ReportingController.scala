@@ -275,7 +275,9 @@ class ReportingController @Inject() (cc: ControllerComponents,
     applicationRoutes: Seq[ApplicationRoute],
     applicationStatuses: Seq[ApplicationStatus]
     ): Action[AnyContent] = Action.async { implicit request =>
+      logRpt(s"started report for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses")
       prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes, applicationStatuses).flatMap { candidates =>
+        logRpt(s"fetched ${candidates.size} candidates")
         val appIds = candidates.flatMap(_.applicationId)
         val userIds = candidates.map(_.userId)
 
@@ -283,14 +285,16 @@ class ReportingController @Inject() (cc: ControllerComponents,
           (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
            siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) => {
             val header = buildHeaders(numOfSchemes)
+            logRpt(s"started fetching the application details stream for ${appIds.size} candidates")
             val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream(numOfSchemes, appIds).map {
               app =>
-                val ret = createCandidateInfoBackUpRecord(
+                createCandidateInfoBackUpRecord(
                   app, contactDetails, questionnaireDetails, mediaDetails,
                   eventsDetails, siftAnswers, assessorAssessmentScores, reviewerAssessmentScores
                 ) + "\n"
-                ret
             }
+            logRpt(s"stopped fetching the application details stream for ${appIds.size} candidates")
+            logRpt(s"finished loading data for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses")
             Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(header.andThen(candidatesStream))))
           }
         }
@@ -389,32 +393,30 @@ class ReportingController @Inject() (cc: ControllerComponents,
   type ReportStreamBlockType = (Int, CsvExtract[String], CsvExtract[String], CsvExtract[String], CsvExtract[String],
     CsvExtract[String],CsvExtract[String], CsvExtract[String]) => Result
 
+  private def logRpt(msg: String)= logger.warn(s"streamPreviousYearCandidatesDetailsReport: $msg")
+
   private def enrichPreviousYearCandidateDetails(applicationIds: Seq[String], userIds: Seq[String] = Nil)(block: ReportStreamBlockType) = {
-    def log(msg: String)= logger.warn(s"streamPreviousYearCandidatesDetailsReport: $msg")
-    log(s"started enriching data at ${org.joda.time.DateTime.now}")
-    val data = for {
+    logRpt(s"started enriching data for ${applicationIds.size} candidates")
+    for {
       contactDetails <- prevYearCandidatesDetailsRepository.findContactDetails(userIds)
-      _ = log(s"enriching data - contactDetails = ${contactDetails.header}, size = ${contactDetails.records.size}")
+      _ = logRpt(s"enriching data - contactDetails size = ${contactDetails.records.size}")
       questionnaireDetails <- prevYearCandidatesDetailsRepository.findQuestionnaireDetails(applicationIds)
-      _ = log(s"enriching data - questionnaireDetails = ${questionnaireDetails.header}, size = ${questionnaireDetails.records.size}")
+      _ = logRpt(s"enriching data - questionnaireDetails size = ${questionnaireDetails.records.size}")
       mediaDetails <- prevYearCandidatesDetailsRepository.findMediaDetails(userIds)
-      _ = log(s"enriching data - mediaDetails = ${mediaDetails.header}, size = ${mediaDetails.records.size}")
+      _ = logRpt(s"enriching data - mediaDetails size = ${mediaDetails.records.size}")
       eventsDetails <- prevYearCandidatesDetailsRepository.findEventsDetails(applicationIds)
-      _ = log(s"enriching data - eventsDetails = ${eventsDetails.header}, size = ${eventsDetails.records.size}")
+      _ = logRpt(s"enriching data - eventsDetails size = ${eventsDetails.records.size}")
       siftAnswers <- prevYearCandidatesDetailsRepository.findSiftAnswers(applicationIds)
-      _ = log(s"enriching data - siftAnswers = ${siftAnswers.header}, size = ${siftAnswers.records.size}")
+      _ = logRpt(s"enriching data - siftAnswers size = ${siftAnswers.records.size}")
       assessorAssessmentScores <- prevYearCandidatesDetailsRepository.findAssessorAssessmentScores(applicationIds)
-      _ = log(s"enriching data - assessorAssessmentScores = ${assessorAssessmentScores.header}, size = ${assessorAssessmentScores.records.size}")
+      _ = logRpt(s"enriching data - assessorAssessmentScores size = ${assessorAssessmentScores.records.size}")
       reviewerAssessmentScores <- prevYearCandidatesDetailsRepository.findReviewerAssessmentScores(applicationIds)
-      _ = log(s"enriching data - reviewerAssessmentScores = ${reviewerAssessmentScores.header}, size = ${reviewerAssessmentScores.records.size}")
+      _ = logRpt(s"enriching data - reviewerAssessmentScores size = ${reviewerAssessmentScores.records.size}")
     } yield {
-      val res = block(maxSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails, siftAnswers,
+      logRpt(s"finished enriching data for ${applicationIds.size} candidates")
+      block(maxSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails, siftAnswers,
         assessorAssessmentScores, reviewerAssessmentScores)
-      log(s"result = $res")
-      log(s"finished enriching data at ${org.joda.time.DateTime.now} ")
-      res
     }
-    data
   }
 
   // +1 to handle SdipFastStream candidates who automatically get the Sdip schemes in addition to the 4 selectable schemes
@@ -540,13 +542,17 @@ class ReportingController @Inject() (cc: ControllerComponents,
     )
   }
 
+  private def logDataAnalystRpt(msg: String)= logger.warn(s"streamDataAnalystReport: $msg")
+
   private def streamDataAnalystReport(applicationRoutes: Seq[ApplicationRoute],
                                         applicationStatuses: Seq[ApplicationStatus]
                                        ): Action[AnyContent] = Action.async { implicit request =>
+    logDataAnalystRpt(s"started report for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses")
     prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes, applicationStatuses).flatMap { candidates =>
+      logDataAnalystRpt(s"fetched ${candidates.size} candidates")
       val appIds = candidates.flatMap(_.applicationId)
       val userIds = candidates.map(_.userId)
-      commonEnrichDataAnalystReport(appIds, userIds)
+      commonEnrichDataAnalystReport(appIds, userIds, applicationRoutes, applicationStatuses)
     }
   }
 
@@ -557,7 +563,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
     prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes, applicationStatuses, part).flatMap { candidates =>
       val appIds = candidates.flatMap(_.applicationId)
       val userIds = candidates.map(_.userId)
-      commonEnrichDataAnalystReport(appIds, userIds)
+      commonEnrichDataAnalystReport(appIds, userIds, applicationRoutes, applicationStatuses)
     }
   }
 
@@ -567,17 +573,20 @@ class ReportingController @Inject() (cc: ControllerComponents,
     prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes).flatMap { candidates =>
       val appIds = candidates.collect { case c if filter(c) => c.applicationId }.flatten
       val userIds = candidates.collect { case c if filter(c) => c.userId }
-      commonEnrichDataAnalystReport(appIds, userIds)
+      commonEnrichDataAnalystReport(appIds, userIds, applicationRoutes, Nil)
     }
   }
 
-  private def commonEnrichDataAnalystReport(appIds: Seq[String], userIds: Seq[String]) = {
+  private def commonEnrichDataAnalystReport(appIds: Seq[String], userIds: Seq[String],
+                                            applicationRoutes: Seq[ApplicationRoute], applicationStatuses: Seq[ApplicationStatus]) = {
     enrichDataAnalystReport(appIds, userIds) {
       (numOfSchemes, contactDetails, mediaDetails, questionnaireDetails, siftDetails) => {
 
+        logDataAnalystRpt(s"started fetching the application details stream for ${appIds.size} candidates")
         val applicationDetailsStream = prevYearCandidatesDetailsRepository.dataAnalystApplicationDetailsStream(numOfSchemes, appIds).map { app =>
           createDataAnalystRecord(app, contactDetails, mediaDetails, questionnaireDetails, siftDetails) + "\n"
         }
+        logDataAnalystRpt(s"stopped fetching the application details stream for ${appIds.size} candidates")
 
         val header = Enumerator(
           (prevYearCandidatesDetailsRepository.dataAnalystApplicationDetailsHeader(numOfSchemes) ::
@@ -587,6 +596,9 @@ class ReportingController @Inject() (cc: ControllerComponents,
             prevYearCandidatesDetailsRepository.dataAnalystSiftAnswersHeader ::
             Nil).mkString(",") + "\n"
         )
+        val msg = s"finished loading the data for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses. " +
+          s"Now sending the chunked response."
+        logDataAnalystRpt(msg)
         Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(header.andThen(applicationDetailsStream))))
       }
     }
@@ -596,6 +608,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
 
   // We include all the columns from both parts 1 and 2 of data analyst report
   private def enrichDataAnalystReport(applicationIds: Seq[String], userIds: Seq[String] = Nil)(block: DataAnalystReportBlockType) = {
+    logDataAnalystRpt(s"started fetching the enriched data for the ${applicationIds.size} candidates")
     for {
       // pt1 data analyst report
       contactDetails <- prevYearCandidatesDetailsRepository.findDataAnalystContactDetails(userIds)
@@ -604,6 +617,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
       questionnaireDetails <- prevYearCandidatesDetailsRepository.findDataAnalystQuestionnaireDetails(applicationIds)
       siftDetails <- prevYearCandidatesDetailsRepository.findDataAnalystSiftAnswers(applicationIds)
     } yield {
+      logDataAnalystRpt(s"finished fetching the enriched data for the ${applicationIds.size} candidates")
       block(maxSchemes, contactDetails, mediaDetails, questionnaireDetails, siftDetails)
     }
   }
