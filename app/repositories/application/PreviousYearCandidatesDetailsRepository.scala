@@ -181,11 +181,11 @@ trait PreviousYearCandidatesDetailsRepository {
   def dataAnalystApplicationDetailsStreamPt2: Enumerator[CandidateDetailsReportItem]
   def dataAnalystApplicationDetailsStream(numOfSchemes: Int, applicationIds: Seq[String]): Enumerator[CandidateDetailsReportItem]
 
-  def findApplicationsFor(appRoutes: Seq[ApplicationRoute]): Future[List[Candidate]]
-  def findApplicationsFor(appRoutes: Seq[ApplicationRoute], appStatuses: Seq[ApplicationStatus]): Future[List[Candidate]]
+  def findApplicationsFor(appRoutes: Seq[ApplicationRoute]): Future[List[CandidateIds]]
+  def findApplicationsFor(appRoutes: Seq[ApplicationRoute], appStatuses: Seq[ApplicationStatus]): Future[List[CandidateIds]]
   def findApplicationsFor(appRoutes: Seq[ApplicationRoute],
                           appStatuses: Seq[ApplicationStatus],
-                          part: Int): Future[List[Candidate]]
+                          part: Int): Future[List[CandidateIds]]
 
   def findDataAnalystContactDetails: Future[CsvExtract[String]]
   def findDataAnalystContactDetails(userIds: Seq[String]): Future[CsvExtract[String]]
@@ -646,25 +646,28 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
 
   private def progressResponseReachedYesNo(progressResponseReached: Boolean) = if (progressResponseReached) Y else N
 
-  override def findApplicationsFor(appRoutes: Seq[ApplicationRoute]): Future[List[Candidate]] = {
+  override def findApplicationsFor(appRoutes: Seq[ApplicationRoute]): Future[List[CandidateIds]] = {
+    val projection = Json.obj("applicationId" -> true, "userId" -> true)
     val query = BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes))
-    applicationDetailsCollection.find(query, projection = Option.empty[JsObject]).cursor[Candidate]()
-      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
+    applicationDetailsCollection.find(query, Some(query)).cursor[CandidateIds]()
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[CandidateIds]]())
   }
 
   override def findApplicationsFor(appRoutes: Seq[ApplicationRoute],
-                                   appStatuses: Seq[ApplicationStatus]): Future[List[Candidate]] = {
+                                   appStatuses: Seq[ApplicationStatus]): Future[List[CandidateIds]] = {
+    val projection = Json.obj("applicationId" -> true, "userId" -> true)
     val query = BSONDocument( "$and" -> BSONArray(
       BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
       BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses))
     ))
-    applicationDetailsCollection.find(query, projection = Option.empty[JsObject]).cursor[Candidate]()
-      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
+    applicationDetailsCollection.find(query, Some(projection)).cursor[CandidateIds]()
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[CandidateIds]]())
   }
 
   override def findApplicationsFor(appRoutes: Seq[ApplicationRoute],
                                    appStatuses: Seq[ApplicationStatus],
-                                   part: Int): Future[List[Candidate]] = {
+                                   part: Int): Future[List[CandidateIds]] = {
+    val projection = Json.obj("applicationId" -> true, "userId" -> true)
     val query = {
       part match {
         case 1 =>
@@ -698,8 +701,8 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
           ))
       }
     }
-    applicationDetailsCollection.find(query, projection = Option.empty[JsObject]).cursor[Candidate]()
-      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[Candidate]]())
+    applicationDetailsCollection.find(query, Some(projection)).cursor[CandidateIds]()
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[CandidateIds]]())
   }
 
   override def findDataAnalystContactDetails: Future[CsvExtract[String]] = {

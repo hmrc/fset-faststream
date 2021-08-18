@@ -44,3 +44,9 @@ case class Candidate(userId: String,
 object Candidate {
   implicit val candidateFormat: OFormat[Candidate] = Json.format[Candidate]
 }
+
+case class CandidateIds(userId: String, applicationId: String)
+
+object CandidateIds {
+  implicit val candidateIdFormat: OFormat[CandidateIds] = Json.format[CandidateIds]
+}
