@@ -26,7 +26,8 @@ object AppDependencies {
     // Needed to get an Enumerator of documents from ReactiveMongo. Note the version specified is the version of the ReactiveMongo driver
     // which matches the current version used in the HMRC simple-reactivemongo lib
     // ReactiveMongo version used is here: https://github.com/hmrc/simple-reactivemongo/blob/master/project/LibraryDependencies.scala
-    "org.reactivemongo" %% "reactivemongo-iteratees"          % "0.18.8",
+    "org.reactivemongo" %% "reactivemongo-iteratees"          % "0.18.8", // TODO replace this with reactivemongo-akkastream
+    "org.reactivemongo" %% "reactivemongo-akkastream"         % "0.18.8",
     "com.typesafe.play" %% "play-iteratees"                   % "2.6.1",
     "com.typesafe.play" %% "play-iteratees-reactive-streams"  % "2.6.1",
     "com.typesafe.play" %% "play-json-joda"                   % "2.6.10",
