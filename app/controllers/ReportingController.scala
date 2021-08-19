@@ -21,6 +21,7 @@ import com.google.inject.name.Named
 import common.Joda._
 import connectors.{AuthProviderClient, ExchangeObjects}
 
+import akka.stream.Materializer
 import javax.inject.{Inject, Singleton}
 import model.ApplicationRoute.{ApplicationRoute, Edip, Faststream, Sdip, SdipFaststream}
 import model.ApplicationStatus.ApplicationStatus
@@ -69,7 +70,8 @@ class ReportingController @Inject() (cc: ControllerComponents,
                                      candidateAllocationRepo: CandidateAllocationRepository,
                                      fsbRepository: FsbRepository,
                                      applicationRepository: GeneralApplicationRepository,
-                                     personalDetailsRepository: PersonalDetailsRepository) extends BackendController(cc) with Logging {
+                                     personalDetailsRepository: PersonalDetailsRepository
+)(implicit mat: Materializer) extends BackendController(cc) with Logging {
 
   def fsacScores(): Action[AnyContent] = Action.async { implicit request =>
     def removeFeedback(assessmentScoresExercise: AssessmentScoresExercise) =
@@ -296,7 +298,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
             logRpt(s"stopped fetching the application details stream for ${appIds.size} candidates")
             logRpt(s"finished loading data for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses. " +
               s"Now sending the chunked response.")
-            Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(header.andThen(candidatesStream))))
+            Ok.chunked(header ++ candidatesStream)
           }
         }
       }
@@ -340,7 +342,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
           logRpt(s"stopped fetching the application details stream for ${appIds.size} candidates")
           logRpt(s"finished loading data for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses, part: $part. " +
             s"Now sending the chunked response.")
-          Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(header.andThen(candidatesStream))))
+          Ok.chunked(header ++ candidatesStream)
         }
       }
     }
@@ -384,7 +386,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
             }
             logRpt(s"stopped fetching the application details stream for ${appIds.size} candidates")
             logRpt(s"finished loading data for appRoutes: $applicationRoutes. Now sending the chunked response.")
-            Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(header.andThen(candidatesStream))))
+            Ok.chunked(header ++ candidatesStream)
           }
         }
       }
@@ -422,8 +424,24 @@ class ReportingController @Inject() (cc: ControllerComponents,
       Nil).mkString(",")
   }
 
-  private def buildHeaders(numOfSchemes: Int): Enumerator[String] = {
+  //TODO: remove
+  /*
+  private def buildHeadersLegacy(numOfSchemes: Int): Enumerator[String] = {
     Enumerator(
+      (prevYearCandidatesDetailsRepository.applicationDetailsHeader(numOfSchemes) ::
+        prevYearCandidatesDetailsRepository.contactDetailsHeader ::
+        prevYearCandidatesDetailsRepository.questionnaireDetailsHeader ::
+        prevYearCandidatesDetailsRepository.mediaHeader ::
+        prevYearCandidatesDetailsRepository.eventsDetailsHeader ::
+        prevYearCandidatesDetailsRepository.siftAnswersHeader ::
+        prevYearCandidatesDetailsRepository.assessmentScoresHeaders("Assessor") ::
+        prevYearCandidatesDetailsRepository.assessmentScoresHeaders("Reviewer") ::
+        Nil).mkString(",") + "\n"
+    )
+  }*/
+
+  private def buildHeaders(numOfSchemes: Int): Source[String, _] = {
+    Source.single(
       (prevYearCandidatesDetailsRepository.applicationDetailsHeader(numOfSchemes) ::
         prevYearCandidatesDetailsRepository.contactDetailsHeader ::
         prevYearCandidatesDetailsRepository.questionnaireDetailsHeader ::
@@ -591,9 +609,10 @@ class ReportingController @Inject() (cc: ControllerComponents,
   private def logDataAnalystRpt(msg: String)= logger.warn(s"streamDataAnalystReport: $msg")
 
   private def commonEnrichDataAnalystReport(appIds: Seq[String], userIds: Seq[String],
-                                            applicationRoutes: Seq[ApplicationRoute], applicationStatuses: Seq[ApplicationStatus]) = {
+                                            applicationRoutes: Seq[ApplicationRoute],
+                                            applicationStatuses: Seq[ApplicationStatus]): Future[Result] =
     enrichDataAnalystReport(appIds, userIds) {
-      (numOfSchemes, contactDetails, mediaDetails, questionnaireDetails, siftDetails) => {
+      (numOfSchemes, contactDetails, mediaDetails, questionnaireDetails, siftDetails) =>
 
         logDataAnalystRpt(s"started fetching the application details stream for ${appIds.size} candidates")
         val applicationDetailsStream = prevYearCandidatesDetailsRepository.dataAnalystApplicationDetailsStream(numOfSchemes, appIds).map { app =>
@@ -601,7 +620,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
         }
         logDataAnalystRpt(s"stopped fetching the application details stream for ${appIds.size} candidates")
 
-        val header = Enumerator(
+        val header = Source.single(
           (prevYearCandidatesDetailsRepository.dataAnalystApplicationDetailsHeader(numOfSchemes) ::
             prevYearCandidatesDetailsRepository.dataAnalystContactDetailsHeader ::
             prevYearCandidatesDetailsRepository.mediaHeader ::
@@ -612,15 +631,14 @@ class ReportingController @Inject() (cc: ControllerComponents,
         val msg = s"finished loading the data for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses. " +
           s"Now sending the chunked response."
         logDataAnalystRpt(msg)
-        Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(header.andThen(applicationDetailsStream))))
-      }
+        Ok.chunked(header ++ applicationDetailsStream)
     }
-  }
 
   type DataAnalystReportBlockType = (Int, CsvExtract[String], CsvExtract[String], CsvExtract[String], CsvExtract[String]) => Result
 
   // We include all the columns from both parts 1 and 2 of data analyst report
-  private def enrichDataAnalystReport(applicationIds: Seq[String], userIds: Seq[String] = Nil)(block: DataAnalystReportBlockType) = {
+  private def enrichDataAnalystReport(applicationIds: Seq[String], userIds: Seq[String] = Nil)(
+    block: DataAnalystReportBlockType): Future[Result] = {
     logDataAnalystRpt(s"started fetching the enriched data for the ${applicationIds.size} candidates")
     for {
       // pt1 data analyst report
@@ -663,13 +681,13 @@ class ReportingController @Inject() (cc: ControllerComponents,
           createDataAnalystRecordPt1(app, contactDetails, mediaDetails) + "\n"
         }
 
-        val header = Enumerator(
+        val header = Source.single(
           (prevYearCandidatesDetailsRepository.dataAnalystApplicationDetailsHeader(numOfSchemes) ::
             prevYearCandidatesDetailsRepository.dataAnalystContactDetailsHeader ::
             prevYearCandidatesDetailsRepository.mediaHeader ::
             Nil).mkString(",") + "\n"
         )
-        Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(header.andThen(applicationDetailsStream))))
+        Ok.chunked(header ++ applicationDetailsStream)
       }
     )
   }
@@ -702,13 +720,13 @@ class ReportingController @Inject() (cc: ControllerComponents,
           createDataAnalystRecordPt2(app, questionnaireDetails, siftDetails) + "\n"
         }
 
-        val header = Enumerator(
+        val header = Source.single(
           ("ApplicationId" ::
             prevYearCandidatesDetailsRepository.questionnaireDetailsHeader ::
             prevYearCandidatesDetailsRepository.dataAnalystSiftAnswersHeader ::
             Nil).mkString(",") + "\n"
         )
-        Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(header.andThen(applicationDetailsStream))))
+        Ok.chunked(header ++ applicationDetailsStream)
       }
     )
   }

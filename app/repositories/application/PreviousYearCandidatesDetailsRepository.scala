@@ -20,6 +20,8 @@ import config.{MicroserviceAppConfig, PsiTestIds}
 import connectors.launchpadgateway.exchangeobjects.in.reviewed._
 import factories.DateTimeFactory
 
+import akka.stream.Materializer
+import akka.stream.scaladsl.Source
 import javax.inject.{Inject, Singleton}
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
@@ -39,7 +41,7 @@ import reactivemongo.play.json.collection.JSONCollection
 import repositories.{BSONDateTimeHandler, CollectionNames, CommonBSONDocuments, SchemeRepository, SchemeYamlRepository, withdrawHandler}
 import services.reporting.SocioEconomicCalculator
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext.Implicits.global // TODO inject ec
 import scala.concurrent.Future
 
 //scalastyle:off
@@ -175,11 +177,17 @@ trait PreviousYearCandidatesDetailsRepository {
     }.mkString(",") + s",$assessor Final feedback,updatedBy,acceptedDate"
   }
 
-  def applicationDetailsStream(numOfSchemes: Int, applicationIds: Seq[String]): Enumerator[CandidateDetailsReportItem]
+  // TODO: remove this method
+//  def applicationDetailsStreamLegacy(numOfSchemes: Int, applicationIds: Seq[String]): Enumerator[CandidateDetailsReportItem]
+  def applicationDetailsStream(numOfSchemes: Int, applicationIds: Seq[String])(implicit mat: Materializer): Source[CandidateDetailsReportItem, _]
 
-  def dataAnalystApplicationDetailsStreamPt1(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem]
-  def dataAnalystApplicationDetailsStreamPt2: Enumerator[CandidateDetailsReportItem]
-  def dataAnalystApplicationDetailsStream(numOfSchemes: Int, applicationIds: Seq[String]): Enumerator[CandidateDetailsReportItem]
+  // TODO: remove this method
+//  def dataAnalystApplicationDetailsStreamPt1Legacy(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem]
+  def dataAnalystApplicationDetailsStreamPt1(numOfSchemes: Int)(implicit mat: Materializer): Source[CandidateDetailsReportItem, _]
+  // TODO: remove this method
+//  def dataAnalystApplicationDetailsStreamPt2Legacy: Enumerator[CandidateDetailsReportItem]
+  def dataAnalystApplicationDetailsStreamPt2(implicit mat: Materializer): Source[CandidateDetailsReportItem, _]
+  def dataAnalystApplicationDetailsStream(numOfSchemes: Int, applicationIds: Seq[String])(implicit mat: Materializer): Source[CandidateDetailsReportItem, _]
 
   def findApplicationsFor(appRoutes: Seq[ApplicationRoute]): Future[List[CandidateIds]]
   def findApplicationsFor(appRoutes: Seq[ApplicationRoute], appStatuses: Seq[ApplicationStatus]): Future[List[CandidateIds]]
@@ -247,8 +255,8 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
   override val siftAnswersHeader: String = "Sift Answers status,multipleNationalities,secondNationality,nationality," +
     "undergrad degree name,classification,graduationYear,moduleDetails," +
     "postgrad degree name,classification,graduationYear,moduleDetails," + allSchemes.mkString(",")
-
-  override def applicationDetailsStream(numOfSchemes: Int, applicationIds: Seq[String]): Enumerator[CandidateDetailsReportItem] = {
+/*
+  override def applicationDetailsStreamLegacy(numOfSchemes: Int, applicationIds: Seq[String]): Enumerator[CandidateDetailsReportItem] = {
     adsCounter = 0
 
     val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
@@ -258,6 +266,96 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     applicationDetailsCollection.find(query, Some(projection))
       .cursor[BSONDocument](ReadPreference.nearest)
       .enumerator().map { doc =>
+
+      try {
+        val applicationId = doc.getAs[String]("applicationId").get
+        val progressResponse = toProgressResponse(applicationId).read(doc)
+
+        val schemePrefs: List[String] = doc.getAs[BSONDocument]("scheme-preferences").flatMap(_.getAs[List[String]]("schemes")).getOrElse(Nil)
+        val schemePrefsAsString: Option[String] = Some(schemePrefs.mkString(","))
+        val schemesYesNoAsString: Option[String] = Option((schemePrefs.map(_ + ": Yes") ::: allSchemes.filterNot(schemePrefs.contains).map(_ + ": No")).mkString(","))
+
+        val onlineTestResults = onlineTests(doc)
+
+        // Get withdrawer
+        val withdrawalInfo = doc.getAs[WithdrawApplication]("withdraw")
+
+        def maybePrefixWithdrawer(withdrawerOpt: Option[String]): Option[String] = withdrawerOpt.map { withdrawer =>
+          if (withdrawer.nonEmpty && withdrawer != "Candidate") {
+            "Admin (User ID: " + withdrawer + ")"
+          } else {
+            withdrawer
+          }
+        }
+
+        val fsacIndicator = doc.getAs[FSACIndicator]("fsac-indicator")
+
+        adsCounter += 1
+        val applicationIdOpt = doc.getAs[String]("applicationId")
+        val csvContent = makeRow(
+          List(applicationIdOpt) :::
+            List(doc.getAs[String]("userId")) :::
+            List(doc.getAs[String]("testAccountId")) :::
+            List(doc.getAs[String]("frameworkId")) :::
+            List(doc.getAs[String]("applicationStatus")) :::
+            List(doc.getAs[String]("applicationRoute")) :::
+            personalDetails(doc, isAnalystReport = false) :::
+            List(progressResponseReachedYesNo(progressResponse.personalDetails)) :::
+            List(progressResponseReachedYesNo(progressResponse.personalDetails)) :::
+            repositories.getCivilServiceExperienceDetails(doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream), doc).toList :::
+            List(schemePrefsAsString) ::: //Scheme preferences
+            List(schemesYesNoAsString) ::: //Scheme names
+            List(progressResponseReachedYesNo(progressResponse.schemePreferences)) ::: //Are you happy with order
+            List(progressResponseReachedYesNo(progressResponse.schemePreferences)) ::: //Are you eligible
+            assistanceDetails(doc) :::
+            List(progressResponseReachedYesNo(progressResponse.questionnaire.nonEmpty)) ::: //I understand this wont affect application
+
+            onlineTestResults(Tests.Phase1Test1.toString) :::
+            onlineTestResults(Tests.Phase1Test2.toString) :::
+            onlineTestResults(Tests.Phase1Test3.toString) :::
+            onlineTestResults(Tests.Phase1Test4.toString) :::
+            onlineTestResults(Tests.Phase2Test1.toString) :::
+            onlineTestResults(Tests.Phase2Test2.toString) :::
+            videoInterview(doc) :::
+            onlineTestResults(Tests.SiftTest.toString) :::
+
+            fsbScoresAndFeedback(doc) :::
+            progressStatusTimestamps(doc) :::
+            fsacCompetency(doc) :::
+            testEvaluations(doc, numOfSchemes) :::
+            currentSchemeStatus(doc, numOfSchemes) :::
+            List(maybePrefixWithdrawer(withdrawalInfo.map(_.withdrawer))) :::
+            List(withdrawalInfo.map(_.reason)) :::
+            List(withdrawalInfo.map(_.otherReason.getOrElse(""))) :::
+            List(doc.getAs[String]("issue")) :::
+            List(fsacIndicator.map(_.area)) :::
+            List(fsacIndicator.map(_.assessmentCentre)) :::
+            List(fsacIndicator.map(_.version))
+            : _*
+        )
+        CandidateDetailsReportItem(
+          doc.getAs[String]("applicationId").getOrElse(""),
+          doc.getAs[String]("userId").getOrElse(""), csvContent
+        )
+      } catch {
+        case ex: Throwable =>
+          logger.error("Previous year candidate report generation exception", ex)
+          CandidateDetailsReportItem("", "", "ERROR LINE " + ex.getMessage)
+      }
+    }
+  }*/
+
+  override def applicationDetailsStream(numOfSchemes: Int, applicationIds: Seq[String])(implicit mat: Materializer): Source[CandidateDetailsReportItem, _] = {
+    adsCounter = 0
+
+    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    val projection = Json.obj("_id" -> 0)
+
+//    import reactivemongo.play.iteratees.cursorProducer
+    import reactivemongo.akkastream.cursorProducer
+    applicationDetailsCollection.find(query, Some(projection))
+      .cursor[BSONDocument](ReadPreference.nearest)
+      .documentSource().map { doc =>
 
       try {
         val applicationId = doc.getAs[String]("applicationId").get
@@ -418,13 +516,14 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     }
   }
 
-  override def dataAnalystApplicationDetailsStreamPt1(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem] = {
+  /*
+  override def dataAnalystApplicationDetailsStreamPt1Legacy(numOfSchemes: Int): Enumerator[CandidateDetailsReportItem] = {
     val query = BSONDocument.empty
-    commonDataAnalystApplicationDetailsStream(numOfSchemes, query)
-  }
+    commonDataAnalystApplicationDetailsStreamLegacy(numOfSchemes, query)
+  }*/
 
-  // Just fetch the applicationId and userId for Pt2 report
-  override def dataAnalystApplicationDetailsStreamPt2: Enumerator[CandidateDetailsReportItem] = {
+  /*
+  override def dataAnalystApplicationDetailsStreamPt2Legacy: Enumerator[CandidateDetailsReportItem] = {
     val query = BSONDocument.empty
     val projection = Json.obj("_id" -> 0)
 
@@ -448,14 +547,46 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
           CandidateDetailsReportItem("", "", "ERROR LINE " + ex.getMessage)
       }
     }
-  }
+  }*/
 
-  override def dataAnalystApplicationDetailsStream(numOfSchemes: Int, applicationIds: Seq[String]): Enumerator[CandidateDetailsReportItem] = {
-    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+  override def dataAnalystApplicationDetailsStreamPt1(numOfSchemes: Int)(implicit mat: Materializer): Source[CandidateDetailsReportItem, _] = {
+    val query = BSONDocument.empty
     commonDataAnalystApplicationDetailsStream(numOfSchemes, query)
   }
 
-  private def commonDataAnalystApplicationDetailsStream(numOfSchemes: Int, query: BSONDocument): Enumerator[CandidateDetailsReportItem] = {
+  override def dataAnalystApplicationDetailsStreamPt2(implicit mat: Materializer): Source[CandidateDetailsReportItem, _] = {
+    val query = BSONDocument.empty
+    val projection = Json.obj("_id" -> 0)
+
+//    import reactivemongo.play.iteratees.cursorProducer
+    import reactivemongo.akkastream.cursorProducer
+    applicationDetailsCollection.find(query, Some(projection))
+      .cursor[BSONDocument](ReadPreference.nearest)
+      .documentSource().map { doc =>
+
+      try {
+        val applicationIdOpt = doc.getAs[String]("applicationId")
+        val csvContent = makeRow(
+          List(applicationIdOpt): _*
+        )
+        CandidateDetailsReportItem(
+          doc.getAs[String]("applicationId").getOrElse(""),
+          doc.getAs[String]("userId").getOrElse(""), csvContent
+        )
+      } catch {
+        case ex: Throwable =>
+          logger.error("Data analyst Previous year candidate report generation exception", ex)
+          CandidateDetailsReportItem("", "", "ERROR LINE " + ex.getMessage)
+      }
+    }
+  }
+
+  override def dataAnalystApplicationDetailsStream(numOfSchemes: Int, applicationIds: Seq[String])(implicit mat: Materializer): Source[CandidateDetailsReportItem, _] = {
+    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    commonDataAnalystApplicationDetailsStream(numOfSchemes, query)
+  }
+/*
+  private def commonDataAnalystApplicationDetailsStreamLegacy(numOfSchemes: Int, query: BSONDocument): Enumerator[CandidateDetailsReportItem] = {
     val projection = Json.obj("_id" -> 0)
 
     def isSdipFsWithFsFailedAndSdipNotFailed(doc: BSONDocument) = {
@@ -482,6 +613,64 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
         val fsacIndicator = doc.getAs[FSACIndicator]("fsac-indicator")
 
         val applicationIdOpt = doc.getAs[String]("applicationId")
+        val csvContent = makeRow(
+          List(applicationIdOpt) :::
+            personalDetails(doc, isAnalystReport = true) :::
+            List(doc.getAs[String]("applicationStatus")) :::
+            List(doc.getAs[String]("applicationRoute")) :::
+            List(Some(isSdipFsWithFsFailedAndSdipNotFailed(doc).toString)) :::
+            repositories.getCivilServiceExperienceDetails(doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream), doc).toList :::
+            List(schemePrefsAsString) :::
+            disabilityDetails(doc) :::
+            progressStatusTimestamps(doc) :::
+            List(lastProgressStatusPriorToWithdrawal(doc)) :::
+            testEvaluations(doc, numOfSchemes) :::
+            currentSchemeStatus(doc, numOfSchemes) :::
+            List(fsacIndicator.map(_.area)) :::
+            List(fsacIndicator.map(_.assessmentCentre))
+            : _*
+        )
+        CandidateDetailsReportItem(
+          doc.getAs[String]("applicationId").getOrElse(""),
+          doc.getAs[String]("userId").getOrElse(""), csvContent
+        )
+      } catch {
+        case ex: Throwable =>
+          logger.error("Data analyst streamed candidate report generation exception", ex)
+          CandidateDetailsReportItem("", "", "ERROR LINE " + ex.getMessage)
+      }
+    }
+  }*/
+
+  private def commonDataAnalystApplicationDetailsStream(numOfSchemes: Int, query: BSONDocument)(implicit mat: Materializer): Source[CandidateDetailsReportItem, _] = {
+    val projection = Json.obj("_id" -> 0)
+
+    def isSdipFsWithFsFailedAndSdipNotFailed(doc: BSONDocument) = {
+      val css: Seq[SchemeEvaluationResult] = doc.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(Nil)
+      val sdipSchemeId = SchemeId("Sdip")
+      val sdipPresent = css.count( schemeEvaluationResult => schemeEvaluationResult.schemeId == sdipSchemeId ) == 1
+      val sdipNotFailed = sdipPresent &&
+        css.count( schemeEvaluationResult => schemeEvaluationResult.schemeId == sdipSchemeId && schemeEvaluationResult.result != "Red") == 1
+      val fsSchemes = css.filterNot( ser => ser.schemeId == sdipSchemeId )
+      val fsSchemesPresentAndAllFailed = fsSchemes.nonEmpty &&
+        fsSchemes.count( schemeEvaluationResult => schemeEvaluationResult.result == "Red" ) == fsSchemes.size
+      val isSdipFaststream = doc.getAs[String]("applicationRoute").contains("SdipFaststream")
+      isSdipFaststream && sdipPresent && sdipNotFailed && fsSchemesPresentAndAllFailed
+    }
+
+    //import reactivemongo.play.iteratees.cursorProducer
+    import reactivemongo.akkastream.cursorProducer
+    applicationDetailsCollection.find(query, Some(projection))
+      .cursor[BSONDocument](ReadPreference.nearest)
+      .documentSource().map { doc =>
+
+      try {
+        val schemePrefs: List[String] = doc.getAs[BSONDocument]("scheme-preferences").flatMap(_.getAs[List[String]]("schemes")).getOrElse(Nil)
+        val schemePrefsAsString: Option[String] = Some(schemePrefs.mkString(","))
+        val fsacIndicator = doc.getAs[FSACIndicator]("fsac-indicator")
+
+        val applicationIdOpt = doc.getAs[String]("applicationId")
+
         val csvContent = makeRow(
           List(applicationIdOpt) :::
             personalDetails(doc, isAnalystReport = true) :::
