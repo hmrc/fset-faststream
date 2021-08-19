@@ -58,7 +58,7 @@ $processingNewcastle = $argc == 3 && strtolower($argv[2]) == "newcastle";
 
 $city = $processingNewcastle ? "newcastle" : "london";
 
-$csvRoot = "../../fs-calendar-events/spreadsheets/2021-2022v2";
+$csvRoot = "../../fs-calendar-events/spreadsheets/2021-2022v3";
 $csvFilename = "${csvRoot}/${city}.csv";
 
 $csv = array_map('str_getcsv', file($csvFilename));
