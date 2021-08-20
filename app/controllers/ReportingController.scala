@@ -287,7 +287,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
           (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
            siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) => {
             val header = buildHeaders(numOfSchemes)
-            logRpt(s"started fetching the application details stream for ${appIds.size} candidates")
+            logRpt(s"started initialising the application details stream for ${appIds.size} candidates")
             val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream(numOfSchemes, appIds).map {
               app =>
                 createCandidateInfoBackUpRecord(
@@ -295,8 +295,8 @@ class ReportingController @Inject() (cc: ControllerComponents,
                   eventsDetails, siftAnswers, assessorAssessmentScores, reviewerAssessmentScores
                 ) + "\n"
             }
-            logRpt(s"stopped fetching the application details stream for ${appIds.size} candidates")
-            logRpt(s"finished loading data for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses. " +
+            logRpt(s"stopped initialising the application details stream for ${appIds.size} candidates")
+            logRpt(s"finished loading enriched data for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses. " +
               s"Now sending the chunked response.")
             Ok.chunked(header ++ candidatesStream)
           }
@@ -330,7 +330,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
         (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
         siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) => {
           val header = buildHeaders(numOfSchemes)
-          logRpt(s"started fetching the application details stream for ${appIds.size} candidates")
+          logRpt(s"started initialising the application details stream for ${appIds.size} candidates")
           val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream(numOfSchemes, appIds).map {
             app =>
               val ret = createCandidateInfoBackUpRecord(
@@ -339,8 +339,8 @@ class ReportingController @Inject() (cc: ControllerComponents,
               ) + "\n"
               ret
           }
-          logRpt(s"stopped fetching the application details stream for ${appIds.size} candidates")
-          logRpt(s"finished loading data for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses, part: $part. " +
+          logRpt(s"stopped initialising the application details stream for ${appIds.size} candidates")
+          logRpt(s"finished loading enriched data for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses, part: $part. " +
             s"Now sending the chunked response.")
           Ok.chunked(header ++ candidatesStream)
         }
@@ -373,19 +373,16 @@ class ReportingController @Inject() (cc: ControllerComponents,
           (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
            siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) => {
             val header = buildHeaders(numOfSchemes)
-            var counter = 0
-            logRpt(s"started fetching the application details stream for ${appIds.size} candidates")
+            logRpt(s"started initialising the application details stream for ${appIds.size} candidates")
             val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream(numOfSchemes, appIds).map {
               app =>
-                val ret = createCandidateInfoBackUpRecord(
+                createCandidateInfoBackUpRecord(
                   app, contactDetails, questionnaireDetails, mediaDetails,
                   eventsDetails, siftAnswers, assessorAssessmentScores, reviewerAssessmentScores
                 ) + "\n"
-                counter += 1
-                ret
             }
-            logRpt(s"stopped fetching the application details stream for ${appIds.size} candidates")
-            logRpt(s"finished loading data for appRoutes: $applicationRoutes. Now sending the chunked response.")
+            logRpt(s"stopped initialising the application details stream for ${appIds.size} candidates")
+            logRpt(s"finished loading enriched data for appRoutes: $applicationRoutes. Now sending the chunked response.")
             Ok.chunked(header ++ candidatesStream)
           }
         }
@@ -459,7 +456,8 @@ class ReportingController @Inject() (cc: ControllerComponents,
 
   private def logRpt(msg: String)= logger.warn(s"streamPreviousYearCandidatesDetailsReport: $msg")
 
-  private def enrichPreviousYearCandidateDetails(applicationIds: Seq[String], userIds: Seq[String] = Nil)(block: ReportStreamBlockType) = {
+  private def enrichPreviousYearCandidateDetails(applicationIds: Seq[String], userIds: Seq[String] = Nil)(
+    block: ReportStreamBlockType): Future[Result] = {
     logRpt(s"started fetching enriched data for ${applicationIds.size} candidates")
     for {
       contactDetails <- prevYearCandidatesDetailsRepository.findContactDetails(userIds)
@@ -614,11 +612,11 @@ class ReportingController @Inject() (cc: ControllerComponents,
     enrichDataAnalystReport(appIds, userIds) {
       (numOfSchemes, contactDetails, mediaDetails, questionnaireDetails, siftDetails) =>
 
-        logDataAnalystRpt(s"started fetching the application details stream for ${appIds.size} candidates")
+        logDataAnalystRpt(s"started initialising the application details stream for ${appIds.size} candidates")
         val applicationDetailsStream = prevYearCandidatesDetailsRepository.dataAnalystApplicationDetailsStream(numOfSchemes, appIds).map { app =>
           createDataAnalystRecord(app, contactDetails, mediaDetails, questionnaireDetails, siftDetails) + "\n"
         }
-        logDataAnalystRpt(s"stopped fetching the application details stream for ${appIds.size} candidates")
+        logDataAnalystRpt(s"stopped initialising the application details stream for ${appIds.size} candidates")
 
         val header = Source.single(
           (prevYearCandidatesDetailsRepository.dataAnalystApplicationDetailsHeader(numOfSchemes) ::
@@ -628,7 +626,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
             prevYearCandidatesDetailsRepository.dataAnalystSiftAnswersHeader ::
             Nil).mkString(",") + "\n"
         )
-        val msg = s"finished loading the data for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses. " +
+        val msg = s"finished loading the enriched data for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses. " +
           s"Now sending the chunked response."
         logDataAnalystRpt(msg)
         Ok.chunked(header ++ applicationDetailsStream)

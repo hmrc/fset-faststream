@@ -838,7 +838,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
   override def findApplicationsFor(appRoutes: Seq[ApplicationRoute]): Future[List[CandidateIds]] = {
     val projection = Json.obj("applicationId" -> true, "userId" -> true)
     val query = BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes))
-    applicationDetailsCollection.find(query, Some(query)).cursor[CandidateIds]()
+    applicationDetailsCollection.find(query, Some(projection)).cursor[CandidateIds]()
       .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[CandidateIds]]())
   }
 
