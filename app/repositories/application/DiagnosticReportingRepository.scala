@@ -16,10 +16,13 @@
 
 package repositories.application
 
-import javax.inject.{ Inject, Singleton }
+import akka.stream.Materializer
+import akka.stream.scaladsl.Source
+
+import javax.inject.{Inject, Singleton}
 import model.CreateApplicationRequest
 import model.Exceptions.ApplicationNotFound
-import play.api.libs.iteratee.Enumerator
+//import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.{ Cursor, ReadPreference }
@@ -34,7 +37,7 @@ import scala.concurrent.Future
 
 trait DiagnosticReportingRepository {
   def findByApplicationId(userId: String): Future[List[JsObject]]
-  def findAll(): Enumerator[JsValue]
+  def findAll(implicit mat: Materializer): Source[JsValue, _]
 }
 
 @Singleton
@@ -76,11 +79,11 @@ class DiagnosticReportingMongoRepository @Inject() (mongoComponent: ReactiveMong
     }
   }
 
-  def findAll(): Enumerator[JsValue] = {
-    import reactivemongo.play.iteratees.cursorProducer
+  def findAll(implicit mat: Materializer): Source[JsValue, _] = {
+    import reactivemongo.akkastream.cursorProducer
     val projection = defaultExclusions ++ largeFields
     collection.find(Json.obj(), Some(projection))
       .cursor[JsValue](ReadPreference.primaryPreferred)
-      .enumerator()
+      .documentSource()
   }
 }

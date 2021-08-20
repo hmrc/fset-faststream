@@ -16,27 +16,29 @@
 
 package repositories.events
 
+import akka.stream.Materializer
+import akka.stream.scaladsl.Source
 import config.MicroserviceAppConfig
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.Exceptions.EventNotFoundException
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.SkillType.SkillType
-import model.persisted.eventschedules.{ Event, EventType, Location, Venue }
+import model.persisted.eventschedules.{Event, EventType, Location, Venue}
 import org.joda.time.DateTime
-import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{ JsObject, JsValue, Json }
+import play.api.libs.json.{JsObject, JsValue, Json}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
-import reactivemongo.api.{ Cursor, ReadPreference }
-import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
+import reactivemongo.api.{Cursor, ReadPreference}
+import reactivemongo.bson.{BSONArray, BSONDocument, BSONObjectID}
 import reactivemongo.play.json.ImplicitBSONHandlers._
-import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
+import repositories.{CollectionNames, ReactiveRepositoryHelpers}
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 trait EventsRepository {
   def save(events: List[Event]): Future[Unit]
@@ -54,7 +56,7 @@ trait EventsRepository {
   def getEventsManuallyCreatedAfter(dateTime: DateTime): Future[Seq[Event]]
   def updateStructure(): Future[Unit]
   def updateEvent(updatedEvent: Event): Future[Unit]
-  def findAllForExtract(): Enumerator[JsValue]
+  def findAllForExtract(implicit mat: Materializer): Source[JsValue, _]
 }
 
 @Singleton
@@ -150,12 +152,12 @@ class EventsMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent, a
     collection.update(ordered = false).one(BSONDocument.empty, updateQuery, multi = true).map(_ => ())
   }
 
-  override def findAllForExtract(): play.api.libs.iteratee.Enumerator[JsValue] = {
-    import reactivemongo.play.iteratees.cursorProducer
+  override def findAllForExtract(implicit mat: Materializer): Source[JsValue, _] = {
+    import reactivemongo.akkastream.cursorProducer
     val projection = Json.obj("_id" -> false)
 
     collection.find(BSONDocument.empty, Some(projection))
       .cursor[JsValue](ReadPreference.primaryPreferred)
-      .enumerator()
+      .documentSource()
   }
 }

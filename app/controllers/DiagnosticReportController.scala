@@ -16,15 +16,17 @@
 
 package controllers
 
+import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import connectors.AuthProviderClient
 import connectors.exchange.AssessorDiagnosticReport
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.Exceptions.NotFoundException
 import model.UniqueIdentifier
 import play.api.libs.iteratee.streams.IterateeStreams
-import play.api.libs.json.{ JsObject, Json }
-import play.api.mvc.{ Action, AnyContent, ControllerComponents }
+import play.api.libs.json.{JsObject, Json}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import repositories._
 import repositories.application.DiagnosticReportingRepository
 import repositories.events.EventsRepository
@@ -41,7 +43,7 @@ class DiagnosticReportController @Inject() (cc: ControllerComponents,
                                             eventsRepo: EventsRepository,
                                             authProvider: AuthProviderClient,
                                             assessorService: AssessorService
-                                           ) extends BackendController(cc) {
+                                           )(implicit mat: Materializer) extends BackendController(cc) {
 
   def getApplicationByUserId(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
 
@@ -81,12 +83,10 @@ class DiagnosticReportController @Inject() (cc: ControllerComponents,
   }
 
   def getAllApplications = Action { implicit request =>
-    val response = Source.fromPublisher(IterateeStreams.enumeratorToPublisher(drRepository.findAll()))
-    Ok.chunked(response)
+    Ok.chunked(drRepository.findAll)
   }
 
   def getAllEvents = Action { implicit request =>
-    val response = Source.fromPublisher(IterateeStreams.enumeratorToPublisher(eventsRepo.findAllForExtract()))
-    Ok.chunked(response)
+    Ok.chunked(eventsRepo.findAllForExtract)
   }
 }
