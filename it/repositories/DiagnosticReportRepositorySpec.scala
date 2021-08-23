@@ -16,13 +16,13 @@
 
 package repositories
 
+import akka.stream.scaladsl.{Keep, Sink}
 import factories.DateTimeFactoryImpl
 import model.Exceptions.ApplicationNotFound
-import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.JsValue
-import reactivemongo.bson.{ BSONBoolean, BSONDocument }
+import reactivemongo.bson.{BSONBoolean, BSONDocument}
 import reactivemongo.play.json.ImplicitBSONHandlers
-import repositories.application.{ DiagnosticReportingMongoRepository, GeneralApplicationMongoRepository }
+import repositories.application.{DiagnosticReportingMongoRepository, GeneralApplicationMongoRepository}
 import testkit.MongoRepositorySpec
 
 class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
@@ -60,10 +60,17 @@ class DiagnosticReportRepositorySpec extends MongoRepositorySpec {
       helperRepo.collection.insert(ordered = false).one(userWithAllDetails("user1", "app2", "SDIP-2016")).futureValue
       helperRepo.collection.insert(ordered = false).one(userWithAllDetails("user2", "app3", "FastStream-2016")).futureValue
 
-      val resultE = diagnosticReportRepo.findAll()
-
-      val listProducer = Iteratee.fold[JsValue, List[JsValue]](Nil){(acc, v) => acc :+ v}
-      val result = resultE.run(listProducer).futureValue.sortBy(x => (x \ "applicationId").as[String])
+      // An operator with exactly one output, emitting data elements whenever downstream operators are ready to receive them
+      val source = diagnosticReportRepo.findAll(materializer)
+      // An operator with exactly one input, requesting and accepting data elements, possibly slowing down the upstream producer of elements.
+      val sink = Sink.fold[List[JsValue], JsValue](Nil){(acc, v) => acc :+ v}
+      // Connect the Source to the Sink, obtaining a RunnableGraph
+      // The RunnableGraph is a flow that has both ends "attached" to a Source and Sink respectively, and is ready to be run
+      // It is important to remember that even after constructing the RunnableGraph by connecting all the source, sink and
+      // different operators, no data will flow through it until it is materialized (run)
+      val runnable = source.toMat(sink)(Keep.right)
+      // Materialize the flow and get the value of the Sink (the List[JsValue]), which we sort by applicationId
+      val result = runnable.run()(materializer).futureValue.sortBy(x => (x \ "applicationId").as[String])
 
       result.length mustBe 3
       (result(0) \ "applicationId").as[String] mustBe "app1"

@@ -16,15 +16,16 @@
 
 package testkit
 
+import akka.stream.Materializer
 import com.kenshoo.play.metrics.PlayModule
 import config.MicroserviceAppConfig
 import org.joda.time.DateTime
 import org.joda.time.Seconds._
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{ Millis, Span }
+import org.scalatest.time.{Millis, Span}
 import org.scalatestplus.play.PlaySpec
-import play.api.{ Application, Play }
+import play.api.{Application, Play}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.modules.reactivemongo.ReactiveMongoComponent
@@ -33,7 +34,7 @@ import reactivemongo.play.json.ImplicitBSONHandlers
 import reactivemongo.play.json.collection.JSONCollection
 import uk.gov.hmrc.mongo.ReactiveRepository
 
-import scala.concurrent.{ Await, ExecutionContext }
+import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -61,6 +62,8 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
   override implicit def patienceConfig = PatienceConfig(timeout = scaled(Span(timeout.toMillis, Millis)))
 
   implicit lazy val executionContext = app.injector.instanceOf[ExecutionContext]
+
+  implicit lazy val materializer = app.injector.instanceOf[Materializer]
 
   lazy val mongo: ReactiveMongoComponent = app.injector.instanceOf(classOf[ReactiveMongoComponent])
 
