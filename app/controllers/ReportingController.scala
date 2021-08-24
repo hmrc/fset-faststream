@@ -179,9 +179,17 @@ class ReportingController @Inject() (cc: ControllerComponents,
       Seq(Faststream),
       Seq(
         ApplicationStatus.PHASE3_TESTS,
-        ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER, ApplicationStatus.PHASE3_TESTS_PASSED,
-        ApplicationStatus.PHASE3_TESTS_FAILED, ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED
+        ApplicationStatus.PHASE3_TESTS_PASSED,
+        ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER,
+        ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED
       )
+    )
+  }
+
+  def streamPreviousYearFaststreamP3FailedCandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.PHASE3_TESTS_FAILED)
     )
   }
 
