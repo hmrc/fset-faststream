@@ -31,16 +31,16 @@ class FaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
 
     "result in fail results when all the schemes are red" in new TestFixture {
       applicationEvaluation("application-1", 20, 20, 20, 20,
-        SchemeId("DiplomaticServiceEconomics"), SchemeId("DiplomaticServiceEuropean")) mustResultIn (
+        SchemeId("DiplomaticAndDevelopmentEconomics"), SchemeId("DiplomaticServiceEuropean")) mustResultIn (
         PHASE1_TESTS_FAILED, Some(ProgressStatuses.PHASE1_TESTS_FAILED),
-        SchemeId("DiplomaticServiceEconomics") -> Red, SchemeId("DiplomaticServiceEuropean") -> Red)
+        SchemeId("DiplomaticAndDevelopmentEconomics") -> Red, SchemeId("DiplomaticServiceEuropean") -> Red)
     }
 
     "result in amber when all the schemes are in amber" in new TestFixture {
       applicationEvaluation("application-1", 40, 40, 40, 40,
-        SchemeId("DiplomaticServiceEconomics"), SchemeId("DiplomaticServiceEuropean")) mustResultIn (
+        SchemeId("DiplomaticAndDevelopmentEconomics"), SchemeId("DiplomaticServiceEuropean")) mustResultIn (
         PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
-        SchemeId("DiplomaticServiceEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
+        SchemeId("DiplomaticAndDevelopmentEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
 
       applicationEvaluation("application-2", 25.015, 25.015, 25.015, 25.015,
         SchemeId("Finance")) mustResultIn (
@@ -64,15 +64,15 @@ class FaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
     "result in pass results on re-evaluation of applicant in amber when passmarks are decreased" in new TestFixture {
       {
         applicationEvaluation("application-1", 40, 40, 40, 40,
-          SchemeId("DiplomaticServiceEconomics"), SchemeId("DiplomaticServiceEuropean"))
+          SchemeId("DiplomaticAndDevelopmentEconomics"), SchemeId("DiplomaticServiceEuropean"))
           mustResultIn (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
-            SchemeId("DiplomaticServiceEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
+            SchemeId("DiplomaticAndDevelopmentEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
 
         applicationReEvaluationWithOverridingPassmarks(
-          (SchemeId("DiplomaticServiceEconomics"), 30, 30, 30, 30, 30, 30, 30, 30),
+          (SchemeId("DiplomaticAndDevelopmentEconomics"), 30, 30, 30, 30, 30, 30, 30, 30),
           (SchemeId("DiplomaticServiceEuropean"), 30, 30, 30, 30, 30, 30, 30, 30))
         mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
-          SchemeId("DiplomaticServiceEconomics") -> Green, SchemeId("DiplomaticServiceEuropean") -> Green)
+          SchemeId("DiplomaticAndDevelopmentEconomics") -> Green, SchemeId("DiplomaticServiceEuropean") -> Green)
       }
 
       {
@@ -89,15 +89,15 @@ class FaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
     "result in fail results on re-evaluation of applicant in amber when fail marks are increased" in new TestFixture {
       {
         applicationEvaluation("application-1", 40, 40, 40, 40,
-          SchemeId("DiplomaticServiceEconomics"), SchemeId("DiplomaticServiceEuropean"))
+          SchemeId("DiplomaticAndDevelopmentEconomics"), SchemeId("DiplomaticServiceEuropean"))
         mustResultIn (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
-          SchemeId("DiplomaticServiceEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
+          SchemeId("DiplomaticAndDevelopmentEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
 
         applicationReEvaluationWithOverridingPassmarks(
-          (SchemeId("DiplomaticServiceEconomics"), 41, 42, 41, 42, 41, 42, 41, 42),
+          (SchemeId("DiplomaticAndDevelopmentEconomics"), 41, 42, 41, 42, 41, 42, 41, 42),
           (SchemeId("DiplomaticServiceEuropean"), 41, 42, 41, 42, 41, 42, 41, 42)
         ) mustResultIn (PHASE1_TESTS_FAILED, Some(ProgressStatuses.PHASE1_TESTS_FAILED),
-          SchemeId("DiplomaticServiceEconomics") -> Red, SchemeId("DiplomaticServiceEuropean") -> Red)
+          SchemeId("DiplomaticAndDevelopmentEconomics") -> Red, SchemeId("DiplomaticServiceEuropean") -> Red)
       }
 
       {
@@ -114,15 +114,15 @@ class FaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
     "leave applicants in amber on re-evaluation when passmarks and failmarks are changed but within the amber range" in new TestFixture {
       {
         applicationEvaluation("application-1", 40, 40, 40, 40,
-          SchemeId("DiplomaticServiceEconomics"), SchemeId("DiplomaticServiceEuropean"))
+          SchemeId("DiplomaticAndDevelopmentEconomics"), SchemeId("DiplomaticServiceEuropean"))
         mustResultIn (PHASE1_TESTS,  Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
-          SchemeId("DiplomaticServiceEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
+          SchemeId("DiplomaticAndDevelopmentEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
 
         applicationReEvaluationWithOverridingPassmarks(
-          (SchemeId("DiplomaticServiceEconomics"), 38, 42, 38, 42, 38, 42, 38, 42),
+          (SchemeId("DiplomaticAndDevelopmentEconomics"), 38, 42, 38, 42, 38, 42, 38, 42),
           (SchemeId("DiplomaticServiceEuropean"), 38, 42, 38, 42, 38, 42, 38, 42)
         ) mustResultIn (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
-          SchemeId("DiplomaticServiceEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
+          SchemeId("DiplomaticAndDevelopmentEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
       }
 
       {

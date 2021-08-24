@@ -37,7 +37,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       updateApplicationStatus("appId2", ApplicationStatus.PHASE3_TESTS_FAILED)
 
       insertApplicationWithPhase3TestNotifiedResults("appId3",
-        List(SchemeEvaluationResult(DiplomaticServiceEconomists, EvaluationResults.Green.toString))).futureValue
+        List(SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, EvaluationResults.Green.toString))).futureValue
 
       insertApplicationWithPhase3TestNotifiedResults("appId4",
         List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString))).futureValue
@@ -68,7 +68,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
         ApplicationForSift("appId1", "appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Green.toString))),
         ApplicationForSift("appId3", "appId3", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-          List(SchemeEvaluationResult(DiplomaticServiceEconomists, EvaluationResults.Green.toString))),
+          List(SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, EvaluationResults.Green.toString))),
         ApplicationForSift("appId4", "appId4", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString))),
         ApplicationForSift("appId6", "appId6", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED,
@@ -136,7 +136,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
     "eligible for other schema after sifting on one" in {
       createSiftEligibleCandidates("appId14")
-      repository.siftApplicationForScheme("appId14", SchemeEvaluationResult(DiplomaticServiceEconomists, "Red")).futureValue
+      repository.siftApplicationForScheme("appId14", SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, "Red")).futureValue
       val candidates = repository.findApplicationsReadyForSchemeSift(Commercial).futureValue
       candidates.size mustBe 1
     }
@@ -146,7 +146,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     "return candidates who are all red at the end of sift" in {
       val schemeStatus = List(
         SchemeEvaluationResult(Commercial, Red.toString),
-        SchemeEvaluationResult(DiplomaticServiceEconomists, Withdrawn.toString),
+        SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, Withdrawn.toString),
         SchemeEvaluationResult(Generalist, Red.toString)
       )
       createSiftEligibleCandidates("appId", schemeStatus)
@@ -161,7 +161,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     "ignore candidates who are not all red at the end of sift" in {
       val schemeStatus = List(
         SchemeEvaluationResult(Commercial, Red.toString),
-        SchemeEvaluationResult(DiplomaticServiceEconomists, Green.toString),
+        SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, Green.toString),
         SchemeEvaluationResult(Generalist, Red.toString)
       )
       createSiftEligibleCandidates("appId", schemeStatus)
@@ -175,7 +175,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
   private def createSiftEligibleCandidates(appAndUserId: String, resultToSave: List[SchemeEvaluationResult] = List(
     SchemeEvaluationResult(Commercial, Green.toString),
-    SchemeEvaluationResult(DiplomaticServiceEconomists, Green.toString),
+    SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, Green.toString),
     SchemeEvaluationResult(Generalist, Red.toString)
   )
   ) = {
@@ -201,7 +201,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     insertApplication2(appAndUserId,
       ApplicationStatus.PHASE3_TESTS, None, Some(phase2TestWithResult),
       Some(phase3TestWithResult),
-      schemes = List(Commercial, DiplomaticServiceEconomists),
+      schemes = List(Commercial, DiplomaticAndDevelopmentEconomics),
       phase2Evaluation = Some(phase2Evaluation))
 
     val phase3Evaluation = PassmarkEvaluation("phase3_version1", Some("phase2_version1"), resultToSave,

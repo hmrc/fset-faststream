@@ -31,9 +31,9 @@
   fsbType: FCO
   schemeGuide: https://www.faststream.gov.uk/media/1232/fco-guide.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/1313/scheme-questions-fco.odt
-- id: DiplomaticServiceEconomists
+- id: DiplomaticAndDevelopmentEconomics
   code: GES-DS
-  name: Diplomatic Service (Economists)
+  name: Diplomatic and Development Economics
   civilServantEligible: false
   degree:
     required: Degree_DipServEconomics

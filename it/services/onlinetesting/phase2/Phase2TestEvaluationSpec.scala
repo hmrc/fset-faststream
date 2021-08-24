@@ -60,7 +60,7 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       (SchemeId("Commercial"), 20.0, 80.0, 20.0, 80.0),
       (SchemeId("DigitalDataTechnologyAndCyber"), 20.001, 20.001, 20.001, 20.001),
       (SchemeId("DiplomaticService"), 20.01, 20.02, 20.01, 20.02),
-      (SchemeId("DiplomaticServiceEconomics"), 30.0, 70.0, 30.0, 70.0),
+      (SchemeId("DiplomaticAndDevelopmentEconomics"), 30.0, 70.0, 30.0, 70.0),
       (SchemeId("DiplomaticServiceEuropean"), 30.0, 70.0, 30.0, 70.0),
       (SchemeId("European"), 40.0, 70.0, 40.0, 70.0),
       (SchemeId("Finance"), 25.01, 25.02, 25.01, 25.02),

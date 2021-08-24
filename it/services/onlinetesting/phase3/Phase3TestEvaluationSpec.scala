@@ -144,17 +144,19 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     "give pass results on re-evaluation when all schemes are green" in new TestFixture {
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None,
-          List(SchemeEvaluationResult(SchemeId("DiplomaticServiceEconomics"), Green.toString),
+          List(SchemeEvaluationResult(SchemeId("DiplomaticAndDevelopmentEconomics"), Green.toString),
             SchemeEvaluationResult(SchemeId("DiplomaticServiceEuropean"), Green.toString)),
           "phase2-version1-res", None)
 
-        applicationEvaluation("application-1", Some(40), true,SchemeId("DiplomaticServiceEconomics"), SchemeId("DiplomaticServiceEuropean"))
-        mustResultIn(PHASE3_TESTS, SchemeId("DiplomaticServiceEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
+        applicationEvaluation("application-1", Some(40), true,
+          SchemeId("DiplomaticAndDevelopmentEconomics"), SchemeId("DiplomaticServiceEuropean"))
+        mustResultIn(PHASE3_TESTS, SchemeId("DiplomaticAndDevelopmentEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
 
         applicationReEvaluationWithSettings(
-          (SchemeId("DiplomaticServiceEconomics"), 40, 40),
+          (SchemeId("DiplomaticAndDevelopmentEconomics"), 40, 40),
           (SchemeId("DiplomaticServiceEuropean"), 40, 40)
-        ) mustResultIn(PHASE3_TESTS_PASSED, SchemeId("DiplomaticServiceEconomics") -> Green, SchemeId("DiplomaticServiceEuropean") -> Green)
+        ) mustResultIn(PHASE3_TESTS_PASSED, SchemeId("DiplomaticAndDevelopmentEconomics") -> Green,
+          SchemeId("DiplomaticServiceEuropean") -> Green)
       }
     }
 
@@ -192,7 +194,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       (SchemeId("Commercial"), 20.0, 80.0),
       (SchemeId("DigitalDataTechnologyAndCyber"), 20.001, 20.001),
       (SchemeId("DiplomaticService"), 20.01, 20.02),
-      (SchemeId("DiplomaticServiceEconomics"), 30.0, 70.0),
+      (SchemeId("DiplomaticAndDevelopmentEconomics"), 30.0, 70.0),
       (SchemeId("DiplomaticServiceEuropean"), 30.0, 70.0),
       (SchemeId("European"), 40.0, 70.0),
       (SchemeId("Finance"), 25.01, 25.02),

@@ -77,7 +77,7 @@ class Phase1PassMarkSettingsSpec extends PlaySpec {
           (SchemeId("DigitalDataTechnologyAndCyber"), 20.0, 80.0),
           (SchemeId("DiplomaticService"), 20.0, 80.0)))),
         newPassMarkSettings = passMarkSettings(List(
-          (SchemeId("DiplomaticServiceEconomics"), 20.0, 80.0),
+          (SchemeId("DiplomaticAndDevelopmentEconomics"), 20.0, 80.0),
           (SchemeId("DiplomaticServiceEuropean"), 20.0, 80.0),
           (SchemeId("DiplomaticService"), 20.0, 80.0)))
       )
@@ -85,7 +85,7 @@ class Phase1PassMarkSettingsSpec extends PlaySpec {
         SchemeId("Commercial"),
         SchemeId("DigitalDataTechnologyAndCyber"),
         SchemeId("DiplomaticService"),
-        SchemeId("DiplomaticServiceEconomics"),
+        SchemeId("DiplomaticAndDevelopmentEconomics"),
         SchemeId("DiplomaticServiceEuropean")
       )
     }
