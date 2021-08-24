@@ -90,13 +90,18 @@ GET         /report/duplicate-applications                               @contro
 GET         /report/fast-pass-awaiting-acceptance                        @controllers.ReportingController.fastPassAwaitingAcceptanceReport()
 GET         /report/fsac-scores                                          @controllers.ReportingController.fsacScores()
 
+# Streamed reports start
 GET         /report/fs-presubmitted-candidates-details-stream/previous-year  @controllers.ReportingController.streamPreviousYearFaststreamPresubmittedCandidatesDetailsReport()
 GET         /report/fs-p1-not-failed-candidates-details-stream/previous-year @controllers.ReportingController.streamPreviousYearFaststreamP1NotFailedCandidatesDetailsReport()
+
+# Do not run this report on a full dataset. It has been split into 4 below as it exceeds the 60 second platform timeout
 GET         /report/fs-p1-failed-candidates-details-stream/previous-year     @controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsReport()
 GET         /report/fs-p1-failed-candidates-details-part1-stream/previous-year   @controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsPart1Report()
 GET         /report/fs-p1-failed-candidates-details-part2-stream/previous-year   @controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsPart2Report()
 GET         /report/fs-p1-failed-candidates-details-part3-stream/previous-year   @controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsPart3Report()
 GET         /report/fs-p1-failed-candidates-details-part4-stream/previous-year   @controllers.ReportingController.streamPreviousYearFaststreamP1FailedCandidatesDetailsPart4Report()
+
+# Do not run this report on a full dataset. It has been split into 2 below as it exceeds the 60 second platform timeout
 GET         /report/fs-p2-p3-candidates-details-stream/previous-year        @controllers.ReportingController.streamPreviousYearFaststreamP2P3CandidatesDetailsReport()
 GET         /report/fs-p2-candidates-details-stream/previous-year           @controllers.ReportingController.streamPreviousYearFaststreamP2CandidatesDetailsReport()
 GET         /report/fs-p3-candidates-details-stream/previous-year           @controllers.ReportingController.streamPreviousYearFaststreamP3CandidatesDetailsReport()
@@ -104,7 +109,12 @@ GET         /report/fs-p3-candidates-details-stream/previous-year           @con
 GET         /report/fs-sift-candidates-details-stream/previous-year         @controllers.ReportingController.streamPreviousYearFaststreamSIFTCandidatesDetailsReport()
 GET         /report/fs-fsac-candidates-details-stream/previous-year         @controllers.ReportingController.streamPreviousYearFaststreamFSACCandidatesDetailsReport()
 GET         /report/fs-fsb-candidates-details-stream/previous-year          @controllers.ReportingController.streamPreviousYearFaststreamFSBCandidatesDetailsReport()
+
+# Do not run this report on a full dataset. It has been split into 2 below as it exceeds the 60 second platform timeout
 GET         /report/nonfs-candidates-details-stream/previous-year           @controllers.ReportingController.streamPreviousYearNonFaststreamCandidatesDetailsReport()
+GET         /report/sdipfs-candidates-details-stream/previous-year          @controllers.ReportingController.streamPreviousYearSdipFaststreamCandidatesDetailsReport()
+GET         /report/edipsdip-candidates-details-stream/previous-year        @controllers.ReportingController.streamPreviousYearEdipSdipCandidatesDetailsReport()
+# Streamed reports end
 
 # Data analyst reports start
 GET         /report/streamed/data-analyst-report-pt1                        @controllers.ReportingController.streamDataAnalystReportPt1()

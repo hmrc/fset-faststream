@@ -268,8 +268,19 @@ class ReportingController @Inject() (cc: ControllerComponents,
 
   def streamPreviousYearNonFaststreamCandidatesDetailsReport: Action[AnyContent] = {
     streamPreviousYearCandidatesDetailsReport(
-      Seq(SdipFaststream, Sdip, Edip),
-      _ => true
+      Seq(SdipFaststream, Sdip, Edip)
+    )
+  }
+
+  def streamPreviousYearSdipFaststreamCandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(SdipFaststream)
+    )
+  }
+
+  def streamPreviousYearEdipSdipCandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Edip, Sdip)
     )
   }
 
@@ -362,12 +373,11 @@ class ReportingController @Inject() (cc: ControllerComponents,
   }
 
   private def streamPreviousYearCandidatesDetailsReport(
-    applicationRoutes: Seq[ApplicationRoute],
-    filter: CandidateIds => Boolean): Action[AnyContent] = Action.async { implicit request =>
+    applicationRoutes: Seq[ApplicationRoute]): Action[AnyContent] = Action.async { implicit request =>
     logRpt(s"started report for appRoutes: $applicationRoutes")
       prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes).flatMap { candidates =>
-        val appIds = candidates.collect { case c if filter(c) => c.applicationId }
-        val userIds = candidates.collect { case c if filter(c) => c.userId }
+        val appIds = candidates.map(_.applicationId)
+        val userIds = candidates.map(_.userId)
 
         enrichPreviousYearCandidateDetails(appIds, userIds) {
           (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
