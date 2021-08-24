@@ -27,7 +27,7 @@ object ReferenceDataExamples {
       degree = None, Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
     val Dip = Scheme("DiplomaticService", "DS", "Diplomatic Service", civilServantEligible = false, degree = None, Some(SiftRequirement.FORM),
       siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
-    val  DipEcon = Scheme("DiplomaticServiceEconomists", "GES-DS", "Diplomatic Service (Economists)", civilServantEligible = false,
+    val  DipEcon = Scheme("DiplomaticAndDevelopmentEconomics", "GES-DS", "Diplomatic and Development Economics", civilServantEligible = false,
       degree = None, Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
     val Finance = Scheme("Finance", "FIFS", "Finance", civilServantEligible = false, degree = None, Some(SiftRequirement.NUMERIC_TEST),
       siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
