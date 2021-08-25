@@ -131,7 +131,8 @@ GET         /report/streamed/data-analyst-fs-p1-failed-part4                @con
 
 GET         /report/streamed/data-analyst-fs-p2-p3                          @controllers.ReportingController.streamDataAnalystFaststreamP2P3CandidatesDetailsReport()
 GET         /report/streamed/data-analyst-fs-p2                             @controllers.ReportingController.streamDataAnalystFaststreamP2CandidatesDetailsReport()
-GET         /report/streamed/data-analyst-fs-p3                             @controllers.ReportingController.streamDataAnalystFaststreamP3CandidatesDetailsReport()
+GET         /report/streamed/data-analyst-fs-p3-part1                       @controllers.ReportingController.streamDataAnalystFaststreamP3CandidatesDetailsPart1Report()
+GET         /report/streamed/data-analyst-fs-p3-part2                       @controllers.ReportingController.streamDataAnalystFaststreamP3CandidatesDetailsPart2Report()
 
 GET         /report/streamed/data-analyst-fs-sift                           @controllers.ReportingController.streamDataAnalystFaststreamSIFTCandidatesDetailsReport()
 GET         /report/streamed/data-analyst-fs-fsac                           @controllers.ReportingController.streamDataAnalystFaststreamFSACCandidatesDetailsReport()
