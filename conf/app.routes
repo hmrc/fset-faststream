@@ -104,8 +104,8 @@ GET         /report/fs-p1-failed-candidates-details-part4-stream/previous-year  
 # Do not run this report on a full dataset. It has been split into 3 below as it exceeds the 60 second platform timeout
 GET         /report/fs-p2-p3-candidates-details-stream/previous-year        @controllers.ReportingController.streamPreviousYearFaststreamP2P3CandidatesDetailsReport()
 GET         /report/fs-p2-candidates-details-stream/previous-year           @controllers.ReportingController.streamPreviousYearFaststreamP2CandidatesDetailsReport()
-GET         /report/fs-p3-candidates-details-stream/previous-year           @controllers.ReportingController.streamPreviousYearFaststreamP3CandidatesDetailsReport()
-GET         /report/fs-p3-failed-candidates-details-stream/previous-year    @controllers.ReportingController.streamPreviousYearFaststreamP3FailedCandidatesDetailsReport()
+GET         /report/fs-p3-candidates-details-part1-stream/previous-year     @controllers.ReportingController.streamPreviousYearFaststreamP3CandidatesDetailsPart1Report()
+GET         /report/fs-p3-candidates-details-part2-stream/previous-year     @controllers.ReportingController.streamPreviousYearFaststreamP3CandidatesDetailsPart2Report()
 
 GET         /report/fs-sift-candidates-details-stream/previous-year         @controllers.ReportingController.streamPreviousYearFaststreamSIFTCandidatesDetailsReport()
 GET         /report/fs-fsac-candidates-details-stream/previous-year         @controllers.ReportingController.streamPreviousYearFaststreamFSACCandidatesDetailsReport()

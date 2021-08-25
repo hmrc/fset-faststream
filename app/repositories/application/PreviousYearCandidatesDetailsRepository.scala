@@ -883,6 +883,20 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
             BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses)),
             BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-(04|08|12)-[0-9]{2}$", "")) // Only months 4, 8 & 12
           ))
+        // Parts 1 & 2
+        case 12 =>
+          BSONDocument( "$and" -> BSONArray(
+            BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
+            BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses)),
+            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-(01|05|09|03|07|11)-[0-9]{2}$", "")) // Only months 1, 5, 9, 3, 7 & 11
+          ))
+        // Parts 3 & 4
+        case 34 =>
+          BSONDocument( "$and" -> BSONArray(
+            BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
+            BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses)),
+            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-(02|06|10|04|08|12)-[0-9]{2}$", "")) // Only months 2, 6, 10, 4, 8, 12
+          ))
         case _ =>
           BSONDocument( "$and" -> BSONArray(
             BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
