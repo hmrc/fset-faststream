@@ -137,7 +137,10 @@ GET         /report/streamed/data-analyst-fs-p3-part2                       @con
 GET         /report/streamed/data-analyst-fs-sift                           @controllers.ReportingController.streamDataAnalystFaststreamSIFTCandidatesDetailsReport()
 GET         /report/streamed/data-analyst-fs-fsac                           @controllers.ReportingController.streamDataAnalystFaststreamFSACCandidatesDetailsReport()
 GET         /report/streamed/data-analyst-fs-fsb                            @controllers.ReportingController.streamDataAnalystFaststreamFSBCandidatesDetailsReport()
+# Do not run this report. It does work but has been split into 2 below to mirror the candidate details reports above
 GET         /report/streamed/data-analyst-nonfs                             @controllers.ReportingController.streamDataAnalystNonFaststreamCandidatesDetailsReport()
+GET         /report/streamed/data-analyst-sdipfs                            @controllers.ReportingController.streamDataAnalystSdipFaststreamCandidatesDetailsReport()
+GET         /report/streamed/data-analyst-edipsdip                          @controllers.ReportingController.streamDataAnalystEdipSdipCandidatesDetailsReport()
 # Data analyst reports end
 
 GET         /report/assessor-allocation                                     @controllers.ReportingController.assessorAllocationReport()

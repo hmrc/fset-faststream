@@ -644,6 +644,20 @@ class ReportingController @Inject() (cc: ControllerComponents,
     )
   }
 
+  def streamDataAnalystSdipFaststreamCandidatesDetailsReport: Action[AnyContent] = {
+    streamDataAnalystReport(
+      Seq(SdipFaststream),
+      _ => true
+    )
+  }
+
+  def streamDataAnalystEdipSdipCandidatesDetailsReport: Action[AnyContent] = {
+    streamDataAnalystReport(
+      Seq(Sdip, Edip),
+      _ => true
+    )
+  }
+
   private def logDataAnalystRpt(msg: String)= logger.warn(s"streamDataAnalystReport: $msg")
 
   private def commonEnrichDataAnalystReport(appIds: Seq[String], userIds: Seq[String],
