@@ -39,7 +39,7 @@ object AssessmentScoresCommands {
   object AssessmentScoresSectionType extends Enumeration {
     type AssessmentScoresSectionType = Value
 
-    val analysisExercise, groupExercise, leadershipExercise, finalFeedback = Value
+    val writtenExercise, teamExercise, leadershipExercise, finalFeedback = Value
 
     implicit val assessmentExerciseFormat = new Format[AssessmentScoresSectionType] {
       def reads(json: JsValue) = JsSuccess(AssessmentScoresSectionType.withName(json.as[String]))
@@ -78,10 +78,10 @@ object AssessmentScoresCommands {
   }
 
   case class ResetExercisesRequest(
-    applicationId: UniqueIdentifier,
-    analysis: Boolean,
-    group: Boolean,
-    leadership: Boolean
+                                    applicationId: UniqueIdentifier,
+                                    written: Boolean,
+                                    team: Boolean,
+                                    leadership: Boolean
   )
   object ResetExercisesRequest {
     implicit val jsonFormat: Format[ResetExercisesRequest] = Json.format[ResetExercisesRequest]

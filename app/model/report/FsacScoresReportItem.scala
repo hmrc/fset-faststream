@@ -20,8 +20,8 @@ import model.assessmentscores.AssessmentScoresExercise
 import play.api.libs.json.{ Json, OFormat }
 
 case class FsacScoresReportItem(applicationId: String,
-                                analysisExercise: Option[AssessmentScoresExercise],
-                                groupExercise: Option[AssessmentScoresExercise],
+                                writtenExercise: Option[AssessmentScoresExercise],
+                                teamExercise: Option[AssessmentScoresExercise],
                                 leadershipExercise: Option[AssessmentScoresExercise]
                                )
 

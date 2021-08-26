@@ -84,8 +84,8 @@ class ReportingController @Inject() (cc: ControllerComponents,
       fsacResults.map{ data =>
         FsacScoresReportItem(
           data.applicationId.toString(),
-          data.analysisExercise.map( removeFeedback ),
-          data.groupExercise.map( removeFeedback ),
+          data.writtenExercise.map( removeFeedback ),
+          data.teamExercise.map( removeFeedback ),
           data.leadershipExercise.map( removeFeedback )
         )
       }
