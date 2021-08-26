@@ -23,11 +23,11 @@ object ReferenceDataExamples {
   object Schemes {
     val Commercial = Scheme("Commercial", "CFS", "Commercial", civilServantEligible = false, degree = None, Some(SiftRequirement.NUMERIC_TEST),
       siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
-    val DaT = Scheme("DigitalAndTechnology", "DaT", "Digital And Technology", civilServantEligible = false, degree = None,
-      Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
+    val DDTaC = Scheme("DigitalDataTechnologyAndCyber", "DDTAC", "Digital, Data, Technology & Cyber Fast Stream", civilServantEligible = false,
+      degree = None, Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
     val Dip = Scheme("DiplomaticService", "DS", "Diplomatic Service", civilServantEligible = false, degree = None, Some(SiftRequirement.FORM),
       siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
-    val  DipEcon = Scheme("DiplomaticServiceEconomists", "GES-DS", "Diplomatic Service (Economists)", civilServantEligible = false,
+    val  DipEcon = Scheme("DiplomaticAndDevelopmentEconomics", "GES-DS", "Diplomatic and Development Economics", civilServantEligible = false,
       degree = None, Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
     val Finance = Scheme("Finance", "FIFS", "Finance", civilServantEligible = false, degree = None, Some(SiftRequirement.NUMERIC_TEST),
       siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
@@ -57,11 +57,11 @@ object ReferenceDataExamples {
     val Sdip = Scheme("Sdip", "SDIP", "Summer Diversity Internship Programme", civilServantEligible = false, degree = None,
       Some(SiftRequirement.FORM), siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None)
 
-    val AllSchemes = (Commercial :: DaT :: Dip :: DipEcon :: Finance :: Generalist :: GovComms :: GovEconomics :: GovOps ::
+    val AllSchemes = (Commercial :: DDTaC :: Dip :: DipEcon :: Finance :: Generalist :: GovComms :: GovEconomics :: GovOps ::
       GovSocialResearch :: GovStats :: HoP :: HR :: ProjectDelivery :: SciEng :: Edip :: Sdip :: Nil)
       .filterNot( s => s.id == SchemeId("GovernmentCommunicationService")) // Filter out GFCS for 2021 campaign
 
-    val SomeSchemes = Commercial :: DaT :: Dip :: Nil
+    val SomeSchemes = Commercial :: DDTaC :: Dip :: Nil
 
     def schemesWithNoDegree = AllSchemes.filter( _.degree.isEmpty )
   }
