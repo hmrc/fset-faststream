@@ -73,9 +73,9 @@ class TestDataGeneratorService @Inject() (authProviderClient: AuthProviderClient
   def cleanupDb(): Future[Unit] = {
     mongoComponent.mongoConnector.db().collectionNames.map { names =>
       names.foreach { name =>
-        logger.info(s"removing collection: $name")
         import reactivemongo.play.json.ImplicitBSONHandlers._
         mongoComponent.mongoConnector.db().collection[JSONCollection](name).delete().one(BSONDocument.empty)
+        logger.info(s"removed data from collection: $name")
       }
     }
   }
