@@ -44,9 +44,9 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     "not save any information to the database if we require all scores to be present and one score is missing" in new TestFixture {
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("Commercial"),
-          Green.toString), SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString)), "phase2-version1-res", None)
+          Green.toString), SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString)), "phase2-version1-res", None)
 
-        applicationEvaluation("application-1", None, true,SchemeId("Commercial"), SchemeId("DigitalAndTechnology"))
+        applicationEvaluation("application-1", None, true,SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber"))
 
         phase3EvaluationRepo.getPassMarkEvaluation("application-1").failed.futureValue mustBe a[PassMarkEvaluationNotFound]
       }
@@ -56,18 +56,18 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       "all scores are present" in new TestFixture {
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString),
-          SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString)), "phase2-version1-res", None)
-        applicationEvaluation("application-1", None, false,SchemeId("Commercial"), SchemeId("DigitalAndTechnology")) mustResultIn(
-          PHASE3_TESTS_FAILED, SchemeId("Commercial") -> Red, SchemeId("DigitalAndTechnology") -> Red)
+          SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Red.toString)), "phase2-version1-res", None)
+        applicationEvaluation("application-1", None, false,SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber")) mustResultIn(
+          PHASE3_TESTS_FAILED, SchemeId("Commercial") -> Red, SchemeId("DigitalDataTechnologyAndCyber") -> Red)
       }
     }
 
     "give pass results when all schemes are green" in new TestFixture {
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("Commercial"),
-          Green.toString), SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString)), "phase2-version1-res", None)
-        applicationEvaluation("application-1", Some(80), true,SchemeId("Commercial"), SchemeId("DigitalAndTechnology")) mustResultIn(
-          PHASE3_TESTS_PASSED, SchemeId("Commercial") -> Green, SchemeId("DigitalAndTechnology") -> Green)
+          Green.toString), SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString)), "phase2-version1-res", None)
+        applicationEvaluation("application-1", Some(80), true,SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber")) mustResultIn(
+          PHASE3_TESTS_PASSED, SchemeId("Commercial") -> Green, SchemeId("DigitalDataTechnologyAndCyber") -> Green)
       }
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None,
@@ -86,9 +86,9 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     "give pass results when there is no amber and at-least one scheme is green" in new TestFixture {
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None, List(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString),
-          SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString)), "phase2-version1-res", None)
-        applicationEvaluation("application-1", Some(80), true,SchemeId("Commercial"), SchemeId("DigitalAndTechnology")) mustResultIn(
-          PHASE3_TESTS_PASSED, SchemeId("Commercial") -> Red, SchemeId("DigitalAndTechnology") -> Green)
+          SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString)), "phase2-version1-res", None)
+        applicationEvaluation("application-1", Some(80), true,SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber")) mustResultIn(
+          PHASE3_TESTS_PASSED, SchemeId("Commercial") -> Red, SchemeId("DigitalDataTechnologyAndCyber") -> Green)
       }
     }
 
@@ -144,17 +144,19 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     "give pass results on re-evaluation when all schemes are green" in new TestFixture {
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None,
-          List(SchemeEvaluationResult(SchemeId("DiplomaticServiceEconomics"), Green.toString),
+          List(SchemeEvaluationResult(SchemeId("DiplomaticAndDevelopmentEconomics"), Green.toString),
             SchemeEvaluationResult(SchemeId("DiplomaticServiceEuropean"), Green.toString)),
           "phase2-version1-res", None)
 
-        applicationEvaluation("application-1", Some(40), true,SchemeId("DiplomaticServiceEconomics"), SchemeId("DiplomaticServiceEuropean"))
-        mustResultIn(PHASE3_TESTS, SchemeId("DiplomaticServiceEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
+        applicationEvaluation("application-1", Some(40), true,
+          SchemeId("DiplomaticAndDevelopmentEconomics"), SchemeId("DiplomaticServiceEuropean"))
+        mustResultIn(PHASE3_TESTS, SchemeId("DiplomaticAndDevelopmentEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
 
         applicationReEvaluationWithSettings(
-          (SchemeId("DiplomaticServiceEconomics"), 40, 40),
+          (SchemeId("DiplomaticAndDevelopmentEconomics"), 40, 40),
           (SchemeId("DiplomaticServiceEuropean"), 40, 40)
-        ) mustResultIn(PHASE3_TESTS_PASSED, SchemeId("DiplomaticServiceEconomics") -> Green, SchemeId("DiplomaticServiceEuropean") -> Green)
+        ) mustResultIn(PHASE3_TESTS_PASSED, SchemeId("DiplomaticAndDevelopmentEconomics") -> Green,
+          SchemeId("DiplomaticServiceEuropean") -> Green)
       }
     }
 
@@ -190,9 +192,9 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     val phase3PassMarkSettingsTable = Table[SchemeId, Double, Double](
       ("Scheme Name", "Video Interview Fail Threshold", "Video Interview Pass threshold"),
       (SchemeId("Commercial"), 20.0, 80.0),
-      (SchemeId("DigitalAndTechnology"), 20.001, 20.001),
+      (SchemeId("DigitalDataTechnologyAndCyber"), 20.001, 20.001),
       (SchemeId("DiplomaticService"), 20.01, 20.02),
-      (SchemeId("DiplomaticServiceEconomics"), 30.0, 70.0),
+      (SchemeId("DiplomaticAndDevelopmentEconomics"), 30.0, 70.0),
       (SchemeId("DiplomaticServiceEuropean"), 30.0, 70.0),
       (SchemeId("European"), 40.0, 70.0),
       (SchemeId("Finance"), 25.01, 25.02),

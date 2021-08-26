@@ -35,7 +35,7 @@ object ApplicationForDiversityReportExamples {
 
   val Example2 =
     ApplicationForDiversityReport("appId6", "userId11", ApplicationRoute.Faststream, progress = Some("submitted"),
-      List(SchemeId("DiplomaticServiceEconomics"), SchemeId("Commercial"), SchemeId("GovernmentCommunicationService"),
+      List(SchemeId("DiplomaticAndDevelopmentEconomics"), SchemeId("Commercial"), SchemeId("GovernmentCommunicationService"),
         SchemeId("European")), disability = Some("Yes"), gis = Some(true), onlineAdjustments = Some("Yes"),
       assessmentCentreAdjustments = Some("No"),
       Some(CivilServiceExperienceDetailsForDiversityReport(

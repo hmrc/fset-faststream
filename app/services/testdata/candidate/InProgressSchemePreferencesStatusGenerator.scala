@@ -51,7 +51,7 @@ class InProgressSchemePreferencesStatusGenerator @Inject() (val previousStatusGe
             case ApplicationRoute.Edip => SelectedSchemes(List(model.SchemeId("Edip")), orderAgreed = true, eligible = true)
             case ApplicationRoute.Sdip => SelectedSchemes(List(model.SchemeId("Sdip")), orderAgreed = true, eligible = true)
             case ApplicationRoute.SdipFaststream => SelectedSchemes(List(model.SchemeId("Sdip"), model.SchemeId("Commercial"),
-              model.SchemeId("DigitalAndTechnology"), model.SchemeId("Finance")), orderAgreed = true, eligible = true)
+              model.SchemeId("DigitalDataTechnologyAndCyber"), model.SchemeId("Finance")), orderAgreed = true, eligible = true)
             case _ => SelectedSchemes(dataFaker.schemeTypes.map(_.id), orderAgreed = true, eligible = true)
           }
         }

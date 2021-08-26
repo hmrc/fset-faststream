@@ -183,9 +183,9 @@
                 "enum": [
                   "Generalist",
                   "Commercial",
-                  "DigitalAndTechnology",
+                  "DigitalDataTechnologyAndCyber",
                   "DiplomaticService",
-                  "DiplomaticServiceEconomics",
+                  "DiplomaticAndDevelopmentEconomics",
                   "DiplomaticServiceEuropean",
                   "European",
                   "Finance",
@@ -656,9 +656,9 @@
                 "enum": [
                   "Generalist",
                   "Commercial",
-                  "DigitalAndTechnology",
+                  "DigitalDataTechnologyAndCyber",
                   "DiplomaticService",
-                  "DiplomaticServiceEconomics",
+                  "DiplomaticAndDevelopmentEconomics",
                   "DiplomaticServiceEuropean",
                   "European",
                   "Finance",

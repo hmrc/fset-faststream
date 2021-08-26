@@ -41,14 +41,14 @@ object ApplicationForOnlineTestPassMarkReportExamples {
       UUIDFactory.generateUUID(),
       "phase1_tests_results_received",
       ApplicationRoute.Faststream,
-      List(SchemeId("Commercial"), SchemeId("DigitalAndTechnology")),
+      List(SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber")),
       None,
       None,
       None,
       None,
       testsResult,
       List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString),
-        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), EvaluationResults.Green.toString)))
+        SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), EvaluationResults.Green.toString)))
 
   def rnd(prefix: String) = s"$prefix-${Random.nextInt(100)}"
 }

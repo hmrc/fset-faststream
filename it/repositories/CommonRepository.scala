@@ -41,13 +41,13 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
 
   val mockAppConfig = mock[MicroserviceAppConfig]
 
-  val DiplomaticServiceEconomists: SchemeId = SchemeId("DiplomaticServiceEconomists")
+  val DiplomaticAndDevelopmentEconomics: SchemeId = SchemeId("DiplomaticAndDevelopmentEconomics")
   val Finance = SchemeId("Finance")
   val GovernmentEconomicsService = SchemeId("GovernmentEconomicsService")
-  val DigitalAndTechnology = SchemeId("DigitalAndTechnology")
+  val DigitalDataTechnologyAndCyber = SchemeId("DigitalDataTechnologyAndCyber")
   val Sdip = SchemeId("Sdip")
   val Edip = SchemeId("Edip")
-  val siftableSchemeDefinitions = List(DiplomaticServiceEconomists, Finance, GovernmentEconomicsService, Sdip)
+  val siftableSchemeDefinitions = List(DiplomaticAndDevelopmentEconomics, Finance, GovernmentEconomicsService, Sdip)
 
   def applicationRepository = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, mockAppConfig, mongo)
 

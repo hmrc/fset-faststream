@@ -79,10 +79,10 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "fail to evaluate scheme GES_DS if FCO results were not submitted" in new TestFixture {
       val curSchemeStatus = List(
-        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString),
-        SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Green.toString)
+        SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Red.toString),
+        SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Green.toString)
       )
-      val res = FsbTestGroup(List(SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Green.toString)))
+      val res = FsbTestGroup(List(SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Green.toString)))
       when(mockSchemePreferencesService.find(uid.toString())).thenReturnAsync(selectedSchemes)
       when(mockFsbRepo.findByApplicationId(uid.toString())).thenReturnAsync(Some(res))
       when(mockApplicationRepo.getCurrentSchemeStatus(uid.toString())).thenReturnAsync(curSchemeStatus)
@@ -97,7 +97,7 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
     "evaluate DS as failed, and then GES_DS as failed too, but do not evaluate GES as EAC evaluation hasn't happened yet" in new TestFixture {
       val curSchemeStatus = List(
         SchemeEvaluationResult(DSSchemeIds.DiplomaticService, Green.toString),
-        SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Green.toString),
+        SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Green.toString),
         SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Green.toString)
       )
 
@@ -113,7 +113,7 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       when(mockFsbRepo.updateCurrentSchemeStatus(uid.toString(),
         List(
           SchemeEvaluationResult(DSSchemeIds.DiplomaticService, Red.toString),
-          SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Green.toString),
+          SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Green.toString),
           SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Green.toString)
         )
       )).thenReturnAsync()
@@ -123,7 +123,7 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       when(mockFsbRepo.updateCurrentSchemeStatus(uid.toString(),
         List(
           SchemeEvaluationResult(DSSchemeIds.DiplomaticService, Red.toString),
-          SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Red.toString),
+          SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Red.toString),
           SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Green.toString)
 
         )
@@ -140,13 +140,13 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "evaluate scheme GES_DS as failed, and then GES as failed, but finally DS passed" in new TestFixture {
       val curSchemeStatus = List(
-        SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Green.toString),
-        SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString),
+        SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Green.toString),
+        SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Red.toString),
         SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Green.toString),
         SchemeEvaluationResult(DSSchemeIds.DiplomaticService, Green.toString)
       )
       val res = FsbTestGroup(List(
-        SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Red.toString),
+        SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Red.toString),
         SchemeEvaluationResult(DSSchemeIds.DiplomaticService, Green.toString)
       ))
       when(mockSchemePreferencesService.find(uid.toString())).thenReturnAsync(selectedSchemes)
@@ -157,8 +157,8 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.FSB_FAILED)).thenReturnAsync()
       when(mockFsbRepo.updateCurrentSchemeStatus(uid.toString(),
         List(
-          SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Red.toString),
-          SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString),
+          SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Red.toString),
+          SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Red.toString),
           SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Green.toString),
           SchemeEvaluationResult(DSSchemeIds.DiplomaticService, Green.toString)
         )
@@ -168,8 +168,8 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.FSB_FAILED)).thenReturnAsync()
       when(mockFsbRepo.updateCurrentSchemeStatus(uid.toString(),
         List(
-          SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Red.toString),
-          SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Red.toString),
+          SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Red.toString),
+          SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Red.toString),
           SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Red.toString),
           SchemeEvaluationResult(DSSchemeIds.DiplomaticService, Green.toString)
         )
@@ -183,7 +183,7 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
     }
 
     /**
-      * DiplomaticServiceEconomists (code: GES-DS, fsbType: EAC_DS) TODO: clarify with Paul to rename fsbType to EAC_FCO
+      * DiplomaticAndDevelopmentEconomics (code: GES-DS, fsbType: EAC_DS) TODO: clarify with Paul to rename fsbType to EAC_FCO
       * - GovernmentEconomicsService (code: GES, fsbType: EAC)
       * - DiplomaticService (code: DS, fsbType: FCO)
       *
@@ -201,12 +201,12 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       ))
       when(mockFsbRepo.findByApplicationId(uid.toString())).thenReturnAsync(Some(fsbResult))
 
-      override val schemes = List(DSSchemeIds.DiplomaticServiceEconomists)
+      override val schemes = List(DSSchemeIds.DiplomaticAndDevelopmentEconomics)
       override val selectedSchemes = SelectedSchemes(schemes, orderAgreed = true, eligible = true)
       when(mockSchemePreferencesService.find(uid.toString())).thenReturnAsync(selectedSchemes)
 
       // This is the css after FSAC and before FSB evaluation
-      val curSchemeStatus = List(SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Green.toString))
+      val curSchemeStatus = List(SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Green.toString))
       when(mockApplicationRepo.getCurrentSchemeStatus(uid.toString())).thenReturnAsync(curSchemeStatus)
 
       when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.FSB_PASSED)).thenReturnAsync()
@@ -223,12 +223,12 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       ))
       when(mockFsbRepo.findByApplicationId(uid.toString())).thenReturnAsync(Some(fsbResult))
 
-      override val schemes = List(DSSchemeIds.DiplomaticServiceEconomists)
+      override val schemes = List(DSSchemeIds.DiplomaticAndDevelopmentEconomics)
       override val selectedSchemes = SelectedSchemes(schemes, orderAgreed = true, eligible = true)
       when(mockSchemePreferencesService.find(uid.toString())).thenReturnAsync(selectedSchemes)
 
       // This is the css after FSAC and before FSB evaluation
-      val curSchemeStatus = List(SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Green.toString))
+      val curSchemeStatus = List(SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Green.toString))
       when(mockApplicationRepo.getCurrentSchemeStatus(uid.toString())).thenReturnAsync(curSchemeStatus)
 
       when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.FSB_FAILED)).thenReturnAsync()
@@ -255,12 +255,12 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       ))
       when(mockFsbRepo.findByApplicationId(uid.toString())).thenReturnAsync(Some(fsbResult))
 
-      override val schemes = List(DSSchemeIds.DiplomaticServiceEconomists)
+      override val schemes = List(DSSchemeIds.DiplomaticAndDevelopmentEconomics)
       override val selectedSchemes = SelectedSchemes(schemes, orderAgreed = true, eligible = true)
       when(mockSchemePreferencesService.find(uid.toString())).thenReturnAsync(selectedSchemes)
 
       // This is the css after FSAC and before FSB evaluation
-      val curSchemeStatus = List(SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Green.toString))
+      val curSchemeStatus = List(SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Green.toString))
       when(mockApplicationRepo.getCurrentSchemeStatus(uid.toString())).thenReturnAsync(curSchemeStatus)
 
       when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.FSB_FAILED)).thenReturnAsync()
@@ -286,13 +286,13 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       ))
       when(mockFsbRepo.findByApplicationId(uid.toString())).thenReturnAsync(Some(fsbResult))
 
-      override val schemes = List(DSSchemeIds.DiplomaticServiceEconomists, DSSchemeIds.DiplomaticService)
+      override val schemes = List(DSSchemeIds.DiplomaticAndDevelopmentEconomics, DSSchemeIds.DiplomaticService)
       override val selectedSchemes = SelectedSchemes(schemes, orderAgreed = true, eligible = true)
       when(mockSchemePreferencesService.find(uid.toString())).thenReturnAsync(selectedSchemes)
 
       // This is the css after FSAC and before FSB evaluation
       val curSchemeStatus = List(
-        SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Green.toString),
+        SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Green.toString),
         SchemeEvaluationResult(DSSchemeIds.DiplomaticService, Green.toString)
       )
       when(mockApplicationRepo.getCurrentSchemeStatus(uid.toString())).thenReturnAsync(curSchemeStatus)
@@ -320,13 +320,13 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       ))
       when(mockFsbRepo.findByApplicationId(uid.toString())).thenReturnAsync(Some(fsbResult))
 
-      override val schemes = List(DSSchemeIds.DiplomaticServiceEconomists, DSSchemeIds.GovernmentEconomicsService)
+      override val schemes = List(DSSchemeIds.DiplomaticAndDevelopmentEconomics, DSSchemeIds.GovernmentEconomicsService)
       override val selectedSchemes = SelectedSchemes(schemes, orderAgreed = true, eligible = true)
       when(mockSchemePreferencesService.find(uid.toString())).thenReturnAsync(selectedSchemes)
 
       // This is the css after FSAC and before FSB evaluation
       val curSchemeStatus = List(
-        SchemeEvaluationResult(DSSchemeIds.DiplomaticServiceEconomists, Green.toString),
+        SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Green.toString),
         SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Green.toString)
       )
       when(mockApplicationRepo.getCurrentSchemeStatus(uid.toString())).thenReturnAsync(curSchemeStatus)
@@ -373,9 +373,9 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
     )
 
     val schemes = List(
-      SchemeId("DigitalAndTechnology"),
+      SchemeId("DigitalDataTechnologyAndCyber"),
       SchemeId("DiplomaticService"),
-      SchemeId("DiplomaticServiceEconomists"),
+      SchemeId("DiplomaticAndDevelopmentEconomics"),
       SchemeId("GovernmentEconomicsService")
     )
 

@@ -16,26 +16,27 @@
 
 package repositories.application
 
-import factories.{ ITDateTimeFactoryMock, UUIDFactory }
-import model.ApplicationRoute.{ ApplicationRoute, apply => _ }
+import factories.{ITDateTimeFactoryMock, UUIDFactory}
+import model.ApplicationRoute.{ApplicationRoute, apply => _}
 import model.ApplicationStatus._
-import model.Exceptions.{ ApplicationNotFound, NotFoundException }
-import model.ProgressStatuses.{ PHASE1_TESTS_PASSED => _, PHASE3_TESTS_FAILED => _, SUBMITTED => _, _ }
+import model.EvaluationResults.{Green, Red}
+import model.Exceptions.{ApplicationNotFound, NotFoundException}
+import model.ProgressStatuses.{PHASE1_TESTS_PASSED => _, PHASE3_TESTS_FAILED => _, SUBMITTED => _, _}
 import model.command.ProgressResponse
 import model.exchange.CandidatesEligibleForEventResponse
 import model.persisted._
 import model.persisted.eventschedules.EventType
-import model.{ ApplicationStatus, Candidate, _ }
-import org.joda.time.{ DateTime, LocalDate }
-import reactivemongo.api.indexes.IndexType.{ Ascending, Descending }
-import reactivemongo.bson.{ BSONArray, BSONDocument }
+import model.{ApplicationStatus, Candidate, _}
+import org.joda.time.{DateTime, LocalDate}
+import reactivemongo.api.indexes.IndexType.{Ascending, Descending}
+import reactivemongo.bson.{BSONArray, BSONDocument}
 import repositories.CollectionNames
-import repositories.onlinetesting.{ Phase1TestMongoRepository, Phase2TestMongoRepository }
+import repositories.onlinetesting.{Phase1TestMongoRepository, Phase2TestMongoRepository}
 import scheduler.fixer.FixBatch
-import scheduler.fixer.RequiredFixes.{ AddMissingPhase2ResultReceived, PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted }
+import scheduler.fixer.RequiredFixes.{AddMissingPhase2ResultReceived, PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted}
 import testkit.MongoRepositorySpec
 
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{Await, Future}
 
 class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
@@ -693,29 +694,29 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "return an empty item when all schemes are red" in {
       createUnAllocatedFSBApplications(1,
         List(
-          SchemeEvaluationResult("HumanResources", "Red"),
-          SchemeEvaluationResult("DigitalAndTechnology", "Red")
+          SchemeEvaluationResult("HumanResources", Red.toString),
+          SchemeEvaluationResult("DigitalDataTechnologyAndCyber", Red.toString)
         )).futureValue
-      findFsbCandidatesCall(SchemeId("DigitalAndTechnology")).candidates mustBe empty
+      findFsbCandidatesCall(SchemeId("DigitalDataTechnologyAndCyber")).candidates mustBe empty
     }
 
     "return an empty item when there are no FSB eligible candidates for first residual preference" in {
       createUnAllocatedFSBApplications(1,
         List(
-          SchemeEvaluationResult("HumanResources", "Green"),
-          SchemeEvaluationResult("DigitalAndTechnology", "Green")
+          SchemeEvaluationResult("HumanResources", Green.toString),
+          SchemeEvaluationResult("DigitalDataTechnologyAndCyber", Green.toString)
         )).futureValue
-      findFsbCandidatesCall(SchemeId("DigitalAndTechnology")).candidates mustBe empty
+      findFsbCandidatesCall(SchemeId("DigitalDataTechnologyAndCyber")).candidates mustBe empty
     }
 
     "return an item when there are FSB eligible candidates" in {
       createUnAllocatedFSBApplications(1,
         List(
-          SchemeEvaluationResult("HumanResources", "Red"),
-          SchemeEvaluationResult("DigitalAndTechnology", "Green")
+          SchemeEvaluationResult("HumanResources", Red.toString),
+          SchemeEvaluationResult("DigitalDataTechnologyAndCyber", Green.toString)
         )).futureValue
 
-      findFsbCandidatesCall(SchemeId("DigitalAndTechnology")).candidates must have size 1
+      findFsbCandidatesCall(SchemeId("DigitalDataTechnologyAndCyber")).candidates must have size 1
     }
   }
 

@@ -9,9 +9,9 @@
   siftEvaluationRequired: true
   fsbType: CFS - Skype interview
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Commercial.pdf
-- id: DigitalAndTechnology
-  code: DAT
-  name: Digital, Data & Technology
+- id: DigitalDataTechnologyAndCyber
+  code: DDTAC
+  name: Digital, Data, Technology & Cyber
   civilServantEligible: true
   degree:
     required: Degree_22
@@ -31,9 +31,9 @@
   fsbType: FCO
   schemeGuide: https://www.faststream.gov.uk/media/1232/fco-guide.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/1313/scheme-questions-fco.odt
-- id: DiplomaticServiceEconomists
+- id: DiplomaticAndDevelopmentEconomics
   code: GES-DS
-  name: Diplomatic Service (Economists)
+  name: Diplomatic and Development Economics
   civilServantEligible: false
   degree:
     required: Degree_DipServEconomics

@@ -33,7 +33,9 @@ object ApplicationForDiversityReportItemExamples {
       SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)))
 
   val Example2 = ApplicationForDiversityReportItem(Some("submitted"), ApplicationRoute.Faststream,
-    List(SchemeId("DiplomaticServiceEconomics"), SchemeId("Commercial"), SchemeId("GovernmentCommunicationService"), SchemeId("European")),
+    List(SchemeId("DiplomaticAndDevelopmentEconomics"), SchemeId("Commercial"), SchemeId("GovernmentCommunicationService"),
+      SchemeId("European")
+    ),
     disability = Some("Yes"), gis = Some(true), onlineAdjustments = Some("Yes"), assessmentCentreAdjustments = Some("No"),
     Some(CivilServiceExperienceDetailsReportItem(
       isCivilServant = Some("Yes"), isEDIP = Some("No"), edipYear = None, isSDIP = Some("No"), sdipYear = None,
