@@ -17,12 +17,13 @@
 package services.application
 
 import connectors.OnlineTestEmailClient
-import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_SDIP_GREEN, ASSESSMENT_CENTRE_SCORES_ACCEPTED }
+import model.ProgressStatuses.{ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_SDIP_GREEN, ASSESSMENT_CENTRE_SCORES_ACCEPTED}
 import model._
 import model.command.ApplicationForProgression
-import model.persisted.{ ContactDetails, SchemeEvaluationResult }
+import model.persisted.{ContactDetails, SchemeEvaluationResult}
 import org.joda.time.DateTime
-import repositories.application.{ FinalOutcomeRepository, GeneralApplicationRepository }
+import repositories.SchemeRepository
+import repositories.application.{FinalOutcomeRepository, GeneralApplicationRepository}
 import repositories.contactdetails.ContactDetailsRepository
 import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitSpec
@@ -40,8 +41,12 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
         .expects(C1.userId)
         .returningAsync(Cd1)
 
+      ( mockSchemeRepo.getSchemeForId(_: SchemeId) )
+        .expects(SchemeId(Commercial))
+        .returning(Option(CommercialScheme))
+
       ( mockEmailClient.notifyCandidateOnFinalSuccess(_: String, _: String, _: String)(_: HeaderCarrier) )
-        .expects(Cd1.email, C1.name, Scheme, hc)
+        .expects(Cd1.email, C1.name, Commercial, hc)
         .returningAsync
 
       (mockFinalOutcomeRepo.firstResidualPreference _)
@@ -113,23 +118,39 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
 
     implicit val hc = HeaderCarrier()
 
-    val Scheme = "Commercial"
+    val Commercial = "Commercial"
     val App1 = ApplicationForProgression("appId1", ApplicationStatus.ASSESSMENT_CENTRE,
-      List(SchemeEvaluationResult(SchemeId(Scheme), EvaluationResults.Green.toString)))
+      List(SchemeEvaluationResult(SchemeId(Commercial), EvaluationResults.Green.toString)))
+    val CommercialScheme = Scheme(
+      id = SchemeId("Commercial"),
+      code = "Commercial",
+      name = "Commercial",
+      civilServantEligible = false,
+      degree = None,
+      siftRequirement = None,
+      siftEvaluationRequired = false,
+      fsbType = None,
+      schemeGuide = None,
+      schemeQuestion = None
+    )
 
-    val C1 = Candidate("userId", Some(App1.applicationId), None, Some("test@test123.com"), None, None, None, None, None, None, None, None, None)
+    val C1 = Candidate("userId", Some(App1.applicationId), testAccountId = None, Some("test@test123.com"),
+      firstName = None, lastName = None, preferredName = None, dateOfBirth = None, address = None, postCode = None,
+      country = None, applicationRoute = None, applicationStatus = None)
 
     val Cd1 = ContactDetails(outsideUk = false, Address("line1a"), Some("123"), Some("UK"), "email1@email.com", "12345")
 
     val mockContactDetailsRepo = mock[ContactDetailsRepository]
     val mockApplicationRepo = mock[GeneralApplicationRepository]
     val mockFinalOutcomeRepo = mock[FinalOutcomeRepository]
+    val mockSchemeRepo = mock[SchemeRepository]
     val mockEmailClient = mock[OnlineTestEmailClient] //TODO:fix changed type
 
     val service = new FinalOutcomeService(
       mockContactDetailsRepo,
       mockApplicationRepo,
       mockFinalOutcomeRepo,
+      mockSchemeRepo,
       mockEmailClient
     )
   }

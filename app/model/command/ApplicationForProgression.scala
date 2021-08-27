@@ -28,6 +28,4 @@ case class ApplicationForProgression(
 
 object ApplicationForProgression {
   implicit val applicationForFsacFormat: OFormat[ApplicationForProgression] = Json.format[ApplicationForProgression]
-
-
 }
