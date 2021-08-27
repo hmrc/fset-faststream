@@ -52,8 +52,8 @@ class AssessmentFeedbackControllerSpec extends BaseControllerSpec {
 
       val assessmentScores = AssessmentScoresAllExercises(
         applicationId,
-        analysisExercise = None,
-        groupExercise = None,
+        writtenExercise = None,
+        teamExercise = None,
         leadershipExercise = None,
         finalFeedback = None
       )
