@@ -18,11 +18,13 @@ package services.application
 
 import common.FutureEx
 import connectors.OnlineTestEmailClient
-import javax.inject.{ Inject, Named, Singleton }
-import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, FSB_FAILED }
+
+import javax.inject.{Inject, Named, Singleton}
+import model.ProgressStatuses.{ASSESSMENT_CENTRE_FAILED, FSB_FAILED}
 import model.command.ApplicationForProgression
-import model.{ ProgressStatuses, SerialUpdateResult }
+import model.{ProgressStatuses, SerialUpdateResult}
 import org.joda.time.DateTime
+import repositories.SchemeRepository
 import repositories.application._
 import repositories.contactdetails.ContactDetailsRepository
 import uk.gov.hmrc.http.HeaderCarrier
@@ -34,6 +36,7 @@ import scala.concurrent.Future
 class FinalOutcomeService @Inject() (contactDetailsRepo: ContactDetailsRepository,
                                      applicationRepo: GeneralApplicationRepository,
                                      finalOutcomeRepo: FinalOutcomeRepository,
+                                     schemeRepo: SchemeRepository,
                                      @Named("CSREmailClient") emailClient: OnlineTestEmailClient //TODO:fix changed type
                                     ) {
 
@@ -56,7 +59,9 @@ class FinalOutcomeService @Inject() (contactDetailsRepo: ContactDetailsRepositor
             (candidate, contactDetails) <- retrieveCandidateDetails(app.applicationId)
             firstSchemeRes = finalOutcomeRepo.firstResidualPreference(app.currentSchemeStatus)
               .getOrElse(sys.error(s"No first residual preference for ${app.applicationId}"))
-            _ <- emailClient.notifyCandidateOnFinalSuccess(contactDetails.email, candidate.name, firstSchemeRes.schemeId.value)
+            scheme <- Future.successful(schemeRepo.getSchemeForId(firstSchemeRes.schemeId)
+              .getOrElse(sys.error(s"No first residual preference for ${app.applicationId}")))
+            _ <- emailClient.notifyCandidateOnFinalSuccess(contactDetails.email, candidate.name, scheme.name)
             _ <- finalOutcomeRepo.progressToJobOfferNotified(app)
           } yield ()
         }
