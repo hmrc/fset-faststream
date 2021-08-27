@@ -20,11 +20,11 @@ import models.UniqueIdentifier
 import play.api.libs.json.Json
 
 case class AssessmentScoresAllExercises(
-  applicationId: UniqueIdentifier,
-  analysisExercise: Option[AssessmentScoresExercise] = None,
-  groupExercise: Option[AssessmentScoresExercise] = None,
-  leadershipExercise: Option[AssessmentScoresExercise] = None,
-  finalFeedback: Option[AssessmentScoresFinalFeedback] = None
+                                         applicationId: UniqueIdentifier,
+                                         writtenExercise: Option[AssessmentScoresExercise] = None,
+                                         teamExercise: Option[AssessmentScoresExercise] = None,
+                                         leadershipExercise: Option[AssessmentScoresExercise] = None,
+                                         finalFeedback: Option[AssessmentScoresFinalFeedback] = None
 )
 
 object AssessmentScoresAllExercises {

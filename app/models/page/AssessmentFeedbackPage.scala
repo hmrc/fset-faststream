@@ -38,27 +38,27 @@ case object AssessmentFeedbackPage {
 
   def apply(assessmentScores: AssessmentScoresAllExercises, evaluatedAverageResults: CompetencyAverageResult,
     candidateName: String): AssessmentFeedbackPage = {
-    val analysisExercise = ExerciseFeedback("Written exercise",
+    val analysisExercise = ExerciseFeedback("Written scenario",
       Seq(
         CompetencyFeedback(seeingTheBigPictureCompetency,
-          assessmentScores.analysisExercise.flatMap{ s => s.seeingTheBigPictureFeedback}.getOrElse("")),
+          assessmentScores.writtenExercise.flatMap{ s => s.seeingTheBigPictureFeedback}.getOrElse("")),
         CompetencyFeedback(makingEffectiveDecisionsCompetency,
-          assessmentScores.analysisExercise.flatMap{ s => s.makingEffectiveDecisionsFeedback}.getOrElse("")),
+          assessmentScores.writtenExercise.flatMap{ s => s.makingEffectiveDecisionsFeedback}.getOrElse("")),
         CompetencyFeedback(communicatingAndInfluencingCompetency,
-          assessmentScores.analysisExercise.flatMap{ s => s.communicatingAndInfluencingFeedback}.getOrElse(""))
+          assessmentScores.writtenExercise.flatMap{ s => s.communicatingAndInfluencingFeedback}.getOrElse(""))
       )
     )
-    val groupExercise = ExerciseFeedback("Group exercise",
+    val groupExercise = ExerciseFeedback("Team scenario",
       Seq(
         CompetencyFeedback(makingEffectiveDecisionsCompetency,
-          assessmentScores.groupExercise.flatMap{ s => s.makingEffectiveDecisionsFeedback}.getOrElse("")),
+          assessmentScores.teamExercise.flatMap{ s => s.makingEffectiveDecisionsFeedback}.getOrElse("")),
         CompetencyFeedback(workingTogetherDevelopingSelfAndOthersCompetency,
-          assessmentScores.groupExercise.flatMap{ s => s.workingTogetherDevelopingSelfAndOthersFeedback}.getOrElse("")),
+          assessmentScores.teamExercise.flatMap{ s => s.workingTogetherDevelopingSelfAndOthersFeedback}.getOrElse("")),
         CompetencyFeedback(communicatingAndInfluencingCompetency,
-          assessmentScores.groupExercise.flatMap{ s => s.communicatingAndInfluencingFeedback}.getOrElse(""))
+          assessmentScores.teamExercise.flatMap{ s => s.communicatingAndInfluencingFeedback}.getOrElse(""))
       )
     )
-    val leadershipExercise = ExerciseFeedback("Leadership exercise",
+    val leadershipExercise = ExerciseFeedback("Leadership scenario",
       Seq(
         CompetencyFeedback(workingTogetherDevelopingSelfAndOthersCompetency,
           assessmentScores.leadershipExercise.flatMap{ s => s.workingTogetherDevelopingSelfAndOthersFeedback}.getOrElse("")),
