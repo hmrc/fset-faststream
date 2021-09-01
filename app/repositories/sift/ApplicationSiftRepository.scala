@@ -65,6 +65,7 @@ trait ApplicationSiftRepository {
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult, settableFields: Seq[BSONDocument] = Nil ): Future[Unit]
   def update(applicationId: String, predicate: BSONDocument, update: BSONDocument, action: String): Future[Unit]
   def saveSiftExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit]
+  def findSiftExpiryDate(applicationId: String): Future[DateTime]
   def isSiftExpired(applicationId: String): Future[Boolean]
   def removeTestGroup(applicationId: String): Future[Unit]
   def findAllUsersInSiftReady: Future[Seq[FixStuckUser]]
@@ -559,6 +560,20 @@ class ApplicationSiftMongoRepository @Inject() (
       actionDesc = s"inserting expiry date during $phaseName", ApplicationNotFound(applicationId))
 
     collection.update(ordered = false).one(query, update) map validator
+  }
+
+  def findSiftExpiryDate(applicationId: String): Future[DateTime] = {
+    val query = BSONDocument("applicationId" -> applicationId)
+    val projection = BSONDocument(s"testGroups.$phaseName.expirationDate" -> true)
+
+    collection.find(query, Some(projection)).one[BSONDocument] map {
+      case Some(doc) =>
+        doc.getAs[BSONDocument]("testGroups")
+        .flatMap { _.getAs[BSONDocument](phaseName) }
+        .flatMap { _.getAs[DateTime]("expirationDate")}
+        .getOrElse(throw ApplicationNotFound(s"Cannot find sift expiry date for application $applicationId"))
+      case _ => throw ApplicationNotFound(s"Cannot find sift expiry date for application $applicationId")
+    }
   }
 
   def removeTestGroup(applicationId: String): Future[Unit] = {

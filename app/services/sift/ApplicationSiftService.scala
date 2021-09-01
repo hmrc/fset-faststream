@@ -113,9 +113,13 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     updates.map(SerialUpdateResult.fromEither)
   }
 
-  def saveSiftExpiryDate(applicationId: String): Future[Unit] = {
+  def saveSiftExpiryDate(applicationId: String): Future[DateTime] = {
     val expiryDate = dateTimeFactory.nowLocalTimeZone.plusDays(SiftExpiryWindowInDays)
-    applicationSiftRepo.saveSiftExpiryDate(applicationId, expiryDate).map(_ => ())
+    applicationSiftRepo.saveSiftExpiryDate(applicationId, expiryDate).map(_ => expiryDate)
+  }
+
+  def fetchSiftExpiryDate(applicationId: String): Future[DateTime] = {
+    applicationSiftRepo.findSiftExpiryDate(applicationId)
   }
 
   def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[model.Candidate]] = {
@@ -239,10 +243,12 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     case s if s.result != Withdrawn.toString && s.result != Red.toString => s.schemeId
   }
 
-  def sendSiftEnteredNotification(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def sendSiftEnteredNotification(applicationId: String, siftExpiry: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = {
     applicationRepo.find(applicationId).flatMap {
       case Some(candidate) => contactDetailsRepo.find(candidate.userId).flatMap { contactDetails =>
-        emailClient.notifyCandidateSiftEnteredAdditionalQuestions(contactDetails.email, candidate.name).map(_ => ())
+        emailClient.notifyCandidateSiftEnteredAdditionalQuestions(
+          contactDetails.email, candidate.name, siftExpiry
+        ).map(_ => ())
       }
       case None => throw CouldNotFindCandidateWithApplication(applicationId)
     }

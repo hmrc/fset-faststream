@@ -50,8 +50,8 @@ class AdjustmentsManagementService @Inject() (appRepository: GeneralApplicationR
     def progressCandidateToSift(schemes: SelectedSchemes): Future[Unit] = {
       for {
         _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_ENTERED)
-        _ <- applicationSiftService.saveSiftExpiryDate(applicationId)
-        _ <- applicationSiftService.sendSiftEnteredNotification(applicationId)
+        siftExpiry <- applicationSiftService.saveSiftExpiryDate(applicationId)
+        _ <- applicationSiftService.sendSiftEnteredNotification(applicationId, siftExpiry)
       } yield ()
     }
 

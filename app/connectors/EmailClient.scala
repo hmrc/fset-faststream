@@ -292,8 +292,11 @@ trait EmailClient extends Logging {
     sendEmail(to, "fset_faststream_app_final_success", Map("name" -> name, "scheme" -> scheme))
   }
 
-  def notifyCandidateSiftEnteredAdditionalQuestions(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] = {
-    sendEmail(to, "fset_faststream_notify_candidate_sift_entered_additional_questions", Map("name" -> name))
+  def notifyCandidateSiftEnteredAdditionalQuestions(to: String, name: String, expireDateTime: DateTime)(
+    implicit hc: HeaderCarrier): Future[Unit] = {
+    sendEmail(to, "fset_faststream_notify_candidate_sift_entered_additional_questions",
+      Map("name" -> name, "expireDateTime" -> EmailDateFormatter.toExpiryTime(expireDateTime))
+    )
   }
 
   def sendSiftNumericTestInvite(to: String, name: String, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = {

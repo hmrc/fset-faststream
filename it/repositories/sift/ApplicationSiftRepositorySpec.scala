@@ -2,11 +2,13 @@ package repositories.sift
 
 import model.ApplicationRoute.ApplicationRoute
 import model.EvaluationResults.{Green, Red, Withdrawn}
+import model.Exceptions.ApplicationNotFound
 import model.Phase3TestProfileExamples.phase3TestWithResult
 import model.ProgressStatuses.PHASE3_TESTS_PASSED
 import model._
 import model.command.ApplicationForSift
 import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
+import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.prop.TableDrivenPropertyChecks
 import play.api.Logging
@@ -170,6 +172,22 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       whenReady(repository.nextApplicationFailedAtSift) { result =>
         result mustBe None
       }
+    }
+  }
+
+  "sift expiry date" must {
+    "throw an exception if there is no expiry date when looking for one" in {
+      createSiftEligibleCandidates("appId")
+      val result = repository.findSiftExpiryDate("appId").failed.futureValue
+      result mustBe a[ApplicationNotFound]
+    }
+
+    "return the expiry date when one is stored" in {
+      createSiftEligibleCandidates("appId")
+      val now = DateTime.now().withZone(DateTimeZone.UTC)
+      repository.saveSiftExpiryDate("appId", now).futureValue
+      val result = repository.findSiftExpiryDate("appId").futureValue
+      result mustBe now
     }
   }
 

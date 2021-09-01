@@ -99,7 +99,10 @@ class FastPassService @Inject() (appRepo: GeneralApplicationRepository,
   private def autoProgressToSiftOrFSAC(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     def notifySiftEntered(siftStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {
       if(siftStatus == ProgressStatuses.SIFT_ENTERED) {
-        applicationSiftService.sendSiftEnteredNotification(applicationId)
+        for {
+          expiryDate <- applicationSiftService.fetchSiftExpiryDate(applicationId)
+          _ <- applicationSiftService.sendSiftEnteredNotification(applicationId, expiryDate)
+        } yield ()
       } else {
         Future.successful(())
       }
