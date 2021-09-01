@@ -655,7 +655,8 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
         throw new Exception("User must be in a PHASE3_TESTS_COMPLETED")
       }
       _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
-      _ <- siftService.sendSiftEnteredNotification(candidate.applicationId.get).map(_ => ())
+      siftExpiryDate <- siftService.fetchSiftExpiryDate(candidate.applicationId.get)
+      _ <- siftService.sendSiftEnteredNotification(candidate.applicationId.get, siftExpiryDate).map(_ => ())
     } yield ()
   }
 
@@ -695,15 +696,22 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
       }
     }
 
+    def moveToSift(prevPhaseRepo: OnlineTestRepository, nextPhaseRepo: OnlineTestRepository): Future[Unit] = {
+      for {
+        _ <- updateEvaluationResults(prevPhaseRepo, nextPhaseRepo)
+        _ <- updateStatuses()
+        expiryDate <- siftService.saveSiftExpiryDate(applicationId)
+        _ <- siftService.sendSiftEnteredNotification(applicationId, expiryDate)
+      } yield ()
+    }
+
     appRepository.find(applicationId).map {
       _.map { candidate =>
         candidate.applicationStatus match {
           case Some("PHASE2_TESTS") =>
-            updateEvaluationResults(phase1TestRepository, phase2TestRepository)
-              .flatMap(_ => updateStatuses().flatMap(_ => siftService.sendSiftEnteredNotification(applicationId).map(_ => ())))
+            moveToSift(phase1TestRepository, phase2TestRepository).map(_ => ())
           case Some("PHASE3_TESTS") =>
-            updateEvaluationResults(phase2TestRepository, phase3TestRepository)
-              .flatMap(_ => updateStatuses().flatMap(_ => siftService.sendSiftEnteredNotification(applicationId).map(_ => ())))
+            moveToSift(phase2TestRepository, phase3TestRepository).map(_ => ())
           case _ => throw UnexpectedException(s"Candidate with app id $applicationId should be in either PHASE2 or PHASE3")
         }
       }

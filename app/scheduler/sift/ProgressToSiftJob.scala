@@ -54,8 +54,8 @@ trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[Waitin
       case applications => siftService.progressApplicationToSiftStage(applications).map { result =>
         result.successes.map { application =>
           if (isSiftEnteredStatus(application)) {
-            siftService.saveSiftExpiryDate(application.applicationId).flatMap { _ =>
-              siftService.sendSiftEnteredNotification(application.applicationId).map(_ => ())
+            siftService.saveSiftExpiryDate(application.applicationId).flatMap { expiryDate =>
+              siftService.sendSiftEnteredNotification(application.applicationId, expiryDate).map(_ => ())
             }
           }
         }

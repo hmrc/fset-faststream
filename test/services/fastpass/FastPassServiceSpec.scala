@@ -112,7 +112,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(schemesRepositoryMock).siftableSchemeIds
       verify(personalDetailsServiceMock).find(appId, userId)
       verify(cdRepositoryMock).find(userId)
-      verify(applicationSiftServiceMock, never()).sendSiftEnteredNotification(appId)
+      verify(applicationSiftServiceMock, never()).sendSiftEnteredNotification(eqTo(appId), any[DateTime])(any[HeaderCarrier])
       verify(emailClientMock).sendEmailWithName(
         eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (any[HeaderCarrier])
       verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
@@ -122,7 +122,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
       val schemes = SelectedSchemes(
         List(generalist, humanResources, digitalDataTechnologyAndCyber), orderAgreed = true, eligible = true)
       when(schemePreferencesServiceMock.find(any[String])).thenReturn(Future.successful(schemes))
-      when(applicationSiftServiceMock.saveSiftExpiryDate(any[String])).thenReturn(Future.successful(unit))
+      when(applicationSiftServiceMock.saveSiftExpiryDate(any[String])).thenReturn(Future.successful(DateTime.now))
       when(applicationSiftServiceMock.progressStatusForSiftStage(any[Seq[SchemeId]])).thenReturn(ProgressStatuses.SIFT_ENTERED)
 
       val (name, surname) = underTest.processFastPassCandidate(userId, appId, accepted, triggeredBy).futureValue
@@ -143,7 +143,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
       new TestFixtureWithMockResponses {
         val schemes = SelectedSchemes(List(commercial, finance), orderAgreed = true, eligible = true)
         when(schemePreferencesServiceMock.find(any[String])).thenReturn(Future.successful(schemes))
-        when(applicationSiftServiceMock.saveSiftExpiryDate(any[String])).thenReturn(Future.successful(unit))
+        when(applicationSiftServiceMock.saveSiftExpiryDate(any[String])).thenReturn(Future.successful(DateTime.now()))
         when(applicationSiftServiceMock.progressStatusForSiftStage(any[Seq[SchemeId]])).thenReturn(ProgressStatuses.SIFT_ENTERED)
 
         when(assistanceDetailsRepositoryMock.find(any[String])).thenReturnAsync(
@@ -177,7 +177,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
       new TestFixtureWithMockResponses {
         val schemes = SelectedSchemes(List(commercial, finance), orderAgreed = true, eligible = true)
         when(schemePreferencesServiceMock.find(any[String])).thenReturn(Future.successful(schemes))
-        when(applicationSiftServiceMock.saveSiftExpiryDate(any[String])).thenReturn(Future.successful(unit))
+        when(applicationSiftServiceMock.saveSiftExpiryDate(any[String])).thenReturn(Future.successful(DateTime.now))
         when(applicationSiftServiceMock.progressStatusForSiftStage(any[Seq[SchemeId]])).thenReturn(ProgressStatuses.SIFT_ENTERED)
 
         when(assistanceDetailsRepositoryMock.find(any[String])).thenReturnAsync(
@@ -203,7 +203,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
       "but not time based ones" in new TestFixtureWithMockResponses {
         val schemes = SelectedSchemes(List(commercial, finance), orderAgreed = true, eligible = true)
         when(schemePreferencesServiceMock.find(any[String])).thenReturn(Future.successful(schemes))
-        when(applicationSiftServiceMock.saveSiftExpiryDate(any[String])).thenReturn(Future.successful(unit))
+        when(applicationSiftServiceMock.saveSiftExpiryDate(any[String])).thenReturn(Future.successful(DateTime.now()))
         when(applicationSiftServiceMock.progressStatusForSiftStage(any[Seq[SchemeId]])).thenReturn(ProgressStatuses.SIFT_ENTERED)
 
         when(assistanceDetailsRepositoryMock.find(any[String])).thenReturnAsync(
@@ -379,6 +379,8 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
     when(schemesRepositoryMock.numericTestSiftRequirementSchemeIds).thenReturn(numericSchemes)
     when(appRepoMock.updateCurrentSchemeStatus(any[String], any[Seq[SchemeEvaluationResult]])).thenReturn(Future.successful(unit))
     when(appRepoMock.findProgress(any[String])).thenReturn(Future.successful(submittedProgressResponse))
-    when(applicationSiftServiceMock.sendSiftEnteredNotification(appId)).thenReturn(Future.successful(unit))
+    when(applicationSiftServiceMock.fetchSiftExpiryDate(appId)).thenReturn(Future.successful(DateTime.now))
+    when(applicationSiftServiceMock.sendSiftEnteredNotification(eqTo(appId), any[DateTime])(any[HeaderCarrier]))
+      .thenReturn(Future.successful(unit))
   }
 }

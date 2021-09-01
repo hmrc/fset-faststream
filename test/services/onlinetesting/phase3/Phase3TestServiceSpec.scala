@@ -422,7 +422,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
       verify(appRepositoryMock, never()).getCurrentSchemeStatus(applicationId)
       verify(appRepositoryMock, never()).updateCurrentSchemeStatus(applicationId, results)
-      verify(siftServiceMock, never()).sendSiftEnteredNotification(applicationId)
+      verify(siftServiceMock, never()).sendSiftEnteredNotification(eqTo(applicationId), any[DateTime])(any[HeaderCarrier])
       verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, TestExpirationEmailTemplates.phase3ExpirationTemplate)
     }
 
@@ -443,7 +443,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
       verify(appRepositoryMock, never()).getCurrentSchemeStatus(applicationId)
       verify(appRepositoryMock, never()).updateCurrentSchemeStatus(applicationId, results)
-      verify(siftServiceMock, never()).sendSiftEnteredNotification(applicationId)
+      verify(siftServiceMock, never()).sendSiftEnteredNotification(eqTo(applicationId), any[DateTime])(any[HeaderCarrier])
       verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, TestExpirationEmailTemplates.phase3ExpirationTemplate)
     }
   }

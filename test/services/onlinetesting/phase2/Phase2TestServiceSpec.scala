@@ -197,7 +197,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
       verify(appRepositoryMock, never()).getCurrentSchemeStatus(applicationId)
       verify(appRepositoryMock, never()).updateCurrentSchemeStatus(applicationId, results)
-      verify(siftServiceMock, never()).sendSiftEnteredNotification(applicationId)
+      verify(siftServiceMock, never()).sendSiftEnteredNotification(eqTo(applicationId), any[DateTime])(any[HeaderCarrier])
       verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, TestExpirationEmailTemplates.phase2ExpirationTemplate)
     }
 
@@ -221,7 +221,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
       verify(appRepositoryMock, never()).getCurrentSchemeStatus(applicationId)
       verify(appRepositoryMock, never()).updateCurrentSchemeStatus(applicationId, results)
-      verify(siftServiceMock, never()).sendSiftEnteredNotification(applicationId)
+      verify(siftServiceMock, never()).sendSiftEnteredNotification(eqTo(applicationId), any[DateTime])(any[HeaderCarrier])
       verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, TestExpirationEmailTemplates.phase2ExpirationTemplate)
     }
   }
@@ -542,7 +542,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       override val candidates = List(OnlineTestApplicationExamples.InvigilatedETrayCandidate)
       implicit val date: DateTime = invitationDate
       phase2TestService.emailInviteToApplicants(candidates).futureValue
-      verifyZeroInteractions(emailClientMock)
+      verifyNoInteractions(emailClientMock)
     }
   }
 

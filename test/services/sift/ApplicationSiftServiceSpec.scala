@@ -18,20 +18,20 @@ package services.sift
 
 import connectors.OnlineTestEmailClient
 import factories.DateTimeFactoryMock
-import model.ApplicationStatus.{ ApplicationStatus => _ }
-import model.ProgressStatuses.{ ProgressStatus, SIFT_ENTERED }
+import model.ApplicationStatus.{ApplicationStatus => _}
+import model.ProgressStatuses.{ProgressStatus, SIFT_ENTERED}
 import model._
-import model.command.{ ApplicationForSift, ApplicationForSiftExpiry }
+import model.command.{ApplicationForSift, ApplicationForSiftExpiry}
 import model.exchange.sift.SiftState
-import model.persisted.sift.{ NotificationExpiringSift, SiftTestGroup }
-import model.persisted.{ ContactDetails, ContactDetailsExamples, SchemeEvaluationResult }
-import model.sift.{ FixUserStuckInSiftEntered, SiftFirstReminder, SiftSecondReminder }
-import org.joda.time.{ DateTime, LocalDate }
+import model.persisted.sift.{NotificationExpiringSift, SiftTestGroup}
+import model.persisted.{ContactDetails, ContactDetailsExamples, SchemeEvaluationResult}
+import model.sift.{FixUserStuckInSiftEntered, SiftFirstReminder, SiftSecondReminder}
+import org.joda.time.{DateTime, LocalDate}
 import reactivemongo.bson.BSONDocument
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.sift.ApplicationSiftRepository
-import repositories.{ BSONDateTimeHandler, TestSchemeRepository }
+import repositories.{BSONDateTimeHandler, TestSchemeRepository}
 import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
@@ -415,10 +415,10 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
 
       (mockApplicationRepo.find(_ : String)).expects(appId).returningAsync(Some(candidate))
       (mockContactDetailsRepo.find _ ).expects("userId").returningAsync(contactDetails)
-      (mockEmailClient.notifyCandidateSiftEnteredAdditionalQuestions(_: String, _: String)(_: HeaderCarrier))
-        .expects(contactDetails.email, candidate.name, *).returningAsync
+      (mockEmailClient.notifyCandidateSiftEnteredAdditionalQuestions(_: String, _: String, _: DateTime)(_: HeaderCarrier))
+        .expects(contactDetails.email, candidate.name, expiryDate, *).returningAsync
 
-      whenReady(service.sendSiftEnteredNotification(appId)(HeaderCarrier())) { result => result mustBe unit }
+      whenReady(service.sendSiftEnteredNotification(appId, expiryDate)(HeaderCarrier())) { result => result mustBe unit }
     }
   }
 
