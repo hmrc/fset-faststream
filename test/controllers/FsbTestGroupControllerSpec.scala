@@ -43,7 +43,7 @@ class FsbTestGroupControllerSpec extends UnitWithAppSpec {
         ApplicationResult("applicationId1", "Pass"),
         ApplicationResult("applicationId2", "Pass")
       )
-      val fsbEvaluationResults = FsbEvaluationResults(SchemeId("DiplomaticService"), applicationResults)
+      val fsbEvaluationResults = FsbEvaluationResults(SchemeId("DiplomaticAndDevelopment"), applicationResults)
       when(mockFsbTestGroupService.saveResults(eqTo(fsbEvaluationResults.schemeId), any[List[ApplicationResult]])).thenReturnAsync(List.empty)
       val response = controller.savePerScheme()(fakeRequest(fsbEvaluationResults))
       status(response) mustBe OK

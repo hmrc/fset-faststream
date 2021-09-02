@@ -60,7 +60,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       insertApplicationWithPhase3TestNotifiedResults("appId8",
         List(
           SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString),
-          SchemeEvaluationResult(DiplomaticService, EvaluationResults.Red.toString)
+          SchemeEvaluationResult(DiplomaticAndDevelopment, EvaluationResults.Red.toString)
         ),
         applicationRoute = ApplicationRoute.SdipFaststream
       ).futureValue */
@@ -80,7 +80,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
         /* FSET-1803 - temporarily disabled
         ApplicationForSift("appId8", "appId8", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
         List(SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString),
-          SchemeEvaluationResult(DiplomaticService, EvaluationResults.Red.toString)))*/
+          SchemeEvaluationResult(DiplomaticAndDevelopment, EvaluationResults.Red.toString)))*/
       )
 
       appsForSift.size mustBe 5

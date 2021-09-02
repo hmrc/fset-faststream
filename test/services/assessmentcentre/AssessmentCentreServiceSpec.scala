@@ -450,7 +450,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
     val mockEvaluationEngine = mock[AssessmentCentreEvaluationEngine]
     val commercial = "Commercial"
     val digitalDataTechnologyAndCyber = "DigitalDataTechnologyAndCyber"
-    val diplomaticService = "DiplomaticService"
+    val diplomaticAndDevelopment = "DiplomaticAndDevelopment"
     val sdip = "Sdip"
     val batchSize = 1
 /*
@@ -518,7 +518,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
         workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(1.0, 3.0),
         overall = PassMarkThreshold(10.0, 15.0))),
-      AssessmentCentrePassMark(SchemeId(diplomaticService), AssessmentCentrePassMarkThresholds(
+      AssessmentCentrePassMark(SchemeId(diplomaticAndDevelopment), AssessmentCentrePassMarkThresholds(
         seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
         makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
         communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),

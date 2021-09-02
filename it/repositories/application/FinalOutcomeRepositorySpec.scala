@@ -1,6 +1,7 @@
 package repositories.application
 
-import factories.{ ITDateTimeFactoryMock, UUIDFactory }
+import factories.{ITDateTimeFactoryMock, UUIDFactory}
+import model.EvaluationResults.{Green, Red}
 import model.ProgressStatuses
 import model.persisted.SchemeEvaluationResult
 import reactivemongo.bson.BSONDocument
@@ -45,7 +46,7 @@ class FinalOutcomeRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
   private def createFailedRedApp(): String = {
     val redApp = createApplication()
-    val res = SchemeEvaluationResult("GovernmentOperationalResearchService", "Red")
+    val res = SchemeEvaluationResult("GovernmentOperationalResearchService", Red.toString)
     fsbRepo.saveResult(redApp, res).futureValue
     fsbRepo.updateCurrentSchemeStatus(redApp, Seq(res))
     applicationRepo.addProgressStatusAndUpdateAppStatus(redApp, ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED).futureValue
@@ -54,9 +55,9 @@ class FinalOutcomeRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
   private def createFailedRedWithGreenScheme(): String = {
     val redApp = createApplication()
-    val s1 = SchemeEvaluationResult("GovernmentOperationalResearchService", "Red")
+    val s1 = SchemeEvaluationResult("GovernmentOperationalResearchService", Red.toString)
     fsbRepo.saveResult(redApp, s1).futureValue
-    val s2 = SchemeEvaluationResult("DiplomaticService", "Green")
+    val s2 = SchemeEvaluationResult("DiplomaticAndDevelopment", Green.toString)
     fsbRepo.saveResult(redApp, s2).futureValue
     fsbRepo.updateCurrentSchemeStatus(redApp, Seq(s1, s2))
     applicationRepo.addProgressStatusAndUpdateAppStatus(redApp, ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED).futureValue

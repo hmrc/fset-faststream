@@ -99,10 +99,11 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
       case DiplomaticAndDevelopmentEconomics =>
         val res = Seq(
           results.find(r => EacSchemes.contains(r.schemeId)),
-          results.find(_.schemeId == DiplomaticService)
+          results.find(_.schemeId == DiplomaticAndDevelopment)
         ).flatten
         logger.info(s"$logPrefix [getResultsForScheme] FSB results for GES-DS: $res")
-        require(res.size == 2 || res.exists(_.result == Red.toString), s"$DiplomaticAndDevelopmentEconomics requires EAC && FCO test results - $appId")
+        require(res.size == 2 || res.exists(_.result == Red.toString),
+          s"$DiplomaticAndDevelopmentEconomics requires EAC && FCO test results - $appId")
         res
       case GovernmentEconomicsService =>
         results.find(r => EacSchemes.contains(r.schemeId)).toSeq
@@ -127,10 +128,10 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
       currentSchemeStatus.map(_.schemeId).takeWhile(_ != newFirstPreference.get).contains(id)
     }
     newFirstPreference.map(_.schemeId) match {
-      case Some(DiplomaticService) if fsbEvaluation.exists(_.schemeId == DiplomaticService) => true
+      case Some(DiplomaticAndDevelopment) if fsbEvaluation.exists(_.schemeId == DiplomaticAndDevelopment) => true
       case Some(GovernmentEconomicsService) if fsbEvaluation.exists(r => EacSchemes.contains(r.schemeId)) => true
       case Some(DiplomaticAndDevelopmentEconomics) if schemeWasEvaluatedBefore(GovernmentEconomicsService) => true
-      case Some(DiplomaticAndDevelopmentEconomics) if schemeWasEvaluatedBefore(DiplomaticService) => true
+      case Some(DiplomaticAndDevelopmentEconomics) if schemeWasEvaluatedBefore(DiplomaticAndDevelopment) => true
       case _ =>
         logger.debug(s"$logPrefix canEvaluateNextWithExistingResults = false")
         false
@@ -197,8 +198,8 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
     // If the candidate has GES-DS and DS at fsb but the DS is a fail then stop
     val inTheRunningForGesDsAndDsAtFsbAndDsFailed = currentSchemeStatus.size == 2 &&
       currentSchemeStatus.contains(SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, "Green")) &&
-      currentSchemeStatus.contains(SchemeEvaluationResult(DiplomaticService, "Green")) &&
-      fsbEvaluation.contains(SchemeEvaluationResult(DiplomaticService, "Red"))
+      currentSchemeStatus.contains(SchemeEvaluationResult(DiplomaticAndDevelopment, "Green")) &&
+      fsbEvaluation.contains(SchemeEvaluationResult(DiplomaticAndDevelopment, "Red"))
 
     // If the candidate has GES-DS and GES at fsb but the GES is a fail then stop
     val inTheRunningForGesDsAndGesAtFsbAndGesFailed = currentSchemeStatus.size == 2 &&
@@ -281,7 +282,8 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
     }.map(_.id)
     val maybeSchemeIds = maybeSchemeId match {
       case None => List(None)
-      case Some(schemeId) if schemeId == DiplomaticAndDevelopmentEconomics => List(Some(DiplomaticService), Some(GovernmentEconomicsService))
+      case Some(schemeId) if schemeId == DiplomaticAndDevelopmentEconomics =>
+        List(Some(DiplomaticAndDevelopment), Some(GovernmentEconomicsService))
       case Some(schemeId) => List(Some(schemeId))
     }
 
@@ -299,7 +301,7 @@ object DSSchemeIds {
   // We should rename EAC_DS fsb to EAC_FCO
   val DiplomaticAndDevelopmentEconomics = SchemeId("DiplomaticAndDevelopmentEconomics") // fsb_type: EAC_DS, code: GES-DS
   val GovernmentEconomicsService = SchemeId("GovernmentEconomicsService")   // fsb_type: EAC,    code: GES
-  val DiplomaticService = SchemeId("DiplomaticService")                     // fsb_type: FCO,    code: DS
+  val DiplomaticAndDevelopment = SchemeId("DiplomaticAndDevelopment")       // fsb_type: FCO,    code: DS
 
   val EacSchemes = List(DiplomaticAndDevelopmentEconomics, GovernmentEconomicsService)
 }
