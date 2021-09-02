@@ -131,7 +131,7 @@ class TestDataMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
       "userId" -> userId,
       "frameworkId" -> frameworkId,
       "scheme-preferences" -> BSONDocument(
-        "schemes" -> BSONArray(SchemeId("DiplomaticService"), SchemeId("GovernmentOperationalResearchService"))
+        "schemes" -> BSONArray(SchemeId("DiplomaticAndDevelopment"), SchemeId("GovernmentOperationalResearchService"))
       ),
       "personal-details" -> BSONDocument(
         "firstName" -> firstName.getOrElse(s"${testCandidate("firstName")}"),

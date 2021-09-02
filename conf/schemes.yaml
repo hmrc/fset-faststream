@@ -19,9 +19,9 @@
   siftEvaluationRequired: false
   schemeGuide: https://www.faststream.gov.uk/media/1230/dat-guide.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/1261/scheme-questions-ddat.rtf
-- id: DiplomaticService
+- id: DiplomaticAndDevelopment
   code: DS
-  name: Diplomatic Service
+  name: Diplomatic and Development
   civilServantEligible: true
   degree:
     required: Degree_22

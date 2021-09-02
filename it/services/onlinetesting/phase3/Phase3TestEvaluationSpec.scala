@@ -193,7 +193,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       ("Scheme Name", "Video Interview Fail Threshold", "Video Interview Pass threshold"),
       (SchemeId("Commercial"), 20.0, 80.0),
       (SchemeId("DigitalDataTechnologyAndCyber"), 20.001, 20.001),
-      (SchemeId("DiplomaticService"), 20.01, 20.02),
+      (SchemeId("DiplomaticAndDevelopment"), 20.01, 20.02),
       (SchemeId("DiplomaticAndDevelopmentEconomics"), 30.0, 70.0),
       (SchemeId("DiplomaticServiceEuropean"), 30.0, 70.0),
       (SchemeId("European"), 40.0, 70.0),

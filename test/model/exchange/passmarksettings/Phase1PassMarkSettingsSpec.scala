@@ -75,16 +75,16 @@ class Phase1PassMarkSettingsSpec extends PlaySpec {
         oldPassMarkSettings = Some(passMarkSettings(List(
           (SchemeId("Commercial"), 20.0, 80.0),
           (SchemeId("DigitalDataTechnologyAndCyber"), 20.0, 80.0),
-          (SchemeId("DiplomaticService"), 20.0, 80.0)))),
+          (SchemeId("DiplomaticAndDevelopment"), 20.0, 80.0)))),
         newPassMarkSettings = passMarkSettings(List(
           (SchemeId("DiplomaticAndDevelopmentEconomics"), 20.0, 80.0),
           (SchemeId("DiplomaticServiceEuropean"), 20.0, 80.0),
-          (SchemeId("DiplomaticService"), 20.0, 80.0)))
+          (SchemeId("DiplomaticAndDevelopment"), 20.0, 80.0)))
       )
       merged.schemes.map(_.schemeId) mustBe List(
         SchemeId("Commercial"),
         SchemeId("DigitalDataTechnologyAndCyber"),
-        SchemeId("DiplomaticService"),
+        SchemeId("DiplomaticAndDevelopment"),
         SchemeId("DiplomaticAndDevelopmentEconomics"),
         SchemeId("DiplomaticServiceEuropean")
       )

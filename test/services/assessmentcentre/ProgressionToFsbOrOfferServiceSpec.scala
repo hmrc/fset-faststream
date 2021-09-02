@@ -63,7 +63,7 @@ class ProgressionToFsbOrOfferServiceSpec extends ScalaMockUnitSpec {
 
         // Mock no arg method, which returns data
         (mockSchemeRepository.fsbSchemeIds _).expects().returning(
-          Seq(SchemeId("DigitalDataTechnologyAndCyber"), SchemeId("DiplomaticService"), SchemeId("GovernmentStatisticalService")))
+          Seq(SchemeId("DigitalDataTechnologyAndCyber"), SchemeId("DiplomaticAndDevelopment"), SchemeId("GovernmentStatisticalService")))
 
         (mockEmailClient.sendCandidateAssessmentCompletedMovedToFsb(_: String, _: String)(_: HeaderCarrier))
           .expects(candidate1.email, candidate0.name, hc)
@@ -94,7 +94,7 @@ class ProgressionToFsbOrOfferServiceSpec extends ScalaMockUnitSpec {
 
         // Mock no arg method, which returns data
         (mockSchemeRepository.fsbSchemeIds _).expects().returning(
-          Seq(SchemeId("DigitalDataTechnologyAndCyber"), SchemeId("DiplomaticService"), SchemeId("GovernmentStatisticalService")))
+          Seq(SchemeId("DigitalDataTechnologyAndCyber"), SchemeId("DiplomaticAndDevelopment"), SchemeId("GovernmentStatisticalService")))
 
         (mockFsbRepository.progressToJobOffer _)
           .expects(expectedApplication)
@@ -159,7 +159,7 @@ class ProgressionToFsbOrOfferServiceSpec extends ScalaMockUnitSpec {
 /*      val fsbRepo = mockFsbRepository
       val applicationRepo = mockApplicationRepository
       val fsbRequiredSchemeIds: Seq[SchemeId] =
-        Seq(SchemeId("DigitalDataTechnologyAndCyber"), SchemeId("DiplomaticService"), SchemeId("GovernmentStatisticalService"))
+        Seq(SchemeId("DigitalDataTechnologyAndCyber"), SchemeId("DiplomaticAndDevelopment"), SchemeId("GovernmentStatisticalService"))
 
       override def emailClient: EmailClient = mockEmailClient
       override def contactDetailsRepo: ContactDetailsRepository = mockContactDetailsRepo
@@ -186,7 +186,7 @@ class ProgressionToFsbOrOfferServiceSpec extends ScalaMockUnitSpec {
       ApplicationForProgression("appId1", ApplicationStatus.ASSESSMENT_CENTRE,
         List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), EvaluationResults.Green.toString))),
       ApplicationForProgression("appId2", ApplicationStatus.ASSESSMENT_CENTRE,
-        List(SchemeEvaluationResult(SchemeId("DiplomaticService"), EvaluationResults.Green.toString))),
+        List(SchemeEvaluationResult(SchemeId("DiplomaticAndDevelopment"), EvaluationResults.Green.toString))),
       ApplicationForProgression("appId3", ApplicationStatus.ASSESSMENT_CENTRE,
         List(SchemeEvaluationResult(SchemeId("GovernmentStatisticalService"), EvaluationResults.Green.toString)))
     )
@@ -211,7 +211,7 @@ class ProgressionToFsbOrOfferServiceSpec extends ScalaMockUnitSpec {
 
     val schemes = List(
       SchemeId("DigitalDataTechnologyAndCyber"),
-      SchemeId("DiplomaticService"),
+      SchemeId("DiplomaticAndDevelopment"),
       SchemeId("GovernmentStatisticalService"),
       SchemeId("Commercial"),
       SchemeId("International"),
