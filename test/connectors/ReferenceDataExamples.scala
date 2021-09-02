@@ -25,8 +25,8 @@ object ReferenceDataExamples {
       siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
     val DDTaC = Scheme("DigitalDataTechnologyAndCyber", "DDTAC", "Digital, Data, Technology & Cyber Fast Stream", civilServantEligible = false,
       degree = None, Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
-    val Dip = Scheme("DiplomaticService", "DS", "Diplomatic Service", civilServantEligible = false, degree = None, Some(SiftRequirement.FORM),
-      siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
+    val Dip = Scheme("DiplomaticAndDevelopment", "DS", "Diplomatic and Development", civilServantEligible = false, degree = None,
+      Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
     val  DipEcon = Scheme("DiplomaticAndDevelopmentEconomics", "GES-DS", "Diplomatic and Development Economics", civilServantEligible = false,
       degree = None, Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
     val Finance = Scheme("Finance", "FIFS", "Finance", civilServantEligible = false, degree = None, Some(SiftRequirement.NUMERIC_TEST),
