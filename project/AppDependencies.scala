@@ -20,7 +20,7 @@ import play.sbt.PlayImport.ws
 object AppDependencies {
 
   object Versions {
-    val bootstrapVersion  = "5.10.0"
+    val bootstrapVersion  = "5.11.0"
     val silhouetteVersion = "6.1.1"
   }
 
@@ -28,7 +28,7 @@ object AppDependencies {
 
   val compile = Seq(
     "com.iheart"                %% "ficus"                                    % "1.5.0",
-    "uk.gov.hmrc"               %% "http-caching-client"                      % "9.4.0-play-28",
+    "uk.gov.hmrc"               %% "http-caching-client"                      % "9.5.0-play-28",
     "uk.gov.hmrc"               %% "bootstrap-frontend-play-28"               % bootstrapVersion,
     "com.typesafe.play"         %% "play-json-joda"                           % "2.6.10",
     "uk.gov.hmrc"               %% "url-builder"                              % "3.5.0-play-28",

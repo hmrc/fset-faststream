@@ -163,7 +163,7 @@ alternatives.required=Select whether or not you would consider other schemes
 
 scheme.Commercial.description=Commercial
 scheme.DigitalDataTechnologyAndCyber.description=Digital, Data, Technology & Cyber
-scheme.DiplomaticService.description=Diplomatic Service
+scheme.DiplomaticAndDevelopment.description=Diplomatic and Development
 scheme.DiplomaticAndDevelopmentEconomics.description=Diplomatic and Development Economics
 scheme.Finance.description=Finance
 scheme.Generalist.description=Generalist
@@ -182,7 +182,7 @@ scheme.Sdip.description=Summer Diversity Internship Programme
 
 # These should be checked before each campaign
 # Hyerlinks to the scheme and eligibility criteria on the scheme selection page
-scheme.DiplomaticService.link = diplomatic-service/index.html
+scheme.DiplomaticAndDevelopment.link = diplomatic-service/index.html
 scheme.DiplomaticAndDevelopmentEconomics.link = diplomatic-service-economics/index.html
 scheme.GovernmentEconomicsService.link = government-economic-service/index.html
 scheme.GovernmentOperationalResearchService.link = government-operational-research-service/index.html
