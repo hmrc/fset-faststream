@@ -16,21 +16,20 @@
 
 package controllers
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.Adjustments._
 import model.Exceptions._
-import model.{ Adjustments, AdjustmentsComment }
-import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent, BaseController, ControllerComponents }
+import model.{Adjustments, AdjustmentsComment}
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.adjustmentsmanagement.AdjustmentsManagementService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class AdjustmentsManagementController @Inject() (
-                                                  cc: ControllerComponents,
-                                                  adjustmentsManagementService: AdjustmentsManagementService) extends BackendController(cc) {
+class AdjustmentsManagementController @Inject() (cc: ControllerComponents,
+                                                 adjustmentsManagementService: AdjustmentsManagementService) extends BackendController(cc) {
 
   def confirmAdjustments(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[Adjustments] { data =>
@@ -44,7 +43,11 @@ class AdjustmentsManagementController @Inject() (
 
   def findAdjustments(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     adjustmentsManagementService.find(applicationId).map { adjustments =>
-      Ok(Json.toJson(adjustments))
+      if (adjustments.isDefined) {
+        Ok(Json.toJson(adjustments))
+      } else {
+        NotFound
+      }
     }
   }
 
