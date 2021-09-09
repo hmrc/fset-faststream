@@ -16,15 +16,17 @@
 
 package controllers.testdata
 
-import javax.inject.Singleton
+import javax.inject.{Inject, Singleton}
 import model.ApplicationRoute.ApplicationRoute
 import model.command.testdata.CreateCandidateRequest.CreateCandidateRequest
-import model.{ ApplicationRoute, ApplicationStatus, CivilServantAndInternshipType }
+import model.{ApplicationRoute, ApplicationStatus, CivilServantAndInternshipType, SchemeId}
+import repositories.SchemeRepository
 
 case class ValidatorResult(result: Boolean, message: Option[String])
 
 @Singleton
-class CreateCandidateRequestValidator {
+class CreateCandidateRequestValidator @Inject() (schemeRepository: SchemeRepository) {
+
   def validate(request: CreateCandidateRequest): ValidatorResult = {
     if (!validateGis(request)) {
       ValidatorResult(result = false, Some("Request contains incompatible values for Gis"))
@@ -34,9 +36,20 @@ class CreateCandidateRequestValidator {
       ValidatorResult(result = false, Some("Request contains incompatible values for Edip"))
     } else if (!validateFastPass(request)) {
       ValidatorResult(result = false, Some("Request contains incompatible values for Fastpass"))
+    } else if (!validateSchemes(request).isValid) {
+      ValidatorResult(result = false, Some(s"Request contains invalid scheme name(s): ${validateSchemes(request).invalidSchemes}"))
     } else {
       ValidatorResult(result = true, None)
     }
+  }
+
+  case class SchemeValidation(isValid: Boolean, invalidSchemes: String)
+
+  def validateSchemes(request: CreateCandidateRequest): SchemeValidation = {
+    val validSchemes = schemeRepository.schemes.map( _.id ).toSet
+    val requestSchemes = request.schemeTypes.map( _.toSet ).getOrElse(Set.empty[SchemeId])
+    val result = requestSchemes diff validSchemes
+    SchemeValidation(result.isEmpty, result.mkString(","))
   }
 
   def validateFastPass(request: CreateCandidateRequest): Boolean = {
