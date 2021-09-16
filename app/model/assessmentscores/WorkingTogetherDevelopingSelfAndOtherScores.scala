@@ -19,12 +19,12 @@ package model.assessmentscores
 import play.api.libs.json.Json
 
 case class WorkingTogetherDevelopingSelfAndOtherScores(
-                                                        formsEffectiveWorkingRelationships: Option[Double] = None,
-                                                        inclusiveApproach: Option[Double] = None,
-                                                        encouragesCollaboration: Option[Double] = None,
-                                                        encouragesTeamwork: Option[Double] = None,
-                                                        understandsPerspectives: Option[Double] = None,
-                                                        improvesOwnPerformance: Option[Double] = None
+                                                        formsEffectiveWorkingRelationships: Option[Double] = None, // team
+                                                        inclusiveApproach: Option[Double] = None, // team
+                                                        encouragesCollaboration: Option[Double] = None, // team
+                                                        encouragesTeamwork: Option[Double] = None, // leadership
+                                                        understandsStakeholderNeeds: Option[Double] = None, // leadership
+                                                        improvesOwnPerformance: Option[Double] = None // leadership
                                                       )
 
 object WorkingTogetherDevelopingSelfAndOtherScores {

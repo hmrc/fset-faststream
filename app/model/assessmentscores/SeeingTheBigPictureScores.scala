@@ -19,11 +19,11 @@ package model.assessmentscores
 import play.api.libs.json.Json
 
 case class SeeingTheBigPictureScores(
-                                      generatesSolutions: Option[Double] = None,
-                                      practicalIdeas: Option[Double] = None,
-                                      seeingTheBiggerPicture: Option[Double] = None,
-                                      respondsAppropriately: Option[Double] = None,
-                                      alternativeSolutions: Option[Double] = None
+                                      relevantIdeas: Option[Double] = None, // written
+                                      innovativeIdeas: Option[Double] = None, // written
+                                      keyIssuesAndGoals: Option[Double] = None, // leadership
+                                      wellFormedSolutions: Option[Double] = None, // leadership
+                                      creativeIdeas: Option[Double] = None // leadership
                                     )
 
 object SeeingTheBigPictureScores {

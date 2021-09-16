@@ -19,10 +19,10 @@ package model.assessmentscores
 import play.api.libs.json.Json
 
 case class MakingEffectiveDecisionsScores(
-                                           recognisesRisks: Option[Double] = None,
-                                           identifiesMitigation: Option[Double] = None,
-                                           isAnalytical: Option[Double] = None,
-                                           usesAppropriateCriteria: Option[Double] = None
+                                           analysesInformation: Option[Double] = None, // written
+                                           identifiesRisks: Option[Double] = None, // written
+                                           isAnalytical: Option[Double] = None, // team
+                                           evaluatesOptions: Option[Double] = None // team
                                          )
 
 object MakingEffectiveDecisionsScores {
