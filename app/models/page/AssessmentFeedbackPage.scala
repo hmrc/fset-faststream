@@ -34,7 +34,7 @@ case object AssessmentFeedbackPage {
   val seeingTheBigPictureCompetency = "Seeing the Big Picture/Changing and Improving"
   val makingEffectiveDecisionsCompetency = "Making Effective Decisions"
   val communicatingAndInfluencingCompetency = "Communicating and Influencing"
-  val workingTogetherDevelopingSelfAndOthersCompetency = "Working Together Developing Self and Others"
+  val workingTogetherDevelopingSelfAndOthersCompetency = "Working Together/Developing Self and Others"
 
   def apply(assessmentScores: AssessmentScoresAllExercises, evaluatedAverageResults: CompetencyAverageResult,
     candidateName: String): AssessmentFeedbackPage = {
