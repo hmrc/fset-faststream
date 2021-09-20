@@ -18,8 +18,7 @@ package repositories
 
 object CollectionNames {
 
-  //TODO: after testing in PROD and before we go live we need to remove the "Test" part of the suffix
-  val suffixForThisCampaign = "22Test"
+  val suffixForThisCampaign = "22"
 
   val APPLICATION = s"application$suffixForThisCampaign"
   val ASSESSOR_ASSESSMENT_SCORES = s"assessor-assessment-scores$suffixForThisCampaign"
