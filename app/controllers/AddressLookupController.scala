@@ -19,7 +19,6 @@ package controllers
 import config.{ FrontendAppConfig, SecurityEnvironment }
 import connectors.addresslookup.AddressLookupClient
 import javax.inject.{ Inject, Singleton }
-import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
 import security.Roles.EditPersonalDetailsAndContinueRole
@@ -42,12 +41,12 @@ class AddressLookupController  @Inject() (
   def addressLookupByPostcode(postcode: String): Action[AnyContent] = CSRSecureAction(EditPersonalDetailsAndContinueRole) {
     implicit request => implicit cachedData =>
     val decoded = java.net.URLDecoder.decode(postcode, "UTF8")
-    addressLookupClient.findByPostcode(decoded, None).map {
+    addressLookupClient.findByPostcode(decoded, filter = None).map {
       case head :: tail => Ok(Json.toJson(head :: tail))
       case Nil => NotFound
     }.recover {
       case e: BadRequestException =>
-        logger.debug(s"Postcode lookup service returned ${e.getMessage} for postcode $postcode", e)
+        logger.debug(s"Postcode lookup service returned ${e.getMessage} for postcode $postcode")
         BadRequest
     }
   }
