@@ -17,13 +17,15 @@
 package connectors.addresslookup
 
 import java.net.URLEncoder
+import config.{CSRHttp, FrontendAppConfig}
+import play.api.Logging
+import play.api.http.Status.{BAD_REQUEST, NOT_FOUND}
 
-import config.{ CSRHttp, FrontendAppConfig }
-import javax.inject.{ Inject, Singleton }
-import uk.gov.hmrc.http.HeaderCarrier
+import javax.inject.{Inject, Singleton}
+import uk.gov.hmrc.http.{BadRequestException, HeaderCarrier, UpstreamErrorResponse}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * The following client has been take from taken from https://github.com/hmrc/address-reputation-store. The project has
@@ -35,7 +37,7 @@ import scala.concurrent.{ ExecutionContext, Future }
  */
 
 @Singleton
-class AddressLookupClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(implicit val ec: ExecutionContext) {
+class AddressLookupClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(implicit val ec: ExecutionContext) extends Logging {
 
   val addressLookupEndpoint = config.addressLookupConfig.url
 
@@ -45,7 +47,14 @@ class AddressLookupClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(i
     val safePostcode = postcode.replaceAll("[^A-Za-z0-9]", "")
     val pq = "?postcode=" + enc(safePostcode)
     val fq = filter.map(fi => "&filter=" + enc(fi)).getOrElse("")
-    http.GET[List[AddressRecord]](url + pq + fq)
+    http.GET[List[AddressRecord]](url + pq + fq).recover {
+      case e: UpstreamErrorResponse if UpstreamErrorResponse.WithStatusCode.unapply(e).contains(NOT_FOUND) =>
+        logger.debug(s"AddressLookupClient received NOT_FOUND for postcode: $postcode. Error message: ${e.getMessage()}")
+        Nil
+      case e: UpstreamErrorResponse if UpstreamErrorResponse.WithStatusCode.unapply(e).contains(BAD_REQUEST) =>
+        logger.debug(s"AddressLookupClient received BAD_REQUEST for postcode: $postcode. Error message: ${e.getMessage()}")
+        throw new BadRequestException(e.getMessage())
+    }
   }
 
   def findByAddressId(id: String, filter: Option[String])(implicit hc: HeaderCarrier): Future[AddressRecord] = {
