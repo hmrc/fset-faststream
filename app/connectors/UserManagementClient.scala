@@ -92,8 +92,10 @@ class UserManagementClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(
   def failedLogin(email: String)(implicit hc: HeaderCarrier): Future[UserResponse] = {
     import uk.gov.hmrc.http.HttpReads.Implicits._
     http.PUT[EmailWrapper, UserResponse](s"${url.host}/$urlPrefix/failedAttempt", EmailWrapper(email.toLowerCase, ServiceName)).recover {
-      case eNotFound: UpstreamErrorResponse if eNotFound.statusCode == NOT_FOUND => throw new InvalidCredentialsException()
-      case eLocked: UpstreamErrorResponse if eLocked == LOCKED => throw new AccountLockedOutException()
+      case eNotFound: UpstreamErrorResponse if UpstreamErrorResponse.WithStatusCode.unapply(eNotFound).contains(NOT_FOUND) =>
+        throw new InvalidCredentialsException()
+      case eLocked: UpstreamErrorResponse if UpstreamErrorResponse.WithStatusCode.unapply(eLocked).contains(LOCKED) =>
+        throw new AccountLockedOutException()
     }
   }
 
