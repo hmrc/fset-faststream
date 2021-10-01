@@ -481,6 +481,12 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
         .map(_ => Ok(s"Successfully rolled $applicationId back to Submitted and added Fastpass($certificateNumber"))
   }
 
+  def rollbackToSubmittedFromPhase1AfterFastpassRejectedByMistake(applicationId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      applicationService.rollbackToSubmittedFromPhase1AfterFastpassRejectedByMistake(applicationId)
+        .map(_ => Ok(s"Successfully rolled $applicationId back to SUBMITTED and removed fast pass rejection"))
+  }
+
   def rollbackToAssessmentCentreConfirmedFromEligibleForJobOfferNotified(applicationId: String): Action[AnyContent] = Action.async {
     val statusesToRemove = List(
       ASSESSMENT_CENTRE_SCORES_ENTERED,

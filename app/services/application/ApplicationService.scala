@@ -503,6 +503,18 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
     } yield ()
   }
 
+  def rollbackToSubmittedFromPhase1AfterFastpassRejectedByMistake(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    for {
+      civilServiceDetails <- civilServiceExperienceDetailsRepo.find(applicationId)
+      updatedCivilServiceDetails = civilServiceDetails
+        .map(_.copy(fastPassAccepted = None))
+        .getOrElse(throw UnexpectedException("Civil Service Details not found"))
+      _ <- civilServiceExperienceDetailsRepo.update(applicationId, updatedCivilServiceDetails)
+      _ <- phase1TestRepository.removeTestGroup(applicationId)
+      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.SUBMITTED, allOnlineTestsPhases.toList)
+    } yield ()
+  }
+
   def convertToFastStreamRouteWithFastpassFromOnlineTestsExpired(applicationId: String, fastPass: Int, sdipFaststream: Boolean): Future[Unit] = {
     val routeConversion = if (sdipFaststream) {
       appRepository.updateApplicationRoute(applicationId, ApplicationRoute.SdipFaststream, ApplicationRoute.Faststream)
