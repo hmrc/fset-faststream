@@ -244,6 +244,22 @@ class ReportingController @Inject() (cc: ControllerComponents,
     )
   }
 
+  def streamPreviousYearFaststreamP1NotFailedCandidatesDetailsPart1Report: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED),
+      part = 12
+    )
+  }
+
+  def streamPreviousYearFaststreamP1NotFailedCandidatesDetailsPart2Report: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED),
+      part = 34
+    )
+  }
+
   def streamPreviousYearFaststreamP1FailedCandidatesDetailsReport: Action[AnyContent] = {
     streamPreviousYearCandidatesDetailsReport(
       Seq(Faststream),
@@ -528,6 +544,22 @@ class ReportingController @Inject() (cc: ControllerComponents,
     streamDataAnalystReport(
       Seq(Faststream),
       Seq(ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED)
+    )
+  }
+
+  def streamDataAnalystFaststreamP1NotFailedCandidatesDetailsPart1Report: Action[AnyContent] = {
+    streamDataAnalystReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED),
+      part = 12
+    )
+  }
+
+  def streamDataAnalystFaststreamP1NotFailedCandidatesDetailsPart2Report: Action[AnyContent] = {
+    streamDataAnalystReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED),
+      part = 34
     )
   }
 
