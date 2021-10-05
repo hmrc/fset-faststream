@@ -108,7 +108,7 @@ GET         /assets/*file                                           @controllers
 
 # Postcode Lookup
 GET         /address-search                                         @controllers.AddressLookupController.addressLookupByPostcode(postcode: String)
-GET         /address-search/:id                                     @controllers.AddressLookupController.addressLookupById(id: String)
+GET         /address-search/:uprn                                   @controllers.AddressLookupController.addressLookupByUprn(uprn: String)
 
 # Scheme Sift Questions/Form
 GET         /additional-questions/generalQuestions                  @controllers.SiftQuestionsController.presentGeneralQuestions

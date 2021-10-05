@@ -50,7 +50,7 @@ class WithdrawControllerSpec extends BaseControllerSpec {
   "presentWithdrawApplication" should {
     "display withdraw page" in new TestFixture {
       val result = controller.presentWithdrawApplication()(fakeRequest)
-      status(result) must be(OK)
+      status(result) mustBe OK
       val content = contentAsString(result)
       content must include("<title>Withdraw your application")
       content must include(s"""<span class="your-name" id="bannerUserName">${currentCandidate.user.preferredName.get}</span>""")
@@ -63,7 +63,7 @@ class WithdrawControllerSpec extends BaseControllerSpec {
 
       val result = controller.withdrawApplication()(Request)
 
-      status(result) must be(OK)
+      status(result) mustBe OK
       val content = contentAsString(result)
       content must include(routes.WithdrawController.withdrawApplication().url)
       content must include ("error.reason.required")
@@ -76,9 +76,9 @@ class WithdrawControllerSpec extends BaseControllerSpec {
 
       val result = controller.withdrawApplication()(Request)
 
-      status(result) must be(SEE_OTHER)
+      status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.HomeController.present().url))
-      flash(result).data must be (Map("danger" -> "error.cannot.withdraw"))
+      flash(result).data mustBe Map("danger" -> "error.cannot.withdraw")
     }
 
     "display dashboard with withdrawn success message when withdraw is successful" in new TestFixture {
@@ -90,8 +90,8 @@ class WithdrawControllerSpec extends BaseControllerSpec {
 
       val result = controller.withdrawApplication()(Request)
 
-      status(result) must be(SEE_OTHER)
-      redirectLocation(result) must be(Some(routes.HomeController.present().url))
+      status(result) mustBe SEE_OTHER
+      redirectLocation(result) mustBe Some(routes.HomeController.present().url)
       val expectedValue: Map[String, String] = Map("success" -> ("application.withdrawn"))
       flash(result).data mustBe expectedValue
     }
