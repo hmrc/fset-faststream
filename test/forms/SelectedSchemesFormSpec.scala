@@ -93,7 +93,6 @@ class SelectedSchemesFormSpec extends BaseFormSpec {
         "scheme_2" -> "Commercial",
         "scheme_3" -> "DigitalDataTechnologyAndCyber",
         "scheme_4" -> "GovernmentDiplomaticService",
-        "scheme_5" -> "GovernmentDiplomaticServiceEconomicsService",
         "orderAgreed" -> "true",
         "eligible" -> "true"))
       form.hasErrors mustBe true
@@ -130,6 +129,19 @@ class SelectedSchemesFormSpec extends BaseFormSpec {
         "scheme_3" -> "DigitalDataTechnologyAndCyber",
         "scheme_4" -> "GovernmentDiplomaticService",
         "scheme_5" -> "Sdip",
+        "orderAgreed" -> "true",
+        "eligible" -> "true"))
+      form.hasErrors mustBe true
+      form.hasGlobalErrors mustBe false
+    }
+
+    "be invalid when sdip faststream candidate exceeds the max number of schemes and sdip is missing in posted data" in {
+      val form = selectedSchemesForm(isSdipFaststream = true).bind(Map(
+        "scheme_0" -> "Finance",
+        "scheme_1" -> "GovernmentEconomicsService",
+        "scheme_2" -> "Commercial",
+        "scheme_3" -> "DigitalDataTechnologyAndCyber",
+        "scheme_4" -> "GovernmentDiplomaticService",
         "orderAgreed" -> "true",
         "eligible" -> "true"))
       form.hasErrors mustBe true

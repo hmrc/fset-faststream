@@ -31,8 +31,9 @@ class SelectedSchemesForm(allSchemes: Seq[Scheme], isSdipFaststream: Boolean) {
 
   private val page = SelectedSchemesPage(allSchemes)
 
+  // Sdip FS candidates are automatically given the Sdip scheme so they can have 5 in total
+  // This is why we filter out the Sdip scheme below when performing the validation checks
   private val maxFaststreamSchemes = 4
-  private val maxSdipFaststreamSchemes = maxFaststreamSchemes + 1 // Sdip FS candidates are automatically given the Sdip scheme so + 1
 
   def form(implicit messages: Messages) = {
     Form(
@@ -47,9 +48,9 @@ class SelectedSchemesForm(allSchemes: Seq[Scheme], isSdipFaststream: Boolean) {
   def schemeFormatter(formKey: String)(implicit messages: Messages) = new Formatter[List[String]] {
     def bind(key: String, data: Map[String, String]): Either[Seq[FormError], List[String]] = {
       page.getSchemesByPriority(data) match {
-        case selectedSchemes if selectedSchemes.isEmpty || (isSdipFaststream && selectedSchemes == Seq("Sdip")) =>
+        case selectedSchemes if selectedSchemes.isEmpty || (isSdipFaststream && selectedSchemes.map(_.toLowerCase) == Seq("sdip")) =>
           Left(List(FormError(formKey, Messages("schemes.required"))))
-        case selectedSchemes if isSdipFaststream && selectedSchemes.size > maxSdipFaststreamSchemes =>
+        case selectedSchemes if isSdipFaststream && selectedSchemes.filterNot(_.toLowerCase == "sdip").size > maxFaststreamSchemes =>
           Left(List(FormError(formKey, Messages("schemes.tooMany"))))
         case selectedSchemes if !isSdipFaststream && selectedSchemes.size > maxFaststreamSchemes =>
           Left(List(FormError(formKey, Messages("schemes.tooMany"))))
