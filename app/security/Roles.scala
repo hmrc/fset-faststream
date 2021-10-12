@@ -19,8 +19,7 @@ package security
 import controllers.routes
 import models.ApplicationData.ApplicationStatus
 import models.ApplicationData.ApplicationStatus._
-import models.{ ApplicationRoute, CachedData, CachedDataWithApp, Progress }
-import play.api.i18n.Lang
+import models.{ ApplicationRoute, CachedData, CachedDataWithApp }
 import play.api.mvc.{ Call, RequestHeader }
 import security.QuestionnaireRoles.QuestionnaireInProgressRole
 import uk.gov.hmrc.http.HeaderCarrier
@@ -68,7 +67,7 @@ object Roles {
 
   object EditPersonalDetailsAndContinueRole extends CsrAuthorization {
     override def isAuthorized(user: CachedData)(implicit request: RequestHeader) =
-      activeUserWithActiveApp(user) && statusIn(user)(CREATED, IN_PROGRESS)
+      activeUserWithActiveApp(user) && addressLookupIsPermitted(user)(CREATED, IN_PROGRESS)
   }
 
   object CreatedOrInProgressRole extends CsrAuthorization {
@@ -246,6 +245,13 @@ object RoleUtils {
 
   def statusIn(user: CachedData)(status: ApplicationStatus*)(implicit request: RequestHeader) =
     user.application.isDefined && status.contains(user.application.get.applicationStatus)
+
+  def addressLookupIsPermitted(user: CachedData)(status: ApplicationStatus*)(implicit request: RequestHeader) = {
+    (user.application.isDefined && status.contains(user.application.get.applicationStatus)) ||
+      // Once the candidate has entered personal details they can use address lookup from that point on
+      // eg. beyond submission all the way through to job offer
+      (user.application.isDefined && user.application.get.progress.personalDetails)
+  }
 
   def isCivilServant(user: CachedData)(implicit request: RequestHeader) =
     user.application
