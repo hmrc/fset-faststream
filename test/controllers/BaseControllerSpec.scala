@@ -115,12 +115,10 @@ abstract class BaseControllerSpec extends BaseSpec {
       LoginInfo("fakeProvider", "fakeKey"),
       DateTime.now(),
       DateTime.now().plusDays(1),
-      None, None
+      idleTimeout = None, fingerprint = None
     )
 
     when(mockAuthenticatorService.retrieve(any())).thenReturn(Future.successful(Some(sessionAuthenticator)))
-
-
 
     val mockUserCacheService = mock[UserCacheService]
     val mockUserService = mock[UserCacheService]

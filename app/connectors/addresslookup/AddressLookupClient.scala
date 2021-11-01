@@ -20,6 +20,7 @@ import java.net.URLEncoder
 import config.{CSRHttp, FrontendAppConfig}
 import play.api.Logging
 import play.api.http.Status.{BAD_REQUEST, NOT_FOUND}
+import play.api.libs.json.{Json, Writes}
 
 import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.http.{BadRequestException, HeaderCarrier, UpstreamErrorResponse}
@@ -41,13 +42,10 @@ class AddressLookupClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(i
 
   val addressLookupEndpoint = config.addressLookupConfig.url
 
-  private def url = s"$addressLookupEndpoint/v2/uk/addresses"
-
   def findByPostcode(postcode: String, filter: Option[String])(implicit hc: HeaderCarrier): Future[List[AddressRecord]] = {
     val safePostcode = postcode.replaceAll("[^A-Za-z0-9]", "")
-    val pq = "?postcode=" + enc(safePostcode)
-    val fq = filter.map(fi => "&filter=" + enc(fi)).getOrElse("")
-    http.GET[List[AddressRecord]](url + pq + fq).recover {
+    val request = LookupAddressByPostcodeRequest(enc(safePostcode), filter.map( f => enc(f)) )
+    http.POST[LookupAddressByPostcodeRequest, List[AddressRecord]](s"$addressLookupEndpoint/lookup", request).recover {
       case e: UpstreamErrorResponse if UpstreamErrorResponse.WithStatusCode.unapply(e).contains(NOT_FOUND) =>
         logger.debug(s"AddressLookupClient received NOT_FOUND for postcode: $postcode. Error message: ${e.getMessage()}")
         Nil
@@ -57,9 +55,24 @@ class AddressLookupClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(i
     }
   }
 
-  def findByAddressId(id: String, filter: Option[String])(implicit hc: HeaderCarrier): Future[AddressRecord] = {
-    http.GET[AddressRecord](s"$url/$id")
+  def findByUprn(uprn: String)(implicit hc: HeaderCarrier): Future[AddressRecord] = {
+    http.POST[LookupAddressByUprnRequest, List[AddressRecord]](
+      s"$addressLookupEndpoint/lookup/by-uprn",
+      LookupAddressByUprnRequest(uprn)
+    ).map( _.head )
   }
 
   private def enc(s: String) = URLEncoder.encode(s, "UTF-8")
+
+  case class LookupAddressByPostcodeRequest(postcode: String, filter: Option[String])
+
+  object LookupAddressByPostcodeRequest {
+    implicit val writes: Writes[LookupAddressByPostcodeRequest] = Json.writes[LookupAddressByPostcodeRequest]
+  }
+
+  case class LookupAddressByUprnRequest(uprn: String)
+
+  object LookupAddressByUprnRequest {
+    implicit val writes: Writes[LookupAddressByUprnRequest] = Json.writes[LookupAddressByUprnRequest]
+  }
 }

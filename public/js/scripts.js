@@ -61,7 +61,7 @@ $(function () {
       $.map(result, function (lookupReply) {
         var address = lookupReply.address.lines[0] + ' ' + lookupReply.address.town;
         _this.$addressSelect.append(
-            '<option value=\'' + lookupReply.id + '\'>' + address + '</option>'
+            '<option value=\'' + lookupReply.uprn + '\'>' + address + '</option>'
         );
       });
       var addressSelector = _this.$addressesSelectorContainer;
@@ -70,7 +70,7 @@ $(function () {
 
       _this.$addressesSelectorContainer.attr('aria-hidden', 'false');
       _this.$addressSelect.focus();
-    }).fail(postCodeSearchFailHander);
+    }).fail(postCodeSearchFailHandler);
   }
 
   function showResultsLink(num) {
@@ -90,7 +90,7 @@ $(function () {
     link.addClass('hidden');
   }
 
-  function postCodeSearchFailHander(xhr, textStauts, error) {
+  function postCodeSearchFailHandler(xhr, textStatus, error) {
     _this.$addressesSelectorContainer.attr('aria-hidden', 'true');
     hideResultsLink();
     if (xhr.status === BAD_REQUEST) {
@@ -101,7 +101,7 @@ $(function () {
   }
 
   function getAddressById(id, successFunction) {
-    $.getJSON(addressLookupUrlBase + id,  successFunction).fail(postCodeSearchFailHander);
+    $.getJSON(addressLookupUrlBase + id,  successFunction).fail(postCodeSearchFailHandler);
   }
 
   function showPostCodeError(text) {
@@ -133,7 +133,6 @@ $(function () {
     });
   }
 
-
   function populateAddressFields(addressRecord) {
     enableManualAddressFields();
 
@@ -152,7 +151,6 @@ $(function () {
     $('html, body').animate({
       scrollTop: _this.$addressManualInput.offset().top
     }, 400);
-
   }
 
   if (_this.$postCodeSearch != null) {
@@ -211,7 +209,7 @@ $(function () {
     });
 
     _this.$postCodeSearch.on('keydown', function (event) {
-      if (event.keyCode === 13) {
+      if (event.keyCode === ENTER_KEY) {
         event.preventDefault();
         _this.$findAddressBtn.trigger('click');
         return false;

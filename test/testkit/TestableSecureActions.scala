@@ -43,17 +43,17 @@ trait TestableSecureActions extends SecureActions {
   override def CSRSecureAction(role: CsrAuthorization)(block: SecuredRequest[_,_] => CachedData => Future[Result]): Action[AnyContent] =
     execute(candidate)(block)
 
-  override def CSRSecureAppAction(role: CsrAuthorization)(block: (SecuredRequest[_,_]) => (CachedDataWithApp) =>
+  override def CSRSecureAppAction(role: CsrAuthorization)(block: SecuredRequest[_,_] => CachedDataWithApp =>
     Future[Result]): Action[AnyContent] = execute(candidateWithApp)(block)
 
   override def CSRUserAwareAction(block: UserAwareRequest[_,_] => Option[CachedData] => Future[Result]): Action[AnyContent] =
     Action.async { request =>
-      val secReq = UserAwareRequest(None, None, request)
+      val secReq = UserAwareRequest(identity = None, authenticator = None, request)
       block(secReq)(None)
     }
   // scalastyle:on
 
-  private def execute[T](result: T)(block: (SecuredRequest[_,_]) => (T) => Future[Result]): Action[AnyContent] = {
+  private def execute[T](result: T)(block: SecuredRequest[_,_] => T => Future[Result]): Action[AnyContent] = {
     Action.async { request =>
       val secReq = defaultAction(request)
       block(secReq)(result)
@@ -67,7 +67,7 @@ trait TestableSecureActions extends SecureActions {
         LoginInfo("fakeProvider", "fakeKey"),
         DateTime.now(),
         DateTime.now().plusDays(1),
-        None, None
+        idleTimeout = None, fingerprint = None
       ),
       request
     )
@@ -90,7 +90,7 @@ trait TestableCSRSecureAction extends SecureActions {
           LoginInfo("fakeProvider", "fakeKey"),
           DateTime.now(),
           DateTime.now().plusDays(1),
-          None, None
+          idleTimeout = None, fingerprint = None
         ), request
       )
 //      implicit val carrier = PersonalDetailsController.hc(request)
@@ -110,7 +110,7 @@ trait TestableCSRUserAwareAction extends SecureActions {
           LoginInfo("fakeProvider", "fakeKey"),
           DateTime.now(),
           DateTime.now().plusDays(1),
-          None, None
+          idleTimeout = None, fingerprint = None
         )), request)
 
       val session = SessionKeys.sessionId -> s"session-${UUID.randomUUID}"
@@ -125,7 +125,7 @@ trait NoIdentityTestableCSRUserAwareAction extends SecureActions {
 
   override def CSRUserAwareAction(block: UserAwareRequest[_,_] => Option[CachedData] => Future[Result]): Action[AnyContent] =
     Action.async { request =>
-      val userAwareReq = UserAwareRequest(None, None, request)
+      val userAwareReq = UserAwareRequest(identity = None, authenticator = None, request)
 
       val sessionId = SessionKeys.sessionId -> s"session-${UUID.randomUUID}"
 

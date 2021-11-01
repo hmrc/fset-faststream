@@ -131,11 +131,8 @@ case class AddressRecord(
                           language: String,
                           localCustodian: Option[LocalCustodian],
                           location: Option[Seq[BigDecimal]],
-                          blpuState: Option[String],
-                          logicalState: Option[String],
-                          streetClassification: Option[String]) {
-
-  def withoutMetadata: AddressRecord = copy(blpuState = None, logicalState = None, streetClassification = None)
+                          administrativeArea: Option[String],
+                          poBox: Option[String]) {
 
   def locationValue: Option[Location] = location.map(loc => Location(loc.head, loc(1)))
 }

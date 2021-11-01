@@ -29,30 +29,29 @@ import scala.concurrent.ExecutionContext
 import helpers.NotificationTypeHelper
 
 @Singleton
-class AddressLookupController  @Inject() (
+class AddressLookupController @Inject() (
   config: FrontendAppConfig,
   mcc: MessagesControllerComponents,
   val secEnv: SecurityEnvironment,
   val silhouetteComponent: SilhouetteComponent,
   val notificationTypeHelper: NotificationTypeHelper,
   addressLookupClient: AddressLookupClient)(implicit val ec: ExecutionContext) extends BaseController(config, mcc) {
-  import notificationTypeHelper._
 
   def addressLookupByPostcode(postcode: String): Action[AnyContent] = CSRSecureAction(EditPersonalDetailsAndContinueRole) {
     implicit request => implicit cachedData =>
-    val decoded = java.net.URLDecoder.decode(postcode, "UTF8")
-    addressLookupClient.findByPostcode(decoded, filter = None).map {
-      case head :: tail => Ok(Json.toJson(head :: tail))
-      case Nil => NotFound
-    }.recover {
-      case e: BadRequestException =>
-        logger.debug(s"Postcode lookup service returned ${e.getMessage} for postcode $postcode")
-        BadRequest
-    }
+      val decoded = java.net.URLDecoder.decode(postcode, "UTF8")
+      addressLookupClient.findByPostcode(decoded, filter = None).map {
+        case head :: tail => Ok(Json.toJson(head :: tail))
+        case Nil => NotFound
+      }.recover {
+        case e: BadRequestException =>
+          logger.debug(s"Postcode lookup service returned ${e.getMessage} for postcode $postcode")
+          BadRequest
+      }
   }
 
-  def addressLookupById(id: String): Action[AnyContent] = CSRSecureAction(EditPersonalDetailsAndContinueRole) {
+  def addressLookupByUprn(uprn: String): Action[AnyContent] = CSRSecureAction(EditPersonalDetailsAndContinueRole) {
     implicit request => implicit cachedData =>
-    addressLookupClient.findByAddressId(id, None).map( address => Ok(Json.toJson(address)) )
+    addressLookupClient.findByUprn(uprn).map(address => Ok(Json.toJson(address)) )
   }
 }
