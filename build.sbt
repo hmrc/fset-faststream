@@ -80,7 +80,7 @@ lazy val microservice = Project(appName, file("."))
   )
   // Silhouette transitive dependencies require that the Atlassian repository be first in the resolver list
   .settings(resolvers := ("Atlassian Releases" at "https://maven.atlassian.com/public/") +: resolvers.value)
-  .settings(resolvers ++= Seq(Resolver.bintrayRepo("hmrc", "releases"), Resolver.jcenterRepo))
+  .settings(resolvers ++= Seq(Resolver.jcenterRepo))
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
 
 def oneForkedJvmPerTest(tests: Seq[TestDefinition]): Seq[Group] =
