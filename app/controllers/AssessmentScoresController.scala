@@ -174,14 +174,16 @@ abstract class AssessmentScoresController(cc: ControllerComponents) extends Back
       withJsonBody[ResetExercisesRequest] { resetExercisesRequest =>
         val withWritten = if (resetExercisesRequest.written) List("writtenExercise") else List.empty[String]
         val withTeam = if (resetExercisesRequest.team) withWritten ++ List("teamExercise") else withWritten
-        val exercisesToRemove = if (resetExercisesRequest.leadership) withTeam ++ List("leadershipExercise") else withTeam
+        val withLeadership = if (resetExercisesRequest.leadership) withTeam ++ List("leadershipExercise") else withTeam
+        val exercisesToRemove = if (resetExercisesRequest.finalFeedback) withLeadership ++ List("finalFeedback") else withLeadership
 
         repository.resetExercise(applicationId, exercisesToRemove).map { _ =>
           val auditDetails = Map(
             "applicationId" -> applicationId.toString(),
             "resetWrittenExercise" -> resetExercisesRequest.written.toString,
             "resetTeamExercise" -> resetExercisesRequest.team.toString,
-            "resetLeadershipExercise" -> resetExercisesRequest.leadership.toString
+            "resetLeadershipExercise" -> resetExercisesRequest.leadership.toString,
+            "resetFinalFeedback" -> resetExercisesRequest.finalFeedback.toString
           )
           auditService.logEvent("AssessmentScoresReset", auditDetails)
           Ok
@@ -228,9 +230,4 @@ class ReviewerAssessmentScoresController @Inject() (@Named("ReviewerAssessmentSc
   val AssessmentScoresOneExerciseSubmitted = "ReviewerAssessmentScoresOneExerciseSubmitted"
   val AssessmentScoresAllExercisesSubmitted = "ReviewerAssessmentScoresAllExercisesSubmitted"
   val UserIdForAudit = "assessorId"
-
-  override def resetExercises(applicationId: UniqueIdentifier) = Action.async(parse.json) {
-    implicit request =>
-      throw new UnsupportedOperationException("This method is only applicable for an assessor")
-  }
 }

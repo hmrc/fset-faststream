@@ -81,7 +81,8 @@ object AssessmentScoresCommands {
                                     applicationId: UniqueIdentifier,
                                     written: Boolean,
                                     team: Boolean,
-                                    leadership: Boolean
+                                    leadership: Boolean,
+                                    finalFeedback: Boolean
   )
   object ResetExercisesRequest {
     implicit val jsonFormat: Format[ResetExercisesRequest] = Json.format[ResetExercisesRequest]

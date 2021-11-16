@@ -200,13 +200,14 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
         "applicationId" -> resetExercisesRequest.applicationId.toString,
         "resetWrittenExercise" -> resetExercisesRequest.written.toString,
         "resetTeamExercise" -> resetExercisesRequest.team.toString,
-        "resetLeadershipExercise" -> resetExercisesRequest.leadership.toString
+        "resetLeadershipExercise" -> resetExercisesRequest.leadership.toString,
+        "resetFinalFeedback" -> resetExercisesRequest.finalFeedback.toString
       )
 
     "reset all exercises and return OK when all are specified" in new TestFixture {
-      when(mockAssessmentScoresRepository.resetExercise(appId, List(writtenExercise, teamExercise, leadershipExercise)))
+      when(mockAssessmentScoresRepository.resetExercise(appId, List(writtenExercise, teamExercise, leadershipExercise, finalFeedbackExercise)))
         .thenReturnAsync()
-      val resetExercisesRequest = ResetExercisesRequest(appId, written = true, team = true, leadership = true)
+      val resetExercisesRequest = ResetExercisesRequest(appId, written = true, team = true, leadership = true, finalFeedback = true)
       val request = fakeRequest(resetExercisesRequest)
       val response = controller.resetExercises(appId)(request)
       status(response) mustBe OK
@@ -219,7 +220,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
     "reset analysis exercise only and return OK when analysis is specified" in new TestFixture {
       when(mockAssessmentScoresRepository.resetExercise(appId, List(writtenExercise)))
         .thenReturnAsync()
-      val resetExercisesRequest = ResetExercisesRequest(appId, written = true, team = false, leadership = false)
+      val resetExercisesRequest = ResetExercisesRequest(appId, written = true, team = false, leadership = false, finalFeedback = false)
       val request = fakeRequest(resetExercisesRequest)
       val response = controller.resetExercises(appId)(request)
       status(response) mustBe OK
@@ -232,7 +233,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
     "reset group exercise only and return OK when group is specified" in new TestFixture {
       when(mockAssessmentScoresRepository.resetExercise(appId, List(teamExercise)))
         .thenReturnAsync()
-      val resetExercisesRequest = ResetExercisesRequest(appId, written = false, team = true, leadership = false)
+      val resetExercisesRequest = ResetExercisesRequest(appId, written = false, team = true, leadership = false, finalFeedback = false)
       val request = fakeRequest(resetExercisesRequest)
       val response = controller.resetExercises(appId)(request)
       status(response) mustBe OK
@@ -245,7 +246,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
     "reset leadership exercise only and return OK when leadership is specified" in new TestFixture {
       when(mockAssessmentScoresRepository.resetExercise(appId, List(leadershipExercise)))
         .thenReturnAsync()
-      val resetExercisesRequest = ResetExercisesRequest(appId, written = false, team = false, leadership = true)
+      val resetExercisesRequest = ResetExercisesRequest(appId, written = false, team = false, leadership = true, finalFeedback = false)
       val request = fakeRequest(resetExercisesRequest)
       val response = controller.resetExercises(appId)(request)
       status(response) mustBe OK
@@ -258,7 +259,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
     "return INTERNAL_SERVER_ERROR if an exception is thrown" in new TestFixture {
       when(mockAssessmentScoresRepository.resetExercise(appId, List(writtenExercise)))
         .thenReturn(Future.failed(new Exception("BOOM")))
-      val resetExercisesRequest = ResetExercisesRequest(appId, written = true, team = false, leadership = false)
+      val resetExercisesRequest = ResetExercisesRequest(appId, written = true, team = false, leadership = false, finalFeedback = false)
       val request = fakeRequest(resetExercisesRequest)
       val response = controller.resetExercises(appId)(request)
       status(response) mustBe INTERNAL_SERVER_ERROR
@@ -275,6 +276,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
     val writtenExercise = "writtenExercise"
     val teamExercise = "teamExercise"
     val leadershipExercise = "leadershipExercise"
+    val finalFeedbackExercise = "finalFeedback"
     val assessmentScoresResetLogEvent = "AssessmentScoresReset"
     val stubCC = stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer))
 

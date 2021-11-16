@@ -373,6 +373,7 @@ GET         /assessment-scores/reviewer/with-candidate-summary/event/:eventId   
 GET         /assessment-scores/reviewer/:applicationId                                      @controllers.ReviewerAssessmentScoresController.find(applicationId: model.UniqueIdentifier)
 GET         /assessment-scores/reviewer                                                     @controllers.ReviewerAssessmentScoresController.findAll
 GET         /assessment-scores/reviewer/accepted-scores/application/:applicationId          @controllers.ReviewerAssessmentScoresController.findAcceptedAssessmentScoresByApplicationId(applicationId: model.UniqueIdentifier)
+POST        /assessment-scores/reviewer/reset-exercises/:applicationId                      @controllers.ReviewerAssessmentScoresController.resetExercises(applicationId: model.UniqueIdentifier)
 
 # Scheme Specific Questions/Answers
 GET         /sift-answers/:applicationId/general                         @controllers.SchemeSiftAnswersController.getGeneralAnswers(applicationId: String)
