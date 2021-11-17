@@ -36,7 +36,6 @@ class AddressLookupController @Inject() (
   val silhouetteComponent: SilhouetteComponent,
   val notificationTypeHelper: NotificationTypeHelper,
   addressLookupClient: AddressLookupClient)(implicit val ec: ExecutionContext) extends BaseController(config, mcc) {
-
   def addressLookupByPostcode(postcode: String): Action[AnyContent] = CSRSecureAction(EditPersonalDetailsAndContinueRole) {
     implicit request => implicit cachedData =>
       val decoded = java.net.URLDecoder.decode(postcode, "UTF8")
