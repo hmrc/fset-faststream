@@ -17,14 +17,15 @@
 package controllers
 
 import com.google.inject.name.Named
+
 import javax.inject.{ Inject, Singleton }
-import model.Exceptions.{ EventNotFoundException, NotFoundException }
+import model.Exceptions.{ CandidateAllocationNotFoundException, EventNotFoundException, NotFoundException }
 import model.UniqueIdentifier
 import model.assessmentscores._
 import model.command.AssessmentScoresCommands._
 import play.api.Logging
 import play.api.libs.json._
-import play.api.mvc.{ Action, ControllerComponents }
+import play.api.mvc.ControllerComponents
 import repositories.AssessmentScoresRepository
 import services.AuditService
 import services.assessmentscores.AssessmentScoresService
@@ -124,7 +125,7 @@ abstract class AssessmentScoresController(cc: ControllerComponents) extends Back
     service.findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId).map { scores =>
       Ok(Json.toJson(scores))
     }.recover {
-      case ex: EventNotFoundException =>
+      case ex if ex.isInstanceOf[CandidateAllocationNotFoundException] || ex.isInstanceOf[EventNotFoundException] =>
         logger.error(s"Exception when calling findAssessmentScoresWithCandidateSummaryByApplicationId: $ex")
         NotFound
       case other: Throwable =>

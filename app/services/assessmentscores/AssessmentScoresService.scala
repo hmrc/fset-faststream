@@ -18,16 +18,18 @@ package services.assessmentscores
 
 import com.google.inject.name.Named
 import factories.DateTimeFactory
-import javax.inject.{ Inject, Singleton }
-import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresExercise, AssessmentScoresFinalFeedback }
-import model.command.AssessmentScoresCommands.{ AssessmentScoresCandidateSummary, AssessmentScoresFindResponse, AssessmentScoresSectionType }
+import model.Exceptions.CandidateAllocationNotFoundException
+
+import javax.inject.{Inject, Singleton}
+import model.assessmentscores.{AssessmentScoresAllExercises, AssessmentScoresExercise, AssessmentScoresFinalFeedback}
+import model.command.AssessmentScoresCommands.{AssessmentScoresCandidateSummary, AssessmentScoresFindResponse, AssessmentScoresSectionType}
 import model.persisted.eventschedules.Event
-import model.{ ProgressStatuses, UniqueIdentifier }
+import model.{ProgressStatuses, UniqueIdentifier}
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.events.EventsRepository
 import repositories.personaldetails.PersonalDetailsRepository
-import repositories.{ AssessmentScoresRepository, CandidateAllocationRepository }
+import repositories.{AssessmentScoresRepository, CandidateAllocationRepository}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -86,8 +88,8 @@ trait AssessmentScoresService {
     }
 
     for {
-      oldAllExercisesScoresMaybe <- assessmentScoresRepository.find(applicationId)
-      oldAllExercisesScores = oldAllExercisesScoresMaybe.getOrElse(AssessmentScoresAllExercises(applicationId, None, None, None))
+      oldAllExercisesScoresOpt <- assessmentScoresRepository.find(applicationId)
+      oldAllExercisesScores = oldAllExercisesScoresOpt.getOrElse(AssessmentScoresAllExercises(applicationId))
       newAllExercisesScores = updateAllExercisesWithExercise(oldAllExercisesScores, newExerciseScores)
       _ <- assessmentScoresRepository.saveExercise(applicationId, assessmentExerciseType, newExerciseScores)
       _ <- updateStatusIfNeeded(newAllExercisesScores)
@@ -112,14 +114,14 @@ trait AssessmentScoresService {
       val newSubmittedDate = dateTimeFactory.nowLocalTimeZone
       val newFinalFeedbackWithSubmittedDate = newFinalFeedback.copy(acceptedDate = newSubmittedDate)
 
-      val oldAllExercisesScores = oldAllExercisesScoresMaybe.getOrElse(AssessmentScoresAllExercises(applicationId, None, None, None))
-      val oldAnalysisExerciseWithSubmittedDate = oldAllExercisesScores.writtenExercise.map(_.copy(submittedDate = Some(newSubmittedDate)))
-      val oldGroupExerciseWithSubmittedDate = oldAllExercisesScores.teamExercise.map(_.copy(submittedDate = Some(newSubmittedDate)))
+      val oldAllExercisesScores = oldAllExercisesScoresMaybe.getOrElse(AssessmentScoresAllExercises(applicationId))
+      val oldWrittenExerciseWithSubmittedDate = oldAllExercisesScores.writtenExercise.map(_.copy(submittedDate = Some(newSubmittedDate)))
+      val oldTeamExerciseWithSubmittedDate = oldAllExercisesScores.teamExercise.map(_.copy(submittedDate = Some(newSubmittedDate)))
       val oldLeadershipExerciseWithSubmittedDate = oldAllExercisesScores.leadershipExercise.map(_.copy(submittedDate = Some(newSubmittedDate)))
 
       oldAllExercisesScores.copy(
-        writtenExercise = oldAnalysisExerciseWithSubmittedDate,
-        teamExercise = oldGroupExerciseWithSubmittedDate,
+        writtenExercise = oldWrittenExerciseWithSubmittedDate,
+        teamExercise = oldTeamExerciseWithSubmittedDate,
         leadershipExercise = oldLeadershipExerciseWithSubmittedDate,
         finalFeedback = Some(newFinalFeedbackWithSubmittedDate))
     }
@@ -149,6 +151,7 @@ trait AssessmentScoresService {
   def findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: UniqueIdentifier): Future[AssessmentScoresFindResponse] = {
     for {
       candidateAllocations <- candidateAllocationRepository.find(applicationId.toString())
+      _ = if (candidateAllocations.isEmpty) throw CandidateAllocationNotFoundException(s"No candidate allocations found for $applicationId")
       candidateAllocation = candidateAllocations.head
       event <- eventsRepository.getEvent(candidateAllocation.eventId)
       assessmentScoresWithCandidateSummary <- findOneAssessmentScoresWithCandidateSummaryByApplicationId(

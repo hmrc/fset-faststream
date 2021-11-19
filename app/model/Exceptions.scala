@@ -123,6 +123,8 @@ object Exceptions {
 
   case class AssessorNotFoundException(userId: String) extends Exception(userId)
 
+  case class CandidateAllocationNotFoundException(m: String) extends Exception(m)
+
   case class EventNotFoundException(m: String) extends Exception(m)
 
   case class OptimisticLockException(m: String) extends Exception(m)
