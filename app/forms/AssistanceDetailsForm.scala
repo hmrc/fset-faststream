@@ -194,7 +194,7 @@ object AssistanceDetailsForm {
 
   val disabilityCategoriesList = List(
     "Deaf or Hard of Hearing",
-    "Learning disability such as Down's Syndrome & Fragile X",
+    "Learning disability such as Downs Syndrome & Fragile X",
     "Long-standing, chronic or fluctuating condition or disability",
     "Mental Health Condition such as depression, anxiety, bipolar, schizophrenia",
     "Neurodiverse conditions: Autism Spectrum",
