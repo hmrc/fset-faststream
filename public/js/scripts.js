@@ -1097,10 +1097,10 @@ $(function () {
 
   var TIMES = [{
     message: '1 minute', // time left until expiry
-    delay: 1740000 // 29 mins in milliseconds
+    delay: 60*1000*29 // 29 mins in milliseconds
   }, {
     message: 'RELOAD',
-    delay: 70000
+    delay: 70*1000
   }];
 
   var messageTimes = window.MODAL_TIMES || TIMES;
