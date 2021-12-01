@@ -58,8 +58,12 @@ class SiftQuestionsController @Inject() (
   val SaveAndReturnAction = "saveAndReturn"
   val SaveAndContinueAction = "saveAndContinue"
 
-  def schemeMetadata(schemeId: SchemeId)(implicit hc: HeaderCarrier): Future[Scheme] = {
-    referenceDataClient.allSchemes().map { _.find(_.id == schemeId).get }
+  def schemeMetadata(schemeId: SchemeId, applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Scheme] = {
+    referenceDataClient.allSchemes().map {
+      _.find(_.id == schemeId).getOrElse{
+        throw new java.util.NoSuchElementException(s"No scheme $schemeId found for appId $applicationId")
+      }
+    }
   }
 
   def presentGeneralQuestions(): Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
@@ -100,7 +104,7 @@ class SiftQuestionsController @Inject() (
     CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
       for {
-        scheme <- schemeMetadata(schemeId)
+        scheme <- schemeMetadata(schemeId, user.application.applicationId)
         schemeAnswer <- siftClient.getSchemeSpecificAnswer(user.application.applicationId, schemeId)
       } yield {
         val form = schemeAnswer.map(formWrapper.form.fill).getOrElse(formWrapper.form)
@@ -112,7 +116,7 @@ class SiftQuestionsController @Inject() (
     implicit user =>
       formWrapper.form.bindFromRequest.fold(
         invalid => {
-          schemeMetadata(schemeId).map { scheme =>
+          schemeMetadata(schemeId, user.application.applicationId).map { scheme =>
             Ok(views.html.application.additionalquestions.schemespecific(invalid, scheme, SaveAndContinueAction, SaveAndReturnAction))
           }
         },
@@ -197,7 +201,7 @@ class SiftQuestionsController @Inject() (
       Future.traverse(schemes.collect {
         case scheme if resultIsGreen(scheme.result) => scheme.schemeId
       }) { schemeId =>
-        schemeMetadata(schemeId)
+        schemeMetadata(schemeId, applicationId)
       }.map(_.collect { case s if s.siftRequirement.contains(SiftRequirement.FORM) => s.id })
     }
   }
