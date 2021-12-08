@@ -36,7 +36,6 @@ class WithdrawController @Inject() (cc: ControllerComponents,
         Ok
       }.recover {
         case e: ApplicationNotFound => NotFound(s"Cannot find application with id: ${e.id}")
-        case e: SiftExpiredException => Forbidden(e.m)
       }
     }
   }

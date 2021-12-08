@@ -113,14 +113,15 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     (for {
       isSiftExpired <- siftService.isSiftExpired(applicationId)
-      _ = if(isSiftExpired) throw SiftExpiredException("SIFT_PHASE has expired. Unable to withdraw")
       currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)
       candidate <- appRepository.find(applicationId).map(_.getOrElse(throw ApplicationNotFound(applicationId)))
       contactDetails <- cdRepository.find(candidate.userId)
     } yield {
       withdrawRequest match {
-        case withdrawApp: WithdrawApplication => withdrawFromApplication(applicationId, withdrawApp)(candidate, contactDetails)
+        case withdrawApp: WithdrawApplication =>
+          withdrawFromApplication(applicationId, withdrawApp)(candidate, contactDetails)
         case withdrawScheme: WithdrawScheme =>
+          if(isSiftExpired) throw SiftExpiredException("SIFT_PHASE has expired. Unable to withdraw")
           if (withdrawableSchemes(currentSchemeStatus).size == 1) {
             throw LastSchemeWithdrawException(s"Can't withdraw $applicationId from last scheme ${withdrawScheme.schemeId.value}")
           } else {
