@@ -154,7 +154,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
           logger.info("No applications found for SIFT expiry")
           Future.successful(())
         case applications: Seq[ApplicationForSiftExpiry] =>
-          logger.info(s"${applications.size} applications found for SIFT expiry - $applications")
+          logger.info(s"${applications.size} application(s) found for SIFT expiry - appId(s): ${applications.map(_.applicationId)}")
           Future.sequence(applications.map(processApplication)).map(_ => ())
       }
   }
