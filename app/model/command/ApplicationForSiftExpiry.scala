@@ -21,7 +21,9 @@ import play.api.libs.json.{ Json, OFormat }
 
 case class ApplicationForSiftExpiry(applicationId: String,
                                     userId: String,
-                                    applicationStatus: ApplicationStatus)
+                                    applicationStatus: ApplicationStatus) {
+  override def toString = s"applicationId:$applicationId, userId:$userId, applicationStatus:$applicationStatus"
+}
 
 object ApplicationForSiftExpiry {
   implicit val applicationForSiftFormat: OFormat[ApplicationForSiftExpiry] = Json.format[ApplicationForSiftExpiry]
