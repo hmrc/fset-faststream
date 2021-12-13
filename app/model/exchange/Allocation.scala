@@ -54,7 +54,7 @@ object AssessorAllocations {
   def apply(o: Seq[model.persisted.AssessorAllocation]): AssessorAllocations = {
       val opLock = o.map(_.version).distinct match {
         case head +: Nil => Some(head)
-        case head +: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${head ++ tail}")
+        case head +: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${Seq(head) ++ tail}")
         case Nil => None
       }
 
@@ -99,7 +99,7 @@ object CandidateAllocations {
   def apply(o: Seq[model.persisted.CandidateAllocation]): CandidateAllocations = {
     val opLock = o.map(_.version).distinct match {
       case head +: Nil => Some(head)
-      case head +: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${head ++ tail}")
+      case head +: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${Seq(head) ++ tail}")
       case Nil => None
     }
     CandidateAllocations(opLock, o.map { a => CandidateAllocation(a.id, a.status, a.removeReason) })
