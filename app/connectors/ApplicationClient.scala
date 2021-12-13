@@ -104,17 +104,18 @@ class ApplicationClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(imp
     import uk.gov.hmrc.http.HttpReads.Implicits._
     http.PUT[WithdrawApplication, Either[UpstreamErrorResponse, Unit]](s"$apiBaseUrl/application/withdraw/$applicationId", reason).map {
       case Right(_) => ()
-      case Left(forbiddenEx) if forbiddenEx.statusCode == FORBIDDEN => throw new SiftExpired()
       case Left(notFoundEx) if notFoundEx.statusCode == NOT_FOUND => throw new CannotWithdraw()
       case Left(ex) => throw ex
     }
   }
 
   def withdrawScheme(applicationId: UniqueIdentifier, withdrawal: WithdrawScheme)(implicit hc: HeaderCarrier) = {
-    http.PUT(s"$apiBaseUrl/application/$applicationId/scheme/withdraw", Json.toJson(withdrawal)).map(_ => ())
-      .recover {
-        case e: Upstream4xxResponse if e.upstreamResponseCode == FORBIDDEN => throw new SiftExpired()
-        case _: Exception => throw new CannotWithdraw()
+    import uk.gov.hmrc.http.HttpReads.Implicits._
+    http.PUT[WithdrawScheme, Either[UpstreamErrorResponse, Unit]](s"$apiBaseUrl/application/$applicationId/scheme/withdraw", withdrawal)
+      .map {
+        case Right(_) => ()
+        case Left(forbiddenEx) if forbiddenEx.statusCode == FORBIDDEN => throw new SiftExpired()
+        case Left(_) => throw new CannotWithdraw()
       }
   }
 

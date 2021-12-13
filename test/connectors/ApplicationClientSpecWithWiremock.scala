@@ -64,7 +64,7 @@ class ApplicationClientSpecWithWiremock extends BaseConnectorWithWiremockSpec {
       val result = client.afterDeadlineSignupCodeUnusedAndValid(code).failed.futureValue
 
       result mustBe an[UpstreamErrorResponse]
-      result.asInstanceOf[UpstreamErrorResponse].statusCode mustBe 500
+      result.asInstanceOf[UpstreamErrorResponse].statusCode mustBe INTERNAL_SERVER_ERROR
     }
   }
 
@@ -96,7 +96,7 @@ class ApplicationClientSpecWithWiremock extends BaseConnectorWithWiremockSpec {
       val result = client.createApplication(UserId1, FrameworkId1, ApplicationRoute.Faststream).failed.futureValue
 
       result mustBe an[UpstreamErrorResponse]
-      result.asInstanceOf[UpstreamErrorResponse].statusCode mustBe 500
+      result.asInstanceOf[UpstreamErrorResponse].statusCode mustBe INTERNAL_SERVER_ERROR
     }
   }
 
@@ -164,16 +164,6 @@ class ApplicationClientSpecWithWiremock extends BaseConnectorWithWiremockSpec {
       val result = client.withdrawApplication(ApplicationId1, request).futureValue
 
       result mustBe unit
-    }
-
-    "throw SiftExpired exception when FORBIDDEN is received" in new TestFixture {
-      stubFor(put(urlPathEqualTo(endpoint)).withRequestBody(equalTo(Json.toJson(request).toString())).willReturn(
-        aResponse().withStatus(FORBIDDEN)
-      ))
-
-      val result = client.withdrawApplication(ApplicationId1, request).failed.futureValue
-
-      result mustBe an[SiftExpired]
     }
 
     "throw CannotWithdraw exception when NOT_FOUND is received" in new TestFixture {
