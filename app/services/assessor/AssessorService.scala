@@ -347,7 +347,7 @@ class AssessorService @Inject() (assessorRepository: AssessorRepository,
           }
         }
       case _ =>
-        throw AssessorNotFoundException("Assessor with id [$userId] could not be removed because it does not exist.")
+        throw AssessorNotFoundException(s"Assessor with id [$userId] could not be removed because it does not exist.")
     }
   }
 }
