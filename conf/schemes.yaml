@@ -29,7 +29,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: false
   fsbType: FCO
-  schemeGuide: https://www.faststream.gov.uk/media/1232/fco-guide.pdf
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB_Guide_Diplomatic.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/scheme-questions-ges-dds.odt
 - id: DiplomaticAndDevelopmentEconomics
   code: GES-DS
@@ -150,7 +150,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: false
   fsbType: PDFS - Skype interview
-  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Project-Delivery_2021.pdf
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB_Guide_Project_Delivery2022.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/1252/scheme-questions-pdfs-2021.odt
 - id: Property
   code: PRO
@@ -173,7 +173,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: SEFS FSB
-  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Science-and-Engineering_2021.pdf
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/SEFS_Candidate_Guide_2022-Updated_09-12-21.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/1315/scheme-questions-sefs.odt
 - id: Edip
   code: EDIP
