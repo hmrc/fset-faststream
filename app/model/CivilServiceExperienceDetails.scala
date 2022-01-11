@@ -21,7 +21,7 @@ import play.api.libs.json.Json
 import reactivemongo.bson.Macros
 
 case class CivilServiceExperienceDetails(
-  applicable:Boolean,
+  applicable: Boolean,
   civilServantAndInternshipTypes: Option[Seq[CivilServantAndInternshipType]] = None,
   edipYear: Option[String] = None,
   sdipYear: Option[String] = None,

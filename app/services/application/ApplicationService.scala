@@ -313,16 +313,32 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
   }
 
   def fixDataByRemovingETray(appId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    appRepository.fixDataByRemovingETray(appId)
+    for {
+      application <- appRepository.find(appId)
+      _ = application.getOrElse(throw ApplicationNotFound(appId))
+      _ <- appRepository.fixDataByRemovingETray(appId)
+    } yield ()
   }
 
   def fixDataByRemovingVideoInterviewFailed(appId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    appRepository.fixDataByRemovingVideoInterviewFailed(appId)
+    for {
+      application <- appRepository.find(appId)
+      _ = application.getOrElse(throw ApplicationNotFound(appId))
+      applicationStatusDetails <- appRepository.findStatus(appId)
+      _ = if (!applicationStatusDetails.latestProgressStatus.contains(ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED)) {
+        throw CannotUpdateRecord(appId)
+      }
+      _ <- appRepository.fixDataByRemovingVideoInterviewFailed(appId)
+    } yield ()
   }
 
   def fixDataByRemovingProgressStatus(appId: String, progressStatusToRemove: String)(implicit hc: HeaderCarrier,
                                                                                      rh: RequestHeader): Future[Unit] = {
-    appRepository.fixDataByRemovingProgressStatus(appId, progressStatusToRemove)
+    for {
+      application <- appRepository.find(appId)
+      _ = application.getOrElse(throw ApplicationNotFound(appId))
+      _ <- appRepository.fixDataByRemovingProgressStatus(appId, progressStatusToRemove)
+    } yield ()
   }
 
   def fix(toBeFixed: Seq[FixBatch])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {

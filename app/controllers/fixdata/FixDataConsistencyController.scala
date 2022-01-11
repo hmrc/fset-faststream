@@ -17,22 +17,23 @@
 package controllers.fixdata
 
 import factories.UUIDFactory
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.{ ApplicationNotFound, NotFoundException }
-import model.ProgressStatuses.{ ASSESSMENT_CENTRE_PASSED, _ }
+import model.Exceptions.{ApplicationNotFound, CannotUpdateCivilServiceExperienceDetails, CannotUpdateRecord, NotFoundException}
+import model.ProgressStatuses.{ASSESSMENT_CENTRE_PASSED, _}
 import model.command.FastPassPromotion
 import model.persisted.sift.SiftAnswersStatus
-import model.{ SchemeId, UniqueIdentifier }
+import model.{SchemeId, UniqueIdentifier}
 import play.api.Logging
-import play.api.mvc.{ Action, AnyContent, ControllerComponents, Result }
-import services.application.{ ApplicationService, FsbService }
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+import services.application.{ApplicationService, FsbService}
 import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAssessmentScoreEvaluationException
-import services.assessmentcentre.{ AssessmentCentreService, ProgressionToFsbOrOfferService }
+import services.assessmentcentre.{AssessmentCentreService, ProgressionToFsbOrOfferService}
 import services.fastpass.FastPassService
 import services.onlinetesting.phase2.Phase2TestService
 import services.onlinetesting.phase3.Phase3TestService
-import services.sift.{ ApplicationSiftService, SiftAnswersService }
+import services.sift.{ApplicationSiftService, SiftAnswersService}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -66,15 +67,15 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     applicationService.fixDataByRemovingETray(appId).map { _ =>
       NoContent
     } recover {
-      case _: NotFoundException => NotFound
+      case _: ApplicationNotFound => NotFound
     }
   }
 
-  def removeProgressStatus(appId: String, progressStatus: String) = Action.async { implicit request =>
-    applicationService.fixDataByRemovingProgressStatus(appId, progressStatus).map { _ =>
+  def removeProgressStatus(appId: String, progressStatus: ProgressStatus) = Action.async { implicit request =>
+    applicationService.fixDataByRemovingProgressStatus(appId, progressStatus.key).map { _ =>
       NoContent
     } recover {
-      case _: NotFoundException => NotFound
+      case _: ApplicationNotFound => NotFound
     }
   }
 
@@ -83,6 +84,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       fastPassService.promoteToFastPassCandidate(applicationId, req.triggeredBy).map { _ =>
         NoContent
       } recover {
+        case e: CannotUpdateCivilServiceExperienceDetails => BadRequest(e.getMessage)
         case _: NotFoundException => NotFound
       }
     }
@@ -92,7 +94,8 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     applicationService.fixDataByRemovingVideoInterviewFailed(appId).map { _ =>
       NoContent
     } recover {
-      case _: NotFoundException => NotFound
+      case _: ApplicationNotFound => NotFound
+      case _: CannotUpdateRecord => BadRequest("Candidate does not have PHASE3_TESTS_FAILED_NOTIFIED progressStatus")
     }
   }
 
@@ -163,6 +166,11 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
 
   def addProgressStatus(applicationId: String, progressStatus: ProgressStatus): Action[AnyContent] = Action.async {
     applicationService.addProgressStatusAndUpdateAppStatus(applicationId, progressStatus).map(_ => Ok)
+      .recover {
+        case ex: NotFoundException =>
+          val msg = s"Failed to update candidate applicationId=$applicationId because ${ex.getMessage}"
+          NotFound(msg)
+      }
   }
 
   def setPhase3UsedForResults(applicationId: String, newUsedForResults: Boolean, token: String): Action[AnyContent] = Action.async {
@@ -177,7 +185,12 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
         val msg = s"Successfully updated PHASE2 test usedForResults value to $newUsedForResults for " +
           s"applicationId=$applicationId,inventoryId=$inventoryId,orderId=$orderId"
         Ok(msg)
-      }
+      }.recover {
+      case ex: Throwable =>
+        val msg = s"Could not update PHASE2 test usedForResults value to $newUsedForResults for " +
+          s"applicationId=$applicationId,inventoryId=$inventoryId,orderId=$orderId because ${ex.getMessage}"
+        BadRequest(msg)
+    }
   }
 
   def setPhase1UsedForResults(applicationId: String, inventoryId: String, orderId: String,
@@ -187,6 +200,11 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
         val msg = s"Successfully updated PHASE1 test usedForResults value to $newUsedForResults for " +
           s"applicationId=$applicationId,inventoryId=$inventoryId,orderId=$orderId"
         Ok(msg)
+      }.recover {
+      case ex: Throwable =>
+        val msg = s"Could not update PHASE1 test usedForResults value to $newUsedForResults for " +
+          s"applicationId=$applicationId,inventoryId=$inventoryId,orderId=$orderId because ${ex.getMessage}"
+        BadRequest(msg)
       }
   }
 
