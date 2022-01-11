@@ -41,7 +41,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: EAC_DS
-  schemeGuide: https://www.faststream.gov.uk/media/1234/ges_ds-guide.pdf
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB_Guide_Economic_Service_2022.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/scheme-questions-ges-ddes.odt
 - id: Finance
   code: FIFS
