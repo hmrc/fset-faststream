@@ -165,7 +165,7 @@ GET         /diagnostic/all-events                                              
 GET         /diagnostic/application/undoFullWithdraw/:newApplicationStatus                                          @controllers.fixdata.FixDataConsistencyController.undoFullWithdraw(applicationId: String, newApplicationStatus: model.ApplicationStatus.ApplicationStatus)
 GET         /diagnostic/application/updateApplicationStatus/:newApplicationStatus                                   @controllers.fixdata.FixDataConsistencyController.updateApplicationStatus(applicationId: String, newApplicationStatus: model.ApplicationStatus.ApplicationStatus)
 DELETE      /diagnostic/application/:applicationId/eTray                                                            @controllers.fixdata.FixDataConsistencyController.removeETray(applicationId: String)
-DELETE      /diagnostic/application/:applicationId/progress/:progress                                               @controllers.fixdata.FixDataConsistencyController.removeProgressStatus(applicationId: String, progress: String)
+DELETE      /diagnostic/application/:applicationId/progress/:progress                                               @controllers.fixdata.FixDataConsistencyController.removeProgressStatus(applicationId: String, progress: model.ProgressStatuses.ProgressStatus)
 DELETE      /diagnostic/application/:applicationId/failedVideoEvaluation                                            @controllers.fixdata.FixDataConsistencyController.removeVideoInterviewFailed(applicationId: String)
 PUT         /diagnostic/application/:applicationId/fastPassPromotion                                                @controllers.fixdata.FixDataConsistencyController.promoteToFastPassAccepted(applicationId: String)
 
