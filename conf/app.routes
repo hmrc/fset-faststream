@@ -169,9 +169,6 @@ DELETE      /diagnostic/application/:applicationId/progress/:progress           
 DELETE      /diagnostic/application/:applicationId/failedVideoEvaluation                                            @controllers.fixdata.FixDataConsistencyController.removeVideoInterviewFailed(applicationId: String)
 PUT         /diagnostic/application/:applicationId/fastPassPromotion                                                @controllers.fixdata.FixDataConsistencyController.promoteToFastPassAccepted(applicationId: String)
 
-# TODO: cubiks specific
-#GET         /diagnostic/application/:applicationId/rollback-to-phase2-completed-from-phase2-failed                  @controllers.fixdata.FixDataConsistencyController.rollbackToPhase2CompletedFromPhase2Failed(applicationId: String)
-
 GET         /diagnostic/application/:applicationId/rollback-to-phase1-results-received-from-phase1-failed           @controllers.fixdata.FixDataConsistencyController.rollbackToPhase1ResultsReceivedFromPhase1FailedNotified(applicationId: String)
 GET         /diagnostic/application/:applicationId/rollback-to-phase2-results-received-from-phase2-failed           @controllers.fixdata.FixDataConsistencyController.rollbackToPhase2ResultsReceivedFromPhase2FailedNotified(applicationId: String)
 GET         /diagnostic/application/:applicationId/rollback-to-submitted-with-fast-pass-from-online-tests-expired   @controllers.fixdata.FixDataConsistencyController.rollbackToSubmittedWithFastPassFromOnlineTestsExpired(applicationId: String, fastPass: Int, sdipFaststream: Boolean)
@@ -230,7 +227,7 @@ GET         /diagnostic/rollbackToPhase3TestExpiredFromSift                     
 GET         /diagnostic/findSdipFaststreamFailedFaststreamInPhase1ExpiredPhase2InvitedToSift            @controllers.fixdata.FixDataConsistencyController.findSdipFaststreamFailedFaststreamInPhase1ExpiredPhase2InvitedToSift
 GET         /diagnostic/findSdipFaststreamFailedFaststreamInPhase2ExpiredPhase3InvitedToSift            @controllers.fixdata.FixDataConsistencyController.findSdipFaststreamFailedFaststreamInPhase2ExpiredPhase3InvitedToSift
 GET         /diagnostic/rollbackToPhase1TestsPassedFromSift                                             @controllers.fixdata.FixDataConsistencyController.rollbackToPhase1TestsPassedFromSift(applicationId: String)
-GET         /diagnostic/enablePhase3CandidateToBeEvaluated                                              @controllers.fixdata.FixDataConsistencyController.enablePhase3CandidateToBeEvaluated(applicationId: String)
+GET         /diagnostic/enablePhase3ExpiredCandidateToBeEvaluated                                       @controllers.fixdata.FixDataConsistencyController.enablePhase3ExpiredCandidateToBeEvaluated(applicationId: String)
 GET         /diagnostic/removePhase3TestAndSetOtherToActive                                             @controllers.fixdata.FixDataConsistencyController.removePhase3TestAndSetOtherToActive(removeTestToken: String, markTestAsActiveToken: String)
 GET         /diagnostic/rollbackToRetakePhase3FromSift                                                  @controllers.fixdata.FixDataConsistencyController.rollbackToRetakePhase3FromSift(applicationId: String, token: String)
 GET         /diagnostic/removePhase1TestEvaluation                                                      @controllers.fixdata.FixDataConsistencyController.removePhase1TestEvaluation(applicationId: String)

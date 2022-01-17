@@ -20,13 +20,14 @@ import factories.UUIDFactory
 
 import javax.inject.{Inject, Singleton}
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.{ApplicationNotFound, CannotUpdateCivilServiceExperienceDetails, CannotUpdateRecord, NotFoundException}
+import model.Exceptions.{ApplicationNotFound, CandidateInIncorrectState, CannotUpdateCivilServiceExperienceDetails, CannotUpdateRecord, NotFoundException, UnexpectedException}
 import model.ProgressStatuses.{ASSESSMENT_CENTRE_PASSED, _}
 import model.command.FastPassPromotion
 import model.persisted.sift.SiftAnswersStatus
 import model.{SchemeId, UniqueIdentifier}
 import play.api.Logging
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+import services.application.ApplicationService.NoChangeInCurrentSchemeStatusException
 import services.application.{ApplicationService, FsbService}
 import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAssessmentScoreEvaluationException
 import services.assessmentcentre.{AssessmentCentreService, ProgressionToFsbOrOfferService}
@@ -59,7 +60,8 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     applicationService.undoFullWithdraw(applicationId, newApplicationStatus).map { _ =>
       Ok
     } recover {
-      case _: NotFoundException => NotFound
+      case e: ApplicationNotFound => NotFound(s"Did not find candidate ${e.getMessage}")
+      case e: CandidateInIncorrectState => BadRequest(s"Cannot rollback withdraw for candidate because ${e.getMessage}")
     }
   }
 
@@ -99,12 +101,6 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
   }
 
-  // TODO: cubiks this is cubiks specific
-  /*
-  def rollbackToPhase2CompletedFromPhase2Failed(applicationId: String): Action[AnyContent] = Action.async {
-    rollbackApplicationState(applicationId, applicationService.rollbackCandidateToPhase2CompletedFromPhase2Failed)
-  }*/
-
   def rollbackToPhase1ResultsReceivedFromPhase1FailedNotified(applicationId: String): Action[AnyContent] = Action.async {
     rollbackApplicationState(applicationId, applicationService.rollbackToPhase1ResultsReceivedFromPhase1FailedNotified)
   }
@@ -113,12 +109,17 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     rollbackApplicationState(applicationId, applicationService.rollbackToPhase2ResultsReceivedFromPhase2FailedNotified)
   }
 
-  def rollbackToSubmittedWithFastPassFromOnlineTestsExpired(applicationId: String, fastPass: Int,
-    sdipFaststream: Boolean): Action[AnyContent] = Action.async {
-    for {
+  def rollbackToSubmittedWithFastPassFromOnlineTestsExpired(applicationId: String,
+                                                            fastPass: Int,
+                                                            sdipFaststream: Boolean): Action[AnyContent] = Action.async {
+    (for {
       _ <- applicationService.convertToFastStreamRouteWithFastpassFromOnlineTestsExpired(applicationId, fastPass, sdipFaststream)
-      response <- rollbackApplicationState(applicationId, applicationService.rollbackToSubmittedFromOnlineTestsExpired)
-    } yield response
+      _ <- applicationService.rollbackToSubmittedFromOnlineTestsExpired(applicationId)
+    } yield Ok(s"Successfully rolled back $applicationId"))
+    .recover {
+      case e: NotFoundException =>
+        NotFound(s"Unable to rollback $applicationId because ${e.getMessage}")
+    }
   }
 
   def rollbackToInProgressFromFastPassAccepted(applicationId: String): Action[AnyContent] = Action.async {
@@ -128,16 +129,20 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
   }
 
   def removeSdipSchemeFromFaststreamUser(applicationId: String): Action[AnyContent] = Action.async {
-    for {
+    (for {
       _ <- applicationService.removeSdipSchemeFromFaststreamUser(applicationId)
-    } yield Ok
+    } yield Ok)
+      .recover {
+        case e: ApplicationNotFound => NotFound(e.getMessage)
+        case e: Throwable => BadRequest(e.getMessage)
+      }
   }
 
   def rollbackApplicationState(applicationId: String, operator: String => Future[Unit]): Future[Result] = {
     operator(applicationId).map { _ =>
       Ok(s"Successfully rolled back $applicationId")
-    }.recover { case _ =>
-      InternalServerError(s"Unable to rollback $applicationId")
+    }.recover {
+      case _ => InternalServerError(s"Unable to rollback $applicationId")
     }
   }
 
@@ -329,6 +334,12 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
 
   def fixSdipFaststreamCandidateWhoExpiredInOnlineTests(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     applicationService.fixSdipFaststreamCandidateWhoExpiredInOnlineTests(applicationId).map(_ => Ok(s"Successfully fixed $applicationId"))
+      .recover {
+        case e: ApplicationNotFound =>
+          NotFound(s"Application not found: ${e.getMessage}")
+        case e: UnexpectedException =>
+          BadRequest(s"Error correcting candidate $applicationId because ${e.getMessage}")
+      }
   }
 
   def markSiftSchemeAsRed(applicationId: String, schemeId: model.SchemeId): Action[AnyContent] = Action.async {
@@ -460,7 +471,10 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
                                       result: model.EvaluationResults.Result): Action[AnyContent] = Action.async {
     applicationService.updateCurrentSchemeStatusScheme(applicationId, schemeId, result).map(_ =>
       Ok(s"Successfully updated CSS for schemeId ${schemeId.toString} to ${result.toString} for $applicationId ")
-    )
+    ). recover {
+      case ex: NoChangeInCurrentSchemeStatusException =>
+        BadRequest(s"Error updating CSS: ${ex.getMessage}")
+    }
   }
 
   def rollbackToAssessmentCentreConfirmedFromAssessmentCentreFailedNotified(applicationId: String): Action[AnyContent] =
@@ -496,7 +510,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
   def rollbackToSubmittedFromOnlineTestsAndAddFastpassNumber(applicationId: String, certificateNumber: String): Action[AnyContent] =
     Action.async { implicit request =>
       applicationService.rollbackToSubmittedFromOnlineTestsAndAddFastpassNumber(applicationId, certificateNumber)
-        .map(_ => Ok(s"Successfully rolled $applicationId back to Submitted and added Fastpass($certificateNumber"))
+        .map(_ => Ok(s"Successfully rolled $applicationId back to Submitted and added FastPass($certificateNumber"))
   }
 
   def rollbackToSubmittedFromPhase1AfterFastpassRejectedByMistake(applicationId: String): Action[AnyContent] =
@@ -598,18 +612,19 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       applicationService.rollbackToPhase1TestsPassedFromSift(applicationId).map(_ =>
         Ok(s"Successfully rolled back to phase1 tests passed $applicationId")
       ).recover {
+        case ex: NotFoundException => NotFound(s"Could not fix $applicationId - message: ${ex.getMessage}")
         case ex: Throwable =>
           BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
       }
     }
 
-  def enablePhase3CandidateToBeEvaluated(applicationId: String): Action[AnyContent] =
+  def enablePhase3ExpiredCandidateToBeEvaluated(applicationId: String): Action[AnyContent] =
     Action.async { implicit request =>
-      applicationService.enablePhase3CandidateToBeEvaluated(applicationId).map(_ =>
+      applicationService.enablePhase3ExpiredCandidateToBeEvaluated(applicationId).map(_ =>
         Ok(s"Successfully updated phase3 state so candidate $applicationId can be evaluated ")
       ).recover {
-        case ex: Throwable =>
-          BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
+        case ex: ApplicationNotFound => NotFound(s"Could not fix $applicationId - message: ${ex.getMessage}")
+        case ex: Throwable => BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
       }
     }
 
@@ -668,6 +683,8 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       phase3TestService.extendTestGroupExpiryTime(applicationId, extraDays).map( _ =>
         Ok(s"Successfully extended P3 test group by $extraDays day(s) for candidate $applicationId")
       ).recover {
+        case ex: IllegalStateException =>
+          NotFound(s"Could not extend P3 test group by $extraDays for $applicationId - message: ${ex.getMessage}")
         case ex: Throwable =>
           BadRequest(s"Could not extend P3 test group by $extraDays for $applicationId - message: ${ex.getMessage}")
       }
@@ -677,8 +694,8 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     applicationService.removePhase3TestGroup(applicationId).map { _ =>
       Ok(s"Successfully removed phase 3 test group for $applicationId")
     } recover {
-      case ex: Throwable =>
-        BadRequest(s"Could not phase 3 test group for $applicationId - message: ${ex.getMessage}")
+      case ex: NotFoundException =>
+        NotFound(s"Could not remove phase 3 test group for $applicationId - message: ${ex.getMessage}")
     }
   }
 

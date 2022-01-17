@@ -18,15 +18,17 @@ package controllers
 
 import connectors.launchpadgateway.exchangeobjects.in._
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import play.api.libs.json.JsValue
 import play.api.mvc.ControllerComponents
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import model.Exceptions.NotFoundException
 import play.api.Logging
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, Result }
-import services.onlinetesting.phase3.{ Phase3TestCallbackService, Phase3TestService }
+import play.api.mvc.{Action, Result}
+import repositories.onlinetesting.Phase3TestRepository.CannotFindTestByLaunchpadId
+import services.onlinetesting.phase3.{Phase3TestCallbackService, Phase3TestService}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -95,8 +97,11 @@ class LaunchpadTestsController @Inject() (cc: ControllerComponents,
   }
 
   private def recoverNotFound[U >: Result]: PartialFunction[Throwable, U] = {
-    case e@CannotFindTestByLaunchpadInviteId(msg) =>
+    case e @ CannotFindTestByLaunchpadInviteId(msg) =>
       logger.warn(msg, e)
-      NotFound
+      NotFound(e.getMessage)
+    case e @ CannotFindTestByLaunchpadId(msg) =>
+      logger.warn(msg, e)
+      NotFound(e.getMessage)
   }
 }
