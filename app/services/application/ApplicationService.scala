@@ -64,7 +64,7 @@ object ApplicationService {
   case class NoChangeInCurrentSchemeStatusException(applicationId: String,
                                                     currentSchemeStatus: Seq[SchemeEvaluationResult],
                                                     newSchemeStatus: Seq[SchemeEvaluationResult]) extends
-    Exception(s"$applicationId / $currentSchemeStatus / $newSchemeStatus")
+    Exception(s"No change in CSS after updating $applicationId. CSS before:$currentSchemeStatus, CSS after:$newSchemeStatus")
 }
 
 // scalastyle:off number.of.methods file.size.limit
@@ -296,8 +296,11 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
 
   def undoFullWithdraw(applicationId: String, newApplicationStatus: ApplicationStatus): Future[Unit] = {
     for {
-      application <- appRepository.find(applicationId)
-      _ = application.map(_.applicationStatus.exists(_ == WITHDRAWN)).getOrElse(throw ApplicationNotFound(applicationId))
+      candidateOpt <- appRepository.find(applicationId)
+      _ = candidateOpt.getOrElse(throw ApplicationNotFound(applicationId))
+      _ = if (!candidateOpt.exists(_.applicationStatus.contains(WITHDRAWN.key))) {
+        throw CandidateInIncorrectState(s"Candidate $applicationId does not have applicationStatus of WITHDRAWN")
+      }
       _ <- appRepository.removeProgressStatuses(applicationId, List(ProgressStatuses.WITHDRAWN))
       _ <- appRepository.removeWithdrawReason(applicationId)
       _ <- appRepository.updateStatus(applicationId, newApplicationStatus)
@@ -513,7 +516,9 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
       _ <- civilServiceExperienceDetailsRepo.update(applicationId, updatedCivilServiceDetails)
       _ <- phase1TestRepository.removeTestGroup(applicationId)
       _ <- phase2TestRepository.removeTestGroup(applicationId)
-      _ <- phase3TestRepository.removeTestGroup(applicationId)
+      // Note the default removeTestGroup has been overriden in p3TestRepository so we need to call this method
+      // which routes the call to the default implementation. Might be sensible to rename the overriden impl
+      _ <- phase3TestRepository.removePhase3TestGroup(applicationId)
       _ <- appSiftRepository.removeTestGroup(applicationId)
       _ <- appRepository.updateCurrentSchemeStatus(applicationId, Seq.empty[SchemeEvaluationResult])
       _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.SUBMITTED, statuses.toList)
@@ -522,8 +527,8 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
 
   def rollbackToSubmittedFromPhase1AfterFastpassRejectedByMistake(applicationId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     for {
-      civilServiceDetails <- civilServiceExperienceDetailsRepo.find(applicationId)
-      updatedCivilServiceDetails = civilServiceDetails
+      civilServiceDetailsOpt <- civilServiceExperienceDetailsRepo.find(applicationId)
+      updatedCivilServiceDetails = civilServiceDetailsOpt
         .map(_.copy(fastPassAccepted = None))
         .getOrElse(throw UnexpectedException("Civil Service Details not found"))
       _ <- civilServiceExperienceDetailsRepo.update(applicationId, updatedCivilServiceDetails)
@@ -734,7 +739,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
       } yield ()
     }
 
-    appRepository.find(applicationId).map {
+    appRepository.find(applicationId).flatMap {
       _.map { candidate =>
         candidate.applicationStatus match {
           case Some("PHASE2_TESTS") =>
@@ -743,7 +748,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
             moveToSift(phase2TestRepository, phase3TestRepository).map(_ => ())
           case _ => throw UnexpectedException(s"Candidate with app id $applicationId should be in either PHASE2 or PHASE3")
         }
-      }
+      }.getOrElse(throw ApplicationNotFound(applicationId))
     }
   }
 
@@ -1111,7 +1116,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
     } yield ()
   }
 
-  def enablePhase3CandidateToBeEvaluated(applicationId: String): Future[Unit] = {
+  def enablePhase3ExpiredCandidateToBeEvaluated(applicationId: String): Future[Unit] = {
     for {
       _ <- phase3TestRepository.updateExpiryDate(applicationId, new DateTime().plusDays(1))
       _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)

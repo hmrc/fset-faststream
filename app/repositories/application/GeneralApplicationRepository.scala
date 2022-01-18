@@ -847,7 +847,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
   def updateStatus(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
-    val validator = singleUpdateValidator(applicationId, actionDesc = "updating status")
+    val validator = singleUpdateValidator(applicationId, actionDesc = "updating application status")
 
     collection.update(ordered = false).one(query, BSONDocument("$set" -> applicationStatusBSON(applicationStatus))) map validator
   }

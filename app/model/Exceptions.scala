@@ -67,6 +67,8 @@ object Exceptions {
 
   case class ApplicationNotFound(id: String) extends Exception(id)
 
+  case class CandidateInIncorrectState(msg: String) extends Exception(msg)
+
   case class TokenNotFound(id: String) extends Exception(id)
 
   case class PassMarkSettingsNotFound() extends Exception
