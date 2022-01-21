@@ -46,7 +46,9 @@ trait ProgressToAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobC
         Future.successful(())
       case applications => assessmentCentreService.progressApplicationsToAssessmentCentre(applications).map { result =>
         logger.info(
-          s"Progress to assessment centre complete - ${result.successes.size} updated and ${result.failures.size} failed to update"
+          s"Progress to assessment centre complete - ${result.successes.size} updated " +
+            s"appIds: ${result.successes.map(_.applicationId).mkString(",")} and ${result.failures.size} failed to update " +
+            s"appIds: ${result.failures.map(_.applicationId).mkString(",")}"
         )
       }
     }

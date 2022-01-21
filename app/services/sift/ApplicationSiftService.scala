@@ -435,15 +435,15 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     for {
       _ <- applicationSiftRepo.fixDataByRemovingSiftPhaseEvaluationAndFailureStatus(applicationId)
       _ <- applicationRepo.removeProgressStatuses(applicationId,
-        List(ProgressStatuses.SIFT_COMPLETED, ProgressStatuses.FAILED_AT_SIFT, ProgressStatuses.SDIP_FAILED_AT_SIFT,
-          ProgressStatuses.FAILED_AT_SIFT_NOTIFIED))
+        List(ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN, ProgressStatuses.SIFT_COMPLETED, ProgressStatuses.FAILED_AT_SIFT,
+          ProgressStatuses.SDIP_FAILED_AT_SIFT, ProgressStatuses.FAILED_AT_SIFT_NOTIFIED))
     } yield ()
   }
 
   def fixUserSiftedWithAFailToSiftCompleted(applicationId: String): Future[Unit] = {
     for {
       _ <- applicationRepo.removeProgressStatuses(applicationId,
-        List(ProgressStatuses.FAILED_AT_SIFT, ProgressStatuses.SDIP_FAILED_AT_SIFT,
+        List(ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN, ProgressStatuses.FAILED_AT_SIFT, ProgressStatuses.SDIP_FAILED_AT_SIFT,
           ProgressStatuses.FAILED_AT_SIFT_NOTIFIED))
       _ <- applicationRepo.updateApplicationStatusOnly(applicationId, ApplicationStatus.SIFT)
     } yield ()
