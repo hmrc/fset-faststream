@@ -45,15 +45,15 @@ lazy val microservice = Project(appName, file("."))
     scalaVersion := "2.12.11",
     libraryDependencies ++= appDependencies,
 
-    parallelExecution in Test := false,
-    fork in Test := false,
+    Test / parallelExecution := false,
+    Test / fork := false,
     retrieveManaged := true,
     scalacOptions += "-feature",
     // Currently don't enable warning in value discard in tests until ScalaTest 3
-    scalacOptions in(Compile, compile) += "-Ywarn-value-discard",
-    scalacOptions in(Compile, compile) += "-Xlint:-missing-interpolator,_",
-    scalacOptions in(Compile, compile) += "-Ywarn-unused")
-  .settings(sources in (Compile, doc) := Seq.empty)
+    Compile / compile / scalacOptions += "-Ywarn-value-discard",
+    Compile / compile / scalacOptions += "-Xlint:-missing-interpolator,_",
+    Compile / compile / scalacOptions += "-Ywarn-unused")
+  .settings(Compile / doc / sources := Seq.empty)
   .configs(IntegrationTest)
   .settings(inConfig(IntegrationTest)(Defaults.itSettings))
   // Disable Scalastyle & Scalariform temporarily, as it is currently intermittently failing when building
@@ -75,13 +75,13 @@ lazy val microservice = Project(appName, file("."))
 //  )
 
   .settings(
-    Keys.fork in IntegrationTest := false,
-    unmanagedSourceDirectories in IntegrationTest := (baseDirectory in IntegrationTest)(base => Seq(
+    IntegrationTest / Keys.fork := false,
+    IntegrationTest / unmanagedSourceDirectories := (IntegrationTest / baseDirectory)(base => Seq(
       base / "it", base / "test/model", base / "test/testkit"
     )).value,
     addTestReportOption(IntegrationTest, "int-test-reports"),
-    testGrouping in IntegrationTest := oneForkedJvmPerTest((definedTests in IntegrationTest).value),
-    parallelExecution in IntegrationTest := false)
+    IntegrationTest / testGrouping := oneForkedJvmPerTest((IntegrationTest / definedTests).value),
+    IntegrationTest / parallelExecution := false)
   .settings(resolvers ++= Seq(Resolver.jcenterRepo))
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
 

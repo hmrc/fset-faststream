@@ -277,7 +277,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
 
     def createApplicationRequest(jsonString: String) = {
       val json = Json.parse(jsonString)
-      FakeRequest(Helpers.PUT, controllers.routes.ApplicationController.createApplication().url, FakeHeaders(), json)
+      FakeRequest(Helpers.PUT, controllers.routes.ApplicationController.createApplication.url, FakeHeaders(), json)
         .withHeaders("Content-Type" -> "application/json")
     }
 
