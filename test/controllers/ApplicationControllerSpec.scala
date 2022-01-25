@@ -23,7 +23,7 @@ class ApplicationControllerSpec extends BaseControllerSpec {
   "index" should {
     "redirect to sign in page" in new TestFixture {
       val result = controller.index()(fakeRequest)
-      assertPageRedirection(result, routes.SignInController.signIn().url)
+      assertPageRedirection(result, routes.SignInController.signIn.url)
     }
   }
 

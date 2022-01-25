@@ -79,7 +79,7 @@ class SchemePreferencesController @Inject() (
             for {
               _ <- schemeClient.updateSchemePreferences(selectedSchemesAmended)(cachedData.application.applicationId)
               redirect <- secEnv.userService.refreshCachedUser(cachedData.user.userID).map { _ =>
-                Redirect(routes.AssistanceDetailsController.present())
+                Redirect(routes.AssistanceDetailsController.present)
               }
             } yield {
               redirect

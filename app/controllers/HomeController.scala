@@ -95,7 +95,7 @@ class HomeController @Inject() (
         }
         if canApplicationBeSubmitted(response.overriddenSubmissionDeadline)(response.applicationRoute)
       } yield {
-        Redirect(routes.PersonalDetailsController.presentAndContinue())
+        Redirect(routes.PersonalDetailsController.presentAndContinue)
       }
   }
 

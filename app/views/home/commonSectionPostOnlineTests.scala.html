@@ -31,11 +31,11 @@
             <div class="page-link">
                 @if(!WithdrawnApplicationRole.isAuthorized(cachedData)) {
                 <p class="small-btm-margin">
-                    <a class="" id="view-application" href="@routes.PreviewApplicationController.present()">View your submitted application</a>
+                    <a class="" id="view-application" href="@routes.PreviewApplicationController.present">View your submitted application</a>
                 </p>
                 @if(AbleToWithdrawApplicationRole.isAuthorized(cachedData)){
                 <p class="small-btm-margin">
-                    <a class="" id="edit-personal-details" href="@routes.PersonalDetailsController.present()">Edit your personal details</a>
+                    <a class="" id="edit-personal-details" href="@routes.PersonalDetailsController.present">Edit your personal details</a>
                 </p>
                 }
                 }

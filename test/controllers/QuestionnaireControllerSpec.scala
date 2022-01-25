@@ -142,7 +142,7 @@ class QuestionnaireControllerSpec extends BaseControllerSpec {
 
   private def assertQuestionnaireContinueRedirect(result:Future[Result]): Unit = {
     status(result) mustBe SEE_OTHER
-    redirectLocation(result) must be(Some(routes.QuestionnaireController.presentStartOrContinue().url))
+    redirectLocation(result) must be(Some(routes.QuestionnaireController.presentStartOrContinue.url))
     flash(result).data mustBe Map("danger" -> errorContent)
   }
 

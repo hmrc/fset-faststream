@@ -16,8 +16,6 @@
 
 package models.page
 
-import java.util.UUID
-
 import connectors.exchange._
 import testkit.UnitSpec
 import models.ApplicationData.ApplicationStatus

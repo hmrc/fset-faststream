@@ -25,7 +25,7 @@
         <h2 class="heading-large">
             Nationality
             @if(!page.areAnswersSubmitted) {
-                <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions()"><i class="the-icon fa fa-pencil" aria-hidden="true"></i><span class="the-text">
+                <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions"><i class="the-icon fa fa-pencil" aria-hidden="true"></i><span class="the-text">
                     Edit section</span></a>
             }
         </h2>
@@ -48,7 +48,7 @@
         <h2 class="heading-large">
             Undergraduate degree
             @if(!page.areAnswersSubmitted) {
-                <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions()#UndergraduateDegree"><i class="the-icon fa fa-pencil" aria-hidden="true"></i><span class="the-text">
+                <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions#UndergraduateDegree"><i class="the-icon fa fa-pencil" aria-hidden="true"></i><span class="the-text">
                     Edit section</span></a>
             }
         </h2>
@@ -83,7 +83,7 @@
         <h2 class="heading-large">
             Postgraduate degree
             @if(!page.areAnswersSubmitted) {
-                <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions()#PostgraduateDegree"><i class="the-icon fa fa-pencil" aria-hidden="true"></i><span class="the-text">
+                <a class="icon-with-text" href="@routes.SiftQuestionsController.presentGeneralQuestions#PostgraduateDegree"><i class="the-icon fa fa-pencil" aria-hidden="true"></i><span class="the-text">
                     Edit section</span></a>
             }
         </h2>
@@ -149,7 +149,7 @@
                             after you submit.</p>
                     </div>
                 </div>
-                <a href="@routes.SiftQuestionsController.submitAdditionalQuestions()" class="button">Submit<span class="visuallyhidden"> additional questions</span></a>
+                <a href="@routes.SiftQuestionsController.submitAdditionalQuestions" class="button">Submit<span class="visuallyhidden"> additional questions</span></a>
             </div>
         </fieldset>
     }

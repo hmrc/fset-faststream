@@ -32,7 +32,7 @@
         <div class="text">
             <h1 class="heading-xlarge" id="assistanceDetailsHeading">Disability and health conditions</h1>
         </div>
-        @helper.form(action = routes.AssistanceDetailsController.submit(), 'novalidate -> "novalidate") {
+        @helper.form(action = routes.AssistanceDetailsController.submit, 'novalidate -> "novalidate") {
             <input type="hidden" id="applicationRoute" name="applicationRoute" value="@applicationRoute" />
             @helper.CSRF.formField
             @hasDisability(form, disabilityCategories)

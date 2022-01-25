@@ -24,7 +24,6 @@ import connectors.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer,
 import connectors.{ ApplicationClient, ReferenceDataClient, SchemeClient, SiftClient }
 import forms.SchemeSpecificQuestionsForm
 import forms.sift.GeneralQuestionsForm
-import helpers.NotificationType._
 import helpers.{ CachedUserWithSchemeData, NotificationTypeHelper }
 import javax.inject.{ Inject, Singleton }
 import models.page.{ GeneralQuestionsPage, SiftPreviewPage }
@@ -221,11 +220,11 @@ class SiftQuestionsController @Inject() (
 
   private def getNextStep(currentSchemePage: SchemeId, schemesForSift: Seq[SchemeId]) = {
     val destination = if (schemesForSift.last == currentSchemePage) {
-      routes.SiftQuestionsController.presentPreview()
+      routes.SiftQuestionsController.presentPreview
     } else {
       schemesForSift.lift(schemesForSift.indexOf(currentSchemePage) + 1).map { nextScheme =>
         routes.SiftQuestionsController.presentSchemeForm(nextScheme)
-      }.getOrElse(routes.SiftQuestionsController.presentPreview())
+      }.getOrElse(routes.SiftQuestionsController.presentPreview)
     }
 
     Redirect(destination)

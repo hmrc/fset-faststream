@@ -54,7 +54,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       ReferenceDataExamples.Schemes.schemesWithNoDegree.foreach{ scheme =>
         content must not include s"<li>${scheme.name}</li>"
       }
-      content must include(routes.PersonalDetailsController.submitPersonalDetails().url)
+      content must include(routes.PersonalDetailsController.submitPersonalDetails.url)
     }
 
     "load edip personal details page for the new user and generate return to dashboard link" in new TestFixture {
@@ -68,7 +68,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       val content = contentAsString(result)
       content must include(s"""name="preferredName" value="${currentCandidate.user.firstName}"""")
       content mustNot include("""<input name="civilServiceExperienceDetails.applicable" type="radio"""")
-      content must include(routes.PersonalDetailsController.submitPersonalDetails().url)
+      content must include(routes.PersonalDetailsController.submitPersonalDetails.url)
     }
 
     "load sdip personal details page for the new user and generate return to dashboard link" in new TestFixture {
@@ -83,7 +83,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       content must include(s"""name="preferredName" value="${currentCandidate.user.firstName}"""")
       content must include ("""<input name="edipCompleted" type="radio"""")
       content mustNot include("""<input name="civilServiceExperienceDetails.applicable" type="radio"""")
-      content must include(routes.PersonalDetailsController.submitPersonalDetails().url)
+      content must include(routes.PersonalDetailsController.submitPersonalDetails.url)
     }
   }
 
@@ -99,7 +99,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       val content = contentAsString(result)
       content must include(s"""name="preferredName" value="${currentCandidate.user.firstName}"""")
       content must include("""<input name="civilServiceExperienceDetails.applicable" type="radio"""")
-      content must include(routes.PersonalDetailsController.submitPersonalDetailsAndContinue().url)
+      content must include(routes.PersonalDetailsController.submitPersonalDetailsAndContinue.url)
     }
 
     "load personal details page for the already created personal details" in new TestFixture {
@@ -126,7 +126,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       val content = contentAsString(result)
       content must include(s"""name="preferredName" value="${currentCandidate.user.firstName}"""")
       content mustNot include("""<input name="civilServiceExperienceDetails.applicable" type="radio"""")
-      content must include(routes.PersonalDetailsController.submitPersonalDetailsAndContinue().url)
+      content must include(routes.PersonalDetailsController.submitPersonalDetailsAndContinue.url)
     }
 
     "load edip personal details page for the already created personal details" in new TestFixture {
@@ -154,7 +154,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       content must include(s"""name="preferredName" value="${currentCandidate.user.firstName}"""")
       content mustNot include("""<input name="civilServiceExperienceDetails.applicable" type="radio"""")
       content must include ("""<input name="edipCompleted" type="radio"""")
-      content must include(routes.PersonalDetailsController.submitPersonalDetailsAndContinue().url)
+      content must include(routes.PersonalDetailsController.submitPersonalDetailsAndContinue.url)
     }
 
     "load sdip personal details page for the already created personal details" in new TestFixture {
@@ -187,7 +187,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       val result = controller.submitPersonalDetailsAndContinue()(Request)
 
       status(result) mustBe SEE_OTHER
-      redirectLocation(result) mustBe Some(routes.SchemePreferencesController.present().url)
+      redirectLocation(result) mustBe Some(routes.SchemePreferencesController.present.url)
     }
 
     "update edip candidate's details and return to assistance details" in new TestFixture {
@@ -209,7 +209,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       val result = controller(currentCandidateWithEdipApp).submitPersonalDetailsAndContinue()(Request)
 
       status(result) mustBe  SEE_OTHER
-      redirectLocation(result) mustBe Some(routes.AssistanceDetailsController.present().url)
+      redirectLocation(result) mustBe Some(routes.AssistanceDetailsController.present.url)
     }
 
     "update sdip candidate's details and return to assistance details" in new TestFixture {
@@ -231,7 +231,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       val result = controller(currentCandidateWithEdipApp).submitPersonalDetailsAndContinue()(Request)
 
       status(result) mustBe SEE_OTHER
-      redirectLocation(result) mustBe Some(routes.AssistanceDetailsController.present().url)
+      redirectLocation(result) mustBe Some(routes.AssistanceDetailsController.present.url)
     }
 
     "update candidate's details and return to dashboard page" in new TestFixture {

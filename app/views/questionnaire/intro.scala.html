@@ -46,7 +46,7 @@
                 back and change your answers.</p>
         </div>
     </section>
-    @helper.form(action = routes.QuestionnaireController.submitStart(), 'novalidate -> "novalidate") {
+    @helper.form(action = routes.QuestionnaireController.submitStart, 'novalidate -> "novalidate") {
         <div class="form-group">
             @helper.CSRF.formField
             @checkbox(acceptanceForm("accept-terms")) {

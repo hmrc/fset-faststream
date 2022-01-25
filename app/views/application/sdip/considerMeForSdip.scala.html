@@ -24,7 +24,7 @@
         <h1 class="heading-xlarge">Consider me for SDIP</h1>
         <p class="subtitle">For existing Civil Service Fast Stream applicants</p>
     </div>
-    @helper.form(action = routes.ConsiderForSdipController.submit(), 'novalidate -> "novalidate") {
+    @helper.form(action = routes.ConsiderForSdipController.submit, 'novalidate -> "novalidate") {
         @helper.CSRF.formField
 
         <section class="text">

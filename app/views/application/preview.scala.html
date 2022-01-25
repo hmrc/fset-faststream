@@ -64,13 +64,13 @@
       </div>
     </div>
 
-    @personalDetailsViewSection(generalDetails)(edit_link("editPersonalDetails", "Personal Details", routes.PersonalDetailsController.presentAndContinue()))
+    @personalDetailsViewSection(generalDetails)(edit_link("editPersonalDetails", "Personal Details", routes.PersonalDetailsController.presentAndContinue))
 
     @if(isFaststream(user)) {
-        @schemePreferencesViewSection(schemePreferences)(edit_link("editSchemePreferences", "Scheme Preferences", routes.SchemePreferencesController.present()))
+        @schemePreferencesViewSection(schemePreferences)(edit_link("editSchemePreferences", "Scheme Preferences", routes.SchemePreferencesController.present))
     }
 
-    @assistanceDetailsViewSection(assistanceDetails)(edit_link("editAssistanceDetails", "Disability and health conditions", routes.AssistanceDetailsController.present()))
+    @assistanceDetailsViewSection(assistanceDetails)(edit_link("editAssistanceDetails", "Disability and health conditions", routes.AssistanceDetailsController.present))
 
     @diversityQuestionnaireViewSection()
 
@@ -90,13 +90,13 @@
             <section>
                 <p>If you no longer want to be considered, you can withdraw
                     your application.</p>
-                <a id="withdraw-app" href="@routes.WithdrawController.presentWithdrawApplication()">Withdraw your application</a>
+                <a id="withdraw-app" href="@routes.WithdrawController.presentWithdrawApplication">Withdraw your application</a>
             </section>
         </section>
     }
 
     @appNotReadOnly {
-        @helper.form(action = routes.PreviewApplicationController.submit(), 'novalidate -> "novalidate") {
+        @helper.form(action = routes.PreviewApplicationController.submit, 'novalidate -> "novalidate") {
             @helper.CSRF.formField
             <div>
                 <button id="submit" type="submit" value="submit" class="button">Save and continue</button>

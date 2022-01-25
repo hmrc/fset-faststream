@@ -44,23 +44,23 @@ lazy val microservice = Project(appName, file("."))
   .settings(majorVersion := 0)
   .settings(playSettings : _*)
   .settings(scalaSettings: _*)
-  .settings(publishingSettings ++ (publishArtifact in(Compile, packageDoc) := false))
+  .settings(publishingSettings ++ ((Compile / packageDoc / publishArtifact) := false))
   .settings(defaultSettings(): _*)
   .settings(
     targetJvm := "jvm-1.8",
     scalaVersion := "2.12.11",
     routesImport += "controllers.Binders._",
     libraryDependencies ++= appDependencies,
-    parallelExecution in Test := false,
-    fork in Test := true,
-    javaOptions in Test += "-Dlogger.resource=logback-test.xml",
-    javaOptions in Test += "-Dmicroservice.services.user-management.url.host=http://localhost:11111",
+    Test / parallelExecution := false,
+    Test / fork := true,
+    Test / javaOptions += "-Dlogger.resource=logback-test.xml",
+    Test / javaOptions += "-Dmicroservice.services.user-management.url.host=http://localhost:11111",
     retrieveManaged := true,
     scalacOptions += "-feature",
     // Currently don't enable warning in value discard in tests until ScalaTest 3
-    scalacOptions in (Compile, compile) += "-Ywarn-value-discard"//,
+    Compile / compile / scalacOptions += "-Ywarn-value-discard"//,
   )
-  .settings(sources in (Compile, doc) := Seq.empty)
+  .settings(Compile / doc / sources := Seq.empty)
   .configs(IntegrationTest)
   .settings(pipelineStages := Seq(digest, gzip))
   .settings(inConfig(IntegrationTest)(sbt.Defaults.testSettings) : _*)
@@ -68,15 +68,15 @@ lazy val microservice = Project(appName, file("."))
   // Disable scalariform awaiting release of to fix parameter formatting for implicit parameters
 //  .settings(ScalariformSettings())
 
-  .settings(compileScalastyle := scalastyle.in(Compile).toTask("").value,
-    (compile in Compile) := ((compile in Compile) dependsOn compileScalastyle).value
+  .settings(compileScalastyle := (Compile / scalastyle).toTask("").value,
+    (Compile / compile) := ((Compile / compile) dependsOn compileScalastyle).value
   )
   .settings(
-    Keys.fork in IntegrationTest := false,
-    unmanagedSourceDirectories in IntegrationTest := Seq((baseDirectory in IntegrationTest).value / "it"),
+    IntegrationTest / Keys.fork := false,
+    IntegrationTest / unmanagedSourceDirectories := Seq((IntegrationTest / baseDirectory).value / "it"),
     addTestReportOption(IntegrationTest, "int-test-reports"),
-    testGrouping in IntegrationTest := oneForkedJvmPerTest((definedTests in IntegrationTest).value),
-    parallelExecution in IntegrationTest := false
+    IntegrationTest / testGrouping := oneForkedJvmPerTest((IntegrationTest / definedTests).value),
+    IntegrationTest / parallelExecution := false
   )
   // Silhouette transitive dependencies require that the Atlassian repository be first in the resolver list
   .settings(resolvers := ("Atlassian Releases" at "https://maven.atlassian.com/public/") +: resolvers.value)

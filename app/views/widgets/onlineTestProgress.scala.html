@@ -63,7 +63,7 @@
                 @{ phase2Test.getExpireDateLondon }</strong>.
             </p>
             <div id="etrayTestButton">
-                @helper.form(action = routes.PsiTestController.startPhase2Tests(), 'novalidate -> "novalidate") {
+                @helper.form(action = routes.PsiTestController.startPhase2Tests, 'novalidate -> "novalidate") {
                     @helper.CSRF.formField
                     @{
                         if(!phase2Test.areStarted) {
@@ -138,7 +138,7 @@
                     Online exercises</p>
                 <div id="groupTestExpired">
                     <p>Unfortunately the time you had to finish the online exercises has expired.</p>
-                    <p>If you believe there's been a mistake, please <a href="@routes.ApplicationController.helpdesk()">contact us</a>
+                    <p>If you believe there's been a mistake, please <a href="@routes.ApplicationController.helpdesk">contact us</a>
                         .</p>
                     <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
                         site for more opportunities with us.</p>
@@ -249,7 +249,7 @@
                             }</strong>.
                         </p>
                         <div id="testsButtonContainer">
-                        @helper.form(action = routes.PsiTestController.startPhase1Tests(), 'novalidate -> "novalidate") {
+                        @helper.form(action = routes.PsiTestController.startPhase1Tests, 'novalidate -> "novalidate") {
                             @helper.CSRF.formField
                             @{
                                 if(!phase1TestsPage.areStarted) {
@@ -281,7 +281,7 @@
                                 Work based scenarios</p>
                             <div id="groupTestExpired">
                                 <p>Unfortunately the time you had to finish the work based scenarios has expired.</p>
-                                <p>If you believe there's been a mistake, please <a href="@routes.ApplicationController.helpdesk()">contact us</a>
+                                <p>If you believe there's been a mistake, please <a href="@routes.ApplicationController.helpdesk">contact us</a>
                                     .</p>
                                 <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
                                     site for more opportunities with us.</p>
@@ -368,7 +368,7 @@
                                 Video interview</p>
                             <div id="groupTestExpired">
                                 <p>Unfortunately the time you had to finish the video interview has expired.</p>
-                                <p>If you believe there's been a mistake, please <a href="@routes.ApplicationController.helpdesk()">contact us</a>
+                                <p>If you believe there's been a mistake, please <a href="@routes.ApplicationController.helpdesk">contact us</a>
                                     .</p>
                                 <p>Visit the <a href="https://www.civilservicejobs.service.gov.uk" target="_blank" rel="external">Civil Service jobs</a>
                                     site for more opportunities with us.</p>
@@ -436,7 +436,7 @@
                                             <strong id="videoExpiryDate">@{ phase3TestsPage.getExpireDateLondon }</strong>.
                                         </p>
                                         <div id="videoTestButton">
-                                            @helper.form(action = routes.LaunchpadTestController.startPhase3Tests(), 'novalidate -> "novalidate") {
+                                            @helper.form(action = routes.LaunchpadTestController.startPhase3Tests, 'novalidate -> "novalidate") {
                                                 @helper.CSRF.formField
                                                 @if(!phase3TestsPage.isStarted) {
                                                     <button id="videoButton" type="submit" value="submit" class="button">

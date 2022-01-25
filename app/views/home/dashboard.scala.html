@@ -66,14 +66,14 @@
 
 @renderProgressElements = {
     <li><i class="fa fa-check the-icon" aria-hidden="true"></i>Create your account</li>
-    @renderProgressElement(showLink = EditPersonalDetailsAndContinueRole.isAuthorized(usr), checked = SchemesRole.isAuthorized(usr), "personalDetailsStep")(routes.PersonalDetailsController.presentAndContinue()) {Add personal details }
+    @renderProgressElement(showLink = EditPersonalDetailsAndContinueRole.isAuthorized(usr), checked = SchemesRole.isAuthorized(usr), "personalDetailsStep")(routes.PersonalDetailsController.presentAndContinue) {Add personal details }
     @if(isFaststream(usr)) {
-        @renderProgressElement(showLink = SchemesRole.isAuthorized(usr), checked = hasSchemes(usr), "schemesStep")(routes.SchemePreferencesController.present()) { Choose your schemes }
+        @renderProgressElement(showLink = SchemesRole.isAuthorized(usr), checked = hasSchemes(usr), "schemesStep")(routes.SchemePreferencesController.present) { Choose your schemes }
     }
-    @renderProgressElement(showLink = AssistanceDetailsRole.isAuthorized(usr) || hasAssistanceDetails(usr), checked = hasAssistanceDetails(usr), "assistanceDetailsStep")(routes.AssistanceDetailsController.present()) { Disability and health conditions }
-    @renderProgressElement(showLink = QuestionnaireInProgressRole.isAuthorized(usr), checked = PreviewApplicationRole.isAuthorized(usr), "questionnaireStep")(routes.QuestionnaireController.presentStartOrContinue()) { Fill in the diversity questions }
-    @renderProgressElement(showLink = PreviewApplicationRole.isAuthorized(usr), checked = SubmitApplicationRole.isAuthorized(usr), "previewStep")(routes.PreviewApplicationController.present()) { Check your application }
-    @renderProgressElement(showLink = SubmitApplicationRole.isAuthorized(usr), checked = AbleToWithdrawApplicationRole.isAuthorized(usr), "submitStep")(routes.SubmitApplicationController.presentSubmit()) { Submit }
+    @renderProgressElement(showLink = AssistanceDetailsRole.isAuthorized(usr) || hasAssistanceDetails(usr), checked = hasAssistanceDetails(usr), "assistanceDetailsStep")(routes.AssistanceDetailsController.present) { Disability and health conditions }
+    @renderProgressElement(showLink = QuestionnaireInProgressRole.isAuthorized(usr), checked = PreviewApplicationRole.isAuthorized(usr), "questionnaireStep")(routes.QuestionnaireController.presentStartOrContinue) { Fill in the diversity questions }
+    @renderProgressElement(showLink = PreviewApplicationRole.isAuthorized(usr), checked = SubmitApplicationRole.isAuthorized(usr), "previewStep")(routes.PreviewApplicationController.present) { Check your application }
+    @renderProgressElement(showLink = SubmitApplicationRole.isAuthorized(usr), checked = AbleToWithdrawApplicationRole.isAuthorized(usr), "submitStep")(routes.SubmitApplicationController.presentSubmit) { Submit }
 }
 
 @main_template(title = "Home") {
@@ -103,19 +103,19 @@
                     </ul>
                 }
                 @if(dashboardPage.isApplicationSubmittedAndNotWithdrawn) {
-                    <p><a class="" id="view-application" href="@routes.PreviewApplicationController.present()">View your submitted application</a></p>
-                    <p><a class="" id="edit-personal-details" href="@routes.PersonalDetailsController.present()">Edit your personal details</a></p>
+                    <p><a class="" id="view-application" href="@routes.PreviewApplicationController.present">View your submitted application</a></p>
+                    <p><a class="" id="edit-personal-details" href="@routes.PersonalDetailsController.present">Edit your personal details</a></p>
                 }
 
                 @if(dashboardPage.isApplicationWithdrawn) {
-                    <a class="" id="view-withdrawn-application" href="@routes.PreviewApplicationController.present()">
+                    <a class="" id="view-withdrawn-application" href="@routes.PreviewApplicationController.present">
                         View your withdrawn application</a>
-                    <p><a class="" id="view-test-results" href="@routes.TestResultsController.present()">
+                    <p><a class="" id="view-test-results" href="@routes.TestResultsController.present">
                         View your test results</a><p>
                 }
 
                 @if(dashboardPage.isApplicationInProgress) {
-                    <a class="" id="continue-application" href="@routes.HomeController.resume()">
+                    <a class="" id="continue-application" href="@routes.HomeController.resume">
                         Continue with your application</a>
                     <p>(Should take 5 to 10 minutes to fill in)</p>
                 }
@@ -124,7 +124,7 @@
                     <ul class="list-text list-withicons">
                         @renderProgressElements
                     </ul>
-                    <a class="button" id="start-application" href="@routes.HomeController.create()">
+                    <a class="button" id="start-application" href="@routes.HomeController.create">
                         Start your application</a>
                     <p>(Should take 5 to 10 minutes to fill in)</p>
                 }

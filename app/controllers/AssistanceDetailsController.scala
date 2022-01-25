@@ -62,9 +62,9 @@ class AssistanceDetailsController @Inject() (
           applicationClient.updateAssistanceDetails(user.application.applicationId, user.user.userID,
             data.sanitizeData.exchange).map { _ =>
             if (hasOccupation(CachedData(user.user, Some(user.application)))) {
-              Redirect(routes.PreviewApplicationController.present())
+              Redirect(routes.PreviewApplicationController.present)
             } else {
-              Redirect(routes.QuestionnaireController.presentStartOrContinue())
+              Redirect(routes.QuestionnaireController.presentStartOrContinue)
             }
           }
         }

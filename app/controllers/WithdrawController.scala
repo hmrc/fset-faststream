@@ -21,7 +21,6 @@ import connectors.ApplicationClient.{ CannotWithdraw, SiftExpired }
 import connectors.exchange._
 import connectors.{ ApplicationClient, ReferenceDataClient }
 import forms.{ SchemeWithdrawForm, WithdrawApplicationForm }
-import helpers.NotificationType._
 import helpers.NotificationTypeHelper
 import javax.inject.{ Inject, Singleton }
 import models._
@@ -59,7 +58,7 @@ class WithdrawController @Inject() (
     implicit user =>
       getWithdrawableSchemes(user.application.applicationId).map {
         case Nil => Redirect(routes.HomeController.present()).flashing(danger("access.denied"))
-        case lastScheme :: Nil => Redirect(routes.WithdrawController.presentWithdrawApplication()).flashing(
+        case lastScheme :: Nil => Redirect(routes.WithdrawController.presentWithdrawApplication).flashing(
           warning("withdraw.scheme.last"))
         case schemes =>
           val page = SchemeWithdrawPage(schemes.map(s => (s.name, s.id.value)),
@@ -91,7 +90,7 @@ class WithdrawController @Inject() (
           applicationClient.withdrawScheme(user.application.applicationId, WithdrawScheme(schemeToWithdraw.id, data.reason)).map { _ =>
             Redirect(routes.HomeController.present()).flashing(success("withdraw.scheme.success"))
           }
-        }.getOrElse(Future(Redirect(routes.WithdrawController.presentWithdrawScheme())
+        }.getOrElse(Future(Redirect(routes.WithdrawController.presentWithdrawScheme)
           .flashing(danger("withdraw.scheme.invalid", data.scheme)))
         ).recover {
           case _: SiftExpired =>

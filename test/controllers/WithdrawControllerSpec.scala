@@ -65,7 +65,7 @@ class WithdrawControllerSpec extends BaseControllerSpec {
 
       status(result) mustBe OK
       val content = contentAsString(result)
-      content must include(routes.WithdrawController.withdrawApplication().url)
+      content must include(routes.WithdrawController.withdrawApplication.url)
       content must include ("error.reason.required")
     }
 

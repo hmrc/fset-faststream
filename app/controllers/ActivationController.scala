@@ -82,7 +82,7 @@ class ActivationController @Inject() (
   def resendCode = CSRSecureAction(ActivationRole) { implicit request =>
     implicit user =>
       userManagementClient.resendActivationCode(user.user.email).map { _ =>
-        Redirect(routes.ActivationController.present()).flashing(success("activation.code-resent"))
+        Redirect(routes.ActivationController.present).flashing(success("activation.code-resent"))
       }
   }
 }

@@ -31,7 +31,7 @@
             We've sent an email to <b class="break-word">@email</b> with a <span class="inl-block">7-character</span> code you'll need to activate your account.
         </p>
 
-        @helper.form(action = routes.ActivationController.submit(), 'id -> "activateForm", 'novalidate -> "novalidate") {
+        @helper.form(action = routes.ActivationController.submit, 'id -> "activateForm", 'novalidate -> "novalidate") {
             @helper.CSRF.formField
             @helper.inputText(activationForm("activation"),
             '_label -> "Activation code",
@@ -50,7 +50,7 @@
             document.getElementById('resend').onclick = function(event) { document.getElementById('resendForm').submit(); };
         </script>
 
-        @helper.form(action = routes.ActivationController.resendCode(), 'id -> "resendForm", 'novalidate -> "novalidate") {
+        @helper.form(action = routes.ActivationController.resendCode, 'id -> "resendForm", 'novalidate -> "novalidate") {
             @helper.CSRF.formField
             <noscript>
             <p><button id="resend" type="submit" class="button-link">Resend code</button></p>

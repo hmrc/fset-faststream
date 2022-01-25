@@ -32,7 +32,7 @@
 @main_template(title = "Choose your schemes", pageForms = Seq(form)) {
     @pageProgress(2, 7)
 
-    @helper.form(action = routes.SchemePreferencesController.submit(), 'novalidate -> "novalidate") {
+    @helper.form(action = routes.SchemePreferencesController.submit, 'novalidate -> "novalidate") {
         @helper.CSRF.formField
         <h1 class="heading-xlarge" id="personalDetailsHeading">Choose your schemes</h1>
 

@@ -67,18 +67,18 @@ class SignInController @Inject() (
           Future.successful(Ok(views.html.index.signin(invalidForm))),
         data => secEnv.credentialsProvider.authenticate(Credentials(data.signIn, data.signInPassword)).flatMap {
           case Right(usr) if usr.lockStatus == "LOCKED" => Future.successful(
-            Redirect(routes.LockAccountController.present()).addingToSession("email" -> usr.email))
+            Redirect(routes.LockAccountController.present).addingToSession("email" -> usr.email))
           case Right(usr) if usr.isActive =>
             if (data.route.contains(ApplicationRoute.SdipFaststream.toString)) {
-              signInService.signInUser(usr, Redirect(routes.ConsiderForSdipController.present()))
+              signInService.signInUser(usr, Redirect(routes.ConsiderForSdipController.present))
             } else {
               signInService.signInUser(usr)
             }
-          case Right(usr) => signInService.signInUser(usr, redirect = Redirect(routes.ActivationController.present()))
+          case Right(usr) => signInService.signInUser(usr, redirect = Redirect(routes.ActivationController.present))
           case Left(InvalidRole) => Future.successful(signInService.showErrorLogin(data, errorMsg = "error.invalidRole"))
           case Left(InvalidCredentials) => Future.successful(signInService.showErrorLogin(data))
           case Left(LastAttempt) => Future.successful(signInService.showErrorLogin(data, errorMsg = "last.attempt"))
-          case Left(AccountLocked) => Future.successful(Redirect(routes.LockAccountController.present())
+          case Left(AccountLocked) => Future.successful(Redirect(routes.LockAccountController.present)
             .addingToSession("email" -> data.signIn))
         }
       )
@@ -88,9 +88,9 @@ class SignInController @Inject() (
   def signOut = CSRUserAwareAction { implicit request =>
     implicit user =>
       signInService.logOutAndRedirectUserAware(
-        successAction = Redirect(routes.SignInController.present())
+        successAction = Redirect(routes.SignInController.present)
           .flashing(success("feedback", config.feedbackUrl)).withNewSession,
-        failAction = Redirect(routes.SignInController.present())
+        failAction = Redirect(routes.SignInController.present)
           .flashing(danger("You have already signed out")).withNewSession
       )
   }

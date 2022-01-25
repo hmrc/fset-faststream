@@ -31,7 +31,7 @@
             <p> If you can't see it in your inbox within a few minutes, check your
                 spam folder.</p>
         </div>
-        @helper.form(action = routes.PasswordResetController.submitCode(), 'novalidate -> "novalidate") {
+        @helper.form(action = routes.PasswordResetController.submitCode, 'novalidate -> "novalidate") {
             @helper.CSRF.formField
 
             @helper.inputText(resetForm("email"),

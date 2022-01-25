@@ -90,7 +90,7 @@ class PasswordResetController @Inject() (
   private def sendCode(email: String, isResend: Boolean)
                       (implicit request: UserAwareRequest[_,_], user: Option[CachedData]) = {
     userManagementClient.sendResetPwdCode(email).map { _ =>
-      Redirect(routes.PasswordResetController.presentReset())
+      Redirect(routes.PasswordResetController.presentReset)
         .flashing(info(if (isResend) "resetpwd.code-resent" else "resetpwd.code-sent"))
         .addingToSession("email" -> email)
     }.recover {
@@ -115,9 +115,9 @@ class PasswordResetController @Inject() (
 
     userManagementClient.resetPasswd(email, code, newPassword).map { _ =>
       secEnv.credentialsProvider.authenticate(Credentials(email, newPassword)).map {
-        case Right(usr) if usr.lockStatus == "LOCKED" => Future.successful(Redirect(routes.LockAccountController.present()))
+        case Right(usr) if usr.lockStatus == "LOCKED" => Future.successful(Redirect(routes.LockAccountController.present))
         case Right(usr) if usr.isActive => signInService.signInUser(usr).map(_.removingFromSession("email"))
-        case Right(usr) => signInService.signInUser(usr, redirect = Redirect(routes.ActivationController.present()))
+        case Right(usr) => signInService.signInUser(usr, redirect = Redirect(routes.ActivationController.present))
           .map(_.removingFromSession("email"))
         case Left(InvalidRole) => Future.successful(signInService.showErrorLogin(SignInForm.Data(
           signIn = email,
