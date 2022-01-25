@@ -171,7 +171,7 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
               AssessmentScoresSectionType.leadershipExercise
             } else {
               logger.debug(s"$prefix - found no exercise for version=$version")
-              throw new Exception(s"No exercise found whose version=$version")
+              throw NoResultsReturned(s"No exercise found whose version=$version")
             }
 
           // Remove the empty options

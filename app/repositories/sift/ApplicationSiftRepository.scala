@@ -674,7 +674,7 @@ class ApplicationSiftMongoRepository @Inject() (
     val updateOp = bsonCollection.updateModifier(
       BSONDocument(
         "$set" -> BSONDocument("applicationStatus" -> ApplicationStatus.SIFT),
-        "$unset" -> BSONDocument(s"testGroups.$phaseName" -> "")
+        "$unset" -> BSONDocument(s"testGroups.$phaseName.evaluation" -> "")
       )
     )
 

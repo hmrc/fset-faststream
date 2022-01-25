@@ -47,7 +47,8 @@ trait ProgressToFsbOrOfferJob extends SingleInstanceScheduledJob[BasicJobConfig[
         Future.successful(())
       case applications => progressionToFsbOrOfferService.progressApplicationsToFsbOrJobOffer(applications).map { result =>
         logger.warn(
-          s"$intro ${result.successes.size} candidate(s) processed successfully and ${result.failures.size} failed to update"
+          s"$intro ${result.successes.size} candidate(s) processed successfully appIds: ${result.successes.map(_.applicationId).mkString(",")}" +
+            s" and ${result.failures.size} failed to update appIds: ${result.failures.map(_.applicationId).mkString(",")}"
         )
       }
     }

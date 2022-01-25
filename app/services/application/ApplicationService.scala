@@ -18,20 +18,23 @@ package services.application
 
 import common.FutureEx
 import connectors.ExchangeObjects
-import javax.inject.{ Inject, Named, Singleton }
+
+import javax.inject.{Inject, Named, Singleton}
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.{ Green, Red }
+import model.EvaluationResults.{Green, Red}
 import model.Exceptions._
 import model.ProgressStatuses._
+import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
+import model.command.AssessmentScoresCommands.AssessmentScoresSectionType._
 import model.command._
 import model.exchange.SchemeEvaluationResultWithFailureDetails
-import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings }
+import model.exchange.passmarksettings.{Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings}
 import model.exchange.sift.SiftAnswersStatus
 import model.persisted._
 import model.persisted.eventschedules.EventType
 import model.stc.StcEventTypes._
-import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
-import model.{ ProgressStatuses, _ }
+import model.stc.{AuditEvents, DataStoreEvents, EmailEvents}
+import model.{ProgressStatuses, _}
 import org.joda.time.DateTime
 import play.api.Logging
 import play.api.mvc.RequestHeader
@@ -51,13 +54,13 @@ import scheduler.onlinetesting.EvaluateOnlineTestResultService
 import services.allocation.CandidateAllocationService
 import services.application.ApplicationService.NoChangeInCurrentSchemeStatusException
 import services.events.EventsService
-import services.sift.{ ApplicationSiftService, SiftAnswersService }
-import services.stc.{ EventSink, StcEventService }
+import services.sift.{ApplicationSiftService, SiftAnswersService}
+import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.collection.immutable.ListMap
-import scala.concurrent.{ ExecutionContext, Future }
-import scala.util.{ Failure, Success, Try }
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 
 object ApplicationService {
 
@@ -838,7 +841,6 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
   }
 
   def rollbackToAssessmentCentreConfirmed(applicationId: String, statuses: List[ProgressStatuses.ProgressStatus]): Future[Unit] = {
-    import model.command.AssessmentScoresCommands.AssessmentScoresSectionType._
     def getPhase3Results: Future[Option[List[SchemeEvaluationResult]]] = {
       phase3TestRepository.getTestGroup(applicationId).map { maybeTestGroup =>
         maybeTestGroup.flatMap { phase3TestGroup =>
@@ -862,7 +864,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
       _ <- fsacRepo.removeFsacTestGroup(applicationId)
       _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.ASSESSMENT_CENTRE, statuses)
       phase3ResultsOpt <- getPhase3Results
-      phase3Results = phase3ResultsOpt.getOrElse(throw new RuntimeException("No phase 3 video results found"))
+      phase3Results = phase3ResultsOpt.getOrElse(throw NoResultsReturned("No phase 3 video results found"))
       siftResults <- fetchSiftResults
       css = calculateCurrentSchemeStatus(phase3Results, siftResults)
       _ <- appRepository.updateCurrentSchemeStatus(applicationId, css)
@@ -870,8 +872,6 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
   }
 
   def rollbackToFsacAwaitingAllocationFromFsacFailed(applicationId: String): Future[Unit] = {
-    import model.command.AssessmentScoresCommands.AssessmentScoresSectionType._
-    val exercisesToRemove = List(writtenExercise.toString, teamExercise.toString, leadershipExercise.toString, finalFeedback.toString)
     val statuses = List(
       ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,
       ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED,
@@ -884,6 +884,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
 
     for {
       _ <- fsacRepo.removeFsacTestGroup(applicationId)
+      exercisesToRemove = List(writtenExercise.toString, teamExercise.toString, leadershipExercise.toString, finalFeedback.toString)
       _ <- assessorAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
       _ <- reviewerAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
       _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.ASSESSMENT_CENTRE, statuses)
@@ -892,7 +893,6 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
   }
 
   def fsacResetFastPassCandidate(applicationId: String): Future[Unit] = {
-    val exercisesToRemove = List("analysisExercise", "groupExercise", "leadershipExercise", "finalFeedback")
     val statuses = List(
       ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,
       ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED,
@@ -903,6 +903,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
     for {
       _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.ASSESSMENT_CENTRE, statuses)
       _ <- addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+      exercisesToRemove = AssessmentScoresSectionType.asListOfStrings
       _ <- assessorAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
       _ <- reviewerAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
       _ <- fsacRepo.removeFsacTestGroup(applicationId)
@@ -928,7 +929,6 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
   }
 
   def rollbackToFsacAllocationConfirmedFromFsb(applicationId: String): Future[Unit] = {
-    val exercisesToRemove = List("analysisExercise", "groupExercise", "leadershipExercise", "finalFeedback")
     val statuses = List(
       ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED,
       ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED,
@@ -939,6 +939,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
 
     for {
       _ <- fsacRepo.removeFsacTestGroup(applicationId)
+      exercisesToRemove = AssessmentScoresSectionType.asListOfStrings
       _ <- assessorAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
       _ <- reviewerAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
       _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.ASSESSMENT_CENTRE, statuses)

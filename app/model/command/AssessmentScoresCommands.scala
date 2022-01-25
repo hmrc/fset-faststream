@@ -52,6 +52,8 @@ object AssessmentScoresCommands {
 
       def write(scheme: AssessmentScoresSectionType) = BSON.write(scheme.toString)
     }
+
+    def asListOfStrings = List(writtenExercise.toString, teamExercise.toString, leadershipExercise.toString, finalFeedback.toString)
   }
 
   case class AssessmentScoresSubmitExerciseRequest(

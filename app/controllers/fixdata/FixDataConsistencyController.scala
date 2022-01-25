@@ -20,7 +20,7 @@ import factories.UUIDFactory
 
 import javax.inject.{Inject, Singleton}
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.{ApplicationNotFound, CandidateInIncorrectState, CannotUpdateCivilServiceExperienceDetails, CannotUpdateRecord, NotFoundException, UnexpectedException}
+import model.Exceptions.{ApplicationNotFound, CandidateInIncorrectState, CannotUpdateCivilServiceExperienceDetails, CannotUpdateRecord, NoResultsReturned, NotFoundException, UnexpectedException}
 import model.ProgressStatuses.{ASSESSMENT_CENTRE_PASSED, _}
 import model.command.FastPassPromotion
 import model.persisted.sift.SiftAnswersStatus
@@ -317,6 +317,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       siftService.fixUserSiftedWithAFailByMistake(applicationId).map(_ =>
         Ok(s"Successfully fixed $applicationId. Remember to update the CurrentSchemeStatus")
       ).recover {
+        case ex: NotFoundException => NotFound(ex.getMessage)
         case ex: Throwable =>
           InternalServerError(s"Could not fix $applicationId - message: ${ex.getMessage}")
       }
@@ -327,6 +328,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       siftService.fixUserSiftedWithAFailToSiftCompleted(applicationId).map(_ =>
         Ok(s"Successfully fixed $applicationId. Remember to update the CurrentSchemeStatus and sift evaluation")
       ).recover {
+        case ex: NotFoundException => NotFound(ex.getMessage)
         case ex: Throwable =>
           InternalServerError(s"Could not fix $applicationId - message: ${ex.getMessage}")
       }
@@ -345,13 +347,17 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
   def markSiftSchemeAsRed(applicationId: String, schemeId: model.SchemeId): Action[AnyContent] = Action.async {
     applicationService.markSiftSchemeAsRed(applicationId, schemeId).map(_ =>
       Ok(s"Successfully marked ${schemeId.value} as red for $applicationId")
-    )
+    ).recover {
+      case e: ApplicationNotFound => NotFound(s"Application not found: ${e.getMessage}")
+    }
   }
 
   def markSiftSchemeAsGreen(applicationId: String, schemeId: model.SchemeId): Action[AnyContent] = Action.async {
     applicationService.markSiftSchemeAsGreen(applicationId, schemeId).map(_ =>
       Ok(s"Successfully marked ${schemeId.value} as green for $applicationId")
-    )
+    ).recover {
+      case e: ApplicationNotFound => NotFound(s"Application not found: ${e.getMessage}")
+    }
   }
 
   def createSiftStructure(applicationId: String): Action[AnyContent] = Action.async {
@@ -389,7 +395,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       siftService.removeEvaluation(applicationId).map { _ =>
         Ok(s"Successfully removed evaluation for sift candidate $applicationId")
       } recover {
-        case _: NotFoundException => NotFound
+        case ex: NotFoundException => NotFound(ex.getMessage)
       }
     }
 
@@ -452,19 +458,25 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
   def markFsbSchemeAsRed(applicationId: String, schemeId: model.SchemeId): Action[AnyContent] = Action.async {
     applicationService.markFsbSchemeAsRed(applicationId, schemeId).map(_ =>
       Ok(s"Successfully marked ${schemeId.value} as red for $applicationId")
-    )
+    ).recover {
+      case ex: ApplicationNotFound => NotFound(s"No document found for ${ex.getMessage} and scheme $schemeId")
+    }
   }
 
   def markFsbSchemeAsGreen(applicationId: String, schemeId: model.SchemeId): Action[AnyContent] = Action.async {
     applicationService.markFsbSchemeAsGreen(applicationId, schemeId).map(_ =>
       Ok(s"Successfully marked ${schemeId.value} as green for $applicationId")
-    )
+    ).recover {
+      case ex: ApplicationNotFound => NotFound(s"No document found for ${ex.getMessage} and scheme $schemeId")
+    }
   }
 
   def rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation(applicationId: String): Action[AnyContent] = Action.async {
     applicationService.rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation(applicationId).map(_ =>
       Ok(s"Successfully rolled $applicationId back to sift ready")
-    )
+    ). recover {
+      case ex: NotFoundException => NotFound(ex.getMessage)
+    }
   }
 
   def updateCurrentSchemeStatusScheme(applicationId: String, schemeId: SchemeId,
@@ -499,12 +511,18 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     )
     applicationService.rollbackToAssessmentCentreConfirmed(applicationId, statusesToRemove).map(_ =>
       Ok(s"Successfully rolled $applicationId back to assessment centre confirmed")
-    )
+    ).recover {
+      case e: NotFoundException => NotFound(s"Failed to rollback FSB candidate because ${e.getMessage}")
+      case e: NoResultsReturned => BadRequest(s"Failed to rollback FSB candidate because ${e.getMessage}")
+    }
   }
 
   def rollbackFastPassFromFsacToSubmitted(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     applicationService.rollbackFastPassFromFsacToSubmitted(applicationId)
       .map(_ => Ok(s"Successfully rolled $applicationId back to Submitted from FSAC"))
+      .recover {
+        case ex: NotFoundException => NotFound(s"Failed to rollback FastPass candidate because ${ex.getMessage}")
+      }
   }
 
   def rollbackToSubmittedFromOnlineTestsAndAddFastpassNumber(applicationId: String, certificateNumber: String): Action[AnyContent] =
@@ -535,13 +553,17 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
   def rollbackToFsacAwaitingAllocationFromFsacFailed(applicationId: String): Action[AnyContent] = Action.async {
     applicationService.rollbackToFsacAwaitingAllocationFromFsacFailed(applicationId).map(_ =>
       Ok(s"Successfully rolled $applicationId back to FSAC AWAITING ALLOCATION. Remember to update the CurrentSchemeStatus")
-    )
+    ).recover {
+      case ex: NotFoundException => NotFound(ex.getMessage)
+    }
   }
 
   def rollbackToFsacAllocationConfirmedFromFsb(applicationId: String): Action[AnyContent] = Action.async {
     applicationService.rollbackToFsacAllocationConfirmedFromFsb(applicationId).map(_ =>
       Ok(s"Successfully rolled $applicationId back to FSAC AWAITING ALLOCATION. Remember to update the CurrentSchemeStatus")
-    )
+    ).recover {
+      case ex: NotFoundException => NotFound(ex.getMessage)
+    }
   }
 
   def rollbackToFsbAwaitingAllocationFromEligibleForJobOfferNotified(applicationId: String): Action[AnyContent] =
@@ -727,7 +749,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     applicationService.removeFsbTestGroup(applicationId).map { _ =>
       Ok(s"Successfully removed FSB test group for $applicationId")
     } recover {
-      case _: ApplicationNotFound => NotFound
+      case ex: ApplicationNotFound => NotFound(ex.getMessage)
     }
   }
 
@@ -744,7 +766,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       applicationService.fsacResetFastPassCandidate(applicationId).map { _ =>
         Ok(s"Successfully reset fsac fast pass candidate $applicationId. Remember to update the current scheme status")
       } recover {
-        case _: NotFoundException => NotFound
+        case ex: NotFoundException => NotFound(ex.getMessage)
       }
     }
 
@@ -753,7 +775,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       applicationService.fsacRollbackWithdraw(applicationId).map { _ =>
         Ok(s"Successfully rolled back withdraw for fsac candidate $applicationId")
       } recover {
-        case _: NotFoundException => NotFound
+        case ex: NotFoundException => NotFound(ex.getMessage)
       }
     }
 
@@ -762,7 +784,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       applicationService.fsacRemoveEvaluation(applicationId).map { _ =>
         Ok(s"Successfully removed evaluation for fsac candidate $applicationId")
       } recover {
-        case _: NotFoundException => NotFound
+        case ex: NotFoundException => NotFound(ex.getMessage)
       }
     }
 
@@ -796,6 +818,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
         Ok(s"Successfully updated applicationId:$applicationId averageScoreName:$averageScoreName in exercise whose version=$version " +
           s"to averageScore:$averageScore")
       }.recover {
+        case e: NoResultsReturned => NotFound(e.getMessage)
         case e: Throwable =>
           logger.warn(s"Error occurred whilst trying to set Fsac average score: " +
             s"applicationId=$applicationId,version=$version,averageScoreName=$averageScoreName,averageScore=$averageScore,error=${e.getMessage}")
