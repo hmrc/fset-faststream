@@ -20,23 +20,24 @@ import com.google.inject.name.Named
 import common.FutureEx
 import connectors.OnlineTestEmailClient
 import factories.DateTimeFactory
-import javax.inject.{ Inject, Singleton }
-import model.EvaluationResults.{ Green, Red, Withdrawn }
-import model.Exceptions.{ SiftResultsAlreadyExistsException, UnexpectedException }
+
+import javax.inject.{Inject, Singleton}
+import model.EvaluationResults.{Green, Red, Withdrawn}
+import model.Exceptions.{ApplicationNotFound, NoResultsReturned, SiftResultsAlreadyExistsException, UnexpectedException}
 import model.ProgressStatuses.SIFT_ENTERED
 import model._
-import model.command.{ ApplicationForSift, ApplicationForSiftExpiry }
-import model.exchange.sift.{ SiftState, SiftTestGroupWithActiveTest }
+import model.command.{ApplicationForSift, ApplicationForSiftExpiry}
+import model.exchange.sift.{SiftState, SiftTestGroupWithActiveTest}
 import model.persisted.SchemeEvaluationResult
 import model.persisted.sift.NotificationExpiringSift
-import model.sift.{ FixStuckUser, FixUserStuckInSiftEntered, SiftReminderNotice }
+import model.sift.{FixStuckUser, FixUserStuckInSiftEntered, SiftReminderNotice}
 import org.joda.time.DateTime
 import play.api.Logging
 import reactivemongo.bson.BSONDocument
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.sift.ApplicationSiftRepository
-import repositories.{ CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepository }
+import repositories.{CommonBSONDocuments, CurrentSchemeStatusHelper, SchemeRepository}
 import services.allocation.CandidateAllocationService.CouldNotFindCandidateWithApplication
 import services.onlinetesting.Exceptions.NoActiveTestException
 import uk.gov.hmrc.http.HeaderCarrier
@@ -359,7 +360,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
       if (usersToFix.exists { case (user, shouldBeMoved) => user.applicationId == applicationId && shouldBeMoved }) {
         applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_COMPLETED)
       } else {
-        throw new Exception(s"Application ID $applicationId is not available for fixing")
+        throw ApplicationNotFound(s"Application ID $applicationId is not available for fixing")
       }
     }).flatMap(identity)
   }
@@ -386,7 +387,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
       if (usersToFix.exists { user => user.applicationId == applicationId }) {
         applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_READY)
       } else {
-        throw new Exception(s"Application ID $applicationId is not available for fixing")
+        throw NoResultsReturned(s"Application ID $applicationId is not available for fixing")
       }
     }).flatMap(identity)
   }
@@ -396,19 +397,19 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
   def findUsersInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes: Future[Seq[FixUserStuckInSiftEntered]] = {
 
     def includeUser(potentialStuckUser: FixUserStuckInSiftEntered): Boolean = {
-      //  we include the candidate if their green schemes are either numeric_test or generalist / human resources
+      // We include the candidate if their green schemes are either numeric_test or generalist / human resources
       // and there must be at least one numeric_test and they have form based schemes, which are all withdrawn
       val greenSchemes = potentialStuckUser.currentSchemeStatus.filter( s => s.result == Green.toString)
 
-      // remaining green schemes require a numeric test or generalist / human resources
+      // Remaining green schemes require a numeric test or generalist / human resources
       val allSchemesApplicable = greenSchemes.forall { s =>
         schemeRepo.nonSiftableSchemeIds.contains(s.schemeId) || schemeRepo.numericTestSiftRequirementSchemeIds.contains(s.schemeId)
       }
 
-      // the candidate must still be in the running for at least one numeric test scheme
+      // The candidate must still be in the running for at least one numeric test scheme
       val atLeastOneNumericTestScheme = greenSchemes.exists( s => schemeRepo.numericTestSiftRequirementSchemeIds.contains(s.schemeId) )
 
-      // must have form based schemes and be withdrawn from all of them
+      // Must have form based schemes and be withdrawn from all of them
       val usersFormBasedSchemes = potentialStuckUser.currentSchemeStatus.filter { s =>
         schemeRepo.formMustBeFilledInSchemeIds.contains(s.schemeId)
       }
@@ -426,7 +427,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
       if (usersToFix.exists { user => user.applicationId == applicationId }) {
         applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_READY)
       } else {
-        throw new Exception(s"Application ID $applicationId is not available for fixing")
+        throw ApplicationNotFound(s"Application ID $applicationId is not available for fixing")
       }
     }).flatMap(identity)
   }

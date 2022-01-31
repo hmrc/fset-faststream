@@ -141,7 +141,7 @@ class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
       (applicationStatusBSON(PHASE3_TESTS_INVITED) ++ BSONDocument(s"testGroups.$phaseName" -> phase3TestGroup))
     )
 
-    val validator = singleUpdateValidator(applicationId, actionDesc = "inserting test group")
+    val validator = singleUpdateValidator(applicationId, actionDesc = "inserting or updating test group")
 
     collection.update(ordered = false).one(query, appStatusBSON) map validator
   }

@@ -234,9 +234,6 @@ GET         /diagnostic/removePhase1TestEvaluation                              
 GET         /diagnostic/removePhase2TestEvaluation                                                      @controllers.fixdata.FixDataConsistencyController.removePhase2TestEvaluation(applicationId: String)
 GET         /diagnostic/removePhase3TestEvaluation                                                      @controllers.fixdata.FixDataConsistencyController.removePhase3TestEvaluation(applicationId: String)
 
-# TODO: cubiks specific
-#GET         /diagnostic/fixPhase2PartialCallbackCandidate                                               @controllers.fixdata.FixDataConsistencyController.fixPhase2PartialCallbackCandidate(applicationId: String)
-
 GET         /diagnostic/fixPhase3ExpiredCandidate                                                       @controllers.fixdata.FixDataConsistencyController.fixPhase3ExpiredCandidate(applicationId: String)
 GET         /diagnostic/fsac/resetFastPassCandidate                                                     @controllers.fixdata.FixDataConsistencyController.fsacResetFastPassCandidate(applicationId: String)
 GET         /diagnostic/fsac/rollbackWithdraw                                                           @controllers.fixdata.FixDataConsistencyController.fsacRollbackWithdraw(applicationId: String)
