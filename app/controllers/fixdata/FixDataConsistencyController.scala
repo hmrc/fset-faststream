@@ -20,7 +20,7 @@ import factories.UUIDFactory
 
 import javax.inject.{Inject, Singleton}
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.{ApplicationNotFound, CandidateInIncorrectState, CannotUpdateCivilServiceExperienceDetails, CannotUpdateRecord, NoResultsReturned, NotFoundException, UnexpectedException}
+import model.Exceptions.{ApplicationNotFound, CandidateInIncorrectState, CannotUpdateCivilServiceExperienceDetails, CannotUpdateRecord, NoResultsReturned, NotFoundException, TokenNotFound, UnexpectedException}
 import model.ProgressStatuses.{ASSESSMENT_CENTRE_PASSED, _}
 import model.command.FastPassPromotion
 import model.persisted.sift.SiftAnswersStatus
@@ -148,23 +148,27 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
 
   def findUsersStuckInSiftReadyWithFailedPreSiftSiftableSchemes(): Action[AnyContent] = Action.async {
     siftService.findUsersInSiftReadyWhoShouldHaveBeenCompleted.map(resultList =>
-        Ok((Seq("applicationId, timeEnteredSift, shouldBeCompleted") ++ resultList.map { case(user, result) =>
-          s"${user.applicationId},${user.timeEnteredSift},$result"
-        }).mkString("\n"))
-      )
+      Ok((Seq("applicationId, timeEnteredSift, shouldBeCompleted") ++ resultList.map { case(user, result) =>
+        s"${user.applicationId},${user.timeEnteredSift},$result"
+      }).mkString("\n"))
+    )
   }
 
   def randomisePhasePassmarkVersion(applicationId: String, phase: String): Action[AnyContent] = Action.async {
     phase match {
-      case "FSAC" => {
-        for {
+      case "FSAC" =>
+        (for {
           currentSchemeStatus <- applicationService.getCurrentSchemeStatus(applicationId)
           assessmentCentreScoreEvaluation <- assessmentCentreService.getAssessmentScoreEvaluation(applicationId)
-          _ = if (assessmentCentreScoreEvaluation.isEmpty) { throw CandidateHasNoAssessmentScoreEvaluationException(applicationId) }
+          _ = if (assessmentCentreScoreEvaluation.isEmpty) {
+            throw CandidateHasNoAssessmentScoreEvaluationException(s"No assessment score evaluation found for $applicationId")
+          }
           newEvaluation = assessmentCentreScoreEvaluation.get.copy(passmarkVersion = uuidFactory.generateUUID())
           _ <- assessmentCentreService.saveAssessmentScoreEvaluation(newEvaluation, currentSchemeStatus)
-        } yield Ok(s"Pass marks randomised for application $applicationId in phase $phase")
-      }
+        } yield Ok(s"Pass marks randomised for application $applicationId in phase $phase"))
+          .recover {
+            case e: CandidateHasNoAssessmentScoreEvaluationException => BadRequest(e.getMessage)
+          }
       case _ => Future.successful(NotImplemented("Phase pass mark randomisation not implemented for phase: " + phase))
     }
   }
@@ -181,6 +185,9 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
   def setPhase3UsedForResults(applicationId: String, newUsedForResults: Boolean, token: String): Action[AnyContent] = Action.async {
     applicationService.setPhase3UsedForResults(applicationId, newUsedForResults, token)
       .map(_ => Ok(s"Successfully updated PHASE3 test for $applicationId"))
+      .recover {
+        case ex @ (_: NoResultsReturned | _: NotFoundException) => NotFound(ex.getMessage)
+      }
   }
 
   def setPhase2UsedForResults(applicationId: String, inventoryId: String, orderId: String,
@@ -238,11 +245,15 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
   }
 
   def fixUsersEligibleForJobOfferButFsbApplicationStatus(): Action[AnyContent] = Action.async {
-    applicationService.fixUsersEligibleForJobOfferButFsbApplicationStatus().map(affected => Ok(s"$affected Users Fixed"))
+    applicationService.fixUsersEligibleForJobOfferButFsbApplicationStatus().map(applicationIds =>
+      Ok(s"Successfully fixed ${applicationIds.length} user(s) - appIds: ${applicationIds.mkString(",")}"))
   }
 
   def fixUserStuckInSiftReadyWithFailedPreSiftSiftableSchemes(applicationId: String): Action[AnyContent] = Action.async {
     siftService.fixUserInSiftReadyWhoShouldHaveBeenCompleted(applicationId).map(_ => Ok)
+      .recover {
+        case ex: ApplicationNotFound => NotFound(ex.getMessage)
+      }
   }
 
   def findUsersStuckInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase(): Action[AnyContent] = Action.async {
@@ -260,6 +271,9 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
   def fixUserStuckInSiftEnteredWhoShouldBeInSiftReadyWhoHasFailedFormBasedSchemesInVideoPhase(applicationId: String): Action[AnyContent] =
     Action.async {
     siftService.fixUserInSiftEnteredWhoShouldBeInSiftReadyWhoHasFailedFormBasedSchemesInVideoPhase(applicationId).map(_ => Ok)
+      .recover {
+        case ex: NoResultsReturned => NotFound(ex.getMessage)
+      }
   }
 
   def findUsersStuckInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes(): Action[AnyContent] = Action.async {
@@ -303,13 +317,16 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
         Ok(s"Successfully fixed $applicationId")
       ).recover {
         case ex: Throwable =>
-          InternalServerError(s"Could not fix $applicationId - message: ${ex.getMessage}")
+          BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
       }
     }
 
   def fixUserStuckInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes(applicationId: String): Action[AnyContent] =
     Action.async {
       siftService.fixUserInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes(applicationId).map(_ => Ok)
+        .recover {
+          case ex: ApplicationNotFound => NotFound(ex.getMessage)
+        }
     }
 
   def fixUserSiftedWithAFailByMistake(applicationId: String): Action[AnyContent] =
@@ -499,7 +516,10 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       )
       applicationService.rollbackToAssessmentCentreConfirmed(applicationId, statusesToRemove).map(_ =>
         Ok(s"Successfully rolled $applicationId back to assessment centre confirmed")
-      )
+      ).recover {
+        case ex: NotFoundException => NotFound(ex.getMessage)
+        case ex: NoResultsReturned => BadRequest(ex.getMessage)
+      }
     }
 
   def rollbackToFsacAllocatedFromAwaitingFsb(applicationId: String): Action[AnyContent] = Action.async {
@@ -547,7 +567,10 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     )
     applicationService.rollbackToAssessmentCentreConfirmed(applicationId, statusesToRemove).map(_ =>
       Ok(s"Successfully rolled $applicationId back to assessment centre confirmed")
-    )
+    ).recover {
+      case ex: NotFoundException => NotFound(ex.getMessage)
+      case ex: NoResultsReturned => BadRequest(ex.getMessage)
+    }
   }
 
   def rollbackToFsacAwaitingAllocationFromFsacFailed(applicationId: String): Action[AnyContent] = Action.async {
@@ -584,7 +607,9 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
 
       applicationService.rollbackToFsbAwaitingAllocation(applicationId, statusesToRemove).map(_ =>
         Ok(s"Successfully rolled $applicationId back to assessment centre confirmed")
-      )
+      ).recover {
+        case ex @ (_: NoResultsReturned | _: NotFoundException) => NotFound(ex.getMessage)
+      }
     }
 
   def rollbackToPhase2TestExpiredFromSift(applicationId: String): Action[AnyContent] =
@@ -592,30 +617,17 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       applicationService.rollbackToPhase2ExpiredFromSift(applicationId).map(_ =>
         Ok(s"Successfully rolled back to phase2 expired $applicationId")
       ).recover {
-        case ex: Throwable =>
-          BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
+        case ex: Throwable => BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
       }
     }
-
-  // TODO: cubiks this is cubiks specific
-  /*
-  def fixPhase2PartialCallbackCandidate(applicationId: String): Action[AnyContent] =
-    Action.async { implicit request =>
-      applicationService.fixPhase2PartialCallbackCandidate(applicationId).map(_ =>
-        Ok(s"Successfully fixed partial callback candidate $applicationId")
-      ).recover {
-        case ex: Throwable =>
-          BadRequest(s"Could not fix partial callback candidate $applicationId - message: ${ex.getMessage}")
-      }
-    }*/
 
   def fixPhase3ExpiredCandidate(applicationId: String): Action[AnyContent] =
     Action.async { implicit request =>
       applicationService.fixPhase3ExpiredCandidate(applicationId).map(_ =>
         Ok(s"Successfully fixed p3 expired candidate $applicationId")
       ).recover {
-        case ex: Throwable =>
-          BadRequest(s"Could not fix p3 expired candidate $applicationId - message: ${ex.getMessage}")
+        case ex: ApplicationNotFound => NotFound(ex.getMessage)
+        case ex: Throwable => BadRequest(s"Could not fix p3 expired candidate $applicationId - message: ${ex.getMessage}")
       }
     }
 
@@ -624,8 +636,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       applicationService.rollbackToPhase3ExpiredFromSift(applicationId).map(_ =>
         Ok(s"Successfully rolled back to phase3 expired $applicationId")
       ).recover {
-        case ex: Throwable =>
-          BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
+        case ex: Throwable => BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
       }
     }
 
@@ -635,8 +646,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
         Ok(s"Successfully rolled back to phase1 tests passed $applicationId")
       ).recover {
         case ex: NotFoundException => NotFound(s"Could not fix $applicationId - message: ${ex.getMessage}")
-        case ex: Throwable =>
-          BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
+        case ex: Throwable => BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
       }
     }
 
@@ -655,8 +665,8 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       applicationService.removePhase3TestAndSetOtherToActive(removeTestToken, markTestAsActiveToken).map(_ =>
         Ok(s"Successfully removed phase3 test for token $removeTestToken and set other test to active for token $markTestAsActiveToken ")
       ).recover {
-        case ex: Throwable =>
-          BadRequest(s"Could not fix candidate - message: ${ex.getMessage}")
+        case ex: TokenNotFound => NotFound(ex.getMessage)
+        case ex: Throwable => BadRequest(s"Could not fix candidate - message: ${ex.getMessage}")
       }
     }
 
@@ -665,8 +675,9 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       applicationService.rollbackToRetakePhase3FromSift(applicationId, token).map(_ =>
         Ok(s"Successfully rolled back candidate $applicationId from sift so can retake video interview")
       ).recover {
-        case ex: Throwable =>
-          BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
+        case ex: NotFoundException => NotFound(ex.getMessage)
+        case ex: TokenNotFound => NotFound(s"No reviewed callbacks found for token ${ex.getMessage}")
+        case ex: Throwable => BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
       }
     }
 
@@ -675,8 +686,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       applicationService.removePhase1TestEvaluation(applicationId).map(_ =>
         Ok(s"Successfully removed P1 test evaluation and css for candidate $applicationId")
       ).recover {
-        case ex: Throwable =>
-          BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
+        case ex: Throwable => BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
       }
     }
 
@@ -685,8 +695,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       applicationService.removePhase2TestEvaluation(applicationId).map(_ =>
         Ok(s"Successfully removed P2 test evaluation and updated css for candidate $applicationId")
       ).recover {
-        case ex: Throwable =>
-          BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
+        case ex: Throwable => BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
       }
     }
 
@@ -695,8 +704,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       applicationService.removePhase3TestEvaluation(applicationId).map(_ =>
         Ok(s"Successfully removed P3 test evaluation and updated css for candidate $applicationId")
       ).recover {
-        case ex: Throwable =>
-          BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
+        case ex: Throwable => BadRequest(s"Could not fix $applicationId - message: ${ex.getMessage}")
       }
     }
 
@@ -743,6 +751,9 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
 
   def removeSiftTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     applicationService.removeSiftTestGroup(applicationId).map(_ => Ok(s"Successfully removed SIFT test group for $applicationId"))
+      .recover {
+        case ex: NotFoundException => NotFound(ex.getMessage)
+      }
   }
 
   def removeFsbTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
@@ -832,7 +843,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       progressionToFsbOrOfferService.nextApplicationForFsbOrJobOffer(applicationId).flatMap {
         case Nil =>
           val msg = "No candidate found to progress to fsb or offer job. Please check the candidate's state in the diagnostic report"
-          Future.successful(BadRequest(msg))
+          Future.successful(NotFound(msg))
         case application =>
           progressionToFsbOrOfferService.progressApplicationsToFsbOrJobOffer(application).map { result =>
             val msg = s"Progress to fsb or job offer complete - ${result.successes.size} processed successfully " +
@@ -853,7 +864,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
         if (result.failures.nonEmpty) {
           BadRequest(s"Failed to update candidate, appId: ${failedAppIds.mkString(",")}")
         } else if (result.successes.isEmpty) {
-          BadRequest(s"No candidate found to update, appId: $applicationId. Please check the candidate's status")
+          NotFound(s"No candidate found to update, appId: $applicationId. Please check the candidate's status")
         } else {
           Ok(msg)
         }

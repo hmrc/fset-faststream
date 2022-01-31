@@ -579,13 +579,14 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
     appRepository.findEligibleForJobOfferCandidatesWithFsbStatus
   }
 
-  def fixUsersEligibleForJobOfferButFsbApplicationStatus(): Future[Int] = {
+  def fixUsersEligibleForJobOfferButFsbApplicationStatus(): Future[Seq[String]] = {
     val applicationIdsFut = findUsersEligibleForJobOfferButFsbApplicationStatus()
     applicationIdsFut.flatMap { applicationIds =>
       Future.sequence(applicationIds.map { applicationId =>
         appRepository.updateApplicationStatusOnly(applicationId, ApplicationStatus.ELIGIBLE_FOR_JOB_OFFER)
       })
-    }.flatMap(_ => applicationIdsFut.map(_.length))
+    }
+    applicationIdsFut
   }
 
   private def liftToOption(passMarkFetch: String => Future[PassmarkEvaluation], applicationId: String): Future[Option[PassmarkEvaluation]] = {
@@ -807,7 +808,8 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
                                      (implicit hc: HeaderCarrier): Future[Unit] = {
     for {
       assessmentCentreEvaluation <- fsacRepo.getFsacEvaluatedSchemes(applicationId)
-      _ <- appRepository.updateCurrentSchemeStatus(applicationId, assessmentCentreEvaluation.get)
+      _ <- appRepository.updateCurrentSchemeStatus(applicationId, assessmentCentreEvaluation.getOrElse(
+        throw NoResultsReturned(s"No FSAC results found for $applicationId")))
       _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.FSB, statuses)
       _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, FSB_AWAITING_ALLOCATION)
       _ <- fsbRepo.removeTestGroup(applicationId)
@@ -966,31 +968,13 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
     } yield ()
   }
 
-  //TODO: cubiks this is cubiks specific
-  /*
-  def fixPhase2PartialCallbackCandidate(applicationId: String): Future[Unit] = {
-    for {
-      _ <- phase2TestRepository.updateGroupExpiryTime(applicationId, new DateTime().plusDays(1), phase2TestRepository.phaseName)
-      _ <- appRepository.removeProgressStatuses(applicationId, List(ProgressStatuses.PHASE2_TESTS_EXPIRED))
-
-      phase2TestGroupOpt <- phase2TestRepository.getTestGroup(applicationId)
-      cubiksUserId = extractCubiksUserId(applicationId, phase2TestGroupOpt)
-
-      // Now re-run the partially executed callbacks
-      testProfile <- phase2TestRepository.getTestProfileByCubiksId(cubiksUserId)
-      _ <- fixPartiallyExecutedCompletedCallback(cubiksUserId, testProfile)
-      _ <- fixPartiallyExecutedResultsReadyCallback(cubiksUserId, testProfile)
-    } yield ()
-  }*/
-
   def fixPhase3ExpiredCandidate(applicationId: String): Future[Unit] = {
-    (for {
+    for {
       _ <- phase3TestRepository.updateGroupExpiryTime(applicationId, new DateTime().plusDays(1), phase3TestRepository.phaseName)
       _ <- appRepository.removeProgressStatuses(applicationId, List(ProgressStatuses.PHASE3_TESTS_EXPIRED))
       _ <- addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.PHASE3_TESTS_COMPLETED)
-    } yield for {
       _ <- addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
-    } yield ()).flatMap(identity)
+    } yield ()
   }
 
   //TODO: cubiks this is cubiks specific
@@ -1159,9 +1143,11 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
   def setPhase3UsedForResults(applicationId: String, newUsedForResults: Boolean, token: String): Future[Unit] = {
     for {
       phase3TestGroupOpt <- phase3TestRepository.getTestGroup(applicationId)
-      phase3TestGroup = phase3TestGroupOpt.getOrElse(throw UnexpectedException(s"Unable to find PHASE3 TestGroup for $applicationId"))
+      phase3TestGroup = phase3TestGroupOpt.getOrElse(throw NoResultsReturned(s"Unable to find PHASE3 TestGroup for $applicationId"))
       newTests = phase3TestGroup.tests.map { test =>
-        if(test.token == token) test.copy(usedForResults = newUsedForResults) else test }
+        if(test.token == token) { test.copy(usedForResults = newUsedForResults) }
+        else { throw NoResultsReturned(s"No test found for token $token") }
+      }
       newPhase3TestGroup = phase3TestGroup.copy(tests = newTests)
       _ <- phase3TestRepository.insertOrUpdateTestGroup(applicationId, newPhase3TestGroup)
     } yield ()
