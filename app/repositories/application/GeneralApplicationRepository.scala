@@ -1191,6 +1191,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
   override def removeCandidate(applicationId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
-    collection.delete().one(query, limit = Some(1)).map(_ => ())
+    val validator = singleRemovalValidator(applicationId, actionDesc = s"removing candidate $applicationId")
+    collection.delete().one(query, limit = Some(1)) map validator
   }
 }

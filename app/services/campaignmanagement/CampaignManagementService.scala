@@ -73,9 +73,13 @@ class CampaignManagementService @Inject() (afterDeadlineCodeRepository: Campaign
 
   def removeCandidate(applicationId: String, userId: String): Future[Unit] = {
     for {
+      // Record is created as soon as account is created
       _ <- appRepo.removeCandidate(applicationId)
-      _ <- contactDetailsRepo.removeContactDetails(userId)
+      // Record is created as soon as account is created
       _ <- mediaRepo.removeMedia(userId)
+      // Record is created after submitting Page 1 Personal details
+      _ <- contactDetailsRepo.removeContactDetails(userId)
+      // Record is created after submitting Page 4 Before you continue (diversity questions)
       _ <- questionnaireRepo.removeQuestions(applicationId)
     } yield ()
   }

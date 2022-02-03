@@ -124,6 +124,7 @@ class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEcon
     queryResult.map(_.toMap)
   }
 
+  // This record is only created after submitting Page 4: Before you continue Diversity questions
   override def removeQuestions(applicationId: String): Future[Unit] = {
     val query = BSONDocument("applicationId" -> applicationId)
     collection.delete().one(query, limit = Some(1)).map(_ => ())

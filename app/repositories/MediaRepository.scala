@@ -35,13 +35,9 @@ import scala.concurrent.Future
 
 trait MediaRepository {
   def create(addMedia: Media): Future[Unit]
-
   def find(userId: String): Future[Option[Media]]
-
   def findAll(): Future[Map[String, Media]]
-
   def cloneAndArchive(originalUserId: String, userIdToArchiveWith: String): Future[Unit]
-
   def removeMedia(userId: String): Future[Unit]
 }
 
@@ -81,7 +77,8 @@ class MediaMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
 
   override def removeMedia(userId: String): Future[Unit] = {
     val query = BSONDocument("userId" -> userId)
-    collection.delete().one(query, limit = Some(1)).map(_ => ())
+    val validator = singleRemovalValidator(userId, actionDesc = s"removing media for candidate $userId")
+    collection.delete().one(query, limit = Some(1)) map validator
   }
 
   private def docToMedia(document: BSONDocument): (String, Media) = {
