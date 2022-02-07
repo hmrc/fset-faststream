@@ -190,6 +190,7 @@ class ContactDetailsMongoRepository @Inject() (mongoComponent: ReactiveMongoComp
     })
   }
 
+  // Record is created after submitting Page 1 Personal details
   override def removeContactDetails(userId: String): Future[Unit] = {
     val query = BSONDocument("userId" -> userId)
     collection.delete().one(query, limit = Some(1)).map(_ => ())

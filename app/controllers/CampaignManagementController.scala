@@ -16,10 +16,12 @@
 
 package controllers
 
-import javax.inject.{ Inject, Singleton }
+import model.Exceptions.NotFoundException
+
+import javax.inject.{Inject, Singleton}
 import model.command.SetTScoreRequest
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent, ControllerComponents }
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.campaignmanagement.CampaignManagementService
 import services.search.SearchForApplicantService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -80,5 +82,8 @@ class CampaignManagementController @Inject() (cc: ControllerComponents,
 
   def removeCandidate(applicationId: String, userId: String): Action[AnyContent] = Action.async { implicit request =>
     campaignManagementService.removeCandidate(applicationId, userId).map(_ => Ok)
+      .recover {
+        case ex: NotFoundException => NotFound(ex.getMessage)
+      }
   }
 }
