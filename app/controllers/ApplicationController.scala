@@ -70,6 +70,8 @@ class ApplicationController @Inject() (cc: ControllerComponents,
   def findByApplicationId(applicationId: String) = Action.async { implicit request =>
     appRepository.find(applicationId).map { app =>
       Ok(Json.toJson(UserIdResponse(app.map(_.userId).getOrElse(throw CandidateNotFound(applicationId)))))
+    }. recover {
+      case _: CandidateNotFound => NotFound(s"No application found for $applicationId")
     }
   }
 

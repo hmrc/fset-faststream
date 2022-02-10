@@ -45,20 +45,19 @@ class SearchForApplicantsController @Inject() (cc: ControllerComponents,
     appRepository.findByUserId(userId, frameworkId).flatMap { application =>
       psRepository.find(application.applicationId).flatMap { pd =>
         cdRepository.find(userId).map { cd =>
-          Ok(Json.toJson(Candidate(userId, Some(application.applicationId), Option(application.testAccountId), None, Some(pd
-            .firstName),
-            Some(pd.lastName), Some(pd.preferredName), Some(pd.dateOfBirth), Some(cd.address), cd.postCode, None,
+          Ok(Json.toJson(Candidate(userId, Some(application.applicationId), Option(application.testAccountId), email = None, Some(pd.firstName),
+            Some(pd.lastName), Some(pd.preferredName), Some(pd.dateOfBirth), Some(cd.address), cd.postCode, country = None,
             Some(application.applicationRoute), Some(application.applicationStatus))))
         }.recover {
           case _: ContactDetailsNotFound => Ok(Json.toJson(Candidate(userId, Some(application.applicationId),
-            Option(application.testAccountId), None, Some(pd.firstName),
-            Some(pd.lastName), Some(pd.preferredName), Some(pd.dateOfBirth), None, None, None,
+            Option(application.testAccountId), None, Some(pd.firstName), Some(pd.lastName), Some(pd.preferredName),
+            Some(pd.dateOfBirth), address = None, postCode = None, country = None,
             Some(application.applicationRoute), Some(application.applicationStatus))))
         }
       }.recover {
         case _: PersonalDetailsNotFound =>
-          Ok(Json.toJson(Candidate(userId, Some(application.applicationId), Option(application.testAccountId),
-            None, None, None, None, None, None, None, None,
+          Ok(Json.toJson(Candidate(userId, Some(application.applicationId), Option(application.testAccountId), email = None,
+            firstName = None, lastName = None, preferredName = None, dateOfBirth = None, address = None, postCode = None, country = None,
             Some(application.applicationRoute), Some(application.applicationStatus))))
       }
     }.recover {
@@ -66,8 +65,8 @@ class SearchForApplicantsController @Inject() (cc: ControllerComponents,
       case _: ApplicationNotFound =>
         Ok(
           Json.toJson(
-            Candidate(userId, None, None, None, None, None, None, None, None, None, None, Some(ApplicationRoute
-              .Faststream), None))
+            Candidate(userId, applicationId = None, testAccountId = None, email = None, firstName = None, lastName = None, preferredName = None,
+              dateOfBirth = None, address = None, postCode = None, country = None, Some(ApplicationRoute.Faststream), applicationStatus = None))
         )
     }
   }
