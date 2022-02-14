@@ -16,9 +16,11 @@
 
 package controllers
 
-import javax.inject.{ Inject, Singleton }
+import model.Exceptions.NotFoundException
+
+import javax.inject.{Inject, Singleton}
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent, ControllerComponents }
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.onlinetesting.phase3.Phase3TestService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -46,5 +48,8 @@ class Phase3TestGroupController @Inject() (cc: ControllerComponents,
 
   def unexpireCompleted(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     phase3TestService.removeExpiredStatus(applicationId).map(_ => Ok)
+      .recover {
+        case e: NotFoundException => NotFound(e.getMessage)
+      }
   }
 }
