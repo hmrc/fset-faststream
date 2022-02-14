@@ -70,7 +70,7 @@ trait AssessmentCentreAllSchemesEvaluator extends Logging {
       case _ if results.contains(Amber) => Amber    // single green then green overall
       case _ if results.forall(_ == Green) => Green // all green then green overall
     }
-    logger.info(s"[FSAC evaluator] - $applicationId combining results for $scheme: $results = $result")
+    logger.warn(s"[FSAC evaluator] - $applicationId combining results for $scheme: $results = $result")
     result
   }
 }
