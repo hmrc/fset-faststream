@@ -89,7 +89,7 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
     applicationIds match {
       case appIds if appIds.nonEmpty =>
         logger.warn(
-          s"$logPrefix Assessment evaluation found ${appIds.size} candidates to process - applicationIds = [${appIds.mkString(",")}]")
+          s"$logPrefix Assessment evaluation found ${appIds.size} candidate(s) to process - applicationIds = [${appIds.mkString(",")}]")
         Future.sequence(appIds.map(appId => tryToFindEvaluationData(appId, passmark))).map(_.flatten)
       case Nil =>
         logger.warn(s"$logPrefix Assessment evaluation completed - no candidates found")
@@ -130,12 +130,12 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
       currentSchemeStatusList <- applicationRepo.getCurrentSchemeStatus(appId.toString())
     } yield {
       assessmentCentreScoresOpt.map { scores =>
-        logger.debug(s"$logPrefix AssessmentCentreService - tryToFindEvaluationData - scores = $scores")
+        logger.warn(s"$logPrefix AssessmentCentreService - tryToFindEvaluationData - appId=$appId, scores=$scores")
         val schemesToEvaluate = filterSchemesToEvaluate(currentSchemeStatusList)
 
-        val msg = s"$logPrefix AssessmentCentreService - tryToFindEvaluationData - current scheme status excluding Red, " +
+        val msg = s"$logPrefix AssessmentCentreService - tryToFindEvaluationData - appId=$appId, current scheme status excluding Red, " +
           s"Withdrawn and Sdip = $schemesToEvaluate"
-        logger.debug(msg)
+        logger.warn(msg)
         AssessmentPassMarksSchemesAndScores(passmark, schemesToEvaluate, scores)
       }
     }
@@ -222,13 +222,13 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
   //here - entry point
   def evaluateAssessmentCandidate(assessmentPassMarksSchemesAndScores: AssessmentPassMarksSchemesAndScores): Future[Unit] = {
 
-    logger.debug(s"$logPrefix evaluateAssessmentCandidate - running")
+    logger.warn(s"$logPrefix evaluateAssessmentCandidate - running")
 
     val evaluationResult = evaluationEngine.evaluate(assessmentPassMarksSchemesAndScores)
-    logger.debug(s"$logPrefix evaluation result for applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId} = " +
+    logger.warn(s"$logPrefix evaluation result for applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId} = " +
       s"$evaluationResult")
 
-    logger.debug(s"$logPrefix now writing to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
+    logger.warn(s"$logPrefix now writing to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
 
     val applicationId = assessmentPassMarksSchemesAndScores.scores.applicationId
     val evaluation = AssessmentPassMarkEvaluation(applicationId, assessmentPassMarksSchemesAndScores.passmark.version, evaluationResult)
@@ -241,7 +241,7 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
       _ <- maybeMoveCandidateToPassedOrFailed(applicationId, applicationStatus.latestProgressStatus, currentSchemeStatus,
         applicationStatus.applicationRoute == ApplicationRoute.SdipFaststream)
     } yield {
-      logger.debug(s"$logPrefix written to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
+      logger.warn(s"$logPrefix written to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
     }
   }
 
@@ -279,32 +279,33 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
         firstResidualPreference(results, isSdipFaststream) match {
           // First residual preference is green
           case Some(evaluationResult) if evaluationResult.result == Green.toString =>
-            logger.debug(s"$logPrefix $applicationId - first residual preference (${evaluationResult.schemeId.toString()}) is green, " +
+            logger.warn(s"$logPrefix $applicationId - first residual preference (${evaluationResult.schemeId.toString()}) is green, " +
               s"moving candidate to $ASSESSMENT_CENTRE_PASSED")
             applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), ASSESSMENT_CENTRE_PASSED)
           // No greens or ambers (i.e. all red or withdrawn)
           case None =>
             if (isSdipFaststream && results.contains(SchemeEvaluationResult(SchemeId(Scheme.Sdip), Green.toString))) {
-              logger.debug(s"$logPrefix Sdip faststream candidate has failed or withdrawn from all faststream schemes, " +
+              logger.warn(s"$logPrefix Sdip faststream candidate has failed or withdrawn from all faststream schemes, " +
                 s"moving candidate to $ASSESSMENT_CENTRE_FAILED_SDIP_GREEN, applicationId = $applicationId")
               applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), ASSESSMENT_CENTRE_FAILED_SDIP_GREEN)
             } else {
-              logger.debug(s"$logPrefix $applicationId - there is no first non-red/withdrawn residual preference, moving candidate to failed")
+              logger.warn(s"$logPrefix $applicationId - there is no first non-red/withdrawn residual preference, " +
+                s"moving candidate to $ASSESSMENT_CENTRE_FAILED")
               applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), ASSESSMENT_CENTRE_FAILED)
             }
           case _ =>
-            logger.debug(s"$logPrefix $applicationId - residual preferences are amber or red (but not all red), candidate status " +
+            logger.warn(s"$logPrefix $applicationId - residual preferences are amber or red (but not all red), candidate status " +
               s"has not been changed")
             Future.successful(())
         }
       } else {
         // Don't move anyone not in a SCORES_ACCEPTED status
-        logger.debug(s"$logPrefix $applicationId - this was a reevaluation, candidate is not in SCORES_ACCEPTED, candidate status has " +
+        logger.warn(s"$logPrefix $applicationId - this was a reevaluation, candidate is not in SCORES_ACCEPTED, candidate status has " +
           s"not been changed")
         Future.successful(())
       }
     }.getOrElse {
-      logger.debug(s"$logPrefix $applicationId - no progress status, candidate status has not been changed")
+      logger.warn(s"$logPrefix $applicationId - no progress status, candidate status has not been changed")
       Future.successful(())
     }
   }
@@ -319,7 +320,7 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
       currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(applicationId.toString())
     } yield {
       val newSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, evaluationResults)
-      logger.debug(s"After evaluation newSchemeStatus = $newSchemeStatus for applicationId: $applicationId")
+      logger.warn(s"After evaluation newSchemeStatus = $newSchemeStatus for applicationId: $applicationId")
       newSchemeStatus
     }
   }

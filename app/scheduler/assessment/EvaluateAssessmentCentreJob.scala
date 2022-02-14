@@ -41,14 +41,14 @@ trait EvaluateAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobCon
   val batchSize: Int = config.conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    logger.debug(s"EvaluateAssessmentCentreJob starting")
+    logger.warn(s"EvaluateAssessmentCentreJob starting")
     applicationAssessmentService.nextAssessmentCandidatesReadyForEvaluation(batchSize).map { candidateResults =>
       candidateResults.map { candidateResult =>
         if (candidateResult.schemes.isEmpty) {
-          logger.debug(s"EvaluateAssessmentCentreJob - no non-RED schemes found so will not evaluate this candidate")
+          logger.warn(s"EvaluateAssessmentCentreJob - no non-RED schemes found so will not evaluate this candidate")
           Future.successful(())
         } else {
-          logger.debug(s"EvaluateAssessmentCentreJob found candidate ${candidateResult.scores.applicationId} - now evaluating...")
+          logger.warn(s"EvaluateAssessmentCentreJob found candidate ${candidateResult.scores.applicationId} - now evaluating...")
           applicationAssessmentService.evaluateAssessmentCandidate(candidateResult)
         }
       }
