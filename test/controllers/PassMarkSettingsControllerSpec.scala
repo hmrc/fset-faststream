@@ -88,7 +88,7 @@ class Phase1PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
                                |   }
                                | }
                              """
-  val createUrl = controllers.routes.Phase1PassMarkSettingsController.create().url
+  val createUrl = controllers.routes.Phase1PassMarkSettingsController.create.url
 }
 
 class Phase2PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpec {
@@ -133,7 +133,7 @@ class Phase2PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
                                |   }
                                | }
                              """
-  val createUrl = controllers.routes.Phase2PassMarkSettingsController.create().url
+  val createUrl = controllers.routes.Phase2PassMarkSettingsController.create.url
 
 }
 
@@ -175,7 +175,7 @@ class Phase3PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
                                |   }
                                | }
                              """
-  val createUrl = controllers.routes.Phase3PassMarkSettingsController.create().url
+  val createUrl = controllers.routes.Phase3PassMarkSettingsController.create.url
 
 }
 
@@ -237,7 +237,7 @@ class AssessmentCentrePassMarkSettingsControllerSpec extends PassMarkSettingsCon
                                |   }
                                | }
                              """
-  val createUrl = controllers.routes.AssessmentCentrePassMarkSettingsController.create().url
+  val createUrl = controllers.routes.AssessmentCentrePassMarkSettingsController.create.url
 }
 
 trait PassMarkSettingsControllerSpec extends UnitWithAppSpec {
