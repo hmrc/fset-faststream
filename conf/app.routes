@@ -151,6 +151,8 @@ GET         /report/streamed/data-analyst-edipsdip                          @con
 
 GET         /report/assessor-allocation                                     @controllers.ReportingController.assessorAllocationReport()
 GET         /report/candidate-acceptance                                    @controllers.ReportingController.candidateAcceptanceReport()
+
+GET         /report/candidates-stuck-in-fsac                                @controllers.ReportingController.candidateStuckAfterFsacEvaluationReport()
 # Reports end
 
 GET         /campaign-management/afterDeadlineSignupCodeUnusedAndValid   @controllers.CampaignManagementController.afterDeadlineSignupCodeUnusedAndValid(code: String)
