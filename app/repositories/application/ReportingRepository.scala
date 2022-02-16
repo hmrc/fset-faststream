@@ -43,6 +43,7 @@ import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.Try
 
 trait ReportingRepository {
   def adjustmentReport(frameworkId: String): Future[List[AdjustmentReportItem]]
@@ -62,6 +63,7 @@ trait ReportingRepository {
   def applicationsForAnalyticalSchemesReport(frameworkId: String): Future[List[ApplicationForAnalyticalSchemesReport]]
   def successfulCandidatesReport: Future[List[SuccessfulCandidatePartialItem]]
   def preSubmittedApplications(frameworkId: String): Future[List[ApplicationIdsAndStatus]]
+  def candidatesStuckAfterFsacEvaluation: Future[List[FsacStuckCandidate]]
 }
 
 @Singleton
@@ -543,6 +545,56 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2,
         val candidateProgressStatuses = toProgressResponse(applicationId).read(document)
         val latestProgressStatus = Some(ProgressStatusesReportLabels.progressStatusNameInReports(candidateProgressStatuses))
         ApplicationIdsAndStatus(applicationId, userId, applicationStatus, applicationRoute, latestProgressStatus)
+      })
+  }
+
+  override def candidatesStuckAfterFsacEvaluation: Future[List[FsacStuckCandidate]] = {
+    val query = BSONDocument(
+      BSONDocument(s"applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE),
+      BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED}" -> true),
+      BSONDocument("testGroups.FSAC.evaluation" -> BSONDocument("$exists" -> true))
+    )
+
+    val projection = BSONDocument(
+      "applicationId" -> true,
+      "applicationStatus" -> true,
+      "progress-status" -> true,
+      "progress-status-timestamp" -> true
+    )
+
+    collection.find(query, Some(projection))
+      .cursor[BSONDocument]()
+      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]())
+      .map(_.map { document =>
+        val applicationId = document.getAs[String]("applicationId").get
+        val applicationStatus = document.getAs[String]("applicationStatus").get
+
+        // We need this implicit in scope to perform the maxBy below
+        import com.github.nscala_time.time.OrderingImplicits.DateTimeOrdering
+
+        val progressStatusTimeStampDoc = document.getAs[BSONDocument]("progress-status-timestamp")
+
+        val latestProgressStatus = progressStatusTimeStampDoc.flatMap { timestamps =>
+          val relevantProgressStatuses = timestamps.elements.filter(_.name.startsWith(applicationStatus))
+          val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element => timestamps.getAs[DateTime](element.name).get)
+          Try(ProgressStatuses.nameToProgressStatus(latestRelevantProgressStatus.name)).toOption
+        }
+
+        val latestProgressStatusTimestamp = latestProgressStatus.flatMap { latestProgressStatus =>
+          progressStatusTimeStampDoc.map { timestamps =>
+            timestamps.getAs[DateTime](latestProgressStatus.toString).get.toString
+          }
+        }
+
+        val scoresAccepted = Some(ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED)
+
+        val scoresAcceptedTimestamp = progressStatusTimeStampDoc.map { timestamps =>
+          timestamps.getAs[DateTime](ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED.toString).get.toString
+        }
+
+        FsacStuckCandidate(applicationId, applicationStatus, scoresAccepted, scoresAcceptedTimestamp,
+          latestProgressStatus, latestProgressStatusTimestamp
+        )
       })
   }
 

@@ -20,8 +20,8 @@ import akka.stream.scaladsl.Source
 import com.google.inject.name.Named
 import common.Joda._
 import connectors.{AuthProviderClient, ExchangeObjects}
-
 import akka.stream.Materializer
+
 import javax.inject.{Inject, Singleton}
 import model.ApplicationRoute.{ApplicationRoute, Edip, Faststream, Sdip, SdipFaststream}
 import model.ApplicationStatus.ApplicationStatus
@@ -31,7 +31,7 @@ import model._
 import model.assessmentscores.AssessmentScoresExercise
 import model.command.{CandidateDetailsReportItem, CsvExtract}
 import model.persisted.eventschedules.Event
-import model.persisted.{ApplicationForOnlineTestPassMarkReport, ContactDetailsWithId}
+import model.persisted.{ApplicationForOnlineTestPassMarkReport, ContactDetailsWithId, FsacStuckCandidate}
 import model.report._
 import play.api.Logging
 import play.api.libs.iteratee.Enumerator
@@ -1166,5 +1166,17 @@ class ReportingController @Inject() (cc: ControllerComponents,
       }
     }
   }
+
+  def candidateStuckAfterFsacEvaluationReport(): Action[AnyContent] = Action.async { implicit request =>
+    val candidatesFut: Future[List[FsacStuckCandidate]] = reportingRepository.candidatesStuckAfterFsacEvaluation
+
+    for {
+      candidates <- candidatesFut
+    } yield {
+      val stuckCandidates = candidates.collect { case c if c.latestProgressStatus != c.progressStatus => c }
+      Ok(Json.toJson(stuckCandidates))
+    }
+  }
+
 }
 //scalastyle:on
