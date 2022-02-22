@@ -552,6 +552,7 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2,
     val query = BSONDocument(
       BSONDocument(s"applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE),
       BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED}" -> true),
+      BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_FAILED}" -> BSONDocument("$exists" -> false)),
       BSONDocument("testGroups.FSAC.evaluation" -> BSONDocument("$exists" -> true))
     )
 
