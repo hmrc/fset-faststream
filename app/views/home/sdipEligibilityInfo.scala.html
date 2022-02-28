@@ -30,7 +30,7 @@
         <p id="sdipEligibilityInfo">@displayInformation</p>
         <p>Do you want to remove your Fast Stream application and apply for the Summer
             Diversity Internship Programme instead?</p>
-        @helper.form(action = routes.ConsiderForSdipController.continueAsSdip(), 'novalidate -> "novalidate") {
+        @helper.form(action = routes.ConsiderForSdipController.continueAsSdip, 'novalidate -> "novalidate") {
         @helper.CSRF.formField
             <p>
                 <div class="form-group small-btm-margin">

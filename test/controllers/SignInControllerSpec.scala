@@ -87,7 +87,7 @@ class SignInControllerSpec extends BaseControllerSpec {
       val result = signInController().signIn(signInRequest)
 
       status(result) mustBe SEE_OTHER
-      redirectLocation(result) mustEqual Some(routes.LockAccountController.present().toString())
+      redirectLocation(result) mustEqual Some(routes.LockAccountController.present.toString())
       session(result).get("email") mustBe Some(CachedDataExample.LockedCandidateUser.email)
     }
 
@@ -108,13 +108,13 @@ class SignInControllerSpec extends BaseControllerSpec {
       when(mockSignInService.signInUser(
         eqTo(CachedDataExample.NonActiveCandidateUser), any[Result])
         (any[Request[_]], any[HeaderCarrier])
-        ).thenReturn(Future.successful(Results.Redirect(routes.ActivationController.present())))
+        ).thenReturn(Future.successful(Results.Redirect(routes.ActivationController.present)))
       when(mockCredentialsProvider.authenticate(any())(any())).thenReturn(Future.successful(Right(CachedDataExample.NonActiveCandidateUser)))
 
       val result = signInController(mockSignInService).signIn(signInRequest)
 
       status(result) mustBe SEE_OTHER
-      redirectLocation(result) mustEqual Some(routes.ActivationController.present().toString())
+      redirectLocation(result) mustEqual Some(routes.ActivationController.present.toString())
     }
 
     "show invalid role message if user has an invalid role" in new TestFixture {
@@ -172,7 +172,7 @@ class SignInControllerSpec extends BaseControllerSpec {
       val result = signInController().signIn(signInRequest)
 
       status(result) mustBe SEE_OTHER
-      redirectLocation(result) mustEqual Some(routes.LockAccountController.present().toString())
+      redirectLocation(result) mustEqual Some(routes.LockAccountController.present.toString())
       session(result).get("email") mustBe Some("xxx")
     }
 
@@ -183,19 +183,19 @@ class SignInControllerSpec extends BaseControllerSpec {
         val result = signInController(signInService).signOut(fakeRequest)
 
         status(result) mustBe SEE_OTHER
-        redirectLocation(result) mustEqual Some(routes.SignInController.present().toString())
+        redirectLocation(result) mustEqual Some(routes.SignInController.present.toString())
         flash(result) mustBe Flash(Map("danger" -> "You have already signed out"))
       }
 
       "sign out if you are signed in" in new TestFixture {
         when(mockAuthenticatorService.discard(any[SessionAuthenticator], any[Result])(any[RequestHeader])).thenReturn(
-          Future.successful(AuthenticatorResult.apply(Results.Redirect(routes.SignInController.present())))
+          Future.successful(AuthenticatorResult.apply(Results.Redirect(routes.SignInController.present)))
         )
 
         val result = signInControllerAfterSignIn().signOut(fakeRequest)
 
         status(result) mustBe SEE_OTHER
-        redirectLocation(result) mustEqual Some(routes.SignInController.present().toString())
+        redirectLocation(result) mustEqual Some(routes.SignInController.present.toString())
         //flash(result) mustBe Flash(Map("success" -> "feedback"))
       }
     }

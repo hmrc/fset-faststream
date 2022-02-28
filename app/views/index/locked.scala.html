@@ -29,7 +29,7 @@
         <p>You should receive a 7 character code in your email. Enter the code to
             reset your password and unlock your account.</p>
 
-        @helper.form(action = routes.LockAccountController.submit(), 'novalidate -> "novalidate") {
+        @helper.form(action = routes.LockAccountController.submit, 'novalidate -> "novalidate") {
             @helper.CSRF.formField
 
             @helper.input(lockAccountForm("email")) { (id, name, value, args) =>

@@ -37,7 +37,7 @@ class ApplicationController @Inject() (
   extends BaseController(config, mcc) {
 
   def index = Action {
-    Redirect(routes.SignInController.signIn())
+    Redirect(routes.SignInController.signIn)
   }
 
   def terms = CSRUserAwareAction { implicit request =>

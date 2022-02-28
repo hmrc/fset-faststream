@@ -132,9 +132,9 @@ formWrapper: PersonalDetailsForm)(implicit val ec: ExecutionContext)
       implicit val messages = request.messages
       val redirect = if (user.application.applicationRoute == ApplicationRoute.Faststream ||
         user.application.applicationRoute == ApplicationRoute.SdipFaststream) {
-        Redirect(routes.SchemePreferencesController.present())
+        Redirect(routes.SchemePreferencesController.present)
       } else {
-        Redirect(routes.AssistanceDetailsController.present())
+        Redirect(routes.AssistanceDetailsController.present)
       }
       submit(formWrapper.form(LocalDate.now, false, messages), ContinueToNextStepInJourney, redirect)
     }

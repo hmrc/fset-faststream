@@ -41,7 +41,6 @@ class LockAccountControllerSpec extends BaseControllerSpec {
     }
   }
 
-
   "submit" should {
     "flash a error message to show email is missing when email is not passed" in new TestFixture {
       val result = lockAccountController.submit(fakeRequest.withFormUrlEncodedBody(
@@ -49,7 +48,7 @@ class LockAccountControllerSpec extends BaseControllerSpec {
       ))
 
       status(result) mustBe SEE_OTHER
-      redirectLocation(result) mustBe Some(routes.LockAccountController.present().toString)
+      redirectLocation(result) mustBe Some(routes.LockAccountController.present.toString)
       session(result).get("email") mustBe None
     }
 
@@ -61,7 +60,7 @@ class LockAccountControllerSpec extends BaseControllerSpec {
       val result = lockAccountController.submit(lockAccountRequest)
 
       status(result) mustBe SEE_OTHER
-      redirectLocation(result) mustBe Some(routes.PasswordResetController.presentReset().toString)
+      redirectLocation(result) mustBe Some(routes.PasswordResetController.presentReset.toString)
       val sess = session(result)
       sess.get("email") mustBe Some("testEmail123@mailinator.com")
     }

@@ -30,7 +30,7 @@ class CustomSecuredErrorHandler @Inject() (signInService: SignInService,
   val messagesApi: MessagesApi) extends SecuredErrorHandler with I18nSupport {
 
   override def onNotAuthenticated(implicit request: RequestHeader): Future[Result] =
-    Future.successful(Redirect(routes.SignInController.present()))
+    Future.successful(Redirect(routes.SignInController.present))
 
   override def onNotAuthorized(implicit request: RequestHeader): Future[Result] = {
     val sec = request.asInstanceOf[SecuredRequest[SecurityEnvironment, AnyContent]]

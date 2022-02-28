@@ -77,7 +77,7 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
 
       print(contentAsString(result))
       status(result) mustBe SEE_OTHER
-      redirectLocation(result) must be(Some(routes.AssistanceDetailsController.present().url))
+      redirectLocation(result) must be(Some(routes.AssistanceDetailsController.present.url))
     }
   }
 

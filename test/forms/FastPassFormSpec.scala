@@ -17,7 +17,6 @@
 package forms
 
 import forms.FastPassForm._
-import mappings.Mappings
 import models.ApplicationRoute
 import play.api.data.FormError
 

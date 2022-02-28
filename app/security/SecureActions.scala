@@ -143,8 +143,8 @@ trait SecureActions extends I18nSupport with Logging {
       case Some(authenticator) =>
         logger.info(s"No keystore record found for user with valid cookie (User Id = ${request.identity.userID}). " +
           s"Removing cookie and redirecting to sign in.")
-        secEnv.authenticatorService.discard(authenticator, Redirect(routes.SignInController.present()))
-      case None => Future.successful(Redirect(routes.SignInController.present()))
+        secEnv.authenticatorService.discard(authenticator, Redirect(routes.SignInController.present))
+      case None => Future.successful(Redirect(routes.SignInController.present))
     }
   }
 

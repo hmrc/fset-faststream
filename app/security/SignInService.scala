@@ -51,7 +51,7 @@ class SignInService @Inject() (
     redirect: Result = Redirect(routes.HomeController.present())
   )(implicit request: Request[_], hc: HeaderCarrier): Future[Result] = {
     if (user.lockStatus == "LOCKED") {
-      Future.successful(Redirect(routes.LockAccountController.present()).addingToSession("email" -> user.email))
+      Future.successful(Redirect(routes.LockAccountController.present).addingToSession("email" -> user.email))
     } else {
       def signIn(app: Option[ApplicationData]) = for {
         authenticator <- secEnv.authenticatorService.create(LoginInfo(CredentialsProvider.ID, user.userID.toString()))
@@ -102,10 +102,10 @@ class SignInService @Inject() (
     secEnv.userService.refreshCachedUser(UniqueIdentifier(sec.identity.userID))(hc, sec).map {
       case cd: CachedData if cd.user.isActive => Redirect(routes.HomeController.present()).flashing(
         danger("access.denied"))
-      case _ => Redirect(routes.ActivationController.present()).flashing(danger("access.denied"))
+      case _ => Redirect(routes.ActivationController.present).flashing(danger("access.denied"))
     } recoverWith {
       case ice: InvalidCredentialsException => {
-        val signInAction = Redirect(routes.SignInController.present())
+        val signInAction = Redirect(routes.SignInController.present)
         logOutAndRedirectUserAware(signInAction, signInAction)(sec)
       }
     }

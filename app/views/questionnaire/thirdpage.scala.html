@@ -34,7 +34,7 @@
             <p>Gathering anonymous data about the education and employment background of family members of applicants at age 14 can help us to understand the socio-economic background of our applicant group.</p>
         </div>
     </div>
-    @helper.form(action = routes.QuestionnaireController.submitThirdPage(), 'novalidate -> "novalidate") {
+    @helper.form(action = routes.QuestionnaireController.submitThirdPage, 'novalidate -> "novalidate") {
         @helper.CSRF.formField
         <section>
             <div class="text">

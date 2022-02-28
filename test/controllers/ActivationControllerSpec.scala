@@ -103,7 +103,7 @@ class ActivationControllerSpec extends BaseControllerSpec {
       val result = controller(ActiveCandidate).resendCode()(fakeRequest)
 
       status(result) must be(SEE_OTHER)
-      redirectLocation(result) must be(Some(routes.ActivationController.present().url))
+      redirectLocation(result) must be(Some(routes.ActivationController.present.url))
       flash(result).data must be (Map("success" -> ("activation.code-resent"))
       )
     }

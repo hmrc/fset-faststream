@@ -25,8 +25,8 @@
 @import security.RoleUtils._
 
 @redirectUrl = @{
-    if(updateStatus) routes.PersonalDetailsController.submitPersonalDetailsAndContinue()
-    else routes.PersonalDetailsController.submitPersonalDetails()
+    if(updateStatus) routes.PersonalDetailsController.submitPersonalDetailsAndContinue
+    else routes.PersonalDetailsController.submitPersonalDetails
 }
 
 @main_template(title = "Personal details", pageForms = Seq(form), additionalJavascriptFilenames = List()) {

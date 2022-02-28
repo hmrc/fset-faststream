@@ -30,7 +30,7 @@
             </div>
         </div>
 
-        @helper.form(action = routes.WithdrawController.withdrawApplication(), 'novalidate -> "novalidate") {
+        @helper.form(action = routes.WithdrawController.withdrawApplication, 'novalidate -> "novalidate") {
             <fieldset>
                 @helper.CSRF.formField
                 <legend><h2 class="form-label">Do you still want to withdraw?</h2></legend>

@@ -62,7 +62,7 @@
         </ul>
     </div>
 
-    @helper.form(action = routes.QuestionnaireController.submitContinue(), 'novalidate -> "novalidate") {
+    @helper.form(action = routes.QuestionnaireController.submitContinue, 'novalidate -> "novalidate") {
         @helper.CSRF.formField
         <div class="form-group">
             <button id="btnStart" type="submit" value="submit" class="button">Continue questions</button>

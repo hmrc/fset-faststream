@@ -64,7 +64,7 @@ class PreviewApplicationController @Inject() (
   def submit = CSRSecureAppAction(PreviewApplicationRole) { implicit request =>
     implicit user =>
       applicationClient.updatePreview(user.application.applicationId).map { _ =>
-          Redirect(routes.SubmitApplicationController.presentSubmit())
+          Redirect(routes.SubmitApplicationController.presentSubmit)
       }
   }
 

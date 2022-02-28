@@ -105,7 +105,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
       val result = controller.submit()(Request)
 
       status(result) must be(SEE_OTHER)
-      redirectLocation(result) must be(Some(routes.QuestionnaireController.presentStartOrContinue().url))
+      redirectLocation(result) must be(Some(routes.QuestionnaireController.presentStartOrContinue.url))
     }
 
     "update assistance details and redirect to preview if questionnaire is completed" in new TestFixture {
@@ -121,7 +121,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
       val result = controller(candidate).submit()(Request)
 
       status(result) must be(SEE_OTHER)
-      redirectLocation(result) must be(Some(routes.PreviewApplicationController.present().url))
+      redirectLocation(result) must be(Some(routes.PreviewApplicationController.present.url))
     }
   }
 

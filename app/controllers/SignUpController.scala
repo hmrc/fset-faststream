@@ -128,7 +128,7 @@ class SignUpController @Inject() (
             } yield {
               signInService.signInUser(
                 u.toCached,
-                redirect = Redirect(routes.ActivationController.present()).flashing(success("account.successful"))
+                redirect = Redirect(routes.ActivationController.present).flashing(success("account.successful"))
               ).map { r =>
                 secEnv.eventBus.publish(SignUpEvent(SecurityUser(u.userId.toString()), request))
                 r

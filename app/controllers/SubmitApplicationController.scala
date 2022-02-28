@@ -19,7 +19,6 @@ package controllers
 import config.{ FrontendAppConfig, SecurityEnvironment }
 import connectors.ApplicationClient
 import connectors.ApplicationClient.CannotSubmit
-import helpers.NotificationType._
 import helpers.NotificationTypeHelper
 import javax.inject.{ Inject, Singleton }
 import play.api.mvc.MessagesControllerComponents
@@ -61,9 +60,9 @@ class SubmitApplicationController @Inject() (
     implicit user =>
       if (canApplicationBeSubmitted(user.application.overriddenSubmissionDeadline)(user.application.applicationRoute)) {
         applicationClient.submitApplication(user.user.userID, user.application.applicationId).map { _ =>
-            Redirect(routes.SubmitApplicationController.presentSubmitted())
+            Redirect(routes.SubmitApplicationController.presentSubmitted)
         }.recover {
-          case _: CannotSubmit => Redirect(routes.PreviewApplicationController.present()).flashing(
+          case _: CannotSubmit => Redirect(routes.PreviewApplicationController.present).flashing(
             danger("error.cannot.submit"))
         }
       } else {

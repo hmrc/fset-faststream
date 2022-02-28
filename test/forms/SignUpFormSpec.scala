@@ -17,7 +17,6 @@
 package forms
 
 import forms.SignUpForm.{Data, _}
-import mappings.Mappings
 import models.ApplicationRoute
 import play.api.data.Form
 import play.api.i18n.Messages

@@ -18,7 +18,6 @@ package controllers
 
 import java.io.File
 import java.nio.file.Path
-import java.time.LocalDateTime
 import java.util.UUID
 
 import connectors.ApplicationClient.{CandidateAlreadyHasAnAnalysisExerciseException, OnlineTestNotFound}

@@ -36,7 +36,7 @@
             <p>At least one of your scheme preferences require you to answer some additional questions.</p>
             <p>You should complete this within 7 days from the date of your email. Failure to do this will cause your application to expire.</p>
             <ul class="list-text list-withicons" data-extrainfolist>
-                <li><i class="fa fa-minus the-icon" aria-hidden="true"></i><a href="@routes.SiftQuestionsController.presentGeneralQuestions()" id="siftGeneralQuestions">Nationality and higher education</a></li>
+                <li><i class="fa fa-minus the-icon" aria-hidden="true"></i><a href="@routes.SiftQuestionsController.presentGeneralQuestions" id="siftGeneralQuestions">Nationality and higher education</a></li>
                 @for(curSiftableScheme <- page.userDataWithSchemes.schemesForSiftForms) {
                 <li><i class="fa fa-minus the-icon" aria-hidden="true"></i>
                     <a href="@routes.SiftQuestionsController.presentSchemeForm(curSiftableScheme.id)" id="@generateId(curSiftableScheme.id.value)">@{
@@ -44,11 +44,11 @@
                         } <span class="visuallyhidden"> additional questions </span></a>
                     <span class="font-xsmall">(in this section, you'll be assessed with one or more questions)</span></li>
                 }
-                <li><i class="fa fa-minus the-icon" aria-hidden="true"></i><a href="@routes.SiftQuestionsController.presentPreview()" id="previewSiftQuestions">Preview<span class="visuallyhidden"> additional questions</span> before you submit</a></li>
+                <li><i class="fa fa-minus the-icon" aria-hidden="true"></i><a href="@routes.SiftQuestionsController.presentPreview" id="previewSiftQuestions">Preview<span class="visuallyhidden"> additional questions</span> before you submit</a></li>
             </ul>
         } else {
             <div data-extrainfopanel=""><p>You've submitted all the required information.</p></div>
-            <ul class="list-text list-withicons" data-extrainfolist=""><li><i class="fa fa-check the-icon" aria-hidden="true"></i><a href="@routes.SiftQuestionsController.presentPreview()">View your submitted answers</a></li></ul>
+            <ul class="list-text list-withicons" data-extrainfolist=""><li><i class="fa fa-check the-icon" aria-hidden="true"></i><a href="@routes.SiftQuestionsController.presentPreview">View your submitted answers</a></li></ul>
         }
     </section>
 }
@@ -75,7 +75,7 @@
             @if(page.isSiftTestCompleted) {
                 <p><strong>You have completed your numerical test.</strong></p>
             } else {
-                @helper.form(action = routes.PsiTestController.startSiftNumericTest(), 'novalidate -> "novalidate") {
+                @helper.form(action = routes.PsiTestController.startSiftNumericTest, 'novalidate -> "novalidate") {
                     @helper.CSRF.formField
                     @if(!page.isSiftTestStarted) {
                         <button id="submit_sift_test" type="submit" value="submit" class="button">Start test</button>
@@ -105,7 +105,7 @@
     <div class="inner-block-padr" id="schemeForms">
         <h2 class='heading-medium'>Extra information</h2>
         <p id="siftCompletedMessage">You've completed this section</p>
-        <ul class="list-text list-withicons" data-extrainfolist=""><li><i class="fa fa-check the-icon" aria-hidden="true"></i><a href="@routes.SiftQuestionsController.presentPreview()">View your submitted answers</a></li></ul>
+        <ul class="list-text list-withicons" data-extrainfolist=""><li><i class="fa fa-check the-icon" aria-hidden="true"></i><a href="@routes.SiftQuestionsController.presentPreview">View your submitted answers</a></li></ul>
     </div><br />
 }
 
@@ -156,7 +156,7 @@
 }
 
 @renderCannotAttend = {
-    <p>If you cannot attend, <a href="@routes.ApplicationController.helpdesk()">contact us</a>.</p>
+    <p>If you cannot attend, <a href="@routes.ApplicationController.helpdesk">contact us</a>.</p>
 }
 
 @renderAssessmentCentre = {
@@ -264,7 +264,7 @@
                         <p>At least one of your scheme preferences required you to answer some additional questions or take a numerical test.</p>
                         <p>Unfortunately, the time you had to provide this information has expired.</p>
 
-                        <p>If you believe there's been a mistake, please <a href="@routes.ApplicationController.helpdesk()">contact us</a>.</p>
+                        <p>If you believe there's been a mistake, please <a href="@routes.ApplicationController.helpdesk">contact us</a>.</p>
                     </section>
                 } else {
                     @if(page.userDataWithSchemes.hasFormRequirement || page.userDataWithSchemes.hasNumericRequirement) {

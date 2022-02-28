@@ -37,7 +37,7 @@
   </div>
     </div>
 
-    @helper.form(action = routes.QuestionnaireController.submitSecondPage(), 'novalidate -> "novalidate") {
+    @helper.form(action = routes.QuestionnaireController.submitSecondPage, 'novalidate -> "novalidate") {
         @helper.CSRF.formField
 
         <fieldset class="form-group">

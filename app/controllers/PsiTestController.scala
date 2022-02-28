@@ -23,7 +23,6 @@ import helpers.NotificationTypeHelper
 
 import javax.inject.{ Inject, Singleton }
 import models.UniqueIdentifier
-import play.api.{ Logger, Logging }
 import play.api.i18n.Messages
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
 import security.Roles.{ OnlineTestInvitedRole, Phase2TestInvitedRole, SiftNumericTestRole }

@@ -91,7 +91,7 @@ class QuestionnaireController @Inject() (config: FrontendAppConfig,
             Future.successful(Ok(views.html.questionnaire.intro(errorForm)))
           },
           data => {
-            submitQuestionnaire(data.toQuestionnaire, "start_questionnaire")(Redirect(routes.QuestionnaireController.presentFirstPage()))
+            submitQuestionnaire(data.toQuestionnaire, "start_questionnaire")(Redirect(routes.QuestionnaireController.presentFirstPage))
           }
         )
       }
@@ -105,10 +105,10 @@ class QuestionnaireController @Inject() (config: FrontendAppConfig,
         Future.successful {
           (DiversityQuestionnaireCompletedRole.isAuthorized(user), EducationQuestionnaireCompletedRole.isAuthorized(user),
             ParentalOccupationQuestionnaireCompletedRole.isAuthorized(user)) match {
-            case (_, _, true) => Redirect(routes.SubmitApplicationController.presentSubmit())
-            case (_, true, _) => Redirect(routes.QuestionnaireController.presentThirdPage())
-            case (true, _, _) => Redirect(routes.QuestionnaireController.presentSecondPage())
-            case (_, _, _) => Redirect(routes.QuestionnaireController.presentFirstPage())
+            case (_, _, true) => Redirect(routes.SubmitApplicationController.presentSubmit)
+            case (_, true, _) => Redirect(routes.QuestionnaireController.presentThirdPage)
+            case (true, _, _) => Redirect(routes.QuestionnaireController.presentSecondPage)
+            case (_, _, _) => Redirect(routes.QuestionnaireController.presentFirstPage)
           }
         }
       }
@@ -117,14 +117,14 @@ class QuestionnaireController @Inject() (config: FrontendAppConfig,
   def submitFirstPage: Action[AnyContent] = CSRSecureAppAction(DiversityQuestionnaireRole) { implicit request =>
     implicit user =>
       if (DiversityQuestionnaireCompletedRole.isAuthorized(user)) {
-        Future.successful(Redirect(routes.QuestionnaireController.presentStartOrContinue()).flashing(questionnaireCompletedBanner))
+        Future.successful(Redirect(routes.QuestionnaireController.presentStartOrContinue).flashing(questionnaireCompletedBanner))
       } else {
         diversityFormWrapper.form.bindFromRequest.fold(
           errorForm => {
             Future.successful(Ok(views.html.questionnaire.firstpage(errorForm)))
           },
           data => {
-            submitQuestionnaire(data.exchange, "diversity_questionnaire")(Redirect(routes.QuestionnaireController.presentSecondPage()))
+            submitQuestionnaire(data.exchange, "diversity_questionnaire")(Redirect(routes.QuestionnaireController.presentSecondPage))
           }
         )
       }
@@ -134,7 +134,7 @@ class QuestionnaireController @Inject() (config: FrontendAppConfig,
     implicit user =>
       val isCivilServantString = if (user.application.civilServiceExperienceDetails.exists(_.isCivilServant)) "Yes" else "No"
       if (EducationQuestionnaireCompletedRole.isAuthorized(user)) {
-        Future.successful(Redirect(routes.QuestionnaireController.presentStartOrContinue()).flashing(questionnaireCompletedBanner))
+        Future.successful(Redirect(routes.QuestionnaireController.presentStartOrContinue).flashing(questionnaireCompletedBanner))
       } else {
         educationFormWrapper.form(universityMessageKey).bindFromRequest.fold(
           errorForm => {
@@ -143,7 +143,7 @@ class QuestionnaireController @Inject() (config: FrontendAppConfig,
           },
           data => {
             submitQuestionnaire(data.sanitizeData.exchange, "education_questionnaire")(
-              Redirect(routes.QuestionnaireController.presentThirdPage()))
+              Redirect(routes.QuestionnaireController.presentThirdPage))
           }
         )
       }
@@ -152,14 +152,14 @@ class QuestionnaireController @Inject() (config: FrontendAppConfig,
   def submitThirdPage: Action[AnyContent] = CSRSecureAppAction(ParentalOccupationQuestionnaireRole) { implicit request =>
     implicit user =>
       if (ParentalOccupationQuestionnaireCompletedRole.isAuthorized(user)) {
-        Future.successful(Redirect(routes.QuestionnaireController.presentStartOrContinue()).flashing(questionnaireCompletedBanner))
+        Future.successful(Redirect(routes.QuestionnaireController.presentStartOrContinue).flashing(questionnaireCompletedBanner))
       } else {
         parentalFormWrapper.form.bindFromRequest.fold(
           errorForm => {
             Future.successful(Ok(views.html.questionnaire.thirdpage(errorForm)))
           },
           data => {
-            submitQuestionnaire(data.exchange, "occupation_questionnaire")(Redirect(routes.PreviewApplicationController.present()))
+            submitQuestionnaire(data.exchange, "occupation_questionnaire")(Redirect(routes.PreviewApplicationController.present))
           }
         )
       }
@@ -170,7 +170,7 @@ class QuestionnaireController @Inject() (config: FrontendAppConfig,
     Future.successful {
       (pageFilledPreviously.isAuthorized(user), PreviewApplicationRole.isAuthorized(user)) match {
         case (_, true) => Redirect(routes.HomeController.present()).flashing(questionnaireCompletedBanner)
-        case (true, _) => Redirect(routes.QuestionnaireController.presentStartOrContinue()).flashing(questionnaireCompletedBanner)
+        case (true, _) => Redirect(routes.QuestionnaireController.presentStartOrContinue).flashing(questionnaireCompletedBanner)
         case _ => presentPage
       }
     }

@@ -27,7 +27,7 @@
 
 @main_template(title = "Nationality and higher education", additionalJavascriptFilenames = List("vendor/chosen.jquery.js", "generalQuestions.js")) {
     <h1 class="heading-xlarge">Nationality and higher education</h1>
-    @helper.form(action = routes.SiftQuestionsController.saveGeneralQuestions(), 'novalidate -> "novalidate") {
+    @helper.form(action = routes.SiftQuestionsController.saveGeneralQuestions, 'novalidate -> "novalidate") {
         @helper.CSRF.formField
         <fieldset>
             <div class="form-group">
