@@ -1,7 +1,16 @@
+repoVisibility: public_0C3F0CE3E6E6448FAD341E7BFA50FCD333E06A20CFF05FCACE61154DDBBADF71
 digital-service: "FSET: Faststream"
 
 leakDetectionExemptions:
- - ruleId: 'ip_addresses'
+ - ruleId: 'ip_addresses1'
+   text: 'dummyIP1'
    filePaths:
-      - '/test/config/WhitelistFilterConfigSpec.scala'
-repoVisibility: public_0C3F0CE3E6E6448FAD341E7BFA50FCD333E06A20CFF05FCACE61154DDBBADF71
+      - '/test/config/FaststreamWhitelistFilterConfigSpec.scala'
+ - ruleId: 'ip_addresses2'
+   text: 'dummyIP2'
+   filePaths:
+      - '/test/config/FaststreamWhitelistFilterConfigSpec.scala'
+ - ruleId: 'ip_addresses3'
+   text: 'dummyIP3'
+   filePaths:
+      - '/test/config/FaststreamWhitelistFilterConfigSpec.scala'
