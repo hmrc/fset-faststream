@@ -24,6 +24,7 @@ import model.persisted.{ ApplicationForOnlineTestPassMarkReport, SchemeEvaluatio
 import play.api.libs.json.{ Json, OFormat }
 
 case class ApplicationForOnlineTestPassMarkReportItem(
+                                                       applicationId: String,
                                                        progress: String,
                                                        applicationRoute: ApplicationRoute,
                                                        schemes: List[SchemeId],
@@ -45,6 +46,7 @@ object ApplicationForOnlineTestPassMarkReportItem {
            fsbScoresAndFeedback: Option[ScoresAndFeedback]): ApplicationForOnlineTestPassMarkReportItem = {
 
     ApplicationForOnlineTestPassMarkReportItem(
+      applicationId = a.applicationId,
       progress = a.progress,
       applicationRoute = a.applicationRoute,
       schemes = a.schemes,
