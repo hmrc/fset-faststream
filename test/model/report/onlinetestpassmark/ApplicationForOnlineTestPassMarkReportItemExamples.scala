@@ -30,19 +30,22 @@ object ApplicationForOnlineTestPassMarkReportItemExamples {
   def emptyTests(n: Int): Seq[Option[PsiTestResult]] = Seq.fill[Option[PsiTestResult]](n)(None)
 
   lazy val applicationWithNoTestResult1 = newApplicationForOnlineTestPassMarkReportItem(
-    TestResultsForOnlineTestPassMarkReportItem(emptyTests(4), emptyTests(2), None, None, None, None, None, None))
+    TestResultsForOnlineTestPassMarkReportItem(phase1 = emptyTests(4), phase2 = emptyTests(2), videoInterview = None, siftTestResult = None,
+      fsac = None, overallFsacScore = None, sift = None, fsb = None))
   lazy val applicationWithNoTestResult2 = newApplicationForOnlineTestPassMarkReportItem(
-    TestResultsForOnlineTestPassMarkReportItem(emptyTests(4), emptyTests(2), None, None, None, None, None, None))
+    TestResultsForOnlineTestPassMarkReportItem(phase1 = emptyTests(4), phase2 = emptyTests(2), videoInterview = None, siftTestResult = None,
+      fsac = None, overallFsacScore = None, sift = None, fsb = None))
 
   def newApplicationForOnlineTestPassMarkReportItem(testsResult: TestResultsForOnlineTestPassMarkReportItem) =
     ApplicationForOnlineTestPassMarkReportItem(
+      "appId",
       "phase1_tests_results_received",
       ApplicationRoute.Faststream,
       List(SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber")),
-      None,
-      None,
-      None,
-      None,
+      disability = None,
+      gis = None,
+      onlineAdjustments = None,
+      assessmentCentreAdjustments = None,
       testsResult,
       List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString),
         SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), EvaluationResults.Green.toString)))
