@@ -554,12 +554,6 @@ class ReportingControllerSpec extends UnitWithAppSpec {
         .withHeaders("Content-Type" -> "application/json")
     }
 
-    when(mockAuthProviderClient.candidatesReport(any())).thenReturn(Future.successful(
-      Candidate("firstName1", "lastName1", Some("preferredName1"), "email1@test.com", None, "user1", List("candidate")) ::
-        Candidate("firstName2", "lastName2", None, "email2@test.com", None, "user2", List("candidate")) ::
-        Nil
-    ))
-
     when(mockContactDetailsRepository.findAll).thenReturn(Future.successful(List.empty))
   }
 }

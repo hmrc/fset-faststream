@@ -28,7 +28,7 @@ import play.api.Logging
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration.TimeUnit
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 @Singleton
 class CSREmailClientImpl @Inject() (val http: WSHttpT, val appConfig: MicroserviceAppConfig) extends CSREmailClient {
@@ -198,7 +198,8 @@ trait EmailClient extends Logging {
       parameters ++ Map("programme" -> "faststream")
     )
     if (emailConfig.enabled) {
-      http.POST(s"${emailConfig.url}/fsetfaststream/email", data, Seq()).map(_ => (): Unit)
+      import uk.gov.hmrc.http.HttpReads.Implicits._
+      http.POST[SendFsetMailRequest, HttpResponse](s"${emailConfig.url}/fsetfaststream/email", data).map(_ => (): Unit)
     } else {
       logger.warn(s"EmailClient is attempting to send out template $template but is DISABLED")
       Future.successful(())

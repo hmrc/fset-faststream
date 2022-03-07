@@ -41,6 +41,8 @@ object AppDependencies {
     "org.yaml"          %  "snakeyaml"                        % "1.16",
     "com.jsuereth"      %% "scala-arm"                        % "2.0",
     "net.jcazevedo"     %% "moultingyaml"                     % "0.4.0",
+    // Works with MireMock up to version 2.31.0
+    "com.fasterxml.jackson.module"  %% "jackson-module-scala" % "2.12.2",
     filters,
     ws
   )
@@ -54,7 +56,8 @@ object AppDependencies {
       "org.scalatestplus"         %% "mockito-3-4"                  % "3.2.8.0"           % scope,
       "com.vladsch.flexmark"      %  "flexmark-all"                 % "0.36.8"            % scope,
       "org.scalamock"             %% "scalamock-scalatest-support"  % "3.5.0"             % scope,
-      "org.scalacheck"            %% "scalacheck"                   % "1.13.4"            % sbt.Test
+      "org.scalacheck"            %% "scalacheck"                   % "1.13.4"            % sbt.Test,
+      "com.github.tomakehurst"    % "wiremock-jre8"                 % "2.31.0"            % sbt.Test
     )
   }
 

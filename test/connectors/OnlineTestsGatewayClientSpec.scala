@@ -16,99 +16,116 @@
 
 package connectors
 
-//import config.WSHttp
 import config.{MicroserviceAppConfig, OnlineTestsGatewayConfig, WSHttpT}
 import connectors.ExchangeObjects._
 import model.Exceptions.ConnectorException
+import model.OnlineTestCommands.PsiTestResult
+import org.joda.time.LocalDate
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import play.api.libs.json.{Json, _}
-import play.api.mvc.Action
-import play.api.mvc.Results._
+import play.api.libs.json._
 import play.api.test.Helpers._
 import testkit.{ShortTimeout, UnitSpec}
-import uk.gov.hmrc.play.http._
-
-import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
 
+import scala.concurrent.{ExecutionContext, Future}
+
 class OnlineTestsGatewayClientSpec extends UnitSpec with ShortTimeout {
-  val FirstName = "firstName"
-  val LastName = "lastName"
-  val Email = "emailfsdferr@mailinator.com"
-//  val registerApplicant = RegisterApplicant(FirstName, LastName, Email)
 
-//  val CubiksUserId = 112923
-//  val registration = Registration(CubiksUserId)
-//  val registrationHttpResponse = HttpResponse(OK, Some(Json.toJson(registration)))
+  val registerCandidateRequest = RegisterCandidateRequest(inventoryId = "inventoryId",
+                                      orderId = "orderId",
+                                      accountId = "accountId",
+                                      preferredName = "preferredName",
+                                      lastName = "lastName",
+                                      redirectionUrl = "http://localhost/redirectionUrl",
+                                      assessmentId = "assessmentId",
+                                      reportId = "reportId",
+                                      normId = "normId",
+                                      adjustment = None)
 
-  // Invitation data
-  val ScheduleId = 1111
-  val VerbalAndNumericalAssessmentId = 1
-  val VerbalSectionId = 1
-  val NumericalSectionId = 2
-  val verbalTimeAdjustment = 10
-  val numericalTimeAdjustment = 9
-  val ScheduleCompletionUrl = "http://localhost/complete?token="
-  val ResultsUrl = "http://locahost/resulturl"
-  val AccessCode = "ajajfjf"
-  val LogonUrl = "http://cubiks.com/logonUrl"
-  val AuthenticatedUrl = "http://cubiks/authenticatedUrl"
-  val timeAdjustments = TimeAdjustments(VerbalAndNumericalAssessmentId, NumericalSectionId, verbalTimeAdjustment)
-//  val inviteApplicant = InviteApplicant(ScheduleId, CubiksUserId, "completeurl.com", None, List(timeAdjustments))
-//  val invitation = Invitation(CubiksUserId, Email, AccessCode, LogonUrl, AuthenticatedUrl, ScheduleId)
-//  val invitationHttpResponse = HttpResponse(OK, Some(Json.toJson(invitation)))
+  val cancelCandidateTestRequest = CancelCandidateTestRequest("orderId")
 
-  // pdf report
   val reportId = 1
-  val pdfReport = "pdfReport"
-  val pdfReportContent = Array[Byte](0x20, 0x20, 0x20, 0x20, 0x20, 0x20)
 
-  // TODO: cubiks specific
-  /*
   "register applicant" should {
     "return a ConnectorException when online test gateway returns HTTP status Bad Gateway" in new GatewayTest {
-      mockPost[RegisterApplicant].thenReturn(Future.successful(HttpResponse(BAD_GATEWAY)))
-      val result = onlineTestsGatewayClient.registerApplicant(registerApplicant)
+      mockPost[RegisterCandidateRequest].thenReturn(Future.successful(HttpResponse.apply(BAD_GATEWAY, "Test error")))
+      val result = onlineTestsGatewayClient.psiRegisterApplicant(registerCandidateRequest)
       result.failed.futureValue mustBe a[ConnectorException]
     }
-    "return an Exception when there is an exception when calling online test gateway" in new GatewayTest {
-      mockPost[RegisterApplicant].thenReturn(Future.failed(new Exception))
-      val result = onlineTestsGatewayClient.registerApplicant(registerApplicant)
-      result.failed.futureValue mustBe an[Exception]
-    }
-    "register an applicant and return a Registration when successful" in new GatewayTest {
-      mockPost[RegisterApplicant].thenReturn(Future.successful(registrationHttpResponse))
-      val result = onlineTestsGatewayClient.registerApplicant(registerApplicant)
-      result.futureValue.userId must be(CubiksUserId)
-    }
-  }*/
 
-  // TODO: cubiks delete
-  /*
-  "invite application" should {
-    "return a ConnectorException when online test gateway returns HTTP status Bad Gateway" in new GatewayTest {
-      mockPost[InviteApplicant].thenReturn(Future.successful(HttpResponse(BAD_GATEWAY)))
-      val result = onlineTestsGatewayClient.inviteApplicant(inviteApplicant)
-      result.failed.futureValue mustBe a[ConnectorException]
-    }
-    "throw an Exception when there is an exception when calling online test gateway" in new GatewayTest {
-      mockPost[InviteApplicant].thenReturn(Future.failed(new Exception))
-      val result = onlineTestsGatewayClient.inviteApplicant(inviteApplicant)
+    "return an exception when there is an exception when calling online test gateway" in new GatewayTest {
+      mockPost[RegisterCandidateRequest].thenReturn(Future.failed(new Exception))
+      val result = onlineTestsGatewayClient.psiRegisterApplicant(registerCandidateRequest)
       result.failed.futureValue mustBe an[Exception]
     }
-    "invite an applicant and return an Invitation when successful" in new GatewayTest {
-      mockPost[InviteApplicant].thenReturn(Future.successful(invitationHttpResponse))
-      val result = onlineTestsGatewayClient.inviteApplicant(inviteApplicant)
-      result.futureValue must be(invitation)
+
+    "return an AssessmentOrderAcknowledgement when successful" in new GatewayTest {
+      val assessmentOrderAcknowledgement = AssessmentOrderAcknowledgement(
+        "customerId",
+        "receiptId",
+        "orderId",
+        "http://host/testLaunchUrl",
+        "status",
+        "statusDetails",
+        statusDate = LocalDate.now()
+      )
+      val assessmentOrderAcknowledgementHttpResponse = HttpResponse.apply(OK, Json.toJson(assessmentOrderAcknowledgement).toString())
+
+      mockPost[RegisterCandidateRequest].thenReturn(Future.successful(assessmentOrderAcknowledgementHttpResponse))
+      val result = onlineTestsGatewayClient.psiRegisterApplicant(registerCandidateRequest)
+      result.futureValue mustBe assessmentOrderAcknowledgement
     }
-  }*/
+  }
+
+  "cancel test" should {
+    "return a ConnectorException when online test gateway returns HTTP status Bad Gateway" in new GatewayTest {
+      mockGet[HttpResponse].thenReturn(Future.successful(HttpResponse.apply(BAD_GATEWAY, "Test error")))
+      val result = onlineTestsGatewayClient.psiCancelTest(cancelCandidateTestRequest)
+      result.failed.futureValue mustBe a[ConnectorException]
+    }
+
+    "return an exception when there is an exception when calling online test gateway" in new GatewayTest {
+      mockGet[HttpResponse].thenReturn(Future.failed(new Exception))
+      val result = onlineTestsGatewayClient.psiCancelTest(cancelCandidateTestRequest)
+      result.failed.futureValue mustBe an[Exception]
+    }
+
+    "return an AssessmentCancelAcknowledgementResponse when successful" in new GatewayTest {
+      val assessmentCancelAcknowledgementResponse = AssessmentCancelAcknowledgementResponse("status", "details", statusDate = LocalDate.now())
+      val assessmentCancelAcknowledgementHttpResponse = HttpResponse.apply(OK, Json.toJson(assessmentCancelAcknowledgementResponse).toString())
+
+      mockGet[HttpResponse].thenReturn(Future.successful(assessmentCancelAcknowledgementHttpResponse))
+      val result = onlineTestsGatewayClient.psiCancelTest(cancelCandidateTestRequest)
+      result.futureValue mustBe assessmentCancelAcknowledgementResponse
+    }
+  }
+
+  "download psi test results" should {
+    "return a ConnectorException when online test gateway returns HTTP status Bad Gateway" in new GatewayTest {
+      mockGet[HttpResponse].thenReturn(Future.successful(HttpResponse.apply(BAD_GATEWAY, "Test error")))
+      val result = onlineTestsGatewayClient.downloadPsiTestResults(reportId)
+      result.failed.futureValue mustBe a[ConnectorException]
+    }
+
+    "return an exception when there is an exception when calling online test gateway" in new GatewayTest {
+      mockGet[HttpResponse].thenReturn(Future.failed(new Exception))
+      val result = onlineTestsGatewayClient.downloadPsiTestResults(reportId)
+      result.failed.futureValue mustBe an[Exception]
+    }
+
+    "return a PsiTestResult when successful" in new GatewayTest {
+      val testResult = PsiTestResult("status", tScore = 80.0, raw = 40.0)
+      val testResultHttpResponse = HttpResponse.apply(OK, Json.toJson(testResult).toString())
+
+      mockGet[HttpResponse].thenReturn(Future.successful(testResultHttpResponse))
+      val result = onlineTestsGatewayClient.downloadPsiTestResults(reportId)
+      result.futureValue mustBe testResult
+    }
+  }
 
   trait GatewayTest {
-    implicit val hc = HeaderCarrier()
-    val mockWSHttp = mock[WSHttpT]
-
-    val samplePDFValue = Array[Byte](0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20)
+//    val samplePDFValue = Array[Byte](0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20)
 /*
     def setupPDFWSMock() = {
       when(mockWSHttp.playWS).thenReturn(
@@ -127,24 +144,23 @@ class OnlineTestsGatewayClientSpec extends UnitSpec with ShortTimeout {
       )
     }*/
 
-//    val onlineTestsGatewayClient = new OnlineTestsGatewayClient {
-//      override val http = mockWSHttp
-//      override val url = "http://localhost"
-//    }
-
     val mockMicroserviceAppConfig = mock[MicroserviceAppConfig]
     val mockOnlineTestsGatewayConfig = mock[OnlineTestsGatewayConfig]
     when(mockOnlineTestsGatewayConfig.url).thenReturn("http://localhost")
     when(mockMicroserviceAppConfig.onlineTestsGatewayConfig).thenReturn(mockOnlineTestsGatewayConfig)
 
-    val onlineTestsGatewayClient = new OnlineTestsGatewayClientImpl(
-      mockWSHttp,
-      mockMicroserviceAppConfig
-  )
+    val mockWSHttp = mock[WSHttpT]
+    val onlineTestsGatewayClient = new OnlineTestsGatewayClientImpl(mockWSHttp, mockMicroserviceAppConfig)
 
     def mockPost[T] = {
       when(
         mockWSHttp.POST(anyString(), any[T], any())(any[Writes[T]], any[HttpReads[HttpResponse]], any[HeaderCarrier], any[ExecutionContext])
+      )
+    }
+
+    def mockGet[T] = {
+      when(
+        mockWSHttp.GET(anyString(), any(), any())(any[HttpReads[T]], any[HeaderCarrier], any[ExecutionContext])
       )
     }
   }

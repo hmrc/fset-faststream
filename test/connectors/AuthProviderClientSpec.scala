@@ -38,10 +38,7 @@ class AuthProviderClientSpec extends UnitSpec with ShortTimeout {
     }
 
     "throw an exception when passed invalid strings" in new TestFixture {
-      val invalidStrings = List(
-        "",
-        "someText"
-      )
+      val invalidStrings = List("", "someText")
 
       invalidStrings.foreach { invalidString =>
         import AuthProviderClient._
