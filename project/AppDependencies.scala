@@ -40,6 +40,8 @@ object AppDependencies {
     "com.mohiva"                %% "play-silhouette-persistence"              % silhouetteVersion,
     "net.codingwell"            %% "scala-guice"                              % "4.1.0",
     "com.github.nscala-time"    %% "nscala-time"                              % "2.24.0",
+    // Works with MireMock up to version 2.31.0
+    "com.fasterxml.jackson.module"  %% "jackson-module-scala"                 % "2.12.2",
     ws
   )
 
@@ -49,7 +51,7 @@ object AppDependencies {
     "org.scalatestplus"         %% "mockito-3-4"                  % "3.2.8.0"         % Test,
     "com.vladsch.flexmark"      %  "flexmark-all"                 % "0.36.8"          % Test,
     "org.mockito"               %  "mockito-core"                 % "3.9.0"           % Test,
-    "com.github.tomakehurst"    %  "wiremock"                     % "1.57"            % Test,
+    "com.github.tomakehurst"    % "wiremock-jre8"                 % "2.31.0"          % Test,
     "com.mohiva"                %% "play-silhouette-testkit"      % silhouetteVersion % Test,
     "uk.gov.hmrc"               %% "bootstrap-test-play-28"       % bootstrapVersion  % Test
   )

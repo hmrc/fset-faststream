@@ -16,10 +16,10 @@
 
 package connectors
 
-import config.{ CSRHttp, FrontendAppConfig }
-import connectors.exchange.referencedata.{ ReferenceData, Scheme, SchemeId }
+import config.{CSRHttp, FrontendAppConfig}
+import connectors.exchange.referencedata.{ReferenceData, Scheme, SchemeId}
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import play.api.Logging
 import play.api.libs.json.OFormat
 
@@ -28,7 +28,8 @@ import play.api.http.Status.OK
 
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 @Singleton
 class ReferenceDataClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(implicit ec: ExecutionContext) extends Logging {
@@ -50,7 +51,7 @@ class ReferenceDataClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(i
 
     logger.info(s"Values successfully fetched from reference data cache for key: $key = $values")
     if (values.isEmpty) {
-      http.GET(s"$apiBaseUrl$endpointPath").map { response =>
+      http.GET[HttpResponse](s"$apiBaseUrl$endpointPath").map { response =>
         if (response.status == OK) {
           val dataResponse = response.json.as[List[T]]
           referenceDataCache.update(key, dataResponse)
@@ -72,7 +73,7 @@ class ReferenceDataClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(i
   )(implicit hc: HeaderCarrier, jsonFormat: OFormat[T]): Future[ReferenceData[T]] = {
     referenceDataCache.get(key).map(_.asInstanceOf[ReferenceData[T]]) match {
       case None =>
-        http.GET(s"$apiBaseUrl$endpointPath").map { response =>
+        http.GET[HttpResponse](s"$apiBaseUrl$endpointPath").map { response =>
           if (response.status == OK) {
             val dataResponse = response.json.as[ReferenceData[T]]
             referenceDataCache.update(key, dataResponse)

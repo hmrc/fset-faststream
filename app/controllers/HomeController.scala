@@ -16,28 +16,26 @@
 
 package controllers
 
-import java.nio.file.{ Files, Path }
-
-import config.{ FrontendAppConfig, SecurityEnvironment }
-import connectors.ApplicationClient.{ ApplicationNotFound, CandidateAlreadyHasAnAnalysisExerciseException, OnlineTestNotFound, _ }
+import config.{FrontendAppConfig, SecurityEnvironment}
+import connectors.ApplicationClient._
 import connectors.exchange._
 import connectors.exchange.candidateevents.CandidateAllocations
-import connectors.{ ApplicationClient, ReferenceDataClient, SchemeClient, SiftClient }
+import connectors.{ApplicationClient, ReferenceDataClient, SchemeClient, SiftClient}
 import helpers.NotificationType._
-import helpers.{ CachedUserWithSchemeData, NotificationTypeHelper }
-import javax.inject.{ Inject, Singleton }
+import helpers.{CachedUserWithSchemeData, NotificationTypeHelper}
 import models.ApplicationData.ApplicationStatus
 import models._
 import models.page._
-import play.api.Logger
 import play.api.mvc._
 import security.ProgressStatusRoleUtils._
 import security.RoleUtils._
 import security.Roles._
-import security.{ Roles, SilhouetteComponent }
+import security.{Roles, SilhouetteComponent}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ ExecutionContext, Future }
+import java.nio.file.{Files, Path}
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class HomeController @Inject() (
@@ -122,7 +120,7 @@ class HomeController @Inject() (
   }
 
   private def displayPostOnlineTestsDashboard(implicit application: ApplicationData, cachedData: CachedData,
-                                              request: Request[_], hc: HeaderCarrier) = {
+                                              request: Request[_], hc: HeaderCarrier): Future[Result] = {
     for {
       allSchemes <- refDataClient.allSchemes()
       schemeStatus <- applicationClient.getCurrentSchemeStatus(application.applicationId)
@@ -138,8 +136,8 @@ class HomeController @Inject() (
       phase3Tests <- getPhase3Test
     } yield {
       val phase1DataOpt = phase1TestsWithNames.map(Phase1TestsPage(_))
-      val phase2DataOpt = phase2TestsWithNames.map(Phase2TestsPage2(_, None))
-      val phase3DataOpt = phase3Tests.map(Phase3TestsPage(_, None))
+      val phase2DataOpt = phase2TestsWithNames.map(Phase2TestsPage2(_, adjustments = None))
+      val phase3DataOpt = phase3Tests.map(Phase3TestsPage(_, adjustments = None))
       val page = PostOnlineTestsPage(
         CachedUserWithSchemeData(cachedData.user, application, schemePreferences, allSchemes, phase3Evaluation, siftEvaluation, schemeStatus),
         allocationWithEvents,
