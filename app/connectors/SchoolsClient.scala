@@ -16,15 +16,15 @@
 
 package connectors
 
-import config.{ CSRHttp, FrontendAppConfig }
+import config.{CSRHttp, FrontendAppConfig}
 import connectors.SchoolsClient.SchoolsNotFound
 import connectors.exchange.School
-import javax.inject.{ Inject, Singleton }
 import play.api.http.Status._
-import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException, UpstreamErrorResponse }
-
-import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
+
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class SchoolsClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(implicit ec: ExecutionContext) {

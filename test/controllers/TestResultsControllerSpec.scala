@@ -182,7 +182,7 @@ class TestResultsControllerSpec extends BaseControllerSpec {
       checkPhase3ResultsLink(content)
     }
 
-    val phase3ResultsReportLink = "<a href=\"/fset-fast-stream/online-tests/phase3/feedback-report\"" +
+    val phase3ResultsReportLink = "<a href=\"/online-tests/phase3/feedback-report\"" +
       " target=\"_blank\" id=\"phase3ResultsReportLink\" alt=\"Phase 3 feedback report\">"
     def checkPhase3ResultsLink(content: String) = {
       content must include(phase3ResultsReportLink)

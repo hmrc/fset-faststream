@@ -27,7 +27,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.{Application, ConfigLoader, Configuration, Environment}
 import testkit.BaseSpec
 
-trait BaseConnectorWithWiremockSpec extends BaseSpec with BeforeAndAfterEach with BeforeAndAfterAll with GuiceOneServerPerSuite {
+trait BaseConnectorWithWireMockSpec extends BaseSpec with BeforeAndAfterEach with BeforeAndAfterAll with GuiceOneServerPerSuite {
 
   protected def wireMockPort: Int = 11111
   private val stubHost = "localhost"
