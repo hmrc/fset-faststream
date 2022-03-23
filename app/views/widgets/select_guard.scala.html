@@ -23,7 +23,7 @@
 
 @helper.input(field) { (id, name, value, args) =>
     <label for="@id" class="form-label">@labelContent</label>
-    <select name="@name" id="@id" class="selectWithOptionTrigger">
+    <select name="@name" id="@id" class="selectWithOptionTrigger form-control-select">
         <option value="">@defaultChoice</option>
         @for(option <- options) {
             <option value="@{option._1}" @if(value.contains(option._1)) { selected="selected"} @if(option._2) {
