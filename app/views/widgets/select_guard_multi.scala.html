@@ -24,7 +24,7 @@
 
 @helper.input(field) { (id, name, value, args) =>
     <span class="has-error">@maybeDisplayError(field)</span>
-    <select name="@name" id="@id" class="selectWithOptionTrigger">
+    <select name="@name" id="@id" class="selectWithOptionTrigger form-control-select">
         <option value="">@defaultChoice</option>
         @for( key <- options) {
             <optgroup label="@key._1">

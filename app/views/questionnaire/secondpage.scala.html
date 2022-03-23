@@ -21,7 +21,6 @@
 @import views.html.questionnaire.components.{ postcode, school, universitySection }
 @import views.html.widgets.{ pageProgress, radioBoxHorizontal }
 
-
 @main_template(title = "Your education", pageForms = Seq(questionnaireForm)) {
     @pageProgress(6, 7)
 
@@ -64,7 +63,6 @@
             <input type="hidden" id="haveDegree" name="haveDegree" value="Yes">
             @universitySection(questionnaireForm)
         }
-
 
         <div>
             <button id="submit" type="submit" value="submit" class="button">Save and continue</button>
