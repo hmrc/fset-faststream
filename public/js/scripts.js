@@ -73,6 +73,13 @@ $(function () {
     }).fail(postCodeSearchFailHandler);
   }
 
+  function hideAddressSelectorContainer() {
+    var addressSelector = _this.$addressesSelectorContainer;
+    addressSelector.addClass('toggle-content');
+    addressSelector.slideUp('slow');
+    _this.$addressesSelectorContainer.attr('aria-hidden', 'true');
+  }
+
   function showResultsLink(num) {
     var link = _this.$addressesFound;
     if (num === 1) {
@@ -95,8 +102,10 @@ $(function () {
     hideResultsLink();
     if (xhr.status === BAD_REQUEST) {
       showPostCodeError('Postcode is not valid');
+      hideAddressSelectorContainer();
     } else if (xhr.status === NOT_FOUND) {
       showPostCodeError('No addresses found');
+      hideAddressSelectorContainer();
     }
   }
 
@@ -193,6 +202,7 @@ $(function () {
         addressSearchByPostcode(_this.$postCodeSearch.val());
       } else {
         showPostCodeError('Postcode is not valid');
+        hideAddressSelectorContainer();
       }
 
       return false;
