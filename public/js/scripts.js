@@ -157,9 +157,9 @@ $(function () {
     _this.$addressLine4.val(addressLines[3] || '');
     _this.$postCode.val(addressRecord.address.postcode);
 
-    $('html, body').animate({
-      scrollTop: _this.$addressManualInput.offset().top
-    }, 400);
+    // $('html, body').animate({
+    //   scrollTop: _this.$addressManualInput.offset().top
+    // }, 400);
   }
 
   if (_this.$postCodeSearch != null) {
@@ -175,7 +175,7 @@ $(function () {
         _this.$postCode.closest('.form-group').addClass('toggle-content');
         _this.$country.closest('.form-group').removeClass('toggle-content');
         enableManualAddressFields();
-        _this.$addressLine1.focus();
+        // _this.$addressLine1.focus();
       } else {
         _this.$postCode.closest('.form-group').removeClass('toggle-content');
         _this.$country.closest('.form-group').addClass('toggle-content');
@@ -208,7 +208,8 @@ $(function () {
       return false;
     });
 
-    _this.$addressSelect.on('change', function (event) {
+    // Event handler for change and click events
+    _this.$addressSelect.on('change click', function (event) {
       event.preventDefault();
 
       if ($(this).val() != 'void') {
@@ -704,7 +705,7 @@ $(function() {
       $('#addressManualInput').removeClass('disabled');
       $('#postCode').closest('.form-group').addClass('toggle-content');
       $('#country').closest('.form-group').removeClass('toggle-content');
-      $('#address\\.line1').focus();
+      // $('#address\\.line1').focus();
       } else {
       $('#postCode').closest('.form-group').removeClass('toggle-content');
       $('#country').closest('.form-group').addClass('toggle-content');
