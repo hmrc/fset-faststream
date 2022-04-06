@@ -42,6 +42,11 @@
         </a>
         <p><a href="#" id="addressManualLink">Or enter address manually</a></p>
     </div>
+    <div class="form-group">
+        @checkbox(form("outsideUk")) {
+            My address is outside the UK
+        }
+    </div>
     <div class="form-group toggle-content" id="addressSelectorContainer" style="display: none">
         <div class="scrolling-panel max-height-6ish">
             <div id="addressSelectContainer" class="form-group toggle-content hide-nojs" style="display: block;">
@@ -100,12 +105,6 @@
             '_class -> (if(!isOutsideUk) "toggle-content" else ""),
             '_showConstraints -> false)(helpers.CSRFieldConstructor.myFields, messages)
     </fieldset>
-
-    <div class="form-group">
-        @checkbox(form("outsideUk")) {
-            My address is outside the UK
-        }
-    </div>
 
     @helper.inputText(form("phone"),
         '_label -> "Telephone number",
