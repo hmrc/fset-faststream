@@ -91,7 +91,7 @@
 @renderSiftTimeRemaining = {
     @page.siftState.map { siftState =>
         <section class="inner-block-padr" id="timeRemaining">
-            <h2 class="heading-medium">Your remaining time</h2>
+            <h3 class="heading-medium">Your remaining time</h3>
             @if(siftState.expiryDateDurationRemaining.contains("-")) {
                 <p>Your time has expired to finish the stage</p>
             } else {
