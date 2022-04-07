@@ -1030,9 +1030,10 @@ $(function() {
 
   $('#password').attr('aria-labelledby', 'firstPassLabel hiddenPasswordRequirements');
 
-  $('label[for="address_line2"]').text('Address line 2').addClass('visuallyhidden');
-  $('label[for="address_line3"]').text('Address line 3').addClass('visuallyhidden');
-  $('label[for="address_line4"]').text('Address line 4').addClass('visuallyhidden');
+  // These are specified in the template so not sure why they are here. Removing for now.
+  // $('label[for="address_line2"]').text('Address line 2').addClass('visuallyhidden');
+  // $('label[for="address_line3"]').text('Address line 3').addClass('visuallyhidden');
+  // $('label[for="address_line4"]').text('Address line 4').addClass('visuallyhidden');
 
   if($('.editSection').length) {
     $('.editSection').each(function() {

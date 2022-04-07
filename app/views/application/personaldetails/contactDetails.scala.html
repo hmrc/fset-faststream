@@ -58,34 +58,34 @@
     </div>
 
     <fieldset id="addressManualInput" class=@{if(isOutsideUk) "" else "disabled"}>
-        <legend><h2 class="form-label">Address</h2></legend>
+        <legend><h2 class="form-label">What is your address?</h2></legend>
         @*
         * The id for the line1 needs to be provided explicitly because otherwise the field is generated
         * with underscore in it. This is making the validation error-link unclickable when address line 1 is omitted.
         * The rest of the fields with dotted id are not using this trick because they are not used in validation.
         *@
         @helper.inputText(form("address.line1"), 'id -> "address.line1",
-            '_label -> "",
+            '_label -> "Address line 1 of 4",
             '_labelClass -> "form-label visuallyhidden",
             'class -> "form-control",
             '_class -> "form-group-compound",
             '_showConstraints -> false)(helpers.CSRFieldConstructor.myFields, messages)
         @helper.inputText(form("address.line2"),
-            '_label -> "",
+            '_label -> "Address line 2 of 4",
             '_labelClass -> "form-label visuallyhidden",
             'class -> "form-control",
             '_class -> "form-group-compound",
             '_showConstraints -> false,
             'optional -> "")(helpers.CSRFieldConstructor.myFields, messages)
         @helper.inputText(form("address.line3"),
-            '_label -> "",
+            '_label -> "Address line 3 of 4",
             'class -> "form-control",
             '_labelClass -> "form-label visuallyhidden",
             '_class -> "form-group-compound",
             '_showConstraints -> false,
             'optional -> "")(helpers.CSRFieldConstructor.myFields, messages)
         @helper.inputText(form("address.line4"),
-            '_label -> "",
+            '_label -> "Address line 4 of 4",
             '_labelClass -> "form-label visuallyhidden",
             'class -> "form-control",
             '_class -> "form-group-compound",
