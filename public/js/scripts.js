@@ -18,7 +18,7 @@ $(function () {
   _this.$addressSelect = $('#addressSelect');
   _this.$addressManualInput = $('#addressManualInput');
   _this.$findAddressBtn = $('#findAddressBtn');
-  _this.$addressManualLink = $('#addressManualLink');
+  // _this.$addressManualLink = $('#addressManualLink');
   _this.$postCode = $('#postCode');
   _this.$country = $('#country');
   _this.$postCodeErrorWrapper = $('#postCodeErrorWrapper');
@@ -30,7 +30,7 @@ $(function () {
 
   //
   _this.$addressesSelectorContainer.attr('aria-live', 'assertive');
-
+/*
   (function initManualAddressFields() {
     var addressEmpty = true;
     $(_this.$addressManualInput).find('input').each(function(index, input) {
@@ -42,10 +42,13 @@ $(function () {
 
     if (addressEmpty) {
       enableManualAddressFields(true);
+      console.log("Disabled manual address fields");
     } else {
       enableManualAddressFields();
+      console.log("Enabled manual address fields");
     }
   })();
+ */
 
   function sanitisePostcode(postcode) {
     return postcode.toUpperCase().replace(/ /g, '');
@@ -123,7 +126,7 @@ $(function () {
     _this.$postCodeEntry.removeClass('has-an-error input-validation-error');
     _this.$postCodeErrorWrapper.slideUp(300);
   }
-
+/*
   function enableManualAddressFields(disable) {
     if (disable) {
       _this.$addressManualInput.addClass('disabled');
@@ -141,9 +144,9 @@ $(function () {
       }
     });
   }
-
+*/
   function populateAddressFields(addressRecord) {
-    enableManualAddressFields();
+//    enableManualAddressFields();
 
     var addressLines = addressRecord.address.lines.slice(0, 3);
     addressLines.push(addressRecord.address.town);
@@ -174,21 +177,21 @@ $(function () {
       if($(this).is(':checked')) {
         _this.$postCode.closest('.form-group').addClass('toggle-content');
         _this.$country.closest('.form-group').removeClass('toggle-content');
-        enableManualAddressFields();
+        // enableManualAddressFields();
         // _this.$addressLine1.focus();
       } else {
         _this.$postCode.closest('.form-group').removeClass('toggle-content');
         _this.$country.closest('.form-group').addClass('toggle-content');
       }
     });
-
+/*
     _this.$addressManualLink.on('click', function(e) {
       e.preventDefault();
 
-      enableManualAddressFields();
+      // enableManualAddressFields();
       _this.$addressLine1.focus();
     });
-
+ */
     _this.$findAddressBtn.on('click', function (event) {
       event.preventDefault();
       _this.$addressSelect.empty();
@@ -684,13 +687,14 @@ $(function() {
   }
 
   //------- Set personal details
-
+/*
   $('#addressManualLink').on('click', function(e) {
     e.preventDefault();
 
     $('#addressManualInput').removeClass('disabled');
     $('#address\\.line1').focus();
   });
+ */
 
   $('#outsideUk').on('change', function() {
 
