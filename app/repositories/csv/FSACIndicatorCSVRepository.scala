@@ -19,7 +19,7 @@ package repositories.csv
 import model.report.CandidateProgressReportItem
 import model.{ ApplicationRoute, FSACIndicator }
 import resource._
-import com.github.ghik.silencer.silent
+//import com.github.ghik.silencer.silent
 import com.google.inject.ImplementedBy
 import javax.inject.{ Inject, Singleton }
 import play.api.{ Application, Play }

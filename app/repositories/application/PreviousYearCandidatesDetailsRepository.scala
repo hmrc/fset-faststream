@@ -254,7 +254,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
 
   override val siftAnswersHeader: String = "Sift Answers status,multipleNationalities,secondNationality,nationality," +
     "undergrad degree name,classification,graduationYear,moduleDetails," +
-    "postgrad degree name,classification,graduationYear,moduleDetails," + allSchemes.mkString(",")
+    "postgrad degree name,otherDetails,graduationYear,projectDetails," + allSchemes.mkString(",")
 /*
   override def applicationDetailsStreamLegacy(numOfSchemes: Int, applicationIds: Seq[String]): Enumerator[CandidateDetailsReportItem] = {
     adsCounter = 0
@@ -1070,7 +1070,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
         val csvRecord = makeRow(
           List(
             doc.getAs[String]("status"),
-            generalAnswers.getAsStr[String]("multipleNationalities"),
+            generalAnswers.getAsStr[Boolean]("multipleNationalities"),
             generalAnswers.getAsStr[String]("secondNationality"),
             generalAnswers.getAsStr[String]("nationality"),
             undergradDegree.getAsStr[String]("name"),
@@ -1078,9 +1078,9 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
             undergradDegree.getAsStr[String]("graduationYear"),
             undergradDegree.getAsStr[String]("moduleDetails"),
             postgradDegree.getAsStr[String]("name"),
-            postgradDegree.getAsStr[String]("classification"),
+            postgradDegree.getAsStr[String]("otherDetails"),
             postgradDegree.getAsStr[String]("graduationYear"),
-            postgradDegree.getAsStr[String]("moduleDetails")
+            postgradDegree.getAsStr[String]("projectDetails")
           ) ++ schemeTextAnswers: _*
         )
         doc.getAs[String]("applicationId").getOrElse("") -> csvRecord
@@ -1417,15 +1417,15 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     val testGroups = doc.getAs[BSONDocument]("testGroups")
 
     // Phase1 data
-    val phase1TestSection = testGroups.flatMap(_.getAs[BSONDocument]("PHASE1"))
-    val phase1Tests = phase1TestSection.flatMap(_.getAs[List[BSONDocument]]("tests"))
-
     val phase1TestConfig = appConfig.onlineTestsGatewayConfig.phase1Tests.tests
 
     val test1InventoryId = getInventoryId(phase1TestConfig, "test1", "phase1")
     val test2InventoryId = getInventoryId(phase1TestConfig, "test2", "phase1")
     val test3InventoryId = getInventoryId(phase1TestConfig, "test3", "phase1")
     val test4InventoryId = getInventoryId(phase1TestConfig, "test4", "phase1")
+
+    val phase1TestSection = testGroups.flatMap(_.getAs[BSONDocument]("PHASE1"))
+    val phase1Tests = phase1TestSection.flatMap(_.getAs[List[BSONDocument]]("tests"))
 
     val phase1Test1 = phase1Tests.flatMap( tests =>
       tests.find { test =>

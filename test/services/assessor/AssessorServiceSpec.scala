@@ -199,12 +199,13 @@ class AssessorServiceSpec extends BaseServiceSpec {
       val emailsForEvent2 = emails.get(1).toString
 
       val fsacVirtual = s"${now.toString("EEEE, dd MMMM YYYY")} (FSAC - Virtual)"
-      val event1ExpectedEmails = s"$fsacVirtual\n$fsacVirtual"
-      emailsForEvent1 mustBe event1ExpectedEmails
-
       val fsbLondon = s"${now.toString("EEEE, dd MMMM YYYY")} (FSB - London)"
       val fsbNewcastle = s"${now.toString("EEEE, dd MMMM YYYY")} (FSB - Newcastle)"
-      val event2ExpectedEmails = s"$fsacVirtual\n$fsbLondon\n$fsbNewcastle"
+
+      val event1ExpectedEmails = s"$fsacVirtual\n$fsbLondon\n$fsbNewcastle"
+      emailsForEvent1 mustBe event1ExpectedEmails
+
+      val event2ExpectedEmails = s"$fsacVirtual\n$fsacVirtual"
       emailsForEvent2 mustBe event2ExpectedEmails
     }
   }
