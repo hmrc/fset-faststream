@@ -18,7 +18,7 @@ package repositories.events
 
 import java.util
 
-import com.github.ghik.silencer.silent
+//import com.github.ghik.silencer.silent
 import config.MicroserviceAppConfig
 import javax.inject.{ Inject, Singleton }
 import model.persisted.ReferenceData

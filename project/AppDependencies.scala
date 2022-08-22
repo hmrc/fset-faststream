@@ -36,8 +36,9 @@ object AppDependencies {
     "org.webjars"       %  "jquery"                           % "1.11.0",
     // If you move to 1.5.0 it breaks AssessmentCentreServiceIntSpec ficus deserialization
     "com.iheart"        %% "ficus"                            % "1.4.7",
-    compilerPlugin("com.github.ghik" %% "silencer-plugin" % "0.5"),
-    "com.github.ghik"   %% "silencer-lib"                     % "0.5",
+// Removed when we scala version 2.12.11 -> 2.12.15
+//    compilerPlugin("com.github.ghik" %% "silencer-plugin" % "0.5"),
+//    "com.github.ghik"   %% "silencer-lib"                     % "0.5",
     "org.yaml"          %  "snakeyaml"                        % "1.16",
     "com.jsuereth"      %% "scala-arm"                        % "2.0",
     "net.jcazevedo"     %% "moultingyaml"                     % "0.4.0",
