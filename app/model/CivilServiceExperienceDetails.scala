@@ -17,8 +17,11 @@
 package model
 
 import model.CivilServantAndInternshipType.CivilServantAndInternshipType
+import play.api.libs.json._
+import play.api.libs.json.Reads._
+import play.api.libs.functional.syntax._
+
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
 
 case class CivilServiceExperienceDetails(
   applicable: Boolean,
@@ -46,5 +49,18 @@ case class CivilServiceExperienceDetails(
 
 object CivilServiceExperienceDetails {
   implicit val civilServiceExperienceDetailsFormat = Json.format[CivilServiceExperienceDetails]
-  implicit val civilServiceExperienceDetailsHandler = Macros.handler[CivilServiceExperienceDetails]
+
+  // Provide an explicit mongo format here to deal with the sub-document root
+  val root = "civil-service-experience-details"
+  val mongoFormat: Format[CivilServiceExperienceDetails] = (
+    (__ \ root \ "applicable").format[Boolean] and
+      (__ \ root \ "civilServantAndInternshipTypes").formatNullable[Seq[CivilServantAndInternshipType]] and
+      (__ \ root \ "edipYear").formatNullable[String] and
+      (__ \ root \ "sdipYear").formatNullable[String] and
+      (__ \ root \ "otherInternshipName").formatNullable[String] and
+      (__ \ root \ "otherInternshipYear").formatNullable[String] and
+      (__ \ root \ "fastPassReceived").formatNullable[Boolean] and
+      (__ \ root \ "fastPassAccepted").formatNullable[Boolean] and
+      (__ \ root \ "certificateNumber").formatNullable[String]
+    )(CivilServiceExperienceDetails.apply, unlift(CivilServiceExperienceDetails.unapply))
 }

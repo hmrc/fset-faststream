@@ -16,14 +16,19 @@
 
 package model.persisted
 
+import org.mongodb.scala.bson.collection.immutable.Document
 import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, BSONDocumentReader }
+import uk.gov.hmrc.mongo.play.json.Codecs
+
+import scala.util.Try
+//import reactivemongo.bson.{ BSONDocument, BSONDocumentReader }
 
 case class FsbSchemeResult(applicationId: String, results: List[SchemeEvaluationResult])
 
 object FsbSchemeResult {
   implicit val jsonFormat = Json.format[FsbSchemeResult]
 
+/*
   implicit object FsbResultReader extends BSONDocumentReader[Option[FsbSchemeResult]] {
     def read(document: BSONDocument): Option[FsbSchemeResult] = {
       for {
@@ -32,6 +37,12 @@ object FsbSchemeResult {
         fsbTestGroup <- testGroups.getAs[FsbTestGroup]("FSB")
       } yield FsbSchemeResult(applicationId, fsbTestGroup.evaluation.result)
     }
-  }
+  }*/
 
+  def fromBson(doc: Document): Option[FsbSchemeResult] = {
+    val applicationId = doc.get("applicationId").get.asString().getValue
+    val fsbTestGroupOpt = doc.get("testGroups").map( _.asDocument().get("FSB") )
+      .flatMap( fsb => Try(Codecs.fromBson[FsbTestGroup](fsb)).toOption )
+    fsbTestGroupOpt.map(fsbTestGroup => FsbSchemeResult(applicationId, fsbTestGroup.evaluation.result))
+  }
 }

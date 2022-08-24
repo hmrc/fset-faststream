@@ -16,55 +16,58 @@
 
 package repositories.fsacindicator
 
-import javax.inject.{ Inject, Singleton }
-import model.Exceptions.{ CannotUpdateFSACIndicator, FSACIndicatorNotFound }
+import com.mongodb.client.model.Projections
+
+import javax.inject.{Inject, Singleton}
+import model.Exceptions.{CannotUpdateFSACIndicator, FSACIndicatorNotFound}
 import model.persisted.FSACIndicator
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.bson.{ BSONDocument, _ }
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import org.mongodb.scala.bson.collection.immutable.Document
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait FSACIndicatorRepository {
   def update(applicationId: String, userId: String, indicator: FSACIndicator): Future[Unit]
-
   def find(applicationId: String): Future[FSACIndicator]
 }
 
 @Singleton
-class FSACIndicatorMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[FSACIndicator, BSONObjectID](
-    CollectionNames.APPLICATION,
-    mongoComponent.mongoConnector.db,
-    FSACIndicator.jsonFormat,
-    ReactiveMongoFormats.objectIdFormats) with FSACIndicatorRepository with ReactiveRepositoryHelpers {
+class FSACIndicatorMongoRepository @Inject() (mongo: MongoComponent)
+  extends PlayMongoRepository[FSACIndicator](
+    collectionName = CollectionNames.APPLICATION,
+    mongoComponent = mongo,
+    domainFormat = FSACIndicator.mongoFormat,
+    indexes = Nil
+  ) with FSACIndicatorRepository with ReactiveRepositoryHelpers {
 
   val FSACIndicatorDocumentKey = "fsac-indicator"
 
   override def find(applicationId: String): Future[FSACIndicator] = {
-    val query = BSONDocument("applicationId" -> applicationId)
-    val projection = BSONDocument(FSACIndicatorDocumentKey -> 1, "_id" -> 0)
+    val query = Document("applicationId" -> applicationId)
+    val projection = Projections.include(FSACIndicatorDocumentKey) // This is the sub-document key
 
-    collection.find(query, Some(projection)).one[BSONDocument] map {
-      case Some(document) if document.getAs[BSONDocument](FSACIndicatorDocumentKey).isDefined =>
-        document.getAs[FSACIndicator](FSACIndicatorDocumentKey).get
-      case _ => throw FSACIndicatorNotFound(applicationId)
+    for {
+      fsacIndicatorOpt <- collection.find(query).projection(projection).headOption()
+    } yield {
+      fsacIndicatorOpt match {
+        case Some(fsac) => fsac
+        case _ => throw FSACIndicatorNotFound(applicationId)
+      }
     }
   }
 
   override def update(applicationId: String, userId: String, indicator: FSACIndicator): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> applicationId, "userId" -> userId)
-    val updateBSON = BSONDocument("$set" -> BSONDocument(
-      FSACIndicatorDocumentKey -> indicator
+    val query = Document("applicationId" -> applicationId, "userId" -> userId)
+    val update = Document("$set" -> Document(
+      FSACIndicatorDocumentKey -> Codecs.toBson(indicator)
     ))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating fsac indicator",
       CannotUpdateFSACIndicator(userId))
 
-    collection.update(ordered = false).one(query, updateBSON) map validator
+    collection.updateOne(query, update).toFuture map validator
   }
 }

@@ -17,8 +17,7 @@
 package model.persisted.assessor
 
 import play.api.libs.json._
-import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
-
+//import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 object AssessorStatus extends Enumeration {
   type AssessorStatus = Value
@@ -31,10 +30,10 @@ object AssessorStatus extends Enumeration {
     override def writes(eventType: AssessorStatus): JsValue = JsString(eventType.toString)
   }
 
+/*
   implicit object BSONEnumHandler extends BSONHandler[BSONString, AssessorStatus] {
     override def write(eventType: AssessorStatus): BSONString = BSON.write(eventType.toString)
 
     override def read(bson: BSONString): AssessorStatus = AssessorStatus.withName(bson.value.toUpperCase)
-  }
-
+  }*/
 }

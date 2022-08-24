@@ -67,7 +67,7 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
 
   val gatewayConfig = appConfig.launchpadGatewayConfig
 
-  override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] = {
+  override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[Seq[OnlineTestApplication]] = {
     testRepository.nextApplicationsReadyForOnlineTesting(maxBatchSize: Int)
   }
 
@@ -97,11 +97,11 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
   }
 
   // Redirect the impl to the P3 specific version
-  override def registerAndInvite(applications: List[OnlineTestApplication])
+  override def registerAndInvite(applications: Seq[OnlineTestApplication])
                                 (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = registerAndInviteForTestGroup(applications)
 
 
-  override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
+  override def registerAndInviteForTestGroup(applications: Seq[OnlineTestApplication])
                                             (implicit hc: HeaderCarrier,
                                              rh: RequestHeader): Future[Unit] =
     Future.sequence(applications.map(app => registerAndInviteForTestGroup(app))).map(_ => ())
@@ -305,7 +305,7 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
     }
   }
 
-  // We ignore mark as completed requests on records without start date. That will cover the scenario, where we reschudule a
+  // We ignore mark as completed requests on records without start date. That will cover the scenario, where we reschedule a
   // video interview before recieving the complete callbacks from launchpad.
   def markAsCompleted(launchpadInviteId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     eventSink {

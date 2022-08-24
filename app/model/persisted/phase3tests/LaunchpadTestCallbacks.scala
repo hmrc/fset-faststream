@@ -17,9 +17,8 @@
 package model.persisted.phase3tests
 
 import connectors.launchpadgateway.exchangeobjects.in._
-import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest
+import connectors.launchpadgateway.exchangeobjects.in.reviewed.{ReviewedCallbackRequest, ReviewedCallbackRequestExchange}
 import play.api.libs.json.Json
-import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
 
 case class LaunchpadTestCallbacks(
                                  viewBrandedVideo: List[ViewBrandedVideoCallbackRequest] = Nil,
@@ -32,11 +31,32 @@ case class LaunchpadTestCallbacks(
                      ) {
   def getLatestReviewed: Option[ReviewedCallbackRequest] =
     reviewed.sortWith { (r1, r2) => r1.received.isAfter(r2.received) }.headOption
+
+  def toExchange = LaunchpadTestCallbacksExchange(
+    viewBrandedVideo,
+    setupProcess,
+    viewPracticeQuestion,
+    question,
+    finalCallback,
+    finished,
+    reviewed.map(_.toExchange)
+  )
 }
-
-
 
 object LaunchpadTestCallbacks {
   implicit val launchpadTestCallbacksFormat = Json.format[LaunchpadTestCallbacks]
-  implicit val bsonHandler: BSONHandler[BSONDocument, LaunchpadTestCallbacks] = Macros.handler[LaunchpadTestCallbacks]
+}
+
+case class LaunchpadTestCallbacksExchange(
+                                   viewBrandedVideo: List[ViewBrandedVideoCallbackRequest] = Nil,
+                                   setupProcess: List[SetupProcessCallbackRequest] = Nil,
+                                   viewPracticeQuestion: List[ViewPracticeQuestionCallbackRequest] = Nil,
+                                   question: List[ViewPracticeQuestionCallbackRequest] = Nil,
+                                   finalCallback: List[FinalCallbackRequest] = Nil,
+                                   finished: List[FinishedCallbackRequest] = Nil,
+                                   reviewed: List[ReviewedCallbackRequestExchange] = Nil
+                                         )
+
+object LaunchpadTestCallbacksExchange {
+  implicit val launchpadTestCallbacksFormat = Json.format[LaunchpadTestCallbacksExchange]
 }

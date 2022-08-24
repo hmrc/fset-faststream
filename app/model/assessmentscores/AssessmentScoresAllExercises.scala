@@ -18,7 +18,6 @@ package model.assessmentscores
 
 import model.UniqueIdentifier
 import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 // finalFeedback should be None in case of Reviewer Assessment scores
 case class AssessmentScoresAllExercises(
@@ -48,10 +47,28 @@ case class AssessmentScoresAllExercises(
   private def average(list: List[Double], mandatoryNumberOfElements: Int): Double = {
     (list.map(BigDecimal(_)).sum / mandatoryNumberOfElements).toDouble
   }
+
+  def toExchange = AssessmentScoresAllExercisesExchange(
+    applicationId: UniqueIdentifier,
+    writtenExercise.map(_.toExchange),
+    teamExercise.map(_.toExchange),
+    leadershipExercise.map(_.toExchange),
+    finalFeedback.map(_.toExchange)
+  )
 }
 
 object AssessmentScoresAllExercises {
   implicit val jsonFormat = Json.format[AssessmentScoresAllExercises]
-  implicit val bsonHandler: BSONHandler[BSONDocument, AssessmentScoresAllExercises] =
-    Macros.handler[AssessmentScoresAllExercises]
+}
+
+case class AssessmentScoresAllExercisesExchange(
+                                         applicationId: UniqueIdentifier,
+                                         writtenExercise: Option[AssessmentScoresExerciseExchange] = None,
+                                         teamExercise: Option[AssessmentScoresExerciseExchange] = None,
+                                         leadershipExercise: Option[AssessmentScoresExerciseExchange] = None,
+                                         finalFeedback: Option[AssessmentScoresFinalFeedbackExchange] = None
+                                       )
+
+object AssessmentScoresAllExercisesExchange {
+  implicit val jsonFormat = Json.format[AssessmentScoresAllExercisesExchange]
 }

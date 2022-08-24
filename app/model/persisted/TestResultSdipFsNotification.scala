@@ -17,9 +17,9 @@
 package model.persisted
 
 import model.ApplicationStatus.ApplicationStatus
+import org.mongodb.scala.bson.collection.immutable.Document
 import play.api.libs.json.Json
-import reactivemongo.bson.BSONDocument
-
+import uk.gov.hmrc.mongo.play.json.Codecs
 
 case class TestResultSdipFsNotification(
   applicationId: String,
@@ -28,12 +28,12 @@ case class TestResultSdipFsNotification(
   preferredName: String)
 
 object TestResultSdipFsNotification {
-  def fromBson(doc: BSONDocument) = {
-    val applicationId = doc.getAs[String]("applicationId").get
-    val userId = doc.getAs[String]("userId").get
-    val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
-    val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
-    val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
+  def fromBson(doc: Document) = {
+    val applicationId = doc.get("applicationId").get.asString().getValue
+    val userId = doc.get("userId").get.asString().getValue
+    val applicationStatus = Codecs.fromBson[ApplicationStatus](doc.get("applicationStatus").get)
+    val personalDetailsRoot = doc.get("personal-details").map( _.asDocument() ).get
+    val preferredName = personalDetailsRoot.get("preferredName").asString().getValue
     TestResultSdipFsNotification(applicationId, userId, applicationStatus, preferredName)
   }
 

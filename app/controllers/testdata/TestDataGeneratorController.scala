@@ -366,7 +366,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
           JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
       case ex: Throwable =>
         logger.error(s"TDG: There was an exception creating the candidate. Message=[$ex].")
-        logger.error(s"TDG: ${ex.getCause}")
+        logger.error(s"TDG: ${ex.getCause}", ex)
         Future.successful(Conflict(JsObject(List(("message",
           JsString(s"There was an exception creating the candidate. Message=[${ex.getMessage}]"))))))
     }

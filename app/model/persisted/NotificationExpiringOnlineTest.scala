@@ -17,11 +17,11 @@
 package model.persisted
 
 import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
+import org.mongodb.scala.bson.collection.immutable.Document
 import play.api.libs.json.Json
-import reactivemongo.bson.BSONDocument
-import repositories.BSONDateTimeHandler
+import repositories.subDocRoot
+import uk.gov.hmrc.mongo.play.json.Codecs
+import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed for ISODate
 
 case class NotificationExpiringOnlineTest(
   applicationId: String,
@@ -31,16 +31,21 @@ case class NotificationExpiringOnlineTest(
 )
 
 object NotificationExpiringOnlineTest {
-  def fromBson(doc: BSONDocument, phase: String) = {
-    val applicationId = doc.getAs[String]("applicationId").get
-    val userId = doc.getAs[String]("userId").get
-    val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
-    val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
-    val testGroupsRoot = doc.getAs[BSONDocument]("testGroups").get
-    val PHASERoot = testGroupsRoot.getAs[BSONDocument](phase).get
-    val expiryDate = PHASERoot.getAs[DateTime]("expirationDate").get
+
+  def fromBson(doc: Document, phase: String) = {
+    require(phase.nonEmpty, s"""Phase must be supplied but the value = \"$phase\"""")
+
+    val applicationId = doc.get("applicationId").get.asString().getValue
+    val userId = doc.get("userId").get.asString().getValue
+    val personalDetailsRoot = subDocRoot("personal-details")(doc).get
+    val preferredName = personalDetailsRoot.get("preferredName").asString().getValue
+    val testGroupsRoot = subDocRoot("testGroups")(doc).get
+    val PHASERoot = testGroupsRoot.get(phase).asDocument()
+    val expiryDate = Codecs.fromBson[DateTime](PHASERoot.get("expirationDate").asDateTime())
+
     NotificationExpiringOnlineTest(applicationId, userId, preferredName, expiryDate)
   }
 
   implicit val notificationExpiringOnlineTestFormats = Json.format[NotificationExpiringOnlineTest]
+  implicit val bsonReader = this
 }

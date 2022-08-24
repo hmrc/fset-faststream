@@ -17,7 +17,9 @@
 package model.command
 
 import model.ApplicationStatus.ApplicationStatus
-import play.api.libs.json.{ Json, OFormat }
+import org.mongodb.scala.bson.collection.immutable.Document
+import play.api.libs.json.{Json, OFormat}
+import uk.gov.hmrc.mongo.play.json.Codecs
 
 case class ApplicationForSiftExpiry(applicationId: String,
                                     userId: String,
@@ -27,4 +29,11 @@ case class ApplicationForSiftExpiry(applicationId: String,
 
 object ApplicationForSiftExpiry {
   implicit val applicationForSiftFormat: OFormat[ApplicationForSiftExpiry] = Json.format[ApplicationForSiftExpiry]
+
+  def fromBson(doc: Document): ApplicationForSiftExpiry = {
+    val applicationId = doc.get("applicationId").get.asString().getValue
+    val userId = doc.get("userId").get.asString().getValue
+    val applicationStatus = Codecs.fromBson[ApplicationStatus](doc.get("applicationStatus").get)
+    ApplicationForSiftExpiry(applicationId, userId, applicationStatus)
+  }
 }

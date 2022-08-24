@@ -68,7 +68,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
 
   val onlineTestsGatewayConfig: OnlineTestsGatewayConfig = appConfig.onlineTestsGatewayConfig
 
-  override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] =
+  override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[Seq[OnlineTestApplication]] =
     testRepository.nextApplicationsReadyForOnlineTesting(maxBatchSize)
 
   def nextSdipFaststreamCandidateReadyForSdipProgression: Future[Option[Phase1TestGroupWithUserIds]] = {
@@ -114,7 +114,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
       phase1Opt <- testRepository.getTestGroup(applicationId)
     } yield {
       phase1Opt.map { testProfile =>
-        Phase1TestGroupWithNames(testProfile.expirationDate, testProfile.activeTests)
+        Phase1TestGroupWithNames(testProfile.expirationDate, testProfile.activeTests.map(_.toExchange))
       }
     }
   }
@@ -161,7 +161,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
     } yield audit("OnlineTestInvitationProcessComplete", application.userId)
   }
 
-  override def registerAndInvite(applications: List[OnlineTestApplication])
+  override def registerAndInvite(applications: Seq[OnlineTestApplication])
                                 (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     Future.sequence(applications.map { application =>
       registerAndInviteForTestGroup2(application)
@@ -313,7 +313,9 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
   private def markAsInvited2(application: OnlineTestApplication)(newOnlineTestProfile: Phase1TestProfile): Future[Unit] = for {
     currentOnlineTestProfile <- testRepository.getTestGroup(application.applicationId)
     updatedTestProfile <- insertOrAppendNewTests2(application.applicationId, currentOnlineTestProfile, newOnlineTestProfile)
-    _ <- testRepository.resetTestProfileProgresses(application.applicationId, determineStatusesToRemove(updatedTestProfile))
+    _ <- testRepository.resetTestProfileProgresses(
+      application.applicationId, determineStatusesToRemove(updatedTestProfile), ignoreNoRecordUpdated = true
+    )
   } yield {
     audit("OnlineTestInvited", application.userId)
   }
@@ -337,7 +339,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
     } yield
       Phase1TestGroupWithNames(
         phase1.testGroup.expirationDate,
-        phase1.testGroup.tests
+        phase1.testGroup.tests.map(_.toExchange)
       )
   }
 
@@ -464,7 +466,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
     }
   }
 
-  override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
+  override def registerAndInviteForTestGroup(applications: Seq[OnlineTestApplication])
                                             (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     ??? // This is Cubiks specific so should never be called
   }

@@ -116,12 +116,12 @@ class ReportingController @Inject() (cc: ControllerComponents,
     }
   }
 
-  private def contactDetailsToMap(contactDetailsList: List[ContactDetailsWithId]) = contactDetailsList.map(cd => cd.userId -> cd).toMap
+  private def contactDetailsToMap(contactDetailsList: Seq[ContactDetailsWithId]) = contactDetailsList.map(cd => cd.userId -> cd).toMap
 
   def analyticalSchemesReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
 
-    def buildAnalyticalSchemesReportItems(applications: List[ApplicationForAnalyticalSchemesReport],
-                                          contactDetailsMap: Map[String, ContactDetailsWithId]): List[AnalyticalSchemesReportItem] = {
+    def buildAnalyticalSchemesReportItems(applications: Seq[ApplicationForAnalyticalSchemesReport],
+                                          contactDetailsMap: Map[String, ContactDetailsWithId]): Seq[AnalyticalSchemesReportItem] = {
       applications.map { application =>
         val contactDetails = contactDetailsMap.getOrElse(application.userId,
           throw new IllegalStateException(s"No contact details found for user Id = ${application.userId}")
@@ -843,10 +843,10 @@ class ReportingController @Inject() (cc: ControllerComponents,
   // scalastyle:off method.length
   def assessorAllocationReport: Action[AnyContent] = Action.async { implicit request =>
 
-    val sortedEventsFut = eventsRepository.findAll().map(_.sortBy(_.date))
+    val sortedEventsFut = eventsRepository.findAll.map(_.sortBy(_.date))
 
     val reportRows = for {
-      allAssessors <- assessorRepository.findAll()
+      allAssessors <- assessorRepository.findAll
       allAssessorsIds = allAssessors.map(_.userId)
       allAssessorsPersonalInfo <- authProviderClient.findByUserIds(allAssessorsIds)
         .map(
@@ -857,7 +857,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
           _.map(x => x.userId -> x)(breakOut): Map[String, ExchangeObjects.UserAuthInfo]
         )
       sortedEvents <- sortedEventsFut
-      assessorAllocations <- assessorAllocationRepository.findAll().map(_.groupBy(_.id))
+      assessorAllocations <- assessorAllocationRepository.findAll.map(_.groupBy(_.id))
     } yield for {
       theAssessor <- allAssessors
       theAssessorPersonalInfo = allAssessorsPersonalInfo(theAssessor.userId)
@@ -939,7 +939,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
   }
 
   def candidateProgressReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
-    val candidatesFut: Future[List[CandidateProgressReportItem]] = reportingRepository.candidateProgressReport(frameworkId)
+    val candidatesFut: Future[Seq[CandidateProgressReportItem]] = reportingRepository.candidateProgressReport(frameworkId)
 
     for {
       candidates <- candidatesFut
@@ -958,8 +958,8 @@ class ReportingController @Inject() (cc: ControllerComponents,
             personalDetailsRepository.findByIds(applications.map(_.applicationId)).map { appPersonalDetailsTuple =>
               applications.map { application =>
                 val user = authDetails.find(_.userId == application.userId)
-                  .getOrElse(throw new NotFoundException(s"Unable to find auth details for user ${application.userId}"))
-                val (_, pd) = appPersonalDetailsTuple.find(_._1 == application.applicationId)
+                  .getOrElse(throw new NotFoundException(s"Unable to find auth details for userId ${application.userId}"))
+                val (_,pd) = appPersonalDetailsTuple.find{ case (appId, _) => appId == application.applicationId }
                   .getOrElse(throw UnexpectedException(s"Invalid applicationId ${application.applicationId}"))
                 val phoneNumberOpt = contactDetailsMap.get(application.userId).flatMap ( _.phone )
 
@@ -1048,8 +1048,8 @@ class ReportingController @Inject() (cc: ControllerComponents,
     }
   }
 
-  private def onlineTestPassMarkReportCommon(applications: List[ApplicationForOnlineTestPassMarkReport]):
-  Future[List[OnlineTestPassMarkReportItem]] = {
+  private def onlineTestPassMarkReportCommon(applications: Seq[ApplicationForOnlineTestPassMarkReport]):
+  Future[Seq[OnlineTestPassMarkReportItem]] = {
 
     for {
       siftResults <- applicationSiftRepository.findAllResults
@@ -1168,7 +1168,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
   }
 
   def candidateStuckAfterFsacEvaluationReport(): Action[AnyContent] = Action.async { implicit request =>
-    val candidatesFut: Future[List[FsacStuckCandidate]] = reportingRepository.candidatesStuckAfterFsacEvaluation
+    val candidatesFut: Future[Seq[FsacStuckCandidate]] = reportingRepository.candidatesStuckAfterFsacEvaluation
 
     for {
       candidates <- candidatesFut
@@ -1177,6 +1177,5 @@ class ReportingController @Inject() (cc: ControllerComponents,
       Ok(Json.toJson(stuckCandidates))
     }
   }
-
 }
 //scalastyle:on

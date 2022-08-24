@@ -18,7 +18,7 @@ package model.exchange.passmarksettings
 
 import model.SchemeId
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+//import reactivemongo.bson.Macros
 
 trait PassMark {
   def schemeId: SchemeId
@@ -32,7 +32,7 @@ case class Phase1PassMark(
 
 object Phase1PassMark {
   implicit val phase1PassMark = Json.format[Phase1PassMark]
-  implicit val phase1PassMarkHandler = Macros.handler[Phase1PassMark]
+//  implicit val phase1PassMarkHandler = Macros.handler[Phase1PassMark]
 }
 
 case class Phase2PassMark(
@@ -42,7 +42,7 @@ case class Phase2PassMark(
 
 object Phase2PassMark {
   implicit val phase2PassMark = Json.format[Phase2PassMark]
-  implicit val phase2PassMarkHandler = Macros.handler[Phase2PassMark]
+//  implicit val phase2PassMarkHandler = Macros.handler[Phase2PassMark]
 }
 
 case class Phase3PassMark(
@@ -52,7 +52,7 @@ case class Phase3PassMark(
 
 object Phase3PassMark {
   implicit val phase3PassMark = Json.format[Phase3PassMark]
-  implicit val phase3PassMarkHandler = Macros.handler[Phase3PassMark]
+//  implicit val phase3PassMarkHandler = Macros.handler[Phase3PassMark]
 }
 
 case class AssessmentCentrePassMark(
@@ -62,5 +62,5 @@ case class AssessmentCentrePassMark(
 
 object AssessmentCentrePassMark {
   implicit val jsonFormat = Json.format[AssessmentCentrePassMark]
-  implicit val bsonHandler = Macros.handler[AssessmentCentrePassMark]
+//  implicit val bsonHandler = Macros.handler[AssessmentCentrePassMark]
 }

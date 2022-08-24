@@ -16,87 +16,90 @@
 
 package repositories.passmarksettings
 
-import javax.inject.{ Inject, Singleton }
 import model.PassMarkSettingsCreateResponse
 import model.exchange.passmarksettings._
-import play.api.libs.json.{ Format, JsNumber, JsObject }
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.DB
-import reactivemongo.api.indexes.Index
-import reactivemongo.api.indexes.IndexType.Ascending
-import reactivemongo.bson._
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import org.mongodb.scala.Document
+import org.mongodb.scala.model.Indexes.ascending
+import org.mongodb.scala.model.Sorts.descending
+import org.mongodb.scala.model.{IndexModel, IndexOptions}
+import repositories.CollectionNames
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import repositories.{ CollectionNames, OFormatHelper }
 
 @Singleton
-class Phase1PassMarkSettingsMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[Phase1PassMarkSettings, BSONObjectID](
-    CollectionNames.PHASE1_PASS_MARK_SETTINGS,
-    mongoComponent.mongoConnector.db,
-    Phase1PassMarkSettings.jsonFormat,
-    ReactiveMongoFormats.objectIdFormats
+class Phase1PassMarkSettingsMongoRepository @Inject() (mongo: MongoComponent)
+  extends PlayMongoRepository[Phase1PassMarkSettings](
+    collectionName = CollectionNames.PHASE1_PASS_MARK_SETTINGS,
+    mongoComponent = mongo,
+    domainFormat = Phase1PassMarkSettings.jsonFormat,
+    indexes = Seq(
+      IndexModel(ascending("createDate"), IndexOptions().unique(true))
+    )
   ) with PassMarkSettingsRepository[Phase1PassMarkSettings] {
 
-  override def indexes: Seq[Index] = Seq(
-    Index(Seq(("createDate", Ascending)), unique = true)
-  )
+  override def getLatestVersion: Future[Option[Phase1PassMarkSettings]] = {
+    collection.find(Document.empty).sort(descending("createDate")).headOption()
+  }
 }
 
 @Singleton
-class Phase2PassMarkSettingsMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[Phase2PassMarkSettings, BSONObjectID](
-    CollectionNames.PHASE2_PASS_MARK_SETTINGS,
-    mongoComponent.mongoConnector.db,
-    Phase2PassMarkSettings.jsonFormat,
-    ReactiveMongoFormats.objectIdFormats
+class Phase2PassMarkSettingsMongoRepository @Inject() (mongo: MongoComponent)
+  extends PlayMongoRepository[Phase2PassMarkSettings](
+    collectionName = CollectionNames.PHASE2_PASS_MARK_SETTINGS,
+    mongoComponent = mongo,
+    domainFormat = Phase2PassMarkSettings.jsonFormat,
+    indexes = Seq(
+      IndexModel(ascending("createDate"), IndexOptions().unique(true))
+    )
   ) with PassMarkSettingsRepository[Phase2PassMarkSettings] {
 
-  override def indexes: Seq[Index] = Seq(
-    Index(Seq(("createDate", Ascending)), unique = true)
-  )
+  override def getLatestVersion: Future[Option[Phase2PassMarkSettings]] = {
+    collection.find(Document.empty).sort(descending("createDate")).headOption()
+  }
 }
 
 @Singleton
-class Phase3PassMarkSettingsMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[Phase3PassMarkSettings, BSONObjectID](
-    CollectionNames.PHASE3_PASS_MARK_SETTINGS,
-    mongoComponent.mongoConnector.db,
-    Phase3PassMarkSettings.jsonFormat,
-    ReactiveMongoFormats.objectIdFormats
+class Phase3PassMarkSettingsMongoRepository @Inject() (mongo: MongoComponent)
+  extends PlayMongoRepository[Phase3PassMarkSettings](
+    collectionName = CollectionNames.PHASE3_PASS_MARK_SETTINGS,
+    mongoComponent = mongo,
+    domainFormat = Phase3PassMarkSettings.jsonFormat,
+    indexes = Seq(
+      IndexModel(ascending("createDate"), IndexOptions().unique(true))
+    )
   ) with PassMarkSettingsRepository[Phase3PassMarkSettings] {
 
-  override def indexes: Seq[Index] = Seq(
-    Index(Seq(("createDate", Ascending)), unique = true)
-  )
+  override def getLatestVersion: Future[Option[Phase3PassMarkSettings]] = {
+    collection.find(Document.empty).sort(descending("createDate")).headOption()
+  }
 }
 
 @Singleton
-class AssessmentCentrePassMarkSettingsMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[AssessmentCentrePassMarkSettings, BSONObjectID](
-    CollectionNames.ASSESSMENT_CENTRE_PASS_MARK_SETTINGS,
-    mongoComponent.mongoConnector.db,
-    AssessmentCentrePassMarkSettings.jsonFormat,
-    ReactiveMongoFormats.objectIdFormats
+class AssessmentCentrePassMarkSettingsMongoRepository @Inject() (mongo: MongoComponent)
+  extends PlayMongoRepository[AssessmentCentrePassMarkSettings](
+    collectionName = CollectionNames.ASSESSMENT_CENTRE_PASS_MARK_SETTINGS,
+    mongoComponent = mongo,
+    domainFormat = AssessmentCentrePassMarkSettings.jsonFormat,
+    indexes = Seq(
+      IndexModel(ascending("createDate"), IndexOptions().unique(true))
+    )
   ) with PassMarkSettingsRepository[AssessmentCentrePassMarkSettings] {
 
-  override def indexes: Seq[Index] = Seq(
-    Index(Seq(("createDate", Ascending)), unique = true)
-  )
+  override def getLatestVersion: Future[Option[AssessmentCentrePassMarkSettings]] = {
+    collection.find(Document.empty).sort(descending("createDate")).headOption()
+  }
 }
 
 trait PassMarkSettingsRepository[T <: PassMarkSettings] {
-  this: ReactiveRepository[T, _] =>
+  this: PlayMongoRepository[T] =>
 
-  implicit val oFormats = OFormatHelper.oFormat(domainFormatImplicit)
-
-  def create(passMarkSettings: T)(implicit jsonFormat: Format[T]): Future[PassMarkSettingsCreateResponse] = {
-    collection.insert(ordered = false).one(passMarkSettings) flatMap { _ =>
-      getLatestVersion.map(createResponse =>
+  def create(passMarkSettings: T): Future[PassMarkSettingsCreateResponse] = {
+    collection.insertOne(passMarkSettings).toFuture() flatMap { _ =>
+      getLatestVersion.map( createResponse =>
         PassMarkSettingsCreateResponse(
           createResponse.map(_.version).get,
           createResponse.map(_.createDate).get
@@ -105,10 +108,5 @@ trait PassMarkSettingsRepository[T <: PassMarkSettings] {
     }
   }
 
-  def getLatestVersion(implicit jsonFormat: Format[T]): Future[Option[T]] = {
-    val query = BSONDocument.empty
-    val descending = -1
-    val sort = JsObject(Seq("createDate" -> JsNumber(descending)))
-    collection.find(query, projection = Option.empty[JsObject]).sort(sort).one[T]
-  }
+  def getLatestVersion: Future[Option[T]]
 }

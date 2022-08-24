@@ -16,21 +16,18 @@
 
 package repositories
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.AllocationStatuses
 import model.AllocationStatuses.AllocationStatus
-import model.Exceptions.{ TooManyEventIdsException, TooManySessionIdsException }
+import model.Exceptions.{TooManyEventIdsException, TooManySessionIdsException}
 import model.persisted.CandidateAllocation
 import org.joda.time.LocalDate
-import play.api.libs.json.OFormat
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.Cursor
-import reactivemongo.api.indexes.Index
-import reactivemongo.api.indexes.IndexType.Ascending
-import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import org.mongodb.scala.bson.BsonArray
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.Indexes.ascending
+import org.mongodb.scala.model.{IndexModel, IndexOptions}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -53,120 +50,113 @@ trait CandidateAllocationRepository {
 }
 
 @Singleton
-class CandidateAllocationMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[CandidateAllocation, BSONObjectID](
-    CollectionNames.CANDIDATE_ALLOCATION,
-    mongoComponent.mongoConnector.db,
-    CandidateAllocation.candidateAllocationFormat,
-    ReactiveMongoFormats.objectIdFormats
+class CandidateAllocationMongoRepository @Inject() (mongoComponent: MongoComponent)
+  extends PlayMongoRepository[CandidateAllocation](
+    collectionName = CollectionNames.CANDIDATE_ALLOCATION,
+    mongoComponent = mongoComponent,
+    domainFormat = CandidateAllocation.candidateAllocationFormat,
+    indexes = Seq(
+      IndexModel(ascending("id", "eventId", "sessionId"), IndexOptions().unique(false))
+    )
   ) with CandidateAllocationRepository with ReactiveRepositoryHelpers {
 
-  override def indexes: Seq[Index] = Seq(
-    Index(Seq("id" -> Ascending, "eventId" -> Ascending, "sessionId" -> Ascending), unique = false)
-  )
-
-  val format: OFormat[CandidateAllocation] = CandidateAllocation.candidateAllocationFormat
-  val projection = BSONDocument("_id" -> false)
-  private val unlimitedMaxDocs = -1
+//  val format: OFormat[CandidateAllocation] = CandidateAllocation.candidateAllocationFormat
+  //  val projection = BSONDocument("_id" -> false)
+  //  private val unlimitedMaxDocs = -1
 
   override def find(id: String, status: Option[AllocationStatus] = None): Future[Seq[CandidateAllocation]] = {
     val query = List(
-      Some(BSONDocument("id" -> id)),
-      status.map(s => BSONDocument("status" -> s))
-    ).flatten.fold(BSONDocument.empty)(_ ++ _)
+      Some(Document("id" -> id)),
+      status.map(s => Document("status" -> s.toBson))
+    ).flatten.fold(Document.empty)(_ ++ _)
 
-    collection.find(query, Some(projection)).cursor[CandidateAllocation]()
-      .collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]())
+    collection.find(query).toFuture()
   }
 
   override def save(allocations: Seq[CandidateAllocation]): Future[Unit] = {
     delete(allocations, ignoreMissed = true).flatMap { _ =>
-      collection.insert(ordered = false).many(allocations)
+      collection.insertMany(allocations).toFuture()
     } map ( _ => () )
   }
 
-  override def findAllAllocations(applications: Seq[String]): Future[Seq[CandidateAllocation]] = {
-    collection.find(BSONDocument("id" -> BSONDocument("$in" -> applications)), Some(projection))
-      .cursor[CandidateAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]())
+  override def findAllAllocations(applicationIds: Seq[String]): Future[Seq[CandidateAllocation]] = {
+    collection.find(Document("id" -> Document("$in" -> applicationIds))).toFuture()
   }
 
   override def findAllUnconfirmedAllocated(days: Int): Future[Seq[CandidateAllocation]] = {
     val today = LocalDate.now
-    collection.find(BSONDocument(
-      "createdAt" -> BSONDocument("$lte" -> today.minusDays(days)),
-      "status" -> AllocationStatuses.UNCONFIRMED,
+    import play.api.libs.json.JodaWrites._ // This is needed for LocalDate serialization
+
+    collection.find(Document(
+      "createdAt" -> Document("$lte" -> Codecs.toBson(today.minusDays(days))),
+      "status" -> AllocationStatuses.UNCONFIRMED.toBson,
       "reminderSent" -> false
-    ), Some(projection))
-      .cursor[CandidateAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]())
+    )).toFuture()
   }
 
   override def activeAllocationsForEvent(eventId: String): Future[Seq[CandidateAllocation]] = {
-    collection.find(BSONDocument(
+    collection.find(Document(
       "eventId" -> eventId,
-      "status" -> BSONDocument("$ne" -> AllocationStatuses.REMOVED)
-    ), Some(projection))
-      .cursor[CandidateAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]())
+      "status" -> Document("$ne" -> AllocationStatuses.REMOVED.toBson)
+    )).toFuture()
   }
 
   override def isAllocationExists(applicationId: String, eventId: String, sessionId: String, version: Option[String]): Future[Boolean] = {
     val query = List(
-      Some(BSONDocument(
+      Some(Document(
         "id" -> applicationId,
         "eventId" -> eventId,
         "sessionId" -> sessionId,
-        "status" -> BSONDocument("$ne" -> AllocationStatuses.REMOVED)
+        "status" -> Document("$ne" -> AllocationStatuses.REMOVED.toBson)
       )),
-      version.map(v => BSONDocument("version" -> v))
-    ).flatten.fold(BSONDocument.empty)(_ ++ _)
+      version.map(v => Document("version" -> v))
+    ).flatten.fold(Document.empty)(_ ++ _)
 
-    collection.find(query, Some(projection))
-      .cursor[CandidateAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]()).map(_.nonEmpty)
+    collection.find(query).toFuture().map(_.nonEmpty)
   }
 
   override def activeAllocationsForSession(eventId: String, sessionId: String): Future[Seq[CandidateAllocation]] = {
-    collection.find(BSONDocument(
+    collection.find(Document(
       "eventId" -> eventId,
       "sessionId" -> sessionId,
-      "status" -> BSONDocument("$ne" -> AllocationStatuses.REMOVED)
-    ), Some(projection))
-      .cursor[CandidateAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]())
+      "status" -> Document("$ne" -> AllocationStatuses.REMOVED.toBson)
+    )).toFuture()
   }
 
   override def allocationsForApplication(applicationId: String): Future[Seq[CandidateAllocation]] = {
-    collection.find(BSONDocument(
+    collection.find(Document(
       "id" -> applicationId,
-      "status" -> BSONDocument("$ne" -> AllocationStatuses.REMOVED)
-    ), Some(projection)).cursor[CandidateAllocation]().collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]())
+      "status" -> Document("$ne" -> AllocationStatuses.REMOVED.toBson)
+    )).toFuture()
   }
 
   override def removeCandidateAllocation(allocation: CandidateAllocation): Future[Unit] = {
     val eventId = allocation.eventId
     val sessionId = allocation.sessionId
 
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("id" -> allocation.id),
-      BSONDocument("eventId" -> eventId),
-      BSONDocument("sessionId" -> sessionId)
+    val query = Document("$and" -> BsonArray(
+      Document("id" -> allocation.id),
+      Document("eventId" -> eventId),
+      Document("sessionId" -> sessionId)
     ))
 
-    val update = BSONDocument("$set" ->
-      BSONDocument(
-        "status" -> AllocationStatuses.REMOVED,
+    val update = Document("$set" ->
+      Document(
+        "status" -> AllocationStatuses.REMOVED.toBson,
         "removeReason" -> allocation.removeReason
       )
     )
 
     val validator = singleUpdateValidator(allocation.id, actionDesc = "confirming allocation")
-
-    collection.update(ordered = false).one(query, update) map validator
+    collection.updateOne(query, update).toFuture() map validator
   }
 
   override def removeCandidateRemovalReason(applicationId: String): Future[Unit] = {
-    val query = BSONDocument(
+    val query = Document(
       "id" -> applicationId,
-      "status" -> AllocationStatuses.REMOVED
+      "status" -> AllocationStatuses.REMOVED.toBson
     )
-    collection.delete().one(query).map(_ => ())
+    collection.deleteOne(query).toFuture().map(_ => ())
   }
 
   override def delete(allocations: Seq[CandidateAllocation]): Future[Unit] = {
@@ -176,28 +166,28 @@ class CandidateAllocationMongoRepository @Inject() (mongoComponent: ReactiveMong
   private def delete(allocations: Seq[CandidateAllocation], ignoreMissed: Boolean): Future[Unit] = {
     val eventIds = allocations.map(_.eventId).distinct
     val eventId = if (eventIds.size > 1) {
-      throw TooManyEventIdsException(s"The delete request contained too many event Ids [$eventIds]")
+      throw TooManyEventIdsException(s"The delete request contained too many event Ids: [$eventIds]")
     } else {
       eventIds.head
     }
 
     val sessionIds = allocations.map(_.sessionId).distinct
     val sessionId = if (sessionIds.size > 1) {
-      throw TooManySessionIdsException(s"The delete request contained too many session Ids [$sessionIds]")
+      throw TooManySessionIdsException(s"The delete request contained too many session Ids: [$sessionIds]")
     } else {
       sessionIds.head
     }
 
     val applicationIds = allocations.map(_.id)
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("id" -> BSONDocument("$in" -> applicationIds)),
-      BSONDocument("eventId" -> eventId),
-      BSONDocument("sessionId" -> sessionId)
+    val query = Document("$and" -> BsonArray(
+      Document("id" -> Document("$in" -> applicationIds)),
+      Document("eventId" -> eventId),
+      Document("sessionId" -> sessionId)
     ))
 
     val validator = multipleRemoveValidator(allocations.size, "Deleting allocations")
 
-    val remove = collection.delete().one(query)
+    val remove = collection.deleteOne(query).toFuture()
     if (!ignoreMissed) {
       remove.map(validator)
     } else {
@@ -206,25 +196,26 @@ class CandidateAllocationMongoRepository @Inject() (mongoComponent: ReactiveMong
   }
 
   override def markAsReminderSent(applicationId: String, eventId: String, sessionId: String): Future[Unit] = {
-    val query = BSONDocument(
+    val query = Document(
       "id" -> applicationId,
       "eventId" -> eventId,
       "sessionId" -> sessionId,
-      "status" -> AllocationStatuses.UNCONFIRMED
+      "status" -> AllocationStatuses.UNCONFIRMED.toBson
     )
-    val update = BSONDocument("$set" -> BSONDocument("reminderSent" -> true))
+    val update = Document("$set" -> Document("reminderSent" -> true))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "mark allocation as notified")
-    collection.update(ordered = false).one(query, update) map validator
+    collection.updateOne(query, update).toFuture() map validator
   }
 
   override def updateStructure(): Future[Unit] = {
-    val updateQuery = BSONDocument("$set" -> BSONDocument("reminderSent" -> true, "createdAt" -> LocalDate.now))
-    collection.update(ordered = false).one(BSONDocument.empty, updateQuery, multi = true).map(_ => ())
+    import play.api.libs.json.JodaWrites._ // This is needed for LocalDate serialization
+
+    val updateQuery = Document("$set" -> Document("reminderSent" -> true, "createdAt" -> Codecs.toBson(LocalDate.now)))
+    collection.updateMany(Document.empty, updateQuery).toFuture().map(_ => ())
   }
 
   override def allAllocationUnconfirmed: Future[Seq[CandidateAllocation]] = {
-    collection.find(BSONDocument("status" -> AllocationStatuses.UNCONFIRMED), Some(projection)).cursor[CandidateAllocation]()
-      .collect[Seq](unlimitedMaxDocs, Cursor.FailOnError[Seq[CandidateAllocation]]())
+    collection.find(Document("status" -> AllocationStatuses.UNCONFIRMED.toBson)).toFuture()
   }
 }

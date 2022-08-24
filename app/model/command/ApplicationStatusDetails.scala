@@ -20,16 +20,37 @@ import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.ProgressStatuses.ProgressStatus
 import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.Json
 
 case class ApplicationStatusDetails(status: String, // TODO: change to ApplicationStatus type
                                     applicationRoute: ApplicationRoute,
                                     latestProgressStatus: Option[ProgressStatus],
                                     statusDate: Option[DateTime] = None,
-                                    overrideSubmissionDeadline: Option[DateTime])
+                                    overrideSubmissionDeadline: Option[DateTime]) {
+  def toExchange = {
+    ApplicationStatusDetailsExchange(
+      status,
+      applicationRoute,
+      latestProgressStatus,
+      statusDate,
+      overrideSubmissionDeadline
+    )
+  }
+}
 
 object ApplicationStatusDetails {
+  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // This is needed for Mongo DateTime serialization
   implicit val applicationStatusDetailsFormat = Json.format[ApplicationStatusDetails]
+}
+
+case class ApplicationStatusDetailsExchange(status: String, // TODO: change to ApplicationStatus type
+                                    applicationRoute: ApplicationRoute,
+                                    latestProgressStatus: Option[ProgressStatus],
+                                    statusDate: Option[DateTime] = None,
+                                    overrideSubmissionDeadline: Option[DateTime])
+
+object ApplicationStatusDetailsExchange {
+  import play.api.libs.json.JodaWrites._ // This is needed for request/response DateTime serialization
+  import play.api.libs.json.JodaReads._ // This is needed for request/response DateTime serialization
+  implicit val applicationStatusDetailsFormat = Json.format[ApplicationStatusDetailsExchange]
 }

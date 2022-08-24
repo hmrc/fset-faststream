@@ -16,14 +16,14 @@
 
 package controllers
 
-import javax.inject.{ Inject, Singleton }
-import model.command.{ FastPassEvaluation, ProcessedFastPassCandidate }
+import model.command.{FastPassEvaluation, ProcessedFastPassCandidate}
 import play.api.Logging
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, ControllerComponents }
+import play.api.mvc.ControllerComponents
 import services.fastpass.FastPassService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton

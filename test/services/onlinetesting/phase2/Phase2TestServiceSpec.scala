@@ -803,7 +803,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     when(phase2TestRepositoryMock.getTestGroup(any[String]))
       .thenReturnAsync(Some(phase2TestProfile))
 
-    when(phase2TestRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]]))
+    when(phase2TestRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]], any[Boolean]))
       .thenReturnAsync()
 
 //    when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(

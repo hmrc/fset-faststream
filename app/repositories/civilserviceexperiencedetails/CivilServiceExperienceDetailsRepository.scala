@@ -16,77 +16,65 @@
 
 package repositories.civilserviceexperiencedetails
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.CivilServiceExperienceDetails
 import model.Exceptions.CannotUpdateCivilServiceExperienceDetails
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.DB
-import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import org.mongodb.scala.bson.{BsonArray, BsonDocument}
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.{Filters, Projections}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait CivilServiceExperienceDetailsRepository {
-
   val CivilServiceExperienceDetailsDocumentKey = "civil-service-experience-details"
 
   def update(applicationId: String, civilServiceExperienceDetails: CivilServiceExperienceDetails): Future[Unit]
-
   def find(applicationId: String): Future[Option[CivilServiceExperienceDetails]]
-
   def evaluateFastPassCandidate(applicationId: String, accepted: Boolean): Future[Unit]
 }
 
 @Singleton
-class CivilServiceExperienceDetailsMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent) extends
-  ReactiveRepository[CivilServiceExperienceDetails, BSONObjectID](
-    CollectionNames.APPLICATION,
-    mongoComponent.mongoConnector.db,
-    CivilServiceExperienceDetails.civilServiceExperienceDetailsFormat,
-    ReactiveMongoFormats.objectIdFormats
+class CivilServiceExperienceDetailsMongoRepository @Inject() (mongo: MongoComponent) extends
+  PlayMongoRepository[CivilServiceExperienceDetails](
+    collectionName = CollectionNames.APPLICATION,
+    mongoComponent = mongo,
+    domainFormat = CivilServiceExperienceDetails.mongoFormat,
+    indexes = Nil
   ) with CivilServiceExperienceDetailsRepository with ReactiveRepositoryHelpers {
 
   override def update(applicationId: String, civilServiceExperienceDetails: CivilServiceExperienceDetails): Future[Unit] = {
-
-    val query = BSONDocument("applicationId" -> applicationId)
-    val updateBSON = BSONDocument("$set" -> BSONDocument(
-      CivilServiceExperienceDetailsDocumentKey -> civilServiceExperienceDetails
+    val query = Document("applicationId" -> applicationId)
+    val updateBSON = Document("$set" -> Document(
+      CivilServiceExperienceDetailsDocumentKey -> Codecs.toBson(civilServiceExperienceDetails)
     ))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating civil service details",
       CannotUpdateCivilServiceExperienceDetails(applicationId))
-
-    collection.update(ordered = false).one(query, updateBSON) map validator
+    collection.updateOne(query, updateBSON).toFuture() map validator
   }
 
   override def find(applicationId: String): Future[Option[CivilServiceExperienceDetails]] = {
-    val query = BSONDocument("applicationId" -> applicationId)
-    val projection = BSONDocument(CivilServiceExperienceDetailsDocumentKey -> 1, "_id" -> 0)
+    val query = Filters.and(Filters.equal("applicationId", applicationId), Filters.exists(CivilServiceExperienceDetailsDocumentKey))
+    val projection = Projections.include(CivilServiceExperienceDetailsDocumentKey)
 
-    collection.find(query, Some(projection)).one[BSONDocument] map {
-      case Some(document) if document.getAs[BSONDocument](CivilServiceExperienceDetailsDocumentKey).isDefined =>
-        document.getAs[CivilServiceExperienceDetails](CivilServiceExperienceDetailsDocumentKey)
-      case _ => None
-    }
+    collection.find(query).projection(projection).headOption()
   }
 
   override def evaluateFastPassCandidate(applicationId: String, accepted: Boolean): Future[Unit] = {
-
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationId" -> applicationId),
-      BSONDocument(s"$CivilServiceExperienceDetailsDocumentKey.fastPassReceived" -> true)
+    val query = BsonDocument("$and" -> BsonArray(
+      BsonDocument("applicationId" -> applicationId),
+      BsonDocument(s"$CivilServiceExperienceDetailsDocumentKey.fastPassReceived" -> true)
     ))
-    val updateBSON = BSONDocument("$set" -> BSONDocument(
-      s"$CivilServiceExperienceDetailsDocumentKey.fastPassAccepted" -> accepted
-    ))
+    val updateBSON = Document("$set" ->
+      Document(s"$CivilServiceExperienceDetailsDocumentKey.fastPassAccepted" -> accepted)
+    )
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "evaluating fast pass candidate",
       CannotUpdateCivilServiceExperienceDetails(applicationId))
-
-    collection.update(ordered = false).one(query, updateBSON) map validator
+    collection.updateOne(query, updateBSON).toFuture() map validator
   }
 }

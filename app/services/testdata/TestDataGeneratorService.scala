@@ -31,9 +31,9 @@ import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import model.testdata.{ CreateCandidateAllocationData, CreateTestData }
 import play.api.Logging
 import play.api.mvc.RequestHeader
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.collection.JSONCollection
+//import play.modules.reactivemongo.ReactiveMongoComponent
+//import reactivemongo.bson.BSONDocument
+//import reactivemongo.play.json.collection.JSONCollection
 import services.testdata.admin.AdminUserBaseGenerator
 import services.testdata.allocation.{ AssessorAllocationGenerator, CandidateAllocationGenerator }
 import services.testdata.candidate._
@@ -54,7 +54,7 @@ class TestDataGeneratorService @Inject() (authProviderClient: AuthProviderClient
                                           candidateRemover: CandidateRemover,
                                           candidateAllocationGenerator: CandidateAllocationGenerator,
                                           assessorAllocationGenerator: AssessorAllocationGenerator,
-                                          mongoComponent: ReactiveMongoComponent,
+//                                          mongoComponent: ReactiveMongoComponent,
                                           dataFaker: DataFaker,
                                           eventGenerator: EventGenerator) extends Logging {
 
@@ -71,13 +71,16 @@ class TestDataGeneratorService @Inject() (authProviderClient: AuthProviderClient
   }
 
   def cleanupDb(): Future[Unit] = {
+//TODO: fix
+    /*
     mongoComponent.mongoConnector.db().collectionNames.map { names =>
       names.foreach { name =>
         import reactivemongo.play.json.ImplicitBSONHandlers._
         mongoComponent.mongoConnector.db().collection[JSONCollection](name).delete().one(BSONDocument.empty)
         logger.info(s"removed data from collection: $name")
       }
-    }
+    }*/
+    Future.successful(())
   }
 
   private def generateUsers()(implicit hc: HeaderCarrier): Future[Unit] = {

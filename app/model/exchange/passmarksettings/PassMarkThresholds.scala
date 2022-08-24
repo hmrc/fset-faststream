@@ -17,7 +17,7 @@
 package model.exchange.passmarksettings
 
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+//import reactivemongo.bson.Macros
 
 trait PassMarkThresholds
 
@@ -54,7 +54,7 @@ case class Phase1PassMarkThresholds(
 
 object Phase1PassMarkThresholds {
   implicit val phase1PassMarkThresholds = Json.format[Phase1PassMarkThresholds]
-  implicit val phase1PassMarkThresholdsHandler = Macros.handler[Phase1PassMarkThresholds]
+//  implicit val phase1PassMarkThresholdsHandler = Macros.handler[Phase1PassMarkThresholds]
 }
 
 case class Phase2PassMarkThresholds(
@@ -64,7 +64,7 @@ case class Phase2PassMarkThresholds(
 
 object Phase2PassMarkThresholds {
   implicit val phase2PassMarkThresholds = Json.format[Phase2PassMarkThresholds]
-  implicit val phase2PassMarkThresholdsHandler = Macros.handler[Phase2PassMarkThresholds]
+//  implicit val phase2PassMarkThresholdsHandler = Macros.handler[Phase2PassMarkThresholds]
 }
 
 case class Phase3PassMarkThresholds(
@@ -73,7 +73,7 @@ case class Phase3PassMarkThresholds(
 
 object Phase3PassMarkThresholds {
   implicit val phase3PassMarkThresholds = Json.format[Phase3PassMarkThresholds]
-  implicit val phase3PassMarkThresholdsHandler = Macros.handler[Phase3PassMarkThresholds]
+//  implicit val phase3PassMarkThresholdsHandler = Macros.handler[Phase3PassMarkThresholds]
 }
 
 case class AssessmentCentrePassMarkThresholds(
@@ -93,5 +93,5 @@ case class AssessmentCentrePassMarkThresholds(
 
 object AssessmentCentrePassMarkThresholds {
   implicit val jsonFormat = Json.format[AssessmentCentrePassMarkThresholds]
-  implicit val bsonHandler = Macros.handler[AssessmentCentrePassMarkThresholds]
+//  implicit val bsonHandler = Macros.handler[AssessmentCentrePassMarkThresholds]
 }

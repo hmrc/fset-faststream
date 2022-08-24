@@ -16,25 +16,19 @@
 
 package repositories.contactdetails
 
+import com.mongodb.client.model.{Projections, Updates}
 import config.MicroserviceAppConfig
-import javax.inject.{ Inject, Singleton }
-import model.Address
-import model.Commands._
-import model.Exceptions.{ ContactDetailsNotFound, ContactDetailsNotFoundForEmail }
-import model.persisted.{ ContactDetails, ContactDetailsWithId, UserIdWithEmail }
-import play.api.libs.functional.syntax._
-import play.api.libs.json.Reads._
-import play.api.libs.json._
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.indexes.Index
-import reactivemongo.api.indexes.IndexType.Ascending
-import reactivemongo.api.{ Cursor, ReadPreference }
-import reactivemongo.bson.{ BSONDocument, BSONObjectID }
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import model.Exceptions.{ContactDetailsNotFound, ContactDetailsNotFoundForEmail}
+import model.persisted._
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.Indexes.ascending
+import org.mongodb.scala.model.{IndexModel, IndexOptions, UpdateOptions}
+import repositories.{CollectionNames, ReactiveRepositoryHelpers, insertIfNoRecordFound}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -42,157 +36,140 @@ trait ContactDetailsRepository {
   def update(userId: String, contactDetails: ContactDetails): Future[Unit]
   def find(userId: String): Future[ContactDetails]
   def findUserIdByEmail(email: String): Future[String]
-  def findAll: Future[List[ContactDetailsWithId]]
+  def findAll: Future[Seq[ContactDetailsWithId]]
   def findAllPostcodes(): Future[Map[String, String]]
-  def findByPostCode(postCode: String): Future[List[ContactDetailsWithId]]
-  def findByUserIds(userIds: List[String]): Future[List[ContactDetailsWithId]]
+  def findByPostCode(postCode: String): Future[Seq[ContactDetailsWithId]]
+  def findByUserIds(userIds: Seq[String]): Future[Seq[ContactDetailsWithId]]
   def archive(originalUserId: String, userIdToArchiveWith: String): Future[Unit]
-  def findEmails: Future[List[UserIdWithEmail]]
+  def findEmails: Future[Seq[UserIdWithEmail]]
   def removeContactDetails(userId: String): Future[Unit]
 }
 
 @Singleton
-class ContactDetailsMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent, appConfig: MicroserviceAppConfig)
-  extends ReactiveRepository[ContactDetails, BSONObjectID](
-    CollectionNames.CONTACT_DETAILS, mongoComponent.mongoConnector.db, ContactDetails.contactDetailsFormat,
-    ReactiveMongoFormats.objectIdFormats) with ContactDetailsRepository with ReactiveRepositoryHelpers {
+class ContactDetailsMongoRepository @Inject() (mongo: MongoComponent, appConfig: MicroserviceAppConfig)
+  extends PlayMongoRepository[ContactDetails](
+    collectionName = CollectionNames.CONTACT_DETAILS,
+    mongoComponent = mongo,
+    domainFormat = ContactDetails.mongoFormat,
+    indexes = Seq(
+      IndexModel(ascending("userId"), IndexOptions().unique(true))
+    )
+  ) with ContactDetailsRepository with ReactiveRepositoryHelpers {
+
+  // Additional collections configured to work with the appropriate domainFormat and automatically register the
+  // codec to work with BSON serialization
+  val userIdCollection: MongoCollection[ContactDetailsUserId] =
+    CollectionFactory.collection(
+      collectionName = CollectionNames.CONTACT_DETAILS,
+      db = mongo.database,
+      domainFormat = ContactDetailsUserId.mongoFormat
+    )
+
+  val contactDetailsWithIdCollection: MongoCollection[ContactDetailsWithId] =
+    CollectionFactory.collection(
+      collectionName = CollectionNames.CONTACT_DETAILS,
+      db = mongo.database,
+      domainFormat = ContactDetailsWithId.mongoFormat
+    )
+
+  val userIdWithEmailCollection: MongoCollection[UserIdWithEmail] =
+    CollectionFactory.collection(
+      collectionName = CollectionNames.CONTACT_DETAILS,
+      db = mongo.database,
+      domainFormat = UserIdWithEmail.mongoFormat
+    )
+
+  val contactDetailsUserIdPostcodeCollection: MongoCollection[ContactDetailsUserIdPostcode] =
+    CollectionFactory.collection(
+      collectionName = CollectionNames.CONTACT_DETAILS,
+      db = mongo.database,
+      domainFormat = ContactDetailsUserIdPostcode.mongoFormat
+    )
 
   val ContactDetailsDocumentKey = "contact-details"
 
-  private val unlimitedMaxDocs = -1
-
-  override def indexes: Seq[Index] = Seq(
-    Index(Seq(("userId", Ascending)), unique = true)
-  )
-
   override def update(userId: String, contactDetails: ContactDetails): Future[Unit] = {
-    val query = BSONDocument("userId" -> userId)
-    val contactDetailsBson = BSONDocument("$set" -> BSONDocument(ContactDetailsDocumentKey -> contactDetails))
+    val query = Document("userId" -> userId)
+    val update = Updates.set(ContactDetailsDocumentKey, Codecs.toBson(contactDetails))
 
     val validator = singleUpsertValidator(userId, actionDesc = s"updating contact details for $userId")
 
-    collection.update(ordered = false).one(query, contactDetailsBson, upsert = true) map validator
+    collection.updateOne(query, update, UpdateOptions().upsert(insertIfNoRecordFound)).toFuture() map validator
   }
 
   override def find(userId: String): Future[ContactDetails] = {
-    val query = BSONDocument("userId" -> userId)
-    val projection = BSONDocument(ContactDetailsDocumentKey -> 1, "_id" -> 0)
+    val query = Document("userId" -> userId)
+    val projection = Projections.include(ContactDetailsDocumentKey) // This is the sub-document key
 
-    collection.find(query, Some(projection)).one[BSONDocument] map {
-      case Some(document) if document.getAs[BSONDocument]("contact-details").isDefined =>
-        document.getAs[ContactDetails]("contact-details").get
-      case None => throw ContactDetailsNotFound(userId)
+    for {
+      contactDetailsOpt <- collection.find(query).projection(projection).headOption()
+    } yield {
+      contactDetailsOpt match {
+        case Some(cd) => cd
+        case _ => throw ContactDetailsNotFound(userId)
+      }
     }
   }
 
+  // TODO: This works but it seems a bit wasteful to have the ContactDetailsUserId which just wraps a single string
   override def findUserIdByEmail(email: String): Future[String] = {
-    val query = BSONDocument("contact-details.email" -> email)
-    val projection = BSONDocument("userId" -> 1, "_id" -> 0)
+    val query = Document("contact-details.email" -> email)
+    val projection = Projections.include("userId")
 
-    collection.find(query, Some(projection)).one[BSONDocument] map {
-      case Some(d) if d.getAs[String]("userId").isDefined =>
-        d.getAs[String]("userId").get
-      case None => throw ContactDetailsNotFoundForEmail()
+    for {
+      userIdOpt <- userIdCollection.find(query).projection(projection).headOption()
+    } yield {
+      userIdOpt match {
+        case Some(id) => id.userId
+        case _ => throw ContactDetailsNotFoundForEmail()
+      }
     }
   }
 
-  override def findAll: Future[List[ContactDetailsWithId]] = {
-    val query = BSONDocument()
-
-    collection.find(query, projection = Option.empty[JsObject]).cursor[BSONDocument]()
-      .collect[List](appConfig.maxNumberOfDocuments, Cursor.FailOnError[List[BSONDocument]]()).map(_.map { doc =>
-      val id = doc.getAs[String]("userId").get
-      val root = doc.getAs[BSONDocument]("contact-details").get
-      val outsideUk = root.getAs[Boolean]("outsideUk").getOrElse(false)
-      val address = root.getAs[Address]("address").get
-      val postCode = root.getAs[PostCode]("postCode")
-      val phone = root.getAs[PhoneNumber]("phone")
-      val email = root.getAs[String]("email").get
-
-      ContactDetailsWithId(id, address, postCode, outsideUk, email, phone)
-    })
+  override def findAll: Future[Seq[ContactDetailsWithId]] = {
+    val query = Document.empty
+    contactDetailsWithIdCollection.find(query).limit(appConfig.maxNumberOfDocuments).toFuture()
   }
 
   override def findAllPostcodes(): Future[Map[String, String]] = {
-    val query = BSONDocument("contact-details.postCode" -> BSONDocument("$exists" -> true))
-    val projection = BSONDocument("userId" -> 1, "contact-details.postCode" -> 1)
-    implicit val tupleReads: Reads[(String, String)] = (
-      (JsPath \ "userId").read[String] and
-        (JsPath \ "contact-details" \ "postCode").read[String]
-      )((_, _))
-    val result = collection.find(query, Some(projection)).cursor[(String, String)](ReadPreference.nearest)
-      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[(String, String)]]())
-    result.map(_.toMap)
+    val query = Document("contact-details.postCode" -> Document("$exists" -> true))
+    val projection = Projections.include("userId", "contact-details.postCode")
+    val result = contactDetailsUserIdPostcodeCollection.find(query).projection(projection).toFuture()
+
+    result.map(_.map ( data => data.userId -> data.postcode ).toMap)
   }
 
-  override def findByPostCode(postCode: String): Future[List[ContactDetailsWithId]] = {
-
-    val query = BSONDocument("contact-details.postCode" -> postCode)
-
-    collection.find(query, projection = Option.empty[JsObject]).cursor[BSONDocument]()
-      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map(_.map { doc =>
-      val id = doc.getAs[String]("userId").get
-      val root = doc.getAs[BSONDocument]("contact-details").get
-      val outsideUk = root.getAs[Boolean]("outsideUk").getOrElse(false)
-      val address = root.getAs[Address]("address").get
-      val postCode = root.getAs[PostCode]("postCode")
-      val phone = root.getAs[PhoneNumber]("phone")
-      val email = root.getAs[String]("email").get
-
-      ContactDetailsWithId(id, address, postCode, outsideUk, email, phone)
-    })
+  override def findByPostCode(postCode: String): Future[Seq[ContactDetailsWithId]] = {
+    val query = Document("contact-details.postCode" -> postCode)
+    contactDetailsWithIdCollection.find(query).toFuture
   }
 
-  override def findByUserIds(userIds: List[String]): Future[List[ContactDetailsWithId]] = {
-    val query = BSONDocument("userId" -> BSONDocument("$in" -> userIds))
-
-    collection.find(query, projection = Option.empty[JsObject]).cursor[BSONDocument]()
-      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map(_.map { doc =>
-      val id = doc.getAs[String]("userId").get
-      val root = doc.getAs[BSONDocument]("contact-details").getOrElse(throw new Exception(s"Contact details not found for $id"))
-      val outsideUk = root.getAs[Boolean]("outsideUk").getOrElse(throw new Exception(s"Outside UK not found for $id"))
-      val address = root.getAs[Address]("address").getOrElse(throw new Exception(s"Address not found for $id"))
-      val postCode = root.getAs[PostCode]("postCode")
-      val phone = root.getAs[PhoneNumber]("phone")
-      val email = root.getAs[String]("email").getOrElse(throw new Exception(s"Email not found for $id"))
-
-      ContactDetailsWithId(id, address, postCode, outsideUk, email, phone)
-    })
+  override def findByUserIds(userIds: Seq[String]): Future[Seq[ContactDetailsWithId]] = {
+    val query = Document("userId" -> Document("$in" -> userIds))
+    contactDetailsWithIdCollection.find(query).toFuture
   }
 
   override def archive(originalUserId: String, userIdToArchiveWith: String): Future[Unit] = {
-    val query = BSONDocument("userId" -> originalUserId)
+    val query = Document("userId" -> originalUserId)
 
-    val updateWithArchiveUserId = BSONDocument("$set" -> BSONDocument(
+    val updateWithArchiveUserId = Document("$set" -> Document(
       "originalUserId" -> originalUserId,
       "userId" -> userIdToArchiveWith
     ))
 
     val validator = singleUpdateValidator(originalUserId, actionDesc = "archiving contact details")
-    collection.update(ordered = false).one(query, updateWithArchiveUserId) map validator
+    collection.updateOne(query, updateWithArchiveUserId).toFuture map validator
   }
 
-  override def findEmails: Future[List[UserIdWithEmail]] = {
-    val query = BSONDocument("contact-details" -> BSONDocument("$exists" -> true))
-    val projection = BSONDocument(
-      "userId" -> 1,
-      "contact-details.email" -> 1,
-      "_id" -> 0
-    )
-
-    collection.find(query, Some(projection)).cursor[BSONDocument]()
-      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map(_.map { doc =>
-      val id = doc.getAs[String]("userId").get
-      val root = doc.getAs[BSONDocument]("contact-details").get
-      val email = root.getAs[String]("email").get
-
-      UserIdWithEmail(id, email)
-    })
+  override def findEmails: Future[Seq[UserIdWithEmail]] = {
+    val query = Document("contact-details" -> Document("$exists" -> true))
+    userIdWithEmailCollection.find(query).toFuture
   }
 
   // Record is created after submitting Page 1 Personal details
   override def removeContactDetails(userId: String): Future[Unit] = {
-    val query = BSONDocument("userId" -> userId)
-    collection.delete().one(query, limit = Some(1)).map(_ => ())
+    val query = Document("userId" -> userId)
+    val validator = singleRemovalValidator(userId , actionDesc = s"deleting contact details for userId:$userId")
+    collection.deleteOne(query).toFuture() map validator
   }
 }

@@ -19,7 +19,6 @@ package model.assessmentscores
 import model.UniqueIdentifier
 import model.fsacscores.AssessmentScoresFinalFeedbackExamples
 
-
 object AssessmentScoresAllExercisesExamples {
   val AppId1 = UniqueIdentifier.randomUniqueIdentifier
   val AppId2 = UniqueIdentifier.randomUniqueIdentifier
@@ -31,27 +30,34 @@ object AssessmentScoresAllExercisesExamples {
   val AssessorOnlyAnalysisExercise = AssessmentScoresAllExercises(
     AppId1,
     Some(AssessmentScoresExerciseExamples.Example1),
-    None,
-    None
+    teamExercise = None,
+    leadershipExercise = None
   )
 
   val AssessorOnlyGroupExercise = AssessmentScoresAllExercises(
     AppId2,
-    None,
+    writtenExercise = None,
     Some(AssessmentScoresExerciseExamples.Example2),
-    None
+    leadershipExercise = None
   )
 
   val AssessorOnlyLeadershipExercise = AssessmentScoresAllExercises(
     AppId3,
-    None,
-    None,
+    writtenExercise = None,
+    teamExercise = None,
     Some(AssessmentScoresExerciseExamples.Example3)
+  )
+
+  val AssessorOnlyLeadershipExerciseNoFractions = AssessmentScoresAllExercises(
+    AppId3,
+    writtenExercise = None,
+    teamExercise = None,
+    Some(AssessmentScoresExerciseExamples.ExampleNoFractions)
   )
 
   val AssessorAllButAnalysisExercise = AssessmentScoresAllExercises(
     AppId4,
-    None,
+    writtenExercise = None,
     Some(AssessmentScoresExerciseExamples.Example2),
     Some(AssessmentScoresExerciseExamples.Example3),
     Some(AssessmentScoresFinalFeedbackExamples.Example1)
@@ -59,10 +65,10 @@ object AssessmentScoresAllExercisesExamples {
 
   val NoExercises = AssessmentScoresAllExercises(
     AppId5,
-    None,
-    None,
-    None,
-    None
+    writtenExercise = None,
+    teamExercise = None,
+    leadershipExercise = None,
+    finalFeedback = None
   )
 
   val AllExercises = AssessmentScoresAllExercises(
@@ -78,6 +84,6 @@ object AssessmentScoresAllExercisesExamples {
     Some(AssessmentScoresExerciseExamples.Example1),
     Some(AssessmentScoresExerciseExamples.Example2),
     Some(AssessmentScoresExerciseExamples.Example3),
-    None
+    finalFeedback = None
   )
 }

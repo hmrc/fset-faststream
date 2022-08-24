@@ -1,12 +1,12 @@
 package repositories.onlinetesting
 
 import java.util.UUID
-
 import model.ProgressStatuses._
 import model.persisted._
-import model.{ ApplicationStatus, Phase2FirstReminder, Phase2SecondReminder, ProgressStatuses }
-import org.joda.time.{ DateTime, DateTimeZone }
-import reactivemongo.bson.BSONDocument
+import model.{ApplicationStatus, Phase2FirstReminder, Phase2SecondReminder, ProgressStatuses}
+import org.joda.time.{DateTime, DateTimeZone}
+import org.mongodb.scala.bson.collection.immutable.Document
+import repositories.dateTimeToBson
 import testkit.MongoRepositorySpec
 
 class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataFixture {
@@ -193,7 +193,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       results.head.userId mustBe "userId2"
     }
 
-    "return more than one candidate for batch processing" in {
+    "return more than one candidate for batch processing" ignore {
       pending
     }
 
@@ -293,10 +293,11 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     "return no results" when {
       val date = DateTime.now().plusHours(22)
       val testProfile = Phase2TestGroup(expirationDate = date, tests = List(phase2Test))
+
       "there are no applications in PHASE2_TESTS" in {
         createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase2TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
-        updateApplication(BSONDocument("applicationStatus" -> ApplicationStatus.IN_PROGRESS), AppId).futureValue
+        updateApplication(Document("$set" -> Document("applicationStatus" -> ApplicationStatus.IN_PROGRESS.toBson)), AppId).futureValue
         phase2TestRepo.nextTestForReminder(Phase2FirstReminder).futureValue mustBe None
       }
 
@@ -309,25 +310,23 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       }
 
       "the test is expired" in {
-        import repositories.BSONDateTimeHandler
         createApplicationWithAllFields(UserId, AppId, TestAccountId,"frameworkId", "SUBMITTED").futureValue
         phase2TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
-        updateApplication(BSONDocument("$set" -> BSONDocument(
-          "applicationStatus" -> PHASE2_TESTS_EXPIRED.applicationStatus,
+        updateApplication(Document("$set" -> Document(
+          "applicationStatus" -> PHASE2_TESTS_EXPIRED.applicationStatus.toBson,
           s"progress-status.$PHASE2_TESTS_EXPIRED" -> true,
-          s"progress-status-timestamp.$PHASE2_TESTS_EXPIRED" -> DateTime.now()
+          s"progress-status-timestamp.$PHASE2_TESTS_EXPIRED" -> dateTimeToBson(DateTime.now())
         )), AppId).futureValue
         phase2TestRepo.nextTestForReminder(Phase2SecondReminder).futureValue mustBe None
       }
 
       "the test is completed" in {
-        import repositories.BSONDateTimeHandler
         createApplicationWithAllFields(UserId, AppId, TestAccountId,"frameworkId", "SUBMITTED").futureValue
         phase2TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
-        updateApplication(BSONDocument("$set" -> BSONDocument(
-          "applicationStatus" -> PHASE2_TESTS_COMPLETED.applicationStatus,
+        updateApplication(Document("$set" -> Document(
+          "applicationStatus" -> PHASE2_TESTS_COMPLETED.applicationStatus.toBson,
           s"progress-status.$PHASE2_TESTS_COMPLETED" -> true,
-          s"progress-status-timestamp.$PHASE2_TESTS_COMPLETED" -> DateTime.now()
+          s"progress-status-timestamp.$PHASE2_TESTS_COMPLETED" -> dateTimeToBson(DateTime.now())
         )), AppId).futureValue
         phase2TestRepo.nextTestForReminder(Phase2SecondReminder).futureValue mustBe None
       }
@@ -335,7 +334,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       "we already sent a second reminder" in {
         createApplicationWithAllFields(UserId, AppId, TestAccountId,"frameworkId", "SUBMITTED").futureValue
         phase2TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
-        updateApplication(BSONDocument("$set" -> BSONDocument(
+        updateApplication(Document("$set" -> Document(
           s"progress-status.$PHASE2_TESTS_SECOND_REMINDER" -> true
         )), AppId).futureValue
         phase2TestRepo.nextTestForReminder(Phase2SecondReminder).futureValue mustBe None

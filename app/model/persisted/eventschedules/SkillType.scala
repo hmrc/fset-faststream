@@ -16,8 +16,9 @@
 
 package model.persisted.eventschedules
 
-import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
-import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
+import org.mongodb.scala.bson.BsonValue
+import play.api.libs.json.{Format, JsString, JsSuccess, JsValue}
+import uk.gov.hmrc.mongo.play.json.Codecs
 
 import scala.language.implicitConversions
 
@@ -37,9 +38,14 @@ object SkillType extends Enumeration {
     def writes(skillType: SkillType) = JsString(skillType.toString)
   }
 
+//  implicit class BsonOps(val skillType: SkillType) extends AnyVal {
+//    def toBson: BsonValue = Codecs.toBson(skillType)
+//  }
+
+/*
   implicit object BSONEnumHandler extends BSONHandler[BSONString, SkillType] {
     def read(doc: BSONString) = SkillType.withName(doc.value.toUpperCase())
 
     def write(skillType: SkillType) = BSON.write(skillType.toString)
-  }
+  }*/
 }

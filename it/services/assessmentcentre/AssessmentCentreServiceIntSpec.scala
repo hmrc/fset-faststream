@@ -1,6 +1,5 @@
 package services.assessmentcentre
 
-import java.io.File
 import com.typesafe.config.{Config, ConfigFactory}
 import factories.ITDateTimeFactoryMock
 import model.ApplicationStatus._
@@ -13,17 +12,19 @@ import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import net.ceedubs.ficus.readers.ValueReader
 import org.joda.time.DateTime
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.collection.immutable.Document
 import play.api.Logging
-import play.api.libs.json.{JsObject, Json}
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers
+import play.api.libs.json.Json
 import repositories._
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.assessmentcentre.AssessmentCentreMongoRepository
 import services.evaluation.AssessmentCentreEvaluationEngineImpl
 import services.passmarksettings.AssessmentCentrePassMarkSettingsService
 import testkit.MongoRepositorySpec
+import uk.gov.hmrc.mongo.play.json.Codecs
 
+import java.io.File
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
@@ -199,28 +200,30 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
     logger.info(s"$prefix expected: AssessmentScoreEvaluationTestExpectation = ${data.expected}")
   }
 
-  // Import required for mongo db interaction
-  import ImplicitBSONHandlers._
+  val appCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
+
   private def createApplicationInDb(appId: String) = Try(findApplicationInDb(appId)) match {
     case Success(_) =>
       val msg = s"Found application in database for applicationId $appId - this should not happen. Are you using a unique applicationId ?"
       throw new IllegalStateException(msg)
     case Failure(_) =>
       logger.info(s"$prefix creating db application")
-      applicationRepo.collection.insert(ordered = false).one(
-        BSONDocument(
+      appCollection.insertOne(
+        Document(
           "applicationId" -> appId,
           "userId" -> ("user" + appId)
         )
-      ).futureValue
+      ).toFuture().map( _ => () )
+
       for {
         _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED)
       } yield ()
   }
 
+/*
   private def findApplicationInDb(appId: String): ActualResult = {
     import com.github.nscala_time.time.OrderingImplicits.DateTimeOrdering
-    import repositories.BSONDateTimeHandler
+//    import repositories.BSONDateTimeHandler
 
     applicationRepo.collection.find(BSONDocument("applicationId" -> appId), projection = Option.empty[JsObject])
       .one[BSONDocument].map { docOpt =>
@@ -256,6 +259,49 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
 
       ActualResult(applicationStatusOpt, latestProgressStatusOpt, passmarkVersionOpt, competencyAverageOpt, schemesEvaluationOpt)
     }.futureValue
+  }*/
+//scalastyle:off
+  private def findApplicationInDb(appId: String): ActualResult = {
+    import com.github.nscala_time.time.OrderingImplicits.DateTimeOrdering
+    //    import repositories.BSONDateTimeHandler
+
+    (applicationRepo.collection.find[Document](Document("applicationId" -> appId)).headOption() map { docOpt =>
+      require(docOpt.isDefined)
+      val document = docOpt.get
+
+      val applicationStatusOpt = document.get("applicationStatus").map { bson =>
+        Codecs.fromBson[ApplicationStatus](bson)
+      }
+      val applicationStatus = applicationStatusOpt.get
+      val progressStatusTimeStampDocOpt = document.get("progress-status-timestamp").map(_.asDocument())
+      val latestProgressStatusOpt = progressStatusTimeStampDocOpt.flatMap { timestamps =>
+        import scala.collection.JavaConverters._
+        val convertedTimestamps = timestamps.entrySet().asScala.toSet
+        val relevantProgressStatuses = convertedTimestamps.filter( _.getKey.startsWith(applicationStatus) )
+        import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+        val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element => Codecs.fromBson[DateTime](timestamps.get(element.getKey)))
+        Try(ProgressStatuses.nameToProgressStatus(latestRelevantProgressStatus.getKey)).toOption
+      }
+
+      /* Reactive mongo version:
+      val evaluationDocOpt = (for {
+        testGroupsOpt <- document.getAs[BSONDocument]("testGroups")
+        fsacOpt <- testGroupsOpt.getAs[BSONDocument]("FSAC")
+        evaluationOpt <- fsacOpt.getAs[BSONDocument]("evaluation")
+      } yield evaluationOpt).get
+       */
+
+      val evaluationDocOpt = document.get("testGroups")
+        .map(_.asDocument().get("FSAC"))
+        .map(_.asDocument().get("evaluation"))
+        .map(_.asDocument())
+
+      val passmarkVersionOpt = evaluationDocOpt.map(_.get("passmarkVersion").asString().getValue)
+      val competencyAverageOpt = evaluationDocOpt.map(bson => Codecs.fromBson[CompetencyAverageResult](bson.get("competency-average")))
+      val schemesEvaluationOpt = evaluationDocOpt.map(bson => Codecs.fromBson[Seq[SchemeEvaluationResult]](bson.get("schemes-evaluation")))
+
+      ActualResult(applicationStatusOpt, latestProgressStatusOpt, passmarkVersionOpt, competencyAverageOpt, schemesEvaluationOpt)
+    }).futureValue
   }
 
   private def assert(testCase: File, testName: String, expected: AssessmentScoreEvaluationTestExpectation, actual: ActualResult) = {

@@ -85,7 +85,7 @@ class ApplicationController @Inject() (cc: ControllerComponents,
 
   def findApplicationStatusDetails(applicationId: String) = Action.async { implicit request =>
     appRepository.findStatus(applicationId).map { result =>
-      Ok(Json.toJson(result))
+      Ok(Json.toJson(result.toExchange))
     }.recover {
       case e: ApplicationNotFound => NotFound(s"cannot retrieve applications status details for application: ${e.id}")
     }

@@ -17,10 +17,10 @@
 package connectors.launchpadgateway.exchangeobjects.in.reviewed
 
 import org.joda.time.{ DateTime, LocalDate }
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
+//import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+//import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
+
 import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class ReviewedCallbackRequest(
   received: DateTime,
@@ -50,7 +50,7 @@ case class ReviewedCallbackRequest(
   private def aggregateScoresForAllQuestion(scoreExtractor: ReviewSectionQuestionRequest => ReviewSectionCriteriaRequest) = {
     (
       BigDecimal(scoreExtractor(latestReviewer.question1).score.getOrElse(0.0)) +
-        BigDecimal(scoreExtractor(latestReviewer.question2).score.getOrElse(0.0))  +
+        BigDecimal(scoreExtractor(latestReviewer.question2).score.getOrElse(0.0)) +
         BigDecimal(scoreExtractor(latestReviewer.question3).score.getOrElse(0.0)) +
         BigDecimal(scoreExtractor(latestReviewer.question4).score.getOrElse(0.0)) +
         BigDecimal(scoreExtractor(latestReviewer.question5).score.getOrElse(0.0)) +
@@ -66,17 +66,56 @@ case class ReviewedCallbackRequest(
     questions.nonEmpty && questions.forall(ques => ques.reviewCriteria1.score.isDefined && ques.reviewCriteria2.score.isDefined)
   }
 
+  def toExchange = ReviewedCallbackRequestExchange(
+    received,
+    candidateId,
+    customCandidateId,
+    interviewId,
+    customInterviewId,
+    customInviteId,
+    deadline,
+    reviews
+  )
 }
 
 object ReviewedCallbackRequest {
   val key = "reviewed"
+
+  // Writing to mongo does not work without this, but with it present the LaunchpadTestsControllerSpec fails to
+  // deserialize the received date correctly when we are in BST + 1. It fails to deal with the + 1 so the date is deserialized 1 hr behind
+  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits.jotDateTimeFormat // Needed to handle storing ISODate format
+
+//  import play.api.libs.json.JodaWrites.DefaultJodaLocalDateWrites // This is needed for LocalDate serialization
+//  import play.api.libs.json.JodaReads.DefaultJodaLocalDateReads   // This is needed for LocalDate serialization
+
+  import play.api.libs.json.JodaWrites._ // This is needed for DateTime and LocalDate serialization
+  import play.api.libs.json.JodaReads._  // This is needed for DateTime and LocalDate serialization
+
   implicit val reviewedCallbackFormat = Json.format[ReviewedCallbackRequest]
-  import repositories.BSONDateTimeHandler
-  import repositories.BSONLocalDateHandler
-  implicit val bsonHandler: BSONHandler[BSONDocument, ReviewedCallbackRequest] = Macros.handler[ReviewedCallbackRequest]
+
+//  import repositories.BSONDateTimeHandler
+//  import repositories.BSONLocalDateHandler
+//  implicit val bsonHandler: BSONHandler[BSONDocument, ReviewedCallbackRequest] = Macros.handler[ReviewedCallbackRequest]
 
   def getLatestReviewed(reviewCallBacks: List[ReviewedCallbackRequest]): Option[ReviewedCallbackRequest] =
     reviewCallBacks.sortWith { (r1, r2) => r1.received.isAfter(r2.received) }.headOption
 
   case class LaunchpadQuestionIsUnscoredException(message: String) extends Exception(message)
+}
+
+case class ReviewedCallbackRequestExchange(
+                                    received: DateTime,
+                                    candidateId: String,
+                                    customCandidateId: String,
+                                    interviewId: Int,
+                                    customInterviewId: Option[String],
+                                    customInviteId: String,
+                                    deadline: LocalDate,
+                                    reviews: ReviewSectionRequest)
+
+object ReviewedCallbackRequestExchange {
+  import play.api.libs.json.JodaWrites._ // This is needed for DateTime and LocalDate serialization
+  import play.api.libs.json.JodaReads._  // This is needed for DateTime and LocalDate serialization
+
+  implicit val reviewedCallbackFormat = Json.format[ReviewedCallbackRequestExchange]
 }

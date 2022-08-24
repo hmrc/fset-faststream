@@ -67,12 +67,12 @@ lazy val microservice = Project(appName, file("."))
   //        "Firstnames.scala" ||
   //       "Lastnames.scala"))
 
-// Temporarily remove due to the following error on jenkins:
-//  [error] java.lang.StackOverflowError
-//  [error]    at scalariform.utils.Utils$.$anonfun$groupBy$1(Utils.scala:38)
-//  .settings(compileScalastyle := scalastyle.in(Compile).toTask("").value,
-//    (compile in Compile) := ((compile in Compile) dependsOn compileScalastyle).value
-//  )
+  // Temporarily remove due to the following error on jenkins:
+  //  [error] java.lang.StackOverflowError
+  //  [error]    at scalariform.utils.Utils$.$anonfun$groupBy$1(Utils.scala:38)
+  //  .settings(compileScalastyle := scalastyle.in(Compile).toTask("").value,
+  //    (compile in Compile) := ((compile in Compile) dependsOn compileScalastyle).value
+  //  )
 
   .settings(
     IntegrationTest / Keys.fork := false,
@@ -83,6 +83,13 @@ lazy val microservice = Project(appName, file("."))
     IntegrationTest / testGrouping := oneForkedJvmPerTest((IntegrationTest / definedTests).value),
     IntegrationTest / parallelExecution := false)
   .settings(resolvers ++= Seq(Resolver.jcenterRepo))
+//  .settings(
+//    resolvers ++= Seq(
+//      Resolver.bintrayRepo("hmrc", "releases"),
+//      Resolver.typesafeRepo("releases"),
+//      Resolver.jcenterRepo
+//    )
+//  )
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
 
 def oneForkedJvmPerTest(tests: Seq[TestDefinition]) =

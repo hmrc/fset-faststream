@@ -16,12 +16,16 @@
 
 package model.persisted.fsb
 
+import org.mongodb.scala.bson.BsonValue
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import uk.gov.hmrc.mongo.play.json.Codecs
 
 case class ScoresAndFeedback(overallScore: Double, feedback: String)
 
 object ScoresAndFeedback {
   implicit val scoresAndFeedbackFormat = Json.format[ScoresAndFeedback]
-  implicit val scoresAndFeedbackHandler = Macros.handler[ScoresAndFeedback]
+
+  implicit class BsonOps(val scoresAndFeedback: ScoresAndFeedback) extends AnyVal {
+    def toBson: BsonValue = Codecs.toBson(scoresAndFeedback)
+  }
 }

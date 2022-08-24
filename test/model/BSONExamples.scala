@@ -16,23 +16,23 @@
 
 package model
 
-import reactivemongo.bson.{ BSONArray, BSONDocument }
+import org.mongodb.scala.bson.{BsonArray, BsonDocument}
 
 object BSONExamples {
   val SubmittedSdipCandidateWithEdipAndOtherInternshipCompleted = {
-    BSONDocument(
+    BsonDocument(
       "_id" -> "58454b6261ae24a4609f0e4f",
       "applicationId" -> "a665043b-8317-4d28-bdf6-086859ac17ff",
       "userId" -> "459b5e72-e004-48ff-9f00-adbddf59d9c4",
       "frameworkId" -> "FastStream-2016",
       "applicationStatus" -> "SUBMITTED",
       "applicationRoute" -> "Sdip",
-      "progress-status" -> BSONDocument(
+      "progress-status" -> BsonDocument(
         "personal-details" -> true,
         "IN_PROGRESS" -> true,
         "scheme-preferences" -> true,
         "assistance-details" -> true,
-        "questionnaire" -> BSONDocument(
+        "questionnaire" -> BsonDocument(
           "start_questionnaire" -> true,
           "education_questionnaire" -> true,
           "diversity_questionnaire" -> true,
@@ -41,7 +41,7 @@ object BSONExamples {
         "preview" -> true,
         "SUBMITTED" -> true
       ),
-      "personal-details" -> BSONDocument(
+      "personal-details" -> BsonDocument(
         "firstName" -> "Breana1",
         "lastName" -> "Bailey1",
         "preferredName" -> "PrefBreana1",
@@ -52,22 +52,22 @@ object BSONExamples {
         "otherInternshipName" -> "Other internship name",
         "otherInternshipYear" -> "2020"
       ),
-      "progress-status-timestamp" -> BSONDocument(
+      "progress-status-timestamp" -> BsonDocument(
         "IN_PROGRESS" -> "2016-12-05T11:11:31.787Z",
         "SUBMITTED" -> "2016-12-05T11:11:31.869Z"
       ),
-      "civil-service-experience-details" -> BSONDocument(
+      "civil-service-experience-details" -> BsonDocument(
         "applicable" -> true,
         "civilServantAndInternshipTypes" -> List("CivilServant")
       ),
-      "scheme-preferences" -> BSONDocument(
-        "schemes" -> BSONArray(
+      "scheme-preferences" -> BsonDocument(
+        "schemes" -> BsonArray(
           "Sdip"
         ),
         "orderAgreed" -> true,
         "eligible" -> true
       ),
-      "assistance-details" -> BSONDocument(
+      "assistance-details" -> BsonDocument(
         "hasDisability" -> "Yes",
         "needsSupportForPhoneInterviewDescription" -> "I need good headphones",
         "needsSupportForPhoneInterview" -> true,
@@ -80,19 +80,19 @@ object BSONExamples {
   }
 
   val SubmittedFsCandidate = {
-    BSONDocument(
+    BsonDocument(
       "_id" -> "58454b6261ae24a4609f0e4f",
       "applicationId" -> "a665043b-8317-4d28-bdf6-086859ac17ff",
       "userId" -> "459b5e72-e004-48ff-9f00-adbddf59d9c4",
       "frameworkId" -> "FastStream-2016",
       "applicationStatus" -> "SUBMITTED",
       "applicationRoute" -> "Faststream",
-      "progress-status" -> BSONDocument(
+      "progress-status" -> BsonDocument(
         "personal-details" -> true,
         "IN_PROGRESS" -> true,
         "scheme-preferences" -> true,
         "assistance-details" -> true,
-        "questionnaire" -> BSONDocument(
+        "questionnaire" -> BsonDocument(
           "start_questionnaire" -> true,
           "education_questionnaire" -> true,
           "diversity_questionnaire" -> true,
@@ -101,17 +101,17 @@ object BSONExamples {
         "preview" -> true,
         "SUBMITTED" -> true
       ),
-      "personal-details" -> BSONDocument(
+      "personal-details" -> BsonDocument(
         "firstName" -> "Breana1",
         "lastName" -> "Bailey1",
         "preferredName" -> "PrefBreana1",
         "dateOfBirth" -> "1981-05-21"
       ),
-      "progress-status-timestamp" -> BSONDocument(
+      "progress-status-timestamp" -> BsonDocument(
         "IN_PROGRESS" -> "2016-12-05T11:11:31.787Z",
         "SUBMITTED" -> "2016-12-05T11:11:31.869Z"
       ),
-      "civil-service-experience-details" -> BSONDocument(
+      "civil-service-experience-details" -> BsonDocument(
         "applicable" -> true,
         "civilServantAndInternshipTypes" -> List("CivilServant", "EDIP", "SDIP", "OtherInternship"),
         "edipYear" -> "2018",
@@ -121,14 +121,14 @@ object BSONExamples {
         "fastPassReceived" -> true,
         "certificateNumber" -> "1234567"
       ),
-      "scheme-preferences" -> BSONDocument(
-        "schemes" -> BSONArray(
+      "scheme-preferences" -> BsonDocument(
+        "schemes" -> BsonArray(
           "Commercial"
         ),
         "orderAgreed" -> true,
         "eligible" -> true
       ),
-      "assistance-details" -> BSONDocument(
+      "assistance-details" -> BsonDocument(
         "hasDisability" -> "Yes",
         "needsSupportForPhoneInterviewDescription" -> "I need good headphones",
         "needsSupportForPhoneInterview" -> true,

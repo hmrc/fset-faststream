@@ -16,14 +16,13 @@
 
 package repositories.csv
 
-import model.report.CandidateProgressReportItem
-import model.{ ApplicationRoute, FSACIndicator }
+import model.FSACIndicator
 import resource._
 //import com.github.ghik.silencer.silent
 import com.google.inject.ImplementedBy
-import javax.inject.{ Inject, Singleton }
-import play.api.{ Application, Play }
+import play.api.Application
 
+import javax.inject.{Inject, Singleton}
 import scala.io.Source
 
 @ImplementedBy(classOf[FSACIndicatorCSVRepositoryImpl])

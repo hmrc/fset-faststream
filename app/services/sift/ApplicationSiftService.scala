@@ -32,8 +32,8 @@ import model.persisted.SchemeEvaluationResult
 import model.persisted.sift.NotificationExpiringSift
 import model.sift.{FixStuckUser, FixUserStuckInSiftEntered, SiftReminderNotice}
 import org.joda.time.DateTime
+import org.mongodb.scala.bson.collection.immutable.Document
 import play.api.Logging
-import reactivemongo.bson.BSONDocument
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.sift.ApplicationSiftRepository
@@ -236,6 +236,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     }
   }
 
+  // TODO: these 2 functions are the same. Need to fix this.
   private def sdipFaststreamSchemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId] = {
     case s if s.result != Withdrawn.toString && s.result != Red.toString => s.schemeId
   }
@@ -256,7 +257,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
   }
 
   private def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult,
-                                       updateBuilder: (Seq[SchemeEvaluationResult], Seq[SchemeEvaluationResult]) => Seq[BSONDocument]
+                                       updateBuilder: (Seq[SchemeEvaluationResult], Seq[SchemeEvaluationResult]) => Seq[Document]
                                       ): Future[Unit] = {
     (for {
       currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(applicationId)
@@ -271,7 +272,8 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
 
   private def buildSiftSettableFields(result: SchemeEvaluationResult, schemeFilter: PartialFunction[SchemeEvaluationResult, SchemeId])
                                      (currentSchemeStatus: Seq[SchemeEvaluationResult], currentSiftEvaluation: Seq[SchemeEvaluationResult]
-                                     ): Seq[BSONDocument] = {
+                                     ): Seq[Document] = {
+
     val newSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, result :: Nil)
     val candidatesGreenSchemes = currentSchemeStatus.collect { schemeFilter }
     val candidatesSiftableSchemes = schemeRepo.siftableAndEvaluationRequiredSchemeIds.filter(s => candidatesGreenSchemes.contains(s))
@@ -281,9 +283,9 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
       maybeSetProgressStatus(siftedSchemes.toSet, candidatesSiftableSchemes.toSet),
       maybeFailSdip(result),
       maybeSetSdipFaststreamProgressStatus(newSchemeStatus, siftedSchemes, candidatesSiftableSchemes)
-    ).foldLeft(Seq.empty[BSONDocument]) { (acc, doc) =>
+    ).foldLeft(Seq.empty[Document]) { (acc, doc) =>
       doc match {
-        case _ @BSONDocument.empty => acc
+        case d: Document if d.isEmpty => acc
         case _ => acc :+ doc
       }
     }
@@ -293,7 +295,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     if (candidatesSiftableSchemes subsetOf siftedSchemes) {
       progressStatusOnlyBSON(ProgressStatuses.SIFT_COMPLETED)
     } else {
-      BSONDocument.empty
+      Document.empty
     }
   }
 
@@ -301,7 +303,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     if (Scheme.isSdip(result.schemeId) && result.result == Red.toString) {
       progressStatusOnlyBSON(ProgressStatuses.SDIP_FAILED_AT_SIFT)
     } else {
-      BSONDocument.empty
+      Document.empty
     }
   }
 
@@ -327,12 +329,12 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     if ((!sdipNeededSiftEvaluation || sdipPassedSift) && faststreamSchemesRedOrWithdrawn) {
       progressStatusOnlyBSON(ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN)
     } else {
-      BSONDocument.empty
+      Document.empty
     }
   }
 
-  def findStuckUsersCalculateCorrectProgressStatus(currentSchemeStatus: Seq[SchemeEvaluationResult],
-                                                   currentSiftEvaluation: Seq[SchemeEvaluationResult]): BSONDocument = {
+  private def findStuckUsersCalculateCorrectProgressStatus(currentSchemeStatus: Seq[SchemeEvaluationResult],
+                                                   currentSiftEvaluation: Seq[SchemeEvaluationResult]): Document = {
 
     val candidatesGreenSchemes = currentSchemeStatus.collect { schemeFilter }
     val candidatesSiftableSchemes = schemeRepo.siftableAndEvaluationRequiredSchemeIds.filter(s => candidatesGreenSchemes.contains(s))
@@ -349,7 +351,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
         potentialStuckUser.currentSiftEvaluation
       )
 
-      (potentialStuckUser, !result.isEmpty)
+      (potentialStuckUser, result.nonEmpty)
     })
   }
 

@@ -16,15 +16,15 @@
 
 package controllers
 
-import javax.inject.{ Inject, Singleton }
 import model.questionnaire.Question._
 import model.questionnaire.Questionnaire
-import play.api.mvc.{ Action, ControllerComponents }
+import play.api.mvc.ControllerComponents
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import services.AuditService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton

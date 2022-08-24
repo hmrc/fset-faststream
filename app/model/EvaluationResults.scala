@@ -18,7 +18,7 @@ package model
 
 import model.persisted.SchemeEvaluationResult
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+//import reactivemongo.bson.Macros
 
 object EvaluationResults {
 
@@ -107,7 +107,7 @@ object EvaluationResults {
 
   object CompetencyAverageResult {
     implicit val competencyAverageResultFormat = Json.format[CompetencyAverageResult]
-    implicit val competencyAverageResultHandler = Macros.handler[CompetencyAverageResult]
+//    implicit val competencyAverageResultHandler = Macros.handler[CompetencyAverageResult]
   }
 
   case class AssessmentEvaluationResult(

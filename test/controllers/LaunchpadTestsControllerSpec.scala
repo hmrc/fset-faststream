@@ -17,16 +17,15 @@
 package controllers
 
 import java.util.UUID
-
 import connectors.launchpadgateway.exchangeobjects.in._
 import connectors.launchpadgateway.exchangeobjects.in.reviewed._
-import org.joda.time.{ DateTime, LocalDate }
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.joda.time.{DateTime, DateTimeZone, LocalDate}
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import services.onlinetesting.phase3.{ Phase3TestCallbackService, Phase3TestService }
+import services.onlinetesting.phase3.{Phase3TestCallbackService, Phase3TestService}
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -66,52 +65,52 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
     )
 
     val sampleSetupProcessCallback = SetupProcessCallbackRequest(
-      DateTime.now(),
+      DateTime.now(DateTimeZone.UTC),
       sampleCandidateId,
       sampleCustomCandidateId,
       sampleInterviewId,
-      None,
+      customInterviewId = None,
       sampleInviteId,
       sampleDeadline
     )
 
     val sampleViewPracticeQuestionCallback = ViewPracticeQuestionCallbackRequest(
-      DateTime.now(),
+      DateTime.now(DateTimeZone.UTC),
       sampleCandidateId,
       sampleCustomCandidateId,
       sampleInterviewId,
-      None,
+      customInterviewId = None,
       sampleInviteId,
       sampleDeadline
     )
 
     val sampleQuestionCallback = QuestionCallbackRequest(
-      DateTime.now(),
+      DateTime.now(DateTimeZone.UTC),
       sampleCandidateId,
       sampleCustomCandidateId,
       sampleInterviewId,
-      None,
+      customInterviewId = None,
       sampleInviteId,
       sampleDeadline,
       "1"
     )
 
     val sampleFinalCallback = FinalCallbackRequest(
-      DateTime.now(),
+      DateTime.now(DateTimeZone.UTC),
       sampleCandidateId,
       sampleCustomCandidateId,
       sampleInterviewId,
-      None,
+      customInterviewId = None,
       sampleInviteId,
       sampleDeadline
     )
 
     val sampleFinishedCallback = FinishedCallbackRequest(
-      DateTime.now(),
+      DateTime.now(DateTimeZone.UTC),
       sampleCandidateId,
       sampleCustomCandidateId,
       sampleInterviewId,
-      None,
+      customInterviewId = None,
       sampleInviteId,
       sampleDeadline
     )
@@ -119,23 +118,17 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
     private def generateReviewedQuestion(i: Int, score1: Option[Double], score2: Option[Double]) = {
       ReviewSectionQuestionRequest(
         i,
-        ReviewSectionCriteriaRequest(
-          "numeric",
-          score1
-        ),
-        ReviewSectionCriteriaRequest(
-          "numeric",
-          score2
-        )
+        ReviewSectionCriteriaRequest("numeric", score1),
+        ReviewSectionCriteriaRequest("numeric", score2)
       )
     }
 
     val sampleReviewedCallback = ReviewedCallbackRequest(
-      DateTime.now(),
+      DateTime.now(DateTimeZone.UTC),
       sampleCandidateId,
       sampleCustomCandidateId,
       sampleInterviewId,
-      None,
+      customInterviewId = None,
       sampleInviteId,
       sampleDeadline,
       ReviewSectionRequest(
@@ -149,7 +142,7 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
             "John Smith",
             "john.smith@mailinator.com",
             Some("This is a comment"),
-            generateReviewedQuestion(1, None, None),
+            generateReviewedQuestion(1, score1 = None, score2 = None),
             generateReviewedQuestion(2, Some(1.0), Some(2.0)),
             generateReviewedQuestion(3, Some(3.0), Some(2.0)),
             generateReviewedQuestion(4, Some(4.0), Some(2.5)),
@@ -157,11 +150,10 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
             generateReviewedQuestion(6, Some(4.5), Some(1.0)),
             generateReviewedQuestion(7, Some(3.5), Some(5.0)),
             generateReviewedQuestion(8, Some(2.5), Some(2.5))
-          ), None, None
+          ), reviewer2 = None, reviewer3 = None
         )
       )
     )
-
   }
 
   "setup-process callback" should {
@@ -178,7 +170,6 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
     "respond ok" in new TestFixture {
       val response = controllerUnderTest.viewPracticeQuestionCallback(sampleInviteId)(fakeRequest(sampleViewPracticeQuestionCallback))
       status(response) mustBe OK
-
       verify(mockPhase3TestCallbackService, times(1)).recordCallback(any[ViewPracticeQuestionCallbackRequest]())
     }
   }
@@ -187,7 +178,6 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
     "respond ok" in new TestFixture {
       val response = controllerUnderTest.questionCallback(sampleInviteId)(fakeRequest(sampleQuestionCallback))
       status(response) mustBe OK
-
       verify(mockPhase3TestCallbackService, times(1)).recordCallback(any[QuestionCallbackRequest]())
     }
   }
@@ -196,8 +186,8 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
     "respond ok" in new TestFixture {
       val response = controllerUnderTest.finalCallback(sampleInviteId)(fakeRequest(sampleFinalCallback))
       status(response) mustBe OK
-
-      verify(mockPhase3TestCallbackService, times(1)).recordCallback(eqTo(sampleFinalCallback))(any[HeaderCarrier](), any[RequestHeader]())
+      verify(mockPhase3TestCallbackService, times(1))
+        .recordCallback(eqTo(sampleFinalCallback))(any[HeaderCarrier](), any[RequestHeader]())
     }
   }
 
@@ -205,8 +195,8 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
     "respond ok" in new TestFixture {
       val response = controllerUnderTest.finishedCallback(sampleInviteId)(fakeRequest(sampleFinishedCallback))
       status(response) mustBe OK
-
-      verify(mockPhase3TestCallbackService, times(1)).recordCallback(eqTo(sampleFinishedCallback))(any[HeaderCarrier](), any[RequestHeader]())
+      verify(mockPhase3TestCallbackService, times(1))
+        .recordCallback(eqTo(sampleFinishedCallback))(any[HeaderCarrier](), any[RequestHeader]())
     }
   }
 
@@ -214,8 +204,8 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
     "respond ok" in new TestFixture {
       val response = controllerUnderTest.reviewedCallback(sampleInviteId)(fakeRequest(sampleReviewedCallback))
       status(response) mustBe OK
-
-      verify(mockPhase3TestCallbackService, times(1)).recordCallback(eqTo(sampleReviewedCallback))(any[HeaderCarrier](), any[RequestHeader]())
+      verify(mockPhase3TestCallbackService, times(1))
+        .recordCallback(eqTo(sampleReviewedCallback))(any[HeaderCarrier](), any[RequestHeader]())
     }
   }
 }

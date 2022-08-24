@@ -17,7 +17,6 @@
 package model.persisted.fsac
 
 import play.api.libs.json.{ Json, OFormat }
-import reactivemongo.bson.Macros
 
 case class AnalysisExercise(
   fileId: String
@@ -25,5 +24,4 @@ case class AnalysisExercise(
 
 object AnalysisExercise {
   implicit val analysisExerciseFormat: OFormat[AnalysisExercise] = Json.format[AnalysisExercise]
-  implicit val analysisExerciseHandler = Macros.handler[AnalysisExercise]
 }

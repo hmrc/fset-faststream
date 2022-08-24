@@ -16,8 +16,9 @@
 
 package model.persisted
 
+import org.mongodb.scala.bson.collection.immutable.Document
 import play.api.libs.json.Json
-import reactivemongo.bson.BSONDocument
+import repositories.subDocRoot
 
 case class ExpiringOnlineTest(
   applicationId: String,
@@ -26,13 +27,14 @@ case class ExpiringOnlineTest(
 )
 
 object ExpiringOnlineTest {
-   def fromBson(doc: BSONDocument): ExpiringOnlineTest = {
-    val applicationId = doc.getAs[String]("applicationId").get
-    val userId = doc.getAs[String]("userId").get
-    val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
-    val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
+  def fromBson(doc: Document): ExpiringOnlineTest = {
+    val applicationId = doc.get("applicationId").get.asString().getValue
+    val userId = doc.get("userId").get.asString().getValue
+    val personalDetailsRoot = subDocRoot("personal-details")(doc).get
+    val preferredName = personalDetailsRoot.get("preferredName").asString().getValue
     ExpiringOnlineTest(applicationId, userId, preferredName)
   }
 
   implicit val expiringOnlineTestFormats = Json.format[ExpiringOnlineTest]
+  implicit val bsonReader = this
 }

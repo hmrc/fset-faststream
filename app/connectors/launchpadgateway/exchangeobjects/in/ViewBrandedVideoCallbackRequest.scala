@@ -17,10 +17,11 @@
 package connectors.launchpadgateway.exchangeobjects.in
 
 import org.joda.time.{ DateTime, LocalDate }
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
+//import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+//import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
+import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format
 import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
+//import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class ViewBrandedVideoCallbackRequest(received: DateTime, candidateId: String, customCandidateId: String, interviewId: Int,
   customInterviewId: Option[String], customInviteId: String, deadline: LocalDate)
@@ -29,7 +30,7 @@ object ViewBrandedVideoCallbackRequest {
   // Should match LaunchpadTestsCallback case class
   val key = "viewBrandedVideo"
   implicit val viewBrandedVideoCallbackRequestFormat = Json.format[ViewBrandedVideoCallbackRequest]
-  import repositories.BSONDateTimeHandler
-  import repositories.BSONLocalDateHandler
-  implicit val bsonHandler: BSONHandler[BSONDocument, ViewBrandedVideoCallbackRequest] = Macros.handler[ViewBrandedVideoCallbackRequest]
+//  import repositories.BSONDateTimeHandler
+//  import repositories.BSONLocalDateHandler
+//  implicit val bsonHandler: BSONHandler[BSONDocument, ViewBrandedVideoCallbackRequest] = Macros.handler[ViewBrandedVideoCallbackRequest]
 }

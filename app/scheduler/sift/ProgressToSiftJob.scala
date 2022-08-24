@@ -17,11 +17,13 @@
 package scheduler.sift
 
 import config.WaitingScheduledJobConfig
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.ProgressStatuses
 import model.command.ApplicationForSift
-import play.api.{ Configuration, Logging }
-import play.modules.reactivemongo.ReactiveMongoComponent
+import play.api.{Configuration, Logging}
+import uk.gov.hmrc.mongo.MongoComponent
+//import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 //import scheduler.sift.ProgressToSiftJobConfig.conf
@@ -32,7 +34,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class ProgressToSiftJobImpl @Inject() (val siftService: ApplicationSiftService,
-                                       val mongoComponent: ReactiveMongoComponent,
+                                       val mongoComponent: MongoComponent,
                                        val config: ProgressToSiftJobConfig
                                       ) extends ProgressToSiftJob {
   //  val siftService = ApplicationSiftService

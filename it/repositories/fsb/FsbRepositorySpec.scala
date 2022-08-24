@@ -16,20 +16,24 @@
 
 package repositories.fsb
 
-import factories.{ ITDateTimeFactoryMock, UUIDFactory }
-import model.EvaluationResults.{ Green, Red }
+import factories.{ITDateTimeFactoryMock, UUIDFactory}
+import model.EvaluationResults.{Amber, Green, Red}
+import model.Exceptions.{ApplicationNotFound, CannotUpdateRecord}
 import model.command.ApplicationForProgression
 import model.persisted._
-import model.{ ApplicationStatus, ProgressStatuses, SchemeId }
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers
+import model.persisted.fsb.ScoresAndFeedback
+import model._
+import org.joda.time.DateTime
+import org.mongodb.scala.bson.BsonDocument
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.Projections
 import repositories.application.GeneralApplicationMongoRepository
-import repositories.{ CollectionNames, CommonRepository }
+import repositories.{CollectionNames, CommonRepository}
 import testkit.MongoRepositorySpec
 
-class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonRepository {
+import scala.util.Try
 
-  import ImplicitBSONHandlers._
+class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonRepository {
 
   val collectionName = CollectionNames.APPLICATION
 //  lazy val repository = repositories.fsbRepository
@@ -37,9 +41,23 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
 //  lazy val applicationRepo = repositories.applicationRepository
   lazy val applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, appConfig, mongo)
 
+//  val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
+  def insert(doc: Document) = applicationCollection.insertOne(doc).toFuture()
+
+  def createApplication(applicationRouteOpt: Option[ApplicationRoute.Value] = None): String = {
+      val applicationId = generateUUID()
+      val applicationRoute = applicationRouteOpt.getOrElse(ApplicationRoute.Faststream)
+      insert(Document(
+        "applicationId" -> applicationId,
+        "userId" -> generateUUID(),
+        "applicationRoute" -> applicationRoute.toBson
+      )).futureValue
+      applicationId
+  }
+
   "all failed at fsb" must {
     "select candidates that are all red at FSB" in {
-      val evalResults = SchemeEvaluationResult("GovernmentOperationalResearchService", "Red") ::
+      val evalResults = SchemeEvaluationResult("GovernmentOperationalResearchService", Red.toString) ::
         SchemeEvaluationResult("Commercial", "Red") :: Nil
       insertApplicationAtFsbWithStatus("appId", evalResults, ProgressStatuses.FSB_FAILED)
 
@@ -53,19 +71,19 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
   "save" must {
     "create new FSB entry in testGroup if it doesn't exist" in {
       val applicationId = createApplication()
-      val schemeEvaluationResult = SchemeEvaluationResult("GovernmentOperationalResearchService", "Green")
+      val schemeEvaluationResult = SchemeEvaluationResult("GovernmentOperationalResearchService", Green.toString)
       repository.saveResult(applicationId, schemeEvaluationResult).futureValue
       val Some(result) = repository.findByApplicationId(applicationId).futureValue
       val fsbTestGroup = FsbTestGroup(List(schemeEvaluationResult))
       result mustBe fsbTestGroup
     }
 
-    "add to result array if result array already exist" in {
+    "add to result array if result array already exists" in {
       val applicationId = createApplication()
-      val schemeEvaluationResult1 = SchemeEvaluationResult("GovernmentOperationalResearchService", "Red")
+      val schemeEvaluationResult1 = SchemeEvaluationResult("GovernmentOperationalResearchService", Red.toString)
       repository.saveResult(applicationId, schemeEvaluationResult1).futureValue
 
-      val schemeEvaluationResult2 = SchemeEvaluationResult("GovernmentSocialResearchService", "Green")
+      val schemeEvaluationResult2 = SchemeEvaluationResult("GovernmentSocialResearchService", Green.toString)
       repository.saveResult(applicationId, schemeEvaluationResult2).futureValue
 
       val Some(result) = repository.findByApplicationId(applicationId).futureValue
@@ -76,10 +94,10 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
     "not overwrite existing value" in {
       val applicationId = createApplication()
       val scheme: String = "GovernmentSocialResearchService"
-      repository.saveResult(applicationId, SchemeEvaluationResult(scheme, "Green")).futureValue
+      repository.saveResult(applicationId, SchemeEvaluationResult(scheme, Green.toString)).futureValue
 
       val exception = intercept[Exception] {
-        repository.saveResult(applicationId,  SchemeEvaluationResult(scheme, "Red")).futureValue
+        repository.saveResult(applicationId,  SchemeEvaluationResult(scheme, Red.toString)).futureValue
       }
       exception.getMessage must include(s"Fsb evaluation already done for application $applicationId for scheme $scheme")
     }
@@ -88,7 +106,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
   "findByApplicationId" must {
     "return the FsbTestGroup for the given applicationId" in {
       val applicationId = createApplication()
-      val schemeEvaluationResult = SchemeEvaluationResult("GovernmentOperationalResearchService", "Green")
+      val schemeEvaluationResult = SchemeEvaluationResult("GovernmentOperationalResearchService", Green.toString)
       repository.saveResult(applicationId, schemeEvaluationResult).futureValue
       val Some(result) = repository.findByApplicationId(applicationId).futureValue
       val fsbTestGroup = FsbTestGroup(List(schemeEvaluationResult))
@@ -116,7 +134,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       repository.saveResult(applicationId2, schemeEvaluationResult.copy(result = Red.toString)).futureValue
       repository.saveResult(applicationId3, schemeEvaluationResult).futureValue
 
-      val result = repository.findByApplicationIds(List(applicationId1, applicationId2, applicationId3), None).futureValue
+      val result = repository.findByApplicationIds(List(applicationId1, applicationId2, applicationId3), schemeId = None).futureValue
 
       val expectedResult = List(
         FsbSchemeResult(applicationId1, List(schemeEvaluationResult)),
@@ -139,21 +157,414 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
         List(applicationId1, applicationId2), Some(SchemeId("GovernmentOperationalResearchService"))).futureValue
 
       val expectedResult = List(
-        FsbSchemeResult(applicationId1, List(SchemeEvaluationResult("GovernmentOperationalResearchService", "Red"))),
-        FsbSchemeResult(applicationId2, List(SchemeEvaluationResult("GovernmentOperationalResearchService", "Green")))
+        FsbSchemeResult(applicationId1, List(SchemeEvaluationResult("GovernmentOperationalResearchService", Red.toString))),
+        FsbSchemeResult(applicationId2, List(SchemeEvaluationResult("GovernmentOperationalResearchService", Green.toString)))
       )
 
       result must contain theSameElementsAs expectedResult
     }
   }
 
-  //private def applicationRepository = new GeneralApplicationMongoRepository(DateTimeFactory, cubiksGatewayConfig)
+  "nextApplicationReadyForFsbEvaluation" must {
+    "process no candidates" in {
+      repository.nextApplicationReadyForFsbEvaluation.futureValue mustBe None
+    }
 
-  private def createApplication(): String = {
-    val applicationId = generateUUID()
-    applicationRepo.collection.insert(ordered = false)
-      .one(BSONDocument("applicationId" -> applicationId, "userId" -> generateUUID())).futureValue
-    applicationId
+    "process eligible candidates" in {
+      val appId = createApplication()
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FSB_RESULT_ENTERED).futureValue
+      repository.nextApplicationReadyForFsbEvaluation.futureValue mustBe Some(UniqueIdentifier(appId))
+    }
+
+    "not process candidates who are eligible for job offer" in {
+      val appId = createApplication()
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FSB_RESULT_ENTERED).futureValue
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER).futureValue
+      repository.nextApplicationReadyForFsbEvaluation.futureValue mustBe None
+    }
+  }
+
+  "nextApplicationForFsbOrJobOfferProgression" must {
+    "process no candidates" in {
+      repository.nextApplicationForFsbOrJobOfferProgression(10).futureValue mustBe Seq.empty
+    }
+
+    "process assessment centre passed candidate" in {
+      val appId = createApplication()
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ASSESSMENT_CENTRE_PASSED).futureValue
+      applicationRepo.updateCurrentSchemeStatus(appId, Seq(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString))).futureValue
+      repository.nextApplicationForFsbOrJobOfferProgression(10)
+        .futureValue mustBe Seq(
+        ApplicationForProgression(
+          appId,
+          ApplicationStatus.ASSESSMENT_CENTRE,
+          currentSchemeStatus = Seq(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString))
+        )
+      )
+    }
+
+    "process specific assessment centre passed candidate" in {
+      val appId = createApplication()
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ASSESSMENT_CENTRE_PASSED).futureValue
+      applicationRepo.updateCurrentSchemeStatus(appId, Seq(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString))).futureValue
+      repository.nextApplicationForFsbOrJobOfferProgression(appId)
+        .futureValue mustBe Seq(
+        ApplicationForProgression(
+          appId,
+          ApplicationStatus.ASSESSMENT_CENTRE,
+          currentSchemeStatus = Seq(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString))
+        )
+      )
+    }
+
+    "process specific candidate which doesn't exist" in {
+      repository.nextApplicationForFsbOrJobOfferProgression("missingAppId").futureValue mustBe Seq.empty
+    }
+
+    "process fsb failed candidate" in {
+      val appId = createApplication()
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FSB_FAILED).futureValue
+      applicationRepo.updateCurrentSchemeStatus(appId, Seq(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString))).futureValue
+      repository.nextApplicationForFsbOrJobOfferProgression(10)
+        .futureValue mustBe Seq(
+        ApplicationForProgression(
+          appId,
+          ApplicationStatus.FSB,
+          currentSchemeStatus = Seq(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString))
+        )
+      )
+    }
+
+    "process sdip faststream assessment centre failed sdip green candidate" in {
+      val appId = createApplication(Some(ApplicationRoute.SdipFaststream))
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN_NOTIFIED).futureValue
+      applicationRepo.updateCurrentSchemeStatus(appId,
+        Seq(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString), SchemeEvaluationResult(SchemeId("Sdip"), Green.toString))
+      ).futureValue
+      repository.nextApplicationForFsbOrJobOfferProgression(10)
+        .futureValue mustBe Seq(
+        ApplicationForProgression(
+          appId,
+          ApplicationStatus.ASSESSMENT_CENTRE,
+          currentSchemeStatus = Seq(
+            SchemeEvaluationResult(SchemeId("Commercial"), Red.toString),
+            SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
+          )
+        )
+      )
+    }
+
+    "process sift faststream failed sdip green candidate" in {
+      val appId = createApplication(Some(ApplicationRoute.SdipFaststream))
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN).futureValue
+      applicationRepo.updateCurrentSchemeStatus(appId,
+        Seq(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString), SchemeEvaluationResult(SchemeId("Sdip"), Green.toString))
+      ).futureValue
+      repository.nextApplicationForFsbOrJobOfferProgression(10)
+        .futureValue mustBe Seq(
+        ApplicationForProgression(
+          appId,
+          ApplicationStatus.SIFT,
+          currentSchemeStatus = Seq(
+            SchemeEvaluationResult(SchemeId("Commercial"), Red.toString),
+            SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
+          )
+        )
+      )
+    }
+
+    "process sdip faststream sift completed sdip green candidate" in {
+      val appId = createApplication(Some(ApplicationRoute.SdipFaststream))
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_COMPLETED).futureValue
+      applicationRepo.updateCurrentSchemeStatus(appId,
+        Seq(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString), SchemeEvaluationResult(SchemeId("Sdip"), Green.toString))
+      ).futureValue
+      repository.nextApplicationForFsbOrJobOfferProgression(10)
+        .futureValue mustBe Seq(
+        ApplicationForProgression(
+          appId,
+          ApplicationStatus.SIFT,
+          currentSchemeStatus = Seq(
+            SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
+            SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
+          )
+        )
+      )
+    }
+
+    "process sdip sift completed sdip green candidate" in {
+      val appId = createApplication(Some(ApplicationRoute.Sdip))
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_COMPLETED).futureValue
+      applicationRepo.updateCurrentSchemeStatus(appId,
+        Seq(SchemeEvaluationResult(SchemeId("Sdip"), Green.toString))
+      ).futureValue
+      repository.nextApplicationForFsbOrJobOfferProgression(10)
+        .futureValue mustBe Seq(
+        ApplicationForProgression(
+          appId,
+          ApplicationStatus.SIFT,
+          currentSchemeStatus = Seq(
+            SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
+          )
+        )
+      )
+    }
+
+    "not return sdip sift completed sdip red candidate" in {
+      val appId = createApplication(Some(ApplicationRoute.Sdip))
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_COMPLETED).futureValue
+      applicationRepo.updateCurrentSchemeStatus(appId,
+        Seq(SchemeEvaluationResult(SchemeId("Sdip"), Red.toString))
+      ).futureValue
+      repository.nextApplicationForFsbOrJobOfferProgression(10).futureValue mustBe Nil
+    }
+
+    "process edip sift completed edip green candidate" in {
+      val appId = createApplication(Some(ApplicationRoute.Edip))
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_COMPLETED).futureValue
+      applicationRepo.updateCurrentSchemeStatus(appId,
+        Seq(SchemeEvaluationResult(SchemeId("Edip"), Green.toString))
+      ).futureValue
+      repository.nextApplicationForFsbOrJobOfferProgression(10)
+        .futureValue mustBe Seq(
+        ApplicationForProgression(
+          appId,
+          ApplicationStatus.SIFT,
+          currentSchemeStatus = Seq(
+            SchemeEvaluationResult(SchemeId("Edip"), Green.toString)
+          )
+        )
+      )
+    }
+
+    "not return edip sift completed edip red candidate" in {
+      val appId = createApplication(Some(ApplicationRoute.Edip))
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_COMPLETED).futureValue
+      applicationRepo.updateCurrentSchemeStatus(appId,
+        Seq(SchemeEvaluationResult(SchemeId("Edip"), Red.toString))
+      ).futureValue
+      repository.nextApplicationForFsbOrJobOfferProgression(10).futureValue mustBe Nil
+    }
+  }
+
+  "progressToFsb" must {
+    "handle a candidate which does not exist" in {
+      val appToProgress = ApplicationForProgression("appId", ApplicationStatus.ASSESSMENT_CENTRE, currentSchemeStatus = Nil)
+      val result = repository.progressToFsb(appToProgress).failed.futureValue
+      result mustBe a[CannotUpdateRecord]
+    }
+
+    "process a candidate" in {
+      val appId = createApplication()
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ASSESSMENT_CENTRE_PASSED).futureValue
+      val progressResponse = applicationRepo.findProgress(appId).futureValue
+      progressResponse.fsb.awaitingAllocation mustBe false
+      val appToProgress = ApplicationForProgression(appId, ApplicationStatus.ASSESSMENT_CENTRE, currentSchemeStatus = Nil)
+      repository.progressToFsb(appToProgress).futureValue
+      val progressResponseAfterUpdate = applicationRepo.findProgress(appId).futureValue
+      progressResponseAfterUpdate.fsb.awaitingAllocation mustBe true
+    }
+  }
+
+  "progressToJobOffer" must {
+    "handle a candidate which does not exist" in {
+      val appToProgress = ApplicationForProgression("appId", ApplicationStatus.FSB, currentSchemeStatus = Nil)
+      val result = repository.progressToJobOffer(appToProgress).failed.futureValue
+      result mustBe a[CannotUpdateRecord]
+    }
+
+    "process a candidate" in {
+      val appId = createApplication()
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FSB_PASSED).futureValue
+      val progressResponse = applicationRepo.findProgress(appId).futureValue
+      progressResponse.eligibleForJobOffer.eligible mustBe false
+      val appToProgress = ApplicationForProgression(appId, ApplicationStatus.FSB, currentSchemeStatus = Nil)
+      repository.progressToJobOffer(appToProgress).futureValue
+      val progressResponseAfterUpdate = applicationRepo.findProgress(appId).futureValue
+      progressResponseAfterUpdate.eligibleForJobOffer.eligible mustBe true
+    }
+  }
+
+  "nextApplicationFailedAtFsb" must {
+    "deal with no eligible candidates" in {
+      repository.nextApplicationFailedAtFsb(10).futureValue mustBe Nil
+    }
+
+    "deal with eligible fsb failed candidates" in {
+      val appId = createApplication()
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FSB_FAILED).futureValue
+      applicationRepo.updateCurrentSchemeStatus(appId,
+        Seq(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString))
+      ).futureValue
+      repository.nextApplicationFailedAtFsb(10)
+        .futureValue mustBe Seq(
+        ApplicationForProgression(
+          appId,
+          ApplicationStatus.FSB,
+          currentSchemeStatus = Seq(
+            SchemeEvaluationResult(SchemeId("Commercial"), Red.toString)
+          )
+        )
+      )
+    }
+
+    "ignore candidates who are eligible for job offer" in {
+      val appId = createApplication()
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FSB_FAILED).futureValue
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER).futureValue
+      applicationRepo.updateCurrentSchemeStatus(appId,
+        Seq(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString))
+      ).futureValue
+      repository.nextApplicationFailedAtFsb(10).futureValue mustBe Nil
+    }
+
+    "ignore candidates who are all fsbs and fsacs failed" in {
+      val appId = createApplication()
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FSB_FAILED).futureValue
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED).futureValue
+      applicationRepo.updateCurrentSchemeStatus(appId,
+        Seq(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString))
+      ).futureValue
+      repository.nextApplicationFailedAtFsb(10).futureValue mustBe Nil
+    }
+
+    "ignore candidates who have a green in css but are fsb failed" in {
+      val appId = createApplication()
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FSB_FAILED).futureValue
+      applicationRepo.updateCurrentSchemeStatus(appId,
+        Seq(
+          SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
+          SchemeEvaluationResult(SchemeId("DiplomaticService"), Red.toString)
+        )
+      ).futureValue
+      repository.nextApplicationFailedAtFsb(10).futureValue mustBe Nil
+    }
+
+    "ignore candidates who have an amber in css but are fsb failed" in {
+      val appId = createApplication()
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FSB_FAILED).futureValue
+      applicationRepo.updateCurrentSchemeStatus(appId,
+        Seq(
+          SchemeEvaluationResult(SchemeId("Commercial"), Amber.toString),
+          SchemeEvaluationResult(SchemeId("DiplomaticService"), Red.toString)
+        )
+      ).futureValue
+      repository.nextApplicationFailedAtFsb(10).futureValue mustBe Nil
+    }
+
+    "handle a specific candidate who does not exist" in {
+      repository.nextApplicationFailedAtFsb("appId").futureValue mustBe Nil
+    }
+
+    "handle a specific eligible candidate" in {
+      val appId = createApplication()
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FSB_FAILED).futureValue
+      applicationRepo.updateCurrentSchemeStatus(appId,
+        Seq(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString))
+      ).futureValue
+      repository.nextApplicationFailedAtFsb(appId)
+        .futureValue mustBe Seq(
+        ApplicationForProgression(
+          appId,
+          ApplicationStatus.FSB,
+          currentSchemeStatus = Seq(
+            SchemeEvaluationResult(SchemeId("Commercial"), Red.toString)
+          )
+        )
+      )
+    }
+  }
+
+  "removeTestGroup" must {
+    "handle a candidate that does not exist" in {
+      val result = repository.removeTestGroup("appId").failed.futureValue
+      result mustBe an[ApplicationNotFound]
+    }
+
+    "remove as expected" in {
+      val appId = createApplication()
+      val schemeEvaluationResult = SchemeEvaluationResult("Commercial", Green.toString)
+      repository.saveResult(appId, schemeEvaluationResult).futureValue
+      repository.findByApplicationId(appId).futureValue mustBe Some(FsbTestGroup(List(schemeEvaluationResult)))
+      repository.removeTestGroup(appId).futureValue
+      repository.findByApplicationId(appId).futureValue mustBe None
+    }
+  }
+
+  "saveScoresAndFeedback" must {
+    "handle a candidate who does not exist" in {
+      val result = repository.saveScoresAndFeedback("appId", ScoresAndFeedback(overallScore = 10.0d, feedback = "")).failed.futureValue
+      result mustBe an[CannotUpdateRecord]
+    }
+
+    "handle a candidate who does exist" in {
+      val appId = createApplication()
+      val scoresAndFeedback = ScoresAndFeedback(overallScore = 10.0d, feedback = "test feedback")
+      repository.saveScoresAndFeedback(appId, scoresAndFeedback).futureValue
+      repository.findScoresAndFeedback(appId).futureValue mustBe Some(scoresAndFeedback)
+    }
+  }
+
+  "findScoresAndFeedback" must {
+    "handle a candidate who does not exist" in {
+      repository.findScoresAndFeedback("appId").futureValue mustBe None
+    }
+
+    "fetch multiple candidates" in {
+      val appId1 = createApplication()
+      val appId2 = createApplication()
+      val scoresAndFeedback = ScoresAndFeedback(overallScore = 10.0d, feedback = "test feedback")
+      repository.saveScoresAndFeedback(appId1, scoresAndFeedback).futureValue
+      val result = repository.findScoresAndFeedback(List(appId1, appId2)).futureValue
+      result mustBe Map(appId1 -> Some(scoresAndFeedback), appId2 -> None)
+    }
+  }
+
+  "updateResult" must {
+    "update the data as expected" in {
+      val appId = createApplication()
+      val commercialPassed = SchemeEvaluationResult("Commercial", Green.toString)
+      repository.saveResult(appId, commercialPassed).futureValue
+      repository.findByApplicationId(appId).futureValue mustBe Some(FsbTestGroup(List(commercialPassed)))
+
+      val commercialFailed = SchemeEvaluationResult("Commercial", Red.toString)
+      repository.updateResult(appId, commercialFailed).futureValue
+      repository.findByApplicationId(appId).futureValue mustBe Some(FsbTestGroup(List(commercialFailed)))
+    }
+  }
+
+  "addFsbProgressStatuses" must {
+    "must provide progress statuses" in {
+      // Note failed.futureValue does not work for this scenario so use intercept instead
+      intercept[IllegalArgumentException] {
+        repository.addFsbProgressStatuses("appId", Nil)
+      }
+    }
+
+    def isFsbProgressStatusStored(applicationId: String, progressStatus: String) = {
+      applicationCollection.find[BsonDocument](Document("applicationId" -> applicationId))
+        .projection(Projections.include("fsb-progress-status")).headOption().map {
+        _.flatMap { doc =>
+          Try(doc.get("fsb-progress-status").asDocument().get(progressStatus).asBoolean().getValue).toOption
+        }.getOrElse(false)
+      }
+    }
+
+    def getFsbProgressStatusTimestamp(applicationId: String, progressStatus: String) = {
+      applicationCollection.find[BsonDocument](Document("applicationId" -> applicationId))
+        .projection(Projections.include("fsb-progress-status-timestamp")).headOption().map {
+        _.flatMap { doc =>
+          Try(doc.get("fsb-progress-status-timestamp").asDocument().get(progressStatus).asDateTime().getValue).toOption
+        }
+      }.map( _.map (instant => new DateTime(instant)))
+    }
+
+    "add data as expected" in {
+      val appId = createApplication()
+      val now = DateTime.now
+      repository.addFsbProgressStatuses(appId, List("test" -> now)).futureValue
+      isFsbProgressStatusStored(appId, "test").futureValue mustBe true
+      getFsbProgressStatusTimestamp(appId, "test").futureValue mustBe Some(now)
+    }
   }
 }
-

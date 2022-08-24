@@ -70,13 +70,15 @@ class AuthProviderClient @Inject() (http: WSHttpT, config: MicroserviceAppConfig
 
   private lazy val url = config.userManagementConfig.url
 
-  // TODO: only used in tdg an calls the fasttrack version in auth-provider
+  // TODO: only used in tdg and calls the fasttrack version in auth-provider
   def addUser(email: String, password: String, firstName: String,
               lastName: String, roles: List[UserRole])(implicit hc: HeaderCarrier): Future[UserResponse] = {
     http.POST[AddUserRequest, HttpResponse](s"$url/$urlPrefix/add",
       AddUserRequest(email.toLowerCase, password, firstName, lastName, roles.map(_.name), ServiceName)).map {
       case response if response.status == OK => response.json.as[UserResponse]
       case response if response.status == CONFLICT => throw EmailTakenException()
+      case errorResponse =>
+        throw new ConnectorException(s"Error response received when attempting to add new user: $firstName $lastName - $errorResponse")
     }
   }
 
@@ -119,6 +121,10 @@ class AuthProviderClient @Inject() (http: WSHttpT, config: MicroserviceAppConfig
       case response if response.status == OK => ()
       case response if response.status == GONE => throw new TokenExpiredException()
       case response if response.status == NOT_FOUND => throw new TokenEmailPairInvalidException()
+      case errorResponse =>
+        throw new ConnectorException(
+          s"Error response ${errorResponse.status} received when calling activate - body:${errorResponse.body}"
+        )
     }
   }
 

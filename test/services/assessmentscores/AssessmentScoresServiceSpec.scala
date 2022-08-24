@@ -320,7 +320,7 @@ trait AssessmentScoresServiceSpec extends BaseServiceSpec {
           UniqueIdentifier(EventExamples.e1WithSession.sessions.head.id)
         )
         val expectedResult = AssessmentScoresFindResponse(expectedCandidate,
-          Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise))
+          Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise.toExchange))
         result mustBe expectedResult
       }
   }
@@ -376,7 +376,7 @@ trait AssessmentScoresServiceSpec extends BaseServiceSpec {
           UniqueIdentifier(EventExamples.e1WithSession.sessions.head.id)
         )
         val expectedResult = List(AssessmentScoresFindResponse(expectedCandidate,
-          Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise)))
+          Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise.toExchange)))
         result mustBe expectedResult
       }
   }

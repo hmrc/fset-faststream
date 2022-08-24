@@ -19,14 +19,15 @@ package scheduler.onlinetesting
 import com.google.inject.name.Named
 import common.FutureEx
 import config.ScheduledJobConfig
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.Phase
 import model.Phase.Phase
-import model.exchange.passmarksettings.{ PassMarkSettings, Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings }
+import model.exchange.passmarksettings.{PassMarkSettings, Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings}
 import model.persisted.ApplicationReadyForEvaluation
 import play.api.libs.json.Format
-import play.api.{ Configuration, Logging }
-import play.modules.reactivemongo.ReactiveMongoComponent
+import play.api.{Configuration, Logging}
+import uk.gov.hmrc.mongo.MongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 
@@ -36,7 +37,7 @@ import scala.util.{ Failure, Success, Try }
 @Singleton
 class EvaluatePhase1ResultJob @Inject() (@Named("Phase1EvaluationService")
                                          val evaluateService: EvaluateOnlineTestResultService[Phase1PassMarkSettings],
-                                         val mongoComponent: ReactiveMongoComponent,
+                                         val mongoComponent: MongoComponent,
                                          val config: EvaluatePhase1ResultJobConfig
                                         ) extends EvaluateOnlineTestResultJob[Phase1PassMarkSettings] {
   val phase = Phase.PHASE1
@@ -45,7 +46,7 @@ class EvaluatePhase1ResultJob @Inject() (@Named("Phase1EvaluationService")
 @Singleton
 class EvaluatePhase2ResultJob @Inject() (@Named("Phase2EvaluationService")
                                          val evaluateService: EvaluateOnlineTestResultService[Phase2PassMarkSettings],
-                                         val mongoComponent: ReactiveMongoComponent,
+                                         val mongoComponent: MongoComponent,
                                          val config: EvaluatePhase2ResultJobConfig
                                         ) extends EvaluateOnlineTestResultJob[Phase2PassMarkSettings] {
   val phase = Phase.PHASE2
@@ -54,7 +55,7 @@ class EvaluatePhase2ResultJob @Inject() (@Named("Phase2EvaluationService")
 @Singleton
 class EvaluatePhase3ResultJob @Inject() (@Named("Phase3EvaluationService")
                                          val evaluateService: EvaluateOnlineTestResultService[Phase3PassMarkSettings],
-                                         val mongoComponent: ReactiveMongoComponent,
+                                         val mongoComponent: MongoComponent,
                                          val config: EvaluatePhase3ResultJobConfig
                                         ) extends EvaluateOnlineTestResultJob[Phase3PassMarkSettings] {
   val phase = Phase.PHASE3
@@ -82,7 +83,7 @@ abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettings](implicit jsonF
   val errorLog = (app: ApplicationReadyForEvaluation) =>
     s"${app.applicationId}, psi order ids: ${app.activePsiTests.map(_.orderId).mkString(",")}"
 
-  private def evaluateInBatch(apps: List[ApplicationReadyForEvaluation],
+  private def evaluateInBatch(apps: Seq[ApplicationReadyForEvaluation],
                               passmarkSettings: T)(implicit ec: ExecutionContext): Future[Unit] = {
     // Warn level so we see it in the prod logs
     val applicationIds = apps.map ( _.applicationId ).mkString(",")

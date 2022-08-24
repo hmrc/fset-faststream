@@ -21,7 +21,7 @@ import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
 import play.api.libs.json.JodaReads._  // This is needed for DateTime serialization
 import play.api.libs.json._
-import reactivemongo.bson.Macros
+//import reactivemongo.bson.Macros
 import model.exchange.{ Event => ExchangeEvent }
 
 case class Event(
@@ -44,10 +44,10 @@ case class Event(
 
 object Event {
   import model.persisted.Play25DateCompatibility.epochMillisDateFormat
-  import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONDateTimeHandler }
+//  import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONDateTimeHandler }
 
   implicit val eventFormat: OFormat[Event] = Json.format[Event]
-  implicit val eventHandler = Macros.handler[Event]
+//  implicit val eventHandler = Macros.handler[Event]
 
   implicit def eventsToDistinctT(events: Seq[Event]) = new {
     def distinctTransform[S, T](uniqueness: Event => S, transformer: Event => T)

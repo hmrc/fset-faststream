@@ -21,10 +21,10 @@ import model.AllocationStatuses.AllocationStatus
 import model.persisted.eventschedules.SkillType.SkillType
 import org.joda.time.LocalDate
 import play.api.libs.json.{ Json, OFormat }
-import reactivemongo.bson.Macros
+//import reactivemongo.bson.Macros
 import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
 import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import repositories.{ BSONDateTimeHandler, BSONLocalDateHandler, BSONLocalTimeHandler, BSONMapStringIntHandler }
+//import repositories.{ BSONDateTimeHandler, BSONLocalDateHandler, BSONLocalTimeHandler, BSONMapStringIntHandler }
 
 trait Allocation {
   def id: String
@@ -50,7 +50,6 @@ case class AssessorAllocation(
 
 object AssessorAllocation {
   implicit val assessorAllocationFormat: OFormat[AssessorAllocation] = Json.format[AssessorAllocation]
-  implicit val assessorAllocationHandler = Macros.handler[AssessorAllocation]
 
   def fromCommand(o: model.command.AssessorAllocations, opLockVersion: String = UUIDFactory.generateUUID()): Seq[AssessorAllocation] = {
     o.allocations.map { a => AssessorAllocation(a.id, o.eventId, a.status, a.allocatedAs.name, opLockVersion) }
@@ -80,7 +79,7 @@ case class CandidateAllocation(
 
 object CandidateAllocation {
   implicit val candidateAllocationFormat: OFormat[CandidateAllocation] = Json.format[CandidateAllocation]
-  implicit val candidateAllocationHandler = Macros.handler[CandidateAllocation]
+//  implicit val candidateAllocationHandler = Macros.handler[CandidateAllocation]
 
   def fromCommand(allocations: model.command.CandidateAllocations): Seq[CandidateAllocation] = {
     val opLockVersion = UUIDFactory.generateUUID()

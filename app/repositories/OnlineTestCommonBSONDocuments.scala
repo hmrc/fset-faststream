@@ -17,19 +17,20 @@
 package repositories
 
 import model.ProgressStatuses.ProgressStatus
-import reactivemongo.bson.{ BSONArray, BSONDocument }
+import org.mongodb.scala.bson.BsonArray
+import org.mongodb.scala.bson.collection.immutable.Document
 
 trait OnlineTestCommonBSONDocuments {
   def inviteToTestBSON[P <: ProgressStatus](targetProgressStatus: P) = {
-    BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> targetProgressStatus.applicationStatus.toString),
-      BSONDocument(s"progress-status.${targetProgressStatus.key}" -> true),
-      BSONDocument("$or" -> BSONArray(
-        BSONDocument("$and" -> BSONArray(
-          BSONDocument("assistance-details.needsSupportForOnlineAssessment" -> false),
-          BSONDocument("assistance-details.needsSupportAtVenue" -> false),
-          BSONDocument("assistance-details.guaranteedInterview" -> BSONDocument("$ne" -> true)))),
-        BSONDocument("assistance-details.adjustmentsConfirmed" -> true)
+    Document("$and" -> BsonArray(
+      Document("applicationStatus" -> targetProgressStatus.applicationStatus.toString),
+      Document(s"progress-status.${targetProgressStatus.key}" -> true),
+      Document("$or" -> BsonArray(
+        Document("$and" -> BsonArray(
+          Document("assistance-details.needsSupportForOnlineAssessment" -> false),
+          Document("assistance-details.needsSupportAtVenue" -> false),
+          Document("assistance-details.guaranteedInterview" -> Document("$ne" -> true)))),
+        Document("assistance-details.adjustmentsConfirmed" -> true)
         ))
       ))
   }

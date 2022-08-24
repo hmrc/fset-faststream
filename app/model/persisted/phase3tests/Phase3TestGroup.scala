@@ -16,12 +16,11 @@
 
 package model.persisted.phase3tests
 
-import model.persisted.{ PassmarkEvaluation, TestProfile }
+import model.persisted.{PassmarkEvaluation, TestProfile}
 import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
+import org.mongodb.scala.bson.BsonValue
 import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
+import uk.gov.hmrc.mongo.play.json.Codecs
 
 case class Phase3TestGroup(expirationDate: DateTime,
                            tests: List[LaunchpadTest],
@@ -31,10 +30,26 @@ case class Phase3TestGroup(expirationDate: DateTime,
     require(activeTests.size == 1, "There is more than one active launchpad test. First token: " + activeTests.head.token)
     activeTests.head
   }
+  def toExchange = Phase3TestGroupExchange(expirationDate, tests.map(_.toExchange), evaluation)
+
 }
 
 object Phase3TestGroup {
+  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format
   implicit val phase3TestGroupFormat = Json.format[Phase3TestGroup]
-  import repositories.BSONDateTimeHandler
-  implicit val bsonHandler: BSONHandler[BSONDocument, Phase3TestGroup] = Macros.handler[Phase3TestGroup]
+
+  implicit class BsonOps(val phase3TestGroup: Phase3TestGroup) extends AnyVal {
+    def toBson: BsonValue = Codecs.toBson(phase3TestGroup)
+  }
+}
+
+case class Phase3TestGroupExchange(
+                                  expirationDate: DateTime,
+                                  tests: List[LaunchpadTestExchange],
+                                  evaluation: Option[PassmarkEvaluation] = None) extends TestProfile[LaunchpadTestExchange]
+
+object Phase3TestGroupExchange {
+  import play.api.libs.json.JodaWrites._
+  import play.api.libs.json.JodaReads._
+  implicit val phase3TestGroupFormat = Json.format[Phase3TestGroupExchange]
 }

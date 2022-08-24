@@ -51,7 +51,10 @@ class CampaignManagementController @Inject() (cc: ControllerComponents,
   }
 
   def removeCollection(name: String): Action[AnyContent] = Action.async { implicit request =>
-    campaignManagementService.removeCollection(name).map(_ => Ok)
+    campaignManagementService.removeCollection(name).map {
+      case Right(_) => Ok
+      case Left(ex) => BadRequest(s"Error trying to remove collection $name: ${ex.getMessage}")
+    }
   }
 
   def setTScore = Action.async(parse.json) { implicit request =>

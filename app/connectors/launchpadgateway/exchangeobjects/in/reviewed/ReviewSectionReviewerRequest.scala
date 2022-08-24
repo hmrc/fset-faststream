@@ -17,7 +17,7 @@
 package connectors.launchpadgateway.exchangeobjects.in.reviewed
 
 import play.api.libs.json.Json
-import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
+//import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
 
 case class ReviewSectionReviewerRequest(name: String, email: String, comment: Option[String],
   question1: ReviewSectionQuestionRequest,
@@ -31,5 +31,5 @@ case class ReviewSectionReviewerRequest(name: String, email: String, comment: Op
 
 object ReviewSectionReviewerRequest {
   implicit val reviewSectionReviewerFormat = Json.format[ReviewSectionReviewerRequest]
-  implicit val bsonHandler: BSONHandler[BSONDocument, ReviewSectionReviewerRequest] = Macros.handler[ReviewSectionReviewerRequest]
+//  implicit val bsonHandler: BSONHandler[BSONDocument, ReviewSectionReviewerRequest] = Macros.handler[ReviewSectionReviewerRequest]
 }

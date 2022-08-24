@@ -684,7 +684,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
     when(tokenFactoryMock.generateUUID()).thenReturn(uuid)
     when(dateTimeFactoryMock.nowLocalTimeZone).thenReturn(invitationDate)
-    when(phase1TestRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]]))
+    when(phase1TestRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]], any[Boolean]))
       .thenReturnAsync()
 
     when(appConfigMock.onlineTestsGatewayConfig).thenReturn(gatewayConfig)
@@ -717,6 +717,6 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       any[HeaderCarrier]
     )).thenReturnAsync()
     when(phase1TestRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile])).thenReturnAsync()
-    when(phase1TestRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]])).thenReturnAsync()
+    when(phase1TestRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]], any[Boolean])).thenReturnAsync()
   }
 }

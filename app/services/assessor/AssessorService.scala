@@ -251,7 +251,7 @@ class AssessorService @Inject() (assessorRepository: AssessorRepository,
     assessorRepository.findUnavailableAssessors(skills, location, date)
   }
 
-  def assessorToEventsMappingSince(eventsSince: DateTime): Future[Map[Assessor, Seq[Event]]] = {
+  private[assessor] def assessorToEventsMappingSince(eventsSince: DateTime): Future[Map[Assessor, Seq[Event]]] = {
     val newlyCreatedEvents = eventsService.getEventsCreatedAfter(eventsSince)
     val assessorToEventsTableFut: Future[Seq[(Assessor, Event)]] = newlyCreatedEvents.flatMap { events =>
       val mapping = events.map { event =>

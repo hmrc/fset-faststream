@@ -16,8 +16,9 @@
 
 package model
 
+import org.mongodb.scala.bson.BsonValue
 import play.api.libs.json.{Format, JsString, JsSuccess, JsValue}
-import reactivemongo.bson.{BSON, BSONHandler, BSONString}
+import uk.gov.hmrc.mongo.play.json.Codecs
 
 object AllocationStatuses extends Enumeration {
   type AllocationStatus = Value
@@ -29,8 +30,12 @@ object AllocationStatuses extends Enumeration {
     def writes(myEnum: AllocationStatus) = JsString(myEnum.toString)
   }
 
+/*
   implicit object BSONEnumHandler extends BSONHandler[BSONString, AllocationStatus] {
     def read(doc: BSONString) = AllocationStatuses.withName(doc.value.toUpperCase())
     def write(stats: AllocationStatus) = BSON.write(stats.toString)
+  }*/
+  implicit class BsonOps(val applicationStatus: AllocationStatus) extends AnyVal {
+    def toBson: BsonValue = Codecs.toBson(applicationStatus)
   }
 }

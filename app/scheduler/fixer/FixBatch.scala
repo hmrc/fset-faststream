@@ -35,7 +35,7 @@ object RequiredFixes {
 
   /**
     * If a further fix is needed, add it to the list. If not needed remove it from the list and possibly
-    * remove it's implementation.
+    * remove its implementation.
     */
   val allFixes = PassToPhase2 :: PassToPhase1TestPassed :: ResetPhase1TestInvitedSubmitted ::
     AddMissingPhase2ResultReceived :: Nil

@@ -16,8 +16,10 @@
 
 package model.persisted
 
+import org.mongodb.scala.bson.BsonValue
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import uk.gov.hmrc.mongo.play.json.Codecs
+//import reactivemongo.bson.Macros
 
 case class PassmarkEvaluation(passmarkVersion: String,
                               previousPhasePassMarkVersion: Option[String],
@@ -27,5 +29,9 @@ case class PassmarkEvaluation(passmarkVersion: String,
 
 object PassmarkEvaluation {
   implicit val passmarkEvaluationFormat = Json.format[PassmarkEvaluation]
-  implicit val passmarkEvaluationHandler = Macros.handler[PassmarkEvaluation]
+//  implicit val passmarkEvaluationHandler = Macros.handler[PassmarkEvaluation]
+
+  implicit class BsonOps(val passmarkEvaluation: PassmarkEvaluation) extends AnyVal {
+    def toBson: BsonValue = Codecs.toBson(passmarkEvaluation)
+  }
 }

@@ -16,8 +16,6 @@
 
 package connectors
 
-import java.util.UUID
-
 import model.TestAdjustment
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization

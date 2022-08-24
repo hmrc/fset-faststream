@@ -16,13 +16,9 @@
 
 package model.persisted.phase3tests
 
-import connectors.launchpadgateway.exchangeobjects.in.SetupProcessCallbackRequest
 import model.persisted.Test
 import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class LaunchpadTest(interviewId: Int,
                          usedForResults: Boolean,
@@ -36,10 +32,45 @@ case class LaunchpadTest(interviewId: Int,
                          completedDateTime: Option[DateTime],
                          callbacks: LaunchpadTestCallbacks,
                          invigilatedAccessCode: Option[String] = None
-                     ) extends Test
+                     ) extends Test {
+  def toExchange = {
+    LaunchpadTestExchange(interviewId,
+                          usedForResults,
+                          testProvider,
+                          testUrl,
+                          token,
+                          candidateId,
+                          customCandidateId,
+                          invitationDate,
+                          startedDateTime,
+                          completedDateTime,
+                          callbacks.toExchange,
+                          invigilatedAccessCode
+    )
+  }
+}
 
 object LaunchpadTest {
+  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format
   implicit val launchpadTestFormat = Json.format[LaunchpadTest]
-  import repositories.BSONDateTimeHandler
-  implicit val bsonHandler: BSONHandler[BSONDocument, LaunchpadTest] = Macros.handler[LaunchpadTest]
+}
+
+case class LaunchpadTestExchange(interviewId: Int,
+                                 usedForResults: Boolean,
+                                 testProvider: String = "launchpad",
+                                 testUrl: String,
+                                 token: String,
+                                 candidateId: String,
+                                 customCandidateId: String,
+                                 invitationDate: DateTime,
+                                 startedDateTime: Option[DateTime],
+                                 completedDateTime: Option[DateTime],
+                                 callbacks: LaunchpadTestCallbacksExchange,
+                                 invigilatedAccessCode: Option[String] = None
+                                ) extends Test
+
+object LaunchpadTestExchange {
+  import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+  import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
+  implicit val launchpadTestFormat = Json.format[LaunchpadTestExchange]
 }

@@ -210,7 +210,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
           s"http://www.foo.com/test/interview/fset-fast-stream/online-tests/phase3/complete/$expectedCustomInviteId"
         )
       ))
-      verify(p3TestRepositoryMock).resetTestProfileProgresses(any(), any())
+      verify(p3TestRepositoryMock).resetTestProfileProgresses(any(), any(), any())
     }
   }
 
@@ -253,7 +253,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
           phase3TestGroupNotCompleted.expirationDate.toLocalDate //,
         )
       ))
-      verify(p3TestRepositoryMock).resetTestProfileProgresses(any(), any())
+      verify(p3TestRepositoryMock).resetTestProfileProgresses(any(), any(), any())
     }
   }
 
@@ -296,7 +296,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
           testTestGroup.expirationDate.toLocalDate
         )
       ))
-      verify(p3TestRepositoryMock).resetTestProfileProgresses(any(), any())
+      verify(p3TestRepositoryMock).resetTestProfileProgresses(any(), any(), any())
     }
   }
 
@@ -662,7 +662,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     def noTestGroupMocks = {
       when(p3TestRepositoryMock.getTestGroup(any())).thenReturn(Future.successful(None))
       when(p3TestRepositoryMock.insertOrUpdateTestGroup(any(), any())).thenReturn(Future.successful(()))
-      when(p3TestRepositoryMock.resetTestProfileProgresses(any(), any())).thenReturn(Future.successful(()))
+      when(p3TestRepositoryMock.resetTestProfileProgresses(any(), any(), any())).thenReturn(Future.successful(()))
       when(appRepositoryMock.removeProgressStatuses(any(), any())).thenReturn(Future.successful(()))
       when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(
         ProgressResponse("appId")
@@ -707,7 +707,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       // Extensions
       when(p3TestRepositoryMock.updateGroupExpiryTime(any(), any(), any())).thenReturn(Future.successful(()))
-      when(p3TestRepositoryMock.resetTestProfileProgresses(any(), any())).thenReturn(Future.successful(()))
+      when(p3TestRepositoryMock.resetTestProfileProgresses(any(), any(), any())).thenReturn(Future.successful(()))
       when(appRepositoryMock.removeProgressStatuses(any(), any())).thenReturn(Future.successful(()))
       when(launchpadGatewayClientMock.extendDeadline(any())).thenReturn(Future.successful(()))
       when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(ProgressResponse("appId")))
@@ -730,9 +730,8 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       // Extensions
       when(p3TestRepositoryMock.updateGroupExpiryTime(any(), any(), any())).thenReturn(Future.successful(()))
-      when(p3TestRepositoryMock.resetTestProfileProgresses(any(), any())).thenReturn(Future.successful(()))
       when(p3TestRepositoryMock.insertOrUpdateTestGroup(any(), any())).thenReturn(Future.successful(()))
-      when(p3TestRepositoryMock.resetTestProfileProgresses(any(), any())).thenReturn(Future.successful(()))
+      when(p3TestRepositoryMock.resetTestProfileProgresses(any(), any(), any())).thenReturn(Future.successful(()))
       when(p3TestRepositoryMock.getTestGroup(any())).thenReturn(Future.successful(Some(phase3TestGroupNotCompleted)))
       when(appRepositoryMock.removeProgressStatuses(any(), any())).thenReturn(Future.successful(()))
       when(launchpadGatewayClientMock.extendDeadline(any())).thenReturn(Future.successful(()))

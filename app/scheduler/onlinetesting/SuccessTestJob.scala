@@ -18,11 +18,12 @@ package scheduler.onlinetesting
 
 import com.google.inject.name.Named
 import config.ScheduledJobConfig
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model._
 import play.api.Configuration
 import play.api.mvc.RequestHeader
-import play.modules.reactivemongo.ReactiveMongoComponent
+import uk.gov.hmrc.mongo.MongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
@@ -32,7 +33,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class SuccessPhase1TestJob @Inject() (@Named("Phase1OnlineTestService") val service: OnlineTestService,
-                                      val mongoComponent: ReactiveMongoComponent,
+                                      val mongoComponent: MongoComponent,
                                       val config: SuccessPhase1TestJobConfig
                                      ) extends SuccessTestJob {
   //  override val service = Phase1TestService
@@ -43,7 +44,7 @@ class SuccessPhase1TestJob @Inject() (@Named("Phase1OnlineTestService") val serv
 
 @Singleton
 class SuccessPhase3TestJob @Inject() (@Named("Phase3OnlineTestService") val service: OnlineTestService,
-                                      val mongoComponent: ReactiveMongoComponent,
+                                      val mongoComponent: MongoComponent,
                                       val config: SuccessPhase3TestJobConfig
                                      ) extends SuccessTestJob {
   //  override val service = Phase3TestService
@@ -54,7 +55,7 @@ class SuccessPhase3TestJob @Inject() (@Named("Phase3OnlineTestService") val serv
 
 @Singleton
 class SuccessPhase3SdipFsTestJob @Inject() (@Named("Phase3OnlineTestService") val service: OnlineTestService,
-                                            val mongoComponent: ReactiveMongoComponent,
+                                            val mongoComponent: MongoComponent,
                                             val config: SuccessPhase3SdipFsTestJobConfig
                                            ) extends SuccessTestJob {
   //  override val service = Phase3TestService

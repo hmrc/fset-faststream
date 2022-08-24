@@ -17,7 +17,7 @@
 package model
 
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+//import reactivemongo.bson.Macros
 
 case class Preferences(
   firstLocation: LocationPreference,
@@ -42,5 +42,5 @@ case class Preferences(
 
 object Preferences {
   implicit val jsonFormat = Json.format[Preferences]
-  implicit val bsonFormat = Macros.handler[Preferences]
+//  implicit val bsonFormat = Macros.handler[Preferences]
 }

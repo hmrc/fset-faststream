@@ -24,7 +24,11 @@ object AssessmentScoresExerciseExamples {
   val Example2 = getExample(1.5)
   val Example3 = getExample(2)
   val Example4 = getExample(2.5)
+  val ExampleNoFractions = getExampleNoFractions
   lazy val dateTimeNow = DateTime.now(DateTimeZone.UTC)
+
+//  dateTimeFactory.nowLocalTimeZone
+
   lazy val updatedBy = UniqueIdentifier.randomUniqueIdentifier
 
   private def getExample(baseValue: Double): AssessmentScoresExercise = {
@@ -33,6 +37,36 @@ object AssessmentScoresExerciseExamples {
     val leadingScore = Some(baseValue + 0.2)
     val buildingScore = Some(baseValue + 0.3)
     val averageScore = Some(baseValue + 0.4)
+
+    AssessmentScoresExercise(
+      attended = true,
+      Some(SeeingTheBigPictureScores(strategicScore, strategicScore, strategicScore, strategicScore, strategicScore)),
+      averageScore,
+      Some("feedback1"),
+      Some(MakingEffectiveDecisionsScores(analysisScore, analysisScore, analysisScore, analysisScore)),
+      averageScore,
+      Some("feedback2"),
+      Some(CommunicatingAndInfluencingScores(leadingScore, leadingScore, leadingScore, leadingScore, leadingScore)),
+      averageScore,
+      Some("feedback3"),
+      Some(WorkingTogetherDevelopingSelfAndOtherScores(buildingScore, buildingScore, buildingScore,
+        buildingScore, buildingScore, buildingScore)),
+      averageScore,
+      Some("feedback4"),
+      updatedBy,
+      Some(dateTimeNow),
+      Some(dateTimeNow),
+      Some(UniqueIdentifier.randomUniqueIdentifier.toString())
+    )
+  }
+
+  private def getExampleNoFractions: AssessmentScoresExercise = {
+    val baseValue = 2.0
+    val strategicScore = Some(baseValue)
+    val analysisScore = Some(baseValue)
+    val leadingScore = Some(baseValue)
+    val buildingScore = Some(baseValue)
+    val averageScore = Some(baseValue)
 
     AssessmentScoresExercise(
       attended = true,

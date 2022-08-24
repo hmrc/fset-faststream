@@ -20,7 +20,8 @@ import config.WaitingScheduledJobConfig
 
 import javax.inject.{Inject, Singleton}
 import play.api.{Configuration, Logging}
-import play.modules.reactivemongo.ReactiveMongoComponent
+import uk.gov.hmrc.mongo.MongoComponent
+//import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.application.FsbService
 import services.sift.ApplicationSiftService
@@ -29,7 +30,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SiftFailureJob @Inject() (service: ApplicationSiftService,
-                                val mongoComponent: ReactiveMongoComponent,
+                                val mongoComponent: MongoComponent,
                                 val config: SiftFailureJobConfig
                                ) extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] {
   //  val service: ApplicationSiftService = ApplicationSiftService
@@ -49,7 +50,7 @@ class SiftFailureJobConfig @Inject() (config: Configuration) extends BasicJobCon
 
 @Singleton
 class FsbOverallFailureJob @Inject() (service: FsbService,
-                                      val mongoComponent: ReactiveMongoComponent,
+                                      val mongoComponent: MongoComponent,
                                       val config: FsbOverallFailureJobConfig
                                      ) extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {
   //  val service = FsbService

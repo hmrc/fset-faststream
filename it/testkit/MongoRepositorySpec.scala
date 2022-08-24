@@ -21,26 +21,23 @@ import com.kenshoo.play.metrics.PlayModule
 import config.MicroserviceAppConfig
 import org.joda.time.DateTime
 import org.joda.time.Seconds._
+import org.mongodb.scala.Document
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Span}
 import org.scalatestplus.play.PlaySpec
-import play.api.{Application, Play}
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.Json
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.indexes.IndexType
-import reactivemongo.play.json.ImplicitBSONHandlers
-import reactivemongo.play.json.collection.JSONCollection
-import uk.gov.hmrc.mongo.ReactiveRepository
+import play.api.{Application, Logging, Play}
+import repositories.CollectionNames
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
-import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.postfixOps
 
 abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Inside with ScalaFutures with IndexesReader
-  with BeforeAndAfterEach with BeforeAndAfterAll {
-  import ImplicitBSONHandlers._
+  with BeforeAndAfterEach with BeforeAndAfterAll with Logging {
 
   val timeout: FiniteDuration = 60 seconds
   val collectionName: String
@@ -65,7 +62,7 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
 
   implicit lazy val materializer = app.injector.instanceOf[Materializer]
 
-  lazy val mongo: ReactiveMongoComponent = app.injector.instanceOf(classOf[ReactiveMongoComponent])
+  lazy val mongo: MongoComponent = app.injector.instanceOf(classOf[MongoComponent])
 
   lazy val appConfig: MicroserviceAppConfig = app.injector.instanceOf(classOf[MicroserviceAppConfig])
 
@@ -78,19 +75,43 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
   }
 
   override def beforeEach(): Unit = {
-    val collection = mongo.mongoConnector.db().collection[JSONCollection](collectionName)
-    Await.ready(collection.delete.one(Json.obj()), timeout)
+    val collection = mongo.database.getCollection(collectionName)
+    collectionName match {
+      case CollectionNames.FILE_UPLOAD =>
+        val chunksCollection = mongo.database.getCollection(s"$collectionName.chunks")
+        val filesCollection = mongo.database.getCollection(s"$collectionName.files")
+        Await.ready(chunksCollection.deleteMany(Document.empty).toFuture(), timeout)
+        Await.ready(filesCollection.deleteMany(Document.empty).toFuture(), timeout)
+      case _ => Await.ready(collection.deleteMany(Document.empty).toFuture(), timeout)
+    }
   }
 }
 
 trait IndexesReader {
   this: ScalaFutures =>
 
-  def indexesWithFields(repo: ReactiveRepository[_, _])(implicit ec: ExecutionContext): List[IndexDetails] = {
-    val indexesManager = repo.collection.indexesManager
-    val indexes = indexesManager.list().futureValue
-    indexes.map( index => IndexDetails(index.key, index.unique) )
+  def indexDetails(repo: PlayMongoRepository[_])(implicit ec: ExecutionContext): Future[Seq[IndexDetails]] = {
+    import scala.collection.JavaConverters._
+
+    repo.collection.listIndexes.toFuture.map { _.map {
+      doc =>
+        val name = doc("name").asString().getValue
+        val indexKeys = doc("key").asDocument().keySet().asScala.toSeq
+
+        val mappedIndexKeys = indexKeys.map{ key =>
+          val indexType = doc("key").asDocument().getInt32(key).getValue match {
+            case 1 => "Ascending"
+            case -1 => "Descending"
+            case _ => "Undefined"
+          }
+          key -> indexType
+        }
+
+        val isUnique = doc.getOrElse("unique", false).asBoolean().getValue
+        IndexDetails(name, mappedIndexKeys, isUnique)
+      }
+    }
   }
 
-  case class IndexDetails(key: Seq[(String, IndexType)], unique: Boolean)
+  case class IndexDetails(name: String, keys: Seq[(String, String)], unique: Boolean)
 }

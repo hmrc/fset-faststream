@@ -17,21 +17,20 @@
 package model.persisted
 
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+//import reactivemongo.bson.Macros
 
 case class FsbEvaluation(result: List[SchemeEvaluationResult])
 
 object FsbEvaluation {
   implicit val jsonFormat = Json.format[FsbEvaluation]
-  implicit val bsonHandler = Macros.handler[FsbEvaluation]
+//  implicit val bsonHandler = Macros.handler[FsbEvaluation]
 }
 
 case class FsbTestGroup(evaluation: FsbEvaluation)
 
 object FsbTestGroup {
   implicit val jsonFormat = Json.format[FsbTestGroup]
-  implicit val bsonHandler = Macros.handler[FsbTestGroup]
+//  implicit val bsonHandler = Macros.handler[FsbTestGroup]
 
   def apply(results: List[SchemeEvaluationResult]): FsbTestGroup = new FsbTestGroup(FsbEvaluation(results))
-
 }

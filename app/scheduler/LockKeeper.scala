@@ -17,9 +17,8 @@
 package scheduler
 
 import java.util.UUID
-
 import org.joda.time.Duration
-import play.modules.reactivemongo.ReactiveMongoComponent
+import uk.gov.hmrc.mongo.MongoComponent
 import repositories._
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -55,7 +54,8 @@ object LockKeeper {
 
   lazy val generatedServerId = UUID.randomUUID().toString
 
-  def apply(mongoComponent: ReactiveMongoComponent,
+
+  def apply(mongoComponent: MongoComponent,
             lockIdToUse: String,
             forceLockReleaseAfterToUse: scala.concurrent.duration.Duration) = new LockKeeper {
     val forceLockReleaseAfter: Duration = Duration.millis(forceLockReleaseAfterToUse.toMillis)
@@ -64,4 +64,14 @@ object LockKeeper {
     val repo = new LockMongoRepository(mongoComponent)
     val greedyLockingEnabled: Boolean = true
   }
+/*
+  def apply(
+            lockIdToUse: String,
+            forceLockReleaseAfterToUse: scala.concurrent.duration.Duration) = new LockKeeper {
+    val forceLockReleaseAfter: Duration = Duration.millis(forceLockReleaseAfterToUse.toMillis)
+    val serverId = generatedServerId
+    val lockId = lockIdToUse
+    val repo = new LockMongoRepository(mongoComponent)
+    val greedyLockingEnabled: Boolean = true
+  }*/
 }

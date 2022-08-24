@@ -17,7 +17,7 @@
 package model.persisted.sift
 
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+//import reactivemongo.bson.Macros
 
 case class UndergradDegreeInfoAnswers(
   name: String,
@@ -28,7 +28,7 @@ case class UndergradDegreeInfoAnswers(
 
 object UndergradDegreeInfoAnswers {
   implicit val degreeInfoFormat= Json.format[UndergradDegreeInfoAnswers]
-  implicit val degreeInfoHandler = Macros.handler[UndergradDegreeInfoAnswers]
+//  implicit val degreeInfoHandler = Macros.handler[UndergradDegreeInfoAnswers]
 
   def apply(a: model.exchange.sift.UndergradDegreeInfoAnswers): UndergradDegreeInfoAnswers = {
     UndergradDegreeInfoAnswers(
@@ -49,7 +49,7 @@ case class PostGradDegreeInfoAnswers(
 
 object PostGradDegreeInfoAnswers {
   implicit val postGradDegreeInfoAnswersFormat = Json.format[PostGradDegreeInfoAnswers]
-  implicit val postGradDegreeInfoAnswersHandler = Macros.handler[PostGradDegreeInfoAnswers]
+//  implicit val postGradDegreeInfoAnswersHandler = Macros.handler[PostGradDegreeInfoAnswers]
 
   def apply(a: model.exchange.sift.PostGradDegreeInfoAnswers): PostGradDegreeInfoAnswers = {
     PostGradDegreeInfoAnswers(
@@ -71,7 +71,7 @@ case class GeneralQuestionsAnswers(
 
 object GeneralQuestionsAnswers {
   implicit val generalQuestionsAnswersFormat = Json.format[GeneralQuestionsAnswers]
-  implicit val generalQuestionsAnswersHandler = Macros.handler[GeneralQuestionsAnswers]
+//  implicit val generalQuestionsAnswersHandler = Macros.handler[GeneralQuestionsAnswers]
 
   def apply(a: model.exchange.sift.GeneralQuestionsAnswers): GeneralQuestionsAnswers = {
     GeneralQuestionsAnswers(

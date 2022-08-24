@@ -16,31 +16,28 @@
 
 package repositories
 
-import javax.inject.{ Inject, Singleton }
-import org.joda.time.{ DateTime, Duration }
-import play.api.libs.json.{ Format, JsObject, JsValue, Json }
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.DB
-import reactivemongo.api.indexes.Index
-import reactivemongo.api.indexes.IndexType.Ascending
-import reactivemongo.core.errors.DatabaseException
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import org.joda.time.{DateTime, Duration}
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.Indexes.ascending
+import org.mongodb.scala.model.{IndexModel, IndexOptions}
+import org.mongodb.scala.{MongoCollection, MongoException}
+import play.api.Logging
+import play.api.libs.json.{Json, OFormat}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
-import scala.concurrent.duration._
-import scala.concurrent.{ Await, ExecutionContext, Future }
-import language.postfixOps
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-case class Lock(id: String, owner: String, timeCreated: DateTime, expiryTime: DateTime)
+case class Lock(_id: String, owner: String, timeCreated: DateTime, expiryTime: DateTime)
+
+object Lock {
+  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits.jotDateTimeFormat
+  implicit val lockFormat: OFormat[Lock] = Json.format[Lock]
+}
 
 object LockFormats {
-  implicit val dateFormat = ReactiveMongoFormats.dateTimeFormats
-  implicit val format = ReactiveMongoFormats.mongoEntity({
-    Format(Json.reads[Lock], Json.writes[Lock])
-  })
-
   val id = "_id"
   val owner = "owner"
   val timeCreated = "timeCreated"
@@ -49,43 +46,54 @@ object LockFormats {
 
 trait LockRepository {
   def lock(reqLockId: String, reqOwner: String, forceReleaseAfter: Duration): Future[Boolean]
-
   def isLocked(reqLockId: String, reqOwner: String): Future[Boolean]
-
   def releaseLock(reqLockId: String, reqOwner: String): Future[Unit]
 }
 
 @Singleton
-class LockMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[Lock, String](
-    CollectionNames.LOCKS,
-    mongoComponent.mongoConnector.db,
-    LockFormats.format,
-    implicitly[Format[String]]) with LockRepository {
-  private val DuplicateKey = 11000
+class LockMongoRepository @Inject() (mongoComponent: MongoComponent)
+  extends PlayMongoRepository[Lock](
+    collectionName = CollectionNames.LOCKS,
+    mongoComponent = mongoComponent,
+    domainFormat = Lock.lockFormat,
+    indexes = Seq(
+      IndexModel(ascending("owner"), IndexOptions().unique(false)),
+      IndexModel(ascending("timeCreated"), IndexOptions().unique(false)),
+      IndexModel(ascending("expiryTime"), IndexOptions().unique(false))
+    )
+  ) with LockRepository with Logging with CurrentTime {
+  private val DuplicateKeyErrorCode = 11000
 
   import LockFormats._
 
-  override def indexes: Seq[Index] = Seq(
-    Index(Seq((owner, Ascending)), unique = false),
-    Index(Seq((timeCreated, Ascending)), unique = false),
-    Index(Seq((expiryTime, Ascending)), unique = false)
-  )
+  // Use this collection when using hand written bson documents
+  val lockCollection: MongoCollection[Document] = mongoComponent.database.getCollection(CollectionNames.LOCKS)
 
-  def lock(reqLockId: String, reqOwner: String, forceReleaseAfter: Duration): Future[Boolean] = withCurrentTime { now =>
-    collection.delete().one(Json.obj(id -> reqLockId, expiryTime -> Json.obj("$lte" -> now))).flatMap { writeResult =>
-      if (writeResult.n != 0) {
-        logger.info(s"Removed ${writeResult.n} expired locks for $reqLockId")
+  override def lock(reqLockId: String, reqOwner: String, forceReleaseAfter: Duration): Future[Boolean] = withCurrentTime { now =>
+    val filter = Document(
+      id -> reqLockId,
+      expiryTime -> Document("$lte" -> dateTimeToBson(now))
+    )
+
+    collection.deleteOne(filter).toFuture().flatMap { writeResult =>
+      if (writeResult.getDeletedCount != 0) {
+        logger.info(s"Removed ${writeResult.getDeletedCount} expired locks for $reqLockId")
       }
 
-      collection.insert(ordered = false).one(
-        Json.obj(id -> reqLockId, owner -> reqOwner, timeCreated -> now, expiryTime -> now.plus(forceReleaseAfter)))
+      val expiryDateTime = now.plus(forceReleaseAfter)
+      val lockBson = Document(
+        id -> reqLockId,
+        owner -> reqOwner,
+        timeCreated -> dateTimeToBson(now),
+        expiryTime -> dateTimeToBson(expiryDateTime)
+      )
+      lockCollection.insertOne(lockBson).toFuture()
         .map { _ =>
-          logger.debug(s"Took lock '$reqLockId' for '$reqOwner' at $now.  Expires at: ${now.plus(forceReleaseAfter)}")
+          logger.debug(s"Took lock '$reqLockId' for '$reqOwner' at $now.  Expires at: $expiryDateTime")
           true
         }
         .recover {
-          case e: DatabaseException if e.code.contains(DuplicateKey) =>
+          case e: MongoException if e.getCode == DuplicateKeyErrorCode =>
             logger.debug(s"Unable to take lock '$reqLockId' for '$reqOwner'")
             false
         }
@@ -93,14 +101,25 @@ class LockMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
   }
 
   def isLocked(reqLockId: String, reqOwner: String): Future[Boolean] = withCurrentTime { now =>
-    collection.find(
-      Json.obj(id -> reqLockId, owner -> reqOwner, expiryTime -> Json.obj("$gt" -> now)),
-      projection = Option.empty[JsObject])
-      .one[JsValue].map(_.isDefined)
+    val filter = Document(
+      id -> reqLockId,
+      owner -> reqOwner,
+      expiryTime -> Document("$gt" -> dateTimeToBson(now))
+    )
+    collection.find(filter).headOption().map( _.isDefined )
   }
 
   def releaseLock(reqLockId: String, reqOwner: String): Future[Unit] = {
     logger.debug(s"Releasing lock '$reqLockId' for '$reqOwner'")
-    collection.delete().one(Json.obj(id -> reqLockId, owner -> reqOwner)).map(_ => ())
+    collection.deleteOne(Document(id -> reqLockId, owner -> reqOwner)).toFuture().map(_ => ())
   }
+}
+
+// Copied from simple-reactivemongo_2.12-8.0.0-play-28.jar
+// uk.gov.hmrc.mongo.CurrentTime when migrating from simple-reactivemongo to scala mongo driver
+import org.joda.time.DateTimeZone
+
+trait CurrentTime {
+  // Invoke the passed function f with DateTime.now instant
+  def withCurrentTime[A](f: DateTime => A) = f(DateTime.now.withZone(DateTimeZone.UTC))
 }

@@ -16,9 +16,8 @@
 
 package model.persisted
 
+import org.mongodb.scala.bson.collection.immutable.Document
 import play.api.libs.json.Json
-import reactivemongo.bson.BSONDocument
-
 
 case class TestResultNotification(
   applicationId: String,
@@ -26,11 +25,12 @@ case class TestResultNotification(
   preferredName: String)
 
 object TestResultNotification {
-  def fromBson(doc: BSONDocument) = {
-    val applicationId = doc.getAs[String]("applicationId").get
-    val userId = doc.getAs[String]("userId").get
-    val personalDetailsRoot = doc.getAs[BSONDocument]("personal-details").get
-    val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
+
+  def fromBson(doc: Document) = {
+    val applicationId = doc.get("applicationId").get.asString().getValue
+    val userId = doc.get("userId").get.asString().getValue
+    val personalDetailsRoot = doc.get("personal-details").map( _.asDocument() ).get
+    val preferredName = personalDetailsRoot.get("preferredName").asString().getValue
     TestResultNotification(applicationId, userId, preferredName)
   }
 

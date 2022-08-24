@@ -11,10 +11,15 @@ import model.Phase3TestProfileExamples._
 import model.ProgressStatuses.ProgressStatus
 import model._
 import model.persisted._
-import model.persisted.phase3tests.{ LaunchpadTest, Phase3TestGroup }
-import org.joda.time.{ DateTime, DateTimeZone }
+import model.persisted.phase3tests.{LaunchpadTest, Phase3TestGroup}
+import org.joda.time.{DateTime, DateTimeZone}
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.collection.immutable.Document
 import org.scalatest.concurrent.ScalaFutures
-import reactivemongo.bson.BSONDocument
+import play.api.libs.json.Json
+import repositories.sift.SiftAnswersMongoRepository
+import uk.gov.hmrc.mongo.play.json.Codecs
+//import reactivemongo.bson.BSONDocument
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.assessmentcentre.AssessmentCentreMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
@@ -31,7 +36,7 @@ import scala.concurrent.Future
 trait CommonRepository extends CurrentSchemeStatusHelper {
   this: MongoRepositorySpec with ScalaFutures =>
 
-  import reactivemongo.play.json.ImplicitBSONHandlers._
+//  import reactivemongo.play.json.ImplicitBSONHandlers._
 
   val mockOnlineTestsGatewayConfig = mock[OnlineTestsGatewayConfig]
 
@@ -50,6 +55,8 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
   val siftableSchemeDefinitions = List(DiplomaticAndDevelopmentEconomics, Finance, GovernmentEconomicsService, Sdip)
 
   def applicationRepository = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, mockAppConfig, mongo)
+
+  val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(CollectionNames.APPLICATION)
 
   def schemePreferencesRepository = new schemepreferences.SchemePreferencesMongoRepository(mongo)
 
@@ -79,6 +86,8 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
   //TODO:fix guice just inject the list siftableSchemeDefinitions instead of the whole repo
   //  def applicationSiftRepository = new ApplicationSiftMongoRepository(DateTimeFactory, siftableSchemeDefinitions)
   def applicationSiftRepository = new ApplicationSiftMongoRepository(ITDateTimeFactoryMock, schemeRepository, mongo, mockAppConfig)
+
+  def siftAnswersRepository = new SiftAnswersMongoRepository(mongo)
 
   def assessmentCentreRepository = new AssessmentCentreMongoRepository(ITDateTimeFactoryMock, schemeRepository, mongo)
 
@@ -204,28 +213,40 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
     updateApplicationStatus(appId, ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED)
   }
 
-  def insertApplicationWithSiftComplete(appId: String, results: Seq[SchemeEvaluationResult],
+  def insertApplicationWithSiftEntered(appId: String, results: Seq[SchemeEvaluationResult],
                                         applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
                                        ): Unit = {
     insertApplicationWithPhase3TestNotifiedResults(appId, results.toList, applicationRoute = applicationRoute).futureValue
     applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_ENTERED).futureValue
+  }
+
+  def insertApplicationWithSiftCompleted(appId: String, results: Seq[SchemeEvaluationResult],
+                                         applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
+                                       ): Unit = {
+    insertApplicationWithSiftEntered(appId, results.toList, applicationRoute = applicationRoute)
     applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_COMPLETED).futureValue
   }
 
   def insertApplicationAtFsbWithStatus(appId: String, results: Seq[SchemeEvaluationResult], progressStatus: ProgressStatus,
                                        applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
                                       ): Unit = {
-    insertApplicationWithSiftComplete(appId, results, applicationRoute)
+    insertApplicationWithSiftCompleted(appId, results, applicationRoute)
     FutureEx.traverseSerial(results) { result => fsbRepository.saveResult(appId, result) }.futureValue
     applicationRepository.addProgressStatusAndUpdateAppStatus(appId, progressStatus).futureValue
   }
-
+/*
   def updateApplicationStatus(appId: String, newStatus: ApplicationStatus): Future[Unit] = {
     val application = BSONDocument("applicationId" -> appId)
     val update = BSONDocument(
       "$set" -> BSONDocument(s"applicationStatus" -> newStatus)
     )
     applicationRepository.collection.update(ordered = false).one(application, update).map {_ => ()}
+  }*/
+
+  def updateApplicationStatus(appId: String, newStatus: ApplicationStatus): Future[Unit] = {
+    val filter = Document("applicationId" -> appId)
+    val update = Document("$set" -> Document(s"applicationStatus" -> newStatus.toBson))
+    applicationRepository.collection.updateOne(filter, update).toFuture() map (_ => ())
   }
 
   //TODO: this should be removed when we strip out cubiks code
@@ -286,21 +307,24 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
                          additionalProgressStatuses: List[(ProgressStatus, Boolean)] = List.empty,
                          applicationRoute: Option[ApplicationRoute] = Some(ApplicationRoute.Faststream)
                         ): Unit = {
+
     val gis = if (isGis) Some(true) else None
-    applicationRepository.collection.insert(ordered = false).one(
-      BSONDocument(
+    applicationCollection.insertOne(
+      Document(
         "applicationId" -> appId,
         "userId" -> appId,
-        "applicationStatus" -> applicationStatus,
-        "progress-status" -> progressStatus(additionalProgressStatuses)
+        "testAccountId" -> "testAccountId",
+        "applicationStatus" -> applicationStatus.toBson,
+        "progress-status" -> progressStatus(additionalProgressStatuses),
+        "personal-details" -> Codecs.toBson(Json.parse("""{"lastName":"lastName","preferredName":"preferredName"}"""))
       ) ++ {
         if (applicationRoute.isDefined) {
-          BSONDocument("applicationRoute" -> applicationRoute.get)
+          Document("applicationRoute" -> applicationRoute.get.toBson)
         } else {
-          BSONDocument.empty
+          Document.empty
         }
       }
-    ).futureValue
+    ).toFuture().futureValue
 
     val ad = AssistanceDetails(hasDisability = "No", disabilityImpact = None, disabilityCategories = None,
       otherDisabilityDescription = None, guaranteedInterview = gis, needsSupportForOnlineAssessment = Some(false),
@@ -318,9 +342,9 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
         phase3TestRepository.updateProgressStatus(appId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED).futureValue
       }
     }
-    applicationRepository.collection.update(ordered = false).one(
-      BSONDocument("applicationId" -> appId),
-      BSONDocument("$set" -> BSONDocument("applicationStatus" -> applicationStatus))).futureValue
+    applicationRepository.collection.updateOne(
+      Document("applicationId" -> appId),
+      Document("$set" -> Document("applicationStatus" -> applicationStatus.toBson))).toFuture().futureValue
   }
   // scalastyle:on
 
@@ -365,7 +389,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
   }*/
 
   private def questionnaire() = {
-    BSONDocument(
+    Document(
       "start_questionnaire" -> true,
       "diversity_questionnaire" -> true,
       "education_questionnaire" -> true,
@@ -373,8 +397,8 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
     )
   }
 
-  def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): BSONDocument = {
-    val baseDoc = BSONDocument(
+  def progressStatus(args: List[(ProgressStatus, Boolean)] = List.empty): Document = {
+    val baseDoc = Document(
       "personal-details" -> true,
       "in_progress" -> true,
       "scheme-preferences" -> true,
@@ -384,7 +408,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
       "submitted" -> true
     )
 
-    args.foldLeft(baseDoc)((acc, v) => acc.++(v._1.toString -> v._2))
+    args.foldLeft(baseDoc)((acc, v) => acc.++( Document(v._1.toString -> v._2)) )
   }
 }
 //scalastyle:on

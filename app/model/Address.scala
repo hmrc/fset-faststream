@@ -17,11 +17,11 @@
 package model
 
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+//import reactivemongo.bson.Macros
 
 case class Address(line1: String, line2: Option[String] = None, line3: Option[String] = None, line4: Option[String] = None)
 
 object Address {
   implicit val addressFormat = Json.format[Address]
-  implicit val addressHandler = Macros.handler[Address]
+//  implicit val addressHandler = Macros.handler[Address]
 }

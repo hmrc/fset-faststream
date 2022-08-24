@@ -17,8 +17,8 @@
 package model.persisted
 
 import model.exchange.AssistanceDetailsExchange
-import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import play.api.libs.functional.syntax._
+import play.api.libs.json.{Format, Json, __}
 
 case class AssistanceDetails(
                               hasDisability: String,
@@ -32,11 +32,39 @@ case class AssistanceDetails(
                               needsSupportAtVenueDescription: Option[String],
                               needsSupportForPhoneInterview: Option[Boolean],
                               needsSupportForPhoneInterviewDescription: Option[String]
-)
+) {
+  override def toString = s"hasDisability=$hasDisability," +
+    s"disabilityImpact=$disabilityImpact," +
+    s"disabilityCategories=$disabilityCategories," +
+    s"otherDisabilityDescription=$otherDisabilityDescription," +
+    s"guaranteedInterview=$guaranteedInterview," +
+    s"needsSupportForOnlineAssessment=$needsSupportForOnlineAssessment," +
+    s"needsSupportForOnlineAssessmentDescription=$needsSupportForOnlineAssessmentDescription," +
+    s"needsSupportAtVenue=$needsSupportAtVenue," +
+    s"needsSupportAtVenueDescription=$needsSupportAtVenueDescription," +
+    s"needsSupportForPhoneInterview=$needsSupportForPhoneInterview," +
+    s"needsSupportForPhoneInterviewDescription=$needsSupportForPhoneInterviewDescription"
+}
 
 object AssistanceDetails {
   implicit val assistanceDetailsFormat = Json.format[AssistanceDetails]
-  implicit val assistanceDetailsHandler = Macros.handler[AssistanceDetails]
+
+  // Provide an explicit mongo format here to deal with the sub-document root
+  // This data lives in the application collection
+  val root = "assistance-details"
+  val mongoFormat: Format[AssistanceDetails] = (
+    (__ \ root \ "hasDisability").format[String] and
+      (__ \ root \ "disabilityImpact").formatNullable[String] and
+      (__ \ root \ "disabilityCategories").formatNullable[List[String]] and
+      (__ \ root \ "otherDisabilityDescription").formatNullable[String] and
+      (__ \ root \ "guaranteedInterview").formatNullable[Boolean] and
+      (__ \ root \ "needsSupportForOnlineAssessment").formatNullable[Boolean] and
+      (__ \ root \ "needsSupportForOnlineAssessmentDescription").formatNullable[String] and
+      (__ \ root \ "needsSupportAtVenue").formatNullable[Boolean] and
+      (__ \ root \ "needsSupportAtVenueDescription").formatNullable[String] and
+      (__ \ root \ "needsSupportForPhoneInterview").formatNullable[Boolean] and
+      (__ \ root \ "needsSupportForPhoneInterviewDescription").formatNullable[String]
+    )(AssistanceDetails.apply, unlift(AssistanceDetails.unapply))
 
   def apply(ex: AssistanceDetailsExchange): AssistanceDetails =
     AssistanceDetails(ex.hasDisability, ex.disabilityImpact, ex.disabilityCategories,

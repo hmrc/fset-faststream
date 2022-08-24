@@ -18,10 +18,11 @@ package scheduler.onlinetesting
 
 import config.ScheduledJobConfig
 import model.Phase1ExpirationEvent
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
-import play.modules.reactivemongo.ReactiveMongoComponent
+import uk.gov.hmrc.mongo.MongoComponent
+//import play.modules.reactivemongo.ReactiveMongoComponent TODO: fix me
 import scheduler.BasicJobConfig
 import services.BaseServiceSpec
 import services.onlinetesting.OnlineTestService
@@ -41,7 +42,7 @@ class ExpireOnlineTestJobSpec extends BaseServiceSpec with ShortTimeout {
   object TestableExpireTestJob extends ExpireOnlineTestJob {
 
     val onlineTestingService = serviceMock
-    override val mongoComponent = mock[ReactiveMongoComponent]
+    override val mongoComponent = mock[MongoComponent]
     val expiryTest = Phase1ExpirationEvent(gracePeriodInSecs = 0)
     override val lockId: String = "1"
     override val forceLockReleaseAfter: Duration = mock[Duration]

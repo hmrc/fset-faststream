@@ -16,14 +16,29 @@
 
 package repositories
 
-import reactivemongo.bson.{ BSONDocument, BSONDocumentReader }
+import org.bson.BsonDocumentReader
+import org.mongodb.scala.bson.BsonDocument
+import org.mongodb.scala.bson.collection.immutable.Document
+
+//import reactivemongo.bson.{ BSONDocument, BSONDocumentReader }
 
 trait BaseBSONReader {
-  protected def bsonReader[T](f: BSONDocument => T): BSONDocumentReader[T] = {
-    new BSONDocumentReader[T] {
-      def read(bson: BSONDocument) = f(bson)
+
+  //TODO: mongo
+  // the purpose of this is to accept a function that converts from a BsonDocument to a Case Class of type T
+  // and execute that function returning the populated Case Class
+/*
+  protected def bsonReader[T](f: BsonDocument => T): BsonDocumentReader[T] = {
+    new BsonDocumentReader[T] {
+      def read(bson: BsonDocument) = f(bson)
     }
-  }
+  }*/
+/*
+  protected def bsonReader[T](f: BsonDocument => T): BsonDocumentReader[T] = {
+    new DocumentReader[T] {
+      def read(bson: BsonDocument) = f(bson)
+    }
+  }*/
 
   protected def booleanTranslator(bool: Boolean) = if (bool) { "Yes" } else { "No" }
   protected def booleanYnTranslator(bool: Boolean) = if (bool) { "Y" } else { "N" }

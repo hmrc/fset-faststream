@@ -27,11 +27,12 @@ import model.persisted.sift.{NotificationExpiringSift, SiftTestGroup}
 import model.persisted.{ContactDetails, ContactDetailsExamples, SchemeEvaluationResult}
 import model.sift.{FixUserStuckInSiftEntered, SiftFirstReminder, SiftSecondReminder}
 import org.joda.time.{DateTime, LocalDate}
-import reactivemongo.bson.BSONDocument
+import org.mongodb.scala.bson.collection.immutable.Document
+import repositories.TestSchemeRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.sift.ApplicationSiftRepository
-import repositories.{BSONDateTimeHandler, TestSchemeRepository}
+import uk.gov.hmrc.mongo.play.json.Codecs
 import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
@@ -118,20 +119,21 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
   }
 
   trait SiftUpdateTest extends TestFixture {
-    val progressStatusUpdateBson: ProgressStatus => BSONDocument = (status: ProgressStatus) => BSONDocument(
+    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed for the Codecs.toBson below
+    val progressStatusUpdateBson: ProgressStatus => Document = (status: ProgressStatus) => Document(
       s"progress-status.$status" -> true,
-      s"progress-status-timestamp.$status" -> BSONDateTimeHandler.write(DateTimeFactoryMock.nowLocalTimeZone)
+      s"progress-status-timestamp.$status" -> Codecs.toBson(DateTimeFactoryMock.nowLocalTimeZone)
     )
 
-    def currentSchemeUpdateBson(schemeResult: SchemeEvaluationResult*) = BSONDocument(
+    def currentSchemeUpdateBson(schemeResult: SchemeEvaluationResult*) = Document(
         "currentSchemeStatus" -> schemeResult.map { s =>
-          BSONDocument("schemeId" -> s.schemeId.value, "result" -> s.result)
+          Document("schemeId" -> s.schemeId.value, "result" -> s.result)
         }
       )
 
     lazy val schemeSiftResult = SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Green.toString)
-    val queryBson = BSONDocument("applicationId" -> appId)
-    val updateBson = BSONDocument("test" -> "test")
+    val queryBson = Document("applicationId" -> appId)
+    val updateBson = Document("test" -> "test")
 
     (mockApplicationSiftRepo.siftResultsExistsForScheme _).expects(appId, schemeSiftResult.schemeId).returningAsync(false)
   }
@@ -233,7 +235,6 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
 
     "sift a faststream scheme to RED and update progress status for an SdipFaststream candidate whose other fast stream " +
       "schemes are Red or Withdrawn, all require a sift and have been sifted" in new SiftUpdateTest {
-
       (mockApplicationSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Seq(
         SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Withdrawn.toString),
         SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString)

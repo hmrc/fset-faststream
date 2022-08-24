@@ -20,7 +20,6 @@ import javax.inject.{ Inject, Singleton }
 import model.EvaluationResults
 import model.Exceptions.{ AlreadyEvaluatedForSchemeException, SchemeNotFoundException }
 import model.exchange.{ FsbEvaluationResults, FsbScoresAndFeedback }
-import play.api.http.MediaRange.parse
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import services.application.FsbService

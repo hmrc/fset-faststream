@@ -16,14 +16,12 @@
 
 package repositories
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.AssessorNewEventsJobInfo
-import play.api.libs.json.JsObject
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.bson.{ BSONDocument, BSONObjectID }
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.UpdateOptions
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -34,19 +32,23 @@ trait AssessorsEventsSummaryJobsRepository {
 }
 
 @Singleton
-class AssessorsEventsSummaryJobsMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[AssessorNewEventsJobInfo, BSONObjectID](
-    CollectionNames.ASSESSOR_EVENTS_SUMMARY_JOBS,
-    mongoComponent.mongoConnector.db,
-    AssessorNewEventsJobInfo.format,
-    ReactiveMongoFormats.objectIdFormats
+class AssessorsEventsSummaryJobsMongoRepository @Inject() (mongoComponent: MongoComponent)
+  extends PlayMongoRepository[AssessorNewEventsJobInfo](
+    collectionName = CollectionNames.ASSESSOR_EVENTS_SUMMARY_JOBS,
+    mongoComponent = mongoComponent,
+    domainFormat = AssessorNewEventsJobInfo.format,
+    indexes = Nil
   ) with AssessorsEventsSummaryJobsRepository {
 
   override def save(info: AssessorNewEventsJobInfo): Future[Unit] = {
-    collection.update(ordered = false).one(BSONDocument.empty, info, upsert = true).map(_ => ())
+    collection.updateOne(
+      Document.empty,
+      Document("$set" -> Codecs.toBson(info)),
+      UpdateOptions().upsert(insertIfNoRecordFound)
+    ).toFuture() map(_ => ())
   }
 
   override def lastRun: Future[Option[AssessorNewEventsJobInfo]] = {
-    collection.find(BSONDocument.empty, projection = Option.empty[JsObject]).one[AssessorNewEventsJobInfo]
+    collection.find(Document.empty).headOption()
   }
 }

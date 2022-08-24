@@ -17,25 +17,26 @@
 package repositories.fsb
 
 import factories.DateTimeFactory
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.ApplicationRoute.ApplicationRoute
-import model.EvaluationResults.{ Amber, Green, Red }
-import model.Exceptions.{ AlreadyEvaluatedForSchemeException, ApplicationNotFound }
-import model.ProgressStatuses.{ ELIGIBLE_FOR_JOB_OFFER, FSB_AWAITING_ALLOCATION }
+import model.EvaluationResults.{Amber, Green, Red}
+import model.Exceptions.{AlreadyEvaluatedForSchemeException, ApplicationNotFound}
+import model.ProgressStatuses.{ELIGIBLE_FOR_JOB_OFFER, FSB_AWAITING_ALLOCATION}
 import model._
 import model.command.ApplicationForProgression
 import model.persisted.fsb.ScoresAndFeedback
-import model.persisted.{ FsbSchemeResult, FsbTestGroup, SchemeEvaluationResult }
+import model.persisted.{FsbSchemeResult, FsbTestGroup, SchemeEvaluationResult}
 import org.joda.time.DateTime
-import play.api.libs.json.JsObject
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.{ Cursor, ReadPreference }
-import reactivemongo.bson.{ BSON, BSONArray, BSONDocument, BSONObjectID }
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.bson.{BsonArray, BsonDocument}
+import org.mongodb.scala.model.Projections
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
+
+import scala.util.Try
 import repositories._
 import repositories.assessmentcentre.AssessmentCentreRepository
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -48,13 +49,13 @@ trait FsbRepository {
   def progressToJobOffer(application: ApplicationForProgression): Future[Unit]
   def saveResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
   def findScoresAndFeedback(applicationId: String): Future[Option[ScoresAndFeedback]]
-  def findScoresAndFeedback(applicationIds: List[String]): Future[Map[String, Option[ScoresAndFeedback]]]
+  def findScoresAndFeedback(applicationIds: Seq[String]): Future[Map[String, Option[ScoresAndFeedback]]]
   def saveScoresAndFeedback(applicationId: String, scoresAndFeedback: ScoresAndFeedback): Future[Unit]
   def updateResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
   def addFsbProgressStatuses(applicationId: String, progressStatuses: List[(String, DateTime)]): Future[Unit]
   def updateCurrentSchemeStatus(applicationId: String, newCurrentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
   def findByApplicationId(applicationId: String): Future[Option[FsbTestGroup]]
-  def findByApplicationIds(applicationIds: List[String], schemeId: Option[SchemeId]): Future[List[FsbSchemeResult]]
+  def findByApplicationIds(applicationIds: Seq[String], schemeId: Option[SchemeId]): Future[List[FsbSchemeResult]]
   def nextApplicationFailedAtFsb(batchSize: Int): Future[Seq[ApplicationForProgression]]
   def nextApplicationFailedAtFsb(applicationId: String): Future[Seq[ApplicationForProgression]]
   def removeTestGroup(applicationId: String): Future[Unit]
@@ -62,319 +63,320 @@ trait FsbRepository {
 
 @Singleton
 class FsbMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
-                                     mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[FsbTestGroup, BSONObjectID](
-    CollectionNames.APPLICATION,
-    mongoComponent.mongoConnector.db,
-    FsbTestGroup.jsonFormat,
-    ReactiveMongoFormats.objectIdFormats) with FsbRepository with RandomSelection with CurrentSchemeStatusHelper
-    with ReactiveRepositoryHelpers with CommonBSONDocuments {
+                                    mongo: MongoComponent)
+  extends PlayMongoRepository[FsbTestGroup](
+    collectionName = CollectionNames.APPLICATION,
+    mongoComponent = mongo,
+    domainFormat = FsbTestGroup.jsonFormat,
+    indexes = Nil
+  ) with FsbRepository with RandomSelection with CurrentSchemeStatusHelper with ReactiveRepositoryHelpers with CommonBSONDocuments {
 
   private val APPLICATION_ID = "applicationId"
   private val FSB_TEST_GROUPS = "testGroups.FSB"
-  private val unlimitedMaxDocs = -1
 
   override def nextApplicationReadyForFsbEvaluation: Future[Option[UniqueIdentifier]] = {
     val query =
-      BSONDocument(
-        s"applicationStatus" -> ApplicationStatus.FSB.toString,
+      Document(
+        s"applicationStatus" -> ApplicationStatus.FSB.toBson,
         s"progress-status.${ProgressStatuses.FSB_RESULT_ENTERED}" -> true,
-        s"progress-status.${ProgressStatuses.FSB_FAILED}" -> BSONDocument("$exists" -> false),
-        s"progress-status.${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER}" -> BSONDocument("$exists" -> false)
+        s"progress-status.${ProgressStatuses.FSB_FAILED}" -> Document("$exists" -> false),
+        s"progress-status.${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER}" -> Document("$exists" -> false)
       )
 
-    selectOneRandom[BSONDocument](query).map(_.map(doc => doc.getAs[UniqueIdentifier]("applicationId").get)
-    )
+    selectOneRandom[UniqueIdentifier](query)(doc => UniqueIdentifier(getAppId(doc)), global)
   }
 
-  val commonFailedAtFsbPredicate = BSONDocument(
-    "applicationStatus" -> ApplicationStatus.FSB,
+  val commonFailedAtFsbPredicate = Document(
+    "applicationStatus" -> ApplicationStatus.FSB.toBson,
     s"progress-status.${ProgressStatuses.FSB_FAILED}" -> true,
-    s"progress-status.${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER}" -> BSONDocument("$ne" -> true),
-    s"progress-status.${ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED}" -> BSONDocument("$ne" -> true),
+    s"progress-status.${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER}" -> Document("$ne" -> true),
+    s"progress-status.${ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED}" -> Document("$ne" -> true),
     "currentSchemeStatus.result" -> Red.toString,
-    "currentSchemeStatus.result" -> BSONDocument("$nin" -> BSONArray(Green.toString, Amber.toString))
+    "currentSchemeStatus.result" -> Document("$nin" -> BsonArray(Green.toString, Amber.toString))
   )
 
   override def nextApplicationFailedAtFsb(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
-    import AssessmentCentreRepository.applicationForFsacBsonReads
-
-    selectRandom[BSONDocument](commonFailedAtFsbPredicate, batchSize).map(_.map(doc => doc: ApplicationForProgression))
+    selectRandom[ApplicationForProgression](commonFailedAtFsbPredicate, batchSize)(
+      doc => AssessmentCentreRepository.applicationForFsacBsonReads(doc), global)
   }
 
   override def nextApplicationFailedAtFsb(applicationId: String): Future[Seq[ApplicationForProgression]] = {
     import AssessmentCentreRepository.applicationForFsacBsonReads
 
-    val predicate = BSONDocument(
+    val predicate = Document(
       "applicationId" -> applicationId
     ) ++ commonFailedAtFsbPredicate
 
-    collection.find(predicate, projection = Option.empty[JsObject]).one[BSONDocument].map {
+    collection.find[Document](predicate).headOption.map {
       case Some(doc) => List(applicationForFsacBsonReads(doc))
       case _ => Nil
     }
   }
 
+  //scalastyle:off method.length
   override def nextApplicationForFsbOrJobOfferProgression(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
-    import AssessmentCentreRepository.applicationForFsacBsonReads
-    val xdipQuery = (route: ApplicationRoute) => BSONDocument(
-      "applicationRoute" -> route,
-      "applicationStatus" -> ApplicationStatus.SIFT,
+    val xdipQuery = (route: ApplicationRoute) => Document(
+      "applicationRoute" -> route.toBson,
+      "applicationStatus" -> ApplicationStatus.SIFT.toBson,
       s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> true,
-      "currentSchemeStatus" -> BSONDocument("$elemMatch" -> BSONDocument("result" -> Green.toString))
+      "currentSchemeStatus" -> Document("$elemMatch" -> Document("result" -> Green.toString))
     )
 
-    val query = BSONDocument("$or" -> BSONArray(
-      BSONDocument(
-        "applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE,
+    val query = Document("$or" -> BsonArray(
+      Document(
+        "applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE.toBson,
         s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_PASSED}" -> true
       ),
-      BSONDocument(
-        "applicationStatus" -> ApplicationStatus.FSB,
+      Document(
+        "applicationStatus" -> ApplicationStatus.FSB.toBson,
         s"progress-status.${ProgressStatuses.FSB_FAILED}" -> true,
-        s"progress-status.${ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED}" -> BSONDocument("$exists" -> false)
+        s"progress-status.${ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED}" -> Document("$exists" -> false)
       ),
-      BSONDocument(
-        "applicationRoute" -> ApplicationRoute.SdipFaststream,
-        "applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE,
+      Document(
+        "applicationRoute" -> ApplicationRoute.SdipFaststream.toBson,
+        "applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE.toBson,
         s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN_NOTIFIED}" -> true
       ),
-      BSONDocument(
-        "applicationRoute" -> ApplicationRoute.SdipFaststream,
-        "applicationStatus" -> ApplicationStatus.SIFT,
+      Document(
+        "applicationRoute" -> ApplicationRoute.SdipFaststream.toBson,
+        "applicationStatus" -> ApplicationStatus.SIFT.toBson,
         s"progress-status.${ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN}" -> true
       ),
       // All faststream schemes failed before SIFT, i.e. PHASE3, for SDIP we have submitted form and still green in SIFT
-      BSONDocument(
-        "applicationRoute" -> ApplicationRoute.SdipFaststream,
-        "applicationStatus" -> ApplicationStatus.SIFT,
+      Document(
+        "applicationRoute" -> ApplicationRoute.SdipFaststream.toBson,
+        "applicationStatus" -> ApplicationStatus.SIFT.toBson,
         s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> true,
-        BSONDocument(s"currentSchemeStatus" -> BSONDocument("$not" -> BSONDocument("$elemMatch" ->
-          BSONDocument("schemeId" -> BSONDocument("$nin" -> BSONArray("Sdip")),
+        s"currentSchemeStatus" -> Document("$not" -> Document("$elemMatch" ->
+          Document("schemeId" -> Document("$nin" -> BsonArray("Sdip")),
             "result" -> EvaluationResults.Green.toString)
-        ))),
-        BSONDocument(s"currentSchemeStatus" -> BSONDocument("$elemMatch" ->
-          BSONDocument("schemeId" -> BSONDocument("$in" -> BSONArray("Sdip")),
+        )),
+        s"currentSchemeStatus" -> Document("$elemMatch" ->
+          Document("schemeId" -> Document("$in" -> BsonArray("Sdip")),
             "result" -> EvaluationResults.Green.toString)
-        ))
+        )
       ),
       xdipQuery(ApplicationRoute.Sdip),
       xdipQuery(ApplicationRoute.Edip)
     ))
 
-    selectRandom[BSONDocument](query, batchSize).map(_.map(doc => doc: ApplicationForProgression))
-  }
+    selectRandom[ApplicationForProgression](query, batchSize)(doc => AssessmentCentreRepository.applicationForFsacBsonReads(doc), global)
+  } //scalastyle:on method.length
 
   override def nextApplicationForFsbOrJobOfferProgression(applicationId: String): Future[Seq[ApplicationForProgression]] = {
-    import AssessmentCentreRepository.applicationForFsacBsonReads
-    val xdipQuery = (route: ApplicationRoute) => BSONDocument(
+    val xdipQuery = (route: ApplicationRoute) => Document(
       "applicationId" -> applicationId,
-      "applicationRoute" -> route,
-      "applicationStatus" -> ApplicationStatus.SIFT,
+      "applicationRoute" -> route.toBson,
+      "applicationStatus" -> ApplicationStatus.SIFT.toBson,
       s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> true,
-      "currentSchemeStatus" -> BSONDocument("$elemMatch" -> BSONDocument("result" -> Green.toString))
+      "currentSchemeStatus" -> Document("$elemMatch" -> Document("result" -> Green.toString))
     )
 
-    val query = BSONDocument("$or" -> BSONArray(
-      BSONDocument(
+    val query = Document("$or" -> BsonArray(
+      Document(
         "applicationId" -> applicationId,
-        "applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE,
+        "applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE.toBson,
         s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_PASSED}" -> true
       ),
-      BSONDocument(
+      Document(
         "applicationId" -> applicationId,
-        "applicationStatus" -> ApplicationStatus.FSB,
+        "applicationStatus" -> ApplicationStatus.FSB.toBson,
         s"progress-status.${ProgressStatuses.FSB_FAILED}" -> true,
-        s"progress-status.${ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED}" -> BSONDocument("$exists" -> false)
+        s"progress-status.${ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED}" -> Document("$exists" -> false)
       ),
-      BSONDocument(
+      Document(
         "applicationId" -> applicationId,
-        "applicationRoute" -> ApplicationRoute.SdipFaststream,
-        "applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE,
+        "applicationRoute" -> ApplicationRoute.SdipFaststream.toBson,
+        "applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE.toBson,
         s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN_NOTIFIED}" -> true
       ),
-      BSONDocument(
+      Document(
         "applicationId" -> applicationId,
-        "applicationRoute" -> ApplicationRoute.SdipFaststream,
-        "applicationStatus" -> ApplicationStatus.SIFT,
+        "applicationRoute" -> ApplicationRoute.SdipFaststream.toBson,
+        "applicationStatus" -> ApplicationStatus.SIFT.toBson,
         s"progress-status.${ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN}" -> true
       ),
       xdipQuery(ApplicationRoute.Sdip),
       xdipQuery(ApplicationRoute.Edip)
     ))
 
-    collection.find(query, projection = Option.empty[JsObject]).one[BSONDocument].map {
-      case Some(doc) => List(applicationForFsacBsonReads(doc))
+    collection.find[Document](query).headOption().map {
+      case Some(doc) => List(AssessmentCentreRepository.applicationForFsacBsonReads(doc))
       case _ => Nil
     }
   }
 
   override def progressToFsb(application: ApplicationForProgression): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> application.applicationId)
+    val query = Document("applicationId" -> application.applicationId)
     val validator = singleUpdateValidator(application.applicationId, actionDesc = "progressing to fsb awaiting allocation")
 
-    collection.update(ordered = false).one(query, BSONDocument("$set" ->
+    collection.updateOne(query, Document("$set" ->
       applicationStatusBSON(FSB_AWAITING_ALLOCATION)
-    )) map validator
+    )).toFuture map validator
   }
 
   override def progressToJobOffer(application: ApplicationForProgression): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> application.applicationId)
+    val query = Document("applicationId" -> application.applicationId)
     val validator = singleUpdateValidator(application.applicationId, actionDesc = "progressing to eligible for job offer")
 
-    collection.update(ordered = false).one(query, BSONDocument("$set" ->
+    collection.updateOne(query, Document("$set" ->
       applicationStatusBSON(ELIGIBLE_FOR_JOB_OFFER)
-    )) map validator
+    )).toFuture() map validator
   }
 
   override def saveResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
-    val selector = BSONDocument("$and" -> BSONArray(
-      BSONDocument(APPLICATION_ID -> applicationId),
-      BSONDocument(
-        s"$FSB_TEST_GROUPS.evaluation.result.schemeId" -> BSONDocument("$nin" -> BSONArray(result.schemeId.value))
+    val query = BsonDocument("$and" -> BsonArray(
+      BsonDocument(APPLICATION_ID -> applicationId),
+      BsonDocument(
+        s"$FSB_TEST_GROUPS.evaluation.result.schemeId" -> BsonDocument("$nin" -> BsonArray(result.schemeId.value))
       )
     ))
 
-    val modifier = BSONDocument(
-      "$addToSet" -> BSONDocument(s"$FSB_TEST_GROUPS.evaluation.result" -> result)
+    val update = BsonDocument(
+      "$addToSet" -> BsonDocument(s"$FSB_TEST_GROUPS.evaluation.result" -> Codecs.toBson(result))
     )
     val message = s"Fsb evaluation already done for application $applicationId for scheme ${result.schemeId}"
     val validator = singleUpdateValidator(
-      applicationId, actionDesc = s"saving fsb assessment result $result", AlreadyEvaluatedForSchemeException(message)
+      applicationId, actionDesc = s"saving fsb assessment result $result", AlreadyEvaluatedForSchemeException(message) //TODO: mongo test this
     )
-    collection.update(ordered = false).one(selector, modifier) map validator
+    collection.updateOne(query, update).toFuture() map validator
   }
 
   override def findScoresAndFeedback(applicationId: String): Future[Option[ScoresAndFeedback]] = {
-    val query = BSONDocument(APPLICATION_ID -> applicationId)
-    val projection = BSONDocument(s"$FSB_TEST_GROUPS.scoresAndFeedback" -> true)
+    val query = Document("$and" -> BsonArray(
+      Document(APPLICATION_ID -> applicationId),
+      Document(s"$FSB_TEST_GROUPS.scoresAndFeedback" ->  Document("$exists" -> true))
+    ))
+    val projection = Projections.include(s"$FSB_TEST_GROUPS.scoresAndFeedback")
 
-    collection.find(query, Some(projection)).one[BSONDocument].map { docOpt =>
+    collection.find[Document](query).projection(projection).headOption().map { docOpt =>
       docOpt.flatMap(processScoresAndFeedback)
     }
   }
 
-  override def findScoresAndFeedback(applicationIds: List[String]): Future[Map[String, Option[ScoresAndFeedback]]] = {
+  override def findScoresAndFeedback(applicationIds: Seq[String]): Future[Map[String, Option[ScoresAndFeedback]]] = {
 
-    def docToReport(document: BSONDocument): (String, Option[ScoresAndFeedback]) = {
-      val applicationId = document.getAs[String]("applicationId").get
+    def docToReport(document: Document): (String, Option[ScoresAndFeedback]) = {
+      val applicationId = document.get("applicationId").get.asString().getValue
       val scoresAndFeedbackOpt = processScoresAndFeedback(document)
 
       applicationId -> scoresAndFeedbackOpt
     }
 
-    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
-
-    implicit val reader = bsonReader(docToReport)
-    val queryResult = bsonCollection.find(query, projection = Option.empty[JsObject])
-      .cursor[(String, Option[ScoresAndFeedback])](ReadPreference.nearest)
-      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[(String, Option[ScoresAndFeedback])]]())
-    queryResult.map(_.toMap)
+    val query = Document("applicationId" -> Document("$in" -> applicationIds))
+    collection.find[Document](query).toFuture().map ( _.map ( doc => docToReport(doc) ).toMap)
   }
 
-  private def processScoresAndFeedback(doc: BSONDocument): Option[ScoresAndFeedback] = {
+  // TODO: mongo this version generated NPE!!!!! (investigate)
+  private def processScoresAndFeedback2(doc: Document): Option[ScoresAndFeedback] = {
+    val scoresAndFeedbackOpt = doc.get("testGroups").map(_.asDocument().get("FSB")).map(_.asDocument().get("scoresAndFeedback"))
+    scoresAndFeedbackOpt.flatMap (scoresAndFeedback => Try(Codecs.fromBson[ScoresAndFeedback](scoresAndFeedback)).toOption )
+  }
+
+  private def processScoresAndFeedback(doc: Document): Option[ScoresAndFeedback] = {
     for {
-      testGroups <- doc.getAs[BSONDocument]("testGroups")
-      fsb <- testGroups.getAs[BSONDocument]("FSB")
-      scoresAndFeedback <- fsb.getAs[ScoresAndFeedback]("scoresAndFeedback")
+      testGroups <- subDocRoot("testGroups")(doc)
+      fsb <- subDocRoot("FSB")(testGroups)
+      scoresAndFeedback <- Try(Codecs.fromBson[ScoresAndFeedback](fsb.get("scoresAndFeedback"))).toOption
     } yield scoresAndFeedback
   }
 
   override def saveScoresAndFeedback(applicationId: String, scoresAndFeedback: ScoresAndFeedback): Future[Unit] = {
-    val query = BSONDocument(APPLICATION_ID -> applicationId)
-    val modifier = BSONDocument(
-      "$set" -> BSONDocument(
-        s"$FSB_TEST_GROUPS.scoresAndFeedback" -> scoresAndFeedback
+    val query = Document(APPLICATION_ID -> applicationId)
+    val update = Document(
+      "$set" -> Document(
+        s"$FSB_TEST_GROUPS.scoresAndFeedback" -> scoresAndFeedback.toBson
       )
     )
     val validator = singleUpdateValidator(applicationId, actionDesc = s"saving fsb scores and feedback")
-    collection.update(ordered = false).one(query, modifier) map validator
+    collection.updateOne(query, update).toFuture() map validator
   }
 
   override def updateResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
-    val saveEvaluationResultsDoc = BSONDocument(s"$FSB_TEST_GROUPS.evaluation.result" -> result)
-    val removeDoc = BSONDocument(
-      "$pull" -> BSONDocument(s"$FSB_TEST_GROUPS.evaluation.result" -> BSONDocument("schemeId" -> result.schemeId.value))
+    val saveEvaluationResultsDoc = Document(s"$FSB_TEST_GROUPS.evaluation.result" -> result.toBson)
+    val removeDoc = Document(
+      "$pull" -> Document(s"$FSB_TEST_GROUPS.evaluation.result" -> Document("schemeId" -> result.schemeId.value))
     )
-    val setDoc = BSONDocument("$addToSet" -> saveEvaluationResultsDoc)
+    val setDoc = Document("$addToSet" -> saveEvaluationResultsDoc)
 
-    val removePredicate = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationId" -> applicationId),
-      BSONDocument(
-        s"$FSB_TEST_GROUPS.evaluation.result.schemeId" -> BSONDocument("$in" -> BSONArray(result.schemeId.value))
+    val removePredicate = Document("$and" -> BsonArray(
+      Document("applicationId" -> applicationId),
+      Document(
+        s"$FSB_TEST_GROUPS.evaluation.result.schemeId" -> Document("$in" -> BsonArray(result.schemeId.value))
       )
     ))
-    val setPredicate = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationId" -> applicationId),
-      BSONDocument(
-        s"$FSB_TEST_GROUPS.evaluation.result.schemeId" -> BSONDocument("$nin" -> BSONArray(result.schemeId.value))
+    val setPredicate = Document("$and" -> BsonArray(
+      Document("applicationId" -> applicationId),
+      Document(
+        s"$FSB_TEST_GROUPS.evaluation.result.schemeId" -> Document("$nin" -> BsonArray(result.schemeId.value))
       )
     ))
 
     val validator = singleUpdateValidator(applicationId, s"Fixing FSB results for ${result.schemeId}", ApplicationNotFound(applicationId))
 
     for {
-      _ <- collection.update(ordered = false).one(removePredicate, removeDoc) map validator
-      _ <- collection.update(ordered = false).one(setPredicate, setDoc) map validator
+      _ <- collection.updateOne(removePredicate, removeDoc).toFuture map validator
+      _ <- collection.updateOne(setPredicate, setDoc).toFuture map validator
     } yield ()
   }
 
   override def updateCurrentSchemeStatus(applicationId: String, newCurrentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> applicationId)
+    val query = Document("applicationId" -> applicationId)
+    val update = Document("$set" -> Document("currentSchemeStatus" -> Codecs.toBson(newCurrentSchemeStatus)))
+    val validator = singleUpdateValidator(applicationId, actionDesc = s"Updating current scheme status")
 
-    val update = BSONDocument(
-      "$set" -> BSONDocument("currentSchemeStatus" -> newCurrentSchemeStatus)
-    )
-
-    val validator = singleUpdateValidator(
-      applicationId, actionDesc = s"Updating current scheme status"
-    )
-
-    collection.update(ordered = false).one(query, update) map validator
+    collection.updateOne(query, update).toFuture map validator
   }
 
   override def addFsbProgressStatuses(applicationId: String, progressStatuses: List[(String, DateTime)]): Future[Unit] = {
     require(progressStatuses.nonEmpty, "Progress statuses to add must be specified")
 
-    val query = BSONDocument("applicationId" -> applicationId)
+    val query = Document("applicationId" -> applicationId)
 
     val updateSubDoc = progressStatuses.map { case (progressStatus, progressStatusTimestamp) =>
-      BSONDocument(
+      Document(
         s"fsb-progress-status.$progressStatus" -> true,
-        s"fsb-progress-status-timestamp.$progressStatus" -> progressStatusTimestamp
+        s"fsb-progress-status-timestamp.$progressStatus" -> dateTimeToBson(progressStatusTimestamp)
       )
     }.reduce(_ ++ _)
 
-    val update = BSONDocument("$set" -> updateSubDoc)
+    val update = Document("$set" -> updateSubDoc)
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "adding fsb progress statuses")
 
-    collection.update(ordered = false).one(query, update) map validator
+    collection.updateOne(query, update).toFuture() map validator
   }
 
   override def findByApplicationId(applicationId: String): Future[Option[FsbTestGroup]] = {
-    val query = BSONDocument(APPLICATION_ID -> applicationId)
-    val projection = BSONDocument(FSB_TEST_GROUPS -> 1)
+    val query = Document("$and" -> BsonArray(
+      Document(APPLICATION_ID -> applicationId),
+      Document(FSB_TEST_GROUPS ->  Document("$exists" -> true))
+    ))
 
-    collection.find(query, Some(projection)).one[BSONDocument] map {
-      case Some(document) =>
+    val projection = Projections.include(FSB_TEST_GROUPS)
+
+    collection.find[Document](query).projection(projection).headOption() map {
+      case Some(doc) =>
         for {
-          testGroups <- document.getAs[BSONDocument]("testGroups")
-          fsb <- testGroups.getAs[FsbTestGroup]("FSB")
-        } yield fsb
+          testGroupsDoc <- subDocRoot("testGroups")(doc)
+          fsbTestGroupOpt <- subDocRoot("FSB")(testGroupsDoc).flatMap ( fsb => Try(Codecs.fromBson[FsbTestGroup](fsb)).toOption )
+        } yield fsbTestGroupOpt
       case _ => None
     }
   }
 
-  override def findByApplicationIds(applicationIds: List[String], schemeId: Option[SchemeId]): Future[List[FsbSchemeResult]] = {
-    val applicationIdFilter = applicationIds.foldLeft(BSONArray())((bsonArray, applicationId) => bsonArray ++ applicationId)
-    val query = BSONDocument(APPLICATION_ID -> BSONDocument("$in" -> applicationIdFilter))
-    val projection = BSONDocument(FSB_TEST_GROUPS -> 1, APPLICATION_ID -> 1)
+  override def findByApplicationIds(applicationIds: Seq[String], schemeId: Option[SchemeId]): Future[List[FsbSchemeResult]] = {
+    val query = Document("$and" -> BsonArray(
+      Document(APPLICATION_ID -> Document("$in" -> applicationIds)),
+      Document(FSB_TEST_GROUPS ->  Document("$exists" -> true))
+    ))
 
-    collection.find(query, Some(projection)).cursor[BSONDocument]()
-      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { documents =>
+    val projection = Projections.include(APPLICATION_ID, FSB_TEST_GROUPS)
+
+    collection.find[Document](query).projection(projection).toFuture().map { documents =>
       documents.foldLeft(List[FsbSchemeResult]())((list, document) => {
-        BSON.readDocument[Option[FsbSchemeResult]](document) match {
+
+        FsbSchemeResult.fromBson(document) match {
           case Some(fsbSchemeResult) =>
             schemeId match {
               case Some(scheme) => filterBySchemeId(list, fsbSchemeResult, scheme)
@@ -382,6 +384,7 @@ class FsbMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
             }
           case _ => list
         }
+
       })
     }
   }
@@ -396,13 +399,11 @@ class FsbMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
   }
 
   def removeTestGroup(applicationId: String): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> applicationId)
-    val update = bsonCollection.updateModifier(
-      BSONDocument("$unset" -> BSONDocument(FSB_TEST_GROUPS -> ""))
-    )
+    val query = Document("applicationId" -> applicationId)
+    val update = Document("$unset" -> Document(FSB_TEST_GROUPS -> ""))
 
-    findAndModify(query, update).map{ result =>
-      if (result.value.isEmpty) { throw ApplicationNotFound(s"Failed to match a document to fix for id $applicationId") }
+    collection.updateOne(query, update).toFuture().map { result =>
+      if (result.getModifiedCount == 0) { throw ApplicationNotFound(s"Failed to match a document to fix for id $applicationId") }
       else { () }
     }
   }

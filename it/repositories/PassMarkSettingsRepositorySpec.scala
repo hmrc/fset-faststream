@@ -19,11 +19,10 @@ package repositories
 import model.SchemeId
 import model.exchange.passmarksettings._
 import org.joda.time.DateTime
-import play.api.libs.json.{ Format, OFormat }
-import reactivemongo.api.indexes.IndexType.Ascending
+import play.api.libs.json.{Format, OFormat}
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import repositories.passmarksettings._
 import testkit.MongoRepositorySpec
-import uk.gov.hmrc.mongo.ReactiveRepository
 
 class Phase1PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   type T = Phase1PassMarkSettings
@@ -127,10 +126,13 @@ trait PassMarkRepositoryFixture extends MongoRepositorySpec {
 
   "Pass-mark-settings collection" should {
     "create indexes for the repository" in {
-      val indexes = indexesWithFields(passMarkSettingsRepo.asInstanceOf[ReactiveRepository[_, _]])
-      indexes must contain (IndexDetails(key = Seq(("_id", Ascending)), unique = false))
-      indexes must contain (IndexDetails(key = Seq(("createDate", Ascending)), unique = true))
-      indexes.size mustBe 2
+
+      val indexes = indexDetails(passMarkSettingsRepo.asInstanceOf[PlayMongoRepository[T]]).futureValue
+      indexes must contain theSameElementsAs
+        Seq(
+          IndexDetails(name = "_id_", keys = Seq(("_id", "Ascending")), unique = false),
+          IndexDetails(name = "createDate_1", keys = Seq(("createDate", "Ascending")), unique = true)
+        )
     }
   }
 
@@ -159,7 +161,7 @@ trait PassMarkRepositoryFixture extends MongoRepositorySpec {
       result mustBe newPassMarkSettings
     }
 
-    "no pass mark settings returned" in {
+    "not return pass mark settings if none have been saved" in {
       val result = passMarkSettingsRepo.getLatestVersion.futureValue
       result mustBe None
     }

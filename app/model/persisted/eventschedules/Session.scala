@@ -22,9 +22,9 @@ import org.joda.time.LocalTime
 import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
 import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.{ Json, OFormat }
-import reactivemongo.bson.Macros
+//import reactivemongo.bson.Macros
 import repositories.events.SessionConfig
-import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONMapStringIntHandler }
+//import repositories.{ BSONLocalDateHandler, BSONLocalTimeHandler, BSONMapStringIntHandler }
 
 case class Session(
   id: String,
@@ -44,7 +44,7 @@ object UpdateSession {
 
 object Session {
   implicit val eventFormat: OFormat[Session] = Json.format[Session]
-  implicit val eventHandler = Macros.handler[Session]
+//  implicit val eventHandler = Macros.handler[Session]
 
   def apply(s: SessionConfig): Session = {
     Session(UUIDFactory.generateUUID(), s.description, s.capacity, s.minViableAttendees, s.attendeeSafetyMargin, s.startTime, s.endTime)

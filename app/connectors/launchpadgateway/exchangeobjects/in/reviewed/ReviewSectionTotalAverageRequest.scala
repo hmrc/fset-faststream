@@ -17,11 +17,11 @@
 package connectors.launchpadgateway.exchangeobjects.in.reviewed
 
 import play.api.libs.json.Json
-import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
+//import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
 
 case class ReviewSectionTotalAverageRequest(`type`: String, scoreText: String, scoreValue: Double)
 
 object ReviewSectionTotalAverageRequest {
   implicit val reviewSectionTotalAverageFormat = Json.format[ReviewSectionTotalAverageRequest]
-  implicit val bsonHandler: BSONHandler[BSONDocument, ReviewSectionTotalAverageRequest] = Macros.handler[ReviewSectionTotalAverageRequest]
+//  implicit val bsonHandler: BSONHandler[BSONDocument, ReviewSectionTotalAverageRequest] = Macros.handler[ReviewSectionTotalAverageRequest]
 }

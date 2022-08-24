@@ -96,7 +96,7 @@ class Module(val environment: Environment, val configuration: Configuration) ext
     bind(classOf[ApplicationSiftRepository]).to(classOf[ApplicationSiftMongoRepository]).asEagerSingleton()
     bind(classOf[SiftAnswersRepository]).to(classOf[SiftAnswersMongoRepository]).asEagerSingleton()
 
-    bind(classOf[FinalOutcomeRepository]).to(classOf[FinaOutcomeMongoRepository]).asEagerSingleton()
+    bind(classOf[FinalOutcomeRepository]).to(classOf[FinalOutcomeMongoRepository]).asEagerSingleton()
     bind(classOf[AssessorsEventsSummaryJobsRepository]).to(classOf[AssessorsEventsSummaryJobsMongoRepository]).asEagerSingleton()
 
     //reporting

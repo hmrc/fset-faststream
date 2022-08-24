@@ -16,13 +16,15 @@
 
 package model.command
 
-import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresExercise, AssessmentScoresFinalFeedback }
+import model.assessmentscores.{AssessmentScoresAllExercisesExchange, AssessmentScoresExercise, AssessmentScoresExerciseExchange, AssessmentScoresFinalFeedback, AssessmentScoresFinalFeedbackExchange}
 import model.UniqueIdentifier
 import org.joda.time.LocalDate
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
+import org.mongodb.scala.bson.BsonValue
+import play.api.libs.json.JodaWrites._
+import play.api.libs.json.JodaReads._
 import play.api.libs.json._
-import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
+import uk.gov.hmrc.mongo.play.json.Codecs
+//import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
 
 object AssessmentScoresCommands {
 
@@ -47,10 +49,15 @@ object AssessmentScoresCommands {
       def writes(scheme: AssessmentScoresSectionType) = JsString(scheme.toString)
     }
 
+/*
     implicit object BSONEnumHandler extends BSONHandler[BSONString, AssessmentScoresSectionType] {
       def read(doc: BSONString) = AssessmentScoresSectionType.withName(doc.value)
 
       def write(scheme: AssessmentScoresSectionType) = BSON.write(scheme.toString)
+    }*/
+
+    implicit class BsonOps(val sectionType: AssessmentScoresSectionType) extends AnyVal {
+      def toBson: BsonValue = Codecs.toBson(sectionType)
     }
 
     def asListOfStrings = List(writtenExercise.toString, teamExercise.toString, leadershipExercise.toString, finalFeedback.toString)
@@ -59,7 +66,7 @@ object AssessmentScoresCommands {
   case class AssessmentScoresSubmitExerciseRequest(
     applicationId: UniqueIdentifier,
     exercise: String,
-    scoresExercise: AssessmentScoresExercise
+    scoresExercise: AssessmentScoresExerciseExchange
   )
   object AssessmentScoresSubmitExerciseRequest {
     implicit val jsonFormat: Format[AssessmentScoresSubmitExerciseRequest] = Json.format[AssessmentScoresSubmitExerciseRequest]
@@ -68,13 +75,16 @@ object AssessmentScoresCommands {
 
   case class AssessmentScoresFinalFeedbackSubmitRequest(
                                             applicationId: UniqueIdentifier,
-                                            finalFeedback: AssessmentScoresFinalFeedback
+                                            finalFeedback: AssessmentScoresFinalFeedbackExchange
                                           )
   object AssessmentScoresFinalFeedbackSubmitRequest {
     implicit val jsonFormat: Format[AssessmentScoresFinalFeedbackSubmitRequest] = Json.format[AssessmentScoresFinalFeedbackSubmitRequest]
   }
 
-  case class AssessmentScoresFindResponse(candidate: AssessmentScoresCandidateSummary, scoresAllExercises: Option[AssessmentScoresAllExercises])
+  case class AssessmentScoresFindResponse(
+                                           candidate: AssessmentScoresCandidateSummary,
+                                           scoresAllExercises: Option[AssessmentScoresAllExercisesExchange]
+                                         )
   object AssessmentScoresFindResponse {
     implicit val jsonFormat: Format[AssessmentScoresFindResponse] = Json.format[AssessmentScoresFindResponse]
   }

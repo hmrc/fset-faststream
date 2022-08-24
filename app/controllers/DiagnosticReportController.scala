@@ -16,15 +16,12 @@
 
 package controllers
 
-import akka.stream.Materializer
-import akka.stream.scaladsl.Source
 import connectors.AuthProviderClient
 import connectors.exchange.AssessorDiagnosticReport
 
 import javax.inject.{Inject, Singleton}
 import model.Exceptions.NotFoundException
 import model.UniqueIdentifier
-import play.api.libs.iteratee.streams.IterateeStreams
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import repositories._
@@ -43,7 +40,7 @@ class DiagnosticReportController @Inject() (cc: ControllerComponents,
                                             eventsRepo: EventsRepository,
                                             authProvider: AuthProviderClient,
                                             assessorService: AssessorService
-                                           )(implicit mat: Materializer) extends BackendController(cc) {
+                                           ) extends BackendController(cc) {
 
   def getApplicationByUserId(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
 

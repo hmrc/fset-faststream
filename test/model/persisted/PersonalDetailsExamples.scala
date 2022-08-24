@@ -24,4 +24,8 @@ object PersonalDetailsExamples extends FunSuite {
     edipYear = None, otherInternshipCompleted = Some(false), otherInternshipName = None, otherInternshipYear = None)
   val SdipJohnDoe = PersonalDetails("John", "Doe", "johnd", dateOfBirth = LocalDate.now().minusYears(20), edipCompleted = Some(true),
     edipYear = Some("2020"), otherInternshipCompleted = Some(false), otherInternshipName = None, otherInternshipYear = None)
+//  val JohnDoe2 = PersonalDetails2("John", "Doe", "johnd", dateOfBirth = LocalDate.now().minusYears(20), edipCompleted = Some(false),
+//    edipYear = None, otherInternshipCompleted = Some(false), otherInternshipName = None, otherInternshipYear = None)
+//  val SdipJohnDoe2 = PersonalDetails2("John", "Doe", "johnd", dateOfBirth = LocalDate.now().minusYears(20), edipCompleted = Some(true),
+//    edipYear = Some("2020"), otherInternshipCompleted = Some(false), otherInternshipName = None, otherInternshipYear = None)
 }

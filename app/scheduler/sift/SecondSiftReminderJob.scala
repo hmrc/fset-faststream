@@ -17,10 +17,12 @@
 package scheduler.sift
 
 import config.ScheduledJobConfig
-import javax.inject.{ Inject, Singleton }
-import model.sift.{ SiftReminderNotice, SiftSecondReminder }
-import play.api.{ Configuration, Logging }
-import play.modules.reactivemongo.ReactiveMongoComponent
+
+import javax.inject.{Inject, Singleton}
+import model.sift.{SiftReminderNotice, SiftSecondReminder}
+import play.api.{Configuration, Logging}
+import uk.gov.hmrc.mongo.MongoComponent
+//import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.sift.ApplicationSiftService
@@ -30,7 +32,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class SecondSiftReminderJobImpl @Inject() (val service: ApplicationSiftService,
-                                           val mongoComponent: ReactiveMongoComponent,
+                                           val mongoComponent: MongoComponent,
                                            val config: SecondSiftReminderJobConfig) extends SecondSiftReminderJob {
   //  override val service = ApplicationSiftService
   override val reminderNotice: SiftReminderNotice = SiftSecondReminder

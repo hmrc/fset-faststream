@@ -23,11 +23,13 @@ import model.Candidate
 import model.EvaluationResults.Result
 import model.persisted._
 import org.joda.time.LocalDate
-import reactivemongo.bson.{ BSONDocument, _ }
+//import reactivemongo.bson.{ BSONDocument, _ }
 import repositories._
 
 trait GeneralApplicationRepoBSONReader extends BaseBSONReader {
 
+  // TODO: mongo this needs to be looked at
+/*
   implicit val toApplicationForNotification: BSONDocumentReader[ApplicationForNotification] = bsonReader {
     (doc: BSONDocument) => {
       val applicationId = doc.getAs[String]("applicationId").get
@@ -37,8 +39,9 @@ trait GeneralApplicationRepoBSONReader extends BaseBSONReader {
       val preferredName = personalDetailsRoot.getAs[String]("preferredName").get
       ApplicationForNotification(applicationId, userId, preferredName, applicationStatus)
     }
-  }
+  }*/
 
+/*
   implicit val toCandidate: BSONDocumentReader[Candidate] = bsonReader {
     (doc: BSONDocument) => {
       val userId = doc.getAs[String]("userId").getOrElse("")
@@ -58,5 +61,5 @@ trait GeneralApplicationRepoBSONReader extends BaseBSONReader {
       Candidate(userId, applicationId, testAccountId, None, firstName, lastName, preferredName, dateOfBirth, None, None, None,
         Some(applicationRoute), applicationStatus)
     }
-  }
+  }*/
 }

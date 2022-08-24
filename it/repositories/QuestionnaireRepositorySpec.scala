@@ -29,21 +29,33 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
   override val collectionName: String = CollectionNames.QUESTIONNAIRE
 
   "The Questionnaire Repo" should {
+    "create indexes for the repository" in new TestFixture {
+      val indexes = indexDetails(questionnaireRepo).futureValue
+      indexes must contain theSameElementsAs
+        Seq(
+          IndexDetails(name = "_id_", keys = Seq(("_id", "Ascending")), unique = false),
+          IndexDetails(name = "applicationId_1", keys = Seq(("applicationId", "Ascending")), unique = true)
+        )
+    }
+
     "create collection, append questions to the application and overwrite existing questions" in new TestFixture {
       val applicationId = System.currentTimeMillis() + ""
       questionnaireRepo.addQuestions(applicationId, List(QuestionnaireQuestion("what?",
-        QuestionnaireAnswer(Some("nothing"), None, None)))).futureValue
+        QuestionnaireAnswer(answer = Some("answer1"), otherDetails = None, unknown = None)))).futureValue
       val result = questionnaireRepo.find(applicationId).futureValue
       result.size mustBe 1
 
+      // Replace the existing question
       questionnaireRepo.addQuestions(applicationId, List(QuestionnaireQuestion("what?",
-        QuestionnaireAnswer(Some("nada"), None, None)))).futureValue
+        QuestionnaireAnswer(answer = Some("answer2"), otherDetails = None, unknown = None)))).futureValue
       val result1 = questionnaireRepo.find(applicationId).futureValue
-      result1.size mustBe 1
-      result1.head.answer.answer mustBe Some("nada")
 
+      result1.size mustBe 1
+      result1.head.answer.answer mustBe Some("answer2")
+
+      // Add a new question
       questionnaireRepo.addQuestions(applicationId, List(QuestionnaireQuestion("where?",
-        QuestionnaireAnswer(None, None, Some(true))))).futureValue
+        QuestionnaireAnswer(answer = None, otherDetails = None, unknown = Some(true))))).futureValue
       val result2 = questionnaireRepo.find(applicationId).futureValue
       result2.size mustBe 2
     }
@@ -51,10 +63,10 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
     "find questions should return a map of questions/answers ignoring the non answered ones" in new TestFixture {
       val applicationId = System.currentTimeMillis() + ""
 
-      val emptyAnswer = QuestionnaireAnswer(None, None, Some(true))
+      val emptyAnswer = QuestionnaireAnswer(answer = None, otherDetails = None, unknown = Some(true))
 
       questionnaireRepo.addQuestions(applicationId, List(QuestionnaireQuestion("what?",
-        QuestionnaireAnswer(Some("nada"), None, None)))).futureValue
+        QuestionnaireAnswer(answer = Some("nada"), otherDetails = None, unknown = None)))).futureValue
       questionnaireRepo.addQuestions(applicationId, List(QuestionnaireQuestion("where?", emptyAnswer))).futureValue
       val result2 = questionnaireRepo.findQuestions(applicationId).futureValue
 
@@ -80,6 +92,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
           lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SES Score", university = Some("W17-WARR"))
       )
     }
+
     "calculate the socioeconomic score for the pass mark report" in new TestFixture {
       when(socioEconomicCalculator.calculate(any())).thenReturn("SES Score")
       submitQuestionnaire()
@@ -95,6 +108,30 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
         "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Unemployed",
         "Do you consider yourself to come from a lower socio-economic background?" -> "Unknown"
       ))
+    }
+
+    "findQuestionsByIds" in new TestFixture {
+      when(socioEconomicCalculator.calculate(any())).thenReturn("SES Score")
+      submitQuestionnaires()
+
+      val report = questionnaireRepo.findQuestionsByIds(List(applicationId1, applicationId2, applicationId3)).futureValue
+
+      report mustBe Map(
+        applicationId1 -> QuestionnaireReportItem(
+          gender = Some("Male"), sexualOrientation = Some("Straight"), ethnicity = Some("Black"), isEnglishYourFirstLanguage = Some("Yes"),
+          parentEmploymentStatus = Some("Unemployed"), parentOccupation = None, parentEmployedOrSelf = None,
+          parentCompanySize = None, lowerSocioEconomicBackground = None, socioEconomicScore = "SES Score", university = Some("W01-USW")),
+        applicationId2 -> QuestionnaireReportItem(
+          gender = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
+          parentEmploymentStatus = Some("Employed"), parentOccupation = Some("Modern professional"),
+          parentEmployedOrSelf = Some("Part-time employed"), parentCompanySize = Some("Large (26-500)"),
+          lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SES Score", university = Some("W17-WARR")),
+        applicationId3 -> QuestionnaireReportItem(
+          gender = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
+          parentEmploymentStatus = None, parentOccupation = None,
+          parentEmployedOrSelf = None, parentCompanySize = None,
+          lowerSocioEconomicBackground = None, socioEconomicScore = "", university = None)
+      )
     }
 
     "find all for diversity report" in new TestFixture {
@@ -120,6 +157,18 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
           lowerSocioEconomicBackground = None, socioEconomicScore = "", university = None
         )
       )
+    }
+
+    "remove questions" in new TestFixture {
+      val applicationId = "appId"
+      questionnaireRepo.addQuestions(applicationId, List(QuestionnaireQuestion("what?",
+        QuestionnaireAnswer(answer = Some("answer1"), otherDetails = None, unknown = None)))).futureValue
+      val result = questionnaireRepo.find(applicationId).futureValue
+      result.size mustBe 1
+
+      questionnaireRepo.removeQuestions(applicationId).futureValue
+      val result1 = questionnaireRepo.find(applicationId).futureValue
+      result1.size mustBe 0
     }
   }
 
