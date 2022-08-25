@@ -80,9 +80,10 @@ class ApplicationClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(imp
   }
 
   def submitApplication(userId: UniqueIdentifier, applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.PUT[String, HttpResponse](s"$apiBaseUrl/application/submit/$userId/$applicationId", "").map {
-      case resp if resp.status == OK => ()
-      case resp if resp.status == BAD_REQUEST => throw new CannotSubmit
+    http.PUT[String, Either[UpstreamErrorResponse, Unit]](s"$apiBaseUrl/application/submit/$userId/$applicationId", "").map {
+      case Right(_) => ()
+      case Left(badRequestEx) if badRequestEx.statusCode == BAD_REQUEST => throw new CannotSubmit
+      case Left(ex) => throw ex
     }
   }
 
