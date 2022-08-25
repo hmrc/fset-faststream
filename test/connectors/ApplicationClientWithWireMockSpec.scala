@@ -185,6 +185,17 @@ class ApplicationClientWithWireMockSpec extends BaseConnectorWithWireMockSpec {
       val result = client.submitApplication(userId, applicationId).failed.futureValue
       result mustBe a[CannotSubmit]
     }
+
+    "throw UpstreamErrorResponse when INTERNAL_SERVER_ERROR is received" in new TestFixture {
+      stubFor(put(urlPathEqualTo(endpoint))
+        .withRequestBody(equalTo(Json.toJson("").toString()))
+        .willReturn(aResponse().withStatus(INTERNAL_SERVER_ERROR))
+      )
+
+      val result = client.submitApplication(userId, applicationId).failed.futureValue
+      result mustBe a[UpstreamErrorResponse]
+      result.asInstanceOf[UpstreamErrorResponse].statusCode mustBe INTERNAL_SERVER_ERROR
+    }
   }
 
   "withdrawApplication" should {
