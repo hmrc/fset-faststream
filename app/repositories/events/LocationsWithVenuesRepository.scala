@@ -20,19 +20,16 @@ import java.util
 
 //import com.github.ghik.silencer.silent
 import config.MicroserviceAppConfig
-import javax.inject.{ Inject, Singleton }
 import model.persisted.ReferenceData
-import model.persisted.eventschedules.{ Location, Venue }
+import model.persisted.eventschedules.{Location, Venue}
 import org.yaml.snakeyaml.Yaml
-import play.api.{ Application, Play }
-import play.api.libs.json.{ Json, OFormat }
+import play.api.Application
+import play.api.libs.json.{Json, OFormat}
 import resource._
 
-import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.language.postfixOps
 
 case class LocationWithVenue(name: String, venues: List[Venue])
 
@@ -46,13 +43,9 @@ case class UnknownVenueException(m: String) extends Exception(m)
 
 trait LocationsWithVenuesRepository {
   def locationsWithVenuesList: Future[List[LocationWithVenue]]
-
   def locations: Future[ReferenceData[Location]]
-
   def location(name: String): Future[Location]
-
   def venues: Future[ReferenceData[Venue]]
-
   def venue(name: String): Future[Venue]
 }
 
@@ -71,38 +64,39 @@ class LocationsWithVenuesInMemoryYamlRepository @Inject() (application: Applicat
 
   private lazy val venuesCached = locationsAndVenuesCached.map { lv => lv.flatMap(_.venues) }
 
-  def locations: Future[ReferenceData[Location]] = {
+  override def locations: Future[ReferenceData[Location]] = {
     for (locations <- locationsCached) yield {
       ReferenceData(locations, locations.head, appConfig.AllLocations)
     }
   }
 
-  def location(name: String): Future[Location] = {
+  override def location(name: String): Future[Location] = {
     locations.map(_.allValues.find(_.name == name)
       .getOrElse(throw UnknownLocationException(s"$name is not a known location for this campaign")))
   }
 
-  def venues: Future[ReferenceData[Venue]] =
+  override def venues: Future[ReferenceData[Venue]] =
     for (venues <- venuesCached) yield {
       ReferenceData(venues, venues.head, appConfig.AllVenues)
     }
 
-  def venue(name: String): Future[Venue] = {
+  override def venue(name: String): Future[Venue] = {
     venues.map(_.allValues.find(_.name == name).getOrElse(throw UnknownVenueException(s"$name is not a known venue for this campaign")))
   }
 
-  def locationsWithVenuesList: Future[List[LocationWithVenue]] = locationsAndVenuesCached
+  override def locationsWithVenuesList: Future[List[LocationWithVenue]] = locationsAndVenuesCached
 
-  def asLocationWithVenues[A](obj: A): List[LocationWithVenue] = {
+  private def asLocationWithVenues[A](obj: A): List[LocationWithVenue] = {
+    import scala.collection.JavaConverters._
     // TODO: This java library forces creation of this complex statement. Investigate alternatives.
     val root = obj.asInstanceOf[util.LinkedHashMap[String, util.ArrayList[util.LinkedHashMap[String, util.LinkedHashMap[String, _]]]]].asScala
 
     val locations = root.map {
       case (loc, venues) =>
-        LocationWithVenue(loc, venues.flatMap { venueSection =>
-          venueSection.map {
+        LocationWithVenue(loc, venues.asScala.flatMap { venueSection =>
+          venueSection.asScala.map {
             case (venueName, venueKeys) =>
-              val description = venueKeys("description").asInstanceOf[String]
+              val description = venueKeys.asScala("description").asInstanceOf[String]
               Venue(venueName, description)
           }.toList
         }.toList)
@@ -110,11 +104,3 @@ class LocationsWithVenuesInMemoryYamlRepository @Inject() (application: Applicat
     locations
   }
 }
-
-//@Singleton
-//class LocationsWithVenuesInMemoryRepository @Inject() (appConfig: MicroserviceAppConfig) extends LocationsWithVenuesYamlRepository {
-//
-//  val locationsAndVenuesConfig = appConfig.locationsAndVenuesConfig
-//
-//  val locationsAndVenuesFilePath: String = locationsAndVenuesConfig.yamlFilePath
-//}

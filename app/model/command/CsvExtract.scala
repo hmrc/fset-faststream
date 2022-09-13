@@ -18,4 +18,11 @@ package model.command
 
 case class CsvExtract[A](header: String, records: Map[String, A]) {
   def emptyRecord: String = List.fill(header.split(",").length)("\"\"").mkString(",")
+  def recordAt(key: String): Option[A] = records.get(key)
+  def elementAt(key: String, elementNumber: Int): Option[String] = {
+    recordAt(key).flatMap{ data =>
+      val list = data.toString.split(",").toList
+      list.lift(elementNumber)
+    }
+  }
 }

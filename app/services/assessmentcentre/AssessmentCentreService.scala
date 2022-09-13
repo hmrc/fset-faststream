@@ -85,7 +85,7 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
     }
   }
 
-  private def commonProcessApplicationIds(applicationIds: List[UniqueIdentifier], passmark: AssessmentCentrePassMarkSettings) = {
+  private def commonProcessApplicationIds(applicationIds: Seq[UniqueIdentifier], passmark: AssessmentCentrePassMarkSettings) = {
     applicationIds match {
       case appIds if appIds.nonEmpty =>
         logger.warn(
@@ -106,7 +106,7 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
           commonProcessApplicationIds(applicationIds, passmark)
         }
       case None =>
-        logger.debug(s"$logPrefix Assessment centre pass marks have not been set")
+        logger.debug(s"$logPrefix Cannot evaluate specific candidate $applicationId because assessment centre pass marks have not been set")
         Future.successful(Seq.empty)
     }
   }

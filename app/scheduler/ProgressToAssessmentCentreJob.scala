@@ -17,9 +17,8 @@
 package scheduler
 
 import config.WaitingScheduledJobConfig
-import play.modules.reactivemongo.ReactiveMongoComponent
+import uk.gov.hmrc.mongo.MongoComponent
 import scheduler.clustering.SingleInstanceScheduledJob
-//import ProgressToAssessmentCentreJobConfig.conf
 import javax.inject.Inject
 import play.api.{ Configuration, Logging }
 import services.assessmentcentre.AssessmentCentreService
@@ -27,11 +26,9 @@ import services.assessmentcentre.AssessmentCentreService
 import scala.concurrent.{ ExecutionContext, Future }
 
 class ProgressToAssessmentCentreJobImpl @Inject() (val assessmentCentreService: AssessmentCentreService,
-                                                   val mongoComponent: ReactiveMongoComponent,
+                                                   val mongoComponent: MongoComponent,
                                                    val config: ProgressToAssessmentCentreJobConfig
                                                   ) extends ProgressToAssessmentCentreJob {
-  //  val assessmentCentreService = AssessmentCentreService
-  //  val config = ProgressToAssessmentCentreJobConfig
 }
 
 trait ProgressToAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {

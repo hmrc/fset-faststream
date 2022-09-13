@@ -5,7 +5,6 @@ import model.AllocationStatuses._
 import model.exchange.candidateevents.CandidateRemoveReason
 import model.persisted.CandidateAllocation
 import org.joda.time.LocalDate
-import reactivemongo.api.indexes.IndexType.Ascending
 import repositories.{ CandidateAllocationMongoRepository, CollectionNames }
 import testkit.MongoRepositorySpec
 
@@ -13,24 +12,40 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
 
   override val collectionName: String = CollectionNames.CANDIDATE_ALLOCATION
   def repository: CandidateAllocationMongoRepository = new CandidateAllocationMongoRepository(mongo)
+  val appId1 = "appId1"
+  val appId2 = "appId2"
+  val appId3 = "appId3"
   val allocations: Seq[CandidateAllocation] = Seq(
-    CandidateAllocation("candId1", "eventId1", "sessionId1", UNCONFIRMED, "version1", None, LocalDate.now(), reminderSent = false),
-    CandidateAllocation("candId2", "eventId1", "sessionId1", CONFIRMED, "version1", None, LocalDate.now(), reminderSent = false),
-    CandidateAllocation("candId3", "eventId2", "sessionId2",  UNCONFIRMED, "version1", None, LocalDate.now().minusDays(6), reminderSent = false)
+    CandidateAllocation(appId1, "eventId1", "sessionId1", UNCONFIRMED, "version1", removeReason = None, LocalDate.now(), reminderSent = false),
+    CandidateAllocation(appId2, "eventId1", "sessionId1", CONFIRMED, "version1", removeReason = None, LocalDate.now(), reminderSent = false),
+    CandidateAllocation(appId3, "eventId2", "sessionId2", UNCONFIRMED, "version1", removeReason = None,
+      LocalDate.now().minusDays(6), reminderSent = false
+    )
   )
 
-  def storeAllocations = allocations.foreach(a => repository.save(Seq(a)).futureValue)
+  def storeAllocations() = allocations.foreach(a => repository.save(Seq(a)).futureValue)
 
   "CandidateAllocationRepository" must {
     "create indexes for the repository" in {
-      val indexes = indexesWithFields(repository)
-      indexes must contain(IndexDetails(key = Seq(("_id", Ascending)), unique = false))
-      indexes must contain(IndexDetails(key = Seq(("id", Ascending), ("eventId", Ascending), ("sessionId", Ascending)), unique = false))
-      indexes.size mustBe 2
+      val indexes = indexDetails(repository).futureValue
+      indexes must contain theSameElementsAs
+        Seq(
+          IndexDetails(name = "_id_", keys = Seq(("_id", "Ascending")), unique = false),
+          IndexDetails(name = "id_1_eventId_1_sessionId_1",
+            keys = Seq(("id", "Ascending"), ("eventId", "Ascending"), ("sessionId", "Ascending")), unique = false)
+        )
+    }
+
+    "correctly find allocations by applicationId" in {
+      storeAllocations()
+      val result = repository.find(appId1).futureValue
+      result.size mustBe 1
+      val expectedAllocations = allocations.filter(_.id == appId1)
+      result mustBe expectedAllocations
     }
 
     "correctly find allocations by session" in {
-      storeAllocations
+      storeAllocations()
       val result = repository.activeAllocationsForSession("eventId1", "sessionId1").futureValue
       result.size mustBe 2
       val expectedAllocations = allocations.filter(_.sessionId == "sessionId1")
@@ -38,10 +53,10 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
     }
 
     "correctly find allocations by application" in {
-      storeAllocations
-      val result = repository.allocationsForApplication("candId1").futureValue
+      storeAllocations()
+      val result = repository.allocationsForApplication(appId1).futureValue
       result.size mustBe 1
-      val expectedAllocations = allocations.filter(_.id == "candId1")
+      val expectedAllocations = allocations.filter(_.id == appId1)
       result mustBe expectedAllocations
     }
 
@@ -51,7 +66,7 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
     }
 
     "remove candidate allocations" in {
-      storeAllocations
+      storeAllocations()
       val app = allocations.head
       val result = repository.removeCandidateAllocation(app).futureValue
       result mustBe unit
@@ -61,7 +76,7 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
     }
 
     "check allocation exists" in {
-      storeAllocations
+      storeAllocations()
       val app = allocations.head
       val res = repository.isAllocationExists(app.id, app.eventId, app.sessionId, Some(app.version)).futureValue
       res mustBe true
@@ -71,7 +86,7 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
     }
 
     "remove candidate allocations and find it in removal list" in {
-      storeAllocations
+      storeAllocations()
       val app = allocations.head.copy(removeReason = Some(CandidateRemoveReason.NoShow))
       val result = repository.removeCandidateAllocation(app).futureValue
       result mustBe unit
@@ -86,13 +101,24 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
       docs2.size mustBe 1
     }
 
+    "remove candidate removal reason" in {
+      storeAllocations()
+      val app = allocations.head.copy(removeReason = Some(CandidateRemoveReason.NoShow))
+      repository.removeCandidateAllocation(app).futureValue
+      val result1 = repository.find(appId1).futureValue
+      result1.size mustBe 1
+      repository.removeCandidateRemovalReason(appId1).futureValue
+      val result2 = repository.find(appId1).futureValue
+      result2 mustBe Seq.empty
+    }
+
     "return an exception when no documents have been deleted" in {
       val result = repository.delete(allocations.head :: Nil).failed.futureValue
       result mustBe a[model.Exceptions.NotFoundException]
     }
 
     "delete documents" in {
-      storeAllocations
+      storeAllocations()
       val result = repository.delete(allocations.head :: Nil).futureValue
       result mustBe unit
       val docs = repository.activeAllocationsForSession("eventId1", "sessionId1").futureValue
@@ -101,13 +127,33 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
     }
 
     "find candidates to notify and mark as reminder sent" in {
-      storeAllocations
+      storeAllocations()
       repository.findAllUnconfirmedAllocated(5).futureValue.size mustBe 1
       val res = repository.findAllUnconfirmedAllocated(0).futureValue
       res.size mustBe 2
       val first = res.head
       repository.markAsReminderSent(first.id, first.eventId, first.sessionId).futureValue
       repository.findAllUnconfirmedAllocated(0).futureValue.size mustBe 1
+    }
+
+    "updateStructure" should {
+      "update the expected fields" in {
+        storeAllocations()
+        repository.updateStructure() // Sets reminderSent to true and updates the createdAt timestamp
+        val resultAfterUpdate = repository.findAllAllocations(Seq(appId1, appId2, appId3)).futureValue
+        resultAfterUpdate.foreach { candidateAllocation =>
+          candidateAllocation.reminderSent mustBe true
+          candidateAllocation.createdAt mustBe LocalDate.now()
+        }
+      }
+    }
+
+    "allAllocationUnconfirmed" should {
+      "find all documents with an unconfirmed status" in {
+        storeAllocations()
+        val result = repository.allAllocationUnconfirmed.futureValue
+        result.forall(_.status == AllocationStatuses.UNCONFIRMED) mustBe true
+      }
     }
   }
 }

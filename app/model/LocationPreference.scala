@@ -17,7 +17,6 @@
 package model
 
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
 
 case class LocationPreference(region: String, location: String, firstFramework: String, secondFramework: Option[String]) {
   lazy val isValid: Boolean =
@@ -26,5 +25,4 @@ case class LocationPreference(region: String, location: String, firstFramework: 
 
 object LocationPreference {
   implicit val jsonFormat = Json.format[LocationPreference]
-  implicit val bsonFormat = Macros.handler[LocationPreference]
 }

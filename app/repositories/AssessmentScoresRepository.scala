@@ -17,21 +17,18 @@
 package repositories
 
 import factories.UUIDFactory
-import javax.inject.{ Inject, Singleton }
 import model.Exceptions.NotFoundException
 import model.UniqueIdentifier
 import model.assessmentscores._
 import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
-import play.api.libs.json.JsObject
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.indexes.Index
-import reactivemongo.api.indexes.IndexType.Ascending
-import reactivemongo.api.{ Cursor, ReadPreference }
-import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.bson.{BsonArray, BsonValue}
+import org.mongodb.scala.model.Indexes.ascending
+import org.mongodb.scala.model.{IndexModel, IndexOptions, UpdateOptions}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -53,25 +50,25 @@ trait AssessmentScoresRepository {
 }
 
 abstract class AssessmentScoresMongoRepository @Inject() (collectionName: String,
-                                                          mongoComponent: ReactiveMongoComponent,
+                                                          mongoComponent: MongoComponent,
                                                           val uuidFactory: UUIDFactory)
-  extends ReactiveRepository[AssessmentScoresAllExercises, BSONObjectID](
-    collectionName,
-    mongoComponent.mongoConnector.db,
-    AssessmentScoresAllExercises.jsonFormat,
-    ReactiveMongoFormats.objectIdFormats
+  extends PlayMongoRepository[AssessmentScoresAllExercises](
+    collectionName = collectionName,
+    mongoComponent = mongoComponent,
+    domainFormat = AssessmentScoresAllExercises.jsonFormat,
+    indexes = Seq(
+      IndexModel(ascending("applicationId"), IndexOptions().unique(true))
+    )
   ) with AssessmentScoresRepository with BaseBSONReader with ReactiveRepositoryHelpers {
-
-  override def indexes: Seq[Index] = Seq(
-    Index(Seq(("applicationId", Ascending)), unique = true)
-  )
 
   override def saveExercise(applicationId: UniqueIdentifier,
                             section: AssessmentScoresSectionType.AssessmentScoresSectionType,
                             exercisesScores: AssessmentScoresExercise,
                             newVersion: Option[String] = Some(uuidFactory.generateUUID())): Future[Unit] = {
 
-    val bsonSection = AssessmentScoresExercise.bsonHandler.write(exercisesScores.copy(version = newVersion))
+    // We need to set legacyNumbers = true otherwise the numeric data gets stored as Int32 instead of Double
+    // eg Some(4.0) is stored as 4 not 4.0
+    val bsonSection = Codecs.toBson(exercisesScores.copy(version = newVersion), legacyNumbers = true)
     saveExerciseOrFinalFeedback(applicationId, section, bsonSection, exercisesScores.version)
   }
 
@@ -79,109 +76,120 @@ abstract class AssessmentScoresMongoRepository @Inject() (collectionName: String
                                  finalFeedback: AssessmentScoresFinalFeedback,
                                  newVersion: Option[String] = Some(uuidFactory.generateUUID())): Future[Unit] = {
 
-    val bsonSection = AssessmentScoresFinalFeedback.bsonHandler.write(finalFeedback.copy(version = newVersion))
+    val bsonSection = Codecs.toBson(finalFeedback.copy(version = newVersion))
     saveExerciseOrFinalFeedback(applicationId, AssessmentScoresSectionType.finalFeedback, bsonSection, finalFeedback.version)
   }
 
+  //scalastyle:off method.length
   private def saveExerciseOrFinalFeedback(applicationId: UniqueIdentifier,
                                           section: AssessmentScoresSectionType.AssessmentScoresSectionType,
-                                          bsonSection: BSONDocument,
+                                          bsonSection: BsonValue,
                                           oldVersion: Option[String]): Future[Unit] = {
 
     def buildQueryForSaveWithOptimisticLocking(applicationId: UniqueIdentifier,
                                                section: AssessmentScoresSectionType.AssessmentScoresSectionType, version: Option[String]) = {
 
-      def getVersionBSON(versionOpt: Option[String]): BSONDocument = {
+      def getVersionBSON(versionOpt: Option[String]): Document = {
         versionOpt match {
           case Some(version) =>
-            BSONDocument("$or" -> BSONArray(
-              BSONDocument(s"$section.version" -> BSONDocument("$exists" -> BSONBoolean(false))),
-              BSONDocument(s"$section.version" -> version)
+            Document("$or" -> BsonArray(
+              Document(s"$section.version" -> Document("$exists" -> false)),
+              Document(s"$section.version" -> version)
             ))
           case None =>
-            BSONDocument(s"$section.version" -> BSONDocument("$exists" -> BSONBoolean(false)))
+            Document(s"$section.version" -> Document("$exists" -> false))
         }
       }
 
-      BSONDocument("$and" -> BSONArray(
-        BSONDocument("applicationId" -> applicationId),
+      Document("$and" -> BsonArray(
+        Document("applicationId" -> applicationId.toBson),
         getVersionBSON(version)
       ))
     }
 
     def buildUpdateForSaveWithOptimisticLocking(applicationId: UniqueIdentifier,
                                                 exercise: AssessmentScoresSectionType.AssessmentScoresSectionType,
-                                                exerciseScoresBSON: BSONDocument, version: Option[String]) = {
+                                                exerciseScoresBSON: BsonValue, version: Option[String]) = {
       val applicationScoresBSON = version match {
-        case Some(_) => BSONDocument(
+        case Some(_) => Document(
           s"${exercise.toString}" -> exerciseScoresBSON
         )
-        case _ => BSONDocument(
+        case _ => Document(
           "applicationId" -> applicationId.toString(),
           s"${exercise.toString}" -> exerciseScoresBSON
         )
       }
-      BSONDocument("$set" -> applicationScoresBSON)
+      Document("$set" -> applicationScoresBSON)
     }
 
     val query = buildQueryForSaveWithOptimisticLocking(applicationId, section, oldVersion)
     val update = buildUpdateForSaveWithOptimisticLocking(applicationId, section, bsonSection, oldVersion)
-    val validator = singleUpdateValidator(applicationId.toString(), actionDesc = s"saving assessment score for final feedback")
-    collection.update(ordered = false).one(query, update, upsert = oldVersion.isEmpty).map(validator).recover {
+    val validator = if (oldVersion.isEmpty) {
+      singleUpsertValidator(applicationId.toString(), actionDesc = s"saving assessment score for final feedback")
+    } else {
+      singleUpdateValidator(applicationId.toString(), actionDesc = s"saving assessment score for final feedback")
+    }
+
+    //TODO: mongo take a closer look at this: when performing the upsert the validator shows no modified count
+    collection.updateOne(query, update, UpdateOptions().upsert(oldVersion.isEmpty)).toFuture().map(validator).recover {
       case ex: Throwable if ex.getMessage.startsWith("DatabaseException['E11000 duplicate key error collection") =>
         throw new NotFoundException(s"You are trying to update a version of a [$section] " +
           s"for application id [$applicationId] that has been updated already")
     }
-  }
+  } //scalastyle:on
 
   // This save method does not remove exercise subdocument when allExercisesScores's field are None
   override def save(allExercisesScores: AssessmentScoresAllExercises): Future[Unit] = {
     val applicationId = allExercisesScores.applicationId.toString()
-    val query = BSONDocument("applicationId" -> applicationId)
-    val updateBSON = BSONDocument("$set" -> AssessmentScoresAllExercises.bsonHandler.write(allExercisesScores))
+    val query = Document("applicationId" -> applicationId)
+    // We need to set legacyNumbers = true otherwise the numeric data gets stored as Int32 instead of Double
+    // eg Some(4.0) is stored as 4 not 4.0
+    val updateBSON = Document("$set" -> Codecs.toBson(allExercisesScores, legacyNumbers = true))
     val validator = singleUpsertValidator(applicationId, actionDesc = "saving assessment scores")
-    collection.update(ordered = false).one(query, updateBSON, upsert = true) map validator
+    collection.updateOne(query, updateBSON, UpdateOptions().upsert(insertIfNoRecordFound)).toFuture() map validator
   }
 
   override def find(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = {
-    val query = BSONDocument("applicationId" -> applicationId.toString())
-    collection.find(query, projection = Option.empty[JsObject]).one[BSONDocument].map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
+    val query = Document("applicationId" -> applicationId.toString())
+    collection.find(query).headOption()
   }
 
   override def findAccepted(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = {
-    val query = BSONDocument("applicationId" -> applicationId.toString(),
-      "finalFeedback" -> BSONDocument("$exists" -> BSONBoolean(true)))
-    collection.find(query, projection = Option.empty[JsObject]).one[BSONDocument].map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
+    val query = Document(
+      "applicationId" -> applicationId.toString(),
+      "finalFeedback" -> Document("$exists" -> true)
+    )
+    collection.find(query).headOption()
   }
 
   override def findAll: Future[List[AssessmentScoresAllExercises]] = {
-    findByQuery(BSONDocument.empty)
+    findByQuery(Document.empty)
   }
 
   override def findAllByIds(applicationIds: Seq[String]): Future[List[AssessmentScoresAllExercises]] = {
-    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    val query = Document("applicationId" -> Document("$in" -> applicationIds))
     findByQuery(query)
   }
 
-  private def findByQuery(query: BSONDocument): Future[List[AssessmentScoresAllExercises]] = {
-    collection.find(query, projection = Option.empty[JsObject]).cursor[BSONDocument](ReadPreference.nearest)
-      .collect[List](maxDocs = -1, Cursor.FailOnError[List[BSONDocument]]()).map(_.map(AssessmentScoresAllExercises.bsonHandler.read))
+  private def findByQuery(query: Document): Future[List[AssessmentScoresAllExercises]] = {
+    collection.find(query).toFuture().map( _.toList )
   }
 
   override def resetExercise(applicationId: UniqueIdentifier, exercisesToRemove: List[String]): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> applicationId)
+    val query = Document("applicationId" -> applicationId.toBson)
 
     val exercisesToUnset = exercisesToRemove.flatMap { exercise =>
-      Map(s"$exercise" -> BSONString(""))
+      Map(s"$exercise" -> "")
     }
 
-    val unsetDoc = BSONDocument("$unset" -> BSONDocument(exercisesToUnset))
-    collection.update(ordered = false).one(query, unsetDoc) map( _ => () )
+    val validator = singleUpdateValidator(applicationId.toString, actionDesc = "resetting exercises")
+    val unsetDoc = Document("$unset" -> Document(exercisesToUnset))
+    collection.updateOne(query, unsetDoc).toFuture() map validator
   }
 }
 
 @Singleton
-class AssessorAssessmentScoresMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent, override val uuidFactory: UUIDFactory)
+class AssessorAssessmentScoresMongoRepository @Inject() (mongoComponent: MongoComponent, override val uuidFactory: UUIDFactory)
   extends AssessmentScoresMongoRepository(CollectionNames.ASSESSOR_ASSESSMENT_SCORES, mongoComponent, uuidFactory) {
   override def findAccepted(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = {
     throw new UnsupportedOperationException("This method is only applicable for a reviewer")
@@ -189,5 +197,5 @@ class AssessorAssessmentScoresMongoRepository @Inject() (mongoComponent: Reactiv
 }
 
 @Singleton
-class ReviewerAssessmentScoresMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent, override val uuidFactory: UUIDFactory)
+class ReviewerAssessmentScoresMongoRepository @Inject() (mongoComponent: MongoComponent, override val uuidFactory: UUIDFactory)
   extends AssessmentScoresMongoRepository(CollectionNames.REVIEWER_ASSESSMENT_SCORES, mongoComponent, uuidFactory)

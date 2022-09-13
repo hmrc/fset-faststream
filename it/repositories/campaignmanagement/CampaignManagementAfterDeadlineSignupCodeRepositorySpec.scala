@@ -2,42 +2,69 @@ package repositories.campaignmanagement
 
 import model.persisted.CampaignManagementAfterDeadlineCode
 import org.joda.time.DateTime
-import play.api.libs.json.JsObject
-import reactivemongo.api.indexes.IndexType.{ Ascending, Descending }
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.collection.immutable.Document
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+
+import javax.inject.Inject
+import scala.concurrent.Future
 
 class CampaignManagementAfterDeadlineSignupCodeRepositorySpec extends MongoRepositorySpec {
 
   override val collectionName: String = CollectionNames.CAMPAIGN_MANAGEMENT_AFTER_DEADLINE_CODE
 
   def repository = new CampaignManagementAfterDeadlineSignupCodeMongoRepository(mongo)
+  val campaignManagementCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
+
+  // Just here so we can read back the deadline code
+  class CampaignManagementRepositoryForTest @Inject()(mongo: MongoComponent)
+    extends PlayMongoRepository[CampaignManagementAfterDeadlineCode](
+      collectionName = CollectionNames.CAMPAIGN_MANAGEMENT_AFTER_DEADLINE_CODE,
+      mongoComponent = mongo,
+      domainFormat = CampaignManagementAfterDeadlineCode.campaignManagementAfterDeadlineCodeFormat,
+      indexes = Nil
+    ) {
+    def find(code: String): Future[Option[CampaignManagementAfterDeadlineCode]] = {
+      collection.find(Document.empty).headOption()
+    }
+  }
+
+  val campaignManagementTestRepo = new CampaignManagementRepositoryForTest(mongo)
+
+  def campaignManagementAfterDeadlineCode(expires: DateTime, usedByApplicationId: Option[String]) =
+    CampaignManagementAfterDeadlineCode(
+      code = "1234",
+      createdByUserId = "userId1",
+      expires = expires,
+      usedByApplicationId = usedByApplicationId
+    )
 
   "the repository" should {
     "create indexes" in {
-      val indexes = indexesWithFields(repository)
-      indexes must contain(IndexDetails(key = Seq(("_id", Ascending)), unique = false))
-      indexes must contain(IndexDetails(key = Seq(("code", Ascending)), unique = true))
-      indexes must contain(IndexDetails(key = Seq(("expires", Descending)), unique = false))
-      indexes.size mustBe 3
+      val indexes = indexDetails(repository).futureValue
+
+      indexes must contain theSameElementsAs
+        Seq(
+          IndexDetails(name = "_id_", keys = Seq(("_id", "Ascending")), unique = false),
+          IndexDetails(name = "code_1", keys = Seq(("code", "Ascending")), unique = true),
+          IndexDetails(name = "expires_-1", keys = Seq(("expires", "Descending")), unique = false)
+        )
     }
   }
 
   "save" should {
     "write a new code to the database" in {
-      val newCode = CampaignManagementAfterDeadlineCode(
-        "1234",
-        "userId1",
-        DateTime.now.plusDays(2),
-        None
+      val newCode = campaignManagementAfterDeadlineCode(
+        expires = DateTime.now.plusDays(2),
+        usedByApplicationId = None
       )
 
       val result = (for {
         _ <- repository.save(newCode)
-        code <- repository.collection.find(BSONDocument("code" -> "1234"), projection = Option.empty[JsObject])
-          .one[CampaignManagementAfterDeadlineCode]
+        code <- campaignManagementTestRepo.find("1234")
       } yield code).futureValue.head
 
       result mustBe newCode
@@ -46,13 +73,9 @@ class CampaignManagementAfterDeadlineSignupCodeRepositorySpec extends MongoRepos
 
   "mark signup code as used" should {
     "mark a signup code as used" in {
-      val expiryTime = DateTime.now.plusDays(2)
-
-      val newCode = CampaignManagementAfterDeadlineCode(
-        "1234",
-        "userId1",
-        expiryTime,
-        None
+      val newCode = campaignManagementAfterDeadlineCode(
+        expires = DateTime.now.plusDays(2),
+        usedByApplicationId = None
       )
 
       val (codeUnusedAndValid, codeStillUnusedAndValid) = (for {
@@ -69,13 +92,9 @@ class CampaignManagementAfterDeadlineSignupCodeRepositorySpec extends MongoRepos
 
   "find UnusedValidCode" should {
     "return Some if code is unexpired and unused" in {
-      val expiryTime = DateTime.now.plusDays(2)
-
-      val newCode = CampaignManagementAfterDeadlineCode(
-        "1234",
-        "userId1",
-        expiryTime,
-        None
+      val newCode = campaignManagementAfterDeadlineCode(
+        expires = DateTime.now.plusDays(2),
+        usedByApplicationId = None
       )
 
       val result = (for {
@@ -87,13 +106,9 @@ class CampaignManagementAfterDeadlineSignupCodeRepositorySpec extends MongoRepos
     }
 
     "return None if code is expired and unused" in {
-      val expiryTime = DateTime.now.minusDays(2)
-
-      val newCode = CampaignManagementAfterDeadlineCode(
-        "1234",
-        "userId1",
-        expiryTime,
-        None
+      val newCode = campaignManagementAfterDeadlineCode(
+        expires = DateTime.now.minusDays(2),
+        usedByApplicationId = None
       )
 
       val result = (for {
@@ -105,13 +120,9 @@ class CampaignManagementAfterDeadlineSignupCodeRepositorySpec extends MongoRepos
     }
 
     "return None if code is unexpired but used" in {
-      val expiryTime = DateTime.now.plusDays(2)
-
-      val newCode = CampaignManagementAfterDeadlineCode(
-        "1234",
-        "userId1",
-        expiryTime,
-        Some("appId1")
+      val newCode = campaignManagementAfterDeadlineCode(
+        expires = DateTime.now.plusDays(2),
+        usedByApplicationId = Some("appId1")
       )
 
       val result = (for {

@@ -17,7 +17,6 @@
 package model.persisted
 
 import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class PsiTestResult(tScore: Double, rawScore: Double, testReportUrl: Option[String])
 
@@ -28,5 +27,4 @@ object PsiTestResult {
   }
 
   implicit def testResultFormat = Json.format[PsiTestResult]
-  implicit def testResultBsonHandler: BSONHandler[BSONDocument, PsiTestResult] = Macros.handler[PsiTestResult]
 }

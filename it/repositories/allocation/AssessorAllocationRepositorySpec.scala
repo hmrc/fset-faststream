@@ -3,7 +3,6 @@ package repositories.allocation
 import model.AllocationStatuses
 import model.persisted.AssessorAllocation
 import model.persisted.eventschedules.SkillType
-import reactivemongo.api.indexes.IndexType.Ascending
 import repositories.{ AssessorAllocationMongoRepository, CollectionNames }
 import testkit.MongoRepositorySpec
 
@@ -20,11 +19,11 @@ class AssessorAllocationRepositorySpec extends MongoRepositorySpec {
 
   "AssessorAllocationRepository" must {
     "create indexes for the repository" in {
-      val indexes = indexesWithFields(repository)
+      val indexes = indexDetails(repository).futureValue
       indexes must contain theSameElementsAs
         Seq(
-          IndexDetails(key = Seq(("_id", Ascending)), unique = false),
-          IndexDetails(key = Seq(("id", Ascending), ("eventId", Ascending)), unique = false)
+          IndexDetails(name = "_id_", keys = Seq(("_id", "Ascending")), unique = false),
+          IndexDetails(name = "id_1_eventId_1", keys = Seq(("id", "Ascending"), ("eventId", "Ascending")), unique = false)
         )
     }
 
@@ -38,7 +37,7 @@ class AssessorAllocationRepositorySpec extends MongoRepositorySpec {
 
     "findAll documents" in {
       repository.save(allocations).futureValue
-      repository.findAll().futureValue must contain theSameElementsAs allocations
+      repository.findAll.futureValue must contain theSameElementsAs allocations
     }
 
     "find assessor allocations" in {
@@ -82,6 +81,15 @@ class AssessorAllocationRepositorySpec extends MongoRepositorySpec {
     "return an exception when no documents have been deleted" in {
       val result = repository.delete(allocations.head :: Nil).failed.futureValue
       result mustBe a[model.Exceptions.NotFoundException]
+    }
+
+    "update allocation status" in {
+      val assessorId = "assessorId1"
+      val eventId = "eventId1"
+      repository.save(Seq(allocations.head)).futureValue
+      repository.updateAllocationStatus(assessorId, eventId, AllocationStatuses.CONFIRMED)
+      repository.find(assessorId, eventId).futureValue mustBe
+        Some(AssessorAllocation(assessorId, eventId, AllocationStatuses.CONFIRMED, SkillType.ASSESSOR, "version1"))
     }
   }
 }

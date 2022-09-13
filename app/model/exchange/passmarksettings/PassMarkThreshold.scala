@@ -17,11 +17,9 @@
 package model.exchange.passmarksettings
 
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
 
 case class PassMarkThreshold(failThreshold: Double, passThreshold: Double)
 
 object PassMarkThreshold {
   implicit val passMarkThreshold = Json.format[PassMarkThreshold]
-  implicit val passMarkThresholdHandler = Macros.handler[PassMarkThreshold]
 }

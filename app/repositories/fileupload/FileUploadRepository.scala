@@ -16,21 +16,21 @@
 
 package repositories.fileupload
 
-import java.io.ByteArrayInputStream
 import java.util.UUID
-
 import com.google.inject.ImplementedBy
-import javax.inject.{ Inject, Singleton }
-import model.persisted.fileupload.{ FileUpload, FileUploadInfo }
-import org.joda.time.{ DateTime, DateTimeZone }
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.gridfs.{ DefaultFileToSave, ReadFile }
-import reactivemongo.play.iteratees.GridFS
-import reactivemongo.api._
-import reactivemongo.bson.{ BSONDocument, BSONValue }
+
+import javax.inject.{Inject, Singleton}
+import model.persisted.fileupload.{FileUpload, FileUploadInfo}
+import org.joda.time.{DateTime, DateTimeZone}
+import org.mongodb.scala.{Observable, ObservableFuture}
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.gridfs.{GridFSBucket, GridFSFile, GridFSUploadOptions}
+import play.api.libs.iteratee.Enumerator
+import uk.gov.hmrc.mongo.MongoComponent
+
+import java.nio.ByteBuffer
 import repositories.CollectionNames
 import repositories.fileupload.FileUploadRepository.FileUploadNotFoundException
-import reactivemongo.api.gridfs.Implicits._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -48,57 +48,52 @@ trait FileUploadRepository {
 }
 
 @Singleton
-class FileUploadMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent) extends FileUploadRepository {
+class FileUploadMongoRepository @Inject() (mongoComponent: MongoComponent) extends FileUploadRepository {
 
-  private lazy val gridFS = GridFS[BSONSerializationPack.type](mongoComponent.mongoConnector.db(), CollectionNames.FILE_UPLOAD)
+  private lazy val gridFS: GridFSBucket = GridFSBucket(mongoComponent.database, CollectionNames.FILE_UPLOAD)
 
   override def add(contentType: String, fileContents: Array[Byte]): Future[String] = {
-    val newId = UUID.randomUUID().toString
+    val fileId = UUID.randomUUID().toString
 
-    val fileToSave = DefaultFileToSave(Some(newId), Some(contentType), Some(DateTime.now.getMillis))
+    val options: GridFSUploadOptions = new GridFSUploadOptions().metadata(Document("contentType" -> contentType))
 
-    gridFS.writeFromInputStream(fileToSave, new ByteArrayInputStream(fileContents)) map(_ => newId)
+    val observableToUploadFrom: Observable[ByteBuffer] = Observable(
+      Seq(ByteBuffer.wrap(fileContents))
+    )
+
+    gridFS.uploadFromObservable(fileId, observableToUploadFrom, options).head().map { _ => fileId }
+      .recover {
+        case e: Throwable =>
+          throw new RuntimeException(s"Failed to save file due to error: ${e.getMessage}")
+      }
   }
 
   override def retrieve(fileId: String): Future[FileUpload] = {
-     gridFS.find(BSONDocument("filename" -> fileId)).headOption.map {
-      case Some(res) =>
-        val body = gridFS.enumerate(res)
-        FileUpload(
-          fileId,
-          res.contentType.get,
-          new DateTime(res.uploadDate.get),
-          body
-        )
+    gridFS.find(Document("filename" -> fileId)).headOption.flatMap {
+      case Some(file) =>
+        gridFS.downloadToObservable(file.getObjectId)
+          .toFuture()
+          .map(seq => seq.map(bb => bb.array).reduceLeft(_ ++ _))
+          .map(array => {
+            FileUpload(fileId, file.getMetadata.getString("contentType"), new DateTime(file.getUploadDate, DateTimeZone.UTC), Enumerator(array))
+          })
       case _ => throw FileUploadNotFoundException(s"No file upload found with id $fileId")
     }
   }
 
   override def retrieveAllIdsAndSizes: Future[List[FileUploadInfo]] = {
-    val unlimitedMaxDocs = -1
-    gridFS.find(BSONDocument.empty)
-      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[ReadFile[BSONSerializationPack.type, BSONValue]]]()).map { fileList =>
-      fileList.map { file =>
-        FileUploadInfo(
-          file.filename.get,
-          file.contentType.get,
-          new DateTime(file.uploadDate.get, DateTimeZone.UTC).toString,
-          file.length
-        )
-      }
-    }
+    gridFS.find(Document.empty).toFuture().map ( _.map ( processFile ).toList )
   }
 
   override def retrieveMetaData(fileId: String): Future[Option[FileUploadInfo]] = {
-    gridFS.find(BSONDocument("filename" -> fileId)).headOption.map {
-      _.map { file =>
-        FileUploadInfo(
-          file.filename.get,
-          file.contentType.get,
-          new DateTime(file.uploadDate.get, DateTimeZone.UTC).toString,
-          file.length
-        )
-      }
-    }
+    gridFS.find(Document("filename" -> fileId)).headOption.map ( _.map ( processFile ) )
   }
+
+  private def processFile(file: GridFSFile) =
+    FileUploadInfo(
+      file.getFilename,
+      file.getMetadata.getString("contentType"),
+      new DateTime(file.getUploadDate, DateTimeZone.UTC).toString,
+      file.getLength
+    )
 }

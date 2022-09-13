@@ -16,8 +16,9 @@
 
 package model
 
+import org.mongodb.scala.bson.BsonValue
 import play.api.libs.json._
-import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
+import uk.gov.hmrc.mongo.play.json.Codecs
 
 case class SchemeId(value: String) {
   implicit override def toString: String = value
@@ -30,10 +31,8 @@ object SchemeId {
 
   implicit val schemeIdFormat = Format(schemeIdReadsFormat, schemeIdWritesFormat)
 
-  // Custom formatter to prevent a nested case object in BSON
-  implicit object SchemeIdHandler extends BSONHandler[BSONString, SchemeId] {
-      override def write(schemeId: SchemeId): BSONString = BSON.write(schemeId.value)
-      override def read(bson: BSONString): SchemeId = SchemeId(bson.value)
+  implicit class BsonOps(val schemeId: SchemeId) extends AnyVal {
+    def toBson: BsonValue = Codecs.toBson(schemeId)
   }
 }
 

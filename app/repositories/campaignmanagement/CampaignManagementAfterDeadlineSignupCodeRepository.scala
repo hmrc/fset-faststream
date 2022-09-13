@@ -16,19 +16,16 @@
 
 package repositories.campaignmanagement
 
-import javax.inject.{ Inject, Singleton }
 import model.persisted.CampaignManagementAfterDeadlineCode
 import org.joda.time.DateTime
-import play.api.libs.json.JsObject
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.indexes.Index
-import reactivemongo.api.indexes.IndexType.{ Ascending, Descending }
-import reactivemongo.bson.{ BSONDocument, BSONObjectID }
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.Indexes.{ascending, descending}
+import org.mongodb.scala.model.{IndexModel, IndexOptions}
+import repositories.{CollectionNames, ReactiveRepositoryHelpers}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -39,45 +36,42 @@ trait CampaignManagementAfterDeadlineSignupCodeRepository {
 }
 
 @Singleton
-class CampaignManagementAfterDeadlineSignupCodeMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[CampaignManagementAfterDeadlineCode, BSONObjectID](
-    CollectionNames.CAMPAIGN_MANAGEMENT_AFTER_DEADLINE_CODE,
-    mongoComponent.mongoConnector.db,
-    CampaignManagementAfterDeadlineCode.campaignManagementAfterDeadlineCodeFormat,
-    ReactiveMongoFormats.objectIdFormats) with CampaignManagementAfterDeadlineSignupCodeRepository with ReactiveRepositoryHelpers {
+class CampaignManagementAfterDeadlineSignupCodeMongoRepository @Inject() (mongo: MongoComponent)
+  extends PlayMongoRepository[CampaignManagementAfterDeadlineCode](
+    collectionName = CollectionNames.CAMPAIGN_MANAGEMENT_AFTER_DEADLINE_CODE,
+    mongoComponent = mongo,
+    domainFormat = CampaignManagementAfterDeadlineCode.campaignManagementAfterDeadlineCodeFormat,
+    indexes = Seq(
+      IndexModel(ascending("code"), IndexOptions().unique(true)),
+      IndexModel(descending("expires"), IndexOptions().unique(false))
+    )
+  ) with CampaignManagementAfterDeadlineSignupCodeRepository with ReactiveRepositoryHelpers {
 
-  override def indexes: Seq[Index] = Seq(
-    Index(Seq("code" -> Ascending), unique = true),
-    Index(Seq("expires" -> Descending), unique = false)
-  )
-
-  def findUnusedValidCode(code: String): Future[Option[CampaignManagementAfterDeadlineCode]] = {
-    val query = BSONDocument(
+  override def findUnusedValidCode(code: String): Future[Option[CampaignManagementAfterDeadlineCode]] = {
+    val query = Document(
       "code" -> code,
-      "usedByApplicationId" -> BSONDocument("$exists" -> false),
-      "expires" -> BSONDocument("$gte" -> DateTime.now.getMillis)
+      "usedByApplicationId" -> Document("$exists" -> false),
+      "expires" -> Document("$gte" -> DateTime.now.getMillis)
     )
 
-    collection.find(query, projection = Option.empty[JsObject]).one[CampaignManagementAfterDeadlineCode]
+    collection.find(query).headOption
   }
 
-  def markSignupCodeAsUsed(code: String, applicationId: String): Future[Unit] = {
+  override def markSignupCodeAsUsed(code: String, applicationId: String): Future[Unit] = {
     val updateValidator = singleUpdateValidator(applicationId, actionDesc = s"marking signup code $code as used")
 
-    collection.update(ordered = false).one(
-      BSONDocument(
+    collection.updateOne(
+      Document(
         "code" -> code,
-        "usedByApplicationId" -> BSONDocument("$exists" -> false)
+        "usedByApplicationId" -> Document("$exists" -> false)
       ),
-      BSONDocument(
-        "$set" -> BSONDocument(
-          "usedByApplicationId" -> applicationId
-        )
+      Document(
+        "$set" -> Document("usedByApplicationId" -> applicationId)
       )
-    ).map(updateValidator)
+    ).toFuture map updateValidator
   }
 
-  def save(code: CampaignManagementAfterDeadlineCode): Future[Unit] = {
-    collection.insert(ordered = false).one(code).map(_ => ())
+  override def save(code: CampaignManagementAfterDeadlineCode): Future[Unit] = {
+    collection.insertOne(code).toFuture map(_ => ())
   }
 }

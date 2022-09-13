@@ -21,8 +21,6 @@ import org.joda.time.LocalDate
 import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
 import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
-import repositories.BSONLocalDateHandler
 
 case class AssessorAvailability(
   location: Location,
@@ -31,5 +29,4 @@ case class AssessorAvailability(
 
 object AssessorAvailability {
   implicit val persistedAssessorAvailabilityFormat = Json.format[AssessorAvailability]
-  implicit val persistedAssessorAvailabilityHandler = Macros.handler[AssessorAvailability]
 }

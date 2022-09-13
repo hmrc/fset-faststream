@@ -19,22 +19,23 @@ package repositories.application
 import config.MicroserviceAppConfig
 import services.testdata.TestDataGeneratorService
 import services.testdata.candidate.CandidateStatusGeneratorFactory
-import factories.{ ITDateTimeFactoryMock, UUIDFactory }
-import model.ApplicationRoute.{ apply => _ }
-import model.ProgressStatuses.{ PREVIEW, SUBMITTED, PHASE1_TESTS_PASSED => _ }
+import factories.{ITDateTimeFactoryMock, UUIDFactory}
+import model.ApplicationRoute.{apply => _}
+import model.ProgressStatuses.{PREVIEW, SUBMITTED, PHASE1_TESTS_PASSED => _}
 import model._
 import model.command.ProgressResponse
-import model.command.testdata.CreateCandidateRequest.{ AdjustmentsRequest, AssistanceDetailsRequest, CreateCandidateRequest, StatusDataRequest }
+import model.command.testdata.CreateCandidateRequest.{AdjustmentsRequest, AssistanceDetailsRequest, CreateCandidateRequest, StatusDataRequest}
 import model.persisted._
-import model.report.{ AdjustmentReportItem, CandidateProgressReportItem }
+import model.report.{AdjustmentReportItem, CandidateProgressReportItem}
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.collection.immutable.Document
 import repositories.CollectionNames
 import services.GBTimeZoneService2
 import services.testdata.faker.DataFaker
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.mongo.play.json.Codecs
 
 import scala.concurrent.Await
 
@@ -337,29 +338,35 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
   }
 
   private def create(application: UserApplicationProfile) = {
-    import repositories.BSONLocalDateHandler
+    import play.api.libs.json.JodaWrites._ // This is needed for LocalDate serialization
 
-    repository.collection.insert(ordered = false).one(BSONDocument(
-      "applicationId" -> application.userId,
-      "applicationRoute" -> ApplicationRoute.Faststream,
-      "userId" -> application.userId,
-      "frameworkId" -> FrameworkId,
-      "progress-status" -> BSONDocument(application.latestProgressStatus -> true),
-      "personal-details" -> BSONDocument(
-        "firstName" -> application.firstName,
-        "lastName" -> application.lastName,
-        "dateOfBirth" -> application.dateOfBirth
+    val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
+
+    applicationCollection.insertOne(
+      Document(
+        "applicationId" -> application.userId,
+        "applicationRoute" -> ApplicationRoute.Faststream.toBson,
+        "userId" -> application.userId,
+        "frameworkId" -> FrameworkId,
+        "progress-status" -> Document(application.latestProgressStatus -> true),
+        "personal-details" -> Document(
+          "firstName" -> application.firstName,
+          "lastName" -> application.lastName,
+          "dateOfBirth" -> Codecs.toBson(application.dateOfBirth)
+        )
       )
-    )).futureValue
+    ).toFuture().futureValue
   }
 
   private def createWithoutPersonalDetails(userId: String, latestProgressStatus: String) = {
-//    import repositories.BSONLocalDateHandler
+    val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
 
-    repository.collection.insert(ordered = false).one(BSONDocument(
-      "userId" -> userId,
-      "frameworkId" -> FrameworkId,
-      "progress-status" -> BSONDocument(latestProgressStatus -> true)
-    )).futureValue
+    applicationCollection.insertOne(
+      Document(
+        "userId" -> userId,
+        "frameworkId" -> FrameworkId,
+        "progress-status" -> Document(latestProgressStatus -> true)
+      )
+    ).toFuture().futureValue
   }
 }

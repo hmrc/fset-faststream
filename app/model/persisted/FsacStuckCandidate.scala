@@ -18,7 +18,6 @@ package model.persisted
 
 import model.ProgressStatuses.ProgressStatus
 import play.api.libs.json.{Json, OFormat}
-import reactivemongo.bson.Macros
 
 case class FsacStuckCandidate(applicationId: String,
                               applicationStatus: String,
@@ -30,5 +29,4 @@ case class FsacStuckCandidate(applicationId: String,
 
 object FsacStuckCandidate {
   implicit val format: OFormat[FsacStuckCandidate] = Json.format[FsacStuckCandidate]
-  implicit val handler = Macros.handler[FsacStuckCandidate]
 }

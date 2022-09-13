@@ -18,10 +18,8 @@ package model.persisted.sift
 
 import model.persisted.PsiTest
 import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
+import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format
 import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 // The tests are optional because it depends on the candidate having schemes that require a numeric test for the tests to be populated
 case class SiftTestGroup(expirationDate: DateTime, tests: Option[List[PsiTest]]) {
@@ -29,7 +27,5 @@ case class SiftTestGroup(expirationDate: DateTime, tests: Option[List[PsiTest]])
 }
 
 object SiftTestGroup {
-  import repositories.BSONDateTimeHandler
-  implicit val bsonHandler: BSONHandler[BSONDocument, SiftTestGroup] = Macros.handler[SiftTestGroup]
   implicit val siftTestGroupFormat = Json.format[SiftTestGroup]
 }

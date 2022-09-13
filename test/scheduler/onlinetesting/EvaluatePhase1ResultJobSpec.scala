@@ -16,14 +16,14 @@
 
 package scheduler.onlinetesting
 
-import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase1PassMarkSettingsExamples }
+import model.exchange.passmarksettings.{Phase1PassMarkSettings, Phase1PassMarkSettingsExamples}
 import model.persisted.ApplicationReadyForEvaluation
 import model._
-import org.joda.time.{ DateTime, DateTimeZone }
+import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import play.api.libs.json.Format
-import play.modules.reactivemongo.ReactiveMongoComponent
+import uk.gov.hmrc.mongo.MongoComponent
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -86,7 +86,7 @@ class EvaluatePhase1ResultJobSpec extends UnitWithAppSpec {
       def config = ???
       val phase = Phase.PHASE1
       val evaluateService = mockEvaluateService
-      override val mongoComponent = mock[ReactiveMongoComponent]
+      override val mongoComponent = mock[MongoComponent]
       override lazy val batchSize = 1
       override val lockId: String = "1"
       override val forceLockReleaseAfter: Duration = mock[Duration]

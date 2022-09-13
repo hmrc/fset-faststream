@@ -2,28 +2,31 @@ package repositories.schemepreferences
 
 import factories.ITDateTimeFactoryMock
 import model.ApplicationStatus._
-import model.Exceptions.{ CannotUpdateSchemePreferences, SchemePreferencesNotFound }
-import model.SchemeId
+import model.Exceptions.{CannotUpdateRecord, CannotUpdateSchemePreferences, SchemePreferencesNotFound}
 import model.SelectedSchemesExamples._
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers
+import model.{ApplicationRoute, SchemeId}
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.collection.immutable.Document
 import repositories.CollectionNames
 import repositories.application.GeneralApplicationMongoRepository
 import testkit.MongoRepositorySpec
+import uk.gov.hmrc.mongo.play.json.Codecs
 
 class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
-  import ImplicitBSONHandlers._
 
   val collectionName: String = CollectionNames.APPLICATION
 
   def repository = new SchemePreferencesMongoRepository(mongo)
   def applicationRepository = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, appConfig, mongo)
+  val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
+  def insert(doc: Document) = applicationCollection.insertOne(doc).toFuture()
 
   "save and find" should {
     "save and return scheme preferences" in {
       val (persistedSchemes, application) = (for {
-        _ <- insert(BSONDocument("applicationId" -> AppId, "userId" -> UserId, "testAccountId" -> TestAccountId,
-          "applicationStatus" -> CREATED, "frameworkId" -> FrameworkId))
+        _ <- insert(Document("applicationId" -> AppId, "userId" -> UserId, "testAccountId" -> TestAccountId,
+          "applicationStatus" -> Codecs.toBson(CREATED), "frameworkId" -> FrameworkId,
+          "applicationRoute" -> Codecs.toBson(ApplicationRoute.Faststream)))
         _ <- repository.save(AppId, TwoSchemes)
         appResponse <- applicationRepository.findByUserId(UserId, FrameworkId)
         schemes <- repository.find(AppId)
@@ -46,7 +49,7 @@ class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
   "find" should {
     "return an exception when scheme-preferences does not exist" in {
       val exception = (for {
-        _ <- insert(BSONDocument("applicationId" -> AppId, "userId" -> UserId, "applicationStatus" -> CREATED))
+        _ <- insert(Document("applicationId" -> AppId, "userId" -> UserId, "applicationStatus" -> Codecs.toBson(CREATED)))
         _ <- repository.find(AppId)
       } yield ()).failed.futureValue
 
@@ -64,7 +67,7 @@ class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
       schemes.schemes must contain theSameElementsAs (SchemeId("Sdip") :: actualSchemes)
     }
 
-    "do not add duplications" in {
+    "not add duplicates" in {
       val actualSchemes = createTwoSchemes()
       repository.add(AppId, SchemeId("Sdip")).futureValue
       repository.add(AppId, SchemeId("Sdip")).futureValue
@@ -76,11 +79,9 @@ class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
   }
 
   private def createTwoSchemes(): List[SchemeId] = {
-    insert(BSONDocument("applicationId" -> AppId, "userId" -> UserId,
-      "applicationStatus" -> CREATED, "frameworkId" -> FrameworkId)).futureValue
+    insert(Document("applicationId" -> AppId, "userId" -> UserId,
+      "applicationStatus" -> Codecs.toBson(CREATED), "frameworkId" -> FrameworkId)).futureValue
     repository.save(AppId, TwoSchemes).futureValue
     TwoSchemes.schemes
   }
-
-  private def insert(doc: BSONDocument) = repository.collection.insert(ordered = false).one(doc)
 }

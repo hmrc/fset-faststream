@@ -17,7 +17,6 @@
 package model.persisted.fsac
 
 import play.api.libs.json.{ Json, OFormat }
-import reactivemongo.bson.Macros
 
 case class AssessmentCentreTests(
   analysisExercise: Option[AnalysisExercise] = None
@@ -25,5 +24,4 @@ case class AssessmentCentreTests(
 
 object AssessmentCentreTests {
   implicit val assessmentCentreTestsFormat: OFormat[AssessmentCentreTests] = Json.format[AssessmentCentreTests]
-  implicit val assessmentCentreTestsHandler = Macros.handler[AssessmentCentreTests]
 }

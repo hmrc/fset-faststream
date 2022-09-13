@@ -3,9 +3,10 @@ package repositories.application
 import factories.{ITDateTimeFactoryMock, UUIDFactory}
 import model.EvaluationResults.{Green, Red}
 import model.ProgressStatuses
+import model.command.ApplicationForProgression
 import model.persisted.SchemeEvaluationResult
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.collection.immutable.Document
 import repositories.CollectionNames
 import repositories.fsb.FsbMongoRepository
 import testkit.MongoRepositorySpec
@@ -13,17 +14,16 @@ import testkit.MongoRepositorySpec
 class FinalOutcomeRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
   val collectionName = CollectionNames.APPLICATION
-//  lazy val repository = repositories.finalOutcomeRepository
-  lazy val repository = new FinaOutcomeMongoRepository(ITDateTimeFactoryMock, mongo)
-//  lazy val fsbRepo = repositories.fsbRepository
+  lazy val repository = new FinalOutcomeMongoRepository(ITDateTimeFactoryMock, mongo)
   lazy val fsbRepo = new FsbMongoRepository(ITDateTimeFactoryMock, mongo)
-//  lazy val applicationRepo = repositories.applicationRepository
   lazy val applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, appConfig, mongo)
+
+  val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
 
   "next final failed" must {
     "return only application for final fsb failed with no green schemes" in {
-      val redApp = createFailedRedApp()
-      createFailedRedWithGreenScheme()
+      val redApp = createFailedRedApp
+      createFailedRedWithGreenScheme
       val res = repository.nextApplicationForFinalFailureNotification(10).futureValue
       res.size mustBe 1
       res.head.applicationId mustBe redApp
@@ -35,7 +35,7 @@ class FinalOutcomeRepositorySpec extends MongoRepositorySpec with UUIDFactory {
 
   "notifications on job offer" must {
     "be triggered for ready applications and only once" in {
-      val appId = createEligibleForJobOffer()
+      val appId = createEligibleForJobOffer
       val res = repository.nextApplicationForFinalSuccessNotification(10).futureValue
       res.size mustBe 1
       res.head.applicationId mustBe appId
@@ -44,40 +44,64 @@ class FinalOutcomeRepositorySpec extends MongoRepositorySpec with UUIDFactory {
     }
   }
 
-  private def createFailedRedApp(): String = {
-    val redApp = createApplication()
+  "updating an application to assessment centre failed sdip green notified" must {
+    "work for the given application" in {
+      val (appId, css) = createAssessmentCentreFailedSdipGreen
+      val appToProgress = ApplicationForProgression(appId, ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN.applicationStatus, css)
+
+      repository.progressToAssessmentCentreFailedSdipGreenNotified(appToProgress).futureValue
+      val result = applicationRepo.findProgress(appId).futureValue
+      result.assessmentCentre.failedSdipGreen mustBe true
+      result.assessmentCentre.failedSdipGreenNotified mustBe true
+    }
+  }
+
+  private def createFailedRedApp: String = {
+    val redAppId = createApplication
     val res = SchemeEvaluationResult("GovernmentOperationalResearchService", Red.toString)
-    fsbRepo.saveResult(redApp, res).futureValue
-    fsbRepo.updateCurrentSchemeStatus(redApp, Seq(res))
-    applicationRepo.addProgressStatusAndUpdateAppStatus(redApp, ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED).futureValue
-    redApp
+    fsbRepo.saveResult(redAppId, res).futureValue
+    fsbRepo.updateCurrentSchemeStatus(redAppId, Seq(res))
+    applicationRepo.addProgressStatusAndUpdateAppStatus(redAppId, ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED).futureValue
+    redAppId
   }
 
-  private def createFailedRedWithGreenScheme(): String = {
-    val redApp = createApplication()
+  private def createFailedRedWithGreenScheme: String = {
+    val redAppId = createApplication
     val s1 = SchemeEvaluationResult("GovernmentOperationalResearchService", Red.toString)
-    fsbRepo.saveResult(redApp, s1).futureValue
+    fsbRepo.saveResult(redAppId, s1).futureValue
     val s2 = SchemeEvaluationResult("DiplomaticAndDevelopment", Green.toString)
-    fsbRepo.saveResult(redApp, s2).futureValue
-    fsbRepo.updateCurrentSchemeStatus(redApp, Seq(s1, s2))
-    applicationRepo.addProgressStatusAndUpdateAppStatus(redApp, ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED).futureValue
-    redApp
+    fsbRepo.saveResult(redAppId, s2).futureValue
+    fsbRepo.updateCurrentSchemeStatus(redAppId, Seq(s1, s2))
+    applicationRepo.addProgressStatusAndUpdateAppStatus(redAppId, ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED).futureValue
+    redAppId
   }
 
-  private def createEligibleForJobOffer(): String = {
-    val redApp = createApplication()
-    applicationRepo.addProgressStatusAndUpdateAppStatus(redApp, ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER).futureValue
-    redApp
+  private def createEligibleForJobOffer: String = {
+    val greenAppId = createApplication
+    val s1 = SchemeEvaluationResult("DiplomaticService", Green.toString)
+    fsbRepo.saveResult(greenAppId, s1).futureValue
+    fsbRepo.updateCurrentSchemeStatus(greenAppId, Seq(s1))
+    applicationRepo.addProgressStatusAndUpdateAppStatus(greenAppId, ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER).futureValue
+    greenAppId
   }
 
-  private def createApplication(): String = {
+  private def createAssessmentCentreFailedSdipGreen: (String, Seq[SchemeEvaluationResult]) = {
+    val sdipAppId = createApplication
+    val s1 = SchemeEvaluationResult("DiplomaticService", Red.toString)
+    val s2 = SchemeEvaluationResult("Sdip", Green.toString)
+    fsbRepo.updateCurrentSchemeStatus(sdipAppId, Seq(s1, s2))
+    applicationRepo.addProgressStatusAndUpdateAppStatus(sdipAppId, ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN).futureValue
+    sdipAppId -> Seq(s1, s2)
+  }
+
+  private def createApplication: String = {
     val applicationId = generateUUID()
-    applicationRepo.collection.insert(ordered = false).one(
-      BSONDocument(
+    applicationCollection.insertOne(
+      Document(
         "applicationId" -> applicationId,
         "userId" -> applicationId
       )
-    ).futureValue
+    ).toFuture().futureValue
     applicationId
   }
 }

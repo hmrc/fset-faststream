@@ -17,10 +17,10 @@
 package model.persisted
 
 import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.{ Json, OFormat }
-import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
+import org.mongodb.scala.bson.BsonValue
+import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format
+import play.api.libs.json.{Json, OFormat}
+import uk.gov.hmrc.mongo.play.json.Codecs
 
 case class Phase1TestProfile(expirationDate: DateTime,
                              tests: List[PsiTest],
@@ -28,10 +28,11 @@ case class Phase1TestProfile(expirationDate: DateTime,
 
 object Phase1TestProfile {
 
-  import repositories.BSONDateTimeHandler
-
-  implicit val bsonHandler: BSONHandler[BSONDocument, Phase1TestProfile] = Macros.handler[Phase1TestProfile]
   implicit val phase1TestProfileFormat = Json.format[Phase1TestProfile]
+
+  implicit class BsonOps(val phase1TestProfile: Phase1TestProfile) extends AnyVal {
+    def toBson: BsonValue = Codecs.toBson(phase1TestProfile)
+  }
 }
 
 case class PsiTest(inventoryId: String,
@@ -52,11 +53,26 @@ case class PsiTest(inventoryId: String,
                    invigilatedAccessCode: Option[String] = None
                   ) extends Test {
   def isCompleted = completedDateTime.isDefined
+  def toExchange = model.exchange.PsiTest(
+    inventoryId,
+    orderId,
+    usedForResults,
+    testUrl,
+    testProvider,
+    invitationDate,
+    startedDateTime,
+    completedDateTime,
+    resultsReadyToDownload,
+    assessmentId,
+    reportId,
+    normId,
+    reportLinkURL,
+    reportStatus,
+    testResult,
+    invigilatedAccessCode
+  )
 }
 
 object PsiTest {
-  import repositories.BSONDateTimeHandler
-
-  implicit val psiTestHandler: BSONHandler[BSONDocument, PsiTest] = Macros.handler[PsiTest]
   implicit val psiTestFormat: OFormat[PsiTest] = Json.format[PsiTest]
 }

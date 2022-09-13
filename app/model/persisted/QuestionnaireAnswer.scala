@@ -16,10 +16,19 @@
 
 package model.persisted
 
+import org.mongodb.scala.bson.BsonValue
 import play.api.libs.json.Json
+import uk.gov.hmrc.mongo.play.json.Codecs
 
-case class QuestionnaireAnswer(answer: Option[String], otherDetails: Option[String], unknown: Option[Boolean])
+case class QuestionnaireAnswer(answer: Option[String], otherDetails: Option[String], unknown: Option[Boolean]) {
+  override def toString = s"answer=$answer,otherDetails=$otherDetails,unknown=$unknown"
+}
+
 object QuestionnaireAnswer
 {
   implicit val answerFormats = Json.format[QuestionnaireAnswer]
+
+  implicit class BsonOps(val answer: QuestionnaireAnswer) extends AnyVal {
+    def toBson: BsonValue = Codecs.toBson(answer)
+  }
 }

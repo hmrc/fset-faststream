@@ -17,26 +17,26 @@
 package repositories
 
 import model.persisted.AuditEvent
-import reactivemongo.api.DB
-import reactivemongo.bson.BSONObjectID
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+
+import javax.inject.Inject
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait AuditEventRepository {
-
   def create(event: AuditEvent): Future[Unit]
 }
 
-class AuditEventMongoRepository(implicit mongo: () => DB)
-  extends ReactiveRepository[AuditEvent, BSONObjectID](CollectionNames.EVENT, mongo, AuditEvent.auditEventFormat,
-    ReactiveMongoFormats.objectIdFormats) with AuditEventRepository {
+class AuditEventMongoRepository @Inject() (mongo: MongoComponent)
+  extends PlayMongoRepository[AuditEvent](
+    collectionName = CollectionNames.EVENT,
+    mongoComponent = mongo,
+    domainFormat = AuditEvent.auditEventFormat,
+    indexes = Nil
+  ) with AuditEventRepository {
 
-  def create(event: AuditEvent): Future[Unit] = {
-    val doc = AuditEvent.eventHandler.write(event)
-    collection.insert(ordered = false).one(doc) map (_ => ())
-  }
+  def create(event: AuditEvent): Future[Unit] =
+    collection.insertOne(event).toFuture() map (_ => ())
 }

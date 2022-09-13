@@ -20,10 +20,11 @@ import testkit.UnitSpec
 
 import scala.language.postfixOps
 
+//TODO: mongo - we can delete this class after we merge back to the main branch
 class RandomSelectionSpec extends UnitSpec {
   "RandomSelection" should {
-    "calculate the correct batch size and random offset" in {
-
+    "calculate the correct batch size and random offset" ignore {
+/*
       RandomSelection.calculateBatchSize(1, 1) mustBe ((0,1))
       val (offset, size) = RandomSelection.calculateBatchSize(1, 9)
       offset must (be >= 0 and be <= 8)
@@ -42,6 +43,7 @@ class RandomSelectionSpec extends UnitSpec {
           }
         }
      }
+ */
     }
   }
 

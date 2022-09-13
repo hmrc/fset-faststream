@@ -64,8 +64,16 @@
     <logger name="net.sf.ehcache" level="INFO"/>
     <logger name="akka.event.slf4j.Slf4jLogger" level="WARN"/>
     <logger name="play.api.libs.concurrent.ActorSystemProvider" level="INFO"/>
-    <logger name="reactivemongo.core.actors.MongoDBSystem" level="WARN"/>
-    <logger name="reactivemongo" level="WARN" />
+    <!--logger name="reactivemongo.core.actors.MongoDBSystem" level="WARN"/-->
+    <!--logger name="reactivemongo" level="WARN" /-->
+
+    <!-- Reduce the amount of Mongo Driver logging to stop the console scrolling -->
+    <logger name="org.mongodb.driver.cluster" level="WARN"/>
+    <logger name="org.mongodb.driver.connection" level="WARN"/>
+    <logger name="org.mongodb.driver.protocol.command" level="WARN"/>
+
+
+    <logger name="uk.gov.hmrc.audit.handler.DatastreamHandler" level="WARN"/>
 
     <root level="DEBUG">
         <appender-ref ref="FILE"/>

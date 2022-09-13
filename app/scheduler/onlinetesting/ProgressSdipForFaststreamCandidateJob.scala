@@ -17,9 +17,10 @@
 package scheduler.onlinetesting
 
 import config.ScheduledJobConfig
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import play.api.Configuration
-import play.modules.reactivemongo.ReactiveMongoComponent
+import uk.gov.hmrc.mongo.MongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.phase1.Phase1TestService
@@ -28,7 +29,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class ProgressSdipForFaststreamCandidateJobImpl @Inject() (val service: Phase1TestService,
-                                                           val mongoComponent: ReactiveMongoComponent,
+                                                           val mongoComponent: MongoComponent,
                                                            val config: ProgressSdipForFaststreamCandidateJobConfig
                                                           ) extends ProgressSdipForFaststreamCandidateJob {
 }

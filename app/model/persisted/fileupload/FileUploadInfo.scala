@@ -18,7 +18,7 @@ package model.persisted.fileupload
 
 import play.api.libs.json.{ Json, OFormat }
 
-case class FileUploadInfo(id: String,contentType: String, created: String, length: Long)
+case class FileUploadInfo(id: String, contentType: String, created: String, length: Long)
 
 object FileUploadInfo {
   implicit val fileUploadInfoFormat: OFormat[FileUploadInfo] = Json.format[FileUploadInfo]

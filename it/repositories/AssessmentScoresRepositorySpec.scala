@@ -16,15 +16,17 @@
 
 package repositories
 
-import java.util.UUID
+import config.MicroserviceAppConfig
 
-import factories.{ ITDateTimeFactoryMock, UUIDFactory }
+import java.util.UUID
+import factories.{ITDateTimeFactoryMock, UUIDFactory}
 import model.UniqueIdentifier
 import model.assessmentscores._
 import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
 import model.fsacscores.AssessmentScoresFinalFeedbackExamples
 import org.joda.time.DateTimeZone
-import reactivemongo.api.indexes.IndexType.Ascending
+import org.mockito.Mockito.when
+import repositories.application.PreviousYearCandidatesDetailsMongoRepository
 import testkit.MongoRepositorySpec
 
 class AssessorAssessmentScoresRepositorySpec extends AssessmentScoresRepositorySpec {
@@ -42,23 +44,23 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
 
   "Assessment Scores Repository" should {
     "create indexes for the repository" in new TestFixture {
-      val indexes = indexesWithFields(repository)
+      val indexes = indexDetails(repository).futureValue
       indexes must contain theSameElementsAs
         Seq(
-          IndexDetails(key = Seq(("_id", Ascending)), unique = false),
-          IndexDetails(key = Seq(("applicationId", Ascending)), unique = true)
+          IndexDetails(name = "_id_", keys = Seq(("_id", "Ascending")), unique = false),
+          IndexDetails(name = "applicationId_1", keys = Seq(("applicationId", "Ascending")), unique = true)
         )
     }
   }
 
   "save" should {
-    "create new assessment scores when it does not exist" in new TestFixture  {
+    "create new assessment scores when they do not exist" in new TestFixture  {
       getRepository.save(Scores).futureValue
       val result = repository.find(ApplicationId).futureValue
       result mustBe Some(Scores)
     }
 
-    "override existing assessment scores when it exists" in new TestFixture  {
+    "override existing assessment scores when they exist" in new TestFixture  {
       repository.save(Scores).futureValue
       val ScoresRead = repository.find(ApplicationId).futureValue
 
@@ -70,6 +72,27 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
 
       Some(ScoresModified) mustBe ScoresModifiedRead
       ScoresRead must not be ScoresModifiedRead
+    }
+
+    // This tests that Double values with no fraction part like 2.0 are not stored in Mongo as Int32 by HMRC Codecs.toBson
+    // but as Doubles and are being read back correctly as Doubles
+    // This verifies that legacyNumbers = true is set otherwise the numeric data gets stored as Int32 instead of Double
+    // eg Some(2.0) is stored as 2 not 2.0
+    // Note that the Codec seems to read from Mongo Int32 and successfully deserialize into a Double in the case class which
+    // is why we have this test here. It is only when you read from Mongo not using the Codec that the problem occurs, which
+    // is how the streaming reports do it
+    "successfully read the scores from mongo as double values after saving" in new TestFixture  {
+      getRepository.save(ScoresNoFractions).futureValue
+      val result = repository.find(ApplicationId).futureValue
+      result mustBe Some(ScoresNoFractions)
+
+      val csvExtract = collectionName match {
+        case CollectionNames.ASSESSOR_ASSESSMENT_SCORES => reportRepo.findAssessorAssessmentScores(Seq(ApplicationId.toString)).futureValue
+        case CollectionNames.REVIEWER_ASSESSMENT_SCORES => reportRepo.findReviewerAssessmentScores(Seq(ApplicationId.toString)).futureValue
+      }
+      csvExtract.records.size mustBe 1
+      val dataElement = csvExtract.elementAt(ApplicationId.toString, 12)
+      dataElement mustBe Some("\"2.0\"")
     }
   }
 
@@ -83,8 +106,34 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
 
       val result = repository.find(ApplicationId).futureValue
       val ExerciseScoresExpected = ExerciseScores.copy(submittedDate = None, version = Some(NewVersion))
-      val ExpectedScores = AssessmentScoresAllExercises(ApplicationId, None, None, Some(ExerciseScoresExpected), None)
+      val ExpectedScores = AssessmentScoresAllExercises(
+        ApplicationId, writtenExercise = None, teamExercise = None, Some(ExerciseScoresExpected), finalFeedback = None
+      )
       result mustBe Some(ExpectedScores)
+    }
+
+    // This tests that Double values with no fraction part like 2.0 are not stored in Mongo as Int32 by HMRC Codecs.toBson
+    // as we do in the save section above
+    "successfully read the scores from mongo as double values after saving" in new TestFixture  {
+      val ExerciseScoresToSave = ExerciseScoresNoFractions.copy(version = None, submittedDate = None)
+
+      repository.saveExercise(ApplicationId, AssessmentScoresSectionType.leadershipExercise, ExerciseScoresToSave,
+        Some(NewVersion)).futureValue
+
+      val result = repository.find(ApplicationId).futureValue
+      val ExerciseScoresExpected = ExerciseScoresNoFractions.copy(submittedDate = None, version = Some(NewVersion))
+      val ExpectedScores = AssessmentScoresAllExercises(
+        ApplicationId, writtenExercise = None, teamExercise = None, Some(ExerciseScoresExpected), finalFeedback = None
+      )
+      result mustBe Some(ExpectedScores)
+
+      val csvExtract = collectionName match {
+        case CollectionNames.ASSESSOR_ASSESSMENT_SCORES => reportRepo.findAssessorAssessmentScores(Seq(ApplicationId.toString)).futureValue
+        case CollectionNames.REVIEWER_ASSESSMENT_SCORES => reportRepo.findReviewerAssessmentScores(Seq(ApplicationId.toString)).futureValue
+      }
+      csvExtract.records.size mustBe 1
+      val dataElement = csvExtract.elementAt(ApplicationId.toString, 13)
+      dataElement mustBe Some("\"2.0\"")
     }
 
     "update existing assessment scores with analysis exercise" +
@@ -100,8 +149,8 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
       val result = repository.find(ApplicationId).futureValue
       val ExerciseScoresExpected = ExerciseScores.copy(submittedDate = None, version = Some(NewVersion))
       val ExerciseScores2Expected = ExerciseScores2.copy(submittedDate = None, version = Some(NewVersion2))
-      val ExpectedScores = AssessmentScoresAllExercises(ApplicationId, Some(ExerciseScores2Expected), None,
-        Some(ExerciseScoresExpected), None)
+      val ExpectedScores = AssessmentScoresAllExercises(ApplicationId, Some(ExerciseScores2Expected), teamExercise = None,
+        Some(ExerciseScoresExpected), finalFeedback = None)
       result mustBe Some(ExpectedScores)
     }
 
@@ -164,7 +213,9 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
 
       val result = repository.find(ApplicationId).futureValue
       val FinalFeedbackExpected = FinalFeedback.copy(acceptedDate = LocalTime.withZone(DateTimeZone.UTC), version = Some(NewVersion))
-      val ExpectedScores = AssessmentScoresAllExercises(ApplicationId, None, None, None, Some(FinalFeedbackExpected))
+      val ExpectedScores = AssessmentScoresAllExercises(
+        ApplicationId, writtenExercise = None, teamExercise = None, leadershipExercise = None, Some(FinalFeedbackExpected)
+      )
       result mustBe Some(ExpectedScores)
     }
 
@@ -214,12 +265,92 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     }
   }
 
+  "findAccepted" should {
+    "return None when there are no assessment scores" in new TestFixture  {
+      val nonExistantApplicationId = UniqueIdentifier.randomUniqueIdentifier
+
+      if (collectionName == CollectionNames.ASSESSOR_ASSESSMENT_SCORES) {
+        // Not applicable for an assessor
+        try {
+          repository.findAccepted(nonExistantApplicationId).failed.futureValue
+        } catch {
+          case ex: Exception => ex.getClass mustBe classOf[UnsupportedOperationException]
+        }
+      } else {
+        // Only applicable for a reviewer
+        val result = repository.findAccepted(nonExistantApplicationId).futureValue
+        result mustBe None
+      }
+    }
+
+    "return all assessment scores when there are some" in new TestFixture {
+      val finalFeedbackToSave = FinalFeedback.copy(version = None, acceptedDate = LocalTime)
+      repository.saveFinalFeedback(ApplicationId, finalFeedbackToSave, Some(NewVersion)).futureValue
+
+      if (collectionName == CollectionNames.ASSESSOR_ASSESSMENT_SCORES) {
+        // Not applicable for an assessor
+        try {
+          repository.findAccepted(ApplicationId).failed.futureValue
+        } catch {
+          case ex: Exception => ex.getClass mustBe classOf[UnsupportedOperationException]
+        }
+      } else {
+        // Only applicable for a reviewer
+        val result = repository.findAccepted(ApplicationId).futureValue
+
+        val FinalFeedbackExpected = FinalFeedback.copy(acceptedDate = LocalTime.withZone(DateTimeZone.UTC), version = Some(NewVersion))
+        val ExpectedScores = AssessmentScoresAllExercises(
+          ApplicationId, writtenExercise = None, teamExercise = None, leadershipExercise = None, finalFeedback = Some(FinalFeedbackExpected)
+        )
+        result mustBe Some(ExpectedScores)
+      }
+    }
+  }
+
+  "findAllByIds" should {
+    "return empty list when there are no assessment scores" in new TestFixture  {
+      val result = repository.findAllByIds(Seq(UniqueIdentifier.randomUniqueIdentifier.toString)).futureValue
+      result mustBe Nil
+    }
+
+    "return all assessment scores when there are some" in new TestFixture {
+      repository.save(Scores).futureValue
+      repository.save(Scores2).futureValue
+
+      val result = repository.findAllByIds(Seq(ApplicationId.toString, ApplicationId2.toString)).futureValue
+      result must contain theSameElementsAs Seq(Scores, Scores2)
+    }
+  }
+
+  "resetExercise" should {
+    "reset the expected exercises" in new TestFixture  {
+      repository.save(Scores3).futureValue
+
+      val resultBeforeReset = repository.find(ApplicationId).futureValue
+      resultBeforeReset mustBe Some(Scores3)
+
+      val exercisesToRemove = List(
+        AssessmentScoresSectionType.writtenExercise.toString,
+        AssessmentScoresSectionType.teamExercise.toString,
+        AssessmentScoresSectionType.leadershipExercise.toString,
+        AssessmentScoresSectionType.finalFeedback.toString
+      )
+      repository.resetExercise(ApplicationId, exercisesToRemove).futureValue
+
+      val resultAfterReset = repository.find(ApplicationId).futureValue
+      resultAfterReset mustBe Some(AssessmentScoresAllExercisesExamples.NoExercises.copy(applicationId = ApplicationId))
+    }
+  }
+
   trait TestFixture {
     val ApplicationId = UniqueIdentifier(UUID.fromString(UUIDFactory.generateUUID()))
     val ApplicationId2 = UniqueIdentifier(UUID.fromString(UUIDFactory.generateUUID()))
     val Scores = AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise.copy(applicationId = ApplicationId)
+    val ScoresNoFractions = AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExerciseNoFractions.copy(applicationId = ApplicationId)
     val Scores2 = AssessmentScoresAllExercisesExamples.AssessorOnlyGroupExercise.copy(applicationId = ApplicationId2)
+    val Scores3 = AssessmentScoresAllExercisesExamples.AllExercises.copy(applicationId = ApplicationId)
     val ExerciseScores = AssessmentScoresExerciseExamples.Example3
+    val ExerciseScoresNoFractions = AssessmentScoresExerciseExamples.ExampleNoFractions
     val ExerciseScores2 = AssessmentScoresExerciseExamples.Example2
     val FinalFeedback = AssessmentScoresFinalFeedbackExamples.Example1
     val FinalFeedback2 = AssessmentScoresFinalFeedbackExamples.Example2
@@ -233,5 +364,17 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     val UpdatedBy2 = UniqueIdentifier.randomUniqueIdentifier
 
     val repository = getRepository
+
+    val schemeRepositoryMock = mock[SchemeRepository]
+    when(schemeRepositoryMock.schemes).thenReturn(Seq())
+
+    val appConfigMock = mock[MicroserviceAppConfig]
+
+    val reportRepo = new PreviousYearCandidatesDetailsMongoRepository(
+      ITDateTimeFactoryMock,
+      appConfigMock,
+      schemeRepositoryMock,
+      mongo
+    )
   }
 }

@@ -1,20 +1,19 @@
 package services.onlinetesting.phase2
 
-import config.{ Phase2TestsConfig, PsiTestIds }
+import config.{Phase2TestsConfig, PsiTestIds}
 import factories.UUIDFactory
 import model.ApplicationRoute._
 import model.ApplicationStatus._
 import model.EvaluationResults._
 import model.ProgressStatuses.ProgressStatus
 import model.exchange.passmarksettings._
-import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
-import model.{ ApplicationRoute, _ }
+import model.persisted.{ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult}
+import model.{ApplicationRoute, _}
 import org.joda.time.DateTime
 import org.mockito.Mockito.when
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.collection.immutable.Document
 import org.scalatest.prop._
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers
-import reactivemongo.play.json.collection.JSONCollection
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
@@ -22,8 +21,6 @@ import scala.concurrent.Future
 
 class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   with TableDrivenPropertyChecks {
-
-  import ImplicitBSONHandlers._
 
   val collectionName: String = CollectionNames.APPLICATION
   override val additionalCollections = List(CollectionNames.PHASE2_PASS_MARK_SETTINGS)
@@ -145,10 +142,11 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       }
     }
 
-    val appCollection: JSONCollection = mongo.mongoConnector.db().collection[JSONCollection](collectionName)
+    val appCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
 
     def createUser(userId: String, appId: String) = {
-      appCollection.insert(ordered = false).one(BSONDocument("applicationId" -> appId, "userId" -> userId, "applicationStatus" -> CREATED))
+      appCollection.insertOne(Document("applicationId" -> appId, "userId" -> userId,
+        "applicationStatus" -> ApplicationStatus.CREATED.toBson)).toFuture().map( _ => ())
     }
 
     Future.sequence(List(

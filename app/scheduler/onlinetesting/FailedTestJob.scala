@@ -17,11 +17,12 @@
 package scheduler.onlinetesting
 
 import config.ScheduledJobConfig
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model._
 import play.api.Configuration
 import play.api.mvc.RequestHeader
-import play.modules.reactivemongo.ReactiveMongoComponent
+import uk.gov.hmrc.mongo.MongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
@@ -34,34 +35,28 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class FailedPhase1TestJob @Inject() (val service: Phase1TestService,
-                                     val mongoComponent: ReactiveMongoComponent,
+                                     val mongoComponent: MongoComponent,
                                      val config: FailedPhase1TestJobConfig
                                     ) extends FailedTestJob {
-  //  override val service = Phase1TestService
   override val failedType: FailedTestType = Phase1FailedTestType
   override val phase = "PHASE1"
-  //  val config = FailedPhase1TestJobConfig2
 }
 
 @Singleton
 class FailedPhase2TestJob @Inject() (val service: Phase2TestService,
-                                     val mongoComponent: ReactiveMongoComponent,
+                                     val mongoComponent: MongoComponent,
                                      val config: FailedPhase2TestJobConfig) extends FailedTestJob {
-  //  override val service = Phase2TestService
   override val failedType: FailedTestType = Phase2FailedTestType
   override val phase = "PHASE2"
-  //  val config = FailedPhase2TestJobConfig2
 }
 
 @Singleton
 class FailedPhase3TestJob @Inject() (val service: Phase3TestService,
-                                     val mongoComponent: ReactiveMongoComponent,
+                                     val mongoComponent: MongoComponent,
                                      val config: FailedPhase3TestJobConfig
                                     ) extends FailedTestJob {
-  //  override val service = Phase3TestService
   override val failedType: FailedTestType = Phase3FailedTestType
   override val phase = "PHASE3"
-  //  val config = FailedPhase3TestJobConfig2
 }
 
 trait FailedTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {

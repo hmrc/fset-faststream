@@ -18,9 +18,9 @@ package model.persisted
 
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
-import model.{ ApplicationRoute, SelectedSchemes }
 import model.persisted.phase3tests.LaunchpadTest
-import play.api.libs.json._
+import model.{ApplicationRoute, SelectedSchemes}
+import play.api.libs.json.Json
 
 case class ApplicationReadyForEvaluation(
   applicationId: String,
@@ -37,5 +37,5 @@ case class ApplicationReadyForEvaluation(
 }
 
 object ApplicationReadyForEvaluation {
-  implicit val applicationReadyForEvaluationFormats = Json.format[ApplicationReadyForEvaluation]
+  implicit val applicationReadyForEvaluationFormat = Json.format[ApplicationReadyForEvaluation]
 }

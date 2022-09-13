@@ -38,7 +38,7 @@ class MetricsController @Inject() (cc: ControllerComponents, applicationRepo: Ge
       val listWithCounts = SortedMap[String, Long]() ++ list.groupBy(identity).mapValues(_.size.toLong)
       Ok(Json.toJson(
         listWithCounts ++
-          Map("TOTAL_APPLICATION_COUNT" -> allApplications.toLong) ++
+          Map("TOTAL_APPLICATION_COUNT" -> allApplications) ++
           Map("CREATED" -> createdCount)
       ))
     }

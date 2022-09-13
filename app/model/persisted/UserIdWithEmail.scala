@@ -16,10 +16,19 @@
 
 package model.persisted
 
-import play.api.libs.json.Json
+import play.api.libs.functional.syntax.toFunctionalBuilderOps
+import play.api.libs.functional.syntax._
+import play.api.libs.json.{Format, Json, __}
 
 case class UserIdWithEmail(userId: String, email: String)
 
 object UserIdWithEmail {
   implicit val userIdWithEmailFormat = Json.format[UserIdWithEmail]
+
+  // Provide an explicit mongo format here to deal with the sub-document root
+  val subRoot = "contact-details"
+  val mongoFormat: Format[UserIdWithEmail] = (
+    (__ \ "userId").format[String] and
+      (__ \ subRoot \ "email").format[String]
+    )(UserIdWithEmail.apply, unlift(UserIdWithEmail.unapply))
 }

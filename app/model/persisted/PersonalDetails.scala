@@ -17,10 +17,11 @@
 package model.persisted
 
 import org.joda.time.LocalDate
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.Json
-import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
+import play.api.libs.functional.syntax._
+import play.api.libs.json.JodaReads.DefaultJodaLocalDateReads
+import play.api.libs.json.JodaWrites.DefaultJodaLocalDateWrites
+import play.api.libs.json.Reads._
+import play.api.libs.json.{Format, Json, __}
 
 case class PersonalDetails(firstName: String,
                            lastName: String,
@@ -34,8 +35,21 @@ case class PersonalDetails(firstName: String,
                           )
 
 object PersonalDetails {
-  import repositories.BSONLocalDateHandler
 
   implicit val personalDetailsFormat = Json.format[PersonalDetails]
-  implicit val personalDetailsHandler = Macros.handler[PersonalDetails]
+
+  // Provide an explicit mongo format here to deal with the sub-document root
+  // This data lives in the application collection
+  val root = "personal-details"
+  val mongoFormat: Format[PersonalDetails] = (
+    (__ \ root \ "firstName").format[String] and
+      (__ \ root \ "lastName").format[String] and
+      (__ \ root \ "preferredName").format[String] and
+      (__ \ root \ "dateOfBirth").format[LocalDate] and
+      (__ \ root \ "edipCompleted").formatNullable[Boolean] and
+      (__ \ root \ "edipYear").formatNullable[String] and
+      (__ \ root \ "otherInternshipCompleted").formatNullable[Boolean] and
+      (__ \ root \ "otherInternshipName").formatNullable[String] and
+      (__ \ root \ "otherInternshipYear").formatNullable[String]
+    )(PersonalDetails.apply, unlift(PersonalDetails.unapply))
 }

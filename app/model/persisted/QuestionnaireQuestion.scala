@@ -16,7 +16,9 @@
 
 package model.persisted
 
+import org.mongodb.scala.bson.BsonValue
 import play.api.libs.json.Json
+import uk.gov.hmrc.mongo.play.json.Codecs
 
 case class QuestionnaireQuestion(question: String, answer: QuestionnaireAnswer)
 object QuestionnaireQuestion {

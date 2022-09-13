@@ -35,8 +35,8 @@ class DuplicateDetectionService @Inject() (reportingRepository: ReportingReposit
   private val HighProbabilityMatchGroup = 1
   private val MediumProbabilityMatchGroup = 2
 
-  def findAll: Future[List[DuplicateApplicationGroup]] = {
-    def toUserIdToEmailMap(cds: List[UserIdWithEmail]) = {
+  def findAll: Future[Seq[DuplicateApplicationGroup]] = {
+    def toUserIdToEmailMap(cds: Seq[UserIdWithEmail]) = {
       cds.map(cd => cd.userId -> cd.email).toMap
     }
 
@@ -53,8 +53,8 @@ class DuplicateDetectionService @Inject() (reportingRepository: ReportingReposit
   }
 
   // scalastyle:off method.length
-  private def findDuplicates(source: List[UserApplicationProfile], population: List[UserApplicationProfile],
-                             userIdToEmailReference: Map[String, String]): List[DuplicateApplicationGroup] = {
+  private def findDuplicates(source: Seq[UserApplicationProfile], population: Seq[UserApplicationProfile],
+                             userIdToEmailReference: Map[String, String]): Seq[DuplicateApplicationGroup] = {
 
     def emailWithRemovedPostPlusSignIfPresent(userId: String): String = {
       val email = userIdToEmailReference.getOrElse(userId, throw new Exception(s"Contact details not found for userId $userId"))
@@ -132,14 +132,14 @@ class DuplicateDetectionService @Inject() (reportingRepository: ReportingReposit
         .filterNot(_.userId == sourceCandidate.userId)
 
       val highProbabilityDuplicates = sourceCandidate ::
-        threeFieldMatches
+        threeFieldMatches.toList
 
       // source candidate matches with itself in more than 2 fields. Therefore, it will not be part of any
       // duplicates*InTwoFields lists. It needs to be added "manually" as the head to be present in the final report.
       val mediumProbabilityDuplicates = sourceCandidate ::
-        duplicatesFirstNameLastName ++
-          duplicatesFirstNameDOB ++
-          duplicatesDOBLastName
+        duplicatesFirstNameLastName.toList ++
+          duplicatesFirstNameDOB.toList ++
+          duplicatesDOBLastName.toList
 
       List(
         selectDuplicatesOnlyOpt(HighProbabilityMatchGroup, highProbabilityDuplicates.toSet, userIdToEmailReference),

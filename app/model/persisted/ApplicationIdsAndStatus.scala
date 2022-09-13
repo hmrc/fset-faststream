@@ -17,7 +17,6 @@
 package model.persisted
 
 import play.api.libs.json.{ Json, OFormat }
-import reactivemongo.bson.Macros
 
 case class ApplicationIdsAndStatus(applicationId: String,
                                    userId: String,
@@ -27,5 +26,4 @@ case class ApplicationIdsAndStatus(applicationId: String,
 
 object ApplicationIdsAndStatus {
   implicit val format: OFormat[ApplicationIdsAndStatus] = Json.format[ApplicationIdsAndStatus]
-  implicit val handler = Macros.handler[ApplicationIdsAndStatus]
 }

@@ -19,9 +19,10 @@ package model
 import model.ApplicationRoute.ApplicationRoute
 import model.command.ProgressResponse
 import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.{ Json, OFormat }
+import play.api.libs.functional.syntax._
+import play.api.libs.json.JodaWrites._
+import play.api.libs.json.JodaReads._
+import play.api.libs.json.{Format, Json, OFormat, __}
 
 case class ApplicationResponse(applicationId: String,
                                applicationStatus: String,
@@ -33,5 +34,16 @@ case class ApplicationResponse(applicationId: String,
                                overriddenSubmissionDeadline: Option[DateTime])
 
 object ApplicationResponse {
-  implicit val applicationAddedFormat: OFormat[ApplicationResponse] = Json.format[ApplicationResponse]
+  implicit val applicationResponseFormat: OFormat[ApplicationResponse] = Json.format[ApplicationResponse]
+
+  val mongoFormat: Format[ApplicationResponse] = (
+    (__ \ "applicationId").format[String] and
+      (__ \ "applicationStatus").format[String] and
+      (__ \ "applicationRoute").format[ApplicationRoute] and
+      (__ \ "userId").format[String] and
+      (__ \ "testAccountId").format[String] and
+      (__ \ "progressResponse").format[ProgressResponse] and
+      (__ \ CivilServiceExperienceDetails.root).formatNullable[CivilServiceExperienceDetails] and
+      (__ \ "overriddenSubmissionDeadline").formatNullable[DateTime]
+    )(ApplicationResponse.apply, unlift(ApplicationResponse.unapply))
 }

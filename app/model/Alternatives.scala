@@ -17,11 +17,9 @@
 package model
 
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
 
 case class Alternatives(location: Boolean, framework: Boolean)
 
 object Alternatives {
   implicit val jsonFormat = Json.format[Alternatives]
-  implicit val bsonFormat = Macros.handler[Alternatives]
 }

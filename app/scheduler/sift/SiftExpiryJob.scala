@@ -16,12 +16,11 @@
 
 package scheduler.sift
 
-import config.{ MicroserviceAppConfig, WaitingScheduledJobConfig }
-import play.api.{ Configuration, Logging }
-import play.modules.reactivemongo.ReactiveMongoComponent
+import config.{MicroserviceAppConfig, WaitingScheduledJobConfig}
+import play.api.{Configuration, Logging}
+import uk.gov.hmrc.mongo.MongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
-//import ProgressToSiftJobConfig.conf
 import javax.inject.{ Inject, Singleton }
 import services.sift.ApplicationSiftService
 import uk.gov.hmrc.http.HeaderCarrier
@@ -30,13 +29,11 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class SiftExpiryJobImpl @Inject() (val siftService: ApplicationSiftService,
-                                   val mongoComponent: ReactiveMongoComponent,
+                                   val mongoComponent: MongoComponent,
                                    val config: SiftExpiryJobConfig,
                                    val appConfig: MicroserviceAppConfig
                                   ) extends SiftExpiryJob {
-  //  override val siftService = ApplicationSiftService
   override val gracePeriodInSecs = appConfig.onlineTestsGatewayConfig.numericalTests.gracePeriodInSecs
-  //  override val config = SiftExpiryJobConfig
 }
 
 trait SiftExpiryJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {

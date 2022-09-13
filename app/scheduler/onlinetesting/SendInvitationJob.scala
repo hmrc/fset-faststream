@@ -18,11 +18,12 @@ package scheduler.onlinetesting
 
 import com.google.inject.name.Named
 import config.ScheduledJobConfig
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.EmptyRequestHeader
 import play.api.mvc.RequestHeader
-import play.api.{ Configuration, Logging }
-import play.modules.reactivemongo.ReactiveMongoComponent
+import play.api.{Configuration, Logging}
+import uk.gov.hmrc.mongo.MongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
@@ -32,7 +33,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class SendPhase1InvitationJob @Inject() (@Named("Phase1OnlineTestService") val onlineTestingService: OnlineTestService,
-                                         val mongoComponent: ReactiveMongoComponent,
+                                         val mongoComponent: MongoComponent,
                                          val config: SendPhase1InvitationJobConfig
                                         ) extends SendInvitationJob {
   val phase = "PHASE1"
@@ -40,7 +41,7 @@ class SendPhase1InvitationJob @Inject() (@Named("Phase1OnlineTestService") val o
 
 @Singleton
 class SendPhase2InvitationJob @Inject() (@Named("Phase2OnlineTestService") val onlineTestingService: OnlineTestService,
-                                         val mongoComponent: ReactiveMongoComponent,
+                                         val mongoComponent: MongoComponent,
                                           val config: SendPhase2InvitationJobConfig
                                          ) extends SendInvitationJob {
   val phase = "PHASE2"
@@ -48,7 +49,7 @@ class SendPhase2InvitationJob @Inject() (@Named("Phase2OnlineTestService") val o
 
 @Singleton
 class SendPhase3InvitationJob @Inject() (@Named("Phase3OnlineTestService") val onlineTestingService: OnlineTestService,
-                                         val mongoComponent: ReactiveMongoComponent,
+                                         val mongoComponent: MongoComponent,
                                          val config: SendPhase3InvitationJobConfig
                                         ) extends SendInvitationJob {
   val phase = "PHASE3"

@@ -16,42 +16,45 @@
 
 package repositories.testdata
 
-import javax.inject.{ Inject, Singleton }
 import model.CreateApplicationRequest
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.Cursor
-import reactivemongo.bson.{ BSONDocument, BSONObjectID }
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.Projections
+import play.api.Logging
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
-import scala.concurrent.Future
+import javax.inject.{Inject, Singleton}
+import repositories.{CollectionNames, ReactiveRepositoryHelpers}
+
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 trait ApplicationRemovalRepository {
-  def remove(applicationStatus: Option[String]): Future[List[String]]
+  def remove(applicationStatus: Option[String]): Future[Seq[String]]
 }
 
 @Singleton
-class ApplicationRemovalMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](
-    CollectionNames.APPLICATION,
-    mongoComponent.mongoConnector.db,
-    CreateApplicationRequest.createApplicationRequestFormat,
-    ReactiveMongoFormats.objectIdFormats) with ApplicationRemovalRepository with ReactiveRepositoryHelpers
-{
-  def remove(applicationStatus: Option[String]): Future[List[String]] = {
-    val query = applicationStatus.map(as => BSONDocument("applicationStatus" -> as)).getOrElse(BSONDocument())
+class ApplicationRemovalMongoRepository @Inject() (mongoComponent: MongoComponent)
+  extends PlayMongoRepository[CreateApplicationRequest](
+    collectionName = CollectionNames.APPLICATION,
+    mongoComponent = mongoComponent,
+    domainFormat = CreateApplicationRequest.createApplicationRequestFormat,
+    indexes = Nil
+  ) with ApplicationRemovalRepository with ReactiveRepositoryHelpers with Logging {
 
-    val projection = BSONDocument(
-      "userId" -> true
-    )
+  val applicationCollection: MongoCollection[Document] = mongoComponent.database.getCollection(collectionName)
 
-    collection.find(query, Some(projection)).cursor[BSONDocument]().collect[List](maxDocs = -1, Cursor.FailOnError[List[BSONDocument]]()).map {
-      docList => docList.map { doc => doc.getAs[String]("userId").get }
+  def remove(applicationStatus: Option[String]): Future[Seq[String]] = {
+    val query = applicationStatus.map(as => Document("applicationStatus" -> as)).getOrElse(Document.empty)
+    val projection = Projections.include("userId")
+
+    applicationCollection.find(query).projection(projection).toFuture().map { docList =>
+      docList.map { doc => doc.getString("userId") }
     }.map { userIds =>
-      collection.delete().one(query).map(_.n)
+      collection.deleteMany(query).toFuture().map(_.getDeletedCount).map { deletedCount =>
+        logger.debug(s"Deleted $deletedCount document(s) where applicationStatus=$applicationStatus")
+      }
       userIds
     }
   }
