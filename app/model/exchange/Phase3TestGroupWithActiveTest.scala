@@ -16,13 +16,13 @@
 
 package model.exchange
 
-import model.persisted.phase3tests.LaunchpadTest
+import model.persisted.phase3tests.LaunchpadTestExchange
 import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
+import play.api.libs.json.JodaWrites._
+import play.api.libs.json.JodaReads._
 import play.api.libs.json.Json
 
-case class Phase3TestGroupWithActiveTest(expirationDate: DateTime, activeTest: LaunchpadTest)
+case class Phase3TestGroupWithActiveTest(expirationDate: DateTime, activeTest: LaunchpadTestExchange)
 
 object Phase3TestGroupWithActiveTest {
   implicit val phase3TestGroupWithActiveTestFormat = Json.format[Phase3TestGroupWithActiveTest]

@@ -17,7 +17,7 @@
 package scheduler.onlinetesting
 
 import org.mockito.Mockito._
-import play.modules.reactivemongo.ReactiveMongoComponent
+import uk.gov.hmrc.mongo.MongoComponent
 import services.onlinetesting.OnlineTestService
 import testkit.{ ShortTimeout, UnitWithAppSpec }
 
@@ -30,7 +30,7 @@ class SendInvitationJobSpec extends UnitWithAppSpec with ShortTimeout {
   val onlineTestingServiceMock = mock[OnlineTestService]
   object TestableSendInvitationJob extends SendInvitationJob {
     override val onlineTestingService = onlineTestingServiceMock
-    override val mongoComponent = mock[ReactiveMongoComponent]
+    override val mongoComponent = mock[MongoComponent]
     override val phase = "TEST_PHASE"
     override lazy val batchSize = 1
     override val lockId: String = "1"

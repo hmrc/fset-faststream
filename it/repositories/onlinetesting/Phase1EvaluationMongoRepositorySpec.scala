@@ -1,20 +1,18 @@
 package repositories.onlinetesting
 
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.{ Amber, Green, Red }
+import model.EvaluationResults.{Amber, Green, Red}
 import model.persisted._
-import model.{ ApplicationRoute, ApplicationStatus, ProgressStatuses, SchemeId }
-import org.joda.time.{ DateTime, DateTimeZone }
+import model.{ApplicationRoute, ApplicationStatus, ProgressStatuses, SchemeId}
+import org.joda.time.{DateTime, DateTimeZone}
+import org.mongodb.scala.bson.collection.immutable.Document
 import org.scalatestplus.mockito.MockitoSugar
-import play.api.libs.json.JsObject
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers
+import uk.gov.hmrc.mongo.play.json.Codecs
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
 class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with CommonRepository with MockitoSugar {
 
-  import ImplicitBSONHandlers._
   import Phase1EvaluationMongoRepositorySpec._
 
   val collectionName: String = CollectionNames.APPLICATION
@@ -50,6 +48,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
 
       result must not be empty
+
       result.head mustBe ApplicationReadyForEvaluation(
         "app1",
         ApplicationStatus.PHASE1_TESTS,
@@ -58,7 +57,8 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         Phase1TestProfile(now, phase1TestsWithResult).activeTests,
         activeLaunchpadTest = None,
         prevPhaseEvaluation = None,
-        selectedSchemes(List(SchemeId("Commercial"))))
+        selectedSchemes(List(SchemeId("Commercial")))
+      )
     }
 
     "return GIS application in PHASE1_TESTS with results" in {
@@ -95,7 +95,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       result.size mustBe batchSizeLimit
     }
 
-    "return less number of applications than batch size limit" in {
+    "return fewer applications than batch size limit" in {
       val batchSizeLimit = 5
       1 to 2 foreach { id =>
         insertApplication2(s"app$id", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult))
@@ -115,6 +115,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ProgressStatuses.PHASE1_TESTS_PASSED)).futureValue
 
       val resultWithAppStatus = getOnePhase1Profile("app1")
+
       resultWithAppStatus mustBe defined
       val (appStatus, result) = resultWithAppStatus.get
       appStatus mustBe ApplicationStatus.PHASE1_TESTS_PASSED
@@ -144,6 +145,8 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     }
 
     "not return the SdipFaststream candidate in PHASE2_TESTS if the sdip is not evaluated for phase1" ignore {
+      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalAndTechnology"), Green.toString))
+
       insertApplication2("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
         applicationRoute = Some(ApplicationRoute.SdipFaststream))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
@@ -249,17 +252,20 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       phase1EvaluationRepo.addSchemeResultToPassmarkEvaluation("app1", sdipResult, "version2").futureValue
 
       val passmarkEvaluation = phase1EvaluationRepo.getPassMarkEvaluation("app1").futureValue
-      passmarkEvaluation.result must contain theSameElementsAs List(SchemeEvaluationResult(SchemeId("Sdip"), Red.toString))
+      passmarkEvaluation.result must contain theSameElementsAs List(
+        SchemeEvaluationResult(SchemeId("Sdip"), Red.toString)
+      )
     }
   }
 
   private def getOnePhase1Profile(appId: String) = {
-    phase1EvaluationRepo.collection.find(BSONDocument("applicationId" -> appId), projection = Option.empty[JsObject])
-      .one[BSONDocument].map(_.map { doc =>
-      val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
-      val bsonPhase1 = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument]("PHASE1"))
-      val phase1 = bsonPhase1.map(Phase1TestProfile.bsonHandler.read).get
-      (applicationStatus, phase1)
+    applicationCollection.find(Document("applicationId" -> appId)).headOption.map( _.map { doc =>
+      val applicationStatusBsonValue = doc.get("applicationStatus").get
+      val applicationStatus = Codecs.fromBson[ApplicationStatus](applicationStatusBsonValue)
+
+      val bsonPhase1 = doc.get("testGroups").map(_.asDocument().get("PHASE1").asDocument() )
+      val phase1 = bsonPhase1.map( bson => Codecs.fromBson[Phase1TestProfile](bson) ).get
+      applicationStatus -> phase1
     }).futureValue
   }
 }

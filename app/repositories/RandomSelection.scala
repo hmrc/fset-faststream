@@ -16,60 +16,37 @@
 
 package repositories
 
-import play.api.libs.json.JsObject
-import reactivemongo.api.Cursor.FailOnError
-import reactivemongo.api.{ Cursor, QueryOpts, ReadPreference }
-import reactivemongo.api.collections.bson.BSONCollection
-import reactivemongo.bson.{ BSONDocument, BSONDocumentReader }
-import reactivemongo.play.json.collection.JSONBatchCommands.JSONCountCommand
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import uk.gov.hmrc.mongo.ReactiveRepository
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.Aggregates.{`match`, sample}
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
-import scala.concurrent.{ ExecutionContext, Future }
-import scala.util.Random
-
-object RandomSelection {
-  def calculateBatchSize(originalSize: Int, queryCount: Int): (Int, Int) = originalSize match {
-    case 1 => (Random.nextInt(queryCount), 1)
-    case _ if queryCount <= originalSize => (0, queryCount)
-    case _ => (Random.nextInt(queryCount - originalSize), originalSize)
-  }
-}
+import scala.concurrent.{ExecutionContext, Future}
+import scala.reflect.ClassTag
 
 trait RandomSelection {
-  this: ReactiveRepository[_, _] =>
+  // Enforce that classes that extend this trait provide a PlayMongoRepository impl so we can access the collection
+  this: PlayMongoRepository[_] =>
 
-  protected val bsonCollection: BSONCollection
-
-  // In Mongo 3.2.0 it would be more efficient and safer to use `db.aggregate` with the new `$sample` aggregation
-  // to randomly select a single record.
-  protected def selectRandom[T](query: BSONDocument, batchSize: Int = 1, projection: BSONDocument = BSONDocument.empty)(
-    implicit reader: BSONDocumentReader[T], ec: ExecutionContext): Future[List[T]] = {
-
-    def countDocuments = {
-      val unlimitedMaxDocs = -1
-      collection.find(query, projection = Option.empty[JsObject]).cursor[BSONDocument]()
-        .collect[List](unlimitedMaxDocs, FailOnError[List[BSONDocument]]())
-        .map( _.size )
-    }
-
-    countDocuments.flatMap{ count =>
-      if (count == 0) {
-        Future.successful(Nil)
-      } else {
-        // In the event of a race-condition where the size decreases after counting, the worse-case is that
-        // `None` is returned by the method instead of a Some[BSONDocument].
-        val (randomIndex, newBatchSize) = RandomSelection.calculateBatchSize(batchSize, count)
-
-        bsonCollection.find(query, Some(projection))
-          .options(QueryOpts(skipN = randomIndex, batchSizeN = newBatchSize))
-          .cursor[T]().collect[List](newBatchSize, Cursor.FailOnError[List[T]]())
-      }
-    }
+  protected def selectRandom[T](query: Document, batchSize: Int = 1)(implicit reader: Document => T, ec: ExecutionContext): Future[Seq[T]] = {
+    collection.aggregate[Document](Seq(
+      `match`(query),
+      sample(batchSize) // This is the number of random documents returned
+    )).toFuture().map ( _.map ( reader ))
   }
 
-  protected def selectOneRandom[T](query: BSONDocument)(
-    implicit reader: BSONDocumentReader[T], ec: ExecutionContext): Future[Option[T]] = {
-    selectRandom[T](query, 1).map(_.headOption)
+  protected def selectOneRandom[T](query: Document)(implicit reader: Document => T, ec: ExecutionContext): Future[Option[T]] = {
+    // Explicitly pass the implicits to avoid ambiguous implicit values compile error
+    selectRandom(query)(reader, ec).map( _.headOption )
+  }
+
+  // Use this selectRandom when you are using a MongoCollection[T] and the codec that is automatically registered to read data back from Mongo.
+  // This can either be the default one that is created when you set up your MongoRepository or alternate one setup to work with a specific
+  // domain format
+  protected def selectRandom[T: ClassTag](collection: MongoCollection[T], query: Document, batchSize: Int): Future[Seq[T]] = {
+    collection.aggregate(Seq(
+      `match`(query),
+      sample(batchSize) // This is the number of random documents returned
+    )).toFuture()
   }
 }

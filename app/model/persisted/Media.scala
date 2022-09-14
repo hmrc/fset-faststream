@@ -16,12 +16,17 @@
 
 package model.persisted
 
-import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import play.api.libs.functional.syntax._
+import play.api.libs.json.{Format, Json, __}
 
 case class Media(userId: String, media: String, originalUserId: Option[String] = None)
 
 object Media {
   implicit val mediaFormat = Json.format[Media]
-  implicit val mediaHandler = Macros.handler[Media]
+
+  val mongoFormat: Format[Media] = (
+    (__ \ "userId").format[String] and
+      (__ \ "media").format[String] and
+      (__ \ "originalUserId").formatNullable[String]
+    )(Media.apply, unlift(Media.unapply))
 }

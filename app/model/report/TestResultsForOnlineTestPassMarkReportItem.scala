@@ -17,15 +17,15 @@
 package model.report
 
 import model.OnlineTestCommands.PsiTestResult
-import play.api.libs.json.{ Format, Json, OFormat }
-import model.assessmentscores.AssessmentScoresAllExercises
+import play.api.libs.json.{Format, Json, OFormat}
+import model.assessmentscores.{AssessmentScoresAllExercises, AssessmentScoresAllExercisesExchange}
 import model.persisted.fsb.ScoresAndFeedback
 
 case class TestResultsForOnlineTestPassMarkReportItem(phase1: Seq[Option[PsiTestResult]],
                                                       phase2: Seq[Option[PsiTestResult]],
                                                       videoInterview: Option[VideoInterviewTestResult],
                                                       siftTestResult: Option[PsiTestResult],
-                                                      fsac: Option[AssessmentScoresAllExercises],
+                                                      fsac: Option[AssessmentScoresAllExercisesExchange],
                                                       overallFsacScore: Option[Double],
                                                       sift: Option[SiftPhaseReportItem],
                                                       fsb: Option[ScoresAndFeedback])

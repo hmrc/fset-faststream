@@ -1,22 +1,20 @@
 package repositories.onlinetesting
 
-import config.{ LaunchpadGatewayConfig, Phase3TestsConfig }
+import config.{LaunchpadGatewayConfig, Phase3TestsConfig}
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
 import model.Exceptions.PassMarkEvaluationNotFound
 import model.persisted._
 import model.persisted.phase3tests.Phase3TestGroup
-import model.{ ApplicationStatus, ProgressStatuses, SchemeId }
+import model.{ApplicationStatus, ProgressStatuses, SchemeId}
 import org.mockito.Mockito.when
-import play.api.libs.json.JsObject
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers
+import org.mongodb.scala.bson.collection.immutable.Document
+import uk.gov.hmrc.mongo.play.json.Codecs
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
 class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with CommonRepository {
 
-  import ImplicitBSONHandlers._
   import Phase2EvaluationMongoRepositorySpec._
   import model.Phase3TestProfileExamples._
 
@@ -67,85 +65,92 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     }
 
     "return nothing when PHASE3_TESTS are already evaluated" in {
-      val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave, "phase2_version1-res", None)
+      val phase2Evaluation = PassmarkEvaluation("phase2_version1", previousPhasePassMarkVersion = None, resultToSave,
+        "phase2_version1-res", previousPhaseResultVersion = None)
       insertApplication2("app1", ApplicationStatus.PHASE3_TESTS, phase1Tests = None, Some(phase2TestWithResult),
         Some(phase3TestWithResult), phase2Evaluation = Some(phase2Evaluation))
 
       val phase3Evaluation = PassmarkEvaluation("phase3_version1", Some("phase2_version1"), resultToSave,
         "phase3_version1-res", Some("phase2_version1-res"))
-      phase3EvaluationRepo.savePassmarkEvaluation("app1", phase3Evaluation, None).futureValue
+      phase3EvaluationRepo.savePassmarkEvaluation("app1", phase3Evaluation, newProgressStatus = None).futureValue
 
       val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation("phase3_version1", batchSize = 1).futureValue
       result mustBe empty
     }
 
     "return evaluated application in PHASE3_TESTS_PASSED_WITH_AMBER when phase3 pass mark settings changed" in {
-      val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave, "phase2_version1-res", None)
+      val phase2Evaluation = PassmarkEvaluation("phase2_version1", previousPhasePassMarkVersion = None, resultToSave,
+        "phase2_version1-res", previousPhaseResultVersion = None)
       insertApplication2("app1", ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER, phase1Tests = None, Some(phase2TestWithResult),
         Some(phase3TestWithResult), phase2Evaluation = Some(phase2Evaluation))
 
       val phase3Evaluation = PassmarkEvaluation("phase3_version1", Some("phase2_version1"), resultToSave,
         "phase3-version1-res", Some("phase2-version1-res"))
-      phase3EvaluationRepo.savePassmarkEvaluation("app1", phase3Evaluation, None).futureValue
+      phase3EvaluationRepo.savePassmarkEvaluation("app1", phase3Evaluation, newProgressStatus = None).futureValue
 
       val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation("phase3_version2", batchSize = 1).futureValue
       assertApplication(result.head, phase2Evaluation, ApplicationStatus.PHASE3_TESTS_PASSED_WITH_AMBER)
     }
 
     "return evaluated application in PHASE3_TESTS when phase3 pass mark settings changed" in {
-      val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave, "phase2_version1-res", None)
+      val phase2Evaluation = PassmarkEvaluation("phase2_version1", previousPhasePassMarkVersion = None, resultToSave,
+        "phase2_version1-res", previousPhaseResultVersion = None)
       insertApplication2("app1", ApplicationStatus.PHASE3_TESTS, phase1Tests = None, Some(phase2TestWithResult),
         Some(phase3TestWithResult), phase2Evaluation = Some(phase2Evaluation))
 
       val phase3Evaluation = PassmarkEvaluation("phase3_version1", Some("phase2_version1"), resultToSave,
         "phase3_version1-res", Some("phase2_version1-res"))
-      phase3EvaluationRepo.savePassmarkEvaluation("app1", phase3Evaluation, None).futureValue
+      phase3EvaluationRepo.savePassmarkEvaluation("app1", phase3Evaluation, newProgressStatus = None).futureValue
 
       val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation("phase3_version2", batchSize = 1).futureValue
       assertApplication(result.head, phase2Evaluation)
     }
 
     "return nothing when phase3 test results are not reviewed before 72 hours" in {
-      val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave, "phase2_version1-res", None)
+      val phase2Evaluation = PassmarkEvaluation("phase2_version1", previousPhasePassMarkVersion = None, resultToSave,
+        "phase2_version1-res", previousPhaseResultVersion = None)
       insertApplication2("app1", ApplicationStatus.PHASE3_TESTS, phase1Tests = None, Some(phase2TestWithResult),
         Some(phase3TestWithResult(10)), phase2Evaluation = Some(phase2Evaluation))
 
       val phase3Evaluation = PassmarkEvaluation("phase3_version1", Some("phase2_version1"), resultToSave,
         "phase3_version1-res", Some("phase2_version1-res"))
-      phase3EvaluationRepo.savePassmarkEvaluation("app1", phase3Evaluation, None).futureValue
+      phase3EvaluationRepo.savePassmarkEvaluation("app1", phase3Evaluation, newProgressStatus = None).futureValue
 
       val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation("phase3_version2", batchSize = 1).futureValue
       result mustBe empty
     }
 
     "return evaluated application in PHASE3_TESTS status when phase2 results are re-evaluated because pass mark versions are different" in {
-      val phase2Evaluation = PassmarkEvaluation("phase2_version2", None, resultToSave, "phase2_version2-res", None)
+      val phase2Evaluation = PassmarkEvaluation("phase2_version2", previousPhasePassMarkVersion = None, resultToSave,
+        "phase2_version2-res", previousPhaseResultVersion = None)
       insertApplication2("app1", ApplicationStatus.PHASE3_TESTS, phase1Tests = None, Some(phase2TestWithResult),
         Some(phase3TestWithResult), phase2Evaluation = Some(phase2Evaluation))
 
-      val phase3Evaluation = PassmarkEvaluation("phase3_version1", Some("phase2_version1"), resultToSave, "phase3_version1-res", None)
-      phase3EvaluationRepo.savePassmarkEvaluation("app1", phase3Evaluation, None).futureValue
+      val phase3Evaluation = PassmarkEvaluation("phase3_version1", Some("phase2_version1"), resultToSave,
+        "phase3_version1-res", previousPhaseResultVersion = None)
+      phase3EvaluationRepo.savePassmarkEvaluation("app1", phase3Evaluation, newProgressStatus = None).futureValue
 
       val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation("phase3_version1", batchSize = 1).futureValue
       assertApplication(result.head, phase2Evaluation)
     }
 
     "return evaluated application in PHASE3_TESTS status when phase2 results are re-evaluated because result versions are different" in {
-      val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave, "phase2_version2-res", None)
+      val phase2Evaluation = PassmarkEvaluation("phase2_version1", previousPhasePassMarkVersion = None, resultToSave,
+        "phase2_version2-res", previousPhaseResultVersion = None)
       insertApplication2("app1", ApplicationStatus.PHASE3_TESTS, phase1Tests = None, Some(phase2TestWithResult),
         Some(phase3TestWithResult), phase2Evaluation = Some(phase2Evaluation))
 
       val phase3Evaluation = PassmarkEvaluation("phase3_version1", Some("phase2_version1"), resultToSave,
         "phase3_version1-res", Some("phase2_version1-res"))
-      phase3EvaluationRepo.savePassmarkEvaluation("app1", phase3Evaluation, None).futureValue
+      phase3EvaluationRepo.savePassmarkEvaluation("app1", phase3Evaluation, newProgressStatus = None).futureValue
 
       val result = phase3EvaluationRepo.nextApplicationsReadyForEvaluation("phase3_version1", batchSize = 1).futureValue
-
       assertApplication(result.head, phase2Evaluation)
     }
 
     "return nothing when phase3 test results are expired" in {
-      val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave, "phase2_version1-res", None)
+      val phase2Evaluation = PassmarkEvaluation("phase2_version1", previousPhasePassMarkVersion = None, resultToSave,
+        "phase2_version1-res", previousPhaseResultVersion = None)
       insertApplication2("app1", ApplicationStatus.PHASE3_TESTS, phase1Tests = None, Some(phase2TestWithResult),
         Some(phase3TestWithResult), phase2Evaluation = Some(phase2Evaluation),
         additionalProgressStatuses = List(ProgressStatuses.PHASE3_TESTS_EXPIRED -> true))
@@ -157,7 +162,8 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     "limit number of next applications to the batch size limit" in {
       val batchSizeLimit = 5
       1 to 6 foreach { id =>
-        val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave, "phase2_version1_res", None)
+        val phase2Evaluation = PassmarkEvaluation("phase2_version1", previousPhasePassMarkVersion = None, resultToSave,
+          "phase2_version1_res", previousPhaseResultVersion = None)
         insertApplication2(s"app$id", ApplicationStatus.PHASE3_TESTS, phase1Tests = None, Some(phase2TestWithResult),
           Some(phase3TestWithResult), phase2Evaluation = Some(phase2Evaluation))
       }
@@ -165,10 +171,11 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       result.size mustBe batchSizeLimit
     }
 
-    "return less number of applications than batch size limit" in {
+    "return fewer applications than batch size limit" in {
       val batchSizeLimit = 5
       1 to 2 foreach { id =>
-        val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave, "phase2_version1-res", None)
+        val phase2Evaluation = PassmarkEvaluation("phase2_version1", previousPhasePassMarkVersion = None, resultToSave,
+          "phase2_version1-res", previousPhaseResultVersion = None)
         insertApplication2(s"app$id", ApplicationStatus.PHASE3_TESTS, phase1Tests = None, Some(phase2TestWithResult),
           Some(phase3TestWithResult), phase2Evaluation = Some(phase2Evaluation))
       }
@@ -182,7 +189,8 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
     "save result and update the status" in {
       insertApplication2("app1", ApplicationStatus.PHASE3_TESTS, phase1Tests = None, Some(phase2TestWithResult), Some(phase3TestWithResult))
-      val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
+      val evaluation = PassmarkEvaluation("version1", previousPhasePassMarkVersion = None, resultToSave,
+        "version1-res", previousPhaseResultVersion = None)
 
       phase3EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ProgressStatuses.PHASE3_TESTS_PASSED)).futureValue
 
@@ -190,9 +198,9 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       resultWithAppStatus mustBe defined
       val (appStatus, result) = resultWithAppStatus.get
       appStatus mustBe ApplicationStatus.PHASE3_TESTS_PASSED
-      result.evaluation mustBe Some(PassmarkEvaluation("version1", None, List(
-        SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString)
-      ), "version1-res", None))
+      result.evaluation mustBe Some(PassmarkEvaluation("version1", previousPhasePassMarkVersion = None,
+        List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString)),
+        "version1-res", previousPhaseResultVersion = None))
     }
   }
 
@@ -227,12 +235,13 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   }
 
   private def getOnePhase3Profile(appId: String) = {
-    phase3EvaluationRepo.collection.find(BSONDocument("applicationId" -> appId), projection = Option.empty[JsObject])
-      .one[BSONDocument].map(_.map { doc =>
-      val applicationStatus = doc.getAs[ApplicationStatus]("applicationStatus").get
-      val bsonPhase3 = doc.getAs[BSONDocument]("testGroups").flatMap(_.getAs[BSONDocument]("PHASE3"))
-      val phase3 = bsonPhase3.map(Phase3TestGroup.bsonHandler.read).get
-      (applicationStatus, phase3)
+    applicationCollection.find(Document("applicationId" -> appId)).headOption.map( _.map { doc =>
+      val applicationStatusBsonValue = doc.get("applicationStatus").get
+      val applicationStatus = Codecs.fromBson[ApplicationStatus](applicationStatusBsonValue)
+
+      val bsonPhase3 = doc.get("testGroups").map(_.asDocument().get("PHASE3").asDocument() )
+      val phase3 = bsonPhase3.map( bson => Codecs.fromBson[Phase3TestGroup](bson) ).get
+      applicationStatus -> phase3
     }).futureValue
   }
 }

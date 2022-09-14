@@ -198,6 +198,14 @@ class AssessorServiceSpec extends BaseServiceSpec {
       val emailsForEvent1 = emails.get(0).toString
       val emailsForEvent2 = emails.get(1).toString
 
+      // Assessor1 whose userId = userId1 has the following events:
+      // Event(eventId1,FSAC,GCFS FSB,Location(London),Venue(London FSAC,Bush House)      (FSAC - Virtual)
+      // Event(eventId2,FSB,ORAC,Location(London),Venue(London FSAC,Bush House)           (FSB - London)
+      // Event(eventId3,FSB,GCFS FSB,Location(Newcastle),Venue(Newcastle FSAC,Longbenton) (FSB - Newcastle)
+      // Assessor2 whose userId = userId2 has the following events:
+      // Event(eventId1,FSAC,GCFS FSB,Location(London),Venue(London FSAC,Bush House)      (FSAC - Virtual)
+      // Event(eventId4,FSAC,DFS FSB,Location(Newcastle),Venue(Newcastle FSAC,Longbenton) (FSAC - Virtual)
+
       val fsacVirtual = s"${now.toString("EEEE, dd MMMM YYYY")} (FSAC - Virtual)"
       val fsbLondon = s"${now.toString("EEEE, dd MMMM YYYY")} (FSB - London)"
       val fsbNewcastle = s"${now.toString("EEEE, dd MMMM YYYY")} (FSB - Newcastle)"
@@ -350,15 +358,15 @@ class AssessorServiceSpec extends BaseServiceSpec {
     val a2Skills = List(SkillType.QUALITY_ASSURANCE_COORDINATOR)
 
     val availabilities = Set(AssessorAvailability(Location("london"), new LocalDate(2017, 8, 11)))
-    val a1 = Assessor("userId1", None, a1Skills.map(_.toString), Nil, civilServant = true, Set.empty, AssessorStatus.CREATED)
-    val a2 = Assessor("userId2", None, a2Skills.map(_.toString), Nil, civilServant = true, Set.empty, AssessorStatus.CREATED)
-    val a3 = Assessor("userId3", None, a1Skills.map(_.toString), Nil, civilServant = true, availabilities, AssessorStatus.CREATED)
+    val a1 = Assessor("userId1", version = None, a1Skills.map(_.toString), Nil, civilServant = true, Set.empty, AssessorStatus.CREATED)
+    val a2 = Assessor("userId2", version = None, a2Skills.map(_.toString), Nil, civilServant = true, Set.empty, AssessorStatus.CREATED)
+    val a3 = Assessor("userId3", version = None, a1Skills.map(_.toString), Nil, civilServant = true, availabilities, AssessorStatus.CREATED)
     val assessors: Seq[Assessor] = Seq(a1, a2)
 
     val findByUserIdsResponse = Seq(
-      Candidate("Joe", "Bloggs", None, "joe.bloggs@test.com", None, "userId1", List("assessor")),
-      Candidate("John", "Bloggs", None, "john.bloggs@test.com", None, "userId2", List("assessor")),
-      Candidate("Bill", "Bloggs", None, "bill.bloggs@test.com", None, "userId3", List("assessor"))
+      Candidate("Joe", "Bloggs", preferredName = None, "joe.bloggs@test.com", phone = None, "userId1", List("assessor")),
+      Candidate("John", "Bloggs", preferredName = None, "john.bloggs@test.com", phone = None, "userId2", List("assessor")),
+      Candidate("Bill", "Bloggs", preferredName = None, "bill.bloggs@test.com", phone = None, "userId3", List("assessor"))
     )
 
     val assessorToEventsMapping: Map[Assessor, Seq[Event]] = Map[Assessor, Seq[Event]](

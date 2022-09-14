@@ -18,12 +18,9 @@ package model.exchange
 
 import model.SchemeId
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
 
 case class ApplicationSifting(applicationId: String, schemeId: SchemeId, result: String)
 
 object ApplicationSifting {
   implicit val schemeEvaluationResultFormat = Json.format[ApplicationSifting]
-  implicit val schemeEvaluationResultHandler = Macros.handler[ApplicationSifting]
-
 }

@@ -18,11 +18,7 @@ package model.assessmentscores
 
 import model.UniqueIdentifier
 import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import repositories._
 import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class AssessmentScoresExercise(
                                      attended: Boolean,
@@ -69,10 +65,82 @@ case class AssessmentScoresExercise(
     s"submittedDate:$submittedDate," +
     s"version:$version"
   }
+
+  def toExchange =
+    AssessmentScoresExerciseExchange(
+      attended,
+      seeingTheBigPictureScores,
+      seeingTheBigPictureAverage,
+      seeingTheBigPictureFeedback,
+      makingEffectiveDecisionsScores,
+      makingEffectiveDecisionsAverage,
+      makingEffectiveDecisionsFeedback,
+      communicatingAndInfluencingScores,
+      communicatingAndInfluencingAverage,
+      communicatingAndInfluencingFeedback,
+      workingTogetherDevelopingSelfAndOthersScores,
+      workingTogetherDevelopingSelfAndOthersAverage,
+      workingTogetherDevelopingSelfAndOthersFeedback,
+      updatedBy,
+      savedDate,
+      submittedDate,
+      version
+    )
 }
 
 object AssessmentScoresExercise {
+  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format in Mongo
   implicit val jsonFormat = Json.format[AssessmentScoresExercise]
-  implicit val bsonHandler: BSONHandler[BSONDocument, AssessmentScoresExercise] =
-    Macros.handler[AssessmentScoresExercise]
+}
+
+case class AssessmentScoresExerciseExchange(
+                                     attended: Boolean,
+
+                                     seeingTheBigPictureScores: Option[SeeingTheBigPictureScores] = None,
+                                     seeingTheBigPictureAverage: Option[Double] = None,
+                                     seeingTheBigPictureFeedback: Option[String] = None,
+
+                                     makingEffectiveDecisionsScores: Option[MakingEffectiveDecisionsScores] = None,
+                                     makingEffectiveDecisionsAverage: Option[Double] = None,
+                                     makingEffectiveDecisionsFeedback: Option[String] = None,
+
+                                     communicatingAndInfluencingScores: Option[CommunicatingAndInfluencingScores] = None,
+                                     communicatingAndInfluencingAverage: Option[Double] = None,
+                                     communicatingAndInfluencingFeedback: Option[String] = None,
+
+                                     workingTogetherDevelopingSelfAndOthersScores: Option[WorkingTogetherDevelopingSelfAndOtherScores] = None,
+                                     workingTogetherDevelopingSelfAndOthersAverage: Option[Double] = None,
+                                     workingTogetherDevelopingSelfAndOthersFeedback: Option[String] = None,
+
+                                     updatedBy: UniqueIdentifier,
+                                     savedDate: Option[DateTime] = None,
+                                     submittedDate: Option[DateTime] = None,
+                                     version: Option[String] = None
+                                   ) extends AssessmentScoresSection {
+  def toPersistence =
+    AssessmentScoresExercise(
+      attended,
+      seeingTheBigPictureScores,
+      seeingTheBigPictureAverage,
+      seeingTheBigPictureFeedback,
+      makingEffectiveDecisionsScores,
+      makingEffectiveDecisionsAverage,
+      makingEffectiveDecisionsFeedback,
+      communicatingAndInfluencingScores,
+      communicatingAndInfluencingAverage,
+      communicatingAndInfluencingFeedback,
+      workingTogetherDevelopingSelfAndOthersScores,
+      workingTogetherDevelopingSelfAndOthersAverage,
+      workingTogetherDevelopingSelfAndOthersFeedback,
+      updatedBy,
+      savedDate,
+      submittedDate,
+      version
+    )
+}
+
+object AssessmentScoresExerciseExchange {
+  import play.api.libs.json.JodaWrites._ // This is needed for request/response DateTime serialization
+  import play.api.libs.json.JodaReads._ // This is needed for request/response DateTime serialization
+  implicit val jsonFormat = Json.format[AssessmentScoresExerciseExchange]
 }

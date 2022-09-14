@@ -17,10 +17,10 @@
 package scheduler.onlinetesting
 
 import model.Phase1FirstReminder
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
-import play.modules.reactivemongo.ReactiveMongoComponent
+import uk.gov.hmrc.mongo.MongoComponent
 import services.onlinetesting.OnlineTestService
 import testkit.{ ShortTimeout, UnitWithAppSpec }
 
@@ -39,7 +39,7 @@ class ReminderExpiringTestJobSpec  extends UnitWithAppSpec with ShortTimeout {
 
   object TestableFirstReminderExpiringTestJob extends FirstReminderExpiringTestJob {
     val service = serviceMock
-    override val mongoComponent = mock[ReactiveMongoComponent]
+    override val mongoComponent = mock[MongoComponent]
     override val lockId = "1"
     override val forceLockReleaseAfter: Duration = mock[Duration]
     override val reminderNotice = Phase1FirstReminder

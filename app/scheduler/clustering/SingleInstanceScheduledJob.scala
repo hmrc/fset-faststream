@@ -17,9 +17,13 @@
 package scheduler.clustering
 
 import java.util.concurrent.{ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit}
-import play.modules.reactivemongo.ReactiveMongoComponent
 import scheduler.scheduling.ExclusiveScheduledJob
 import scheduler.{BasicJobConfig, LockKeeper}
+import uk.gov.hmrc.mongo.MongoComponent
+import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
+
+import scheduler.{ BasicJobConfig, LockKeeper }
+//import uk.gov.hmrc.play.scheduling.ExclusiveScheduledJob //TODO: the hmrc lib also provides one of these investigate if we can use this instead
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
@@ -36,7 +40,7 @@ trait SingleInstanceScheduledJob[C <: BasicJobConfig[_]] extends ExclusiveSchedu
   def name = config.name
   def enabled = config.enabled
 
-  val mongoComponent: ReactiveMongoComponent
+  val mongoComponent: MongoComponent
 
   @volatile
   var running = false

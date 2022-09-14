@@ -44,6 +44,7 @@ class PersonalDetailsController @Inject() (cc: ControllerComponents,
         case e: CannotUpdateRecord => BadRequest(s"cannot update personal details record with applicationId: ${e.applicationId}")
         case e: CannotUpdateCivilServiceExperienceDetails =>
           BadRequest(s"cannot update fast pass details record with applicationId: ${e.applicationId}")
+        case e: CannotUpdateFSACIndicator => BadRequest(s"cannot update FSAC indicator for user: ${e.userId}")
       }
     }
   }

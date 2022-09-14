@@ -18,34 +18,33 @@ package services.testdata
 
 import connectors.AuthProviderClient
 import connectors.AuthProviderClient._
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.exchange.testdata.CreateAdminResponse.CreateAdminResponse
 import model.exchange.testdata.CreateAssessorAllocationResponse
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.exchange.testdata.CreateEventResponse
-import model.exchange.testdata.{ CreateCandidateAllocationResponse, CreateTestDataResponse }
+import model.exchange.testdata.{CreateCandidateAllocationResponse, CreateTestDataResponse}
 import model.testdata.CreateAdminData.CreateAdminData
 import model.testdata.CreateAssessorAllocationData
 import model.testdata.CreateEventData
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import model.testdata.{ CreateCandidateAllocationData, CreateTestData }
+import model.testdata.{CreateCandidateAllocationData, CreateTestData}
 import play.api.Logging
 import play.api.mvc.RequestHeader
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.collection.JSONCollection
 import services.testdata.admin.AdminUserBaseGenerator
-import services.testdata.allocation.{ AssessorAllocationGenerator, CandidateAllocationGenerator }
+import services.testdata.allocation.{AssessorAllocationGenerator, CandidateAllocationGenerator}
 import services.testdata.candidate._
 import services.testdata.event.EventGenerator
 import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.mongo.MongoComponent
 
 import scala.collection.parallel.ForkJoinTaskSupport
 import scala.collection.parallel.immutable.ParRange
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
 
 @Singleton
@@ -54,7 +53,7 @@ class TestDataGeneratorService @Inject() (authProviderClient: AuthProviderClient
                                           candidateRemover: CandidateRemover,
                                           candidateAllocationGenerator: CandidateAllocationGenerator,
                                           assessorAllocationGenerator: AssessorAllocationGenerator,
-                                          mongoComponent: ReactiveMongoComponent,
+                                          mongoComponent: MongoComponent,
                                           dataFaker: DataFaker,
                                           eventGenerator: EventGenerator) extends Logging {
 
@@ -70,11 +69,10 @@ class TestDataGeneratorService @Inject() (authProviderClient: AuthProviderClient
     candidateRemover.remove(applicationStatus)
   }
 
-  def cleanupDb(): Future[Unit] = {
-    mongoComponent.mongoConnector.db().collectionNames.map { names =>
+  private def cleanupDb(): Future[Unit] = {
+    mongoComponent.database.listCollectionNames().toFuture().map { names =>
       names.foreach { name =>
-        import reactivemongo.play.json.ImplicitBSONHandlers._
-        mongoComponent.mongoConnector.db().collection[JSONCollection](name).delete().one(BSONDocument.empty)
+        mongoComponent.database.getCollection(name).drop().toFuture()
         logger.info(s"removed data from collection: $name")
       }
     }

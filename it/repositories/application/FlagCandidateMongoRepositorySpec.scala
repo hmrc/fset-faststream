@@ -16,16 +16,14 @@
 
 package repositories.application
 
-import factories.{ ITDateTimeFactoryMock, UUIDFactory }
-import model.Exceptions.NotFoundException
+import factories.{ITDateTimeFactoryMock, UUIDFactory}
+import model.Exceptions.CannotUpdateRecord
 import model.FlagCandidatePersistedObject.FlagCandidate
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers
+import org.mongodb.scala.bson.collection.immutable.Document
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 
 class FlagCandidateMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
-  import ImplicitBSONHandlers._
 
   val collectionName = CollectionNames.APPLICATION
   def repository = new FlagCandidateMongoRepository(mongo)
@@ -40,7 +38,6 @@ class FlagCandidateMongoRepositorySpec extends MongoRepositorySpec with UUIDFact
       repository.save(flagCandidate).futureValue
 
       val actualIssue = repository.tryGetCandidateIssue(appId).futureValue
-      actualIssue must not be empty
       actualIssue mustBe Some(flagCandidate)
     }
 
@@ -52,16 +49,15 @@ class FlagCandidateMongoRepositorySpec extends MongoRepositorySpec with UUIDFact
       repository.save(FlagCandidate(appId, Some(issue2))).futureValue
 
       val actualIssue = repository.tryGetCandidateIssue(appId).futureValue
-      actualIssue must not be empty
       actualIssue mustBe Some(FlagCandidate(appId, Some(issue2)))
     }
 
-    "return an exception when create an issue for application which does not exist" in {
+    "return an exception when creating an issue for an application which does not exist" in {
       val appId = "incorrect-AppId"
       val issue = "An issue for this candidate version"
 
       val result = repository.save(FlagCandidate(appId, Some(issue)))
-      result.failed.futureValue mustBe a[NotFoundException]
+      result.failed.futureValue mustBe a[CannotUpdateRecord]
     }
 
     "return None if there is no issue" in {
@@ -89,16 +85,17 @@ class FlagCandidateMongoRepositorySpec extends MongoRepositorySpec with UUIDFact
       actualIssue mustBe empty
     }
 
-    "return an exception when remove an issue for application which does not exist" in {
+    "return an exception when removing an issue for an application which does not exist" in {
       val appId = "incorrect-AppId"
       val result = repository.remove(appId)
-      result.failed.futureValue mustBe a[NotFoundException]
+      result.failed.futureValue mustBe a[CannotUpdateRecord]
     }
   }
 
   def createApplication() = {
     val appId = generateUUID()
-    helperRepo.collection.insert(ordered = false).one(BSONDocument("applicationId" -> appId)).futureValue
+    val doc = Document("applicationId" -> appId)
+    helperRepo.applicationCollection.insertOne(doc).toFuture().futureValue
     appId
   }
 }

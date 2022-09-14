@@ -17,10 +17,10 @@
 package model.persisted
 
 import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.{ Json, OFormat }
-import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
+import org.mongodb.scala.bson.BsonValue
+import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format
+import play.api.libs.json.{Json, OFormat}
+import uk.gov.hmrc.mongo.play.json.Codecs
 
 case class Phase2TestGroup(expirationDate: DateTime,
   tests: List[PsiTest],
@@ -28,7 +28,9 @@ case class Phase2TestGroup(expirationDate: DateTime,
 ) extends PsiTestProfile
 
 object Phase2TestGroup {
-  import repositories.BSONDateTimeHandler
-  implicit val bsonHandler: BSONHandler[BSONDocument, Phase2TestGroup] = Macros.handler[Phase2TestGroup]
   implicit val phase2TestProfileFormat = Json.format[Phase2TestGroup]
+
+  implicit class BsonOps(val phase2TestGroup: Phase2TestGroup) extends AnyVal {
+    def toBson: BsonValue = Codecs.toBson(phase2TestGroup)
+  }
 }

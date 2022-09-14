@@ -18,8 +18,25 @@ package model.persisted
 
 import model.Address
 import model.Commands.{PhoneNumber, PostCode}
-import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import play.api.libs.functional.syntax._
+import play.api.libs.json.{Format, Json, __}
+
+case class ContactDetailsUserId(userId: String)
+
+object ContactDetailsUserId {
+  implicit val mongoFormat = Json.format[ContactDetailsUserId]
+}
+
+case class ContactDetailsUserIdPostcode(userId: String, postcode: PostCode)
+
+object ContactDetailsUserIdPostcode {
+
+  val root = "contact-details"
+  val mongoFormat: Format[ContactDetailsUserIdPostcode] = (
+    (__ \ "userId").format[String] and
+      (__ \ root \ "postCode").format[PostCode]
+    )(ContactDetailsUserIdPostcode.apply, unlift(ContactDetailsUserIdPostcode.unapply))
+}
 
 case class ContactDetails(outsideUk: Boolean,
                           address: Address,
@@ -30,5 +47,15 @@ case class ContactDetails(outsideUk: Boolean,
 
 object ContactDetails {
   implicit val contactDetailsFormat = Json.format[ContactDetails]
-  implicit val contactDetailsHandler = Macros.handler[ContactDetails]
+
+  // Provide an explicit mongo format here to deal with the sub-document root
+  val root = "contact-details"
+  val mongoFormat: Format[ContactDetails] = (
+    (__ \ root \ "outsideUk").format[Boolean] and
+      (__ \ root \ "address").format[Address] and
+      (__ \ root \ "postCode").formatNullable[PostCode] and
+      (__ \ root \ "country").formatNullable[String] and
+      (__ \ root \ "email").format[String] and
+      (__ \ root \ "phone").format[PhoneNumber]
+    )(ContactDetails.apply, unlift(ContactDetails.unapply))
 }

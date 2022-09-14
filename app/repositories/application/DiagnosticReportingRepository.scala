@@ -16,74 +16,70 @@
 
 package repositories.application
 
-import akka.stream.Materializer
 import akka.stream.scaladsl.Source
+import model.Exceptions.ApplicationNotFound
 
 import javax.inject.{Inject, Singleton}
-import model.CreateApplicationRequest
-import model.Exceptions.ApplicationNotFound
-//import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{ JsObject, JsValue, Json }
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.{ Cursor, ReadPreference }
-import reactivemongo.bson.BSONObjectID
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.Projections
+import play.api.libs.json.{JsValue, Json}
 import repositories.CollectionNames
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import uk.gov.hmrc.mongo.MongoComponent
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait DiagnosticReportingRepository {
-  def findByApplicationId(userId: String): Future[List[JsObject]]
-  def findAll(implicit mat: Materializer): Source[JsValue, _]
+  def findByApplicationId(applicationId: String): Future[Seq[JsValue]]
+  def findAll: Source[JsValue, _]
 }
 
 @Singleton
-class DiagnosticReportingMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[CreateApplicationRequest, BSONObjectID](
-    CollectionNames.APPLICATION,
-    mongoComponent.mongoConnector.db,
-    CreateApplicationRequest.createApplicationRequestFormat,
-    ReactiveMongoFormats.objectIdFormats) with DiagnosticReportingRepository {
+class DiagnosticReportingMongoRepository @Inject() (mongo: MongoComponent) extends DiagnosticReportingRepository {
 
-  private val defaultExclusions = Json.obj(
-    "_id" -> 0,
-    "personal-details" -> 0)  // these reports should not export personally identifiable data
+  val collection: MongoCollection[Document] = mongo.database.getCollection(CollectionNames.APPLICATION)
 
-  private val largeFields = Json.obj(
-    "testGroups.PHASE1.tests.reportLinkURL" -> 0,
-    "testGroups.PHASE1.tests.testUrl" -> 0,
-    "testGroups.PHASE2.tests.reportLinkURL" -> 0,
-    "testGroups.PHASE2.tests.testUrl" -> 0,
-    "testGroups.PHASE3.tests.callbacks.viewBrandedVideo" -> 0,
-    "testGroups.PHASE3.tests.callbacks.setupProcess" -> 0,
-    "testGroups.PHASE3.tests.callbacks.viewPracticeQuestion" -> 0,
-    "testGroups.PHASE3.tests.callbacks.question" -> 0,
-    "testGroups.PHASE3.tests.callbacks.finalCallback" -> 0,
-    "testGroups.PHASE3.tests.callbacks.finished" -> 0,
-    "testGroups.PHASE3.tests.callbacks.reviewed.reviews" -> 0
+  private val defaultExclusions = Projections.exclude(
+    "_id",
+    "personal-details"
   )
 
-  def findByApplicationId(userId: String): Future[List[JsObject]] = {
+  private val largeFields = Projections.exclude(
+    "testGroups.PHASE1.tests.reportLinkURL",
+    "testGroups.PHASE1.tests.testUrl",
+    "testGroups.PHASE2.tests.reportLinkURL",
+    "testGroups.PHASE2.tests.testUrl",
+    "testGroups.PHASE3.tests.callbacks.viewBrandedVideo",
+    "testGroups.PHASE3.tests.callbacks.setupProcess",
+    "testGroups.PHASE3.tests.callbacks.viewPracticeQuestion",
+    "testGroups.PHASE3.tests.callbacks.question",
+    "testGroups.PHASE3.tests.callbacks.finalCallback",
+    "testGroups.PHASE3.tests.callbacks.finished",
+    "testGroups.PHASE3.tests.callbacks.reviewed.reviews"
+  )
+
+  override def findByApplicationId(appId: String): Future[Seq[JsValue]] = {
     val projection = defaultExclusions
+    val result = collection.find(Document("applicationId" -> appId)).projection(projection).toFuture()
 
-    val results = collection.find(Json.obj("applicationId" -> userId), Some(projection))
-      .cursor[JsObject](ReadPreference.primaryPreferred)
-      .collect[List](maxDocs = -1, Cursor.FailOnError[List[JsObject]]())
-
-    results.map { r =>
-      if (r.isEmpty) { throw ApplicationNotFound(userId) }
-      else { r }
+    result.map { list =>
+      if (list.isEmpty) {
+        throw ApplicationNotFound(appId) }
+      else {
+        list.map ( doc => Json.parse(doc.toJson()) )
+      }
     }
   }
 
-  def findAll(implicit mat: Materializer): Source[JsValue, _] = {
-    import reactivemongo.akkastream.cursorProducer
-    val projection = defaultExclusions ++ largeFields
-    collection.find(Json.obj(), Some(projection))
-      .cursor[JsValue](ReadPreference.primaryPreferred)
-      .documentSource()
+  override def findAll: Source[JsValue, _] = {
+    // Combine the 2 projections
+    val projection = Projections.fields(defaultExclusions, largeFields)
+
+    Source.fromPublisher {
+      collection.find().projection(projection).transform((doc: Document) => Json.parse(doc.toJson()),
+        (e: Throwable) => throw e
+      )
+    }
   }
 }

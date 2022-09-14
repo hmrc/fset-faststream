@@ -53,7 +53,7 @@ class EventsServiceImpl @Inject() (eventsRepo: EventsRepository,
                                    allocationServiceCommon: AllocationServiceCommon, // Breaks circular dependencies
                                    eventsConfigRepo: EventsConfigRepository) extends EventsService with Logging {
 
-  def saveAssessmentEvents(): Future[Unit] = {
+  override def saveAssessmentEvents(): Future[Unit] = {
     eventsRepo.countLong.flatMap {
       case eventCount if eventCount >= 1 =>
         throw new Exception("Events already exist in the system, batch import not possible.")
@@ -65,9 +65,9 @@ class EventsServiceImpl @Inject() (eventsRepo: EventsRepository,
     }
   }
 
-  def save(event: Event): Future[Unit] = eventsRepo.save(event :: Nil)
+  override def save(event: Event): Future[Unit] = eventsRepo.save(event :: Nil)
 
-  def update(eventUpdate: UpdateEvent): Future[Unit] = {
+  override def update(eventUpdate: UpdateEvent): Future[Unit] = {
     getEvent(eventUpdate.id).flatMap { event =>
       val updatedEvent = event.copy(skillRequirements = eventUpdate.skillRequirements,
         sessions = event.sessions.map { s =>
@@ -81,17 +81,17 @@ class EventsServiceImpl @Inject() (eventsRepo: EventsRepository,
     }
   }
 
-  def getEvent(id: String): Future[Event] = eventsRepo.getEvent(id)
+  override def getEvent(id: String): Future[Event] = eventsRepo.getEvent(id)
 
-  def delete(id: String): Future[Unit] = eventsRepo.remove(id)
+  override def delete(id: String): Future[Unit] = eventsRepo.remove(id)
 
-  def getEvents(eventType: EventType, venue: Venue, description: Option[String] = None): Future[List[Event]] = {
-    eventsRepo.getEvents(Some(eventType), Some(venue), description = description)
+  override def getEvents(eventType: EventType, venue: Venue, description: Option[String] = None): Future[List[Event]] = {
+    eventsRepo.getEvents(Some(eventType), Some(venue), description = description).map { events => events.toList}
   }
 
-  def getEvents(ids: List[String]): Future[List[Event]] = eventsRepo.getEventsById(ids)
+  override def getEvents(ids: List[String]): Future[List[Event]] = eventsRepo.getEventsById(ids).map { events => events.toList }
 
-  def getEventsWithAllocationsSummary(venue: Venue, eventType: EventType,
+  override def getEventsWithAllocationsSummary(venue: Venue, eventType: EventType,
                                       description: Option[String] = None): Future[List[EventWithAllocationsSummary]] = {
     getEvents(eventType, venue, description = description).flatMap { events =>
       val res = events.map { event =>
@@ -119,17 +119,17 @@ class EventsServiceImpl @Inject() (eventsRepo: EventsRepository,
     }
   }
 
-  def getEventsCreatedAfter(dateTime: DateTime): Future[Seq[Event]] = {
+  override def getEventsCreatedAfter(dateTime: DateTime): Future[Seq[Event]] = {
     eventsRepo.getEventsManuallyCreatedAfter(dateTime)
   }
 
-  def updateStructure(): Future[Unit] = {
+  override def updateStructure(): Future[Unit] = {
     eventsRepo.updateStructure()
   }
 
-  def getFsbTypes: Seq[FsbType] = schemeRepo.getFsbTypes
+  override def getFsbTypes: Seq[FsbType] = schemeRepo.getFsbTypes
 
-  def findSchemeByEvent(eventId: String): Future[Scheme] = {
+  override def findSchemeByEvent(eventId: String): Future[Scheme] = {
     getEvent(eventId).map { event => schemeRepo.getSchemeForFsb(event.description) }
   }
 }

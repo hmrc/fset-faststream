@@ -33,7 +33,7 @@ class Phase3TestGroupController @Inject() (cc: ControllerComponents,
   def getTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     phase3TestService.getTestGroup(applicationId).map {
         case Some(testGroup) =>
-          Ok(Json.toJson(testGroup))
+          Ok(Json.toJson(testGroup.toExchange))
         case None =>
           NotFound
     }

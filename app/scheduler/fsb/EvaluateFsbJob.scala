@@ -17,9 +17,10 @@
 package scheduler.fsb
 
 import config.WaitingScheduledJobConfig
-import javax.inject.{ Inject, Singleton }
-import play.api.{ Configuration, Logging }
-import play.modules.reactivemongo.ReactiveMongoComponent
+
+import javax.inject.{Inject, Singleton}
+import play.api.{Configuration, Logging}
+import uk.gov.hmrc.mongo.MongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.application.FsbService
@@ -29,15 +30,13 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class EvaluateFsbJobImpl @Inject() (val fsbService: FsbService,
-                                    val mongoComponent: ReactiveMongoComponent,
+                                    val mongoComponent: MongoComponent,
                                     val config: EvaluateFsbJobConfig
                                    ) extends EvaluateFsbJob {
 }
 
 trait EvaluateFsbJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {
   val fsbService: FsbService
-
-  //  val config: EvaluateFsbJobConfig.type = EvaluateFsbJobConfig
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()

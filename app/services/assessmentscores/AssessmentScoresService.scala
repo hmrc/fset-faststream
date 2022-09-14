@@ -207,7 +207,7 @@ trait AssessmentScoresService {
         event.venue.description,
         event.date,
         sessionId),
-        assessmentScores)
+        assessmentScores.map(_.toExchange))
     }
   }
 }

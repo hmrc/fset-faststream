@@ -17,7 +17,6 @@
 package model.persisted.eventschedules
 
 import play.api.libs.json.{ Json, OFormat }
-import reactivemongo.bson.Macros
 import repositories.events.LocationWithVenue
 
 case class Location(name: String) {
@@ -26,7 +25,6 @@ case class Location(name: String) {
 
 object Location {
   implicit val locationFormat: OFormat[Location] = Json.format[Location]
-  implicit val locationHandler = Macros.handler[Location]
 
   def apply(o: LocationWithVenue): Location = Location(o.name)
 }

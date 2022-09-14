@@ -17,10 +17,8 @@
 package model.persisted
 
 import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
+import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format
 import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class StcEvent(
   name: String,
@@ -31,7 +29,5 @@ case class StcEvent(
 )
 
 object StcEvent {
-  import repositories.BSONDateTimeHandler
   implicit val eventFormat = Json.format[StcEvent]
-  implicit val eventHandler: BSONHandler[BSONDocument, StcEvent] = Macros.handler[StcEvent]
 }

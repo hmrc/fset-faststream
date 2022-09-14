@@ -50,7 +50,7 @@ abstract class AssessmentScoresController(cc: ControllerComponents) extends Back
         service.submitExercise(
           submitRequest.applicationId,
           assessmentExerciseType,
-          submitRequest.scoresExercise
+          submitRequest.scoresExercise.toPersistence
         ).map { _ =>
           val auditDetails = Map(
             "applicationId" -> submitRequest.applicationId.toString(),
@@ -70,7 +70,7 @@ abstract class AssessmentScoresController(cc: ControllerComponents) extends Back
         service.saveExercise(
           submitRequest.applicationId,
           assessmentExerciseType,
-          submitRequest.scoresExercise
+          submitRequest.scoresExercise.toPersistence
         ).map { _ =>
           val auditDetails = Map(
             "applicationId" -> submitRequest.applicationId.toString(),
@@ -88,7 +88,7 @@ abstract class AssessmentScoresController(cc: ControllerComponents) extends Back
       withJsonBody[AssessmentScoresFinalFeedbackSubmitRequest] { submitRequest =>
         service.submitFinalFeedback(
           submitRequest.applicationId,
-          submitRequest.finalFeedback
+          submitRequest.finalFeedback.toPersistence
         ).map { _ =>
           val oneExerciseAuditDetails = Map(
             "applicationId" -> submitRequest.applicationId.toString(),

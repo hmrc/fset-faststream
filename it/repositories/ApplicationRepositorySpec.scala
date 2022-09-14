@@ -18,21 +18,24 @@ package repositories
 
 import factories.ITDateTimeFactoryMock
 import model.ApplicationStatus._
-import model.Exceptions.ApplicationNotFound
+import model.Exceptions.{ApplicationNotFound, CannotUpdateRecord}
 import model.command.WithdrawApplication
 import model.persisted.AssistanceDetails
-import model.{ ApplicationRoute, ProgressStatuses }
+import model.{ApplicationRoute, ProgressStatuses}
 import org.joda.time.DateTime
-import play.api.libs.json.JsObject
-import reactivemongo.api.indexes.IndexType.Ascending
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.BsonDocument
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.Projections
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import testkit.MongoRepositorySpec
+import uk.gov.hmrc.mongo.play.json.Codecs
 
 import scala.concurrent.Await
 
+//TODO: mongo note this tests the GeneralApplicationMongoRepository and so does
+// repositories.application.GeneralApplicationMongoRepositorySpec
 class ApplicationRepositorySpec extends MongoRepositorySpec {
 
   val frameworkId = "FastStream-2016"
@@ -43,20 +46,23 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
   def assistanceRepo = new AssistanceDetailsMongoRepository(mongo)
 
+  val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(CollectionNames.APPLICATION)
+
   "Application repository" should {
     "create indexes for the repository" in {
-      val repo = applicationRepo
-
-      val indexes = indexesWithFields(repo)
+      val indexes = indexDetails(applicationRepo).futureValue
       indexes must contain theSameElementsAs
         Seq(
-          IndexDetails(key = Seq(("_id", Ascending)), unique = false),
-          IndexDetails(key = Seq(("applicationId", Ascending), ("userId", Ascending)), unique = true),
-          IndexDetails(key = Seq(("userId", Ascending), ("frameworkId", Ascending)), unique = true),
-          IndexDetails(key = Seq(("applicationStatus", Ascending)), unique = false),
-          IndexDetails(key = Seq(("assistance-details.needsSupportForOnlineAssessment", Ascending)), unique = false),
-          IndexDetails(key = Seq(("assistance-details.needsSupportAtVenue", Ascending)), unique = false),
-          IndexDetails(key = Seq(("assistance-details.guaranteedInterview", Ascending)), unique = false)
+          IndexDetails(name = "_id_", keys = Seq(("_id", "Ascending")), unique = false),
+          IndexDetails(name = "applicationId_1_userId_1", keys = Seq(("applicationId", "Ascending"), ("userId", "Ascending")), unique = true),
+          IndexDetails(name = "userId_1_frameworkId_1", keys = Seq(("userId", "Ascending"), ("frameworkId", "Ascending")), unique = true),
+          IndexDetails(name = "applicationStatus_1", keys = Seq(("applicationStatus", "Ascending")), unique = false),
+          IndexDetails(name = "assistance-details.needsSupportForOnlineAssessment_1",
+            keys = Seq(("assistance-details.needsSupportForOnlineAssessment", "Ascending")), unique = false),
+          IndexDetails(name = "assistance-details.needsSupportAtVenue_1",
+            keys = Seq(("assistance-details.needsSupportAtVenue", "Ascending")), unique = false),
+          IndexDetails(name = "assistance-details.guaranteedInterview_1",
+            keys = Seq(("assistance-details.guaranteedInterview", "Ascending")), unique = false)
         )
     }
 
@@ -95,11 +101,11 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     }
 
     "throw an exception not of the type ApplicationNotFound when application is corrupt" in {
-      Await.ready(applicationRepo.collection.insert(ordered = false).one(BSONDocument(
+      Await.ready(applicationCollection.insertOne(Document(
         "userId" -> "validUser",
         "frameworkId" -> "validFrameworkField"
         // but application Id framework, which is mandatory, so will fail to deserialise
-      )), timeout)
+      )).toFuture(), timeout)
 
       val thrown = the[Exception] thrownBy Await.result(applicationRepo
         .findByUserId("validUser", "validFrameworkField"), timeout)
@@ -156,12 +162,41 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
     "capture the withdrawn date and change the application status to withdrawn" in {
       val applicationStatus = (for {
         app <- applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream)
-        _ <- applicationRepo.withdraw(app.applicationId, WithdrawApplication("test", None, "test"))
+        _ <- applicationRepo.withdraw(app.applicationId, WithdrawApplication("test", otherReason = None, "test"))
         appStatus <- applicationRepo.findStatus(app.applicationId)
       } yield appStatus).futureValue
 
       applicationStatus.status mustBe WITHDRAWN.toString
       timesApproximatelyEqual(applicationStatus.statusDate.get, DateTime.now()) mustBe true
+    }
+  }
+
+  def hasWithdrawSection(applicationId: String) = {
+    val query = Document(
+      "applicationId" -> applicationId,
+      "withdraw" -> Document("$exists" -> true)
+    )
+    applicationCollection.find[BsonDocument](query)
+      .projection(Projections.include("withdraw")).headOption().map { doc => doc.isDefined }
+  }
+
+  "remove withdraw reason" should {
+    "throw an exception if there is no application" in {
+      val result = applicationRepo.removeWithdrawReason(AppId).failed.futureValue
+      result mustBe a[CannotUpdateRecord]
+    }
+
+    "remove the withdraw reason" in {
+      val (appId, applicationStatus) = (for {
+        app <- applicationRepo.create("userId1", frameworkId, ApplicationRoute.Faststream)
+        _ <- applicationRepo.withdraw(app.applicationId, WithdrawApplication("test", otherReason = None, "test"))
+        appStatus <- applicationRepo.findStatus(app.applicationId)
+      } yield app.applicationId -> appStatus).futureValue
+
+      hasWithdrawSection(appId).futureValue mustBe true
+      applicationStatus.status mustBe WITHDRAWN.toString
+      applicationRepo.removeWithdrawReason(appId).futureValue
+      hasWithdrawSection(appId).futureValue mustBe false
     }
   }
 
@@ -172,7 +207,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       applicationRepo.preview("app1").futureValue
 
       val status = getApplicationStatus("app1")
-      status mustBe IN_PROGRESS.toString
+      status mustBe IN_PROGRESS
 
       val progressResponse = applicationRepo.findProgress("app1").futureValue
       progressResponse.preview mustBe true
@@ -180,28 +215,27 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
   }
 
   def getApplicationStatus(appId: String) = {
-    applicationRepo.collection.find(BSONDocument("applicationId" -> "app1"), projection = Option.empty[JsObject])
-      .one[BSONDocument].map { docOpt =>
+    applicationRepo.collection.find[Document](Document("applicationId" -> "app1")).headOption().map { docOpt =>
       docOpt must not be empty
       val doc = docOpt.get
-      doc.getAs[String]("applicationStatus").get
+      Codecs.fromBson[ApplicationStatus](doc.get("applicationStatus").get)
     }.futureValue
   }
 
   private def createApplication(appId: String, appStatus: String): Unit = {
-    applicationRepo.collection.insert(ordered = false).one(BSONDocument(
+    applicationCollection.insertOne(Document(
       "applicationId" -> appId,
       "applicationStatus" -> appStatus
-    )).futureValue
+    )).toFuture().futureValue
   }
 
   private def createApplicationWithPassmark(appId: String, appStatus: String, passmarkVersion: String): Unit = {
-    applicationRepo.collection.insert(ordered = false).one(BSONDocument(
+    applicationCollection.insertOne(Document(
       "applicationId" -> appId,
       "applicationStatus" -> appStatus,
-      "assessment-centre-passmark-evaluation" -> BSONDocument(
+      "assessment-centre-passmark-evaluation" -> Document(
         "passmarkVersion" -> passmarkVersion
       )
-    )).futureValue
+    )).toFuture().futureValue
   }
 }

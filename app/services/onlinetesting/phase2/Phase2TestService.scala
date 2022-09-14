@@ -83,7 +83,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
     } yield phase2Opt.map { phase2 =>
       Phase2TestGroupWithActiveTest(
         phase2.expirationDate,
-        phase2.activeTests,
+        phase2.activeTests.map(_.toExchange),
         resetAllowed = true
       )
     }
@@ -95,7 +95,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
     } yield phase2Opt.map { phase2 =>
       Phase2TestGroupWithActiveTest(
         phase2.expirationDate,
-        phase2.activeTests,
+        phase2.activeTests.map(_.toExchange),
         resetAllowed = true
       )
     }
@@ -107,7 +107,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
     testUrl <- Future.fromTry(processInvigilatedEtrayAccessCode(testGroupOpt, accessCode))
   } yield testUrl
 
-  override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[List[OnlineTestApplication]] = {
+  override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[Seq[OnlineTestApplication]] = {
     testRepository.nextApplicationsReadyForOnlineTesting(maxBatchSize)
   }
 
@@ -202,7 +202,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
 
   override def registerAndInviteForTestGroup(application: OnlineTestApplication)
                                             (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    registerAndInviteForTestGroup(List(application))
+    registerAndInviteForTestGroup(Seq(application))
   }
 
   override def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
@@ -216,12 +216,12 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
     }
   }
 
-  override def registerAndInvite(applications: List[OnlineTestApplication])
+  override def registerAndInvite(applications: Seq[OnlineTestApplication])
                                 (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     registerAndInviteForTestGroup(applications)
   }
 
-  override def registerAndInviteForTestGroup(applications: List[OnlineTestApplication])
+  override def registerAndInviteForTestGroup(applications: Seq[OnlineTestApplication])
                                             (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val firstApplication = applications.head
     val applicationsWithTheSameType = applications filter (_.isInvigilatedETray == firstApplication.isInvigilatedETray)
@@ -508,7 +508,9 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
                                      (newOnlineTestProfile: Phase2TestGroup): Future[Unit] = for {
     currentOnlineTestProfile <- testRepository.getTestGroup(application.applicationId)
     updatedTestProfile <- insertOrAppendNewTests(application.applicationId, currentOnlineTestProfile, newOnlineTestProfile)
-    _ <- testRepository.resetTestProfileProgresses(application.applicationId, determineStatusesToRemove(updatedTestProfile))
+    _ <- testRepository.resetTestProfileProgresses(
+      application.applicationId, determineStatusesToRemove(updatedTestProfile), ignoreNoRecordUpdated = true
+    )
   } yield ()
 
   private def insertOrAppendNewTests(applicationId: String,

@@ -17,11 +17,12 @@
 package scheduler.sift
 
 import config.WaitingScheduledJobConfig
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.EmptyRequestHeader
 import play.api.mvc.RequestHeader
-import play.api.{ Configuration, Logging }
-import play.modules.reactivemongo.ReactiveMongoComponent
+import play.api.{Configuration, Logging}
+import uk.gov.hmrc.mongo.MongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.NumericalTestService
@@ -33,7 +34,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 @Singleton
 class SiftNumericalTestInvitationJobImpl @Inject() (val siftService: ApplicationSiftService,
                                                     val numericalTestService: NumericalTestService,
-                                                    val mongoComponent: ReactiveMongoComponent,
+                                                    val mongoComponent: MongoComponent,
                                                     val config: SiftNumericalTestInvitationConfig
                                                    ) extends SiftNumericalTestInvitationJob {
 }

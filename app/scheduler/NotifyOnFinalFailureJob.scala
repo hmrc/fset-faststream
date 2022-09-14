@@ -17,9 +17,10 @@
 package scheduler
 
 import config.WaitingScheduledJobConfig
-import javax.inject.{ Inject, Singleton }
-import play.api.{ Configuration, Logging }
-import play.modules.reactivemongo.ReactiveMongoComponent
+
+import javax.inject.{Inject, Singleton}
+import play.api.{Configuration, Logging}
+import uk.gov.hmrc.mongo.MongoComponent
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.application.FinalOutcomeService
 import uk.gov.hmrc.http.HeaderCarrier
@@ -28,7 +29,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class NotifyOnFinalFailureJobImpl @Inject() (val service: FinalOutcomeService,
-                                             val mongoComponent: ReactiveMongoComponent,
+                                             val mongoComponent: MongoComponent,
                                              val config: NotifyOnFinalFailureJobConfig) extends NotifyOnFinalFailureJob {
 }
 

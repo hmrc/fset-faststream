@@ -16,15 +16,14 @@
 
 package repositories.application
 
-import javax.inject.{ Inject, Singleton }
 import model.FlagCandidatePersistedObject.FlagCandidate
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.bson.{ BSONDocument, BSONObjectID }
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.Projections
 import repositories._
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -35,40 +34,37 @@ trait FlagCandidateRepository {
 }
 
 @Singleton
-class FlagCandidateMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[FlagCandidate, BSONObjectID](
-    CollectionNames.APPLICATION,
-    mongoComponent.mongoConnector.db,
-    FlagCandidate.FlagCandidateFormats,
-    ReactiveMongoFormats.objectIdFormats) with FlagCandidateRepository with ReactiveRepositoryHelpers {
+class FlagCandidateMongoRepository @Inject() (mongo: MongoComponent)
+  extends PlayMongoRepository[FlagCandidate](
+    collectionName = CollectionNames.APPLICATION,
+    mongoComponent = mongo,
+    domainFormat = FlagCandidate.FlagCandidateFormats,
+    indexes = Nil
+  ) with FlagCandidateRepository with ReactiveRepositoryHelpers {
 
-  def tryGetCandidateIssue(appId: String): Future[Option[FlagCandidate]] = {
-    val query = BSONDocument("applicationId" -> appId)
-    val projection = BSONDocument("applicationId" -> 1, "issue" -> 1)
+  override def tryGetCandidateIssue(appId: String): Future[Option[FlagCandidate]] = {
+    val query = Document("applicationId" -> appId)
+    val projection = Projections.include("applicationId", "issue")
 
-    collection.find(query, Some(projection)).one[BSONDocument].map { docOpt =>
-      docOpt.map(flagCandidateHandler.read) match {
-        case flag @ Some(FlagCandidate(_, Some(_))) => flag
-        case _ => None
-      }
+    collection.find(query).projection(projection).first().toFutureOption().map {
+      case flag @ Some(FlagCandidate(_, Some(_))) => flag
+      case _ => None
     }
   }
 
   def save(flagCandidate: FlagCandidate): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> flagCandidate.applicationId)
-    val result = BSONDocument("$set" -> BSONDocument(
-      "issue" -> flagCandidate.issue
-    ))
+    val query = Document("applicationId" -> flagCandidate.applicationId)
+    val update = Document("$set" -> Document("issue" -> flagCandidate.issue))
 
     val validator = singleUpdateValidator(flagCandidate.applicationId, actionDesc = "saving flag")
-    collection.update(ordered = false).one(query, result) map validator
+    collection.updateOne(query, update).toFuture().map(updateResult => validator(updateResult))
   }
 
   def remove(appId: String): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> appId)
-    val result = BSONDocument("$unset" -> BSONDocument("issue" -> ""))
+    val filter = Document("applicationId" -> appId)
+    val update = Document("$unset" -> Document("issue" -> ""))
 
     val validator = singleUpdateValidator(appId, actionDesc = "removing flag")
-    collection.update(ordered = false).one(query, result) map validator
+    collection.updateOne(filter, update).toFuture().map(updateResult => validator(updateResult))
   }
 }

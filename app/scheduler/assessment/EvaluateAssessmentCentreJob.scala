@@ -17,9 +17,10 @@
 package scheduler.assessment
 
 import config.WaitingScheduledJobConfig
-import javax.inject.{ Inject, Singleton }
-import play.api.{ Configuration, Logging }
-import play.modules.reactivemongo.ReactiveMongoComponent
+
+import javax.inject.{Inject, Singleton}
+import play.api.{Configuration, Logging}
+import uk.gov.hmrc.mongo.MongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.assessmentcentre.AssessmentCentreService
@@ -29,15 +30,13 @@ import scala.concurrent.{ ExecutionContext, Future }
 @Singleton
 class EvaluateAssessmentCentreJobImpl @Inject() (val applicationAssessmentService: AssessmentCentreService,
                                                  val config: EvaluateAssessmentCentreJobConfig,
-                                                 val mongoComponent: ReactiveMongoComponent
+                                                 val mongoComponent: MongoComponent
                                                 ) extends EvaluateAssessmentCentreJob {
-  //  val applicationAssessmentService: AssessmentCentreService = AssessmentCentreService
 }
 
 trait EvaluateAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {
   val applicationAssessmentService: AssessmentCentreService
 
-  //  val config = EvaluateAssessmentCentreJobConfig
   val batchSize: Int = config.conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {

@@ -552,7 +552,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
       _ <- civilServiceExperienceDetailsRepo.update(applicationId,
         CivilServiceExperienceDetails(
           applicable = true,
-          civilServantAndInternshipTypes =Some(Seq(CivilServantAndInternshipType.SDIP)),
+          civilServantAndInternshipTypes = Some(Seq(CivilServantAndInternshipType.SDIP)),
           edipYear = None, sdipYear = None,
           otherInternshipName = None, otherInternshipYear = None,
           fastPassReceived = Some(true), fastPassAccepted = None, certificateNumber = Some(fastPass.toString)))

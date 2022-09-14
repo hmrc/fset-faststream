@@ -17,11 +17,9 @@
 package connectors.launchpadgateway.exchangeobjects.in.reviewed
 
 import play.api.libs.json.Json
-import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
 
 case class ReviewSectionCriteriaRequest(`type`: String, score: Option[Double])
 
 object ReviewSectionCriteriaRequest {
   implicit val reviewCriteriaFormat = Json.format[ReviewSectionCriteriaRequest]
-  implicit val bsonHandler: BSONHandler[BSONDocument, ReviewSectionCriteriaRequest] = Macros.handler[ReviewSectionCriteriaRequest]
 }

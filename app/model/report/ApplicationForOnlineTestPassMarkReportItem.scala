@@ -54,7 +54,9 @@ object ApplicationForOnlineTestPassMarkReportItem {
       gis = a.gis,
       onlineAdjustments = a.onlineAdjustments,
       assessmentCentreAdjustments = a.assessmentCentreAdjustments,
-      testResults = a.testResults.copy(fsac = fsacResults, overallFsacScore = overallScoreOpt, sift = siftResults, fsb = fsbScoresAndFeedback),
+      testResults = a.testResults.copy(
+        fsac = fsacResults.map(_.toExchange), overallFsacScore = overallScoreOpt, sift = siftResults, fsb = fsbScoresAndFeedback
+      ),
       currentSchemeStatus = a.currentSchemeStatus
     )
   }

@@ -17,18 +17,17 @@
 package repositories.personaldetails
 
 import factories.DateTimeFactory
-import javax.inject.{ Inject, Singleton }
 import model.ApplicationStatus
 import model.Exceptions.PersonalDetailsNotFound
 import model.persisted.PersonalDetails
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.{ Cursor, DB }
-import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import repositories.{ CollectionNames, CommonBSONDocuments, ReactiveRepositoryHelpers }
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import org.mongodb.scala.bson.BsonArray
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.{Filters, Projections, Updates}
+import repositories.{CollectionNames, CommonBSONDocuments, ReactiveRepositoryHelpers, subDocRoot}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -37,77 +36,85 @@ trait PersonalDetailsRepository {
              requiredStatuses: Seq[ApplicationStatus.Value], newApplicationStatus: ApplicationStatus.Value): Future[Unit]
   def updateWithoutStatusChange(appid: String, userId: String, personalDetails: PersonalDetails): Future[Unit]
   def find(appId: String): Future[PersonalDetails]
-  def findByIds(appIds: Seq[String]): Future[List[(String, Option[PersonalDetails])]]
+  def findByIds(appIds: Seq[String]): Future[Seq[(String, Option[PersonalDetails])]]
 }
 
-@Singleton //TODO:fix CommonBSONDocuments2
-class PersonalDetailsMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory, mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[PersonalDetails, BSONObjectID](
-    CollectionNames.APPLICATION, mongoComponent.mongoConnector.db, PersonalDetails.personalDetailsFormat,
-    ReactiveMongoFormats.objectIdFormats) with PersonalDetailsRepository with CommonBSONDocuments with ReactiveRepositoryHelpers {
-  val PersonalDetailsCollection = "personal-details"
+@Singleton
+class PersonalDetailsMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory, mongo: MongoComponent)
+  extends PlayMongoRepository[PersonalDetails](
+    collectionName = CollectionNames.APPLICATION,
+    mongoComponent = mongo,
+    domainFormat = PersonalDetails.mongoFormat,
+    indexes = Nil
+  ) with PersonalDetailsRepository with CommonBSONDocuments with ReactiveRepositoryHelpers {
 
-  def update(applicationId: String, userId: String, personalDetails: PersonalDetails,
-             requiredStatuses: Seq[ApplicationStatus.Value], newApplicationStatus: ApplicationStatus.Value): Future[Unit] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationId" -> applicationId, "userId" -> userId),
-      BSONDocument("applicationStatus" -> BSONDocument("$in" -> requiredStatuses))
+  val PersonalDetailsDocumentKey = "personal-details"
+
+  override def update(applicationId: String, userId: String, personalDetails: PersonalDetails,
+                      requiredStatuses: Seq[ApplicationStatus.Value], newApplicationStatus: ApplicationStatus.Value): Future[Unit] = {
+
+    val query = Document("$and" -> BsonArray(
+      Document("applicationId" -> applicationId, "userId" -> userId),
+      Document("applicationStatus" -> Document("$in" -> requiredStatuses.map(status => status.toBson)))
     ))
 
-    val personalDetailsBSON = BSONDocument("$set" ->
-      BSONDocument(
+    val update = Document("$set" ->
+      (Document(
         "progress-status.personal-details" -> true,
-        PersonalDetailsCollection -> personalDetails
-      ).merge(
-        applicationStatusBSON(newApplicationStatus)
-      )
+        PersonalDetailsDocumentKey -> Codecs.toBson(personalDetails)
+      ) ++ applicationStatusBSON(newApplicationStatus))
     )
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating personal details",
       PersonalDetailsNotFound(applicationId))
 
-    collection.update(ordered = false).one(query, personalDetailsBSON) map validator
+    collection.updateOne(query, update).toFuture() map validator
   }
 
-  def updateWithoutStatusChange(appId: String, userId: String, personalDetails: PersonalDetails): Future[Unit] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationId" -> appId, "userId" -> userId),
-      BSONDocument("applicationStatus" -> BSONDocument("$ne" -> ApplicationStatus.WITHDRAWN))
+  override def updateWithoutStatusChange(appId: String, userId: String, personalDetails: PersonalDetails): Future[Unit] = {
+    val query = Document("$and" -> BsonArray(
+      Document("applicationId" -> appId, "userId" -> userId),
+      Document("applicationStatus" -> Document("$ne" -> ApplicationStatus.WITHDRAWN.toBson))
     ))
 
-    val personalDetailsBSON = BSONDocument("$set" -> BSONDocument(
-      "progress-status.personal-details" -> true,
-      PersonalDetailsCollection -> personalDetails
-    ))
+    val update = Updates.combine(
+      Updates.set("progress-status.personal-details", true),
+      // This uses the implicit json formatter in the PersonalDetails companion object from which the Bson
+      // is automatically generated and the data stored in the db. Note that there is no root specified using this
+      // mechanism so the data is stored under the sub-document key as expected. If we just used the registered
+      // mongoFormat, it would include an additional document root (because it is defined in the mongoFormat)
+      // The mongo format is therefore only used for reading the existing sub-document structure.
+      Updates.set(PersonalDetailsDocumentKey, Codecs.toBson(personalDetails))
+    )
 
     val validator = singleUpdateValidator(appId, actionDesc = "update personal details without status change")
-
-    collection.update(ordered = false).one(query, personalDetailsBSON) map validator
+    collection.updateOne(query, update).toFuture() map validator
   }
 
   override def find(applicationId: String): Future[PersonalDetails] = {
-    val query = BSONDocument("applicationId" -> applicationId)
-    val projection = BSONDocument(PersonalDetailsCollection -> 1, "_id" -> 0)
+    val query = Filters.and(
+      Filters.equal("applicationId", applicationId),
+      Filters.exists(PersonalDetailsDocumentKey)
+    )
+    val projection = Projections.include(PersonalDetailsDocumentKey)
 
-    collection.find(query, Some(projection)).one[BSONDocument] map {
-      case Some(document) if document.getAs[BSONDocument](PersonalDetailsCollection).isDefined =>
-        document.getAs[PersonalDetails](PersonalDetailsCollection).get
-      case _ => throw PersonalDetailsNotFound(applicationId)
-    }
+    for(
+      personalDetailsOpt <- collection.find(query).projection(projection).headOption()
+    ) yield
+      personalDetailsOpt match {
+        case Some(pd) => pd
+        case _ => throw PersonalDetailsNotFound(applicationId)
+      }
   }
 
-  override def findByIds(applicationIds: Seq[String]): Future[List[(String, Option[PersonalDetails])]] = {
-    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
-    val projection = BSONDocument(
-      "applicationId" -> 1,
-      PersonalDetailsCollection -> 1, "_id" -> 0
-    )
+  override def findByIds(applicationIds: Seq[String]): Future[Seq[(String, Option[PersonalDetails])]] = {
+    val query = Document("applicationId" -> Document("$in" -> applicationIds))
+    val projection = Document("applicationId" -> true, PersonalDetailsDocumentKey -> true)
 
-    collection.find(query, Some(projection)).cursor[BSONDocument]()
-      .collect[List](maxDocs = -1, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
-      docs.map { doc =>
-        val appId = doc.getAs[String]("applicationId").get
-        val personalDetailsOpt = doc.getAs[PersonalDetails](PersonalDetailsCollection)
+    collection.find[Document](query).projection(projection).toFuture().map { docList =>
+      docList.map { doc =>
+        val appId = doc.get("applicationId").get.asString().getValue
+        val personalDetailsOpt = subDocRoot(PersonalDetailsDocumentKey)(doc).map ( doc => Codecs.fromBson[PersonalDetails](doc) )
         (appId, personalDetailsOpt)
       }
     }

@@ -229,13 +229,14 @@ class ReportingControllerSpec extends UnitWithAppSpec {
   "assessor allocation report" must {
     "return the allocation report when all data is present" in new TestFixture {
       val underTest = testableReportingController
-      when(mockEventsRepository.findAll(any())(any[ExecutionContext]())).thenReturnAsync(
+
+      when(mockEventsRepository.findAll).thenReturnAsync(
         List(
           EventExamples.e1,
           EventExamples.e2
         )
       )
-      when(mockAssessorRepository.findAll(any())(any[ExecutionContext]())).thenReturnAsync(
+      when(mockAssessorRepository.findAll).thenReturnAsync(
         List(
           Assessor("userId1", None, List("ASSESSOR", "QUALITY_ASSURANCE_COORDINATOR"), Nil,
             civilServant = false, Set.empty, AssessorStatus.CREATED)
@@ -253,7 +254,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
           UserAuthInfo("userId1", isActive = true, disabled = false, None, None)
         )
       )
-      when(mockAssessorAllocationRepository.findAll(any())(any[ExecutionContext]())).thenReturnAsync(
+      when(mockAssessorAllocationRepository.findAll).thenReturnAsync(
         List(
           AssessorAllocation(
             "userId1", EventExamples.e1.id, AllocationStatuses.CONFIRMED, SkillType.ASSESSOR, "version1"

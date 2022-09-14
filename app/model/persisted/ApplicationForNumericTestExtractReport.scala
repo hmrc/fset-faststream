@@ -20,7 +20,6 @@ import model.ApplicationRoute._
 import model.SchemeId
 import play.api.libs.json.{ Json, OFormat }
 import model.report.TestResultsForOnlineTestPassMarkReportItem
-import reactivemongo.bson.Macros
 
 case class ApplicationForNumericTestExtractReport(userId: String,
                                                   applicationId: String,

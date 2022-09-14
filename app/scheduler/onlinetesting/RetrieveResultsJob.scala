@@ -18,9 +18,10 @@
 package scheduler.onlinetesting
 
 import config.WaitingScheduledJobConfig
-import javax.inject.{ Inject, Singleton }
-import play.api.{ Configuration, Logging }
-import play.modules.reactivemongo.ReactiveMongoComponent
+
+import javax.inject.{Inject, Singleton}
+import play.api.{Configuration, Logging}
+import uk.gov.hmrc.mongo.MongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
@@ -30,9 +31,10 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
+//TODO: mongo are these jobs needed anymore?
 @Singleton
 class RetrievePhase1ResultsJob @Inject() (val onlineTestingService: Phase1TestService,
-                                          val mongoComponent: ReactiveMongoComponent,
+                                          val mongoComponent: MongoComponent,
                                           val config: RetrievePhase1ResultsJobConfig
                                          ) extends RetrieveResultsJob {
   val phase = "PHASE1"
@@ -40,7 +42,7 @@ class RetrievePhase1ResultsJob @Inject() (val onlineTestingService: Phase1TestSe
 
 @Singleton
 class RetrievePhase2ResultsJob @Inject() (val onlineTestingService: Phase2TestService,
-                                          val mongoComponent: ReactiveMongoComponent,
+                                          val mongoComponent: MongoComponent,
                                           val config: RetrievePhase2ResultsJobConfig
                                          ) extends RetrieveResultsJob {
   val phase = "PHASE2"

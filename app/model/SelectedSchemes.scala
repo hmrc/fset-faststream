@@ -16,12 +16,19 @@
 
 package model
 
-import play.api.libs.json.Json
-import reactivemongo.bson.Macros
+import play.api.libs.functional.syntax._
+import play.api.libs.json.{Format, Json, __}
 
 case class SelectedSchemes(schemes: List[SchemeId], orderAgreed: Boolean, eligible: Boolean)
 
 object SelectedSchemes {
   implicit val selectedSchemesFormat = Json.format[SelectedSchemes]
-  implicit val selectedSchemesHandler = Macros.handler[SelectedSchemes]
+
+  // Provide an explicit mongo format here to deal with the sub-document root
+  val root = "scheme-preferences"
+  val mongoFormat: Format[SelectedSchemes] = (
+    (__ \ root \ "schemes").format[List[SchemeId]] and
+      (__ \ root \ "orderAgreed").format[Boolean] and
+      (__ \ root \ "eligible").format[Boolean]
+    )(SelectedSchemes.apply, unlift(SelectedSchemes.unapply))
 }

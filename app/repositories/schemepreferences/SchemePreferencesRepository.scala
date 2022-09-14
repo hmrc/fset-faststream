@@ -16,72 +16,68 @@
 
 package repositories.schemepreferences
 
-import javax.inject.{ Inject, Singleton }
-import model.Exceptions.{ CannotUpdateSchemePreferences, SchemePreferencesNotFound }
-import model.{ SchemeId, SelectedSchemes }
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.bson.{ BSONDocument, BSONObjectID, _ }
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import javax.inject.{Inject, Singleton}
+import model.Exceptions.{CannotUpdateSchemePreferences, SchemePreferencesNotFound}
+import model.{SchemeId, SelectedSchemes}
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.{Filters, Projections}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait SchemePreferencesRepository {
   def find(applicationId: String): Future[SelectedSchemes]
-
   def save(applicationId: String, schemePreferences: SelectedSchemes): Future[Unit]
-
   def add(applicationId: String, newScheme: SchemeId): Future[Unit]
 }
 
 @Singleton
-class SchemePreferencesMongoRepository @Inject() (mongoComponent: ReactiveMongoComponent)
-  extends ReactiveRepository[SelectedSchemes, BSONObjectID](
-    CollectionNames.APPLICATION,
-    mongoComponent.mongoConnector.db,
-    SelectedSchemes.selectedSchemesFormat,
-    ReactiveMongoFormats.objectIdFormats
+class SchemePreferencesMongoRepository @Inject() (mongo: MongoComponent)
+  extends PlayMongoRepository[SelectedSchemes](
+    collectionName = CollectionNames.APPLICATION,
+    mongoComponent = mongo,
+    domainFormat = SelectedSchemes.mongoFormat,
+    indexes = Nil
   ) with SchemePreferencesRepository with ReactiveRepositoryHelpers {
 
   private val SchemePreferencesDocumentKey = "scheme-preferences"
 
   def find(applicationId: String): Future[SelectedSchemes] = {
-    val query = BSONDocument("applicationId" -> applicationId)
-    val projection = BSONDocument(SchemePreferencesDocumentKey -> 1, "_id" -> 0)
+    val query = Filters.and(Filters.equal("applicationId", applicationId), Filters.exists(SchemePreferencesDocumentKey))
+    val projection = Projections.include(SchemePreferencesDocumentKey)
 
-    collection.find(query, Some(projection)).one[BSONDocument] map {
-      case Some(document) if document.getAs[BSONDocument](SchemePreferencesDocumentKey).isDefined =>
-        document.getAs[SelectedSchemes](SchemePreferencesDocumentKey).get
+    collection.find(query).projection(projection).headOption() map {
+      case Some(selectedSchemes) => selectedSchemes
       case _ => throw SchemePreferencesNotFound(applicationId)
     }
   }
 
   def save(applicationId: String, schemePreference: SelectedSchemes): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> applicationId)
-    val preferencesBSON = BSONDocument("$set" -> BSONDocument(
-      SchemePreferencesDocumentKey -> schemePreference,
+    val query = Document("applicationId" -> applicationId)
+    val update = Document("$set" -> Document(
+      SchemePreferencesDocumentKey -> Codecs.toBson(schemePreference),
       "progress-status." + SchemePreferencesDocumentKey -> true
     ))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "saving scheme preferences",
       CannotUpdateSchemePreferences(applicationId))
 
-    collection.update(ordered = false).one(query, preferencesBSON) map validator
+    collection.updateOne(query, update).toFuture() map validator
   }
 
   def add(applicationId: String, newScheme: SchemeId): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> applicationId)
-    val update = BSONDocument(
-      "$addToSet" -> BSONDocument(
-        s"scheme-preferences.schemes" -> newScheme
+    val query = Document("applicationId" -> applicationId)
+    val update = Document(
+      "$addToSet" -> Document(
+        s"scheme-preferences.schemes" -> Codecs.toBson(newScheme)
       )
     )
 
-    val validator = singleUpdateValidator(applicationId, actionDesc = s"inserting sdip scheme")
+    val validator = singleUpdateValidator(applicationId, actionDesc = s"inserting $newScheme scheme")
 
-    collection.update(ordered = false).one(query, update) map validator
+    collection.updateOne(query, update).toFuture() map validator
   }
 }

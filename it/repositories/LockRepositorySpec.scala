@@ -17,7 +17,6 @@
 package repositories
 
 import org.joda.time.Duration
-import reactivemongo.api.indexes.IndexType.Ascending
 import testkit.MongoRepositorySpec
 
 class LockRepositorySpec extends MongoRepositorySpec {
@@ -29,13 +28,13 @@ class LockRepositorySpec extends MongoRepositorySpec {
 
   "Lock Repository" should {
     "create indexes" in {
-      val indexes = indexesWithFields(repo)
+      val indexes = indexDetails(repo).futureValue
       indexes must contain theSameElementsAs
         Seq(
-          IndexDetails(key = Seq(("_id", Ascending)), unique = false),
-          IndexDetails(key = Seq(("owner", Ascending)), unique = false),
-          IndexDetails(key = Seq(("timeCreated", Ascending)), unique = false),
-          IndexDetails(key = Seq(("expiryTime", Ascending)), unique = false)
+          IndexDetails(name = "_id_", keys = Seq(("_id", "Ascending")), unique = false),
+          IndexDetails(name = "owner_1", keys = Seq(("owner", "Ascending")), unique = false),
+          IndexDetails(name = "timeCreated_1", keys = Seq(("timeCreated", "Ascending")), unique = false),
+          IndexDetails(name = "expiryTime_1", keys = Seq(("expiryTime", "Ascending")), unique = false)
         )
     }
 
@@ -52,7 +51,7 @@ class LockRepositorySpec extends MongoRepositorySpec {
 
     "be locked when one lock has expired, but another one has been created afterwards" in {
       repo.lock("lockId", "owner", new Duration(500L)).futureValue
-      Thread.sleep(505L)
+      Thread.sleep(505L) // Wait for the lock to expire (5 millis longer than the lock duration)
       repo.lock("lockId", "owner", new Duration(500L)).futureValue
       val isLocked = repo.isLocked("lockId", "owner").futureValue
       isLocked mustBe true

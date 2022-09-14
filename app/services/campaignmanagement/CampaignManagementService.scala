@@ -67,7 +67,7 @@ class CampaignManagementService @Inject() (afterDeadlineCodeRepository: Campaign
     appRepo.listCollections.map(_.mkString("\n"))
   }
 
-  def removeCollection(name: String): Future[Unit] = {
+  def removeCollection(name: String): Future[Either[Exception, Unit]] = {
     appRepo.removeCollection(name)
   }
 

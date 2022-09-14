@@ -18,7 +18,6 @@ package model
 
 import model.ApplicationStatus._
 import play.api.libs.json.{ JsSuccess, Json }
-import reactivemongo.bson.BSONString
 import testkit.UnitSpec
 
 class ApplicationStatusSpec extends UnitSpec {
@@ -27,11 +26,6 @@ class ApplicationStatusSpec extends UnitSpec {
     "read JSON formatter should ignore case sensitivity" in {
       ApplicationStatus.applicationStatusFormat.reads(Json.toJson("submitted")) mustBe JsSuccess(SUBMITTED)
       ApplicationStatus.applicationStatusFormat.reads(Json.toJson("SUBMITTED")) mustBe JsSuccess(SUBMITTED)
-    }
-
-    "enum enum handler should ignore case sensitivity" in {
-      BSONEnumHandler.read(BSONString("in_progress")) mustBe IN_PROGRESS
-      BSONEnumHandler.read(BSONString("IN_PROGRESS")) mustBe IN_PROGRESS
     }
 
     "follow the contract that toString returns the key: capitalised name" in {

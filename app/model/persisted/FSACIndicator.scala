@@ -16,15 +16,23 @@
 
 package model.persisted
 
-import play.api.libs.json.Json
-import repositories.csv.FSACIndicatorCSVRepository
-import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
+import org.joda.time.LocalDate
+import play.api.libs.functional.syntax._
+import play.api.libs.json.{Format, Json, __}
 
 case class FSACIndicator(area: String, assessmentCentre: String, version: String)
 
 object FSACIndicator {
   implicit val jsonFormat = Json.format[FSACIndicator]
-  implicit val bsonFormat = Macros.handler[FSACIndicator]
+
+  // Provide an explicit mongo format here to deal with the sub-document root
+  // This data lives in the application collection
+  val root = "fsac-indicator"
+  val mongoFormat: Format[FSACIndicator] = (
+    (__ \ root \ "area").format[String] and
+      (__ \ root \ "assessmentCentre").format[String] and
+      (__ \ root \ "version").format[String]
+    )(FSACIndicator.apply, unlift(FSACIndicator.unapply))
 
   def apply(indicator: model.FSACIndicator, fsacIndicatorVersion: String): FSACIndicator = {
     FSACIndicator(indicator.area, indicator.assessmentCentre, fsacIndicatorVersion)

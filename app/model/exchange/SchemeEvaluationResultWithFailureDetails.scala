@@ -19,13 +19,11 @@ package model.exchange
 import model.SchemeId
 import model.persisted.SchemeEvaluationResult
 import play.api.libs.json.Json
-import reactivemongo.bson.Macros
 
 case class SchemeEvaluationResultWithFailureDetails(schemeId: SchemeId, result: String, failedAt: Option[String])
 
 object SchemeEvaluationResultWithFailureDetails {
   implicit val format = Json.format[SchemeEvaluationResultWithFailureDetails]
-  implicit val bsonHandler = Macros.handler[SchemeEvaluationResultWithFailureDetails]
 
   def apply(schemeEvaluation: SchemeEvaluationResult, failedAt: String): SchemeEvaluationResultWithFailureDetails =
     SchemeEvaluationResultWithFailureDetails(schemeEvaluation.schemeId, schemeEvaluation.result, Some(failedAt))

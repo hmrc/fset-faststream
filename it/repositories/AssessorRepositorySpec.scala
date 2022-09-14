@@ -6,7 +6,6 @@ import model.persisted.assessor.{ Assessor, AssessorAvailability, AssessorStatus
 import model.persisted.eventschedules.{ Location, SkillType }
 import model.{ SchemeId, UniqueIdentifier }
 import org.joda.time.LocalDate
-import reactivemongo.api.indexes.IndexType.Ascending
 import testkit.MongoRepositorySpec
 
 class AssessorRepositorySpec extends MongoRepositorySpec {
@@ -16,20 +15,23 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
   def repository = new AssessorMongoRepository(mongo)
 
   private val userId = UniqueIdentifier.randomUniqueIdentifier.toString
-  private val AssessorWithAvailabilities = Assessor(userId, None,
-    List("assessor", "qac"), List(SchemeId("Sdip")), civilServant = true,
-    Set(AssessorAvailability(EventExamples.LocationLondon, new LocalDate(2017, 9, 11)),
-      AssessorAvailability(EventExamples.LocationNewcastle, new LocalDate(2017, 9, 12))),
-    AssessorStatus.AVAILABILITIES_SUBMITTED
+  private val AssessorWithAvailabilities = Assessor(userId, version = None,
+    skills = List(SkillType.ASSESSOR.toString, SkillType.QUALITY_ASSURANCE_COORDINATOR.toString),
+    sifterSchemes = List(SchemeId("Sdip")), civilServant = true,
+    availability = Set(
+      AssessorAvailability(EventExamples.LocationLondon, new LocalDate(2017, 9, 11)),
+      AssessorAvailability(EventExamples.LocationNewcastle, new LocalDate(2017, 9, 12))
+    ),
+    status = AssessorStatus.AVAILABILITIES_SUBMITTED
   )
 
   "Assessor repository" should {
     "create indexes for the repository" in {
-      val indexes = indexesWithFields(repository)
+      val indexes = indexDetails(repository).futureValue
       indexes must contain theSameElementsAs
         Seq(
-          IndexDetails(key = Seq(("_id", Ascending)), unique = false),
-          IndexDetails(key = Seq(("userId", Ascending)), unique = true)
+          IndexDetails(name = "_id_", keys = Seq(("_id", "Ascending")), unique = false),
+          IndexDetails(name = "userId_1", keys = Seq(("userId", "Ascending")), unique = true)
         )
     }
 
@@ -42,15 +44,11 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
 
     "save and find all assessors" in {
       val secondAssessor = AssessorWithAvailabilities.copy(userId = "456")
-      List(
-        AssessorWithAvailabilities,
-        secondAssessor
-      ).foreach { assessor =>
+      List(AssessorWithAvailabilities, secondAssessor).foreach { assessor =>
         repository.save(assessor).futureValue
       }
 
-      val result = repository.findAll().futureValue
-
+      val result = repository.findAll.futureValue
       result must contain(AssessorWithAvailabilities)
       result must contain(secondAssessor)
     }
@@ -67,7 +65,6 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
       }
       val ids = AssessorWithAvailabilities.userId :: secondAssessor.userId :: Nil
       val result = repository.findByIds(ids).futureValue
-
       result.size mustBe 2
     }
 
@@ -75,7 +72,7 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
       repository.save(AssessorWithAvailabilities).futureValue
 
       val result = repository.find(userId).futureValue
-      result.get mustBe AssessorWithAvailabilities
+      result mustBe Some(AssessorWithAvailabilities)
 
       val updated = AssessorWithAvailabilities.copy(
         availability = Set(
@@ -97,7 +94,6 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
       repository.save(availability2).futureValue
 
       val result = repository.countSubmittedAvailability.futureValue
-
       result mustBe 2
     }
 
@@ -136,11 +132,16 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
 
     "save and remove assessor" in {
       repository.save(AssessorWithAvailabilities).futureValue
-
       repository.remove(UniqueIdentifier(userId)).futureValue
-
-      val result = repository.find(userId.toString).futureValue
+      val result = repository.find(userId).futureValue
       result mustBe None
+    }
+
+    "find availabilities for location and date" in {
+      repository.save(AssessorWithAvailabilities).futureValue
+      val date = new LocalDate(2017, 9, 11)
+      val result = repository.findAvailabilitiesForLocationAndDate(Location("London"), date, Seq(SkillType.ASSESSOR)).futureValue
+      result mustBe Seq(AssessorWithAvailabilities)
     }
   }
 }

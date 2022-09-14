@@ -1,20 +1,19 @@
 package services.onlinetesting.phase1
 
-import config.{ Phase1TestsConfig, PsiTestIds }
+import config.{Phase1TestsConfig, PsiTestIds}
 import factories.UUIDFactory
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Result
 import model.ProgressStatuses.ProgressStatus
-import model.exchange.passmarksettings.{ PassMarkThreshold, Phase1PassMark, Phase1PassMarkSettings, Phase1PassMarkThresholds }
-import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
-import model.{ ApplicationRoute, ApplicationStatus, SchemeId }
+import model.exchange.passmarksettings.{PassMarkThreshold, Phase1PassMark, Phase1PassMarkSettings, Phase1PassMarkThresholds}
+import model.persisted.{ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult}
+import model.{ApplicationRoute, ApplicationStatus, SchemeId}
 import org.joda.time.DateTime
 import org.mockito.Mockito.when
-import org.scalatest.prop.{ TableDrivenPropertyChecks, TableFor9 }
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers
-import reactivemongo.play.json.collection.JSONCollection
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor9}
 import repositories.{ CollectionNames, CommonRepository }
 import testkit.MongoRepositorySpec
 
@@ -22,8 +21,6 @@ import scala.concurrent.Future
 
 trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   with TableDrivenPropertyChecks {
-
-  import ImplicitBSONHandlers._
 
   val collectionName: String = CollectionNames.APPLICATION
   override val additionalCollections = List(CollectionNames.PHASE1_PASS_MARK_SETTINGS)
@@ -176,11 +173,11 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       }
     }
 
-    val appCollection = mongo.mongoConnector.db().collection[JSONCollection](collectionName)
+    val appCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
 
     def createUser(userId: String, appId: String) = {
-      appCollection.insert(ordered = false).one(BSONDocument("applicationId" -> appId, "userId" -> userId,
-        "applicationStatus" -> ApplicationStatus.CREATED))
+      appCollection.insertOne(Document("applicationId" -> appId, "userId" -> userId,
+        "applicationStatus" -> ApplicationStatus.CREATED.toBson)).toFuture().map( _ => ())
     }
 
     Future.sequence(List(

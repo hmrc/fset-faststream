@@ -64,7 +64,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
     "save exercise, send AssessmentScoresOneExerciseSubmitted audit event and return OK" in new TestFixture {
       val exerciseScores = AssessmentScoresExerciseExamples.Example1.copy(
         submittedDate = AssessmentScoresExerciseExamples.Example1.submittedDate.map(_.withZone(DateTimeZone.forOffsetHours(1))))
-      val request = fakeRequest(AssessmentScoresSubmitExerciseRequest(appId, writtenExercise, exerciseScores))
+      val request = fakeRequest(AssessmentScoresSubmitExerciseRequest(appId, writtenExercise, exerciseScores.toExchange))
 
       when(mockService.submitExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.writtenExercise),
         any())).thenReturn(Future.successful(()))
@@ -85,7 +85,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
     "save exercise, send AssessmentScoresOneExerciseSaved audit event and return OK" in new TestFixture {
       val exerciseScores = AssessmentScoresExerciseExamples.Example1.copy(
         submittedDate = AssessmentScoresExerciseExamples.Example1.submittedDate.map(_.withZone(DateTimeZone.forOffsetHours(1))))
-      val request = fakeRequest(AssessmentScoresSubmitExerciseRequest(appId, writtenExercise, exerciseScores))
+      val request = fakeRequest(AssessmentScoresSubmitExerciseRequest(appId, writtenExercise, exerciseScores.toExchange))
 
       when(mockService.saveExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.writtenExercise),
         any())).thenReturn(Future.successful(()))
@@ -107,7 +107,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
       " audit events and return OK" in new TestFixture {
       val finalFeedback = AssessmentScoresFinalFeedbackExamples.Example1.copy(
              acceptedDate = AssessmentScoresFinalFeedbackExamples.Example1.acceptedDate.withZone(DateTimeZone.forOffsetHours(1)))
-      val request = fakeRequest(AssessmentScoresFinalFeedbackSubmitRequest(appId, finalFeedback))
+      val request = fakeRequest(AssessmentScoresFinalFeedbackSubmitRequest(appId, finalFeedback.toExchange))
 
       when(mockService.submitFinalFeedback(eqTo(appId),
         any())).thenReturn(Future.successful(()))
@@ -135,7 +135,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
       val expectedResponse = AssessmentScoresFindResponse(
         AssessmentScoresCandidateSummary(appId, "firstName", "lastName", "venue",
           DateTimeFactoryMock.nowLocalDate, UniqueIdentifier.randomUniqueIdentifier),
-        Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise))
+        Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise.toExchange))
       when(mockService.findAssessmentScoresWithCandidateSummaryByApplicationId(appId)).thenReturn(
         Future.successful(expectedResponse))
 
@@ -158,7 +158,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
       val expectedResponse = List(AssessmentScoresFindResponse(
         AssessmentScoresCandidateSummary(appId, "firstName", "lastName", "venue",
           DateTimeFactoryMock.nowLocalDate, sessionId),
-        Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise)))
+        Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise.toExchange)))
       when(mockService.findAssessmentScoresWithCandidateSummaryByEventId(eventId)).thenReturn(
         Future.successful(expectedResponse))
 

@@ -29,7 +29,7 @@ import services.stc.handler._
 import testkit.UnitSpec
 import testkit.MockitoImplicits._
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import uk.gov.hmrc.http.HeaderCarrier
 
 class StcEventServiceSpec extends UnitSpec with StcEventServiceFixture {
@@ -70,20 +70,20 @@ trait StcEventServiceFixture extends MockitoSugar with MustMatchers {
   def verifyDataStoreEvents(n: Int, eventName: String): Unit = {
     val eventCaptor = ArgumentCaptor.forClass(classOf[DataStoreEvent])
     verify(dataStoreEventHandlerMock, times(n)).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
-    assert(eventCaptor.getAllValues.toList.forall(_.eventName == eventName))
+    assert(eventCaptor.getAllValues.asScala.toList.forall(_.eventName == eventName))
   }
 
   def verifyDataStoreEvent(eventName: String): Unit = {
     val eventCaptor = ArgumentCaptor.forClass(classOf[DataStoreEvent])
     verify(dataStoreEventHandlerMock).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
     eventCaptor.getAllValues.size() mustBe 1
-    eventCaptor.getAllValues.map(_.eventName).headOption mustBe Some(eventName)
+    eventCaptor.getAllValues.asScala.map(_.eventName).headOption mustBe Some(eventName)
   }
 
   def verifyDataStoreEvents(n: Int, eventNames: List[String]): Unit = {
     val eventCaptor = ArgumentCaptor.forClass(classOf[DataStoreEvent])
     verify(dataStoreEventHandlerMock, times(n)).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
-    assert(eventNames.forall(eventName => eventCaptor.getAllValues.toList.exists(_.eventName == eventName)))
+    assert(eventNames.forall(eventName => eventCaptor.getAllValues.asScala.toList.exists(_.eventName == eventName)))
   }
 
   def verifyAuditEvents(n: Int): Unit =
@@ -92,20 +92,20 @@ trait StcEventServiceFixture extends MockitoSugar with MustMatchers {
   def verifyAuditEvents(n: Int, eventName: String): Unit = {
     val eventCaptor = ArgumentCaptor.forClass(classOf[AuditEvent])
     verify(auditEventHandlerMock, times(n)).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
-    assert(eventCaptor.getAllValues.toList.forall(_.eventName == eventName))
+    assert(eventCaptor.getAllValues.asScala.toList.forall(_.eventName == eventName))
   }
 
   def verifyAuditEvent(eventName: String): Unit = {
     val eventCaptor = ArgumentCaptor.forClass(classOf[AuditEvent])
     verify(auditEventHandlerMock).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
     eventCaptor.getAllValues.size() mustBe 1
-    eventCaptor.getAllValues.map(_.eventName).headOption mustBe Some(eventName)
+    eventCaptor.getAllValues.asScala.map(_.eventName).headOption mustBe Some(eventName)
   }
 
   def verifyAuditEvents(n: Int, eventNames: List[String]): Unit = {
     val eventCaptor = ArgumentCaptor.forClass(classOf[AuditEvent])
     verify(auditEventHandlerMock, times(n)).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
-    assert(eventNames.forall(eventName => eventCaptor.getAllValues.toList.exists(_.eventName == eventName)))
+    assert(eventNames.forall(eventName => eventCaptor.getAllValues.asScala.toList.exists(_.eventName == eventName)))
   }
 
   def verifyEmailEvents(n: Int): Unit =
@@ -114,13 +114,13 @@ trait StcEventServiceFixture extends MockitoSugar with MustMatchers {
   def verifyEmailEvents(n: Int, eventName: String): Unit = {
     val eventCaptor = ArgumentCaptor.forClass(classOf[EmailEvent])
     verify(emailEventHandlerMock, times(n)).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
-    assert(eventCaptor.getAllValues.toList.forall(x => x.eventName == eventName))
+    assert(eventCaptor.getAllValues.asScala.toList.forall(x => x.eventName == eventName))
   }
 
   def verifyEmailEvent(eventName: String): Unit = {
     val eventCaptor = ArgumentCaptor.forClass(classOf[EmailEvent])
     verify(emailEventHandlerMock).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
     eventCaptor.getAllValues.size() mustBe 1
-    eventCaptor.getAllValues.map(_.eventName).headOption mustBe Some(eventName)
+    eventCaptor.getAllValues.asScala.map(_.eventName).headOption mustBe Some(eventName)
   }
 }

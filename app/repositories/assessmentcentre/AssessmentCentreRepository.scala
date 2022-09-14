@@ -17,34 +17,37 @@
 package repositories.assessmentcentre
 
 import factories.DateTimeFactory
-import javax.inject.{ Inject, Singleton }
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.{ Amber, AssessmentEvaluationResult, CompetencyAverageResult }
+import model.EvaluationResults.{Amber, AssessmentEvaluationResult, CompetencyAverageResult}
 import model.Exceptions.NotFoundException
-import model.ProgressStatuses.{ ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED }
+import model.ProgressStatuses.{ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED}
 import model._
 import model.assessmentscores.FixUserStuckInScoresAccepted
-import model.command.{ ApplicationForProgression, ApplicationForSift }
+import model.command.{ApplicationForProgression, ApplicationForSift}
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.AssessmentCentreTests
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.Cursor
-import reactivemongo.bson.{ BSONArray, BSONDocument, BSONObjectID }
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.BsonArray
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.Projections
 import repositories._
 import repositories.application.GeneralApplicationRepoBSONReader
-import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.implicitConversions
 
 object AssessmentCentreRepository {
-  implicit def applicationForFsacBsonReads(document: BSONDocument): ApplicationForProgression = {
-    val applicationId = document.getAs[String]("applicationId").get
-    val appStatus = document.getAs[ApplicationStatus]("applicationStatus").get
-    val currentSchemeStatus = document.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(Nil)
+  def applicationForFsacBsonReads(document: Document): ApplicationForProgression = {
+    val applicationId = document.get("applicationId").get.asString().getValue
+    val appStatus = Codecs.fromBson[ApplicationStatus](document.get("applicationStatus").get)
+    val currentSchemeStatus = document.get("currentSchemeStatus").map { bsonValue =>
+      Codecs.fromBson[Seq[SchemeEvaluationResult]](bsonValue)
+    }.getOrElse(Nil)
+
     ApplicationForProgression(applicationId, appStatus, currentSchemeStatus)
   }
 }
@@ -54,7 +57,7 @@ trait AssessmentCentreRepository {
   def progressToAssessmentCentre(application: ApplicationForProgression, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit]
   def getTests(applicationId: String): Future[AssessmentCentreTests]
   def updateTests(applicationId: String, tests: AssessmentCentreTests): Future[Unit]
-  def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String, batchSize: Int): Future[List[UniqueIdentifier]]
+  def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String, batchSize: Int): Future[Seq[UniqueIdentifier]]
   def nextSpecificApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String,
                                                                applicationId: String): Future[List[UniqueIdentifier]]
   def getAssessmentScoreEvaluation(applicationId: String): Future[Option[AssessmentPassMarkEvaluation]]
@@ -71,40 +74,47 @@ trait AssessmentCentreRepository {
 class AssessmentCentreMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
                                                  schemeRepository: SchemeRepository, //TODO:fix guice just inject the list
 //                                                  val siftableSchemeIds: Seq[SchemeId],
-                                                 mongoComponent: ReactiveMongoComponent
+                                                 mongo: MongoComponent
                                                 )
-  extends ReactiveRepository[ApplicationForSift, BSONObjectID](
-    CollectionNames.APPLICATION,
-    mongoComponent.mongoConnector.db,
-    ApplicationForSift.applicationForSiftFormat,
-    ReactiveMongoFormats.objectIdFormats
+  extends PlayMongoRepository[ApplicationForSift](
+    collectionName = CollectionNames.APPLICATION,
+    mongoComponent = mongo,
+    domainFormat = ApplicationForSift.applicationForSiftFormat,
+    indexes = Nil
   ) with AssessmentCentreRepository with RandomSelection with ReactiveRepositoryHelpers with GeneralApplicationRepoBSONReader
     with CommonBSONDocuments with CurrentSchemeStatusHelper {
 
+  // Additional collections configured to work with the appropriate domainFormat and automatically register the
+  // codec to work with BSON serialization
+  val applicationForProgressionCollection: MongoCollection[ApplicationForProgression] =
+  CollectionFactory.collection(
+    collectionName = CollectionNames.APPLICATION,
+    db = mongo.database,
+    domainFormat = ApplicationForProgression.applicationForProgressionFormat
+  )
+
   val fsacKey = "FSAC"
 
-  def nextApplicationForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
-    import AssessmentCentreRepository.applicationForFsacBsonReads
-
-    val fastStreamNoSiftableSchemes = BSONDocument(
-      "applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-      "currentSchemeStatus" -> BSONDocument("$elemMatch" -> BSONDocument(
-        "schemeId" -> BSONDocument("$nin" -> schemeRepository.siftableSchemeIds),
+  override def nextApplicationForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
+    val fastStreamNoSiftableSchemes = Document(
+      "applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED.toBson,
+      "currentSchemeStatus" -> Document("$elemMatch" -> Document(
+        "schemeId" -> Document("$nin" -> Codecs.toBson(schemeRepository.siftableSchemeIds)),
         "result" -> EvaluationResults.Green.toString
       )))
 
-    val query = BSONDocument("$or" -> BSONArray(
+    val query = Document("$or" -> BsonArray(
       fastStreamNoSiftableSchemes,
-      BSONDocument(
-        "applicationStatus" -> ApplicationStatus.SIFT,
+      Document(
+        "applicationStatus" -> ApplicationStatus.SIFT.toBson,
         s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> true,
-        "currentSchemeStatus" -> BSONDocument("$elemMatch" ->
-          BSONDocument("result" -> EvaluationResults.Green.toString, "schemeId" -> BSONDocument("$nin" -> BSONArray(Scheme.Sdip, Scheme.Edip)))
+        "currentSchemeStatus" -> Document("$elemMatch" ->
+          Document("result" -> EvaluationResults.Green.toString, "schemeId" -> Document("$nin" -> BsonArray(Scheme.Sdip, Scheme.Edip)))
         )
       )
     ))
 
-    val unfiltered = selectRandom[BSONDocument](query, batchSize).map(_.map(doc => doc: ApplicationForProgression))
+    val unfiltered = selectRandom[ApplicationForProgression](applicationForProgressionCollection, query, batchSize)
     unfiltered.map(_.filter { app =>
       app.applicationStatus match {
         case ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED => app.currentSchemeStatus.filter(_.result == EvaluationResults.Green.toString)
@@ -114,93 +124,95 @@ class AssessmentCentreMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
     })
   }
 
-  private val commonProgressStatusStateForEvaluation = BSONDocument(
-    "$and" -> BSONArray(
-      BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED}" -> true),
-      BSONDocument(s"progress-status.${ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED}" -> BSONDocument("$exists" -> false)),
-      BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_FAILED}" -> BSONDocument("$exists" -> false)),
-      BSONDocument(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN}" -> BSONDocument("$exists" -> false)),
-      BSONDocument(s"progress-status.${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER}" -> BSONDocument("$exists" -> false)),
-      BSONDocument(s"progress-status.${ProgressStatuses.WITHDRAWN}" -> BSONDocument("$exists" -> false))
+  private val commonProgressStatusStateForEvaluation = Document(
+    "$and" -> BsonArray(
+      Document(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED}" -> true),
+      Document(s"progress-status.${ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED}" -> Document("$exists" -> false)),
+      Document(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_FAILED}" -> Document("$exists" -> false)),
+      Document(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN}" -> Document("$exists" -> false)),
+      Document(s"progress-status.${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER}" -> Document("$exists" -> false)),
+      Document(s"progress-status.${ProgressStatuses.WITHDRAWN}" -> Document("$exists" -> false))
     )
   )
 
-  // Note we do do specify the applicationStatus of ASSESSMENT_CENTRE deliberately as a candidate can move outside of
+  // Note we specify the applicationStatus of ASSESSMENT_CENTRE deliberately as a candidate can move outside of
   // FSAC with a single Green scheme and still have others that are in Amber. These candidates need to be re-evaluated
   // when the pass marks change
-  override def nextApplicationReadyForAssessmentScoreEvaluation(
-                                                                 currentPassmarkVersion: String,
-                                                                 batchSize: Int): Future[List[UniqueIdentifier]] = {
+  override def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String,
+                                                                batchSize: Int): Future[Seq[UniqueIdentifier]] = {
     val query =
-      BSONDocument("$or" ->
-        BSONArray(
-          BSONDocument(
-            "$and" -> BSONArray(
-              BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
+      Document("$or" ->
+        BsonArray(
+          Document(
+            "$and" -> BsonArray(
+              Document("testGroups.FSAC.evaluation.passmarkVersion" -> Document("$exists" -> false)),
               commonProgressStatusStateForEvaluation
             )
           ),
-          BSONDocument(
-            "$and" -> BSONArray(
-              BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
-              BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion)),
+          Document(
+            "$and" -> BsonArray(
+              Document("testGroups.FSAC.evaluation.passmarkVersion" -> Document("$exists" -> true)),
+              Document("testGroups.FSAC.evaluation.passmarkVersion" -> Document("$ne" -> currentPassmarkVersion)),
               commonProgressStatusStateForEvaluation
             )
           )
         )
       )
 
-    selectRandom[BSONDocument](query, batchSize).map(docs => docs.map(doc => doc.getAs[UniqueIdentifier]("applicationId").get))
+    selectRandom[UniqueIdentifier](query)(doc => UniqueIdentifier(getAppId(doc)), global)
   }
 
-  override def nextSpecificApplicationReadyForAssessmentScoreEvaluation(
-                                                                         currentPassmarkVersion: String,
-                                                                         applicationId: String): Future[List[UniqueIdentifier]] = {
-    val projection = BSONDocument("_id" -> false, "applicationId" -> true)
+  override def nextSpecificApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String,
+                                                                        applicationId: String): Future[List[UniqueIdentifier]] = {
+    val projection = Projections.include("applicationId")
     val query =
-      BSONDocument("$or" ->
-        BSONArray(
-          BSONDocument(
-            "$and" -> BSONArray(
-              BSONDocument("applicationId" -> applicationId),
-              BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$exists" -> false)),
+      Document("$or" ->
+        BsonArray(
+          Document(
+            "$and" -> BsonArray(
+              Document("applicationId" -> applicationId),
+              Document("testGroups.FSAC.evaluation.passmarkVersion" -> Document("$exists" -> false)),
               commonProgressStatusStateForEvaluation
             )
           ),
-          BSONDocument(
-            "$and" -> BSONArray(
-              BSONDocument("applicationId" -> applicationId),
-              BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$exists" -> true)),
-              BSONDocument("testGroups.FSAC.evaluation.passmarkVersion" -> BSONDocument("$ne" -> currentPassmarkVersion)),
+          Document(
+            "$and" -> BsonArray(
+              Document("applicationId" -> applicationId),
+              Document("testGroups.FSAC.evaluation.passmarkVersion" -> Document("$exists" -> true)),
+              Document("testGroups.FSAC.evaluation.passmarkVersion" -> Document("$ne" -> currentPassmarkVersion)),
               commonProgressStatusStateForEvaluation
             )
           )
         )
       )
 
-    collection.find(query, Some(projection)).one[BSONDocument].map {
-      case Some(doc) => List(doc.getAs[UniqueIdentifier]("applicationId").get)
+    collection.find[Document](query).projection(projection).headOption() map {
+      case Some(doc) => List(UniqueIdentifier(doc.get("applicationId").get.asString().getValue))
       case _ => Nil
     }
   }
 
   override def getAssessmentScoreEvaluation(applicationId: String): Future[Option[AssessmentPassMarkEvaluation]] = {
-    val query = BSONDocument("applicationId" -> applicationId)
-    val projection = BSONDocument("testGroups.FSAC.evaluation" -> 1, "_id" -> 0)
+    val query = Document(
+      "applicationId" -> applicationId,
+      s"testGroups.$fsacKey.evaluation" ->  Document("$exists" -> true)
+    )
+    val projection = Projections.include(s"testGroups.$fsacKey.evaluation")
 
-    collection.find(query, Some(projection)).one[BSONDocument].map { docOpt =>
+    collection.find[Document](query).projection(projection).headOption() map { docOpt =>
       docOpt.flatMap { doc =>
-        doc.getAs[BSONDocument]("testGroups")
-          .flatMap(_.getAs[BSONDocument](fsacKey)
-            .flatMap(_.getAs[BSONDocument]("evaluation"))).map { evaluationDoc =>
-          AssessmentPassMarkEvaluation(
-            UniqueIdentifier(applicationId),
-            passmarkVersion = evaluationDoc.getAs[String]("passmarkVersion").get,
-            evaluationResult = AssessmentEvaluationResult(
-              evaluationDoc.getAs[CompetencyAverageResult]("competency-average").get,
-              evaluationDoc.getAs[Seq[SchemeEvaluationResult]]("schemes-evaluation").get
+        doc.get("testGroups")
+          .map(_.asDocument().get(fsacKey))
+          .map(_.asDocument().get("evaluation"))
+          .map { evaluationBson =>
+            AssessmentPassMarkEvaluation(
+              UniqueIdentifier(applicationId),
+              passmarkVersion = evaluationBson.asDocument().get("passmarkVersion").asString().getValue,
+              evaluationResult = AssessmentEvaluationResult(
+                Codecs.fromBson[CompetencyAverageResult](evaluationBson.asDocument().get("competency-average")),
+                Codecs.fromBson[Seq[SchemeEvaluationResult]](evaluationBson.asDocument().get("schemes-evaluation"))
+              )
             )
-          )
         }
       }
     }
@@ -208,142 +220,144 @@ class AssessmentCentreMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
 
   override def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation,
                                              currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationId" -> evaluation.applicationId),
-      BSONDocument("applicationStatus" -> BSONDocument("$ne" -> ApplicationStatus.WITHDRAWN))
-    ))
+    val query = Document(
+      "applicationId" -> evaluation.applicationId.toBson,
+      "applicationStatus" -> Document("$ne" -> ApplicationStatus.WITHDRAWN.toBson)
+    )
 
-    val passMarkEvaluation = BSONDocument("$set" ->
-      BSONDocument(
-        "testGroups.FSAC.evaluation" -> BSONDocument("passmarkVersion" -> evaluation.passmarkVersion)
-          .merge(BSONDocument("competency-average" -> evaluation.evaluationResult.competencyAverageResult))
-          .merge(BSONDocument("schemes-evaluation" -> evaluation.evaluationResult.schemesEvaluation))
-      ).merge(currentSchemeStatusBSON(currentSchemeStatus)))
+    val passMarkEvaluation = Document("$set" ->
+      (Document("testGroups.FSAC.evaluation" -> Document("passmarkVersion" -> evaluation.passmarkVersion).++(
+        Document("competency-average" -> Codecs.toBson(evaluation.evaluationResult.competencyAverageResult))
+      ).++(
+        Document("schemes-evaluation" -> Codecs.toBson(evaluation.evaluationResult.schemesEvaluation))
+      )) ++
+      currentSchemeStatusBSON(currentSchemeStatus))
+    )
 
-    //    collection.update(query, passMarkEvaluation, upsert = false) map { _ => () }
-    collection.update(ordered = false).one(query, passMarkEvaluation) map { _ => () }
+    collection.updateOne(query, passMarkEvaluation).toFuture() map { _ => () }
   }
 
+  /* // TODO: mongo who called this in reactive-mongo?
   private def booleanToBSON(schemeName: String, result: Option[Boolean]): BSONDocument = result match {
     case Some(r) => BSONDocument(schemeName -> r)
     case _ => BSONDocument.empty
-  }
+  }*/
 
-  def progressToAssessmentCentre(application: ApplicationForProgression, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> application.applicationId)
-    val update =  BSONDocument("$set" -> applicationStatusBSON(progressStatus))
+  override def progressToAssessmentCentre(application: ApplicationForProgression,
+                                          progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {
+    val query = Document("applicationId" -> application.applicationId)
+    val update = Document("$set" -> applicationStatusBSON(progressStatus))
     val validator = singleUpdateValidator(application.applicationId, actionDesc = "progressing to assessment centre")
 
-    collection.update(ordered = false).one(query, update) map validator
+    collection.updateOne(query, update).toFuture() map validator
   }
 
-  def getTests(applicationId: String): Future[AssessmentCentreTests] = {
-    val query = BSONDocument("applicationId" -> applicationId)
-    val projection = BSONDocument("_id" -> 0, s"testGroups.$fsacKey.tests" -> 2)
+  override def getTests(applicationId: String): Future[AssessmentCentreTests] = {
+    val query = Document(
+      "applicationId" -> applicationId,
+      s"testGroups.$fsacKey.tests" ->  Document("$exists" -> true)
+    )
+    val projection = Projections.include(s"testGroups.$fsacKey.tests")
 
-    collection.find(query, Some(projection)).one[BSONDocument].map {
-      case Some(bsonTests) => (for {
-        testGroups <- bsonTests.getAs[BSONDocument]("testGroups")
-        fsac <- testGroups.getAs[BSONDocument](fsacKey)
-        tests <- fsac.getAs[AssessmentCentreTests]("tests")
-      } yield tests).getOrElse(AssessmentCentreTests())
-
+    collection.find[Document](query).projection(projection).headOption() map {
+      case Some(bsonTests) =>
+        bsonTests.get("testGroups").map(_.asDocument().get(fsacKey)).map(_.asDocument().get("tests")).map { testsBson =>
+          Codecs.fromBson[AssessmentCentreTests](testsBson)
+        }.getOrElse(AssessmentCentreTests())
       case _ => AssessmentCentreTests()
     }
   }
 
   override def getFsacEvaluationResultAverages(applicationId: String): Future[Option[CompetencyAverageResult]] = {
-    val query = BSONDocument("applicationId" -> applicationId)
-    val projection = BSONDocument("_id" -> false, s"testGroups.$fsacKey.evaluation.competency-average" -> true)
+    val query = Document(
+      "applicationId" -> applicationId,
+      s"testGroups.$fsacKey.evaluation.competency-average" ->  Document("$exists" -> true)
+    )
+    val projection = Projections.include(s"testGroups.$fsacKey.evaluation.competency-average")
 
-    collection.find(query, Some(projection)).one[BSONDocument] map {
+    collection.find[Document](query).projection(projection).headOption() map {
       case Some(document) =>
-        for {
-          testGroups <- document.getAs[BSONDocument]("testGroups")
-          fsac <- testGroups.getAs[BSONDocument](fsacKey)
-          evaluation <- fsac.getAs[BSONDocument]("evaluation")
-          competencyAverage <- evaluation.getAs[CompetencyAverageResult]("competency-average")
-        } yield competencyAverage
+        document.get("testGroups")
+          .map(_.asDocument().get(fsacKey))
+          .map(_.asDocument().get("evaluation"))
+          .map(_.asDocument().get("competency-average")).map { averagesBson =>
+            Codecs.fromBson[CompetencyAverageResult](averagesBson)
+          }
       case None => None
     }
   }
 
   override def getFsacEvaluatedSchemes(applicationId: String): Future[Option[Seq[SchemeEvaluationResult]]] = {
-    val query = BSONDocument("applicationId" -> applicationId)
-    val projection = BSONDocument("_id" -> false, s"testGroups.$fsacKey.evaluation.schemes-evaluation" -> true)
+    val query = Document(
+      "applicationId" -> applicationId,
+      s"testGroups.$fsacKey.evaluation.schemes-evaluation" ->  Document("$exists" -> true)
+    )
+    val projection = Projections.include(s"testGroups.$fsacKey.evaluation.schemes-evaluation")
 
-    collection.find(query, Some(projection)).one[BSONDocument] map {
+    collection.find[Document](query).projection(projection).headOption() map {
       case Some(document) =>
-        for {
-          testGroups <- document.getAs[BSONDocument]("testGroups")
-          fsac <- testGroups.getAs[BSONDocument](fsacKey)
-          evaluation <- fsac.getAs[BSONDocument]("evaluation")
-          schemesEvaluation <- evaluation.getAs[Seq[SchemeEvaluationResult]]("schemes-evaluation")
-        } yield schemesEvaluation
+        document.get("testGroups")
+          .map(_.asDocument().get(fsacKey))
+          .map(_.asDocument().get("evaluation"))
+          .map(_.asDocument().get("schemes-evaluation")).map { bson =>
+          Codecs.fromBson[Seq[SchemeEvaluationResult]](bson)
+        }
       case None => None
     }
   }
 
-  def updateTests(applicationId: String, tests: AssessmentCentreTests): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> applicationId)
-    val update = BSONDocument("$set" -> BSONDocument(s"testGroups.$fsacKey.tests" -> tests))
+  override def updateTests(applicationId: String, tests: AssessmentCentreTests): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+    val update = Document("$set" -> Document(s"testGroups.$fsacKey.tests" -> Codecs.toBson(tests)))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "Updating assessment centre tests")
-    collection.update(ordered = false).one(query, update) map validator
+    collection.updateOne(query, update).toFuture() map validator
   }
 
   override def removeFsacTestGroup(applicationId: String): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> applicationId)
+    val query = Document("applicationId" -> applicationId)
 
-    val updateOp = bsonCollection.updateModifier(
-      BSONDocument(
-        "$unset" -> BSONDocument(s"testGroups.$fsacKey" -> "")
-      )
-    )
+    val updateOp = Document("$unset" -> Document(s"testGroups.$fsacKey" -> ""))
 
-    findAndModify(query, updateOp). map { result =>
-      if (result.value.isEmpty) { throw new NotFoundException(s"Failed to match a document to fix for id $applicationId") }
+    collection.updateOne(query, updateOp).toFuture() map { result =>
+      if (result.getModifiedCount == 0) { throw new NotFoundException(s"Failed to match a document to fix for id $applicationId") }
       else { () }
     }
   }
 
   override def removeFsacEvaluation(applicationId: String): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> applicationId)
+    val query = Document("applicationId" -> applicationId)
+    val updateOp = Document("$unset" -> Document(s"testGroups.$fsacKey.evaluation" -> ""))
 
-    val updateOp = bsonCollection.updateModifier(
-      BSONDocument(
-        "$unset" -> BSONDocument(s"testGroups.$fsacKey.evaluation" -> "")
-      )
-    )
-
-    findAndModify(query, updateOp).map{ result =>
-      if (result.value.isEmpty) { throw new NotFoundException(s"Failed to match a document to fix for id $applicationId") }
+    collection.updateOne(query, updateOp).toFuture() map{ result =>
+      if (result.getModifiedCount == 0) { throw new NotFoundException(s"Failed to match a document to fix for id $applicationId") }
       else { () }
     }
   }
 
-  def findNonPassedNonFailedNonAmberUsersInAssessmentScoresAccepted: Future[Seq[FixUserStuckInScoresAccepted]] = {
-    val query = BSONDocument(
-      "applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE,
-      s"progress-status.${ASSESSMENT_CENTRE_PASSED.toString}" -> BSONDocument("$exists" -> false),
-      s"progress-status.${ASSESSMENT_CENTRE_FAILED.toString}" -> BSONDocument("$exists" -> false),
-      "testGroups.FSAC.evaluation.schemes-evaluation.result" -> BSONDocument("$nin" -> BSONArray(Amber.toString))
+  override def findNonPassedNonFailedNonAmberUsersInAssessmentScoresAccepted: Future[Seq[FixUserStuckInScoresAccepted]] = {
+    val query = Document(
+      "applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE.toBson,
+      s"progress-status.${ASSESSMENT_CENTRE_PASSED.toString}" -> Document("$exists" -> false),
+      s"progress-status.${ASSESSMENT_CENTRE_FAILED.toString}" -> Document("$exists" -> false),
+      s"testGroups.$fsacKey.evaluation.schemes-evaluation.result" -> Document("$nin" -> BsonArray(Amber.toString)),
+      s"testGroups.$fsacKey.evaluation.schemes-evaluation" ->  Document("$exists" -> true)
     )
-    val projection = BSONDocument("testGroups.FSAC.evaluation" -> 1, "applicationId" -> 1, "_id" -> 0)
+    val projection = Projections.include(s"testGroups.$fsacKey.evaluation", "applicationId")
 
-    collection.find(query, Some(projection)).cursor[BSONDocument]()
-      .collect[Seq](maxDocs = -1, Cursor.FailOnError[Seq[BSONDocument]]()).map { docList =>
+    collection.find[Document](query).projection(projection).toFuture() map { docList =>
       docList.flatMap { doc =>
-        val evaluationSection = doc.getAs[BSONDocument]("testGroups")
-          .flatMap(_.getAs[BSONDocument]("FSAC"))
-          .flatMap(_.getAs[BSONDocument]("evaluation"))
+        doc.get("testGroups")
+          .map(_.asDocument().get(fsacKey))
+          .map(_.asDocument().get("evaluation"))
+          .map(_.asDocument().get("schemes-evaluation")).map { bson =>
+            val evaluation = Codecs.fromBson[Seq[SchemeEvaluationResult]](bson)
 
-        evaluationSection.flatMap(_.getAs[Seq[SchemeEvaluationResult]]("schemes-evaluation")).map { evaluation =>
-          FixUserStuckInScoresAccepted(
-            doc.getAs[String]("applicationId").get,
-            evaluation
-          )
-        }
+            FixUserStuckInScoresAccepted(
+              doc.get("applicationId").get.asString().getValue,
+              evaluation
+            )
+          }
       }
     }
   }

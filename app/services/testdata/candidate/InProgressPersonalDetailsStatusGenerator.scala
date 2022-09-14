@@ -84,7 +84,7 @@ class InProgressPersonalDetailsStatusGenerator @Inject() (val previousStatusGene
         } else {
           None
         },
-        None,
+        fsacIndicator = None,
         generatorConfig.personalData.country,
         "07770 774 914",
         Some(getCivilServiceExperienceDetails(candidateInformation)),
@@ -93,7 +93,7 @@ class InProgressPersonalDetailsStatusGenerator @Inject() (val previousStatusGene
         otherInternshipCompleted,
         otherInternshipCompleted.flatMap { completed => if (completed) { Some("Other internship name") } else { None } },
         otherInternshipCompleted.flatMap { completed => if (completed) { Some("2020") } else { None } },
-        Some(true)
+        updateApplicationStatus = Some(true)
       )
     }
 

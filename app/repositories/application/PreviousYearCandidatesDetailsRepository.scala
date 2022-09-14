@@ -19,9 +19,9 @@ package repositories.application
 import config.{MicroserviceAppConfig, PsiTestIds}
 import connectors.launchpadgateway.exchangeobjects.in.reviewed._
 import factories.DateTimeFactory
-
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
+
 import javax.inject.{Inject, Singleton}
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
@@ -30,19 +30,20 @@ import model.command.{CandidateDetailsReportItem, CsvExtract, WithdrawApplicatio
 import model.persisted.fsb.ScoresAndFeedback
 import model.persisted.{FSACIndicator, SchemeEvaluationResult}
 import org.joda.time.DateTime
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.bson.{BsonArray, BsonDocument, BsonRegularExpression}
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.bson.conversions.Bson
+import org.mongodb.scala.model.Projections
 import play.api.Logging
-import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{JsObject, Json}
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.{Cursor, ReadPreference}
-import reactivemongo.bson.{BSONArray, BSONDocument, BSONReader, BSONRegex, BSONValue}
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import reactivemongo.play.json.collection.JSONCollection
-import repositories.{BSONDateTimeHandler, CollectionNames, CommonBSONDocuments, SchemeRepository, SchemeYamlRepository, withdrawHandler}
+import repositories._
 import services.reporting.SocioEconomicCalculator
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.Codecs
 
-import scala.concurrent.ExecutionContext.Implicits.global // TODO inject ec
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.Try
 
 //scalastyle:off
 trait PreviousYearCandidatesDetailsRepository {
@@ -50,15 +51,15 @@ trait PreviousYearCandidatesDetailsRepository {
   val allSchemes: List[String]
   val siftAnswersHeader: String
 
-  implicit class RichOptionBSONDocument(doc: Option[BSONDocument]) {
+  implicit class RichOptionDocument(doc: Option[Document]) {
 
-    def getAs[T](key: String)(implicit reader: BSONReader[_ <: BSONValue, T]) = doc.flatMap(_.getAs[T](key))
+//    def getAs[T](key: String)(implicit reader: BSONReader[_ <: BSONValue, T]) = doc.flatMap(_.getAs[T](key))
 
-    def getAsStr[T](key: String)(implicit reader: BSONReader[_ <: BSONValue, T]) = doc.flatMap(_.getAs[T](key)).map(_.toString)
+//    def getAsStr[T](key: String)(implicit reader: BSONReader[_ <: BSONValue, T]) = doc.flatMap(_.getAs[T](key)).map(_.toString)
 
-    def getOrElseAsStr[T](key: String)(default: T)(implicit reader: BSONReader[_ <: BSONValue, T]) = {
-      doc.flatMap(_.getAs[T](key).orElse(Some(default))).map(_.toString)
-    }
+//    def getOrElseAsStr[T](key: String)(default: T)(implicit reader: BSONReader[_ <: BSONValue, T]) = {
+//      doc.flatMap(_.getAs[T](key).orElse(Some(default))).map(_.toString)
+//    }
   }
 
   private val appTestStatuses = "personal-details,IN_PROGRESS,scheme-preferences,assistance-details,start_questionnaire,diversity_questionnaire,education_questionnaire,occupation_questionnaire,preview,SUBMITTED,FAST_PASS_ACCEPTED,PHASE1_TESTS_INVITED,PHASE1_TESTS_FIRST_REMINDER,PHASE1_TESTS_SECOND_REMINDER,PHASE1_TESTS_STARTED,PHASE1_TESTS_COMPLETED,PHASE1_TESTS_EXPIRED,PHASE1_TESTS_RESULTS_READY," +
@@ -91,14 +92,14 @@ trait PreviousYearCandidatesDetailsRepository {
 
   def dataAnalystApplicationDetailsHeader(numOfSchemes: Int) =
     "ApplicationId,Date of Birth,Application status,Route,All FS schemes failed SDIP not failed," +
-    "Civil servant,EDIP,EDIP year,SDIP,SDIP year,Other internship,Other internship name,Other internship year,Fast Pass No," +
-    "Scheme preferences," +
-    "Do you have a disability,Disability impact,Deaf,Learning disability,Long-standing disability,Mental health condition,Neurodiverse," +
-    "Other neurodiverse,Physical or mobility,Speech impairment,Visible difference,Sight loss,Prefer not to say,Other,Other description," +
-    appTestStatuses +
-    "Final Progress Status prior to withdrawal," +
-    appTestResults(numOfSchemes) +
-    ",FSAC Indicator area,FSAC Indicator Assessment Centre"
+      "Civil servant,EDIP,EDIP year,SDIP,SDIP year,Other internship,Other internship name,Other internship year,Fast Pass No," +
+      "Scheme preferences," +
+      "Do you have a disability,Disability impact,Deaf,Learning disability,Long-standing disability,Mental health condition,Neurodiverse," +
+      "Other neurodiverse,Physical or mobility,Speech impairment,Visible difference,Sight loss,Prefer not to say,Other,Other description," +
+      appTestStatuses +
+      "Final Progress Status prior to withdrawal," +
+      appTestResults(numOfSchemes) +
+      ",FSAC Indicator area,FSAC Indicator Assessment Centre"
 
   def testTitles(testName: String) = s"$testName inventoryId,orderId,normId,reportId,assessmentId,testUrl,invitationDate,startedDateTime," +
     s"completedDateTime,tScore,rawScore,testReportUrl,"
@@ -149,7 +150,7 @@ trait PreviousYearCandidatesDetailsRepository {
 
 //  val allSchemes: List[String] = SchemeYamlRepository.schemes.map(_.id.value).toList //Broke guice DI
 
-  //  val siftAnswersHeader: String = "Sift Answers status,multipleNationalities,secondNationality,nationality," +
+//  val siftAnswersHeader: String = "Sift Answers status,multipleNationalities,secondNationality,nationality," +
 //    "undergrad degree name,classification,graduationYear,moduleDetails," +
 //    "postgrad degree name,classification,graduationYear,moduleDetails," + allSchemes.mkString(",")
 
@@ -189,11 +190,11 @@ trait PreviousYearCandidatesDetailsRepository {
   def dataAnalystApplicationDetailsStreamPt2(implicit mat: Materializer): Source[CandidateDetailsReportItem, _]
   def dataAnalystApplicationDetailsStream(numOfSchemes: Int, applicationIds: Seq[String])(implicit mat: Materializer): Source[CandidateDetailsReportItem, _]
 
-  def findApplicationsFor(appRoutes: Seq[ApplicationRoute]): Future[List[CandidateIds]]
-  def findApplicationsFor(appRoutes: Seq[ApplicationRoute], appStatuses: Seq[ApplicationStatus]): Future[List[CandidateIds]]
+  def findApplicationsFor(appRoutes: Seq[ApplicationRoute]): Future[Seq[CandidateIds]]
+  def findApplicationsFor(appRoutes: Seq[ApplicationRoute], appStatuses: Seq[ApplicationStatus]): Future[Seq[CandidateIds]]
   def findApplicationsFor(appRoutes: Seq[ApplicationRoute],
                           appStatuses: Seq[ApplicationStatus],
-                          part: Int): Future[List[CandidateIds]]
+                          part: Int): Future[Seq[CandidateIds]]
 
   def findDataAnalystContactDetails: Future[CsvExtract[String]]
   def findDataAnalystContactDetails(userIds: Seq[String]): Future[CsvExtract[String]]
@@ -226,149 +227,133 @@ trait PreviousYearCandidatesDetailsRepository {
 class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
                                                               appConfig: MicroserviceAppConfig,
                                                               schemeRepository: SchemeRepository,
-                                                              mongoComponent: ReactiveMongoComponent)
+                                                              mongoComponent: MongoComponent)
   extends PreviousYearCandidatesDetailsRepository with CommonBSONDocuments with DiversityQuestionsText with Logging {
 
-//  import config.MicroserviceAppConfig._
-
-  val mongo = mongoComponent.mongoConnector.db
-
-  val applicationDetailsCollection = mongo().collection[JSONCollection](CollectionNames.APPLICATION)
-  val contactDetailsCollection = mongo().collection[JSONCollection](CollectionNames.CONTACT_DETAILS)
-  val questionnaireCollection = mongo().collection[JSONCollection](CollectionNames.QUESTIONNAIRE)
-  val mediaCollection = mongo().collection[JSONCollection](CollectionNames.MEDIA)
-  val assessorAssessmentScoresCollection = mongo().collection[JSONCollection](CollectionNames.ASSESSOR_ASSESSMENT_SCORES)
-  val reviewerAssessmentScoresCollection = mongo().collection[JSONCollection](CollectionNames.REVIEWER_ASSESSMENT_SCORES)
-  val candidateAllocationCollection = mongo().collection[JSONCollection](CollectionNames.CANDIDATE_ALLOCATION)
-  val eventCollection = mongo().collection[JSONCollection](CollectionNames.ASSESSMENT_EVENTS)
-  val siftAnswersCollection = mongo().collection[JSONCollection](CollectionNames.SIFT_ANSWERS)
+  val applicationDetailsCollection = mongoComponent.database.getCollection(CollectionNames.APPLICATION)
+  val contactDetailsCollection = mongoComponent.database.getCollection(CollectionNames.CONTACT_DETAILS)
+  val questionnaireCollection = mongoComponent.database.getCollection(CollectionNames.QUESTIONNAIRE)
+  val mediaCollection = mongoComponent.database.getCollection(CollectionNames.MEDIA)
+  val assessorAssessmentScoresCollection = mongoComponent.database.getCollection(CollectionNames.ASSESSOR_ASSESSMENT_SCORES)
+  val reviewerAssessmentScoresCollection = mongoComponent.database.getCollection(CollectionNames.REVIEWER_ASSESSMENT_SCORES)
+  val candidateAllocationCollection = mongoComponent.database.getCollection(CollectionNames.CANDIDATE_ALLOCATION)
+  val eventCollection = mongoComponent.database.getCollection(CollectionNames.ASSESSMENT_EVENTS)
+  val siftAnswersCollection = mongoComponent.database.getCollection(CollectionNames.SIFT_ANSWERS)
 
   private val Y = Some("Yes")
   private val N = Some("No")
-
-  private var adsCounter = 0
-
-  private val unlimitedMaxDocs = -1
 
   override val allSchemes: List[String] = schemeRepository.schemes.map(_.id.value).toList
 
   override val siftAnswersHeader: String = "Sift Answers status,multipleNationalities,secondNationality,nationality," +
     "undergrad degree name,classification,graduationYear,moduleDetails," +
     "postgrad degree name,otherDetails,graduationYear,projectDetails," + allSchemes.mkString(",")
-/*
-  override def applicationDetailsStreamLegacy(numOfSchemes: Int, applicationIds: Seq[String]): Enumerator[CandidateDetailsReportItem] = {
-    adsCounter = 0
+  /*
+    override def applicationDetailsStreamLegacy(numOfSchemes: Int, applicationIds: Seq[String]): Enumerator[CandidateDetailsReportItem] = {
+      adsCounter = 0
 
-    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
-    val projection = Json.obj("_id" -> 0)
+      val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+      val projection = Json.obj("_id" -> 0)
 
-    import reactivemongo.play.iteratees.cursorProducer
-    applicationDetailsCollection.find(query, Some(projection))
-      .cursor[BSONDocument](ReadPreference.nearest)
-      .enumerator().map { doc =>
+      import reactivemongo.play.iteratees.cursorProducer
+      applicationDetailsCollection.find(query, Some(projection))
+        .cursor[BSONDocument](ReadPreference.nearest)
+        .enumerator().map { doc =>
 
-      try {
-        val applicationId = doc.getAs[String]("applicationId").get
-        val progressResponse = toProgressResponse(applicationId).read(doc)
+        try {
+          val applicationId = doc.getAs[String]("applicationId").get
+          val progressResponse = toProgressResponse(applicationId).read(doc)
 
-        val schemePrefs: List[String] = doc.getAs[BSONDocument]("scheme-preferences").flatMap(_.getAs[List[String]]("schemes")).getOrElse(Nil)
-        val schemePrefsAsString: Option[String] = Some(schemePrefs.mkString(","))
-        val schemesYesNoAsString: Option[String] = Option((schemePrefs.map(_ + ": Yes") ::: allSchemes.filterNot(schemePrefs.contains).map(_ + ": No")).mkString(","))
+          val schemePrefs: List[String] = doc.getAs[BSONDocument]("scheme-preferences").flatMap(_.getAs[List[String]]("schemes")).getOrElse(Nil)
+          val schemePrefsAsString: Option[String] = Some(schemePrefs.mkString(","))
+          val schemesYesNoAsString: Option[String] = Option((schemePrefs.map(_ + ": Yes") ::: allSchemes.filterNot(schemePrefs.contains).map(_ + ": No")).mkString(","))
 
-        val onlineTestResults = onlineTests(doc)
+          val onlineTestResults = onlineTests(doc)
 
-        // Get withdrawer
-        val withdrawalInfo = doc.getAs[WithdrawApplication]("withdraw")
+          // Get withdrawer
+          val withdrawalInfo = doc.getAs[WithdrawApplication]("withdraw")
 
-        def maybePrefixWithdrawer(withdrawerOpt: Option[String]): Option[String] = withdrawerOpt.map { withdrawer =>
-          if (withdrawer.nonEmpty && withdrawer != "Candidate") {
-            "Admin (User ID: " + withdrawer + ")"
-          } else {
-            withdrawer
+          def maybePrefixWithdrawer(withdrawerOpt: Option[String]): Option[String] = withdrawerOpt.map { withdrawer =>
+            if (withdrawer.nonEmpty && withdrawer != "Candidate") {
+              "Admin (User ID: " + withdrawer + ")"
+            } else {
+              withdrawer
+            }
           }
+
+          val fsacIndicator = doc.getAs[FSACIndicator]("fsac-indicator")
+
+          adsCounter += 1
+          val applicationIdOpt = doc.getAs[String]("applicationId")
+          val csvContent = makeRow(
+            List(applicationIdOpt) :::
+              List(doc.getAs[String]("userId")) :::
+              List(doc.getAs[String]("testAccountId")) :::
+              List(doc.getAs[String]("frameworkId")) :::
+              List(doc.getAs[String]("applicationStatus")) :::
+              List(doc.getAs[String]("applicationRoute")) :::
+              personalDetails(doc, isAnalystReport = false) :::
+              List(progressResponseReachedYesNo(progressResponse.personalDetails)) :::
+              List(progressResponseReachedYesNo(progressResponse.personalDetails)) :::
+              repositories.getCivilServiceExperienceDetails(doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream), doc).toList :::
+              List(schemePrefsAsString) ::: //Scheme preferences
+              List(schemesYesNoAsString) ::: //Scheme names
+              List(progressResponseReachedYesNo(progressResponse.schemePreferences)) ::: //Are you happy with order
+              List(progressResponseReachedYesNo(progressResponse.schemePreferences)) ::: //Are you eligible
+              assistanceDetails(doc) :::
+              List(progressResponseReachedYesNo(progressResponse.questionnaire.nonEmpty)) ::: //I understand this wont affect application
+
+              onlineTestResults(Tests.Phase1Test1.toString) :::
+              onlineTestResults(Tests.Phase1Test2.toString) :::
+              onlineTestResults(Tests.Phase1Test3.toString) :::
+              onlineTestResults(Tests.Phase1Test4.toString) :::
+              onlineTestResults(Tests.Phase2Test1.toString) :::
+              onlineTestResults(Tests.Phase2Test2.toString) :::
+              videoInterview(doc) :::
+              onlineTestResults(Tests.SiftTest.toString) :::
+
+              fsbScoresAndFeedback(doc) :::
+              progressStatusTimestamps(doc) :::
+              fsacCompetency(doc) :::
+              testEvaluations(doc, numOfSchemes) :::
+              currentSchemeStatus(doc, numOfSchemes) :::
+              List(maybePrefixWithdrawer(withdrawalInfo.map(_.withdrawer))) :::
+              List(withdrawalInfo.map(_.reason)) :::
+              List(withdrawalInfo.map(_.otherReason.getOrElse(""))) :::
+              List(doc.getAs[String]("issue")) :::
+              List(fsacIndicator.map(_.area)) :::
+              List(fsacIndicator.map(_.assessmentCentre)) :::
+              List(fsacIndicator.map(_.version))
+              : _*
+          )
+          CandidateDetailsReportItem(
+            doc.getAs[String]("applicationId").getOrElse(""),
+            doc.getAs[String]("userId").getOrElse(""), csvContent
+          )
+        } catch {
+          case ex: Throwable =>
+            logger.error("Previous year candidate report generation exception", ex)
+            CandidateDetailsReportItem("", "", "ERROR LINE " + ex.getMessage)
         }
-
-        val fsacIndicator = doc.getAs[FSACIndicator]("fsac-indicator")
-
-        adsCounter += 1
-        val applicationIdOpt = doc.getAs[String]("applicationId")
-        val csvContent = makeRow(
-          List(applicationIdOpt) :::
-            List(doc.getAs[String]("userId")) :::
-            List(doc.getAs[String]("testAccountId")) :::
-            List(doc.getAs[String]("frameworkId")) :::
-            List(doc.getAs[String]("applicationStatus")) :::
-            List(doc.getAs[String]("applicationRoute")) :::
-            personalDetails(doc, isAnalystReport = false) :::
-            List(progressResponseReachedYesNo(progressResponse.personalDetails)) :::
-            List(progressResponseReachedYesNo(progressResponse.personalDetails)) :::
-            repositories.getCivilServiceExperienceDetails(doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream), doc).toList :::
-            List(schemePrefsAsString) ::: //Scheme preferences
-            List(schemesYesNoAsString) ::: //Scheme names
-            List(progressResponseReachedYesNo(progressResponse.schemePreferences)) ::: //Are you happy with order
-            List(progressResponseReachedYesNo(progressResponse.schemePreferences)) ::: //Are you eligible
-            assistanceDetails(doc) :::
-            List(progressResponseReachedYesNo(progressResponse.questionnaire.nonEmpty)) ::: //I understand this wont affect application
-
-            onlineTestResults(Tests.Phase1Test1.toString) :::
-            onlineTestResults(Tests.Phase1Test2.toString) :::
-            onlineTestResults(Tests.Phase1Test3.toString) :::
-            onlineTestResults(Tests.Phase1Test4.toString) :::
-            onlineTestResults(Tests.Phase2Test1.toString) :::
-            onlineTestResults(Tests.Phase2Test2.toString) :::
-            videoInterview(doc) :::
-            onlineTestResults(Tests.SiftTest.toString) :::
-
-            fsbScoresAndFeedback(doc) :::
-            progressStatusTimestamps(doc) :::
-            fsacCompetency(doc) :::
-            testEvaluations(doc, numOfSchemes) :::
-            currentSchemeStatus(doc, numOfSchemes) :::
-            List(maybePrefixWithdrawer(withdrawalInfo.map(_.withdrawer))) :::
-            List(withdrawalInfo.map(_.reason)) :::
-            List(withdrawalInfo.map(_.otherReason.getOrElse(""))) :::
-            List(doc.getAs[String]("issue")) :::
-            List(fsacIndicator.map(_.area)) :::
-            List(fsacIndicator.map(_.assessmentCentre)) :::
-            List(fsacIndicator.map(_.version))
-            : _*
-        )
-        CandidateDetailsReportItem(
-          doc.getAs[String]("applicationId").getOrElse(""),
-          doc.getAs[String]("userId").getOrElse(""), csvContent
-        )
-      } catch {
-        case ex: Throwable =>
-          logger.error("Previous year candidate report generation exception", ex)
-          CandidateDetailsReportItem("", "", "ERROR LINE " + ex.getMessage)
       }
-    }
-  }*/
+    }*/
 
   override def applicationDetailsStream(numOfSchemes: Int, applicationIds: Seq[String])(implicit mat: Materializer): Source[CandidateDetailsReportItem, _] = {
-    adsCounter = 0
 
-    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
-    val projection = Json.obj("_id" -> 0)
-
-//    import reactivemongo.play.iteratees.cursorProducer
-    import reactivemongo.akkastream.cursorProducer
-    applicationDetailsCollection.find(query, Some(projection))
-      .cursor[BSONDocument](ReadPreference.nearest)
-      .documentSource().map { doc =>
-
+    def processDocument(doc: Document): CandidateDetailsReportItem = {
       try {
-        val applicationId = doc.getAs[String]("applicationId").get
-        val progressResponse = toProgressResponse(applicationId).read(doc)
+        val applicationId = extractAppIdOpt(doc).get
+        logger.debug(s"processing applicationId = $applicationId")
+        val progressResponse = toProgressResponse(applicationId)(doc)
 
-        val schemePrefs: List[String] = doc.getAs[BSONDocument]("scheme-preferences").flatMap(_.getAs[List[String]]("schemes")).getOrElse(Nil)
+        val schemePrefs: List[String] = extractSchemes(doc).getOrElse(Nil).map(_.toString)
         val schemePrefsAsString: Option[String] = Some(schemePrefs.mkString(","))
         val schemesYesNoAsString: Option[String] = Option((schemePrefs.map(_ + ": Yes") ::: allSchemes.filterNot(schemePrefs.contains).map(_ + ": No")).mkString(","))
 
         val onlineTestResults = onlineTests(doc)
 
         // Get withdrawer
-        val withdrawalInfo = doc.getAs[WithdrawApplication]("withdraw")
+        val withdrawalInfoOpt = Try(Codecs.fromBson[WithdrawApplication](doc.get("withdraw").get)).toOption
 
         def maybePrefixWithdrawer(withdrawerOpt: Option[String]): Option[String] = withdrawerOpt.map { withdrawer =>
           if (withdrawer.nonEmpty && withdrawer != "Candidate") {
@@ -378,28 +363,25 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
           }
         }
 
-        val fsacIndicator = doc.getAs[FSACIndicator]("fsac-indicator")
+        val fsacIndicatorOpt = Try(Codecs.fromBson[FSACIndicator](doc.get("fsac-indicator").get)).toOption
 
-        adsCounter += 1
-        val applicationIdOpt = doc.getAs[String]("applicationId")
         val csvContent = makeRow(
-          List(applicationIdOpt) :::
-            List(doc.getAs[String]("userId")) :::
-            List(doc.getAs[String]("testAccountId")) :::
-            List(doc.getAs[String]("frameworkId")) :::
-            List(doc.getAs[String]("applicationStatus")) :::
-            List(doc.getAs[String]("applicationRoute")) :::
+          List(extractAppIdOpt(doc)) :::
+            List(doc.get("userId").map(_.asString().getValue)) :::
+            List(doc.get("testAccountId").map(_.asString().getValue)) :::
+            List(doc.get("frameworkId").map(_.asString().getValue)) :::
+            List(doc.get("applicationStatus").map(_.asString().getValue)) :::
+            List(doc.get("applicationRoute").map(_.asString().getValue)) :::
             personalDetails(doc, isAnalystReport = false) :::
             List(progressResponseReachedYesNo(progressResponse.personalDetails)) :::
             List(progressResponseReachedYesNo(progressResponse.personalDetails)) :::
-            repositories.getCivilServiceExperienceDetails(doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream), doc).toList :::
+            repositories.getCivilServiceExperienceDetails(extractApplicationRoute(doc), doc).toList :::
             List(schemePrefsAsString) ::: //Scheme preferences
             List(schemesYesNoAsString) ::: //Scheme names
             List(progressResponseReachedYesNo(progressResponse.schemePreferences)) ::: //Are you happy with order
             List(progressResponseReachedYesNo(progressResponse.schemePreferences)) ::: //Are you eligible
             assistanceDetails(doc) :::
             List(progressResponseReachedYesNo(progressResponse.questionnaire.nonEmpty)) ::: //I understand this wont affect application
-
             onlineTestResults(Tests.Phase1Test1.toString) :::
             onlineTestResults(Tests.Phase1Test2.toString) :::
             onlineTestResults(Tests.Phase1Test3.toString) :::
@@ -408,38 +390,48 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
             onlineTestResults(Tests.Phase2Test2.toString) :::
             videoInterview(doc) :::
             onlineTestResults(Tests.SiftTest.toString) :::
-
             fsbScoresAndFeedback(doc) :::
             progressStatusTimestamps(doc) :::
             fsacCompetency(doc) :::
             testEvaluations(doc, numOfSchemes) :::
+
             currentSchemeStatus(doc, numOfSchemes) :::
-            List(maybePrefixWithdrawer(withdrawalInfo.map(_.withdrawer))) :::
-            List(withdrawalInfo.map(_.reason)) :::
-            List(withdrawalInfo.map(_.otherReason.getOrElse(""))) :::
-            List(doc.getAs[String]("issue")) :::
-            List(fsacIndicator.map(_.area)) :::
-            List(fsacIndicator.map(_.assessmentCentre)) :::
-            List(fsacIndicator.map(_.version))
+            List(maybePrefixWithdrawer(withdrawalInfoOpt.map(_.withdrawer))) :::
+            List(withdrawalInfoOpt.map(_.reason)) :::
+            List(withdrawalInfoOpt.map(_.otherReason.getOrElse(""))) :::
+            List(doc.get("issue").map(_.asString().getValue)) :::
+            List(fsacIndicatorOpt.map(_.area)) :::
+            List(fsacIndicatorOpt.map(_.assessmentCentre)) :::
+            List(fsacIndicatorOpt.map(_.version))
             : _*
         )
         CandidateDetailsReportItem(
-          doc.getAs[String]("applicationId").getOrElse(""),
-          doc.getAs[String]("userId").getOrElse(""), csvContent
+          extractAppId(doc),
+          extractUserId(doc), csvContent
         )
       } catch {
         case ex: Throwable =>
-          logger.error("Previous year candidate report generation exception", ex)
-          CandidateDetailsReportItem("", "", "ERROR LINE " + ex.getMessage)
+          logger.error("Streamed candidate report generation exception", ex)
+          CandidateDetailsReportItem("", "", s"ERROR: ${ex.getMessage}")
       }
+    }
+
+    val query = Document("applicationId" -> Document("$in" -> applicationIds))
+    val projection = Projections.excludeId()
+    Source.fromPublisher {
+      applicationDetailsCollection.find(query).projection(projection)
+        .transform((doc: Document) => processDocument(doc),
+                    (e: Throwable) => throw e
+        )
     }
   }
 
-  private def lastProgressStatus(doc: BSONDocument): Option[String] = {
-    val progressStatusTimestamps = doc.getAs[BSONDocument]("progress-status-timestamp")
+  private def lastProgressStatus(doc: Document): Option[String] = {
+    val progressStatusTimestamps = subDocRoot("progress-status-timestamp")(doc)
 
+    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed for ISODate
     def timestampFor(progressStatus: ProgressStatuses.ProgressStatus) = {
-      progressStatusTimestamps.getAs[DateTime](progressStatus.toString)
+      progressStatusTimestamps.flatMap(doc => Try(Codecs.fromBson[DateTime](doc.get(progressStatus.toString).asDateTime())).toOption)// Handle NPE
     }
 
     val progressStatusesWithTimestamps = List(
@@ -506,8 +498,8 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     }
   }
 
-  private def lastProgressStatusPriorToWithdrawal(doc: BSONDocument): Option[String] = {
-    doc.getAs[String]("applicationStatus").flatMap { status =>
+  private def lastProgressStatusPriorToWithdrawal(doc: Document): Option[String] = {
+    doc.get("applicationStatus").map(_.asString().getValue).flatMap { status =>
       if (ApplicationStatus.WITHDRAWN == ApplicationStatus.withName(status)) {
         lastProgressStatus(doc)
       } else {
@@ -550,41 +542,41 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
   }*/
 
   override def dataAnalystApplicationDetailsStreamPt1(numOfSchemes: Int)(implicit mat: Materializer): Source[CandidateDetailsReportItem, _] = {
-    val query = BSONDocument.empty
+    val query = Document.empty
     commonDataAnalystApplicationDetailsStream(numOfSchemes, query)
   }
 
   override def dataAnalystApplicationDetailsStreamPt2(implicit mat: Materializer): Source[CandidateDetailsReportItem, _] = {
-    val query = BSONDocument.empty
-    val projection = Json.obj("_id" -> 0)
 
-//    import reactivemongo.play.iteratees.cursorProducer
-    import reactivemongo.akkastream.cursorProducer
-    applicationDetailsCollection.find(query, Some(projection))
-      .cursor[BSONDocument](ReadPreference.nearest)
-      .documentSource().map { doc =>
-
+    def processDocument(doc: Document): CandidateDetailsReportItem = {
       try {
-        val applicationIdOpt = doc.getAs[String]("applicationId")
+        val applicationIdOpt = extractAppIdOpt(doc)
         val csvContent = makeRow(
           List(applicationIdOpt): _*
         )
-        CandidateDetailsReportItem(
-          doc.getAs[String]("applicationId").getOrElse(""),
-          doc.getAs[String]("userId").getOrElse(""), csvContent
-        )
+        CandidateDetailsReportItem(extractAppId(doc), extractUserId(doc), csvContent)
       } catch {
         case ex: Throwable =>
-          logger.error("Data analyst Previous year candidate report generation exception", ex)
-          CandidateDetailsReportItem("", "", "ERROR LINE " + ex.getMessage)
+          logger.error("Data analyst streamed candidate report generation exception", ex)
+          CandidateDetailsReportItem("", "", s"ERROR: ${ex.getMessage}")
       }
+    }
+
+    val query = Document.empty
+    val projection = Projections.excludeId()
+    Source.fromPublisher {
+      applicationDetailsCollection.find(query).projection(projection)
+        .transform((doc: Document) => processDocument(doc),
+          (e: Throwable) => throw e
+        )
     }
   }
 
   override def dataAnalystApplicationDetailsStream(numOfSchemes: Int, applicationIds: Seq[String])(implicit mat: Materializer): Source[CandidateDetailsReportItem, _] = {
-    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    val query = Document("applicationId" -> Document("$in" -> applicationIds))
     commonDataAnalystApplicationDetailsStream(numOfSchemes, query)
   }
+
 /*
   private def commonDataAnalystApplicationDetailsStreamLegacy(numOfSchemes: Int, query: BSONDocument): Enumerator[CandidateDetailsReportItem] = {
     val projection = Json.obj("_id" -> 0)
@@ -642,11 +634,13 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     }
   }*/
 
-  private def commonDataAnalystApplicationDetailsStream(numOfSchemes: Int, query: BSONDocument)(implicit mat: Materializer): Source[CandidateDetailsReportItem, _] = {
-    val projection = Json.obj("_id" -> 0)
+  private def commonDataAnalystApplicationDetailsStream(numOfSchemes: Int, query: Document)(implicit mat: Materializer): Source[CandidateDetailsReportItem, _] = {
 
-    def isSdipFsWithFsFailedAndSdipNotFailed(doc: BSONDocument) = {
-      val css: Seq[SchemeEvaluationResult] = doc.getAs[Seq[SchemeEvaluationResult]]("currentSchemeStatus").getOrElse(Nil)
+    def isSdipFsWithFsFailedAndSdipNotFailed(doc: Document) = {
+      import scala.collection.JavaConverters._
+      val testEvalResultsListOpt = doc.get("currentSchemeStatus").map(_.asArray().getValues.asScala.toList)
+      val css = testEvalResultsListOpt.map( bsonValueList => bsonValueList.map( bsonValue => Codecs.fromBson[SchemeEvaluationResult](bsonValue)) ).getOrElse(Nil)
+
       val sdipSchemeId = SchemeId("Sdip")
       val sdipPresent = css.count( schemeEvaluationResult => schemeEvaluationResult.schemeId == sdipSchemeId ) == 1
       val sdipNotFailed = sdipPresent &&
@@ -654,88 +648,93 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
       val fsSchemes = css.filterNot( ser => ser.schemeId == sdipSchemeId )
       val fsSchemesPresentAndAllFailed = fsSchemes.nonEmpty &&
         fsSchemes.count( schemeEvaluationResult => schemeEvaluationResult.result == "Red" ) == fsSchemes.size
-      val isSdipFaststream = doc.getAs[String]("applicationRoute").contains("SdipFaststream")
+      val isSdipFaststream = doc.get("applicationRoute").map(_.asString().getValue).contains("SdipFaststream")
       isSdipFaststream && sdipPresent && sdipNotFailed && fsSchemesPresentAndAllFailed
     }
 
-    //import reactivemongo.play.iteratees.cursorProducer
-    import reactivemongo.akkastream.cursorProducer
-    applicationDetailsCollection.find(query, Some(projection))
-      .cursor[BSONDocument](ReadPreference.nearest)
-      .documentSource().map { doc =>
-
+    def processDocument(doc: Document): CandidateDetailsReportItem = {
       try {
-        val schemePrefs: List[String] = doc.getAs[BSONDocument]("scheme-preferences").flatMap(_.getAs[List[String]]("schemes")).getOrElse(Nil)
+        val schemePrefs: List[String] = extractSchemes(doc).getOrElse(Nil).map(_.toString)
         val schemePrefsAsString: Option[String] = Some(schemePrefs.mkString(","))
-        val fsacIndicator = doc.getAs[FSACIndicator]("fsac-indicator")
+        val fsacIndicatorOpt = Try(Codecs.fromBson[FSACIndicator](doc.get("fsac-indicator").get)).toOption
 
-        val applicationIdOpt = doc.getAs[String]("applicationId")
+        val applicationIdOpt = extractAppIdOpt(doc)
 
         val csvContent = makeRow(
           List(applicationIdOpt) :::
             personalDetails(doc, isAnalystReport = true) :::
-            List(doc.getAs[String]("applicationStatus")) :::
-            List(doc.getAs[String]("applicationRoute")) :::
+            List(doc.get("applicationStatus").map(_.asString().getValue)) :::
+            List(doc.get("applicationRoute").map(_.asString().getValue)) :::
+
             List(Some(isSdipFsWithFsFailedAndSdipNotFailed(doc).toString)) :::
-            repositories.getCivilServiceExperienceDetails(doc.getAs[ApplicationRoute]("applicationRoute").getOrElse(ApplicationRoute.Faststream), doc).toList :::
+            repositories.getCivilServiceExperienceDetails(extractApplicationRoute(doc), doc).toList :::
             List(schemePrefsAsString) :::
             disabilityDetails(doc) :::
             progressStatusTimestamps(doc) :::
             List(lastProgressStatusPriorToWithdrawal(doc)) :::
             testEvaluations(doc, numOfSchemes) :::
             currentSchemeStatus(doc, numOfSchemes) :::
-            List(fsacIndicator.map(_.area)) :::
-            List(fsacIndicator.map(_.assessmentCentre))
+            List(fsacIndicatorOpt.map(_.area)) :::
+            List(fsacIndicatorOpt.map(_.assessmentCentre))
             : _*
         )
-        CandidateDetailsReportItem(
-          doc.getAs[String]("applicationId").getOrElse(""),
-          doc.getAs[String]("userId").getOrElse(""), csvContent
-        )
+        CandidateDetailsReportItem(extractAppId(doc), extractUserId(doc), csvContent)
       } catch {
         case ex: Throwable =>
           logger.error("Data analyst streamed candidate report generation exception", ex)
-          CandidateDetailsReportItem("", "", "ERROR LINE " + ex.getMessage)
+          CandidateDetailsReportItem("", "", s"ERROR: ${ex.getMessage}")
       }
+    }
+
+    val projection = Projections.excludeId()
+    Source.fromPublisher {
+      applicationDetailsCollection.find(query).projection(projection)
+        .transform((doc: Document) => processDocument(doc),
+          (e: Throwable) => throw e
+        )
     }
   }
 
-  private def progressStatusTimestamps(doc: BSONDocument): List[Option[String]] = {
+  private def progressStatusTimestamps(doc: Document): List[Option[String]] = {
 
-    val statusTimestamps = doc.getAs[BSONDocument]("progress-status-timestamp")
-    val progressStatus = doc.getAs[BSONDocument]("progress-status")
-    val progressStatusDates = doc.getAs[BSONDocument]("progress-status-dates")
+    val statusTimestampsOpt = subDocRoot("progress-status-timestamp")(doc)
+    val progressStatusOpt = subDocRoot("progress-status")(doc)
 
-    val questionnaireStatuses = progressStatus.flatMap(_.getAs[BSONDocument]("questionnaire"))
-
-    def timestampFor(status: ProgressStatuses.ProgressStatus) = statusTimestamps.getAsStr[DateTime](status.toString)
-
-    def questionnaireStatus(key: String): Option[String] = questionnaireStatuses match {
-      case None => Some("false")
-      case Some(stat) => stat.getAs[Boolean](key).orElse(Some(false)).map(_.toString)
+    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed for ISODate
+    def timestampFor(status: ProgressStatuses.ProgressStatus) = {
+      statusTimestampsOpt.flatMap(doc => Try(Codecs.fromBson[DateTime](doc.get(status.toString).asDateTime())).toOption.map( _.toString ))// Handle NPE
     }
 
+    val questionnaireStatusesOpt = progressStatusOpt.flatMap( doc => subDocRoot("questionnaire")(doc) )
+    def questionnaireStatus(key: String): Option[String] = questionnaireStatusesOpt match {
+      case None => Some("false")
+      case Some(stat) => Some(stat.get(key).asBoolean().getValue.toString)
+    }
+
+    val progressStatusDatesOpt = subDocRoot("progress-status-dates")(doc)
+
     List(
-      progressStatus.getOrElseAsStr[Boolean]("personal-details")(false),
-      statusTimestamps.getAsStr[DateTime]("IN_PROGRESS").orElse(progressStatusDates.flatMap(_.getAs[String]("in_progress"))
+      progressStatusOpt.map ( doc => Try( doc.get("personal-details").asBoolean().getValue ).toOption.getOrElse(false).toString ),
+      statusTimestampsOpt.flatMap(doc => Try(Codecs.fromBson[DateTime](doc.get("IN_PROGRESS").asDateTime())).toOption).map(_.toString).orElse(
+        progressStatusDatesOpt.map( _.get("in_progress").asString.getValue )
       ),
-      progressStatus.getOrElseAsStr[Boolean]("scheme-preferences")(false),
-      progressStatus.getOrElseAsStr[Boolean]("assistance-details")(false),
+      progressStatusOpt.map ( doc => Try( doc.get("scheme-preferences").asBoolean().getValue ).toOption.getOrElse(false).toString ),
+      progressStatusOpt.map ( doc => Try( doc.get("assistance-details").asBoolean().getValue ).toOption.getOrElse(false).toString ),
       questionnaireStatus("start_questionnaire"),
       questionnaireStatus("diversity_questionnaire"),
       questionnaireStatus("education_questionnaire"),
       questionnaireStatus("occupation_questionnaire"),
-      progressStatus.getOrElseAsStr[Boolean]("preview")(false),
-      timestampFor(ProgressStatuses.SUBMITTED).orElse(progressStatusDates.getAsStr[String]("submitted")),
-      timestampFor(ProgressStatuses.FAST_PASS_ACCEPTED).orElse(progressStatusDates.getAsStr[String]("FAST_PASS_ACCEPTED")),
-      timestampFor(ProgressStatuses.PHASE1_TESTS_INVITED).orElse(progressStatusDates.getAsStr[String]("PHASE1_TESTS_INVITED")),
-      timestampFor(ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER).orElse(progressStatusDates.getAsStr[String]("PHASE1_TESTS_FIRST_REMINDER")),
-      timestampFor(ProgressStatuses.PHASE1_TESTS_SECOND_REMINDER).orElse(progressStatusDates.getAsStr[String]("PHASE1_TESTS_SECOND_REMINDER")),
-      timestampFor(ProgressStatuses.PHASE1_TESTS_STARTED).orElse(progressStatusDates.getAsStr[String]("PHASE1_TESTS_STARTED")),
-      timestampFor(ProgressStatuses.PHASE1_TESTS_COMPLETED).orElse(progressStatusDates.getAsStr[String]("PHASE1_TESTS_COMPLETED")),
-      timestampFor(ProgressStatuses.PHASE1_TESTS_EXPIRED).orElse(progressStatusDates.getAsStr[String]("PHASE1_TESTS_EXPIRED")),
-      timestampFor(ProgressStatuses.PHASE1_TESTS_RESULTS_READY).orElse(progressStatusDates.getAsStr[String]("PHASE1_TESTS_RESULTS_READY")),
-      timestampFor(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).orElse(progressStatusDates.getAsStr[String]("PHASE1_TESTS_RESULTS_RECEIVED"))
+      progressStatusOpt.map ( doc => Try( doc.get("preview").asBoolean().getValue ).toOption.getOrElse(false).toString ),
+      timestampFor(ProgressStatuses.SUBMITTED).orElse(progressStatusDatesOpt.map( _.get("submitted").asString().getValue )),
+      timestampFor(ProgressStatuses.FAST_PASS_ACCEPTED).orElse(progressStatusDatesOpt.map( _.get("FAST_PASS_ACCEPTED").asString().getValue )),
+      timestampFor(ProgressStatuses.PHASE1_TESTS_INVITED).orElse(progressStatusDatesOpt.map( _.get("PHASE1_TESTS_INVITED").asString().getValue )),
+      timestampFor(ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER).orElse(progressStatusDatesOpt.map( _.get("PHASE1_TESTS_FIRST_REMINDER").asString().getValue )),
+      timestampFor(ProgressStatuses.PHASE1_TESTS_SECOND_REMINDER).orElse(progressStatusDatesOpt.map( _.get("PHASE1_TESTS_SECOND_REMINDER").asString().getValue )),
+      timestampFor(ProgressStatuses.PHASE1_TESTS_STARTED).orElse(progressStatusDatesOpt.map( _.get("PHASE1_TESTS_STARTED").asString().getValue )),
+      timestampFor(ProgressStatuses.PHASE1_TESTS_COMPLETED).orElse(progressStatusDatesOpt.map( _.get("PHASE1_TESTS_COMPLETED").asString().getValue )),
+      timestampFor(ProgressStatuses.PHASE1_TESTS_EXPIRED).orElse(progressStatusDatesOpt.map( _.get("PHASE1_TESTS_EXPIRED").asString().getValue )),
+      timestampFor(ProgressStatuses.PHASE1_TESTS_RESULTS_READY).orElse(progressStatusDatesOpt.map( _.get("PHASE1_TESTS_RESULTS_READY").asString().getValue )),
+      timestampFor(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).orElse(progressStatusDatesOpt.map( _.get("PHASE1_TESTS_RESULTS_RECEIVED").asString().getValue ))
     ) ++
       List(
         ProgressStatuses.PHASE1_TESTS_PASSED,
@@ -835,144 +834,160 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
 
   private def progressResponseReachedYesNo(progressResponseReached: Boolean) = if (progressResponseReached) Y else N
 
-  override def findApplicationsFor(appRoutes: Seq[ApplicationRoute]): Future[List[CandidateIds]] = {
-    val projection = Json.obj("applicationId" -> true, "userId" -> true)
-    val query = BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes))
-    applicationDetailsCollection.find(query, Some(projection)).cursor[CandidateIds]()
-      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[CandidateIds]]())
+  override def findApplicationsFor(appRoutes: Seq[ApplicationRoute]): Future[Seq[CandidateIds]] = {
+    val projection = Projections.include("applicationId", "userId")
+    val query = Document( "$and" -> BsonArray(
+      Document("applicationRoute" -> Document("$in" -> appRoutes.map(_.toBson)))
+    ))
+
+    applicationDetailsCollection.find[Document](query).projection(projection).toFuture().map { docList =>
+      docList.map { doc =>
+        val appId = getAppId(doc)
+        val userId = getUserId(doc)
+        CandidateIds(userId, appId)
+      }
+    }
   }
 
   override def findApplicationsFor(appRoutes: Seq[ApplicationRoute],
-                                   appStatuses: Seq[ApplicationStatus]): Future[List[CandidateIds]] = {
-    val projection = Json.obj("applicationId" -> true, "userId" -> true)
-    val query = BSONDocument( "$and" -> BSONArray(
-      BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
-      BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses))
+                                   appStatuses: Seq[ApplicationStatus]): Future[Seq[CandidateIds]] = {
+    val projection = Projections.include("applicationId", "userId")
+    val query = Document( "$and" -> BsonArray(
+      Document("applicationRoute" -> Document("$in" -> appRoutes.map(_.toBson))),
+      Document("applicationStatus" -> Document("$in" -> appStatuses.map(_.toBson)))
     ))
-    applicationDetailsCollection.find(query, Some(projection)).cursor[CandidateIds]()
-      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[CandidateIds]]())
+
+    applicationDetailsCollection.find[Document](query).projection(projection).toFuture().map { docList =>
+      docList.map { doc =>
+        val appId = getAppId(doc)
+        val userId = getUserId(doc)
+        CandidateIds(userId, appId)
+      }
+    }
   }
 
   override def findApplicationsFor(appRoutes: Seq[ApplicationRoute],
                                    appStatuses: Seq[ApplicationStatus],
-                                   part: Int): Future[List[CandidateIds]] = {
-    val projection = Json.obj("applicationId" -> true, "userId" -> true)
+                                   part: Int): Future[Seq[CandidateIds]] = {
+    val projection = Projections.include("applicationId", "userId")
     val query = {
       part match {
         case 1 =>
-          BSONDocument( "$and" -> BSONArray(
-            BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
-            BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses)),
-            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-(01|05|09)-[0-9]{2}$", "")) // Only months 1, 5 & 9
+          Document( "$and" -> BsonArray(
+            Document("applicationRoute" -> Document("$in" -> appRoutes.map(_.toBson))),
+            Document("applicationStatus" -> Document("$in" -> appStatuses.map(_.toBson))),
+            Document("personal-details.dateOfBirth" -> BsonRegularExpression("^[0-9]{4}-(01|05|09)-[0-9]{2}$")) // Only months 1, 5 & 9
           ))
         case 2 =>
-          BSONDocument( "$and" -> BSONArray(
-            BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
-            BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses)),
-            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-(03|07|11)-[0-9]{2}$", "")) // Only months 3, 7 & 11
+          Document( "$and" -> BsonArray(
+            Document("applicationRoute" -> Document("$in" -> appRoutes.map(_.toBson))),
+            Document("applicationStatus" -> Document("$in" -> appStatuses.map(_.toBson))),
+            Document("personal-details.dateOfBirth" -> BsonRegularExpression("^[0-9]{4}-(03|07|11)-[0-9]{2}$")) // Only months 3, 7 & 11
           ))
         case 3 =>
-          BSONDocument( "$and" -> BSONArray(
-            BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
-            BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses)),
-            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-(02|06|10)-[0-9]{2}$", "")) // Only months 2, 6 & 10
+          Document( "$and" -> BsonArray(
+            Document("applicationRoute" -> Document("$in" -> appRoutes.map(_.toBson))),
+            Document("applicationStatus" -> Document("$in" -> appStatuses.map(_.toBson))),
+            Document("personal-details.dateOfBirth" -> BsonRegularExpression("^[0-9]{4}-(02|06|10)-[0-9]{2}$")) // Only months 2, 6 & 10
           ))
         case 4 =>
-          BSONDocument( "$and" -> BSONArray(
-            BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
-            BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses)),
-            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-(04|08|12)-[0-9]{2}$", "")) // Only months 4, 8 & 12
+          Document( "$and" -> BsonArray(
+            Document("applicationRoute" -> Document("$in" -> appRoutes.map(_.toBson))),
+            Document("applicationStatus" -> Document("$in" -> appStatuses.map(_.toBson))),
+            Document("personal-details.dateOfBirth" -> BsonRegularExpression("^[0-9]{4}-(04|08|12)-[0-9]{2}$")) // Only months 4, 8 & 12
           ))
         // Parts 1 & 2
         case 12 =>
-          BSONDocument( "$and" -> BSONArray(
-            BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
-            BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses)),
-            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-(01|05|09|03|07|11)-[0-9]{2}$", "")) // Only months 1, 5, 9, 3, 7 & 11
+          Document( "$and" -> BsonArray(
+            Document("applicationRoute" -> Document("$in" -> appRoutes.map(_.toBson))),
+            Document("applicationStatus" -> Document("$in" -> appStatuses.map(_.toBson))),
+            Document("personal-details.dateOfBirth" -> BsonRegularExpression("^[0-9]{4}-(01|05|09|03|07|11)-[0-9]{2}$")) // Only months 1, 5, 9, 3, 7 & 11
           ))
         // Parts 3 & 4
         case 34 =>
-          BSONDocument( "$and" -> BSONArray(
-            BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
-            BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses)),
-            BSONDocument("personal-details.dateOfBirth" -> BSONRegex("^[0-9]{4}-(02|06|10|04|08|12)-[0-9]{2}$", "")) // Only months 2, 6, 10, 4, 8, 12
+          Document( "$and" -> BsonArray(
+            Document("applicationRoute" -> Document("$in" -> appRoutes.map(_.toBson))),
+            Document("applicationStatus" -> Document("$in" -> appStatuses.map(_.toBson))),
+            Document("personal-details.dateOfBirth" -> BsonRegularExpression("^[0-9]{4}-(02|06|10|04|08|12)-[0-9]{2}$")) // Only months 2, 6, 10, 4, 8, 12
           ))
         case _ =>
-          BSONDocument( "$and" -> BSONArray(
-            BSONDocument("applicationRoute" -> BSONDocument("$in" -> appRoutes)),
-            BSONDocument("applicationStatus" -> BSONDocument("$in" -> appStatuses))
+          Document( "$and" -> BsonArray(
+            Document("applicationRoute" -> Document("$in" -> appRoutes.map(_.toBson))),
+            Document("applicationStatus" -> Document("$in" -> appStatuses.map(_.toBson)))
           ))
       }
     }
-    applicationDetailsCollection.find(query, Some(projection)).cursor[CandidateIds]()
-      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[CandidateIds]]())
+    applicationDetailsCollection.find[Document](query).projection(projection).toFuture().map { docList =>
+      docList.map { doc =>
+        val appId = getAppId(doc)
+        val userId = getUserId(doc)
+        CandidateIds(userId, appId)
+      }
+    }
   }
 
   override def findDataAnalystContactDetails: Future[CsvExtract[String]] = {
-    val query = BSONDocument.empty
+    val query = Document.empty
     commonFindDataAnalystContactDetails(query)
   }
 
   override def findDataAnalystContactDetails(userIds: Seq[String]): Future[CsvExtract[String]] = {
-    val query = BSONDocument("userId" -> BSONDocument("$in" -> userIds))
+    val query = Document("userId" -> Document("$in" -> userIds))
     commonFindDataAnalystContactDetails(query)
   }
 
-  private def commonFindDataAnalystContactDetails(query: BSONDocument): Future[CsvExtract[String]] = {
-    val projection = Json.obj("_id" -> 0)
+  private def commonFindDataAnalystContactDetails(query: Document): Future[CsvExtract[String]] = {
+    val projection = Projections.excludeId()
 
-    contactDetailsCollection.find(query, Some(projection))
-      .cursor[BSONDocument](ReadPreference.nearest)
-      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
+    contactDetailsCollection.find(query).projection(projection).toFuture().map { docs =>
       val csvRecords = docs.map { doc =>
-        val contactDetails = doc.getAs[BSONDocument]("contact-details")
+        val contactDetailsOpt = subDocRoot("contact-details")(doc)
         val csvRecord = makeRow(
-          contactDetails.getAsStr[String]("email"),
-          contactDetails.getAsStr[String]("postCode")
+          contactDetailsOpt.map(_.get("email").asString().getValue),
+          Try(contactDetailsOpt.map(_.get("postCode").asString().getValue)).toOption.flatten // Handle NPE
         )
-        doc.getAs[String]("userId").getOrElse("") -> csvRecord
+        extractUserId(doc) -> csvRecord
       }
       CsvExtract(dataAnalystContactDetailsHeader, csvRecords.toMap)
     }
   }
 
   override def findContactDetails(userIds: Seq[String]): Future[CsvExtract[String]] = {
-    val projection = Json.obj("_id" -> 0)
-    val query = BSONDocument("userId" -> BSONDocument("$in" -> userIds))
+    val projection = Projections.excludeId()
+    val query = Document("userId" -> Document("$in" -> userIds))
 
-    contactDetailsCollection.find(query, Some(projection))
-      .cursor[BSONDocument](ReadPreference.nearest)
-      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
+    contactDetailsCollection.find(query).projection(projection).toFuture().map { docs =>
       val csvRecords = docs.map { doc =>
-        val contactDetails = doc.getAs[BSONDocument]("contact-details")
-        val address = contactDetails.flatMap(_.getAs[BSONDocument]("address"))
+        val contactDetailsOpt = subDocRoot("contact-details")(doc)
+        val addressOpt = contactDetailsOpt.flatMap(contactDetails => subDocRoot("address")(contactDetails))
+
         val csvRecord = makeRow(
-          contactDetails.getAsStr[String]("email"),
-          address.getAsStr[String]("line1"),
-          address.getAsStr[String]("line2"),
-          address.getAsStr[String]("line3"),
-          address.getAsStr[String]("line4"),
-          contactDetails.getAsStr[String]("postCode"),
-          contactDetails.flatMap(_.getAs[Boolean]("outsideUk")).flatMap(outside => if (outside) Y else N),
-          contactDetails.getAsStr[String]("country"),
-          contactDetails.getAsStr[String]("phone")
+          contactDetailsOpt.map(_.get("email").asString().getValue),
+          addressOpt.map(_.get("line1").asString().getValue),
+          Try(addressOpt.map(_.get("line2").asString().getValue)).toOption.flatten, // Handle NPE
+          Try(addressOpt.map(_.get("line3").asString().getValue)).toOption.flatten, // Handle NPE
+          Try(addressOpt.map(_.get("line4").asString().getValue)).toOption.flatten, // Handle NPE
+          Try(contactDetailsOpt.map(_.get("postCode").asString().getValue)).toOption.flatten, // Handle NPE
+          contactDetailsOpt.map(_.get("outsideUk").asBoolean().getValue).map(outside => if (outside) "Yes" else "No"),
+          Try(contactDetailsOpt.map(_.get("country").asString().getValue)).toOption.flatten, // Handle NPE
+          Try(contactDetailsOpt.map(_.get("phone").asString().getValue)).toOption.flatten, // Handle NPE
         )
-        doc.getAs[String]("userId").getOrElse("") -> csvRecord
+        extractUserId(doc) -> csvRecord
       }
       CsvExtract(contactDetailsHeader, csvRecords.toMap)
     }
   }
 
   override def findDataAnalystQuestionnaireDetails: Future[CsvExtract[String]] = {
-    val query = BSONDocument.empty
-    val projection = Json.obj("_id" -> false)
+    val query = Document.empty
+    val projection = Projections.excludeId()
 
     commonFindQuestionnaireDetails(query, projection)
   }
 
   override def findDataAnalystQuestionnaireDetails(applicationIds: Seq[String]): Future[CsvExtract[String]] = {
-    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
-    val projection = Json.obj("_id" -> false)
+    val query = Document("applicationId" -> Document("$in" -> applicationIds))
+    val projection = Projections.excludeId()
 
     commonFindQuestionnaireDetails(query, projection)
   }
@@ -982,65 +997,69 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
   }
 
   override def findQuestionnaireDetails(applicationIds: Seq[String]): Future[CsvExtract[String]] = {
-    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
-    val projection = Json.obj("_id" -> 0)
+    val query = Document("applicationId" -> Document("$in" -> applicationIds))
+    val projection = Projections.excludeId()
 
     commonFindQuestionnaireDetails(query, projection)
   }
 
-  private def commonFindQuestionnaireDetails(query: BSONDocument, projection: JsObject): Future[CsvExtract[String]] = {
+  private def commonFindQuestionnaireDetails(query: Document, projection: Bson): Future[CsvExtract[String]] = {
 
-    def getAnswer(question: String, doc: Option[BSONDocument]) = {
-      val questionDoc = doc.flatMap(_.getAs[BSONDocument](question))
-      val isUnknown = questionDoc.flatMap(_.getAs[Boolean]("unknown")).contains(true)
+    def getAnswer(question: String, doc: Option[BsonDocument]) = {
+      val questionDocOpt = doc.flatMap(doc => subDocRoot(question)(doc))
+      val isUnknown = questionDocOpt.exists(q => Try(q.get("unknown").asBoolean().getValue).toOption.contains(true))
       if (isUnknown) {
         Some("Unknown")
       } else {
-        questionDoc.flatMap(q => q.getAs[String]("answer") match {
-          case None => q.getAs[String]("otherDetails")
-          case Some(answer) if List("Other", "Other ethnic group").contains(answer) => q.getAs[String]("otherDetails")
+        questionDocOpt.flatMap(q => Try(q.get("answer").asString().getValue).toOption match {
+          case None => Try(q.get("otherDetails").asString().getValue).toOption
+          case Some(answer) if List("Other", "Other ethnic group").contains(answer) => Try(q.get("otherDetails").asString().getValue).toOption
           case Some(answer) => Some(answer)
         })
       }
     }
 
-    questionnaireCollection.find(query, Some(projection))
-      .cursor[BSONDocument](ReadPreference.nearest)
-      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
-      val csvRecords = docs.map { doc =>
-        val questionsDoc = doc.getAs[BSONDocument]("questions")
-        val universityNameAnswer = getAnswer("What is the name of the university you received your degree from?", questionsDoc)
+    questionnaireCollection.find(query).projection(projection).toFuture().map { docs =>
 
-        val allQuestionsAndAnswers = questionsDoc.toList.flatMap(_.elements).map { bsonElement =>
-          val question = bsonElement.name
-          val answer = getAnswer(question, questionsDoc).getOrElse("Unknown")
-          question -> answer
-        }.toMap
+      val csvRecords = docs.map { doc =>
+        val questionsDocOpt = subDocRoot("questions")(doc)
+        val universityNameAnswer = getAnswer("What is the name of the university you received your degree from?", questionsDocOpt)
+
+        import scala.collection.JavaConverters._
+
+        val allQuestionsAndAnswers = questionsDocOpt.map{ doc =>
+          val keys = doc.keySet().asScala.toList
+
+          keys.map{ question =>
+            val answer = getAnswer(question, questionsDocOpt).getOrElse("Unknown")
+            question -> answer
+          }.toMap
+        }.getOrElse(Map.empty[String, String])
 
         val csvRecord = makeRow(
-          getAnswer(genderIdentity, questionsDoc),
-          getAnswer(sexualOrientation, questionsDoc),
-          getAnswer(ethnicGroup, questionsDoc),
-          getAnswer(englishLanguage, questionsDoc),
-          getAnswer(liveInUkAged14to18, questionsDoc),
-          getAnswer(postcodeAtAge14, questionsDoc),
-          getAnswer(schoolNameAged14to16, questionsDoc),
-          getAnswer(schoolTypeAged14to16, questionsDoc),
-          getAnswer(schoolNameAged16to18, questionsDoc),
-          getAnswer(eligibleForFreeSchoolMeals, questionsDoc),
+          getAnswer(genderIdentity, questionsDocOpt),
+          getAnswer(sexualOrientation, questionsDocOpt),
+          getAnswer(ethnicGroup, questionsDocOpt),
+          getAnswer(englishLanguage, questionsDocOpt),
+          getAnswer(liveInUkAged14to18, questionsDocOpt),
+          getAnswer(postcodeAtAge14, questionsDocOpt),
+          getAnswer(schoolNameAged14to16, questionsDocOpt),
+          getAnswer(schoolTypeAged14to16, questionsDocOpt),
+          getAnswer(schoolNameAged16to18, questionsDocOpt),
+          getAnswer(eligibleForFreeSchoolMeals, questionsDocOpt),
           universityNameAnswer,
-          getAnswer(categoryOfDegree, questionsDoc),
-          getAnswer(lowerSocioEconomicBackground, questionsDoc),
-          getAnswer(parentOrGuardianQualificationsAtAge18, questionsDoc),
-          getAnswer(highestEarningParentOrGuardianTypeOfWorkAtAge14, questionsDoc),
-          getAnswer(employeeOrSelfEmployed, questionsDoc),
-          getAnswer(sizeOfPlaceOfWork, questionsDoc),
-          getAnswer(superviseEmployees, questionsDoc),
+          getAnswer(categoryOfDegree, questionsDocOpt),
+          getAnswer(lowerSocioEconomicBackground, questionsDocOpt),
+          getAnswer(parentOrGuardianQualificationsAtAge18, questionsDocOpt),
+          getAnswer(highestEarningParentOrGuardianTypeOfWorkAtAge14, questionsDocOpt),
+          getAnswer(employeeOrSelfEmployed, questionsDocOpt),
+          getAnswer(sizeOfPlaceOfWork, questionsDocOpt),
+          getAnswer(superviseEmployees, questionsDocOpt),
           Some(SocioEconomicCalculator.calculate(allQuestionsAndAnswers)),
           isOxbridge(universityNameAnswer),
           isRussellGroup(universityNameAnswer)
         )
-        doc.getAs[String]("applicationId").getOrElse("") -> csvRecord
+        extractAppId(doc) -> csvRecord
       }
       CsvExtract(questionnaireDetailsHeader, csvRecords.toMap)
     }
@@ -1051,74 +1070,70 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
   }
 
   override def findSiftAnswers(applicationIds: Seq[String]): Future[CsvExtract[String]] = {
-    val projection = Json.obj("_id" -> 0)
-    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    val query = Document("applicationId" -> Document("$in" -> applicationIds))
+    val projection = Projections.excludeId()
 
-    siftAnswersCollection.find(query, Some(projection))
-      .cursor[BSONDocument](ReadPreference.nearest)
-      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
+    siftAnswersCollection.find(query).projection(projection).toFuture().map { docs =>
       val csvRecords = docs.map { doc =>
-        val schemeAnswers = doc.getAs[BSONDocument]("schemeAnswers")
+        val schemeAnswersOpt = subDocRoot("schemeAnswers")(doc)
         val schemeTextAnswers = allSchemes.map { s =>
-          schemeAnswers.getAs[BSONDocument](s).getAsStr[String]("rawText")
+          schemeAnswersOpt.flatMap( doc => Try(doc.get(s).asDocument()).toOption ).map( _.get("rawText").asString().getValue )
         }
 
-        val generalAnswers = doc.getAs[BSONDocument]("generalAnswers")
-        val undergradDegree = generalAnswers.getAs[BSONDocument]("undergradDegree")
-        val postgradDegree = generalAnswers.getAs[BSONDocument]("postgradDegree")
+        val generalAnswersOpt = subDocRoot("generalAnswers")(doc)
+        val undergradDegreeOpt = generalAnswersOpt.flatMap( doc => Try(doc.get("undergradDegree").asDocument()).toOption ) // Handle NPE
+        val postgradDegreeOpt = generalAnswersOpt.flatMap( doc => Try(doc.get("postgradDegree").asDocument()).toOption ) // Handle NPE
 
         val csvRecord = makeRow(
           List(
-            doc.getAs[String]("status"),
-            generalAnswers.getAsStr[Boolean]("multipleNationalities"),
-            generalAnswers.getAsStr[String]("secondNationality"),
-            generalAnswers.getAsStr[String]("nationality"),
-            undergradDegree.getAsStr[String]("name"),
-            undergradDegree.getAsStr[String]("classification"),
-            undergradDegree.getAsStr[String]("graduationYear"),
-            undergradDegree.getAsStr[String]("moduleDetails"),
-            postgradDegree.getAsStr[String]("name"),
-            postgradDegree.getAsStr[String]("otherDetails"),
-            postgradDegree.getAsStr[String]("graduationYear"),
-            postgradDegree.getAsStr[String]("projectDetails")
+            doc.get("status").map( _.asString().getValue ),
+            generalAnswersOpt.map( _.get("multipleNationalities").asBoolean().getValue.toString ),
+            generalAnswersOpt.flatMap( doc => Try(doc.get("secondNationality").asString().getValue).toOption ), // Handle NPE
+            generalAnswersOpt.map( _.get("nationality").asString().getValue ),
+            undergradDegreeOpt.map( _.get("name").asString().getValue ),
+            undergradDegreeOpt.map( _.get("classification").asString().getValue ),
+            undergradDegreeOpt.map( _.get("graduationYear").asString().getValue ),
+            undergradDegreeOpt.map( _.get("moduleDetails").asString().getValue ),
+            postgradDegreeOpt.map( _.get("name").asString().getValue ),
+            postgradDegreeOpt.map( _.get("otherDetails").asString().getValue ),
+            postgradDegreeOpt.map( _.get("graduationYear").asString().getValue ),
+            postgradDegreeOpt.map( _.get("projectDetails").asString().getValue )
           ) ++ schemeTextAnswers: _*
         )
-        doc.getAs[String]("applicationId").getOrElse("") -> csvRecord
+        extractAppId(doc) -> csvRecord
       }.toMap
       CsvExtract(siftAnswersHeader, csvRecords)
     }
   }
 
   override def findDataAnalystSiftAnswers: Future[CsvExtract[String]] = {
-    val query = BSONDocument.empty
+    val query = Document.empty
     commonFindDataAnalystSiftAnswers(query)
   }
 
   override def findDataAnalystSiftAnswers(applicationIds: Seq[String]): Future[CsvExtract[String]] = {
-    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    val query = Document("applicationId" -> Document("$in" -> applicationIds))
     commonFindDataAnalystSiftAnswers(query)
   }
 
-  private def commonFindDataAnalystSiftAnswers(query: BSONDocument): Future[CsvExtract[String]] = {
-    val projection = Json.obj("_id" -> 0)
+  private def commonFindDataAnalystSiftAnswers(query: Document): Future[CsvExtract[String]] = {
+    val projection = Projections.excludeId()
 
-    siftAnswersCollection.find(query, Some(projection))
-      .cursor[BSONDocument](ReadPreference.nearest)
-      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
+    siftAnswersCollection.find(query).projection(projection).toFuture().map { docs =>
       val csvRecords = docs.map { doc =>
 
-        val generalAnswers = doc.getAs[BSONDocument]("generalAnswers")
-        val undergradDegree = generalAnswers.getAs[BSONDocument]("undergradDegree")
+        val generalAnswersOpt = subDocRoot("generalAnswers")(doc)
+        val undergradDegreeOpt = generalAnswersOpt.map( _.get("undergradDegree").asDocument() )
 
         val csvRecord = makeRow(
           List(
-            generalAnswers.getAsStr[String]("nationality"),
-            undergradDegree.getAsStr[String]("name"),
-            undergradDegree.getAsStr[String]("classification"),
-            undergradDegree.getAsStr[String]("graduationYear")
+            generalAnswersOpt.map( _.get("nationality").asString().getValue ),
+            undergradDegreeOpt.map( _.get("name").asString().getValue ),
+            undergradDegreeOpt.map( _.get("classification").asString().getValue ),
+            undergradDegreeOpt.map( _.get("graduationYear").asString().getValue )
           ): _*
         )
-        doc.getAs[String]("applicationId").getOrElse("") -> csvRecord
+        extractAppId(doc) -> csvRecord
       }.toMap
       CsvExtract(dataAnalystSiftAnswersHeader, csvRecords)
     }
@@ -1129,43 +1144,41 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
   }
 
   override def findEventsDetails(applicationIds: Seq[String]): Future[CsvExtract[String]] = {
-    val projection = Json.obj("_id" -> 0)
-    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
 
-    val allEventsFut = eventCollection.find(query, Some(projection))
-      .cursor[BSONDocument](ReadPreference.nearest)
-      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
+    val query = Document("applicationId" -> Document("$in" -> applicationIds))
+    val projection = Projections.excludeId()
+
+    val allEventsFut = eventCollection.find(query).projection(projection).toFuture().map { docs =>
       docs.map { doc =>
-        val id = doc.getAs[String]("id")
+        val id = doc.get("id").map( _.asString().getValue )
+
         id.getOrElse("") ->
           List(
             id,
-            doc.getAs[String]("eventType"),
-            doc.getAs[String]("description"),
-            doc.getAs[BSONDocument]("location").flatMap(_.getAs[String]("name")),
-            doc.getAs[BSONDocument]("venue").flatMap(_.getAs[String]("description")),
-            doc.getAs[String]("date")
+            doc.get("eventType").map( _.asString().getValue ),
+            doc.get("description").map( _.asString().getValue ),
+            subDocRoot("location")(doc).map( _.get("name").asString() ),
+            subDocRoot("venue")(doc).map( _.get("description").asString() ),
+            doc.get("date").map( _.asString().getValue )
           ).flatten.mkString(" ")
       }.toMap
     }
 
     allEventsFut.flatMap { allEvents =>
-      candidateAllocationCollection.find(Json.obj(), Some(projection))
-        .cursor[BSONDocument](ReadPreference.nearest)
-        .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
+      candidateAllocationCollection.find(Document.empty).projection(projection).toFuture().map { docs =>
         val csvRecords = docs.map { doc =>
-          val eventId = doc.getAs[String]("eventId").getOrElse("-")
+          val eventId = doc.get("eventId").map( _.asString().getValue ).getOrElse("-")
           val csvRecord = makeRow(
             Some(List(
-              allEvents.get(eventId).map(e => s"Event: $e"),
-              doc.getAs[String]("sessionId").map(s => s"session: $eventId/$s"),
-              doc.getAs[String]("status"),
-              doc.getAs[String]("removeReason"),
-              doc.getAs[String]("createdAt").map(d => s"on $d")
+              allEvents.get(eventId).map( e => s"Event: $e" ),
+              doc.get("sessionId").map( s => s"session: $eventId/${s.asString().getValue}" ),
+              doc.get("status").map( _.asString().getValue ),
+              doc.get("removeReason").map( _.asString().getValue ),
+              doc.get("createdAt").map( d => s"on ${d.asString().getValue}" )
             ).flatten.mkString(" ")
             )
           )
-          doc.getAs[String]("id").getOrElse("") -> csvRecord
+          doc.get("id").map( _.asString().getValue ).getOrElse("") -> csvRecord
         }.groupBy { case (id, _) => id }.map {
           case (appId, events) => appId -> events.map { case (_, eventList) => eventList }.mkString(" --- ")
         }
@@ -1175,28 +1188,26 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
   }
 
   override def findMediaDetails: Future[CsvExtract[String]] = {
-    val query = BSONDocument()
-    val projection = Json.obj("_id" -> 0)
+    val query = Document.empty
+    val projection = Projections.excludeId()
 
     commonFindMediaDetails(query, projection)
   }
 
   override def findMediaDetails(userIds: Seq[String]): Future[CsvExtract[String]] = {
-    val query = BSONDocument("userId" -> BSONDocument("$in" -> userIds))
-    val projection = Json.obj("_id" -> 0)
+    val query = Document("userId" -> Document("$in" -> userIds))
+    val projection = Projections.excludeId()
 
     commonFindMediaDetails(query, projection)
   }
 
-  private def commonFindMediaDetails(query: BSONDocument, projection: JsObject) = {
-    mediaCollection.find(query, Some(projection))
-      .cursor[BSONDocument](ReadPreference.nearest)
-      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
+  private def commonFindMediaDetails(query: Document, projection: Bson) = {
+    mediaCollection.find(query).projection(projection).toFuture.map { docs =>
       val csvRecords = docs.map { doc =>
         val csvRecord = makeRow(
-          doc.getAs[String]("media")
+          doc.get("media").map(_.asString().getValue)
         )
-        doc.getAs[String]("userId").getOrElse("") -> csvRecord
+        extractUserId(doc) -> csvRecord
       }
       CsvExtract(mediaHeader, csvRecords.toMap)
     }
@@ -1214,38 +1225,40 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
   override def findReviewerAssessmentScores(applicationIds: Seq[String]): Future[CsvExtract[String]] =
     findAssessmentScores("Reviewer", reviewerAssessmentScoresCollection, applicationIds)
 
-  private def findAssessmentScores(name: String, col: JSONCollection, applicationIds: Seq[String]): Future[CsvExtract[String]] = {
+  private def findAssessmentScores(name: String, col: MongoCollection[Document], applicationIds: Seq[String]): Future[CsvExtract[String]] = {
     val exerciseSections = assessmentScoresNumericFields.map(_._1)
-    val projection = Json.obj("_id" -> 0)
-    val query = BSONDocument("applicationId" -> BSONDocument("$in" -> applicationIds))
+    val projection = Projections.excludeId()
+    val query = Document("applicationId" -> Document("$in" -> applicationIds))
 
-    col.find(query, Some(projection))
-      .cursor[BSONDocument](ReadPreference.nearest)
-      .collect[List](unlimitedMaxDocs, Cursor.FailOnError[List[BSONDocument]]()).map { docs =>
+    col.find(query).projection(projection).toFuture.map { docs =>
+
+      import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed for ISODate
+
       val csvRecords = docs.map { doc =>
         val csvStr = exerciseSections.flatMap { s =>
-          val section = doc.getAs[BSONDocument](s)
+          val sectionOpt = subDocRoot(s)(doc)
+
           List(
-            section.getAsStr[Boolean]("attended"),
-            section.getAsStr[String]("updatedBy"),
-            section.getAsStr[DateTime]("submittedDate")
+            sectionOpt.map ( doc => doc.get("attended").asBoolean().getValue.toString ),
+            sectionOpt.map ( doc => doc.get("updatedBy").asString().getValue ),
+            sectionOpt.flatMap ( doc => Try(Codecs.fromBson[DateTime](doc.get("submittedDate").asDateTime()).toString).toOption )
           ) ++
             assessmentScoresNumericFieldsMap(s).split(",").map { field =>
-              section.getAsStr[Double](field)
+              sectionOpt.map ( doc => doc.get(field).asDouble().getValue.toString )
             } ++
             assessmentScoresFeedbackFieldsMap(s).split(",").map { field =>
-              section.getAsStr[String](field)
+              sectionOpt.map ( doc => doc.get(field).asString().getValue )
             }
         } ++ {
-          val section = doc.getAs[BSONDocument]("finalFeedback")
+          val sectionOpt = subDocRoot("finalFeedback")(doc)
           List(
-            section.getAsStr[String]("feedback"),
-            section.getAsStr[String]("updatedBy"),
-            section.getAsStr[DateTime]("acceptedDate")
+            sectionOpt.map ( doc => doc.get("feedback").asString().getValue ),
+            sectionOpt.map ( doc => doc.get("updatedBy").asString().getValue ),
+            sectionOpt.map ( doc => Codecs.fromBson[DateTime](doc.get("acceptedDate").asDateTime()).toString )
           )
         }
         val csvRecord = makeRow(csvStr: _*)
-        doc.getAs[String]("applicationId").getOrElse("") -> csvRecord
+        extractAppId(doc) -> csvRecord
       }
       CsvExtract(assessmentScoresHeaders(name), csvRecords.toMap)
     }
@@ -1268,34 +1281,38 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     code.flatMap(c => if (russellGroupUnis.contains(c)) Y else N)
   }
 
-  private def fsbScoresAndFeedback(doc: BSONDocument): List[Option[String]] = {
-    val scoresAndFeedbackOpt = for {
-      testGroups <- doc.getAs[BSONDocument]("testGroups")
-      fsb <- testGroups.getAs[BSONDocument]("FSB")
-      scoresAndFeedback <- fsb.getAs[ScoresAndFeedback]("scoresAndFeedback")
-    } yield scoresAndFeedback
-
+  private def fsbScoresAndFeedback(doc: Document): List[Option[String]] = {
+    val scoresAndFeedbackOpt = (for {
+      fsb <- subDocRoot("testGroups")(doc).map(_.get("FSB"))
+    } yield {
+      Try(Codecs.fromBson[ScoresAndFeedback](fsb.asDocument().get("scoresAndFeedback"))).toOption
+    }).flatten
     scoresAndFeedbackOpt.map { saf =>
       List(Some(saf.overallScore.toString), Some(saf.feedback))
     }.getOrElse( List(None, None) )
   }
 
-  private def videoInterview(doc: BSONDocument): List[Option[String]] = {
-    val testGroups = doc.getAs[BSONDocument]("testGroups")
-    val videoTestSection = testGroups.getAs[BSONDocument]("PHASE3")
-    val videoTests = videoTestSection.getAs[List[BSONDocument]]("tests")
-    val activeVideoTest = videoTests.map(_.filter(_.getAs[Boolean]("usedForResults").getOrElse(false)).head)
-    val activeVideoTestCallbacks = activeVideoTest.getAs[BSONDocument]("callbacks")
-    val activeVideoTestReviewedCallbacks = activeVideoTestCallbacks.getAs[List[BSONDocument]]("reviewed")
+  private def videoInterview(doc: Document): List[Option[String]] = {
+    val testGroupsOpt = subDocRoot("testGroups")(doc)
+    val videoTestSectionOpt = testGroupsOpt.flatMap(testGroups => subDocRoot("PHASE3")(testGroups))
+    import scala.collection.JavaConverters._
+    val videoTestsOpt = videoTestSectionOpt.map( _.get("tests").asArray().getValues.asScala.toList.map ( _.asDocument() ))
 
-    val latestAVTRCallback = activeVideoTestReviewedCallbacks.flatMap {
+    val activeVideoTestOpt = videoTestsOpt.map( docList => docList.filter( doc => Try(doc.get("usedForResults").asBoolean().getValue).getOrElse(false) ).head )
+
+    val activeVideoTestCallbacksOpt = activeVideoTestOpt.flatMap( doc => subDocRoot("callbacks")(doc) )
+    val activeVideoTestReviewedCallbacksOpt = activeVideoTestCallbacksOpt.map( _.get("reviewed").asArray().getValues.asScala.toList.map ( _.asDocument() ))
+
+    val latestAVTRCallbackOpt = activeVideoTestReviewedCallbacksOpt.flatMap {
       reviewedCallbacks =>
         reviewedCallbacks.sortWith { (r1, r2) =>
-          r1.getAs[DateTime]("received").get.isAfter(r2.getAs[DateTime]("received").get)
-        }.headOption.map(_.as[ReviewedCallbackRequest])
+          val r1Received = extractDateTime(r1, "received")
+          val r2Received = extractDateTime(r2, "received")
+          r1Received.isAfter(r2Received)
+        }.headOption.map( Codecs.fromBson[ReviewedCallbackRequest] )
     }
 
-    val latestReviewer = latestAVTRCallback.map {
+    val latestReviewerOpt = latestAVTRCallbackOpt.map {
       callback =>
         callback.reviewers.reviewer3.getOrElse(
           callback.reviewers.reviewer2.getOrElse(
@@ -1320,51 +1337,57 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     }
 
     List(
-      activeVideoTest.getAsStr[Int]("interviewId"),
-      activeVideoTest.getAsStr[String]("token"),
-      activeVideoTest.getAsStr[String]("candidateId"),
-      activeVideoTest.getAsStr[String]("customCandidateId"),
-      latestReviewer.flatMap(_.comment),
-      latestAVTRCallback.map(_.received.toString),
-      latestReviewer.flatMap(_.question1.reviewCriteria1.score.map(_.toString)),
-      latestReviewer.flatMap(_.question1.reviewCriteria2.score.map(_.toString)),
-      latestReviewer.flatMap(_.question2.reviewCriteria1.score.map(_.toString)),
-      latestReviewer.flatMap(_.question2.reviewCriteria2.score.map(_.toString)),
-      latestReviewer.flatMap(_.question3.reviewCriteria1.score.map(_.toString)),
-      latestReviewer.flatMap(_.question3.reviewCriteria2.score.map(_.toString)),
-      latestReviewer.flatMap(_.question4.reviewCriteria1.score.map(_.toString)),
-      latestReviewer.flatMap(_.question4.reviewCriteria2.score.map(_.toString)),
-      latestReviewer.flatMap(_.question5.reviewCriteria1.score.map(_.toString)),
-      latestReviewer.flatMap(_.question5.reviewCriteria2.score.map(_.toString)),
-      latestReviewer.flatMap(_.question6.reviewCriteria1.score.map(_.toString)),
-      latestReviewer.flatMap(_.question6.reviewCriteria2.score.map(_.toString)),
-      latestReviewer.flatMap(_.question7.reviewCriteria1.score.map(_.toString)),
-      latestReviewer.flatMap(_.question7.reviewCriteria2.score.map(_.toString)),
-      latestReviewer.flatMap(_.question8.reviewCriteria1.score.map(_.toString)),
-      latestReviewer.flatMap(_.question8.reviewCriteria2.score.map(_.toString)),
-      latestReviewer.map(reviewer => totalForQuestions(reviewer).toString)
+      activeVideoTestOpt.map(_.get("interviewId").asInt32().getValue.toString),
+      activeVideoTestOpt.map(_.get("token").asString().getValue),
+      activeVideoTestOpt.map(_.get("candidateId").asString().getValue),
+      activeVideoTestOpt.map(_.get("customCandidateId").asString().getValue),
+      latestReviewerOpt.flatMap(_.comment),
+      latestAVTRCallbackOpt.map(_.received.toString),
+      latestReviewerOpt.flatMap(_.question1.reviewCriteria1.score.map(_.toString)),
+      latestReviewerOpt.flatMap(_.question1.reviewCriteria2.score.map(_.toString)),
+      latestReviewerOpt.flatMap(_.question2.reviewCriteria1.score.map(_.toString)),
+      latestReviewerOpt.flatMap(_.question2.reviewCriteria2.score.map(_.toString)),
+      latestReviewerOpt.flatMap(_.question3.reviewCriteria1.score.map(_.toString)),
+      latestReviewerOpt.flatMap(_.question3.reviewCriteria2.score.map(_.toString)),
+      latestReviewerOpt.flatMap(_.question4.reviewCriteria1.score.map(_.toString)),
+      latestReviewerOpt.flatMap(_.question4.reviewCriteria2.score.map(_.toString)),
+      latestReviewerOpt.flatMap(_.question5.reviewCriteria1.score.map(_.toString)),
+      latestReviewerOpt.flatMap(_.question5.reviewCriteria2.score.map(_.toString)),
+      latestReviewerOpt.flatMap(_.question6.reviewCriteria1.score.map(_.toString)),
+      latestReviewerOpt.flatMap(_.question6.reviewCriteria2.score.map(_.toString)),
+      latestReviewerOpt.flatMap(_.question7.reviewCriteria1.score.map(_.toString)),
+      latestReviewerOpt.flatMap(_.question7.reviewCriteria2.score.map(_.toString)),
+      latestReviewerOpt.flatMap(_.question8.reviewCriteria1.score.map(_.toString)),
+      latestReviewerOpt.flatMap(_.question8.reviewCriteria2.score.map(_.toString)),
+      latestReviewerOpt.map(reviewer => totalForQuestions(reviewer).toString)
     )
   }
 
-  private def getSchemeResults(results: List[BSONDocument]) = results.map {
-    result => result.getAs[String]("schemeId").getOrElse("") + ": " + result.getAs[String]("result").getOrElse("")
+  private def getSchemeResults(results: List[BsonDocument]) = results.map {
+    result => Try(result.get("schemeId").asString().getValue).getOrElse("") + ": " + Try(result.get("result").asString().getValue).getOrElse("")
   }
 
-  private def testEvaluations(doc: BSONDocument, numOfSchemes: Int): List[Option[String]] = {
-    val testGroups = doc.getAs[BSONDocument]("testGroups")
+  private def testEvaluations(doc: Document, numOfSchemes: Int): List[Option[String]] = {
+    val testGroupsOpt = subDocRoot("testGroups")(doc)
 
     List("PHASE1", "PHASE2", "PHASE3", "SIFT_PHASE", "FSAC", "FSB").flatMap { sectionName => {
-      val testSection = testGroups.getAs[BSONDocument](sectionName)
-      val testsEvaluation = testSection.getAs[BSONDocument]("evaluation")
-      val testEvalResults = testsEvaluation.getAs[List[BSONDocument]]("result")
-        .orElse(testsEvaluation.getAs[List[BSONDocument]]("schemes-evaluation"))
+      val testSectionOpt = testGroupsOpt.flatMap( section => subDocRoot(sectionName)(section) )
+      val testsEvaluationOpt = testSectionOpt.flatMap ( evaluation => subDocRoot("evaluation")(evaluation) )
+
+      import scala.collection.JavaConverters._
+      // Handle NPE
+      val testEvalResults = testsEvaluationOpt.flatMap( eval => Try(eval.get("result").asArray().getValues.asScala.toList.map ( _.asDocument() )).toOption
+        .orElse(testsEvaluationOpt.map( eval => eval.get("schemes-evaluation").asArray().getValues.asScala.toList.map ( _.asDocument() )) ))
+
       val evalResultsMap = testEvalResults.map(getSchemeResults)
       padResults(evalResultsMap, numOfSchemes)
     }}
   }
 
-  private def currentSchemeStatus(doc: BSONDocument, numOfSchemes: Int): List[Option[String]] = {
-    val testEvalResults = doc.getAs[List[BSONDocument]]("currentSchemeStatus")
+  private def currentSchemeStatus(doc: Document, numOfSchemes: Int): List[Option[String]] = {
+    import scala.collection.JavaConverters._
+    val testEvalResults = doc.get("currentSchemeStatus").map(_.asArray().getValues.asScala.toList.map ( _.asDocument() ))
+
     val evalResultsMap = testEvalResults.map(getSchemeResults)
     padResults(evalResultsMap, numOfSchemes)
   }
@@ -1374,111 +1397,132 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     schemeResults.map(Option(_)) ::: (1 to (numOfSchemes - schemeResults.size)).toList.map(_ => Some(""))
   }
 
-  private def fsacCompetency(doc: BSONDocument): List[Option[String]] = {
-    val testGroups = doc.getAs[BSONDocument]("testGroups")
-    val testSection = testGroups.getAs[BSONDocument]("FSAC")
-    val testsEvaluation = testSection.getAs[BSONDocument]("evaluation")
+  private def fsacCompetency(doc: Document): List[Option[String]] = {
+    val testGroupsOpt = subDocRoot("testGroups")(doc)
+    val testSectionOpt = testGroupsOpt.flatMap( testGroups => subDocRoot("FSAC")(testGroups) )
+    val testsEvaluationOpt = testSectionOpt.flatMap( evaluation => subDocRoot("evaluation")(evaluation) )
 
-    val passedMin = testsEvaluation.getAs[Boolean]("passedMinimumCompetencyLevel").map(_.toString)
-    val competencyAvg = testsEvaluation.getAs[BSONDocument]("competency-average")
+    // Handle NPE
+    val passedMin = testsEvaluationOpt.flatMap( evaluation => Try(evaluation.get("passedMinimumCompetencyLevel").asBoolean().getValue.toString).toOption )
+    val competencyAvgOpt = testsEvaluationOpt.flatMap( evaluation => subDocRoot("competency-average")(evaluation))
     passedMin :: List(
       "makingEffectiveDecisionsAverage",
       "workingTogetherDevelopingSelfAndOthersAverage",
       "communicatingAndInfluencingAverage",
       "seeingTheBigPictureAverage",
       "overallScore"
-    ).map { f => competencyAvg.getAs[Double](f) map (_.toString) }
+    ).map( f => getDoubleOrInt(competencyAvgOpt ,f) )
   }
 
-  private def onlineTests(doc: BSONDocument): Map[String, List[Option[String]]] = {
+  private def getDoubleOrInt(doc: Option[BsonDocument], key: String) = doc.map { doc =>
+    try {
+      doc.get(key).asDouble().getValue.toString
+    } catch {
+      case _: org.bson.BsonInvalidOperationException =>
+        doc.get(key).asInt32().getValue.toString
+    }
+  }
+
+  private def extractDateTime(doc: BsonDocument, key: String) = {
+    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed for ISODate
+    Codecs.fromBson[DateTime](doc.get(key).asDateTime())
+  }
+
+  private def onlineTests(doc: Document): Map[String, List[Option[String]]] = {
+
+    def extractDataFromTest(test: Option[BsonDocument]) = {
+      val testResults = test.flatMap ( doc => subDocRoot("testResult")(doc) )
+
+      List(
+        test.map( _.get("inventoryId").asString().getValue ),
+        test.map( _.get("orderId").asString().getValue ),
+        test.map( _.get("normId").asString().getValue ),
+        test.map( _.get("reportId").asString().getValue ),
+        test.map( _.get("assessmentId").asString().getValue ),
+        test.map( _.get("testUrl").asString().getValue ),
+        test.map( doc => extractDateTime(doc, "invitationDate").toString ),
+        test.map( doc => extractDateTime(doc, "startedDateTime").toString ),
+        test.map( doc => extractDateTime(doc, "completedDateTime").toString ),
+        // TODO: mongo this data is stored as Int32 if there is no fraction part if we don't set the legacyNumbers argument
+        // TODO: this is different to ReactiveMongo version which always stores it as double
+        getDoubleOrInt(testResults, "tScore"),
+        getDoubleOrInt(testResults, "rawScore"),
+        testResults.map( _.get("testReportUrl").asString().getValue )
+      )
+    }
 
     def getInventoryId(config: Map[String, PsiTestIds], testName: String, phase: String) =
       config.getOrElse(testName, throw new Exception(s"No inventoryId found for $phase $testName")).inventoryId
 
-    def extractDataFromTest(test: Option[BSONDocument]) = {
-      val testResults = test.flatMap ( _.getAs[BSONDocument]("testResult") )
-
-      List(
-        test.getAsStr[String]("inventoryId"),
-        test.getAsStr[String]("orderId"),
-        test.getAsStr[String]("normId"),
-        test.getAsStr[String]("reportId"),
-        test.getAsStr[String]("assessmentId"),
-        test.getAsStr[String]("testUrl"),
-        test.getAsStr[DateTime]("invitationDate"),
-        test.getAsStr[DateTime]("startedDateTime"),
-        test.getAsStr[DateTime]("completedDateTime"),
-        testResults.getAsStr[Double]("tScore"),
-        testResults.getAsStr[Double]("rawScore"),
-        testResults.getAsStr[String]("testReportUrl")
-      )
-    }
-
-    val testGroups = doc.getAs[BSONDocument]("testGroups")
-
     // Phase1 data
     val phase1TestConfig = appConfig.onlineTestsGatewayConfig.phase1Tests.tests
-
     val test1InventoryId = getInventoryId(phase1TestConfig, "test1", "phase1")
     val test2InventoryId = getInventoryId(phase1TestConfig, "test2", "phase1")
     val test3InventoryId = getInventoryId(phase1TestConfig, "test3", "phase1")
     val test4InventoryId = getInventoryId(phase1TestConfig, "test4", "phase1")
 
-    val phase1TestSection = testGroups.flatMap(_.getAs[BSONDocument]("PHASE1"))
-    val phase1Tests = phase1TestSection.flatMap(_.getAs[List[BSONDocument]]("tests"))
+    val testGroupsOpt = subDocRoot("testGroups")(doc)
+
+    import scala.collection.JavaConverters._
+    val phase1Tests = for {
+      testGroups <- testGroupsOpt
+      phase1Tests <- subDocRoot("PHASE1")(testGroups).map(_.get("tests").asArray())
+    } yield phase1Tests.getValues.asScala.toList.map ( _.asDocument() )
 
     val phase1Test1 = phase1Tests.flatMap( tests =>
       tests.find { test =>
-        test.getAs[String]("inventoryId").get == test1InventoryId && test.getAs[Boolean]("usedForResults").getOrElse(false)
+        test.getString("inventoryId").getValue == test1InventoryId && test.getBoolean("usedForResults").getValue
       }
     )
     val phase1Test2 = phase1Tests.flatMap( tests =>
       tests.find { test =>
-        test.getAs[String]("inventoryId").get == test2InventoryId && test.getAs[Boolean]("usedForResults").getOrElse(false)
+        test.getString("inventoryId").getValue == test2InventoryId && test.getBoolean("usedForResults").getValue
       }
     )
     val phase1Test3 = phase1Tests.flatMap( tests =>
       tests.find { test =>
-        test.getAs[String]("inventoryId").get == test3InventoryId && test.getAs[Boolean]("usedForResults").getOrElse(false)
+        test.getString("inventoryId").getValue == test3InventoryId && test.getBoolean("usedForResults").getValue
       }
     )
     val phase1Test4 = phase1Tests.flatMap( tests =>
       tests.find { test =>
-        test.getAs[String]("inventoryId").get == test4InventoryId && test.getAs[Boolean]("usedForResults").getOrElse(false)
+        test.getString("inventoryId").getValue == test4InventoryId && test.getBoolean("usedForResults").getValue
       }
     )
 
     // Phase2 data
     val phase2TestConfig = appConfig.onlineTestsGatewayConfig.phase2Tests.tests
-
     val phase2Test1InventoryId = getInventoryId(phase2TestConfig, "test1", "phase2")
     val phase2Test2InventoryId = getInventoryId(phase2TestConfig, "test2", "phase2")
 
-    val phase2TestSection = testGroups.flatMap(_.getAs[BSONDocument]("PHASE2"))
-    val phase2Tests = phase2TestSection.flatMap(_.getAs[List[BSONDocument]]("tests"))
+    val phase2Tests = for {
+      testGroups <- testGroupsOpt
+      phase2Tests <- subDocRoot("PHASE2")(testGroups).map(_.get("tests").asArray())
+    } yield phase2Tests.getValues.asScala.toList.map ( _.asDocument() )
 
     val phase2Test1 = phase2Tests.flatMap( tests =>
       tests.find { test =>
-        test.getAs[String]("inventoryId").get == phase2Test1InventoryId && test.getAs[Boolean]("usedForResults").getOrElse(false)
+        test.getString("inventoryId").getValue == phase2Test1InventoryId && test.getBoolean("usedForResults").getValue
       }
     )
     val phase2Test2 = phase2Tests.flatMap( tests =>
       tests.find { test =>
-        test.getAs[String]("inventoryId").get == phase2Test2InventoryId && test.getAs[Boolean]("usedForResults").getOrElse(false)
+        test.getString("inventoryId").getValue == phase2Test2InventoryId && test.getBoolean("usedForResults").getValue
       }
     )
 
     // Sift data
     val siftTestConfig = appConfig.onlineTestsGatewayConfig.numericalTests.tests
-
     val siftTestInventoryId = getInventoryId(siftTestConfig, "test1", "sift")
 
-    val siftTestSection = testGroups.flatMap(_.getAs[BSONDocument]("SIFT_PHASE"))
-    val siftTests = siftTestSection.flatMap(_.getAs[List[BSONDocument]]("tests"))
+    val siftTests = for {
+      testGroups <- testGroupsOpt
+      siftTests <- Try(subDocRoot("SIFT_PHASE")(testGroups).map(_.get("tests").asArray())).toOption.flatten // Handle NPE
+    } yield siftTests.getValues.asScala.toList.map ( _.asDocument() )
 
     val siftTest = siftTests.flatMap( tests =>
       tests.find { test =>
-        test.getAs[String]("inventoryId").get == siftTestInventoryId && test.getAs[Boolean]("usedForResults").getOrElse(false)
+        test.getString("inventoryId").getValue == siftTestInventoryId && test.getBoolean("usedForResults").getValue
       }
     )
 
@@ -1545,61 +1589,81 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     disabilityCategoriesList.map ( dc => if (disabilityCategories.contains(dc)) Y else N )
   }
 
-  private def assistanceDetails(doc: BSONDocument): List[Option[String]] = {
-    val assistanceDetails = doc.getAs[BSONDocument]("assistance-details")
-    val etrayAdjustments = assistanceDetails.getAs[BSONDocument]("etray")
-    val videoAdjustments = assistanceDetails.getAs[BSONDocument]("video")
-    val typeOfAdjustments = assistanceDetails.getAs[List[String]]("typeOfAdjustments").getOrElse(Nil)
+  private def assistanceDetails(doc: Document): List[Option[String]] = {
+    val assistanceDetailsOpt = subDocRoot("assistance-details")(doc)
+    val etrayAdjustmentsOpt = Try(assistanceDetailsOpt.map( doc => doc.get("etray").asDocument() )).toOption.flatten // Handle NPE
+    val videoAdjustmentsOpt = Try(assistanceDetailsOpt.map( doc => doc.get("video").asDocument() )).toOption.flatten // Handle NPE
+
+    import scala.collection.JavaConverters._
+    val typeOfAdjustments = assistanceDetailsOpt.map { ad =>
+      if (ad.containsKey("typeOfAdjustments"))
+        ad.get("typeOfAdjustments").asArray().getValues.asScala.toList.map(_.asString().getValue)
+      else Nil
+    }.getOrElse(Nil)
 
     val markedDisabilityCategories = markDisabilityCategories(
-      assistanceDetails.getAs[List[String]]("disabilityCategories").getOrElse(Nil)
+      assistanceDetailsOpt.map { ad =>
+        if (ad.containsKey("disabilityCategories"))
+          ad.get("disabilityCategories").asArray().getValues.asScala.toList.map(_.asString().getValue)
+        else Nil
+      }.getOrElse(Nil)
     )
 
     List(
-      assistanceDetails.getAs[String]("hasDisability"),
-      assistanceDetails.getAs[String]("disabilityImpact")
+      assistanceDetailsOpt.map(_.get("hasDisability").asString().getValue),
+        Try(assistanceDetailsOpt.map(_.get("disabilityImpact").asString().getValue)).toOption.flatten,
     ) ++ markedDisabilityCategories ++
       List(
-        assistanceDetails.getAs[String]("otherDisabilityDescription"),
-        assistanceDetails.flatMap(ad => if (ad.getAs[Boolean]("guaranteedInterview").getOrElse(false)) Y else N),
-        if (assistanceDetails.getAs[Boolean]("needsSupportForOnlineAssessment").getOrElse(false)) Y else N,
-        assistanceDetails.getAs[String]("needsSupportForOnlineAssessmentDescription"),
-        if (assistanceDetails.getAs[Boolean]("needsSupportAtVenue").getOrElse(false)) Y else N,
-        assistanceDetails.getAs[String]("needsSupportAtVenueDescription"),
-        if (assistanceDetails.getAs[Boolean]("needsSupportForPhoneInterview").getOrElse(false)) Y else N,
-        assistanceDetails.getAs[String]("needsSupportForPhoneInterviewDescription"),
-        etrayAdjustments.getAs[Int]("timeNeeded").map(_ + "%"),
+        Try(assistanceDetailsOpt.map(_.get("otherDisabilityDescription").asString().getValue)).toOption.flatten,
+
+        assistanceDetailsOpt.flatMap( ad => if (Try(ad.get("guaranteedInterview").asBoolean().getValue).getOrElse(false)) Y else N ),
+        if (assistanceDetailsOpt.map(ad => ad.get("needsSupportForOnlineAssessment").asBoolean().getValue).getOrElse(false)) Y else N,
+        Try(assistanceDetailsOpt.map(_.get("needsSupportForOnlineAssessmentDescription").asString().getValue)).toOption.flatten,
+        if (assistanceDetailsOpt.map(ad => ad.get("needsSupportAtVenue").asBoolean().getValue).getOrElse(false)) Y else N,
+        Try(assistanceDetailsOpt.map(_.get("needsSupportAtVenueDescription").asString().getValue)).toOption.flatten,
+        if (assistanceDetailsOpt.map(ad => Try(ad.get("needsSupportForPhoneInterview").asBoolean().getValue).getOrElse(false)).getOrElse(false)) Y else N,
+        Try(assistanceDetailsOpt.map(_.get("needsSupportForPhoneInterviewDescription").asString().getValue)).toOption.flatten,
+        etrayAdjustmentsOpt.map(_.get("timeNeeded").asInt32().getValue + "%"),
+
         if (typeOfAdjustments.contains("etrayInvigilated")) Y else N,
-        etrayAdjustments.getAs[String]("invigilatedInfo"),
-        etrayAdjustments.getAs[String]("otherInfo"),
-        videoAdjustments.getAs[Int]("timeNeeded").map(_ + "%"),
+        etrayAdjustmentsOpt.map(_.get("invigilatedInfo").asString().getValue),
+        etrayAdjustmentsOpt.map(_.get("otherInfo").asString().getValue),
+
+        videoAdjustmentsOpt.map(_.get("timeNeeded").asInt32().getValue + "%"),
         if (typeOfAdjustments.contains("videoInvigilated")) Y else N,
-        videoAdjustments.getAs[String]("invigilatedInfo"),
-        videoAdjustments.getAs[String]("otherInfo"),
-        assistanceDetails.getAs[String]("adjustmentsComment"),
-        if (assistanceDetails.getAs[Boolean]("adjustmentsConfirmed").getOrElse(false)) Y else N
+        videoAdjustmentsOpt.map(_.get("invigilatedInfo").asString().getValue),
+        videoAdjustmentsOpt.map(_.get("otherInfo").asString().getValue),
+        Try(assistanceDetailsOpt.map(_.get("adjustmentsComment").asString().getValue)).toOption.flatten,
+        if (assistanceDetailsOpt.map(ad => Try(ad.get("adjustmentsConfirmed").asBoolean().getValue).getOrElse(false)).getOrElse(false)) Y else N
       )
   }
 
-  private def disabilityDetails(doc: BSONDocument): List[Option[String]] = {
-    val assistanceDetails = doc.getAs[BSONDocument]("assistance-details")
+  private def disabilityDetails(doc: Document): List[Option[String]] = {
+    val assistanceDetailsOpt = subDocRoot("assistance-details")(doc)
+
+    import scala.collection.JavaConverters._
     val markedDisabilityCategories = markDisabilityCategories(
-      assistanceDetails.getAs[List[String]]("disabilityCategories").getOrElse(Nil)
+      assistanceDetailsOpt.map { ad =>
+        if (ad.containsKey("disabilityCategories"))
+          ad.get("disabilityCategories").asArray().getValues.asScala.toList.map(_.asString().getValue)
+        else Nil
+      }.getOrElse(Nil)
     )
     List(
-      assistanceDetails.getAs[String]("hasDisability"),
-      assistanceDetails.getAs[String]("disabilityImpact")
+      assistanceDetailsOpt.map(_.get("hasDisability").asString().getValue),
+      Try(assistanceDetailsOpt.map(_.get("disabilityImpact").asString().getValue)).toOption.flatten,
     ) ++ markedDisabilityCategories ++
       List(
-        assistanceDetails.getAs[String]("otherDisabilityDescription")
+        Try(assistanceDetailsOpt.map(_.get("otherDisabilityDescription").asString().getValue)).toOption.flatten
       )
   }
 
-  private def personalDetails(doc: BSONDocument, isAnalystReport: Boolean) = {
+  private def personalDetails(doc: Document, isAnalystReport: Boolean) = {
     val columns = if (isAnalystReport) { List("dateOfBirth") } else { List("firstName", "lastName","preferredName", "dateOfBirth") }
-    val personalDetails = doc.getAs[BSONDocument]("personal-details")
-    columns.map ( personalDetails.getAs[String] )
+    val personalDetailsOpt = subDocRoot("personal-details")(doc)
+    columns.map ( columnName => personalDetailsOpt.map(_.get(columnName).asString().getValue) )
   }
+
 
   private def makeRow(values: Option[String]*) =
     values.map { s =>

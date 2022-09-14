@@ -18,21 +18,45 @@ package model.assessmentscores
 
 import model.UniqueIdentifier
 import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import repositories._
 import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, BSONHandler, Macros }
 
 case class AssessmentScoresFinalFeedback(
   feedback: String,
   updatedBy: UniqueIdentifier,
   acceptedDate: DateTime,
   version: Option[String] = None
-) extends AssessmentScoresSection
+) extends AssessmentScoresSection {
+
+  def toExchange = AssessmentScoresFinalFeedbackExchange(
+    feedback,
+    updatedBy,
+    acceptedDate,
+    version
+  )
+}
 
 object AssessmentScoresFinalFeedback {
+  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format in Mongo
   implicit val jsonFormat = Json.format[AssessmentScoresFinalFeedback]
-  implicit val bsonHandler: BSONHandler[BSONDocument, AssessmentScoresFinalFeedback] =
-    Macros.handler[AssessmentScoresFinalFeedback]
+}
+
+case class AssessmentScoresFinalFeedbackExchange(
+  feedback: String,
+  updatedBy: UniqueIdentifier,
+  acceptedDate: DateTime,
+  version: Option[String] = None
+) extends AssessmentScoresSection {
+
+  def toPersistence = AssessmentScoresFinalFeedback(
+    feedback,
+    updatedBy,
+    acceptedDate,
+    version
+  )
+}
+
+object AssessmentScoresFinalFeedbackExchange {
+  import play.api.libs.json.JodaWrites._ // This is needed for request/response DateTime serialization
+  import play.api.libs.json.JodaReads._ // This is needed for request/response DateTime serialization
+  implicit val jsonFormat = Json.format[AssessmentScoresFinalFeedbackExchange]
 }

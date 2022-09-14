@@ -16,9 +16,11 @@
 
 package model
 
+import org.mongodb.scala.bson.BsonValue
+
 import java.util.UUID
 import play.api.libs.json._
-import reactivemongo.bson.{ BSON, BSONHandler, BSONString }
+import uk.gov.hmrc.mongo.play.json.Codecs
 
 case class UniqueIdentifier(uuid: UUID) {
   override def toString = uuid.toString
@@ -56,8 +58,7 @@ object UniqueIdentifier {
     (jsValue: JsValue) => JsSuccess(UniqueIdentifier(jsValue.as[String]))
   }
 
-  implicit object UniqueIdentifierBSONHandler extends BSONHandler[BSONString, UniqueIdentifier] {
-    def read(doc: BSONString) = UniqueIdentifier(doc.value)
-    def write(id: UniqueIdentifier) = BSON.write(id.toString)
+  implicit class BsonOps(val uuid: UniqueIdentifier) extends AnyVal {
+    def toBson: BsonValue = Codecs.toBson(uuid)
   }
 }
