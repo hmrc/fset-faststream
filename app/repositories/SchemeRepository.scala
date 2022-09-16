@@ -63,6 +63,7 @@ trait SchemeRepository {
   def numericTestSiftRequirementSchemeIds: Seq[SchemeId]
   def formMustBeFilledInSchemeIds: Seq[SchemeId]
   def getFsbTypes: Seq[FsbType]
+  def isValidSchemeId(schemeId: SchemeId): Boolean
 
   /**
     * Max number of schemes that a candidate can choose. Note that SdipFaststream max will be +1 eg. 5 because they automatically
@@ -122,4 +123,6 @@ class SchemeYamlRepository @Inject() (implicit application: Application, appConf
   }
 
   override def getFsbTypes: Seq[FsbType] = schemes.flatMap(_.fsbType)
+
+  override def isValidSchemeId(schemeId: SchemeId): Boolean = schemes.map(_.id).contains(schemeId)
 }

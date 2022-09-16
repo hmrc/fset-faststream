@@ -17,16 +17,15 @@
 package controllers.fixdata
 
 import factories.UUIDFactory
-
-import javax.inject.{Inject, Singleton}
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.{ApplicationNotFound, CandidateInIncorrectState, CannotUpdateCivilServiceExperienceDetails, CannotUpdateRecord, NoResultsReturned, NotFoundException, TokenNotFound, UnexpectedException}
-import model.ProgressStatuses.{ASSESSMENT_CENTRE_PASSED, _}
+import model.Exceptions._
+import model.ProgressStatuses._
 import model.command.FastPassPromotion
 import model.persisted.sift.SiftAnswersStatus
 import model.{SchemeId, UniqueIdentifier}
 import play.api.Logging
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+import repositories.SchemeRepository
 import services.application.ApplicationService.NoChangeInCurrentSchemeStatusException
 import services.application.{ApplicationService, FsbService}
 import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAssessmentScoreEvaluationException
@@ -38,6 +37,7 @@ import services.sift.{ApplicationSiftService, SiftAnswersService}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -53,7 +53,8 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
                                              fsbService: FsbService,
                                              phase2TestService: Phase2TestService,
                                              phase3TestService: Phase3TestService,
-                                             uuidFactory: UUIDFactory
+                                             uuidFactory: UUIDFactory,
+                                             schemeRepository: SchemeRepository
                                             ) extends BackendController(cc) with Logging {
 
   def undoFullWithdraw(applicationId: String, newApplicationStatus: ApplicationStatus) = Action.async { implicit request =>
@@ -746,6 +747,20 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       case _: ApplicationNotFound => NotFound(s"No candidate found for $applicationId, scheme:$schemeId")
       case ex: Throwable =>
         BadRequest(s"Could not update phase 3 test group for $applicationId - message: ${ex.getMessage}")
+    }
+  }
+
+  def addPhase3SchemeAsGreen(applicationId: String, schemeId: model.SchemeId): Action[AnyContent] = Action.async {
+    (for {
+      isValid <- Future.successful(schemeRepository.isValidSchemeId(schemeId))
+      _ = if (!isValid) { throw new Exception(s"Scheme $schemeId is not a valid name") }
+      _ <- applicationService.addPhase3SchemeAsGreen(applicationId, schemeId)
+    } yield {
+      Ok(s"Successfully added ${schemeId.value} as green for $applicationId")
+    }) recover {
+      case _: ApplicationNotFound => NotFound(s"No candidate found or bad scheme provided for $applicationId, scheme:$schemeId")
+      case ex: Throwable =>
+        BadRequest(s"Could not add ${schemeId.value} to phase 3 test group for $applicationId - message: ${ex.getMessage}")
     }
   }
 

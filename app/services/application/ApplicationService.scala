@@ -778,6 +778,10 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
     phase3TestRepository.updateResult(applicationId, SchemeEvaluationResult(schemeId, Green.toString)).map(_ => ())
   }
 
+  def addPhase3SchemeAsGreen(applicationId: String, schemeId: SchemeId): Future[Unit] = {
+    phase3TestRepository.addResult(applicationId, SchemeEvaluationResult(schemeId, Green.toString)).map(_ => ())
+  }
+
   def markSiftSchemeAsGreen(applicationId: String, schemeId: SchemeId): Future[Unit] = {
     for {
       _ <- appSiftRepository.fixSchemeEvaluation(applicationId, SchemeEvaluationResult(schemeId, Green.toString))
