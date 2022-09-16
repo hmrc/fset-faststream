@@ -28,7 +28,7 @@ import model.{ApplicationStatus, ProgressStatuses, ReminderNotice}
 import org.joda.time.DateTime
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.bson.{BsonArray, BsonDocument, BsonString}
-import org.mongodb.scala.model.Projections
+import org.mongodb.scala.model.{Projections, UpdateOptions}
 import play.api.libs.json.{Reads, Writes}
 import repositories._
 import repositories.onlinetesting.Phase3TestRepository.CannotFindTestByLaunchpadId
@@ -60,6 +60,7 @@ trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
   def markTestAsActive(token: String): Future[Unit]
   def updateExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit]
   def updateResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
+  def addResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
 }
 
 @Singleton
@@ -114,6 +115,25 @@ class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
       _ <- collection.updateOne(removePredicate, removeDoc).toFuture() map validator
       _ <- collection.updateOne(setPredicate, setDoc).toFuture() map validator
     } yield ()
+  }
+
+  // This allows us to add a P3 evaluation section as a workaround while we do not have a P3 test integration partner
+  // By doing this we can get a PHASE2_TESTS_PASSED candidate into sift
+  // (after setting the applicationStatus to PHASE3_TESTS_PASSED_NOTIFIED)
+  override def addResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit] = {
+    val phase3TestGroupEvaluation = s"testGroups.$phaseName.evaluation"
+    val saveEvaluationResultsDoc = BsonDocument(s"$phase3TestGroupEvaluation.result" -> Codecs.toBson(result))
+    val update = BsonDocument("$addToSet" -> saveEvaluationResultsDoc)
+
+    val predicate = BsonDocument("$and" -> BsonArray(
+      BsonDocument("applicationId" -> applicationId),
+      BsonDocument(
+        s"$phase3TestGroupEvaluation.result.schemeId" -> BsonDocument("$nin" -> BsonArray(result.schemeId.value))
+      )
+    ))
+
+    val validator = singleUpdateValidator(applicationId, s"Adding phase3 results for ${result.schemeId}", ApplicationNotFound(applicationId))
+    collection.updateOne(predicate, update).toFuture() map validator
   }
 
   // Here we have an implicit BSONHandler which converts from a BSONDocument to the type A. The type A is the type of the

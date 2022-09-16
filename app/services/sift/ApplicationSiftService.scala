@@ -202,7 +202,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
         .getOrElse(throw NoActiveTestException(s"No active sift test found for $applicationId"))
       SiftTestGroupWithActiveTest(
         sift.expirationDate,
-        test
+        test.toExchange
       )
     }
   }

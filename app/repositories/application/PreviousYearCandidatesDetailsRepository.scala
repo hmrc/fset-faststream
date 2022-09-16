@@ -1296,7 +1296,9 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     val testGroupsOpt = subDocRoot("testGroups")(doc)
     val videoTestSectionOpt = testGroupsOpt.flatMap(testGroups => subDocRoot("PHASE3")(testGroups))
     import scala.collection.JavaConverters._
-    val videoTestsOpt = videoTestSectionOpt.map( _.get("tests").asArray().getValues.asScala.toList.map ( _.asDocument() ))
+    val videoTestsOpt = videoTestSectionOpt.flatMap{ p3 =>
+      Try(p3.get("tests").asArray().getValues.asScala.toList.map ( _.asDocument() )).toOption
+    }
 
     val activeVideoTestOpt = videoTestsOpt.map( docList => docList.filter( doc => Try(doc.get("usedForResults").asBoolean().getValue).getOrElse(false) ).head )
 
@@ -1623,16 +1625,16 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
         Try(assistanceDetailsOpt.map(_.get("needsSupportAtVenueDescription").asString().getValue)).toOption.flatten,
         if (assistanceDetailsOpt.map(ad => Try(ad.get("needsSupportForPhoneInterview").asBoolean().getValue).getOrElse(false)).getOrElse(false)) Y else N,
         Try(assistanceDetailsOpt.map(_.get("needsSupportForPhoneInterviewDescription").asString().getValue)).toOption.flatten,
-        etrayAdjustmentsOpt.map(_.get("timeNeeded").asInt32().getValue + "%"),
+        Try(etrayAdjustmentsOpt.map(_.get("timeNeeded").asInt32().getValue + "%")).toOption.flatten,
 
         if (typeOfAdjustments.contains("etrayInvigilated")) Y else N,
-        etrayAdjustmentsOpt.map(_.get("invigilatedInfo").asString().getValue),
-        etrayAdjustmentsOpt.map(_.get("otherInfo").asString().getValue),
+        Try(etrayAdjustmentsOpt.map(_.get("invigilatedInfo").asString().getValue)).toOption.flatten,
+        Try(etrayAdjustmentsOpt.map(_.get("otherInfo").asString().getValue)).toOption.flatten,
 
-        videoAdjustmentsOpt.map(_.get("timeNeeded").asInt32().getValue + "%"),
+        Try(videoAdjustmentsOpt.map(_.get("timeNeeded").asInt32().getValue + "%")).toOption.flatten,
         if (typeOfAdjustments.contains("videoInvigilated")) Y else N,
-        videoAdjustmentsOpt.map(_.get("invigilatedInfo").asString().getValue),
-        videoAdjustmentsOpt.map(_.get("otherInfo").asString().getValue),
+        Try(videoAdjustmentsOpt.map(_.get("invigilatedInfo").asString().getValue)).toOption.flatten,
+        Try(videoAdjustmentsOpt.map(_.get("otherInfo").asString().getValue)).toOption.flatten,
         Try(assistanceDetailsOpt.map(_.get("adjustmentsComment").asString().getValue)).toOption.flatten,
         if (assistanceDetailsOpt.map(ad => Try(ad.get("adjustmentsConfirmed").asBoolean().getValue).getOrElse(false)).getOrElse(false)) Y else N
       )
