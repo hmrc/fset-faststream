@@ -21,7 +21,7 @@ import factories.DateTimeFactory
 import model.Exceptions.CandidateAllocationNotFoundException
 
 import javax.inject.{Inject, Singleton}
-import model.assessmentscores.{AssessmentScoresAllExercises, AssessmentScoresExercise, AssessmentScoresFinalFeedback}
+import model.assessmentscores.{AssessmentScoresAllExercises, AssessmentScoresAllExercisesExchange, AssessmentScoresExercise, AssessmentScoresFinalFeedback}
 import model.command.AssessmentScoresCommands.{AssessmentScoresCandidateSummary, AssessmentScoresFindResponse, AssessmentScoresSectionType}
 import model.persisted.eventschedules.Event
 import model.{ProgressStatuses, UniqueIdentifier}
@@ -163,11 +163,12 @@ trait AssessmentScoresService {
     }
   }
 
-  def findAcceptedAssessmentScoresAndFeedbackByApplicationId(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = {
+  def findAcceptedAssessmentScoresAndFeedbackByApplicationId(applicationId: UniqueIdentifier)
+  : Future[Option[AssessmentScoresAllExercisesExchange]] = {
     for {
       assessmentScoresAndFeedback <- assessmentScoresRepository.findAccepted(applicationId)
     } yield {
-      assessmentScoresAndFeedback
+      assessmentScoresAndFeedback.map(_.toExchange)
     }
   }
 
