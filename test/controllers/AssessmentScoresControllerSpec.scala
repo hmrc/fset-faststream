@@ -178,7 +178,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
 
   "findAcceptedAssessmentScoresByApplicationId" should {
     "return OK with reviewer accepted assessment scores" in new TestFixture {
-      val expectedResponse = Some(AssessmentScoresAllExercises(appId))
+      val expectedResponse = Some(AssessmentScoresAllExercises(appId).toExchange)
       when(mockService.findAcceptedAssessmentScoresAndFeedbackByApplicationId(appId)).thenReturnAsync(expectedResponse)
 
       val response = controller.findAcceptedAssessmentScoresByApplicationId(appId)(fakeRequest)
