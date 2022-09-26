@@ -91,8 +91,8 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     "return no results when there are only applications that aren't in Passed_Notified which apply for sift " +
       "or don't have Green/Passed results" in {
 
-      insertApplicationWithPhase1TestResults2("appId5", 5.5d, None, None, 5.5d, applicationRoute = ApplicationRoute.Edip)(Edip)
-      insertApplicationWithPhase1TestResults2("appId6", 5.5d, None, None, 5.5d, applicationRoute = ApplicationRoute.Sdip)(Sdip)
+      insertApplicationWithPhase1TestResults("appId5", 5.5d, None, None, 5.5d, applicationRoute = ApplicationRoute.Edip)(Edip)
+      insertApplicationWithPhase1TestResults("appId6", 5.5d, None, None, 5.5d, applicationRoute = ApplicationRoute.Sdip)(Sdip)
 
       insertApplicationWithPhase3TestResults("appId7", None,
         PassmarkEvaluation("1", None, List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString)), "1", None))(Finance)
@@ -225,7 +225,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       val test = PsiTest(inventoryId = "inventoryUuid", orderId = "orderUuid", assessmentId = "assessmentUuid",
         reportId = "reportUuid", normId = "normUuid", usedForResults = true,
         testUrl = "http://testUrl.com", invitationDate = now)
-      repository.insertNumericalTests2(appId, List(test)).futureValue
+      repository.insertNumericalTests(appId, List(test)).futureValue
 
       val result = repository.getTestGroupByOrderId("orderUuid").futureValue
       result mustBe MaybeSiftTestGroupWithAppId(appId, now, Some(List(test)))
@@ -245,7 +245,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       val test = PsiTest(inventoryId = "inventoryUuid", orderId = "orderUuid", assessmentId = "assessmentUuid",
         reportId = "reportUuid", normId = "normUuid", usedForResults = true,
         testUrl = "http://testUrl.com", invitationDate = now)
-      repository.insertNumericalTests2(appId, List(test)).futureValue
+      repository.insertNumericalTests(appId, List(test)).futureValue
 
       val startedTime = DateTime.now(DateTimeZone.UTC)
       repository.updateTestStartTime("orderUuid", startedTime).futureValue
@@ -268,7 +268,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       val test = PsiTest(inventoryId = "inventoryUuid", orderId = "orderUuid", assessmentId = "assessmentUuid",
         reportId = "reportUuid", normId = "normUuid", usedForResults = true,
         testUrl = "http://testUrl.com", invitationDate = now)
-      repository.insertNumericalTests2(appId, List(test)).futureValue
+      repository.insertNumericalTests(appId, List(test)).futureValue
 
       val completedTime = DateTime.now(DateTimeZone.UTC)
       repository.updateTestCompletionTime("orderUuid", completedTime).futureValue
@@ -410,7 +410,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       val test = PsiTest(inventoryId = "inventoryUuid", orderId = "orderUuid", assessmentId = "assessmentUuid",
         reportId = "reportUuid", normId = "normUuid", usedForResults = true,
         testUrl = "http://testUrl.com", invitationDate = now)
-      repository.insertNumericalTests2(appId, List(test)).futureValue
+      repository.insertNumericalTests(appId, List(test)).futureValue
 
       val result = repository.getApplicationIdForOrderId("orderUuid").futureValue
       result mustBe appId
@@ -549,7 +549,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       val test = PsiTest(inventoryId = "inventoryUuid", orderId = "orderUuid", assessmentId = "assessmentUuid",
         reportId = "reportUuid", normId = "normUuid", usedForResults = true,
         testUrl = "http://testUrl.com", invitationDate = now)
-      repository.insertNumericalTests2(appId, List(test)).futureValue
+      repository.insertNumericalTests(appId, List(test)).futureValue
       val testResult = PsiTestResult(tScore = 55.33d, rawScore = 65.32d, testReportUrl = Some("http://testReportUrl.com"))
 
       repository.insertPsiTestResult(appId, test, testResult).futureValue
@@ -715,7 +715,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     )
     val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave, "phase2_version2-res", None)
 
-    insertApplication2(appAndUserId,
+    insertApplication(appAndUserId,
       ApplicationStatus.PHASE3_TESTS, None, Some(phase2TestWithResult),
       Some(phase3TestWithResult),
       schemes = List(Commercial, DiplomaticAndDevelopmentEconomics),

@@ -17,7 +17,7 @@
 package controllers
 
 import javax.inject.{ Inject, Singleton }
-import model.Exceptions.{ CannotFindApplicationByOrderIdException, CannotFindTestByCubiksId, CannotFindTestByOrderIdException }
+import model.Exceptions.{ CannotFindApplicationByOrderIdException, CannotFindTestByOrderIdException }
 import play.api.Logging
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, ControllerComponents }
@@ -57,30 +57,9 @@ class SiftCandidateController @Inject() (cc: ControllerComponents,
     }
   }
 
-  // TODO: cubiks we need to remove this method
-  def getSiftTestGroup2(applicationId: String) = Action.async { implicit request =>
-    applicationSiftService.getTestGroup(applicationId) map {
-      case Some(siftTest) =>
-        Ok(Json.toJson(siftTest))
-      case None => logger.debug(s"No sift test group found for applicationId: $applicationId")
-        NotFound
-    }
-  }
-
-  // TODO: cubiks we need to remove this method
-  def startTest(cubiksUserId: Int) = Action.async(parse.json) { implicit request =>
-    logger.info(s"Sift test started for cubiks id: $cubiksUserId")
-    applicationSiftService.markTestAsStarted(cubiksUserId)
-      .map( _ => Ok )
-      .recover {
-        case _: CannotFindTestByCubiksId => NotFound
-      }
-  }
-
-  // TODO: cubiks rename this without the 2
-  def startTest2(orderId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def startTest(orderId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     logger.info(s"Sift test started for order id: $orderId")
-    applicationSiftService.markTestAsStarted2(orderId)
+    applicationSiftService.markTestAsStarted(orderId)
       .map( _ => Ok )
       .recover {
         case _: CannotFindTestByOrderIdException => NotFound

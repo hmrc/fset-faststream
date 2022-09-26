@@ -231,7 +231,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       createApplicationWithAllFields("userId", "appId", "testAccountId","frameworkId",
         "PHASE2_TESTS", phase2TestGroup = Some(input)).futureValue
 
-      phase2TestRepo.updateTestCompletionTime2("orderId5", now).futureValue
+      phase2TestRepo.updateTestCompletionTime("orderId5", now).futureValue
       val result = phase2TestRepo.getTestProfileByOrderId("orderId5").futureValue
       result.testGroup.tests.head.completedDateTime mustBe Some(now)
     }
@@ -245,7 +245,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
       val testResult = PsiTestResult(tScore = 55.33d, rawScore = 65.32d, testReportUrl = None)
 
-      phase2TestRepo.insertTestResult2("appId", testProfileWithAppId.testGroup.tests.head, testResult).futureValue
+      phase2TestRepo.insertTestResult("appId", testProfileWithAppId.testGroup.tests.head, testResult).futureValue
 
       val phase2TestGroup = phase2TestRepo.getTestGroup("appId").futureValue
       phase2TestGroup.isDefined mustBe true

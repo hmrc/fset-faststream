@@ -85,35 +85,6 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
   }
 
-/* cubiks specific
-  "Get online test by token" should {
-    "return None if there is no test with the token" in {
-      val result = phase1TestRepoCubiks.getTestProfileByToken("token").failed.futureValue
-      result mustBe a[CannotFindTestByCubiksId]
-    }
-
-    "return an online test for the specific token" in {
-      insertApplication("appId", "userId")
-      phase1TestRepoCubiks.insertOrUpdateTestGroup("appId", TestProfile).futureValue
-      val result = phase1TestRepoCubiks.getTestProfileByToken(Token).futureValue
-      result mustBe TestProfile
-    }
-  }*/
-/* cubiks specific
-  "Get online test by cubiksId" should {
-    "return None if there is no test with the cubiksId" in {
-      val result = phase1TestRepoCubiks.getTestProfileByCubiksId(CubiksUserId).failed.futureValue
-      result mustBe a[CannotFindTestByCubiksId]
-    }
-
-    "return an online test for the specific cubiks id" in {
-      insertApplication("appId", "userId")
-      phase1TestRepoCubiks.insertOrUpdateTestGroup("appId", TestProfile).futureValue
-      val result = phase1TestRepoCubiks.getTestProfileByCubiksId(CubiksUserId).futureValue
-      result mustBe Phase1TestGroupWithUserIds("appId", "userId", TestProfile)
-    }
-  }*/
-
   "Next application ready for online testing" should {
     "return no application if there is only one and it is a fast pass candidate" in {
       createApplicationWithAllFields("appId", "userId", "testAccountId", "frameworkId", "SUBMITTED",
@@ -192,54 +163,16 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
   }
 
-  "Next phase1 test group with report ready" should {
-    //TODO: mongo fix these (nextTestGroupWithReportReady) - I think these tests are now redundant
-    "not return a test group if the progress status is not appropriately set" ignore {
-      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "PHASE1_TESTS",
-        additionalProgressStatuses = List((PHASE1_TESTS_COMPLETED, false))
-      ).futureValue
-
-      val result = phase1TestRepo.nextTestGroupWithReportReady.futureValue
-      result.isDefined mustBe false
-    }
-
-    "return a test group if the progress status is set to PHASE1_TEST_RESULTS_READY" ignore {
-      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "PHASE1_TESTS",
-        additionalProgressStatuses = List((PHASE1_TESTS_COMPLETED, true), (PHASE1_TESTS_RESULTS_READY, true)),
-        phase1TestProfile = Some(testProfileWithAppId.testGroup)
-      ).futureValue
-
-      val phase1TestResultsReady = phase1TestRepo.nextTestGroupWithReportReady.futureValue
-      phase1TestResultsReady.isDefined mustBe true
-      phase1TestResultsReady.get mustBe testProfileWithAppId
-    }
-
-    "return a test group if only one report is ready to download" ignore {
-      val profile = testProfileWithAppId.testGroup.copy(tests = List(phase1Test, phase1Test.copy(resultsReadyToDownload = true)))
-
-      createApplicationWithAllFields("userId2", "appId2", "testAccountId", "frameworkId", "PHASE1_TESTS",
-        additionalProgressStatuses = List((PHASE1_TESTS_COMPLETED, true), (PHASE1_TESTS_RESULTS_READY, true)),
-        phase1TestProfile = Some(profile)
-      ).futureValue
-
-      val phase1TestResultsReady = phase1TestRepo.nextTestGroupWithReportReady.futureValue
-      phase1TestResultsReady.isDefined mustBe true
-      phase1TestResultsReady.get mustBe Phase1TestGroupWithUserIds("appId2", "userId2", profile)
-    }
-  }
-
   "Insert test result" should {
     "correctly update a test group with results" in {
       createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "PHASE1_TESTS",
         additionalProgressStatuses = List((PHASE1_TESTS_RESULTS_READY, true)),
         phase1TestProfile = Some(testProfileWithAppId.testGroup)
       ).futureValue
-//      val testResult = persisted.TestResult(status = "completed", norm = "some norm",
-//        tScore = Some(55.33d), percentile = Some(34.876d), raw = Some(65.32d), sten = Some(12.1d))
 
       val testResult = persisted.PsiTestResult(tScore = 55.33d, rawScore = 65.32d, testReportUrl = None)
 
-      phase1TestRepo.insertTestResult2("appId", testProfileWithAppId.testGroup.tests.head,
+      phase1TestRepo.insertTestResult("appId", testProfileWithAppId.testGroup.tests.head,
         testResult
       ).futureValue
 
@@ -606,7 +539,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "PHASE1_TESTS", phase1TestProfile = Some(input))
         .futureValue
 
-      phase1TestRepo.updateTestCompletionTime2("orderId1", now).futureValue
+      phase1TestRepo.updateTestCompletionTime("orderId1", now).futureValue
       val result = phase1TestRepo.getTestGroupByOrderId("orderId1").futureValue
       result.testGroup.tests.head.completedDateTime mustBe Some(now)
     }
@@ -615,7 +548,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       insertApplication("appId", "userId")
       phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
 
-      phase1TestRepo.markTestAsInactive2(TestProfile.tests.head.orderId).futureValue
+      phase1TestRepo.markTestAsInactive(TestProfile.tests.head.orderId).futureValue
       val phase1TestProfile = phase1TestRepo.getTestGroup("appId").futureValue.get
 
       val psiTest = phase1TestProfile.tests.head
@@ -626,7 +559,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       insertApplication("appId", "userId")
       phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
 
-      phase1TestRepo.markTestAsInactive2(TestProfile.tests.head.orderId).futureValue
+      phase1TestRepo.markTestAsInactive(TestProfile.tests.head.orderId).futureValue
 
       val newTestProfile = TestProfile.copy(tests = List(phase1Test.copy(orderId = "orderId2")))
 
@@ -636,27 +569,6 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       phase1TestProfile.tests.size mustBe 2
       phase1TestProfile.activeTests.size mustBe 1
     }
-/* TODO:redundant
-    "update test results ready" in {
-      insertApplication("appId", "userId")
-      phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
-
-      val resultsReady = CubiksTestResultReady(
-        reportId = Some(1),
-        reportStatus = "Ready",
-        reportLinkURL = Some("link")
-      )
-
-      phase1TestRepo.updateTestReportReady(TestProfile.tests.head.cubiksUserId, resultsReady).futureValue
-
-      val phase1TestProfile = phase1TestRepo.getTestGroup("appId").futureValue.get
-      val cubiksTest = phase1TestProfile.tests.head
-
-      cubiksTest.resultsReadyToDownload mustBe true
-      cubiksTest.reportId mustBe resultsReady.reportId
-      cubiksTest.reportStatus mustBe Some(resultsReady.reportStatus)
-      cubiksTest.reportLinkURL mustBe resultsReady.reportLinkURL
-    }*/
   }
 
   "getApplicationIdForOrderId" should {

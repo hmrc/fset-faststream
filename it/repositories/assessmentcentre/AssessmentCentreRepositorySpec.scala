@@ -180,7 +180,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
 
   "updateTests" must {
     "update the tests key and be retrievable" in new TestFixture {
-      insertApplication2("appId1", ApplicationStatus.ASSESSMENT_CENTRE,
+      insertApplication("appId1", ApplicationStatus.ASSESSMENT_CENTRE,
         additionalProgressStatuses = List(ASSESSMENT_CENTRE_AWAITING_ALLOCATION -> true)
       )
 
@@ -196,7 +196,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     }
 
     "handle eligible candidates who have not been evaluated previously" in new TestFixture {
-      insertApplication2(guid, ApplicationStatus.ASSESSMENT_CENTRE,
+      insertApplication(guid, ApplicationStatus.ASSESSMENT_CENTRE,
         additionalProgressStatuses = List(ASSESSMENT_CENTRE_SCORES_ACCEPTED -> true)
       )
 
@@ -205,7 +205,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     }
 
     "handle eligible candidates who have been evaluated previously but now pass marks have changed" in new TestFixture {
-      insertApplication2(guid, ApplicationStatus.ASSESSMENT_CENTRE,
+      insertApplication(guid, ApplicationStatus.ASSESSMENT_CENTRE,
         additionalProgressStatuses = List(ASSESSMENT_CENTRE_SCORES_ACCEPTED -> true)
       )
 
@@ -233,7 +233,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     }
 
     "handle eligible candidate who has not been evaluated previously" in new TestFixture {
-      insertApplication2(guid, ApplicationStatus.ASSESSMENT_CENTRE,
+      insertApplication(guid, ApplicationStatus.ASSESSMENT_CENTRE,
         additionalProgressStatuses = List(ASSESSMENT_CENTRE_SCORES_ACCEPTED -> true)
       )
 
@@ -242,7 +242,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     }
 
     "handle eligible candidate who has been evaluated previously but now pass marks have changed" in new TestFixture {
-      insertApplication2(guid, ApplicationStatus.ASSESSMENT_CENTRE,
+      insertApplication(guid, ApplicationStatus.ASSESSMENT_CENTRE,
         additionalProgressStatuses = List(ASSESSMENT_CENTRE_SCORES_ACCEPTED -> true)
       )
 
@@ -269,7 +269,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     }
 
     "handle candidate who has already been evaluated" in new TestFixture {
-      insertApplication2(guid, ApplicationStatus.ASSESSMENT_CENTRE,
+      insertApplication(guid, ApplicationStatus.ASSESSMENT_CENTRE,
         additionalProgressStatuses = List(ASSESSMENT_CENTRE_SCORES_ACCEPTED -> true)
       )
 
@@ -291,7 +291,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     }
 
     "handle candidate who has not been evaluated" in new TestFixture {
-      insertApplication2(guid, ApplicationStatus.ASSESSMENT_CENTRE,
+      insertApplication(guid, ApplicationStatus.ASSESSMENT_CENTRE,
         additionalProgressStatuses = List(ASSESSMENT_CENTRE_SCORES_ACCEPTED -> true)
       )
 
@@ -305,7 +305,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     }
 
     "handle candidate who has already been evaluated" in new TestFixture {
-      insertApplication2(guid, ApplicationStatus.ASSESSMENT_CENTRE,
+      insertApplication(guid, ApplicationStatus.ASSESSMENT_CENTRE,
         additionalProgressStatuses = List(ASSESSMENT_CENTRE_SCORES_ACCEPTED -> true)
       )
 
@@ -336,7 +336,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     }
 
     "handle candidate who has already been evaluated" in new TestFixture {
-      insertApplication2(guid, ApplicationStatus.ASSESSMENT_CENTRE,
+      insertApplication(guid, ApplicationStatus.ASSESSMENT_CENTRE,
         additionalProgressStatuses = List(ASSESSMENT_CENTRE_SCORES_ACCEPTED -> true)
       )
 
@@ -368,7 +368,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     }
 
     "handle candidate who has already been evaluated" in new TestFixture {
-      insertApplication2(guid, ApplicationStatus.ASSESSMENT_CENTRE,
+      insertApplication(guid, ApplicationStatus.ASSESSMENT_CENTRE,
         additionalProgressStatuses = List(ASSESSMENT_CENTRE_SCORES_ACCEPTED -> true)
       )
 
@@ -400,7 +400,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     }
 
     "match candidates who are evaluated to Green and Red" in new TestFixture {
-      insertApplication2(guid, ApplicationStatus.ASSESSMENT_CENTRE)
+      insertApplication(guid, ApplicationStatus.ASSESSMENT_CENTRE)
 
       assessmentCentreRepository.saveAssessmentScoreEvaluation(
         AssessmentPassMarkEvaluation(
@@ -431,7 +431,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     }
 
     "not match candidates who have an Amber" in new TestFixture {
-      insertApplication2(guid, ApplicationStatus.ASSESSMENT_CENTRE)
+      insertApplication(guid, ApplicationStatus.ASSESSMENT_CENTRE)
 
       assessmentCentreRepository.saveAssessmentScoreEvaluation(
         AssessmentPassMarkEvaluation(
@@ -465,7 +465,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     val guid = "0a23688a-7c9d-4d67-9ab2-403d7c234bc6"
 
     def insertApplicationWithAssessmentCentreAwaitingAllocation(appId: String, withTests: Boolean = true): Unit = {
-      insertApplication2(appId, ApplicationStatus.ASSESSMENT_CENTRE,
+      insertApplication(appId, ApplicationStatus.ASSESSMENT_CENTRE,
         additionalProgressStatuses = List(ASSESSMENT_CENTRE_AWAITING_ALLOCATION -> true)
       )
 

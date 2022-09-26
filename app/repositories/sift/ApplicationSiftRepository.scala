@@ -80,28 +80,12 @@ trait ApplicationSiftRepository {
   def nextApplicationForFirstSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]]
   def nextApplicationForSecondSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]]
   def getTestGroup(applicationId: String): Future[Option[SiftTestGroup]]
-//  def getTestGroupByCubiksId(cubiksId: Int): Future[MaybeSiftTestGroupWithAppId]
-//  def getTestGroupByToken(token: String): Future[MaybeSiftTestGroupWithAppId]
   def getTestGroupByOrderId(orderId: String): Future[MaybeSiftTestGroupWithAppId]
   def updateExpiryTime(applicationId: String, expiryDateTime: DateTime): Future[Unit]
-  //TODO: this is cubiks specific
-  def updateTestStartTime(cubiksUserId: Int, startedTime: DateTime): Future[Unit]
   def updateTestStartTime(orderId: String, startedTime: DateTime): Future[Unit]
-  //TODO cubiks specific
-  def getApplicationIdForCubiksId(cubiksUserId: Int): Future[String]
   def getApplicationIdForOrderId(orderId: String): Future[String]
-//  def insertNumericalTests(applicationId: String, tests: List[CubiksTest]): Future[Unit]
-  // TODO: cubiks rename this without the 2
-  def insertNumericalTests2(applicationId: String, tests: List[PsiTest]): Future[Unit]
-  //TODO: cubiks specific so now redundant
-//  def findAndUpdateTest(cubiksUserId: Int, update: BSONDocument, ignoreNotFound: Boolean = false): Future[Unit]
-  //TODO: Cubiks specific so now redundant
-//  def updateTestCompletionTime(cubiksUserId: Int, completedTime: DateTime): Future[Unit]
-
+  def insertNumericalTests(applicationId: String, tests: List[PsiTest]): Future[Unit]
   def updateTestCompletionTime(orderId: String, completedTime: DateTime): Future[Unit]
-//  def updateTestReportReady(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit]
-//  def nextTestGroupWithReportReady: Future[Option[SiftTestGroupWithAppId]]
-//  def insertCubiksTestResult(appId: String, cubiksTest: CubiksTest, testResult: TestResult): Future[Unit]
   def insertPsiTestResult(appId: String, psiTest: PsiTest, testResult: PsiTestResult): Future[Unit]
   def nextApplicationWithResultsReceived: Future[Option[String]]
   def getNotificationExpiringSift(applicationId: String): Future[Option[NotificationExpiringSift]]
@@ -148,25 +132,6 @@ class ApplicationSiftMongoRepository @Inject() (
     ApplicationForSift(applicationId, userId, appStatus, currentSchemeStatus)
   }
 
-  /*
-  def updateTestStartTime(cubiksUserId: Int, startedTime: DateTime): Future[Unit] = {
-    val query = BSONDocument("$set" -> BSONDocument(
-      s"testGroups.$phaseName.tests.$$.startedDateTime" -> Some(startedTime)
-    ))
-
-    val find = BSONDocument(
-      s"testGroups.$phaseName.tests" -> BSONDocument(
-        "$elemMatch" -> BSONDocument("cubiksUserId" -> cubiksUserId)
-      )
-    )
-
-    val validator = singleUpdateValidator(cubiksUserId.toString, actionDesc = s"updating $phaseName tests",
-      CannotFindTestByCubiksId(s"Cannot find sift test group by cubiks Id: $cubiksUserId"))
-
-    collection.update(ordered = false).one(find, query) map validator
-  }*/
-  def updateTestStartTime(cubiksUserId: Int, startedTime: DateTime): Future[Unit] = ???
-
   override def updateTestStartTime(orderId: String, startedTime: DateTime): Future[Unit] = {
     val filter = Document(
       s"testGroups.$phaseName.tests" -> Document(
@@ -184,46 +149,6 @@ class ApplicationSiftMongoRepository @Inject() (
     collection.updateOne(filter, update).toFuture() map validator
   }
 
-  // TODO: cubiks specific
-  /*
-  def updateTestReportReady(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit] = {
-    val update = BSONDocument("$set" -> BSONDocument(
-      s"testGroups.$phaseName.tests.$$.resultsReadyToDownload" -> (reportReady.reportStatus == "Ready"),
-      s"testGroups.$phaseName.tests.$$.reportId" -> reportReady.reportId,
-      s"testGroups.$phaseName.tests.$$.reportStatus" -> Some(reportReady.reportStatus)
-    ))
-
-    val find = BSONDocument(
-      s"testGroups.$phaseName.tests" -> BSONDocument(
-        "$elemMatch" -> BSONDocument("cubiksUserId" -> cubiksUserId)
-      )
-    )
-
-    val validator = singleUpdateValidator(cubiksUserId.toString, actionDesc = s"updating $phaseName tests",
-      CannotFindTestByCubiksId(s"Cannot find test group by cubiks Id: $cubiksUserId"))
-
-    collection.update(ordered = false).one(find, update) map validator
-  }*/
-
-  // TODO: cubiks specific
-  /*
-  def insertCubiksTestResult(appId: String, cubiksTest: CubiksTest, testResult: TestResult): Future[Unit] = {
-    val query = BSONDocument(
-      "applicationId" -> appId,
-      s"testGroups.$phaseName.tests" -> BSONDocument(
-        "$elemMatch" -> BSONDocument("cubiksUserId" -> cubiksTest.cubiksUserId)
-      )
-    )
-
-    val update = BSONDocument("$set" -> BSONDocument(
-      s"testGroups.$phaseName.tests.$$.testResult" -> TestResult.testResultBsonHandler.write(testResult)
-    ))
-
-    val validator = singleUpdateValidator(appId, actionDesc = "inserting cubiks test results")
-
-    collection.update(ordered = false).one(query, update) map validator
-  }*/
-
   override def insertPsiTestResult(appId: String, psiTest: PsiTest, testResult: PsiTestResult): Future[Unit] = {
     val query = Document(
       "applicationId" -> appId,
@@ -236,29 +161,6 @@ class ApplicationSiftMongoRepository @Inject() (
     collection.updateOne(query, update).toFuture() map validator
   }
 
-  // TODO: cubiks specific
-  /*
-  def nextTestGroupWithReportReady: Future[Option[SiftTestGroupWithAppId]] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> thisApplicationStatus),
-      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_TEST_RESULTS_READY}" -> true),
-      BSONDocument(s"progress-status.${ProgressStatuses.SIFT_TEST_RESULTS_RECEIVED}" -> BSONDocument("$ne" -> true)),
-      BSONDocument(s"testGroups.$phaseName.tests" ->
-        BSONDocument("$elemMatch" -> BSONDocument("resultsReadyToDownload" -> true, "testResult" -> BSONDocument("$exists" -> false)))
-      )
-    ))
-
-    implicit val reader = bsonReader { doc =>
-      val group = doc.getAs[BSONDocument]("testGroups").get.getAs[BSONDocument](phaseName).get
-      SiftTestGroupWithAppId(
-        applicationId = doc.getAs[String]("applicationId").get,
-        SiftTestGroup.bsonHandler.read(group)
-      )
-    }
-
-    selectOneRandom[SiftTestGroupWithAppId](query)
-  }*/
-
   override def nextApplicationWithResultsReceived: Future[Option[String]] = {
     val query = Document("$and" -> BsonArray(
       Document("applicationStatus" -> thisApplicationStatus.toBson),
@@ -269,20 +171,6 @@ class ApplicationSiftMongoRepository @Inject() (
 
     selectOneRandom[String](query)(getAppId, global)
   }
-
-  /*
-  def getApplicationIdForCubiksId(cubiksUserId: Int): Future[String] = {
-    val query = BSONDocument(s"testGroups.$phaseName.tests" -> BSONDocument(
-      "$elemMatch" -> BSONDocument("cubiksUserId" -> cubiksUserId)
-    ))
-    val projection = BSONDocument("applicationId" -> true)
-
-    collection.find(query, Some(projection)).one[BSONDocument] map {
-      case Some(doc) => doc.getAs[String]("applicationId").get
-      case _ => throw CannotFindApplicationByCubiksId(s"Cannot find application by cubiks Id: $cubiksUserId")
-    }
-  }*/
-  def getApplicationIdForCubiksId(cubiksUserId: Int): Future[String] = ???
 
   override def getApplicationIdForOrderId(orderId: String): Future[String] = {
     val query = Document(s"testGroups.$phaseName.tests" -> Document(
@@ -753,21 +641,6 @@ class ApplicationSiftMongoRepository @Inject() (
     }
   }
 
-  /* TODO: was already commented
-  private def getTestGroupWithAppIdByQuery2(query: BSONDocument): Future[MaybeSiftTestGroupWithAppId] = {
-    val projection = BSONDocument("applicationId" -> 1, s"testGroups.$phaseName" -> 1, "_id" -> 0)
-
-    val ex = CannotFindTestByOrderIdException(s"Cannot find test group for query: ${BSONDocument.pretty(query)}")
-    collection.find(query, Some(projection)).one[BSONDocument] map {
-      case Some(doc) =>
-        val appId = doc.getAs[String]("applicationId").get
-        val siftDocOpt = doc.getAs[BSONDocument]("testGroups").map(_.getAs[BSONDocument](phaseName).get)
-        val siftTestGroup = siftDocOpt.map(SiftTestGroup2.bsonHandler.read).getOrElse(throw ex)
-        MaybeSiftTestGroupWithAppId(appId, siftTestGroup.expirationDate, siftTestGroup.tests)
-      case _ => throw ex
-    }
-  }*/
-
   override def updateExpiryTime(applicationId: String, expiryDateTime: DateTime): Future[Unit] = {
     val query = Document("applicationId" -> applicationId)
 
@@ -779,19 +652,7 @@ class ApplicationSiftMongoRepository @Inject() (
     ))).toFuture() map validator
   }
 
-  // TODO: cubiks specific
-  /*
-  def insertNumericalTests(applicationId: String, tests: List[CubiksTest]): Future[Unit] = {
-    val query = BSONDocument("applicationId" -> applicationId)
-    val update = BSONDocument(
-      "$push" -> BSONDocument(s"testGroups.$phaseName.tests" -> BSONDocument("$each" -> tests))
-    )
-
-    val validator = singleUpdateValidator(applicationId, actionDesc = s"inserting tests during $phaseName", ApplicationNotFound(applicationId))
-    collection.update(ordered = false).one(query, update) map validator
-  }*/
-
-  def insertNumericalTests2(applicationId: String, tests: List[PsiTest]): Future[Unit] = {
+  def insertNumericalTests(applicationId: String, tests: List[PsiTest]): Future[Unit] = {
     val query = Document("applicationId" -> applicationId)
     val update = Document(
       "$push" -> Document(s"testGroups.$phaseName.tests" -> Document("$each" -> Codecs.toBson(tests)))
@@ -800,23 +661,6 @@ class ApplicationSiftMongoRepository @Inject() (
     val validator = singleUpdateValidator(applicationId, actionDesc = s"inserting tests during $phaseName", ApplicationNotFound(applicationId))
     collection.updateOne(query, update).toFuture() map validator
   }
-
-  /*
-  def findAndUpdateTest(cubiksUserId: Int, update: BSONDocument, ignoreNotFound: Boolean): Future[Unit] = {
-    val query = BSONDocument(
-      s"testGroups.$phaseName.tests" -> BSONDocument("$elemMatch" -> BSONDocument("cubiksUserId" -> cubiksUserId))
-    )
-    val validator = if(ignoreNotFound) {
-      singleUpdateValidator(cubiksUserId.toString, actionDesc = s"updating $phaseName tests", ignoreNotFound = true)
-    } else {
-      singleUpdateValidator(
-        cubiksUserId.toString,
-        actionDesc = s"updating $phaseName tests",
-        CannotFindTestByCubiksId(s"Cannot find test group by cubiks Id: $cubiksUserId")
-      )
-    }
-    collection.update(ordered = false).one(query, update) map validator
-  }*/
 
   private def findAndUpdateTest(orderId: String, update: Document, ignoreNotFound: Boolean, actionDesc: String): Future[Unit] = {
     val query = Document(
@@ -834,40 +678,12 @@ class ApplicationSiftMongoRepository @Inject() (
     collection.updateOne(query, update).toFuture() map validator
   }
 
-  /*
-  def updateTestCompletionTime(cubiksUserId: Int, completedTime: DateTime): Future[Unit] = {
-    val update = BSONDocument(
-      "$set" -> BSONDocument(s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(completedTime))
-    )
-    findAndUpdateTest(cubiksUserId, update, ignoreNotFound = true)
-  }*/
-  // TODO: cubiks specific
-//  override def updateTestCompletionTime(cubiksUserId: Int, completedTime: DateTime): Future[Unit] = ???
-
   override def updateTestCompletionTime(orderId: String, completedTime: DateTime): Future[Unit] = {
     val update = Document(
       "$set" -> Document(s"testGroups.$phaseName.tests.$$.completedDateTime" -> dateTimeToBson(completedTime))
     )
     findAndUpdateTest(orderId, update, ignoreNotFound = false, s"updating test completion time by orderId in $phaseName tests")
   }
-
-  // TODO: cubiks specific
-  /*
-  def getTestGroupByCubiksId(cubiksUserId: Int): Future[MaybeSiftTestGroupWithAppId] = {
-    val query = BSONDocument(
-      s"testGroups.$phaseName.tests" -> BSONDocument("$elemMatch" -> BSONDocument("cubiksUserId" -> cubiksUserId))
-    )
-    getTestGroupWithAppIdByQuery(query)
-  }*/
-
-  // TODO: cubiks specific
-  /*
-  def getTestGroupByToken(token: String): Future[MaybeSiftTestGroupWithAppId] = {
-    val query = BSONDocument(
-      s"testGroups.$phaseName.tests" -> BSONDocument("$elemMatch" -> BSONDocument("token" -> token))
-    )
-    getTestGroupWithAppIdByQuery(query)
-  }*/
 
   override def getTestGroupByOrderId(orderId: String): Future[MaybeSiftTestGroupWithAppId] = {
     val query = Document(

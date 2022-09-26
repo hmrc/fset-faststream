@@ -207,16 +207,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     }
   }
 
-  def markTestAsStarted(cubiksUserId: Int, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone): Future[Unit] = {
-    for {
-      _ <- applicationSiftRepo.updateTestStartTime(cubiksUserId, startedTime)
-      appId <- applicationSiftRepo.getApplicationIdForCubiksId(cubiksUserId)
-      - <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_TEST_STARTED)
-    } yield {}
-  }
-
-  // TODO: cubiks rename this without the 2
-  def markTestAsStarted2(orderId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone): Future[Unit] = {
+  def markTestAsStarted(orderId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone): Future[Unit] = {
     for {
       _ <- applicationSiftRepo.updateTestStartTime(orderId, startedTime)
       appId <- applicationSiftRepo.getApplicationIdForOrderId(orderId)

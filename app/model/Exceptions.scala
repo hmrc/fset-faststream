@@ -101,15 +101,11 @@ object Exceptions {
 
   case class DataGenerationException(message: String) extends Exception(message)
 
-  case class CannotFindTestByCubiksId(message: String) extends NotFoundException(message)
-
   case class CannotFindTestGroupByApplicationIdException(message: String) extends NotFoundException(message)
 
   case class CannotFindTestByOrderIdException(message: String) extends NotFoundException(message)
 
   case class CannotFindTestByInventoryIdException(message: String) extends NotFoundException(message)
-
-  case class CannotFindApplicationByCubiksId(message: String) extends NotFoundException(message)
 
   case class CannotFindApplicationByOrderIdException(message: String) extends NotFoundException(message)
 

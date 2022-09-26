@@ -168,7 +168,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
       val siftTestGroup = SiftTestGroup(expirationDate = DateTime.now(), tests = Some(List(test)))
       // This will result in exception being thrown
       when(mockSiftRepo.getTestGroup(any[String])).thenReturnAsync(Some(siftTestGroup))
-      when(mockSiftRepo.insertNumericalTests2(any[String], any[List[PsiTest]])).thenReturnAsync()
+      when(mockSiftRepo.insertNumericalTests(any[String], any[List[PsiTest]])).thenReturnAsync()
 
       val failedFuture = service.registerAndInviteForTests(applications).failed.futureValue
       failedFuture mustBe a[ExecutionException]
@@ -177,7 +177,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "throw an exception if no notification expiring sift details are found" in new TestFixture {
       when(mockSiftRepo.getTestGroup(any[String])).thenReturnAsync(Some(siftTestGroupNoTests))
-      when(mockSiftRepo.insertNumericalTests2(any[String], any[List[PsiTest]])).thenReturnAsync()
+      when(mockSiftRepo.insertNumericalTests(any[String], any[List[PsiTest]])).thenReturnAsync()
 
       when(mockContactDetailsRepo.find(any[String])).thenReturnAsync(contactDetails)
 
@@ -190,7 +190,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "successfully process a candidate" in new TestFixture {
       when(mockSiftRepo.getTestGroup(any[String])).thenReturnAsync(Some(siftTestGroupNoTests))
-      when(mockSiftRepo.insertNumericalTests2(any[String], any[List[PsiTest]])).thenReturnAsync()
+      when(mockSiftRepo.insertNumericalTests(any[String], any[List[PsiTest]])).thenReturnAsync()
 
       when(mockContactDetailsRepo.find(any[String])).thenReturnAsync(contactDetails)
 

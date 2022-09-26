@@ -18,7 +18,7 @@ package repositories.onlinetesting
 
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.{ApplicationNotFound, CannotFindTestByCubiksId, CannotFindTestByOrderIdException}
+import model.Exceptions.{ApplicationNotFound, CannotFindTestByOrderIdException}
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.ProgressStatus
 import model._
@@ -60,27 +60,6 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     phaseTestProfileByQuery(query, phase)
   }
 
-  //TODO: cubiks delete
-  /*
-  def getTestProfileByToken(token: String, phase: String = "PHASE1"): Future[T] = {
-    val query = BSONDocument(s"testGroups.$phase.tests" -> BSONDocument(
-      "$elemMatch" -> BSONDocument("token" -> token)
-    ))
-
-    phaseTestProfileByQuery(query, phase).map { x =>
-      x.getOrElse(cannotFindTestByToken(token))
-    }
-  }*/
-
-  //TODO: cubiks delete
-  /*
-  def updateTestStartTime(cubiksUserId: Int, startedTime: DateTime): Future[Unit] = {
-    val update = BSONDocument("$set" -> BSONDocument(
-      s"testGroups.$phaseName.tests.$$.startedDateTime" -> Some(startedTime)
-    ))
-    findAndUpdateCubiksTest(cubiksUserId, update)
-  }*/
-
   def updateTestStartTime(orderId: String, startedTime: DateTime): Future[Unit] = {
     val update = Document("$set" -> Document(
       s"testGroups.$phaseName.tests.$$.startedDateTime" -> Some(dateTimeToBson(startedTime))
@@ -88,17 +67,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     findAndUpdateTest(orderId, update)
   }
 
-  //TODO: cubiks delete
-  /*
-  def markTestAsInactive(cubiksUserId: Int): Future[Unit] = {
-    val update = BSONDocument("$set" -> BSONDocument(
-      s"testGroups.$phaseName.tests.$$.usedForResults" -> false
-    ))
-    findAndUpdateCubiksTest(cubiksUserId, update)
-  }*/
-
-  /// psi specific code start
-  def markTestAsInactive2(psiOrderId: String): Future[Unit] = {
+  def markTestAsInactive(psiOrderId: String): Future[Unit] = {
     val update = Document("$set" -> Document(
       s"testGroups.$phaseName.tests.$$.usedForResults" -> false
     ))
@@ -155,7 +124,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     throw CannotFindTestByOrderIdException(s"Cannot find test group by orderId=$orderId")
   }
 
-  def updateTestCompletionTime2(orderId: String, completedTime: DateTime): Future[Unit] = {
+  def updateTestCompletionTime(orderId: String, completedTime: DateTime): Future[Unit] = {
     val update = Document("$set" -> Document(
       s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(dateTimeToBson(completedTime))
     ))
@@ -163,19 +132,10 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     findAndUpdatePsiTest(orderId, update, ignoreNotFound = true)
   }
 
-  /*
-  def updateTestReportReady2(orderId: String, reportReady: PsiTestResultReady): Future[Unit] = {
-    val update = BSONDocument("$set" -> BSONDocument(
-      s"testGroups.$phaseName.tests.$$.resultsReadyToDownload" -> (reportReady.reportStatus == "Ready"),
-      s"testGroups.$phaseName.tests.$$.reportId" -> reportReady.reportId,
-      s"testGroups.$phaseName.tests.$$.reportStatus" -> Some(reportReady.reportStatus)
-    ))
-    findAndUpdatePsiTest(orderId, update)
-  }*/
-  // TODO: mongo this feature is not used
+  // TODO: mongo this feature is not used and should be deleted
   def updateTestReportReady2(orderId: String, reportReady: PsiTestResultReady): Future[Unit] = ???
 
-  def insertTestResult2(appId: String, psiTest: PsiTest, testResult: PsiTestResult): Future[Unit] = {
+  def insertTestResult(appId: String, psiTest: PsiTest, testResult: PsiTestResult): Future[Unit] = {
     val query = Document(
       "applicationId" -> appId,
       s"testGroups.$phaseName.tests" -> Document(
@@ -202,73 +162,6 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
       optDocument.map( doc => doc.get("applicationId").get.asString().getValue)
     }
   }
-
-  /*
-  def nextTestGroupWithReportReady2[TestGroup](implicit reader: BSONDocumentReader[TestGroup]): Future[Option[TestGroup]] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> thisApplicationStatus),
-      BSONDocument(s"progress-status.${phaseName}_TESTS_COMPLETED" -> true),
-      BSONDocument(s"progress-status.${phaseName}_TESTS_RESULTS_RECEIVED" -> BSONDocument("$ne" -> true)),
-      BSONDocument(s"testGroups.$phaseName.tests" ->
-        BSONDocument("$elemMatch" -> BSONDocument("resultsReadyToDownload" -> true, "testResult" -> BSONDocument("$exists" -> false)))
-      )
-    ))
-
-    selectOneRandom[TestGroup](query)
-  }*/
-
-  /// psi specific code end
-
-  /*
-  def insertCubiksTests[P <: CubiksTestProfile](applicationId: String, newTestProfile: P): Future[Unit] = {
-    val query = BSONDocument(
-      "applicationId" -> applicationId
-    )
-    val update = BSONDocument(
-      "$push" -> BSONDocument(
-        s"testGroups.$phaseName.tests" -> BSONDocument(
-          "$each" -> newTestProfile.tests
-        )),
-      "$set" -> BSONDocument(
-        s"testGroups.$phaseName.expirationDate" -> newTestProfile.expirationDate
-      )
-    )
-
-    val validator = singleUpdateValidator(applicationId, actionDesc = s"inserting tests during $phaseName", ApplicationNotFound(applicationId))
-
-    collection.update(ordered = false).one(query, update) map validator
-  }*/
-
-  /*
-  def updateTestCompletionTime(cubiksUserId: Int, completedTime: DateTime): Future[Unit] = {
-    import repositories.BSONDateTimeHandler
-    val update = BSONDocument("$set" -> BSONDocument(
-      s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(completedTime)
-    ))
-
-    findAndUpdateCubiksTest(cubiksUserId, update, ignoreNotFound = true)
-  }*/
-
-  /*
-  def updateTestReportReady(cubiksUserId: Int, reportReady: CubiksTestResultReady): Future[Unit] = {
-    val update = BSONDocument("$set" -> BSONDocument(
-      s"testGroups.$phaseName.tests.$$.resultsReadyToDownload" -> (reportReady.reportStatus == "Ready"),
-      s"testGroups.$phaseName.tests.$$.reportId" -> reportReady.reportId,
-      s"testGroups.$phaseName.tests.$$.reportLinkURL" -> reportReady.reportLinkURL,
-      s"testGroups.$phaseName.tests.$$.reportStatus" -> Some(reportReady.reportStatus)
-    ))
-    findAndUpdateCubiksTest(cubiksUserId, update)
-  }*/
-
-  /*
-  def cannotFindTestByCubiksId(cubiksUserId: Int) = {
-    throw CannotFindTestByCubiksId(s"Cannot find test group by cubiks Id: $cubiksUserId")
-  }*/
-
-  /*
-  def cannotFindTestByToken(token: String) = {
-    throw CannotFindTestByCubiksId(s"Cannot find test group by token: $token")
-  }*/
 
   private def phaseTestProfileByQuery(query: Document, phase: String)(implicit reads: Reads[T]): Future[Option[T]] = {
     val projection = Projections.include(s"testGroups.$phase")
@@ -358,40 +251,6 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     collection.updateOne(query, update).toFuture() map validator
   }
 
-  // TODO: cubiks specific
-  /*
-  def nextTestGroupWithReportReady[TestGroup](implicit reader: BSONDocumentReader[TestGroup]): Future[Option[TestGroup]] = {
-    val query = BSONDocument("$and" -> BSONArray(
-      BSONDocument("applicationStatus" -> thisApplicationStatus),
-      BSONDocument(s"progress-status.${phaseName}_TESTS_COMPLETED" -> true),
-      BSONDocument(s"progress-status.${phaseName}_TESTS_RESULTS_RECEIVED" -> BSONDocument("$ne" -> true)),
-      BSONDocument(s"testGroups.$phaseName.tests" ->
-        BSONDocument("$elemMatch" -> BSONDocument("resultsReadyToDownload" -> true, "testResult" -> BSONDocument("$exists" -> false)))
-      )
-    ))
-
-    selectOneRandom[TestGroup](query)
-  }*/
-
-  // TODO: cubiks should be deleted
-  /*
-  private def findAndUpdateCubiksTest(cubiksUserId: Int, update: BSONDocument, ignoreNotFound: Boolean = false): Future[Unit] = {
-    val find = BSONDocument(
-      s"testGroups.$phaseName.tests" -> BSONDocument(
-        "$elemMatch" -> BSONDocument("cubiksUserId" -> cubiksUserId)
-      )
-    )
-
-    val validator = if (ignoreNotFound) {
-      singleUpdateValidator(cubiksUserId.toString, actionDesc = s"updating $phaseName tests", ignoreNotFound = true)
-    } else {
-      singleUpdateValidator(cubiksUserId.toString, actionDesc = s"updating $phaseName tests",
-        CannotFindTestByCubiksId(s"Cannot find test group by cubiks Id: $cubiksUserId"))
-    }
-
-    collection.update(ordered = false).one(find, update) map validator
-  }*/
-
   private def findAndUpdateTest(orderId: String, update: Document,
                                 ignoreNotFound: Boolean = false): Future[Unit] = {
     val find = Document(
@@ -404,29 +263,11 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
       singleUpdateValidator(orderId, actionDesc = s"updating $phaseName tests", ignoreNotFound = true)
     } else {
       singleUpdateValidator(orderId, actionDesc = s"updating $phaseName tests",
-        CannotFindTestByCubiksId(s"Cannot find test group by Order ID: $orderId"))
+        CannotFindTestByOrderIdException(s"Cannot find test group by Order ID: $orderId"))
     }
 
     collection.updateOne(find, update).toFuture() map validator
   }
-
-  //TODO: cubiks should be deleted
-  /*
-  def insertTestResult(appId: String, phase1Test: CubiksTest, testResult: TestResult): Future[Unit] = {
-    val query = BSONDocument(
-      "applicationId" -> appId,
-      s"testGroups.$phaseName.tests" -> BSONDocument(
-        "$elemMatch" -> BSONDocument("cubiksUserId" -> phase1Test.cubiksUserId)
-      )
-    )
-    val update = BSONDocument("$set" -> BSONDocument(
-      s"testGroups.$phaseName.tests.$$.testResult" -> TestResult.testResultBsonHandler.write(testResult)
-    ))
-
-    val validator = singleUpdateValidator(appId, actionDesc = s"inserting $phaseName test result")
-
-    collection.update(ordered = false).one(query, update) map validator
-  }*/
 
   def upsertTestGroupEvaluationResult(applicationId: String, passmarkEvaluation: PassmarkEvaluation): Future[Unit] = {
     val query = Document("applicationId" -> applicationId)

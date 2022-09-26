@@ -38,11 +38,11 @@ class PsiTestsController @Inject() (cc: ControllerComponents,
   def start(orderId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     logger.info(s"Psi assessment started orderId=$orderId")
 
-    phase1TestService.markAsStarted2(orderId)
+    phase1TestService.markAsStarted(orderId)
       .recoverWith {
         case e =>
           logger.warn(s"Something went wrong while saving start time: ${e.getMessage}")
-          phase2TestService.markAsStarted2(orderId)
+          phase2TestService.markAsStarted(orderId)
       }.map(_ => Ok)
         .recover(recoverNotFound)
   }
@@ -54,9 +54,9 @@ class PsiTestsController @Inject() (cc: ControllerComponents,
     */
   def completeTestByOrderId(orderId: String): Action[AnyContent] = Action.async { implicit request =>
     logger.info(s"Complete psi test by orderId=$orderId")
-    phase1TestService.markAsCompleted2(orderId)
+    phase1TestService.markAsCompleted(orderId)
       .recoverWith { case _: CannotFindTestByOrderIdException =>
-          phase2TestService.markAsCompleted2(orderId).recoverWith {
+          phase2TestService.markAsCompleted(orderId).recoverWith {
             case _: CannotFindTestByOrderIdException =>
                 numericalTestService.markAsCompletedByOrderId(orderId)
             }

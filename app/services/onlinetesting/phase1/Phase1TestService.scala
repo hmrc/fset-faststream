@@ -105,11 +105,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
     }
   }
 
-  override def nextTestGroupWithReportReady: Future[Option[Phase1TestGroupWithUserIds]] = {
-    testRepository.nextTestGroupWithReportReady
-  }
-
-  def getTestGroup2(applicationId: String): Future[Option[Phase1TestGroupWithNames]] = {
+  def getTestGroup(applicationId: String): Future[Option[Phase1TestGroupWithNames]] = {
     for {
       phase1Opt <- testRepository.getTestGroup(applicationId)
     } yield {
@@ -119,12 +115,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
     }
   }
 
-  // TODO: cubiks note there is a registerAndInviteForTestGroup at the end of the file
-  private def registerAndInviteForTestGroup2(application: OnlineTestApplication)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    registerAndInviteForTestGroup2(application, getTestNamesForApplication(application))
-  }
-
-  private def registerAndInviteForTestGroup2(application: OnlineTestApplication, testNames: List[String])
+  private def registerCandidateForTests(application: OnlineTestApplication, testNames: List[String])
                                     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     val (invitationDate, expirationDate) = calcOnlineTestDates(onlineTestsGatewayConfig.phase1Tests.expiryTimeInDays)
 
@@ -151,7 +142,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
     val processRegistration = registerCandidate.flatMap { phase1TestsRegistrations =>
       phase1TestsRegistrations.collect { case Failure(e) => throw e }
       val successfullyRegisteredTests = phase1TestsRegistrations.collect { case Success(t) => t }.toList
-      markAsInvited2(application)(Phase1TestProfile(expirationDate = expirationDate, tests = successfullyRegisteredTests))
+      markAsInvited(application)(Phase1TestProfile(expirationDate = expirationDate, tests = successfullyRegisteredTests))
     }
 
     for {
@@ -161,11 +152,15 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
     } yield audit("OnlineTestInvitationProcessComplete", application.userId)
   }
 
-  override def registerAndInvite(applications: Seq[OnlineTestApplication])
-                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  override def registerAndInviteForTestGroup(applications: Seq[OnlineTestApplication])
+                                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     Future.sequence(applications.map { application =>
-      registerAndInviteForTestGroup2(application)
+      registerAndInviteForTestGroup(application)
     }).map(_ => ())
+  }
+
+  override def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    registerCandidateForTests(application, getTestNamesForApplication(application))
   }
 
   override def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
@@ -215,7 +210,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
       updatedTests = insertTest(testsWithInactiveTest, idxOfResetTest, newPsiTest)
       _ = logger.info(s"updatedTests -- $updatedTests")
 
-      _ <- markAsInvited2(application)(Phase1TestProfile(expirationDate, updatedTests))
+      _ <- markAsInvited(application)(Phase1TestProfile(expirationDate, updatedTests))
       emailAddress <- candidateEmailAddress(application.userId)
       _ <- emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
     } yield {
@@ -235,7 +230,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
                                    testIds: PsiTestIds, invitationDate: DateTime)
                                   (implicit hc: HeaderCarrier): Future[PsiTest] = {
     for {
-      aoa <- registerApplicant2(application, testIds)
+      aoa <- registerApplicant(application, testIds)
     } yield {
       if (aoa.status != AssessmentOrderAcknowledgement.acknowledgedStatus) {
         val msg = s"Received response status of ${aoa.status} when registering candidate " +
@@ -258,7 +253,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
     }
   }
 
-  private def registerApplicant2(application: OnlineTestApplication, testIds: PsiTestIds)(
+  private def registerApplicant(application: OnlineTestApplication, testIds: PsiTestIds)(
     implicit hc: HeaderCarrier): Future[AssessmentOrderAcknowledgement] = {
 
     val orderId = tokenFactory.generateUUID()
@@ -310,9 +305,9 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
     s"$scheduleCompletionBaseUrl/complete/$orderId"
   }
 
-  private def markAsInvited2(application: OnlineTestApplication)(newOnlineTestProfile: Phase1TestProfile): Future[Unit] = for {
+  private def markAsInvited(application: OnlineTestApplication)(newOnlineTestProfile: Phase1TestProfile): Future[Unit] = for {
     currentOnlineTestProfile <- testRepository.getTestGroup(application.applicationId)
-    updatedTestProfile <- insertOrAppendNewTests2(application.applicationId, currentOnlineTestProfile, newOnlineTestProfile)
+    updatedTestProfile <- insertOrAppendNewTests(application.applicationId, currentOnlineTestProfile, newOnlineTestProfile)
     _ <- testRepository.resetTestProfileProgresses(
       application.applicationId, determineStatusesToRemove(updatedTestProfile), ignoreNoRecordUpdated = true
     )
@@ -322,7 +317,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
 
   // This also handles archiving any existing tests to which the candidate has previously been invited
   // eg if a test is being reset and the candidate is being invited to a replacement test
-  private def insertOrAppendNewTests2(applicationId: String, currentProfile: Option[Phase1TestProfile],
+  private def insertOrAppendNewTests(applicationId: String, currentProfile: Option[Phase1TestProfile],
                                       newProfile: Phase1TestProfile): Future[Phase1TestProfile] = {
 
     testRepository.insertOrUpdateTestGroup(applicationId, newProfile).flatMap { _ =>
@@ -343,18 +338,17 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
       )
   }
 
-  //TODO: these 2 methods need optimising (just copied across from cubiks impl)
-  def markAsCompleted2(orderId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def markAsCompleted(orderId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     testRepository.getTestProfileByOrderId(orderId).flatMap { p =>
-      p.tests.find(_.orderId == orderId).map { test => markAsCompleted22(test.orderId) } // TODO: here handle if we do not find the data
+      p.tests.find(_.orderId == orderId).map { test => setTestCompletedTime(test.orderId) } // TODO: here handle if we do not find the data
         .getOrElse(Future.successful(()))
     }
   }
 
-  def markAsCompleted22(orderId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] =
+  private def setTestCompletedTime(orderId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] =
     eventSink {
-      updatePhase1Test2(orderId, testRepository.updateTestCompletionTime2(_: String, dateTimeFactory.nowLocalTimeZone)) flatMap { u =>
-        require(u.testGroup.activeTests.nonEmpty, "Active tests cannot be found")
+      updatePhase1Test(orderId, testRepository.updateTestCompletionTime(_: String, dateTimeFactory.nowLocalTimeZone)) flatMap { u =>
+        require(u.testGroup.activeTests.nonEmpty, s"Active tests cannot be found orderId=$orderId")
         val activeTestsCompleted = u.testGroup.activeTests forall (_.completedDateTime.isDefined)
         if (activeTestsCompleted) {
           testRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_COMPLETED) map { _ =>
@@ -368,9 +362,9 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
       }
     }
 
-  def markAsStarted2(orderId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
-                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    updatePhase1Test2(orderId, testRepository.updateTestStartTime(_: String, startedTime)) flatMap { u =>
+  def markAsStarted(orderId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
+                   (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    updatePhase1Test(orderId, testRepository.updateTestStartTime(_: String, startedTime)) flatMap { u =>
       //TODO: remove the next line and comment in the following line at end of campaign 2019
       testRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED) map { _ =>
         //      maybeMarkAsStarted(u.applicationId).map { _ =>
@@ -395,7 +389,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
                                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
     def insertResults(applicationId: String, orderId: String, testProfile: Phase1TestProfile, results: PsiRealTimeResults): Future[Unit] =
-      testRepository.insertTestResult2(
+      testRepository.insertTestResult(
         applicationId,
         testProfile.tests.find(_.orderId == orderId).getOrElse(throw CannotFindTestByOrderIdException(s"Test not found for orderId=$orderId")),
         model.persisted.PsiTestResult.fromCommandObject(results)
@@ -420,7 +414,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
       profile.tests.find(_.orderId == orderId).map { test =>
         if (!test.isCompleted) {
           logger.info(s"Processing real time results - setting completed date on psi test whose orderId=$orderId")
-          markAsCompleted22(orderId)
+          setTestCompletedTime(orderId)
         }
         else {
           logger.info(s"Processing real time results - completed date is already set on psi test whose orderId=$orderId " +
@@ -445,7 +439,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
   }
   //scalastyle:on
 
-  private def updatePhase1Test2(orderId: String, updatePsiTest: String => Future[Unit]): Future[Phase1TestGroupWithUserIds] = {
+  private def updatePhase1Test(orderId: String, updatePsiTest: String => Future[Unit]): Future[Phase1TestGroupWithUserIds] = {
     for {
       _ <- updatePsiTest(orderId)
       updated <- testRepository.getTestGroupByOrderId(orderId)
@@ -464,19 +458,6 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
       logger.warn(s"Processing phase1 standard candidate ${application.applicationId} - inviting to ${tests.size} tests")
       tests
     }
-  }
-
-  override def registerAndInviteForTestGroup(applications: Seq[OnlineTestApplication])
-                                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    ??? // This is Cubiks specific so should never be called
-  }
-
-  override def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    ??? // This is Cubiks specific so should never be called
-  }
-
-  override def retrieveTestResult(testProfile: RichTestGroup)(implicit hc: HeaderCarrier): Future[Unit] = {
-    ??? // This is Cubiks specific so should never be called
   }
 }
 

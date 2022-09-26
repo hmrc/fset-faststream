@@ -31,7 +31,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     val resultToSave = List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString))
 
     "return nothing if application does not have PHASE2_TESTS" in {
-      insertApplication2("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1Tests))
+      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1Tests))
       val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
       result mustBe empty
     }
@@ -40,7 +40,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val phase1Evaluation = PassmarkEvaluation(
         "phase1_version1", previousPhasePassMarkVersion = None, resultToSave, "phase1-version1-res", previousPhaseResultVersion = None
       )
-      insertApplication2("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
+      insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
         Some(phase2TestWithResult), phase1Evaluation = Some(phase1Evaluation)
       )
 
@@ -61,7 +61,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val phase1Evaluation = PassmarkEvaluation(
         "phase1_version1", previousPhasePassMarkVersion = None, resultToSave, "phase1-version1-res", previousPhaseResultVersion = None
       )
-      insertApplication2("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
+      insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
         Some(phase2TestWithResult), phase1Evaluation = Some(phase1Evaluation), applicationRoute = None)
 
       val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("phase1_version1", batchSize = 1).futureValue
@@ -82,7 +82,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val phase1Evaluation = PassmarkEvaluation(
         "phase1_version1", previousPhasePassMarkVersion = None, resultToSave, "phase1-version1-res", previousPhaseResultVersion = None
       )
-      insertApplication2("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
+      insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
         Some(phase2TestWithResult), phase1Evaluation = Some(phase1Evaluation))
 
       val phase2Evaluation = PassmarkEvaluation(
@@ -98,7 +98,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val phase1Evaluation = PassmarkEvaluation(
         "phase1_version1", previousPhasePassMarkVersion = None, resultToSave, "phase1-version1-res", previousPhaseResultVersion = None
       )
-      insertApplication2("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
+      insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
         Some(phase2TestWithResult), phase1Evaluation = Some(phase1Evaluation),
         additionalProgressStatuses = List(ProgressStatuses.PHASE2_TESTS_EXPIRED -> true))
 
@@ -111,7 +111,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val phase1Evaluation = PassmarkEvaluation(
         "phase1_version1", previousPhasePassMarkVersion = None, resultToSave, "phase1-version1-res", previousPhaseResultVersion = None
       )
-      insertApplication2("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
+      insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
         Some(phase2TestWithResult), phase1Evaluation = Some(phase1Evaluation))
 
       val phase2Evaluation = PassmarkEvaluation(
@@ -136,7 +136,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val phase1Evaluation = PassmarkEvaluation(
         "phase1_version2", previousPhasePassMarkVersion = None, resultToSave, "phase1-version1-res", previousPhaseResultVersion = None
       )
-      insertApplication2("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
+      insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
         Some(phase2TestWithResult), phase1Evaluation = Some(phase1Evaluation))
 
       val phase2Evaluation = PassmarkEvaluation(
@@ -162,7 +162,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         val phase1Evaluation = PassmarkEvaluation(
           "phase1_version1", previousPhasePassMarkVersion = None, resultToSave, "phase1-version1-res", previousPhaseResultVersion = None
         )
-        insertApplication2(s"app$id", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
+        insertApplication(s"app$id", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
           Some(phase2TestWithResult), phase1Evaluation = Some(phase1Evaluation))
       }
       val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("phase2_version1", batchSizeLimit).futureValue
@@ -175,7 +175,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         val phase1Evaluation = PassmarkEvaluation(
           "phase1_version1", previousPhasePassMarkVersion = None, resultToSave, "phase1-version1-res", previousPhaseResultVersion = None
         )
-        insertApplication2(s"app$id", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
+        insertApplication(s"app$id", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult),
           Some(phase2TestWithResult), phase1Evaluation = Some(phase1Evaluation))
       }
       val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSizeLimit).futureValue
@@ -187,7 +187,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString))
 
     "save result and update the status" in {
-      insertApplication2("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult), Some(phase2TestWithResult))
+      insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult), Some(phase2TestWithResult))
       val evaluation = PassmarkEvaluation(
         "version1", previousPhasePassMarkVersion = None, resultToSave, "version1-res", previousPhaseResultVersion = None
       )

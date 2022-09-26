@@ -249,9 +249,7 @@ GET         /diagnostic/inviteP2CandidateToMissingTest                          
 GET         /diagnostic/application/:applicationId/setGis/:newGis                                       @controllers.fixdata.FixDataConsistencyController.setGis(applicationId: String, newGis: Boolean)
 #Diagnostic routes end
 
-GET         /online-test/psi/phase1/candidate/:applicationId             @controllers.OnlineTestController.getPhase1OnlineTest2(applicationId: String)
-# TODO: cubiks this is the same as the line above
-GET         /online-test/phase1/candidate/:applicationId                 @controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
+GET         /online-test/psi/phase1/candidate/:applicationId             @controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)
 GET         /online-test/phase2/candidate/:applicationId                 @controllers.OnlineTestController.getPhase2OnlineTest(applicationId: String)
 GET         /online-test/phase1/candidate/orderId/:orderId               @controllers.OnlineTestController.getPhase1OnlineTestByOrderId(orderId: String)
 GET         /online-test/phase2/candidate/orderId/:orderId               @controllers.OnlineTestController.getPhase2OnlineTestByOrderId(orderId: String)
@@ -262,13 +260,6 @@ POST        /online-test/phase2/reset/:applicationId                     @contro
 POST        /online-test/psi/phase2/reset/:applicationId                 @controllers.OnlineTestController.resetPhase2OnlineTest(applicationId: String)
 POST        /online-test/phase3/reset/:applicationId                     @controllers.OnlineTestController.resetPhase3OnlineTest(applicationId: String)
 POST        /online-test/phase2/verifyAccessCode                         @controllers.OnlineTestController.verifyAccessCode()
-
-# Cubiks TODO: these should be deleted
-#PUT         /cubiks/:cubiksUserId/start                                  @controllers.CubiksTestsController.start(cubiksUserId: Int)
-#PUT         /cubiks/:cubiksUserId/complete                               @controllers.CubiksTestsController.complete(cubiksUserId: Int)
-#PUT         /cubiks/complete-by-token/:token                             @controllers.CubiksTestsController.completeTestByToken(token: String)
-#PUT         /cubiks/:cubiksUserId/results-ready                          @controllers.CubiksTestsController.markResultsReady(cubiksUserId: Int)
-# Cubiks end
 
 PUT         /psi/:orderId/start                                          @controllers.PsiTestsController.start(orderId: String)
 PUT         /psi/:orderId/complete                                       @controllers.PsiTestsController.completeTestByOrderId(orderId: String)
@@ -383,11 +374,8 @@ GET         /sift-answers/:applicationId                                 @contro
 
 POST        /sift-candidate/extend/:applicationId                        @controllers.SiftCandidateController.extend(applicationId: String)
 GET         /sift-candidate/state/:applicationId                         @controllers.SiftCandidateController.getSiftState(applicationId: String)
-GET         /sift-test-group/:applicationId                              @controllers.SiftCandidateController.getSiftTestGroup(applicationId: String)
-GET         /psi/sift-test-group/:applicationId                          @controllers.SiftCandidateController.getSiftTestGroup2(applicationId: String)
-
-PUT         /sift-test/:cubiksUserId/start                               @controllers.SiftCandidateController.startTest(cubiksUserId: Int)
-PUT         /psi/sift-test/:orderId/start                                @controllers.SiftCandidateController.startTest2(orderId: String)
+GET         /psi/sift-test-group/:applicationId                          @controllers.SiftCandidateController.getSiftTestGroup(applicationId: String)
+PUT         /psi/sift-test/:orderId/start                                @controllers.SiftCandidateController.startTest(orderId: String)
 
 # Reference data
 GET         /reference/skills                                            @controllers.reference.SkillTypeController.allSkills

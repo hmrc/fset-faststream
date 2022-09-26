@@ -34,8 +34,6 @@ class TestJobsController @Inject() (cc:ControllerComponents,
                                     sendPhase2InvitationJob: SendPhase2InvitationJob,
                                     sendPhase3InvitationJob: SendPhase3InvitationJob,
                                     siftNumericalTestInvitationJob: SiftNumericalTestInvitationJobImpl,
-                                    retrievePhase1ResultsJob: RetrievePhase1ResultsJob,
-                                    retrievePhase2ResultsJob: RetrievePhase2ResultsJob,
                                     expirePhase1TestJob: ExpirePhase1TestJob,
                                     expirePhase2TestJob: ExpirePhase2TestJob,
                                     expirePhase3TestJob: ExpirePhase3TestJob,
@@ -48,7 +46,6 @@ class TestJobsController @Inject() (cc:ControllerComponents,
                                     progressToSiftJob: ProgressToSiftJobImpl,
                                     firstSiftReminderJob: FirstSiftReminderJobImpl,
                                     secondSiftReminderJob: SecondSiftReminderJobImpl,
-                                    retrieveSiftNumericalResultsJob: RetrieveSiftNumericalResultsJobImpl,
                                     processSiftNumericalResultsReceivedJob: ProcessSiftNumericalResultsReceivedJobImpl,
                                     siftExpiryJob: SiftExpiryJobImpl,
                                     siftFailureJob:  SiftFailureJob,
@@ -132,24 +129,6 @@ class TestJobsController @Inject() (cc:ControllerComponents,
   def secondSiftReminder: Action[AnyContent] = Action.async { implicit request =>
     secondSiftReminderJob.tryExecute().map { _ =>
       Ok("Second sift reminder job started")
-    }
-  }
-
-  def retrievePhase1Results: Action[AnyContent] = Action.async { implicit request =>
-    retrievePhase1ResultsJob.tryExecute().map { _ =>
-      Ok("Retrieve phase 1 results job started")
-    }
-  }
-
-  def retrievePhase2Results: Action[AnyContent] = Action.async { implicit request =>
-    retrievePhase2ResultsJob.tryExecute().map { _ =>
-      Ok("Retrieve phase 2 results job started")
-    }
-  }
-
-  def retrieveSiftNumericalResults: Action[AnyContent] = Action.async { implicit request =>
-    retrieveSiftNumericalResultsJob.tryExecute().map { _ =>
-      Ok("Retrieve sift numerical results job started")
     }
   }
 
