@@ -1093,11 +1093,11 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
             undergradDegreeOpt.map( _.get("name").asString().getValue ),
             undergradDegreeOpt.map( _.get("classification").asString().getValue ),
             undergradDegreeOpt.map( _.get("graduationYear").asString().getValue ),
-            undergradDegreeOpt.map( _.get("moduleDetails").asString().getValue ),
+            undergradDegreeOpt.flatMap( doc => Try(doc.get("moduleDetails").asString().getValue).toOption ), // Handle NPE
             postgradDegreeOpt.map( _.get("name").asString().getValue ),
-            postgradDegreeOpt.map( _.get("otherDetails").asString().getValue ),
+            postgradDegreeOpt.flatMap( doc => Try(doc.get("otherDetails").asString().getValue).toOption ), // Handle NPE
             postgradDegreeOpt.map( _.get("graduationYear").asString().getValue ),
-            postgradDegreeOpt.map( _.get("projectDetails").asString().getValue )
+            postgradDegreeOpt.flatMap( doc => Try(doc.get("projectDetails").asString().getValue).toOption ) // Handle NPE
           ) ++ schemeTextAnswers: _*
         )
         extractAppId(doc) -> csvRecord
@@ -1123,7 +1123,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
       val csvRecords = docs.map { doc =>
 
         val generalAnswersOpt = subDocRoot("generalAnswers")(doc)
-        val undergradDegreeOpt = generalAnswersOpt.map( _.get("undergradDegree").asDocument() )
+        val undergradDegreeOpt = generalAnswersOpt.flatMap( doc =>  Try(doc.get("undergradDegree").asDocument()).toOption ) // Handle NPE
 
         val csvRecord = makeRow(
           List(
