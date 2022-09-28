@@ -416,8 +416,9 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
         )
       } catch {
         case ex: Throwable =>
-          logger.error("Streamed candidate report generation exception", ex)
-          CandidateDetailsReportItem("", "", s"ERROR: ${ex.getMessage}")
+          val appId = extractAppId(doc)
+          logger.error(s"Streamed candidate report generation exception $appId", ex)
+          CandidateDetailsReportItem(appId, "", s"$appId ERROR: ${ex.getMessage}")
       }
     }
 
@@ -562,8 +563,9 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
         CandidateDetailsReportItem(extractAppId(doc), extractUserId(doc), csvContent)
       } catch {
         case ex: Throwable =>
-          logger.error("Data analyst streamed candidate report generation exception", ex)
-          CandidateDetailsReportItem("", "", s"ERROR: ${ex.getMessage}")
+          val appId = extractAppId(doc)
+          logger.error(s"Data analyst streamed candidate report generation exception $appId", ex)
+          CandidateDetailsReportItem(appId, "", s"$appId ERROR: ${ex.getMessage}")
       }
     }
 
@@ -686,8 +688,9 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
         CandidateDetailsReportItem(extractAppId(doc), extractUserId(doc), csvContent)
       } catch {
         case ex: Throwable =>
-          logger.error("Data analyst streamed candidate report generation exception", ex)
-          CandidateDetailsReportItem("", "", s"ERROR: ${ex.getMessage}")
+          val appId = extractAppId(doc)
+          logger.error(s"Data analyst streamed candidate report generation exception $appId", ex)
+          CandidateDetailsReportItem(appId, "", s"$appId ERROR: ${ex.getMessage}")
       }
     }
 
@@ -713,7 +716,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     val questionnaireStatusesOpt = progressStatusOpt.flatMap( doc => subDocRoot("questionnaire")(doc) )
     def questionnaireStatus(key: String): Option[String] = questionnaireStatusesOpt match {
       case None => Some("false")
-      case Some(stat) => Some(stat.get(key).asBoolean().getValue.toString)
+      case Some(stat) => Try(stat.get(key).asBoolean().getValue).toOption.orElse(Some(false)).map(_.toString)
     }
 
     val progressStatusDatesOpt = subDocRoot("progress-status-dates")(doc)
