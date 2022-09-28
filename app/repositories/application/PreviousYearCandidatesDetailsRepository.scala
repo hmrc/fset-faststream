@@ -51,7 +51,7 @@ trait PreviousYearCandidatesDetailsRepository {
   val allSchemes: List[String]
   val siftAnswersHeader: String
 
-  implicit class RichOptionDocument(doc: Option[Document]) {
+//  implicit class RichOptionDocument(doc: Option[Document]) {
 
 //    def getAs[T](key: String)(implicit reader: BSONReader[_ <: BSONValue, T]) = doc.flatMap(_.getAs[T](key))
 
@@ -60,6 +60,11 @@ trait PreviousYearCandidatesDetailsRepository {
 //    def getOrElseAsStr[T](key: String)(default: T)(implicit reader: BSONReader[_ <: BSONValue, T]) = {
 //      doc.flatMap(_.getAs[T](key).orElse(Some(default))).map(_.toString)
 //    }
+//  }
+
+  implicit class RichOptionDocument(doc: Option[BsonDocument]) {
+    def getStringOpt(key: String) = Try(doc.map(_.get(key).asString().getValue)).toOption.flatten
+    def getBooleanOpt(key: String) = Try(doc.map(_.get(key).asBoolean().getValue.toString)).toOption.flatten
   }
 
   private val appTestStatuses = "personal-details,IN_PROGRESS,scheme-preferences,assistance-details,start_questionnaire,diversity_questionnaire,education_questionnaire,occupation_questionnaire,preview,SUBMITTED,FAST_PASS_ACCEPTED,PHASE1_TESTS_INVITED,PHASE1_TESTS_FIRST_REMINDER,PHASE1_TESTS_SECOND_REMINDER,PHASE1_TESTS_STARTED,PHASE1_TESTS_COMPLETED,PHASE1_TESTS_EXPIRED,PHASE1_TESTS_RESULTS_READY," +
@@ -962,15 +967,15 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
         val addressOpt = contactDetailsOpt.flatMap(contactDetails => subDocRoot("address")(contactDetails))
 
         val csvRecord = makeRow(
-          contactDetailsOpt.map(_.get("email").asString().getValue),
-          addressOpt.map(_.get("line1").asString().getValue),
-          Try(addressOpt.map(_.get("line2").asString().getValue)).toOption.flatten, // Handle NPE
-          Try(addressOpt.map(_.get("line3").asString().getValue)).toOption.flatten, // Handle NPE
-          Try(addressOpt.map(_.get("line4").asString().getValue)).toOption.flatten, // Handle NPE
-          Try(contactDetailsOpt.map(_.get("postCode").asString().getValue)).toOption.flatten, // Handle NPE
+          contactDetailsOpt.getStringOpt("email"),
+          addressOpt.getStringOpt("line1"),
+          addressOpt.getStringOpt("line2"),
+          addressOpt.getStringOpt("line3"),
+          addressOpt.getStringOpt("line4"),
+          contactDetailsOpt.getStringOpt("postCode"),
           contactDetailsOpt.map(_.get("outsideUk").asBoolean().getValue).map(outside => if (outside) "Yes" else "No"),
-          Try(contactDetailsOpt.map(_.get("country").asString().getValue)).toOption.flatten, // Handle NPE
-          Try(contactDetailsOpt.map(_.get("phone").asString().getValue)).toOption.flatten, // Handle NPE
+          contactDetailsOpt.getStringOpt("country"),
+          contactDetailsOpt.getStringOpt("phone"),
         )
         extractUserId(doc) -> csvRecord
       }
@@ -1086,18 +1091,18 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
 
         val csvRecord = makeRow(
           List(
-            doc.get("status").map( _.asString().getValue ),
-            generalAnswersOpt.map( _.get("multipleNationalities").asBoolean().getValue.toString ),
-            generalAnswersOpt.flatMap( doc => Try(doc.get("secondNationality").asString().getValue).toOption ), // Handle NPE
-            generalAnswersOpt.map( _.get("nationality").asString().getValue ),
-            undergradDegreeOpt.map( _.get("name").asString().getValue ),
-            undergradDegreeOpt.map( _.get("classification").asString().getValue ),
-            undergradDegreeOpt.map( _.get("graduationYear").asString().getValue ),
-            undergradDegreeOpt.flatMap( doc => Try(doc.get("moduleDetails").asString().getValue).toOption ), // Handle NPE
-            postgradDegreeOpt.map( _.get("name").asString().getValue ),
-            postgradDegreeOpt.flatMap( doc => Try(doc.get("otherDetails").asString().getValue).toOption ), // Handle NPE
-            postgradDegreeOpt.map( _.get("graduationYear").asString().getValue ),
-            postgradDegreeOpt.flatMap( doc => Try(doc.get("projectDetails").asString().getValue).toOption ) // Handle NPE
+            Try(doc.get("status").map( _.asString().getValue )).toOption.flatten,
+            generalAnswersOpt.getBooleanOpt("multipleNationalities"),
+            generalAnswersOpt.getStringOpt("secondNationality"),
+            generalAnswersOpt.getStringOpt("nationality"),
+            undergradDegreeOpt.getStringOpt("name"),
+            undergradDegreeOpt.getStringOpt("classification"),
+            undergradDegreeOpt.getStringOpt("graduationYear"),
+            undergradDegreeOpt.getStringOpt("moduleDetails"),
+            postgradDegreeOpt.getStringOpt("name"),
+            postgradDegreeOpt.getStringOpt("otherDetails"),
+            postgradDegreeOpt.getStringOpt("graduationYear"),
+            postgradDegreeOpt.getStringOpt("projectDetails")
           ) ++ schemeTextAnswers: _*
         )
         extractAppId(doc) -> csvRecord
@@ -1127,10 +1132,10 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
 
         val csvRecord = makeRow(
           List(
-            generalAnswersOpt.map( _.get("nationality").asString().getValue ),
-            undergradDegreeOpt.map( _.get("name").asString().getValue ),
-            undergradDegreeOpt.map( _.get("classification").asString().getValue ),
-            undergradDegreeOpt.map( _.get("graduationYear").asString().getValue )
+            generalAnswersOpt.getStringOpt("nationality"),
+            undergradDegreeOpt.getStringOpt("name"),
+            undergradDegreeOpt.getStringOpt("classification"),
+            undergradDegreeOpt.getStringOpt("graduationYear")
           ): _*
         )
         extractAppId(doc) -> csvRecord
