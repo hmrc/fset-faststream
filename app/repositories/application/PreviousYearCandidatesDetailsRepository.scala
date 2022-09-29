@@ -1414,8 +1414,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     val testSectionOpt = testGroupsOpt.flatMap( testGroups => subDocRoot("FSAC")(testGroups) )
     val testsEvaluationOpt = testSectionOpt.flatMap( evaluation => subDocRoot("evaluation")(evaluation) )
 
-    // Handle NPE
-    val passedMin = testsEvaluationOpt.flatMap( evaluation => Try(evaluation.get("passedMinimumCompetencyLevel").asBoolean().getValue.toString).toOption )
+    val passedMin = testsEvaluationOpt.getBooleanOpt("passedMinimumCompetencyLevel")
     val competencyAvgOpt = testsEvaluationOpt.flatMap( evaluation => subDocRoot("competency-average")(evaluation))
     passedMin :: List(
       "makingEffectiveDecisionsAverage",
@@ -1423,16 +1422,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
       "communicatingAndInfluencingAverage",
       "seeingTheBigPictureAverage",
       "overallScore"
-    ).map( f => getDoubleOrInt(competencyAvgOpt ,f) )
-  }
-
-  private def getDoubleOrInt(doc: Option[BsonDocument], key: String) = doc.map { doc =>
-    try {
-      doc.get(key).asDouble().getValue.toString
-    } catch {
-      case _: org.bson.BsonInvalidOperationException =>
-        doc.get(key).asInt32().getValue.toString
-    }
+    ).map(key => competencyAvgOpt.getDoubleOpt(key) )
   }
 
   private def extractDateTime(doc: BsonDocument, key: String) = {
@@ -1446,20 +1436,20 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
       val testResults = test.flatMap ( doc => subDocRoot("testResult")(doc) )
 
       List(
-        test.map( _.get("inventoryId").asString().getValue ),
-        test.map( _.get("orderId").asString().getValue ),
-        test.map( _.get("normId").asString().getValue ),
-        test.map( _.get("reportId").asString().getValue ),
-        test.map( _.get("assessmentId").asString().getValue ),
-        test.map( _.get("testUrl").asString().getValue ),
-        test.map( doc => extractDateTime(doc, "invitationDate").toString ),
-        test.map( doc => extractDateTime(doc, "startedDateTime").toString ),
-        test.map( doc => extractDateTime(doc, "completedDateTime").toString ),
+        test.getStringOpt("inventoryId"),
+        test.getStringOpt("orderId"),
+        test.getStringOpt("normId"),
+        test.getStringOpt("reportId"),
+        test.getStringOpt("assessmentId"),
+        test.getStringOpt("testUrl"),
+        test.getDateTimeOpt("invitationDate"),
+        test.getDateTimeOpt("startedDateTime"),
+        test.getDateTimeOpt("completedDateTime"),
         // TODO: mongo this data is stored as Int32 if there is no fraction part if we don't set the legacyNumbers argument
         // TODO: this is different to ReactiveMongo version which always stores it as double
-        getDoubleOrInt(testResults, "tScore"),
-        getDoubleOrInt(testResults, "rawScore"),
-        testResults.map( _.get("testReportUrl").asString().getValue )
+        testResults.getDoubleOpt("tScore"),
+        testResults.getDoubleOpt("rawScore"),
+        testResults.getStringOpt("testReportUrl")
       )
     }
 
