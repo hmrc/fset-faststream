@@ -66,9 +66,12 @@ trait PreviousYearCandidatesDetailsRepository {
     def getStringOpt(key: String) = Try(doc.map(_.get(key).asString().getValue)).toOption.flatten
     def getBooleanOpt(key: String) = Try(doc.map(_.get(key).asBoolean().getValue.toString)).toOption.flatten
     def getDoubleOpt(key: String) = Try(doc.map(_.get(key).asDouble().getValue.toString)).toOption.flatten
+    def getIntOpt(key: String) = Try(doc.map(_.get(key).asInt32().getValue.toString)).toOption.flatten
     import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed for ISODate
     def getDateTimeOpt(key: String) =
       doc.flatMap ( doc => Try(Codecs.fromBson[DateTime](doc.get(key).asDateTime()).toString).toOption )
+    def getAsBoolean(key: String) = doc.exists(ad => Try(ad.get(key).asBoolean().getValue).getOrElse(false))
+    def getAsIntOpt(key: String) = Try(doc.map(_.get(key).asInt32().getValue)).toOption.flatten
   }
 
   private val appTestStatuses = "personal-details,IN_PROGRESS,scheme-preferences,assistance-details,start_questionnaire,diversity_questionnaire,education_questionnaire,occupation_questionnaire,preview,SUBMITTED,FAST_PASS_ACCEPTED,PHASE1_TESTS_INVITED,PHASE1_TESTS_FIRST_REMINDER,PHASE1_TESTS_SECOND_REMINDER,PHASE1_TESTS_STARTED,PHASE1_TESTS_COMPLETED,PHASE1_TESTS_EXPIRED,PHASE1_TESTS_RESULTS_READY," +
@@ -1349,10 +1352,10 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     }
 
     List(
-      activeVideoTestOpt.map(_.get("interviewId").asInt32().getValue.toString),
-      activeVideoTestOpt.map(_.get("token").asString().getValue),
-      activeVideoTestOpt.map(_.get("candidateId").asString().getValue),
-      activeVideoTestOpt.map(_.get("customCandidateId").asString().getValue),
+      activeVideoTestOpt.getIntOpt("interviewId"),
+      activeVideoTestOpt.getStringOpt("token"),
+      activeVideoTestOpt.getStringOpt("candidateId"),
+      activeVideoTestOpt.getStringOpt("customCandidateId"),
       latestReviewerOpt.flatMap(_.comment),
       latestAVTRCallbackOpt.map(_.received.toString),
       latestReviewerOpt.flatMap(_.question1.reviewCriteria1.score.map(_.toString)),
@@ -1445,8 +1448,6 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
         test.getDateTimeOpt("invitationDate"),
         test.getDateTimeOpt("startedDateTime"),
         test.getDateTimeOpt("completedDateTime"),
-        // TODO: mongo this data is stored as Int32 if there is no fraction part if we don't set the legacyNumbers argument
-        // TODO: this is different to ReactiveMongo version which always stores it as double
         testResults.getDoubleOpt("tScore"),
         testResults.getDoubleOpt("rawScore"),
         testResults.getStringOpt("testReportUrl")
@@ -1612,31 +1613,30 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     )
 
     List(
-      assistanceDetailsOpt.map(_.get("hasDisability").asString().getValue),
-        Try(assistanceDetailsOpt.map(_.get("disabilityImpact").asString().getValue)).toOption.flatten,
+      assistanceDetailsOpt.getStringOpt("hasDisability"),
+        assistanceDetailsOpt.getStringOpt("disabilityImpact"),
     ) ++ markedDisabilityCategories ++
       List(
-        Try(assistanceDetailsOpt.map(_.get("otherDisabilityDescription").asString().getValue)).toOption.flatten,
-
-        assistanceDetailsOpt.flatMap( ad => if (Try(ad.get("guaranteedInterview").asBoolean().getValue).getOrElse(false)) Y else N ),
-        if (assistanceDetailsOpt.map(ad => ad.get("needsSupportForOnlineAssessment").asBoolean().getValue).getOrElse(false)) Y else N,
-        Try(assistanceDetailsOpt.map(_.get("needsSupportForOnlineAssessmentDescription").asString().getValue)).toOption.flatten,
-        if (assistanceDetailsOpt.map(ad => ad.get("needsSupportAtVenue").asBoolean().getValue).getOrElse(false)) Y else N,
-        Try(assistanceDetailsOpt.map(_.get("needsSupportAtVenueDescription").asString().getValue)).toOption.flatten,
-        if (assistanceDetailsOpt.map(ad => Try(ad.get("needsSupportForPhoneInterview").asBoolean().getValue).getOrElse(false)).getOrElse(false)) Y else N,
-        Try(assistanceDetailsOpt.map(_.get("needsSupportForPhoneInterviewDescription").asString().getValue)).toOption.flatten,
-        Try(etrayAdjustmentsOpt.map(_.get("timeNeeded").asInt32().getValue + "%")).toOption.flatten,
+        assistanceDetailsOpt.getStringOpt("otherDisabilityDescription"),
+        if (assistanceDetailsOpt.getAsBoolean("guaranteedInterview")) Y else N,
+        if (assistanceDetailsOpt.getAsBoolean("needsSupportForOnlineAssessment")) Y else N,
+        assistanceDetailsOpt.getStringOpt("needsSupportForOnlineAssessmentDescription"),
+        if (assistanceDetailsOpt.getAsBoolean("needsSupportAtVenue")) Y else N,
+        assistanceDetailsOpt.getStringOpt("needsSupportAtVenueDescription"),
+        if (assistanceDetailsOpt.getAsBoolean("needsSupportForPhoneInterview")) Y else N,
+        assistanceDetailsOpt.getStringOpt("needsSupportForPhoneInterviewDescription"),
+        etrayAdjustmentsOpt.getAsIntOpt("timeNeeded").map(_ + "%"),
 
         if (typeOfAdjustments.contains("etrayInvigilated")) Y else N,
-        Try(etrayAdjustmentsOpt.map(_.get("invigilatedInfo").asString().getValue)).toOption.flatten,
-        Try(etrayAdjustmentsOpt.map(_.get("otherInfo").asString().getValue)).toOption.flatten,
+        etrayAdjustmentsOpt.getStringOpt("invigilatedInfo"),
+        etrayAdjustmentsOpt.getStringOpt("otherInfo"),
 
-        Try(videoAdjustmentsOpt.map(_.get("timeNeeded").asInt32().getValue + "%")).toOption.flatten,
+        videoAdjustmentsOpt.getAsIntOpt("timeNeeded").map(_ + "%"),
         if (typeOfAdjustments.contains("videoInvigilated")) Y else N,
-        Try(videoAdjustmentsOpt.map(_.get("invigilatedInfo").asString().getValue)).toOption.flatten,
-        Try(videoAdjustmentsOpt.map(_.get("otherInfo").asString().getValue)).toOption.flatten,
-        Try(assistanceDetailsOpt.map(_.get("adjustmentsComment").asString().getValue)).toOption.flatten,
-        if (assistanceDetailsOpt.map(ad => Try(ad.get("adjustmentsConfirmed").asBoolean().getValue).getOrElse(false)).getOrElse(false)) Y else N
+        videoAdjustmentsOpt.getStringOpt("invigilatedInfo"),
+        videoAdjustmentsOpt.getStringOpt("otherInfo"),
+        assistanceDetailsOpt.getStringOpt("adjustmentsComment"),
+        if (assistanceDetailsOpt.getAsBoolean("adjustmentsConfirmed")) Y else N
       )
   }
 
