@@ -65,6 +65,10 @@ trait PreviousYearCandidatesDetailsRepository {
   implicit class RichOptionDocument(doc: Option[BsonDocument]) {
     def getStringOpt(key: String) = Try(doc.map(_.get(key).asString().getValue)).toOption.flatten
     def getBooleanOpt(key: String) = Try(doc.map(_.get(key).asBoolean().getValue.toString)).toOption.flatten
+    def getDoubleOpt(key: String) = Try(doc.map(_.get(key).asDouble().getValue.toString)).toOption.flatten
+    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed for ISODate
+    def getDateTimeOpt(key: String) =
+      doc.flatMap ( doc => Try(Codecs.fromBson[DateTime](doc.get(key).asDateTime()).toString).toOption )
   }
 
   private val appTestStatuses = "personal-details,IN_PROGRESS,scheme-preferences,assistance-details,start_questionnaire,diversity_questionnaire,education_questionnaire,occupation_questionnaire,preview,SUBMITTED,FAST_PASS_ACCEPTED,PHASE1_TESTS_INVITED,PHASE1_TESTS_FIRST_REMINDER,PHASE1_TESTS_SECOND_REMINDER,PHASE1_TESTS_STARTED,PHASE1_TESTS_COMPLETED,PHASE1_TESTS_EXPIRED,PHASE1_TESTS_RESULTS_READY," +
@@ -1240,29 +1244,27 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
 
     col.find(query).projection(projection).toFuture.map { docs =>
 
-      import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed for ISODate
-
       val csvRecords = docs.map { doc =>
         val csvStr = exerciseSections.flatMap { s =>
           val sectionOpt = subDocRoot(s)(doc)
 
           List(
-            sectionOpt.map ( doc => doc.get("attended").asBoolean().getValue.toString ),
-            sectionOpt.map ( doc => doc.get("updatedBy").asString().getValue ),
-            sectionOpt.flatMap ( doc => Try(Codecs.fromBson[DateTime](doc.get("submittedDate").asDateTime()).toString).toOption )
+            sectionOpt.getBooleanOpt("attended"),
+            sectionOpt.getStringOpt("updatedBy"),
+            sectionOpt.getDateTimeOpt("submittedDate")
           ) ++
             assessmentScoresNumericFieldsMap(s).split(",").map { field =>
-              sectionOpt.map ( doc => doc.get(field).asDouble().getValue.toString )
+              sectionOpt.getDoubleOpt(field)
             } ++
             assessmentScoresFeedbackFieldsMap(s).split(",").map { field =>
-              sectionOpt.map ( doc => doc.get(field).asString().getValue )
+              sectionOpt.getStringOpt(field)
             }
         } ++ {
           val sectionOpt = subDocRoot("finalFeedback")(doc)
           List(
-            sectionOpt.map ( doc => doc.get("feedback").asString().getValue ),
-            sectionOpt.map ( doc => doc.get("updatedBy").asString().getValue ),
-            sectionOpt.map ( doc => Codecs.fromBson[DateTime](doc.get("acceptedDate").asDateTime()).toString )
+            sectionOpt.getStringOpt("feedback"),
+            sectionOpt.getStringOpt("updatedBy"),
+            sectionOpt.getDateTimeOpt("acceptedDate")
           )
         }
         val csvRecord = makeRow(csvStr: _*)
