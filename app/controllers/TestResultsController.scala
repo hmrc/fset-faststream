@@ -22,7 +22,7 @@ import connectors.ApplicationClient.OnlineTestNotFound
 import helpers.NotificationTypeHelper
 import javax.inject.{ Inject, Singleton }
 import models.ApplicationData
-import models.page.{ Phase1TestsPage, Phase2TestsPage2, Phase3TestsPage, TestResultsPage }
+import models.page.{ Phase1TestsPage, Phase2TestsPage, Phase3TestsPage, TestResultsPage }
 import play.api.mvc.MessagesControllerComponents
 import security.Roles.PreviewApplicationRole
 import security.SilhouetteComponent
@@ -53,7 +53,7 @@ class TestResultsController @Inject() (
         phase3Tests <- phase3DataOptFut
       } yield {
         val phase1DataOpt = phase1TestsWithNames.map(Phase1TestsPage(_))
-        val phase2DataOpt = phase2TestsWithNames.map(Phase2TestsPage2(_, None))
+        val phase2DataOpt = phase2TestsWithNames.map(Phase2TestsPage(_, None))
         val phase3DataOpt = phase3Tests.map(Phase3TestsPage(_, None))
 
         val page = TestResultsPage(phase1DataOpt, phase2DataOpt, phase3DataOpt)
@@ -62,13 +62,13 @@ class TestResultsController @Inject() (
   }
 
   private def getPhase1Test(implicit application: ApplicationData, hc: HeaderCarrier) =
-    applicationClient.getPhase1TestProfile2(application.applicationId).map(Some(_)).recover {
+    applicationClient.getPhase1TestProfile(application.applicationId).map(Some(_)).recover {
       case _: OnlineTestNotFound =>
         None
     }
 
   private def getPhase2Test(implicit application: ApplicationData, hc: HeaderCarrier) = if (application.isPhase2) {
-    applicationClient.getPhase2TestProfile2(application.applicationId).map(Some(_))
+    applicationClient.getPhase2TestProfile(application.applicationId).map(Some(_))
   } else {
     Future.successful(None)
   }

@@ -95,7 +95,7 @@ class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks with Ins
          isPhase3TestFailed: Boolean,
          fullName: String,
          testProfile: Option[Phase1TestsPage2],
-         phase2TestProfile: Option[Phase2TestsPage2],
+         phase2TestProfile: Option[Phase2TestsPage],
          phase3TestGroup: Option[Phase3TestsPage],
          assessmentInProgressStatus: AssessmentStageStatus
         ) => {
@@ -195,7 +195,7 @@ class DashboardPageSpec extends UnitSpec with TableDrivenPropertyChecks with Ins
          isPhase3TestFailed: Boolean,
          fullName: String,
          testProfile: Option[Phase1TestsPage2],
-         phase2TestProfile: Option[Phase2TestsPage2],
+         phase2TestProfile: Option[Phase2TestsPage],
          phase3TestGroup: Option[Phase3TestsPage],
          assessmentInProgressStatus: AssessmentStageStatus
         ) => {

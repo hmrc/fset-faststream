@@ -18,7 +18,7 @@ package controllers
 
 import java.util.UUID
 
-import connectors.exchange.{Phase2TestGroupWithActiveTest2, PsiTest}
+import connectors.exchange.{Phase2TestGroupWithActiveTest, PsiTest}
 import models.UniqueIdentifier
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers._
@@ -34,8 +34,8 @@ class PsiTestControllerSpec extends BaseControllerSpec {
   "Complete phase 2 tests" should {
     "throw an exception if no active test is found for the given order id" in new TestFixture {
       val orderId = UniqueIdentifier(UUID.randomUUID().toString)
-      val p2TestGroup = Phase2TestGroupWithActiveTest2(expirationDate = DateTime.now(), activeTests = Nil)
-      when(mockApplicationClient.getPhase2TestProfile2ByOrderId(any[UniqueIdentifier])(any[HeaderCarrier]))
+      val p2TestGroup = Phase2TestGroupWithActiveTest(expirationDate = DateTime.now(), activeTests = Nil)
+      when(mockApplicationClient.getPhase2TestProfileByOrderId(any[UniqueIdentifier])(any[HeaderCarrier]))
         .thenReturn(Future.successful(p2TestGroup))
 
       val result = controller.completePhase2Tests(orderId)(fakeRequest)
@@ -59,9 +59,9 @@ class PsiTestControllerSpec extends BaseControllerSpec {
         invitationDate = DateTime.now(), startedDateTime = None,
         completedDateTime = None)
 
-      val p2TestGroup = Phase2TestGroupWithActiveTest2(expirationDate = DateTime.now(), activeTests = Seq(test1, test2))
+      val p2TestGroup = Phase2TestGroupWithActiveTest(expirationDate = DateTime.now(), activeTests = Seq(test1, test2))
 
-      when(mockApplicationClient.getPhase2TestProfile2ByOrderId(any[UniqueIdentifier])(any[HeaderCarrier]))
+      when(mockApplicationClient.getPhase2TestProfileByOrderId(any[UniqueIdentifier])(any[HeaderCarrier]))
         .thenReturn(Future.successful(p2TestGroup))
 
       val result = controller.completePhase2Tests(test2OrderId)(fakeRequest)
@@ -84,9 +84,9 @@ class PsiTestControllerSpec extends BaseControllerSpec {
         invitationDate = DateTime.now(), startedDateTime = Some(DateTime.now()),
         completedDateTime = Some(DateTime.now()))
 
-      val p2TestGroup = Phase2TestGroupWithActiveTest2(expirationDate = DateTime.now(), activeTests = Seq(test1, test2))
+      val p2TestGroup = Phase2TestGroupWithActiveTest(expirationDate = DateTime.now(), activeTests = Seq(test1, test2))
 
-      when(mockApplicationClient.getPhase2TestProfile2ByOrderId(any[UniqueIdentifier])(any[HeaderCarrier]))
+      when(mockApplicationClient.getPhase2TestProfileByOrderId(any[UniqueIdentifier])(any[HeaderCarrier]))
         .thenReturn(Future.successful(p2TestGroup))
 
       val result = controller.completePhase2Tests(test2OrderId)(fakeRequest)

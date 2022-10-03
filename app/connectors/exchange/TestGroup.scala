@@ -20,10 +20,6 @@ import models.UniqueIdentifier
 import org.joda.time.{ DateTime, Period }
 import org.joda.time.format.{ DateTimeFormatterBuilder, PeriodFormatterBuilder }
 
-abstract class CubiksTestGroup() extends TestGroup[CubiksTest] {
-  def hasNotResultReadyToDownloadForAllTestsYet = activeTests.exists(!_.resultsReadyToDownload)
-}
-
 trait TestGroup[T <: Test] {
   def expirationDate: DateTime
   def tests: List[T]
