@@ -239,7 +239,6 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)
   private def buildSingleApplication(id: Int): Document = {
     val personalDetails = createPersonalDetails(id)
     val assistance = createAssistance(id)
-    val onlineTests = createOnlineTests(id)
     val submitted = isSubmitted(id)(personalDetails, assistance)
     val withdrawn = isWithdrawn(id)(personalDetails, assistance)
 
@@ -255,7 +254,6 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)
     )
     document = buildDocument(document)(personalDetails.map(d => "personal-details" -> d))
     document = buildDocument(document)(assistance.map(d => "assistance-details" -> d))
-    document = buildDocument(document)(onlineTests.map(d => "online-tests" -> d))
     document = document ++ Document("progress-status" -> progress)
 
     document
@@ -287,26 +285,7 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)
         "firstName" -> chooseOne[String](firstNames),
         "lastName" -> chooseOne[String](lastNames),
         "preferredName" -> chooseOne[String](preferredName),
-        "dateOfBirth" -> Codecs.toBson(chooseOne[LocalDate](dateOfBirth))//,
-//        "aLevel" -> true,
-//        "stemLevel" -> true
-      ))
-  }
-
-  // TODO: Cubiks code need to replace with psi
-  private def createOnlineTests(id: Int) = id match {
-    case x if x % 12 == 0 => None
-    case _ =>
-      Some(Document(
-        "cubiksUserId" -> 117344,
-        "token" -> "32cf213b-697e-414b-a954-7d92f3e3e682",
-        "onlineTestUrl" -> "https://uat.cubiksonline.com/CubiksOnline/Standalone/PEnterFromExt.aspx?key=fc831fb6-1cb7-4c6d-9e9b".concat(
-          "-1e508db76711&hash=A07B3B39025E6F34639E5CEA70A6F668402E4673"
-        ),
-        "invitationDate" -> dateTimeToBson(DateTime.now().minusDays(5)),
-        "expirationDate" -> dateTimeToBson(DateTime.now().plusDays(2)),
-        "participantScheduleId" -> 149245,
-        "completionDate" -> dateTimeToBson(DateTime.now())
+        "dateOfBirth" -> Codecs.toBson(chooseOne[LocalDate](dateOfBirth))
       ))
   }
 

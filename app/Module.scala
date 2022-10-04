@@ -111,7 +111,6 @@ class Module(val environment: Environment, val configuration: Configuration) ext
     bind(classOf[FlagCandidateRepository]).to(classOf[FlagCandidateMongoRepository]).asEagerSingleton()
 
     // Bind the named implementations for the online test service
-    // TODO: cubiks - look at line 79 above
     bind(classOf[OnlineTestService]).annotatedWith(Names.named("Phase1OnlineTestService"))
       .to(classOf[Phase1TestService])
     bind(classOf[OnlineTestService]).annotatedWith(Names.named("Phase2OnlineTestService"))

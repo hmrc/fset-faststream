@@ -40,26 +40,12 @@ trait Phase1TestRepository extends OnlineTestRepository with Phase1TestConcern {
   this: PlayMongoRepository[_] =>
 
   def getTestGroup(applicationId: String): Future[Option[Phase1TestProfile]]
-
-  // Replacement for getTestProfileByToken
   def getTestProfileByOrderId(orderId: String): Future[Phase1TestProfile]
-
-  // Cubiks specific can be removed
-//  def getTestProfileByToken(token: String): Future[Phase1TestProfile]
-//  def getTestProfileByCubiksId(cubiksUserId: Int): Future[Phase1TestGroupWithUserIds]
-
-  // Replacement for getTestProfileByCubiksId
   def getTestGroupByOrderId(orderId: String): Future[Phase1TestGroupWithUserIds]
-
   def insertOrUpdateTestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
-
   // Caution - for administrative fixes only (dataconsistency)
   def removeTestGroup(applicationId: String): Future[Unit]
-
-  def nextTestGroupWithReportReady: Future[Option[Phase1TestGroupWithUserIds]]
-
   def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit]
-
   def nextSdipFaststreamCandidateReadyForSdipProgression: Future[Option[Phase1TestGroupWithUserIds]]
 }
 
@@ -90,11 +76,6 @@ class Phase1TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongo: Mon
   override def getTestGroup(applicationId: String): Future[Option[Phase1TestProfile]] = {
     getTestGroup(applicationId, phaseName)
   }
-
-  /* Cubiks specific
-  override def getTestProfileByToken(token: String): Future[Phase1TestProfile] = {
-    getTestProfileByToken(token, phaseName)
-  }*/
 
   // Needed to satisfy OnlineTestRepository trait
   override def nextApplicationsReadyForOnlineTesting(batchSize: Int): Future[Seq[OnlineTestApplication]] = {
@@ -136,24 +117,6 @@ class Phase1TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongo: Mon
       case _ => None
     }
   }
-
-  /*
-  override def getTestProfileByCubiksId(cubiksUserId: Int): Future[Phase1TestGroupWithUserIds] = {
-    val query = BSONDocument("testGroups.PHASE1.tests" -> BSONDocument(
-      "$elemMatch" -> BSONDocument("cubiksUserId" -> cubiksUserId)
-    ))
-    val projection = BSONDocument("applicationId" -> 1, "userId" -> 1, s"testGroups.$phaseName" -> 1, "_id" -> 0)
-
-    collection.find(query, Some(projection)).one[BSONDocument] map {
-      case Some(doc) =>
-        val applicationId = doc.getAs[String]("applicationId").get
-        val userId = doc.getAs[String]("userId").get
-        val bsonPhase1 = doc.getAs[BSONDocument]("testGroups").map(_.getAs[BSONDocument](phaseName).get)
-        val phase1TestGroup = bsonPhase1.map(Phase1TestProfile.bsonHandler.read).getOrElse(cannotFindTestByCubiksId(cubiksUserId))
-        Phase1TestGroupWithUserIds(applicationId, userId, phase1TestGroup)
-      case _ => cannotFindTestByCubiksId(cubiksUserId)
-    }
-  }*/
 
   override def getTestProfileByOrderId(orderId: String): Future[Phase1TestProfile] = {
     getTestProfileByOrderId(orderId, phaseName)
@@ -201,21 +164,4 @@ class Phase1TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongo: Mon
 
     nextTestForReminder(reminder, progressStatusQuery)
   }
-
-  /*
-  override def nextTestGroupWithReportReady: Future[Option[Phase1TestGroupWithUserIds]] = {
-
-    implicit val reader = bsonReader { doc =>
-      val group = doc.getAs[BSONDocument]("testGroups").get.getAs[BSONDocument](phaseName).get
-      Phase1TestGroupWithUserIds(
-        applicationId = doc.getAs[String]("applicationId").get,
-        userId = doc.getAs[String]("userId").get,
-        Phase1TestProfile.bsonHandler.read(group)
-      )
-    }
-
-    nextTestGroupWithReportReady[Phase1TestGroupWithUserIds]
-  }*/
-  // TODO: mongo is this now redundant???
-  override def nextTestGroupWithReportReady: Future[Option[Phase1TestGroupWithUserIds]] = ???
 }

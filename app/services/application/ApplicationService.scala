@@ -373,40 +373,6 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
     }
   }
 
-  // TODO: cubiks this is cubiks specific
-/*
-  def rollbackCandidateToPhase2CompletedFromPhase2Failed(applicationId: String): Future[Unit] = {
-    val statuses = List(
-      ProgressStatuses.PHASE2_TESTS_FAILED,
-      ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED,
-      ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED,
-      ProgressStatuses.PHASE2_TESTS_RESULTS_READY
-    )
-
-    for {
-      _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE2_TESTS, statuses)
-      phase1TestProfileOpt <- phase1TestRepository.getTestGroup(applicationId)
-
-      phase1Result = phase1TestProfileOpt.flatMap(_.evaluation.map(_.result))
-        .getOrElse(throw new Exception(s"Unable to find PHASE1 testGroup/results for $applicationId"))
-
-      _ <- appRepository.updateCurrentSchemeStatus(applicationId, phase1Result)
-      phase2TestGroupOpt <- phase2TestRepository.getTestGroup(applicationId)
-
-      phase2TestGroup = phase2TestGroupOpt.getOrElse(throw new Exception(s"Unable to find PHASE2 testGroup for $applicationId"))
-      cubiksTests = phase2TestGroup.tests.map { ct =>
-        if(ct.usedForResults) {
-          ct.copy(resultsReadyToDownload = false, testResult = None,
-            reportId = None, reportLinkURL = None, reportStatus = None)
-        } else {
-          ct
-        }
-      }
-      newTestGroup = phase2TestGroup.copy(tests = cubiksTests)
-      _ <- phase2TestRepository.saveTestGroup(applicationId, newTestGroup)
-    } yield ()
-  }*/
-
   def rollbackToPhase1ResultsReceivedFromPhase1FailedNotified(applicationId: String): Future[Unit] = {
     val statuses = List(
       ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED,
@@ -979,35 +945,6 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
       _ <- addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.PHASE3_TESTS_COMPLETED)
       _ <- addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
     } yield ()
-  }
-
-  //TODO: cubiks this is cubiks specific
-  /*
-  private def extractCubiksUserId(applicationId: String, phase2TestGroupOpt: Option[Phase2TestGroup]) = {
-    phase2TestGroupOpt.map { p2TestGroup =>
-      val msg = s"Active tests cannot be found when marking phase2 test complete for applicationId: $applicationId"
-      require(p2TestGroup.activeTests.nonEmpty, msg)
-      p2TestGroup.activeTests.head.cubiksUserId
-    }.getOrElse(throw new Exception(s"Failed to find phase2 cubiks user id for application id: $applicationId"))
-  }*/
-
-  private def fixPartiallyExecutedCompletedCallback(cubiksUserId: Int, phase2TestGroup: Phase2TestGroupWithAppId) = {
-    val msg = s"Active tests cannot be found when marking phase2 test complete for cubiksId: $cubiksUserId"
-    require(phase2TestGroup.testGroup.activeTests.nonEmpty, msg)
-    val activeTestsCompleted = phase2TestGroup.testGroup.activeTests forall (_.completedDateTime.isDefined)
-    if (activeTestsCompleted) {
-      phase2TestRepository.updateProgressStatus(phase2TestGroup.applicationId, ProgressStatuses.PHASE2_TESTS_COMPLETED)
-    } else {
-      Future.failed(new Exception(s"No active completed phase2 tests found for applicationId: ${phase2TestGroup.applicationId}"))
-    }
-  }
-
-  private def fixPartiallyExecutedResultsReadyCallback(cubiksUserId: Int, phase2TestGroup: Phase2TestGroupWithAppId) = {
-    if (phase2TestGroup.testGroup.activeTests forall (_.resultsReadyToDownload)) {
-      phase2TestRepository.updateProgressStatus(phase2TestGroup.applicationId, ProgressStatuses.PHASE2_TESTS_RESULTS_READY)
-    } else {
-      Future.failed(new Exception(s"No active results ready phase2 tests found for applicationId: ${phase2TestGroup.applicationId}"))
-    }
   }
 
   def rollbackToPhase3ExpiredFromSift(applicationId: String): Future[Unit] = {

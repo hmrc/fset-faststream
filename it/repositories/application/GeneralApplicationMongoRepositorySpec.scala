@@ -381,30 +381,6 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
-  //TODO: cubiks this uses phase1TestGroup which is cubiks specific
-  /*
-  "fix a ResetPhase1TestInvitedSubmitted issue" should {
-    "update the remove PHASE1_TESTS_INVITED and the test group" in {
-
-      val statuses = (ProgressStatuses.SUBMITTED, true) :: (ProgressStatuses.PHASE1_TESTS_INVITED, true) :: Nil
-
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId","FastStream-2016", ApplicationStatus.SUBMITTED,
-        additionalProgressStatuses = statuses, additionalDoc = phase1TestGroup).futureValue
-
-      val matchResponse = repository.fix(candidate, FixBatch(ResetPhase1TestInvitedSubmitted, 1)).futureValue
-      matchResponse.isDefined mustBe true
-
-      val applicationResponse = repository.findByUserId("userId", "FastStream-2016").futureValue
-      applicationResponse.userId mustBe "userId"
-      applicationResponse.applicationId mustBe "appId123"
-      applicationResponse.applicationStatus mustBe ApplicationStatus.SUBMITTED.toString
-      applicationResponse.progressResponse.phase1ProgressResponse.phase1TestsInvited mustBe false
-
-      val testGroup: Option[Phase1TestProfile2] = phase1TestRepo.getTestGroup("appId123").futureValue
-      testGroup mustBe None
-    }
-  }*/
-
   "findAdjustments" should {
     "return None if assistance-details does not exist" in {
       val result = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
@@ -443,50 +419,6 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       repository.findAdjustments(result.applicationId).futureValue mustBe Some(updatedAdjustments)
     }
   }
-
-  //TODO cubiks - all these tests use phase1TestGroup which is cubiks specific
-  /*
-  "fix PassToPhase1TestPassed" should {
-    "get None for PHASE1_TESTS_PASSED but with PHASE2_TESTS_INVITED" in {
-      val statuses = (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: (ProgressStatuses.PHASE2_TESTS_INVITED, true) :: Nil
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
-        additionalProgressStatuses = statuses, additionalDoc = phase1TestGroup).futureValue
-      val candidates = repository.getApplicationsToFix(FixBatch(PassToPhase1TestPassed, 1)).futureValue
-      candidates mustBe empty
-    }
-
-    "get a candidate for PHASE1_TESTS_PASSED and without PHASE2_TESTS_INVITED" in {
-      val statuses = (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: Nil
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
-        additionalProgressStatuses = statuses, additionalDoc = phase1TestGroup).futureValue
-      val candidates = repository.getApplicationsToFix(FixBatch(PassToPhase1TestPassed, 1)).futureValue
-      candidates.headOption.flatMap(_.applicationId) mustBe Some("appId123")
-    }
-
-    "move PHASE1_TESTS to PHASE1_TESTS_PASSED if PHASE1_TESTS_PASSED exists without PHASE2_TESTS_INVITED" in {
-      val statuses = (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: Nil
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016", ApplicationStatus.PHASE1_TESTS,
-        additionalProgressStatuses = statuses, additionalDoc = phase1TestGroup).futureValue
-      val matchResponse = repository.fix(candidate, FixBatch(PassToPhase1TestPassed, 1)).futureValue
-      matchResponse mustBe defined
-
-      val applicationResponse = repository.findByUserId("userId", "FastStream-2016").futureValue
-      applicationResponse.userId mustBe "userId"
-      applicationResponse.applicationId mustBe "appId123"
-      applicationResponse.applicationStatus mustBe ApplicationStatus.PHASE1_TESTS_PASSED.toString
-    }
-
-    "do not change application status for non PHASE1_TESTS" in {
-      val statuses = (ProgressStatuses.PHASE1_TESTS_PASSED, true) :: Nil
-      testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016", ApplicationStatus.PHASE2_TESTS,
-        additionalProgressStatuses = statuses, additionalDoc = phase1TestGroup).futureValue
-      val matchResponse = repository.fix(candidate, FixBatch(PassToPhase1TestPassed, 1)).futureValue
-      matchResponse mustNot be(defined)
-
-      val applicationResponse = repository.findByUserId("userId", "FastStream-2016").futureValue
-      applicationResponse.applicationStatus mustBe ApplicationStatus.PHASE2_TESTS.toString
-    }
-  }*/
 
   "findTestForNotification" should {
     "find an edip candidate that needs to be notified of successful phase1 test results" in new NewApplication {
@@ -694,43 +626,6 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         FrameworkId, ApplicationRoute.Faststream), timeout)
     }
   }
-
-  // TODO: cubiks looks like this is cubiks specific. Should we delete this?
-/*
-  "AddMissingPhase2ResultReceived" should {
-    val testResult = TestResult("Ready", "norm", Some(10.0), Some(20.0), Some(30.0), Some(40.0))
-
-    "get an application with missing result received status and with a phase 2 result" in {
-      createAppWithTestResult(List((ProgressStatuses.PHASE2_TESTS_RESULTS_READY, true)), Some(testResult))
-      val result = repository.getApplicationsToFix(FixBatch(AddMissingPhase2ResultReceived, 1)).futureValue
-      result.flatMap(_.applicationId) mustBe List(AppId)
-    }
-
-    "get nothing when the result received status is already there" in {
-      createAppWithTestResult(List(
-        (ProgressStatuses.PHASE2_TESTS_RESULTS_READY, true),
-        (ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED, true)
-      ), Some(testResult))
-      val result = repository.getApplicationsToFix(FixBatch(AddMissingPhase2ResultReceived, 1)).futureValue
-      result mustBe empty
-    }
-
-    "get nothing when the status is missing, but the result is not there yet" in {
-      createAppWithTestResult(List((ProgressStatuses.PHASE2_TESTS_RESULTS_READY, true)), testResult = None)
-      val result = repository.getApplicationsToFix(FixBatch(AddMissingPhase2ResultReceived, 1)).futureValue
-      result mustBe empty
-    }
-
-    "add the missing result received status" in {
-      createAppWithTestResult(List((ProgressStatuses.PHASE2_TESTS_RESULTS_READY, true)), Some(testResult))
-      val application = candidate.copy(applicationId = Some(AppId))
-      val matchResponse = repository.fix(application, FixBatch(AddMissingPhase2ResultReceived, 1)).futureValue
-      matchResponse mustBe defined
-
-      val applicationResponse = repository.findByUserId(UserId, FrameworkId).futureValue
-      applicationResponse.progressResponse.phase2ProgressResponse.phase2TestsResultsReceived mustBe true
-    }
-  }*/
 
   "Remove video interview failed" should {
     "Remove evaluation section, progress failed statuses and update application status" in {
@@ -1439,16 +1334,6 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     ).map(_ => ())
   }
 
-  // TODO: cubiks specific. Looks like this should be deleted
-  /*
-  private def createAppWithTestResult(progressStatuses: List[(ProgressStatus, Boolean)], testResult: Option[TestResult]) = {
-    testDataRepo.createApplicationWithAllFields(UserId, AppId, TestAccountId, FrameworkId, ApplicationStatus.PHASE2_TESTS,
-      additionalProgressStatuses = progressStatuses).futureValue
-    val test = CubiksTest(1, usedForResults = true, 1, "cubiks", "token", "testUrl", DateTime.now, 1, testResult = testResult)
-    val phase2TestGroup = Phase2TestGroup(DateTime.now, List(test))
-    phase2TestRepo.insertOrUpdateTestGroup(AppId, phase2TestGroup).futureValue
-  }*/
-
   val candidate = Candidate("userId", Some("appId123"), Some("testAccountId"), Some("test@test123.com"), None, None, None, None,
     None, None, None, None, None)
 
@@ -1458,41 +1343,6 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "preferredName" -> "Georgy",
     "dateOfBirth" -> "1986-05-01"
   )
-
-  //TODO: cubiks specific
-  /*
-  val phase1TestGroup = BSONDocument (
-    "testGroups" -> BSONDocument(
-      "PHASE1" -> BSONDocument(
-        "tests" -> BSONArray(
-          BSONDocument(
-            "scheduleId" -> "16196",
-            "usedForResults" -> true,
-            "cubiksUserId" -> "180055",
-            "testProvider" -> "cubiks",
-            "token" -> "6ry6reyr6hrhttrhtr",
-            "testUrl" -> "https://dsfgsgdfugdsifugdsu.com",
-            "participantScheduleId" -> "216679",
-            "resultsReadyToDownload" -> "false",
-            "reportLinkURL" -> "https://dsfgsgdfugdsifugdsu.com",
-            "reportId" -> "86830"
-          ),
-          BSONDocument(
-            "scheduleId" -> "34543",
-            "usedForResults" -> "true",
-            "cubiksUserId" -> "180436",
-            "testProvider" -> "cubiks",
-            "token" -> "reytryteryerty6yry6",
-            "testUrl" -> "https://dsfgsgdfugdsifugdef.com",
-            "participantScheduleId" -> "435435",
-            "resultsReadyToDownload" -> "false",
-            "reportLinkURL" -> "https://gergtrhtrhtrhtrhtr.com",
-            "reportId" -> "546456"
-          )
-        )
-      )
-    )
-  )*/
 
   val phase3TestGroup = Document (
     "testGroups" -> Document(

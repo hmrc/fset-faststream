@@ -48,7 +48,7 @@ class PsiTestsControllerSpec extends UnitWithAppSpec {
 
   "start" should {
     "mark the phase1 test as started" in {
-      when(mockPhase1TestService.markAsStarted2(eqTo(orderId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
+      when(mockPhase1TestService.markAsStarted(eqTo(orderId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.successful(()))
 
       val response = controllerUnderTest.start(orderId)(fakeRequest(""))
@@ -56,9 +56,9 @@ class PsiTestsControllerSpec extends UnitWithAppSpec {
     }
 
     "mark the phase2 test as started" in {
-      when(mockPhase1TestService.markAsStarted2(eqTo(orderId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
+      when(mockPhase1TestService.markAsStarted(eqTo(orderId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.failed(CannotFindTestByOrderIdException("")))
-      when(mockPhase2TestService.markAsStarted2(eqTo(orderId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
+      when(mockPhase2TestService.markAsStarted(eqTo(orderId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.successful(()))
 
       val response = controllerUnderTest.start(orderId)(fakeRequest(""))
@@ -66,9 +66,9 @@ class PsiTestsControllerSpec extends UnitWithAppSpec {
     }
 
     "return test not found" in {
-      when(mockPhase1TestService.markAsStarted2(eqTo(orderId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
+      when(mockPhase1TestService.markAsStarted(eqTo(orderId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.failed(CannotFindTestByOrderIdException("")))
-      when(mockPhase2TestService.markAsStarted2(eqTo(orderId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
+      when(mockPhase2TestService.markAsStarted(eqTo(orderId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.failed(CannotFindTestByOrderIdException("")))
 
       val response = controllerUnderTest.start(orderId)(fakeRequest(""))
@@ -78,7 +78,7 @@ class PsiTestsControllerSpec extends UnitWithAppSpec {
 
   "completeTestByOrderId" should {
     "mark the phase1 test as completed" in {
-      when(mockPhase1TestService.markAsCompleted2(eqTo(orderId))(any[HeaderCarrier], any[RequestHeader])
+      when(mockPhase1TestService.markAsCompleted(eqTo(orderId))(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.successful(()))
 
       val response = controllerUnderTest.completeTestByOrderId(orderId)(fakeRequest)
@@ -86,9 +86,9 @@ class PsiTestsControllerSpec extends UnitWithAppSpec {
     }
 
     "mark the phase2 test as completed" in {
-      when(mockPhase1TestService.markAsCompleted2(eqTo(orderId))(any[HeaderCarrier], any[RequestHeader])
+      when(mockPhase1TestService.markAsCompleted(eqTo(orderId))(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.failed(CannotFindTestByOrderIdException("")))
-      when(mockPhase2TestService.markAsCompleted2(eqTo(orderId))(any[HeaderCarrier], any[RequestHeader])
+      when(mockPhase2TestService.markAsCompleted(eqTo(orderId))(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.successful(()))
 
       val response = controllerUnderTest.completeTestByOrderId(orderId)(fakeRequest)
@@ -96,9 +96,9 @@ class PsiTestsControllerSpec extends UnitWithAppSpec {
     }
 
     "return test not found" in {
-      when(mockPhase1TestService.markAsCompleted2(eqTo(orderId))(any[HeaderCarrier], any[RequestHeader])
+      when(mockPhase1TestService.markAsCompleted(eqTo(orderId))(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.failed(CannotFindTestByOrderIdException("")))
-      when(mockPhase2TestService.markAsCompleted2(eqTo(orderId))(any[HeaderCarrier], any[RequestHeader])
+      when(mockPhase2TestService.markAsCompleted(eqTo(orderId))(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.failed(CannotFindTestByOrderIdException("")))
       when(mockNumericalTestService.markAsCompletedByOrderId(eqTo(orderId))(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.failed(CannotFindTestByOrderIdException("")))

@@ -90,7 +90,7 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     var passMarkEvaluation: PassmarkEvaluation = _
 
     def gisApplicationEvaluation(applicationId:String, t1Score: Double, t4Score: Double, selectedSchemes: SchemeId*): TestFixture = {
-      applicationReadyForEvaluation = insertApplicationWithPhase1TestResults2(
+      applicationReadyForEvaluation = insertApplicationWithPhase1TestResults(
         applicationId, t1Score, None, None, t4Score, isGis = true)(selectedSchemes: _*)
       phase1TestEvaluationService.evaluate(applicationReadyForEvaluation, phase1PassMarkSettings).futureValue
       this
@@ -100,7 +100,7 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
                                            t1Score: Double, t2Score: Double,
                                            t3Score: Double, t4Score: Double, selectedSchemes: SchemeId*)(
                                             implicit applicationRoute: ApplicationRoute = ApplicationRoute.Faststream): TestFixture = {
-      applicationReadyForEvaluation = insertApplicationWithPhase1TestResults2(
+      applicationReadyForEvaluation = insertApplicationWithPhase1TestResults(
         applicationId, t1Score, Some(t2Score), Some(t3Score), t4Score, applicationRoute = applicationRoute)(selectedSchemes: _*)
       phase1TestEvaluationService.evaluate(applicationReadyForEvaluation, passmarks).futureValue
       this

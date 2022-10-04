@@ -39,7 +39,7 @@ class Phase2TestsStartedStatusGenerator @Inject() (val previousStatusGenerator: 
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- FutureEx.traverseSerial(candidate.phase2TestGroup.get.tests.map(_.orderId))(orderId =>
-        otService.markAsStarted2(orderId, generatorConfig.phase2TestData.flatMap(_.start).getOrElse(DateTime.now))
+        otService.markAsStarted(orderId, generatorConfig.phase2TestData.flatMap(_.start).getOrElse(DateTime.now))
       )
     } yield candidate
   }

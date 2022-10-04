@@ -96,11 +96,6 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
     }
   }
 
-  // Redirect the impl to the P3 specific version
-  override def registerAndInvite(applications: Seq[OnlineTestApplication])
-                                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = registerAndInviteForTestGroup(applications)
-
-
   override def registerAndInviteForTestGroup(applications: Seq[OnlineTestApplication])
                                             (implicit hc: HeaderCarrier,
                                              rh: RequestHeader): Future[Unit] =
@@ -119,13 +114,6 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
   // New PSI based method should not be implemented by launchpad based class
   override def storeRealTimeResults(orderId: String, results: PsiRealTimeResults)
                                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
-
-  override def nextTestGroupWithReportReady: Future[Option[Phase3TestGroupWithAppId]] =
-    Future.successful(None)
-
-  override def retrieveTestResult(testProfile: Phase3TestGroupWithAppId)
-                                 (implicit hc: HeaderCarrier): Future[Unit] = Future.successful(())
-
 
   override def processNextTestForReminder(reminder: model.ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] =
     testRepository.nextTestForReminder(reminder).flatMap {

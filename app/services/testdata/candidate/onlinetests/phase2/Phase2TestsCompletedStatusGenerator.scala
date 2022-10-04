@@ -34,7 +34,7 @@ class Phase2TestsCompletedStatusGenerator @Inject() (val previousStatusGenerator
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- FutureEx.traverseSerial(candidate.phase2TestGroup.get.tests.map(_.orderId))(orderId => otService.markAsCompleted2(orderId))
+      _ <- FutureEx.traverseSerial(candidate.phase2TestGroup.get.tests.map(_.orderId))(orderId => otService.markAsCompleted(orderId))
     } yield candidate
   }
 }

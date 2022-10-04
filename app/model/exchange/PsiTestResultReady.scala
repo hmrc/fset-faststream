@@ -18,15 +18,6 @@ package model.exchange
 
 import play.api.libs.json.Json
 
-// TODO: cubiks delete once we remove CubiksTestsController
-case class CubiksTestResultReady(reportId: Option[Int],
-                                 reportStatus: String,
-                                 reportLinkURL: Option[String])
-
-case object CubiksTestResultReady {
-  implicit val phase1TestResultReadyFormat = Json.format[CubiksTestResultReady]
-}
-
 case class PsiTestResultReady(reportId: Int,
                               reportStatus: String)
 

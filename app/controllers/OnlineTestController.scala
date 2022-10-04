@@ -38,24 +38,6 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-case class OnlineTestDetails(
-  inviteDate: DateTime, expireDate: DateTime, onlineTestLink: String,
-  cubiksEmailAddress: String, isOnlineTestEnabled: Boolean
-)
-
-object OnlineTestDetails {
-  implicit val onlineTestDetailsFormat: OFormat[OnlineTestDetails] = Json.format[OnlineTestDetails]
-}
-
-case class OnlineTest(
-  inviteDate: DateTime, expireDate: DateTime, onlineTestLink: String,
-  cubiksEmailAddress: String, isOnlineTestEnabled: Boolean, pdfReportAvailable: Boolean
-)
-
-object OnlineTest {
-  implicit val onlineTestFormat: OFormat[OnlineTest] = Json.format[OnlineTest]
-}
-
 case class OnlineTestStatus(status: String)
 
 object OnlineTestStatus {
@@ -87,22 +69,9 @@ class OnlineTestController @Inject() (cc: ControllerComponents,
                                       phase2TestService: Phase2TestService,
                                       phase3TestService: Phase3TestService
                                      ) extends BackendController(cc) with Logging {
-  //TODO: cubiks replace this with the method that follows
   def getPhase1OnlineTest(applicationId: String) = Action.async { implicit request =>
-    phase1TestService.getTestGroup2(applicationId) map {
+    phase1TestService.getTestGroup(applicationId) map {
       case Some(phase1TestProfileWithNames) => Ok(Json.toJson(phase1TestProfileWithNames))
-      case None => logger.debug(s"No phase 1 tests found for applicationId '$applicationId'")
-        NotFound
-    }
-  }
-
-  //TODO: remove this
-  def getPhase1OnlineTest2(applicationId: String) = Action.async { implicit request =>
-    phase1TestService.getTestGroup2(applicationId) map {
-      case Some(phase1TestProfileWithNames) =>
-        val response = Json.toJson(phase1TestProfileWithNames)
-        logger.debug(s"**** getPhase1OnlineTest2 response=$response")
-        Ok(response)
       case None => logger.debug(s"No phase 1 tests found for applicationId '$applicationId'")
         NotFound
     }

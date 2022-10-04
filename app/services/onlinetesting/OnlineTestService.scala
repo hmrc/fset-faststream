@@ -60,15 +60,9 @@ trait OnlineTestService extends TimeExtension with EventSink with Logging {
   def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[Seq[OnlineTestApplication]]
   def registerAndInviteForTestGroup(application: OnlineTestApplication)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def registerAndInviteForTestGroup(applications: Seq[OnlineTestApplication])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
-  // PSI specific
-  def registerAndInvite(applications: Seq[OnlineTestApplication])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
-  // PSI specific
   def storeRealTimeResults(orderId: String, results: PsiRealTimeResults)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def emailCandidateForExpiringTestReminder(expiringTest: NotificationExpiringOnlineTest, emailAddress: String, reminder: ReminderNotice)
                                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
-  def nextTestGroupWithReportReady: Future[Option[RichTestGroup]]
-  def retrieveTestResult(testProfile: RichTestGroup)(implicit hc: HeaderCarrier): Future[Unit]
-
   def processNextTestForNotification(notificationType: NotificationTestType, phase: String, operation: String)
                                     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     appRepository.findTestForNotification(notificationType).flatMap {
@@ -164,29 +158,6 @@ trait OnlineTestService extends TimeExtension with EventSink with Logging {
       _ <- emailCandidate(expiringTest.applicationId, expiringTest.preferredName, emailAddress, expiryType.template, expiryType.expiredStatus)
     } yield ()
   }
-
-  // TODO: cubiks specific
-  /*
-  def updateTestReportReady(cubiksTest: CubiksTest, reportReady: CubiksTestResultReady) = cubiksTest.copy(
-    resultsReadyToDownload = reportReady.reportStatus == "Ready",
-    reportId = reportReady.reportId,
-    reportLinkURL = reportReady.reportLinkURL,
-    reportStatus = Some(reportReady.reportStatus)
-  )*/
-
-  // TODO: cubiks specific
-  /*
-  def updateCubiksTestsById(cubiksUserId: Int, cubiksTests: List[CubiksTest], updateFn: CubiksTest => CubiksTest) = cubiksTests.collect {
-    case t if t.cubiksUserId == cubiksUserId => updateFn(t)
-    case t => t
-  }*/
-
-  // TODO: cubiks specific
-  /*
-  def assertUniqueTestByCubiksUserId(cubiksTests: List[CubiksTest], cubiksUserId: Int) = {
-    val requireUserIdOnOnlyOneTestCount = cubiksTests.count(_.cubiksUserId == cubiksUserId)
-    require(requireUserIdOnOnlyOneTestCount == 1, s"Cubiks userid $cubiksUserId was on $requireUserIdOnOnlyOneTestCount tests!")
-  }*/
 
   private[services] def getAdjustedTime(minimum: Int, maximum: Int, percentageToIncrease: Int) = {
     val adjustedValue = math.ceil(minimum.toDouble * (1 + percentageToIncrease / 100.0))
