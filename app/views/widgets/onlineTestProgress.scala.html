@@ -15,7 +15,7 @@
  *@
 
 @import models.page.Phase1TestsPage2
-@import models.page.Phase2TestsPage2
+@import models.page.Phase2TestsPage
 @import models.page.PsiTestPage
 
 @(cachedUserData: CachedData,
@@ -25,7 +25,6 @@
         implicit request: Request[_], messages: Messages)
 
 @import security.RoleUtils._
-@import models.page.Phase2TestsPage
 
 @requiresInvigilatedETray = @{
     adjustments.flatMap(_.adjustments).exists(_.contains("etrayInvigilated"))
@@ -50,7 +49,7 @@
     dashboardPage.phase3TestsPage.exists(_.isInvigilatedVideoApproved)
 }
 
-@phase2Section(phase2Test: Phase2TestsPage2) = {
+@phase2Section(phase2Test: Phase2TestsPage) = {
     <div id="etrayBlurb">
         @if(requiresInvigilatedETray) {
             @invigilatedETraySection()

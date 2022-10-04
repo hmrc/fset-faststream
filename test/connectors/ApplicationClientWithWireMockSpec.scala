@@ -693,13 +693,13 @@ class ApplicationClientWithWireMockSpec extends BaseConnectorWithWireMockSpec {
         orderId = UniqueIdentifier(UUID.randomUUID()),
         invitationDate = DateTime.now
       ))
-      val response = Phase1TestGroupWithNames2(expirationDate = DateTime.now, activeTests)
+      val response = Phase1TestGroupWithNames(expirationDate = DateTime.now, activeTests)
 
       stubFor(get(urlPathEqualTo(endpoint)).willReturn(
         aResponse().withStatus(OK).withBody(Json.toJson(response).toString)
       ))
 
-      val result = client.getPhase1TestProfile2(applicationId).futureValue
+      val result = client.getPhase1TestProfile(applicationId).futureValue
       result mustBe response
     }
 
@@ -708,7 +708,7 @@ class ApplicationClientWithWireMockSpec extends BaseConnectorWithWireMockSpec {
         aResponse().withStatus(NOT_FOUND)
       ))
 
-      val result = client.getPhase1TestProfile2(applicationId).failed.futureValue
+      val result = client.getPhase1TestProfile(applicationId).failed.futureValue
       result mustBe an[OnlineTestNotFound]
     }
   }
@@ -725,13 +725,13 @@ class ApplicationClientWithWireMockSpec extends BaseConnectorWithWireMockSpec {
         orderId = UniqueIdentifier(UUID.randomUUID()),
         invitationDate = DateTime.now
       ))
-      val response = Phase2TestGroupWithActiveTest2(expirationDate = DateTime.now, activeTests)
+      val response = Phase2TestGroupWithActiveTest(expirationDate = DateTime.now, activeTests)
 
       stubFor(get(urlPathEqualTo(endpoint)).willReturn(
         aResponse().withStatus(OK).withBody(Json.toJson(response).toString)
       ))
 
-      val result = client.getPhase2TestProfile2(applicationId).futureValue
+      val result = client.getPhase2TestProfile(applicationId).futureValue
       result mustBe response
     }
 
@@ -740,7 +740,7 @@ class ApplicationClientWithWireMockSpec extends BaseConnectorWithWireMockSpec {
         aResponse().withStatus(NOT_FOUND)
       ))
 
-      val result = client.getPhase2TestProfile2(applicationId).failed.futureValue
+      val result = client.getPhase2TestProfile(applicationId).failed.futureValue
       result mustBe an[OnlineTestNotFound]
     }
   }
@@ -757,13 +757,13 @@ class ApplicationClientWithWireMockSpec extends BaseConnectorWithWireMockSpec {
         orderId = UniqueIdentifier(UUID.randomUUID()),
         invitationDate = DateTime.now
       ))
-      val response = Phase1TestGroupWithNames2(expirationDate = DateTime.now, activeTests)
+      val response = Phase1TestGroupWithNames(expirationDate = DateTime.now, activeTests)
 
       stubFor(get(urlPathEqualTo(endpoint)).willReturn(
         aResponse().withStatus(OK).withBody(Json.toJson(response).toString)
       ))
 
-      val result = client.getPhase1TestGroupWithNames2ByOrderId(orderId).futureValue
+      val result = client.getPhase1TestGroupWithNamesByOrderId(orderId).futureValue
       result mustBe response
     }
 
@@ -772,7 +772,7 @@ class ApplicationClientWithWireMockSpec extends BaseConnectorWithWireMockSpec {
         aResponse().withStatus(NOT_FOUND)
       ))
 
-      val result = client.getPhase1TestGroupWithNames2ByOrderId(orderId).failed.futureValue
+      val result = client.getPhase1TestGroupWithNamesByOrderId(orderId).failed.futureValue
       result mustBe an[OnlineTestNotFound]
     }
   }
@@ -789,13 +789,13 @@ class ApplicationClientWithWireMockSpec extends BaseConnectorWithWireMockSpec {
         orderId = UniqueIdentifier(UUID.randomUUID()),
         invitationDate = DateTime.now
       ))
-      val response = Phase2TestGroupWithActiveTest2(expirationDate = DateTime.now, activeTests)
+      val response = Phase2TestGroupWithActiveTest(expirationDate = DateTime.now, activeTests)
 
       stubFor(get(urlPathEqualTo(endpoint)).willReturn(
         aResponse().withStatus(OK).withBody(Json.toJson(response).toString)
       ))
 
-      val result = client.getPhase2TestProfile2ByOrderId(orderId).futureValue
+      val result = client.getPhase2TestProfileByOrderId(orderId).futureValue
       result mustBe response
     }
 
@@ -804,7 +804,7 @@ class ApplicationClientWithWireMockSpec extends BaseConnectorWithWireMockSpec {
         aResponse().withStatus(NOT_FOUND)
       ))
 
-      val result = client.getPhase2TestProfile2ByOrderId(orderId).failed.futureValue
+      val result = client.getPhase2TestProfileByOrderId(orderId).failed.futureValue
       result mustBe an[OnlineTestNotFound]
     }
   }
@@ -896,13 +896,13 @@ class ApplicationClientWithWireMockSpec extends BaseConnectorWithWireMockSpec {
         orderId = UniqueIdentifier(UUID.randomUUID()),
         invitationDate = DateTime.now
       )
-      val response = SiftTestGroupWithActiveTest2(expirationDate = DateTime.now, activeTest)
+      val response = SiftTestGroupWithActiveTest(expirationDate = DateTime.now, activeTest)
 
       stubFor(get(urlPathEqualTo(endpoint)).willReturn(
         aResponse().withStatus(OK).withBody(Json.toJson(response).toString)
       ))
 
-      val result = client.getSiftTestGroup2(applicationId).futureValue
+      val result = client.getSiftTestGroup(applicationId).futureValue
       result mustBe response
     }
 
@@ -911,7 +911,7 @@ class ApplicationClientWithWireMockSpec extends BaseConnectorWithWireMockSpec {
         aResponse().withStatus(NOT_FOUND)
       ))
 
-      val result = client.getSiftTestGroup2(applicationId).failed.futureValue
+      val result = client.getSiftTestGroup(applicationId).failed.futureValue
       result mustBe a[SiftTestNotFound]
     }
   }

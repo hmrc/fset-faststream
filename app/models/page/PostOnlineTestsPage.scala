@@ -47,7 +47,7 @@ case class PostOnlineTestsPage(
                                 schemes: List[Scheme],
                                 siftState: Option[SiftState],
                                 phase1DataOpt: Option[Phase1TestsPage2],
-                                phase2DataOpt: Option[Phase2TestsPage2],
+                                phase2DataOpt: Option[Phase2TestsPage],
                                 phase3DataOpt: Option[Phase3TestsPage],
                                 fsacGuideUrl: String
 ) {

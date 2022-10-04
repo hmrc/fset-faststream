@@ -41,21 +41,21 @@ class PsiTestController @Inject() (config: FrontendAppConfig,
 
   def startPhase1Tests: Action[AnyContent] = CSRSecureAppAction(OnlineTestInvitedRole) { implicit request =>
     implicit cachedUserData =>
-      applicationClient.getPhase1TestProfile2(cachedUserData.application.applicationId).flatMap { phase1TestProfile =>
+      applicationClient.getPhase1TestProfile(cachedUserData.application.applicationId).flatMap { phase1TestProfile =>
         startPsiTest(phase1TestProfile.activeTests)
       }
   }
 
   def startPhase2Tests: Action[AnyContent] = CSRSecureAppAction(Phase2TestInvitedRole) { implicit request =>
     implicit cachedUserData =>
-      applicationClient.getPhase2TestProfile2(cachedUserData.application.applicationId).flatMap { phase2TestProfile =>
+      applicationClient.getPhase2TestProfile(cachedUserData.application.applicationId).flatMap { phase2TestProfile =>
         startPsiTest(phase2TestProfile.activeTests)
       }
   }
 
   def startSiftNumericTest: Action[AnyContent] = CSRSecureAppAction(SiftNumericTestRole) { implicit request =>
     implicit cachedUserData =>
-      applicationClient.getSiftTestGroup2(cachedUserData.application.applicationId).flatMap { siftTestGroup =>
+      applicationClient.getSiftTestGroup(cachedUserData.application.applicationId).flatMap { siftTestGroup =>
         val tests = siftTestGroup.activeTest :: Nil
         tests.find(!_.completed).map { testToStart =>
           if (!testToStart.started) {
@@ -76,7 +76,7 @@ class PsiTestController @Inject() (config: FrontendAppConfig,
   def completePhase1Tests(orderId: UniqueIdentifier): Action[AnyContent] = CSRUserAwareAction { implicit request =>
     implicit user =>
       applicationClient.completeTestByOrderId(orderId).flatMap { _ =>
-        applicationClient.getPhase1TestGroupWithNames2ByOrderId(orderId).map { testGroup =>
+        applicationClient.getPhase1TestGroupWithNamesByOrderId(orderId).map { testGroup =>
           val testCompleted = testGroup.activeTests.find(_.orderId == orderId)
             .getOrElse(throw new Exception(s"Test not found for OrderId $orderId"))
           val testCompletedName = Messages(s"tests.inventoryid.name.${testCompleted.inventoryId}")
@@ -99,7 +99,7 @@ class PsiTestController @Inject() (config: FrontendAppConfig,
   def completePhase2Tests(orderId: UniqueIdentifier): Action[AnyContent] = CSRUserAwareAction { implicit request =>
     implicit user =>
       applicationClient.completeTestByOrderId(orderId).flatMap { _ =>
-        applicationClient.getPhase2TestProfile2ByOrderId(orderId).map { testGroup =>
+        applicationClient.getPhase2TestProfileByOrderId(orderId).map { testGroup =>
           val testCompleted = testGroup.activeTests.find(_.orderId == orderId)
             .getOrElse(throw new Exception(s"Active Test not found for OrderId $orderId"))
           val testCompletedName = Messages(s"tests.inventoryid.name.${testCompleted.inventoryId}")

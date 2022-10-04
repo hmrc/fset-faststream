@@ -21,24 +21,6 @@ import org.joda.time.DateTime
 import play.api.libs.json.Json
 import models.FaststreamImplicits._
 
-
-case class CubiksTest(usedForResults: Boolean,
-  testUrl: String,
-  token: UniqueIdentifier,
-  cubiksUserId: Int,
-  invitationDate: DateTime,
-  startedDateTime: Option[DateTime] = None,
-  completedDateTime: Option[DateTime] = None,
-  resultsReadyToDownload: Boolean = false
-) extends Test {
-  def started = startedDateTime.isDefined
-  def completed = completedDateTime.isDefined
-}
-
-object CubiksTest {
-  implicit def phase1TestFormat = Json.format[CubiksTest]
-}
-
 // More data is sent by the backend but we only care about the report url
 case class PsiTestResult(testReportUrl: Option[String])
 
@@ -62,20 +44,4 @@ case class PsiTest(inventoryId: String,
 
 object PsiTest {
   implicit def phase1TestFormat = Json.format[PsiTest]
-}
-
-case class Phase1TestGroup(expirationDate: DateTime,
-                           tests: List[CubiksTest]
-) extends CubiksTestGroup
-
-object Phase1TestGroup {
-  implicit def phase1TestGroupFormat = Json.format[Phase1TestGroup]
-}
-
-case class Phase2TestGroup(expirationDate: DateTime,
-                           tests: List[CubiksTest]
-) extends CubiksTestGroup
-
-object Phase2TestGroup {
-  implicit def phase1TestProfileFormat = Json.format[Phase2TestGroup]
 }

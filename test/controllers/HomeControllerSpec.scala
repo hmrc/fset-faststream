@@ -292,7 +292,7 @@ class HomeControllerSpec extends BaseControllerSpec {
     "display home page" in new TestFixture {
       val previewApp = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.InProgressInPreviewApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new OnlineTestNotFound))
       when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(None))
@@ -315,7 +315,7 @@ class HomeControllerSpec extends BaseControllerSpec {
         val applicationsStartDate = None }
       val previewApp = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.InProgressInPreviewApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new OnlineTestNotFound))
       when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(None))
@@ -427,7 +427,7 @@ class HomeControllerSpec extends BaseControllerSpec {
     "display fast pass rejected message" in new TestFixture {
       val fastPassRejectedInvitedToPhase1Application = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.fastPassRejectedInvitedToPhase1Application.copy(userId = ActiveCandidate.user.userID))
-      when(mockApplicationClient.getPhase1TestProfile2(eqTo(fastPassRejectedInvitedToPhase1Application.application
+      when(mockApplicationClient.getPhase1TestProfile(eqTo(fastPassRejectedInvitedToPhase1Application.application
         .applicationId)
       )(any[HeaderCarrier])).thenReturn(Future.failed(new OnlineTestNotFound))
 
@@ -441,7 +441,7 @@ class HomeControllerSpec extends BaseControllerSpec {
     "not display fast pass rejected message when phase1 tests are started" in new TestFixture {
       val fastPassRejectedPhase1StartedApplication = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.fastPassRejectedPhase1StartedApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockApplicationClient.getPhase1TestProfile2(eqTo(fastPassRejectedPhase1StartedApplication.application.applicationId)
+      when(mockApplicationClient.getPhase1TestProfile(eqTo(fastPassRejectedPhase1StartedApplication.application.applicationId)
       )(any[HeaderCarrier])).thenReturn(Future.failed(new OnlineTestNotFound))
 
       val result = controller(fastPassRejectedPhase1StartedApplication, commonApplicationRouteState).present()(fakeRequest)
@@ -454,7 +454,7 @@ class HomeControllerSpec extends BaseControllerSpec {
 
   "present with sdip eligibility info" should {
     "display eligibility information when faststream application is withdrawn" in new TestFixture {
-      when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new OnlineTestNotFound))
       when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(None))
@@ -469,7 +469,7 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     "display eligibility information when faststream application is not submitted" in new TestFixture {
-      when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new OnlineTestNotFound))
       when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(None))
@@ -484,7 +484,7 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     "display eligibility information when faststream application is phase1 tests expired" in new TestFixture {
-      when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new OnlineTestNotFound))
       when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(None))
@@ -499,7 +499,7 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     "not display eligibility information when application route is not faststream" in new TestFixture {
-      when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new OnlineTestNotFound))
       when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(None))
@@ -513,7 +513,7 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     "not display eligibility information when faststream application is submitted" in new TestFixture {
-      when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
+      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new OnlineTestNotFound))
       when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(None))
@@ -638,10 +638,10 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     def mockPhaseOneTwoThreeData(phase1Tests: List[PsiTest] = Nil, phase2Tests: List[PsiTest] = Nil) = {
-      when(mockApplicationClient.getPhase1TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(Phase1TestGroupWithNames2(expirationDate = DateTime.now, activeTests = phase1Tests)))
-      when(mockApplicationClient.getPhase2TestProfile2(eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.successful(Phase2TestGroupWithActiveTest2(expirationDate = DateTime.now, activeTests = phase2Tests)))
+      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(Phase1TestGroupWithNames(expirationDate = DateTime.now, activeTests = phase1Tests)))
+      when(mockApplicationClient.getPhase2TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(Phase2TestGroupWithActiveTest(expirationDate = DateTime.now, activeTests = phase2Tests)))
       when(mockApplicationClient.getPhase3TestGroup(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(Phase3TestGroup(expirationDate = DateTime.now, tests = Nil)))
     }

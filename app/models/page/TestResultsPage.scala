@@ -18,7 +18,7 @@ package models.page
 
 case class TestResultsPage(
                             phase1DataOpt: Option[Phase1TestsPage2],
-                            phase2DataOpt: Option[Phase2TestsPage2],
+                            phase2DataOpt: Option[Phase2TestsPage],
                             phase3DataOpt: Option[Phase3TestsPage]
                           ) {
   def noDataFound = List(phase1DataOpt, phase2DataOpt, phase3DataOpt).forall( _.isEmpty )

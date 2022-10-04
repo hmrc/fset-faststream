@@ -115,7 +115,7 @@ class HomeController @Inject() (
     if (hasFastPassBeenApproved(cachedData)) {
       Future.successful(None)
     } else {
-      applicationClient.getPhase1TestProfile2(application.applicationId).map(Some(_))
+      applicationClient.getPhase1TestProfile(application.applicationId).map(Some(_))
     }
   }
 
@@ -136,7 +136,7 @@ class HomeController @Inject() (
       phase3Tests <- getPhase3Test
     } yield {
       val phase1DataOpt = phase1TestsWithNames.map(Phase1TestsPage(_))
-      val phase2DataOpt = phase2TestsWithNames.map(Phase2TestsPage2(_, adjustments = None))
+      val phase2DataOpt = phase2TestsWithNames.map(Phase2TestsPage(_, adjustments = None))
       val phase3DataOpt = phase3Tests.map(Phase3TestsPage(_, adjustments = None))
       val page = PostOnlineTestsPage(
         CachedUserWithSchemeData(cachedData.user, application, schemePreferences, allSchemes, phase3Evaluation, siftEvaluation, schemeStatus),
@@ -206,7 +206,7 @@ class HomeController @Inject() (
     for {
       adjustmentsOpt <- getAdjustments
       assistanceDetailsOpt <- getAssistanceDetails
-      phase1TestsWithNames <- applicationClient.getPhase1TestProfile2(application.applicationId)
+      phase1TestsWithNames <- applicationClient.getPhase1TestProfile(application.applicationId)
       phase2TestsWithNames <- getPhase2Test
       phase3Tests <- getPhase3Test
       updatedData <- secEnv.userService.refreshCachedUser(cachedData.user.userID)(hc, request)
@@ -214,7 +214,7 @@ class HomeController @Inject() (
       val dashboardPage = DashboardPage(
         updatedData,
         Some(Phase1TestsPage(phase1TestsWithNames)),
-        phase2TestsWithNames.map(Phase2TestsPage2(_, adjustmentsOpt)),
+        phase2TestsWithNames.map(Phase2TestsPage(_, adjustmentsOpt)),
         phase3Tests.map(Phase3TestsPage(_, adjustmentsOpt)),
         config.fsacGuideUrl
       )
@@ -255,7 +255,7 @@ class HomeController @Inject() (
   }
 
   private def getPhase2Test(implicit application: ApplicationData, hc: HeaderCarrier) = if (application.isPhase2) {
-    applicationClient.getPhase2TestProfile2(application.applicationId).map(Some(_))
+    applicationClient.getPhase2TestProfile(application.applicationId).map(Some(_))
   } else {
     Future.successful(None)
   }

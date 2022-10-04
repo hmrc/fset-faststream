@@ -26,29 +26,29 @@ import security.Roles._
 import play.api.i18n.Messages
 
 case class DashboardPage(firstStepVisibility: ProgressStepVisibility,
-  secondStepVisibility: ProgressStepVisibility,
-  thirdStepVisibility: ProgressStepVisibility,
-  fourthStepVisibility: ProgressStepVisibility,
-  isApplicationSubmittedAndNotWithdrawn: Boolean,
-  isApplicationWithdrawn: Boolean,
-  isFastPassApproved: Boolean,
-  isApplicationInProgress: Boolean,
-  isUserWithNoApplication: Boolean,
-  isPhase1TestsPassed: Boolean,
-  isPhase2TestsPassed: Boolean,
-  isTestGroupExpired: Boolean,
-  isPhase2TestGroupExpired: Boolean,
-  isPhase3TestGroupExpired: Boolean,
-  isPhase1TestFailed: Boolean,
-  isPhase2TestFailed: Boolean,
-  isPhase3TestFailed: Boolean,
-  shouldDisplayPhase3TestFeedbackReport: Boolean,
-  fullName: String,
-  phase1TestsPage: Option[Phase1TestsPage2],
-  phase2TestsPage: Option[Phase2TestsPage2],
-  phase3TestsPage: Option[Phase3TestsPage],
-  assessmentStageStatus: AssessmentStageStatus,
-    fsacGuideUrl: String
+                         secondStepVisibility: ProgressStepVisibility,
+                         thirdStepVisibility: ProgressStepVisibility,
+                         fourthStepVisibility: ProgressStepVisibility,
+                         isApplicationSubmittedAndNotWithdrawn: Boolean,
+                         isApplicationWithdrawn: Boolean,
+                         isFastPassApproved: Boolean,
+                         isApplicationInProgress: Boolean,
+                         isUserWithNoApplication: Boolean,
+                         isPhase1TestsPassed: Boolean,
+                         isPhase2TestsPassed: Boolean,
+                         isTestGroupExpired: Boolean,
+                         isPhase2TestGroupExpired: Boolean,
+                         isPhase3TestGroupExpired: Boolean,
+                         isPhase1TestFailed: Boolean,
+                         isPhase2TestFailed: Boolean,
+                         isPhase3TestFailed: Boolean,
+                         shouldDisplayPhase3TestFeedbackReport: Boolean,
+                         fullName: String,
+                         phase1TestsPage: Option[Phase1TestsPage2],
+                         phase2TestsPage: Option[Phase2TestsPage],
+                         phase3TestsPage: Option[Phase3TestsPage],
+                         assessmentStageStatus: AssessmentStageStatus,
+                         fsacGuideUrl: String
 ) {
 }
 
@@ -60,7 +60,7 @@ object DashboardPage {
 
   def apply(user: CachedData,
             phase1TestGroup: Option[Phase1TestsPage2],
-            phase2TestGroup: Option[Phase2TestsPage2],
+            phase2TestGroup: Option[Phase2TestsPage],
             phase3TestGroup: Option[Phase3TestsPage],
             fsacGuideUrl: String)
            (implicit request: RequestHeader, messages: Messages): DashboardPage = {

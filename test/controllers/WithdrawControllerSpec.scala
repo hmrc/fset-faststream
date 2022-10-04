@@ -114,8 +114,8 @@ class WithdrawControllerSpec extends BaseControllerSpec {
 
       when(mockApplicationClient.getAssistanceDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(AssistanceDetailsExamples.OnlyDisabilityNoGisNoAdjustments))
-      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
-        .thenReturn(Future.failed(new OnlineTestNotFound))
+//      when(mockApplicationClient.getPhase1TestProfile(eqTo(currentApplicationId))(any[HeaderCarrier]))
+//        .thenReturn(Future.failed(new OnlineTestNotFound))
 
       mockPostOnlineTestsDashboardCalls()
 

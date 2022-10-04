@@ -77,21 +77,13 @@ GET         /questionnaire/page/3                                   @controllers
 POST        /questionnaire/page/3                                   @controllers.QuestionnaireController.submitThirdPage
 GET         /schools                                                @controllers.SchoolsController.getSchools(item: String)
 
+# Online Test
 POST        /online-tests/psi/phase1/start                          @controllers.PsiTestController.startPhase1Tests
 GET         /online-tests/psi/phase1/complete/:orderId              @controllers.PsiTestController.completePhase1Tests(orderId: UniqueIdentifier)
 POST        /online-tests/psi/phase2/start                          @controllers.PsiTestController.startPhase2Tests
 GET         /online-tests/psi/phase2/complete/:orderId              @controllers.PsiTestController.completePhase2Tests(orderId: UniqueIdentifier)
-
-# Online Test
-POST        /online-tests/phase1/start                              @controllers.CubiksTestController.startPhase1Tests
-POST        /online-tests/phase2/start                              @controllers.CubiksTestController.startPhase2Tests
 POST        /online-tests/phase3/start                              @controllers.LaunchpadTestController.startPhase3Tests
-GET         /online-tests/phase1/continue/:token                    @controllers.CubiksTestController.completeSjqByTokenAndContinuePhase1Tests(token: UniqueIdentifier)
-GET         /online-tests/phase1/complete/:token                    @controllers.CubiksTestController.completePhase1TestsByToken(token: UniqueIdentifier)
-GET         /online-tests/phase2/complete/:token                    @controllers.CubiksTestController.completePhase2TestsByToken(token: UniqueIdentifier)
 GET         /online-tests/phase3/complete/:token                    @controllers.LaunchpadTestController.completePhase3TestsByToken(token: String)
-GET         /online-tests/complete/:token                           @controllers.CubiksTestController.completeTestByToken(token: UniqueIdentifier)
-GET         /sift-test/complete/:token                              @controllers.CubiksTestController.completeSiftTestByToken(token: UniqueIdentifier)
 GET         /psi/sift-test/complete/:orderId                        @controllers.PsiTestController.completeSiftTest(orderId: UniqueIdentifier)
 GET         /online-tests/phase3/feedback-report                    @controllers.Phase3FeedbackController.present
 

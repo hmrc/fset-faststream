@@ -194,27 +194,27 @@ class ApplicationClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(imp
     }
   }
 
-  def getPhase1TestProfile2(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase1TestGroupWithNames2] = {
-    http.GET[Phase1TestGroupWithNames2](s"$apiBaseUrl/online-test/psi/phase1/candidate/$appId").recover {
+  def getPhase1TestProfile(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase1TestGroupWithNames] = {
+    http.GET[Phase1TestGroupWithNames](s"$apiBaseUrl/online-test/psi/phase1/candidate/$appId").recover {
       case e: UpstreamErrorResponse if e.statusCode == NOT_FOUND => throw new OnlineTestNotFound
     }
   }
 
-  def getPhase2TestProfile2(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase2TestGroupWithActiveTest2] = {
-    http.GET[Phase2TestGroupWithActiveTest2](s"$apiBaseUrl/online-test/phase2/candidate/$appId").recover {
+  def getPhase2TestProfile(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase2TestGroupWithActiveTest] = {
+    http.GET[Phase2TestGroupWithActiveTest](s"$apiBaseUrl/online-test/phase2/candidate/$appId").recover {
       case e: UpstreamErrorResponse if e.statusCode == NOT_FOUND => throw new OnlineTestNotFound
     }
   }
 
-  def getPhase1TestGroupWithNames2ByOrderId(orderId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase1TestGroupWithNames2] = {
-    http.GET[Phase1TestGroupWithNames2](s"$apiBaseUrl/online-test/phase1/candidate/orderId/$orderId")
+  def getPhase1TestGroupWithNamesByOrderId(orderId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase1TestGroupWithNames] = {
+    http.GET[Phase1TestGroupWithNames](s"$apiBaseUrl/online-test/phase1/candidate/orderId/$orderId")
       .recover {
         case e: UpstreamErrorResponse if e.statusCode == NOT_FOUND => throw new OnlineTestNotFound
       }
   }
 
-  def getPhase2TestProfile2ByOrderId(orderId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase2TestGroupWithActiveTest2] = {
-    http.GET[Phase2TestGroupWithActiveTest2](s"$apiBaseUrl/online-test/phase2/candidate/orderId/$orderId").recover {
+  def getPhase2TestProfileByOrderId(orderId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase2TestGroupWithActiveTest] = {
+    http.GET[Phase2TestGroupWithActiveTest](s"$apiBaseUrl/online-test/phase2/candidate/orderId/$orderId").recover {
       case e: UpstreamErrorResponse if e.statusCode == NOT_FOUND => throw new OnlineTestNotFound
     }
   }
@@ -223,20 +223,6 @@ class ApplicationClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(imp
     http.PUT[String, HttpResponse](s"$apiBaseUrl/psi/$orderId/complete", "").map(_ => ())
   }
   // psi code end
-
-  // TODO: remove as this is Cubiks specific and do not add a wiremock test
-  def getPhase1TestProfile(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase1TestGroupWithNames] = {
-    http.GET[Phase1TestGroupWithNames](s"$apiBaseUrl/online-test/phase1/candidate/$appId").recover {
-      case e: UpstreamErrorResponse if e.statusCode == NOT_FOUND => throw new OnlineTestNotFound
-    }
-  }
-
-  // TODO: remove as this is Cubiks specific and do not add a wiremock test
-  def getPhase2TestProfile(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase2TestGroupWithActiveTest] = {
-    http.GET[Phase2TestGroupWithActiveTest](s"$apiBaseUrl/online-test/phase2/candidate/$appId").recover {
-      case e: UpstreamErrorResponse if e.statusCode == NOT_FOUND => throw new OnlineTestNotFound
-    }
-  }
 
   def getPhase3TestGroup(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Phase3TestGroup] = {
     http.GET[Phase3TestGroup](s"$apiBaseUrl/phase3-test-group/$appId").recover {
@@ -248,15 +234,8 @@ class ApplicationClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(imp
     http.GET[Option[List[SchemeEvaluationResult]]](s"$apiBaseUrl/application/$appId/phase3/results")
   }
 
-  // TODO: remove as this is Cubiks specific and do not add a wiremock test
   def getSiftTestGroup(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[SiftTestGroupWithActiveTest] = {
-    http.GET[SiftTestGroupWithActiveTest](s"$apiBaseUrl/sift-test-group/$appId").recover {
-      case e: UpstreamErrorResponse if e.statusCode == NOT_FOUND => throw new SiftTestNotFound(s"No sift test group found for $appId")
-    }
-  }
-
-  def getSiftTestGroup2(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[SiftTestGroupWithActiveTest2] = {
-    http.GET[SiftTestGroupWithActiveTest2](s"$apiBaseUrl/psi/sift-test-group/$appId").recover {
+    http.GET[SiftTestGroupWithActiveTest](s"$apiBaseUrl/psi/sift-test-group/$appId").recover {
       case e: UpstreamErrorResponse if e.statusCode == NOT_FOUND => throw new SiftTestNotFound(s"No sift test group found for $appId")
     }
   }
@@ -283,27 +262,12 @@ class ApplicationClient @Inject() (config: FrontendAppConfig, http: CSRHttp)(imp
     http.PUT[String, HttpResponse](s"$apiBaseUrl/launchpad/${encodeUrlParam(launchpadInviteId)}/markAsComplete", "").map(_ => ())
   }
 
-  // TODO: remove as this is Cubiks specific and do not add a wiremock test
-  def startTest(cubiksUserId: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.PUT[String, HttpResponse](s"$apiBaseUrl/cubiks/$cubiksUserId/start", "").map(_ => ())
-  }
-
   def startTest(orderId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     http.PUT[String, HttpResponse](s"$apiBaseUrl/psi/$orderId/start", "").map(_ => ())
   }
 
-  // TODO: remove as this is Cubiks specific and do not add a wiremock test
-  def startSiftTest(cubiksUserId: Int)(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.PUT[String, HttpResponse](s"$apiBaseUrl/sift-test/$cubiksUserId/start", "").map(_ => ())
-  }
-
   def startSiftTest(orderId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
     http.PUT[String, HttpResponse](s"$apiBaseUrl/psi/sift-test/$orderId/start", "").map(_ => ())
-  }
-
-  // TODO: remove as this is Cubiks specific and do not add a wiremock test
-  def completeTestByToken(token: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.PUT[String, HttpResponse](s"$apiBaseUrl/cubiks/complete-by-token/$token", "").map(_ => ())
   }
 
   def confirmAllocation(appId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Unit] = {
