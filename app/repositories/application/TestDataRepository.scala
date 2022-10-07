@@ -211,7 +211,6 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)
     )).toFuture()
   }
 
-
   private def createSingleApplication(id: Int): Future[Unit] = {
     val update = Document("$set" -> buildSingleApplication(id))
 
