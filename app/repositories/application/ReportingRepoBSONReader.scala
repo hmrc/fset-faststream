@@ -44,7 +44,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     val schemes: Option[List[SchemeId]] = schemesDocOpt.map(doc => Codecs.fromBson[List[SchemeId]](doc.get("schemes")))
 
     val adDocOpt = doc.get("assistance-details").map(_.asDocument())
-    val disability = adDocOpt.map(_.get("hasDisability").asString().getValue)
+    val disability = adDocOpt.flatMap( doc => Try(doc.get("hasDisability").asString().getValue).toOption )
     val onlineAdjustments = adDocOpt.flatMap( doc =>
       Try(doc.get("needsSupportForOnlineAssessment").asBoolean().getValue).map(booleanTranslator).toOption
     )
@@ -363,12 +363,12 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
   private[application] def toPhase3TestResults(testGroupsDocOpt: Option[BsonDocument]): Option[VideoInterviewTestResult] = {
     val reviewedDocsOpt = testGroupsDocOpt.flatMap( doc => subDocRoot(Phase.PHASE3)(doc) )
-      .map { phase3Doc =>
-        val bsonValue = phase3Doc.getArray("tests")
-          .get(0).asDocument()
-          .get("callbacks")
-          .asDocument().get("reviewed")
-        Codecs.fromBson[List[ReviewedCallbackRequest]](bsonValue)
+      .flatMap { phase3Doc =>
+        Try(phase3Doc.getArray("tests")).toOption
+          .flatMap(doc => Try(doc.get(0).asDocument()).toOption)
+          .flatMap(doc => Try(doc.get("callbacks").asDocument()).toOption)
+          .flatMap(doc => Try(doc.get("reviewed")).toOption)
+          .map(Codecs.fromBson[List[ReviewedCallbackRequest]])
       }
 
     val latestReviewedOpt = reviewedDocsOpt

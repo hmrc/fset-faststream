@@ -93,6 +93,23 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       )
     }
 
+    "handle questions answered with unknown" in new TestFixture {
+      when(socioEconomicCalculator.calculate(any())).thenReturn("SES Score")
+      questionnaireRepo.addQuestions(applicationId1, submittedQuestionnaire3).futureValue
+
+      val report = questionnaireRepo.findForOnlineTestPassMarkReport(List(applicationId1)).futureValue
+
+      val dontKnowText = "I don't know/prefer not to say"
+
+      report mustBe Map(
+        applicationId1 -> QuestionnaireReportItem(
+          gender = Some(dontKnowText), sexualOrientation = Some(dontKnowText), ethnicity = Some(dontKnowText),
+          isEnglishYourFirstLanguage = Some(dontKnowText), parentEmploymentStatus = Some("Employed"), parentOccupation = Some(dontKnowText),
+          parentEmployedOrSelf = Some(dontKnowText), parentCompanySize = Some(dontKnowText),
+          lowerSocioEconomicBackground = Some(dontKnowText), socioEconomicScore = "SES Score", university = Some(dontKnowText))
+      )
+    }
+
     "calculate the socioeconomic score for the pass mark report" in new TestFixture {
       when(socioEconomicCalculator.calculate(any())).thenReturn("SES Score")
       submitQuestionnaire()
@@ -177,37 +194,55 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
     val applicationId2 = "123"
     val applicationId3 = "partiallyCompleteId"
     val submittedQuestionnaire1 = List(
-      QuestionnaireQuestion("What is your gender identity?", QuestionnaireAnswer(Some("Male"), None, None)),
-      QuestionnaireQuestion("What is your sexual orientation?", QuestionnaireAnswer(Some("Straight"), None, None)),
-      QuestionnaireQuestion("What is your ethnic group?", QuestionnaireAnswer(Some("Black"), None, None)),
-      QuestionnaireQuestion("Is English your first language?", QuestionnaireAnswer(Some("Yes"), None, None)),
+      QuestionnaireQuestion("What is your gender identity?", QuestionnaireAnswer(Some("Male"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion("What is your sexual orientation?", QuestionnaireAnswer(Some("Straight"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion("What is your ethnic group?", QuestionnaireAnswer(Some("Black"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion("Is English your first language?", QuestionnaireAnswer(Some("Yes"), otherDetails = None, unknown = None)),
       QuestionnaireQuestion("What is the name of the university you received your degree from?",
-        QuestionnaireAnswer(Some("W01-USW"), None, None)),
+        QuestionnaireAnswer(Some("W01-USW"), otherDetails = None, unknown = None)),
       QuestionnaireQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
-        QuestionnaireAnswer(Some("Unemployed"), None, None)),
+        QuestionnaireAnswer(Some("Unemployed"), otherDetails = None, unknown = None)),
       QuestionnaireQuestion("Do you consider yourself to come from a lower socio-economic background?",
-        QuestionnaireAnswer(None, None, None))
+        QuestionnaireAnswer(answer = None, otherDetails = None, unknown = None))
     )
     val submittedQuestionnaire2 = List(
-      QuestionnaireQuestion("What is your gender identity?", QuestionnaireAnswer(Some("Female"), None, None)),
-      QuestionnaireQuestion("What is your sexual orientation?", QuestionnaireAnswer(Some("Lesbian"), None, None)),
-      QuestionnaireQuestion("What is your ethnic group?", QuestionnaireAnswer(Some("White"), None, None)),
-      QuestionnaireQuestion("Is English your first language?", QuestionnaireAnswer(Some("Yes"), None, None)),
+      QuestionnaireQuestion("What is your gender identity?", QuestionnaireAnswer(Some("Female"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion("What is your sexual orientation?", QuestionnaireAnswer(Some("Lesbian"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion("What is your ethnic group?", QuestionnaireAnswer(Some("White"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion("Is English your first language?", QuestionnaireAnswer(Some("Yes"), otherDetails = None, unknown = None)),
       QuestionnaireQuestion("What is the name of the university you received your degree from?",
-        QuestionnaireAnswer(Some("W17-WARR"), None, None)),
+        QuestionnaireAnswer(Some("W17-WARR"), otherDetails = None, unknown = None)),
       QuestionnaireQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
-        QuestionnaireAnswer(Some("Modern professional"), None, None)),
+        QuestionnaireAnswer(Some("Modern professional"), otherDetails = None, unknown = None)),
       QuestionnaireQuestion("Did they work as an employee or were they self-employed?",
-        QuestionnaireAnswer(Some("Part-time employed"), None, None)),
-      QuestionnaireQuestion("Which size would best describe their place of work?", QuestionnaireAnswer(Some("Large (26-500)"), None, None)),
+        QuestionnaireAnswer(Some("Part-time employed"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion("Which size would best describe their place of work?",
+        QuestionnaireAnswer(Some("Large (26-500)"), otherDetails = None, unknown = None)),
       QuestionnaireQuestion("Do you consider yourself to come from a lower socio-economic background?",
-        QuestionnaireAnswer(Some("No"), None, None))
+        QuestionnaireAnswer(Some("No"), otherDetails = None, unknown = None))
+    )
+    val unknown = QuestionnaireAnswer(answer = None, otherDetails = None, unknown = Some(true))
+    val submittedQuestionnaire3 = List(
+      QuestionnaireQuestion("What is your gender identity?", unknown),
+      QuestionnaireQuestion("What is your sexual orientation?", unknown),
+      QuestionnaireQuestion("What is your ethnic group?", unknown),
+      QuestionnaireQuestion("Is English your first language?", unknown),
+      QuestionnaireQuestion("Did you live in the UK between the ages of 14 and 18?",
+        QuestionnaireAnswer(Some("Yes"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion("What was your home postcode when you were 14?", unknown),
+      QuestionnaireQuestion("Aged 14 to 16 what was the name of your school?", unknown),
+      QuestionnaireQuestion("What is the name of the university you received your degree from?", unknown),
+      QuestionnaireQuestion("Do you consider yourself to come from a lower socio-economic background?", unknown),
+      QuestionnaireQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
+        unknown),
+      QuestionnaireQuestion("Did they work as an employee or were they self-employed?", unknown),
+      QuestionnaireQuestion("Which size would best describe their place of work?", unknown)
     )
     val partiallyCompleteQuestionnaire = List(
-      QuestionnaireQuestion("What is your gender identity?", QuestionnaireAnswer(Some("Female"), None, None)),
-      QuestionnaireQuestion("What is your sexual orientation?", QuestionnaireAnswer(Some("Lesbian"), None, None)),
-      QuestionnaireQuestion("What is your ethnic group?", QuestionnaireAnswer(Some("White"), None, None)),
-      QuestionnaireQuestion("Is English your first language?", QuestionnaireAnswer(Some("Yes"), None, None))
+      QuestionnaireQuestion("What is your gender identity?", QuestionnaireAnswer(Some("Female"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion("What is your sexual orientation?", QuestionnaireAnswer(Some("Lesbian"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion("What is your ethnic group?", QuestionnaireAnswer(Some("White"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion("Is English your first language?", QuestionnaireAnswer(Some("Yes"), otherDetails = None, unknown = None))
     )
 
     val socioEconomicCalculator = mock[SocioEconomicScoreCalculator]

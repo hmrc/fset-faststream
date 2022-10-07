@@ -150,12 +150,11 @@ class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEcon
 
     def getAnswer(question: String): Option[String] = {
       val questionDocOpt = Try(questionsDocOpt.map(_.get(question).asDocument())).toOption.flatten
-      val answer = Try(questionDocOpt.map(_.get("answer").asString().getValue).orElse(
-        //TODO: mongo write test code for this
-        questionDocOpt.map(_.get("unknown").asBoolean().getValue).map { unknown =>
-          if (unknown) { DontKnowAnswerText } else {""}}
-      )).toOption.flatten
-      answer
+      Try(questionDocOpt.map(_.get("answer").asString().getValue)).toOption.flatten
+      .orElse {
+        Try(questionDocOpt.map(_.get("unknown").asBoolean().getValue)).toOption.flatten
+          .map(unknown => if (unknown) { DontKnowAnswerText } else { "" })
+      }
     }
 
     val applicationId = document.get("applicationId").get.asString().getValue
