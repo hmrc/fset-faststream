@@ -59,8 +59,11 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     val csedDocOpt = doc.get("civil-service-experience-details").map(_.asDocument())
 
     val containsCivilServantAndInternshipType = (internshipType: CivilServantAndInternshipType) =>
-      csedDocOpt.flatMap(doc => Try(Codecs.fromBson[List[CivilServantAndInternshipType]](doc.get("civilServantAndInternshipTypes"))).toOption)
-        .map ( _.contains(internshipType) )
+      csedDocOpt.map(doc =>
+        Try(Codecs.fromBson[List[CivilServantAndInternshipType]](doc.get("civilServantAndInternshipTypes"))).toOption
+        .getOrElse(List.empty[CivilServantAndInternshipType])
+        .contains(internshipType)
+      )
 
     val csedCivilServant = containsCivilServantAndInternshipType(CivilServantAndInternshipType.CivilServant).map(booleanTranslator)
     val csedEdipCompleted = containsCivilServantAndInternshipType(CivilServantAndInternshipType.EDIP).map(booleanTranslator)
