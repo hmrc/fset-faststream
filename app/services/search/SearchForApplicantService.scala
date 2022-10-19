@@ -25,7 +25,6 @@ import model.{ Candidate, SearchCandidate }
 import org.joda.time.LocalDate
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
-import repositories.personaldetails.PersonalDetailsRepository
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -33,12 +32,11 @@ import scala.concurrent.Future
 
 @Singleton
 class SearchForApplicantService @Inject() (appRepository: GeneralApplicationRepository,
-                                           psRepository: PersonalDetailsRepository,
                                            cdRepository: ContactDetailsRepository,
                                            authProviderClient: AuthProviderClient
                                           ) {
 
-  def findByCriteria(searchCandidate: SearchCandidate)(implicit hc: HeaderCarrier): Future[List[Candidate]] = searchCandidate match {
+  def findByCriteria(searchCandidate: SearchCandidate)(implicit hc: HeaderCarrier): Future[Seq[Candidate]] = searchCandidate match {
     case SearchCandidate(None, None, None, Some(postCode)) => searchByPostCode(postCode)
 
     case SearchCandidate(firstOrPreferredName, lastName, dateOfBirth, postCode) =>
@@ -61,11 +59,11 @@ class SearchForApplicantService @Inject() (appRepository: GeneralApplicationRepo
     }
   }
 
-  private def searchByPostCode(postCode: String): Future[List[Candidate]] =
+  private def searchByPostCode(postCode: String): Future[Seq[Candidate]] =
     cdRepository.findByPostCode(postCode).flatMap { cdList =>
-      Future.sequence(cdList.toList.map { cd =>
+      Future.sequence(cdList.map { cd =>
         appRepository.findCandidateByUserId(cd.userId).map(_.map { candidate =>
-          candidate.copy(address = Some(cd.address), postCode = cd.postCode)
+          candidate.copy(address = Some(cd.address), postCode = cd.postCode, email = Some(cd.email))
         }).recover {
           case _: ContactDetailsNotFound => None
         }
@@ -76,7 +74,7 @@ class SearchForApplicantService @Inject() (appRepository: GeneralApplicationRepo
                                                      lastName: Option[String],
                                                      dateOfBirth: Option[LocalDate],
                                                      postCodeOpt: Option[String]
-                                                    )(implicit hc: HeaderCarrier): Future[List[Candidate]] =
+                                                    )(implicit hc: HeaderCarrier): Future[Seq[Candidate]] =
     for {
       contactDetailsFromPostcode <- postCodeOpt.map(cdRepository.findByPostCode).getOrElse(Future.successful(List.empty))
       candidates <- appRepository.findByCriteria(firstOrPreferredName, lastName, dateOfBirth, contactDetailsFromPostcode.map(_.userId).toList)
@@ -100,7 +98,7 @@ class SearchForApplicantService @Inject() (appRepository: GeneralApplicationRepo
 
   private def searchAuthProviderByFirstAndLastName(firstNameOpt: Option[String],
                                                    lastNameOpt: Option[String])
-                                                  (implicit hc: HeaderCarrier): Future[List[Candidate]] =
+                                                  (implicit hc: HeaderCarrier): Future[Seq[Candidate]] =
     (firstNameOpt, lastNameOpt) match {
       case (Some(firstName), Some(lastName)) => searchByFirstNameAndLastName(firstName, lastName)
       case (Some(firstName), None) => searchByFirstName(firstName)
@@ -109,7 +107,7 @@ class SearchForApplicantService @Inject() (appRepository: GeneralApplicationRepo
     }
 
   private def searchByFirstNameAndLastName(firstName: String, lastName: String)
-                                          (implicit hc: HeaderCarrier): Future[List[Candidate]] =
+                                          (implicit hc: HeaderCarrier): Future[Seq[Candidate]] =
     for {
       results <- authProviderClient.findByFirstNameAndLastName(firstName, lastName, List("candidate"))
     } yield {
@@ -118,7 +116,7 @@ class SearchForApplicantService @Inject() (appRepository: GeneralApplicationRepo
       )
     }
 
-  private def searchByFirstName(firstName: String)(implicit hc: HeaderCarrier): Future[List[Candidate]] =
+  private def searchByFirstName(firstName: String)(implicit hc: HeaderCarrier): Future[Seq[Candidate]] =
     for {
       results <- authProviderClient.findByFirstName(firstName, List("candidate"))
     } yield {
@@ -127,7 +125,7 @@ class SearchForApplicantService @Inject() (appRepository: GeneralApplicationRepo
       )
     }
 
-  private def searchByLastName(lastName: String)(implicit hc: HeaderCarrier): Future[List[Candidate]] =
+  private def searchByLastName(lastName: String)(implicit hc: HeaderCarrier): Future[Seq[Candidate]] =
     for {
       results <- authProviderClient.findByLastName(lastName, List("candidate"))
     } yield {
