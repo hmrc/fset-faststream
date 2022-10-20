@@ -114,6 +114,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       applicationResponse mustBe defined
       applicationResponse.get.applicationId mustBe Some(appId)
+      applicationResponse.get.lastName mustBe Some("Jetson")
     }
 
     "find application by appId" in {
@@ -154,18 +155,26 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016").futureValue
 
       val applicationResponse = repository.findByCriteria(
-        Some(testCandidate("firstName")), None, None
+        firstOrPreferredNameOpt = Some(testCandidate("firstName")), lastNameOpt = None, dateOfBirthOpt = None
       ).futureValue
 
       applicationResponse.size mustBe 1
-      applicationResponse.head.applicationId mustBe Some("appId123")
+
+      val expectedCandidate = Candidate("userId", Some("appId123"), testAccountId = None,
+        email = None, firstName = Some("George"), lastName = Some("Jetson"),
+        preferredName = Some("Georgy"), dateOfBirth = Some(new LocalDate(1986, 5, 1)),
+        address = None, postCode = None, country = None,
+        applicationRoute = Some(ApplicationRoute.Faststream),
+        applicationStatus = Some(ApplicationStatus.IN_PROGRESS)
+      )
+      applicationResponse.head mustBe expectedCandidate
     }
 
     "find by preferred name" in {
       testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016").futureValue
 
       val applicationResponse = repository.findByCriteria(
-        Some(testCandidate("preferredName")), None, None
+        firstOrPreferredNameOpt = Some(testCandidate("preferredName")), lastNameOpt = None, dateOfBirthOpt = None
       ).futureValue
 
       applicationResponse.size mustBe 1
@@ -177,7 +186,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         frameworkId = "FastStream-2016", firstName = Some("Char+lie.+x123")).futureValue
 
       val applicationResponse = repository.findByCriteria(
-        Some("Char+lie.+x123"), None, None
+        firstOrPreferredNameOpt = Some("Char+lie.+x123"), lastNameOpt = None, dateOfBirthOpt = None
       ).futureValue
 
       applicationResponse.size mustBe 1
@@ -187,7 +196,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "find by lastname" in {
       testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016").futureValue
       val applicationResponse = repository.findByCriteria(
-        None, Some(testCandidate("lastName")), None
+        firstOrPreferredNameOpt = None, lastNameOpt = Some(testCandidate("lastName")), dateOfBirthOpt = None
       ).futureValue
 
       applicationResponse.size mustBe 1
@@ -198,24 +207,20 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       testDataRepo.createApplicationWithAllFields(userId = "userId", appId = "appId123", testAccountId = "testAccountId",
         frameworkId = "FastStream-2016", lastName = Some("Barr+y.+x123")).futureValue
       val applicationResponse = repository.findByCriteria(
-        None, Some("Barr+y.+x123"), None
+        firstOrPreferredNameOpt = None, lastNameOpt = Some("Barr+y.+x123"), dateOfBirthOpt = None
       ).futureValue
 
       applicationResponse.size mustBe 1
       applicationResponse.head.applicationId mustBe Some("appId123")
     }
 
-    "find date of birth" in {
+    "find by date of birth" in {
       testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016").futureValue
       val dobParts = testCandidate("dateOfBirth").split("-").map(_.toInt)
       val (dobYear, dobMonth, dobDay) = (dobParts.head, dobParts(1), dobParts(2))
 
       val applicationResponse = repository.findByCriteria(
-        None, None, Some(new LocalDate(
-          dobYear,
-          dobMonth,
-          dobDay
-        ))
+        firstOrPreferredNameOpt = None, lastNameOpt = None, dateOfBirthOpt = Some(new LocalDate(dobYear, dobMonth, dobDay))
       ).futureValue
 
       applicationResponse.size mustBe 1
@@ -225,7 +230,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "Return an empty candidate list when there are no results" in {
       testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016").futureValue
       val applicationResponse = repository.findByCriteria(
-        Some("UnknownFirstName"), None, None
+        firstOrPreferredNameOpt = Some("UnknownFirstName"), lastNameOpt = None, dateOfBirthOpt = None
       ).futureValue
 
       applicationResponse.size mustBe 0
@@ -234,13 +239,13 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "filter by provided user Ids" in {
       testDataRepo.createApplicationWithAllFields("userId", "appId123", "testAccountId", "FastStream-2016").futureValue
       val matchResponse = repository.findByCriteria(
-        None, None, None, List("userId")
+        firstOrPreferredNameOpt = None, lastNameOpt = None, dateOfBirthOpt = None, filterByUserIds = List("userId")
       ).futureValue
 
       matchResponse.size mustBe 1
 
       val noMatchResponse = repository.findByCriteria(
-        None, None, None, List("unknownUser")
+        firstOrPreferredNameOpt = None, lastNameOpt = None, dateOfBirthOpt = None, filterByUserIds = List("unknownUser")
       ).futureValue
 
       noMatchResponse.size mustBe 0

@@ -66,7 +66,7 @@ trait GeneralApplicationRepository {
   def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse]
   def findCandidateByUserId(userId: String): Future[Option[Candidate]]
   def findByCriteria(firstOrPreferredName: Option[String], lastName: Option[String],
-                     dateOfBirth: Option[LocalDate], userIds: List[String] = List.empty): Future[List[Candidate]]
+                     dateOfBirth: Option[LocalDate], userIds: List[String] = List.empty): Future[Seq[Candidate]]
   def submit(applicationId: String): Future[Unit]
   def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit]
   def withdrawScheme(applicationId: String, schemeWithdraw: WithdrawScheme, schemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
@@ -329,15 +329,14 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
   def findCandidateByUserId(userId: String): Future[Option[Candidate]] = {
     val query = Document("userId" -> userId)
-    collection.find[BsonDocument](query).headOption().map( _.map( bson => Codecs.fromBson[Candidate](bson) ))
+    collection.find[BsonDocument](query).headOption().map( _.map( bson => Candidate.fromBson(bson) ))
   }
 
-  //scalastyle:off
   override def findByCriteria(firstOrPreferredNameOpt: Option[String],
                               lastNameOpt: Option[String],
                               dateOfBirthOpt: Option[LocalDate],
                               filterByUserIds: List[String]
-                    ): Future[List[Candidate]] = {
+                    ): Future[Seq[Candidate]] = {
 
     def matchIfSome(value: Option[String]) = value.map(v => BsonRegularExpression("^" + Pattern.quote(v) + "$", "i"))
 
@@ -350,15 +349,14 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       .getOrElse(Document.empty)
 
     val innerQuery =
-      Document("$and" -> BsonArray(
-        lastNameBson,
-        dobBson
-      )) ++
       Document("$or" -> BsonArray(
         firstNameBson,
         preferredNameBson
-      )
-    )
+      )) ++
+      Document("$and" -> BsonArray(
+        lastNameBson,
+        dobBson
+      ))
 
     val query = if (filterByUserIds.isEmpty) {
       innerQuery
@@ -368,9 +366,9 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
     val projection = Projections.include("userId", "applicationId", "applicationRoute", "applicationStatus", "personal-details")
 
-    applicationCollection.find[BsonDocument](query).projection(projection).toFuture().map { _.map { doc =>
-      Codecs.fromBson[Candidate](doc)
-    }.toList }
+    applicationCollection.find[BsonDocument](query).projection(projection).toFuture().map { _.map {
+      doc => Candidate.fromBson(doc)
+    }}
   }
 
   override def findSdipFaststreamInvitedToVideoInterview: Future[Seq[Candidate]] = {
@@ -383,7 +381,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       "applicationStatus", "personal-details")
 
     applicationCollection.find[BsonDocument](query).projection(projection).toFuture().map { _.map {
-      doc => Codecs.fromBson[Candidate](doc)
+      doc => Candidate.fromBson(doc)
     }}
   }
 
@@ -401,7 +399,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       "applicationStatus", "personal-details")
 
     applicationCollection.find[BsonDocument](query).projection(projection).toFuture().map { _.map {
-      doc => Codecs.fromBson[Candidate](doc)
+      doc => Candidate.fromBson(doc)
     }}
   }
 
@@ -419,7 +417,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       "applicationStatus", "personal-details")
 
     applicationCollection.find[BsonDocument](query).projection(projection).toFuture().map { _.map {
-      doc => Codecs.fromBson[Candidate](doc)
+      doc => Candidate.fromBson(doc)
     }}
   }
 

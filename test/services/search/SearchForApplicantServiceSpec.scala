@@ -96,13 +96,11 @@ class SearchForApplicantServiceSpec extends BaseServiceSpec with ShortTimeout {
 
   trait TestFixture {
     val appRepositoryMock = mock[GeneralApplicationRepository]
-    val psRepositoryMock = mock[PersonalDetailsRepository]
     val cdRepositoryMock = mock[ContactDetailsRepository]
     val authProviderClientMock = mock[AuthProviderClient]
 
     val searchForApplicantService = new SearchForApplicantService(
       appRepositoryMock,
-      psRepositoryMock,
       cdRepositoryMock,
       authProviderClientMock
     )
