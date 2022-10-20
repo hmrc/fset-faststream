@@ -34,6 +34,7 @@ import repositories.fileupload.FileUploadRepository.FileUploadNotFoundException
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.Try
 
 object FileUploadRepository {
   case class FileUploadNotFoundException(message: String) extends Exception(message)
@@ -75,7 +76,7 @@ class FileUploadMongoRepository @Inject() (mongoComponent: MongoComponent) exten
           .toFuture()
           .map(seq => seq.map(bb => bb.array).reduceLeft(_ ++ _))
           .map(array => {
-            FileUpload(fileId, file.getMetadata.getString("contentType"), new DateTime(file.getUploadDate, DateTimeZone.UTC), Enumerator(array))
+            FileUpload(fileId, getContentType(file), new DateTime(file.getUploadDate, DateTimeZone.UTC), Enumerator(array))
           })
       case _ => throw FileUploadNotFoundException(s"No file upload found with id $fileId")
     }
@@ -89,11 +90,15 @@ class FileUploadMongoRepository @Inject() (mongoComponent: MongoComponent) exten
     gridFS.find(Document("filename" -> fileId)).headOption.map ( _.map ( processFile ) )
   }
 
-  private def processFile(file: GridFSFile) =
+  // Try and get the contentType out of metadata, which is a nullable field
+  private def getContentType(file: GridFSFile) = Try(file.getMetadata.getString("contentType")).toOption.getOrElse("")
+
+  private def processFile(file: GridFSFile) = {
     FileUploadInfo(
       file.getFilename,
-      file.getMetadata.getString("contentType"),
+      getContentType(file),
       new DateTime(file.getUploadDate, DateTimeZone.UTC).toString,
       file.getLength
     )
+  }
 }
