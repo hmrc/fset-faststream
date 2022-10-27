@@ -31,8 +31,7 @@ class LockAccountControllerSpec extends BaseControllerSpec {
     }
 
     "Return locked page with email if there is email in session" in new TestFixture {
-      val result = lockAccountController.present(fakeRequest.
-        withSession("email" -> "testEmailXYZ@mailinator.com"))
+      val result = lockAccountController.present(fakeRequest.withSession("email" -> "testEmailXYZ@mailinator.com"))
 
       status(result) mustBe OK
       val content = contentAsString(result)
@@ -43,7 +42,7 @@ class LockAccountControllerSpec extends BaseControllerSpec {
 
   "submit" should {
     "flash a error message to show email is missing when email is not passed" in new TestFixture {
-      val result = lockAccountController.submit(fakeRequest.withFormUrlEncodedBody(
+      val result = lockAccountController.submit(fakeRequest.withMethod("POST").withFormUrlEncodedBody(
         "email" -> ""
       ))
 
@@ -53,7 +52,7 @@ class LockAccountControllerSpec extends BaseControllerSpec {
     }
 
     "present reset password page when email is passed" in new TestFixture {
-      val lockAccountRequest = fakeRequest.withFormUrlEncodedBody(
+      val lockAccountRequest = fakeRequest.withMethod("POST").withFormUrlEncodedBody(
         "email" -> "testEmail123@mailinator.com"
       ).withSession(SessionKeys.sessionId -> "session-0379e8ad-3797-4c7f-b80f-2279b5f0819a")
 

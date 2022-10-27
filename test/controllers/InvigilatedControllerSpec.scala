@@ -32,7 +32,7 @@ class InvigilatedControllerSpec extends BaseControllerSpec {
   "present" should {
     "display the Start invigilated phase 2 tests page" in new TestFixture {
       val result = controller.present()(fakeRequest)
-      status(result) must be(OK)
+      status(result) mustBe OK
       val content = contentAsString(result)
       content must include("Start invigilated phase 2 tests")
     }
@@ -40,34 +40,34 @@ class InvigilatedControllerSpec extends BaseControllerSpec {
 
   "verifyToken" should {
     "redirect to test url upon successful token validation" in new TestFixture {
-      val Request = fakeRequest.withFormUrlEncodedBody("email" -> "test@test.com", "token" -> "KI6U8T")
+      val Request = fakeRequest.withMethod("POST").withFormUrlEncodedBody("email" -> "test@test.com", "token" -> "KI6U8T")
       when(mockApplicationClient.verifyInvigilatedToken(eqTo("test@test.com"), eqTo("KI6U8T"))(any())).thenReturn(successfulValidationResponse)
 
       val result = controller.verifyToken()(Request)
 
-      status(result) must be(SEE_OTHER)
-      redirectLocation(result) must be(Some(testUrl))
+      status(result) mustBe SEE_OTHER
+      redirectLocation(result) mustBe Some(testUrl)
     }
 
     "display the Start invigilated phase 2 tests page with an error message when the validation is not successful" in new TestFixture {
-      val Request = fakeRequest.withFormUrlEncodedBody("email" -> "test@test.com", "token" -> "KI6U8T")
+      val Request = fakeRequest.withMethod("POST").withFormUrlEncodedBody("email" -> "test@test.com", "token" -> "KI6U8T")
       when(mockApplicationClient.verifyInvigilatedToken(eqTo("test@test.com"), eqTo("KI6U8T"))(any())).thenReturn(failedValidationResponse)
 
       val result = controller.verifyToken()(Request)
 
-      status(result) must be(OK)
+      status(result) mustBe OK
       val content = contentAsString(result)
       content must include("Start invigilated phase 2 tests")
       content must include("error.token.invalid")
     }
 
     "display the Start invigilated phase 2 tests page with an error message when the test is expired" in new TestFixture {
-      val Request = fakeRequest.withFormUrlEncodedBody("email" -> "test@test.com", "token" -> "KI6U8T")
+      val Request = fakeRequest.withMethod("POST").withFormUrlEncodedBody("email" -> "test@test.com", "token" -> "KI6U8T")
       when(mockApplicationClient.verifyInvigilatedToken(eqTo("test@test.com"), eqTo("KI6U8T"))(any())).thenReturn(testExpiredResponse)
 
       val result = controller.verifyToken()(Request)
 
-      status(result) must be(OK)
+      status(result) mustBe OK
       val content = contentAsString(result)
       content must include("Start invigilated phase 2 tests")
       content must include("error.token.expired")

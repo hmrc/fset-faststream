@@ -59,9 +59,10 @@ class WithdrawControllerSpec extends BaseControllerSpec {
 
   "withdrawApplication" should {
     "display withdraw form when the form was submitted invalid" in new TestFixture {
-      val Request = fakeRequest.withFormUrlEncodedBody(WithdrawApplicationFormExamples.OtherReasonInvalidNoReasonFormUrlEncodedBody: _*)
+      val Request = fakeRequest.withMethod("POST")
+        .withFormUrlEncodedBody(WithdrawApplicationFormExamples.OtherReasonInvalidNoReasonFormUrlEncodedBody: _*)
 
-      val result = controller.withdrawApplication()(Request)
+      val result = controller.withdrawApplication(Request)
 
       status(result) mustBe OK
       val content = contentAsString(result)
@@ -70,7 +71,7 @@ class WithdrawControllerSpec extends BaseControllerSpec {
     }
 
     "display dashboard with error message when form is valid but cannot withdraw" in new TestFixture {
-      val Request = fakeRequest.withFormUrlEncodedBody(WithdrawApplicationFormExamples.ValidFormUrlEncodedBody: _*)
+      val Request = fakeRequest.withMethod("POST").withFormUrlEncodedBody(WithdrawApplicationFormExamples.ValidFormUrlEncodedBody: _*)
       when(mockApplicationClient.withdrawApplication(eqTo(currentApplicationId),
         eqTo(WithdrawApplicationExamples.Valid))(any[HeaderCarrier])).thenReturn(Future.failed(new CannotWithdraw))
 
@@ -82,7 +83,7 @@ class WithdrawControllerSpec extends BaseControllerSpec {
     }
 
     "display dashboard with withdrawn success message when withdraw is successful" in new TestFixture {
-      val Request = fakeRequest.withFormUrlEncodedBody(WithdrawApplicationFormExamples.ValidFormUrlEncodedBody: _*)
+      val Request = fakeRequest.withMethod("POST").withFormUrlEncodedBody(WithdrawApplicationFormExamples.ValidFormUrlEncodedBody: _*)
       when(mockApplicationClient.withdrawApplication(eqTo(currentApplicationId),
         eqTo(WithdrawApplicationExamples.Valid))(any[HeaderCarrier])).thenReturn(Future.successful(()))
       when(mockApplicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
@@ -106,7 +107,7 @@ class WithdrawControllerSpec extends BaseControllerSpec {
       val withdrawFormWrapper = new WithdrawApplicationForm
       val schemeWithdrawFormWrapper = new SchemeWithdrawForm
 
-      when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+      when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
       when(mockApplicationClient.getCurrentSchemeStatus(eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturnAsync(List(SchemeEvaluationResultWithFailureDetails(SchemeId("DiplomaticAndDevelopment"), SchemeStatus.Green)))
       when(mockUserService.refreshCachedUser(any[UniqueIdentifier])(any[HeaderCarrier], any[Request[_]]))

@@ -79,14 +79,14 @@ class WithdrawController @Inject() (
 
   def withdrawScheme = CSRSecureAppAction(SchemeWithdrawRole) { implicit request =>
     implicit user =>
-      schemeWithdrawFormWrapper.form.bindFromRequest.fold(
+      schemeWithdrawFormWrapper.form.bindFromRequest().fold(
         invalid => getWithdrawableSchemes(user.application.applicationId).map { schemes =>
           Ok(views.html.home.schemeWithdraw(SchemeWithdrawPage(
             schemes.map(s => (s.name, s.id.value)),
             invalid
           )))
         },
-        data => refDataClient.allSchemes().flatMap (_.find(_.id.value == data.scheme).map { schemeToWithdraw =>
+        data => refDataClient.allSchemes.flatMap (_.find(_.id.value == data.scheme).map { schemeToWithdraw =>
           applicationClient.withdrawScheme(user.application.applicationId, WithdrawScheme(schemeToWithdraw.id, data.reason)).map { _ =>
             Redirect(routes.HomeController.present()).flashing(success("withdraw.scheme.success"))
           }
@@ -101,7 +101,7 @@ class WithdrawController @Inject() (
 
   def withdrawApplication: Action[AnyContent] = CSRSecureAppAction(AbleToWithdrawApplicationRole) { implicit request =>
     implicit user =>
-      formWrapper.form.bindFromRequest.fold(
+      formWrapper.form.bindFromRequest().fold(
         invalidForm => Future.successful(Ok(views.html.application.withdraw(invalidForm))),
         data => {
           applicationClient.withdrawApplication(user.application.applicationId, WithdrawApplication(data.reason.get, data.otherReason))

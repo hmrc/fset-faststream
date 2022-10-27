@@ -186,10 +186,10 @@ object SignUpForm {
     def hasOptionalInfoProvided = CampaignReferrers.list.find(pair =>
       pair._1 == request.getOrElse("campaignReferrer", "")).exists(_._2)
 
-    def sanitize = request.filterKeys {
+    def sanitize: Map[String, String] = request.view.filterKeys {
       case "campaignOther" => hasOptionalInfoProvided
       case _ => true
-    }
+    }.toMap
   }
 
   val passwordField = "password"

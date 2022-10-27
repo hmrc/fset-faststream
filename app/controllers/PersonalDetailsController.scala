@@ -68,7 +68,7 @@ formWrapper: PersonalDetailsForm)(implicit val ec: ExecutionContext)
 
   private def getCivilServantSchemeNamesRequiringQualifications(implicit hc: HeaderCarrier) = {
     for {
-      allSchemes <- refDataClient.allSchemes()
+      allSchemes <- refDataClient.allSchemes
     } yield {
       allSchemes.collect { case s if !s.civilServantEligible && s.degree.isDefined => s.name }
     }
@@ -178,7 +178,7 @@ formWrapper: PersonalDetailsForm)(implicit val ec: ExecutionContext)
         redirectOnSuccess
       }
     }
-    personalDetailsForm.bindFromRequest.fold(handleFormWithErrors, handleValidForm)
+    personalDetailsForm.bindFromRequest().fold(handleFormWithErrors, handleValidForm)
   }
 
   private def createDefaultSchemes(implicit cacheData: CachedDataWithApp, hc: HeaderCarrier, request: Request[_]): Future[Unit] =

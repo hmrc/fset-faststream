@@ -18,7 +18,7 @@ package controllers
 
 import config.{ FrontendAppConfig, SecurityEnvironment }
 import forms.AssistanceDetailsForm
-import connectors.{ ApplicationClient, UserManagementClient }
+import connectors.ApplicationClient
 import connectors.ApplicationClient.AssistanceDetailsNotFound
 import javax.inject.{ Inject, Singleton }
 import models.CachedData
@@ -55,7 +55,7 @@ class AssistanceDetailsController @Inject() (
 
   def submit = CSRSecureAppAction(AssistanceDetailsRole) { implicit request =>
     implicit user =>
-      formWrapper.form.bindFromRequest.fold(
+      formWrapper.form.bindFromRequest().fold(
         invalidForm =>
           Future.successful(Ok(views.html.application.assistanceDetails(invalidForm, AssistanceDetailsForm.disabilityCategoriesList))),
         data => {

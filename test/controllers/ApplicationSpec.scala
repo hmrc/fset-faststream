@@ -29,7 +29,7 @@ class ApplicationSpec extends BaseSpec with GuiceOneAppPerSuite {
   override implicit lazy val app: Application = new GuiceApplicationBuilder()
     .overrides(new SilhouetteFakeModule())
     .disable[PlayModule]
-    .build
+    .build()
 
   "Application" should {
     "send 404 on a bad request" in {

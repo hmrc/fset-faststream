@@ -30,7 +30,7 @@
             </div>
         </div>
 
-        @helper.form(action = routes.WithdrawController.withdrawApplication, 'novalidate -> "novalidate") {
+        @helper.form(action = routes.WithdrawController.withdrawApplication, Symbol("novalidate") -> "novalidate") {
             <fieldset>
                 @helper.CSRF.formField
                 <legend><h2 class="form-label">Do you still want to withdraw?</h2></legend>
@@ -45,10 +45,10 @@
                     <div class="toggle-content form-group form-group-compound" id="moreInfo">
                         <legend><h2 class="form-label">More information about your withdrawal</h2></legend>
                         @helper.textarea(withdrawForm("otherReason"),
-                        '_label -> "",
-                        'class -> "form-control",
-                        'rows -> 6, 'cols -> 80,
-                        '_showConstraints -> false)
+                            Symbol("_label") -> "",
+                            Symbol("class") -> "form-control",
+                            Symbol("rows") -> 6, Symbol("cols") -> 80,
+                            Symbol("_showConstraints") -> false)
                     </div>
 
                     <button id="submit" type="submit" value="submit" class="button">Withdraw my application</button>

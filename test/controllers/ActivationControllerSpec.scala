@@ -35,22 +35,22 @@ class ActivationControllerSpec extends BaseControllerSpec {
     "redirect to home page for active user" in new TestFixture {
       val result = controller(ActiveCandidate).present()(fakeRequest)
 
-      status(result) must be(SEE_OTHER)
+      status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.HomeController.present().url))
-      flash(result).data must be (Map("warning" -> "activation.already"))
+      flash(result).data mustBe Map("warning" -> "activation.already")
     }
 
     "redirect to registration page for inactive user" in new TestFixture {
       val result = controller(InactiveCandidate).present()(fakeRequest)
 
-      status(result) must be(OK)
+      status(result) mustBe OK
       contentAsString(result) must include("<title>Activate your account")
     }
   }
 
   "Activation Controller submit" should {
     "activate user when activation form is valid" in new TestFixture {
-      val Request = fakeRequest.withFormUrlEncodedBody("activation" -> ValidToken)
+      val Request = fakeRequest.withMethod("POST").withFormUrlEncodedBody("activation" -> ValidToken)
       when(mockUserManagementClient.activate(eqTo(currentEmail), eqTo(ValidToken))(any())).thenReturn(Future.successful(()))
       when(mockSignInService.signInUser(
         eqTo(currentCandidate.user.copy(isActive = true)),
@@ -59,39 +59,39 @@ class ActivationControllerSpec extends BaseControllerSpec {
 
       val result = controller(ActiveCandidate).submit()(Request)
 
-      status(result) must be(SEE_OTHER)
-      redirectLocation(result) must be(Some(routes.HomeController.present().url))
+      status(result) mustBe SEE_OTHER
+      redirectLocation(result) mustBe Some(routes.HomeController.present().url)
     }
 
     "reject form when validation failed" in new TestFixture {
       val TooShortToken = "A"
-      val Request = fakeRequest.withFormUrlEncodedBody("activation" -> TooShortToken)
+      val Request = fakeRequest.withMethod("POST").withFormUrlEncodedBody("activation" -> TooShortToken)
 
       val result = controller(ActiveCandidate).submit()(Request)
 
-      status(result) must be(OK)
+      status(result) mustBe OK
       contentAsString(result) must include("activation.wrong-format")
     }
 
     "reject form when token expired" in new TestFixture {
-      val Request = fakeRequest.withFormUrlEncodedBody("activation" -> ValidToken)
+      val Request = fakeRequest.withMethod("POST").withFormUrlEncodedBody("activation" -> ValidToken)
       when(mockUserManagementClient.activate(eqTo(currentEmail), eqTo(ValidToken))(any()))
         .thenReturn(Future.failed(new TokenExpiredException))
 
       val result = controller(ActiveCandidate).submit()(Request)
 
-      status(result) must be(OK)
+      status(result) mustBe OK
       contentAsString(result) must include("expired.activation-code")
     }
 
     "reject form when token and email pair invalid" in new TestFixture {
-      val Request = fakeRequest.withFormUrlEncodedBody("activation" -> ValidToken)
+      val Request = fakeRequest.withMethod("POST").withFormUrlEncodedBody("activation" -> ValidToken)
       when(mockUserManagementClient.activate(eqTo(ActiveCandidateUser.email), eqTo(ValidToken))(any()))
         .thenReturn(Future.failed(new TokenEmailPairInvalidException))
 
       val result = controller(ActiveCandidate).submit()(Request)
 
-      status(result) must be(OK)
+      status(result) mustBe OK
       contentAsString(result) must include("wrong.activation-code")
     }
   }
@@ -102,9 +102,9 @@ class ActivationControllerSpec extends BaseControllerSpec {
 
       val result = controller(ActiveCandidate).resendCode()(fakeRequest)
 
-      status(result) must be(SEE_OTHER)
-      redirectLocation(result) must be(Some(routes.ActivationController.present.url))
-      flash(result).data must be (Map("success" -> ("activation.code-resent"))
+      status(result) mustBe SEE_OTHER
+      redirectLocation(result) mustBe Some(routes.ActivationController.present.url)
+      flash(result).data mustBe Map("success" -> ("activation.code-resent")
       )
     }
   }

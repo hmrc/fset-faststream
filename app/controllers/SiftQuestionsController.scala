@@ -58,14 +58,14 @@ class SiftQuestionsController @Inject() (
   val SaveAndContinueAction = "saveAndContinue"
 
   def schemeMetadata(schemeId: SchemeId, applicationId: UniqueIdentifier)(implicit hc: HeaderCarrier): Future[Scheme] = {
-    referenceDataClient.allSchemes().map {
+    referenceDataClient.allSchemes.map {
       _.find(_.id == schemeId).getOrElse{
         throw new java.util.NoSuchElementException(s"No scheme $schemeId found for appId $applicationId")
       }
     }
   }
 
-  def presentGeneralQuestions(): Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
+  def presentGeneralQuestions: Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
       for {
         answers <- siftClient.getGeneralQuestionsAnswers(user.application.applicationId)
@@ -75,10 +75,10 @@ class SiftQuestionsController @Inject() (
       }
   }
 
-  def saveGeneralQuestions(): Action[AnyContent] =
+  def saveGeneralQuestions: Action[AnyContent] =
     CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
-      GeneralQuestionsForm().form.bindFromRequest.fold(
+      GeneralQuestionsForm().form.bindFromRequest().fold(
         invalid => {
           Future(Ok(views.html.application.additionalquestions.generalQuestions(
             GeneralQuestionsPage(invalid),
@@ -113,7 +113,7 @@ class SiftQuestionsController @Inject() (
 
   def saveSchemeForm(schemeId: SchemeId): Action[AnyContent] = CSRSecureAppAction(SchemeSpecificQuestionsRole) { implicit request =>
     implicit user =>
-      formWrapper.form.bindFromRequest.fold(
+      formWrapper.form.bindFromRequest().fold(
         invalid => {
           schemeMetadata(schemeId, user.application.applicationId).map { scheme =>
             Ok(views.html.application.additionalquestions.schemespecific(invalid, scheme, SaveAndContinueAction, SaveAndReturnAction))
@@ -160,11 +160,11 @@ class SiftQuestionsController @Inject() (
 
       def removeWithdrawnAnswers(answers: SiftAnswers, userMetadata: CachedUserWithSchemeData) = {
         val withdrawnSchemeIds = userMetadata.withdrawnSchemes.map(_.id)
-        answers.copy(schemeAnswers = answers.schemeAnswers.filterKeys(schemeId => !withdrawnSchemeIds.contains(SchemeId(schemeId))))
+        answers.copy(schemeAnswers = answers.schemeAnswers.view.filterKeys(schemeId => !withdrawnSchemeIds.contains(SchemeId(schemeId))).toMap)
       }
 
       for {
-        allSchemes <- referenceDataClient.allSchemes()
+        allSchemes <- referenceDataClient.allSchemes
         schemeStatus <- applicationClient.getCurrentSchemeStatus(user.application.applicationId)
         schemePreferences <- schemeClient.getSchemePreferences(user.application.applicationId)
         answers <- siftClient.getSiftAnswers(user.application.applicationId) recoverWith noSiftAnswersRecovery

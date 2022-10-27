@@ -21,12 +21,11 @@ import connectors.ApplicationClient._
 import connectors.exchange._
 import connectors.exchange.candidateevents.CandidateAllocations
 import connectors.{ApplicationClient, ReferenceDataClient, SchemeClient, SiftClient}
-import helpers.NotificationType._
 import helpers.{CachedUserWithSchemeData, NotificationTypeHelper}
 import models.ApplicationData.ApplicationStatus
 import models._
 import models.page._
-import play.api.mvc._
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Request, Result}
 import security.ProgressStatusRoleUtils._
 import security.RoleUtils._
 import security.Roles._
@@ -122,7 +121,7 @@ class HomeController @Inject() (
   private def displayPostOnlineTestsDashboard(implicit application: ApplicationData, cachedData: CachedData,
                                               request: Request[_], hc: HeaderCarrier): Future[Result] = {
     for {
-      allSchemes <- refDataClient.allSchemes()
+      allSchemes <- refDataClient.allSchemes
       schemeStatus <- applicationClient.getCurrentSchemeStatus(application.applicationId)
       siftAnswersStatus <- siftClient.getSiftAnswersStatus(application.applicationId)
       allocationWithEvents <- applicationClient.candidateAllocationEventWithSession(application.applicationId)

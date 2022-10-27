@@ -50,8 +50,8 @@ class Phase3FeedbackService @Inject() (applicationClient: ApplicationClient)(imp
         testResults.callbacks.getLatestReviewed
       )
       latestReviewedOpt.map(latestReviewed => {
-        val criteria1Score = getOverallScore(latestReviewed.calculateReviewCriteria1Score()).toString
-        val criteria2Score = getOverallScore(latestReviewed.calculateReviewCriteria2Score()).toString
+        val criteria1Score = getOverallScore(latestReviewed.calculateReviewCriteria1Score).toString
+        val criteria2Score = getOverallScore(latestReviewed.calculateReviewCriteria2Score).toString
         (criteria1Score, criteria2Score)
       }
       )

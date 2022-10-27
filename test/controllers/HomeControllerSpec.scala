@@ -61,7 +61,7 @@ class HomeControllerSpec extends BaseControllerSpec {
     "display the expected test result urls in the post online tests page" in new TestFixture {
       val sift = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.SiftApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+      when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(List(
         ReferenceDataExamples.Schemes.Dip
       ))
       when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
@@ -84,7 +84,7 @@ class HomeControllerSpec extends BaseControllerSpec {
     "display the expected test result urls in the online test progress page when candidate has failed P1 tests" in new TestFixture {
       val candidateState = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.Phase1TestsFailedApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+      when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(List(
         ReferenceDataExamples.Schemes.Dip
       ))
       when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
@@ -110,7 +110,7 @@ class HomeControllerSpec extends BaseControllerSpec {
     "display the P1 error message when candidate has been invited to more than 4 P1 tests" in new TestFixture {
       val candidateState = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.Phase1TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+      when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(List(
         ReferenceDataExamples.Schemes.Dip
       ))
       when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
@@ -133,7 +133,7 @@ class HomeControllerSpec extends BaseControllerSpec {
     "display the P1 error message when GIS candidate has been invited to more than 2 P1 tests" in new TestFixture {
       val candidateState = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.Phase1TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+      when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(List(
         ReferenceDataExamples.Schemes.Dip
       ))
       when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
@@ -158,7 +158,7 @@ class HomeControllerSpec extends BaseControllerSpec {
     "display the expected test result urls in the online test progress page when candidate has passed P1 tests" in new TestFixture {
       val candidateState = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.Phase1TestsPassedApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+      when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(List(
         ReferenceDataExamples.Schemes.Dip
       ))
       when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
@@ -184,7 +184,7 @@ class HomeControllerSpec extends BaseControllerSpec {
     "display the expected test result urls in the online test progress page when candidate has failed P2 tests" in new TestFixture {
       val candidateState = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.Phase2TestsFailedApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+      when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(List(
         ReferenceDataExamples.Schemes.Dip
       ))
       when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
@@ -210,7 +210,7 @@ class HomeControllerSpec extends BaseControllerSpec {
     "display the expected test result urls in the online test progress page when candidate has passed P2 tests" in new TestFixture {
       val candidateState = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.Phase2TestsFailedApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+      when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(List(
         ReferenceDataExamples.Schemes.Dip
       ))
       when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
@@ -238,7 +238,7 @@ class HomeControllerSpec extends BaseControllerSpec {
         progress = ProgressExamples.Phase3TestsFailedCumulative)
       val candidateState = CachedDataWithApp(ActiveCandidate.user,
         phase3TestsFailedApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+      when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(List(
         ReferenceDataExamples.Schemes.Dip
       ))
       when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
@@ -266,7 +266,7 @@ class HomeControllerSpec extends BaseControllerSpec {
         progress = ProgressExamples.Phase3TestsPassedCumulative)
       val candidateState = CachedDataWithApp(ActiveCandidate.user,
         phase3TestsFailedApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+      when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(List(
         ReferenceDataExamples.Schemes.Dip
       ))
       when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
@@ -333,7 +333,7 @@ class HomeControllerSpec extends BaseControllerSpec {
     "display post online tests page" in new TestFixture {
       val sift = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.SiftApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+      when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(List(
         ReferenceDataExamples.Schemes.Dip
       ))
       when(mockApplicationClient.getPhase3Results(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(None)
@@ -362,7 +362,7 @@ class HomeControllerSpec extends BaseControllerSpec {
         .thenReturn(Future.successful(ActiveCandidate))
       val withdrawnSiftApp = CachedDataWithApp(ActiveCandidate.user,
         CachedDataExample.WithdrawnSiftApplication.copy(userId = ActiveCandidate.user.userID))
-      when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(List(
+      when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(List(
         ReferenceDataExamples.Schemes.Generalist
       ))
       when(mockApplicationClient.findAdjustments(eqTo(currentApplicationId))(any[HeaderCarrier])).thenReturnAsync(None)
@@ -728,7 +728,7 @@ class HomeControllerSpec extends BaseControllerSpec {
 
         val selectedSchemes = SelectedSchemes(Schemes.SomeSchemes.map(_.id.value), orderAgreed = true, eligible = true)
 
-        when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+        when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
         when(mockSchemeClient.getSchemePreferences(eqTo(currentApplicationId))(any[HeaderCarrier]))
           .thenReturnAsync(selectedSchemes)
         when(mockSiftClient.getSiftAnswersStatus(any[UniqueIdentifier])(any[HeaderCarrier])).thenReturnAsync(Some(SiftAnswersStatus.DRAFT))

@@ -83,14 +83,14 @@ abstract class BaseControllerSpec extends BaseSpec {
   def emptyFuture = Future.successful(())
 
   def assertPageTitle(result: Future[Result], expectedTitle: String) = {
-    status(result) must be(OK)
+    status(result) mustBe OK
     val content = contentAsString(result)
     content must include(s"<title>$expectedTitle")
   }
 
   def assertPageRedirection(result: Future[Result], expectedUrl: String) = {
-    status(result) must be(SEE_OTHER)
-    redirectLocation(result) must be(Some(expectedUrl))
+    status(result) mustBe SEE_OTHER
+    redirectLocation(result) mustBe Some(expectedUrl)
   }
 
   trait BaseControllerTestFixture {

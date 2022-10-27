@@ -40,7 +40,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
     "load personal details page for the new user and generate return to dashboard link" in new TestFixture {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new PersonalDetailsNotFound))
-      when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+      when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
 
       val result = controller.presentAndContinue()(fakeRequest)
 
@@ -60,7 +60,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
     "load edip personal details page for the new user and generate return to dashboard link" in new TestFixture {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new PersonalDetailsNotFound))
-      when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+      when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
 
       val result = controller(currentCandidateWithEdipApp).presentAndContinue()(fakeRequest)
 
@@ -74,7 +74,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
     "load sdip personal details page for the new user and generate return to dashboard link" in new TestFixture {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new PersonalDetailsNotFound))
-      when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+      when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
 
       val result = controller(currentCandidateWithSdipApp).presentAndContinue()(fakeRequest)
 
@@ -91,7 +91,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
     "load personal details page for the new user and generate submit link to continue the journey" in new TestFixture {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new PersonalDetailsNotFound))
-      when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+      when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
 
       val result = controller.presentAndContinue()(fakeRequest)
 
@@ -105,7 +105,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
     "load personal details page for the already created personal details" in new TestFixture {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(GeneralDetailsExamples.FullDetails))
-      when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+      when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
 
       val result = controller.present()(fakeRequest)
 
@@ -118,7 +118,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
     "load edip personal details page for the new user and generate submit link for continue the journey" in new TestFixture {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new PersonalDetailsNotFound))
-      when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+      when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
 
       val result = controller(currentCandidateWithEdipApp).presentAndContinue()(fakeRequest)
 
@@ -132,7 +132,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
     "load edip personal details page for the already created personal details" in new TestFixture {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(GeneralDetailsExamples.FullDetails))
-      when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+      when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
 
       val result = controller(currentCandidateWithEdipApp).present()(fakeRequest)
 
@@ -145,7 +145,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
     "load sdip personal details page for the new user and generate submit link for continue the journey" in new TestFixture {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.failed(new PersonalDetailsNotFound))
-      when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+      when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
 
       val result = controller(currentCandidateWithSdipApp).presentAndContinue()(fakeRequest)
 
@@ -160,7 +160,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
     "load sdip personal details page for the already created personal details" in new TestFixture {
       when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
         .thenReturn(Future.successful(GeneralDetailsExamples.FullDetails))
-      when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+      when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
 
       val result = controller(currentCandidateWithSdipApp).present()(fakeRequest)
 
@@ -183,7 +183,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       when(mockApplicationClient.updatePersonalDetails(eqTo(currentApplicationId), eqTo(currentUserId),
         eqTo(ValidUKAddressForm.toExchange(currentEmail, Some(true))))(any[HeaderCarrier])).thenReturn(Future.successful(()))
 
-      val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
+      val Request = fakeRequest.withMethod("POST").withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
       val result = controller.submitPersonalDetailsAndContinue()(Request)
 
       status(result) mustBe SEE_OTHER
@@ -205,7 +205,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       when(mockApplicationClient.updatePersonalDetails(eqTo(currentApplicationId), eqTo(currentUserId),
         eqTo(ValidUKAddressForm.toExchange(currentEmail, Some(true))))(any[HeaderCarrier])).thenReturn(Future.successful(()))
 
-      val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
+      val Request = fakeRequest.withMethod("POST").withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
       val result = controller(currentCandidateWithEdipApp).submitPersonalDetailsAndContinue()(Request)
 
       status(result) mustBe  SEE_OTHER
@@ -227,7 +227,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
       when(mockApplicationClient.updatePersonalDetails(eqTo(currentApplicationId), eqTo(currentUserId),
         eqTo(ValidUKAddressForm.toExchange(currentEmail, Some(true))))(any[HeaderCarrier])).thenReturn(Future.successful(()))
 
-      val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
+      val Request = fakeRequest.withMethod("POST").withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
       val result = controller(currentCandidateWithEdipApp).submitPersonalDetailsAndContinue()(Request)
 
       status(result) mustBe SEE_OTHER
@@ -246,7 +246,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
         eqTo(ValidUKAddressWithoutCivilServiceDetailsForm.toExchange(currentEmail, Some(false)))
       )(any[HeaderCarrier])).thenReturn(Future.successful(()))
 
-      val Request = fakeRequest.withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
+      val Request = fakeRequest.withMethod("POST").withFormUrlEncodedBody(ValidFormUrlEncodedBody: _*)
       val result = controller.submitPersonalDetails()(Request)
 
       status(result) mustBe SEE_OTHER
@@ -267,7 +267,7 @@ class PersonalDetailsControllerSpec extends BaseControllerSpec {
     def configureCommonSubmitPersonalDetailsMocks(): Unit = {
       when(mockUserManagementClient.updateDetails(eqTo(currentUserId), eqTo(currentUser.firstName), eqTo(currentUser.lastName),
         eqTo(currentUser.preferredName))(any[HeaderCarrier])).thenReturn(Future.successful(()))
-      when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+      when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
     }
   }
 }

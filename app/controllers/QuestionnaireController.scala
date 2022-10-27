@@ -16,16 +16,15 @@
 
 package controllers
 
-import _root_.forms.{ DiversityQuestionnaireForm, EducationQuestionnaireForm, ParentalOccupationQuestionnaireForm }
+import _root_.forms.{DiversityQuestionnaireForm, EducationQuestionnaireForm, ParentalOccupationQuestionnaireForm}
 import config.FrontendAppConfig
 import connectors.ApplicationClient
 import connectors.exchange.Questionnaire
-import helpers.NotificationType._
-import helpers.{ NotificationType, NotificationTypeHelper }
-import javax.inject.{ Inject, Singleton }
-import models.{ ApplicationRoute, CachedDataWithApp }
+import helpers.{NotificationType, NotificationTypeHelper}
+import javax.inject.{Inject, Singleton}
+import models.{ApplicationRoute, CachedDataWithApp}
 import play.api.i18n.Messages
-import play.api.mvc._
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Request, RequestHeader, Result}
 import security.QuestionnaireRoles._
 import security.Roles.{ CsrAuthorization, PreviewApplicationRole, SubmitApplicationRole }
 import security.SilhouetteComponent
@@ -86,7 +85,7 @@ class QuestionnaireController @Inject() (config: FrontendAppConfig,
       if (SubmitApplicationRole.isAuthorized(user)) {
         Future.successful(Redirect(routes.HomeController.present()).flashing(questionnaireCompletedBanner))
       } else {
-        diversityFormWrapper.acceptanceForm.bindFromRequest.fold(
+        diversityFormWrapper.acceptanceForm.bindFromRequest().fold(
           errorForm => {
             Future.successful(Ok(views.html.questionnaire.intro(errorForm)))
           },
@@ -119,7 +118,7 @@ class QuestionnaireController @Inject() (config: FrontendAppConfig,
       if (DiversityQuestionnaireCompletedRole.isAuthorized(user)) {
         Future.successful(Redirect(routes.QuestionnaireController.presentStartOrContinue).flashing(questionnaireCompletedBanner))
       } else {
-        diversityFormWrapper.form.bindFromRequest.fold(
+        diversityFormWrapper.form.bindFromRequest().fold(
           errorForm => {
             Future.successful(Ok(views.html.questionnaire.firstpage(errorForm)))
           },
@@ -136,7 +135,7 @@ class QuestionnaireController @Inject() (config: FrontendAppConfig,
       if (EducationQuestionnaireCompletedRole.isAuthorized(user)) {
         Future.successful(Redirect(routes.QuestionnaireController.presentStartOrContinue).flashing(questionnaireCompletedBanner))
       } else {
-        educationFormWrapper.form(universityMessageKey).bindFromRequest.fold(
+        educationFormWrapper.form(universityMessageKey).bindFromRequest().fold(
           errorForm => {
             Future.successful(Ok(views.html.questionnaire.secondpage(errorForm, isCivilServantString)))
 
@@ -154,7 +153,7 @@ class QuestionnaireController @Inject() (config: FrontendAppConfig,
       if (ParentalOccupationQuestionnaireCompletedRole.isAuthorized(user)) {
         Future.successful(Redirect(routes.QuestionnaireController.presentStartOrContinue).flashing(questionnaireCompletedBanner))
       } else {
-        parentalFormWrapper.form.bindFromRequest.fold(
+        parentalFormWrapper.form.bindFromRequest().fold(
           errorForm => {
             Future.successful(Ok(views.html.questionnaire.thirdpage(errorForm)))
           },

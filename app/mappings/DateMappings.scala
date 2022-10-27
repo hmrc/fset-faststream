@@ -16,16 +16,14 @@
 
 package mappings
 
-import org.joda.time.{ LocalDate, Years }
+import org.joda.time.LocalDate
 import play.api.data.Forms._
-import play.api.data.Mapping
+import play.api.data.{FormError, Mapping}
 import play.api.data.format.Formatter
-import play.api.data.validation.{ Constraint, Invalid, Valid, ValidationError }
-import play.api.data.FormError
-import play.api.data.format.Formatter
+import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}
 
 import scala.language.implicitConversions
-import scala.util.{ Success, Try }
+import scala.util.{Success, Try}
 
 case class DayMonthYear(day: String, month: String, year: String)
 

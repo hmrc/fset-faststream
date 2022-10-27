@@ -20,7 +20,7 @@ import play.sbt.PlayImport.ws
 object AppDependencies {
 
   object Versions {
-    val bootstrapVersion  = "5.11.0"
+    val bootstrapVersion  = "7.8.0"
     val silhouetteVersion = "6.1.1"
   }
 
@@ -28,17 +28,17 @@ object AppDependencies {
 
   val compile = Seq(
     "com.iheart"                %% "ficus"                                    % "1.5.0",
-    "uk.gov.hmrc"               %% "http-caching-client"                      % "9.5.0-play-28",
+    "uk.gov.hmrc"               %% "http-caching-client"                      % "10.0.0-play-28",
     "uk.gov.hmrc"               %% "bootstrap-frontend-play-28"               % bootstrapVersion,
-    "com.typesafe.play"         %% "play-json-joda"                           % "2.6.10",
-    "uk.gov.hmrc"               %% "url-builder"                              % "3.5.0-play-28",
+    "com.typesafe.play"         %% "play-json-joda"                           % "2.9.2",
+    "uk.gov.hmrc"               %% "url-builder"                              % "3.6.0-play-28",
     "org.apache.httpcomponents" %  "httpclient"                               % "4.5.3",
     "org.apache.httpcomponents" %  "httpcore"                                 % "4.4.5",
     "com.mohiva"                %% "play-silhouette"                          % silhouetteVersion,
     "com.mohiva"                %% "play-silhouette-password-bcrypt"          % silhouetteVersion,
     "com.mohiva"                %% "play-silhouette-crypto-jca"               % silhouetteVersion,
     "com.mohiva"                %% "play-silhouette-persistence"              % silhouetteVersion,
-    "net.codingwell"            %% "scala-guice"                              % "4.1.0",
+    "net.codingwell"            %% "scala-guice"                              % "5.1.0",
     "com.github.nscala-time"    %% "nscala-time"                              % "2.24.0",
     // Works with MireMock up to version 2.31.0
     "com.fasterxml.jackson.module"  %% "jackson-module-scala"                 % "2.12.2",

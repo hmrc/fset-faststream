@@ -106,7 +106,7 @@ class SignUpController @Inject() (
         }
       }
 
-      formWrapper.form.bindFromRequest.fold(
+      formWrapper.form.bindFromRequest().fold(
         invalidForm => {
           checkAppWindowBeforeProceeding(invalidForm.data, Future.successful(
             Ok(views.html.registration.signup(formWrapper.form.bind(invalidForm.data.sanitize), appRouteConfigMap)))

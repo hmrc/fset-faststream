@@ -51,7 +51,7 @@ class SignInControllerSpec extends BaseControllerSpec {
 
   "sign in" should {
     "return to home page if email and password are submitted empty" in new TestFixture {
-      val request = fakeRequest.withFormUrlEncodedBody(
+      val request = fakeRequest.withMethod("POST").withFormUrlEncodedBody(
         "signIn" -> "",
         "signInPassword" -> ""
       )
@@ -65,7 +65,7 @@ class SignInControllerSpec extends BaseControllerSpec {
     }
 
     "return to home page if password is not passed" in new TestFixture {
-      val request = fakeRequest.withFormUrlEncodedBody(
+      val request = fakeRequest.withMethod("POST").withFormUrlEncodedBody(
         "signIn" -> "xxx",
         "signInPassword" -> ""
       )
@@ -202,7 +202,7 @@ class SignInControllerSpec extends BaseControllerSpec {
   }
 
   trait TestFixture extends BaseControllerTestFixture {
-    val signInRequest = fakeRequest.withFormUrlEncodedBody(
+    val signInRequest = fakeRequest.withMethod("POST").withFormUrlEncodedBody(
       "signIn" -> "xxx",
       "signInPassword" -> "yyyy"
     )

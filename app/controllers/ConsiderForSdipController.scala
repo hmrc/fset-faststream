@@ -62,7 +62,7 @@ class ConsiderForSdipController @Inject() (
   }
 
   def submit = CSRSecureAppAction(ActiveUserRole) { implicit request => implicit cachedData =>
-    ConsiderForSdipForm.form.bindFromRequest.fold(
+    ConsiderForSdipForm.form.bindFromRequest().fold(
       invalidForm =>
         Future.successful(Ok(views.html.application.sdip.considerMeForSdip(invalidForm))),
       data =>
