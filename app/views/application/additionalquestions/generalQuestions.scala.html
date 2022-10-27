@@ -17,7 +17,6 @@
 @import models.page.GeneralQuestionsPage
 @import views.html.widgets.{ select_search, select, yesNoRadioWithTogglePanel }
 
-@import controllers.SiftQuestionsController
 @import forms.sift.UndergradDegreeInfoForm
 @import forms.sift.GeneralQuestionsForm
 @import helpers.CSRFieldConstructor._
@@ -27,7 +26,7 @@
 
 @main_template(title = "Nationality and higher education", additionalJavascriptFilenames = List("vendor/chosen.jquery.js", "generalQuestions.js")) {
     <h1 class="heading-xlarge">Nationality and higher education</h1>
-    @helper.form(action = routes.SiftQuestionsController.saveGeneralQuestions, 'novalidate -> "novalidate") {
+    @helper.form(action = routes.SiftQuestionsController.saveGeneralQuestions, Symbol("novalidate") -> "novalidate") {
         @helper.CSRF.formField
         <fieldset>
             <div class="form-group">
@@ -35,7 +34,7 @@
             </div>
             <label class="form-label">Do you currently hold a dual nationality?</label>
             @yesNoRadioWithTogglePanel(page.form("multipleNationalities"),
-                'id -> "multipleNationalities"
+                Symbol("id") -> "multipleNationalities"
             ) {
                 <div id="multipleNationalities-panel-yes" class="toggle-content" >
                     <div class="form-group">
@@ -47,16 +46,16 @@
 
         <fieldset>
             <legend class="form-label" id="UndergraduateDegree">Do you have an undergraduate degree? (or expect to have)</legend>
-            @yesNoRadioWithTogglePanel(page.form("hasUndergradDegree"), 'id -> "undergradDegree") {
+            @yesNoRadioWithTogglePanel(page.form("hasUndergradDegree"), Symbol("id") -> "undergradDegree") {
                 <div id="undergradDegree-panel-yes" class="toggle-content" >
                     <h2 class="heading-medium">Undergraduate degree</h2>
                     <div class="form-group">
                         @helper.inputText(page.form("undergradDegree.name"),
-                            'id -> "undergradDegree.name",
-                            '_label -> "Enter the name of your degree (include title and subject)",
-                            '_help -> "For example, Psychology BA Hons",
-                            'class -> "form-control",
-                            '_showConstraints -> false
+                            Symbol("id") -> "undergradDegree.name",
+                            Symbol("_label") -> "Enter the name of your degree (include title and subject)",
+                            Symbol("_help") -> "For example, Psychology BA Hons",
+                            Symbol("class") -> "form-control",
+                            Symbol("_showConstraints") -> false
                         )
                     </div>
                     <div class="form-group">
@@ -64,18 +63,18 @@
                     </div>
                      <div class="form-group">
                         @helper.inputText(page.form("undergradDegree.graduationYear"),
-                            '_label -> "Year of graduation",
-                            'class -> "form-control",
-                            '_class -> "form-group-compound",
-                            '_showConstraints -> false
+                            Symbol("_label") -> "Year of graduation",
+                            Symbol("class") -> "form-control",
+                            Symbol("_class") -> "form-group-compound",
+                            Symbol("_showConstraints") -> false
                         )
                     </div>
                     <div class="form-group">
                         @helper.textarea(page.form("undergradDegree.moduleDetails"),
-                            '_label -> "List the details of the subjects and modules studies in each year",
-                            'class -> "form-control",
-                            'rows -> 10,
-                            '_showConstraints -> false
+                            Symbol("_label") -> "List the details of the subjects and modules studies in each year",
+                            Symbol("class") -> "form-control",
+                            Symbol("rows") -> 10,
+                            Symbol("_showConstraints") -> false
                         )
                     </div>
                 </div>
@@ -84,41 +83,41 @@
 
         <fieldset>
             <legend class="form-label" id="PostgraduateDegree">Do you have a postgraduate degree? (or expect to have)</legend>
-            @yesNoRadioWithTogglePanel(page.form("hasPostgradDegree"), 'id -> "postgradDegree") {
+            @yesNoRadioWithTogglePanel(page.form("hasPostgradDegree"), Symbol("id") -> "postgradDegree") {
                 <div id="postgradDegree-panel-yes" class="toggle-content" >
                     <h2 class="heading-medium">Postgraduate degree</h2>
                     <div class="form-group">
                         @helper.inputText(page.form("postgradDegree.name"),
-                            'id -> "postgradDegree.name",
-                            '_label -> "Enter the name of your degree (include title and subject)",
-                            '_help -> "For example, Psychology MA",
-                            'class -> "form-control",
-                            '_showConstraints -> false
+                            Symbol("id") -> "postgradDegree.name",
+                            Symbol("_label") -> "Enter the name of your degree (include title and subject)",
+                            Symbol("_help") -> "For example, Psychology MA",
+                            Symbol("class") -> "form-control",
+                            Symbol("_showConstraints") -> false
                         )
                     </div>
                      <div class="form-group">
                         @helper.inputText(page.form("postgradDegree.graduationYear"),
-                            '_label -> "Year of graduation",
-                            'class -> "form-control",
-                            '_class -> "form-group-compound",
-                            '_showConstraints -> false
+                            Symbol("_label") -> "Year of graduation",
+                            Symbol("class") -> "form-control",
+                            Symbol("_class") -> "form-group-compound",
+                            Symbol("_showConstraints") -> false
                         )
                     </div>
                     <div class="form-group">
                         @helper.textarea(page.form("postgradDegree.otherDetails"),
-                            '_label -> "List any other details about your postgraduate degree",
-                            '_help -> "For example, modules studied or outline of research",
-                            'class -> "form-control",
-                            'rows -> 5,
-                            '_showConstraints -> false
+                            Symbol("_label") -> "List any other details about your postgraduate degree",
+                            Symbol("_help") -> "For example, modules studied or outline of research",
+                            Symbol("class") -> "form-control",
+                            Symbol("rows") -> 5,
+                            Symbol("_showConstraints") -> false
                         )
                     </div>
                      <div class="form-group">
                         @helper.textarea(page.form("postgradDegree.projectDetails"),
-                            '_label -> "If you did a postgraduate project, enter the details here",
-                            'class -> "form-control",
-                            'rows -> 5,
-                            '_showConstraints -> false
+                            Symbol("_label") -> "If you did a postgraduate project, enter the details here",
+                            Symbol("class") -> "form-control",
+                            Symbol("rows") -> 5,
+                            Symbol("_showConstraints") -> false
                         )
                     </div>
                 </div>

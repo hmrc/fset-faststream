@@ -47,7 +47,7 @@ class InvigilatedController @Inject() (
 
   def verifyToken = CSRUserAwareAction { implicit request =>
     implicit user =>
-      formWrapper.form.bindFromRequest.fold(
+      formWrapper.form.bindFromRequest().fold(
         invalidForm =>
           Future.successful(Ok(views.html.index.invigilatedEtraySignin(invalidForm))),
         data =>

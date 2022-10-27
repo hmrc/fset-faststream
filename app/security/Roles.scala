@@ -23,7 +23,7 @@ import models.{ ApplicationRoute, CachedData, CachedDataWithApp }
 import play.api.mvc.{ Call, RequestHeader }
 import security.QuestionnaireRoles.QuestionnaireInProgressRole
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.HeaderCarrierConverter
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 // scalastyle:off
 object Roles {
@@ -237,7 +237,7 @@ object RoleUtils {
 
   import ProgressStatusRoleUtils._
 
-  implicit def hc(implicit request: RequestHeader): HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
+  implicit def hc(implicit request: RequestHeader): HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
 
   def activeUserWithActiveApp(user: CachedData)(implicit request: RequestHeader) =
     user.user.isActive && user.application.isDefined &&

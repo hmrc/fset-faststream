@@ -68,8 +68,8 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
 
   "submit scheme preferences" should {
     "update scheme preferences details" in new TestFixture {
-      val request = fakeRequest.withFormUrlEncodedBody("scheme_0" -> "Finance", "scheme_1" -> "Commercial", "orderAgreed" -> "true",
-        "eligible" -> "true")
+      val request = fakeRequest.withMethod("POST")
+        .withFormUrlEncodedBody("scheme_0" -> "Finance", "scheme_1" -> "Commercial", "orderAgreed" -> "true", "eligible" -> "true")
       val schemePreferences = SchemePreferences(List("Finance", "Commercial"), orderAgreed = true, eligible = true)
       when(mockSchemeClient.updateSchemePreferences(eqTo(schemePreferences))(eqTo(currentApplicationId))(any[HeaderCarrier])).thenReturnAsync()
 
@@ -86,7 +86,7 @@ class SchemePreferencesControllerSpec extends BaseControllerSpec {
       mock[CachedUser],
       application = Some(mock[ApplicationData])
     )))
-    when(mockReferenceDataClient.allSchemes()(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
+    when(mockReferenceDataClient.allSchemes(any[HeaderCarrier])).thenReturnAsync(ReferenceDataExamples.Schemes.AllSchemes)
 
     def controller = new SchemePreferencesController(mockConfig,
       stubMcc, mockSecurityEnv, mockSilhouetteComponent, mockNotificationTypeHelper,

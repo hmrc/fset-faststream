@@ -45,7 +45,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
 
       val result = controller.present()(fakeRequest)
 
-      status(result) must be(OK)
+      status(result) mustBe OK
       val content = contentAsString(result)
       content must include("<title>Disability and health conditions")
       content must include(onlineTestText)
@@ -58,7 +58,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
 
       val result = controller.present()(fakeRequest)
 
-      status(result) must be(OK)
+      status(result) mustBe OK
       val content = contentAsString(result)
       content must include("<title>Disability and health conditions")
       content must include(onlineTestText)
@@ -72,7 +72,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
 
       val result = controller(currentCandidateWithEdipApp).present()(fakeRequest)
 
-      status(result) must be(OK)
+      status(result) mustBe OK
       val content = contentAsString(result)
       content must include("<title>Disability and health conditions")
       content must include(phoneText)
@@ -85,7 +85,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
 
       val result = controller(currentCandidateWithEdipApp).present()(fakeRequest)
 
-      status(result) must be(OK)
+      status(result) mustBe OK
       val content = contentAsString(result)
       content must include("<title>Disability and health conditions")
       content must include(phoneText)
@@ -96,7 +96,8 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
 
   "submit assistance details" should {
     "update assistance details and redirect to questionnaire if questionnaire is not completed" in new TestFixture {
-      val Request = fakeRequest.withFormUrlEncodedBody(AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsFormUrlEncodedBody: _*)
+      val Request = fakeRequest.withMethod("POST")
+        .withFormUrlEncodedBody(AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsFormUrlEncodedBody: _*)
       when(mockApplicationClient.updateAssistanceDetails(eqTo(currentApplicationId), eqTo(currentUserId),
         eqTo(AssistanceDetailsExamples.DisabilityGisAndAdjustments))(any[HeaderCarrier])).thenReturn(Future.successful(()))
       when(mockApplicationClient.getApplicationProgress(eqTo(currentApplicationId))(any[HeaderCarrier]))
@@ -104,12 +105,13 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
 
       val result = controller.submit()(Request)
 
-      status(result) must be(SEE_OTHER)
+      status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.QuestionnaireController.presentStartOrContinue.url))
     }
 
     "update assistance details and redirect to preview if questionnaire is completed" in new TestFixture {
-      val Request = fakeRequest.withFormUrlEncodedBody(AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsFormUrlEncodedBody: _*)
+      val Request = fakeRequest.withMethod("POST")
+        .withFormUrlEncodedBody(AssistanceDetailsFormExamples.DisabilityGisAndAdjustmentsFormUrlEncodedBody: _*)
       when(mockApplicationClient.updateAssistanceDetails(eqTo(currentApplicationId), eqTo(currentUserId),
         eqTo(AssistanceDetailsExamples.DisabilityGisAndAdjustments))(any[HeaderCarrier])).thenReturn(Future.successful(()))
 
@@ -120,7 +122,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
         CachedDataExample.InProgressInQuestionnaireApplication.copy(userId = ActiveCandidate.user.userID))
       val result = controller(candidate).submit()(Request)
 
-      status(result) must be(SEE_OTHER)
+      status(result) mustBe SEE_OTHER
       redirectLocation(result) must be(Some(routes.PreviewApplicationController.present.url))
     }
   }

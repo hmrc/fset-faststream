@@ -79,15 +79,15 @@ case class ReviewedCallbackRequest(
   val reviewers = reviews.reviewers
   val latestReviewer = reviewers.reviewer3.getOrElse(reviewers.reviewer2.getOrElse(reviewers.reviewer1))
 
-  def calculateTotalScore(): Double = {
+  def calculateTotalScore: Double = {
     calculateReviewCriteria1Score + calculateReviewCriteria2Score
   }
 
-  def calculateReviewCriteria1Score(): Double = {
+  def calculateReviewCriteria1Score: Double = {
     aggregateScoresForAllQuestion(question => question.reviewCriteria1)
   }
 
-  def calculateReviewCriteria2Score(): Double = {
+  def calculateReviewCriteria2Score: Double = {
     aggregateScoresForAllQuestion(question => question.reviewCriteria2)
   }
 

@@ -16,9 +16,8 @@
 
 package controllers
 
-import com.mohiva.play.silhouette.api.Silhouette
 import config.{ FrontendAppConfig, SecurityEnvironment }
-import connectors.{ ApplicationClient, AssessmentScoresClient, UserManagementClient }
+import connectors.{ ApplicationClient, AssessmentScoresClient }
 import javax.inject.{ Inject, Singleton }
 import models.UniqueIdentifier
 import models.page.AssessmentFeedbackPage

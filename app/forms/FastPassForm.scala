@@ -200,7 +200,7 @@ object FastPassForm {
     def isFaststream = request.get("applicationRoute").contains(ApplicationRoute.Faststream.toString)
 
     def civilServantAndInternshipTypesParam(implicit messages: Messages) = {
-      request.filterKeys(_.contains(civilServantAndInternshipTypesKey)).values.toSeq
+      request.view.filterKeys(_.contains(civilServantAndInternshipTypesKey)).values.toSeq
     }
 
     def isValidCivilServantAndInternshipTypeSelected(implicit messages: Messages) = {
@@ -259,13 +259,13 @@ object FastPassForm {
 
     // Removes child data that is dependent on a parent if that parent has not been selected
     //scalastyle:off cyclomatic.complexity
-    def cleanupFastPassFields(implicit messages: Messages) = request.filterKeys {
+    def cleanupFastPassFields(implicit messages: Messages): Map[String, String] = request.view.filterKeys {
       case key if key.contains("civilServantAndInternshipTypes") || key.contains("fastPassReceived") => isCivilServantOrIntern
       case key if key.endsWith("sdipYear") => isSdipCandidate
       case key if key.endsWith("otherInternshipName") || key.endsWith("otherInternshipYear") => isOtherInternshipCandidate
       case key if key.endsWith("edipYear") => isEdipCandidate
       case key if key.endsWith("certificateNumber") => isFastPassReceived
       case _ => true
-    } //scalastyle:on
+    }.toMap //scalastyle:on
   }
 }

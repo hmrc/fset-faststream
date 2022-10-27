@@ -162,10 +162,10 @@ class SignUpControllerSpec extends BaseControllerSpec {
       }
       val appRouteConfigMap = Map(Faststream -> appRouteState, Edip -> defaultAppRouteState, Sdip -> defaultAppRouteState)
       val (_, signUpForm) = SignupFormGenerator().get
-      val Request = fakeRequest.withFormUrlEncodedBody(signUpForm.data.toSeq:_*)
+      val Request = fakeRequest.withMethod("POST").withFormUrlEncodedBody(signUpForm.data.toSeq:_*)
       val result = controller(appRouteConfigMap).signUp(None)(Request)
       status(result) mustBe SEE_OTHER
-      redirectLocation(result) must be(Some(routes.SignUpController.present(None).url))
+      redirectLocation(result) mustBe Some(routes.SignUpController.present(None).url)
       flash(result).data mustBe Map("warning" -> "applicationRoute.Faststream.closed")
     }
 
@@ -178,10 +178,10 @@ class SignUpControllerSpec extends BaseControllerSpec {
       }
       val appRouteConfigMap = Map(Faststream -> appRouteState, Edip -> defaultAppRouteState, Sdip -> defaultAppRouteState)
       val (data, signUpForm) = SignupFormGenerator().get
-      val Request = fakeRequest.withFormUrlEncodedBody(signUpForm.data.toSeq:_*)
+      val Request = fakeRequest.withMethod("POST").withFormUrlEncodedBody(signUpForm.data.toSeq:_*)
       val result = controller(appRouteConfigMap).signUp(None)(Request)
       status(result) mustBe SEE_OTHER
-      redirectLocation(result) must be(Some(routes.SignUpController.present(None).url))
+      redirectLocation(result) mustBe Some(routes.SignUpController.present(None).url)
       val msg = "applicationRoute.Faststream.notOpen"
       flash(result).data mustBe Map("warning" -> msg)
     }

@@ -57,7 +57,7 @@ object UndergradDegreeInfoForm {
 }
 
 object PostGradDegreeInfoForm {
-  def form() = {
+  def form = {
     Form(
       mapping(
         "postgradDegree.name" -> nonEmptyTrimmedText("postgradDegree.error.required", 400),

@@ -45,7 +45,7 @@ class PasswordResetController @Inject() (
   extends BaseController(config, mcc) {
   import notificationTypeHelper._
 
-  def presentCode() = CSRUserAwareAction { implicit request =>
+  def presentCode = CSRUserAwareAction { implicit request =>
     implicit user =>
       val email = request.session.get("email")
       email.filter(e => formWrapper.validateEmail(e)).map(e => sendCode(e, isResend = true)).getOrElse {
@@ -55,21 +55,22 @@ class PasswordResetController @Inject() (
       }
   }
 
-  def submitCode() = CSRUserAwareAction { implicit request =>
+  def submitCode = CSRUserAwareAction { implicit request =>
     implicit user =>
-      RequestResetPasswordForm.form.bindFromRequest.fold(
+      RequestResetPasswordForm.form.bindFromRequest().fold(
         invalidForm => Future.successful(Ok(views.html.registration.request_reset(invalidForm))),
         data => sendCode(data.email, isResend = false)
       )
   }
 
-  def presentReset() = CSRUserAwareAction { implicit request =>
+  def presentReset = CSRUserAwareAction { implicit request =>
     implicit user =>
       val email = request.session.get("email")
       email.filter(e => formWrapper.validateEmail(e)).map { e =>
         Future.successful(
           Ok(views.html.registration.reset_password(
             formWrapper.form.fill(
+
               ResetPasswordForm.Data(email = email.getOrElse(""), code = "", password = "", confirmpwd = "")
             )
           ))
@@ -81,7 +82,7 @@ class PasswordResetController @Inject() (
 
   def submitReset = CSRUserAwareAction { implicit request =>
     implicit user =>
-      formWrapper.form.bindFromRequest.fold(
+      formWrapper.form.bindFromRequest().fold(
         invalidForm => Future.successful(Ok(views.html.registration.reset_password(invalidForm))),
         reset => resetPassword(reset.email, reset.code, reset.password)
       )

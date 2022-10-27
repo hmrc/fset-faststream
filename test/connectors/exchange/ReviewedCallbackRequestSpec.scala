@@ -24,57 +24,57 @@ class ReviewedCallbackRequestSpec extends UnitSpec {
   "Calculate total score" should {
     "compute correctly for decimal scores" in {
       val reviewedCallback = buildReviewedCallBackRequest(1.5)
-      reviewedCallback.calculateTotalScore() mustBe 24
+      reviewedCallback.calculateTotalScore mustBe 24
     }
     "compute correctly for non decimal scores" in {
       val reviewedCallback = buildReviewedCallBackRequest(2)
-      reviewedCallback.calculateTotalScore() mustBe 32
+      reviewedCallback.calculateTotalScore mustBe 32
     }
     "compute correctly with single decimal precision" in {
       val reviewedCallback = buildReviewedCallBackRequest(1.6)
-      reviewedCallback.calculateTotalScore() mustBe 25.6
+      reviewedCallback.calculateTotalScore mustBe 25.6
     }
     "compute correctly with double decimal precision" in {
       val reviewedCallback = buildReviewedCallBackRequest(1.67)
-      reviewedCallback.calculateTotalScore() mustBe 26.72
+      reviewedCallback.calculateTotalScore mustBe 26.72
     }
   }
 
   "calculate review criteria 1 score" should {
     "compute correctly for decimal scores" in {
       val reviewedCallback = buildReviewedCallBackRequest(1.5)
-      reviewedCallback.calculateReviewCriteria1Score() mustBe 12
+      reviewedCallback.calculateReviewCriteria1Score mustBe 12
     }
     "compute correctly for non decimal scores" in {
       val reviewedCallback = buildReviewedCallBackRequest(2)
-      reviewedCallback.calculateReviewCriteria1Score() mustBe 16
+      reviewedCallback.calculateReviewCriteria1Score mustBe 16
     }
     "compute correctly with single decimal precision" in {
       val reviewedCallback = buildReviewedCallBackRequest(1.6)
-      reviewedCallback.calculateReviewCriteria1Score() mustBe 12.8
+      reviewedCallback.calculateReviewCriteria1Score mustBe 12.8
     }
     "compute correctly with double decimal precision" in {
       val reviewedCallback = buildReviewedCallBackRequest(1.67)
-      reviewedCallback.calculateReviewCriteria1Score() mustBe 13.36
+      reviewedCallback.calculateReviewCriteria1Score mustBe 13.36
     }
   }
 
   "calculate review criteria 2 score" should {
     "compute correctly for decimal scores" in {
       val reviewedCallback = buildReviewedCallBackRequest(1.5)
-      reviewedCallback.calculateReviewCriteria2Score() mustBe 12
+      reviewedCallback.calculateReviewCriteria2Score mustBe 12
     }
     "compute correctly for non decimal scores" in {
       val reviewedCallback = buildReviewedCallBackRequest(2)
-      reviewedCallback.calculateReviewCriteria2Score() mustBe 16
+      reviewedCallback.calculateReviewCriteria2Score mustBe 16
     }
     "compute correctly with single decimal precision" in {
       val reviewedCallback = buildReviewedCallBackRequest(1.6)
-      reviewedCallback.calculateReviewCriteria2Score() mustBe 12.8
+      reviewedCallback.calculateReviewCriteria2Score mustBe 12.8
     }
     "compute correctly with double decimal precision" in {
       val reviewedCallback = buildReviewedCallBackRequest(1.67)
-      reviewedCallback.calculateReviewCriteria2Score() mustBe 13.36
+      reviewedCallback.calculateReviewCriteria2Score mustBe 13.36
     }
   }
 }

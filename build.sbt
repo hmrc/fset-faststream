@@ -49,7 +49,7 @@ lazy val microservice = Project(appName, file("."))
   .settings(playDefaultPort := 9284)
   .settings(
     targetJvm := "jvm-1.8",
-    scalaVersion := "2.12.11",
+    scalaVersion := "2.13.8",
     routesImport += "controllers.Binders._",
     libraryDependencies ++= appDependencies,
     Test / parallelExecution := false,

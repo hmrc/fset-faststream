@@ -40,7 +40,7 @@ class FaststreamWhitelistFilterConfigSpec extends PlaySpec with GuiceOneAppPerTe
         "whitelistFileUpload" -> Base64.getEncoder.encodeToString(s"$dummyIP2".getBytes),
         "play.http.filters" -> "config.ProductionFaststreamFilters"
       ))
-      .build
+      .build()
 
   "FrontendAppConfig" must {
     "return a valid config item" when {

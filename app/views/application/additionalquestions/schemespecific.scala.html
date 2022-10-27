@@ -18,7 +18,6 @@
 @(schemeSpecificQuestionsForm: Form[_root_.connectors.exchange.sift.SchemeSpecificAnswer], scheme: _root_.connectors.exchange.referencedata.Scheme,
     saveAndContinueAction: String, saveAndReturnAction: String)(implicit request: Request[_], flash: Flash, user: Option[CachedData], feedbackUrl: String, trackingConsentConfig: TrackingConsentConfig, messages: Messages)
 
-@import controllers.SiftQuestionsController
 @import helpers.CSRFieldConstructor._
 
 @main_template(title = scheme.name, pageForms = Seq(schemeSpecificQuestionsForm)) {
@@ -35,14 +34,14 @@
         </div>
     </div>
 
-    @helper.form(action = routes.SiftQuestionsController.saveSchemeForm(scheme.id), 'novalidate -> "novalidate") {
+    @helper.form(action = routes.SiftQuestionsController.saveSchemeForm(scheme.id), Symbol("novalidate") -> "novalidate") {
         @helper.CSRF.formField
 
         @helper.textarea(schemeSpecificQuestionsForm("rawText"),
-        '_label -> "Stick to the maximum words in the questions document",
-        'class -> "form-control form-control-3-4",
-        'rows -> 20,
-        '_showConstraints -> true)
+            Symbol("_label") -> "Stick to the maximum words in the questions document",
+            Symbol("class") -> "form-control form-control-3-4",
+            Symbol("rows") -> 20,
+            Symbol("_showConstraints") -> true)
 
         <div class="form-group">
             <button id="@saveAndContinueAction" type="submit" name="action" value="@saveAndContinueAction" class="button">Save and continue</button>

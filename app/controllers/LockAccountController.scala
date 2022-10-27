@@ -44,7 +44,7 @@ class LockAccountController @Inject() (config: FrontendAppConfig,
 
   def submit = CSRUserAwareAction { implicit request =>
     implicit user =>
-      LockAccountForm.form.bindFromRequest.fold(
+      LockAccountForm.form.bindFromRequest().fold(
         invalidForm => Future.successful(Redirect(routes.LockAccountController.present)),
         data => Future.successful(Redirect(routes.PasswordResetController.presentReset)
           addingToSession("email" -> data.email))

@@ -22,7 +22,7 @@ import javax.inject.Inject
 import play.api.i18n.{ I18nSupport, MessagesApi }
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ AnyContent, RequestHeader, Result }
-import uk.gov.hmrc.play.HeaderCarrierConverter
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import scala.concurrent.Future
 
@@ -34,7 +34,7 @@ class CustomSecuredErrorHandler @Inject() (signInService: SignInService,
 
   override def onNotAuthorized(implicit request: RequestHeader): Future[Result] = {
     val sec = request.asInstanceOf[SecuredRequest[SecurityEnvironment, AnyContent]]
-    val headerCarrier = HeaderCarrierConverter.fromHeadersAndSession(sec.headers, Some(sec.session))
+    val headerCarrier = HeaderCarrierConverter.fromRequestAndSession(request, sec.session)
     signInService.notAuthorised(request, headerCarrier)
   }
 }

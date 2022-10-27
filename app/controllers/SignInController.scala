@@ -62,7 +62,7 @@ class SignInController @Inject() (
   // scalastyle:off cyclomatic.complexity
   def signIn = CSRUserAwareAction { implicit request =>
     implicit user =>
-      formWrapper.form.bindFromRequest.fold(
+      formWrapper.form.bindFromRequest().fold(
         invalidForm =>
           Future.successful(Ok(views.html.index.signin(invalidForm))),
         data => secEnv.credentialsProvider.authenticate(Credentials(data.signIn, data.signInPassword)).flatMap {
