@@ -96,7 +96,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
     "return no sift evaluation required scheme ids" in new TestFixture {
       val expected = Seq(
         SchemeId("DigitalDataTechnologyAndCyber"), SchemeId("DiplomaticAndDevelopment"),
-        SchemeId("Generalist"), SchemeId("GovernmentCommunicationService"),
+        SchemeId("Generalist"), SchemeId("GeneralistSTEM"), SchemeId("GovernmentCommunicationService"),
         SchemeId("HousesOfParliament"), SchemeId("HumanResources"),
         SchemeId("ProjectDelivery"), SchemeId("Property"),
         SchemeId("Edip"), SchemeId("Sdip")
@@ -107,7 +107,8 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
 
     "return non siftable schemes" in new TestFixture {
       repo.nonSiftableSchemeIds must contain theSameElementsAs
-        Seq(SchemeId("DigitalDataTechnologyAndCyber"), SchemeId("Generalist"), SchemeId("HumanResources"))
+        Seq(SchemeId("DigitalDataTechnologyAndCyber"), SchemeId("Generalist"),
+          SchemeId("GeneralistSTEM"), SchemeId("HumanResources"))
     }
 
     "return numeric test sift schemes" in new TestFixture {
@@ -154,6 +155,6 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
     when(appConfigMock.schemeConfig).thenReturn(schemeConfig)
 
     val repo = new SchemeYamlRepository()(app, appConfigMock)
-    val expectedNumberOfSchemes = 18
+    val expectedNumberOfSchemes = 19
   }
 }

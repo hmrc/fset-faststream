@@ -60,6 +60,14 @@
     required: Degree_22
     specificRequirement: false
   siftEvaluationRequired: false
+- id: GeneralistSTEM
+  code: GFS_STEM
+  name: Generalist - Science, Technology, Engineering and Mathematics
+  civilServantEligible: false
+  degree:
+    required: Degree_22
+    specificRequirement: false
+  siftEvaluationRequired: false
 - id: GovernmentCommunicationService
   code: GCFS
   name: Government Communication Service
