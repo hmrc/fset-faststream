@@ -75,7 +75,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         SchemeId("GovernmentEconomicsService"), SchemeId("GovernmentOperationalResearchService"),
         SchemeId("GovernmentSocialResearchService"), SchemeId("GovernmentStatisticalService"),
         SchemeId("HousesOfParliament"), SchemeId("ProjectDelivery"),
-        SchemeId("Property"), SchemeId("ScienceAndEngineering"),
+        SchemeId("ScienceAndEngineering"),
         SchemeId("Edip"), SchemeId("Sdip")
       )
       val siftableSchemes = repo.siftableSchemeIds
@@ -108,7 +108,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
     "return non siftable schemes" in new TestFixture {
       repo.nonSiftableSchemeIds must contain theSameElementsAs
         Seq(SchemeId("DigitalDataTechnologyAndCyber"), SchemeId("Generalist"),
-          SchemeId("GeneralistSTEM"), SchemeId("HumanResources"))
+          SchemeId("GeneralistSTEM"), SchemeId("HumanResources"), SchemeId("Property"))
     }
 
     "return numeric test sift schemes" in new TestFixture {
@@ -123,7 +123,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         SchemeId("GovernmentOperationalResearchService"), SchemeId("GovernmentSocialResearchService"),
         SchemeId("GovernmentStatisticalService"),
         SchemeId("HousesOfParliament"), SchemeId("ProjectDelivery"),
-        SchemeId("Property"), SchemeId("ScienceAndEngineering"),
+        SchemeId("ScienceAndEngineering"),
         SchemeId("Edip"), SchemeId("Sdip")
       )
       val formMustBeFilledInSiftSchemes = repo.formMustBeFilledInSchemeIds
