@@ -167,7 +167,6 @@
   degree:
     required: Degree_22
     specificRequirement: false
-  siftRequirement: FORM
   siftEvaluationRequired: false
   fsbType: PRO - Skype interview
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/2022_FSB_Guide_Property.pdf
