@@ -24,113 +24,162 @@ import play.api.i18n.Messages
 class SignUpFormSpec extends BaseFormSpec {
 
   "the sign up form" should {
-    "be valid when all the data are correct" in {
+    "be valid when all the data is correct" in {
       val (data, signUpForm) = SignupFormGenerator().get
-      signUpForm.get must be(data)
+      // No need to check for zero errors because this method will throw an exception if form errors are present
+      signUpForm.get mustBe data
     }
 
     "throw an error if email is invalid" in {
       val (_, signUpForm) = SignupFormGenerator(email = "some_wrong_email").get
-      signUpForm.hasErrors must be(true)
-      signUpForm.errors.length must be(2)
-      signUpForm.errors("email").head.messages must be(Seq("error.email"))
+      signUpForm.hasErrors mustBe true
+      signUpForm.errors.length mustBe 2
+      signUpForm.errors("email").head.messages mustBe Seq("error.email")
     }
 
     "throw an error if password is less than 9 characters" in {
-      val (_, signUpForm) = SignupFormGenerator(password = "Small1", confirm = "Small1").get
-      signUpForm.hasErrors must be(true)
-      signUpForm.errors.length must be(1)
-      signUpForm.errors("password").head.messages must be(Seq(Messages("error.password")))
+      val (_, signUpForm) = SignupFormGenerator(password = "Small1", confirmpwd = "Small1").get
+      signUpForm.hasErrors mustBe true
+      signUpForm.errors.length mustBe 1
+      signUpForm.errors("password").head.messages mustBe Seq(Messages("error.password"))
     }
 
     "throw an error if passwords don't match" in {
-      val (_, signUpForm) = SignupFormGenerator(confirm = "wrong_password").get
-      signUpForm.hasErrors must be(true)
-      signUpForm.errors.length must be(1)
-      signUpForm.errors("password").head.messages must be(Seq(Messages("error.password.dontmatch")))
+      val (_, signUpForm) = SignupFormGenerator(confirmpwd = "wrong_password").get
+      signUpForm.hasErrors mustBe true
+      signUpForm.errors.length mustBe 1
+      signUpForm.errors("password").head.messages mustBe Seq(Messages("error.password.dontmatch"))
     }
 
     "throw an error if password doesn't have an uppercase letter" in {
-      val (_, signUpForm) = SignupFormGenerator(password = "lowercasepassword", confirm = "lowercasepassword").get
-      signUpForm.hasErrors must be(true)
-      signUpForm.errors.length must be(1)
-      signUpForm.errors("password").head.messages must be(Seq(Messages("error.password")))
+      val (_, signUpForm) = SignupFormGenerator(password = "lowercasepassword", confirmpwd = "lowercasepassword").get
+      signUpForm.hasErrors mustBe true
+      signUpForm.errors.length mustBe 1
+      signUpForm.errors("password").head.messages mustBe Seq(Messages("error.password"))
     }
 
     "throw an error if password doesn't have an lowercase letter" in {
-      val (_, signUpForm) = SignupFormGenerator(password = "ALLCAPITAL", confirm = "ALLCAPITAL").get
-      signUpForm.hasErrors must be(true)
-      signUpForm.errors.length must be(1)
-      signUpForm.errors("password").head.messages must be(Seq(Messages("error.password")))
+      val (_, signUpForm) = SignupFormGenerator(password = "ALLCAPITAL", confirmpwd = "ALLCAPITAL").get
+      signUpForm.hasErrors mustBe true
+      signUpForm.errors.length mustBe 1
+      signUpForm.errors("password").head.messages mustBe Seq(Messages("error.password"))
     }
 
     "throw an error if password doesn't have a number" in {
-      val (_, signUpForm) = SignupFormGenerator(password = "noNumbers", confirm = "noNumbers").get
+      val (_, signUpForm) = SignupFormGenerator(password = "noNumbers", confirmpwd = "noNumbers").get
       signUpForm.hasErrors must be(true)
       signUpForm.errors.length must be(1)
-      signUpForm.errors("password").head.messages must be(Seq(Messages("error.password")))
+      signUpForm.errors("password").head.messages mustBe Seq(Messages("error.password"))
     }
 
     "throw an error if I haven't clicked on the I am eligible for Fast Stream" in {
       val (_, signUpForm) = SignupFormGenerator(faststreamEligible = false).get
-      signUpForm.hasErrors must be(true)
-      signUpForm.errors.length must be(2)
-      signUpForm.errors("faststreamEligible").head.messages must be(Seq(Messages("agree.faststreamEligible")))
-      signUpForm.errors("sdipFastStreamConsider").head.messages must be(Seq(Messages("sdipFastStream.consider")))
+      signUpForm.hasErrors mustBe true
+      signUpForm.errors.length mustBe 2
+      signUpForm.errors("faststreamEligible").head.messages mustBe Seq(Messages("agree.faststreamEligible"))
+      signUpForm.errors("sdipFastStreamConsider").head.messages mustBe Seq(Messages("sdipFastStream.consider"))
     }
 
     "throw an error if I have clicked on the I am eligible for Fast Stream but not confirmed if I want to be considered for SDIP" in {
       val (_, signupForm) = SignupFormGenerator(faststreamEligible = true, sdipFastStreamConsider = None).get
-      signupForm.hasErrors must be(true)
-      signupForm.errors.length must be (1)
-      signupForm.errors("sdipFastStreamConsider").head.messages must be(Seq(Messages("sdipFastStream.consider")))
+      signupForm.hasErrors mustBe true
+      signupForm.errors.length mustBe 1
+      signupForm.errors("sdipFastStreamConsider").head.messages mustBe Seq(Messages("sdipFastStream.consider"))
     }
 
     "throw an error if I have clicked on the I am eligible for Fast Stream and confirmed I want to be considered for SDIP," +
-      " but not confirmed I am eligible for SDIP" in {
+      " but not confirmed I am eligible for SDIP or I want to be considered for the diversity strand of SDIP" in {
       val (_, signupForm) = SignupFormGenerator(
         faststreamEligible = true, sdipFastStreamConsider = Some(true), sdipFastStreamEligible = None).get
-      signupForm.hasErrors must be(true)
-      signupForm.errors.length must be (1)
-      signupForm.errors("sdipFastStreamEligible").head.messages must be(Seq(Messages("agree.sdipEligible")))
+      signupForm.hasErrors mustBe true
+      signupForm.errors.length mustBe 2
+      // Note the sdip error message is also used for sdip faststream
+      signupForm.errors("sdipFastStreamDiversity").head.messages mustBe Seq(Messages("agree.sdipDiversity"))
+      signupForm.errors("sdipFastStreamEligible").head.messages mustBe Seq(Messages("agree.sdipEligible"))
 
       val (_, signupForm2) = SignupFormGenerator(
         faststreamEligible = true, sdipFastStreamConsider = Some(true), sdipFastStreamEligible = Some(false)).get
-      signupForm2.hasErrors must be(true)
-      signupForm2.errors.length must be (1)
-      signupForm2.errors("sdipFastStreamEligible").head.messages must be(Seq(Messages("agree.sdipEligible")))
+      signupForm2.hasErrors mustBe true
+      signupForm2.errors.length mustBe 2
+      // Note the sdip error message is also used for sdip faststream
+      signupForm2.errors("sdipFastStreamDiversity").head.messages mustBe Seq(Messages("agree.sdipDiversity"))
+      signupForm2.errors("sdipFastStreamEligible").head.messages mustBe Seq(Messages("agree.sdipEligible"))
+    }
+
+    "generate 2 errors if I am an SDIP Faststream candidate but I haven't clicked on diversity strand of SDIP" +
+      " or whether I am eligible for SDIP" in {
+      val formData = Map(
+        "firstName" -> "name",
+        "lastName" -> "last name",
+        "email" -> "test@email.com",
+        "email_confirm" ->"test@email.com",
+        "password" -> "aA1234567",
+        "confirmpwd" -> "aA1234567",
+        "applicationRoute" -> ApplicationRoute.Faststream.toString,
+        "faststreamEligible" -> "true",
+        "sdipFastStreamConsider" -> "true",
+        "campaignReferrer" -> "Recruitment website",
+        "agree" -> "true"
+      )
+
+      val form = Form(new SignUpForm().form.mapping).bind(formData)
+      form.hasErrors mustBe true
+      form.errors.length mustBe 2
+      // This uses the same error message as the sdip diversity question
+      form.errors("sdipFastStreamDiversity").head.messages mustBe Seq(Messages("agree.sdipDiversity"))
+      // This uses the same error message as the sdip eligible question
+      form.errors("sdipFastStreamEligible").head.messages mustBe Seq(Messages("agree.sdipEligible"))
+    }
+
+    "generate 2 errors if I am an SDIP candidate but I haven't clicked on diversity strand of SDIP or whether I am eligible for SDIP" in {
+      val formData = Map(
+        "firstName" -> "name",
+        "lastName" -> "last name",
+        "email" -> "test@email.com",
+        "email_confirm" ->"test@email.com",
+        "password" -> "aA1234567",
+        "confirmpwd" -> "aA1234567",
+        "applicationRoute" -> ApplicationRoute.Sdip.toString,
+        "campaignReferrer" -> "Recruitment website",
+        "agree" -> "true"
+      )
+
+      val form = Form(new SignUpForm().form.mapping).bind(formData)
+      form.hasErrors mustBe true
+      form.errors.length mustBe 2
+      form.errors("sdipDiversity").head.messages mustBe Seq(Messages("agree.sdipDiversity"))
+      form.errors("sdipEligible").head.messages mustBe Seq(Messages("agree.sdipEligible"))
     }
 
     "throw an error if I haven't clicked on the I am eligible for EDIP" in {
       val (_, signUpForm) = SignupFormGenerator(applicationRoute = Some(ApplicationRoute.Edip),
         faststreamEligible = false, edipEligible = false).get
-      signUpForm.hasErrors must be(true)
-      signUpForm.errors.length must be(1)
-      signUpForm.errors("edipEligible").head.messages must be(Seq(Messages("agree.edipEligible")))
+      signUpForm.hasErrors mustBe true
+      signUpForm.errors.length mustBe 1
+      signUpForm.errors("edipEligible").head.messages mustBe Seq(Messages("agree.edipEligible"))
     }
 
     "throw an error if I haven't clicked on the I am eligible for SDIP" in {
       val (_, signUpForm) = SignupFormGenerator(applicationRoute = Some(ApplicationRoute.Sdip),
                                                 faststreamEligible = false, sdipEligible = false).get
-      signUpForm.hasErrors must be(true)
-      signUpForm.errors.length must be(1)
-      signUpForm.errors("sdipEligible").head.messages must be(Seq(Messages("agree.sdipEligible")))
+      signUpForm.hasErrors mustBe true
+      signUpForm.errors.length mustBe 1
+      signUpForm.errors("sdipEligible").head.messages mustBe Seq(Messages("agree.sdipEligible"))
     }
 
     "throw an error if I haven't clicked on the I agree" in {
       val (_, signUpForm) = SignupFormGenerator(agree = false).get
-      signUpForm.hasErrors must be(true)
-      signUpForm.errors.length must be(1)
-      signUpForm.errors("agree").head.messages must be(Seq(Messages("agree.accept")))
+      signUpForm.hasErrors mustBe true
+      signUpForm.errors.length mustBe 1
+      signUpForm.errors("agree").head.messages mustBe Seq(Messages("agree.accept"))
     }
 
     "throw and error if I haven't selected a route" in {
       val (_, signUpForm) = SignupFormGenerator(applicationRoute = None).get
-      signUpForm.hasErrors must be(true)
-      signUpForm.errors.length must be(1)
-      signUpForm.errors("applicationRoute").head.messages must be(Seq(Messages("error.appRoute")))
+      signUpForm.hasErrors mustBe true
+      signUpForm.errors.length mustBe 1
+      signUpForm.errors("applicationRoute").head.messages mustBe Seq(Messages("error.appRoute"))
     }
-
   }
 
   "sanitize" should {
@@ -155,16 +204,18 @@ case class SignupFormGenerator(
   email: String = "test@email.com",
   confirmEmail: String = "test@email.com",
   password: String = "aA1234567",
-  confirm: String = "aA1234567",
+  confirmpwd: String = "aA1234567",
   campaignReferrer: Option[String] = Some("Recruitment website"),
   campaignOther: Option[String] = None,
-  agree: Boolean = true,
   applicationRoute: Option[ApplicationRoute.ApplicationRoute] = Some(ApplicationRoute.Faststream),
+  agree: Boolean = true,
   faststreamEligible: Boolean = true,
   sdipFastStreamConsider: Option[Boolean] = Option(false),
   sdipFastStreamEligible: Option[Boolean] = Option(false),
+  sdipFastStreamDiversity: Option[Boolean] = Option(false),
   edipEligible: Boolean = false,
-  sdipEligible: Boolean = false
+  sdipEligible: Boolean = false,
+  sdipDiversity: Boolean = false
 ) {
 
   private val data = Data(
@@ -173,7 +224,7 @@ case class SignupFormGenerator(
     email,
     confirmEmail,
     password,
-    confirm,
+    confirmpwd,
     campaignReferrer,
     campaignOther,
     applicationRoute.map(_.toString).getOrElse(""),
@@ -181,8 +232,10 @@ case class SignupFormGenerator(
     faststreamEligible,
     sdipFastStreamConsider,
     sdipFastStreamEligible,
+    sdipFastStreamDiversity,
     edipEligible,
-    sdipEligible
+    sdipEligible,
+    sdipDiversity
   )
 
   private val validFormData = Map(
@@ -194,17 +247,18 @@ case class SignupFormGenerator(
     "confirmpwd" -> data.confirmpwd,
     "campaignReferrer" -> data.campaignReferrer.get,
     "campaignOther" -> data.campaignOther.getOrElse(""),
-    "agree" -> data.agree.toString,
     "applicationRoute" -> applicationRoute.map(_.toString).getOrElse(""),
+    "agree" -> data.agree.toString,
     "faststreamEligible" -> data.faststreamEligible.toString,
     "edipEligible" -> data.edipEligible.toString,
-    "sdipEligible" -> data.sdipEligible.toString
+    "sdipEligible" -> data.sdipEligible.toString,
+    "sdipDiversity" -> data.sdipDiversity.toString
   ) ++ data.sdipFastStreamConsider.map(x => "sdipFastStreamConsider" -> x.toString) ++
-    data.sdipFastStreamEligible.map(x => "sdipFastStreamEligible" -> x.toString)
+    data.sdipFastStreamEligible.map(x => "sdipFastStreamEligible" -> x.toString) ++
+    data.sdipFastStreamDiversity.map(x => "sdipFastStreamDiversity" -> x.toString)
 
   private val formWrapper = new SignUpForm()
   private def signUpForm(implicit messages: Messages) = Form(formWrapper.form.mapping).bind(validFormData)
 
   def get(implicit messages: Messages) = (data, signUpForm)
 }
-

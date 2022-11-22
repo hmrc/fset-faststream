@@ -122,7 +122,11 @@ class SignUpController @Inject() (
             (for {
               u <- userManagementClient.register(data.email.toLowerCase, data.password, data.firstName, data.lastName)
               _ <- applicationClient.addReferral(u.userId, extractMediaReferrer(data))
-              appResponse <- applicationClient.createApplication(u.userId, FrameworkId, appRoute)
+              appResponse <- applicationClient.createApplication(
+                u.userId, FrameworkId,
+                if (ApplicationRoute.Sdip == appRoute || ApplicationRoute.SdipFaststream == appRoute) { Some(data.sdipDiversity) } else { None },
+                appRoute
+              )
               sCode <- signupCodeUnusedValue
               _ <- overrideSubmissionDeadlineAndMarkUsedIfSignupCodeValid(appResponse.applicationId, sCode)
             } yield {

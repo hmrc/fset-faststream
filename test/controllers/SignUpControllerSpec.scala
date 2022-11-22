@@ -41,8 +41,8 @@ class SignUpControllerSpec extends BaseControllerSpec {
   val faststreamEligible = "Are you eligible to apply for the Civil Service Fast Stream?"
   val edipClosed = "Unfortunately, applications for the Early Diversity Internship Programme are now closed."
   val edipEligible = "Are you eligible to apply for the Early Diversity Internship Programme (EDIP)?"
-  val sdipClosed = "Unfortunately, applications for the Summer Diversity Internship Programme are now closed."
-  val sdipEligible = "Are you eligible to apply for the Summer Diversity Internship Programme (SDIP)?"
+  val sdipClosed = "Unfortunately, applications for the Summer Internship Programme are now closed."
+  val sdipEligible = "Are you eligible to apply for the Summer Internship Programme (SIP)?"
 
   "present" should {
     "display the sign up page and allow new accounts to be created" in new TestFixture {

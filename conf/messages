@@ -39,18 +39,20 @@ error.appRoute = You must select an application route
 agree.accept = Accept the terms and conditions
 agree.faststreamEligible = Confirm that you''re eligible to apply for the Civil Service Fast Stream
 agree.edipEligible = Confirm that you''re eligible to apply for the Early Diversity Internship Programme
-agree.sdipEligible = Confirm that you''re eligible to apply for the Summer Diversity Internship Programme
+agree.sdipEligible = Confirm that you''re eligible to apply for the Summer Internship Programme
+agree.sdipDiversity = Confirm if you want to be considered for the Diversity strand of SIP
 sdipFastStream.consider = Confirm if you would like to be considered for SDIP
 sdipFaststream.acceptTerms.required = Confirm that you agree and want to be considered for the Summer Diversity Internship Programme
+sdipFaststream.sdipDiversity = Confirm you want to be considered for the Diversity strand of SIP
 error.emailconfirm.notmatch = You must enter the same email address
 applicationRoute.Faststream.closed = Sorry, applications for the Civil Service Fast Stream are now closed
 applicationRoute.Faststream.notOpen = Sorry, applications for the Civil Service Fast Stream are opened from {0}
-applicationRoute.Sdip.closed = Sorry, applications for the Civil Service Summer Diversity Internship Programme are now closed
-applicationRoute.Sdip.notOpen = Sorry, applications for the Civil Service Summer Diversity Internship Programme are opened from {0}
+applicationRoute.Sdip.closed = Sorry, applications for the Civil Service Summer Internship Programme are now closed
+applicationRoute.Sdip.notOpen = Sorry, applications for the Civil Service Summer Internship Programme are opened from {0}
 applicationRoute.Edip.closed = Sorry, applications for the Civil Service Early Diversity Internship Programme are now closed
 applicationRoute.Edip.notOpen = Sorry, applications for the Civil Service Early Diversity Internship Programme are opened from {0}
-faststream.becomes.sdip.success = You''ll now be considered for the Summer Diversity Internship Programme. <p class="text">If you haven''t finished your online exercises, please make sure you do so before they expire.</p> <p class="text">We''ve sent you an email confirming your submission, make sure you check your junk inbox.</p>
-faststream.continueAsSdip.success = You''ll now be considered for the Summer Diversity Internship Programme only.
+faststream.becomes.sdip.success = You''ll now be considered for the Summer Internship Programme. <p class="text">If you haven''t finished your online exercises, please make sure you do so before they expire.</p> <p class="text">We''ve sent you an email confirming your submission, make sure you check your junk inbox.</p>
+faststream.continueAsSdip.success = You''ll now be considered for the Summer Internship Programme only.
 error.faststream.becomes.sdip.not.submitted = Unfortunately, you didn''t submit your application for the Civil Service \
 Fast Stream before the deadline.
 error.faststream.becomes.sdip.test.expired = Unfortunately, you didn''t complete your online exercises for the Civil Service \
