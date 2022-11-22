@@ -24,7 +24,7 @@
     case _ => ""
 }}
 
-@helper.input(field, '_class -> "inline") { (id, name, value, _) =>
+@helper.input(field, Symbol("_class") -> "inline") { (id, name, value, _) =>
     <div id="@{id}_field" class="form-group inline @if(field.hasErrors) {has-an-error input-validation-error}">
     <fieldset>
         <legend><h2 class="form-label">@question</h2></legend>
@@ -58,5 +58,4 @@
         }
     </fieldset>
     </div>
-
 }

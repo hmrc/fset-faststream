@@ -67,7 +67,6 @@ class SignUpForm {
           FormError("email_confirm", Messages("error.emailconfirm.notmatch"))
         ))
       }
-
     }
 
     override def unbind(key: String, value: String): Map[String, String] = Map(key -> value)
@@ -82,7 +81,7 @@ class SignUpForm {
 
             case ApplicationRoute.Edip => edipEligibilityCheck(data)
 
-            case ApplicationRoute.Sdip => sdipEligibiliyCheck(data)
+            case ApplicationRoute.Sdip => sdipCheck(data)
 
             case unknown => Left(List(FormError("eligible", s"Unrecognised application route $unknown")))
           }
@@ -114,26 +113,52 @@ class SignUpForm {
         FormError("faststreamEligible", Messages("agree.faststreamEligible"))
       ))
     }
-
   }
 
+  // We check diversity strand answer as well as eligibility answer here for sdipFs
+  // Note we use the sdip error messages here when dealing with sdipFs validation errors
+  // (agree.sdipEligible and agree.sdipDiversity)
   private def sdipFsCheck(data: Map[String, String])
     (implicit messages: Messages): Either[Seq[FormError], String] = {
-    data.get("sdipFastStreamEligible").map(_.toLowerCase) match {
-      case Some("true") => Right(ApplicationRoute.SdipFaststream)
-      case _ => Left(List(FormError("sdipFastStreamEligible", Messages("agree.sdipEligible"))))
+    val sdipFsDiversityError = data.get("sdipFastStreamDiversity").map(_.toLowerCase) match {
+      //      case Some("true") => Right(ApplicationRoute.SdipFaststream)
+      case Some("true") => Nil
+      case _ => List(FormError("sdipFastStreamDiversity", Messages("agree.sdipDiversity")))
+    }
+    val sdipFsEligibleError = data.get("sdipFastStreamEligible").map(_.toLowerCase) match {
+//      case Some("true") => Right(ApplicationRoute.SdipFaststream)
+      case Some("true") => Nil
+      case _ => List(FormError("sdipFastStreamEligible", Messages("agree.sdipEligible")))
+    }
+
+    val errors = sdipFsDiversityError ++ sdipFsEligibleError
+
+    if (errors.isEmpty) {
+      Right(ApplicationRoute.SdipFaststream)
+    } else {
+      Left(errors)
     }
   }
 
-  private def sdipEligibiliyCheck(postData: Map[String, String])
+  // We check diversity strand answer as well as eligibility answer here for sdip
+  private def sdipCheck(data: Map[String, String])
     (implicit messages: Messages): Either[Seq[FormError], String] = {
-    val sdipEligible = postData.get("sdipEligible").map(_.toLowerCase)
+    val sdipDiversity = data.get("sdipDiversity").map(_.toLowerCase)
+    val sdipEligible = data.get("sdipEligible").map(_.toLowerCase)
 
-    val errors = if (!sdipEligible.contains("true")) {
+    val sdipDiversityError = if (sdipDiversity.contains("true") || sdipDiversity.contains("false")) {
+      Nil
+    } else {
+      List(FormError("sdipDiversity", Messages("agree.sdipDiversity")))
+    }
+
+    val sdipEligibleError = if (!sdipEligible.contains("true")) {
       List(FormError("sdipEligible", Messages("agree.sdipEligible")))
     } else {
       Nil
     }
+
+    val errors = sdipDiversityError ++ sdipEligibleError
 
     if (errors.isEmpty) {
       Right(ApplicationRoute.Sdip)
@@ -157,8 +182,10 @@ class SignUpForm {
       "faststreamEligible" -> boolean,
       "sdipFastStreamConsider" -> optional(boolean),
       "sdipFastStreamEligible" -> optional(boolean),
+      "sdipFastStreamDiversity" -> optional(boolean),
       "edipEligible" -> boolean,
-      "sdipEligible" -> boolean
+      "sdipEligible" -> boolean,
+      "sdipDiversity" -> boolean
     )(SignUpForm.Data.apply)(SignUpForm.Data.unapply)
   )
 
@@ -210,7 +237,9 @@ object SignUpForm {
     faststreamEligible: Boolean,
     sdipFastStreamConsider: Option[Boolean],
     sdipFastStreamEligible: Option[Boolean],
+    sdipFastStreamDiversity: Option[Boolean], // Candidate is applying for the diversity strand of sdipFaststream
     edipEligible: Boolean,
-    sdipEligible: Boolean
+    sdipEligible: Boolean,
+    sdipDiversity: Boolean // Candidate is applying for the diversity strand of sdip
   )
 }

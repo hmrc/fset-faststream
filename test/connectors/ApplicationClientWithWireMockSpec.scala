@@ -84,7 +84,7 @@ class ApplicationClientWithWireMockSpec extends BaseConnectorWithWireMockSpec {
     val frameworkId = "faststream2020"
     val applicationId = UniqueIdentifier(UUID.randomUUID())
     val endpoint = s"/$base/application/create"
-    val request = CreateApplicationRequest(userId, frameworkId, ApplicationRoute.Faststream)
+    val request = CreateApplicationRequest(userId, frameworkId, ApplicationRoute.Faststream, sdipDiversity = None)
 
     "return application response if OK" in new TestFixture {
       val response = ApplicationResponse(
@@ -94,7 +94,7 @@ class ApplicationClientWithWireMockSpec extends BaseConnectorWithWireMockSpec {
         aResponse().withStatus(OK).withBody(Json.toJson(response).toString())
       ))
 
-      val result = client.createApplication(userId, frameworkId, ApplicationRoute.Faststream).futureValue
+      val result = client.createApplication(userId, frameworkId, sdipDiversity = None, ApplicationRoute.Faststream).futureValue
       result mustBe response
     }
 
@@ -104,7 +104,7 @@ class ApplicationClientWithWireMockSpec extends BaseConnectorWithWireMockSpec {
         .willReturn(aResponse().withStatus(INTERNAL_SERVER_ERROR))
       )
 
-      val result = client.createApplication(userId, frameworkId, ApplicationRoute.Faststream).failed.futureValue
+      val result = client.createApplication(userId, frameworkId, sdipDiversity = None, ApplicationRoute.Faststream).failed.futureValue
       result mustBe an[UpstreamErrorResponse]
       result.asInstanceOf[UpstreamErrorResponse].statusCode mustBe INTERNAL_SERVER_ERROR
     }

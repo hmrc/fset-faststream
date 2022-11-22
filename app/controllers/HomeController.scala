@@ -88,7 +88,7 @@ class HomeController @Inject() (
     implicit cachedData =>
       for {
         response <- applicationClient.findApplication(cachedData.user.userID, FrameworkId).recoverWith {
-          case _: ApplicationNotFound => applicationClient.createApplication(cachedData.user.userID, FrameworkId)
+          case _: ApplicationNotFound => applicationClient.createApplication(cachedData.user.userID, FrameworkId, sdipDiversity = None)
         }
         if canApplicationBeSubmitted(response.overriddenSubmissionDeadline)(response.applicationRoute)
       } yield {
