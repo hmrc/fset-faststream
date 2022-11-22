@@ -41,6 +41,7 @@ object ApplicationForOnlineTestPassMarkReportItemExamples {
       "appId",
       "phase1_tests_results_received",
       ApplicationRoute.Faststream,
+      sdipDiversity = None,
       List(SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber")),
       disability = None,
       gis = None,

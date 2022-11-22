@@ -60,7 +60,8 @@ class ApplicationController @Inject() (cc: ControllerComponents,
 
   def createApplication = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateApplicationRequest] { applicationRequest =>
-      appRepository.create(applicationRequest.userId, applicationRequest.frameworkId, applicationRequest.applicationRoute).map { result =>
+      appRepository.create(applicationRequest.userId, applicationRequest.frameworkId,
+        applicationRequest.applicationRoute, applicationRequest.sdipDiversity).map { result =>
         auditService.logEvent("ApplicationCreated")
         Ok(Json.toJson(result))
       }
