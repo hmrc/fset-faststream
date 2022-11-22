@@ -56,6 +56,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
   val schemeRepositoryMock = mock[SchemeRepository]
   def assessmentCentreRepo = new AssessmentCentreMongoRepository(ITDateTimeFactoryMock, schemeRepositoryMock, mongo)
 
+  lazy val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
+
   "General Application repository" should {
     "create indexes" in {
       val indexes = indexDetails(repository).futureValue
@@ -72,6 +74,27 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
           IndexDetails(name = "assistance-details.guaranteedInterview_1",
             keys = Seq(("assistance-details.guaranteedInterview", "Ascending")), unique = false)
         )
+    }
+
+    def isSdipDiversity(applicationId: String) = {
+      applicationCollection.find[BsonDocument](Document("applicationId" -> applicationId))
+        .projection(Projections.include("sdipDiversity")).headOption().map {
+        _.flatMap { doc =>
+          Try(doc.get("sdipDiversity").asBoolean().getValue).toOption
+        }
+      }
+    }
+
+    "create candidate" should {
+      "create and fetch an sdip diversity candidate" in {
+        val newCandidate = repository.create("userId", "frameworkId", ApplicationRoute.Faststream, sdipDiversityOpt = Some(true)).futureValue
+        isSdipDiversity(newCandidate.applicationId).futureValue mustBe Some(true)
+      }
+
+      "create and fetch a non sdip diversity candidate" in {
+        val newCandidate = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
+        isSdipDiversity(newCandidate.applicationId).futureValue mustBe None
+      }
     }
 
     "find application by userId and frameworkId" in {
@@ -785,8 +808,6 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       repository.getCurrentSchemeStatus(newCandidate.applicationId).futureValue mustBe Nil
     }
   }
-
-  lazy val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
 
   def findWithdrawReasonForScheme(applicationId: String, scheme: SchemeId) = {
     applicationCollection.find[BsonDocument](Document("applicationId" -> applicationId))

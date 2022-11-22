@@ -295,6 +295,7 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2, // 
       "userId" -> true,
       "applicationId" -> true,
       "applicationRoute" -> true,
+      "sdipDiversity" -> true,
       "scheme-preferences.schemes" -> true,
       "assistance-details" -> true,
       "testGroups.PHASE1" -> true,
