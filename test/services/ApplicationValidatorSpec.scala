@@ -55,12 +55,14 @@ class ApplicationValidatorSpec extends UnitSpec {
       validator.validateAssistanceDetails mustBe false
     }
 
-    "return false if we don't have gis setting and have disability" in {
+    // This test should now return true instead of false because gis has now been removed from the frontend
+    // so we no longer need to fail validation if gis is missing
+    "return true if we don't have gis setting and have disability" in {
       val validator = ApplicationValidator(
         personalDetails,
-        assistanceDetails.copy(guaranteedInterview = None), None, List()
+        assistanceDetails.copy(guaranteedInterview = None), sl = None, availableRegions = List()
       )
-      validator.validateAssistanceDetails mustBe false
+      validator.validateAssistanceDetails mustBe true
     }
   }
 
