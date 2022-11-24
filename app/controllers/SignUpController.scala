@@ -124,7 +124,11 @@ class SignUpController @Inject() (
               _ <- applicationClient.addReferral(u.userId, extractMediaReferrer(data))
               appResponse <- applicationClient.createApplication(
                 u.userId, FrameworkId,
-                if (ApplicationRoute.Sdip == appRoute || ApplicationRoute.SdipFaststream == appRoute) { Some(data.sdipDiversity) } else { None },
+                appRoute match {
+                  case ApplicationRoute.Sdip => Some(data.sdipDiversity)
+                  case ApplicationRoute.SdipFaststream => data.sdipFastStreamDiversity
+                  case _ => None
+                },
                 appRoute
               )
               sCode <- signupCodeUnusedValue

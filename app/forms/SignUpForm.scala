@@ -109,8 +109,8 @@ class SignUpForm {
       case (Some("true"), Some("true")) => sdipFsCheck(data)
       case (Some("true"), None) => Left(List(FormError("sdipFastStreamConsider", Messages("sdipFastStream.consider"))))
       case (_, _) => Left(List(
-        FormError("sdipFastStreamConsider", Messages("sdipFastStream.consider")),
-        FormError("faststreamEligible", Messages("agree.faststreamEligible"))
+        FormError("faststreamEligible", Messages("agree.faststreamEligible")),
+        FormError("sdipFastStreamConsider", Messages("sdipFastStream.consider"))
       ))
     }
   }
@@ -120,18 +120,17 @@ class SignUpForm {
   // (agree.sdipEligible and agree.sdipDiversity)
   private def sdipFsCheck(data: Map[String, String])
     (implicit messages: Messages): Either[Seq[FormError], String] = {
-    val sdipFsDiversityError = data.get("sdipFastStreamDiversity").map(_.toLowerCase) match {
-      //      case Some("true") => Right(ApplicationRoute.SdipFaststream)
-      case Some("true") => Nil
-      case _ => List(FormError("sdipFastStreamDiversity", Messages("agree.sdipDiversity")))
-    }
     val sdipFsEligibleError = data.get("sdipFastStreamEligible").map(_.toLowerCase) match {
-//      case Some("true") => Right(ApplicationRoute.SdipFaststream)
       case Some("true") => Nil
       case _ => List(FormError("sdipFastStreamEligible", Messages("agree.sdipEligible")))
     }
+    val sdipFsDiversityError = data.get("sdipFastStreamDiversity").map(_.toLowerCase) match {
+      case Some("true") | Some("false") => Nil
+      case _ => List(FormError("sdipFastStreamDiversity", Messages("agree.sdipDiversity")))
+    }
 
-    val errors = sdipFsDiversityError ++ sdipFsEligibleError
+    // Note the order we add the errors determines the order they appear on the screen
+    val errors = sdipFsEligibleError ++ sdipFsDiversityError
 
     if (errors.isEmpty) {
       Right(ApplicationRoute.SdipFaststream)
@@ -143,22 +142,20 @@ class SignUpForm {
   // We check diversity strand answer as well as eligibility answer here for sdip
   private def sdipCheck(data: Map[String, String])
     (implicit messages: Messages): Either[Seq[FormError], String] = {
-    val sdipDiversity = data.get("sdipDiversity").map(_.toLowerCase)
     val sdipEligible = data.get("sdipEligible").map(_.toLowerCase)
-
-    val sdipDiversityError = if (sdipDiversity.contains("true") || sdipDiversity.contains("false")) {
-      Nil
-    } else {
-      List(FormError("sdipDiversity", Messages("agree.sdipDiversity")))
-    }
-
     val sdipEligibleError = if (!sdipEligible.contains("true")) {
       List(FormError("sdipEligible", Messages("agree.sdipEligible")))
     } else {
       Nil
     }
 
-    val errors = sdipDiversityError ++ sdipEligibleError
+    val sdipDiversity = data.get("sdipDiversity").map(_.toLowerCase)
+    val sdipDiversityError = sdipDiversity match {
+      case Some("true") | Some("false") => Nil
+      case _ => List(FormError("sdipDiversity", Messages("agree.sdipDiversity")))
+    }
+
+    val errors = sdipEligibleError ++ sdipDiversityError
 
     if (errors.isEmpty) {
       Right(ApplicationRoute.Sdip)

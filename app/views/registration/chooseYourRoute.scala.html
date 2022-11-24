@@ -30,7 +30,7 @@
 @sdipUrl = @{ "https://www.faststream.gov.uk/sdip-am-i-eligible/index.html" }
 
 @sdipDiversityHintText = @{ Some("To be considered for the Diversity SIP, confirm one or more of the following statements are true:" +
-        "<ul><li>I am from an Ethnic minority background.</li><li>I am from a Socially or economically disadvantaged background.</li></ul>") }
+        "<ul><li>I am from an ethnic minority background.</li><li>I am from a socially or economically disadvantaged background.</li></ul>") }
 
 <section class="section-border clearfix" id="routeElig">
     <div class="text">
@@ -85,11 +85,10 @@
                         </a>
                     </li>
                 </ul>
+                @yesNoQuestion(form("sdipFastStreamEligible"), question = "Are you eligible to apply for the Summer Internship Programme (SIP)?",
+                    noMessage = Some("You must be eligible to apply for the Summer Internship Programme."))
                 @yesNoQuestion(form("sdipFastStreamDiversity"), question = "Do you want to be considered for the Diversity strand of SIP?",
                     noMessage = None, description = sdipDiversityHintText)
-                @yesNoQuestion(form("sdipFastStreamEligible"), question = "Are you eligible to apply for the Summer Internship Programme (SIP)?",
-                               noMessage = Some("You must be eligible to apply for the Summer Internship Programme."))
-
                 } else {
                     <div class="panel-info standard-panel">
                         <p class="text">Unfortunately, applications for the Summer Internship Programme are now closed.</p>
@@ -139,10 +138,10 @@
                     </a>
                 </li>
             </ul>
-            @yesNoQuestion(form("sdipDiversity"), question = "Do you want to be considered for the Diversity strand of SIP?",
-                           noMessage = None, description = sdipDiversityHintText)
             @yesNoQuestion(form("sdipEligible"), question = "Are you eligible to apply for the Summer Internship Programme (SIP)?",
-                           noMessage = Some("You must be eligible to apply for the Summer Internship Programme."))
+                noMessage = Some("You must be eligible to apply for the Summer Internship Programme."))
+            @yesNoQuestion(form("sdipDiversity"), question = "Do you want to be considered for the Diversity strand of SIP?",
+                noMessage = None, description = sdipDiversityHintText)
         } else {
             <div class="panel-info standard-panel">
                 <p class="text">Unfortunately, applications for the Summer Internship Programme are now closed.</p>
