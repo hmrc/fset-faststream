@@ -40,7 +40,6 @@ class AssistanceDetailsFormSpec extends BaseFormSpec {
         "disabilityCategories[0]" -> AssistanceDetailsForm.disabilityCategoriesList.head,
         "disabilityCategories[1]" -> AssistanceDetailsForm.other,
         "otherDisabilityDescription" -> "Some other description",
-        "guaranteedInterview" -> "Yes",
         "needsSupportForOnlineAssessment" -> "Yes",
         "needsSupportForOnlineAssessmentDescription" -> "Some online test adjustments",
         "needsSupportAtVenue" -> "Yes",
@@ -81,7 +80,6 @@ class AssistanceDetailsFormSpec extends BaseFormSpec {
       val form = formWrapper.bind(Map(
         "hasDisability" -> "Yes",
         "disabilityCategories[0]" -> AssistanceDetailsForm.disabilityCategoriesList.head,
-        "guaranteedInterview" -> "Yes",
         "needsSupportForOnlineAssessment" -> "Yes",
         "needsSupportForOnlineAssessmentDescription" -> "Some online test adjustments",
         "needsSupportAtVenue" -> "Yes",
@@ -98,7 +96,6 @@ class AssistanceDetailsFormSpec extends BaseFormSpec {
         "hasDisability" -> "Yes",
         "disabilityImpact" -> "BOOM",
         "disabilityCategories[0]" -> AssistanceDetailsForm.disabilityCategoriesList.head,
-        "guaranteedInterview" -> "Yes",
         "needsSupportForOnlineAssessment" -> "Yes",
         "needsSupportForOnlineAssessmentDescription" -> "Some online test adjustments",
         "needsSupportAtVenue" -> "Yes",
@@ -115,7 +112,6 @@ class AssistanceDetailsFormSpec extends BaseFormSpec {
         "hasDisability" -> "Yes",
         "disabilityImpact" -> "No",
         "disabilityCategories[0]" -> "BOOM",
-        "guaranteedInterview" -> "Yes",
         "needsSupportForOnlineAssessment" -> "Yes",
         "needsSupportForOnlineAssessmentDescription" -> "Some online test adjustments",
         "needsSupportAtVenue" -> "Yes",
@@ -140,7 +136,6 @@ class AssistanceDetailsFormSpec extends BaseFormSpec {
       val expectedFormErrors = Seq(
         FormError(key = "disabilityImpact", message = disabilityImpactErrorMsg),
         FormError(key = "disabilityCategories", message = disabilityCategoriesErrorMsg),
-        FormError(key = "guaranteedInterview", message = gisErrorMsg)
       )
       form.errors mustBe expectedFormErrors
       form.hasGlobalErrors mustBe false
@@ -152,7 +147,6 @@ class AssistanceDetailsFormSpec extends BaseFormSpec {
         "hasDisability" -> "Yes",
         "disabilityImpact" -> "No",
         "disabilityCategories[0]" -> AssistanceDetailsForm.other,
-        "guaranteedInterview" -> "Yes",
         "needsSupportForOnlineAssessment" -> "Yes",
         "needsSupportForOnlineAssessmentDescription" -> "Some online test adjustments",
         "needsSupportAtVenue" -> "Yes",
@@ -171,7 +165,6 @@ class AssistanceDetailsFormSpec extends BaseFormSpec {
         "disabilityImpact" -> "No",
         "disabilityCategories[0]" -> AssistanceDetailsForm.other,
         "otherDisabilityDescription" -> "A" * (assistanceDetailsForm.otherDisabilityCategoryMaxSize + 1),
-        "guaranteedInterview" -> "Yes",
         "needsSupportForOnlineAssessment" -> "Yes",
         "needsSupportForOnlineAssessmentDescription" -> "Some online test adjustments",
         "needsSupportAtVenue" -> "Yes",
@@ -190,7 +183,6 @@ class AssistanceDetailsFormSpec extends BaseFormSpec {
         "disabilityImpact" -> "No",
         "disabilityCategories[0]" -> AssistanceDetailsForm.preferNotToSay,
         "disabilityCategories[1]" -> AssistanceDetailsForm.disabilityCategoriesList.head,
-        "guaranteedInterview" -> "Yes",
         "needsSupportForOnlineAssessment" -> "No",
         "needsSupportAtVenue" -> "No"
       ))
@@ -239,7 +231,6 @@ class AssistanceDetailsFormSpec extends BaseFormSpec {
     val hasDisabilityErrorMsg = "error.hasDisability.required"
     val disabilityImpactErrorMsg = "You must provide a valid disability impact"
     val disabilityCategoriesErrorMsg = "Choose a valid disability category"
-    val gisErrorMsg = "error.guaranteedInterview.required"
 
     val assistanceDetailsForm = new AssistanceDetailsForm
     val formWrapper = assistanceDetailsForm.form

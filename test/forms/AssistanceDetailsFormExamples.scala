@@ -25,7 +25,6 @@ object AssistanceDetailsFormExamples {
     "disabilityImpact" -> "No",
     "disabilityCategories[0]" -> AssistanceDetailsForm.disabilityCategoriesList.head,
     "otherDisabilityDescription" -> "Epilepsy",
-    "guaranteedInterview" -> "Yes",
     "needsSupportForOnlineAssessment" -> "Yes",
     "needsSupportForOnlineAssessmentDescription" -> "Some adjustment",
     "needsSupportAtVenue" -> "Yes",
@@ -37,7 +36,6 @@ object AssistanceDetailsFormExamples {
     "disabilityImpact" -> "No",
     "disabilityCategories[0]" -> AssistanceDetailsForm.disabilityCategoriesList.head,
     "otherDisabilityDescription" -> "Epilepsy",
-    "guaranteedInterview" -> "Yes",
     "needsSupportForPhoneInterview" -> "Yes",
     "needsSupportForPhoneInterviewDescription" -> "Some adjustment")
 
@@ -47,7 +45,6 @@ object AssistanceDetailsFormExamples {
     "disabilityImpact" -> "No",
     "disabilityCategories[0]" -> AssistanceDetailsForm.disabilityCategoriesList.head,
     "otherDisabilityDescription" -> "Epilepsy",
-    "guaranteedInterview" -> "Yes",
     "needsSupportForPhoneInterview" -> "Yes",
     "needsSupportForPhoneInterviewDescription" -> "Some adjustment")
 
@@ -57,7 +54,6 @@ object AssistanceDetailsFormExamples {
     "disabilityImpact" -> "No",
     "disabilityCategories[0]" -> AssistanceDetailsForm.disabilityCategoriesList.head,
     "otherDisabilityDescription" -> "Epilepsy",
-    "guaranteedInterview" -> "Yes",
     "needsSupportForOnlineAssessment" -> "Yes",
     "needsSupportForOnlineAssessmentDescription" -> "Some adjustment",
     "needsSupportAtVenue" -> "Yes",

@@ -51,7 +51,6 @@ class AssistanceDetailsForm {
       "disabilityImpact" -> of(disabilityImpactFormatter),
       "disabilityCategories" -> of(disabilityCategoriesFormatter),
       "otherDisabilityDescription" -> of(otherDisabilityDescriptionFormatter(otherDisabilityCategoryMaxSize)),
-      "guaranteedInterview" -> of(requiredFormatterWithMaxLengthCheck("hasDisability", "guaranteedInterview", None)),
       "needsSupportForOnlineAssessment" -> of(
         mayBeOptionalString("error.needsSupportForOnlineAssessment.required", 31, isFastStreamOrSdipFastStream)),
       "needsSupportForOnlineAssessmentDescription" -> of(requiredFormatterWithMaxLengthCheck(
@@ -212,7 +211,6 @@ object AssistanceDetailsForm {
     disabilityImpact: Option[String],
     disabilityCategories: Option[List[String]],
     otherDisabilityDescription: Option[String],
-    guaranteedInterview: Option[String],
     needsSupportForOnlineAssessment: Option[String],
     needsSupportForOnlineAssessmentDescription: Option[String],
     needsSupportAtVenue: Option[String],
@@ -225,7 +223,6 @@ object AssistanceDetailsForm {
         s"disabilityImpact=$disabilityImpact," +
         s"disabilityCategories=$disabilityCategories," +
         s"otherDisabilityDescription=$otherDisabilityDescription," +
-        s"guaranteedInterview=$guaranteedInterview," +
         s"needsSupportForOnlineAssessment=$needsSupportForOnlineAssessment," +
         s"needsSupportForOnlineAssessmentDescription=$needsSupportForOnlineAssessmentDescription," +
         s"needsSupportAtVenue=$needsSupportAtVenue," +
@@ -239,11 +236,6 @@ object AssistanceDetailsForm {
         disabilityImpact,
         disabilityCategories,
         otherDisabilityDescription,
-        guaranteedInterview.map {
-          case "Yes" => true
-          case "No" => false
-          case _ => false
-        },
         AssistanceDetailsForm.Data.toOptBoolean(needsSupportForOnlineAssessment),
         needsSupportForOnlineAssessmentDescription,
         AssistanceDetailsForm.Data.toOptBoolean(needsSupportAtVenue),
@@ -260,7 +252,6 @@ object AssistanceDetailsForm {
         if (hasDisabilityCheck) disabilityImpact else None,
         if (hasDisabilityCheck) disabilityCategories else None,
         if (hasDisabilityCheck) otherDisabilityDescription else None,
-        if (hasDisabilityCheck) guaranteedInterview else None,
         needsSupportForOnlineAssessment,
         if (needsSupportForOnlineAssessment.contains("Yes")) needsSupportForOnlineAssessmentDescription else None,
         needsSupportAtVenue,
@@ -278,10 +269,6 @@ object AssistanceDetailsForm {
         ad.disabilityImpact,
         ad.disabilityCategories,
         ad.otherDisabilityDescription,
-        ad.guaranteedInterview.map {
-          case true => "Yes"
-          case false => "No"
-        },
         toOptString(ad.needsSupportForOnlineAssessment),
         ad.needsSupportForOnlineAssessmentDescription,
         toOptString(ad.needsSupportAtVenue),
