@@ -57,19 +57,6 @@
             <h3 class="heading-small">Selected disability categories</h3>
             @displayDisabilityCategories
             @maybeDisplayOtherDisabilityDescription
-
-            @assistanceDetails.guaranteedInterview.map { gis =>
-                <h3 class="heading-small">Would you like to apply under the Disability Confident scheme?</h3>
-                <p id="guaranteedInterview">
-                    @{
-                        if(gis) {
-                            "Yes"
-                        } else {
-                            "No"
-                        }
-                    }
-                </p>
-            }
         }
     </section>
     @assistanceDetails.needsSupportForOnlineAssessment.map { needsSupportForOnlineAssessment =>

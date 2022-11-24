@@ -23,7 +23,6 @@ final case class AssistanceDetails(
                                     disabilityImpact: Option[String],
                                     disabilityCategories: Option[List[String]],
                                     otherDisabilityDescription: Option[String],
-                                    guaranteedInterview: Option[Boolean],
                                     needsSupportForOnlineAssessment: Option[Boolean],
                                     needsSupportForOnlineAssessmentDescription: Option[String],
                                     needsSupportAtVenue: Option[Boolean],
@@ -33,7 +32,6 @@ final case class AssistanceDetails(
 ) {
   def requiresAdjustments: Boolean = {
     List(
-      guaranteedInterview.contains(true),
       needsSupportForOnlineAssessment.contains(true),
       needsSupportAtVenue.contains(true),
       needsSupportForPhoneInterview.contains(true)
@@ -43,7 +41,6 @@ final case class AssistanceDetails(
   def isDisabledCandidate = hasDisability.toLowerCase == "yes"
   def hasSelectedOtherDisabilityCategory =
     disabilityCategories.exists(disabilityCategoryList => disabilityCategoryList.contains("Other"))
-  def isGisCandidate: Boolean = guaranteedInterview.contains(true)
 }
 
 object AssistanceDetails {

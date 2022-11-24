@@ -38,8 +38,8 @@
             <section class="grid-wrapper">
                 <div class="scheme-input-container">
                 @disabilitiesCheckboxGroup(form("disabilityCategories"), disabilityCategories, optionTrigger = "other-describe",
-                    '_label -> "Please select which categories apply to you. (Select all that apply)",
-                    '_class -> ""
+                    Symbol("_label") -> "Please select which categories apply to you. (Select all that apply)",
+                    Symbol("_class") -> ""
                 )
                 </div>
             </section>
@@ -47,30 +47,16 @@
             <div id="other-describe" class="toggle-content" aria-hidden="true">
                 <div class="form-group">
                 @helper.textarea(form("otherDisabilityDescription"),
-                    '_label -> "Provide details about the other disability category",
-                    '_labelClass -> "form-hint",
-                    'class -> "form-control",
-                    'rows -> 4,
-                    'dataValLengthMax -> "2048",
-                    '_showConstraints -> false)
+                    Symbol("_label") -> "Provide details about the other disability category",
+                    Symbol("_labelClass") -> "form-hint",
+                    Symbol("class") -> "form-control",
+                    Symbol("rows") -> 4,
+                    Symbol("dataValLengthMax") -> "2048",
+                    Symbol("_showConstraints") -> false)
                 </div>
                 <div class="panel-indent text">
                   <p>If you require any assistance or reasonable adjustments, for example access ramps or extra time, use the extra support sections to list them out.</p>
                 </div>
-            </div>
-            <div>
-                <fieldset>
-                    <legend><h2 class="form-label">Would you like to apply under the Disability Confident scheme?</h2></legend>
-                    <p class="form-hint text">
-                        If you have a disability, under the Disability Confident scheme you will be able to bypass the Situational Judgement Questionnaires, which form part of the online exercises.
-                    </p>
-                    <p class="form-hint text">
-                        The Disability Confident scheme replaces the Guaranteed Interview scheme find out more about the <a href="https://www.gov.uk/government/publications/civil-service-fast-stream-promoting-diversity-and-inclusion/civil-service-fast-stream-promoting-diversity-and-inclusion"
-                        rel="external" target="_blank">Disability Confident scheme (link opens new window)</a>.
-                    </p>
-
-                    @radioBox(form("guaranteedInterview"), options = Seq("Yes" -> "Yes", "No" -> "No"))
-                </fieldset>
             </div>
         </div>
     </fieldset>
