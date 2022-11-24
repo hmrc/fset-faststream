@@ -41,8 +41,8 @@ agree.faststreamEligible = Confirm that you''re eligible to apply for the Civil 
 agree.edipEligible = Confirm that you''re eligible to apply for the Early Diversity Internship Programme
 agree.sdipEligible = Confirm that you''re eligible to apply for the Summer Internship Programme
 agree.sdipDiversity = Confirm if you want to be considered for the Diversity strand of SIP
-sdipFastStream.consider = Confirm if you would like to be considered for SDIP
-sdipFaststream.acceptTerms.required = Confirm that you agree and want to be considered for the Summer Diversity Internship Programme
+sdipFastStream.consider = Confirm if you would like to be considered for SIP
+sdipFaststream.acceptTerms.required = Confirm that you agree and want to be considered for the Summer Internship Programme
 sdipFaststream.sdipDiversity = Confirm you want to be considered for the Diversity strand of SIP
 error.emailconfirm.notmatch = You must enter the same email address
 applicationRoute.Faststream.closed = Sorry, applications for the Civil Service Fast Stream are now closed
@@ -180,7 +180,7 @@ scheme.ProjectDelivery.description=Project Delivery
 scheme.Property.description=Property
 scheme.ScienceAndEngineering.description=Science & Engineering
 scheme.Edip.description=Early Diversity Internship Programme
-scheme.Sdip.description=Summer Diversity Internship Programme
+scheme.Sdip.description=Summer Internship Programme
 
 # These should be checked before each campaign
 # Hyerlinks to the scheme and eligibility criteria on the scheme selection page
@@ -285,8 +285,8 @@ global.error.InternalServerError500.heading=Service unavailable
 global.error.InternalServerError500.message=Something went wrong, try again in a few minutes.
 
 dashboard.final.results.Edip=Congratulations, you''ve been successful for the Early Diversity Internship Programme (EDIP).
-dashboard.final.results.Sdip=Congratulations, you''ve been successful for the Summer Diversity Internship Programme (SDIP).
-dashboard.final.results.SdipFaststream=Congratulations, you''ve been successful for the Summer Diversity Internship Programme (SDIP).
+dashboard.final.results.Sdip=Congratulations, you''ve been successful for the Summer Internship Programme (SIP).
+dashboard.final.results.SdipFaststream=Congratulations, you''ve been successful for the Summer Internship Programme (SIP).
 
 assessmentCentre.analysisExercise.upload.error=There was a problem uploading your written scenario. You can try again or speak to an assessor.
 assessmentCentre.analysisExercise.upload.tooBig=Your written scenario must be less than 4MB

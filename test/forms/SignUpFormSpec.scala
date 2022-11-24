@@ -87,23 +87,33 @@ class SignUpFormSpec extends BaseFormSpec {
       signupForm.errors("sdipFastStreamConsider").head.messages mustBe Seq(Messages("sdipFastStream.consider"))
     }
 
-    "throw an error if I have clicked on the I am eligible for Fast Stream and confirmed I want to be considered for SDIP," +
+    "throw errors if I have clicked on I am eligible to apply for Fast Stream and confirmed I want to be considered for SDIP," +
       " but not confirmed I am eligible for SDIP or I want to be considered for the diversity strand of SDIP" in {
       val (_, signupForm) = SignupFormGenerator(
-        faststreamEligible = true, sdipFastStreamConsider = Some(true), sdipFastStreamEligible = None).get
+        // No answers provided for sdipFastStreamEligible or sdipFastStreamDiversity
+        faststreamEligible = true, sdipFastStreamConsider = Some(true), sdipFastStreamEligible = None, sdipFastStreamDiversity = None
+      ).get
       signupForm.hasErrors mustBe true
       signupForm.errors.length mustBe 2
       // Note the sdip error message is also used for sdip faststream
-      signupForm.errors("sdipFastStreamDiversity").head.messages mustBe Seq(Messages("agree.sdipDiversity"))
       signupForm.errors("sdipFastStreamEligible").head.messages mustBe Seq(Messages("agree.sdipEligible"))
+      signupForm.errors("sdipFastStreamDiversity").head.messages mustBe Seq(Messages("agree.sdipDiversity"))
+    }
 
-      val (_, signupForm2) = SignupFormGenerator(
-        faststreamEligible = true, sdipFastStreamConsider = Some(true), sdipFastStreamEligible = Some(false)).get
-      signupForm2.hasErrors mustBe true
-      signupForm2.errors.length mustBe 2
-      // Note the sdip error message is also used for sdip faststream
-      signupForm2.errors("sdipFastStreamDiversity").head.messages mustBe Seq(Messages("agree.sdipDiversity"))
-      signupForm2.errors("sdipFastStreamEligible").head.messages mustBe Seq(Messages("agree.sdipEligible"))
+    "pass validation if I have clicked on I am eligible to apply for Fast Stream and confirmed I want to be considered for SDIP," +
+      " and have confirmed I am eligible for SDIP and I want to be considered for the diversity strand of SDIP" in {
+      val (_, signupForm) = SignupFormGenerator(
+        faststreamEligible = true, sdipFastStreamConsider = Some(true), sdipFastStreamEligible = Some(true), sdipFastStreamDiversity = Some(true)
+      ).get
+      signupForm.hasErrors mustBe false
+    }
+
+    "pass validation if I have clicked on I am eligible to apply for Fast Stream and confirmed I want to be considered for SDIP," +
+      " and have confirmed I am not eligible for SDIP and I do not want to be considered for the diversity strand of SDIP" in {
+      // sdipFastStreamDiversity has a  default value of Some(false) so we just use that here
+      val (_, signupForm) = SignupFormGenerator(
+        faststreamEligible = true, sdipFastStreamConsider = Some(true), sdipFastStreamEligible = Some(true)).get
+      signupForm.hasErrors mustBe false
     }
 
     "generate 2 errors if I am an SDIP Faststream candidate but I haven't clicked on diversity strand of SDIP" +
@@ -149,6 +159,86 @@ class SignUpFormSpec extends BaseFormSpec {
       form.errors.length mustBe 2
       form.errors("sdipDiversity").head.messages mustBe Seq(Messages("agree.sdipDiversity"))
       form.errors("sdipEligible").head.messages mustBe Seq(Messages("agree.sdipEligible"))
+    }
+
+    "pass validation if I am an SDIP Faststream candidate who is eligible but does not want to be considered for the diversity strand" in {
+      val formData = Map(
+        "firstName" -> "name",
+        "lastName" -> "last name",
+        "email" -> "test@email.com",
+        "email_confirm" ->"test@email.com",
+        "password" -> "aA1234567",
+        "confirmpwd" -> "aA1234567",
+        "applicationRoute" -> ApplicationRoute.Faststream.toString,
+        "faststreamEligible" -> "true",
+        "sdipFastStreamConsider" -> "true",
+        "sdipFastStreamEligible" -> "true",
+        "sdipFastStreamDiversity" -> "false",
+        "campaignReferrer" -> "Recruitment website",
+        "agree" -> "true"
+      )
+
+      val form = Form(new SignUpForm().form.mapping).bind(formData)
+      form.hasErrors mustBe false
+    }
+
+    "pass validation if I am an SDIP Faststream candidate who is eligible and wants to be considered for the diversity strand" in {
+      val formData = Map(
+        "firstName" -> "name",
+        "lastName" -> "last name",
+        "email" -> "test@email.com",
+        "email_confirm" ->"test@email.com",
+        "password" -> "aA1234567",
+        "confirmpwd" -> "aA1234567",
+        "applicationRoute" -> ApplicationRoute.Faststream.toString,
+        "faststreamEligible" -> "true",
+        "sdipFastStreamConsider" -> "true",
+        "sdipFastStreamEligible" -> "true",
+        "sdipFastStreamDiversity" -> "true",
+        "campaignReferrer" -> "Recruitment website",
+        "agree" -> "true"
+      )
+
+      val form = Form(new SignUpForm().form.mapping).bind(formData)
+      form.hasErrors mustBe false
+    }
+
+    "pass validation if I am an SDIP candidate who is eligible but does not want to be considered for the diversity strand" in {
+      val formData = Map(
+        "firstName" -> "name",
+        "lastName" -> "last name",
+        "email" -> "test@email.com",
+        "email_confirm" ->"test@email.com",
+        "password" -> "aA1234567",
+        "confirmpwd" -> "aA1234567",
+        "applicationRoute" -> ApplicationRoute.Sdip.toString,
+        "sdipEligible" -> "true",
+        "sdipDiversity" -> "false",
+        "campaignReferrer" -> "Recruitment website",
+        "agree" -> "true"
+      )
+
+      val form = Form(new SignUpForm().form.mapping).bind(formData)
+      form.hasErrors mustBe false
+    }
+
+    "pass validation if I am an SDIP candidate who is eligible and wants to be considered for the diversity strand" in {
+      val formData = Map(
+        "firstName" -> "name",
+        "lastName" -> "last name",
+        "email" -> "test@email.com",
+        "email_confirm" ->"test@email.com",
+        "password" -> "aA1234567",
+        "confirmpwd" -> "aA1234567",
+        "applicationRoute" -> ApplicationRoute.Sdip.toString,
+        "sdipEligible" -> "true",
+        "sdipDiversity" -> "true",
+        "campaignReferrer" -> "Recruitment website",
+        "agree" -> "true"
+      )
+
+      val form = Form(new SignUpForm().form.mapping).bind(formData)
+      form.hasErrors mustBe false
     }
 
     "throw an error if I haven't clicked on the I am eligible for EDIP" in {
