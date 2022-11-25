@@ -322,12 +322,14 @@ tests.inventoryid.name.45c7aee3-4d23-45c7-a09d-276df7db3e4c=Work Style Questionn
 tests.inventoryid.description.45c7aee3-4d23-45c7-a09d-276df7db3e4c=This test is untimed, but usually takes around 10-15 minutes to complete.
 tests.inventoryid.name.940bc1cf-3e8f-44c0-b74d-ffce1ac5b7d7=Situational Judgement Questionnaire - Interpersonal Skills
 tests.inventoryid.description.940bc1cf-3e8f-44c0-b74d-ffce1ac5b7d7=This test is untimed, but usually takes around 20 minutes to complete.
-tests.inventoryid.name.59a9a3a4-aa1d-4439-a5a0-68602e8e08e0=Situational Judgement Questionnaire - Thinking Skills
-tests.inventoryid.description.59a9a3a4-aa1d-4439-a5a0-68602e8e08e0=This test is untimed, but usually takes around 25 minutes to complete.
+tests.inventoryid.name.9fd36d06-af4b-438f-9956-13bac48c1608=Numeric test
+tests.inventoryid.description.9fd36d06-af4b-438f-9956-13bac48c1608=This test is untimed, but usually takes between 15 and 45 minutes to complete.
 tests.inventoryid.name.5f59eff8-5ef6-463a-a085-9e5c730936dc=Work Style Questionnaire Part 2
 tests.inventoryid.description.5f59eff8-5ef6-463a-a085-9e5c730936dc=This test is untimed, but usually takes around 10-15 minutes to complete.
 tests.inventoryid.name.60b423e5-75d6-4d31-b02c-97b8686e22e6=Case Study Assessment
 tests.inventoryid.name.d2b3262c-2da8-4015-8579-9bebf5c0f53a=Learning Assessment
+
+p1.numeric.test.feedback=There is no feedback available for this test
 
 # Phase3 feedback
 phase3.feedback.capability.feedbackOnPerformance.High=Your responses to the Video Interview shows high capability – offering specific, compelling and detailed evidence across criteria. Such a capability is an important foundation in developing the necessary skills to succeed on the Fast Stream.
