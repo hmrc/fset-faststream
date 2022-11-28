@@ -131,7 +131,7 @@ class PreviewApplicationControllerSpec extends BaseControllerSpec {
 
   trait TestFixture extends BaseControllerTestFixture {
     val phoneText = "Will you need any support for your phone interview?"
-    val onlineTestText = "Will you need any support for your work based scenarios, video interview or numerical test?"
+    val onlineTestText = "Will you need any support for your work based scenarios or numerical test?"
 
     when(mockApplicationClient.getPersonalDetails(eqTo(currentUserId), eqTo(currentApplicationId))(any[HeaderCarrier]))
       .thenReturn(Future.successful(GeneralDetailsExamples.FullDetails))

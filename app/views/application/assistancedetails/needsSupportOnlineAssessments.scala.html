@@ -21,7 +21,7 @@
 
 <section>
     <fieldset>
-        <legend><h2 class="form-label">Will you need any support for your work based scenarios, video interview or numerical test?</h2></legend>
+        <legend><h2 class="form-label">Will you need any support for your work based scenarios or numerical test?</h2></legend>
         <p class="form-hint text">For example, a request for reasonable adjustments such as extra time for those
             with dyslexia. Please note that work based scenarios and numerical tests are untimed tests.</p>
         @radioBoxHorizontal(form("needsSupportForOnlineAssessment"), options = List(("yes", "Yes", true), ("no", "No", false)),
@@ -29,11 +29,11 @@
         <div id="needsSupportForOnlineAssessment-describe" class="toggle-content" aria-hidden="true">
             <div class="form-group">
                 @helper.textarea(form("needsSupportForOnlineAssessmentDescription"),
-                    '_label -> "What adjustments will you need for your work based scenarios, video interview or numerical test?",
-                    'class -> "form-control",
-                    'rows -> 4,
-                    'dataValLengthMax -> "2048",
-                    '_showConstraints -> false)
+                    Symbol("_label") -> "What adjustments will you need for your work based scenarios, video interview or numerical test?",
+                    Symbol("class") -> "form-control",
+                    Symbol("rows") -> 4,
+                    Symbol("dataValLengthMax") -> "2048",
+                    Symbol("_showConstraints") -> false)
                 <span class="visuallyhidden aria-limit" aria-live="polite"></span>
             </div>
             <div class="panel-indent text">

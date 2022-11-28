@@ -21,23 +21,23 @@
 
     <div>
     @yesNoRadioWithTogglePanel(form("civilServiceExperienceDetails.fastPassReceived"),
-         'id -> "civilServiceExperienceDetails.fastPassReceived",
-         '_label -> "Do you have a Fast Pass certificate?") {
+         Symbol("id") -> "civilServiceExperienceDetails.fastPassReceived",
+         Symbol("_label") -> "Do you have a Fast Pass certificate?") {
         <div id="civilServiceExperienceDetails_fastPassReceived-panel-yes" class="toggle-content">
             <div class="panel-indent text">
                <p>
                    Fast Pass allows you to be fast tracked to the final stages of the Fast Stream selection process. You won't
-                   need to do the online tests (online exercises, work based scenarios and video interview). You can apply using
+                   need to do the online tests (online exercises and work based scenarios). You can apply using
                    your Fast Pass if you have not used it before.
                </p>
                <p>Some schemes require you to pass the additional information stage before attending the assessment centre.</p>
             </div>
             @helper.inputText(form("civilServiceExperienceDetails.certificateNumber"),
-                'id -> "civilServiceExperienceDetails.certificateNumber",
-                '_label -> "Enter your certificate number",
-                '_help -> "You can find this at the top of the certificate",
-                'class -> "form-control form-control-1-3 med-btm-margin",
-                '_showConstraints -> false)
+                Symbol("id") -> "civilServiceExperienceDetails.certificateNumber",
+                Symbol("_label") -> "Enter your certificate number",
+                Symbol("_help") -> "You can find this at the top of the certificate",
+                Symbol("class") -> "form-control form-control-1-3 med-btm-margin",
+                Symbol("_showConstraints") -> false)
         </div>
     }
 </div>
