@@ -37,6 +37,7 @@ GET     /candidate-application/expire-online-tests/:phase                       
 GET     /candidate-application/evaluate-phase1-candidate                            @controllers.testdata.TestJobsController.evaluatePhase1OnlineTestsCandidate
 GET     /candidate-application/evaluate-phase2-candidate                            @controllers.testdata.TestJobsController.evaluatePhase2EtrayCandidate
 GET     /candidate-application/evaluate-phase3-candidate                            @controllers.testdata.TestJobsController.evaluatePhase3VideoInterviewCandidate
+GET     /candidate-application/skip-phase3                                          @controllers.testdata.TestJobsController.processSkipPhase3Job
 GET     /candidate-application/process-phase1-success                               @controllers.testdata.TestJobsController.processSuccessPhase1TestJob
 GET     /candidate-application/process-phase3-success                               @controllers.testdata.TestJobsController.processSuccessPhase3TestJob
 GET     /candidate-application/process-phase3-sdip-success                          @controllers.testdata.TestJobsController.processSuccessPhase3SdipTestJob

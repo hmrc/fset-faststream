@@ -4,7 +4,7 @@ import factories.ITDateTimeFactoryMock
 import model.ProgressStatuses.ProgressStatus
 import model.SchemeId
 import model.persisted.phase3tests.Phase3TestGroup
-import model.persisted.{Phase1TestProfile, Phase2TestGroup}
+import model.persisted.{Phase1TestProfile, Phase2TestGroup, SchemeEvaluationResult}
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
@@ -138,7 +138,8 @@ trait ApplicationDataFixture {
                                      phase2TestGroup: Option[Phase2TestGroup] = None,
                                      phase3TestGroup: Option[Phase3TestGroup] = None,
                                      typeOfEtrayOnlineAdjustments: List[String] = List("etrayTimeExtension", "etrayOther"),
-                                     applicationRoute: String = "Faststream"
+                                     applicationRoute: String = "Faststream",
+                                     currentSchemeStatus: Option[Seq[SchemeEvaluationResult]] = None
                                     ) = {
 
     def civilServiceExperienceDetails(fastPassApplicable: Boolean, fastPassReceived: Boolean, fastPassAcceptedOpt: Option[Boolean]) = {
@@ -157,9 +158,7 @@ trait ApplicationDataFixture {
         "firstName" -> s"${testCandidate("firstName")}",
         "lastName" -> s"${testCandidate("lastName")}",
         "preferredName" -> s"${testCandidate("preferredName")}",
-        "dateOfBirth" -> s"${testCandidate("dateOfBirth")}"//,
-//        "aLevel" -> true, //TODO: mongo no longer needed
-//        "stemLevel" -> true
+        "dateOfBirth" -> s"${testCandidate("dateOfBirth")}"
       ),
       "civil-service-experience-details" -> civilServiceExperienceDetails(fastPassApplicable, fastPassReceived, fastPassAccepted),
       "assistance-details" -> createAssistanceDetails(needsSupportForOnlineAssessment, adjustmentsConfirmed, timeExtensionAdjustments,
@@ -168,7 +167,8 @@ trait ApplicationDataFixture {
       "progress-status" -> progressStatus(additionalProgressStatuses),
       "scheme-preferences" -> schemes,
       "testGroups" -> testGroups(phase1TestProfile, phase2TestGroup, phase3TestGroup)
-    )
+    ) ++
+      currentSchemeStatus.map(css => Document("currentSchemeStatus" -> Codecs.toBson(css))).getOrElse(Document.empty)
     applicationCollection.insertOne(doc).toFuture()
   }
   // scalastyle:on method.length

@@ -5,10 +5,14 @@ import connectors.launchpadgateway.exchangeobjects.in.{SetupProcessCallbackReque
 import model.ProgressStatuses.{PHASE3_TESTS_PASSED_WITH_AMBER, _}
 import model.persisted.phase3tests.{LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup}
 import model._
+import model.command.ApplicationForSkippingPhase3
+import model.persisted.{PassmarkEvaluation, Phase2TestGroup, SchemeEvaluationResult}
 import org.joda.time.{DateTime, DateTimeZone, LocalDate}
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.Projections
 import repositories.dateTimeToBson
 import testkit.MongoRepositorySpec
+import uk.gov.hmrc.mongo.play.json.Codecs
 
 class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataFixture {
 
@@ -66,6 +70,27 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     PHASE3_TESTS_SECOND_REMINDER, PHASE3_TESTS_COMPLETED, PHASE3_TESTS_RESULTS_RECEIVED, PHASE3_TESTS_FAILED,
     PHASE3_TESTS_FAILED_NOTIFIED, PHASE3_TESTS_PASSED, PHASE3_TESTS_PASSED_WITH_AMBER)
 
+  def fetchPhase3Evaluation(applicationId: String) = {
+    val query = Document(
+      "applicationId" -> applicationId,
+      "testGroups.PHASE3.evaluation.result" ->  Document("$exists" -> true)
+    )
+    val projection = Projections.include(s"testGroups.PHASE3.evaluation.result", "applicationId")
+
+    applicationCollection.find[Document](query).projection(projection).headOption() map { docList =>
+      docList.flatMap { doc =>
+        doc.get("testGroups")
+          .map(_.asDocument().get("PHASE3"))
+          .map(_.asDocument().get("evaluation"))
+          .map(_.asDocument().get("result")).map { bson =>
+          val evaluation = Codecs.fromBson[Seq[SchemeEvaluationResult]](bson)
+          evaluation
+        }
+      }.getOrElse(Nil)
+    }
+  }
+
+
   "Get online test" should {
     "return None if there is no test for the specific user id" in {
       val result = phase3TestRepo.getTestGroup("userId").futureValue
@@ -77,6 +102,116 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       phase3TestRepo.insertOrUpdateTestGroup("appId", TestGroup).futureValue
       val result = phase3TestRepo.getTestGroup("appId").futureValue
       result mustBe Some(TestGroup)
+    }
+  }
+
+  "Skip phase3 test" should {
+    "fetch an application who can skip phase3 test if there is at least a single Green scheme and no Amber schemes at P2 " in {
+      val now =  DateTime.now(DateTimeZone.UTC)
+      val p2 = Phase2TestGroup(
+        expirationDate = now, tests = List(model.Phase2TestExamples.fifthPsiTest(now)),
+        evaluation = Some(
+          PassmarkEvaluation(
+            passmarkVersion = "previousVersion",
+            previousPhasePassMarkVersion = None,
+            result = List(
+              SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
+              SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Red.toString)
+            ),
+            resultVersion = "version1",
+            previousPhaseResultVersion = None
+          )
+        )
+      )
+
+      createApplicationWithAllFields("userId", "appId","testAccountId", "frameworkId", "PHASE2_TESTS_PASSED",
+        additionalProgressStatuses = List((PHASE2_TESTS_PASSED, true)),
+        phase2TestGroup = Some(p2),
+        currentSchemeStatus = Some(Seq(
+          SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
+          SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Red.toString)
+        ))
+      ).futureValue
+
+      val results = phase3TestRepo.nextApplicationsReadyToSkipPhase3(1).futureValue
+
+      results.length mustBe 1
+      results.head.applicationId mustBe "appId"
+    }
+
+    "do not fetch an application who can skip phase3 test if there is a single Amber scheme at P2 " in {
+      val now =  DateTime.now(DateTimeZone.UTC)
+      val p2 = Phase2TestGroup(
+        expirationDate = now, tests = List(model.Phase2TestExamples.fifthPsiTest(now)),
+        evaluation = Some(
+          PassmarkEvaluation(
+            passmarkVersion = "previousVersion",
+            previousPhasePassMarkVersion = None,
+            result = List(
+              SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
+              SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Amber.toString)
+            ),
+            resultVersion = "version1",
+            previousPhaseResultVersion = None
+          )
+        )
+      )
+
+      createApplicationWithAllFields("userId", "appId","testAccountId", "frameworkId", "PHASE2_TESTS_PASSED",
+        additionalProgressStatuses = List((PHASE2_TESTS_PASSED, true)),
+        phase2TestGroup = Some(p2),
+        currentSchemeStatus = Some(Seq(
+          SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
+          SchemeEvaluationResult(SchemeId("ommercial"), EvaluationResults.Amber.toString)
+        ))
+      ).futureValue
+
+      val results = phase3TestRepo.nextApplicationsReadyToSkipPhase3(1).futureValue
+
+      results.length mustBe 0
+    }
+
+    "process an application so they skip to the end of phase 3" in {
+      val now =  DateTime.now(DateTimeZone.UTC)
+      val p2 = Phase2TestGroup(
+        expirationDate = now, tests = List(model.Phase2TestExamples.fifthPsiTest(now)),
+        evaluation = Some(
+          PassmarkEvaluation(
+            passmarkVersion = "previousVersion",
+            previousPhasePassMarkVersion = None,
+            result = List(
+              SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
+              SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Red.toString)
+            ),
+            resultVersion = "version1",
+            previousPhaseResultVersion = None
+          )
+        )
+      )
+
+      createApplicationWithAllFields("userId", "appId","testAccountId", "frameworkId", "PHASE2_TESTS_PASSED",
+        additionalProgressStatuses = List((PHASE2_TESTS_PASSED, true)),
+        phase2TestGroup = Some(p2),
+        currentSchemeStatus = Some(Seq(
+          SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
+          SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Red.toString)
+        ))
+      ).futureValue
+
+      val application = ApplicationForSkippingPhase3("appId",
+        currentSchemeStatus = Seq(
+          SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
+          SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Red.toString)
+        )
+      )
+      phase3TestRepo.skipPhase3(application).futureValue
+      val status = helperRepo.findStatus(application.applicationId).futureValue
+      status.status mustBe ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED.toString
+      fetchPhase3Evaluation(application.applicationId).futureValue mustBe
+        Seq(
+          SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
+          SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Red.toString)
+        )
     }
   }
 

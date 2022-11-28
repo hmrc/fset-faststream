@@ -18,24 +18,25 @@ package services.onlinetesting.phase3
 
 import services.AuditService
 import com.google.inject.name.Named
-import common.Phase3TestConcern
+import common.{FutureEx, Phase3TestConcern}
 import config.MicroserviceAppConfig
 import connectors._
 import connectors.launchpadgateway.LaunchpadGatewayClient
 import connectors.launchpadgateway.exchangeobjects.out._
-import factories.{ DateTimeFactory, UUIDFactory }
-import javax.inject.{ Inject, Singleton }
+import factories.{DateTimeFactory, UUIDFactory}
+
+import javax.inject.{Inject, Singleton}
 import model.Exceptions.NotFoundException
 import model.OnlineTestCommands._
 import model.ProgressStatuses._
 import model._
-import model.command.ProgressResponse
-import model.exchange.{ Phase3TestGroupWithActiveTest, PsiRealTimeResults }
-import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
-import model.persisted.{ NotificationExpiringOnlineTest, Phase3TestGroupWithAppId }
+import model.command.{ApplicationForSkippingPhase3, ProgressResponse}
+import model.exchange.{Phase3TestGroupWithActiveTest, PsiRealTimeResults}
+import model.persisted.phase3tests.{LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup}
+import model.persisted.{NotificationExpiringOnlineTest, Phase3TestGroupWithAppId}
 import model.stc.StcEventTypes.StcEventType
-import model.stc.{ AuditEvents, DataStoreEvents }
-import org.joda.time.{ DateTime, LocalDate }
+import model.stc.{AuditEvents, DataStoreEvents}
+import org.joda.time.{DateTime, LocalDate}
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -66,6 +67,18 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
   type TestRepository = Phase3TestRepository
 
   val gatewayConfig = appConfig.launchpadGatewayConfig
+
+  def nextApplicationsReadyToSkipPhase3(maxBatchSize: Int): Future[Seq[ApplicationForSkippingPhase3]] = {
+    testRepository.nextApplicationsReadyToSkipPhase3(maxBatchSize)
+  }
+
+  def progressApplicationsToSkipPhase3(applications: Seq[ApplicationForSkippingPhase3])
+  : Future[SerialUpdateResult[ApplicationForSkippingPhase3]] = {
+    val updates = FutureEx.traverseSerial(applications) { application =>
+      FutureEx.futureToEither(application, testRepository.skipPhase3(application))
+    }
+    updates.map(SerialUpdateResult.fromEither)
+  }
 
   override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[Seq[OnlineTestApplication]] = {
     testRepository.nextApplicationsReadyForOnlineTesting(maxBatchSize: Int)

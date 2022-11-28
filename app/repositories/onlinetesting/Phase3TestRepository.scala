@@ -22,10 +22,12 @@ import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.{ApplicationNotFound, NotFoundException, TokenNotFound}
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
+import model.command.ApplicationForSkippingPhase3
 import model.persisted.phase3tests.Phase3TestGroup
 import model.persisted.{NotificationExpiringOnlineTest, PassmarkEvaluation, Phase3TestGroupWithAppId, SchemeEvaluationResult}
-import model.{ApplicationStatus, ProgressStatuses, ReminderNotice}
+import model.{ApplicationStatus, EvaluationResults, ProgressStatuses, ReminderNotice}
 import org.joda.time.DateTime
+import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.bson.{BsonArray, BsonDocument, BsonString}
 import org.mongodb.scala.model.{Projections, UpdateOptions}
@@ -33,7 +35,7 @@ import play.api.libs.json.{Reads, Writes}
 import repositories._
 import repositories.onlinetesting.Phase3TestRepository.CannotFindTestByLaunchpadId
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
+import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -61,6 +63,8 @@ trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
   def updateExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit]
   def updateResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
   def addResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
+  def nextApplicationsReadyToSkipPhase3(batchSize: Int): Future[Seq[ApplicationForSkippingPhase3]]
+  def skipPhase3(application: ApplicationForSkippingPhase3): Future[Unit]
 }
 
 @Singleton
@@ -305,6 +309,41 @@ class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
     ))
 
     nextTestForReminder(reminder, progressStatusQuery)
+  }
+
+  // Additional collection configured to work with the appropriate domainFormat and automatically register the
+  // codec to work with BSON serialization
+  val applicationForSkippingCollection: MongoCollection[ApplicationForSkippingPhase3] =
+  CollectionFactory.collection(
+    collectionName = CollectionNames.APPLICATION,
+    db = mongoComponent.database,
+    domainFormat = ApplicationForSkippingPhase3.applicationForSkippingPhase3
+  )
+
+  override def nextApplicationsReadyToSkipPhase3(batchSize: Int): Future[Seq[ApplicationForSkippingPhase3]] = {
+    // Applications that we need to move to a state where they have passed phase3:
+    // They need to be in PHASE2_TESTS_PASSED
+    // They must have at least one P2 scheme evaluated to Green
+    // And no Amber banded schemes because all schemes must in a terminal evaluation state (Greens or Reds)
+    val query = Document("$and" -> BsonArray(
+      Document("applicationStatus" -> ApplicationStatus.PHASE2_TESTS_PASSED.toBson),
+      Document(s"testGroups.PHASE2.evaluation.result" -> Document("$elemMatch" -> Document("result" -> EvaluationResults.Green.toString))),
+      Document(s"testGroups.PHASE2.evaluation.result" ->
+        Document("$not" -> Document("$elemMatch" -> Document("result" -> EvaluationResults.Amber.toString))))
+      )
+    )
+    selectRandom[ApplicationForSkippingPhase3](applicationForSkippingCollection, query, batchSize)
+  }
+
+  override def skipPhase3(application: ApplicationForSkippingPhase3): Future[Unit] = {
+    val query = Document("applicationId" -> application.applicationId)
+    val update = Document("$set" -> Document(
+      "testGroups.PHASE3.evaluation.result" -> Codecs.toBson(application.currentSchemeStatus),
+      "applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED.toBson
+    ))
+
+    val validator = singleUpdateValidator(application.applicationId, actionDesc = s"Skipping Phase3 for ${application.applicationId}")
+    collection.updateOne(query, update).toFuture() map validator
   }
 
   private def findAndUpdateLaunchpadTest(launchpadInviteId: String, update: BsonDocument,
