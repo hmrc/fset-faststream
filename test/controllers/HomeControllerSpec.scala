@@ -233,7 +233,8 @@ class HomeControllerSpec extends BaseControllerSpec {
       content must not include phase3ResultsReportLink
     }
 
-    "display the expected test result urls in the online test progress page when candidate has failed P3 tests" in new TestFixture {
+    // TODO: put this back once we integrate with a new video interview supplier
+    "display the expected test result urls in the online test progress page when candidate has failed P3 tests" ignore new TestFixture {
       val phase3TestsFailedApplication = SubmittedApplication.copy(applicationStatus = ApplicationStatus.PHASE3_TESTS_FAILED,
         progress = ProgressExamples.Phase3TestsFailedCumulative)
       val candidateState = CachedDataWithApp(ActiveCandidate.user,

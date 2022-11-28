@@ -62,7 +62,7 @@
                 @{ phase2Test.getExpireDateLondon }</strong>.
             </p>
             <div id="etrayTestButton">
-                @helper.form(action = routes.PsiTestController.startPhase2Tests, 'novalidate -> "novalidate") {
+                @helper.form(action = routes.PsiTestController.startPhase2Tests, Symbol("novalidate") -> "novalidate") {
                     @helper.CSRF.formField
                     @{
                         if(!phase2Test.areStarted) {
@@ -99,7 +99,7 @@
 
 @displayTestPageLink(psiTestPage: PsiTestPage, testName: String) = {
     @psiTestPage.testReportUrl.map { reportUrl =>
-        @if(testName == "Numeric test") {
+        @if(testName == "Numerical test") {
             <span>@Messages("p1.numeric.test.feedback")</span>
         } else {
             <a href="@reportUrl" target="_blank" id="@generatePsiTestId(psiTestPage)">
@@ -174,11 +174,13 @@
                         <span class="font-xsmall">- locked</span>
                     </p>
                 </li>
+@*
                 <li id="phase3TestsSection">
                     <p class="med-btm-margin"><i class="fa fa-lock the-icon" aria-hidden="true"></i>Video interview
                         <span class="font-xsmall">- locked</span>
                     </p>
                 </li>
+*@
             </ul>
         } else { @if(isEdip(cachedUserData) || isSdip(cachedUserData)) {
                 <ul class="list-text list-withicons" id="testsIndividual">
@@ -249,7 +251,7 @@
                             }</strong>.
                         </p>
                         <div id="testsButtonContainer">
-                        @helper.form(action = routes.PsiTestController.startPhase1Tests, 'novalidate -> "novalidate") {
+                        @helper.form(action = routes.PsiTestController.startPhase1Tests, Symbol("novalidate") -> "novalidate") {
                             @helper.CSRF.formField
                             @{
                                 if(!phase1TestsPage.areStarted) {
@@ -361,6 +363,7 @@
                     }
                     case _ => {}
                 }
+@*
                 @(dashboardPage.isPhase3TestGroupExpired, dashboardPage.isPhase3TestFailed, dashboardPage.shouldDisplayPhase3TestFeedbackReport, dashboardPage.phase3TestsPage, dashboardPage.phase2TestsPage, dashboardPage.phase1TestsPage) match {
                     case (true, _, _, Some(phase3TestsPage), _, _) => {
                         <li id="phase3TestsSection">
@@ -408,6 +411,7 @@
                             <p>Unlocked if you're successful in the work based scenarios</p>
                         </li>
                     }
+
                     case (false, false, _, Some(phase3TestsPage), _, _) => {
                         @if(phase3TestsPage.isCompleted) {
                             <li id="phase3TestsSection">
@@ -436,7 +440,7 @@
                                             <strong id="videoExpiryDate">@{ phase3TestsPage.getExpireDateLondon }</strong>.
                                         </p>
                                         <div id="videoTestButton">
-                                            @helper.form(action = routes.LaunchpadTestController.startPhase3Tests, 'novalidate -> "novalidate") {
+                                            @helper.form(action = routes.LaunchpadTestController.startPhase3Tests, Symbol("novalidate") -> "novalidate") {
                                                 @helper.CSRF.formField
                                                 @if(!phase3TestsPage.isStarted) {
                                                     <button id="videoButton" type="submit" value="submit" class="button">
@@ -455,6 +459,7 @@
                     }
                     case _ => {}
                 }
+*@
             }
         </ul>
     }

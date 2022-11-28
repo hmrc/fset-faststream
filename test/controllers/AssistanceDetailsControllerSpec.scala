@@ -129,7 +129,7 @@ class AssistanceDetailsControllerSpec extends BaseControllerSpec {
 
   trait TestFixture extends BaseControllerTestFixture {
     val phoneText = "Will you need any support for your phone interview?"
-    val onlineTestText = "Will you need any support for your work based scenarios, video interview or numerical test?"
+    val onlineTestText = "Will you need any support for your work based scenarios or numerical test?"
 
     def controller(implicit candWithApp: CachedDataWithApp = currentCandidateWithApp) = {
       val formWrapper = new AssistanceDetailsForm
