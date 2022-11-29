@@ -70,8 +70,8 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
 
     "return siftable schemes" in new TestFixture {
       val expectedSiftableSchemes = Seq(
-        SchemeId("Commercial"), SchemeId("DiplomaticAndDevelopment"),
-        SchemeId("DiplomaticAndDevelopmentEconomics"), SchemeId("Finance"), SchemeId("GovernmentCommunicationService"),
+        SchemeId("DiplomaticAndDevelopment"),
+        SchemeId("DiplomaticAndDevelopmentEconomics"), SchemeId("GovernmentCommunicationService"),
         SchemeId("GovernmentEconomicsService"), SchemeId("GovernmentOperationalResearchService"),
         SchemeId("GovernmentSocialResearchService"), SchemeId("GovernmentStatisticalService"),
         SchemeId("HousesOfParliament"), SchemeId("ProjectDelivery"),
@@ -84,8 +84,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
 
     "return siftable and evaluation required schemes" in new TestFixture {
       val expectedSiftableAndEvaluationRequiredSchemes = Seq(
-        SchemeId("Commercial"), SchemeId("DiplomaticAndDevelopmentEconomics"),
-        SchemeId("Finance"), SchemeId("GovernmentEconomicsService"),
+        SchemeId("DiplomaticAndDevelopmentEconomics"), SchemeId("GovernmentEconomicsService"),
         SchemeId("GovernmentOperationalResearchService"), SchemeId("GovernmentSocialResearchService"),
         SchemeId("GovernmentStatisticalService"), SchemeId("ScienceAndEngineering")
       )
@@ -95,7 +94,8 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
 
     "return no sift evaluation required scheme ids" in new TestFixture {
       val expected = Seq(
-        SchemeId("CyberSecurity"), SchemeId("DiplomaticAndDevelopment"),
+        SchemeId("Commercial"), SchemeId("CyberSecurity"),
+        SchemeId("DiplomaticAndDevelopment"), SchemeId("Finance"),
         SchemeId("Generalist"), SchemeId("GeneralistSTEM"), SchemeId("GovernmentCommunicationService"),
         SchemeId("HousesOfParliament"), SchemeId("HumanResources"),
         SchemeId("ProjectDelivery"), SchemeId("Property"),
@@ -107,13 +107,16 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
 
     "return non siftable schemes" in new TestFixture {
       repo.nonSiftableSchemeIds must contain theSameElementsAs
-        Seq(SchemeId("CyberSecurity"), SchemeId("Generalist"),
-          SchemeId("GeneralistSTEM"), SchemeId("HumanResources"), SchemeId("Property"))
+        Seq(
+          SchemeId("Commercial"), SchemeId("CyberSecurity"),
+          SchemeId("Finance"), SchemeId("Generalist"),
+          SchemeId("GeneralistSTEM"), SchemeId("HumanResources"), SchemeId("Property")
+        )
     }
 
     "return numeric test sift schemes" in new TestFixture {
       val numericTestSchemes = repo.numericTestSiftRequirementSchemeIds
-      numericTestSchemes must contain theSameElementsAs(Seq(SchemeId("Commercial"), SchemeId("Finance")))
+      numericTestSchemes must contain theSameElementsAs(Nil)
     }
 
     "return form must be filled in sift schemes" in new TestFixture {
