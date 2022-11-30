@@ -163,7 +163,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
 
   "Get Scheme Results" must {
     "return the scheme results for an application" in new TestFixture {
-      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString))
+      val resultToSave = List(SchemeEvaluationResult(SchemeId("CyberSecurity"), Green.toString))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version2", None)
       when(mockPassmarkService.getPassmarkEvaluation(any[String])).thenReturn(Future.successful(evaluation))
 

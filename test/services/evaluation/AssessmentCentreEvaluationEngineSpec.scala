@@ -27,7 +27,7 @@ import services.BaseServiceSpec
 class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
 
   val commercial = "Commercial"
-  val digitalDataTechnologyAndCyber = "DigitalDataTechnologyAndCyber"
+  val cyberSecurity = "CyberSecurity"
   val diplomaticAndDevelopment = "DiplomaticAndDevelopment"
 
   val applicationId = UniqueIdentifier.randomUniqueIdentifier
@@ -280,7 +280,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
           communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
           workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(1.0, 3.0),
           overall = PassMarkThreshold(10.0, 15.0))),
-        AssessmentCentrePassMark(SchemeId(digitalDataTechnologyAndCyber), AssessmentCentrePassMarkThresholds(
+        AssessmentCentrePassMark(SchemeId(cyberSecurity), AssessmentCentrePassMarkThresholds(
           seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
           makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
           communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
@@ -310,13 +310,13 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
       )
 
       // List of schemes for which the candidate will be evaluated
-      val candidateSchemes = List(SchemeId(commercial), SchemeId(digitalDataTechnologyAndCyber), SchemeId(diplomaticAndDevelopment))
+      val candidateSchemes = List(SchemeId(commercial), SchemeId(cyberSecurity), SchemeId(diplomaticAndDevelopment))
       val candidateScore = AssessmentPassMarksSchemesAndScores(passMarkSettings, candidateSchemes, candidateScores)
 
       val result = evaluationEngine.evaluate(candidateScore)
       result.schemesEvaluation mustBe List(
         SchemeEvaluationResult(SchemeId(commercial), Amber.toString),
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), Amber.toString),
+        SchemeEvaluationResult(SchemeId(cyberSecurity), Amber.toString),
         SchemeEvaluationResult(SchemeId(diplomaticAndDevelopment), Red.toString)
       )
 
