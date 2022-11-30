@@ -232,7 +232,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
         SchemeEvaluationResult(SchemeId(commercial), Green.toString),          // numeric test, evaluation required
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), Green.toString) // form to be filled in, no evaluation required
+        SchemeEvaluationResult(SchemeId(cyberSecurity), Green.toString) // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -266,7 +266,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
         SchemeEvaluationResult(SchemeId(commercial), "Green"),          // numeric test, evaluation required
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(SchemeId(cyberSecurity), "Green") // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -301,7 +301,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
         SchemeEvaluationResult(SchemeId(commercial), "Green"),          // numeric test, evaluation required
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(SchemeId(cyberSecurity), "Green") // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -312,7 +312,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
 
-      val withdraw = WithdrawScheme(SchemeId(digitalDataTechnologyAndCyber), "reason", "Candidate")
+      val withdraw = WithdrawScheme(SchemeId(cyberSecurity), "reason", "Candidate")
 
       underTest.withdraw(applicationId, withdraw).futureValue
 
@@ -333,7 +333,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
         SchemeEvaluationResult(SchemeId(commercial), "Green"),          // numeric test, evaluation required
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(SchemeId(cyberSecurity), "Green") // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -367,7 +367,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), "Green"), // form to be filled in, no evaluation required
+        SchemeEvaluationResult(SchemeId(cyberSecurity), "Green"), // form to be filled in, no evaluation required
         SchemeEvaluationResult(SchemeId(generalist), "Green")            // no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
@@ -378,7 +378,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_ENTERED), None, None))
 
-      val withdraw = WithdrawScheme(SchemeId(digitalDataTechnologyAndCyber), "reason", "Candidate")
+      val withdraw = WithdrawScheme(SchemeId(cyberSecurity), "reason", "Candidate")
 
       underTest.withdraw(applicationId, withdraw).futureValue
 
@@ -400,7 +400,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), "Green"), // form to be filled in, no evaluation required
+        SchemeEvaluationResult(SchemeId(cyberSecurity), "Green"), // form to be filled in, no evaluation required
         SchemeEvaluationResult(SchemeId(generalist), "Green")            // no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
@@ -411,7 +411,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_READY), None, None))
 
-      val withdraw = WithdrawScheme(SchemeId(digitalDataTechnologyAndCyber), "reason", "Candidate")
+      val withdraw = WithdrawScheme(SchemeId(cyberSecurity), "reason", "Candidate")
 
       underTest.withdraw(applicationId, withdraw).futureValue
 
@@ -435,7 +435,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
         // GovernmentEconomicsService - Form to be filled in, evaluation required (will stop us moving to FSAC)
         SchemeEvaluationResult(SchemeId(governmentEconomicsService), "Green"), // form to be filled in, evaluation required
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(SchemeId(cyberSecurity), "Green") // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -445,7 +445,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_ENTERED), None, None))
 
-      val withdraw = WithdrawScheme(SchemeId(digitalDataTechnologyAndCyber), "reason", "Candidate")
+      val withdraw = WithdrawScheme(SchemeId(cyberSecurity), "reason", "Candidate")
 
       underTest.withdraw(applicationId, withdraw).futureValue
 
@@ -468,7 +468,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), "Green"), // form to be filled in, no evaluation required
+        SchemeEvaluationResult(SchemeId(cyberSecurity), "Green"), // form to be filled in, no evaluation required
         SchemeEvaluationResult(SchemeId(commercial), "Green")            // numeric test, evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
@@ -536,7 +536,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
         SchemeEvaluationResult(SchemeId(sdip), "Green"),                // form to be filled in, evaluation required
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(SchemeId(cyberSecurity), "Green") // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -604,7 +604,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
         SchemeEvaluationResult(SchemeId(sdip), "Green"),                // form to be filled in, evaluation required
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(SchemeId(cyberSecurity), "Green") // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -615,7 +615,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.SdipFaststream,
           Some(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION), None, None))
 
-      val withdraw = WithdrawScheme(SchemeId(digitalDataTechnologyAndCyber), "reason", "Candidate")
+      val withdraw = WithdrawScheme(SchemeId(cyberSecurity), "reason", "Candidate")
 
       underTest.withdraw(applicationId, withdraw).futureValue
 
@@ -639,7 +639,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
         SchemeEvaluationResult(SchemeId(sdip), "Green"),                // form to be filled in, evaluation required
         SchemeEvaluationResult(SchemeId(commercial), "Red"),            // numeric test, evaluation required (already been sifted with a fail)
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(SchemeId(cyberSecurity), "Green") // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -650,7 +650,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.SdipFaststream,
           Some(ProgressStatuses.SIFT_COMPLETED), None, None))
 
-      val withdraw = WithdrawScheme(SchemeId(digitalDataTechnologyAndCyber), "reason", "Candidate")
+      val withdraw = WithdrawScheme(SchemeId(cyberSecurity), "reason", "Candidate")
 
       underTest.withdraw(applicationId, withdraw).futureValue
 
@@ -676,7 +676,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
         SchemeEvaluationResult(SchemeId(sdip), "Green"),                // form to be filled in, evaluation required (sifted with a pass)
         SchemeEvaluationResult(SchemeId(commercial), "Green"),          // numeric test, evaluation required (sifted with a pass)
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(SchemeId(cyberSecurity), "Green") // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -687,7 +687,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.SdipFaststream,
           Some(ProgressStatuses.SIFT_COMPLETED), None, None))
 
-      val withdraw = WithdrawScheme(SchemeId(digitalDataTechnologyAndCyber), "reason", "Candidate")
+      val withdraw = WithdrawScheme(SchemeId(cyberSecurity), "reason", "Candidate")
 
       underTest.withdraw(applicationId, withdraw).futureValue
 
@@ -708,7 +708,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
         SchemeEvaluationResult(SchemeId(generalist), "Green"),          // nothing required
         SchemeEvaluationResult(SchemeId(commercial), "Green"),          // numeric test, evaluation required
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(SchemeId(cyberSecurity), "Green") // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -719,7 +719,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream,
           Some(ProgressStatuses.SIFT_ENTERED), None, None))
 
-      val withdraw = WithdrawScheme(SchemeId(digitalDataTechnologyAndCyber), "reason", "Candidate")
+      val withdraw = WithdrawScheme(SchemeId(cyberSecurity), "reason", "Candidate")
 
       underTest.withdraw(applicationId, withdraw).futureValue
 
@@ -740,7 +740,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
         SchemeEvaluationResult(SchemeId(commercial), "Green"),          // numeric test, evaluation required
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(SchemeId(cyberSecurity), "Green") // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -751,7 +751,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream,
           Some(ProgressStatuses.SIFT_ENTERED), None, None))
 
-      val withdraw = WithdrawScheme(SchemeId(digitalDataTechnologyAndCyber), "reason", "Candidate")
+      val withdraw = WithdrawScheme(SchemeId(cyberSecurity), "reason", "Candidate")
 
       underTest.withdraw(applicationId, withdraw).futureValue
 
@@ -810,7 +810,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
         SchemeEvaluationResult(SchemeId(generalist), "Green"),          // numeric test, evaluation required
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(SchemeId(cyberSecurity), "Green") // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -821,7 +821,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream,
           Some(ProgressStatuses.SIFT_ENTERED), None, None))
 
-      val withdraw = WithdrawScheme(SchemeId(digitalDataTechnologyAndCyber), "reason", "Candidate")
+      val withdraw = WithdrawScheme(SchemeId(cyberSecurity), "reason", "Candidate")
 
       underTest.withdraw(applicationId, withdraw).futureValue
 
@@ -847,7 +847,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         SchemeEvaluationResult(SchemeId(generalist), "Green"),          // nothing required
         SchemeEvaluationResult(SchemeId(governmentEconomicsService), "Green"),   // form to be filled in, evaluation required
         SchemeEvaluationResult(SchemeId(commercial), "Green"),          // numeric test, evaluation required
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(SchemeId(cyberSecurity), "Green") // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -858,7 +858,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream,
           Some(ProgressStatuses.SIFT_ENTERED), None, None))
 
-      val withdraw = WithdrawScheme(SchemeId(digitalDataTechnologyAndCyber), "reason", "Candidate")
+      val withdraw = WithdrawScheme(SchemeId(cyberSecurity), "reason", "Candidate")
 
       underTest.withdraw(applicationId, withdraw).futureValue
 
@@ -1135,7 +1135,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
     val business = "Business"
     val commercial = "Commercial"
-    val digitalDataTechnologyAndCyber = "DigitalDataTechnologyAndCyber"
+    val cyberSecurity = "CyberSecurity"
     val governmentEconomicsService = "GovernmentEconomicsService"
     val edip = "Edip"
     val finance = "Finance"
@@ -1149,14 +1149,14 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
     val sdip = "Sdip"
 
     val schemeRepoMock = new TestSchemeRepository {
-      override lazy val siftableSchemeIds = Seq(SchemeId(commercial), SchemeId(digitalDataTechnologyAndCyber), SchemeId(governmentEconomicsService))
-      override lazy val noSiftEvaluationRequiredSchemeIds = Seq(SchemeId(digitalDataTechnologyAndCyber), SchemeId(edip), SchemeId(generalist),
+      override lazy val siftableSchemeIds = Seq(SchemeId(commercial), SchemeId(cyberSecurity), SchemeId(governmentEconomicsService))
+      override lazy val noSiftEvaluationRequiredSchemeIds = Seq(SchemeId(cyberSecurity), SchemeId(edip), SchemeId(generalist),
         SchemeId(governmentCommunicationService), SchemeId(housesOfParliament), SchemeId(humanResources), SchemeId(projectDelivery),
         SchemeId(scienceAndEngineering)
       )
       override lazy val nonSiftableSchemeIds = Seq(SchemeId(generalist), SchemeId(humanResources))
       override lazy val numericTestSiftRequirementSchemeIds = Seq(SchemeId(commercial), SchemeId(finance))
-      override lazy val formMustBeFilledInSchemeIds = Seq(SchemeId(digitalDataTechnologyAndCyber), SchemeId(governmentEconomicsService))
+      override lazy val formMustBeFilledInSchemeIds = Seq(SchemeId(cyberSecurity), SchemeId(governmentEconomicsService))
       override lazy val siftableAndEvaluationRequiredSchemeIds = Seq(SchemeId(commercial), SchemeId(governmentEconomicsService))
     }
 

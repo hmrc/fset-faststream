@@ -55,7 +55,7 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     val phase2PassMarkSettingsTable = Table[SchemeId, Double, Double, Double, Double](
       ("Scheme Name", "Test1 Fail Threshold", "Test1 Pass Threshold", "Test2 Fail Threshold", "Test2 Pass Threshold"),
       (SchemeId("Commercial"), 20.0, 80.0, 20.0, 80.0),
-      (SchemeId("DigitalDataTechnologyAndCyber"), 20.001, 20.001, 20.001, 20.001),
+      (SchemeId("CyberSecurity"), 20.001, 20.001, 20.001, 20.001),
       (SchemeId("DiplomaticAndDevelopment"), 20.01, 20.02, 20.01, 20.02),
       (SchemeId("DiplomaticAndDevelopmentEconomics"), 30.0, 70.0, 30.0, 70.0),
       (SchemeId("DiplomaticServiceEuropean"), 30.0, 70.0, 30.0, 70.0),

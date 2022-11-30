@@ -33,7 +33,7 @@ class SiftAnswersServiceSpec extends ScalaMockUnitWithAppSpec {
   val Commercial = Scheme(SchemeId("Commercial"), "CFS", "Commercial", civilServantEligible = true,
     degree = None, siftEvaluationRequired = true, siftRequirement = Some(SiftRequirement.NUMERIC_TEST),
     fsbType = None, schemeGuide = None, schemeQuestion = None)
-  val DDTaC = Scheme(SchemeId("DigitalDataTechnologyAndCyber"), "DDTaC", "Digital, Data, Technology & Cyber Fast Stream",
+  val DDTaC = Scheme(SchemeId("CyberSecurity"), "DDTaC", "Cyber Security",
     civilServantEligible = false, degree = None, siftEvaluationRequired = true, siftRequirement = Some(SiftRequirement.FORM),
     fsbType = None, schemeGuide = None, schemeQuestion = None)
   val HoP = Scheme(SchemeId("HousesOfParliament"), "HoP", "Houses of Parliament", civilServantEligible = false,
