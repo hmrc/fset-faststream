@@ -23,7 +23,7 @@ object ReferenceDataExamples {
   object Schemes {
     val Commercial = Scheme("Commercial", "CFS", "Commercial", civilServantEligible = false, degree = None, Some(SiftRequirement.NUMERIC_TEST),
       siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
-    val DDTaC = Scheme("DigitalDataTechnologyAndCyber", "DDTAC", "Digital, Data, Technology & Cyber Fast Stream", civilServantEligible = false,
+    val DDTaC = Scheme("CyberSecurity", "DDTAC", "Cyber Security", civilServantEligible = false,
       degree = None, Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)
     val Dip = Scheme("DiplomaticAndDevelopment", "DS", "Diplomatic and Development", civilServantEligible = false, degree = None,
       Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None)

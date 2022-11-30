@@ -36,7 +36,7 @@ class SelectedSchemesFormSpec extends BaseFormSpec {
         "scheme_0" -> "Finance",
         "scheme_1" -> "GovernmentEconomicsService",
         "scheme_2" -> "Commercial",
-        "scheme_3" -> "DigitalDataTechnologyAndCyber",
+        "scheme_3" -> "CyberSecurity",
         "orderAgreed" -> "true",
         "eligible" -> "true"))
       form.hasErrors mustBe false
@@ -91,7 +91,7 @@ class SelectedSchemesFormSpec extends BaseFormSpec {
         "scheme_0" -> "Finance",
         "scheme_1" -> "GovernmentEconomicsService",
         "scheme_2" -> "Commercial",
-        "scheme_3" -> "DigitalDataTechnologyAndCyber",
+        "scheme_3" -> "CyberSecurity",
         "scheme_4" -> "GovernmentDiplomaticService",
         "orderAgreed" -> "true",
         "eligible" -> "true"))
@@ -113,7 +113,7 @@ class SelectedSchemesFormSpec extends BaseFormSpec {
         "scheme_0" -> "Finance",
         "scheme_1" -> "GovernmentEconomicsService",
         "scheme_2" -> "Commercial",
-        "scheme_3" -> "DigitalDataTechnologyAndCyber",
+        "scheme_3" -> "CyberSecurity",
         "scheme_4" -> "Sdip",
         "orderAgreed" -> "true",
         "eligible" -> "true"))
@@ -126,7 +126,7 @@ class SelectedSchemesFormSpec extends BaseFormSpec {
         "scheme_0" -> "Finance",
         "scheme_1" -> "GovernmentEconomicsService",
         "scheme_2" -> "Commercial",
-        "scheme_3" -> "DigitalDataTechnologyAndCyber",
+        "scheme_3" -> "CyberSecurity",
         "scheme_4" -> "GovernmentDiplomaticService",
         "scheme_5" -> "Sdip",
         "orderAgreed" -> "true",
@@ -140,7 +140,7 @@ class SelectedSchemesFormSpec extends BaseFormSpec {
         "scheme_0" -> "Finance",
         "scheme_1" -> "GovernmentEconomicsService",
         "scheme_2" -> "Commercial",
-        "scheme_3" -> "DigitalDataTechnologyAndCyber",
+        "scheme_3" -> "CyberSecurity",
         "scheme_4" -> "GovernmentDiplomaticService",
         "orderAgreed" -> "true",
         "eligible" -> "true"))
