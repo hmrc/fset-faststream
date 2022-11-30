@@ -49,7 +49,7 @@ class PostOnlineTestsPageSpec extends UnitSpec {
 
     "be correctly built candidates after phase 3" in {
       val phase3Results = SchemeEvaluationResultWithFailureDetails(SchemeId("Commercial"), SchemeStatus.Red.toString)  ::
-        SchemeEvaluationResultWithFailureDetails(SchemeId("DigitalDataTechnologyAndCyber"), SchemeStatus.Red.toString) ::
+        SchemeEvaluationResultWithFailureDetails(SchemeId("CyberSecurity"), SchemeStatus.Red.toString) ::
         SchemeEvaluationResultWithFailureDetails(SchemeId("HumanResources"), SchemeStatus.Green.toString) ::
       Nil
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application,
@@ -93,7 +93,7 @@ class PostOnlineTestsPageSpec extends UnitSpec {
 
     "indicate all schemes are failed when allSchemesFailed is called and all schemes are red" in {
       val phase3ResultsAllRed = SchemeEvaluationResultWithFailureDetails(SchemeId("Commercial"), SchemeStatus.Red.toString)  ::
-        SchemeEvaluationResultWithFailureDetails(SchemeId("DigitalDataTechnologyAndCyber"), SchemeStatus.Red.toString) ::
+        SchemeEvaluationResultWithFailureDetails(SchemeId("CyberSecurity"), SchemeStatus.Red.toString) ::
         SchemeEvaluationResultWithFailureDetails(SchemeId("HumanResources"), SchemeStatus.Red.toString) ::
         Nil
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application,
@@ -108,7 +108,7 @@ class PostOnlineTestsPageSpec extends UnitSpec {
 
     "not indicate all schemes are failed when allSchemesFailed is called and one scheme is green" in {
       val phase3ResultsOneGreen = SchemeEvaluationResultWithFailureDetails(SchemeId("Commercial"), SchemeStatus.Red.toString)  ::
-        SchemeEvaluationResultWithFailureDetails(SchemeId("DigitalDataTechnologyAndCyber"), SchemeStatus.Red.toString) ::
+        SchemeEvaluationResultWithFailureDetails(SchemeId("CyberSecurity"), SchemeStatus.Red.toString) ::
         SchemeEvaluationResultWithFailureDetails(SchemeId("HumanResources"), SchemeStatus.Green.toString) ::
         Nil
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application,
@@ -123,7 +123,7 @@ class PostOnlineTestsPageSpec extends UnitSpec {
 
     "indicate passed when firstResidualPreferencePassed is called and schemes are: Green, Green, Green" in {
       val schemeResults = SchemeEvaluationResultWithFailureDetails(SchemeId("Commercial"), SchemeStatus.Green.toString)  ::
-        SchemeEvaluationResultWithFailureDetails(SchemeId("DigitalDataTechnologyAndCyber"), SchemeStatus.Green.toString) ::
+        SchemeEvaluationResultWithFailureDetails(SchemeId("CyberSecurity"), SchemeStatus.Green.toString) ::
         SchemeEvaluationResultWithFailureDetails(SchemeId("HumanResources"), SchemeStatus.Green.toString) ::
         Nil
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application,
@@ -138,7 +138,7 @@ class PostOnlineTestsPageSpec extends UnitSpec {
 
     "indicate passed when firstResidualPreferencePassed is called and schemes are: Red, Red, Green" in {
       val schemeResults = SchemeEvaluationResultWithFailureDetails(SchemeId("Commercial"), SchemeStatus.Red.toString)  ::
-        SchemeEvaluationResultWithFailureDetails(SchemeId("DigitalDataTechnologyAndCyber"), SchemeStatus.Red.toString) ::
+        SchemeEvaluationResultWithFailureDetails(SchemeId("CyberSecurity"), SchemeStatus.Red.toString) ::
         SchemeEvaluationResultWithFailureDetails(SchemeId("HumanResources"), SchemeStatus.Green.toString) ::
         Nil
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application,
@@ -153,7 +153,7 @@ class PostOnlineTestsPageSpec extends UnitSpec {
 
     "indicate failed when firstResidualPreferencePassed is called and schemes are: Red, Red, Red" in {
       val schemeResults = SchemeEvaluationResultWithFailureDetails(SchemeId("Commercial"), SchemeStatus.Red.toString)  ::
-        SchemeEvaluationResultWithFailureDetails(SchemeId("DigitalDataTechnologyAndCyber"), SchemeStatus.Red.toString) ::
+        SchemeEvaluationResultWithFailureDetails(SchemeId("CyberSecurity"), SchemeStatus.Red.toString) ::
         SchemeEvaluationResultWithFailureDetails(SchemeId("HumanResources"), SchemeStatus.Red.toString) ::
         Nil
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application,
@@ -168,7 +168,7 @@ class PostOnlineTestsPageSpec extends UnitSpec {
 
     "indicate failed when firstResidualPreferencePassed is called and schemes are: Amber, Amber, Amber" in {
       val schemeResults = SchemeEvaluationResultWithFailureDetails(SchemeId("Commercial"), SchemeStatus.Amber.toString)  ::
-        SchemeEvaluationResultWithFailureDetails(SchemeId("DigitalDataTechnologyAndCyber"), SchemeStatus.Amber.toString) ::
+        SchemeEvaluationResultWithFailureDetails(SchemeId("CyberSecurity"), SchemeStatus.Amber.toString) ::
         SchemeEvaluationResultWithFailureDetails(SchemeId("HumanResources"), SchemeStatus.Amber.toString) ::
         Nil
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application,
@@ -183,7 +183,7 @@ class PostOnlineTestsPageSpec extends UnitSpec {
 
     "indicate failed when firstResidualPreferencePassed is called and schemes are: Amber, Green, Red" in {
       val schemeResults = SchemeEvaluationResultWithFailureDetails(SchemeId("Commercial"), SchemeStatus.Amber.toString)  ::
-        SchemeEvaluationResultWithFailureDetails(SchemeId("DigitalDataTechnologyAndCyber"), SchemeStatus.Green.toString) ::
+        SchemeEvaluationResultWithFailureDetails(SchemeId("CyberSecurity"), SchemeStatus.Green.toString) ::
         SchemeEvaluationResultWithFailureDetails(SchemeId("HumanResources"), SchemeStatus.Red.toString) ::
         Nil
       val cachedUserMetadata = CachedUserWithSchemeData(userDataWithApp.user, userDataWithApp.application,

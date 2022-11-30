@@ -21,7 +21,7 @@ import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
 object SchemeType extends Enumeration {
   type SchemeType = Value
 
-  val Commercial, DigitalDataTechnologyAndCyber, DiplomaticAndDevelopment, DiplomaticAndDevelopmentEconomics,
+  val Commercial, CyberSecurity, DiplomaticAndDevelopment, DiplomaticAndDevelopmentEconomics,
   Finance, Generalist, GovernmentCommunicationService, GovernmentEconomicsService,
   GovernmentOperationalResearchService, GovernmentSocialResearchService,
   GovernmentStatisticalService, HousesOfParliament, HumanResources,
