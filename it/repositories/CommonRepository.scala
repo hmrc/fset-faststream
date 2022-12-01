@@ -45,11 +45,12 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
 
   val DiplomaticAndDevelopmentEconomics: SchemeId = SchemeId("DiplomaticAndDevelopmentEconomics")
   val Finance = SchemeId("Finance")
+  val DiplomaticAndDevelopment = SchemeId("DiplomaticAndDevelopment")
   val GovernmentEconomicsService = SchemeId("GovernmentEconomicsService")
   val CyberSecurity = SchemeId("CyberSecurity")
   val Sdip = SchemeId("Sdip")
   val Edip = SchemeId("Edip")
-  val siftableSchemeDefinitions = List(DiplomaticAndDevelopmentEconomics, Finance, GovernmentEconomicsService, Sdip)
+  val siftableSchemeDefinitions = List(DiplomaticAndDevelopmentEconomics, DiplomaticAndDevelopment, GovernmentEconomicsService, Sdip)
 
   def applicationRepository = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, mockAppConfig, mongo)
 

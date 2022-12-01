@@ -31,20 +31,32 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
   def repository: ApplicationSiftMongoRepository = applicationSiftRepository
 
   "next application for sift" must {
+    "ignore Commercial and Finance as they no longer have a sift requirement from campaign 2022/23" in {
+
+      insertApplicationWithPhase3TestNotifiedResults("appId1",
+        List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString))).futureValue
+
+      insertApplicationWithPhase3TestNotifiedResults("appId2",
+        List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString))).futureValue
+
+      val appsForSift = repository.nextApplicationsForSiftStage(10).futureValue
+      appsForSift mustBe Nil
+    }
+
     "ignore applications in incorrect statuses and return only the PhaseX Passed_Notified applications that are eligible for sift" in {
 
       insertApplicationWithPhase3TestNotifiedResults("appId1",
         List(SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Green.toString))).futureValue
 
       insertApplicationWithPhase3TestNotifiedResults("appId2",
-        List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString))).futureValue
+        List(SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Green.toString))).futureValue
       updateApplicationStatus("appId2", ApplicationStatus.PHASE3_TESTS_FAILED)
 
       insertApplicationWithPhase3TestNotifiedResults("appId3",
         List(SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, EvaluationResults.Green.toString))).futureValue
 
       insertApplicationWithPhase3TestNotifiedResults("appId4",
-        List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString))).futureValue
+        List(SchemeEvaluationResult(DiplomaticAndDevelopment, EvaluationResults.Green.toString))).futureValue
 
       insertApplicationWithPhase3TestNotifiedResults("appId5",
         List(SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString))).futureValue
@@ -74,7 +86,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
         ApplicationForSift("appId3", "appId3", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, EvaluationResults.Green.toString))),
         ApplicationForSift("appId4", "appId4", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-          List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString))),
+          List(SchemeEvaluationResult(DiplomaticAndDevelopment, EvaluationResults.Green.toString))),
         ApplicationForSift("appId6", "appId6", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(Edip, EvaluationResults.Green.toString))),
         ApplicationForSift("appId7", "appId7", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED,

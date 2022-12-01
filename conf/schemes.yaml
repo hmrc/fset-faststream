@@ -5,8 +5,7 @@
   degree:
     required: Degree_22
     specificRequirement: false
-  siftRequirement: NUMERIC_TEST
-  siftEvaluationRequired: true
+  siftEvaluationRequired: false
   fsbType: CFS - Skype interview
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/Candidate_Guide_Commercial_Final_Selection_Board.pdf
 #  Was previously DigitalDataTechnologyAndCyber
@@ -51,8 +50,7 @@
   degree:
     required: Degree_21
     specificRequirement: false
-  siftRequirement: NUMERIC_TEST
-  siftEvaluationRequired: true
+  siftEvaluationRequired: false
 - id: Generalist
   code: GFS
   name: Generalist
@@ -69,6 +67,7 @@
     required: Degree_22
     specificRequirement: false
   siftEvaluationRequired: false
+#  Currently filtered out in the candidate ui
 - id: GovernmentCommunicationService
   code: GCFS
   name: Government Communication Service

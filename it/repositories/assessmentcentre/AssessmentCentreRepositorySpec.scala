@@ -42,18 +42,18 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
         List(SchemeEvaluationResult(SchemeId("HumanResources"), EvaluationResults.Green.toString))).futureValue
 
       insertApplicationWithPhase3TestNotifiedResults("appId2",
-        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))).futureValue
+        List(SchemeEvaluationResult(SchemeId("GovernmentEconomicsService"), EvaluationResults.Green.toString))).futureValue
       updateApplicationStatus("appId2", ApplicationStatus.PHASE3_TESTS_PASSED)
 
       insertApplicationWithPhase3TestNotifiedResults("appId3",
-        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))).futureValue
+        List(SchemeEvaluationResult(SchemeId("GovernmentEconomicsService"), EvaluationResults.Green.toString))).futureValue
       updateApplicationStatus("appId3", ApplicationStatus.PHASE3_TESTS_FAILED)
 
       insertApplicationWithPhase3TestNotifiedResults("appId4",
         List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toString))).futureValue
 
       insertApplicationWithPhase3TestNotifiedResults("appId5",
-        List(SchemeEvaluationResult(SchemeId("Finance"), EvaluationResults.Green.toString))).futureValue
+        List(SchemeEvaluationResult(SchemeId("DiplomaticAndDevelopment"), EvaluationResults.Green.toString))).futureValue
 
       insertApplicationWithPhase3TestNotifiedResults("appId6",
         List(SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Red.toString))).futureValue
@@ -77,12 +77,12 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     "return no results when there are only phase 3 applications that aren't in Passed_Notified which don't apply for sift or don't have " +
       "Green/Passed results" in {
       insertApplicationWithPhase3TestNotifiedResults("appId7",
-        List(SchemeEvaluationResult(SchemeId("Finance"), EvaluationResults.Green.toString))).futureValue
+        List(SchemeEvaluationResult(SchemeId("GovernmentEconomicsService"), EvaluationResults.Green.toString))).futureValue
       insertApplicationWithPhase3TestNotifiedResults("appId8",
         List(SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString))).futureValue
       updateApplicationStatus("appId8", ApplicationStatus.PHASE3_TESTS_FAILED)
       insertApplicationWithPhase3TestNotifiedResults("appId9",
-        List(SchemeEvaluationResult(SchemeId("Finance"), EvaluationResults.Green.toString))).futureValue
+        List(SchemeEvaluationResult(SchemeId("GovernmentEconomicsService"), EvaluationResults.Green.toString))).futureValue
       insertApplicationWithPhase3TestNotifiedResults("appId10",
         List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Red.toString))).futureValue
 
