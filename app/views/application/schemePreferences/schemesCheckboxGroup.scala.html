@@ -20,7 +20,7 @@
 
 @(isCandidateCivilServant: Boolean, field: play.api.data.Field, options: Seq[Scheme], args: (Symbol, Any)*)(implicit messages: Messages)
 
-@helper.input(field, args.map { x => if(x._1 == '_label) '_name -> x._2 else x }: _*) { (id, name, value, htmlArgs) =>
+@helper.input(field, args.map { x => if(x._1 == Symbol("_label")) Symbol("_name") -> x._2 else x }: _*) { (id, name, value, htmlArgs) =>
         <div class="inner-block-padr" id="@id">
             <ul class="schemes-list">
             @defining(field.indexes.flatMap(i => field("[%s]".format(i)).value).toSet) { values =>
@@ -36,21 +36,19 @@
                     </label>
                     <span class="alwayshidden" data-scheme-req
                       @scheme.degree.map { degree =>
-                          @if(degree.specificRequirement){data-spec-scheme} @if(isCandidateCivilServant && scheme.civilServantEligible){data-civil-servant-scheme}>
+                        @if(degree.specificRequirement){data-spec-scheme} @if(isCandidateCivilServant && scheme.civilServantEligible){data-civil-servant-scheme}>
                         @Messages("qualification."+degree.required+".description")
                         @if(degree.specificRequirement){
                             <a class="font-xsmall inl-block"
                                href='https://www.faststream.gov.uk/@Messages(s"scheme.${scheme.id.value}.link")'
                                rel="external" target="_blank">
                                 (Specific requirements<span class="visuallyhidden"> for @scheme.name, external website
-                                opens
-                                new window</span>)
+                                opens new window</span>)
                             </a>
                         }
-                    }
+                      }
                     </span>
                 </li>
-
                 }
             }
             </ul>

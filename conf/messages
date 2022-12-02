@@ -186,6 +186,7 @@ scheme.Sdip.description=Summer Internship Programme
 # Hyerlinks to the scheme and eligibility criteria on the scheme selection page
 scheme.DiplomaticAndDevelopment.link = diplomatic-service/index.html
 scheme.DiplomaticAndDevelopmentEconomics.link = diplomatic-service-economics/index.html
+scheme.GeneralistSTEM.link = stem/index.html
 scheme.GovernmentEconomicsService.link = government-economic-service/index.html
 scheme.GovernmentOperationalResearchService.link = government-operational-research-service/index.html
 scheme.GovernmentSocialResearchService.link = government-social-research-service/index.html
@@ -201,6 +202,7 @@ qualification.Degree_Numerate.description=2:1 degree in a numerate subject
 qualification.Degree_GORS.description=2:1 degree in a numerate subject, or a 2:2 with a relevant postgraduate degree
 qualification.Degree_SocialScience.description=2:1 degree in a relevant social science subject, or a 2:2 with a relevant postgraduate degree
 qualification.Degree_CharteredEngineer.description=2:1 degree and at least a postgraduate degree in a relevant subject, or you must be a registered chartered engineer
+qualification.Degree_GFS_STEM.description=Requires at least a 2:2 degree in a STEM subject; Economics, Accountancy / numerical based, BSc, MSc.
 
 # Should rarely ever occur. Will either occur if we start calculating location availability dynamically, or if the
 # YAML file has changed between the user loading the page, and submitting their preference (unlikely, but possible).
