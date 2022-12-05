@@ -64,8 +64,8 @@
   name: Generalist - Science, Technology, Engineering and Mathematics
   civilServantEligible: false
   degree:
-    required: Degree_22
-    specificRequirement: false
+    required: Degree_GFS_STEM
+    specificRequirement: true
   siftEvaluationRequired: false
 #  Currently filtered out in the candidate ui
 - id: GovernmentCommunicationService
