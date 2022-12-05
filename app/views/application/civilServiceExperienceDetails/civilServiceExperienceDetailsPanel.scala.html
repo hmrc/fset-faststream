@@ -21,11 +21,11 @@
 
 <section class="clearfix" id="civilServantQuestion">
     @yesNoRadioWithTogglePanel(form("civilServiceExperienceDetails.applicable"),
-        'id -> "civilServiceExperienceDetails.applicable",
-        '_label -> "Are you a civil servant, or have you been on an internship?",
-        '_legendClass -> "text heading-medium",
-        '_help -> """An internship could include our Early Diversity Internship Programme (EDIP) or our
-             Summer Diversity Internship Programme (SDIP)""") {
+        Symbol("id") -> "civilServiceExperienceDetails.applicable",
+        Symbol("_label") -> "Are you a civil servant, or have you been on an internship?",
+        Symbol("_legendClass") -> "text heading-medium",
+        Symbol("_help") -> """An internship could include our Early Diversity Internship Programme (EDIP) or our
+             Summer Internship Programme (SIP)""") {
     }
     @civilServantAndInternshipTypesPanel(form, schemesRequiringQualifications)
 </section>
