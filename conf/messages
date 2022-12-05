@@ -331,8 +331,6 @@ tests.inventoryid.description.5f59eff8-5ef6-463a-a085-9e5c730936dc=This test is 
 tests.inventoryid.name.60b423e5-75d6-4d31-b02c-97b8686e22e6=Case Study Assessment
 tests.inventoryid.name.d2b3262c-2da8-4015-8579-9bebf5c0f53a=Learning Assessment
 
-p1.numeric.test.feedback=There is no feedback available for this test
-
 # Phase3 feedback
 phase3.feedback.capability.feedbackOnPerformance.High=Your responses to the Video Interview shows high capability – offering specific, compelling and detailed evidence across criteria. Such a capability is an important foundation in developing the necessary skills to succeed on the Fast Stream.
 phase3.feedback.capability.feedbackOnPerformance.Medium=Your responses to the Video Interview shows generally good evidence of operating effectively across criteria. Your performance suggests you can demonstrate some capability, but you may not yet be fully developed to succeed on Fast Stream.

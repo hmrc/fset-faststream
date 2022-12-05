@@ -681,7 +681,7 @@ class HomeControllerSpec extends BaseControllerSpec {
 
 
     val phase1Test1ResultsReportLink = "<a href=\"http://phase1Test1Url.com\"" +
-      " target=\"_blank\" id=\"tests.inventoryid.name." + phase1Test1InventoryId + "LinkResultsReport\">"
+      " target=\"_blank\" id=\"tests.inventoryid.name." + phase1Test1InventoryId + "LinkResultsReport\">Feedback report"
 
     def checkPhase1ResultsTitleAndLinks(content: String) = {
       content must include("Phase 1 results")
@@ -694,7 +694,7 @@ class HomeControllerSpec extends BaseControllerSpec {
     }
 
     val phase2Test1ResultsReportLink = "<a href=\"http://phase2Test1Url.com\"" +
-      " target=\"_blank\" id=\"tests.inventoryid.name." + phase2Test1InventoryId + "LinkResultsReport\">"
+      " target=\"_blank\" id=\"tests.inventoryid.name." + phase2Test1InventoryId + "LinkResultsReport\">Feedback report"
 
     def checkPhase2ResultsTitleAndLinks(content: String) = {
       content must include("Phase 2 results")

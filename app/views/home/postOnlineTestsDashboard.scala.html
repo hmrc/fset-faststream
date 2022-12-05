@@ -186,12 +186,7 @@
 
 @displayTestPageLink(testPage: PsiTestPage, testName: String) = {
     @testPage.testReportUrl.map { reportUrl =>
-        @if(testName == "Numerical test") {
-            <span>@Messages("p1.numeric.test.feedback")</span>
-        } else {
-            <a href="@reportUrl" target="_blank" id="@generatePsiTestId(testPage)">
-                Feedback report <span class="visuallyhidden">for @testName (opens pdf document in a new window)</span></a>
-        }
+        <a href="@reportUrl" target="_blank" id="@generatePsiTestId(testPage)">Feedback report <span class="visuallyhidden">for @testName (opens pdf document in a new window)</span></a>
     }
 }
 
