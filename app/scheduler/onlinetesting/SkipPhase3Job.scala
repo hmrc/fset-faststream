@@ -42,10 +42,11 @@ trait SkipPhase3Job extends SingleInstanceScheduledJob[BasicJobConfig[WaitingSch
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     phase3TestService.nextApplicationsReadyToSkipPhase3(batchSize).flatMap {
       case Nil =>
-        logger.info(s"Skip phase3 job complete - batchSize = $batchSize, no candidates found")
+        // Warn level so we see it in the prod logs
+        logger.warn(s"Skip phase3 job complete - batchSize = $batchSize, no candidates found")
         Future.successful(())
       case applications => phase3TestService.progressApplicationsToSkipPhase3(applications).map { result =>
-        logger.info(
+        logger.warn(
           s"Skip phase3 job complete - batchSize = $batchSize, ${result.successes.size} updated " +
             s"appIds: ${result.successes.map(_.applicationId).mkString(",")} and ${result.failures.size} failed to update " +
             s"appIds: ${result.failures.map(_.applicationId).mkString(",")}"
