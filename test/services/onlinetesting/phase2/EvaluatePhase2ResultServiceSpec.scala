@@ -72,7 +72,7 @@ class EvaluatePhase2ResultServiceSpec extends BaseServiceSpec {
 
       applicationIdCaptor.getValue.toString mustBe appId
       val expected = List(SchemeEvaluationResult(
-        SchemeId(cyberSecurity),Amber.toString),
+        SchemeId(digitalDataTechnologyAndCyber),Amber.toString),
         SchemeEvaluationResult(SchemeId(commercial),Amber.toString)
       )
       passmarkEvaluationCaptor.getValue.result mustBe expected
@@ -97,7 +97,7 @@ class EvaluatePhase2ResultServiceSpec extends BaseServiceSpec {
 
       applicationIdCaptor.getValue.toString mustBe appId
       val expected = List(SchemeEvaluationResult(
-        SchemeId(cyberSecurity),Amber.toString),
+        SchemeId(digitalDataTechnologyAndCyber),Amber.toString),
         SchemeEvaluationResult(SchemeId(commercial), Amber.toString),
         SchemeEvaluationResult(SchemeId(sdip), Amber.toString)
       )
@@ -110,10 +110,10 @@ class EvaluatePhase2ResultServiceSpec extends BaseServiceSpec {
     val appId = ApplicationPhase1EvaluationExamples.faststreamApplication.applicationId
     val sdip = "Sdip"
     val commercial = "Commercial"
-    val cyberSecurity = "CyberSecurity"
+    val digitalDataTechnologyAndCyber = "DigitalDataTechnologyAndCyber"
     val passmarkSettings = Phase2PassMarkSettingsExamples.passMarkSettings(List(
       (SchemeId(commercial), 10.0, 20.0),
-      (SchemeId(cyberSecurity), 10.0, 20.0)
+      (SchemeId(digitalDataTechnologyAndCyber), 10.0, 20.0)
     ))
 
     val mockPhase2EvaluationRepository = mock[OnlineTestEvaluationRepository]
@@ -130,7 +130,7 @@ class EvaluatePhase2ResultServiceSpec extends BaseServiceSpec {
         passmarkVersion = "v2",
         previousPhasePassMarkVersion = Some("v1"),
         result = List(SchemeEvaluationResult(SchemeId(commercial), Green.toString),
-          SchemeEvaluationResult(SchemeId(cyberSecurity), Green.toString)),
+          SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), Green.toString)),
         resultVersion = "res-v2",
         previousPhaseResultVersion = Some("res-v1"))
     )

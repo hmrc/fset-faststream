@@ -12,11 +12,11 @@ class FaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluationSpec {
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
           List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
-            SchemeEvaluationResult(SchemeId("CyberSecurity"), Green.toString)),
+            SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString)),
           "phase1-version1-res", None)
-        applicationEvaluation("application-1", 80, 80, SchemeId("Commercial"), SchemeId("CyberSecurity")) mustResultIn(
+        applicationEvaluation("application-1", 80, 80, SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber")) mustResultIn(
           PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED),
-          SchemeId("Commercial") -> Green, SchemeId("CyberSecurity") -> Green)
+          SchemeId("Commercial") -> Green, SchemeId("DigitalDataTechnologyAndCyber") -> Green)
       }
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
@@ -38,11 +38,11 @@ class FaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluationSpec {
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
           List(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString),
-            SchemeEvaluationResult(SchemeId("CyberSecurity"), Green.toString)),
+            SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString)),
           "phase1-version1-res", None)
-        applicationEvaluation("application-1", 80, 80, SchemeId("Commercial"), SchemeId("CyberSecurity")) mustResultIn(
+        applicationEvaluation("application-1", 80, 80, SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber")) mustResultIn(
           PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED),
-          SchemeId("Commercial") -> Red, SchemeId("CyberSecurity") -> Green)
+          SchemeId("Commercial") -> Red, SchemeId("DigitalDataTechnologyAndCyber") -> Green)
       }
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
@@ -87,11 +87,11 @@ class FaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluationSpec {
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
           List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
-            SchemeEvaluationResult(SchemeId("CyberSecurity"), Green.toString)),
+            SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString)),
           "phase1-version1-res", None)
-        applicationEvaluation("application-2", 20, 20, SchemeId("Commercial"), SchemeId("CyberSecurity")) mustResultIn(
+        applicationEvaluation("application-2", 20, 20, SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber")) mustResultIn(
           PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED),
-          SchemeId("Commercial") -> Amber, SchemeId("CyberSecurity") -> Red)
+          SchemeId("Commercial") -> Amber, SchemeId("DigitalDataTechnologyAndCyber") -> Red)
       }
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,

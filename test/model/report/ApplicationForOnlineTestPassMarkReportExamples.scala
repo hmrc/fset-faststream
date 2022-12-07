@@ -44,14 +44,14 @@ object ApplicationForOnlineTestPassMarkReportExamples {
       "phase1_tests_results_received",
       ApplicationRoute.Faststream,
       sdipDiversity = None,
-      List(SchemeId("Commercial"), SchemeId("CyberSecurity")),
+      List(SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber")),
       disability = None,
       gis = None,
       onlineAdjustments = None,
       assessmentCentreAdjustments = None,
       testsResult,
       List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString),
-        SchemeEvaluationResult(SchemeId("CyberSecurity"), EvaluationResults.Green.toString)))
+        SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), EvaluationResults.Green.toString)))
 
   def rnd(prefix: String) = s"$prefix-${Random.nextInt(100)}"
 }

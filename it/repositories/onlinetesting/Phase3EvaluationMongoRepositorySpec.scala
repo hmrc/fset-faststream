@@ -185,7 +185,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   }
 
   "save passmark evaluation" must {
-    val resultToSave = List(SchemeEvaluationResult(SchemeId("CyberSecurity"), Green.toString))
+    val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString))
 
     "save result and update the status" in {
       insertApplication("app1", ApplicationStatus.PHASE3_TESTS, phase1Tests = None, Some(phase2TestWithResult), Some(phase3TestWithResult))
@@ -199,13 +199,13 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val (appStatus, result) = resultWithAppStatus.get
       appStatus mustBe ApplicationStatus.PHASE3_TESTS_PASSED
       result.evaluation mustBe Some(PassmarkEvaluation("version1", previousPhasePassMarkVersion = None,
-        List(SchemeEvaluationResult(SchemeId("CyberSecurity"), Green.toString)),
+        List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString)),
         "version1-res", previousPhaseResultVersion = None))
     }
   }
 
   "retrieve passmark evaluation" must {
-    val resultToSave = List(SchemeEvaluationResult(SchemeId("CyberSecurity"), Green.toString))
+    val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString))
 
     "return passmarks from mongo" in {
       insertApplication("app1", ApplicationStatus.PHASE3_TESTS, phase1Tests = None, Some(phase2TestWithResult), Some(phase3TestWithResult))

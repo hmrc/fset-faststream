@@ -119,7 +119,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
         assessmentCentreAdjustments = Some(true),
         assessmentCentreAdjustmentsDescription = Some(dataFaker.assessmentCentreAdjustmentDescription)
       )),
-      schemeTypes = Some(List(SchemeId("Commercial"), SchemeId("European"), SchemeId("CyberSecurity"))),
+      schemeTypes = Some(List(SchemeId("Commercial"), SchemeId("European"), SchemeId("DigitalDataTechnologyAndCyber"))),
       isCivilServant = Some(random.bool),
       civilServantAndInternshipTypes = None,
       hasFastPass = Some(false),
@@ -149,7 +149,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
         generateNullScoresForFewQuestions = Some(false)
       )),
       fsbTestGroupData = Some(FsbTestGroupDataRequest(
-        results = Seq(SchemeEvaluationResult("CyberSecurity", "Green"))
+        results = Seq(SchemeEvaluationResult("DigitalDataTechnologyAndCyber", "Green"))
       )),
       adjustmentInformation = Some(AdjustmentsRequest(
         adjustments = Some(List("etrayInvigilated", "videoInvigilated")),
