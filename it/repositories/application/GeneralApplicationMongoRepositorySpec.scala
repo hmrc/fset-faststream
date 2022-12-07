@@ -704,28 +704,28 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       createUnAllocatedFSBApplications(1,
         List(
           SchemeEvaluationResult("HumanResources", Red.toString),
-          SchemeEvaluationResult("CyberSecurity", Red.toString)
+          SchemeEvaluationResult("DigitalDataTechnologyAndCyber", Red.toString)
         )).futureValue
-      findFsbCandidatesCall(SchemeId("CyberSecurity")).candidates mustBe empty
+      findFsbCandidatesCall(SchemeId("DigitalDataTechnologyAndCyber")).candidates mustBe empty
     }
 
     "return an empty item when there are no FSB eligible candidates for first residual preference" in {
       createUnAllocatedFSBApplications(1,
         List(
           SchemeEvaluationResult("HumanResources", Green.toString),
-          SchemeEvaluationResult("CyberSecurity", Green.toString)
+          SchemeEvaluationResult("DigitalDataTechnologyAndCyber", Green.toString)
         )).futureValue
-      findFsbCandidatesCall(SchemeId("CyberSecurity")).candidates mustBe empty
+      findFsbCandidatesCall(SchemeId("DigitalDataTechnologyAndCyber")).candidates mustBe empty
     }
 
     "return an item when there are FSB eligible candidates" in {
       createUnAllocatedFSBApplications(1,
         List(
           SchemeEvaluationResult("HumanResources", Red.toString),
-          SchemeEvaluationResult("CyberSecurity", Green.toString)
+          SchemeEvaluationResult("DigitalDataTechnologyAndCyber", Green.toString)
         )).futureValue
 
-      findFsbCandidatesCall(SchemeId("CyberSecurity")).candidates must have size 1
+      findFsbCandidatesCall(SchemeId("DigitalDataTechnologyAndCyber")).candidates must have size 1
     }
   }
 

@@ -8,10 +8,9 @@
   siftEvaluationRequired: false
   fsbType: CFS - Skype interview
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/Candidate_Guide_Commercial_Final_Selection_Board.pdf
-#  Was previously DigitalDataTechnologyAndCyber
-- id: CyberSecurity
+- id: DigitalDataTechnologyAndCyber
   code: DDTAC
-  name: Cyber Security
+  name: Digital, Data, Technology & Cyber
   civilServantEligible: true
   degree:
     required: Degree_22

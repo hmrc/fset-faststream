@@ -9,9 +9,9 @@ class FaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
   "phase1 evaluation process" should {
     "result in pass results when all schemes are green" in new TestFixture {
         applicationEvaluation("application-1", 80, 80, 80, 80,
-          SchemeId("Commercial"), SchemeId("CyberSecurity")) mustResultIn (
+          SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber")) mustResultIn (
           PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
-          SchemeId("Commercial") -> Green, SchemeId("CyberSecurity") -> Green)
+          SchemeId("Commercial") -> Green, SchemeId("DigitalDataTechnologyAndCyber") -> Green)
 
         applicationEvaluation("application-2", 79.999, 78.08, 77.77, 76.66,
           SchemeId("HousesOfParliament")) mustResultIn (
@@ -24,9 +24,9 @@ class FaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
 
     "result in pass results when at-least one scheme is green" in new TestFixture {
       applicationEvaluation("application-1", 20.002, 20.06, 20.0, 20.0,
-        SchemeId("Commercial"), SchemeId("CyberSecurity")) mustResultIn (
+        SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber")) mustResultIn (
         PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
-        SchemeId("Commercial") -> Red, SchemeId("CyberSecurity") -> Green)
+        SchemeId("Commercial") -> Red, SchemeId("DigitalDataTechnologyAndCyber") -> Green)
     }
 
     "result in fail results when all the schemes are red" in new TestFixture {
@@ -56,9 +56,9 @@ class FaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
 
     "result in pass results for gis candidates" in new TestFixture {
       gisApplicationEvaluation("application-1", 25, 25,
-        SchemeId("Commercial"), SchemeId("CyberSecurity")) mustResultIn (
+        SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber")) mustResultIn (
         PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
-        SchemeId("Commercial") -> Amber, SchemeId("CyberSecurity") -> Green)
+        SchemeId("Commercial") -> Amber, SchemeId("DigitalDataTechnologyAndCyber") -> Green)
     }
 
     "result in pass results on re-evaluation of applicant in amber when passmarks are decreased" in new TestFixture {

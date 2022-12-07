@@ -47,7 +47,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
   val Finance = SchemeId("Finance")
   val DiplomaticAndDevelopment = SchemeId("DiplomaticAndDevelopment")
   val GovernmentEconomicsService = SchemeId("GovernmentEconomicsService")
-  val CyberSecurity = SchemeId("CyberSecurity")
+  val DigitalDataTechnologyAndCyber = SchemeId("DigitalDataTechnologyAndCyber")
   val Sdip = SchemeId("Sdip")
   val Edip = SchemeId("Edip")
   val siftableSchemeDefinitions = List(DiplomaticAndDevelopmentEconomics, DiplomaticAndDevelopment, GovernmentEconomicsService, Sdip)

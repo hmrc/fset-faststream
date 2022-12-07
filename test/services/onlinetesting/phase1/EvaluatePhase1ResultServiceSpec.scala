@@ -157,7 +157,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     val PassmarkSettings = Phase1PassMarkSettingsExamples.passmark
     val AppId = ApplicationPhase1EvaluationExamples.faststreamApplication.applicationId
     val PassmarkVersion = PassmarkSettings.version
-    val EvaluateForNonGis = List(SchemeEvaluationResult(SchemeId("CyberSecurity"), Green.toString))
+    val EvaluateForNonGis = List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString))
     val ExpectedPassmarkEvaluation = PassmarkEvaluation(PassmarkVersion, None, EvaluateForNonGis, "", None)
 
 //    val mockPhase1EvaluationRepository = mock[Phase1EvaluationMongoRepository]

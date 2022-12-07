@@ -74,7 +74,7 @@ class Phase1PassMarkSettingsSpec extends PlaySpec {
       val merged = Phase1PassMarkSettings.merge(
         oldPassMarkSettings = Some(passMarkSettings(List(
           (SchemeId("Commercial"), 20.0, 80.0),
-          (SchemeId("CyberSecurity"), 20.0, 80.0),
+          (SchemeId("DigitalDataTechnologyAndCyber"), 20.0, 80.0),
           (SchemeId("DiplomaticAndDevelopment"), 20.0, 80.0)))),
         newPassMarkSettings = passMarkSettings(List(
           (SchemeId("DiplomaticAndDevelopmentEconomics"), 20.0, 80.0),
@@ -83,7 +83,7 @@ class Phase1PassMarkSettingsSpec extends PlaySpec {
       )
       merged.schemes.map(_.schemeId) mustBe List(
         SchemeId("Commercial"),
-        SchemeId("CyberSecurity"),
+        SchemeId("DigitalDataTechnologyAndCyber"),
         SchemeId("DiplomaticAndDevelopment"),
         SchemeId("DiplomaticAndDevelopmentEconomics"),
         SchemeId("DiplomaticServiceEuropean")
