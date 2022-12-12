@@ -22,10 +22,10 @@ case class CommunicatingAndInfluencingScores(
                                               presentsIdeas: Option[Double] = None, // written
                                               communicatesClearly: Option[Double] = None, // written, team, leadership
                                               defendsOwnView: Option[Double] = None, // team
-                                              providesDirection: Option[Double] = None, // team
+                                              contributesEffectively: Option[Double] = None, // team
                                               conveysPurposeAndDirection: Option[Double] = None, // leadership
-                                              offersPersuasiveArguments: Option[Double] = None // leadership
-)
+                                              defendsProposals: Option[Double] = None // leadership
+                                            )
 
 object CommunicatingAndInfluencingScores {
   implicit val leadingAndCommunicatingScoresFormat = Json.format[CommunicatingAndInfluencingScores]
