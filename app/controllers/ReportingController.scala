@@ -28,7 +28,7 @@ import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
 import model.Exceptions.{NotFoundException, UnexpectedException}
 import model._
-import model.assessmentscores.AssessmentScoresExercise
+import model.assessmentscores.{AssessmentScoresExercise, AssessmentScoresExerciseExchange}
 import model.command.{CandidateDetailsReportItem, CsvExtract}
 import model.persisted.eventschedules.Event
 import model.persisted.{ApplicationForOnlineTestPassMarkReport, ContactDetailsWithId, FsacStuckCandidate}
@@ -74,7 +74,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
 )(implicit mat: Materializer) extends BackendController(cc) with Logging {
 
   def fsacScores(): Action[AnyContent] = Action.async { implicit request =>
-    def removeFeedback(assessmentScoresExercise: AssessmentScoresExercise) =
+    def removeFeedback(assessmentScoresExercise: AssessmentScoresExerciseExchange) =
       assessmentScoresExercise.copy(seeingTheBigPictureFeedback = None, makingEffectiveDecisionsFeedback = None,
         communicatingAndInfluencingFeedback = None, workingTogetherDevelopingSelfAndOthersFeedback = None)
 
@@ -82,11 +82,12 @@ class ReportingController @Inject() (cc: ControllerComponents,
       fsacResults <- assessmentScoresRepository.findAll
     } yield {
       fsacResults.map{ data =>
+        val exchangeData = data.toExchange
         FsacScoresReportItem(
-          data.applicationId.toString(),
-          data.writtenExercise.map( removeFeedback ),
-          data.teamExercise.map( removeFeedback ),
-          data.leadershipExercise.map( removeFeedback )
+          exchangeData.applicationId.toString(),
+          exchangeData.writtenExercise.map( removeFeedback ),
+          exchangeData.teamExercise.map( removeFeedback ),
+          exchangeData.leadershipExercise.map( removeFeedback )
         )
       }
     }
