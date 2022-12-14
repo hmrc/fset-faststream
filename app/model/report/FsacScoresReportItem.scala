@@ -16,13 +16,13 @@
 
 package model.report
 
-import model.assessmentscores.AssessmentScoresExercise
-import play.api.libs.json.{ Json, OFormat }
+import model.assessmentscores.AssessmentScoresExerciseExchange
+import play.api.libs.json.{Json, OFormat}
 
 case class FsacScoresReportItem(applicationId: String,
-                                writtenExercise: Option[AssessmentScoresExercise],
-                                teamExercise: Option[AssessmentScoresExercise],
-                                leadershipExercise: Option[AssessmentScoresExercise]
+                                writtenExercise: Option[AssessmentScoresExerciseExchange],
+                                teamExercise: Option[AssessmentScoresExerciseExchange],
+                                leadershipExercise: Option[AssessmentScoresExerciseExchange]
                                )
 
 object FsacScoresReportItem {
