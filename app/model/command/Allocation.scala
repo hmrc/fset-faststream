@@ -64,7 +64,10 @@ object AssessorAllocations {
     val opLock = assessorAllocations.map(_.version).distinct match {
       case head +: Nil => head
       case head +: tail =>
-        throw new Exception(s"Allocations to this event (eventId=[$eventId]) have mismatching op lock versions ${head +: tail}")
+        val assessorIds = assessorAllocations.map(_.id).distinct
+        throw new Exception(
+          s"Allocations to this event [eventId=$eventId] and these assessors [assessorIds=$assessorIds]" +
+            s" have mismatching op lock versions ${head +: tail}")
       case Nil => UUIDFactory.generateUUID() // TODO: the factory needs to be passed as an argument
     }
 
@@ -119,7 +122,10 @@ object CandidateAllocations {
   def apply(eventId: String, sessionId: String, allocations: Seq[model.persisted.CandidateAllocation]): CandidateAllocations = {
     val opLock = allocations.map(_.version).distinct match {
       case head +: Nil => head
-      case head +: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${head +: tail}")
+      case head +: tail =>
+        val userIds = allocations.map(_.id).distinct
+        throw new Exception(
+          s"Allocations to this event [eventId=$eventId] and these users [userIds=$userIds] have mismatching op lock versions ${head +: tail}")
       case Nil => UUIDFactory.generateUUID()
     }
 
