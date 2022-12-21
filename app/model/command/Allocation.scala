@@ -60,16 +60,17 @@ case class AssessorAllocations(
 object AssessorAllocations {
   implicit val assessorAllocationsFormat = Json.format[AssessorAllocations]
 
-  def apply(eventId: String, o: Seq[model.persisted.AssessorAllocation]): AssessorAllocations = {
-    val opLock = o.map(_.version).distinct match {
+  def apply(eventId: String, assessorAllocations: Seq[model.persisted.AssessorAllocation]): AssessorAllocations = {
+    val opLock = assessorAllocations.map(_.version).distinct match {
       case head +: Nil => head
-      case head +: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${head +: tail}")
+      case head +: tail =>
+        throw new Exception(s"Allocations to this event (eventId=[$eventId]) have mismatching op lock versions ${head +: tail}")
       case Nil => UUIDFactory.generateUUID() // TODO: the factory needs to be passed as an argument
     }
 
-    AssessorAllocations(opLock, eventId, o.map { a =>
-      val allocatedSkill = AssessorSkill.SkillMap(a.allocatedAs)
-      AssessorAllocation(a.id, a.status, allocatedSkill)
+    AssessorAllocations(opLock, eventId, assessorAllocations.map { allocation =>
+      val allocatedSkill = AssessorSkill.SkillMap(allocation.allocatedAs)
+      AssessorAllocation(allocation.id, allocation.status, allocatedSkill)
     })
   }
 

@@ -18,23 +18,24 @@ package services.allocation
 
 import com.google.inject.name.Named
 import connectors._
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.Exceptions.OptimisticLockException
-import model.command.{ AssessorAllocation, AssessorAllocations }
+import model.command.{AssessorAllocation, AssessorAllocations}
 import model.persisted.eventschedules.Event
-import model.{ command, exchange, persisted, _ }
+import model.{command, exchange, persisted, _}
 import repositories.AssessorAllocationRepository
 import repositories.application.GeneralApplicationRepository
 import services.allocation.AssessorAllocationService.CouldNotFindAssessorContactDetails
 import services.events.EventsService
-import services.stc.{ EventSink, StcEventService }
+import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object AssessorAllocationService {
-    case class CouldNotFindAssessorContactDetails(userId: String) extends Exception(userId)
+  case class CouldNotFindAssessorContactDetails(userId: String) extends Exception(userId)
 }
 
 @Singleton
@@ -185,5 +186,11 @@ class AssessorAllocationService @Inject() (assessorAllocationRepo: AssessorAlloc
     } else {
       throw OptimisticLockException(s"Stored allocations for event ${newAllocations.eventId} have been updated since reading")
     }
+  }
+
+  def deleteOneAllocation(eventId: String, assessorId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+    for {
+      _ <- assessorAllocationRepo.deleteOneAllocation(eventId, assessorId)
+    } yield ()
   }
 }

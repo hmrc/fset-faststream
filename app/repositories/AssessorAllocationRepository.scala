@@ -37,10 +37,11 @@ trait AssessorAllocationRepository {
   def findAllocations(assessorIds: Seq[String], status: Option[AllocationStatus] = None): Future[Seq[AssessorAllocation]]
   def find(id: String, eventId: String): Future[Option[AssessorAllocation]]
   //TODO: mongo look at this
-//  def findAll(readPreference: ReadPreference = ReadPreference.primaryPreferred)(
-//  implicit ec: ExecutionContext): Future[List[AssessorAllocation]]
+  //  def findAll(readPreference: ReadPreference = ReadPreference.primaryPreferred)(
+  //  implicit ec: ExecutionContext): Future[List[AssessorAllocation]]
   def findAll: Future[Seq[AssessorAllocation]]
   def delete(allocations: Seq[AssessorAllocation]): Future[Unit]
+  def deleteOneAllocation(eventId: String, assessorId: String): Future[Unit]
   def allocationsForEvent(eventId: String): Future[Seq[AssessorAllocation]]
   def updateAllocationStatus(id: String, eventId: String, newStatus: AllocationStatus): Future[Unit]
 }
@@ -104,6 +105,13 @@ class AssessorAllocationMongoRepository @Inject() (mongoComponent: MongoComponen
     ))
 
     val validator = multipleRemoveValidator(allocations.size, "Deleting allocations")
+
+    collection.deleteOne(query).toFuture() map validator
+  }
+
+  override def deleteOneAllocation(eventId: String, assessorId: String): Future[Unit] = {
+    val query = Document("id" -> assessorId, "eventId" -> eventId)
+    val validator = singleRemovalValidator(s"eventId:$eventId, assessorId:$assessorId", "Deleting allocation")
 
     collection.deleteOne(query).toFuture() map validator
   }
