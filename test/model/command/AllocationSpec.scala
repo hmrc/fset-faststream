@@ -31,7 +31,7 @@ class AllocationSpec extends UnitSpec {
       val qacAllocation = newQacAllocation("v1")
       val allocations = List[AssessorAllocation](assessorAllocation, qacAllocation)
 
-      val result = AssessorAllocations(eventId = "eventId", o = allocations)
+      val result = AssessorAllocations(eventId = "eventId", assessorAllocations = allocations)
 
       val assessorAllocation2 = model.command.AssessorAllocation(id = "id1", status = AllocationStatuses.CONFIRMED,
         allocatedAs = AssessorSkill.SkillMap(assessorAllocation.allocatedAs))
@@ -49,9 +49,9 @@ class AllocationSpec extends UnitSpec {
       val allocations = List[AssessorAllocation] ( assessorAllocation, qacAllocation)
 
       val exception = intercept[Exception] {
-        AssessorAllocations(eventId = "eventId", o = allocations)
+        AssessorAllocations(eventId = "eventId", assessorAllocations = allocations)
       }
-      exception.getMessage must include(s"Allocations to this event have mismatching op lock versions List(v1, v2)")
+      exception.getMessage must include(s"Allocations to this event (eventId=[eventId]) have mismatching op lock versions List(v1, v2)")
     }
 
     "deal with Seq implemented as a Vector with the same version" in new TestFixture {
@@ -59,7 +59,7 @@ class AllocationSpec extends UnitSpec {
       val qacAllocation = newQacAllocation("v1")
       val allocations = Vector[AssessorAllocation] ( assessorAllocation, qacAllocation)
 
-      val result = AssessorAllocations(eventId = "eventId", o = allocations)
+      val result = AssessorAllocations(eventId = "eventId", assessorAllocations = allocations)
 
       val assessorAllocation2 = model.command.AssessorAllocation(id = "id1", status = AllocationStatuses.CONFIRMED,
         allocatedAs = AssessorSkill.SkillMap(assessorAllocation.allocatedAs))
@@ -77,9 +77,9 @@ class AllocationSpec extends UnitSpec {
       val allocations = Vector[AssessorAllocation] ( assessorAllocation, qacAllocation)
 
       val exception = intercept[Exception] {
-        AssessorAllocations(eventId = "eventId", o = allocations)
+        AssessorAllocations(eventId = "eventId", assessorAllocations = allocations)
       }
-      exception.getMessage must include(s"Allocations to this event have mismatching op lock versions Vector(v1, v2)")
+      exception.getMessage must include(s"Allocations to this event (eventId=[eventId]) have mismatching op lock versions Vector(v1, v2)")
     }
   }
 

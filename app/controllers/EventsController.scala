@@ -17,7 +17,7 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
-import model.Exceptions.{EventNotFoundException, OptimisticLockException}
+import model.Exceptions.{EventNotFoundException, NotFoundException, OptimisticLockException, TooManyEntries}
 import model.exchange.{AssessorAllocations, Event => ExchangeEvent}
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.{Event, EventType, UpdateEvent}
@@ -134,5 +134,15 @@ class EventsController @Inject() (cc: ControllerComponents,
 
   def addNewAttributes() = Action.async { implicit request =>
     eventsService.updateStructure().map(_ => Ok)
+  }
+
+  def deleteOneAllocation(eventId: String, assessorId: String): Action[AnyContent] = Action.async { implicit request =>
+    assessorAllocationService.deleteOneAllocation(eventId, assessorId).map(_ => Ok)
+   .recover {
+     case ex @ (_: NotFoundException | _: TooManyEntries) =>
+       val message = s"Error occurred: ${ex.getMessage}"
+       logger.warn(s"Error occurred: $message")
+       BadRequest(message)
+    }
   }
 }

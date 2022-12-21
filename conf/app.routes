@@ -309,6 +309,7 @@ POST        /events/save                                                 @contro
 POST        /events/create                                               @controllers.EventsController.createEvent()
 GET         /events/:eventId/allocations                                 @controllers.EventsController.getAssessorAllocations(eventId: String)
 GET         /events/:eventId/delete                                      @controllers.EventsController.delete(eventId: String)
+DELETE      /events/:eventId/user/:assessorId/deleteAllocation           @controllers.EventsController.deleteOneAllocation(eventId: String, assessorId: String)
 GET         /events/:eventId/users/:userId/allocation                    @controllers.EventsController.getAssessorAllocation(eventId: String, userId: String)
 GET         /events/:eventId                                             @controllers.EventsController.getEvent(eventId: String)
 POST        /events/:eventId/update                                      @controllers.EventsController.updateEvent(eventId: String)
