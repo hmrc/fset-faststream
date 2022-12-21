@@ -51,17 +51,22 @@ case class AssessorAllocations(
 object AssessorAllocations {
   implicit val assessorAllocationsFormat: OFormat[AssessorAllocations] = Json.format[AssessorAllocations]
 
-  def apply(o: Seq[model.persisted.AssessorAllocation]): AssessorAllocations = {
-      val opLock = o.map(_.version).distinct match {
-        case head +: Nil => Some(head)
-        case head +: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${Seq(head) ++ tail}")
-        case Nil => None
-      }
+  def apply(assessorAllocation: Seq[model.persisted.AssessorAllocation]): AssessorAllocations = {
+    val opLock = assessorAllocation.map(_.version).distinct match {
+      case head +: Nil => Some(head)
+      case head +: tail =>
+        val eventIds = assessorAllocation.map(_.eventId).distinct
+        val assessorIds = assessorAllocation.map(_.id).distinct
+        throw new Exception(
+        s"Allocations to these events [eventIds=$eventIds] and these assessors [assessorIds=$assessorIds] " +
+          s"have mismatching op lock versions ${Seq(head) ++ tail}")
+      case Nil => None
+    }
 
-      AssessorAllocations(opLock, o.map { a =>
-        val allocatedSkill = AssessorSkill.SkillMap(a.allocatedAs)
-        AssessorAllocation(a.id, a.status, allocatedSkill)
-      })
+    AssessorAllocations(opLock, assessorAllocation.map { a =>
+      val allocatedSkill = AssessorSkill.SkillMap(a.allocatedAs)
+      AssessorAllocation(a.id, a.status, allocatedSkill)
+    })
   }
 }
 
@@ -96,12 +101,17 @@ case class CandidateAllocations(
 object CandidateAllocations {
   implicit val candidateAllocationsFormat: OFormat[CandidateAllocations] = Json.format[CandidateAllocations]
 
-  def apply(o: Seq[model.persisted.CandidateAllocation]): CandidateAllocations = {
-    val opLock = o.map(_.version).distinct match {
+  def apply(candidateAllocations: Seq[model.persisted.CandidateAllocation]): CandidateAllocations = {
+    val opLock = candidateAllocations.map(_.version).distinct match {
       case head +: Nil => Some(head)
-      case head +: tail => throw new Exception(s"Allocations to this event have mismatching op lock versions ${Seq(head) ++ tail}")
+      case head +: tail =>
+        val eventIds = candidateAllocations.map(_.eventId).distinct
+        val assessorIds = candidateAllocations.map(_.id).distinct
+        throw new Exception(
+          s"Allocations to these events [eventIds=$eventIds] and these assessors [assessorIds=$assessorIds]" +
+            s" have mismatching op lock versions ${Seq(head) ++ tail}")
       case Nil => None
     }
-    CandidateAllocations(opLock, o.map { a => CandidateAllocation(a.id, a.status, a.removeReason) })
+    CandidateAllocations(opLock, candidateAllocations.map { a => CandidateAllocation(a.id, a.status, a.removeReason) })
   }
 }

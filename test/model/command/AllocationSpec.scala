@@ -51,7 +51,9 @@ class AllocationSpec extends UnitSpec {
       val exception = intercept[Exception] {
         AssessorAllocations(eventId = "eventId", assessorAllocations = allocations)
       }
-      exception.getMessage must include(s"Allocations to this event (eventId=[eventId]) have mismatching op lock versions List(v1, v2)")
+      exception.getMessage must include(
+        s"Allocations to this event [eventId=eventId] " +
+          s"and these assessors [assessorIds=List(id1)] have mismatching op lock versions List(v1, v2)")
     }
 
     "deal with Seq implemented as a Vector with the same version" in new TestFixture {
@@ -79,7 +81,9 @@ class AllocationSpec extends UnitSpec {
       val exception = intercept[Exception] {
         AssessorAllocations(eventId = "eventId", assessorAllocations = allocations)
       }
-      exception.getMessage must include(s"Allocations to this event (eventId=[eventId]) have mismatching op lock versions Vector(v1, v2)")
+      exception.getMessage must include(
+        s"Allocations to this event [eventId=eventId] and these assessors [assessorIds=Vector(id1)]" +
+          s" have mismatching op lock versions Vector(v1, v2)")
     }
   }
 
