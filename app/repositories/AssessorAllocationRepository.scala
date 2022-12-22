@@ -106,7 +106,7 @@ class AssessorAllocationMongoRepository @Inject() (mongoComponent: MongoComponen
 
     val validator = multipleRemoveValidator(allocations.size, "Deleting allocations")
 
-    collection.deleteOne(query).toFuture() map validator
+    collection.deleteMany(query).toFuture() map validator
   }
 
   override def deleteOneAllocation(eventId: String, assessorId: String): Future[Unit] = {
