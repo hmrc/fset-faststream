@@ -48,8 +48,8 @@ object Event {
 
   implicit def eventsToDistinctT(events: Seq[Event]) = new {
     def distinctTransform[S, T](uniqueness: Event => S, transformer: Event => T)
-      (implicit cbf: scala.collection.generic.CanBuildFrom[Seq[Event], T, Seq[T]]) = {
-      val builder = cbf()
+      (implicit bf: scala.collection.BuildFrom[Seq[Event], T, Seq[T]]) = {
+      val builder = bf.newBuilder(Seq.empty)
       val seenAlready = scala.collection.mutable.HashSet[S]()
       for (event <- events) {
         if (!seenAlready(uniqueness(event))){

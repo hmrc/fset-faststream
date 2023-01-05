@@ -40,8 +40,8 @@ import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.MongoComponent
 
-import scala.collection.parallel.ForkJoinTaskSupport
 import scala.collection.parallel.immutable.ParRange
+import scala.collection.parallel.CollectionConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
@@ -226,9 +226,6 @@ class TestDataGeneratorService @Inject() (authProviderClient: AuthProviderClient
 
   private def getParNumbers(numberToGenerate: Int): ParRange = {
     val parNumbers = (1 to numberToGenerate).par
-    parNumbers.tasksupport = new ForkJoinTaskSupport(
-      new scala.concurrent.forkjoin.ForkJoinPool(2)
-    )
     parNumbers
   }
 

@@ -28,14 +28,12 @@ import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
 import model.Exceptions.{NotFoundException, UnexpectedException}
 import model._
-import model.assessmentscores.{AssessmentScoresExercise, AssessmentScoresExerciseExchange}
+import model.assessmentscores.AssessmentScoresExerciseExchange
 import model.command.{CandidateDetailsReportItem, CsvExtract}
 import model.persisted.eventschedules.Event
 import model.persisted.{ApplicationForOnlineTestPassMarkReport, ContactDetailsWithId, FsacStuckCandidate}
 import model.report._
 import play.api.Logging
-import play.api.libs.iteratee.Enumerator
-import play.api.libs.iteratee.streams.IterateeStreams
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import repositories.application._
@@ -48,7 +46,6 @@ import repositories._
 import services.evaluation.AssessmentScoreCalculator
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.collection.breakOut
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -850,11 +847,11 @@ class ReportingController @Inject() (cc: ControllerComponents,
       allAssessorsIds = allAssessors.map(_.userId)
       allAssessorsPersonalInfo <- authProviderClient.findByUserIds(allAssessorsIds)
         .map(
-          _.map(x => x.userId -> x)(breakOut): Map[String, ExchangeObjects.Candidate]
+          _.map(x => x.userId -> x).to(Map)
         )
       allAssessorsAuthInfo <- authProviderClient.findAuthInfoByUserIds(allAssessorsIds)
         .map(
-          _.map(x => x.userId -> x)(breakOut): Map[String, ExchangeObjects.UserAuthInfo]
+          _.map(x => x.userId -> x).to(Map)
         )
       sortedEvents <- sortedEventsFut
       assessorAllocations <- assessorAllocationRepository.findAll.map(_.groupBy(_.id))
@@ -919,7 +916,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
       // Converts a Seq[Candidate] to a Map[String, Candidate] (userId -> Candidate)
       allAssessorsPersonalInfo <- authProviderClient.findByUserIds(allAssessorsIds)
         .map(
-          _.map(x => x.userId -> x)(breakOut): Map[String, ExchangeObjects.Candidate]
+          _.map(x => x.userId -> x).to(Map) // (breakOut): Map[String, ExchangeObjects.Candidate]
         )
       events <- eventsFut
       assessors <- assessorsFut
@@ -1270,7 +1267,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
         })
         contactDetails <- contactDetailsRepository.findByUserIds(applications.map(_.userId))
           .map(
-            _.map(x => x.userId -> x)(breakOut): Map[String, ContactDetailsWithId]
+            _.map(x => x.userId -> x).to(Map) //(breakOut): Map[String, ContactDetailsWithId]
           )
         questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(applications.map(_.applicationId))
       } yield for {
@@ -1297,9 +1294,9 @@ class ReportingController @Inject() (cc: ControllerComponents,
         events <- eventsRepository.getEventsById(candidateAllocations.map(_.eventId))
         contactDetails <- contactDetailsRepository.findByUserIds(candidates.map(_.userId))
       } yield {
-        val eventMap: Map[String, Event] = events.map(e => e.id -> e)(breakOut)
+        val eventMap: Map[String, Event] = events.map(e => e.id -> e).to(Map)
         val cdMap: Map[String, ContactDetailsWithId] =
-          candidates.map(c => c.applicationId.get -> contactDetails.find(_.userId == c.userId).get)(breakOut)
+          candidates.map(c => c.applicationId.get -> contactDetails.find(_.userId == c.userId).get).to(Map)
 
         val report = headers ++ candidateAllocations.map { allocation =>
           val e = eventMap(allocation.eventId)

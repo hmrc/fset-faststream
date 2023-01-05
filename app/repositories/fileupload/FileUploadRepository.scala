@@ -25,7 +25,6 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.mongodb.scala.{Observable, ObservableFuture}
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.gridfs.{GridFSBucket, GridFSFile, GridFSUploadOptions}
-import play.api.libs.iteratee.Enumerator
 import uk.gov.hmrc.mongo.MongoComponent
 
 import java.nio.ByteBuffer
@@ -76,7 +75,7 @@ class FileUploadMongoRepository @Inject() (mongoComponent: MongoComponent) exten
           .toFuture()
           .map(seq => seq.map(bb => bb.array).reduceLeft(_ ++ _))
           .map(array => {
-            FileUpload(fileId, getContentType(file), new DateTime(file.getUploadDate, DateTimeZone.UTC), Enumerator(array))
+            FileUpload(fileId, getContentType(file), new DateTime(file.getUploadDate, DateTimeZone.UTC), array)
           })
       case _ => throw FileUploadNotFoundException(s"No file upload found with id $fileId")
     }

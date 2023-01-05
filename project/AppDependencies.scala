@@ -25,7 +25,6 @@ object AppDependencies {
 
     "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28"               % "0.73.0",
     "uk.gov.hmrc"       %% "bootstrap-backend-play-28"        % "7.11.0",
-    "com.typesafe.play" %% "play-iteratees-reactive-streams"  % "2.6.1",
     "com.typesafe.play" %% "play-json-joda"                   % "2.9.2",
     "org.webjars"       %% "webjars-play"                     % "2.7.3",
     "org.webjars"       %  "bootstrap"                        % "3.1.1",
@@ -36,11 +35,12 @@ object AppDependencies {
 //    compilerPlugin("com.github.ghik" %% "silencer-plugin" % "0.5"),
 //    "com.github.ghik"   %% "silencer-lib"                     % "0.5",
     "org.yaml"          %  "snakeyaml"                        % "1.16",
-    "com.jsuereth"      %% "scala-arm"                        % "2.0",
-    "net.jcazevedo"     %% "moultingyaml"                     % "0.4.0",
+    "com.michaelpollmeier" %% "scala-arm" % "2.1",
+    "net.jcazevedo"     %% "moultingyaml"                     % "0.4.2",
     // Works with MireMock up to version 2.31.0
     "com.fasterxml.jackson.module"  %% "jackson-module-scala" % "2.12.2",
-    filters,
+    "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.0",
+      filters,
     ws
   )
 
@@ -52,8 +52,9 @@ object AppDependencies {
       // Gives you access to MockitoSugar as it is no longer available in scalatestplus-play
       "org.scalatestplus"         %% "mockito-3-4"                  % "3.2.8.0"           % scope,
       "com.vladsch.flexmark"      %  "flexmark-all"                 % "0.36.8"            % scope,
-      "org.scalamock"             %% "scalamock-scalatest-support"  % "3.5.0"             % scope,
-      "org.scalacheck"            %% "scalacheck"                   % "1.13.4"            % sbt.Test,
+      "org.scalatest"             %% "scalatest"                    % "3.1.0"             % scope,
+      "org.scalamock"             %% "scalamock"                    % "5.1.0"             % scope,
+      "org.scalacheck"            %% "scalacheck"                   % "1.17.0"            % sbt.Test,
       "com.github.tomakehurst"    % "wiremock-jre8"                 % "2.31.0"            % sbt.Test
     )
   }

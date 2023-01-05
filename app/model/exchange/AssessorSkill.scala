@@ -57,5 +57,5 @@ object AssessorSkill {
 
   val SkillMap: Map[SkillType, AssessorSkill] = AllSkillsWithLabels.map { s =>
     s.name -> s
-  }(scala.collection.breakOut): Map[SkillType, AssessorSkill]
+  }.to(Map)
 }

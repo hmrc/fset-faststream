@@ -85,7 +85,7 @@ class SearchForApplicantService @Inject() (appRepository: GeneralApplicationRepo
       contactDetailsOfCandidates <- cdRepository.findByUserIds(candidates.map(_.userId))
     } yield for {
       candidate <- combinedCandidates
-      contactDetailMap = contactDetailsOfCandidates.map(x => x.userId -> x)(collection.breakOut): Map[String, ContactDetailsWithId]
+      contactDetailMap = contactDetailsOfCandidates.map(x => x.userId -> x).to(Map)
     } yield {
       contactDetailMap.get(candidate.userId).map { candidateContactDetails =>
         candidate.copy(
