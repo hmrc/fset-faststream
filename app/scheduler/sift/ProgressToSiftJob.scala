@@ -44,10 +44,11 @@ trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[Waitin
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
-    logger.info("Looking for candidates to progress to SIFT")
+    logger.warn(s"Progress to SIFT - Looking for candidates to progress to SIFT - batchSize = $batchSize")
     siftService.nextApplicationsReadyForSiftStage(batchSize).flatMap {
       case Nil =>
-        logger.info("No application found to progress to SIFT")
+        // Warn level so we see it in the prod logs
+        logger.warn("Progress to SIFT - No applications found to progress to SIFT")
         Future.successful(())
       case applications => siftService.progressApplicationToSiftStage(applications).map { result =>
         result.successes.map { application =>
@@ -57,8 +58,11 @@ trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[Waitin
             }
           }
         }
-        logger.info(s"Progressed to sift entered - ${result.successes.size} updated and ${result.failures.size} failed to update")
-        logger.info(s"Progressed to sift entered - successful application Ids = ${result.successes.map(_.applicationId)}")
+        logger.warn(
+        s"Progress to SIFT - Progressed to sift entered - ${result.successes.size} updated " +
+          s"appIds: ${result.successes.map(_.applicationId).mkString(",")} and ${result.failures.size} failed to update " +
+          s"appIds: ${result.failures.map(_.applicationId).mkString(",")}"
+        )
       }
     }
   }

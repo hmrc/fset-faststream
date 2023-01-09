@@ -57,7 +57,8 @@ class TestJobsController @Inject() (cc:ControllerComponents,
                                     evaluateFsbJob: EvaluateFsbJobImpl,
                                     notifyOnFinalFailureJob: NotifyOnFinalFailureJobImpl,
                                     notifyOnFinalSuccessJob: NotifyOnFinalSuccessJobImpl,
-                                    skipPhase3Job: SkipPhase3JobImpl
+                                    skipPhase3Job: SkipPhase3JobImpl,
+                                    fixSdipFsP3SkippedCandidatesJob: FixSdipFsP3SkippedCandidatesJobImpl
                                    ) extends BackendController(cc) {
 
   def testInvitationJob(phase: String): Action[AnyContent] = Action.async { implicit request =>
@@ -100,6 +101,12 @@ class TestJobsController @Inject() (cc:ControllerComponents,
   def processSkipPhase3Job: Action[AnyContent] = Action.async { implicit request =>
     skipPhase3Job.tryExecute().map { _ =>
       Ok("Skip phase 3 job started")
+    }
+  }
+
+  def processFixSdipFsP3SkippedCandidatesJob: Action[AnyContent] = Action.async { implicit request =>
+    fixSdipFsP3SkippedCandidatesJob.tryExecute().map { _ =>
+      Ok("Fix SdipFaststream P3 skipped candidates job started")
     }
   }
 
