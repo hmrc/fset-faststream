@@ -80,6 +80,18 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
     updates.map(SerialUpdateResult.fromEither)
   }
 
+  def nextApplicationsReadyToFixSdipFsP3SkippedCandidates(maxBatchSize: Int): Future[Seq[ApplicationForSkippingPhase3]] = {
+    testRepository.nextApplicationsReadyToFixSdipFsP3SkippedCandidates(maxBatchSize)
+  }
+
+  def fixSdipFsP3SkippedCandidates(applications: Seq[ApplicationForSkippingPhase3])
+  : Future[SerialUpdateResult[ApplicationForSkippingPhase3]] = {
+    val updates = FutureEx.traverseSerial(applications) { application =>
+      FutureEx.futureToEither(application, testRepository.fixSdipFsP3SkippedCandidates(application))
+    }
+    updates.map(SerialUpdateResult.fromEither)
+  }
+
   override def nextApplicationsReadyForOnlineTesting(maxBatchSize: Int): Future[Seq[OnlineTestApplication]] = {
     testRepository.nextApplicationsReadyForOnlineTesting(maxBatchSize: Int)
   }

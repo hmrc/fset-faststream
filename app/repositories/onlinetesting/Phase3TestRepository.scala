@@ -25,7 +25,7 @@ import model.ProgressStatuses._
 import model.command.ApplicationForSkippingPhase3
 import model.persisted.phase3tests.Phase3TestGroup
 import model.persisted.{NotificationExpiringOnlineTest, PassmarkEvaluation, Phase3TestGroupWithAppId, SchemeEvaluationResult}
-import model.{ApplicationStatus, EvaluationResults, ProgressStatuses, ReminderNotice}
+import model.{ApplicationRoute, ApplicationStatus, EvaluationResults, ProgressStatuses, ReminderNotice}
 import org.joda.time.DateTime
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
@@ -65,6 +65,8 @@ trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
   def addResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
   def nextApplicationsReadyToSkipPhase3(batchSize: Int): Future[Seq[ApplicationForSkippingPhase3]]
   def skipPhase3(application: ApplicationForSkippingPhase3): Future[Unit]
+  def nextApplicationsReadyToFixSdipFsP3SkippedCandidates(batchSize: Int): Future[Seq[ApplicationForSkippingPhase3]]
+  def fixSdipFsP3SkippedCandidates(application: ApplicationForSkippingPhase3): Future[Unit]
 }
 
 @Singleton
@@ -343,6 +345,29 @@ class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
     ))
 
     val validator = singleUpdateValidator(application.applicationId, actionDesc = s"Skipping Phase3 for ${application.applicationId}")
+    collection.updateOne(query, update).toFuture() map validator
+  }
+
+  override def nextApplicationsReadyToFixSdipFsP3SkippedCandidates(batchSize: Int): Future[Seq[ApplicationForSkippingPhase3]] = {
+    val query = Document("$and" -> BsonArray(
+      Document("applicationRoute" -> ApplicationRoute.SdipFaststream.toBson),
+      Document("applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED.toBson),
+      Document(s"progress-status.${ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED}" -> Document("$exists" -> false)),
+      Document(s"testGroups.PHASE2.evaluation.result" -> Document("$elemMatch" -> Document("result" -> EvaluationResults.Green.toString))),
+      Document(s"testGroups.PHASE2.evaluation.result" ->
+        Document("$not" -> Document("$elemMatch" -> Document("result" -> EvaluationResults.Amber.toString)))
+      )
+    ))
+    selectRandom[ApplicationForSkippingPhase3](applicationForSkippingCollection, query, batchSize)
+  }
+
+  override def fixSdipFsP3SkippedCandidates(application: ApplicationForSkippingPhase3): Future[Unit] = {
+    val query = Document("applicationId" -> application.applicationId)
+    val update = Document("$set" -> progressStatusOnlyBSON(ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED))
+
+    val validator = singleUpdateValidator(application.applicationId,
+      actionDesc = s"Fixing SdipFs P3 skipped candidate ${application.applicationId}"
+    )
     collection.updateOne(query, update).toFuture() map validator
   }
 
