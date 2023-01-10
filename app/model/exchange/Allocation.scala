@@ -105,13 +105,13 @@ object CandidateAllocations {
     val opLock = candidateAllocations.map(_.version).distinct match {
       case head +: Nil => Some(head)
       case head +: tail =>
-        val eventIds = candidateAllocations.map(_.eventId).distinct
-        val assessorIds = candidateAllocations.map(_.id).distinct
+        val candidateAllocationsLogMessage = candidateAllocations.mkString("\n")
         throw new Exception(
-          s"Allocations to these events [eventIds=$eventIds] and these assessors [assessorIds=$assessorIds]" +
-            s" have mismatching op lock versions ${Seq(head) ++ tail}")
+          s"The following candidate allocations have mismatching op lock versions ${Seq(head) ++ tail}:\n" +
+            s"$candidateAllocationsLogMessage")
       case Nil => None
     }
     CandidateAllocations(opLock, candidateAllocations.map { a => CandidateAllocation(a.id, a.status, a.removeReason) })
   }
+
 }

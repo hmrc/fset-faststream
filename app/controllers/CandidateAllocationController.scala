@@ -16,14 +16,14 @@
 
 package controllers
 
-import javax.inject.{ Inject, Singleton }
-import model.Exceptions.OptimisticLockException
+import javax.inject.{Inject, Singleton}
+import model.Exceptions.{NotFoundException, OptimisticLockException, TooManyEntries}
 import model.persisted.CandidateAllocation
 import model.persisted.eventschedules.EventType.EventType
-import model.{ command, exchange }
+import model.{command, exchange}
 import play.api.Logging
-import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent, ControllerComponents }
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.allocation.CandidateAllocationService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -57,7 +57,7 @@ class CandidateAllocationController @Inject() (cc: ControllerComponents,
           Conflict(e.getMessage)
         case e =>
           // Log the data we are trying to save as this operation may perform a deletion first and there is no rollback
-          val data = candidateAllocations.allocations.map( ca => s"[applicationId=${ca.id},status=${ca.status}]").mkString(",")
+          val data = candidateAllocations.allocations.map(ca => s"[applicationId=${ca.id},status=${ca.status}]").mkString(",")
           logger.error(
             s"Error occurred trying to allocate candidates to eventId:$eventId, sessionId:$sessionId. Data=$data. Error=${e.getMessage}"
           )
@@ -87,9 +87,9 @@ class CandidateAllocationController @Inject() (cc: ControllerComponents,
   }
 
   def findCandidatesEligibleForEventAllocation(
-    assessmentCentreLocation: String,
-    eventType: EventType,
-    eventDescription: String): Action[AnyContent] = Action.async {
+                                                assessmentCentreLocation: String,
+                                                eventType: EventType,
+                                                eventDescription: String): Action[AnyContent] = Action.async {
     implicit request =>
       candidateAllocationService.findCandidatesEligibleForEventAllocation(
         assessmentCentreLocation, eventType, eventDescription
@@ -127,5 +127,16 @@ class CandidateAllocationController @Inject() (cc: ControllerComponents,
 
   def addNewAttributes() = Action.async { implicit request =>
     candidateAllocationService.updateStructure().map(_ => Ok)
+  }
+
+  def deleteOneAllocation(eventId: String, sessionId: String, applicationId: String, version: String)
+  : Action[AnyContent] = Action.async { implicit request =>
+    candidateAllocationService.deleteOneAllocation(eventId, sessionId, applicationId, version).map(_ => Ok)
+      .recover {
+        case ex@(_: NotFoundException | _: TooManyEntries) =>
+          val message = s"Error occurred: ${ex.getMessage}"
+          logger.warn(s"Error occurred: $message")
+          BadRequest(message)
+      }
   }
 }

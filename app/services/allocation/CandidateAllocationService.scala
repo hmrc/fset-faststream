@@ -214,6 +214,13 @@ class CandidateAllocationService @Inject() (candidateAllocationRepo: CandidateAl
     }
   }
 
+  def deleteOneAllocation(eventId: String, sessionId: String, applicationId: String, version: String)(
+    implicit hc: HeaderCarrier): Future[Unit] = {
+    for {
+      _ <- candidateAllocationRepo.deleteOneAllocation(eventId, sessionId, applicationId, version)
+    } yield ()
+  }
+
   // this can be generalised for all cases
   private def updateStatusInvited(allocs: Seq[persisted.CandidateAllocation], eventType: EventType) = {
     val status = EventProgressStatuses.get(eventType.applicationStatus)
