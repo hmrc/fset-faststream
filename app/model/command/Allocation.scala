@@ -123,9 +123,10 @@ object CandidateAllocations {
     val opLock = allocations.map(_.version).distinct match {
       case head +: Nil => head
       case head +: tail =>
-        val userIds = allocations.map(_.id).distinct
+        val candidateAllocationsLogMessage = allocations.mkString("\n")
         throw new Exception(
-          s"Allocations to this event [eventId=$eventId] and these users [userIds=$userIds] have mismatching op lock versions ${head +: tail}")
+          s"In event [eventId=$eventId], the following candidate allocations have mismatching op lock versions ${Seq(head) ++ tail}:\n" +
+            s"$candidateAllocationsLogMessage")
       case Nil => UUIDFactory.generateUUID()
     }
 
