@@ -1189,7 +1189,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
               allEvents.get(eventId).map( e => s"Event: $e" ),
               doc.get("sessionId").map( s => s"session: $eventId/${s.asString().getValue}" ),
               doc.get("status").map( _.asString().getValue ),
-              doc.get("removeReason").map( _.asString().getValue ),
+              Try(doc.get("removeReason").map( _.asString().getValue )).toOption.flatten,
               doc.get("createdAt").map( d => s"on ${d.asString().getValue}" )
             ).flatten.mkString(" ")
             )
