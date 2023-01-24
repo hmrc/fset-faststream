@@ -194,7 +194,6 @@ object CreateCandidateData extends DataFakerRandom {
 
   object CreateCandidateData {
     def apply(psiUrlFromConfig: String, request: CreateCandidateRequest, dataFaker: DataFaker)(generatorId: Int): CreateCandidateData = {
-
       val statusData = StatusData(request.statusData)
 
       val isCivilServant = request.isCivilServant.getOrElse(dataFaker.Random.bool)
@@ -214,10 +213,12 @@ object CreateCandidateData extends DataFakerRandom {
 
       val schemeTypes = progressStatusMaybe.map(progressStatus => {
         if (ProgressStatuses.ProgressStatusOrder.isEqualOrAfter(progressStatus, ProgressStatuses.SCHEME_PREFERENCES).getOrElse(false)) {
+          val defaultSchemes = List(SchemeId("Commercial"), SchemeId("Finance"))
           request.statusData.applicationRoute match {
             case Some("Sdip") => List(SchemeId("Sdip"))
             case Some("Edip") => List(SchemeId("Edip"))
-            case _ => request.schemeTypes.getOrElse(List(SchemeId("Commercial"), SchemeId("Finance")))
+            case Some("SdipFaststream") => request.schemeTypes.getOrElse(defaultSchemes) ++ List(SchemeId("Sdip"))
+            case _ => request.schemeTypes.getOrElse(defaultSchemes)
           }
         } else {
           Nil

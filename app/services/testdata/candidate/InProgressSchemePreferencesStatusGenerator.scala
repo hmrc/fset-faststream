@@ -33,16 +33,11 @@ class InProgressSchemePreferencesStatusGenerator @Inject() (val previousStatusGe
                                                             dataFaker: DataFaker
                                                            ) extends ConstructiveGenerator {
 
-  // scalastyle:off method.length
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
     def getSchemePreferences: Future[SelectedSchemes] = {
       Future.successful(
         generatorConfig.schemeTypes.map { schemeTypesList =>
           generatorConfig.statusData.applicationRoute match {
-            case ApplicationRoute.Edip => SelectedSchemes(List(model.SchemeId("Edip")), orderAgreed = true, eligible = true)
-            case ApplicationRoute.Sdip => SelectedSchemes(List(SchemeId("Sdip")), orderAgreed = true, eligible = true)
-            case ApplicationRoute.SdipFaststream => SelectedSchemes(schemeTypesList :+ model.SchemeId("Sdip"),
-              orderAgreed = true, eligible = true)
             case _ => SelectedSchemes(schemeTypesList, orderAgreed = true, eligible = true)
           }
 
@@ -50,8 +45,9 @@ class InProgressSchemePreferencesStatusGenerator @Inject() (val previousStatusGe
           generatorConfig.statusData.applicationRoute match {
             case ApplicationRoute.Edip => SelectedSchemes(List(model.SchemeId("Edip")), orderAgreed = true, eligible = true)
             case ApplicationRoute.Sdip => SelectedSchemes(List(model.SchemeId("Sdip")), orderAgreed = true, eligible = true)
-            case ApplicationRoute.SdipFaststream => SelectedSchemes(List(model.SchemeId("Sdip"), model.SchemeId("Commercial"),
-              model.SchemeId("DigitalDataTechnologyAndCyber"), model.SchemeId("Finance")), orderAgreed = true, eligible = true)
+            case ApplicationRoute.SdipFaststream =>
+              SelectedSchemes(List(model.SchemeId("Commercial"), model.SchemeId("DigitalDataTechnologyAndCyber"),
+              model.SchemeId("Finance"), model.SchemeId("Sdip")), orderAgreed = true, eligible = true)
             case _ => SelectedSchemes(dataFaker.schemeTypes.map(_.id), orderAgreed = true, eligible = true)
           }
         }
@@ -68,5 +64,4 @@ class InProgressSchemePreferencesStatusGenerator @Inject() (val previousStatusGe
       )
     }
   }
-  // scalastyle:on method.length
 }
