@@ -184,11 +184,11 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
   }
 
   "nextApplicationForFsbOrJobOfferProgression" must {
-    "process no candidates" in {
+    "return no candidates" in {
       repository.nextApplicationForFsbOrJobOfferProgression(10).futureValue mustBe Seq.empty
     }
 
-    "process assessment centre passed candidate" in {
+    "return assessment centre passed candidate" in {
       val appId = createApplication()
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ASSESSMENT_CENTRE_PASSED).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId, Seq(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString))).futureValue
@@ -202,7 +202,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       )
     }
 
-    "process specific assessment centre passed candidate" in {
+    "return specific assessment centre passed candidate" in {
       val appId = createApplication()
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ASSESSMENT_CENTRE_PASSED).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId, Seq(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString))).futureValue
@@ -216,11 +216,11 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       )
     }
 
-    "process specific candidate which doesn't exist" in {
+    "not return specific candidate who doesn't exist" in {
       repository.nextApplicationForFsbOrJobOfferProgression("missingAppId").futureValue mustBe Seq.empty
     }
 
-    "process fsb failed candidate" in {
+    "return fsb failed candidate" in {
       val appId = createApplication()
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FSB_FAILED).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId, Seq(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString))).futureValue
@@ -234,7 +234,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       )
     }
 
-    "process sdip faststream assessment centre failed sdip green candidate" in {
+    "return sdip faststream assessment centre failed sdip green candidate" in {
       val appId = createApplication(Some(ApplicationRoute.SdipFaststream))
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN_NOTIFIED).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
@@ -253,9 +253,32 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       )
     }
 
-    "process sift faststream failed sdip green candidate" in {
+    "return sift faststream failed sdip green candidate" in {
       val appId = createApplication(Some(ApplicationRoute.SdipFaststream))
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN).futureValue
+      applicationRepo.updateCurrentSchemeStatus(appId,
+        Seq(
+          SchemeEvaluationResult(SchemeId("DiplomaticAndDevelopmentEconomics"), Red.toString),
+          SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
+        )
+      ).futureValue
+      repository.nextApplicationForFsbOrJobOfferProgression(10)
+        .futureValue mustBe Seq(
+        ApplicationForProgression(
+          appId,
+          ApplicationStatus.SIFT,
+          currentSchemeStatus = Seq(
+            SchemeEvaluationResult(SchemeId("DiplomaticAndDevelopmentEconomics"), Red.toString),
+            SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
+          )
+        )
+      )
+    }
+
+    // Candidate is not in the running for faststream before entering sift but is Green for Sdip so should be picked up and moved to FSB for Sdip
+    "return sdip faststream sift completed sdip green faststream red candidate" in {
+      val appId = createApplication(Some(ApplicationRoute.SdipFaststream))
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_COMPLETED).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
         Seq(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString), SchemeEvaluationResult(SchemeId("Sdip"), Green.toString))
       ).futureValue
@@ -272,26 +295,19 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       )
     }
 
-    "process sdip faststream sift completed sdip green candidate" in {
+    // Candidate is still in the running for faststream so should not be picked up by this job.
+    // The fsac job should invite the candidate to assessment centre instead
+    "not return sdip faststream sift completed sdip green faststream green candidate" in {
       val appId = createApplication(Some(ApplicationRoute.SdipFaststream))
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_COMPLETED).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
         Seq(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString), SchemeEvaluationResult(SchemeId("Sdip"), Green.toString))
       ).futureValue
       repository.nextApplicationForFsbOrJobOfferProgression(10)
-        .futureValue mustBe Seq(
-        ApplicationForProgression(
-          appId,
-          ApplicationStatus.SIFT,
-          currentSchemeStatus = Seq(
-            SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
-            SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
-          )
-        )
-      )
+        .futureValue mustBe Nil
     }
 
-    "process sdip sift completed sdip green candidate" in {
+    "return sdip only sift completed sdip green candidate" in {
       val appId = createApplication(Some(ApplicationRoute.Sdip))
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_COMPLETED).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
@@ -309,7 +325,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       )
     }
 
-    "not return sdip sift completed sdip red candidate" in {
+    "not return sdip only sift completed sdip red candidate" in {
       val appId = createApplication(Some(ApplicationRoute.Sdip))
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_COMPLETED).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
@@ -318,7 +334,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       repository.nextApplicationForFsbOrJobOfferProgression(10).futureValue mustBe Nil
     }
 
-    "process edip sift completed edip green candidate" in {
+    "return edip only sift completed edip green candidate" in {
       val appId = createApplication(Some(ApplicationRoute.Edip))
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_COMPLETED).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
@@ -336,7 +352,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       )
     }
 
-    "not return edip sift completed edip red candidate" in {
+    "not return edip only sift completed edip red candidate" in {
       val appId = createApplication(Some(ApplicationRoute.Edip))
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_COMPLETED).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
