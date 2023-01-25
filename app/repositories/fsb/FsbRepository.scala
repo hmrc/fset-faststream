@@ -113,6 +113,7 @@ class FsbMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
     }
   }
 
+  //scalastyle:off method.length
   override def nextApplicationForFsbOrJobOfferProgression(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
     val xdipQuery = (route: ApplicationRoute) => Document(
       "applicationRoute" -> route.toBson,
@@ -142,25 +143,33 @@ class FsbMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
         s"progress-status.${ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN}" -> true
       ),
       // All faststream schemes failed before SIFT, i.e. PHASE3, for SDIP we have submitted form and still green in SIFT
-      Document(
-        "applicationRoute" -> ApplicationRoute.SdipFaststream.toBson,
-        "applicationStatus" -> ApplicationStatus.SIFT.toBson,
-        s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> true,
-        s"currentSchemeStatus" -> Document("$not" -> Document("$elemMatch" ->
-          Document("schemeId" -> Document("$nin" -> BsonArray("Sdip")),
-            "result" -> EvaluationResults.Green.toString)
+      Document("$and" -> BsonArray(
+        Document("applicationRoute" -> ApplicationRoute.SdipFaststream.toBson),
+        Document("applicationStatus" -> ApplicationStatus.SIFT.toBson),
+        Document(s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> true),
+        // Match documents that contain the css array field with at least one element
+        // with Sdip evaluated to Green
+        Document("currentSchemeStatus" -> Document("$elemMatch" ->
+          Document(
+            "schemeId" -> "Sdip",
+            "result" -> EvaluationResults.Green.toString
+          )
         )),
-        s"currentSchemeStatus" -> Document("$elemMatch" ->
-          Document("schemeId" -> Document("$in" -> BsonArray("Sdip")),
-            "result" -> EvaluationResults.Green.toString)
-        )
-      ),
+        // Match documents that also contain the css array field with no non-Sdip elements
+        // evaluated to Green
+        Document("currentSchemeStatus" -> Document("$not" -> Document("$elemMatch" ->
+          Document(
+            "schemeId" -> Document("$ne" -> "Sdip"),
+            "result" -> EvaluationResults.Green.toString
+          )
+        ))),
+      )),
       xdipQuery(ApplicationRoute.Sdip),
       xdipQuery(ApplicationRoute.Edip)
     ))
 
     selectRandom[ApplicationForProgression](query, batchSize)(doc => AssessmentCentreRepository.applicationForFsacBsonReads(doc), global)
-  }
+  } //scalastyle:on
 
   override def nextApplicationForFsbOrJobOfferProgression(applicationId: String): Future[Seq[ApplicationForProgression]] = {
     val xdipQuery = (route: ApplicationRoute) => Document(
