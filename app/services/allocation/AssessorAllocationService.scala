@@ -39,14 +39,14 @@ object AssessorAllocationService {
 }
 
 @Singleton
-class AssessorAllocationService @Inject() (assessorAllocationRepo: AssessorAllocationRepository,
-                                           applicationRepo: GeneralApplicationRepository,
-                                           eventsService: EventsService,
-                                           allocationServiceCommon: AllocationServiceCommon, // Breaks circular dependencies
-                                           val eventService: StcEventService,
-                                           authProviderClient: AuthProviderClient,
-                                           @Named("CSREmailClient") emailClient: OnlineTestEmailClient //TODO:fix changed type
-                                          ) extends EventSink {
+class AssessorAllocationService @Inject()(assessorAllocationRepo: AssessorAllocationRepository,
+                                          applicationRepo: GeneralApplicationRepository,
+                                          eventsService: EventsService,
+                                          allocationServiceCommon: AllocationServiceCommon, // Breaks circular dependencies
+                                          val eventService: StcEventService,
+                                          authProviderClient: AuthProviderClient,
+                                          @Named("CSREmailClient") emailClient: OnlineTestEmailClient //TODO:fix changed type
+                                         ) extends EventSink {
 
   def getAllocations(eventId: String): Future[exchange.AssessorAllocations] = {
     allocationServiceCommon.getAllocations(eventId)
@@ -177,7 +177,13 @@ class AssessorAllocationService @Inject() (assessorAllocationRepo: AssessorAlloc
       for {
         // Persist the changes
         _ <- assessorAllocationRepo.delete(existingAllocations)
-        _ <- assessorAllocationRepo.save(toPersist).map(_ => ())
+        _ <-
+          // Prevent java.lang.IllegalArgumentException: state should be: writes is not an empty list if the collection is empty
+          if (toPersist.isEmpty) {
+            Future {()}
+          } else {
+            assessorAllocationRepo.save(toPersist).map(_ => ())
+          }
         // Notify users
         _ <- notifyNewlyAllocatedAssessors(AssessorAllocations(newAllocations.eventId, newUsers))
         _ <- notifyAllocationChangedAssessors(AssessorAllocations(newAllocations.eventId, changedUsers))

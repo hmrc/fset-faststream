@@ -89,6 +89,36 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout
       )(any[HeaderCarrier])
     }
 
+    "delete existing allocations and save none" in new TestFixture {
+      when(mockAllocationRepository.allocationsForEvent(any[String])).thenReturn(Future.successful(
+        persisted.AssessorAllocation("userId1", "eventId1", AllocationStatuses.CONFIRMED, SkillType.CHAIR, "version1") :: Nil
+      ))
+      // This is what it will do if we want to save with an empty parameter in save(...). If we get the exception
+      // it means we have reached this method and that's wrong
+      when(mockAllocationRepository.save(any[Seq[persisted.AssessorAllocation]])).thenThrow(
+        new java.lang.IllegalArgumentException("writes is not an empty list"))
+      when(mockAllocationRepository.delete(any[Seq[persisted.AssessorAllocation]])).thenReturn(Future.successful(unit))
+      mockGetEvent
+      mockAuthProviderFindByUserIds("userId1", "userId2")
+
+      val allocations = command.AssessorAllocations(
+        version = "version1",
+        eventId = "eventId1",
+        allocations = Nil
+      )
+      val result = service.allocate(allocations).futureValue
+
+      result mustBe unit
+
+      verify(mockAllocationRepository).delete(any[Seq[persisted.AssessorAllocation]])
+      verify(mockAllocationRepository, times(0)).save(any[Seq[persisted.AssessorAllocation]])
+      verify(mockEmailClient).sendAssessorUnAllocatedFromEvent(
+        any[String], any[String], any[String])(any[HeaderCarrier])
+      verify(mockEmailClient, times(0)).sendAssessorAllocatedToEvent(
+        any[String], any[String], any[String], any[String], any[String], any[String], any[String], any[String]
+      )(any[HeaderCarrier])
+    }
+
     "change an assessor's role in a new allocation" in new TestFixture {
       when(mockAllocationRepository.allocationsForEvent(any[String])).thenReturn(Future.successful(
         persisted.AssessorAllocation("userId1", "eventId1", AllocationStatuses.CONFIRMED, SkillType.CHAIR, "version1") :: Nil
