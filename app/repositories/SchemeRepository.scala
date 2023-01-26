@@ -18,14 +18,13 @@ package repositories
 
 import com.google.inject.ImplementedBy
 import config.MicroserviceAppConfig
-import javax.inject.{ Inject, Singleton }
 import model.Exceptions.SchemeNotFoundException
 import model._
 import net.jcazevedo.moultingyaml._
-import play.api.{ Application, Play }
+import play.api.Application
 import resource._
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import javax.inject.{Inject, Singleton}
 import scala.io.Source
 
 object SchemeConfigProtocol extends DefaultYamlProtocol {

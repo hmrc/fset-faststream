@@ -31,8 +31,7 @@ import java.nio.ByteBuffer
 import repositories.CollectionNames
 import repositories.fileupload.FileUploadRepository.FileUploadNotFoundException
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 object FileUploadRepository {
@@ -48,7 +47,7 @@ trait FileUploadRepository {
 }
 
 @Singleton
-class FileUploadMongoRepository @Inject() (mongoComponent: MongoComponent) extends FileUploadRepository {
+class FileUploadMongoRepository @Inject() (mongoComponent: MongoComponent)(implicit ec: ExecutionContext) extends FileUploadRepository {
 
   private lazy val gridFS: GridFSBucket = GridFSBucket(mongoComponent.database, CollectionNames.FILE_UPLOAD)
 

@@ -35,6 +35,7 @@ import services.passmarksettings.AssessmentCentrePassMarkSettingsService
 import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitSpec
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {

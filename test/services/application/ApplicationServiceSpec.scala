@@ -17,16 +17,16 @@
 package services.application
 
 import model.Commands.PhoneNumber
-import model.EvaluationResults.{ Green, Red }
-import model.Exceptions.{ LastSchemeWithdrawException, PassMarkEvaluationNotFound, SiftExpiredException }
+import model.EvaluationResults.{Green, Red}
+import model.Exceptions.{LastSchemeWithdrawException, PassMarkEvaluationNotFound, SiftExpiredException}
 import model.ProgressStatuses.ProgressStatus
 import model._
 import model.command._
 import model.exchange.sift.SiftAnswersStatus
-import model.persisted.{ ContactDetails, FsbTestGroup, PassmarkEvaluation, SchemeEvaluationResult }
+import model.persisted.{ContactDetails, FsbTestGroup, PassmarkEvaluation, SchemeEvaluationResult}
 import model.stc.AuditEvents
 import org.joda.time.DateTime
-import org.mockito.ArgumentMatchers.{ any, eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{any, eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
@@ -39,21 +39,22 @@ import repositories.onlinetesting._
 import repositories.personaldetails.PersonalDetailsRepository
 import repositories.schemepreferences.SchemePreferencesRepository
 import repositories.sift.ApplicationSiftRepository
-import repositories.{ AssessorAssessmentScoresMongoRepository, MediaRepository, ReviewerAssessmentScoresMongoRepository, TestSchemeRepository }
+import repositories.{AssessorAssessmentScoresMongoRepository, MediaRepository, ReviewerAssessmentScoresMongoRepository, TestSchemeRepository}
 import scheduler.fixer.FixBatch
-import scheduler.fixer.RequiredFixes.{ PassToPhase2, ResetPhase1TestInvitedSubmitted }
+import scheduler.fixer.RequiredFixes.{PassToPhase2, ResetPhase1TestInvitedSubmitted}
 import services.allocation.CandidateAllocationService
 import services.events.EventsService
 import services.onlinetesting.phase1.EvaluatePhase1ResultService
 import services.onlinetesting.phase2.EvaluatePhase2ResultService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
-import services.sift.{ ApplicationSiftService, SiftAnswersService }
+import services.sift.{ApplicationSiftService, SiftAnswersService}
 import services.stc.StcEventServiceFixture
 import testkit.MockitoImplicits._
-import testkit.{ ExtendedTimeout, UnitSpec }
+import testkit.{ExtendedTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
@@ -69,8 +70,9 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       underTest.fix(FixBatch(PassToPhase2, 1) :: FixBatch(ResetPhase1TestInvitedSubmitted, 1) :: Nil)(hc, rh).futureValue
 
       verify(appRepositoryMock, times(3)).fix(any[Candidate], any[FixBatch])
-      verify(auditEventHandlerMock, times(3)).handle(any[AuditEvents.FixedProdData])(any[HeaderCarrier], any[RequestHeader])
-      verifyZeroInteractions(pdRepositoryMock, cdRepositoryMock, dataStoreEventHandlerMock, emailEventHandlerMock)
+      verify(auditEventHandlerMock, times(3)).handle(any[AuditEvents.FixedProdData])(
+        any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
+      verifyNoInteractions(pdRepositoryMock, cdRepositoryMock, dataStoreEventHandlerMock, emailEventHandlerMock)
       verifyNoMoreInteractions(auditEventHandlerMock)
     }
 
@@ -80,7 +82,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       underTest.fix(FixBatch(PassToPhase2, 1) :: Nil)(hc, rh).futureValue
 
       verify(appRepositoryMock, never).fix(any[Candidate], any[FixBatch])
-      verifyZeroInteractions(auditEventHandlerMock)
+      verifyNoInteractions(auditEventHandlerMock)
     }
 
     "proceed with the other searches if one of them fails" in new TestFixture {
@@ -92,8 +94,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       result.failed.futureValue mustBe generalException
 
       verify(appRepositoryMock, times(1)).fix(candidate3, FixBatch(PassToPhase2, 1))
-      verify(auditEventHandlerMock).handle(any[AuditEvents.FixedProdData])(any[HeaderCarrier], any[RequestHeader])
-      verifyZeroInteractions(auditEventHandlerMock)
+      verify(auditEventHandlerMock).handle(any[AuditEvents.FixedProdData])(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
+      verifyNoMoreInteractions(auditEventHandlerMock)
     }
 
     "retrieve passed schemes for Faststream application" in new TestFixture {
@@ -105,7 +107,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         "", None)
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(faststreamApplication))
-      when(evalPhase3ResultMock.getPassmarkEvaluation(eqTo(applicationId))).thenReturn(Future.successful(passmarkEvaluation))
+      when(evalPhase3ResultMock.getPassmarkEvaluation(eqTo(applicationId))(any[ExecutionContext]))
+        .thenReturn(Future.successful(passmarkEvaluation))
 
       val passedSchemes = underTest.getPassedSchemes(userId, frameworkId).futureValue
 
@@ -131,7 +134,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       val passmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeId("Edip"), "Green")), "", None)
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(edipApplication))
-      when(evalPhase1ResultMock.getPassmarkEvaluation(eqTo(applicationId))).thenReturn(Future.successful(passmarkEvaluation))
+      when(evalPhase1ResultMock.getPassmarkEvaluation(eqTo(applicationId))(any[ExecutionContext]))
+        .thenReturn(Future.successful(passmarkEvaluation))
 
       val passedSchemes = underTest.getPassedSchemes(userId, frameworkId).futureValue
 
@@ -144,7 +148,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       val passmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeId(sdip), "Green")), "", None)
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(sdipApplication))
-      when(evalPhase1ResultMock.getPassmarkEvaluation(eqTo(applicationId))).thenReturn(Future.successful(passmarkEvaluation))
+      when(evalPhase1ResultMock.getPassmarkEvaluation(eqTo(applicationId))(any[ExecutionContext]))
+        .thenReturn(Future.successful(passmarkEvaluation))
 
       val passedSchemes = underTest.getPassedSchemes(userId, frameworkId).futureValue
 
@@ -165,8 +170,10 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
         ), "", None)
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(application))
-      when(evalPhase3ResultMock.getPassmarkEvaluation(eqTo(applicationId))).thenReturn(Future.successful(phase3PassmarkEvaluation))
-      when(evalPhase1ResultMock.getPassmarkEvaluation(eqTo(applicationId))).thenReturn(Future.successful(phase1PassmarkEvaluation))
+      when(evalPhase3ResultMock.getPassmarkEvaluation(eqTo(applicationId))(any[ExecutionContext]))
+        .thenReturn(Future.successful(phase3PassmarkEvaluation))
+      when(evalPhase1ResultMock.getPassmarkEvaluation(eqTo(applicationId))(any[ExecutionContext]))
+        .thenReturn(Future.successful(phase1PassmarkEvaluation))
 
       val passedSchemes = underTest.getPassedSchemes(userId, frameworkId).futureValue
 
@@ -180,8 +187,10 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
       val phase1PassmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(SchemeId(sdip), "Green")), "", None)
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(application))
-      when(evalPhase3ResultMock.getPassmarkEvaluation(eqTo(applicationId))).thenReturn(Future.failed(PassMarkEvaluationNotFound(applicationId)))
-      when(evalPhase1ResultMock.getPassmarkEvaluation(eqTo(applicationId))).thenReturn(Future.successful(phase1PassmarkEvaluation))
+      when(evalPhase3ResultMock.getPassmarkEvaluation(eqTo(applicationId))(any[ExecutionContext]))
+        .thenReturn(Future.failed(PassMarkEvaluationNotFound(applicationId)))
+      when(evalPhase1ResultMock.getPassmarkEvaluation(eqTo(applicationId))(any[ExecutionContext]))
+        .thenReturn(Future.successful(phase1PassmarkEvaluation))
 
       val passedSchemes = underTest.getPassedSchemes(userId, frameworkId).futureValue
 
@@ -918,7 +927,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
   "current scheme status with failure details" must {
     "return no failure reasons when all schemes are green" in new TestFixture {
       List(phase1EvaluationRepositoryMock, phase2EvaluationRepositoryMock, phase3EvaluationRepositoryMock).foreach { repo =>
-        when(repo.getPassMarkEvaluation(any[String]())).thenReturnAsync(
+        when(repo.getPassMarkEvaluation(any[String])(any[ExecutionContext])).thenReturnAsync(
           PassmarkEvaluation(
             "version-1",
             None,
@@ -975,7 +984,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "return a failure reason against all red schemes when one is failed" in new TestFixture {
       List(phase1EvaluationRepositoryMock, phase2EvaluationRepositoryMock, phase3EvaluationRepositoryMock).foreach { repo =>
-        when(repo.getPassMarkEvaluation(any[String]())).thenReturnAsync(
+        when(repo.getPassMarkEvaluation(any[String])(any[ExecutionContext])).thenReturnAsync(
           PassmarkEvaluation(
             "version-1",
             None,
@@ -1032,7 +1041,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "return all failure reasons when all schemes are red" in new TestFixture {
       List(phase1EvaluationRepositoryMock, phase2EvaluationRepositoryMock, phase3EvaluationRepositoryMock).foreach { repo =>
-        when(repo.getPassMarkEvaluation(any[String]())).thenReturnAsync(
+        when(repo.getPassMarkEvaluation(any[String])(any[ExecutionContext])).thenReturnAsync(
           PassmarkEvaluation(
             "version-1",
             None,

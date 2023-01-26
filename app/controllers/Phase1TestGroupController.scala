@@ -24,12 +24,12 @@ import repositories.onlinetesting._
 import services.onlinetesting.OnlineTestExtensionService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 @Singleton
 class Phase1TestGroupController @Inject() (cc: ControllerComponents,
                                            phase1Repository: Phase1TestRepository,
                                            phase1TestExtensionService: OnlineTestExtensionService) extends BackendController(cc) {
+
+  implicit val ec = cc.executionContext
 
   def getTests(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     phase1Repository.getTestGroup(applicationId).map { maybeTestProfile =>

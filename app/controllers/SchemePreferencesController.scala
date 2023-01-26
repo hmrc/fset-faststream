@@ -24,11 +24,11 @@ import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import services.scheme.SchemePreferencesService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 @Singleton
 class SchemePreferencesController @Inject() (cc: ControllerComponents,
                                              schemePreferencesService: SchemePreferencesService) extends BackendController(cc) {
+
+  implicit val ec = cc.executionContext
 
   def find(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     schemePreferencesService.find(applicationId) map { sp =>

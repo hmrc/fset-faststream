@@ -27,12 +27,12 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.allocation.CandidateAllocationService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 @Singleton
 class CandidateAllocationController @Inject() (cc: ControllerComponents,
                                                candidateAllocationService: CandidateAllocationService)
   extends BackendController(cc) with Logging {
+
+  implicit val ec = cc.executionContext
 
   def confirmAllocation(eventId: String, sessionId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[exchange.CandidateAllocations] { candidateAllocations =>

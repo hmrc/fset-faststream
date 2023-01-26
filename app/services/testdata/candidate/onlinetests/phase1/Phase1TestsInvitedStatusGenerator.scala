@@ -27,17 +27,17 @@ import services.testdata.candidate.{ConstructiveGenerator, SubmittedStatusGenera
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class Phase1TestsInvitedStatusGenerator @Inject() (val previousStatusGenerator: SubmittedStatusGenerator,
                                                    otRepository: Phase1TestRepository,
                                                    appConfig: MicroserviceAppConfig
-                                                  ) extends ConstructiveGenerator {
+                                                  )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
   private val OneDay = 86400000
   val onlineTestsGatewayConfig: OnlineTestsGatewayConfig = appConfig.onlineTestsGatewayConfig
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
 
     val testsNames = if (generatorConfig.assistanceDetails.setGis) {
       onlineTestsGatewayConfig.phase1Tests.gis

@@ -19,14 +19,15 @@ package services
 import com.google.inject.name.Named
 import config._
 import connectors.ExchangeObjects._
-import connectors.{ OnlineTestEmailClient, OnlineTestsGatewayClient }
-import factories.{ DateTimeFactory, UUIDFactory }
-import javax.inject.{ Inject, Singleton }
-import model.Exceptions.{ CannotFindTestByOrderIdException, UnexpectedException }
-import model.ProgressStatuses.{ ProgressStatus, SIFT_TEST_COMPLETED, SIFT_TEST_INVITED }
+import connectors.{OnlineTestEmailClient, OnlineTestsGatewayClient}
+import factories.{DateTimeFactory, UUIDFactory}
+
+import javax.inject.{Inject, Singleton}
+import model.Exceptions.{CannotFindTestByOrderIdException, UnexpectedException}
+import model.ProgressStatuses.{ProgressStatus, SIFT_TEST_COMPLETED, SIFT_TEST_INVITED}
 import model._
 import model.exchange.PsiRealTimeResults
-import model.persisted.sift.{ MaybeSiftTestGroupWithAppId, SiftTestGroup }
+import model.persisted.sift.{MaybeSiftTestGroupWithAppId, SiftTestGroup}
 import model.persisted.PsiTest
 import model.stc.DataStoreEvents
 import play.api.Logging
@@ -36,13 +37,11 @@ import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.sift.ApplicationSiftRepository
 import services.onlinetesting.TextSanitizer
-import services.stc.{ EventSink, StcEventService }
+import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-// PSI based version guice injection
 // scalastyle:off number.of.methods
 @Singleton
 class NumericalTestService @Inject() (applicationRepo: GeneralApplicationRepository,
@@ -55,7 +54,7 @@ class NumericalTestService @Inject() (applicationRepo: GeneralApplicationReposit
                                       @Named("CSREmailClient") emailClient: OnlineTestEmailClient, // Changed the type
                                       contactDetailsRepo: ContactDetailsRepository,
                                       val eventService: StcEventService
-                                     ) extends EventSink with Logging {
+                                     )(implicit ec: ExecutionContext) extends EventSink with Logging {
 
   val gatewayConfig: OnlineTestsGatewayConfig = appConfig.onlineTestsGatewayConfig
 

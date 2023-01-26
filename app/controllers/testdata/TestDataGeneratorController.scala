@@ -47,7 +47,6 @@ import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
@@ -62,6 +61,8 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
                                              uuidFactory: UUIDFactory,
                                              dataFaker: DataFaker
                                             ) extends BackendController(cc) with Logging {
+
+  implicit val ec = cc.executionContext
 
   def ping = Action { implicit request =>
     Ok("OK")

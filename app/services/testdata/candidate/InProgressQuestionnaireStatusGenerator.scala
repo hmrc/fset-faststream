@@ -16,29 +16,29 @@
 
 package services.testdata.candidate
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.exchange.testdata.CreateCandidateResponse
-import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
-import model.testdata.candidate.CreateCandidateData.{ CreateCandidateData, DiversityDetails }
+import model.persisted.{QuestionnaireAnswer, QuestionnaireQuestion}
+import model.testdata.candidate.CreateCandidateData.{CreateCandidateData, DiversityDetails}
 import play.api.mvc.RequestHeader
 import repositories._
-import repositories.application.{ DiversityQuestionsText, GeneralApplicationRepository }
+import repositories.application.{DiversityQuestionsText, GeneralApplicationRepository}
 import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenerator: InProgressAssistanceDetailsStatusGenerator,
                                                         appRepository: GeneralApplicationRepository,
                                                         qRepository: QuestionnaireRepository,
                                                         dataFaker: DataFaker
-                                                       ) extends ConstructiveGenerator with DiversityQuestionsText {
+                                                       )(
+  implicit ec: ExecutionContext) extends ConstructiveGenerator with DiversityQuestionsText {
 
   // scalastyle:off method.length
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
-              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse.CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse.CreateCandidateResponse] = {
 
     val didYouLiveInUkBetween14and18Answer = dataFaker.yesNo
 

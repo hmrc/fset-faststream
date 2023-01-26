@@ -27,8 +27,7 @@ import play.api.libs.json.{JsValue, Json}
 import repositories.CollectionNames
 import uk.gov.hmrc.mongo.MongoComponent
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait DiagnosticReportingRepository {
   def findByApplicationId(applicationId: String): Future[Seq[JsValue]]
@@ -36,7 +35,7 @@ trait DiagnosticReportingRepository {
 }
 
 @Singleton
-class DiagnosticReportingMongoRepository @Inject() (mongo: MongoComponent) extends DiagnosticReportingRepository {
+class DiagnosticReportingMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext) extends DiagnosticReportingRepository {
 
   val collection: MongoCollection[Document] = mongo.database.getCollection(CollectionNames.APPLICATION)
 

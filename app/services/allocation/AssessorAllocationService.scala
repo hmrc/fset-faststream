@@ -31,22 +31,21 @@ import services.events.EventsService
 import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 object AssessorAllocationService {
   case class CouldNotFindAssessorContactDetails(userId: String) extends Exception(userId)
 }
 
 @Singleton
-class AssessorAllocationService @Inject()(assessorAllocationRepo: AssessorAllocationRepository,
-                                          applicationRepo: GeneralApplicationRepository,
-                                          eventsService: EventsService,
-                                          allocationServiceCommon: AllocationServiceCommon, // Breaks circular dependencies
-                                          val eventService: StcEventService,
-                                          authProviderClient: AuthProviderClient,
-                                          @Named("CSREmailClient") emailClient: OnlineTestEmailClient //TODO:fix changed type
-                                         ) extends EventSink {
+class AssessorAllocationService @Inject() (assessorAllocationRepo: AssessorAllocationRepository,
+                                           applicationRepo: GeneralApplicationRepository,
+                                           eventsService: EventsService,
+                                           allocationServiceCommon: AllocationServiceCommon, // Breaks circular dependencies
+                                           val eventService: StcEventService,
+                                           authProviderClient: AuthProviderClient,
+                                           @Named("CSREmailClient") emailClient: OnlineTestEmailClient //TODO:fix changed type
+                                          )(implicit ec: ExecutionContext) extends EventSink {
 
   def getAllocations(eventId: String): Future[exchange.AssessorAllocations] = {
     allocationServiceCommon.getAllocations(eventId)

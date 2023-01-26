@@ -29,8 +29,7 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait AssessmentScoresRepository {
   val uuidFactory: UUIDFactory
@@ -51,7 +50,7 @@ trait AssessmentScoresRepository {
 
 abstract class AssessmentScoresMongoRepository @Inject() (collectionName: String,
                                                           mongoComponent: MongoComponent,
-                                                          val uuidFactory: UUIDFactory)
+                                                          val uuidFactory: UUIDFactory)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[AssessmentScoresAllExercises](
     collectionName = collectionName,
     mongoComponent = mongoComponent,
@@ -190,7 +189,8 @@ abstract class AssessmentScoresMongoRepository @Inject() (collectionName: String
 }
 
 @Singleton
-class AssessorAssessmentScoresMongoRepository @Inject() (mongoComponent: MongoComponent, override val uuidFactory: UUIDFactory)
+class AssessorAssessmentScoresMongoRepository @Inject() (mongoComponent: MongoComponent, override val uuidFactory: UUIDFactory)(
+  implicit ec: ExecutionContext)
   extends AssessmentScoresMongoRepository(CollectionNames.ASSESSOR_ASSESSMENT_SCORES, mongoComponent, uuidFactory) {
   override def findAccepted(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = {
     throw new UnsupportedOperationException("This method is only applicable for a reviewer")
@@ -198,5 +198,6 @@ class AssessorAssessmentScoresMongoRepository @Inject() (mongoComponent: MongoCo
 }
 
 @Singleton
-class ReviewerAssessmentScoresMongoRepository @Inject() (mongoComponent: MongoComponent, override val uuidFactory: UUIDFactory)
+class ReviewerAssessmentScoresMongoRepository @Inject() (mongoComponent: MongoComponent, override val uuidFactory: UUIDFactory)(
+  implicit ec: ExecutionContext)
   extends AssessmentScoresMongoRepository(CollectionNames.REVIEWER_ASSESSMENT_SCORES, mongoComponent, uuidFactory)

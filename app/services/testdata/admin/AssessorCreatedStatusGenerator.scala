@@ -17,16 +17,17 @@
 package services.testdata.admin
 
 import com.google.inject.name.Named
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.exchange.AssessorAvailabilities
-import model.exchange.testdata.CreateAdminResponse.{ AssessorResponse, CreateAdminResponse }
+import model.exchange.testdata.CreateAdminResponse.{AssessorResponse, CreateAdminResponse}
 import model.persisted.assessor.AssessorStatus
-import model.testdata.CreateAdminData.{ AssessorData, CreateAdminData }
+import model.testdata.CreateAdminData.{AssessorData, CreateAdminData}
 import play.api.mvc.RequestHeader
 import services.assessor.AssessorService
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 //object AssessorCreatedStatusGenerator extends AssessorCreatedStatusGenerator {
 //  override val previousStatusGenerator: AdminUserBaseGenerator = AdminCreatedStatusGenerator
@@ -35,10 +36,10 @@ import scala.concurrent.Future
 
 @Singleton
 class AssessorCreatedStatusGenerator @Inject() (@Named("AdminCreatedStatusGenerator") val previousStatusGenerator: AdminUserBaseGenerator,
-                                                assessorService: AssessorService) extends AdminUserConstructiveGenerator {
+                                                assessorService: AssessorService)(
+  implicit ec: ExecutionContext) extends AdminUserConstructiveGenerator {
 
 //  override val previousStatusGenerator: AdminUserBaseGenerator = AdminCreatedStatusGenerator
-  import scala.concurrent.ExecutionContext.Implicits.global
 
 //  val assessorService: AssessorService
 

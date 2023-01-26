@@ -28,8 +28,7 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 import scala.util.Try
 
@@ -59,7 +58,7 @@ trait QuestionnaireRepository {
 
 @Singleton
 class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEconomicScoreCalculator,
-                                              mongoComponent: MongoComponent)
+                                              mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[QuestionnaireAnswer](
     collectionName = CollectionNames.QUESTIONNAIRE,
     mongoComponent = mongoComponent,

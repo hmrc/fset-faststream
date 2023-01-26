@@ -17,16 +17,18 @@
 package services.sift
 
 import config.MicroserviceAppConfig
-import model.EvaluationResults.{ Green, Withdrawn }
-import model.ProgressStatuses.{ SIFT_COMPLETED, SIFT_FORMS_COMPLETE_NUMERIC_TEST_PENDING, SIFT_READY }
+import model.EvaluationResults.{Green, Withdrawn}
+import model.ProgressStatuses.{SIFT_COMPLETED, SIFT_FORMS_COMPLETE_NUMERIC_TEST_PENDING, SIFT_READY}
 import model.command.ProgressResponseExamples
 import model.persisted.SchemeEvaluationResult
-import model.{ Scheme, SchemeId, SiftRequirement }
+import model.{Scheme, SchemeId, SiftRequirement}
 import repositories.SchemeYamlRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.sift.SiftAnswersRepository
 import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitWithAppSpec
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class SiftAnswersServiceSpec extends ScalaMockUnitWithAppSpec {
 

@@ -19,18 +19,18 @@ package repositories.events
 import common.FutureEx
 import config.MicroserviceAppConfig
 import factories.UUIDFactory
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.FsbType
 import model.persisted.eventschedules._
 import net.jcazevedo.moultingyaml._
 import net.jcazevedo.moultingyaml.DefaultYamlProtocol._
-import org.joda.time.{ DateTime, LocalDate, LocalTime }
+import org.joda.time.{DateTime, LocalDate, LocalTime}
 import org.joda.time.format.DateTimeFormat
-import play.api.{ Application, Play }
+import play.api.{Application, Play}
 import resource._
 
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 import scala.io.Source
 
 case class EventConfig(
@@ -90,7 +90,7 @@ trait EventsConfigRepository {
 class EventsConfigRepositoryImpl @Inject() (application: Application,
                                             locationsWithVenuesRepo: LocationsWithVenuesRepository,
                                             appConfig: MicroserviceAppConfig,
-                                            uuidFactory: UUIDFactory) extends EventsConfigRepository {
+                                            uuidFactory: UUIDFactory)(implicit ec: ExecutionContext) extends EventsConfigRepository {
 
   protected def eventScheduleConfig: String = getConfig(appConfig.eventsConfig.scheduleFilePath)
 

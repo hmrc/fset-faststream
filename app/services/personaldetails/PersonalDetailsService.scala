@@ -16,20 +16,19 @@
 
 package services.personaldetails
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.ApplicationStatus._
 import model.Exceptions.FSACCSVIndicatorNotFound
 import model.FSACIndicator
 import model.command.GeneralDetails
-import model.persisted.{ ContactDetails, PersonalDetails }
+import model.persisted.{ContactDetails, PersonalDetails}
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.csv.FSACIndicatorCSVRepository
 import repositories.fsacindicator.FSACIndicatorRepository
 import repositories.personaldetails.PersonalDetailsRepository
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class PersonalDetailsService @Inject() (pdRepository: PersonalDetailsRepository,
@@ -38,7 +37,7 @@ class PersonalDetailsService @Inject() (pdRepository: PersonalDetailsRepository,
                                          fsacIndicatorCSVRepository: FSACIndicatorCSVRepository,
                                          fsacIndicatorRepository: FSACIndicatorRepository
                                          //  val auditService: AuditService //not used
-                                        ) {
+                                        )(implicit ec: ExecutionContext) {
 
   def find(applicationId: String, userId: String): Future[GeneralDetails] = {
     val personalDetailsFut = pdRepository.find(applicationId)

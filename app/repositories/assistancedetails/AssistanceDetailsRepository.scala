@@ -23,10 +23,9 @@ import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.{Filters, Projections}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
+import repositories.{CollectionNames, ReactiveRepositoryHelpers}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait AssistanceDetailsRepository {
   def update(applicationId: String, userId: String, ad: AssistanceDetails): Future[Unit]
@@ -34,7 +33,7 @@ trait AssistanceDetailsRepository {
 }
 
 @Singleton
-class AssistanceDetailsMongoRepository @Inject() (mongo: MongoComponent)
+class AssistanceDetailsMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[AssistanceDetails](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongo,

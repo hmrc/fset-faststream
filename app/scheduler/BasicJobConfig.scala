@@ -22,9 +22,7 @@ import config.ScheduledJobConfigurable
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ValueReader
 import play.api.Configuration
-//import play.api.Play.configuration
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.util.Try
 
@@ -32,7 +30,6 @@ case class BasicJobConfig[T <: ScheduledJobConfigurable] (config: Configuration,
                                                          (implicit reader: ValueReader[T]) {
 
   lazy val conf: T = config.underlying.as[T](configPrefix)
-  val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   def lockId = conf.lockId.getOrElse(exception("lockId"))
 

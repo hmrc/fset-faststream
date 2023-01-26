@@ -47,7 +47,6 @@ import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoReposito
 import java.util.UUID
 import java.util.regex.Pattern
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
@@ -134,7 +133,7 @@ trait GeneralApplicationRepository {
 class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
                                                    appConfig: MicroserviceAppConfig,
                                                    mongo: MongoComponent
-                                                  )
+                                                  )(implicit ec: ExecutionContext)
   extends PlayMongoRepository[CreateApplicationRequest](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongo,
@@ -529,7 +528,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
     for {
       query <- Future.fromTry(query)
-      result <- selectOneRandom[TestResultNotification](query)( doc => TestResultNotification.fromBson(doc), global )
+      result <- selectOneRandom[TestResultNotification](query)( doc => TestResultNotification.fromBson(doc), ec )
     } yield result
   }
 
@@ -540,7 +539,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       Document(s"progress-status.${notificationType.notificationProgress}" -> Document("$ne" -> true))
     ))
 
-    selectOneRandom[TestResultSdipFsNotification](query)( doc => TestResultSdipFsNotification.fromBson(doc), global )
+    selectOneRandom[TestResultSdipFsNotification](query)( doc => TestResultSdipFsNotification.fromBson(doc), ec )
   }
 
   //scalastyle:off method.length
@@ -553,7 +552,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
           Document(s"progress-status.${ProgressStatuses.PHASE2_TESTS_INVITED}" -> true)
         ))
 
-        selectRandom[Candidate](query, issue.batchSize)(doc => Codecs.fromBson[Candidate](doc.toBsonDocument()), global)
+        selectRandom[Candidate](query, issue.batchSize)(doc => Codecs.fromBson[Candidate](doc.toBsonDocument()), ec)
       case PassToPhase1TestPassed =>
         val query = Document("$and" -> BsonArray(
           Document("applicationStatus" -> ApplicationStatus.PHASE1_TESTS.toBson),
@@ -561,14 +560,14 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
           Document(s"progress-status.${ProgressStatuses.PHASE2_TESTS_INVITED}" -> Document("$ne" -> true))
         ))
 
-        selectRandom[Candidate](query, issue.batchSize)(doc => Codecs.fromBson[Candidate](doc.toBsonDocument()), global)
+        selectRandom[Candidate](query, issue.batchSize)(doc => Codecs.fromBson[Candidate](doc.toBsonDocument()), ec)
       case ResetPhase1TestInvitedSubmitted =>
         val query = Document("$and" -> BsonArray(
           Document("applicationStatus" -> ApplicationStatus.SUBMITTED.toBson),
           Document(s"progress-status.${ProgressStatuses.PHASE1_TESTS_INVITED}" -> true)
         ))
 
-        selectRandom[Candidate](query, issue.batchSize)(doc => Codecs.fromBson[Candidate](doc.toBsonDocument()), global)
+        selectRandom[Candidate](query, issue.batchSize)(doc => Codecs.fromBson[Candidate](doc.toBsonDocument()), ec)
       case AddMissingPhase2ResultReceived =>
         val query = Document("$and" -> BsonArray(
           Document("applicationStatus" -> ApplicationStatus.PHASE2_TESTS.toBson),
@@ -581,7 +580,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
           )
         ))
 
-        selectRandom[Candidate](query, issue.batchSize)(doc => Codecs.fromBson[Candidate](doc.toBsonDocument()), global)
+        selectRandom[Candidate](query, issue.batchSize)(doc => Codecs.fromBson[Candidate](doc.toBsonDocument()), ec)
     }
   }//scalastyle:on
 

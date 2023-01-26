@@ -16,22 +16,23 @@
 
 package services.onlinetesting.phase1
 
-import config.{ MicroserviceAppConfig, Phase1TestsConfig, PsiTestIds, OnlineTestsGatewayConfig }
+import config.{MicroserviceAppConfig, OnlineTestsGatewayConfig, Phase1TestsConfig, PsiTestIds}
 import factories.UUIDFactory
 import model.EvaluationResults.Green
 import model.Phase1TestExamples._
 import model.ProgressStatuses.ProgressStatus
 import model._
-import model.exchange.passmarksettings.{ Phase1PassMarkSettings, Phase1PassMarkSettingsExamples }
+import model.exchange.passmarksettings.{Phase1PassMarkSettings, Phase1PassMarkSettingsExamples}
 import model.persisted._
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import repositories.onlinetesting.OnlineTestEvaluationRepository
 import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import services.BaseServiceSpec
 
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
@@ -47,7 +48,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
       when(mockPhase1PassMarkSettingsRepository.getLatestVersion).thenReturn(Future.successful(Some(PassmarkSettings)))
       when(mockPhase1EvaluationRepository
-        .nextApplicationsReadyForEvaluation(eqTo(PassmarkVersion), any[Int]))
+        .nextApplicationsReadyForEvaluation(eqTo(PassmarkVersion), any[Int])(any[ExecutionContext]))
         .thenReturn(Future.successful(List(application)))
 
       val result = service.nextCandidatesReadyForEvaluation(1).futureValue
@@ -94,7 +95,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
       val progressStatusCaptor = ArgumentCaptor.forClass(classOf[Option[ProgressStatus]])
 
       verify(mockPhase1EvaluationRepository).savePassmarkEvaluation(applicationIdCaptor.capture, passmarkEvaluationCaptor.capture,
-        progressStatusCaptor.capture)
+        progressStatusCaptor.capture)(any[ExecutionContext])
 
       applicationIdCaptor.getValue.toString mustBe AppId
       passmarkEvaluationCaptor.getValue.passmarkVersion mustBe PassmarkVersion
@@ -113,7 +114,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
       val progressStatusCaptor = ArgumentCaptor.forClass(classOf[Option[ProgressStatus]])
 
       verify(mockPhase1EvaluationRepository).savePassmarkEvaluation(applicationIdCaptor.capture, passmarkEvaluationCaptor.capture,
-        progressStatusCaptor.capture)
+        progressStatusCaptor.capture)(any[ExecutionContext])
 
       applicationIdCaptor.getValue.toString mustBe AppId
       passmarkEvaluationCaptor.getValue.passmarkVersion mustBe PassmarkVersion
@@ -132,7 +133,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
       val progressStatusCaptor = ArgumentCaptor.forClass(classOf[Option[ProgressStatus]])
 
       verify(mockPhase1EvaluationRepository).savePassmarkEvaluation(applicationIdCaptor.capture, passmarkEvaluationCaptor.capture,
-        progressStatusCaptor.capture)
+        progressStatusCaptor.capture)(any[ExecutionContext])
 
       applicationIdCaptor.getValue.toString mustBe AppId
       passmarkEvaluationCaptor.getValue.passmarkVersion mustBe PassmarkVersion
@@ -168,7 +169,8 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
     when(mockAppConfig.onlineTestsGatewayConfig).thenReturn(mockOnlineTestsGatewayConfig)
 
-    when(mockPhase1EvaluationRepository.savePassmarkEvaluation(eqTo(AppId), any[PassmarkEvaluation], any[Option[ProgressStatus]]))
+    when(mockPhase1EvaluationRepository
+      .savePassmarkEvaluation(eqTo(AppId), any[PassmarkEvaluation], any[Option[ProgressStatus]])(any[ExecutionContext]))
       .thenReturn(Future.successful(()))
 
     val oneTest = List(firstPsiTest)

@@ -29,6 +29,9 @@ import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
+import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContext.Implicits.global
+
 class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
 
   "final success notified" must {
@@ -45,8 +48,8 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
         .expects(SchemeId(Commercial))
         .returning(Option(CommercialScheme))
 
-      ( mockEmailClient.notifyCandidateOnFinalSuccess(_: String, _: String, _: String)(_: HeaderCarrier) )
-        .expects(Cd1.email, C1.name, Commercial, hc)
+      ( mockEmailClient.notifyCandidateOnFinalSuccess(_: String, _: String, _: String)(_: HeaderCarrier, _: ExecutionContext) )
+        .expects(Cd1.email, C1.name, Commercial, hc, global)
         .returningAsync
 
       (mockFinalOutcomeRepo.firstResidualPreference _)
@@ -71,8 +74,8 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
         .expects(C1.userId)
         .returningAsync(Cd1)
 
-      ( mockEmailClient.notifyCandidateOnFinalFailure(_: String, _: String)(_: HeaderCarrier) )
-        .expects(Cd1.email, C1.name, hc)
+      ( mockEmailClient.notifyCandidateOnFinalFailure(_: String, _: String)(_: HeaderCarrier, _: ExecutionContext) )
+        .expects(Cd1.email, C1.name, hc, global)
         .returningAsync
 
       ( mockApplicationRepo.getProgressStatusTimestamps(_: String) )
@@ -95,8 +98,8 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
         .expects(C1.userId)
         .returningAsync(Cd1)
 
-      ( mockEmailClient.notifyCandidateOnFinalFailure(_: String, _: String)(_: HeaderCarrier) )
-        .expects(Cd1.email, C1.name, hc)
+      ( mockEmailClient.notifyCandidateOnFinalFailure(_: String, _: String)(_: HeaderCarrier, _: ExecutionContext) )
+        .expects(Cd1.email, C1.name, hc, global)
         .returningAsync
 
       ( mockApplicationRepo.getProgressStatusTimestamps(_: String) )

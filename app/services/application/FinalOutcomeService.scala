@@ -29,8 +29,7 @@ import repositories.application._
 import repositories.contactdetails.ContactDetailsRepository
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class FinalOutcomeService @Inject() (contactDetailsRepo: ContactDetailsRepository,
@@ -38,7 +37,7 @@ class FinalOutcomeService @Inject() (contactDetailsRepo: ContactDetailsRepositor
                                      finalOutcomeRepo: FinalOutcomeRepository,
                                      schemeRepo: SchemeRepository,
                                      @Named("CSREmailClient") emailClient: OnlineTestEmailClient //TODO:fix changed type
-                                    ) {
+                                    )(implicit ec: ExecutionContext) {
 
   val FinalFailedStates = Seq(ASSESSMENT_CENTRE_FAILED, FSB_FAILED)
 

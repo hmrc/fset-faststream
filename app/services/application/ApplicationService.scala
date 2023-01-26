@@ -105,8 +105,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
                                     assessorAssessmentScoresRepository: AssessorAssessmentScoresMongoRepository,
                                     reviewerAssessmentScoresRepository: ReviewerAssessmentScoresMongoRepository,
                                     val eventService: StcEventService
-                                   ) extends EventSink with CurrentSchemeStatusHelper with Logging {
-  implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+                                   )(implicit ec: ExecutionContext) extends EventSink with CurrentSchemeStatusHelper with Logging {
 
   val Candidate_Role = "Candidate"
 

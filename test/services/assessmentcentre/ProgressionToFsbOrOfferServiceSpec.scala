@@ -18,9 +18,9 @@ package services.assessmentcentre
 
 import connectors.OnlineTestEmailClient
 import model.ProgressStatuses.ASSESSMENT_CENTRE_PASSED
-import model.command.{ ApplicationForProgression, ApplicationStatusDetails }
-import model.persisted.{ ContactDetails, SchemeEvaluationResult }
-import model.{ SchemeId, _ }
+import model.command.{ApplicationForProgression, ApplicationStatusDetails}
+import model.persisted.{ContactDetails, SchemeEvaluationResult}
+import model.{SchemeId, _}
 import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -30,7 +30,8 @@ import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 class ProgressionToFsbOrOfferServiceSpec extends ScalaMockUnitSpec {
 //TODO:fix these tests
@@ -65,8 +66,8 @@ class ProgressionToFsbOrOfferServiceSpec extends ScalaMockUnitSpec {
         (mockSchemeRepository.fsbSchemeIds _).expects().returning(
           Seq(SchemeId("DigitalDataTechnologyAndCyber"), SchemeId("DiplomaticAndDevelopment"), SchemeId("GovernmentStatisticalService")))
 
-        (mockEmailClient.sendCandidateAssessmentCompletedMovedToFsb(_: String, _: String)(_: HeaderCarrier))
-          .expects(candidate1.email, candidate0.name, hc)
+        (mockEmailClient.sendCandidateAssessmentCompletedMovedToFsb(_: String, _: String)(_: HeaderCarrier, _: ExecutionContext))
+          .expects(candidate1.email, candidate0.name, hc, global)
           .returningAsync
       }
 

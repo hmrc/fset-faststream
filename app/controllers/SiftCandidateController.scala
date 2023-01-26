@@ -24,13 +24,13 @@ import play.api.mvc.{ Action, ControllerComponents }
 import services.sift.{ ApplicationSiftService, SiftExpiryExtensionService }
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 @Singleton
 class SiftCandidateController @Inject() (cc: ControllerComponents,
                                          siftExpiryExtensionService: SiftExpiryExtensionService,
                                          applicationSiftService: ApplicationSiftService
                                         ) extends BackendController(cc) with Logging {
+
+  implicit val ec = cc.executionContext
 
   def extend(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[SiftExtension] { extension =>

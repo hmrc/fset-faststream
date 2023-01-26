@@ -16,24 +16,23 @@
 
 package services.testdata.candidate
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.persisted.AssistanceDetails
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import model.{ Adjustments, ApplicationRoute }
+import model.{Adjustments, ApplicationRoute}
 import play.api.mvc.RequestHeader
 import repositories.assistancedetails.AssistanceDetailsRepository
 import services.adjustmentsmanagement.AdjustmentsManagementService
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 // scalastyle:off method.length
 @Singleton
 class InProgressAssistanceDetailsStatusGenerator @Inject() (val previousStatusGenerator: InProgressSchemePreferencesStatusGenerator,
                                                             adRepository: AssistanceDetailsRepository,
                                                             adjustmentsManagementService: AdjustmentsManagementService
-                                                           ) extends ConstructiveGenerator {
+                                                           )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
 //  val adRepository: AssistanceDetailsRepository
 //  val adjustmentsManagementService: AdjustmentsManagementService
 
@@ -41,7 +40,7 @@ class InProgressAssistanceDetailsStatusGenerator @Inject() (val previousStatusGe
 //    (ApplicationStatus.IN_PROGRESS, InProgressSchemePreferencesStatusGenerator)
 //  }
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
     val assistanceDetails = getAssistanceDetails(generatorConfig)
     val adjustmentsDataOpt = generatorConfig.adjustmentInformation
 

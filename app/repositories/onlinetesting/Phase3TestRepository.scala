@@ -38,8 +38,7 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 object Phase3TestRepository {
   case class CannotFindTestByLaunchpadId(message: String) extends NotFoundException(message)
@@ -70,7 +69,7 @@ trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
 }
 
 @Singleton
-class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoComponent: MongoComponent)
+class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[Phase3TestGroup](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongoComponent,
@@ -164,7 +163,7 @@ class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
     val query = inviteToTestBSON(PHASE2_TESTS_PASSED) ++ Document("applicationRoute" -> Document("$nin" -> BsonArray("Sdip", "Edip")))
 
     selectRandom[OnlineTestApplication](query, batchSize)(
-      doc => repositories.bsonDocToOnlineTestApplication(doc), global
+      doc => repositories.bsonDocToOnlineTestApplication(doc), ec
     )
   }
 
@@ -185,7 +184,7 @@ class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
   }
 
   // Note this overrides the default impl in OnlineTestRepository. Maybe rename this method so we have the default available
-  override def removeTestGroup(applicationId: String): Future[Unit] = {
+  override def removeTestGroup(applicationId: String)(implicit ec: ExecutionContext): Future[Unit] = {
     val appStatuses = List(ApplicationStatus.PHASE3_TESTS,
       ApplicationStatus.PHASE3_TESTS_FAILED,
       ApplicationStatus.PHASE3_TESTS_PASSED)

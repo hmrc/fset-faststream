@@ -26,11 +26,11 @@ import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import services.sift.ApplicationSiftService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 @Singleton
 class SiftingController @Inject() (cc: ControllerComponents,
                                    siftService: ApplicationSiftService) extends BackendController(cc) {
+
+  implicit val ec = cc.executionContext
 
   def findApplicationsReadyForSchemeSifting(schemeId: String): Action[AnyContent] = Action.async { implicit request =>
     siftService.findApplicationsReadyForSchemeSift(SchemeId(schemeId)).map { candidates =>

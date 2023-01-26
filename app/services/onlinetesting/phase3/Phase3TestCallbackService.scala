@@ -18,14 +18,14 @@ package services.onlinetesting.phase3
 
 import connectors.launchpadgateway.exchangeobjects.in._
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import play.api.mvc.RequestHeader
 import repositories.onlinetesting.Phase3TestRepository
 import services.stc.StcEventService
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 //object Phase3TestCallbackService2 {
@@ -45,7 +45,8 @@ case class InviteIdNotRecognisedException(message: String) extends Exception(mes
 class Phase3TestCallbackService @Inject() (phase3TestRepo: Phase3TestRepository,
                                            phase3TestService: Phase3TestService,
 //                                           appConfig: MicroserviceAppConfig2, NOT USED
-                                           val eventService: StcEventService) {
+                                           val eventService: StcEventService
+                                          )(implicit ec: ExecutionContext) {
   //  val phase3TestRepo: Phase3TestRepository
   //  val phase3TestService: Phase3TestService
   //  val auditService: AuditService

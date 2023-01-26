@@ -26,8 +26,6 @@ import services.AuditService
 import services.passmarksettings._
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 @Singleton
 class Phase1PassMarkSettingsController @Inject() (val cc: ControllerComponents,
                                                   val passMarkService: Phase1PassMarkSettingsService,
@@ -79,6 +77,7 @@ class AssessmentCentrePassMarkSettingsController @Inject() (val cc: ControllerCo
 abstract class PassMarkSettingsController[T <: PassMarkSettings] @Inject() (cc: ControllerComponents)
 (implicit manifest: Manifest[T], jsonFormat: Format[T]) extends BackendController(cc) {
 
+  implicit val ec = cc.executionContext
   val passMarkService: PassMarkSettingsService[T]
   val auditService: AuditService
   val uuidFactory: UUIDFactory

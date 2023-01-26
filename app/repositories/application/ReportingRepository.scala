@@ -38,8 +38,7 @@ import repositories._
 import services.TimeZoneService2
 import uk.gov.hmrc.mongo.MongoComponent
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 trait ReportingRepository {
@@ -72,7 +71,7 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2, // 
                                           val dateTimeFactory: DateTimeFactory,
                                           mongo: MongoComponent,
                                           val appConfig: MicroserviceAppConfig
-                                         )
+                                         )(implicit ec: ExecutionContext)
   extends PlayMongoRepository[CreateApplicationRequest](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongo,

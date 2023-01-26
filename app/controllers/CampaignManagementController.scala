@@ -26,13 +26,14 @@ import services.campaignmanagement.CampaignManagementService
 import services.search.SearchForApplicantService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
 class CampaignManagementController @Inject() (cc: ControllerComponents,
                                               campaignManagementService: CampaignManagementService,
                                               searchForApplicantService: SearchForApplicantService) extends BackendController(cc) {
+
+  implicit val ec = cc.executionContext
 
   def afterDeadlineSignupCodeUnusedAndValid(code: String): Action[AnyContent] = Action.async { implicit request =>
     campaignManagementService.afterDeadlineSignupCodeUnusedAndValid(code).map(response => Ok(Json.toJson(response)))

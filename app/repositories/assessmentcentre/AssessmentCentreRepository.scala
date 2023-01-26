@@ -36,8 +36,7 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
 
 object AssessmentCentreRepository {
@@ -75,7 +74,7 @@ class AssessmentCentreMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
                                                  schemeRepository: SchemeRepository, //TODO:fix guice just inject the list
 //                                                  val siftableSchemeIds: Seq[SchemeId],
                                                  mongo: MongoComponent
-                                                )
+                                                )(implicit ec: ExecutionContext)
   extends PlayMongoRepository[ApplicationForSift](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongo,
@@ -159,7 +158,7 @@ class AssessmentCentreMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
         )
       )
 
-    selectRandom[UniqueIdentifier](query)(doc => UniqueIdentifier(getAppId(doc)), global)
+    selectRandom[UniqueIdentifier](query)(doc => UniqueIdentifier(getAppId(doc)), ec)
   }
 
   override def nextSpecificApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String,

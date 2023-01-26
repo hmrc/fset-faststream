@@ -25,11 +25,11 @@ import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import repositories.application.FlagCandidateRepository
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 @Singleton
 class FlagCandidateController @Inject() (cc: ControllerComponents,
                                          fcRepository: FlagCandidateRepository) extends BackendController(cc) {
+
+  implicit val ec = cc.executionContext
 
   def find(appId: String): Action[AnyContent] = Action.async { implicit request =>
     fcRepository.tryGetCandidateIssue(appId).map {

@@ -18,35 +18,36 @@ package services.onlinetesting.phase2
 
 import akka.actor.ActorSystem
 import config._
-import connectors.ExchangeObjects.{ toString => _, _ }
-import connectors.{ OnlineTestEmailClient, OnlineTestsGatewayClient }
-import factories.{ DateTimeFactory, DateTimeFactoryMock, UUIDFactory }
+import connectors.ExchangeObjects.{toString => _, _}
+import connectors.{OnlineTestEmailClient, OnlineTestsGatewayClient}
+import factories.{DateTimeFactory, DateTimeFactoryMock, UUIDFactory}
 import model.Commands.PostCode
 import model.Exceptions._
 import model.OnlineTestCommands.OnlineTestApplication
 import model.Phase2TestExamples._
-import model.ProgressStatuses.{ toString => _, _ }
+import model.ProgressStatuses.{toString => _, _}
 import model._
-import model.command.{ Phase2ProgressResponse, ProgressResponse }
+import model.command.{Phase2ProgressResponse, ProgressResponse}
 import model.exchange.PsiRealTimeResults
-import model.persisted.{ ContactDetails, Phase2TestGroup, Phase2TestGroupWithAppId, _ }
-import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import model.persisted.{ContactDetails, Phase2TestGroup, Phase2TestGroupWithAppId, _}
+import org.joda.time.{DateTime, DateTimeZone, LocalDate}
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase2TestRepository
 import services.AuditService
-import services.onlinetesting.Exceptions.{ TestCancellationException, TestRegistrationException }
+import services.onlinetesting.Exceptions.{TestCancellationException, TestRegistrationException}
 import services.onlinetesting.phase3.Phase3TestService
 import services.sift.ApplicationSiftService
 import services.stc.StcEventServiceFixture
 import testkit.MockitoImplicits._
-import testkit.{ ExtendedTimeout, UnitSpec }
+import testkit.{ExtendedTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
 
 class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
@@ -106,33 +107,34 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     "successfully register 2 candidates" in new TestFixture {
       when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile))
       when(phase2TestRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])).thenReturnAsync()
-      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext]))
           .thenReturnAsync(aoa)
 
       phase2TestService.registerAndInviteForTestGroup(candidates).futureValue
 
-      verify(onlineTestsGatewayClientMock, times(4)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      verify(onlineTestsGatewayClientMock, times(4)).psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext])
       verify(phase2TestRepositoryMock, times(4)).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])
-      verify(emailClientMock, times(2)).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier])
+      verify(emailClientMock, times(2)).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(
+        any[HeaderCarrier], any[ExecutionContext])
     }
 
     "deal with a failed registration when registering a single candidate" in new TestFixture {
       when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile))
       when(phase2TestRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])).thenReturnAsync()
-      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext]))
           .thenReturn(Future.failed(new Exception("Dummy error for test")))
 
       phase2TestService.registerAndInviteForTestGroup(List(onlineTestApplication)).futureValue
 
-      verify(onlineTestsGatewayClientMock, times(2)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      verify(onlineTestsGatewayClientMock, times(2)).psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext])
       verify(phase2TestRepositoryMock, never).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])
-      verify(emailClientMock, never).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier])
+      verify(emailClientMock, never).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier], any[ExecutionContext])
     }
 
     "first candidate registers successfully, 2nd candidate fails" in new TestFixture {
       when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile))
       when(phase2TestRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])).thenReturnAsync()
-      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext]))
         .thenReturnAsync(aoa) // candidate 1 test 1
         .thenReturnAsync(aoa) // candidate 1 test 2
         .thenReturnAsync(aoa) // candidate 2 test 1
@@ -140,18 +142,19 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       phase2TestService.registerAndInviteForTestGroup(candidates).futureValue
 
-      verify(onlineTestsGatewayClientMock, times(4)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      verify(onlineTestsGatewayClientMock, times(4)).psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext])
       // Called 2 times for 1st candidate who registered successfully for both tests and once for 2nd candidate whose
       // 1st registration was successful only
       verify(phase2TestRepositoryMock, times(3)).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])
       // Called for 1st candidate only who registered successfully
-      verify(emailClientMock, times(1)).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier])
+      verify(emailClientMock, times(1)).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(
+        any[HeaderCarrier], any[ExecutionContext])
     }
 
     "first candidate fails registration, 2nd candidate is successful" in new TestFixture {
       when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile))
       when(phase2TestRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])).thenReturnAsync()
-      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext]))
         .thenReturnAsync(aoa) // candidate 1 test 1
         .thenReturn(Future.failed(new Exception("Dummy error for test"))) // candidate 1 test 2
         .thenReturnAsync(aoa) // candidate 2 test 1
@@ -159,12 +162,13 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       phase2TestService.registerAndInviteForTestGroup(candidates).futureValue
 
-      verify(onlineTestsGatewayClientMock, times(4)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      verify(onlineTestsGatewayClientMock, times(4)).psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext])
       // Called once for 1st candidate who registered successfully for 1st test only tests and twice for 2nd candidate whose
       // registrations were both successful
       verify(phase2TestRepositoryMock, times(3)).insertOrUpdateTestGroup(any[String], any[Phase2TestGroup])
       // Called for 2nd candidate only who registered successfully
-      verify(emailClientMock, times(1)).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier])
+      verify(emailClientMock, times(1)).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(
+        any[HeaderCarrier], any[ExecutionContext])
     }
   }
 
@@ -186,7 +190,8 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
 
-      when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
+      when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier], any[ExecutionContext]))
+        .thenReturn(success)
 
       val result = phase2TestService.processNextExpiredTest(phase2ExpirationEvent)
 
@@ -210,7 +215,8 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       val results = List(SchemeEvaluationResult("Sdip", "Green"), SchemeEvaluationResult("Commercial", "Green"))
 
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(success)
-      when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(success)
+      when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier], any[ExecutionContext]))
+        .thenReturn(success)
 
       val result = phase2TestService.processNextExpiredTest(phase2ExpirationEvent)
 
@@ -228,7 +234,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
   "mark as started" should {
     "change progress to started" in new TestFixture {
-      when(phase2TestRepositoryMock.updateTestStartTime(any[String], any[DateTime])).thenReturnAsync()
+      when(phase2TestRepositoryMock.updateTestStartTime(any[String], any[DateTime])(any[ExecutionContext])).thenReturnAsync()
       when(phase2TestRepositoryMock.getTestProfileByOrderId(orderId))
         .thenReturnAsync(Phase2TestGroupWithAppId("appId123", phase2TestProfile))
       when(phase2TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE2_TESTS_STARTED))
@@ -258,7 +264,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
   "mark as completed" should {
     "change progress to completed if there are all tests completed" in new TestFixture {
-      when(phase2TestRepositoryMock.updateTestCompletionTime(any[String], any[DateTime])).thenReturnAsync()
+      when(phase2TestRepositoryMock.updateTestCompletionTime(any[String], any[DateTime])(any[ExecutionContext])).thenReturnAsync()
       val phase2Tests = phase2TestProfile.copy(tests = phase2TestProfile.tests.map(t => t.copy(completedDateTime = Some(DateTime.now()))),
         expirationDate = DateTime.now().plusDays(2)
       )
@@ -314,7 +320,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     "throw exception if config can't be found" in new TestFixture {
       val newTests = phase2Test.copy(inventoryId = "unknown-uuid") :: Nil
       when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile.copy(tests = newTests)))
-      when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest]))
+      when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest])(any[ExecutionContext]))
         .thenReturnAsync(acaCompleted)
 
       val result = phase2TestService.resetTest(onlineTestApplication, phase2Test.orderId, "")
@@ -325,18 +331,19 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     "not complete invitation if re-registration request connection fails"  in new TestFixture {
       val newTests = phase2Test.copy(inventoryId = "inventory-id-1") :: Nil
       when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile.copy(tests = newTests)))
-      when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest]))
+      when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest])(any[ExecutionContext]))
         .thenReturnAsync(acaCompleted)
-      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext]))
         .thenReturn(Future.failed(new ConnectorException(connectorErrorMessage)))
 
       val result = phase2TestService.resetTest(onlineTestApplication, phase2Test.orderId, "")
 
       result.failed.futureValue mustBe a[ConnectorException]
 
-      verify(onlineTestsGatewayClientMock, times(1)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      verify(onlineTestsGatewayClientMock, times(1)).psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext])
       verify(emailClientMock, times(0))
-        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(any[HeaderCarrier])
+        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(
+          any[HeaderCarrier], any[ExecutionContext])
 
       verify(auditServiceMock, times(0)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
       verify(auditServiceMock, times(0)).logEventNoRequest("UserRegisteredForPhase2Test", auditDetails)
@@ -348,18 +355,19 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       val newTests = phase2Test.copy(inventoryId = "inventory-id-1") :: Nil
       when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile.copy(tests = newTests)))
 
-      when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest]))
+      when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest])(any[ExecutionContext]))
         .thenReturnAsync(acaCompleted)
-      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext]))
         .thenReturnAsync(aoaFailed)
 
       val result = phase2TestService.resetTest(onlineTestApplication, phase2Test.orderId, "")
 
       result.failed.futureValue mustBe a[TestRegistrationException]
 
-      verify(onlineTestsGatewayClientMock, times(1)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      verify(onlineTestsGatewayClientMock, times(1)).psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext])
       verify(emailClientMock, times(0))
-        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(any[HeaderCarrier])
+        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(
+          any[HeaderCarrier], any[ExecutionContext])
 
       verify(auditServiceMock, times(0)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("UserRegisteredForPhase2Test", auditDetails)
@@ -371,18 +379,19 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       val newTests = phase2Test.copy(inventoryId = "inventory-id-1") :: Nil
       when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestProfile.copy(tests = newTests)))
 
-      when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest]))
+      when(onlineTestsGatewayClientMock.psiCancelTest(any[CancelCandidateTestRequest])(any[ExecutionContext]))
         .thenReturnAsync(acaCompleted)
-      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest]))
+      when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext]))
         .thenReturnAsync(aoa)
 
       val result = phase2TestService.resetTest(onlineTestApplication, phase2Test.orderId, "")
 
       result.futureValue mustBe unit
 
-      verify(onlineTestsGatewayClientMock, times(1)).psiRegisterApplicant(any[RegisterCandidateRequest])
+      verify(onlineTestsGatewayClientMock, times(1)).psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext])
       verify(emailClientMock, times(1))
-        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(onlineTestApplication.preferredName), eqTo(expirationDate))(any[HeaderCarrier])
+        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(onlineTestApplication.preferredName), eqTo(expirationDate))(
+          any[HeaderCarrier], any[ExecutionContext])
 
       verify(auditServiceMock, times(0)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("UserRegisteredForPhase2Test", auditDetails)
@@ -549,7 +558,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
   // PSI specific no cubiks equivalent
   "store real time results" should {
     "handle not finding an application for the given order id" in new TestFixture {
-      when(phase2TestRepositoryMock.getApplicationIdForOrderId(any[String], any[String])).thenReturnAsync(None)
+      when(phase2TestRepositoryMock.getApplicationIdForOrderId(any[String], any[String])(any[ExecutionContext])).thenReturnAsync(None)
 
       val result = phase2TestService.storeRealTimeResults(orderId, realTimeResults)
 
@@ -559,7 +568,8 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     }
 
     "handle not finding a test profile for the given order id" in new TestFixture {
-      when(phase2TestRepositoryMock.getApplicationIdForOrderId(any[String], any[String])).thenReturnAsync(Some(applicationId))
+      when(phase2TestRepositoryMock.getApplicationIdForOrderId(any[String], any[String])(any[ExecutionContext]))
+        .thenReturnAsync(Some(applicationId))
 
       when(phase2TestRepositoryMock.getTestProfileByOrderId(any[String])).thenReturn(Future.failed(
         CannotFindTestByOrderIdException(s"Cannot find test group by orderId=$orderId")
@@ -573,10 +583,12 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     }
 
     "handle not finding the test group when checking to update the progress status" in new TestFixture {
-      when(phase2TestRepositoryMock.getApplicationIdForOrderId(any[String], any[String])).thenReturnAsync(Some(applicationId))
+      when(phase2TestRepositoryMock.getApplicationIdForOrderId(any[String], any[String])(any[ExecutionContext]))
+        .thenReturnAsync(Some(applicationId))
 
       when(phase2TestRepositoryMock.getTestProfileByOrderId(any[String])).thenReturnAsync(phase2CompletedTestGroupWithAppId)
-      when(phase2TestRepositoryMock.insertTestResult(any[String], any[PsiTest], any[model.persisted.PsiTestResult])).thenReturnAsync()
+      when(phase2TestRepositoryMock.insertTestResult(any[String], any[PsiTest], any[model.persisted.PsiTestResult])(any[ExecutionContext]))
+        .thenReturnAsync()
       when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(None)
 
       val result = phase2TestService.storeRealTimeResults(orderId, realTimeResults)
@@ -585,39 +597,45 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       exception mustBe an[Exception]
       exception.getMessage mustBe s"No test profile returned for $applicationId"
 
-      verify(phase2TestRepositoryMock, never()).updateTestCompletionTime(any[String], any[DateTime])
-      verify(phase2TestRepositoryMock, never()).updateProgressStatus(any[String], any[ProgressStatuses.ProgressStatus])
+      verify(phase2TestRepositoryMock, never()).updateTestCompletionTime(any[String], any[DateTime])(any[ExecutionContext])
+      verify(phase2TestRepositoryMock, never()).updateProgressStatus(any[String], any[ProgressStatuses.ProgressStatus])(any[ExecutionContext])
     }
 
     "process the real time results and update the progress status" in new TestFixture {
-      when(phase2TestRepositoryMock.getApplicationIdForOrderId(any[String], any[String])).thenReturnAsync(Some(applicationId))
+      when(phase2TestRepositoryMock.getApplicationIdForOrderId(any[String], any[String])(any[ExecutionContext]))
+        .thenReturnAsync(Some(applicationId))
 
       when(phase2TestRepositoryMock.getTestProfileByOrderId(any[String])).thenReturnAsync(phase2CompletedTestGroupWithAppId)
-      when(phase2TestRepositoryMock.insertTestResult(any[String], any[PsiTest], any[model.persisted.PsiTestResult])).thenReturnAsync()
+      when(phase2TestRepositoryMock.insertTestResult(any[String], any[PsiTest], any[model.persisted.PsiTestResult])(any[ExecutionContext]))
+        .thenReturnAsync()
 
       val phase2TestGroup = Phase2TestGroup(expirationDate = now, tests = List(fifthPsiTest, sixthPsiTest))
       when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestGroup))
-      when(phase2TestRepositoryMock.updateProgressStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturnAsync()
+      when(phase2TestRepositoryMock.updateProgressStatus(any[String], any[ProgressStatuses.ProgressStatus])(any[ExecutionContext]))
+        .thenReturnAsync()
 
       phase2TestService.storeRealTimeResults(orderId, realTimeResults).futureValue
 
-      verify(phase2TestRepositoryMock, never()).updateTestCompletionTime(any[String], any[DateTime])
+      verify(phase2TestRepositoryMock, never()).updateTestCompletionTime(any[String], any[DateTime])(any[ExecutionContext])
       verify(phase2TestRepositoryMock, times(1)).updateProgressStatus(any[String],
-        eqTo(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED))
+        eqTo(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED))(any[ExecutionContext])
     }
 
     "process the real time results, mark the test as completed and update the progress status" in new TestFixture {
-      when(phase2TestRepositoryMock.getApplicationIdForOrderId(any[String], any[String])).thenReturnAsync(Some(applicationId))
+      when(phase2TestRepositoryMock.getApplicationIdForOrderId(any[String], any[String])(any[ExecutionContext]))
+        .thenReturnAsync(Some(applicationId))
 
       //First call return tests that are not completed second call return tests that are are completed
       when(phase2TestRepositoryMock.getTestProfileByOrderId(any[String]))
         .thenReturnAsync(phase2NotCompletedTestGroupWithAppId)
         .thenReturnAsync(phase2CompletedTestGroupWithAppId)
 
-      when(phase2TestRepositoryMock.insertTestResult(any[String], any[PsiTest], any[model.persisted.PsiTestResult])).thenReturnAsync()
-      when(phase2TestRepositoryMock.updateTestCompletionTime(any[String], any[DateTime])).thenReturnAsync()
+      when(phase2TestRepositoryMock.insertTestResult(any[String], any[PsiTest], any[model.persisted.PsiTestResult])(any[ExecutionContext]))
+        .thenReturnAsync()
+      when(phase2TestRepositoryMock.updateTestCompletionTime(any[String], any[DateTime])(any[ExecutionContext])).thenReturnAsync()
 
-      when(phase2TestRepositoryMock.updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE2_TESTS_COMPLETED))).thenReturnAsync()
+      when(phase2TestRepositoryMock.updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE2_TESTS_COMPLETED))(any[ExecutionContext]))
+        .thenReturnAsync()
 
       val phase2TestGroup = Phase2TestGroup(expirationDate = now, tests = List(fifthPsiTest, sixthPsiTest))
       val phase2TestsCompleted: Phase2TestGroup = phase2TestGroup.copy(
@@ -626,13 +644,17 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       )
 
       when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestsCompleted))
-      when(phase2TestRepositoryMock.updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED))).thenReturnAsync()
+      when(phase2TestRepositoryMock.updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED))(
+        any[ExecutionContext]))
+        .thenReturnAsync()
 
       phase2TestService.storeRealTimeResults(orderId, realTimeResults).futureValue
 
-      verify(phase2TestRepositoryMock, times(1)).updateTestCompletionTime(any[String], any[DateTime])
-      verify(phase2TestRepositoryMock, times(1)).updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE2_TESTS_COMPLETED))
-      verify(phase2TestRepositoryMock, times(1)).updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED))
+      verify(phase2TestRepositoryMock, times(1)).updateTestCompletionTime(any[String], any[DateTime])(any[ExecutionContext])
+      verify(phase2TestRepositoryMock, times(1)).updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE2_TESTS_COMPLETED))(
+        any[ExecutionContext])
+      verify(phase2TestRepositoryMock, times(1)).updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED))(
+        any[ExecutionContext])
     }
   }
 
@@ -803,7 +825,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     when(phase2TestRepositoryMock.getTestGroup(any[String]))
       .thenReturnAsync(Some(phase2TestProfile))
 
-    when(phase2TestRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]], any[Boolean]))
+    when(phase2TestRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]], any[Boolean])(any[ExecutionContext]))
       .thenReturnAsync()
 
 //    when(cdRepositoryMock.find(any[String])).thenReturn(Future.successful(
@@ -811,10 +833,10 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
     when(cdRepositoryMock.find(any[String])).thenReturnAsync(contactDetails)
 
-    when(emailClientMock.sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier]))
+    when(emailClientMock.sendOnlineTestInvitation(any[String], any[String], any[DateTime])(any[HeaderCarrier], any[ExecutionContext]))
         .thenReturnAsync()
 
-    when(phase2TestRepositoryMock.updateGroupExpiryTime(any[String], any[DateTime], any[String]))
+    when(phase2TestRepositoryMock.updateGroupExpiryTime(any[String], any[DateTime], any[String])(any[ExecutionContext]))
       .thenReturnAsync()
     when(appRepositoryMock.removeProgressStatuses(any[String], any[List[ProgressStatus]]))
       .thenReturnAsync()

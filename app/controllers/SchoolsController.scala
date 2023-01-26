@@ -22,11 +22,11 @@ import play.api.mvc.{ Action, ControllerComponents }
 import services.schools.SchoolsService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 @Singleton
 class SchoolsController @Inject() (cc: ControllerComponents,
                                    schoolsService: SchoolsService) extends BackendController(cc) {
+
+  implicit val ec = cc.executionContext
 
   def getSchools(term: String) = Action.async { implicit request =>
     schoolsService.getSchools(term).map { schools =>

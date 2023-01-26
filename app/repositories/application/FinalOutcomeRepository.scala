@@ -30,8 +30,7 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait FinalOutcomeRepository extends CurrentSchemeStatusHelper {
   def nextApplicationForFinalFailureNotification(batchSize: Int): Future[Seq[ApplicationForProgression]]
@@ -44,7 +43,7 @@ trait FinalOutcomeRepository extends CurrentSchemeStatusHelper {
 @Singleton
 class FinalOutcomeMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
                                             mongo: MongoComponent
-                                           )
+                                           )(implicit ec: ExecutionContext)
   extends PlayMongoRepository[FsbTestGroup](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongo,

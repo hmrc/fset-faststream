@@ -27,6 +27,7 @@ import org.scalatest.time.{ Millis, Seconds, Span }
 import repositories.events.{ EventsConfigRepositoryImpl, LocationsWithVenuesRepository }
 import testkit.UnitWithAppSpec
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class EventsConfigRepositorySpec extends UnitWithAppSpec with ScalaFutures with testkit.MockitoSugar {

@@ -17,13 +17,13 @@
 package services.assistancedetails
 
 import com.google.inject.ImplementedBy
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.exchange.AssistanceDetailsExchange
 import model.persisted.AssistanceDetails
 import repositories.assistancedetails.AssistanceDetailsRepository
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[AssistanceDetailsServiceImpl])
 trait AssistanceDetailsService {
@@ -32,7 +32,8 @@ trait AssistanceDetailsService {
 }
 
 @Singleton
-class AssistanceDetailsServiceImpl @Inject() (adRepository: AssistanceDetailsRepository) extends AssistanceDetailsService {
+class AssistanceDetailsServiceImpl @Inject() (adRepository: AssistanceDetailsRepository)(
+  implicit ec: ExecutionContext) extends AssistanceDetailsService {
   override def update(applicationId: String, userId: String, updateAssistanceDetails: AssistanceDetailsExchange): Future[Unit] = {
     adRepository.update(applicationId, userId, AssistanceDetails(updateAssistanceDetails))
   }

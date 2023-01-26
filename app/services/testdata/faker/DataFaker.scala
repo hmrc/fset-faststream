@@ -18,17 +18,17 @@ package services.testdata.faker
 
 import com.google.inject.ImplementedBy
 import factories.UUIDFactory
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.EvaluationResults.Result
 import model._
 import model.exchange.AssessorAvailability
-import model.persisted.eventschedules.{ EventType, Session, _ }
-import org.joda.time.{ LocalDate, LocalTime }
+import model.persisted.eventschedules.{EventType, Session, _}
+import org.joda.time.{LocalDate, LocalTime}
 import repositories.SchemeRepository
 import repositories.events.LocationsWithVenuesInMemoryYamlRepository
 
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -302,7 +302,7 @@ abstract class DataFaker(schemeRepo: SchemeRepository,
       }
     }
 
-    def venue(l: Location): Venue = Random.randOne(ExternalSources.venuesByLocation(l.name))
+    def venue(l: Location)(implicit ec: ExecutionContext): Venue = Random.randOne(ExternalSources.venuesByLocation(l.name))
 
     def date: LocalDate = LocalDate.now().plusDays(Random.number(Option(300)))
 
@@ -352,9 +352,9 @@ abstract class DataFaker(schemeRepo: SchemeRepository,
 
     private val locationsAndVenuesRepository = locationsWithVenuesRepo
 
-    def allVenues = Await.result(locationsAndVenuesRepository.venues.map(_.allValues.toList), 1 second)
+    def allVenues(implicit ec: ExecutionContext) = Await.result(locationsAndVenuesRepository.venues.map(_.allValues.toList), 1 second)
 
-    def venuesByLocation(location: String): List[Venue] = {
+    def venuesByLocation(location: String)(implicit ec: ExecutionContext): List[Venue] = {
       val venues = locationsAndVenuesRepository.locationsWithVenuesList.map { list =>
         list.filter(lv => lv.name == location).flatMap(_.venues)
       }

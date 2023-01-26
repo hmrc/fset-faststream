@@ -27,15 +27,14 @@ import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import javax.inject.{Inject, Singleton}
 import repositories.{CollectionNames, ReactiveRepositoryHelpers}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait ApplicationRemovalRepository {
   def remove(applicationStatus: Option[String]): Future[Seq[String]]
 }
 
 @Singleton
-class ApplicationRemovalMongoRepository @Inject() (mongoComponent: MongoComponent)
+class ApplicationRemovalMongoRepository @Inject() (mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[CreateApplicationRequest](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongoComponent,

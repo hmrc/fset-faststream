@@ -24,8 +24,7 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait FlagCandidateRepository {
   def tryGetCandidateIssue(appId: String): Future[Option[FlagCandidate]]
@@ -34,7 +33,7 @@ trait FlagCandidateRepository {
 }
 
 @Singleton
-class FlagCandidateMongoRepository @Inject() (mongo: MongoComponent)
+class FlagCandidateMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[FlagCandidate](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongo,

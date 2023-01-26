@@ -24,10 +24,11 @@ import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.collection.immutable.SortedMap
-import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
 class MetricsController @Inject() (cc: ControllerComponents, applicationRepo: GeneralApplicationRepository) extends BackendController(cc) {
+
+  implicit val ec = cc.executionContext
 
   def progressStatusCounts = Action.async {
     for {

@@ -20,23 +20,24 @@ import com.google.inject.name.Named
 import config.MicroserviceAppConfig
 import factories.UUIDFactory
 import services.passmarksettings.PassMarkSettingsService
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.exchange.passmarksettings.Phase1PassMarkSettings
-import model.persisted.{ ApplicationReadyForEvaluation, PsiTest }
-import model.{ Phase, SchemeId }
+import model.persisted.{ApplicationReadyForEvaluation, PsiTest}
+import model.{Phase, SchemeId}
 import play.api.Logging
-import repositories.onlinetesting.{ OnlineTestEvaluationRepository, Phase1EvaluationMongoRepository }
+import repositories.onlinetesting.{OnlineTestEvaluationRepository, Phase1EvaluationMongoRepository}
 import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class EvaluatePhase1ResultService @Inject() (@Named("Phase1EvaluationRepository") val evaluationRepository: OnlineTestEvaluationRepository,
                                              val passMarkSettingsRepo: Phase1PassMarkSettingsMongoRepository,
                                              appConfig: MicroserviceAppConfig,
                                              val uuidFactory: UUIDFactory
-                                            ) extends EvaluateOnlineTestResultService[Phase1PassMarkSettings] with Phase1TestSelector with
+                                            )(implicit ec: ExecutionContext) extends EvaluateOnlineTestResultService[Phase1PassMarkSettings] with Phase1TestSelector with
   Phase1TestEvaluation with PassMarkSettingsService[Phase1PassMarkSettings] with Logging {
 
   val phase = Phase.PHASE1

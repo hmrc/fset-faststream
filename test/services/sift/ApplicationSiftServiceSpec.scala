@@ -37,7 +37,8 @@ import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.TimeUnit
 
 class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
@@ -402,8 +403,8 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
 
       (mockApplicationRepo.find(_ : String)).expects(appId).returningAsync(Some(candidate))
       (mockContactDetailsRepo.find _ ).expects("userId").returningAsync(contactDetails)
-      (mockEmailClient.sendSiftExpired(_: String, _: String)(_: HeaderCarrier))
-        .expects(contactDetails.email, candidate.name, *).returningAsync
+      (mockEmailClient.sendSiftExpired(_: String, _: String)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(contactDetails.email, candidate.name, *, *).returningAsync
 
       whenReady(service.processExpiredCandidates(batchSize = 1, gracePeriodInSecs = 0)(HeaderCarrier())) { result => result mustBe unit }
     }
@@ -416,8 +417,8 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
 
       (mockApplicationRepo.find(_ : String)).expects(appId).returningAsync(Some(candidate))
       (mockContactDetailsRepo.find _ ).expects("userId").returningAsync(contactDetails)
-      (mockEmailClient.notifyCandidateSiftEnteredAdditionalQuestions(_: String, _: String, _: DateTime)(_: HeaderCarrier))
-        .expects(contactDetails.email, candidate.name, expiryDate, *).returningAsync
+      (mockEmailClient.notifyCandidateSiftEnteredAdditionalQuestions(_: String, _: String, _: DateTime)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(contactDetails.email, candidate.name, expiryDate, *, *).returningAsync
 
       whenReady(service.sendSiftEnteredNotification(appId, expiryDate)(HeaderCarrier())) { result => result mustBe unit }
     }
@@ -428,9 +429,9 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       val contactDetails = ContactDetailsExamples.ContactDetailsUK
 
       (mockContactDetailsRepo.find _ ).expects(userId).returningAsync(contactDetails)
-      (mockEmailClient.sendSiftReminder(_: String, _: String, _: Int, _: TimeUnit, _: DateTime)(_: HeaderCarrier))
+      (mockEmailClient.sendSiftReminder(_: String, _: String, _: Int, _: TimeUnit, _: DateTime)(_: HeaderCarrier, _: ExecutionContext))
         .expects(contactDetails.email, expiringSift.preferredName, SiftFirstReminder.hoursBeforeReminder,
-          SiftFirstReminder.timeUnit, expiryDate, *)
+          SiftFirstReminder.timeUnit, expiryDate, *, *)
         .returningAsync
       (mockApplicationRepo.addProgressStatusAndUpdateAppStatus(_ : String, _: ProgressStatuses.ProgressStatus))
         .expects(appId, SiftFirstReminder.progressStatus).returningAsync
@@ -442,9 +443,9 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       val contactDetails = ContactDetailsExamples.ContactDetailsUK
 
       (mockContactDetailsRepo.find _ ).expects(userId).returningAsync(contactDetails)
-      (mockEmailClient.sendSiftReminder(_: String, _: String, _: Int, _: TimeUnit, _: DateTime)(_: HeaderCarrier))
+      (mockEmailClient.sendSiftReminder(_: String, _: String, _: Int, _: TimeUnit, _: DateTime)(_: HeaderCarrier, _: ExecutionContext))
         .expects(contactDetails.email, expiringSift.preferredName, SiftSecondReminder.hoursBeforeReminder,
-          SiftSecondReminder.timeUnit, expiryDate, *)
+          SiftSecondReminder.timeUnit, expiryDate, *, *)
         .returningAsync
       (mockApplicationRepo.addProgressStatusAndUpdateAppStatus(_ : String, _: ProgressStatuses.ProgressStatus))
         .expects(appId, SiftSecondReminder.progressStatus).returningAsync

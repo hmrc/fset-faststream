@@ -21,6 +21,7 @@ import org.mockito.Mockito._
 import repositories.csv.{ SchoolsCSVRepository, SchoolsRepository }
 import testkit.MockitoImplicits._
 import testkit.{ ShortTimeout, UnitWithAppSpec }
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class SchoolsServiceSpec extends UnitWithAppSpec with ShortTimeout {
 

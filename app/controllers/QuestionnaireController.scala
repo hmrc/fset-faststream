@@ -25,7 +25,6 @@ import services.AuditService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
 class QuestionnaireController @Inject() (cc: ControllerComponents,
@@ -33,6 +32,8 @@ class QuestionnaireController @Inject() (cc: ControllerComponents,
                                          appRepository: GeneralApplicationRepository,
                                          auditService: AuditService
                                         ) extends BackendController(cc) {
+
+  implicit val ec = cc.executionContext
 
   def addSection(applicationId: String, sectionKey: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[Questionnaire] { questionnaire =>

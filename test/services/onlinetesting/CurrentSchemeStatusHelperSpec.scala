@@ -25,6 +25,8 @@ import repositories.application.GeneralApplicationRepository
 import testkit.MockitoImplicits._
 import testkit.UnitSpec
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 class CurrentSchemeStatusHelperSpec extends UnitSpec {
   "CurrentSchemeStatusHelper" must {
     "return no data when the application is not sdip faststream" in new TestFixture {

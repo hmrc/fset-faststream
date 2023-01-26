@@ -56,13 +56,13 @@ class ExpireOnlineTestJobSpec extends BaseServiceSpec with ShortTimeout {
     val phase1ExpirationEvent = Phase1ExpirationEvent(gracePeriodInSecs = 0)
 
     "complete successfully when service completes successfully" in {
-      when(serviceMock.processNextExpiredTest(eqTo(phase1ExpirationEvent))(any[HeaderCarrier], any[RequestHeader]))
+      when(serviceMock.processNextExpiredTest(eqTo(phase1ExpirationEvent))(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext]))
         .thenReturn(Future.successful(()))
       TestableExpireTestJob.tryExecute().futureValue mustBe unit
     }
 
     "fail when the service fails" in {
-      when(serviceMock.processNextExpiredTest(eqTo(phase1ExpirationEvent))(any[HeaderCarrier], any[RequestHeader]))
+      when(serviceMock.processNextExpiredTest(eqTo(phase1ExpirationEvent))(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext]))
         .thenReturn(Future.failed(new Exception))
       TestableExpireTestJob.tryExecute().failed.futureValue mustBe an[Exception]
     }

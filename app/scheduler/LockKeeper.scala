@@ -56,7 +56,7 @@ object LockKeeper {
 
   def apply(mongoComponent: MongoComponent,
             lockIdToUse: String,
-            forceLockReleaseAfterToUse: scala.concurrent.duration.Duration) = new LockKeeper {
+            forceLockReleaseAfterToUse: scala.concurrent.duration.Duration)(implicit ec: ExecutionContext) = new LockKeeper {
     val forceLockReleaseAfter: Duration = Duration.millis(forceLockReleaseAfterToUse.toMillis)
     val serverId = generatedServerId
     val lockId = lockIdToUse

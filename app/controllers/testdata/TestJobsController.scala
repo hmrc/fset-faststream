@@ -25,7 +25,6 @@ import scheduler.onlinetesting._
 import scheduler.sift._
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
@@ -60,6 +59,8 @@ class TestJobsController @Inject() (cc:ControllerComponents,
                                     skipPhase3Job: SkipPhase3JobImpl,
                                     fixSdipFsP3SkippedCandidatesJob: FixSdipFsP3SkippedCandidatesJobImpl
                                    ) extends BackendController(cc) {
+
+  implicit val ec = cc.executionContext
 
   def testInvitationJob(phase: String): Action[AnyContent] = Action.async { implicit request =>
     phase.toUpperCase match {

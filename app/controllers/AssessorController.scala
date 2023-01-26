@@ -30,7 +30,6 @@ import services.AuditService
 import services.assessor.AssessorService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
@@ -38,6 +37,8 @@ class AssessorController @Inject() (cc: ControllerComponents,
                                     assessorService: AssessorService,
                                     auditService: AuditService
                                    ) extends BackendController(cc) {
+
+  implicit val ec = cc.executionContext
 
   def saveAssessor(userId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[Assessor] { assessor =>

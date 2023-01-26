@@ -27,11 +27,10 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class Phase1PassMarkSettingsMongoRepository @Inject() (mongo: MongoComponent)
+class Phase1PassMarkSettingsMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[Phase1PassMarkSettings](
     collectionName = CollectionNames.PHASE1_PASS_MARK_SETTINGS,
     mongoComponent = mongo,
@@ -47,7 +46,7 @@ class Phase1PassMarkSettingsMongoRepository @Inject() (mongo: MongoComponent)
 }
 
 @Singleton
-class Phase2PassMarkSettingsMongoRepository @Inject() (mongo: MongoComponent)
+class Phase2PassMarkSettingsMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[Phase2PassMarkSettings](
     collectionName = CollectionNames.PHASE2_PASS_MARK_SETTINGS,
     mongoComponent = mongo,
@@ -63,7 +62,7 @@ class Phase2PassMarkSettingsMongoRepository @Inject() (mongo: MongoComponent)
 }
 
 @Singleton
-class Phase3PassMarkSettingsMongoRepository @Inject() (mongo: MongoComponent)
+class Phase3PassMarkSettingsMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[Phase3PassMarkSettings](
     collectionName = CollectionNames.PHASE3_PASS_MARK_SETTINGS,
     mongoComponent = mongo,
@@ -79,7 +78,7 @@ class Phase3PassMarkSettingsMongoRepository @Inject() (mongo: MongoComponent)
 }
 
 @Singleton
-class AssessmentCentrePassMarkSettingsMongoRepository @Inject() (mongo: MongoComponent)
+class AssessmentCentrePassMarkSettingsMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[AssessmentCentrePassMarkSettings](
     collectionName = CollectionNames.ASSESSMENT_CENTRE_PASS_MARK_SETTINGS,
     mongoComponent = mongo,
@@ -97,7 +96,7 @@ class AssessmentCentrePassMarkSettingsMongoRepository @Inject() (mongo: MongoCom
 trait PassMarkSettingsRepository[T <: PassMarkSettings] {
   this: PlayMongoRepository[T] =>
 
-  def create(passMarkSettings: T): Future[PassMarkSettingsCreateResponse] = {
+  def create(passMarkSettings: T)(implicit ec: ExecutionContext): Future[PassMarkSettingsCreateResponse] = {
     collection.insertOne(passMarkSettings).toFuture() flatMap { _ =>
       getLatestVersion.map( createResponse =>
         PassMarkSettingsCreateResponse(

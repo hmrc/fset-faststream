@@ -32,6 +32,7 @@ import repositories.onlinetesting._
 import repositories.{ MediaRepository, QuestionnaireRepository }
 import services.BaseServiceSpec
 import testkit.MockitoImplicits._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class CampaignManagementServiceSpec extends BaseServiceSpec {
 

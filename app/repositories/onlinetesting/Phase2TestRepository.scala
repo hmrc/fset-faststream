@@ -33,8 +33,7 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import repositories.{CollectionNames, subDocRoot}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait Phase2TestRepository extends OnlineTestRepository with Phase2TestConcern {
   this: PlayMongoRepository[_] =>
@@ -52,7 +51,7 @@ trait Phase2TestRepository extends OnlineTestRepository with Phase2TestConcern {
 }
 
 @Singleton
-class Phase2TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoComponent: MongoComponent)
+class Phase2TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[Phase2TestGroup](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongoComponent,
@@ -118,7 +117,7 @@ class Phase2TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
     val query = inviteToTestBSON(PHASE1_TESTS_PASSED) ++ Document("applicationRoute" -> Document("$nin" -> BsonArray("Sdip", "Edip")))
 
     selectRandom[OnlineTestApplication](query, batchSize)(
-      doc => repositories.bsonDocToOnlineTestApplication(doc), global
+      doc => repositories.bsonDocToOnlineTestApplication(doc), ec
     )
   }
 

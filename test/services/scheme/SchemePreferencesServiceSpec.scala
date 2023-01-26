@@ -21,6 +21,7 @@ import org.mockito.Mockito._
 import repositories.schemepreferences.SchemePreferencesRepository
 import services.BaseServiceSpec
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class SchemePreferencesServiceSpec extends BaseServiceSpec {

@@ -17,12 +17,12 @@
 package services.allocation
 
 import com.google.inject.ImplementedBy
-import javax.inject.{ Inject, Singleton }
-import model.exchange
-import repositories.{ AssessorAllocationRepository, CandidateAllocationRepository }
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import javax.inject.{Inject, Singleton}
+import model.exchange
+import repositories.{AssessorAllocationRepository, CandidateAllocationRepository}
+
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * This class is here to break circular dependencies between the EventsService and AssessorAllocationService
@@ -37,7 +37,7 @@ trait AllocationServiceCommon {
 @Singleton
 class AllocationServiceCommonImpl @Inject() (assessorAllocationRepo: AssessorAllocationRepository,
                                              candidateAllocationRepo: CandidateAllocationRepository
-                                            ) extends AllocationServiceCommon {
+                                            )(implicit ec: ExecutionContext) extends AllocationServiceCommon {
 
   override def getAllocations(eventId: String): Future[exchange.AssessorAllocations] = {
     assessorAllocationRepo.allocationsForEvent(eventId).map ( exchange.AssessorAllocations.apply )

@@ -28,8 +28,7 @@ import services.testdata.candidate.sift.SiftCompleteStatusGenerator
 import services.testdata.candidate.{BaseGenerator, CandidateStatusGeneratorFactory, ConstructiveGenerator}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 //object FsbAwaitingAllocationStatusGenerator extends FsbAwaitingAllocationStatusGenerator {
 //  override val previousStatusGenerator: BaseGenerator = AssessmentCentrePassedStatusGenerator
@@ -42,7 +41,7 @@ class FsbAwaitingAllocationStatusGenerator @Inject() (val previousStatusGenerato
                                                       siftCompleteStatusGenerator: SiftCompleteStatusGenerator,
                                                       applicationRepository: GeneralApplicationRepository,
                                                       assessmentCentrePassedStatusGenerator: AssessmentCentrePassedStatusGenerator
-                                                     ) extends ConstructiveGenerator {
+                                                     )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
 
   override def getPreviousStatusGenerator(generatorConfig: CreateCandidateData): (ApplicationStatus, BaseGenerator) = {
     val previousStatusAndGeneratorPair = generatorConfig.statusData.previousApplicationStatus.map(previousApplicationStatus => {
@@ -65,7 +64,7 @@ class FsbAwaitingAllocationStatusGenerator @Inject() (val previousStatusGenerato
   }
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
-              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {
 
     for {
       (_, previousStatusGenerator) <- Future.successful(getPreviousStatusGenerator(generatorConfig))

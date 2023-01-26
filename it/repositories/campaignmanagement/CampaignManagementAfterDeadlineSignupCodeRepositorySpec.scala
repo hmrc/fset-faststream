@@ -9,7 +9,7 @@ import testkit.MongoRepositorySpec
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 class CampaignManagementAfterDeadlineSignupCodeRepositorySpec extends MongoRepositorySpec {
@@ -20,6 +20,7 @@ class CampaignManagementAfterDeadlineSignupCodeRepositorySpec extends MongoRepos
   val campaignManagementCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
 
   // Just here so we can read back the deadline code
+  @Singleton
   class CampaignManagementRepositoryForTest @Inject()(mongo: MongoComponent)
     extends PlayMongoRepository[CampaignManagementAfterDeadlineCode](
       collectionName = CollectionNames.CAMPAIGN_MANAGEMENT_AFTER_DEADLINE_CODE,

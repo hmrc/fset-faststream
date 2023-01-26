@@ -31,8 +31,7 @@ import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import repositories.{BaseBSONReader, CollectionNames, ReactiveRepositoryHelpers}
 import uk.gov.hmrc.mongo.MongoComponent
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 trait SiftAnswersRepository {
@@ -48,7 +47,7 @@ trait SiftAnswersRepository {
 }
 
 @Singleton
-class SiftAnswersMongoRepository @Inject() (mongoComponent: MongoComponent)
+class SiftAnswersMongoRepository @Inject() (mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[SiftAnswers](
     collectionName = CollectionNames.SIFT_ANSWERS,
     mongoComponent = mongoComponent,

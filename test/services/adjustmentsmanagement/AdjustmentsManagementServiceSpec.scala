@@ -37,6 +37,7 @@ import testkit.ExtendedTimeout
 import testkit.MockitoImplicits._
 import uk.gov.hmrc.http.HeaderCarrier
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class AdjustmentsManagementServiceSpec extends BaseServiceSpec with ExtendedTimeout {

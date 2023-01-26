@@ -24,7 +24,7 @@ import model.assessmentscores._
 import model.command.AssessmentScoresCommands._
 import model.fsacscores.AssessmentScoresFinalFeedbackExamples
 import org.joda.time.DateTimeZone
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -35,7 +35,8 @@ import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 class AssessorAssessmentScoresControllerSpec extends AssessmentScoresControllerSpec {
@@ -67,7 +68,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
       val request = fakeRequest(AssessmentScoresSubmitExerciseRequest(appId, writtenExercise, exerciseScores.toExchange))
 
       when(mockService.submitExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.writtenExercise),
-        any())).thenReturn(Future.successful(()))
+        any())(any[ExecutionContext])).thenReturn(Future.successful(()))
       val auditDetails = Map(
         "applicationId" -> appId.toString(),
         "exercise" -> AssessmentScoresSectionType.writtenExercise.toString,
@@ -76,7 +77,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
       val response = controller.submitExercise()(request)
 
       status(response) mustBe OK
-      verify(mockService).submitExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.writtenExercise), any())
+      verify(mockService).submitExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.writtenExercise), any())(any[ExecutionContext])
       verify(mockAuditService).logEvent(eqTo(assessmentScoresOneExerciseSubmitted), eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader])
     }
   }
@@ -88,7 +89,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
       val request = fakeRequest(AssessmentScoresSubmitExerciseRequest(appId, writtenExercise, exerciseScores.toExchange))
 
       when(mockService.saveExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.writtenExercise),
-        any())).thenReturn(Future.successful(()))
+        any())(any[ExecutionContext])).thenReturn(Future.successful(()))
       val auditDetails = Map(
         "applicationId" -> appId.toString(),
         "exercise" -> AssessmentScoresSectionType.writtenExercise.toString,
@@ -97,7 +98,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
       val response = controller.saveExercise()(request)
 
       status(response) mustBe OK
-      verify(mockService).saveExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.writtenExercise), any())
+      verify(mockService).saveExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.writtenExercise), any())(any[ExecutionContext])
       verify(mockAuditService).logEvent(eqTo(assessmentScoresOneExerciseSaved), eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader])
     }
   }
@@ -109,8 +110,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
              acceptedDate = AssessmentScoresFinalFeedbackExamples.Example1.acceptedDate.withZone(DateTimeZone.forOffsetHours(1)))
       val request = fakeRequest(AssessmentScoresFinalFeedbackSubmitRequest(appId, finalFeedback.toExchange))
 
-      when(mockService.submitFinalFeedback(eqTo(appId),
-        any())).thenReturn(Future.successful(()))
+      when(mockService.submitFinalFeedback(eqTo(appId), any())(any[ExecutionContext])).thenReturn(Future.successful(()))
       val oneExerciseAuditDetails = Map(
         "applicationId" -> appId.toString(),
         "exercise" -> "finalFeedback",
@@ -122,7 +122,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
       val response = controller.submitFinalFeedback()(request)
 
       status(response) mustBe OK
-      verify(mockService).submitFinalFeedback(eqTo(appId), any())
+      verify(mockService).submitFinalFeedback(eqTo(appId), any())(any[ExecutionContext])
       verify(mockAuditService).logEvent(eqTo(assessmentScoresOneExerciseSubmitted),
         eqTo(oneExerciseAuditDetails))(any[HeaderCarrier], any[RequestHeader])
       verify(mockAuditService).logEvent(eqTo(assessmentScoresAllExercisesSubmitted),

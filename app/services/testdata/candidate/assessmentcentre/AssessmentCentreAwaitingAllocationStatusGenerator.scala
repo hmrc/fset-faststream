@@ -16,7 +16,7 @@
 
 package services.testdata.candidate.assessmentcentre
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.ApplicationStatus
 import model.EvaluationResults.Green
 import model.command.ApplicationForProgression
@@ -29,16 +29,15 @@ import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.candidate.sift.SiftCompleteStatusGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AssessmentCentreAwaitingAllocationStatusGenerator @Inject() (val previousStatusGenerator: SiftCompleteStatusGenerator,
                                                                    assessmentCentreService: AssessmentCentreService
-                                                                  ) extends ConstructiveGenerator {
+                                                                  )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
-              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)

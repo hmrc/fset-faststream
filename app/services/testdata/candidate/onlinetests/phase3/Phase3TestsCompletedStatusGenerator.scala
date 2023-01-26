@@ -17,7 +17,8 @@
 package services.testdata.candidate.onlinetests.phase3
 
 import common.FutureEx
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories.onlinetesting.Phase3TestRepository
@@ -25,15 +26,15 @@ import services.onlinetesting.phase3.Phase3TestService
 import services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class Phase3TestsCompletedStatusGenerator @Inject() (val previousStatusGenerator: Phase3TestsStartedStatusGenerator,
                                                      otRepository: Phase3TestRepository,
                                                      otService: Phase3TestService
-                                                    ) extends ConstructiveGenerator {
+                                                    )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- FutureEx.traverseSerial(candidate.phase3TestGroup.get.tests.map(_.token))(token => otService.markAsCompleted(token))

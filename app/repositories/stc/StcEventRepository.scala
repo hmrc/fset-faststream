@@ -22,15 +22,14 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait StcEventRepository {
   def create(event: StcEvent): Future[Unit]
 }
 
 @Singleton
-class StcEventMongoRepository @Inject() (mongo: MongoComponent)
+class StcEventMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[StcEvent](
     collectionName = CollectionNames.EVENT,
     mongoComponent = mongo,

@@ -16,21 +16,20 @@
 
 package services.passmarksettings
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.PassMarkSettingsCreateResponse
 import model.exchange.passmarksettings._
 import play.api.libs.json.Format
 import repositories.passmarksettings._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class Phase1PassMarkSettingsService @Inject() (val passMarkSettingsRepo: Phase1PassMarkSettingsMongoRepository)
+class Phase1PassMarkSettingsService @Inject() (val passMarkSettingsRepo: Phase1PassMarkSettingsMongoRepository)(implicit ec: ExecutionContext)
   extends PassMarkSettingsService[Phase1PassMarkSettings] {
 
   override def createPassMarkSettings(passMarkSettings: Phase1PassMarkSettings)(
-    implicit jsonFormat: Format[Phase1PassMarkSettings]): Future[PassMarkSettingsCreateResponse] = {
+    implicit jsonFormat: Format[Phase1PassMarkSettings], ec: ExecutionContext): Future[PassMarkSettingsCreateResponse] = {
     for {
       latestPassMarkSettingsOpt <- getLatestPassMarkSettings
       merged = Phase1PassMarkSettings.merge(latestPassMarkSettingsOpt, passMarkSettings)
@@ -50,14 +49,14 @@ class Phase3PassMarkSettingsService @Inject() (val passMarkSettingsRepo: Phase3P
 }
 
 @Singleton
-class AssessmentCentrePassMarkSettingsService @Inject() (val passMarkSettingsRepo: AssessmentCentrePassMarkSettingsMongoRepository
-                                                         ) extends PassMarkSettingsService[AssessmentCentrePassMarkSettings] {
+class AssessmentCentrePassMarkSettingsService @Inject() (val passMarkSettingsRepo: AssessmentCentrePassMarkSettingsMongoRepository)(
+  implicit ec: ExecutionContext) extends PassMarkSettingsService[AssessmentCentrePassMarkSettings] {
 }
 
 trait PassMarkSettingsService[T <: PassMarkSettings] {
   val passMarkSettingsRepo: PassMarkSettingsRepository[T]
 
   def getLatestPassMarkSettings(implicit jsonFormat: Format[T]): Future[Option[T]] = passMarkSettingsRepo.getLatestVersion
-  def createPassMarkSettings(passMarkSettings: T)(implicit jsonFormat: Format[T]):Future[PassMarkSettingsCreateResponse]
+  def createPassMarkSettings(passMarkSettings: T)(implicit jsonFormat: Format[T], ec: ExecutionContext):Future[PassMarkSettingsCreateResponse]
   = passMarkSettingsRepo.create(passMarkSettings)
 }

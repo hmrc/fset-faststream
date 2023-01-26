@@ -24,14 +24,14 @@ import services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class Phase2TestsCompletedStatusGenerator @Inject() (val previousStatusGenerator: Phase2TestsStartedStatusGenerator,
                                                      otService: Phase2TestService
-                                                    ) extends ConstructiveGenerator {
+                                                    )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- FutureEx.traverseSerial(candidate.phase2TestGroup.get.tests.map(_.orderId))(orderId => otService.markAsCompleted(orderId))

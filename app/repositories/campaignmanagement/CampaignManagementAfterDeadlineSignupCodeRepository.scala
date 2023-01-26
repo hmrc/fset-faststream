@@ -26,8 +26,7 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait CampaignManagementAfterDeadlineSignupCodeRepository {
   def findUnusedValidCode(code: String): Future[Option[CampaignManagementAfterDeadlineCode]]
@@ -36,7 +35,7 @@ trait CampaignManagementAfterDeadlineSignupCodeRepository {
 }
 
 @Singleton
-class CampaignManagementAfterDeadlineSignupCodeMongoRepository @Inject() (mongo: MongoComponent)
+class CampaignManagementAfterDeadlineSignupCodeMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[CampaignManagementAfterDeadlineCode](
     collectionName = CollectionNames.CAMPAIGN_MANAGEMENT_AFTER_DEADLINE_CODE,
     mongoComponent = mongo,

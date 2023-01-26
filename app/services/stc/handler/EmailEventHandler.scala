@@ -17,17 +17,19 @@
 package services.stc.handler
 
 import com.google.inject.ImplementedBy
-import connectors.{ CSREmailClient, EmailClient, OnlineTestEmailClient }
-import javax.inject.{ Inject, Named, Singleton }
-import model.stc.{ EmailEvent, EmailEvents }
+import connectors.{CSREmailClient, EmailClient, OnlineTestEmailClient}
+
+import javax.inject.{Inject, Named, Singleton}
+import model.stc.{EmailEvent, EmailEvents}
 import play.api.Logging
 import play.api.mvc.RequestHeader
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.HeaderCarrier
 
 @Singleton
-class EmailEventHandlerImpl @Inject() (@Named("CSREmailClient") val emailClient: OnlineTestEmailClient) extends EmailEventHandler {
+class EmailEventHandlerImpl @Inject() (@Named("CSREmailClient") val emailClient: OnlineTestEmailClient)(
+  implicit ec: ExecutionContext) extends EmailEventHandler {
   //  val emailClient: EmailClient = CSREmailClient //TODO:fix changed the type
 }
 
@@ -35,7 +37,7 @@ class EmailEventHandlerImpl @Inject() (@Named("CSREmailClient") val emailClient:
 trait EmailEventHandler extends StcEventHandler[EmailEvent] with Logging {
   val emailClient: EmailClient
 
-  def handle(event: EmailEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def handle(event: EmailEvent)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit] = {
     logger.info(s"Email event ${event.name}")
     event match {
       case _: EmailEvents.ApplicationWithdrawn => emailClient.sendWithdrawnConfirmation(event.to, event.name)

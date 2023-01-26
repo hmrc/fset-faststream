@@ -16,30 +16,29 @@
 
 package services.testdata.candidate.fsb
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.EvaluationResults.Green
-import model.Exceptions.{ InvalidApplicationStatusAndProgressStatusException, SchemeNotFoundException }
+import model.Exceptions.{InvalidApplicationStatusAndProgressStatusException, SchemeNotFoundException}
 import model.command.testdata.CreateCandidateRequest.FsbTestGroupDataRequest
-import model.exchange.testdata.CreateCandidateResponse.{ CreateCandidateResponse, FsbTestGroupResponse }
+import model.exchange.testdata.CreateCandidateResponse.{CreateCandidateResponse, FsbTestGroupResponse}
 import model.persisted.SchemeEvaluationResult
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import services.application.FsbService
-import services.testdata.candidate.{ BaseGenerator, ConstructiveGenerator }
+import services.testdata.candidate.{BaseGenerator, ConstructiveGenerator}
 import services.testdata.faker.DataFaker
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.HeaderCarrier
 
 @Singleton
 class FsbResultEnteredStatusGenerator @Inject() (val previousStatusGenerator: FsbAllocationConfirmedStatusGenerator,
                                                  fsbTestGroupService: FsbService,
                                                  dataFaker: DataFaker
-                                                ) extends ConstructiveGenerator {
+                                                )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
 
   def generate(generationId: Int, createCandidateDataIn: CreateCandidateData)
-              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {
 
     val createCandidateData = if (createCandidateDataIn.fsbTestGroupData.isEmpty) {
       val schemeTypes = createCandidateDataIn.schemeTypes.getOrElse(dataFaker.schemeTypes.map(_.id))

@@ -24,11 +24,11 @@ import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
-import repositories.personaldetails.PersonalDetailsRepository
 import services.BaseServiceSpec
 import testkit.ShortTimeout
 import uk.gov.hmrc.http.HeaderCarrier
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class SearchForApplicantServiceSpec extends BaseServiceSpec with ShortTimeout {

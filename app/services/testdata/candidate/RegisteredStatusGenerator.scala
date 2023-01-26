@@ -17,7 +17,8 @@
 package services.testdata.candidate
 
 import connectors.AuthProviderClient
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.SchemeId
 import model.exchange.testdata.CreateAdminResponse.AssessorResponse
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
@@ -32,18 +33,16 @@ import services.testdata.admin.AssessorCreatedStatusGenerator
 import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class RegisteredStatusGenerator @Inject()(authProviderClient: AuthProviderClient,
                                           medRepository: MediaRepository,
                                           assessorGenerator: AssessorCreatedStatusGenerator,
-                                          dataFaker: DataFaker) extends BaseGenerator {
-
-  import scala.concurrent.ExecutionContext.Implicits.global
+                                          dataFaker: DataFaker)(implicit ec: ExecutionContext) extends BaseGenerator {
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
-              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {
 
     val firstName = generatorConfig.personalData.firstName
     val lastName = generatorConfig.personalData.lastName

@@ -27,13 +27,13 @@ import services.onlinetesting.phase1.Phase1TestService
 import services.onlinetesting.phase2.Phase2TestService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 @Singleton
 class PsiTestsController @Inject() (cc: ControllerComponents,
                                     phase1TestService: Phase1TestService,
                                     phase2TestService: Phase2TestService,
                                     numericalTestService: NumericalTestService) extends BackendController(cc) with Logging {
+
+  implicit val ec = cc.executionContext
 
   def start(orderId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     logger.info(s"Psi assessment started orderId=$orderId")

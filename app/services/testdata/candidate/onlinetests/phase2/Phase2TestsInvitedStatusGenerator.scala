@@ -16,11 +16,12 @@
 
 package services.testdata.candidate.onlinetests.phase2
 
-import config.{ MicroserviceAppConfig, OnlineTestsGatewayConfig }
-import javax.inject.{ Inject, Singleton }
+import config.{MicroserviceAppConfig, OnlineTestsGatewayConfig}
+
+import javax.inject.{Inject, Singleton}
 import model.Adjustments
-import model.exchange.testdata.CreateCandidateResponse.{ TestGroupResponse2, TestResponse2 }
-import model.persisted.{ Phase2TestGroup, PsiTest }
+import model.exchange.testdata.CreateCandidateResponse.{TestGroupResponse2, TestResponse2}
+import model.persisted.{Phase2TestGroup, PsiTest}
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
@@ -30,19 +31,19 @@ import services.testdata.candidate.onlinetests.Phase1TestsPassedStatusGenerator
 import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class Phase2TestsInvitedStatusGenerator @Inject() (val previousStatusGenerator: Phase1TestsPassedStatusGenerator,
                                                    otRepository: Phase2TestRepository,
                                                    appConfig: MicroserviceAppConfig,
                                                    dataFaker: DataFaker
-                                                  ) extends ConstructiveGenerator {
+                                                  )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
 
   val onlineTestsGatewayConfig: OnlineTestsGatewayConfig = appConfig.onlineTestsGatewayConfig
 
   //scalastyle:off method.length
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
 
     val psiTests = onlineTestsGatewayConfig.phase2Tests.standard.map { testName =>
       (

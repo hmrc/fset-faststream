@@ -17,17 +17,16 @@
 package services.onlinetesting
 
 import model.SchemeId
-import model.persisted.{ ApplicationReadyForEvaluation, SchemeEvaluationResult }
+import model.persisted.{ApplicationReadyForEvaluation, SchemeEvaluationResult}
 import repositories.application.GeneralApplicationRepository
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait CurrentSchemeStatusHelper {
 
   val generalAppRepository: GeneralApplicationRepository
 
-  def getSdipResults(application: ApplicationReadyForEvaluation): Future[List[SchemeEvaluationResult]] =
+  def getSdipResults(application: ApplicationReadyForEvaluation)(implicit ec: ExecutionContext): Future[List[SchemeEvaluationResult]] =
     if (application.isSdipFaststream) {
       for {
         currentSchemeStatus <- generalAppRepository.getCurrentSchemeStatus(application.applicationId)

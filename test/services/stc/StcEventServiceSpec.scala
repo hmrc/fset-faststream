@@ -32,6 +32,9 @@ import testkit.MockitoImplicits._
 import scala.collection.JavaConverters._
 import uk.gov.hmrc.http.HeaderCarrier
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
+
 class StcEventServiceSpec extends UnitSpec with StcEventServiceFixture {
 
   "Event service" should {
@@ -59,67 +62,67 @@ trait StcEventServiceFixture extends MockitoSugar with MustMatchers {
 
   val authProviderClientMock = mock[AuthProviderClient]
 
-  when(dataStoreEventHandlerMock.handle(any[DataStoreEvent])(any[HeaderCarrier], any[RequestHeader])).thenReturnAsync()
-  when(auditEventHandlerMock.handle(any[AuditEvent])(any[HeaderCarrier], any[RequestHeader])).thenReturnAsync()
-  when(emailEventHandlerMock.handle(any[EmailEvent])(any[HeaderCarrier], any[RequestHeader])).thenReturnAsync()
+  when(dataStoreEventHandlerMock.handle(any[DataStoreEvent])(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])).thenReturnAsync()
+  when(auditEventHandlerMock.handle(any[AuditEvent])(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])).thenReturnAsync()
+  when(emailEventHandlerMock.handle(any[EmailEvent])(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])).thenReturnAsync()
   when(authProviderClientMock.generateAccessCode(any[HeaderCarrier])).thenReturnAsync(SimpleTokenResponse("accessCode"))
 
   def verifyDataStoreEvents(n: Int): Unit =
-    verify(dataStoreEventHandlerMock, times(n)).handle(any[DataStoreEvent])(any[HeaderCarrier], any[RequestHeader])
+    verify(dataStoreEventHandlerMock, times(n)).handle(any[DataStoreEvent])(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
 
   def verifyDataStoreEvents(n: Int, eventName: String): Unit = {
     val eventCaptor = ArgumentCaptor.forClass(classOf[DataStoreEvent])
-    verify(dataStoreEventHandlerMock, times(n)).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
+    verify(dataStoreEventHandlerMock, times(n)).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     assert(eventCaptor.getAllValues.asScala.toList.forall(_.eventName == eventName))
   }
 
   def verifyDataStoreEvent(eventName: String): Unit = {
     val eventCaptor = ArgumentCaptor.forClass(classOf[DataStoreEvent])
-    verify(dataStoreEventHandlerMock).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
+    verify(dataStoreEventHandlerMock).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     eventCaptor.getAllValues.size() mustBe 1
     eventCaptor.getAllValues.asScala.map(_.eventName).headOption mustBe Some(eventName)
   }
 
   def verifyDataStoreEvents(n: Int, eventNames: List[String]): Unit = {
     val eventCaptor = ArgumentCaptor.forClass(classOf[DataStoreEvent])
-    verify(dataStoreEventHandlerMock, times(n)).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
+    verify(dataStoreEventHandlerMock, times(n)).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     assert(eventNames.forall(eventName => eventCaptor.getAllValues.asScala.toList.exists(_.eventName == eventName)))
   }
 
   def verifyAuditEvents(n: Int): Unit =
-    verify(auditEventHandlerMock, times(n)).handle(any[AuditEvent])(any[HeaderCarrier], any[RequestHeader])
+    verify(auditEventHandlerMock, times(n)).handle(any[AuditEvent])(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
 
   def verifyAuditEvents(n: Int, eventName: String): Unit = {
     val eventCaptor = ArgumentCaptor.forClass(classOf[AuditEvent])
-    verify(auditEventHandlerMock, times(n)).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
+    verify(auditEventHandlerMock, times(n)).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     assert(eventCaptor.getAllValues.asScala.toList.forall(_.eventName == eventName))
   }
 
   def verifyAuditEvent(eventName: String): Unit = {
     val eventCaptor = ArgumentCaptor.forClass(classOf[AuditEvent])
-    verify(auditEventHandlerMock).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
+    verify(auditEventHandlerMock).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     eventCaptor.getAllValues.size() mustBe 1
     eventCaptor.getAllValues.asScala.map(_.eventName).headOption mustBe Some(eventName)
   }
 
   def verifyAuditEvents(n: Int, eventNames: List[String]): Unit = {
     val eventCaptor = ArgumentCaptor.forClass(classOf[AuditEvent])
-    verify(auditEventHandlerMock, times(n)).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
+    verify(auditEventHandlerMock, times(n)).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     assert(eventNames.forall(eventName => eventCaptor.getAllValues.asScala.toList.exists(_.eventName == eventName)))
   }
 
   def verifyEmailEvents(n: Int): Unit =
-    verify(emailEventHandlerMock, times(n)).handle(any[EmailEvent])(any[HeaderCarrier], any[RequestHeader])
+    verify(emailEventHandlerMock, times(n)).handle(any[EmailEvent])(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
 
   def verifyEmailEvents(n: Int, eventName: String): Unit = {
     val eventCaptor = ArgumentCaptor.forClass(classOf[EmailEvent])
-    verify(emailEventHandlerMock, times(n)).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
+    verify(emailEventHandlerMock, times(n)).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     assert(eventCaptor.getAllValues.asScala.toList.forall(x => x.eventName == eventName))
   }
 
   def verifyEmailEvent(eventName: String): Unit = {
     val eventCaptor = ArgumentCaptor.forClass(classOf[EmailEvent])
-    verify(emailEventHandlerMock).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader])
+    verify(emailEventHandlerMock).handle(eventCaptor.capture)(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     eventCaptor.getAllValues.size() mustBe 1
     eventCaptor.getAllValues.asScala.map(_.eventName).headOption mustBe Some(eventName)
   }

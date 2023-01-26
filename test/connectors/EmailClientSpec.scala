@@ -29,6 +29,7 @@ import play.api.http.Status.OK
 import play.api.libs.json.Writes
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 class EmailClientSpec extends PlaySpec with MockitoSugar with ScalaFutures with GuiceOneAppPerSuite {

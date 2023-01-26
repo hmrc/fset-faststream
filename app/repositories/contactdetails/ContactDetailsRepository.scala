@@ -29,8 +29,7 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait ContactDetailsRepository {
   def update(userId: String, contactDetails: ContactDetails): Future[Unit]
@@ -47,7 +46,7 @@ trait ContactDetailsRepository {
 }
 
 @Singleton
-class ContactDetailsMongoRepository @Inject() (mongo: MongoComponent, appConfig: MicroserviceAppConfig)
+class ContactDetailsMongoRepository @Inject() (mongo: MongoComponent, appConfig: MicroserviceAppConfig)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[ContactDetails](
     collectionName = CollectionNames.CONTACT_DETAILS,
     mongoComponent = mongo,

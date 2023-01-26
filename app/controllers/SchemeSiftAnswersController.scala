@@ -26,14 +26,14 @@ import services.AuditService
 import services.sift.{ ApplicationSiftService, SiftAnswersService }
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 @Singleton
 class SchemeSiftAnswersController @Inject() (cc: ControllerComponents,
                                              siftAnswersService: SiftAnswersService,
                                              applicationSiftService: ApplicationSiftService,
                                              auditService: AuditService
                                             ) extends BackendController(cc) {
+
+  implicit val ec = cc.executionContext
 
   def addOrUpdateSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId): Action[JsValue] =
     Action.async(parse.json) { implicit request =>

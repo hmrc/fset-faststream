@@ -17,12 +17,12 @@
 package services.scheme
 
 import com.google.inject.ImplementedBy
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.SelectedSchemes
 import repositories.schemepreferences.SchemePreferencesRepository
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[SchemePreferencesServiceImpl])
 trait SchemePreferencesService {
@@ -31,7 +31,8 @@ trait SchemePreferencesService {
 }
 
 @Singleton
-class SchemePreferencesServiceImpl @Inject() (spRepository: SchemePreferencesRepository) extends SchemePreferencesService {
+class SchemePreferencesServiceImpl @Inject() (spRepository: SchemePreferencesRepository)(
+  implicit ec: ExecutionContext) extends SchemePreferencesService {
   override def find(applicationId: String): Future[SelectedSchemes] = spRepository.find(applicationId)
 
   override def update(applicationId: String, selectedSchemes: SelectedSchemes): Future[Unit] =

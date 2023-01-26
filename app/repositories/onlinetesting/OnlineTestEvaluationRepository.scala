@@ -34,8 +34,7 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRepositoryHelpers with RandomSelection
@@ -63,14 +62,15 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
       s >= phase && s < ApplicationStatus.PHASE3_TESTS_PASSED && !statusesToIgnore.contains(s))
   }
 
-  def nextApplicationsReadyForEvaluation(currentPassmarkVersion: String, batchSize: Int): Future[Seq[ApplicationReadyForEvaluation]] = {
+  def nextApplicationsReadyForEvaluation(currentPassmarkVersion: String, batchSize: Int)(
+    implicit ec: ExecutionContext): Future[Seq[ApplicationReadyForEvaluation]] = {
     preEvaluationLogging()
     selectRandom[ApplicationReadyForEvaluation](nextApplicationQuery(currentPassmarkVersion), batchSize)(doc =>
-      applicationReadyForEvaluationBSONReader(doc), global)
+      applicationReadyForEvaluationBSONReader(doc), ec)
   }
 
   def savePassmarkEvaluation(applicationId: String, evaluation: PassmarkEvaluation,
-                             newProgressStatus: Option[ProgressStatus]): Future[Unit] = {
+                             newProgressStatus: Option[ProgressStatus])(implicit ec: ExecutionContext): Future[Unit] = {
     // Warn level so we see it in prod logs
     logger.warn(s"applicationId = $applicationId - now saving progressStatus as $newProgressStatus")
 
@@ -91,7 +91,7 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
 
   def addSchemeResultToPassmarkEvaluation(applicationId: String,
                                           schemeEvaluationResult: SchemeEvaluationResult,
-                                          passmarkVersion: String): Future[Unit] = {
+                                          passmarkVersion: String)(implicit ec: ExecutionContext): Future[Unit] = {
     val query = Document("applicationId" -> applicationId)
 
     val removeEvaluationIfExists = Document(
@@ -139,7 +139,7 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
     }.getOrElse(throw PassMarkEvaluationNotFound(applicationId))
   }
 
-  def getPassMarkEvaluation(applicationId: String): Future[PassmarkEvaluation] = {
+  def getPassMarkEvaluation(applicationId: String)(implicit ec: ExecutionContext): Future[PassmarkEvaluation] = {
     val query = Document("applicationId" -> applicationId)
     val projection = Projections.include(s"testGroups.$phase.evaluation")
 
@@ -150,7 +150,7 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
 }
 
 @Singleton
-class Phase1EvaluationMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory, mongo: MongoComponent)
+class Phase1EvaluationMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory, mongo: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[ApplicationReadyForEvaluation](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongo,
@@ -184,7 +184,7 @@ class Phase1EvaluationMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
 }
 
 @Singleton
-class Phase2EvaluationMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory, mongo: MongoComponent)
+class Phase2EvaluationMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory, mongo: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[ApplicationReadyForEvaluation](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongo,
@@ -227,7 +227,7 @@ class Phase2EvaluationMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
 class Phase3EvaluationMongoRepository @Inject() (appConfig: MicroserviceAppConfig,
                                                  val dateTimeFactory: DateTimeFactory,
                                                  mongoComponent: MongoComponent
-                                                )
+                                                )(implicit ec: ExecutionContext)
   extends PlayMongoRepository[ApplicationReadyForEvaluation](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongoComponent,

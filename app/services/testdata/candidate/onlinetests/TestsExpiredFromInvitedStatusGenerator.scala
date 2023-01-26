@@ -17,8 +17,9 @@
 package services.testdata.candidate.onlinetests
 
 import com.google.inject.name.Named
-import javax.inject.{ Inject, Singleton }
-import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE2_TESTS_EXPIRED, PHASE3_TESTS_EXPIRED, ProgressStatus }
+
+import javax.inject.{Inject, Singleton}
+import model.ProgressStatuses.{PHASE1_TESTS_EXPIRED, PHASE2_TESTS_EXPIRED, PHASE3_TESTS_EXPIRED, ProgressStatus}
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import services.onlinetesting.OnlineTestService
@@ -28,13 +29,13 @@ import services.testdata.candidate.onlinetests.phase2.Phase2TestsInvitedStatusGe
 import services.testdata.candidate.onlinetests.phase3.Phase3TestsInvitedStatusGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 trait TestsExpiredFromInvitedStatusGenerator extends ConstructiveGenerator {
   val otService: OnlineTestService
   val expiredStatus: ProgressStatus
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- otService.commitProgressStatus(candidateInPreviousStatus.applicationId.get, expiredStatus)
@@ -47,20 +48,20 @@ trait TestsExpiredFromInvitedStatusGenerator extends ConstructiveGenerator {
 @Singleton
 class Phase1TestsExpiredFromInvitedStatusGenerator @Inject() (val previousStatusGenerator: Phase1TestsInvitedStatusGenerator,
                                                               @Named("Phase1OnlineTestService") val otService: OnlineTestService
-                                                             ) extends TestsExpiredFromInvitedStatusGenerator {
+                                                             )(implicit ec: ExecutionContext) extends TestsExpiredFromInvitedStatusGenerator {
   override val expiredStatus = PHASE1_TESTS_EXPIRED
 }
 
 @Singleton
 class Phase2TestsExpiredFromInvitedStatusGenerator @Inject() (val previousStatusGenerator: Phase2TestsInvitedStatusGenerator,
                                                               @Named("Phase2OnlineTestService") val otService: OnlineTestService
-                                                             ) extends TestsExpiredFromInvitedStatusGenerator {
+                                                             )(implicit ec: ExecutionContext) extends TestsExpiredFromInvitedStatusGenerator {
   override val expiredStatus = PHASE2_TESTS_EXPIRED
 }
 
 @Singleton
 class Phase3TestsExpiredFromInvitedStatusGenerator @Inject() (val previousStatusGenerator: Phase3TestsInvitedStatusGenerator,
                                                               @Named("Phase3OnlineTestService") val otService: OnlineTestService
-                                                             ) extends TestsExpiredFromInvitedStatusGenerator {
+                                                             )(implicit ec: ExecutionContext) extends TestsExpiredFromInvitedStatusGenerator {
   override val expiredStatus = PHASE3_TESTS_EXPIRED
 }

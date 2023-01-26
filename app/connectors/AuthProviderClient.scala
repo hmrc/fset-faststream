@@ -26,8 +26,7 @@ import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 object AuthProviderClient {
   sealed class ErrorRetrievingReportException(message: String) extends Exception(message)
@@ -56,7 +55,7 @@ object AuthProviderClient {
 }
 
 @Singleton
-class AuthProviderClient @Inject() (http: WSHttpT, config: MicroserviceAppConfig) {
+class AuthProviderClient @Inject() (http: WSHttpT, config: MicroserviceAppConfig)(implicit ec: ExecutionContext) {
 
   val allRoles = List(AssessorRole, QacRole, FaststreamTeamRole, ServiceSupportRole, ServiceAdminRole, SuperAdminRole,
     TechnicalAdminRole)

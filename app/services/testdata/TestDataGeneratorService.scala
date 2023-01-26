@@ -18,18 +18,12 @@ package services.testdata
 
 import connectors.AuthProviderClient
 import connectors.AuthProviderClient._
-
-import javax.inject.{Inject, Singleton}
 import model.exchange.testdata.CreateAdminResponse.CreateAdminResponse
-import model.exchange.testdata.CreateAssessorAllocationResponse
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
-import model.exchange.testdata.CreateEventResponse
-import model.exchange.testdata.{CreateCandidateAllocationResponse, CreateTestDataResponse}
+import model.exchange.testdata.{CreateAssessorAllocationResponse, CreateCandidateAllocationResponse, CreateEventResponse, CreateTestDataResponse}
 import model.testdata.CreateAdminData.CreateAdminData
-import model.testdata.CreateAssessorAllocationData
-import model.testdata.CreateEventData
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import model.testdata.{CreateCandidateAllocationData, CreateTestData}
+import model.testdata.{CreateAssessorAllocationData, CreateCandidateAllocationData, CreateEventData, CreateTestData}
 import play.api.Logging
 import play.api.mvc.RequestHeader
 import services.testdata.admin.AdminUserBaseGenerator
@@ -40,12 +34,12 @@ import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.MongoComponent
 
-import scala.collection.parallel.immutable.ParRange
+import javax.inject.{Inject, Singleton}
 import scala.collection.parallel.CollectionConverters._
 import scala.collection.parallel.ForkJoinTaskSupport
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.collection.parallel.immutable.ParRange
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.postfixOps
 
 @Singleton
@@ -56,7 +50,7 @@ class TestDataGeneratorService @Inject() (authProviderClient: AuthProviderClient
                                           assessorAllocationGenerator: AssessorAllocationGenerator,
                                           mongoComponent: MongoComponent,
                                           dataFaker: DataFaker,
-                                          eventGenerator: EventGenerator) extends Logging {
+                                          eventGenerator: EventGenerator)(implicit ec: ExecutionContext) extends Logging {
 
   def clearDatabase(generateDefaultUsers: Boolean)(implicit hc: HeaderCarrier): Future[Unit] = {
     for {

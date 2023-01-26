@@ -24,11 +24,11 @@ import play.api.mvc.{ Action, ControllerComponents }
 import services.application.ApplicationService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 @Singleton
 class WithdrawController @Inject() (cc: ControllerComponents,
                                     applicationService: ApplicationService) extends BackendController(cc) {
+
+  implicit val ec = cc.executionContext
 
   def withdrawApplication(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[WithdrawApplication] { withdrawRequest =>

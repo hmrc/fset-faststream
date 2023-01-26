@@ -17,7 +17,8 @@
 package services.testdata.candidate.onlinetests.phase2
 
 import common.FutureEx
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.exchange.PsiRealTimeResults
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import model.testdata.candidate.Phase2TestData
@@ -26,15 +27,14 @@ import services.onlinetesting.phase2.Phase2TestService
 import services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class Phase2TestsResultsReceivedStatusGenerator @Inject() (val previousStatusGenerator: Phase2TestsCompletedStatusGenerator,
                                                            otService: Phase2TestService
-                                                          ) extends ConstructiveGenerator {
+                                                          )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
       scores <- Future.successful(generatorConfig.phase2TestData.getOrElse(

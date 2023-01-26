@@ -28,7 +28,6 @@ import play.api.libs.json.OFormat
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ ExecutionContext, Future }
 
 trait AssessorAllocationRepository {
@@ -47,7 +46,7 @@ trait AssessorAllocationRepository {
 }
 
 @Singleton
-class AssessorAllocationMongoRepository @Inject() (mongoComponent: MongoComponent)
+class AssessorAllocationMongoRepository @Inject() (mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[AssessorAllocation](
     collectionName = CollectionNames.ASSESSOR_ALLOCATION,
     mongoComponent = mongoComponent,

@@ -16,16 +16,15 @@
 
 package services.testdata.allocation
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.exchange.testdata.CreateAssessorAllocationResponse
 import model.testdata.CreateAssessorAllocationData
 import repositories.AssessorAllocationRepository
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class AssessorAllocationGenerator @Inject() (assessorAllocationRepository: AssessorAllocationRepository) {
-  import scala.concurrent.ExecutionContext.Implicits.global
+class AssessorAllocationGenerator @Inject() (assessorAllocationRepository: AssessorAllocationRepository)(implicit ec: ExecutionContext) {
 
   def generate(generationId: Int, createData: CreateAssessorAllocationData): Future[CreateAssessorAllocationResponse] = {
     val assessorAllocation = createData.toAssessorAllocation

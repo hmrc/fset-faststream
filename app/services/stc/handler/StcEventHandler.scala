@@ -19,11 +19,11 @@ package services.stc.handler
 import model.stc.StcEventTypes.StcEventType
 import play.api.mvc.RequestHeader
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.HeaderCarrier
 
 trait StcEventHandler[T <: StcEventType] {
 
-  def handle(event: T)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
+  def handle(event: T)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit]
 
 }

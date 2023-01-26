@@ -43,7 +43,8 @@ import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 class ApplicationControllerSpec extends UnitWithAppSpec {
@@ -164,7 +165,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     "return the scheme results for an application" in new TestFixture {
       val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version2", None)
-      when(mockPassmarkService.getPassmarkEvaluation(any[String])).thenReturn(Future.successful(evaluation))
+      when(mockPassmarkService.getPassmarkEvaluation(any[String])(any[ExecutionContext])).thenReturn(Future.successful(evaluation))
 
       val result = testApplicationController.getPhase3Results(ApplicationId)(getPhase3ResultsRequest(ApplicationId)).run
       val jsonResponse = contentAsJson(result)

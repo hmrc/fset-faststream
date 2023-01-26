@@ -19,15 +19,14 @@ package scheduler.onlinetesting
 import factories.UUIDFactory
 import model.Phase
 import model.exchange.passmarksettings.PassMarkSettings
-import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
+import model.persisted.{ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult}
 import play.api.Logging
 import play.api.libs.json.Format
 import repositories.onlinetesting.OnlineTestEvaluationRepository
 import services.onlinetesting.ApplicationStatusCalculator
 import services.passmarksettings.PassMarkSettingsService
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait EvaluateOnlineTestResultService[T <: PassMarkSettings] extends ApplicationStatusCalculator with Logging {
   this: PassMarkSettingsService[T] =>
@@ -38,7 +37,7 @@ trait EvaluateOnlineTestResultService[T <: PassMarkSettings] extends Application
 
   val uuidFactory: UUIDFactory
 
-  def nextCandidatesReadyForEvaluation(batchSize: Int)(implicit jsonFormat: Format[T]):
+  def nextCandidatesReadyForEvaluation(batchSize: Int)(implicit jsonFormat: Format[T], ec: ExecutionContext):
     Future[Option[(Seq[ApplicationReadyForEvaluation], T)]] = {
     logger.warn(s"Evaluate $phase job - looking for candidates. Batch size=$batchSize")
 
@@ -62,7 +61,7 @@ trait EvaluateOnlineTestResultService[T <: PassMarkSettings] extends Application
 
   def savePassMarkEvaluation(application: ApplicationReadyForEvaluation,
                              schemeResults: List[SchemeEvaluationResult],
-                             passMarkSettings: T): Future[Unit] = {
+                             passMarkSettings: T)(implicit ec: ExecutionContext): Future[Unit] = {
     if (schemeResults.nonEmpty) {
       evaluationRepository.savePassmarkEvaluation(
         application.applicationId,
@@ -77,7 +76,7 @@ trait EvaluateOnlineTestResultService[T <: PassMarkSettings] extends Application
     }
   }
 
-  def getPassmarkEvaluation(applicationId: String): Future[PassmarkEvaluation] = {
+  def getPassmarkEvaluation(applicationId: String)(implicit ec: ExecutionContext): Future[PassmarkEvaluation] = {
     evaluationRepository.getPassMarkEvaluation(applicationId)
   }
 

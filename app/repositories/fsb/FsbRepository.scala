@@ -38,8 +38,7 @@ import scala.util.Try
 import repositories._
 import repositories.assessmentcentre.AssessmentCentreRepository
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait FsbRepository {
   def nextApplicationReadyForFsbEvaluation: Future[Option[UniqueIdentifier]]
@@ -63,7 +62,7 @@ trait FsbRepository {
 
 @Singleton
 class FsbMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
-                                    mongo: MongoComponent)
+                                    mongo: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[FsbTestGroup](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongo,
@@ -83,7 +82,7 @@ class FsbMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
         s"progress-status.${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER}" -> Document("$exists" -> false)
       )
 
-    selectOneRandom[UniqueIdentifier](query)(doc => UniqueIdentifier(getAppId(doc)), global)
+    selectOneRandom[UniqueIdentifier](query)(doc => UniqueIdentifier(getAppId(doc)), ec)
   }
 
   val commonFailedAtFsbPredicate = Document(
@@ -97,7 +96,7 @@ class FsbMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
 
   override def nextApplicationFailedAtFsb(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
     selectRandom[ApplicationForProgression](commonFailedAtFsbPredicate, batchSize)(
-      doc => AssessmentCentreRepository.applicationForFsacBsonReads(doc), global)
+      doc => AssessmentCentreRepository.applicationForFsacBsonReads(doc), ec)
   }
 
   override def nextApplicationFailedAtFsb(applicationId: String): Future[Seq[ApplicationForProgression]] = {
@@ -168,7 +167,7 @@ class FsbMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
       xdipQuery(ApplicationRoute.Edip)
     ))
 
-    selectRandom[ApplicationForProgression](query, batchSize)(doc => AssessmentCentreRepository.applicationForFsacBsonReads(doc), global)
+    selectRandom[ApplicationForProgression](query, batchSize)(doc => AssessmentCentreRepository.applicationForFsacBsonReads(doc), ec)
   } //scalastyle:on
 
   override def nextApplicationForFsbOrJobOfferProgression(applicationId: String): Future[Seq[ApplicationForProgression]] = {

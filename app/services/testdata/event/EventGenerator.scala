@@ -16,14 +16,14 @@
 
 package services.testdata.event
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.command.testdata.CreateEventRequest
 import model.exchange.testdata.CreateEventResponse
 import repositories.events._
 import model.testdata.CreateEventData
 import services.testdata.faker.DataFaker
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 //object EventGenerator extends EventGenerator {
 //  override val eventsRepository = repositories.eventsRepository
@@ -34,8 +34,7 @@ import scala.concurrent.Future
 class EventGenerator @Inject() (eventsRepository: EventsRepository,
                                 locationsAndVenuesRepository: LocationsWithVenuesRepository,
                                 dataFaker: DataFaker
-                               ) {
-  import scala.concurrent.ExecutionContext.Implicits.global
+                               )(implicit ec: ExecutionContext) {
   //  def eventsRepository: EventsRepository2
   //  def locationsAndVenuesRepository: LocationsWithVenuesRepository
 

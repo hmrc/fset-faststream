@@ -16,19 +16,18 @@
 
 package services.events
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model._
-import model.exchange.{ CandidateAllocationPerSession, EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary }
+import model.exchange.{CandidateAllocationPerSession, EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary}
 import model.persisted.eventschedules.EventType.EventType
-import model.persisted.eventschedules.{ Event, UpdateEvent, Venue }
+import model.persisted.eventschedules.{Event, UpdateEvent, Venue}
 import org.joda.time.DateTime
 import play.api.Logging
 import repositories.SchemeRepository
 import repositories.events._
 import services.allocation.AllocationServiceCommon
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait EventsService {
 
@@ -51,7 +50,7 @@ trait EventsService {
 class EventsServiceImpl @Inject() (eventsRepo: EventsRepository,
                                    schemeRepo: SchemeRepository,
                                    allocationServiceCommon: AllocationServiceCommon, // Breaks circular dependencies
-                                   eventsConfigRepo: EventsConfigRepository) extends EventsService with Logging {
+                                   eventsConfigRepo: EventsConfigRepository)(implicit ec: ExecutionContext) extends EventsService with Logging {
 
   override def saveAssessmentEvents(): Future[Unit] = {
     eventsRepo.countLong.flatMap {

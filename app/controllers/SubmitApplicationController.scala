@@ -30,7 +30,6 @@ import services.stc.{ EventSink, StcEventService }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
@@ -43,6 +42,8 @@ class SubmitApplicationController @Inject() (cc: ControllerComponents,
                                              appRepository: GeneralApplicationRepository,
                                              override val eventService: StcEventService
                                             ) extends BackendController(cc) with EventSink {
+
+  implicit val ec = cc.executionContext
 
   def submitApplication(userId: String, applicationId: String) = Action.async { implicit request =>
     val generalDetailsFuture = pdRepository.find(applicationId)

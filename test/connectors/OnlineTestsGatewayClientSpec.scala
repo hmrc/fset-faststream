@@ -28,6 +28,7 @@ import play.api.test.Helpers._
 import testkit.{ShortTimeout, UnitSpec}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 class OnlineTestsGatewayClientSpec extends UnitSpec with ShortTimeout {

@@ -16,7 +16,8 @@
 
 package services.stc.handler
 
-import com.google.inject.{ ImplementedBy, Inject }
+import com.google.inject.{ImplementedBy, Inject}
+
 import javax.inject.Singleton
 import model.stc.DataStoreEvent
 import play.api.Logging
@@ -24,18 +25,19 @@ import play.api.mvc.RequestHeader
 import repositories.stc.StcEventRepository
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[DataStoreEventHandlerImpl])
 trait DataStoreEventHandler extends StcEventHandler[DataStoreEvent] {
-  def handle(event: DataStoreEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
+  def handle(event: DataStoreEvent)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit]
 }
 
 @Singleton
-class DataStoreEventHandlerImpl @Inject() (eventRepository: StcEventRepository) extends DataStoreEventHandler with Logging {
+class DataStoreEventHandlerImpl @Inject() (eventRepository: StcEventRepository)(
+  implicit ec: ExecutionContext) extends DataStoreEventHandler with Logging {
   //  val eventRepository: StcEventRepository2 = repositories.stcEventMongoRepository
 
-  override def handle(event: DataStoreEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  override def handle(event: DataStoreEvent)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit] = {
     logger.info(s"Data store event $event")
     eventRepository.create(event)
   }

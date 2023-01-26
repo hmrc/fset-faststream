@@ -17,8 +17,8 @@
 package services
 
 import config._
-import connectors.ExchangeObjects.{ AssessmentOrderAcknowledgement, RegisterCandidateRequest }
-import connectors.{ OnlineTestEmailClient, OnlineTestsGatewayClient }
+import connectors.ExchangeObjects.{AssessmentOrderAcknowledgement, RegisterCandidateRequest}
+import connectors.{OnlineTestEmailClient, OnlineTestsGatewayClient}
 import factories._
 import model.EvaluationResults.Green
 import model.Exceptions._
@@ -26,10 +26,10 @@ import model.ProgressStatuses.ProgressStatus
 import model._
 import model.command.ProgressResponseExamples
 import model.exchange.PsiRealTimeResults
-import model.persisted.sift.{ MaybeSiftTestGroupWithAppId, NotificationExpiringSift, SiftTestGroup }
-import model.persisted.{ ContactDetails, PsiTest, PsiTestResult, SchemeEvaluationResult }
-import org.joda.time.{ DateTime, LocalDate }
-import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
+import model.persisted.sift.{MaybeSiftTestGroupWithAppId, NotificationExpiringSift, SiftTestGroup}
+import model.persisted.{ContactDetails, PsiTest, PsiTestResult, SchemeEvaluationResult}
+import org.joda.time.{DateTime, LocalDate}
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import repositories.SchemeRepository
@@ -38,10 +38,11 @@ import repositories.contactdetails.ContactDetailsRepository
 import repositories.sift.ApplicationSiftRepository
 import services.stc.StcEventServiceFixture
 import testkit.MockitoImplicits._
-import testkit.{ ExtendedTimeout, UnitSpec }
+import testkit.{ExtendedTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ ExecutionException, Future }
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, ExecutionException, Future}
 
 class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
 
@@ -141,7 +142,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
       customerId = "cust-id", receiptId = "receipt-id", orderId = "orderId", testLaunchUrl = authenticateUrl,
       status = AssessmentOrderAcknowledgement.acknowledgedStatus, statusDetails = "", statusDate = LocalDate.now())
 
-    when(mockOnlineTestsGatewayClient.psiRegisterApplicant(any[RegisterCandidateRequest]))
+    when(mockOnlineTestsGatewayClient.psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext]))
       .thenReturnAsync(aoa)
   }
 
@@ -197,7 +198,8 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
       val notificationExpiringSift = NotificationExpiringSift(appId, "userId", "Jo", DateTime.now())
       when(mockSiftRepo.getNotificationExpiringSift(any[String])).thenReturnAsync(Some(notificationExpiringSift))
 
-      when(mockEmailClient.sendSiftNumericTestInvite(any[String], any[String], any[DateTime])(any[HeaderCarrier])).thenReturnAsync()
+      when(mockEmailClient.sendSiftNumericTestInvite(any[String], any[String], any[DateTime])(any[HeaderCarrier], any[ExecutionContext]))
+        .thenReturnAsync()
 
       when(mockAppRepo.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
 
@@ -206,7 +208,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(mockAppRepo, times(1)).addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_TEST_INVITED)
       verify(mockEmailClient, times(1))
         .sendSiftNumericTestInvite(eqTo(contactDetails.email), eqTo(notificationExpiringSift.preferredName),
-          eqTo(notificationExpiringSift.expiryDate))(any[HeaderCarrier])
+          eqTo(notificationExpiringSift.expiryDate))(any[HeaderCarrier], any[ExecutionContext])
     }
   }
 

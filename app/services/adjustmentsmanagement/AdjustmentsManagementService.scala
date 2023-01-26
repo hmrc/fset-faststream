@@ -16,12 +16,12 @@
 
 package services.adjustmentsmanagement
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.Exceptions.ApplicationNotFound
 import model._
 import model.persisted.ContactDetails
 import model.stc.StcEventTypes.StcEvents
-import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
+import model.stc.{AuditEvents, DataStoreEvents, EmailEvents}
 import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories._
@@ -29,11 +29,10 @@ import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import services.scheme.SchemePreferencesService
 import services.sift.ApplicationSiftService
-import services.stc.{ EventSink, StcEventService }
+import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AdjustmentsManagementService @Inject() (appRepository: GeneralApplicationRepository,
@@ -42,7 +41,7 @@ class AdjustmentsManagementService @Inject() (appRepository: GeneralApplicationR
                                               schemesRepository: SchemeRepository,
                                               applicationSiftService: ApplicationSiftService,
                                               val eventService: StcEventService
-                                             ) extends EventSink with Logging {
+                                             )(implicit ec: ExecutionContext) extends EventSink with Logging {
   val intro = "Adjustments management service"
 
   private def progressToSiftOrFSAC(applicationId: String, adjustmentInformation: Adjustments)(implicit hc: HeaderCarrier): Future[Unit] = {

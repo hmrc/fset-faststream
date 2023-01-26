@@ -317,7 +317,7 @@ trait PassMarkSettingsControllerSpec extends UnitWithAppSpec {
 
   "Save new settings" should {
     "Send a complete settings object to the repository with a version UUID appended" in {
-      when(mockPassMarkSettingsService.createPassMarkSettings(any())(any())).thenReturn(Future.successful(
+      when(mockPassMarkSettingsService.createPassMarkSettings(any())(any(), any())).thenReturn(Future.successful(
         PassMarkSettingsCreateResponse(
           "uuid-1",
           new DateTime()
@@ -328,7 +328,7 @@ trait PassMarkSettingsControllerSpec extends UnitWithAppSpec {
 
       status(result) mustBe OK
 
-      verify(mockPassMarkSettingsService).createPassMarkSettings(argumentCaptor.capture)(any())
+      verify(mockPassMarkSettingsService).createPassMarkSettings(argumentCaptor.capture)(any(), any())
 
       val settingsParam = argumentCaptor.getValue
 

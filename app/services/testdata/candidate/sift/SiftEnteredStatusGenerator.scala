@@ -31,8 +31,7 @@ import services.testdata.candidate._
 import services.testdata.candidate.onlinetests.{Phase1TestsPassedNotifiedStatusGenerator, Phase3TestsPassedNotifiedStatusGenerator}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 //object SiftEnteredStatusGenerator extends SiftEnteredStatusGenerator {
 //  override val previousStatusGenerator = Phase3TestsPassedNotifiedStatusGenerator
@@ -47,7 +46,7 @@ class SiftEnteredStatusGenerator @Inject() (val previousStatusGenerator: Phase3T
                                             candidateStatusGeneratorFactory: Provider[CandidateStatusGeneratorFactory],
                                             appRepo: GeneralApplicationRepository,
                                             siftService: ApplicationSiftService
-                                           ) extends ConstructiveGenerator with Logging {
+                                           )(implicit ec: ExecutionContext) extends ConstructiveGenerator with Logging {
 //  val appRepo: GeneralApplicationRepository
 //  val siftService: ApplicationSiftService
 
@@ -87,7 +86,7 @@ class SiftEnteredStatusGenerator @Inject() (val previousStatusGenerator: Phase3T
   }
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
-              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {
 
     for {
       (previousApplicationStatus, previousStatusGenerator) <- Future.successful(getPreviousStatusGenerator(generatorConfig))

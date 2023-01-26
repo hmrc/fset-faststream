@@ -17,30 +17,30 @@
 package services.onlinetesting
 
 import factories.DateTimeFactory
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.ProgressStatuses._
 import model.command.ProgressResponse
 import model.persisted.Phase1TestProfile
-import model.stc.{ AuditEvent, AuditEvents, DataStoreEvents }
-import model.{ Phase1FirstReminder, Phase1SecondReminder }
+import model.stc.{AuditEvent, AuditEvents, DataStoreEvents}
+import model.{Phase1FirstReminder, Phase1SecondReminder}
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import services.onlinetesting.Exceptions.TestExtensionException
-import services.stc.{ EventSink, StcEventService }
+import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class OnlineTestExtensionService @Inject() (appRepository: GeneralApplicationRepository,
                                             otRepository: Phase1TestRepository,
                                             auditService: AuditService,
                                             dateTimeFactory: DateTimeFactory,
-                                            val eventService: StcEventService) extends EventSink {
+                                            val eventService: StcEventService)(implicit ec: ExecutionContext) extends EventSink {
   import OnlineTestExtensionServiceImpl._
 
   def extendTestGroupExpiryTime(applicationId: String, extraDays: Int, actionTriggeredBy: String)
