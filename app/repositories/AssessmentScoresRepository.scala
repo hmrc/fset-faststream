@@ -131,6 +131,7 @@ abstract class AssessmentScoresMongoRepository @Inject() (collectionName: String
     // configurar para no esperar upsert.
     // Otra opcion es en vez de calcular oldVersion.isEmpty es coger todos los ejercicios y sacar
     // el oldVersion de todos ellos y solo hacer upsert si todos ellos son empty.
+    //scalastyle:off
     val query = buildQueryForSaveWithOptimisticLocking(applicationId, section, oldVersion)
     println(s"--MIGUEL: query: $query")
     val update = buildUpdateForSaveWithOptimisticLocking(applicationId, section, bsonSection, oldVersion)
@@ -138,7 +139,7 @@ abstract class AssessmentScoresMongoRepository @Inject() (collectionName: String
     val validator = if (oldVersion.isEmpty) {
       singleUpsertOrUpdateValidator(applicationId.toString(), actionDesc = s"saving assessment score for final feedback", new Exception)
       //singleUpsertValidator
-      /singleUpsertValidatorNew(applicationId.toString(), actionDesc = s"saving assessment score for final feedback")
+      singleUpsertValidatorNew(applicationId.toString(), actionDesc = s"saving assessment score for final feedback")
     } else {
       singleUpdateValidator(applicationId.toString(), actionDesc = s"saving assessment score for final feedback")
     }
