@@ -46,12 +46,18 @@ trait ReactiveRepositoryHelpers extends Logging {
     )
   }
 
-  def singleUpsertValidator(id: String, actionDesc: String): UpdateResult => Unit = {
-    singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, new Exception)
+  def singleUpsertValidatorNew(id: String, actionDesc: String): UpdateResult => Unit = {
+    singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, new Exception, isUpsert = true)
   }
 
+  // TODO MIGUEL: This should be migrated to singleUpsertValidatorNew
+  def singleUpsertValidator(id: String, actionDesc: String): UpdateResult => Unit = {
+    singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, new Exception, isUpsert = false)
+  }
+
+  // TODO MIGUEL: This should be migrated to singleUpsertValidatorNew
   def singleUpsertValidator(id: String, actionDesc: String, error: => Exception): UpdateResult => Unit = {
-    singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, error)
+    singleUpdateValidatorImpl(id, actionDesc, ignoreNotFound = true, error, isUpsert = false)
   }
 
   private def handleUnacknowledgedResult(actionDesc: String) = {
@@ -92,25 +98,86 @@ trait ReactiveRepositoryHelpers extends Logging {
     }
   }
 
+  def singleUpsertOrUpdateValidator(id: String,
+                                        actionDesc: String,
+                                        notFoundError: => Exception
+                                       ): UpdateResult => Unit = {
+    singleUpsertOrUpdateValidatorImpl(id, actionDesc, notFoundError)
+  }
+
+  def singleUpsertOrUpdateValidatorImpl(id: String,
+                                    actionDesc: String,
+                                    notFoundError: => Exception
+                                   )(result: UpdateResult): Unit = {
+    if (result.wasAcknowledged()) {
+      println("-----MIGUEL: singleUpsertOrUpdateValidatorImpl result.wasAcknowledged()")
+      println(s"-----MIGUEL: singleUpsertOrUpdateValidatorImpl result=$result")
+      println(s"-----MIGUEL: singleUpsertOrUpdateValidatorImpl result.getMatchedCount=${result.getMatchedCount}")
+      println(s"-----MIGUEL: singleUpsertOrUpdateValidatorImpl result.getModifiedCount=${result.getModifiedCount}")
+      println(s"-----MIGUEL: singleUpsertOrUpdateValidatorImpl result.getUpsertedId=${result.getUpsertedId}")
+      if (result.getUpsertedId != null) {
+        logger.debug(s"Successfully upserted ${result.getUpsertedId} document whilst $actionDesc for id $id")
+      } else {
+        if (result.getMatchedCount == 1) {
+          logger.debug(s"Successfully updated ${result.getMatchedCount} document(s) whilst $actionDesc for id $id")
+        } else {
+          if (result.getMatchedCount == 0) {
+            logger.error(s"-----MIGUEL: result.getMatchedCount == 0 => notFoundError, result.getModifiedCount: ${result.getModifiedCount} ")
+            throw notFoundError
+          } else {
+            if (result.getMatchedCount > 1) {
+              throw TooManyEntries(
+                s"Update successful, but too many documents updated (${result.getMatchedCount}) whilst $actionDesc for id $id"
+              )
+            }
+          }
+        }
+      }
+    } else {
+      handleUnacknowledgedResult(s"Failed to $actionDesc for id: $id")
+    }
+  }
+
   private[this] def singleUpdateValidatorImpl(id: String,
                                               actionDesc: String,
                                               ignoreNotFound: Boolean,
-                                              notFoundError: => Exception
+                                              notFoundError: => Exception,
+                                              isUpsert: Boolean = false
                                              )(result: UpdateResult): Unit = {
+    println("-----MIGUEL: singleUpdateValidatorImpl")
     if (result.wasAcknowledged()) {
-      if (result.getMatchedCount == 1) {
-        logger.debug(s"Successfully updated ${result.getMatchedCount} document(s) whilst $actionDesc for id $id")
-        ()
-      } else if (result.getMatchedCount == 0 && ignoreNotFound) {
-        val msg = s"Failed to update record whilst $actionDesc for id: $id. IgnoreNotFound is on for this operation"
-        logger.warn(msg)
-      } else if (result.getMatchedCount == 0) {
-        throw notFoundError
-      } else if (result.getMatchedCount > 1) {
-        throw TooManyEntries(
-          s"Update successful, but too many documents updated (${result.getMatchedCount}) whilst $actionDesc for id $id"
-        )
-      }
+      println("-----MIGUEL: singleUpdateValidatorImpl result.wasAcknowledged()")
+      println(s"-----MIGUEL: result=$result")
+      println(s"-----MIGUEL: result.getMatchedCount=${result.getMatchedCount}")
+      println(s"-----MIGUEL: result.getModifiedCount=${result.getModifiedCount}")
+      println(s"-----MIGUEL: result.getUpsertedId=${result.getUpsertedId}")
+//      if (isUpsert) {
+//        if (result.getUpsertedId != null) {
+//          logger.debug(s"Successfully upserted ${result.getUpsertedId} document whilst $actionDesc for id $id")
+//        } else {
+//          logger.error(s"Error in upserting the document whilst $actionDesc for id $id")
+//          throw notFoundError // TODO MIGUEL: Change this
+//        }
+//      } else {
+        if (result.getMatchedCount == 1) {
+          logger.debug(s"Successfully updated ${result.getMatchedCount} document(s) whilst $actionDesc for id $id")
+          ()
+        } else if (result.getMatchedCount == 0 && ignoreNotFound) {
+          result.getMatchedCount
+          val msg2 = s"------MIGUEL: getModifiedCount ${result.getModifiedCount} getUpsertedId ${result.getUpsertedId}"
+          logger.warn(msg2)
+          val msg = s"Failed to update record whilst $actionDesc for id: $id. IgnoreNotFound is on for this operation"
+          logger.warn(msg)
+        } else if (result.getMatchedCount == 0) {
+          // TODO MIGUEL: Esta claro que entra por aqui
+          logger.error(s"-----MIGUEL: result.getMatchedCount == 0 => notFoundError, result.getModifiedCount: ${result.getModifiedCount} ")
+          throw notFoundError
+        } else if (result.getMatchedCount > 1) {
+          throw TooManyEntries(
+            s"Update successful, but too many documents updated (${result.getMatchedCount}) whilst $actionDesc for id $id"
+          )
+        }
+//      }
     } else {
       handleUnacknowledgedResult(s"Failed to $actionDesc for id: $id")
     }

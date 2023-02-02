@@ -122,19 +122,48 @@ abstract class AssessmentScoresMongoRepository @Inject() (collectionName: String
       Document("$set" -> applicationScoresBSON)
     }
 
+    // TODO MIGUEL: Esta mal, solo hay que hacer upsert el primer ejercicio que escribes en la base
+    // de datos, los demas son update. Usamos el oldVersion.isEmpty pero cogemos el old version por
+    // ejercicio, no del conjunto de ejercicios, que no existe realmente. Pero es una vez para
+    // los assessors, y otra vez para los reviewers.
+    // TODO MIGUEL: Lo mejor es hacer upsert siempre. La alternativa, es averigur si hay datos ya
+    // para ese applciation id en la coleccion de assessors-scores o reviewers-scores, y si ya hay datos
+    // configurar para no esperar upsert.
+    // Otra opcion es en vez de calcular oldVersion.isEmpty es coger todos los ejercicios y sacar
+    // el oldVersion de todos ellos y solo hacer upsert si todos ellos son empty.
     val query = buildQueryForSaveWithOptimisticLocking(applicationId, section, oldVersion)
+    println(s"--MIGUEL: query: $query")
     val update = buildUpdateForSaveWithOptimisticLocking(applicationId, section, bsonSection, oldVersion)
+    println(s"--MIGUEL: update: $update")
     val validator = if (oldVersion.isEmpty) {
-      singleUpsertValidator(applicationId.toString(), actionDesc = s"saving assessment score for final feedback")
+      singleUpsertOrUpdateValidator(applicationId.toString(), actionDesc = s"saving assessment score for final feedback", new Exception)
+      //singleUpsertValidator
+      /singleUpsertValidatorNew(applicationId.toString(), actionDesc = s"saving assessment score for final feedback")
     } else {
       singleUpdateValidator(applicationId.toString(), actionDesc = s"saving assessment score for final feedback")
     }
 
     //TODO: mongo take a closer look at this: when performing the upsert the validator shows no modified count
     collection.updateOne(query, update, UpdateOptions().upsert(oldVersion.isEmpty)).toFuture().map(validator).recover {
-      case ex: Throwable if ex.getMessage.startsWith("DatabaseException['E11000 duplicate key error collection") =>
-        throw new NotFoundException(s"You are trying to update a version of a [$section] " +
-          s"for application id [$applicationId] that has been updated already")
+      // This kind of error happens when this is the first time we write in assessor-scores collection
+          // and the collection does not contain yet this application id and there are two
+          // assessors concurrently saving scores in the same exercise.
+      case ex: Throwable if ex.getMessage.contains("E11000 duplicate key error collection") =>
+        val message = s"------MIGUEL: You are trying to update a version of a [$section] " +
+          s"for application id [$applicationId] that has been updated already"
+        val message2 = s"-----MIGUEL: query: [$query], update: [$update], namespace collection: [${collection.namespace}]"
+        val message3 = s"-----MIGUEL: indexes [${collection.listIndexes()}]"
+        // Esto podria querer decir que estamos intentando actualizar la misma tupla,
+        // o que en assessor-scores collection el id es aplicacionId y en reviewer-score es applicationid-version
+        val message4 = s"------MIGUEL upserting ${oldVersion.isEmpty}"
+        val message5 = s"-------MIGUEL ex: ${ex}, ex.getMEssage ${ex.getMessage}"
+        logger.info(message)
+        logger.info(message2)
+        logger.info(message3)
+        logger.info(message4)
+        logger.info(message5)
+
+        throw new NotFoundException(message)
     }
   } //scalastyle:on
 
