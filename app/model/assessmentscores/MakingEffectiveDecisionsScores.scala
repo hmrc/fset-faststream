@@ -23,7 +23,13 @@ case class MakingEffectiveDecisionsScores(
                                            identifiesMitigation: Option[Double] = None, // written
                                            isAnalytical: Option[Double] = None, // team
                                            evaluatesOptions: Option[Double] = None // team
-                                         )
+                                         ) {
+  override def toString: String =
+    s"issuesAndRisks=$issuesAndRisks," +
+    s"identifiesMitigation=$identifiesMitigation," +
+    s"isAnalytical=$isAnalytical," +
+    s"evaluatesOptions=$evaluatesOptions"
+}
 
 object MakingEffectiveDecisionsScores {
   implicit val makingEffectiveDecisionsScoresFormat = Json.format[MakingEffectiveDecisionsScores]

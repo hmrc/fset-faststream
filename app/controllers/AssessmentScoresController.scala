@@ -18,8 +18,8 @@ package controllers
 
 import com.google.inject.name.Named
 
-import javax.inject.{ Inject, Singleton }
-import model.Exceptions.{ CandidateAllocationNotFoundException, EventNotFoundException, NotFoundException }
+import javax.inject.{Inject, Singleton}
+import model.Exceptions.{CandidateAllocationNotFoundException, CannotUpdateRecord, EventNotFoundException, OptimisticLockException}
 import model.UniqueIdentifier
 import model.assessmentscores._
 import model.command.AssessmentScoresCommands._
@@ -58,7 +58,9 @@ abstract class AssessmentScoresController(cc: ControllerComponents) extends Back
             UserIdForAudit -> submitRequest.scoresExercise.updatedBy.toString())
           auditService.logEvent(AssessmentScoresOneExerciseSubmitted, auditDetails)
         }.map (_ => Ok).recover {
-          case e: NotFoundException => Conflict(e.getMessage)
+          case e @ (_: OptimisticLockException | _: CannotUpdateRecord) =>
+            logger.warn(s"FSAC error occurred while submitting exercise: ${e.getMessage} - data = $submitRequest")
+            Conflict(e.getMessage)
         }
       }
   }
@@ -78,7 +80,9 @@ abstract class AssessmentScoresController(cc: ControllerComponents) extends Back
             UserIdForAudit -> submitRequest.scoresExercise.updatedBy.toString())
           auditService.logEvent(AssessmentScoresOneExerciseSaved, auditDetails)
         }.map (_ => Ok).recover {
-          case e: NotFoundException => Conflict(e.getMessage)
+          case e @ (_: OptimisticLockException | _: CannotUpdateRecord) =>
+            logger.warn(s"FSAC error occurred while saving exercise: ${e.getMessage} - data = $submitRequest")
+            Conflict(e.getMessage)
         }
       }
   }
@@ -99,9 +103,10 @@ abstract class AssessmentScoresController(cc: ControllerComponents) extends Back
             "applicationId" -> submitRequest.applicationId.toString(),
             UserIdForAudit -> submitRequest.finalFeedback.updatedBy.toString())
           auditService.logEvent(AssessmentScoresAllExercisesSubmitted, allExercisesAuditDetails)
-
         }.map (_ => Ok).recover {
-          case e: NotFoundException => Conflict(e.getMessage)
+          case e @ (_: OptimisticLockException | _: CannotUpdateRecord) =>
+            logger.warn(s"FSAC error occurred while submitting final feedback: ${e.getMessage} - data = $submitRequest")
+            Conflict(e.getMessage)
         }
       }
   }
@@ -116,7 +121,9 @@ abstract class AssessmentScoresController(cc: ControllerComponents) extends Back
           )
           auditService.logEvent(AssessmentScoresAllExercisesSubmitted, auditDetails)
         }.map(_ => Ok).recover {
-          case e: NotFoundException => Conflict(e.getMessage)
+          case e @ (_: OptimisticLockException | _: CannotUpdateRecord) =>
+            logger.warn(s"FSAC error occurred while saving scores: ${e.getMessage} - data = $scores")
+            Conflict(e.getMessage)
         }
       }
   }

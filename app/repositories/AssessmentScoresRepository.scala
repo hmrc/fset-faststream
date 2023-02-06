@@ -17,7 +17,7 @@
 package repositories
 
 import factories.UUIDFactory
-import model.Exceptions.NotFoundException
+import model.Exceptions.{NotFoundException, OptimisticLockException}
 import model.UniqueIdentifier
 import model.assessmentscores._
 import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
@@ -125,15 +125,16 @@ abstract class AssessmentScoresMongoRepository @Inject() (collectionName: String
     val query = buildQueryForSaveWithOptimisticLocking(applicationId, section, oldVersion)
     val update = buildUpdateForSaveWithOptimisticLocking(applicationId, section, bsonSection, oldVersion)
     val validator = if (oldVersion.isEmpty) {
-      singleUpsertValidator(applicationId.toString(), actionDesc = s"saving assessment score for final feedback")
+      singleUpsertValidator(applicationId.toString(), actionDesc = s"saving assessment score for $section")
     } else {
-      singleUpdateValidator(applicationId.toString(), actionDesc = s"saving assessment score for final feedback")
+      singleUpdateValidator(applicationId.toString(), actionDesc = s"saving assessment score for $section")
     }
 
     //TODO: mongo take a closer look at this: when performing the upsert the validator shows no modified count
     collection.updateOne(query, update, UpdateOptions().upsert(oldVersion.isEmpty)).toFuture().map(validator).recover {
-      case ex: Throwable if ex.getMessage.startsWith("DatabaseException['E11000 duplicate key error collection") =>
-        throw new NotFoundException(s"You are trying to update a version of a [$section] " +
+      case ex: com.mongodb.MongoWriteException if ex.getMessage.contains("E11000 duplicate key error") =>
+        // This scenario handles the user trying to submit data that has already been submitted by another user
+        throw new OptimisticLockException(s"You are trying to update a version of [$section] " +
           s"for application id [$applicationId] that has been updated already")
     }
   } //scalastyle:on

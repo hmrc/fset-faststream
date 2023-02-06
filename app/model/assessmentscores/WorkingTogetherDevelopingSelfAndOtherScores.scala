@@ -25,7 +25,15 @@ case class WorkingTogetherDevelopingSelfAndOtherScores(
                                                         encouragesTeamwork: Option[Double] = None, // leadership
                                                         understandsStakeholderNeeds: Option[Double] = None, // leadership
                                                         improvesOwnPerformance: Option[Double] = None // leadership
-                                                      )
+                                                      ) {
+  override def toString: String =
+    s"formsEffectiveWorkingRelationships=$formsEffectiveWorkingRelationships," +
+    s"inclusiveApproach=$inclusiveApproach," +
+    s"encouragesCollaboration=$encouragesCollaboration," +
+    s"encouragesTeamwork=$encouragesTeamwork," +
+    s"understandsStakeholderNeeds=$understandsStakeholderNeeds," +
+    s"improvesOwnPerformance=$improvesOwnPerformance"
+}
 
 object WorkingTogetherDevelopingSelfAndOtherScores {
   implicit val buildingProductiveRelationshipsScoresFormat =
