@@ -17,7 +17,8 @@
 package model
 
 import model.ApplicationStatus._
-import play.api.libs.json.{ Format, JsString, JsSuccess, JsValue }
+import model.ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED
+import play.api.libs.json.{Format, JsString, JsSuccess, JsValue}
 
 import scala.language.implicitConversions
 
@@ -157,7 +158,9 @@ object ProgressStatuses {
       ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED, ASSESSMENT_CENTRE_SCORES_ENTERED, ASSESSMENT_CENTRE_SCORES_ACCEPTED,
       ASSESSMENT_CENTRE_PASSED, ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILED_NOTIFIED,
 
-      FSB_AWAITING_ALLOCATION, FSB_ALLOCATION_CONFIRMED, FSB_RESULT_ENTERED, FSB_PASSED, ELIGIBLE_FOR_JOB_OFFER
+      FSB_AWAITING_ALLOCATION, FSB_ALLOCATION_CONFIRMED, FSB_RESULT_ENTERED, FSB_PASSED, ELIGIBLE_FOR_JOB_OFFER,
+
+      ALL_FSBS_AND_FSACS_FAILED
     )
     def isBefore(progressStatus1: ProgressStatus, progressStatus2: ProgressStatus): Option[Boolean] = {
       val index1 = relativeOrder. indexOf(progressStatus1)

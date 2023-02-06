@@ -51,7 +51,7 @@ class CandidateStatusGeneratorFactory @Inject() (registeredStatusGenerator: Regi
                                                  createdStatusGenerator: CreatedStatusGenerator,
                                                  inProgressPersonalDetailsStatusGenerator: InProgressPersonalDetailsStatusGenerator,
                                                  inProgressSchemePreferencesStatusGenerator: InProgressSchemePreferencesStatusGenerator,
-                                                 inProgressAssistanceDetailsStatusGenerator: InProgressQuestionnaireStatusGenerator,
+                                                 inProgressAssistanceDetailsStatusGenerator: InProgressAssistanceDetailsStatusGenerator,
                                                  inProgressQuestionnaireStatusGenerator: InProgressQuestionnaireStatusGenerator,
                                                  inProgressPreviewStatusGenerator: InProgressPreviewStatusGenerator,
                                                  submittedStatusGenerator: SubmittedStatusGenerator,
