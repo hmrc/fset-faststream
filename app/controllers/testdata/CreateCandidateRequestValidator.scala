@@ -76,8 +76,10 @@ class CreateCandidateRequestValidator @Inject() (schemeRepository: SchemeReposit
 
     def containsCivilServantAndInternshipTypes = {
       val isCivilServant = request.isCivilServant.getOrElse(false)
-      val isExpectedInternshipType = request.civilServantAndInternshipTypes.exists(_.contains(CivilServantAndInternshipType.SDIP.toString))
-      isCivilServant && isExpectedInternshipType
+      // Not applicable in FastStream 2022-2023
+      //val isExpectedInternshipType = request.civilServantAndInternshipTypes.exists(_.contains(CivilServantAndInternshipType.SDIP.toString))
+      // Not applicable in FastStream 2022-2023
+      isCivilServant //&& isExpectedInternshipType
     }
 
     if (request.hasFastPass.getOrElse(false)) {
