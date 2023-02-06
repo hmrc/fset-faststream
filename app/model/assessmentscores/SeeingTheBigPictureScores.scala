@@ -24,7 +24,14 @@ case class SeeingTheBigPictureScores(
                                       adaptsApproach: Option[Double] = None, // leadership
                                       respondsAppropriately: Option[Double] = None, // leadership
                                       alternativeSolutions: Option[Double] = None // leadership
-                                    )
+                                    ) {
+  override def toString: String =
+    s"generatesSolutions=$generatesSolutions," +
+    s"practicalIdeas=$practicalIdeas," +
+    s"adaptsApproach=$adaptsApproach," +
+    s"respondsAppropriately=$respondsAppropriately," +
+    s"alternativeSolutions=$alternativeSolutions"
+}
 
 object SeeingTheBigPictureScores {
   implicit val seeingTheBigPictureScoresFormat = Json.format[SeeingTheBigPictureScores]

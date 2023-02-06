@@ -171,7 +171,7 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
       result mustBe Some(ExpectedScores)
     }
 
-    "throw Not Found Exception " +
+    "throw OptimisticLockException " +
       "when the exercise to be updated was updated before by another user" in new TestFixture {
       val ExerciseScoresToSave = ExerciseScores.copy(version = None, submittedDate = None, updatedBy = UpdatedBy)
       repository.saveExercise(ApplicationId, AssessmentScoresSectionType.writtenExercise, ExerciseScoresToSave,
@@ -179,15 +179,14 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
 
       val ExerciseScoresToSave2 = ExerciseScores2.copy(version = None, submittedDate = None, updatedBy = UpdatedBy2)
 
-      try {
-        repository.saveExercise(ApplicationId, AssessmentScoresSectionType.writtenExercise, ExerciseScoresToSave2,
+      val result = repository.saveExercise(ApplicationId, AssessmentScoresSectionType.writtenExercise, ExerciseScoresToSave2,
           Some(NewVersion2)).failed.futureValue
-      } catch {
-        case ex: Exception => ex.getClass mustBe classOf[model.Exceptions.NotFoundException]
-      }
+      result mustBe a[model.Exceptions.OptimisticLockException]
+      result.getMessage mustBe
+        s"You are trying to update a version of [writtenExercise] for application id [$ApplicationId] that has been updated already"
     }
 
-    "throw Not Found Exception " +
+    "throw CannotUpdateRecord " +
       "when the exercise to be updated is an old version of the existing one" in new TestFixture {
       val ExerciseScoresToSave = ExerciseScores.copy(version = None, submittedDate = None, updatedBy = UpdatedBy)
       repository.saveExercise(ApplicationId, AssessmentScoresSectionType.writtenExercise, ExerciseScoresToSave,
@@ -195,12 +194,11 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
 
       val ExerciseScoresToSave2 = ExerciseScores2.copy(version = Some(OldVersion), submittedDate = None, updatedBy = UpdatedBy)
 
-      try {
-        repository.saveExercise(ApplicationId, AssessmentScoresSectionType.writtenExercise, ExerciseScoresToSave2,
+      val result = repository.saveExercise(ApplicationId, AssessmentScoresSectionType.writtenExercise, ExerciseScoresToSave2,
           Some(NewVersion2)).failed.futureValue
-      } catch {
-        case ex: Exception => ex.getClass mustBe classOf[model.Exceptions.NotFoundException]
-      }
+      result mustBe a[model.Exceptions.CannotUpdateRecord]
+      result.getMessage mustBe
+        s"Failed to update document for Id $ApplicationId whilst performing operation saving assessment score for writtenExercise"
     }
   }
 
@@ -219,17 +217,28 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
       result mustBe Some(ExpectedScores)
     }
 
-    "throw Not Found Exception " +
+    "throw OptimisticLockException " +
       "when the exercise to be updated was updated before by another user" in new TestFixture {
       val FinalFeedbackToSave = FinalFeedback.copy(version = None, acceptedDate = LocalTime)
       repository.saveFinalFeedback(ApplicationId, FinalFeedbackToSave, Some(NewVersion)).futureValue
 
       val FinalFeedbackToSave2 = FinalFeedback2.copy(version = None, acceptedDate = LocalTime, updatedBy = UpdatedBy2)
-      try {
-        repository.saveFinalFeedback(ApplicationId, FinalFeedbackToSave2, Some(NewVersion2)).failed.futureValue
-      } catch {
-        case ex: Exception => ex.getClass mustBe classOf[model.Exceptions.NotFoundException]
-      }
+      val result = repository.saveFinalFeedback(ApplicationId, FinalFeedbackToSave2, Some(NewVersion2)).failed.futureValue
+      result mustBe a[model.Exceptions.OptimisticLockException]
+      result.getMessage mustBe
+        s"You are trying to update a version of [finalFeedback] for application id [$ApplicationId] that has been updated already"
+    }
+
+    "throw CannotUpdateRecord " +
+      "when the exercise to be updated is an old version of the existing one" in new TestFixture {
+      val FinalFeedbackToSave = FinalFeedback.copy(version = None, acceptedDate = LocalTime)
+      repository.saveFinalFeedback(ApplicationId, FinalFeedbackToSave, Some(NewVersion)).futureValue
+
+      val FinalFeedbackToSave2 = FinalFeedback2.copy(version = Some(OldVersion), acceptedDate = LocalTime, updatedBy = UpdatedBy2)
+      val result = repository.saveFinalFeedback(ApplicationId, FinalFeedbackToSave2, Some(NewVersion2)).failed.futureValue
+      result mustBe a[model.Exceptions.CannotUpdateRecord]
+      result.getMessage mustBe
+        s"Failed to update document for Id $ApplicationId whilst performing operation saving assessment score for finalFeedback"
     }
   }
 

@@ -25,7 +25,15 @@ case class CommunicatingAndInfluencingScores(
                                               contributesEffectively: Option[Double] = None, // team
                                               conveysPurposeAndDirection: Option[Double] = None, // leadership
                                               defendsProposals: Option[Double] = None // leadership
-                                            )
+                                            ) {
+  override def toString: String =
+    s"presentsIdeas=$presentsIdeas," +
+    s"communicatesClearly=$communicatesClearly," +
+    s"defendsOwnView=$defendsOwnView," +
+    s"contributesEffectively=$contributesEffectively," +
+    s"conveysPurposeAndDirection=$conveysPurposeAndDirection," +
+    s"defendsProposals=$defendsProposals"
+}
 
 object CommunicatingAndInfluencingScores {
   implicit val leadingAndCommunicatingScoresFormat = Json.format[CommunicatingAndInfluencingScores]
