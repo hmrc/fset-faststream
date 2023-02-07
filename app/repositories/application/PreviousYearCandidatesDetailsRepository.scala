@@ -649,23 +649,31 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     }
   }*/
 
+  // Limit the access so that test class still has access
+  protected[application] def isSdipFsWithFsFailedAndSdipNotFailed(doc: Document) = {
+    import scala.collection.JavaConverters._
+    val testEvalResultsListOpt = doc.get("currentSchemeStatus").map(_.asArray().getValues.asScala.toList)
+    val css = testEvalResultsListOpt.map( bsonValueList => bsonValueList.map( bsonValue => Codecs.fromBson[SchemeEvaluationResult](bsonValue)) ).getOrElse(Nil)
+
+    val sdipSchemeId = SchemeId("Sdip")
+    val sdipPresent = css.count( schemeEvaluationResult => schemeEvaluationResult.schemeId == sdipSchemeId ) == 1
+    val sdipNotFailed = sdipPresent &&
+      css.count( schemeEvaluationResult =>
+        schemeEvaluationResult.schemeId == sdipSchemeId
+          && (schemeEvaluationResult.result == EvaluationResults.Amber.toString
+          || schemeEvaluationResult.result == EvaluationResults.Green.toString)
+      ) == 1
+    val fsSchemes = css.filterNot( ser => ser.schemeId == sdipSchemeId )
+    // For this report we regard a scheme to be failed if it is either Red or Withdrawn
+    val fsSchemesPresentAndAllFailed = fsSchemes.nonEmpty &&
+      fsSchemes.count( schemeEvaluationResult =>
+        schemeEvaluationResult.result == EvaluationResults.Red.toString || schemeEvaluationResult.result == EvaluationResults.Withdrawn.toString
+      ) == fsSchemes.size
+    val isSdipFaststream = doc.get("applicationRoute").map(_.asString().getValue).contains(ApplicationRoute.SdipFaststream.toString)
+    isSdipFaststream && sdipPresent && sdipNotFailed && fsSchemesPresentAndAllFailed
+  }
+
   private def commonDataAnalystApplicationDetailsStream(numOfSchemes: Int, query: Document)(implicit mat: Materializer): Source[CandidateDetailsReportItem, _] = {
-
-    def isSdipFsWithFsFailedAndSdipNotFailed(doc: Document) = {
-      import scala.collection.JavaConverters._
-      val testEvalResultsListOpt = doc.get("currentSchemeStatus").map(_.asArray().getValues.asScala.toList)
-      val css = testEvalResultsListOpt.map( bsonValueList => bsonValueList.map( bsonValue => Codecs.fromBson[SchemeEvaluationResult](bsonValue)) ).getOrElse(Nil)
-
-      val sdipSchemeId = SchemeId("Sdip")
-      val sdipPresent = css.count( schemeEvaluationResult => schemeEvaluationResult.schemeId == sdipSchemeId ) == 1
-      val sdipNotFailed = sdipPresent &&
-        css.count( schemeEvaluationResult => schemeEvaluationResult.schemeId == sdipSchemeId && schemeEvaluationResult.result != "Red") == 1
-      val fsSchemes = css.filterNot( ser => ser.schemeId == sdipSchemeId )
-      val fsSchemesPresentAndAllFailed = fsSchemes.nonEmpty &&
-        fsSchemes.count( schemeEvaluationResult => schemeEvaluationResult.result == "Red" ) == fsSchemes.size
-      val isSdipFaststream = doc.get("applicationRoute").map(_.asString().getValue).contains("SdipFaststream")
-      isSdipFaststream && sdipPresent && sdipNotFailed && fsSchemesPresentAndAllFailed
-    }
 
     def processDocument(doc: Document): CandidateDetailsReportItem = {
       try {
