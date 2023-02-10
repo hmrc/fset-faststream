@@ -34,6 +34,7 @@ import scala.concurrent.Future
 
 trait CandidateAllocationRepository {
   def find(id: String, status: Option[AllocationStatus] = None): Future[Seq[CandidateAllocation]]
+  def findAll: Future[Seq[CandidateAllocation]]
   def save(allocations: Seq[CandidateAllocation]): Future[Unit]
   def findAllAllocations(applications: Seq[String]): Future[Seq[CandidateAllocation]]
   def findAllUnconfirmedAllocated(days: Int): Future[Seq[CandidateAllocation]]
@@ -67,6 +68,11 @@ class CandidateAllocationMongoRepository @Inject() (mongoComponent: MongoCompone
       status.map(s => Document("status" -> s.toBson))
     ).flatten.fold(Document.empty)(_ ++ _)
 
+    collection.find(query).toFuture()
+  }
+
+  override def findAll: Future[Seq[CandidateAllocation]] = {
+    val query = Document.empty
     collection.find(query).toFuture()
   }
 

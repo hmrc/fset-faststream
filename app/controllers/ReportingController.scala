@@ -904,6 +904,54 @@ class ReportingController @Inject() (cc: ControllerComponents,
   }
   // scalastyle:on
 
+  def allocatedAssessorsReport: Action[AnyContent] = Action.async { implicit request =>
+
+    val assessorAllocationsFut = assessorAllocationRepository.findAll.map(_.sortBy(_.eventId))
+    val eventsFut = eventsRepository.findAll
+    val assessorsFut = assessorRepository.findAll
+
+    val reportRows = for {
+      assessorAllocations <- assessorAllocationsFut
+      allAssessorsIds = assessorAllocations.map(_.id).distinct
+      // Converts a Seq[Candidate] to a Map[String, Candidate] (userId -> Candidate)
+      allAssessorsPersonalInfo <- authProviderClient.findByUserIds(allAssessorsIds)
+        .map(
+          _.map(x => x.userId -> x)(breakOut): Map[String, ExchangeObjects.Candidate]
+        )
+      events <- eventsFut
+      assessors <- assessorsFut
+    } yield for {
+      // By driving this report from assessor-allocations you will only get event details where assessors have been allocated
+      // Process each assessor allocation one at a time
+      assessorAllocation <- assessorAllocations
+      assessorPersonalInfo = allAssessorsPersonalInfo(assessorAllocation.id)
+      event = events.filter( _.id == assessorAllocation.eventId).head
+      assessor = assessors.filter( _.userId == assessorAllocation.id).head
+    } yield {
+
+      val data = List(
+        Some(assessorAllocation.eventId),
+        Some(event.date.toString),
+        Some(event.eventType.toString),
+        Some(event.venue.name),
+        Some(event.venue.description),
+        Some(assessorAllocation.id),
+        Some(s"${assessorPersonalInfo.firstName} ${assessorPersonalInfo.lastName}"),
+        Some(assessorPersonalInfo.email),
+        Some(assessorAllocation.allocatedAs.toString),
+        Some(assessorAllocation.status.toString),
+        Some(assessor.skills.mkString(", "))
+      )
+
+      makeRow(data: _*)
+    }
+
+    val headers = List("EventId,Date,Type,Name,Description,AssessorUserId,Name,Email,AllocatedAs,Status,Skills")
+    reportRows.map { rows =>
+      Ok(Json.toJson(headers ++ rows))
+    }
+  }
+
   def adjustmentReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     val reports =
       for {
