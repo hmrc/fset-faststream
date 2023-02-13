@@ -67,7 +67,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
                                      applicationSiftRepository: ApplicationSiftRepository,
                                      schemeRepo: SchemeRepository,
                                      authProviderClient: AuthProviderClient,
-                                     candidateAllocationRepo: CandidateAllocationRepository,
+                                     candidateAllocationRepository: CandidateAllocationRepository,
                                      fsbRepository: FsbRepository,
                                      applicationRepository: GeneralApplicationRepository,
                                      personalDetailsRepository: PersonalDetailsRepository
@@ -81,13 +81,13 @@ class ReportingController @Inject() (cc: ControllerComponents,
     val reports = for {
       fsacResults <- assessmentScoresRepository.findAll
     } yield {
-      fsacResults.map{ data =>
+      fsacResults.map { data =>
         val exchangeData = data.toExchange
         FsacScoresReportItem(
           exchangeData.applicationId.toString(),
-          exchangeData.writtenExercise.map( removeFeedback ),
-          exchangeData.teamExercise.map( removeFeedback ),
-          exchangeData.leadershipExercise.map( removeFeedback )
+          exchangeData.writtenExercise.map(removeFeedback),
+          exchangeData.teamExercise.map(removeFeedback),
+          exchangeData.leadershipExercise.map(removeFeedback)
         )
       }
     }
@@ -223,7 +223,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
       Seq(ApplicationStatus.FSB)
     )
   }
-/*
+  /*
   def streamPreviousYearFaststreamP1FailedCandidatesDetailsReport: Action[AnyContent] = {
     streamPreviousYearCandidatesDetailsReport(
       Seq(Faststream),
@@ -319,34 +319,34 @@ class ReportingController @Inject() (cc: ControllerComponents,
   }
 
   private def streamPreviousYearCandidatesDetailsReport(
-    applicationRoutes: Seq[ApplicationRoute],
-    applicationStatuses: Seq[ApplicationStatus]
-    ): Action[AnyContent] = Action.async { implicit request =>
-      logRpt(s"started report for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses")
-      prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes, applicationStatuses).flatMap { candidates =>
-        logRpt(s"fetched ${candidates.size} candidates")
-        val appIds = candidates.map(_.applicationId)
-        val userIds = candidates.map(_.userId)
+                                                         applicationRoutes: Seq[ApplicationRoute],
+                                                         applicationStatuses: Seq[ApplicationStatus]
+                                                       ): Action[AnyContent] = Action.async { implicit request =>
+    logRpt(s"started report for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses")
+    prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes, applicationStatuses).flatMap { candidates =>
+      logRpt(s"fetched ${candidates.size} candidates")
+      val appIds = candidates.map(_.applicationId)
+      val userIds = candidates.map(_.userId)
 
-        enrichPreviousYearCandidateDetails(appIds, userIds) {
-          (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
-           siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) => {
-            val header = buildHeaders(numOfSchemes)
-            logRpt(s"started initialising the application details stream for ${appIds.size} candidates")
-            val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream(numOfSchemes, appIds).map {
-              app =>
-                createCandidateInfoBackUpRecord(
-                  app, contactDetails, questionnaireDetails, mediaDetails,
-                  eventsDetails, siftAnswers, assessorAssessmentScores, reviewerAssessmentScores
-                ) + "\n"
-            }
-            logRpt(s"stopped initialising the application details stream for ${appIds.size} candidates")
-            logRpt(s"finished loading enriched data for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses. " +
-              s"Now sending the chunked response.")
-            Ok.chunked(header ++ candidatesStream)
+      enrichPreviousYearCandidateDetails(appIds, userIds) {
+        (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
+         siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) => {
+          val header = buildHeaders(numOfSchemes)
+          logRpt(s"started initialising the application details stream for ${appIds.size} candidates")
+          val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream(numOfSchemes, appIds).map {
+            app =>
+              createCandidateInfoBackUpRecord(
+                app, contactDetails, questionnaireDetails, mediaDetails,
+                eventsDetails, siftAnswers, assessorAssessmentScores, reviewerAssessmentScores
+              ) + "\n"
           }
+          logRpt(s"stopped initialising the application details stream for ${appIds.size} candidates")
+          logRpt(s"finished loading enriched data for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses. " +
+            s"Now sending the chunked response.")
+          Ok.chunked(header ++ candidatesStream)
         }
       }
+    }
   }
 
   private def streamDataAnalystReport(applicationRoutes: Seq[ApplicationRoute],
@@ -362,10 +362,10 @@ class ReportingController @Inject() (cc: ControllerComponents,
   }
 
   private def streamPreviousYearCandidatesDetailsReport(
-    applicationRoutes: Seq[ApplicationRoute],
-    applicationStatuses: Seq[ApplicationStatus],
-    part: Int
-  ): Action[AnyContent] = Action.async { implicit request =>
+                                                         applicationRoutes: Seq[ApplicationRoute],
+                                                         applicationStatuses: Seq[ApplicationStatus],
+                                                         part: Int
+                                                       ): Action[AnyContent] = Action.async { implicit request =>
     logRpt(s"started report for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses, part: $part")
     prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes, applicationStatuses, part).flatMap { candidates =>
       val appIds = candidates.map(_.applicationId)
@@ -373,7 +373,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
 
       enrichPreviousYearCandidateDetails(appIds, userIds) {
         (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
-        siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) => {
+         siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) => {
           val header = buildHeaders(numOfSchemes)
           logRpt(s"started initialising the application details stream for ${appIds.size} candidates")
           val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream(numOfSchemes, appIds).map {
@@ -406,31 +406,31 @@ class ReportingController @Inject() (cc: ControllerComponents,
     }
   }
 
-  private def streamPreviousYearCandidatesDetailsReport(
-    applicationRoutes: Seq[ApplicationRoute]): Action[AnyContent] = Action.async { implicit request =>
+  private def streamPreviousYearCandidatesDetailsReport(applicationRoutes: Seq[ApplicationRoute]): Action[AnyContent] =
+    Action.async { implicit request =>
     logRpt(s"started report for appRoutes: $applicationRoutes")
-      prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes).flatMap { candidates =>
-        val appIds = candidates.map(_.applicationId)
-        val userIds = candidates.map(_.userId)
+    prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes).flatMap { candidates =>
+      val appIds = candidates.map(_.applicationId)
+      val userIds = candidates.map(_.userId)
 
-        enrichPreviousYearCandidateDetails(appIds, userIds) {
-          (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
-           siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) => {
-            val header = buildHeaders(numOfSchemes)
-            logRpt(s"started initialising the application details stream for ${appIds.size} candidates")
-            val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream(numOfSchemes, appIds).map {
-              app =>
-                createCandidateInfoBackUpRecord(
-                  app, contactDetails, questionnaireDetails, mediaDetails,
-                  eventsDetails, siftAnswers, assessorAssessmentScores, reviewerAssessmentScores
-                ) + "\n"
-            }
-            logRpt(s"stopped initialising the application details stream for ${appIds.size} candidates")
-            logRpt(s"finished loading enriched data for appRoutes: $applicationRoutes. Now sending the chunked response.")
-            Ok.chunked(header ++ candidatesStream)
+      enrichPreviousYearCandidateDetails(appIds, userIds) {
+        (numOfSchemes, contactDetails, questionnaireDetails, mediaDetails, eventsDetails,
+         siftAnswers, assessorAssessmentScores, reviewerAssessmentScores) => {
+          val header = buildHeaders(numOfSchemes)
+          logRpt(s"started initialising the application details stream for ${appIds.size} candidates")
+          val candidatesStream = prevYearCandidatesDetailsRepository.applicationDetailsStream(numOfSchemes, appIds).map {
+            app =>
+              createCandidateInfoBackUpRecord(
+                app, contactDetails, questionnaireDetails, mediaDetails,
+                eventsDetails, siftAnswers, assessorAssessmentScores, reviewerAssessmentScores
+              ) + "\n"
           }
+          logRpt(s"stopped initialising the application details stream for ${appIds.size} candidates")
+          logRpt(s"finished loading enriched data for appRoutes: $applicationRoutes. Now sending the chunked response.")
+          Ok.chunked(header ++ candidatesStream)
         }
       }
+    }
   }
 
   private def streamDataAnalystReport(applicationRoutes: Seq[ApplicationRoute],
@@ -496,9 +496,9 @@ class ReportingController @Inject() (cc: ControllerComponents,
   }
 
   type ReportStreamBlockType = (Int, CsvExtract[String], CsvExtract[String], CsvExtract[String], CsvExtract[String],
-    CsvExtract[String],CsvExtract[String], CsvExtract[String]) => Result
+    CsvExtract[String], CsvExtract[String], CsvExtract[String]) => Result
 
-  private def logRpt(msg: String)= logger.warn(s"streamPreviousYearCandidatesDetailsReport: $msg")
+  private def logRpt(msg: String) = logger.warn(s"streamPreviousYearCandidatesDetailsReport: $msg")
 
   private def enrichPreviousYearCandidateDetails(applicationIds: Seq[String], userIds: Seq[String] = Nil)(
     block: ReportStreamBlockType): Future[Result] = {
@@ -691,7 +691,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
     )
   }
 
-  private def logDataAnalystRpt(msg: String)= logger.warn(s"streamDataAnalystReport: $msg")
+  private def logDataAnalystRpt(msg: String) = logger.warn(s"streamDataAnalystReport: $msg")
 
   private def commonEnrichDataAnalystReport(appIds: Seq[String], userIds: Seq[String],
                                             applicationRoutes: Seq[ApplicationRoute],
@@ -743,11 +743,11 @@ class ReportingController @Inject() (cc: ControllerComponents,
   }
 
   private def createDataAnalystRecord(candidateDetails: CandidateDetailsReportItem,
-                                        contactDetails: CsvExtract[String],
-                                        mediaDetails: CsvExtract[String],
-                                        questionnaireDetails: CsvExtract[String],
-                                        siftDetails: CsvExtract[String]
-                                       ) = {
+                                      contactDetails: CsvExtract[String],
+                                      mediaDetails: CsvExtract[String],
+                                      questionnaireDetails: CsvExtract[String],
+                                      siftDetails: CsvExtract[String]
+                                     ) = {
     (candidateDetails.csvRecord ::
       contactDetails.records.getOrElse(candidateDetails.userId, contactDetails.emptyRecord) ::
       mediaDetails.records.getOrElse(candidateDetails.userId, mediaDetails.emptyRecord) ::
@@ -755,7 +755,6 @@ class ReportingController @Inject() (cc: ControllerComponents,
       siftDetails.records.getOrElse(candidateDetails.appId, siftDetails.emptyRecord) ::
       Nil).mkString(",")
   }
-  //====
 
   // Includes data from the following collections: application, contact-details and media
   def streamDataAnalystReportPt1: Action[AnyContent] = Action.async { implicit request =>
@@ -777,7 +776,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
     )
   }
 
-  private def enrichDataAnalystReportPt1(block: (Int, CsvExtract[String], CsvExtract[String]) => Result)= {
+  private def enrichDataAnalystReportPt1(block: (Int, CsvExtract[String], CsvExtract[String]) => Result) = {
     for {
       contactDetails <- prevYearCandidatesDetailsRepository.findDataAnalystContactDetails
       mediaDetails <- prevYearCandidatesDetailsRepository.findMediaDetails
@@ -816,7 +815,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
     )
   }
 
-  private def enrichDataAnalystReportPt2(block: (CsvExtract[String], CsvExtract[String]) => Result)= {
+  private def enrichDataAnalystReportPt2(block: (CsvExtract[String], CsvExtract[String]) => Result) = {
     for {
       questionnaireDetails <- prevYearCandidatesDetailsRepository.findDataAnalystQuestionnaireDetails
       siftDetails <- prevYearCandidatesDetailsRepository.findDataAnalystSiftAnswers
@@ -882,11 +881,15 @@ class ReportingController @Inject() (cc: ControllerComponents,
       val assessorInfo = List(Some(s"${theAssessorPersonalInfo.userId}"),
         Some(s"${theAssessorPersonalInfo.firstName} ${theAssessorPersonalInfo.lastName}"),
         Some(theAssessorPersonalInfo.roles.mkString(", ")),
-        Some(if(theAssessorAuthInfo.disabled) "YES" else "NO"),
+        Some(if (theAssessorAuthInfo.disabled) "YES" else "NO"),
         Some(theAssessor.skills.mkString(", ")),
         Some(theAssessor.sifterSchemes.map(_.toString).mkString(", ")),
         Some(theAssessorPersonalInfo.email), theAssessorPersonalInfo.phone,
-        Some(if (theAssessor.civilServant) { "Internal" } else { "External" }))
+        Some(if (theAssessor.civilServant) {
+          "Internal"
+        } else {
+          "External"
+        }))
 
       makeRow(assessorInfo ++ roleByDate: _*)
     }
@@ -925,8 +928,8 @@ class ReportingController @Inject() (cc: ControllerComponents,
       // Process each assessor allocation one at a time
       assessorAllocation <- assessorAllocations
       assessorPersonalInfo = allAssessorsPersonalInfo(assessorAllocation.id)
-      event = events.filter( _.id == assessorAllocation.eventId).head
-      assessor = assessors.filter( _.userId == assessorAllocation.id).head
+      event = events.filter(_.id == assessorAllocation.eventId).head
+      assessor = assessors.filter(_.userId == assessorAllocation.id).head
     } yield {
 
       val data = List(
@@ -951,6 +954,76 @@ class ReportingController @Inject() (cc: ControllerComponents,
       Ok(Json.toJson(headers ++ rows))
     }
   }
+
+  def allocatedCandidatesReport: Action[AnyContent] = Action.async { implicit request =>
+
+    val candidateAllocationsFut = candidateAllocationRepository.findAll.map(_.sortBy(_.eventId))
+    val eventsFut = eventsRepository.findAll
+
+    val reportRows = for {
+      candidateAllocations <- candidateAllocationsFut
+      candidateApplicationIds = candidateAllocations.map(_.id).distinct
+
+      // Converts a List[Candidate] to a Map[String, Candidate] (userId -> Candidate)
+      candidateUserIdsFut = applicationRepository.find(candidateApplicationIds).map(_.map(_.userId).distinct)
+
+      // Converts a List[Candidate] to a Map[String, Candidate] (applicationId -> Candidate)
+      appIdToCandidateMapFut = applicationRepository.find(candidateApplicationIds)
+        .map(
+          _.map(x => x.applicationId.get -> x).toMap
+        )
+      events <- eventsFut
+    } yield for {
+      candidateUserIds <- candidateUserIdsFut
+      appIdToCandidateMap <- appIdToCandidateMapFut
+
+      // Converts a Seq[Candidate] to a Map[String, Candidate] (userId -> Candidate)
+      allCandidatesPersonalInfo <- authProviderClient.findByUserIds(candidateUserIds)
+        .map(
+          _.map(x => x.userId -> x)(breakOut): Map[String, ExchangeObjects.Candidate]
+        )
+
+    } yield for {
+      // By driving this report from candidate-allocations you will only get event details where candidates have been allocated
+      // Process each candidate allocation one at a time
+      candidateAllocation <- candidateAllocations
+      applicationId = candidateAllocation.id
+      // Find the userId for the applicationId
+      userId = appIdToCandidateMap(applicationId).userId
+      candidatePersonalInfo = allCandidatesPersonalInfo(userId)
+      event = events.filter(_.id == candidateAllocation.eventId).head
+      session = event.sessions.filter(_.id == candidateAllocation.sessionId).head
+    } yield {
+
+      val data = List(
+        Some(candidateAllocation.eventId),
+        Some(candidateAllocation.sessionId),
+        Some(event.date.toString),
+        Some(event.eventType.toString),
+        Some(event.venue.name),
+        Some(event.venue.description),
+        Some(candidateAllocation.id),
+        Some(s"${candidatePersonalInfo.firstName} ${candidatePersonalInfo.lastName}"),
+        Some(candidatePersonalInfo.email),
+        Some(candidateAllocation.status.toString),
+        Some(session.description),
+        Some(session.startTime.toString),
+        Some(session.endTime.toString),
+        Some(session.capacity.toString),
+        Some(session.minViableAttendees.toString),
+        Some(session.attendeeSafetyMargin.toString)
+      )
+
+      makeRow(data: _*)
+    }
+
+    val headers = List("EventId,SessionId,Date,Type,EventName,Description,ApplicationId,CandidateName,Email,Status," +
+      "SessionName,Start,End,Capacity,MinAttendees,SafetyMargin")
+    reportRows.flatten.map { rows =>
+      Ok(Json.toJson(headers ++ rows))
+    }
+  }
+
 
   def adjustmentReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
     val reports =
@@ -1189,7 +1262,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
   def candidateAcceptanceReport(): Action[AnyContent] = Action.async { implicit request =>
 
     val headers = Seq("Candidate email, allocation date, event date, event type, event description, location, venue")
-    candidateAllocationRepo.allAllocationUnconfirmed.flatMap { allAllocations =>
+    candidateAllocationRepository.allAllocationUnconfirmed.flatMap { allAllocations =>
       for {
         candidates <- applicationRepository.find(allAllocations.map(_.id))
         candidateAllocations = allAllocations.filterNot { alloc =>
