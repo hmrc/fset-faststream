@@ -152,6 +152,7 @@ GET         /report/streamed/data-analyst-edipsdip                          @con
 GET         /report/assessor-allocation                                     @controllers.ReportingController.assessorAllocationReport()
 GET         /report/candidate-acceptance                                    @controllers.ReportingController.candidateAcceptanceReport()
 GET         /report/allocated-assessors                                     @controllers.ReportingController.allocatedAssessorsReport()
+GET         /report/allocated-candidates                                    @controllers.ReportingController.allocatedCandidatesReport()
 
 GET         /report/candidates-stuck-in-fsac                                @controllers.ReportingController.candidateStuckAfterFsacEvaluationReport()
 # Reports end

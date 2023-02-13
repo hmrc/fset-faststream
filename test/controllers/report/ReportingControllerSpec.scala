@@ -334,7 +334,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       applicationSiftRepository = mockApplicationSiftRepo,
       schemeRepo = mockSchemeRepo,
       authProviderClient = mockAuthProviderClient,
-      candidateAllocationRepo = mockCandidateAllocationRepo,
+      candidateAllocationRepository = mockCandidateAllocationRepo,
       fsbRepository = mockFsbRepo,
       applicationRepository = mockAppRepo,
       personalDetailsRepository = mockPersonalDetailsRepository
