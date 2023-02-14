@@ -928,6 +928,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       "assistance-details.needsSupportAtVenue",
       "assistance-details.needsSupportForOnlineAssessment",
       "progress-status-timestamp",
+      "progress-status",
       "fsac-indicator",
       "testGroups.FSB.scoresAndFeedback"
     )
@@ -976,6 +977,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
           "assistance-details.needsSupportAtVenue",
           "assistance-details.needsSupportForOnlineAssessment",
           "progress-status-timestamp",
+          "progress-status",
           "fsac-indicator"
         )
 
@@ -1054,12 +1056,18 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
     val fsbScoresAndFeedbackSubmitted = scoresAndFeedbackOpt.isDefined
 
+    val progressStatusRoot = doc.get("progress-status").map(_.asDocument()).get
+    val fsacScoresEntered = Try(
+      progressStatusRoot.get(ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED.toString).asBoolean().getValue
+    ).getOrElse(false)
+
     CandidateEligibleForEvent(
       applicationId,
       firstName,
       lastName,
       needsAdjustment,
       fsbScoresAndFeedbackSubmitted,
+      fsacScoresEntered,
       model.FSACIndicator(fsacIndicator),
       dateReadyOpt.getOrElse(DateTime.now()))
   }

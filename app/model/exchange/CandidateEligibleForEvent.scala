@@ -28,6 +28,7 @@ case class CandidateEligibleForEvent(
   lastName: String,
   needsAdjustment: Boolean,
   fsbScoresAndFeedbackSubmitted: Boolean,
+  fsacScoresEntered: Boolean,
   fsacIndicator: FSACIndicator,
   dateReady: DateTime)
 

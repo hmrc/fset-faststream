@@ -229,10 +229,10 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
   "find eligible candidates" must {
     "return all candidates except no-shows" in new TestFixture {
       private val fsacIndicator = model.FSACIndicator("","")
-      private val c1 = CandidateEligibleForEvent("app1", "", "", needsAdjustment = true, fsbScoresAndFeedbackSubmitted = false,
-        fsacIndicator, DateTime.now())
-      private val c2 = CandidateEligibleForEvent("app2", "", "", needsAdjustment = true, fsbScoresAndFeedbackSubmitted = false,
-        fsacIndicator, DateTime.now())
+      private val c1 = CandidateEligibleForEvent("app1", firstName = "", lastName = "", needsAdjustment = true,
+        fsbScoresAndFeedbackSubmitted = false, fsacScoresEntered = false, fsacIndicator, DateTime.now())
+      private val c2 = CandidateEligibleForEvent("app2", firstName = "", lastName = "", needsAdjustment = true,
+        fsbScoresAndFeedbackSubmitted = false, fsacScoresEntered = false, fsacIndicator, DateTime.now())
       private val loc = "London"
       private val eventType = EventType.FSAC
       private val desc = "ORAC"
