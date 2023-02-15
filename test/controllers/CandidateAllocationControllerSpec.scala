@@ -54,9 +54,7 @@ class CandidateAllocationControllerSpec  extends UnitWithAppSpec {
     "handle candidates" in new TestFixture {
       val fsacIndicator = FSACIndicator("SouthWest London", "London")
       val candidate = CandidateEligibleForEvent(applicationId = "appId", firstName = "Joe", lastName = "Bloggs",
-        needsAdjustment = true, fsbScoresAndFeedbackSubmitted = false, fsacScoresEntered = false, fsacIndicator = fsacIndicator,
-        dateReady = DateTime.now()
-      )
+        needsAdjustment = true, fsbScoresAndFeedbackSubmitted = false, fsacIndicator = fsacIndicator, dateReady = DateTime.now())
       when(mockCandidateAllocationService.findCandidatesEligibleForEventAllocation(any[String], any[EventType], any[String]))
         .thenReturnAsync(CandidatesEligibleForEventResponse(List(candidate), 1))
 
