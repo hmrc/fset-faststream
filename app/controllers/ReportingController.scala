@@ -957,6 +957,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
 
   def allocatedCandidatesReport: Action[AnyContent] = Action.async { implicit request =>
 
+    val prefix = "allocatedCandidatesReport"
     val candidateAllocationsFut = candidateAllocationRepository.findAll.map(_.sortBy(_.eventId))
     val eventsFut = eventsRepository.findAll
 
@@ -964,24 +965,37 @@ class ReportingController @Inject() (cc: ControllerComponents,
       candidateAllocations <- candidateAllocationsFut
       candidateApplicationIds = candidateAllocations.map(_.id).distinct
 
-      // Converts a List[Candidate] to a Map[String, Candidate] (userId -> Candidate)
-      candidateUserIdsFut = applicationRepository.find(candidateApplicationIds).map(_.map(_.userId).distinct)
+      _ = logger.warn( // Warn level so we see it in production logs
+        s"$prefix - fetched ${candidateApplicationIds.size} appIds in candidate allocations"
+      )
 
       // Converts a List[Candidate] to a Map[String, Candidate] (applicationId -> Candidate)
       appIdToCandidateMapFut = applicationRepository.find(candidateApplicationIds)
         .map(
           _.map(x => x.applicationId.get -> x).toMap
         )
+
+      candidateUserIdsFut = applicationRepository.find(candidateApplicationIds).map(_.map(_.userId).distinct)
       events <- eventsFut
     } yield for {
       candidateUserIds <- candidateUserIdsFut
+      _ = logger.warn(
+        s"$prefix - fetched ${candidateUserIds.size} userIds: ${candidateUserIds} for the appIds"
+      )
+
       appIdToCandidateMap <- appIdToCandidateMapFut
 
+      _ = logger.warn(
+        s"$prefix - about to call authProviderClient.findByUserIds for ${candidateUserIds.size} userIds: ${candidateUserIds}"
+      )
       // Converts a Seq[Candidate] to a Map[String, Candidate] (userId -> Candidate)
       allCandidatesPersonalInfo <- authProviderClient.findByUserIds(candidateUserIds)
-        .map(
-          _.map(x => x.userId -> x)(breakOut): Map[String, ExchangeObjects.Candidate]
-        )
+        .map { candidateList =>
+          logger.warn(
+            s"$prefix - authProviderClient.findByUserIds returned ${candidateList.size} candidate objects"
+          )
+          candidateList.map(candidate => candidate.userId -> candidate)(breakOut): Map[String, ExchangeObjects.Candidate]
+        }
 
     } yield for {
       // By driving this report from candidate-allocations you will only get event details where candidates have been allocated
