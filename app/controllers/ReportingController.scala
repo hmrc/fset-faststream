@@ -970,7 +970,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
       )
 
       // Converts a List[Candidate] to a Map[String, Candidate] (applicationId -> Candidate)
-      appIdToCandidateMapFut = applicationRepository.find(candidateApplicationIds)
+      appIdToCandidateMapFut = applicationRepository.findForReport(candidateApplicationIds)
         .map(
           _.map(x => x.applicationId.get -> x).toMap
         )
@@ -986,17 +986,17 @@ class ReportingController @Inject() (cc: ControllerComponents,
       appIdToCandidateMap <- appIdToCandidateMapFut
 
       _ = logger.warn(
-        s"$prefix - about to call authProviderClient.findByUserIds for ${candidateUserIds.size} userIds: ${candidateUserIds}"
+        s"$prefix - about to call contactDetailsRepository.findEmailsForUserIds for ${candidateUserIds.size} userIds: ${candidateUserIds}"
       )
-      // Converts a Seq[Candidate] to a Map[String, Candidate] (userId -> Candidate)
-      allCandidatesPersonalInfo <- authProviderClient.findByUserIds(candidateUserIds)
-        .map { candidateList =>
-          logger.warn(
-            s"$prefix - authProviderClient.findByUserIds returned ${candidateList.size} candidate objects"
-          )
-          candidateList.map(candidate => candidate.userId -> candidate)(breakOut): Map[String, ExchangeObjects.Candidate]
-        }
 
+      // Converts a Seq[UserIdWithEmail] to a Map[String, String] (userId -> Email)
+      candidatesEmailMap <- contactDetailsRepository.findEmailsForUserIds(candidateUserIds)
+        .map { userIdEmailList =>
+          logger.warn(
+            s"$prefix - contactDetailsRepository.findEmailsForUserIds returned ${userIdEmailList.size} userIdEmail objects"
+          )
+          userIdEmailList.map(candidate => candidate.userId -> candidate.email).toMap
+        }
     } yield for {
       // By driving this report from candidate-allocations you will only get event details where candidates have been allocated
       // Process each candidate allocation one at a time
@@ -1004,10 +1004,19 @@ class ReportingController @Inject() (cc: ControllerComponents,
       applicationId = candidateAllocation.id
       // Find the userId for the applicationId
       userId = appIdToCandidateMap(applicationId).userId
-      candidatePersonalInfo = allCandidatesPersonalInfo(userId)
+      firstNameOpt = appIdToCandidateMap(applicationId).firstName
+      lastNameOpt = appIdToCandidateMap(applicationId).lastName
+      candidateEmail = candidatesEmailMap(userId)
       event = events.filter(_.id == candidateAllocation.eventId).head
       session = event.sessions.filter(_.id == candidateAllocation.sessionId).head
     } yield {
+
+      val name = for {
+        firstName <- firstNameOpt
+        lastName <- lastNameOpt
+      } yield {
+        s"$firstName $lastName"
+      }
 
       val data = List(
         Some(candidateAllocation.eventId),
@@ -1017,8 +1026,8 @@ class ReportingController @Inject() (cc: ControllerComponents,
         Some(event.venue.name),
         Some(event.venue.description),
         Some(candidateAllocation.id),
-        Some(s"${candidatePersonalInfo.firstName} ${candidatePersonalInfo.lastName}"),
-        Some(candidatePersonalInfo.email),
+        name,
+        Some(candidateEmail),
         Some(candidateAllocation.status.toString),
         Some(session.description),
         Some(session.startTime.toString),

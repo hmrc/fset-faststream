@@ -62,6 +62,9 @@ trait GeneralApplicationRepository {
   def find(applicationId: String): Future[Option[Candidate]]
   def findAllFileInfo: Future[Seq[CandidateFileInfo]]
   def find(applicationIds: Seq[String]): Future[List[Candidate]]
+  //TODO - 22/23 campaign this is only being added during live campaign to mitigate any unwanted side effects to changing the method above
+  //TODO so remove at the end of the campaign and change the one above
+  def findForReport(applicationIds: Seq[String]): Future[List[Candidate]]
   def findProgress(applicationId: String): Future[ProgressResponse]
   def findStatus(applicationId: String): Future[ApplicationStatusDetails]
   def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse]
@@ -232,6 +235,14 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     val query = Document("applicationId" -> Document("$in" -> applicationIds))
     collection.find[BsonDocument](query).toFuture().map { _.map { doc =>
       Codecs.fromBson[Candidate](doc)
+    }.toList }
+  }
+
+  override def findForReport(applicationIds: Seq[String]): Future[List[Candidate]] = {
+    val query = Document("applicationId" -> Document("$in" -> applicationIds))
+    collection.find[BsonDocument](query).toFuture().map { _.map { doc =>
+      // This is the only difference to the impl above and should be used as it reads more data
+      Candidate.fromBson(doc)
     }.toList }
   }
 

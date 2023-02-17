@@ -209,6 +209,24 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
     }
   }
 
+  "find emails for userIds" should {
+    "return an empty list if there are no candidates" in {
+      val result = repository.findEmailsForUserIds(Seq("userId")).futureValue
+      result mustBe Nil
+    }
+
+    "return list of userIdWithEmail objects" in {
+      insert(Document("userId" -> "1", "contact-details" -> Codecs.toBson(ContactDetailsUK))).futureValue
+      insert(Document("userId" -> "2", "contact-details" -> Codecs.toBson(ContactDetailsOutsideUK))).futureValue
+      val result = repository.findEmailsForUserIds(Seq("1", "2")).futureValue
+
+      result mustBe Seq(
+        UserIdWithEmail("1", ContactDetailsUK.email),
+        UserIdWithEmail("2", ContactDetailsOutsideUK.email)
+      )
+    }
+  }
+
   "Remove contact details" should {
     "remove the matching contact details" in {
       val insertResult = (for {
