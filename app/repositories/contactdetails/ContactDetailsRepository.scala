@@ -42,6 +42,7 @@ trait ContactDetailsRepository {
   def findByUserIds(userIds: Seq[String]): Future[Seq[ContactDetailsWithId]]
   def archive(originalUserId: String, userIdToArchiveWith: String): Future[Unit]
   def findEmails: Future[Seq[UserIdWithEmail]]
+  def findEmailsForUserIds(userIds: Seq[String]): Future[Seq[UserIdWithEmail]]
   def removeContactDetails(userId: String): Future[Unit]
 }
 
@@ -163,6 +164,14 @@ class ContactDetailsMongoRepository @Inject() (mongo: MongoComponent, appConfig:
 
   override def findEmails: Future[Seq[UserIdWithEmail]] = {
     val query = Document("contact-details" -> Document("$exists" -> true))
+    userIdWithEmailCollection.find(query).toFuture
+  }
+
+  override def findEmailsForUserIds(userIds: Seq[String]): Future[Seq[UserIdWithEmail]] = {
+    val query = Document(
+      "contact-details" -> Document("$exists" -> true),
+      "userId" -> Document("$in" -> userIds)
+    )
     userIdWithEmailCollection.find(query).toFuture
   }
 
