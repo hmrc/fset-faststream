@@ -847,11 +847,11 @@ class ReportingController @Inject() (cc: ControllerComponents,
       allAssessorsIds = allAssessors.map(_.userId)
       allAssessorsPersonalInfo <- authProviderClient.findByUserIds(allAssessorsIds)
         .map(
-          _.map(x => x.userId -> x).to(Map)
+          _.map(x => x.userId -> x).toMap
         )
       allAssessorsAuthInfo <- authProviderClient.findAuthInfoByUserIds(allAssessorsIds)
         .map(
-          _.map(x => x.userId -> x).to(Map)
+          _.map(x => x.userId -> x).toMap
         )
       sortedEvents <- sortedEventsFut
       assessorAllocations <- assessorAllocationRepository.findAll.map(_.groupBy(_.id))
@@ -916,7 +916,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
       // Converts a Seq[Candidate] to a Map[String, Candidate] (userId -> Candidate)
       allAssessorsPersonalInfo <- authProviderClient.findByUserIds(allAssessorsIds)
         .map(
-          _.map(x => x.userId -> x).to(Map) // (breakOut): Map[String, ExchangeObjects.Candidate]
+          _.map(x => x.userId -> x).toMap // (breakOut): Map[String, ExchangeObjects.Candidate]
         )
       events <- eventsFut
       assessors <- assessorsFut
@@ -1267,7 +1267,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
         })
         contactDetails <- contactDetailsRepository.findByUserIds(applications.map(_.userId))
           .map(
-            _.map(x => x.userId -> x).to(Map) //(breakOut): Map[String, ContactDetailsWithId]
+            _.map(x => x.userId -> x).toMap //(breakOut): Map[String, ContactDetailsWithId]
           )
         questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(applications.map(_.applicationId))
       } yield for {
@@ -1294,9 +1294,9 @@ class ReportingController @Inject() (cc: ControllerComponents,
         events <- eventsRepository.getEventsById(candidateAllocations.map(_.eventId))
         contactDetails <- contactDetailsRepository.findByUserIds(candidates.map(_.userId))
       } yield {
-        val eventMap: Map[String, Event] = events.map(e => e.id -> e).to(Map)
+        val eventMap: Map[String, Event] = events.map(e => e.id -> e).toMap
         val cdMap: Map[String, ContactDetailsWithId] =
-          candidates.map(c => c.applicationId.get -> contactDetails.find(_.userId == c.userId).get).to(Map)
+          candidates.map(c => c.applicationId.get -> contactDetails.find(_.userId == c.userId).get).toMap
 
         val report = headers ++ candidateAllocations.map { allocation =>
           val e = eventMap(allocation.eventId)

@@ -57,5 +57,5 @@ object AssessorSkill {
 
   val SkillMap: Map[SkillType, AssessorSkill] = AllSkillsWithLabels.map { s =>
     s.name -> s
-  }.to(Map)
+  }.toMap
 }

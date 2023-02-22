@@ -16,8 +16,6 @@
 
 package controllers.report
 
-import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import config.TestFixtureBase
 import connectors.AuthProviderClient
 import connectors.ExchangeObjects.{Candidate, UserAuthInfo}
@@ -45,9 +43,7 @@ import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.language.postfixOps
 
 class ReportingControllerSpec extends UnitWithAppSpec {
@@ -64,7 +60,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       val result = controller.adjustmentReport(frameworkId)(createAdjustmentsRequest(frameworkId)).run
       val finalResult = contentAsJson(result).as[JsArray].value
 
-      finalResult mustBe a[scala.collection.mutable.Seq[_]]
+      finalResult mustBe a[scala.collection.Seq[_]]
 
       finalResult.size mustBe 3
       val headValue = finalResult.head
@@ -78,7 +74,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
       val finalResult = contentAsJson(result).as[JsArray].value
 
-      finalResult mustBe a[scala.collection.mutable.Seq[_]]
+      finalResult mustBe a[scala.collection.Seq[_]]
       finalResult.size mustBe 3
 
       val headValue = finalResult.head
@@ -93,7 +89,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
       val finalResult = contentAsJson(result).as[JsArray].value
 
-      finalResult mustBe a[scala.collection.mutable.Seq[_]]
+      finalResult mustBe a[scala.collection.Seq[_]]
       finalResult mustBe empty
     }
   }
@@ -108,7 +104,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
       val json = contentAsJson(result).as[JsArray].value
 
-      json mustBe a[scala.collection.mutable.Seq[_]]
+      json mustBe a[scala.collection.Seq[_]]
       json.size mustBe 2
 
       val reportItem1 = json.head
@@ -156,7 +152,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
       val json = contentAsJson(result).as[JsArray].value
 
-      json mustBe a[scala.collection.mutable.Seq[_]]
+      json mustBe a[scala.collection.Seq[_]]
       json.size mustBe 2
 
       val reportItem1 = json.head

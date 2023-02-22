@@ -43,7 +43,7 @@ object Phase1PassMarkSettings {
 
   def merge(oldPassMarkSettings: Option[Phase1PassMarkSettings],
             newPassMarkSettings: Phase1PassMarkSettings): Phase1PassMarkSettings = {
-    def toMap(passmark: Phase1PassMarkSettings) = passmark.schemes.groupBy(_.schemeId).mapValues { v =>
+    def toMap(passmark: Phase1PassMarkSettings) = passmark.schemes.groupBy(_.schemeId).view.mapValues { v =>
       require(v.size == 1, s"Scheme name must be non empty and must be unique: ${v.mkString(",")}")
       v.head
     }.toMap
