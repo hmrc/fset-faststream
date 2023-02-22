@@ -1,7 +1,6 @@
 package repositories.fileupload
 
 import org.scalatest.Tag
-import play.api.libs.iteratee.Iteratee
 import repositories.CollectionNames
 import repositories.fileupload.FileUploadRepository.FileUploadNotFoundException
 import testkit.MongoRepositorySpec
@@ -18,7 +17,7 @@ class FileUploadRepositorySpec extends MongoRepositorySpec {
       val fileId = repository.add(testContentType, testContent).futureValue
       val retrievedFile = repository.retrieve(fileId).futureValue
       retrievedFile.contentType mustBe testContentType
-      retrievedFile.fileContents.run(Iteratee.consume[Array[Byte]]()).futureValue mustBe testContent
+      retrievedFile.fileContents mustBe testContent
     }
   }
 

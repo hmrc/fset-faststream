@@ -16,26 +16,24 @@
 
 package controllers.report
 
-import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import config.TestFixtureBase
 import connectors.AuthProviderClient
-import connectors.ExchangeObjects.{ Candidate, UserAuthInfo }
+import connectors.ExchangeObjects.{Candidate, UserAuthInfo}
 import controllers.ReportingController
 import model.EvaluationResults.Green
 import model.persisted._
-import model.persisted.assessor.{ Assessor, AssessorStatus }
+import model.persisted.assessor.{Assessor, AssessorStatus}
 import model.persisted.eventschedules.SkillType
 import model.report.onlinetestpassmark.TestResultsForOnlineTestPassMarkReportItemExamples
-import model.report.{ CandidateProgressReportItem, _ }
-import model.{ Scheme, _ }
+import model.report.{CandidateProgressReportItem, _}
+import model.{Scheme, _}
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import play.api.libs.json.JsArray
 import play.api.test.Helpers._
-import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
+import play.api.test.{FakeHeaders, FakeRequest, Helpers}
 import repositories._
-import repositories.application.{ GeneralApplicationRepository, PreviousYearCandidatesDetailsRepository, ReportingRepository }
+import repositories.application.{GeneralApplicationRepository, PreviousYearCandidatesDetailsRepository, ReportingRepository}
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.events._
 import repositories.fsb._
@@ -45,7 +43,7 @@ import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.Future
 import scala.language.postfixOps
 
 class ReportingControllerSpec extends UnitWithAppSpec {
@@ -62,7 +60,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       val result = controller.adjustmentReport(frameworkId)(createAdjustmentsRequest(frameworkId)).run
       val finalResult = contentAsJson(result).as[JsArray].value
 
-      finalResult mustBe a[Seq[_]]
+      finalResult mustBe a[scala.collection.Seq[_]]
 
       finalResult.size mustBe 3
       val headValue = finalResult.head
@@ -76,7 +74,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
       val finalResult = contentAsJson(result).as[JsArray].value
 
-      finalResult mustBe a[Seq[_]]
+      finalResult mustBe a[scala.collection.Seq[_]]
       finalResult.size mustBe 3
 
       val headValue = finalResult.head
@@ -91,7 +89,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
       val finalResult = contentAsJson(result).as[JsArray].value
 
-      finalResult mustBe a[Seq[_]]
+      finalResult mustBe a[scala.collection.Seq[_]]
       finalResult mustBe empty
     }
   }
@@ -106,7 +104,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
       val json = contentAsJson(result).as[JsArray].value
 
-      json mustBe a[Seq[_]]
+      json mustBe a[scala.collection.Seq[_]]
       json.size mustBe 2
 
       val reportItem1 = json.head
@@ -154,7 +152,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
       val json = contentAsJson(result).as[JsArray].value
 
-      json mustBe a[Seq[_]]
+      json mustBe a[scala.collection.Seq[_]]
       json.size mustBe 2
 
       val reportItem1 = json.head

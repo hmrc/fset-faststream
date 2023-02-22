@@ -17,16 +17,16 @@
 package controllers
 
 import java.nio.file.Files
-
-import akka.stream.scaladsl.Source
+import java.io.ByteArrayInputStream
+import akka.stream.scaladsl.StreamConverters
 import connectors.exchange.UserIdResponse
 import controllers.ApplicationController.CandidateNotFound
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.Exceptions._
-import model.{ CreateApplicationRequest, OverrideSubmissionDeadlineRequest, PreviewRequest, ProgressStatuses }
-import play.api.libs.json.{ JsObject, Json }
-import play.api.libs.iteratee.streams.IterateeStreams
-import play.api.mvc.{ Action, AnyContent, ControllerComponents }
+import model.{CreateApplicationRequest, OverrideSubmissionDeadlineRequest, PreviewRequest, ProgressStatuses}
+import play.api.libs.json.{JsObject, Json}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.assessmentcentre.AssessmentCentreService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -39,6 +39,7 @@ import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAnalysisE
 import services.personaldetails.PersonalDetailsService
 import services.sift.ApplicationSiftService
 
+import java.io.ByteArrayInputStream
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -191,9 +192,10 @@ class ApplicationController @Inject() (cc: ControllerComponents,
         analysis = assessmentCentreTests.analysisExercise.getOrElse(throw CandidateHasNoAnalysisExerciseException(applicationId))
         file <- uploadRepository.retrieve(analysis.fileId)
       } yield {
-        val source = Source.fromPublisher(IterateeStreams.enumeratorToPublisher(file.fileContents))
+        val inputStream = new ByteArrayInputStream(file.fileContents)
+        val source = StreamConverters.fromInputStream(() => inputStream)
 
-        Ok.chunked(source).as(file.contentType)
+          Ok.chunked(source).as(file.contentType)
       }
   }
 

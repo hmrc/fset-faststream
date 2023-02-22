@@ -137,8 +137,8 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
                                            phase1PassMarkSettingsTable: TableFor9[SchemeId,
                                              Double, Double, Double, Double, Double, Double, Double, Double],
                                            newSchemeSettings: (SchemeId, Double, Double, Double, Double, Double, Double, Double, Double)*) = {
-      phase1PassMarkSettingsTable.filterNot(schemeSetting =>
-        newSchemeSettings.map(_._1).contains(schemeSetting._1)) ++ newSchemeSettings
+      phase1PassMarkSettingsTable.filter(schemeSetting =>
+        !newSchemeSettings.map(_._1).contains(schemeSetting._1)) ++ newSchemeSettings
     }
 
     def applicationReEvaluationWithOverridingPassmarks(newSchemeSettings: (SchemeId, Double, Double, Double, Double,

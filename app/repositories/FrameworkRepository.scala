@@ -70,7 +70,7 @@ class FrameworkYamlRepository @Inject() (implicit application: Application, appC
 
   private def loadYamlDocument(filename: String): Map[String, _] = {
     val input = managed(application.environment.resourceAsStream(filename).get)
-    val document = input.acquireAndGet(new Yaml().load(_).asMapOfObjects)
+    val document = input.acquireAndGet(new Yaml().load(_).asInstanceOf[util.LinkedHashMap[String, _]].asScala.toMap)
     document
   }
 

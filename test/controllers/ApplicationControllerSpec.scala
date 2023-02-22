@@ -27,7 +27,6 @@ import model.{ApplicationResponse, ApplicationRoute, SchemeId}
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
-import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.test.Helpers._
@@ -224,7 +223,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
         id = fileId,
         contentType = "application/pdf",
         created = DateTime.now,
-        fileContents = Enumerator(fileContents.toCharArray.map(_.toByte))
+        fileContents = fileContents.toCharArray.map(_.toByte)
       )
       when(mockFileUploadRepository.retrieve(any[String])).thenReturnAsync(fileUpload)
 

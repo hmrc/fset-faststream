@@ -17,11 +17,10 @@
 package model.persisted.fileupload
 
 import org.joda.time.DateTime
-import play.api.libs.iteratee.Enumerator
 
 case class FileUpload(
   id: String,
   contentType: String,
   created: DateTime,
-  fileContents: Enumerator[Array[Byte]]
+  fileContents: Array[Byte]
 )

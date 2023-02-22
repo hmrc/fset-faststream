@@ -111,8 +111,8 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     }
 
     def applicationReEvaluationWithSettings(newSchemeSettings: (SchemeId, Double, Double, Double, Double)*): TestFixture = {
-      val schemePassMarkSettings = phase2PassMarkSettingsTable.filterNot(schemeSetting =>
-        newSchemeSettings.map(_._1).contains(schemeSetting._1)) ++ newSchemeSettings
+      val schemePassMarkSettings = phase2PassMarkSettingsTable.filter(schemeSetting =>
+        !newSchemeSettings.map(_._1).contains(schemeSetting._1)) ++ newSchemeSettings
       phase2PassMarkSettings = createPhase2PassMarkSettings(schemePassMarkSettings).futureValue
       phase2TestEvaluationService.evaluate(applicationReadyForEvaluation, phase2PassMarkSettings).futureValue
       this
