@@ -157,7 +157,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: false
   fsbType: PDFS - Skype interview
-  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB_Guide_Project_Delivery2022.pdf
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Project-Delivery.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/1252/scheme-questions-pdfs-2021.odt
 - id: Property
   code: PRO
@@ -168,7 +168,7 @@
     specificRequirement: false
   siftEvaluationRequired: false
   fsbType: PRO - Skype interview
-  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/2022_FSB_Guide_Property.pdf
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Property.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/Property-Additional-Information-Form.odt
 - id: ScienceAndEngineering
   code: SEFS
@@ -180,7 +180,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: SEFS FSB
-  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/SEFS_Candidate_Guide_2022-Updated_09-12-21.pdf
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Science-and-Engineering.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/1315/scheme-questions-sefs.odt
 - id: Edip
   code: EDIP
