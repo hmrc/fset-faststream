@@ -22,11 +22,11 @@ import play.api.mvc.{ Action, ControllerComponents }
 import services.onlinetesting.phase2.Phase2TestService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 @Singleton
 class Phase2TestGroupController @Inject() (cc: ControllerComponents,
                                            phase2TestService: Phase2TestService) extends BackendController(cc) {
+
+  implicit val ec = cc.executionContext
 
   def extend(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[OnlineTestExtension] { extension =>

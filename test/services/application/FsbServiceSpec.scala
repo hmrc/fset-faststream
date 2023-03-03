@@ -17,12 +17,12 @@
 package services.application
 
 import connectors.OnlineTestEmailClient
-import model.EvaluationResults.{ Green, Red }
+import model.EvaluationResults.{Green, Red}
 import model._
 import model.exchange.FsbScoresAndFeedback
 import model.persisted.fsb.ScoresAndFeedback
-import model.persisted.{ ContactDetails, FsbTestGroup, SchemeEvaluationResult }
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import model.persisted.{ContactDetails, FsbTestGroup, SchemeEvaluationResult}
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import repositories.SchemeRepository
 import repositories.application.GeneralApplicationMongoRepository
@@ -30,11 +30,12 @@ import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.FsbRepository
 import services.scheme.SchemePreferencesService
 import testkit.MockitoImplicits._
-import testkit.{ ExtendedTimeout, UnitSpec }
+import testkit.{ExtendedTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
 
@@ -132,7 +133,7 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       // more fsb required
       when(mockApplicationRepo.find(uid.toString())).thenReturnAsync(Some(cand1))
       when(mockContactDetailsRepo.find(cand1.userId)).thenReturnAsync(cd1)
-      when(mockEmailClient.notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any())).thenReturnAsync()
+      when(mockEmailClient.notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any(), any())).thenReturnAsync()
 
       Await.result(service.evaluateFsbCandidate(uid)(hc), 2.seconds)
       verify(mockApplicationRepo, times(2)).addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.FSB_FAILED)
@@ -238,12 +239,12 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       // Mocking required to send the failure email
       when(mockApplicationRepo.find(uid.toString())).thenReturnAsync(Some(cand1))
       when(mockContactDetailsRepo.find(cand1.userId)).thenReturnAsync(cd1)
-      when(mockEmailClient.notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any())).thenReturnAsync()
+      when(mockEmailClient.notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any(), any())).thenReturnAsync()
 
       service.evaluateFsbCandidate(uid)(hc).futureValue
       verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED)
       // verify the failure email is sent out
-      verify(mockEmailClient).notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any[HeaderCarrier])
+      verify(mockEmailClient).notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any[HeaderCarrier], any[ExecutionContext])
     }
 
     "Fail the candidate who is only in the running for GES-DS if the candidate fails the EAC part but passes " +
@@ -270,12 +271,12 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       // Mocking required to send the failure email
       when(mockApplicationRepo.find(uid.toString())).thenReturnAsync(Some(cand1))
       when(mockContactDetailsRepo.find(cand1.userId)).thenReturnAsync(cd1)
-      when(mockEmailClient.notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any())).thenReturnAsync()
+      when(mockEmailClient.notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any(), any())).thenReturnAsync()
 
       service.evaluateFsbCandidate(uid)(hc).futureValue
       verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED)
       // verify the failure email is sent out
-      verify(mockEmailClient).notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any[HeaderCarrier])
+      verify(mockEmailClient).notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any[HeaderCarrier], any[ExecutionContext])
     }
 
     "Fail the candidate who is in the running for GES-DS and DS schemes who passes the EAC part but fails the FCO part of " +
@@ -304,12 +305,12 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       // Mocking required to send the failure email
       when(mockApplicationRepo.find(uid.toString())).thenReturnAsync(Some(cand1))
       when(mockContactDetailsRepo.find(cand1.userId)).thenReturnAsync(cd1)
-      when(mockEmailClient.notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any())).thenReturnAsync()
+      when(mockEmailClient.notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any(), any())).thenReturnAsync()
 
       service.evaluateFsbCandidate(uid)(hc).futureValue
       verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED)
       // verify the failure email is sent out
-      verify(mockEmailClient).notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any[HeaderCarrier])
+      verify(mockEmailClient).notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any[HeaderCarrier], any[ExecutionContext])
     }
 
     "Fail the candidate who is in the running for GES-DS and GES schemes who fails the EAC part and passes the FCO part of " +
@@ -338,12 +339,12 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       // Mocking required to send the failure email
       when(mockApplicationRepo.find(uid.toString())).thenReturnAsync(Some(cand1))
       when(mockContactDetailsRepo.find(cand1.userId)).thenReturnAsync(cd1)
-      when(mockEmailClient.notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any())).thenReturnAsync()
+      when(mockEmailClient.notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any(), any())).thenReturnAsync()
 
       service.evaluateFsbCandidate(uid)(hc).futureValue
       verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED)
       // verify the failure email is sent out
-      verify(mockEmailClient).notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any[HeaderCarrier])
+      verify(mockEmailClient).notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any[HeaderCarrier], any[ExecutionContext])
     }
   }
 

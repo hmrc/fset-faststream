@@ -16,33 +16,34 @@
 
 package services.allocation
 
-import config.{ EventsConfig, MicroserviceAppConfig }
+import config.{EventsConfig, MicroserviceAppConfig}
 import connectors.ExchangeObjects.Candidate
-import connectors.{ AuthProviderClient, OnlineTestEmailClient }
+import connectors.{AuthProviderClient, OnlineTestEmailClient}
 import model.ApplicationStatus.ApplicationStatus
 import model._
-import model.command.{ CandidateAllocation, CandidateAllocations }
+import model.command.{CandidateAllocation, CandidateAllocations}
 import model.exchange.candidateevents.CandidateAllocationWithEvent
-import model.exchange.{ CandidateEligibleForEvent, CandidatesEligibleForEventResponse }
+import model.exchange.{CandidateEligibleForEvent, CandidatesEligibleForEventResponse}
 import model.persisted._
 import model.persisted.eventschedules.EventType.EventType
-import model.persisted.eventschedules.{ Event, EventType, Location, Venue }
-import org.joda.time.{ DateTime, LocalDate, LocalTime }
-import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
-import org.mockito.Mockito.{ when, _ }
+import model.persisted.eventschedules.{Event, EventType, Location, Venue}
+import org.joda.time.{DateTime, LocalDate, LocalTime}
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.Mockito.{when, _}
 import org.mockito.stubbing.OngoingStubbing
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
-import repositories.{ CandidateAllocationMongoRepository, SchemeRepository }
+import repositories.{CandidateAllocationMongoRepository, SchemeRepository}
 import services.BaseServiceSpec
 import services.events.EventsService
-import services.stc.{ StcEventService, StcEventServiceFixture }
+import services.stc.{StcEventService, StcEventServiceFixture}
 import testkit.ExtendedTimeout
 import testkit.MockitoImplicits._
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout{
   "Allocate candidate" must {
@@ -214,7 +215,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
       commonUnallocateCandidates(eligibleForReallocation = true)
       verify(mockCandidateAllocationRepository).removeCandidateAllocation(any[model.persisted.CandidateAllocation])
       verify(mockAppRepo).resetApplicationAllocationStatus(any[String], any[EventType])
-      verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier])
+      verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier], any[ExecutionContext])
     }
 
     "unallocate candidate who is not eligible for reallocation" in new TestFixture {
@@ -222,7 +223,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
 
       verify(mockCandidateAllocationRepository).removeCandidateAllocation(any[model.persisted.CandidateAllocation])
       verify(mockAppRepo, never()).resetApplicationAllocationStatus(any[String], any[EventType])
-      verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier])
+      verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier], any[ExecutionContext])
     }
   }
 
@@ -336,11 +337,12 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
       when(mockPersonalDetailsRepo.find(any[String])).thenReturnAsync(PersonalDetailsExamples.JohnDoe)
       when(mockContactDetailsRepo.find(any[String])).thenReturnAsync(ContactDetailsExamples.ContactDetailsUK)
 
-      when(mockEmailClient.sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturnAsync()
+      when(mockEmailClient.sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier], any[ExecutionContext]))
+        .thenReturnAsync()
 
       service.unAllocateCandidates(persistedAllocations.toList, eligibleForReallocation).futureValue
 
-      verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier])
+      verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier], any[ExecutionContext])
     }
 
     def allocatedCandidate(appId: String, userId: String, applicationStatus: ApplicationStatus) =

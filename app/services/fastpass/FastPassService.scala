@@ -18,11 +18,12 @@ package services.fastpass
 
 import com.google.inject.name.Named
 import connectors.OnlineTestEmailClient
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model._
 import model.persisted.SchemeEvaluationResult
-import model.stc.AuditEvents.{ FastPassUserAccepted, FastPassUserAcceptedEmailSent, FastPassUserRejected }
-import model.stc.DataStoreEvents.{ ApplicationReadyForExport, FastPassApproved, FastPassRejected }
+import model.stc.AuditEvents.{FastPassUserAccepted, FastPassUserAcceptedEmailSent, FastPassUserRejected}
+import model.stc.DataStoreEvents.{ApplicationReadyForExport, FastPassApproved, FastPassRejected}
 import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories._
@@ -34,11 +35,10 @@ import services.adjustmentsmanagement.AdjustmentsManagementService
 import services.personaldetails.PersonalDetailsService
 import services.scheme.SchemePreferencesService
 import services.sift.ApplicationSiftService
-import services.stc.{ EventSink, StcEventService }
+import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class FastPassService @Inject() (appRepo: GeneralApplicationRepository,
@@ -52,7 +52,7 @@ class FastPassService @Inject() (appRepo: GeneralApplicationRepository,
                                  applicationSiftService: ApplicationSiftService,
                                  adjustmentsManagementService: AdjustmentsManagementService,
                                  assistanceDetailsRepository: AssistanceDetailsRepository
-                                ) extends EventSink with CurrentSchemeStatusHelper with Logging {
+                                )(implicit ec: ExecutionContext) extends EventSink with CurrentSchemeStatusHelper with Logging {
 
   val fastPassDetails = CivilServiceExperienceDetails(
     applicable = true,

@@ -29,8 +29,7 @@ import org.mongodb.scala.model.{IndexModel, IndexOptions}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait CandidateAllocationRepository {
   def find(id: String, status: Option[AllocationStatus] = None): Future[Seq[CandidateAllocation]]
@@ -52,7 +51,7 @@ trait CandidateAllocationRepository {
 }
 
 @Singleton
-class CandidateAllocationMongoRepository @Inject() (mongoComponent: MongoComponent)
+class CandidateAllocationMongoRepository @Inject() (mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[CandidateAllocation](
     collectionName = CollectionNames.CANDIDATE_ALLOCATION,
     mongoComponent = mongoComponent,

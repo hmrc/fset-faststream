@@ -16,15 +16,13 @@
 
 package repositories
 
-import javax.inject.{Inject, Singleton}
 import model.Preferences
-import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.{Filters, Projections}
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.{ExecutionContext, Future}
 
 trait FrameworkPreferenceRepository {
   def savePreferences(applicationId: String, preferences: Preferences): Future[Unit]
@@ -34,7 +32,7 @@ trait FrameworkPreferenceRepository {
 // TODO: mongo this class looks like old code and should be removed
 // TODO: it is only called when the candidate submits the application
 @Singleton
-class FrameworkPreferenceMongoRepository @Inject() (mongoComponent: MongoComponent)
+class FrameworkPreferenceMongoRepository @Inject() (mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[Preferences](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongoComponent,

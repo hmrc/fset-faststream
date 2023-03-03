@@ -17,26 +17,26 @@
 package repositories
 
 import java.util
-
 import com.google.inject.ImplementedBy
 import config.MicroserviceAppConfig
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.persisted.PersonalDetails
 import org.yaml.snakeyaml.Yaml
 import play.api.Application
-import repositories.FrameworkRepository.{ CandidateHighestQualification, Framework, Location, Region }
+import repositories.FrameworkRepository.{CandidateHighestQualification, Framework, Location, Region}
 import repositories.FrameworkYamlRepository._
 import resource.managed
 
 import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @deprecated("fasttrack version. Framework need to be renamed to Scheme", "July 2016")
 @ImplementedBy(classOf[FrameworkYamlRepository])
 trait FrameworkRepository {
   def getFrameworksByRegion: Future[List[Region]]
-  def getFrameworksByRegionFilteredByQualification(criteriaMet: CandidateHighestQualification): Future[List[Region]] =
+  def getFrameworksByRegionFilteredByQualification(criteriaMet: CandidateHighestQualification)(
+    implicit ec: ExecutionContext): Future[List[Region]] =
     getFrameworksByRegion.map { regions =>
       regions.map { region =>
         Region(region.name, region.locations.map { location =>
@@ -50,7 +50,7 @@ trait FrameworkRepository {
 }
 
 @Singleton
-class FrameworkYamlRepository @Inject() (implicit application: Application, appConfig: MicroserviceAppConfig)
+class FrameworkYamlRepository @Inject() (implicit application: Application, appConfig: MicroserviceAppConfig, ec: ExecutionContext)
   extends FrameworkRepository {
 
   private lazy val frameworks: Iterable[YamlFramework] = {

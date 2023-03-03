@@ -32,8 +32,7 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait EventsRepository {
   def save(events: List[Event]): Future[Unit]
@@ -57,7 +56,7 @@ trait EventsRepository {
 }
 
 @Singleton
-class EventsMongoRepository @Inject() (mongoComponent: MongoComponent, appConfig: MicroserviceAppConfig)
+class EventsMongoRepository @Inject() (mongoComponent: MongoComponent, appConfig: MicroserviceAppConfig)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[Event](
     collectionName = CollectionNames.ASSESSMENT_EVENTS,
     mongoComponent = mongoComponent,

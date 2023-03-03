@@ -17,11 +17,11 @@
 package services.onlinetesting
 
 import factories.DateTimeFactory
-import model.ProgressStatuses.{ PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, PHASE1_TESTS_SECOND_REMINDER, PHASE1_TESTS_STARTED }
-import model.command.{ Phase1ProgressResponse, ProgressResponse }
+import model.ProgressStatuses.{PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, PHASE1_TESTS_SECOND_REMINDER, PHASE1_TESTS_STARTED}
+import model.command.{Phase1ProgressResponse, ProgressResponse}
 import model.persisted.Phase1TestProfile
 import org.joda.time.DateTime
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
@@ -29,11 +29,12 @@ import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
 import services.onlinetesting.Exceptions.TestExtensionException
 import services.stc.StcEventServiceFixture
-import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
-import testkit.{ ShortTimeout, UnitSpec }
+import testkit.MockitoImplicits.{OngoingStubbingExtension, OngoingStubbingExtensionUnit}
+import testkit.{ShortTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
 
@@ -47,7 +48,7 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
         when(mockProgressResponse.phase1ProgressResponse.phase1TestsExpired).thenReturn(true)
         when(mockDateTimeFactory.nowLocalTimeZone).thenReturn(Now)
         when(mockProfile.expirationDate).thenReturn(OneHourAgo)
-        when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any(), any())).thenReturnAsync()
+        when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any(), any())(any[ExecutionContext])).thenReturnAsync()
         when(mockAppRepository.removeProgressStatuses(eqTo(applicationId), any())).thenReturnAsync()
 
         val result = underTest.extendTestGroupExpiryTime(applicationId, twoExtraDays, "triggeredBy").futureValue
@@ -55,7 +56,7 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
         verify(mockAppRepository).findProgress(eqTo(applicationId))
         verify(mockOtRepository).getTestGroup(eqTo(applicationId))
         verify(mockDateTimeFactory).nowLocalTimeZone
-        verify(mockOtRepository).updateGroupExpiryTime(eqTo(applicationId), eqTo(Now.plusDays(twoExtraDays)), any())
+        verify(mockOtRepository).updateGroupExpiryTime(eqTo(applicationId), eqTo(Now.plusDays(twoExtraDays)), any())(any[ExecutionContext])
         verify(mockAppRepository).removeProgressStatuses(eqTo(applicationId), eqTo(statusToRemoveWhenExpiryInMoreThanOneDayExpired))
       }
 
@@ -67,14 +68,15 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
         when(mockProgressResponse.phase1ProgressResponse.phase1TestsExpired).thenReturn(false)
         when(mockProgressResponse.phase1ProgressResponse.phase1TestsStarted).thenReturn(true)
         when(mockProfile.expirationDate).thenReturn(InFiveHours)
-        when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any(), any())).thenReturnAsync()
+        when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any(), any())(any[ExecutionContext])).thenReturnAsync()
         when(mockAppRepository.removeProgressStatuses(eqTo(applicationId), any())).thenReturnAsync()
 
         underTest.extendTestGroupExpiryTime(applicationId, threeExtraDays, "triggeredBy").futureValue
         verifyAuditEvents(1, "NonExpiredTestsExtended")
         verifyDataStoreEvents(1, "OnlineExerciseExtended")
 
-        verify(mockOtRepository).updateGroupExpiryTime(eqTo(applicationId), eqTo(InFiveHours.plusDays(threeExtraDays)), any())
+        verify(mockOtRepository).updateGroupExpiryTime(eqTo(applicationId), eqTo(InFiveHours.plusDays(threeExtraDays)), any())(
+          any[ExecutionContext])
         verify(mockAppRepository).removeProgressStatuses(eqTo(applicationId), eqTo(statusToRemoveWhenExpiryInMoreThanThreeDays))
       }
     }
@@ -118,7 +120,7 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
         when(mockProgressResponse.phase1ProgressResponse.phase1TestsExpired).thenReturn(true)
         when(mockDateTimeFactory.nowLocalTimeZone).thenReturn(Now)
         when(mockProfile.expirationDate).thenReturn(OneHourAgo)
-        when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any(), any())).thenReturnAsync()
+        when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any(), any())(any[ExecutionContext])).thenReturnAsync()
         when(mockAppRepository.removeProgressStatuses(eqTo(applicationId), any())).thenReturn(Future.failed(genericError))
 
         whenReady(underTest.extendTestGroupExpiryTime(applicationId, twoExtraDays, "triggeredBy").failed) { e =>

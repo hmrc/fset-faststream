@@ -16,13 +16,13 @@
 
 package services.testdata.candidate
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories.onlinetesting.Phase1TestRepository
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 //object AwaitingAllocationStatusGenerator extends AwaitingAllocationStatusGenerator {
 //  override val previousStatusGenerator = CreatedStatusGenerator // TODO: Fix this in faststream once the appropriate prior stage is complete
@@ -32,10 +32,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 @Singleton
 class AwaitingAllocationStatusGenerator @Inject() (val previousStatusGenerator: CreatedStatusGenerator,
                                                    otRepository: Phase1TestRepository
-                                                  ) extends ConstructiveGenerator {
+                                                  )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
 //  val otRepository: Phase1TestRepository
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
 
     /*
     def getEvaluationResult(candidate: DataGenerationResponse): RuleCategoryResult = {

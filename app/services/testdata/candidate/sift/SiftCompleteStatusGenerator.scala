@@ -16,7 +16,7 @@
 
 package services.testdata.candidate.sift
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.EvaluationResults
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.persisted.SchemeEvaluationResult
@@ -27,21 +27,20 @@ import services.sift.ApplicationSiftService
 import services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SiftCompleteStatusGenerator @Inject() (val previousStatusGenerator: SiftFormsSubmittedStatusGenerator,
                                              siftService: ApplicationSiftService,
                                              appRepo: GeneralApplicationRepository
-                                            ) extends ConstructiveGenerator {
+                                            )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
 
   private def siftSchemes(currentSchemeStats: Seq[SchemeEvaluationResult], appId: String) = Future.traverse(currentSchemeStats) { s =>
     siftService.siftApplicationForScheme(appId, s.copy(result = EvaluationResults.Green.toString))
   }
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
-              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       currentSchemeStatus <- appRepo.getCurrentSchemeStatus(candidateInPreviousStatus.applicationId.get)

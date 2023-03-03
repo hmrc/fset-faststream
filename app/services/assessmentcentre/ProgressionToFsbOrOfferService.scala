@@ -19,23 +19,23 @@ package services.assessmentcentre
 import com.google.inject.name.Named
 import common.FutureEx
 import connectors.OnlineTestEmailClient
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.EvaluationResults.Green
 import model.ProgressStatuses._
 import model._
 import model.command.ApplicationForProgression
-import model.persisted.{ FsbSchemeResult, SchemeEvaluationResult }
+import model.persisted.{FsbSchemeResult, SchemeEvaluationResult}
 import org.joda.time.DateTime
 import play.api.Logging
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.FsbRepository
-import repositories.{ CurrentSchemeStatusHelper, SchemeRepository }
+import repositories.{CurrentSchemeStatusHelper, SchemeRepository}
 import services.scheme.SchemePreferencesService
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ProgressionToFsbOrOfferService @Inject() (schemeRepository: SchemeRepository, //TODO: previously fsbRequiredSchemeIds: Seq[SchemeId]
@@ -44,7 +44,7 @@ class ProgressionToFsbOrOfferService @Inject() (schemeRepository: SchemeReposito
                                                  fsbRepo: FsbRepository,
                                                  schemePreferencesService: SchemePreferencesService,
                                                  @Named("CSREmailClient") val emailClient: OnlineTestEmailClient //TODO:fix change type
-                                                ) extends CurrentSchemeStatusHelper with Logging {
+                                                )(implicit ec: ExecutionContext) extends CurrentSchemeStatusHelper with Logging {
 
   def fsbRequiredSchemeIds: Seq[SchemeId] = schemeRepository.fsbSchemeIds
 

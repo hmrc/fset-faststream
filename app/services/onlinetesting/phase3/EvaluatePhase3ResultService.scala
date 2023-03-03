@@ -20,7 +20,8 @@ import _root_.services.passmarksettings.PassMarkSettingsService
 import com.google.inject.name.Named
 import config.MicroserviceAppConfig
 import factories.UUIDFactory
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.Phase
 import model.exchange.passmarksettings.Phase3PassMarkSettings
 import model.persisted.ApplicationReadyForEvaluation
@@ -29,10 +30,9 @@ import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.OnlineTestEvaluationRepository
 import repositories.passmarksettings.Phase3PassMarkSettingsMongoRepository
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
-import services.onlinetesting.{ ApplicationStatusCalculator, CurrentSchemeStatusHelper }
+import services.onlinetesting.{ApplicationStatusCalculator, CurrentSchemeStatusHelper}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class EvaluatePhase3ResultService @Inject() (@Named("Phase3EvaluationRepository") val evaluationRepository: OnlineTestEvaluationRepository,
@@ -40,7 +40,8 @@ class EvaluatePhase3ResultService @Inject() (@Named("Phase3EvaluationRepository"
                                              val generalAppRepository: GeneralApplicationRepository,
                                              appConfig: MicroserviceAppConfig,
                                              val uuidFactory: UUIDFactory
-                                            ) extends EvaluateOnlineTestResultService[Phase3PassMarkSettings] with Phase3TestEvaluation
+                                            )(implicit ec: ExecutionContext)
+  extends EvaluateOnlineTestResultService[Phase3PassMarkSettings] with Phase3TestEvaluation
   with PassMarkSettingsService[Phase3PassMarkSettings] with ApplicationStatusCalculator with CurrentSchemeStatusHelper with Logging {
 
   val phase = Phase.PHASE3

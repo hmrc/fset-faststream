@@ -27,8 +27,7 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 case class Lock(_id: String, owner: String, timeCreated: DateTime, expiryTime: DateTime)
 
@@ -51,7 +50,7 @@ trait LockRepository {
 }
 
 @Singleton
-class LockMongoRepository @Inject() (mongoComponent: MongoComponent)
+class LockMongoRepository @Inject() (mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[Lock](
     collectionName = CollectionNames.LOCKS,
     mongoComponent = mongoComponent,

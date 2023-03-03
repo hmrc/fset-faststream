@@ -33,8 +33,7 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait Phase1TestRepository extends OnlineTestRepository with Phase1TestConcern {
   this: PlayMongoRepository[_] =>
@@ -44,13 +43,13 @@ trait Phase1TestRepository extends OnlineTestRepository with Phase1TestConcern {
   def getTestGroupByOrderId(orderId: String): Future[Phase1TestGroupWithUserIds]
   def insertOrUpdateTestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
   // Caution - for administrative fixes only (dataconsistency)
-  def removeTestGroup(applicationId: String): Future[Unit]
+//  def removeTestGroup(applicationId: String): Future[Unit]
   def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit]
   def nextSdipFaststreamCandidateReadyForSdipProgression: Future[Option[Phase1TestGroupWithUserIds]]
 }
 
 @Singleton
-class Phase1TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongo: MongoComponent)
+class Phase1TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongo: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[Phase1TestProfile](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongo,
@@ -91,7 +90,7 @@ class Phase1TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongo: Mon
     ))
 
     selectRandom[OnlineTestApplication](query, batchSize)(
-      doc => repositories.bsonDocToOnlineTestApplication(doc), global
+      doc => repositories.bsonDocToOnlineTestApplication(doc), ec
     )
   }
 

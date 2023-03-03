@@ -23,10 +23,9 @@ import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.{Filters, Projections}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
+import repositories.{CollectionNames, ReactiveRepositoryHelpers}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait SchemePreferencesRepository {
   def find(applicationId: String): Future[SelectedSchemes]
@@ -35,7 +34,7 @@ trait SchemePreferencesRepository {
 }
 
 @Singleton
-class SchemePreferencesMongoRepository @Inject() (mongo: MongoComponent)
+class SchemePreferencesMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[SelectedSchemes](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongo,

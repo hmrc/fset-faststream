@@ -17,11 +17,12 @@
 package services.testdata.candidate.sift
 
 import common.FutureEx
-import javax.inject.{ Inject, Singleton }
-import model.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer }
-import model.exchange.testdata.CreateCandidateResponse.{ CreateCandidateResponse, TestGroupResponse, TestGroupResponse2 }
+
+import javax.inject.{Inject, Singleton}
+import model.exchange.sift.{GeneralQuestionsAnswers, SchemeSpecificAnswer}
+import model.exchange.testdata.CreateCandidateResponse.{CreateCandidateResponse, TestGroupResponse, TestGroupResponse2}
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import model.{ ApplicationRoute, SiftRequirement }
+import model.{ApplicationRoute, SiftRequirement}
 import play.api.mvc.RequestHeader
 import repositories.SchemeRepository
 import services.sift.SiftAnswersService
@@ -29,15 +30,14 @@ import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SiftFormsSubmittedStatusGenerator @Inject() (val previousStatusGenerator: SiftEnteredStatusGenerator,
                                                    siftService: SiftAnswersService,
                                                    schemeRepo: SchemeRepository,
                                                    dataFaker: DataFaker
-                                                  ) extends ConstructiveGenerator {
+                                                  )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
 
   private def generateGeneralAnswers = GeneralQuestionsAnswers(
     multipleNationalities = false,
@@ -103,11 +103,11 @@ class SiftFormsSubmittedStatusGenerator @Inject() (val previousStatusGenerator: 
   }
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
-              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- siftService.addGeneralAnswers(candidateInPreviousStatus.applicationId.get, generateGeneralAnswers)
-      - <- saveSchemeAnswers(generatorConfig, candidateInPreviousStatus)
+      _ <- saveSchemeAnswers(generatorConfig, candidateInPreviousStatus)
       _ <- siftService.submitAnswers(candidateInPreviousStatus.applicationId.get)
     } yield {
       candidateInPreviousStatus

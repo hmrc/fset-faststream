@@ -48,7 +48,7 @@ import services.sift.ApplicationSiftService
 import services.stc.StcEventService
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 //scalastyle:off number.of.methods
@@ -63,7 +63,8 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
                                    val auditService: AuditService,
                                    val eventService: StcEventService,
                                    val siftService: ApplicationSiftService,
-                                   appConfig: MicroserviceAppConfig) extends OnlineTestService with Phase3TestConcern {
+                                   appConfig: MicroserviceAppConfig)(
+  implicit ec: ExecutionContext) extends OnlineTestService with Phase3TestConcern {
   type TestRepository = Phase3TestRepository
 
   val gatewayConfig = appConfig.launchpadGatewayConfig
@@ -140,7 +141,8 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
   override def storeRealTimeResults(orderId: String, results: PsiRealTimeResults)
                                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = ???
 
-  override def processNextTestForReminder(reminder: model.ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] =
+  override def processNextTestForReminder(reminder: model.ReminderNotice)(
+    implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit] =
     testRepository.nextTestForReminder(reminder).flatMap {
       case Some(expiringTest) => processReminder(expiringTest, reminder)
       case None => Future.successful(())
@@ -470,7 +472,7 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
 
   override def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
                                       invitationDate: DateTime, expirationDate: DateTime
-                                     )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+                                     )(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit] = {
     val preferredName = application.preferredName
     emailClient.sendOnlineTestInvitation(emailAddress, preferredName, expirationDate).flatMap {
       _ =>

@@ -17,36 +17,35 @@
 package services.testdata.candidate.onlinetests.phase3
 
 import java.util.UUID
-
 import services.onlinetesting.phase3.Phase3TestService
 import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.candidate.onlinetests.Phase2TestsPassedStatusGenerator
-import config.{ LaunchpadGatewayConfig, MicroserviceAppConfig }
-import javax.inject.{ Inject, Singleton }
+import config.{LaunchpadGatewayConfig, MicroserviceAppConfig}
+
+import javax.inject.{Inject, Singleton}
 import model.ApplicationStatus._
 import model.OnlineTestCommands.OnlineTestApplication
-import model.exchange.testdata.CreateCandidateResponse.{ CreateCandidateResponse, TestGroupResponse, TestResponse }
-import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
+import model.exchange.testdata.CreateCandidateResponse.{CreateCandidateResponse, TestGroupResponse, TestResponse}
+import model.persisted.phase3tests.{LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup}
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories.onlinetesting.Phase3TestRepository
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class Phase3TestsInvitedStatusGenerator @Inject() (val previousStatusGenerator: Phase2TestsPassedStatusGenerator,
                                                    p3Repository: Phase3TestRepository,
                                                    p3TestService: Phase3TestService,
                                                    appConfig: MicroserviceAppConfig
-                                                 ) extends ConstructiveGenerator {
+                                                 )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
 
   val gatewayConfig: LaunchpadGatewayConfig = appConfig.launchpadGatewayConfig
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
-              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {
     val launchpad = LaunchpadTest(
       interviewId = 12345,
       usedForResults = true,

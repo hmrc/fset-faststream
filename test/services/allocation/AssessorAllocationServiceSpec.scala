@@ -17,14 +17,14 @@
 package services.allocation
 
 import connectors.ExchangeObjects.Candidate
-import connectors.{ AuthProviderClient, OnlineTestEmailClient }
+import connectors.{AuthProviderClient, OnlineTestEmailClient}
 import model.Exceptions.OptimisticLockException
 import model.exchange.AssessorSkill
 import model.persisted.eventschedules._
-import model.{ AllocationStatuses, command, persisted }
-import org.joda.time.{ DateTime, LocalDate, LocalTime }
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
-import org.mockito.Mockito.{ when, _ }
+import model.{AllocationStatuses, command, persisted}
+import org.joda.time.{DateTime, LocalDate, LocalTime}
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
+import org.mockito.Mockito.{when, _}
 import org.mockito.stubbing.OngoingStubbing
 import repositories.AssessorAllocationRepository
 import repositories.application.GeneralApplicationRepository
@@ -35,7 +35,8 @@ import testkit.ExtendedTimeout
 import testkit.MockitoImplicits._
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 class AssessorAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout {
 
@@ -58,7 +59,7 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout
       verify(mockAllocationRepository, times(0)).delete(any[Seq[persisted.AssessorAllocation]])
       verify(mockEmailClient).sendAssessorAllocatedToEvent(
         any[String], any[String](), any[String], any[String], any[String], any[String], any[String], any[String]
-      )(any[HeaderCarrier])
+      )(any[HeaderCarrier], any[ExecutionContext])
     }
 
     "delete existing allocations and save new ones" in new TestFixture {
@@ -83,10 +84,10 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout
       verify(mockAllocationRepository).delete(any[Seq[persisted.AssessorAllocation]])
       verify(mockAllocationRepository).save(any[Seq[persisted.AssessorAllocation]])
       verify(mockEmailClient).sendAssessorUnAllocatedFromEvent(
-        any[String], any[String], any[String])(any[HeaderCarrier])
+        any[String], any[String], any[String])(any[HeaderCarrier], any[ExecutionContext])
       verify(mockEmailClient).sendAssessorAllocatedToEvent(
         any[String], any[String], any[String], any[String], any[String], any[String], any[String], any[String]
-      )(any[HeaderCarrier])
+      )(any[HeaderCarrier], any[ExecutionContext])
     }
 
     "delete existing allocations and save none" in new TestFixture {
@@ -113,10 +114,10 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout
       verify(mockAllocationRepository).delete(any[Seq[persisted.AssessorAllocation]])
       verify(mockAllocationRepository, times(0)).save(any[Seq[persisted.AssessorAllocation]])
       verify(mockEmailClient).sendAssessorUnAllocatedFromEvent(
-        any[String], any[String], any[String])(any[HeaderCarrier])
+        any[String], any[String], any[String])(any[HeaderCarrier], any[ExecutionContext])
       verify(mockEmailClient, times(0)).sendAssessorAllocatedToEvent(
         any[String], any[String], any[String], any[String], any[String], any[String], any[String], any[String]
-      )(any[HeaderCarrier])
+      )(any[HeaderCarrier], any[ExecutionContext])
     }
 
     "change an assessor's role in a new allocation" in new TestFixture {
@@ -142,7 +143,7 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout
       verify(mockAllocationRepository).save(any[Seq[persisted.AssessorAllocation]])
       verify(mockEmailClient).sendAssessorEventAllocationChanged(
         any[String], any[String], any[String], any[String], any[String], any[String], any[String]
-      )(any[HeaderCarrier])
+      )(any[HeaderCarrier], any[ExecutionContext])
     }
 
     "throw an optimistic lock exception if data has changed before saving" in new TestFixture {

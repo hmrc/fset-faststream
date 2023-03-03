@@ -25,13 +25,12 @@ import services.AuditService
 import services.personaldetails.PersonalDetailsService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 @Singleton
 class PersonalDetailsController @Inject() (cc: ControllerComponents,
                                            personalDetailsService: PersonalDetailsService,
                                            auditService: AuditService
                                           ) extends BackendController(cc) {
+  implicit val ec = cc.executionContext
   val PersonalDetailsSavedEvent = "PersonalDetailsSaved"
 
   def update(userId: String, applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>

@@ -23,6 +23,7 @@ import org.mockito.Mockito._
 import repositories.assistancedetails.AssistanceDetailsRepository
 import services.BaseServiceSpec
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class AssistanceDetailsServiceSpec extends BaseServiceSpec {

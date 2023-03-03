@@ -20,16 +20,15 @@ import model.persisted.AuditEvent
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
-import javax.inject.Inject
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.{ExecutionContext, Future}
 
 trait AuditEventRepository {
   def create(event: AuditEvent): Future[Unit]
 }
 
-class AuditEventMongoRepository @Inject() (mongo: MongoComponent)
+@Singleton
+class AuditEventMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[AuditEvent](
     collectionName = CollectionNames.EVENT,
     mongoComponent = mongo,

@@ -17,22 +17,22 @@
 package services.assessor
 
 import connectors.ExchangeObjects.Candidate
-import connectors.{ AuthProviderClient, OnlineTestEmailClient }
+import connectors.{AuthProviderClient, OnlineTestEmailClient}
 import model.AllocationStatuses.AllocationStatus
 import model.Exceptions._
-import model.exchange.{ AssessorAvailabilities, UpdateAllocationStatusRequest }
+import model.exchange.{AssessorAvailabilities, UpdateAllocationStatusRequest}
 import model.persisted.EventExamples._
 import model.persisted.assessor.AssessorExamples._
-import model.persisted.assessor.{ Assessor, AssessorAvailability, AssessorStatus }
+import model.persisted.assessor.{Assessor, AssessorAvailability, AssessorStatus}
 import model.persisted.eventschedules._
-import model.persisted.{ AssessorAllocation, EventExamples, ReferenceData }
-import model.{ AllocationStatuses, Exceptions, UniqueIdentifier }
-import org.joda.time.{ DateTime, LocalDate, LocalTime }
+import model.persisted.{AssessorAllocation, EventExamples, ReferenceData}
+import model.{AllocationStatuses, Exceptions, UniqueIdentifier}
+import org.joda.time.{DateTime, LocalDate, LocalTime}
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import repositories.events.LocationsWithVenuesRepository
-import repositories.{ AssessorAllocationRepository, AssessorRepository }
+import repositories.{AssessorAllocationRepository, AssessorRepository}
 import services.BaseServiceSpec
 import services.events.EventsService
 import testkit.MockitoImplicits._
@@ -40,7 +40,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.postfixOps
 
 class AssessorServiceSpec extends BaseServiceSpec {
@@ -192,7 +192,8 @@ class AssessorServiceSpec extends BaseServiceSpec {
       val result = service.notifyAssessorsOfNewEvents(now)(new HeaderCarrier).futureValue
       val emailBodyCaptor = ArgumentCaptor.forClass(classOf[String])
       verify(mockEmailClient, times(2)).notifyAssessorsOfNewEvents(
-        to = any[String], name = any[String], htmlBody = any[String], txtBody = emailBodyCaptor.capture)(any[HeaderCarrier])
+        to = any[String], name = any[String], htmlBody = any[String], txtBody = emailBodyCaptor.capture)(
+        any[HeaderCarrier], any[ExecutionContext])
 
       val emails = emailBodyCaptor.getAllValues
       val emailsForEvent1 = emails.get(0).toString
@@ -384,7 +385,8 @@ class AssessorServiceSpec extends BaseServiceSpec {
     when(mockAssessorRepository.findUnavailableAssessors(
       eqTo(Seq(SkillType.QUALITY_ASSURANCE_COORDINATOR)), any[Location], any[LocalDate])).thenReturnAsync(Seq(a2))
     when(mockAuthProviderClient.findByUserIds(any[Seq[String]])(any[HeaderCarrier])).thenReturnAsync(findByUserIdsResponse)
-    when(mockEmailClient.notifyAssessorsOfNewEvents(any[String], any[String], any[String], any[String])(any[HeaderCarrier])).thenReturnAsync()
+    when(mockEmailClient.notifyAssessorsOfNewEvents(any[String], any[String], any[String], any[String])(
+      any[HeaderCarrier], any[ExecutionContext])).thenReturnAsync()
   }
 
   trait TestFixtureWithFutureAllocations extends TestFixture {

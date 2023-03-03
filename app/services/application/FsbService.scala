@@ -19,25 +19,25 @@ package services.application
 import com.google.inject.name.Named
 import common.FutureEx
 import connectors.OnlineTestEmailClient
-import javax.inject.{ Inject, Singleton }
-import model.EvaluationResults.{ Green, Red }
+
+import javax.inject.{Inject, Singleton}
+import model.EvaluationResults.{Green, Red}
 import model.ProgressStatuses._
 import model._
 import model.command.ApplicationForProgression
-import model.exchange.{ ApplicationResult, FsbScoresAndFeedback }
+import model.exchange.{ApplicationResult, FsbScoresAndFeedback}
 import model.persisted.fsb.ScoresAndFeedback
-import model.persisted.{ FsbSchemeResult, SchemeEvaluationResult }
+import model.persisted.{FsbSchemeResult, SchemeEvaluationResult}
 import play.api.Logging
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.FsbRepository
-import repositories.{ CurrentSchemeStatusHelper, SchemeRepository }
+import repositories.{CurrentSchemeStatusHelper, SchemeRepository}
 import services.application.DSSchemeIds._
 import services.scheme.SchemePreferencesService
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 @Singleton
@@ -47,7 +47,7 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
                             schemeRepo: SchemeRepository,
                             schemePreferencesService: SchemePreferencesService,
                             @Named("CSREmailClient") val emailClient: OnlineTestEmailClient //TODO:changed type
-                           ) extends CurrentSchemeStatusHelper with Logging {
+                           )(implicit ec: ExecutionContext) extends CurrentSchemeStatusHelper with Logging {
 
   val logPrefix = "[FsbEvaluation]"
 

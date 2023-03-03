@@ -23,13 +23,13 @@ import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class WithdrawnStatusGenerator @Inject() (appRepository: GeneralApplicationRepository,
                                           candidateStatusGeneratorFactory: Provider[CandidateStatusGeneratorFactory]
-                                         ) extends BaseGenerator {
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+                                         )(implicit ec: ExecutionContext) extends BaseGenerator {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
 
     val previousStatusGenerator = candidateStatusGeneratorFactory.get().getGenerator(
       generatorConfig.copy(

@@ -19,8 +19,6 @@ package services.assessmentscores
 import com.google.inject.name.Named
 import factories.DateTimeFactory
 import model.Exceptions.CandidateAllocationNotFoundException
-
-import javax.inject.{Inject, Singleton}
 import model.assessmentscores.{AssessmentScoresAllExercises, AssessmentScoresAllExercisesExchange, AssessmentScoresExercise, AssessmentScoresFinalFeedback}
 import model.command.AssessmentScoresCommands.{AssessmentScoresCandidateSummary, AssessmentScoresFindResponse, AssessmentScoresSectionType}
 import model.persisted.eventschedules.Event
@@ -32,8 +30,8 @@ import repositories.personaldetails.PersonalDetailsRepository
 import repositories.{AssessmentScoresRepository, CandidateAllocationRepository}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.{ExecutionContext, Future}
 
 trait AssessmentScoresService {
   val applicationRepository: GeneralApplicationRepository
@@ -45,7 +43,7 @@ trait AssessmentScoresService {
   val dateTimeFactory: DateTimeFactory
   val statusToUpdateTheApplicationTo: ProgressStatuses.ProgressStatus
 
-  def save(scores: AssessmentScoresAllExercises)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def save(scores: AssessmentScoresAllExercises)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit] = {
     val scoresWithSubmittedDate = scores.copy(
       writtenExercise = scores.writtenExercise.map(_.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))),
       teamExercise = scores.teamExercise.map(_.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))),
@@ -62,19 +60,19 @@ trait AssessmentScoresService {
 
   def saveExercise(applicationId: UniqueIdentifier,
                    assessmentExerciseType: AssessmentScoresSectionType.AssessmentScoresSectionType,
-                   newExerciseScores: AssessmentScoresExercise): Future[Unit] = {
+                   newExerciseScores: AssessmentScoresExercise)(implicit ec: ExecutionContext): Future[Unit] = {
     saveOrSubmitExercise(applicationId, assessmentExerciseType, newExerciseScores.copy(savedDate = Some(dateTimeFactory.nowLocalTimeZone)))
   }
 
   def submitExercise(applicationId: UniqueIdentifier,
                      assessmentExerciseType: AssessmentScoresSectionType.AssessmentScoresSectionType,
-                     newExerciseScores: AssessmentScoresExercise): Future[Unit] = {
+                     newExerciseScores: AssessmentScoresExercise)(implicit ec: ExecutionContext): Future[Unit] = {
     saveOrSubmitExercise(applicationId, assessmentExerciseType, newExerciseScores.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone)))
   }
 
   private def saveOrSubmitExercise(applicationId: UniqueIdentifier,
                                    assessmentExerciseType: AssessmentScoresSectionType.AssessmentScoresSectionType,
-                                   newExerciseScores: AssessmentScoresExercise): Future[Unit] = {
+                                   newExerciseScores: AssessmentScoresExercise)(implicit ec: ExecutionContext): Future[Unit] = {
     def updateAllExercisesWithExercise(oldAllExercisesScores: AssessmentScoresAllExercises,
                                        newExerciseScoresWithSubmittedDate: AssessmentScoresExercise) = {
       assessmentExerciseType match {
@@ -100,7 +98,8 @@ trait AssessmentScoresService {
 
   // We only submit final feedback for Reviewers/ QAC
   // newFinalFeedback.analysisExercise/groupExercise/leadershipExercise should be defined.
-  def submitFinalFeedback(applicationId: UniqueIdentifier, newFinalFeedback: AssessmentScoresFinalFeedback): Future[Unit] = {
+  def submitFinalFeedback(applicationId: UniqueIdentifier, newFinalFeedback: AssessmentScoresFinalFeedback)(
+    implicit ec: ExecutionContext): Future[Unit] = {
     def findScoresAndVerify(applicationId: UniqueIdentifier) = {
       assessmentScoresRepository.find(applicationId).map { scoresOpt =>
         require(scoresOpt.exists { scores =>
@@ -148,7 +147,8 @@ trait AssessmentScoresService {
     }
   }
 
-  def findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: UniqueIdentifier): Future[AssessmentScoresFindResponse] = {
+  def findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: UniqueIdentifier)(
+    implicit ec: ExecutionContext): Future[AssessmentScoresFindResponse] = {
     for {
       candidateAllocations <- candidateAllocationRepository.find(applicationId.toString())
       _ = if (candidateAllocations.isEmpty) throw CandidateAllocationNotFoundException(s"No candidate allocations found for $applicationId")
@@ -163,7 +163,7 @@ trait AssessmentScoresService {
     }
   }
 
-  def findAcceptedAssessmentScoresAndFeedbackByApplicationId(applicationId: UniqueIdentifier)
+  def findAcceptedAssessmentScoresAndFeedbackByApplicationId(applicationId: UniqueIdentifier)(implicit ec: ExecutionContext)
   : Future[Option[AssessmentScoresAllExercisesExchange]] = {
     for {
       assessmentScoresAndFeedback <- assessmentScoresRepository.findAccepted(applicationId)
@@ -172,7 +172,7 @@ trait AssessmentScoresService {
     }
   }
 
-  def findAssessmentScoresWithCandidateSummaryByEventId(eventId: UniqueIdentifier)
+  def findAssessmentScoresWithCandidateSummaryByEventId(eventId: UniqueIdentifier)(implicit ec: ExecutionContext)
   : Future[List[AssessmentScoresFindResponse]] = {
     (for {
       event <- eventsRepository.getEvent(eventId.toString())
@@ -193,7 +193,7 @@ trait AssessmentScoresService {
 
   private def findOneAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: UniqueIdentifier,
                                                                          event: Event,
-                                                                         sessionId: UniqueIdentifier) = {
+                                                                         sessionId: UniqueIdentifier)(implicit ec: ExecutionContext) = {
     val personalDetailsFut = personalDetailsRepository.find(applicationId.toString())
     val assessmentScoresFut = assessmentScoresRepository.find(applicationId)
 
@@ -231,7 +231,7 @@ class AssessorAssessmentScoresServiceImpl @Inject() (val applicationRepository: 
                                                      val eventsRepository: EventsRepository,
                                                      val personalDetailsRepository: PersonalDetailsRepository,
                                                      val dateTimeFactory: DateTimeFactory
-                                                    ) extends AssessorAssessmentScoresService {
+                                                    )(implicit ec: ExecutionContext) extends AssessorAssessmentScoresService {
   //  override val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
   //  override val assessmentScoresRepository: AssessmentScoresRepository = repositories.assessorAssessmentScoresRepository
   //  override val candidateAllocationRepository: CandidateAllocationMongoRepository = repositories.candidateAllocationRepository
@@ -259,7 +259,7 @@ class ReviewerAssessmentScoresServiceImpl @Inject() (val applicationRepository: 
                                                      val eventsRepository: EventsRepository,
                                                      val personalDetailsRepository: PersonalDetailsRepository,
                                                      val dateTimeFactory: DateTimeFactory
-                                                    ) extends ReviewerAssessmentScoresService {
+                                                    )(implicit ec: ExecutionContext) extends ReviewerAssessmentScoresService {
   //  override val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
   //  override val assessmentScoresRepository: AssessmentScoresRepository = repositories.reviewerAssessmentScoresRepository
   //  override val candidateAllocationRepository: CandidateAllocationMongoRepository = repositories.candidateAllocationRepository

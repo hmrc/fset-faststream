@@ -24,16 +24,17 @@ import model.ProgressStatuses.ProgressStatus
 import model._
 import model.exchange.passmarksettings.Phase3PassMarkSettingsExamples
 import model.persisted._
-import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks }
+import model.persisted.phase3tests.{LaunchpadTest, LaunchpadTestCallbacks}
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.OnlineTestEvaluationRepository
 import repositories.passmarksettings.Phase3PassMarkSettingsMongoRepository
 import services.BaseServiceSpec
 
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 class EvaluatePhase3ResultServiceSpec extends BaseServiceSpec {
 
@@ -65,7 +66,7 @@ class EvaluatePhase3ResultServiceSpec extends BaseServiceSpec {
       val progressStatusCaptor = ArgumentCaptor.forClass(classOf[Option[ProgressStatus]])
 
       verify(mockPhase3EvaluationRepository).savePassmarkEvaluation(applicationIdCaptor.capture, passmarkEvaluationCaptor.capture,
-        progressStatusCaptor.capture)
+        progressStatusCaptor.capture)(any[ExecutionContext])
 
       applicationIdCaptor.getValue.toString mustBe appId
       val expected = List(SchemeEvaluationResult(
@@ -91,7 +92,7 @@ class EvaluatePhase3ResultServiceSpec extends BaseServiceSpec {
       val progressStatusCaptor = ArgumentCaptor.forClass(classOf[Option[ProgressStatus]])
 
       verify(mockPhase3EvaluationRepository).savePassmarkEvaluation(applicationIdCaptor.capture, passmarkEvaluationCaptor.capture,
-        progressStatusCaptor.capture)
+        progressStatusCaptor.capture)(any[ExecutionContext])
 
       applicationIdCaptor.getValue.toString mustBe appId
       val expectedEvaluation = List(SchemeEvaluationResult(
@@ -117,7 +118,8 @@ class EvaluatePhase3ResultServiceSpec extends BaseServiceSpec {
     val mockPhase3EvaluationRepository = mock[OnlineTestEvaluationRepository]
     val mockPhase3PassMarkSettingsRepository = mock[Phase3PassMarkSettingsMongoRepository]
 
-    when(mockPhase3EvaluationRepository.savePassmarkEvaluation(eqTo(appId), any[PassmarkEvaluation], any[Option[ProgressStatus]]))
+    when(mockPhase3EvaluationRepository.savePassmarkEvaluation(eqTo(appId), any[PassmarkEvaluation], any[Option[ProgressStatus]])(
+      any[ExecutionContext]))
       .thenReturn(Future.successful(()))
 
     val mockApplicationRepository = mock[GeneralApplicationRepository]

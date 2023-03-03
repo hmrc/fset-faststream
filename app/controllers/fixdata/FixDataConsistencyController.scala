@@ -38,7 +38,6 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 // scalastyle:off number.of.methods file.size.limit
@@ -56,6 +55,8 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
                                              uuidFactory: UUIDFactory,
                                              schemeRepository: SchemeRepository
                                             ) extends BackendController(cc) with Logging {
+
+  implicit val ec = cc.executionContext
 
   def undoFullWithdraw(applicationId: String, newApplicationStatus: ApplicationStatus) = Action.async { implicit request =>
     applicationService.undoFullWithdraw(applicationId, newApplicationStatus).map { _ =>

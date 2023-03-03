@@ -17,25 +17,25 @@
 package services.testdata.candidate.assessmentcentre
 
 import com.google.inject.name.Named
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.UniqueIdentifier
 import model.assessmentscores._
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import org.joda.time.{ DateTime, DateTimeZone }
+import org.joda.time.{DateTime, DateTimeZone}
 import play.api.mvc.RequestHeader
 import services.assessmentscores.AssessmentScoresService
 import services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatusGenerator: AssessmentCentreAllocationConfirmedStatusGenerator,
                                                               @Named("AssessorAssessmentScoresService")
                                                               assessorAssessmentScoresService: AssessmentScoresService
-                                                             ) extends ConstructiveGenerator {
+                                                             )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
 
   val updatedBy = UniqueIdentifier.randomUniqueIdentifier
 
@@ -105,7 +105,7 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
   )
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
-              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {
 
     import model.command.AssessmentScoresCommands.AssessmentScoresSectionType._
     for {

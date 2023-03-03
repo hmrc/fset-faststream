@@ -16,14 +16,14 @@
 
 package services.schools
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.School
 import repositories.csv.SchoolsRepository
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 @Singleton
-class SchoolsService @Inject() (schoolsRepo: SchoolsRepository) {
+class SchoolsService @Inject() (schoolsRepo: SchoolsRepository)(implicit ec: ExecutionContext) {
   val MaxNumberOfSchools = 16
 
   def getSchools(term: String) = {

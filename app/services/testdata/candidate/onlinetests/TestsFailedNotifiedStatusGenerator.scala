@@ -16,7 +16,7 @@
 
 package services.testdata.candidate.onlinetests
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.ProgressStatuses._
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
@@ -24,13 +24,14 @@ import repositories.application.GeneralApplicationRepository
 import services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 trait TestsFailedNotifiedStatusGenerator extends ConstructiveGenerator {
   val appRepository: GeneralApplicationRepository
   val failedStatus: ProgressStatus
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(
+    implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- appRepository.addProgressStatusAndUpdateAppStatus(candidate.applicationId.get, failedStatus)
@@ -41,34 +42,34 @@ trait TestsFailedNotifiedStatusGenerator extends ConstructiveGenerator {
 @Singleton
 class Phase1TestsFailedNotifiedStatusGenerator @Inject() (val previousStatusGenerator: Phase1TestsFailedStatusGenerator,
                                                           val appRepository: GeneralApplicationRepository
-                                                         ) extends TestsFailedNotifiedStatusGenerator {
+                                                         )(implicit ec: ExecutionContext) extends TestsFailedNotifiedStatusGenerator {
   val failedStatus = PHASE1_TESTS_FAILED_NOTIFIED
 }
 
 @Singleton
 class Phase2TestsFailedNotifiedStatusGenerator @Inject() (val previousStatusGenerator: Phase2TestsFailedStatusGenerator,
                                                           val appRepository: GeneralApplicationRepository
-                                                         ) extends TestsFailedNotifiedStatusGenerator {
+                                                         )(implicit ec: ExecutionContext) extends TestsFailedNotifiedStatusGenerator {
   val failedStatus = PHASE2_TESTS_FAILED_NOTIFIED
 }
 
 @Singleton
 class Phase3TestsFailedNotifiedStatusGenerator @Inject() (val previousStatusGenerator: Phase3TestsFailedStatusGenerator,
                                                           val appRepository: GeneralApplicationRepository
-                                                         ) extends TestsFailedNotifiedStatusGenerator {
+                                                         )(implicit ec: ExecutionContext) extends TestsFailedNotifiedStatusGenerator {
   val failedStatus = PHASE3_TESTS_FAILED_NOTIFIED
 }
 
 @Singleton
 class AssessmentCentreFailedNotifiedStatusGenerator @Inject() (val previousStatusGenerator: AssessmentCentreFailedStatusGenerator,
                                                                val appRepository: GeneralApplicationRepository
-                                                              ) extends TestsFailedStatusGenerator {
+                                                              )(implicit ec: ExecutionContext) extends TestsFailedStatusGenerator {
   val failedStatus = ASSESSMENT_CENTRE_FAILED_NOTIFIED
 }
 
 @Singleton
 class AllFsbFailedNotifiedStatusGenerator @Inject() (val previousStatusGenerator: AllFsbFailedStatusGenerator,
                                                      val appRepository: GeneralApplicationRepository
-                                                    ) extends TestsFailedStatusGenerator {
+                                                    )(implicit ec: ExecutionContext) extends TestsFailedStatusGenerator {
   val failedStatus = ALL_FSBS_AND_FSACS_FAILED_NOTIFIED
 }

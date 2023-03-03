@@ -16,22 +16,23 @@
 
 package services.onlinetesting.phase2
 
-import config.{ MicroserviceAppConfig, Phase2TestsConfig, PsiTestIds, OnlineTestsGatewayConfig }
+import config.{MicroserviceAppConfig, OnlineTestsGatewayConfig, Phase2TestsConfig, PsiTestIds}
 import factories.UUIDFactory
-import model.EvaluationResults.{ Amber, Green }
+import model.EvaluationResults.{Amber, Green}
 import model.ProgressStatuses.ProgressStatus
 import model._
 import model.exchange.passmarksettings.Phase2PassMarkSettingsExamples
 import model.persisted._
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.OnlineTestEvaluationRepository
 import repositories.passmarksettings.Phase2PassMarkSettingsMongoRepository
 import services.BaseServiceSpec
 
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 class EvaluatePhase2ResultServiceSpec extends BaseServiceSpec {
 
@@ -68,7 +69,7 @@ class EvaluatePhase2ResultServiceSpec extends BaseServiceSpec {
       val progressStatusCaptor = ArgumentCaptor.forClass(classOf[Option[ProgressStatus]])
 
       verify(mockPhase2EvaluationRepository).savePassmarkEvaluation(applicationIdCaptor.capture, passmarkEvaluationCaptor.capture,
-        progressStatusCaptor.capture)
+        progressStatusCaptor.capture)(any[ExecutionContext])
 
       applicationIdCaptor.getValue.toString mustBe appId
       val expected = List(SchemeEvaluationResult(
@@ -93,7 +94,7 @@ class EvaluatePhase2ResultServiceSpec extends BaseServiceSpec {
       val progressStatusCaptor = ArgumentCaptor.forClass(classOf[Option[ProgressStatus]])
 
       verify(mockPhase2EvaluationRepository).savePassmarkEvaluation(applicationIdCaptor.capture, passmarkEvaluationCaptor.capture,
-        progressStatusCaptor.capture)
+        progressStatusCaptor.capture)(any[ExecutionContext])
 
       applicationIdCaptor.getValue.toString mustBe appId
       val expected = List(SchemeEvaluationResult(
@@ -119,7 +120,8 @@ class EvaluatePhase2ResultServiceSpec extends BaseServiceSpec {
     val mockPhase2EvaluationRepository = mock[OnlineTestEvaluationRepository]
     val mockPhase2PassMarkSettingsRepository = mock[Phase2PassMarkSettingsMongoRepository]
 
-    when(mockPhase2EvaluationRepository.savePassmarkEvaluation(eqTo(appId), any[PassmarkEvaluation], any[Option[ProgressStatus]]))
+    when(mockPhase2EvaluationRepository.savePassmarkEvaluation(eqTo(appId), any[PassmarkEvaluation], any[Option[ProgressStatus]])(
+      any[ExecutionContext]))
       .thenReturn(Future.successful(()))
 
     val mockApplicationRepository = mock[GeneralApplicationRepository]

@@ -35,7 +35,6 @@ import services.onlinetesting.phase3.Phase3TestService
 import services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 case class OnlineTestStatus(status: String)
@@ -69,6 +68,9 @@ class OnlineTestController @Inject() (cc: ControllerComponents,
                                       phase2TestService: Phase2TestService,
                                       phase3TestService: Phase3TestService
                                      ) extends BackendController(cc) with Logging {
+
+  implicit val ec = cc.executionContext
+
   def getPhase1OnlineTest(applicationId: String) = Action.async { implicit request =>
     phase1TestService.getTestGroup(applicationId) map {
       case Some(phase1TestProfileWithNames) => Ok(Json.toJson(phase1TestProfileWithNames))

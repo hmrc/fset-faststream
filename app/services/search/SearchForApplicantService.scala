@@ -17,24 +17,24 @@
 package services.search
 
 import connectors.AuthProviderClient
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.Exceptions.ContactDetailsNotFound
 import model.exchange.CandidateToRemove
 import model.persisted.ContactDetailsWithId
-import model.{ Candidate, SearchCandidate }
+import model.{Candidate, SearchCandidate}
 import org.joda.time.LocalDate
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SearchForApplicantService @Inject() (appRepository: GeneralApplicationRepository,
                                            cdRepository: ContactDetailsRepository,
                                            authProviderClient: AuthProviderClient
-                                          ) {
+                                          )(implicit ec: ExecutionContext) {
 
   def findByCriteria(searchCandidate: SearchCandidate)(implicit hc: HeaderCarrier): Future[Seq[Candidate]] = searchCandidate match {
     case SearchCandidate(None, None, None, Some(postCode)) => searchByPostCode(postCode)

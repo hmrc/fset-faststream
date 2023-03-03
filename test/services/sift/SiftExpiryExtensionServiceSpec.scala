@@ -31,6 +31,7 @@ import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExten
 import testkit.{ ShortTimeout, UnitSpec }
 import uk.gov.hmrc.http.HeaderCarrier
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class SiftExpiryExtensionServiceSpec extends UnitSpec with ShortTimeout {

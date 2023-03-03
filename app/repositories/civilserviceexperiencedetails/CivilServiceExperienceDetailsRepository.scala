@@ -24,10 +24,9 @@ import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.{Filters, Projections}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
+import repositories.{CollectionNames, ReactiveRepositoryHelpers}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait CivilServiceExperienceDetailsRepository {
   val CivilServiceExperienceDetailsDocumentKey = "civil-service-experience-details"
@@ -38,7 +37,7 @@ trait CivilServiceExperienceDetailsRepository {
 }
 
 @Singleton
-class CivilServiceExperienceDetailsMongoRepository @Inject() (mongo: MongoComponent) extends
+class CivilServiceExperienceDetailsMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext) extends
   PlayMongoRepository[CivilServiceExperienceDetails](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongo,

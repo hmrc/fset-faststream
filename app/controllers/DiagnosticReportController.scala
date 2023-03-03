@@ -30,8 +30,6 @@ import repositories.events.EventsRepository
 import services.assessor.AssessorService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 @Singleton
 class DiagnosticReportController @Inject() (cc: ControllerComponents,
                                             drRepository: DiagnosticReportingRepository,
@@ -41,6 +39,8 @@ class DiagnosticReportController @Inject() (cc: ControllerComponents,
                                             authProvider: AuthProviderClient,
                                             assessorService: AssessorService
                                            ) extends BackendController(cc) {
+
+  implicit val ec = cc.executionContext
 
   def getApplicationByUserId(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
 

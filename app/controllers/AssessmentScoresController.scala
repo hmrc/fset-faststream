@@ -31,8 +31,6 @@ import services.AuditService
 import services.assessmentscores.AssessmentScoresService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 abstract class AssessmentScoresController(cc: ControllerComponents) extends BackendController(cc) with Logging {
   val service: AssessmentScoresService
   val repository: AssessmentScoresRepository
@@ -42,6 +40,8 @@ abstract class AssessmentScoresController(cc: ControllerComponents) extends Back
   val AssessmentScoresOneExerciseSubmitted: String
   val AssessmentScoresAllExercisesSubmitted: String
   val UserIdForAudit: String
+
+  implicit val ec = cc.executionContext
 
   def submitExercise() = Action.async(parse.json) {
     implicit request =>

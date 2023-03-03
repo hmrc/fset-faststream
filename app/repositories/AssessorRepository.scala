@@ -29,7 +29,6 @@ import org.mongodb.scala.model.Indexes.ascending
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 trait AssessorRepository {
@@ -48,7 +47,7 @@ trait AssessorRepository {
 }
 
 @Singleton
-class AssessorMongoRepository @Inject() (mongo: MongoComponent)
+class AssessorMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[Assessor](
     collectionName = CollectionNames.ASSESSOR,
     mongoComponent = mongo,

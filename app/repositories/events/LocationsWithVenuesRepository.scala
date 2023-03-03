@@ -17,6 +17,7 @@
 package repositories.events
 
 import java.util
+import scala.concurrent.ExecutionContext
 
 //import com.github.ghik.silencer.silent
 import config.MicroserviceAppConfig
@@ -28,7 +29,6 @@ import play.api.libs.json.{Json, OFormat}
 import resource._
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 case class LocationWithVenue(name: String, venues: List[Venue])
@@ -51,7 +51,8 @@ trait LocationsWithVenuesRepository {
 
 @Singleton
 class LocationsWithVenuesInMemoryYamlRepository @Inject() (application: Application,
-                                                           appConfig: MicroserviceAppConfig) extends LocationsWithVenuesRepository {
+                                                           appConfig: MicroserviceAppConfig)(
+  implicit ec: ExecutionContext) extends LocationsWithVenuesRepository {
 
   val locationsAndVenuesFilePath: String = appConfig.locationsAndVenuesConfig.yamlFilePath
 

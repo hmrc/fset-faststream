@@ -41,8 +41,7 @@ import services.reporting.SocioEconomicCalculator
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.Codecs
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 //scalastyle:off
@@ -239,7 +238,7 @@ trait PreviousYearCandidatesDetailsRepository {
 class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
                                                               appConfig: MicroserviceAppConfig,
                                                               schemeRepository: SchemeRepository,
-                                                              mongoComponent: MongoComponent)
+                                                              mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
   extends PreviousYearCandidatesDetailsRepository with CommonBSONDocuments with DiversityQuestionsText with Logging {
 
   val applicationDetailsCollection = mongoComponent.database.getCollection(CollectionNames.APPLICATION)

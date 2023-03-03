@@ -16,7 +16,7 @@
 
 package services.sift
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model._
 import model.persisted.sift.SiftAnswersStatus.SiftAnswersStatus
 import play.api.Logging
@@ -24,14 +24,13 @@ import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.sift.SiftAnswersRepository
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SiftAnswersService @Inject() (appRepo: GeneralApplicationRepository,
                                     siftAnswersRepo: SiftAnswersRepository,
                                     schemeRepository: SchemeRepository
-                                   ) extends Logging {
+                                   )(implicit ec: ExecutionContext) extends Logging {
   def addSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId, answer: model.exchange.sift.SchemeSpecificAnswer): Future[Unit] = {
     siftAnswersRepo.addSchemeSpecificAnswer(applicationId, schemeId, model.persisted.sift.SchemeSpecificAnswer(answer))
   }

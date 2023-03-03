@@ -16,7 +16,7 @@
 
 package services.testdata.candidate
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model._
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
@@ -24,16 +24,16 @@ import repositories.schemepreferences.SchemePreferencesRepository
 import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class InProgressSchemePreferencesStatusGenerator @Inject() (val previousStatusGenerator: InProgressPersonalDetailsStatusGenerator,
                                                             spRepository: SchemePreferencesRepository,
                                                             dataFaker: DataFaker
-                                                           ) extends ConstructiveGenerator {
+                                                           )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  // scalastyle:off method.length
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
     def getSchemePreferences: Future[SelectedSchemes] = {
       Future.successful(
         generatorConfig.schemeTypes.map { schemeTypesList =>

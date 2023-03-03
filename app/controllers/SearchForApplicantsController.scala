@@ -27,7 +27,6 @@ import repositories.personaldetails.PersonalDetailsRepository
 import services.search.SearchForApplicantService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
@@ -38,6 +37,7 @@ class SearchForApplicantsController @Inject() (cc: ControllerComponents,
                                                searchForApplicantService: SearchForApplicantService
                                               ) extends BackendController(cc) {
 
+  implicit val ec = cc.executionContext
   val MAX_RESULTS = 25
 
   def findById(userId: String, frameworkId: String): Action[AnyContent] = Action.async { implicit request =>

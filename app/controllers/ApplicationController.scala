@@ -39,8 +39,6 @@ import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAnalysisE
 import services.personaldetails.PersonalDetailsService
 import services.sift.ApplicationSiftService
 
-import java.io.ByteArrayInputStream
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object ApplicationController {
@@ -58,6 +56,8 @@ class ApplicationController @Inject() (cc: ControllerComponents,
                                        uploadRepository: FileUploadRepository,
                                        personalDetailsService: PersonalDetailsService
                                       ) extends BackendController(cc) {
+
+  implicit val ec = cc.executionContext
 
   def createApplication = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateApplicationRequest] { applicationRequest =>

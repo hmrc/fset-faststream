@@ -16,14 +16,13 @@
 
 package services.reporting
 
-import javax.inject.{ Inject, Singleton }
-import model.persisted.{ UserApplicationProfile, UserIdWithEmail }
+import javax.inject.{Inject, Singleton}
+import model.persisted.{UserApplicationProfile, UserIdWithEmail}
 import play.api.Logging
 import repositories.application.ReportingRepository
 import repositories.contactdetails.ContactDetailsRepository
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 case class DuplicateCandidate(email: String, firstName: String, lastName: String, latestProgressStatus: String, applicationRoute: String)
 
@@ -31,7 +30,7 @@ case class DuplicateApplicationGroup(matchType: Int, candidates: Set[DuplicateCa
 
 @Singleton
 class DuplicateDetectionService @Inject() (reportingRepository: ReportingRepository,
-                                           cdRepository: ContactDetailsRepository) extends Logging {
+                                           cdRepository: ContactDetailsRepository)(implicit ec: ExecutionContext) extends Logging {
   private val HighProbabilityMatchGroup = 1
   private val MediumProbabilityMatchGroup = 2
 

@@ -42,8 +42,7 @@ import services.allocation.CandidateAllocationService.CouldNotFindCandidateWithA
 import services.onlinetesting.Exceptions.NoActiveTestException
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 @Singleton
@@ -54,7 +53,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
                                         schemeRepo: SchemeRepository,
                                         val dateTimeFactory: DateTimeFactory,
                                         @Named("CSREmailClient") emailClient: OnlineTestEmailClient // TODO: had to change the type
-                                       ) extends CurrentSchemeStatusHelper with CommonBSONDocuments with Logging {
+                                       )(implicit ec: ExecutionContext) extends CurrentSchemeStatusHelper with CommonBSONDocuments with Logging {
   val SiftExpiryWindowInDays: Int = 7
 
   def nextApplicationsReadyForSiftStage(batchSize: Int): Future[Seq[ApplicationForSift]] = {

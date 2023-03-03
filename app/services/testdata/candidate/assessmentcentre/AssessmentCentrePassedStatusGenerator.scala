@@ -16,12 +16,12 @@
 
 package services.testdata.candidate.assessmentcentre
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.UniqueIdentifier
 import model.exchange.passmarksettings._
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import org.joda.time.{ DateTime, DateTimeZone }
+import org.joda.time.{DateTime, DateTimeZone}
 import play.api.mvc.RequestHeader
 import repositories.SchemeRepository
 import services.assessmentcentre.AssessmentCentreService
@@ -29,21 +29,20 @@ import services.passmarksettings.AssessmentCentrePassMarkSettingsService
 import services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AssessmentCentrePassedStatusGenerator @Inject() (val previousStatusGenerator: AssessmentCentreScoresAcceptedStatusGenerator,
                                                        applicationAssessmentService: AssessmentCentreService,
                                                        passmarkService: AssessmentCentrePassMarkSettingsService,
                                                        schemeRepository: SchemeRepository
-                                                      ) extends ConstructiveGenerator {
+                                                      )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
 
   val updatedBy = UniqueIdentifier.randomUniqueIdentifier
   val version = UniqueIdentifier.randomUniqueIdentifier
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
-              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {
 
     val schemes = schemeRepository.schemes.map(_.id).toList
     val dummyPassmarks = AssessmentCentrePassMarkSettings(

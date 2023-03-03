@@ -24,11 +24,12 @@ import services.fastpass.FastPassService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
 class FastPassApprovalController @Inject() (cc: ControllerComponents,
                                             fastPassService: FastPassService) extends BackendController(cc) with Logging {
+
+  implicit val ec = cc.executionContext
 
   def processFastPassCandidate(userId: String, applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[FastPassEvaluation] { req =>

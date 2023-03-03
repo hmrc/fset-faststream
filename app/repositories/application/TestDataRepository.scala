@@ -33,8 +33,7 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import repositories._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Random
 
 object Utils {
@@ -51,7 +50,7 @@ trait TestDataContactDetailsRepository {
 }
 
 @Singleton
-class TestDataContactDetailsMongoRepository @Inject() (mongo: MongoComponent)
+class TestDataContactDetailsMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[ContactDetails](
     collectionName = CollectionNames.CONTACT_DETAILS,
     mongoComponent = mongo,
@@ -82,7 +81,7 @@ class TestDataContactDetailsMongoRepository @Inject() (mongo: MongoComponent)
 }
 
 @Singleton
-class TestDataMongoRepository @Inject() (mongo: MongoComponent)
+class TestDataMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[ContactDetails](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongo,

@@ -41,11 +41,10 @@ import repositories.application.GeneralApplicationRepoBSONReader
 import repositories.{dateTimeToBson, getAppId, subDocRoot}
 
 import scala.util.Try
-import repositories.{ CollectionNames, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers }
+import repositories.{CollectionNames, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers}
 import repositories.SchemeRepository
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 // scalastyle:off number.of.methods file.size.limit
 trait ApplicationSiftRepository {
@@ -99,7 +98,7 @@ class ApplicationSiftMongoRepository @Inject() (
 //                                                  @Named("siftableSchemeIds") val siftableSchemeIds: Seq[SchemeId],
                                                 mongoComponent: MongoComponent,
                                                 appConfig: MicroserviceAppConfig
-                                    )
+                                    )(implicit ec: ExecutionContext)
   extends PlayMongoRepository[ApplicationForSift](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongoComponent,
@@ -169,7 +168,7 @@ class ApplicationSiftMongoRepository @Inject() (
       Document(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> Document("$ne" -> true))
     ))
 
-    selectOneRandom[String](query)(getAppId, global)
+    selectOneRandom[String](query)(getAppId, ec)
   }
 
   override def getApplicationIdForOrderId(orderId: String): Future[String] = {
@@ -231,7 +230,7 @@ class ApplicationSiftMongoRepository @Inject() (
         ))
       }
 
-    selectRandom[ApplicationForSift](eligibleForSiftQuery, batchSize)(applicationForSiftBsonReads, global )
+    selectRandom[ApplicationForSift](eligibleForSiftQuery, batchSize)(applicationForSiftBsonReads, ec)
   }
 
   override def nextApplicationForFirstSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]] = {
@@ -248,7 +247,7 @@ class ApplicationSiftMongoRepository @Inject() (
       )
     ))
 
-    selectOneRandom[NotificationExpiringSift](query)( doc => NotificationExpiringSift.fromBson(doc, phaseName), global )
+    selectOneRandom[NotificationExpiringSift](query)( doc => NotificationExpiringSift.fromBson(doc, phaseName), ec )
   }
 
   override def nextApplicationForSecondSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]] = {
@@ -265,7 +264,7 @@ class ApplicationSiftMongoRepository @Inject() (
       )
     ))
 
-    selectOneRandom[NotificationExpiringSift](query)( doc => NotificationExpiringSift.fromBson(doc, phaseName ), global )
+    selectOneRandom[NotificationExpiringSift](query)( doc => NotificationExpiringSift.fromBson(doc, phaseName ), ec )
   }
 
   override def getNotificationExpiringSift(applicationId: String): Future[Option[NotificationExpiringSift]] = {
@@ -286,7 +285,7 @@ class ApplicationSiftMongoRepository @Inject() (
       )
     ))
 
-    selectRandom[ApplicationForSiftExpiry](query, maxBatchSize)(ApplicationForSiftExpiry.fromBson, global)
+    selectRandom[ApplicationForSiftExpiry](query, maxBatchSize)(ApplicationForSiftExpiry.fromBson, ec)
   }
 
   override def isSiftExpired(applicationId: String): Future[Boolean] = {
@@ -346,7 +345,7 @@ class ApplicationSiftMongoRepository @Inject() (
       "currentSchemeStatus.result" -> Document("$nin" -> BsonArray(Green.toString, Amber.toString))
     )
 
-    selectOneRandom[ApplicationForSift](predicate)(applicationForSiftBsonReads, global)
+    selectOneRandom[ApplicationForSift](predicate)(applicationForSiftBsonReads, ec)
   }
 
   def findApplicationsReadyForSchemeSift(schemeId: SchemeId): Future[Seq[Candidate]] = {

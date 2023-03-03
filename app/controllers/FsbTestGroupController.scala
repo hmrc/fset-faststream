@@ -26,12 +26,12 @@ import services.application.FsbService
 import services.events.EventsService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 @Singleton
 class FsbTestGroupController @Inject() (cc: ControllerComponents,
                                         fsbService: FsbService,
                                         eventsService: EventsService) extends BackendController(cc) {
+
+  implicit val ec = cc.executionContext
 
   def savePerScheme(): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[FsbEvaluationResults] { fsbEvaluationResults =>

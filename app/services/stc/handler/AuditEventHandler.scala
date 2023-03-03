@@ -17,23 +17,24 @@
 package services.stc.handler
 
 import com.google.inject.ImplementedBy
-import javax.inject.{ Inject, Singleton }
-import model.stc.{ AuditEvent, AuditEventNoRequest, AuditEventWithAppId }
+
+import javax.inject.{Inject, Singleton}
+import model.stc.{AuditEvent, AuditEventNoRequest, AuditEventWithAppId}
 import play.api.Logging
 import play.api.mvc.RequestHeader
 import services.AuditService
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.HeaderCarrier
 
 @ImplementedBy(classOf[AuditEventHandlerImpl])
 trait AuditEventHandler extends StcEventHandler[AuditEvent] {
-  def handle(event: AuditEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
+  def handle(event: AuditEvent)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit]
 }
 
 @Singleton
-class AuditEventHandlerImpl @Inject() (auditService: AuditService) extends AuditEventHandler with Logging {
-  def handle(event: AuditEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+class AuditEventHandlerImpl @Inject() (auditService: AuditService)(implicit ec: ExecutionContext) extends AuditEventHandler with Logging {
+  def handle(event: AuditEvent)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit] = {
     val sanitisedDetails = event.details - "email"
     logger.info(s"Audit event ${event.eventName}, details: $sanitisedDetails")
     Future.successful {

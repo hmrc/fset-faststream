@@ -25,13 +25,13 @@ import repositories.MediaRepository
 import services.AuditService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 @Singleton
 class MediaController @Inject() (cc: ControllerComponents,
                                  mRepository: MediaRepository,
                                  auditService: AuditService
                                 ) extends BackendController(cc) {
+
+  implicit val ec = cc.executionContext
 
   def addMedia(): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[Media] { media =>

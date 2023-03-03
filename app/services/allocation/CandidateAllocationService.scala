@@ -45,8 +45,7 @@ import services.events.EventsService
 import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 object CandidateAllocationService {
   case class CouldNotFindCandidateWithApplication(appId: String) extends Exception(appId)
@@ -64,7 +63,7 @@ class CandidateAllocationService @Inject() (candidateAllocationRepo: CandidateAl
                                              @Named("CSREmailClient") emailClient: OnlineTestEmailClient, //TODO:fix change type
                                              authProviderClient: AuthProviderClient,
                                              appConfig: MicroserviceAppConfig
-                                            ) extends EventSink with Logging {
+                                            )(implicit ec: ExecutionContext) extends EventSink with Logging {
 
   private val dateFormat = "dd MMMM YYYY"
   private val eventsConfig = appConfig.eventsConfig

@@ -17,23 +17,23 @@
 package services.stc
 
 import com.google.inject.ImplementedBy
-import javax.inject.{ Inject, Singleton }
-import model.stc.StcEventTypes.{ StcEventType, StcEvents }
-import model.stc.{ AuditEvent, DataStoreEvent, EmailEvent }
+
+import javax.inject.{Inject, Singleton}
+import model.stc.StcEventTypes.{StcEventType, StcEvents}
+import model.stc.{AuditEvent, DataStoreEvent, EmailEvent}
 import play.api.Logging
 import play.api.mvc.RequestHeader
 import services.stc.handler._
 
 import scala.language.implicitConversions
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.HeaderCarrier
 
 @Singleton
 class StcEventServiceImpl @Inject() (override val dataStoreEventHandler: DataStoreEventHandler,
                                      override val auditEventHandler: AuditEventHandler,
                                      override val emailEventHandler: EmailEventHandler
-                                    ) extends StcEventService with Logging {
+                                    )(implicit ec: ExecutionContext) extends StcEventService with Logging {
 
   // TODO: Error handling
   protected[stc] def handle(events: StcEvents)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
@@ -67,8 +67,8 @@ trait StcEventService {
 trait EventSink {
   val eventService: StcEventService
 
-  def eventSink(block: => Future[StcEvents])(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = block.flatMap { events =>
-    eventService.handle(events)
+  def eventSink(block: => Future[StcEvents])(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit] =
+    block.flatMap { events => eventService.handle(events)
   }
 
   def eventSink(block: StcEvents)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventService.handle(block)

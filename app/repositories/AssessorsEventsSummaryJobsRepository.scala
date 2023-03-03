@@ -23,8 +23,7 @@ import org.mongodb.scala.model.UpdateOptions
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait AssessorsEventsSummaryJobsRepository {
   def save(info: AssessorNewEventsJobInfo): Future[Unit]
@@ -32,7 +31,7 @@ trait AssessorsEventsSummaryJobsRepository {
 }
 
 @Singleton
-class AssessorsEventsSummaryJobsMongoRepository @Inject() (mongoComponent: MongoComponent)
+class AssessorsEventsSummaryJobsMongoRepository @Inject() (mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[AssessorNewEventsJobInfo](
     collectionName = CollectionNames.ASSESSOR_EVENTS_SUMMARY_JOBS,
     mongoComponent = mongoComponent,

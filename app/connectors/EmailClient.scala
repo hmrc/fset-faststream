@@ -25,13 +25,13 @@ import model.stc.EmailEvents.{CandidateAllocationConfirmationReminder, Candidate
 import org.joda.time.{DateTime, DateTimeZone, LocalDate, LocalDateTime}
 import play.api.Logging
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.TimeUnit
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 @Singleton
-class CSREmailClientImpl @Inject() (val http: WSHttpT, val appConfig: MicroserviceAppConfig) extends CSREmailClient {
+class CSREmailClientImpl @Inject() (val http: WSHttpT, val appConfig: MicroserviceAppConfig)(
+  implicit ec: ExecutionContext) extends CSREmailClient {
   override val emailConfig: EmailConfig = appConfig.emailConfig
 }
 
@@ -41,42 +41,42 @@ class Phase2OnlineTestEmailClient @Inject() (val http: WSHttpT, val appConfig: M
   override val emailConfig: EmailConfig = appConfig.emailConfig
 
   override def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)
-    (implicit hc: HeaderCarrier): Future[Unit] = sendEmail(to,
+    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = sendEmail(to,
       "fset_faststream_app_phase2_test_invitation",
       Map("expireDateTime" -> EmailDateFormatter.toExpiryTime(expireDateTime), "name" -> name)
     )
 
   override def sendTestExpiringReminder(to: String, name: String, timeLeftInHours: Int,
                                         timeUnit: TimeUnit, expiryDate: DateTime)
-                                       (implicit hc: HeaderCarrier): Future[Unit] = {
+                                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     sendExpiringReminder("fset_faststream_app_online_phase2_test_reminder", to, name, timeLeftInHours, timeUnit, expiryDate)
   }
 
   override def sendOnlineTestFailed(to: String, name: String)
-    (implicit hc: HeaderCarrier): Future[Unit] = sendEmail(to,
+    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = sendEmail(to,
       "csr_app_online_test_failed",
       Map("name" -> name)
     )
 }
 
 @Singleton
-class Phase3OnlineTestEmailClient @Inject() (val http: WSHttpT, val appConfig: MicroserviceAppConfig)
+class Phase3OnlineTestEmailClient @Inject() (val http: WSHttpT, val appConfig: MicroserviceAppConfig)(implicit ec: ExecutionContext)
   extends OnlineTestEmailClient with EmailClient {
   override val emailConfig: EmailConfig = appConfig.emailConfig
 
   override def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)
-                                       (implicit hc: HeaderCarrier): Future[Unit] = sendEmail(to,
+                                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = sendEmail(to,
     "fset_faststream_app_phase3_test_invitation",
     Map("expireDateTime" -> EmailDateFormatter.toExpiryTime(expireDateTime), "name" -> name)
   )
 
   override def sendTestExpiringReminder(to: String, name: String, timeLeftInHours: Int,
                                         timeUnit: TimeUnit, expiryDate: DateTime)
-                                       (implicit hc: HeaderCarrier): Future[Unit] =
+                                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     sendExpiringReminder("fset_faststream_app_online_phase3_test_reminder", to, name, timeLeftInHours, timeUnit, expiryDate)
 
   override def sendOnlineTestFailed(to: String, name: String)
-                                   (implicit hc: HeaderCarrier): Future[Unit] =
+                                   (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     sendEmail(
       to,
       "csr_app_online_test_failed",
@@ -86,19 +86,20 @@ class Phase3OnlineTestEmailClient @Inject() (val http: WSHttpT, val appConfig: M
 
 trait CSREmailClient extends OnlineTestEmailClient with AssessmentCentreEmailClient with EmailClient {
 
-  override def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)(implicit hc: HeaderCarrier): Future[Unit] =
+  override def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)(
+    implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     sendEmail(
       to,
       "fset_faststream_app_online_test_invitation",
       Map("expireDateTime" -> EmailDateFormatter.toExpiryTime(expireDateTime), "name" -> name)
     )
 
-  override def sendTestExpiringReminder(to: String, name: String, timeLeftInHours: Int,
-                                        timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = {
+  override def sendTestExpiringReminder(to: String, name: String, timeLeftInHours: Int, timeUnit: TimeUnit, expiryDate: DateTime)(
+    implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     sendExpiringReminder("fset_faststream_app_online_phase1_test_reminder", to,name,timeLeftInHours, timeUnit, expiryDate)
   }
 
-  override def sendOnlineTestFailed(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] =
+  override def sendOnlineTestFailed(to: String, name: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     sendEmail(
       to,
       "csr_app_online_test_failed",
@@ -106,9 +107,7 @@ trait CSREmailClient extends OnlineTestEmailClient with AssessmentCentreEmailCli
     )
 
   override def sendConfirmAttendance(to: String, name: String, assessmentDateTime: DateTime, confirmByDate: LocalDate)(
-    implicit
-    hc: HeaderCarrier
-  ): Future[Unit] =
+    implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     sendEmail(
       to,
       "csr_app_confirm_attendance",
@@ -120,7 +119,7 @@ trait CSREmailClient extends OnlineTestEmailClient with AssessmentCentreEmailCli
     )
 
   override def sendReminderToConfirmAttendance(to: String, name: String, assessmentDateTime: DateTime,
-    confirmByDate: LocalDate)(implicit hc: HeaderCarrier): Future[Unit] =
+    confirmByDate: LocalDate)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     sendEmail(
       to,
       "csr_app_confirm_attendance_reminder",
@@ -131,7 +130,7 @@ trait CSREmailClient extends OnlineTestEmailClient with AssessmentCentreEmailCli
       )
     )
 
-  override def sendAssessmentCentrePassed(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+  override def sendAssessmentCentrePassed(to: String, name: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     sendEmail(
       to,
       "csr_app_assessment_centre_passed",
@@ -139,7 +138,7 @@ trait CSREmailClient extends OnlineTestEmailClient with AssessmentCentreEmailCli
     )
   }
 
-  override def sendAssessmentCentreFailed(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+  override def sendAssessmentCentreFailed(to: String, name: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     sendEmail(
       to,
       "csr_app_assessment_centre_failed",
@@ -153,17 +152,20 @@ trait OnlineTestEmailClient extends EmailClient {
 
 //  self: EmailClient =>
 
-  def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)(implicit hc: HeaderCarrier): Future[Unit]
-  def sendEmailWithName(to: String, name: String, template: String)(implicit hc: HeaderCarrier): Future[Unit] = sendEmail(
+  def sendOnlineTestInvitation(to: String, name: String, expireDateTime: DateTime)(
+    implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit]
+
+  def sendEmailWithName(to: String, name: String, template: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = sendEmail(
     to,
     template,
     Map("name" -> name)
   )
-  def sendTestExpiringReminder(to: String, name: String, timeLeftInHours: Int,
-                               timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit]
 
-  protected def sendExpiringReminder(template: String, to: String, name: String, timeLeftInHours: Int,
-                                        timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def sendTestExpiringReminder(to: String, name: String, timeLeftInHours: Int,
+                               timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit]
+
+  protected def sendExpiringReminder(template: String, to: String, name: String, timeLeftInHours: Int, timeUnit: TimeUnit, expiryDate: DateTime)(
+    implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     sendEmail(
       to,
       template,
@@ -175,23 +177,27 @@ trait OnlineTestEmailClient extends EmailClient {
     )
   }
 
-  def sendOnlineTestFailed(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit]
+  def sendOnlineTestFailed(to: String, name: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit]
 }
 
 trait AssessmentCentreEmailClient {
   def sendConfirmAttendance(to: String, name: String, assessmentDateTime: DateTime,
-    confirmByDate: LocalDate)(implicit hc: HeaderCarrier): Future[Unit]
+    confirmByDate: LocalDate)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit]
+
   def sendReminderToConfirmAttendance(to: String, name: String, assessmentDateTime: DateTime,
-    confirmByDate: LocalDate)(implicit hc: HeaderCarrier): Future[Unit]
-  def sendAssessmentCentrePassed(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit]
-  def sendAssessmentCentreFailed(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit]
+    confirmByDate: LocalDate)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit]
+
+  def sendAssessmentCentrePassed(to: String, name: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit]
+
+  def sendAssessmentCentreFailed(to: String, name: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit]
 }
 
 trait EmailClient extends Logging {
   val http: WSHttpT
   val emailConfig: EmailConfig
 
-  protected def sendEmail(to: String, template: String, parameters: Map[String, String])(implicit hc: HeaderCarrier): Future[Unit] = {
+  protected def sendEmail(to: String, template: String, parameters: Map[String, String])(
+    implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     val data = SendFsetMailRequest(
       to :: Nil,
       template,
@@ -206,49 +212,53 @@ trait EmailClient extends Logging {
     }
   }
 
-  def sendApplicationSubmittedConfirmation(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] =
+  def sendApplicationSubmittedConfirmation(to: String, name: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     sendEmail(to, "fset_faststream_app_submit_confirmation", Map("name" -> name))
 
-  def sendWithdrawnConfirmation(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] =
+  def sendWithdrawnConfirmation(to: String, name: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     sendEmail(to, "fset_faststream_app_withdrawn", Map("name" -> name))
 
   def sendAdjustmentsConfirmation(to: String, name: String, etrayAdjustments: String,
-    videoAdjustments: String)(implicit hc: HeaderCarrier): Future[Unit] =
+    videoAdjustments: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     sendEmail(to, "fset_faststream_adjustments_confirmation",
       Map("name" -> name, "etrayAdjustments" -> etrayAdjustments, "videoAdjustments" -> videoAdjustments))
 
   def sendAdjustmentsUpdateConfirmation(to: String, name: String, etrayAdjustments: String,
-                                        videoAdjustments: String)(implicit hc: HeaderCarrier): Future[Unit] =
+                                        videoAdjustments: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     sendEmail(to, "fset_faststream_adjustments_changed",
       Map("name" -> name, "etrayAdjustments" -> etrayAdjustments, "videoAdjustments" -> videoAdjustments))
 
-  def sendApplicationExtendedToSdip(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] =
+  def sendApplicationExtendedToSdip(to: String, name: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     sendEmail(to, "fset_faststream_app_converted_to_sdip_confirmation", Map("name" -> name))
 
-  def sendCandidateConfirmationRequestToEvent(c: CandidateAllocationConfirmationRequest)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def sendCandidateConfirmationRequestToEvent(c: CandidateAllocationConfirmationRequest)(
+    implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     sendEmail(c.to, "fset_faststream_candidate_need_confirm_assessment_date",
       Map("name" -> c.name, "eventDate" -> c.eventDate, "eventStartTime" -> c.eventTime,
         "eventType" -> c.eventType, "eventVenue" -> c.eventVenue, "deadlineDate" -> c.deadlineDate,
       "eventGuideUrl" -> c.eventGuideUrl))
   }
 
-  def sendCandidateConfirmationRequestReminderToEvent(c: CandidateAllocationConfirmationReminder)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def sendCandidateConfirmationRequestReminderToEvent(c: CandidateAllocationConfirmationReminder)(
+    implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     sendEmail(c.to, "fset_faststream_candidate_need_confirm_assessment_date_reminder",
       Map("name" -> c.name, "eventDate" -> c.eventDate, "eventStartTime" -> c.eventTime, "eventType" -> c.eventType,
         "eventVenue" -> c.eventVenue, "deadlineDate" -> c.deadlineDate, "eventGuideUrl" -> c.eventGuideUrl))
   }
 
-  def sendCandidateInvitationConfirmedToEvent(to: String, name: String,
-    eventDate: String, eventTime: String,
-    eventType: String, eventVenue: String, eventGuideUrl: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+  //scalastyle:off parameter.number
+  def sendCandidateInvitationConfirmedToEvent(to: String, name: String, eventDate: String, eventTime: String,
+    eventType: String, eventVenue: String, eventGuideUrl: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     sendEmail(to, "fset_faststream_candidate_assessment_scheduled",
       Map("name" -> name, "eventDate" -> eventDate, "eventStartTime" -> eventTime,
         "eventType" -> eventType, "eventVenue" -> eventVenue, "eventGuideUrl" -> eventGuideUrl))
   }
+  // scalastyle:on
 
   // scalastyle:off parameter.number
   def sendAssessorAllocatedToEvent(to: String, name: String, eventDate: String, eventRole: String, eventRoleKey: String,
-              eventName: String, eventLocation: String, eventStartTime: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+              eventName: String, eventLocation: String, eventStartTime: String)(
+    implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     sendEmail(to, "fset_faststream_notify_event_assessor_allocated",
       Map("name" -> name, "eventDate" -> eventDate, "eventRole" -> eventRole, "eventRoleKey" -> eventRoleKey,
         "eventName" -> eventName, "eventLocation" -> eventLocation, "eventStartTime" -> eventStartTime)
@@ -256,51 +266,56 @@ trait EmailClient extends Logging {
   }
   // scalastyle:on
 
-  def sendAssessorUnAllocatedFromEvent(to: String, name: String, eventDate: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def sendAssessorUnAllocatedFromEvent(to: String, name: String, eventDate: String)(
+    implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     sendEmail(to, "fset_faststream_notify_event_assessor_unallocated",
       Map("name" -> name, "eventDate" -> eventDate)
     )
   }
 
   def sendAssessorEventAllocationChanged(to: String, name: String, eventDate: String, eventRole: String, eventName: String,
-                                   eventLocation: String, eventStartTime: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+                                   eventLocation: String, eventStartTime: String)(
+    implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     sendEmail(to, "fset_faststream_notify_event_assessor_allocation_changed",
       Map("name" -> name, "eventDate" -> eventDate, "eventRole" -> eventRole, "eventName" -> eventName, "eventLocation" -> eventLocation,
         "eventStartTime" -> eventStartTime)
     )
   }
 
-  def sendCandidateAssessmentCompletedMovedToFsb(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def sendCandidateAssessmentCompletedMovedToFsb(to: String, name: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     sendEmail(to, "fset_faststream_candidate_assessment_centre_completed", Map("name" -> name))
   }
 
-  def sendCandidateUnAllocatedFromEvent(to: String, name: String, eventDate: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def sendCandidateUnAllocatedFromEvent(to: String, name: String, eventDate: String)(
+    implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     sendEmail(to, "fset_faststream_notify_event_candidate_unallocated",
       Map("name" -> name, "eventDate" -> eventDate)
     )
   }
 
-  def notifyAssessorsOfNewEvents(to: String, name: String, htmlBody: String, txtBody: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def notifyAssessorsOfNewEvents(to: String, name: String, htmlBody: String, txtBody: String)(
+    implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     sendEmail(to, "fset_faststream_notify_assessors_of_new_events",
       Map("name" -> name, "htmlBody" -> htmlBody, "txtBody" -> txtBody))
   }
 
-  def notifyCandidateOnFinalFailure(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def notifyCandidateOnFinalFailure(to: String, name: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     sendEmail(to, "fset_faststream_app_final_failed", Map("name" -> name))
   }
 
-  def notifyCandidateOnFinalSuccess(to: String, name: String, scheme: String)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def notifyCandidateOnFinalSuccess(to: String, name: String, scheme: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     sendEmail(to, "fset_faststream_app_final_success", Map("name" -> name, "scheme" -> scheme))
   }
 
   def notifyCandidateSiftEnteredAdditionalQuestions(to: String, name: String, expireDateTime: DateTime)(
-    implicit hc: HeaderCarrier): Future[Unit] = {
+    implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     sendEmail(to, "fset_faststream_notify_candidate_sift_entered_additional_questions",
       Map("name" -> name, "expireDateTime" -> EmailDateFormatter.toExpiryTime(expireDateTime))
     )
   }
 
-  def sendSiftNumericTestInvite(to: String, name: String, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def sendSiftNumericTestInvite(to: String, name: String, expiryDate: DateTime)(
+    implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     sendEmail(
       to,
       "fset_faststream_sift_numeric_test_invitation",
@@ -311,7 +326,7 @@ trait EmailClient extends Logging {
   }
 
   def sendSiftReminder(to: String, name: String, timeLeftInHours: Int,
-    timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = {
+    timeUnit: TimeUnit, expiryDate: DateTime)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
 
     sendEmail(
       to,
@@ -324,7 +339,7 @@ trait EmailClient extends Logging {
     )
   }
 
-  def sendSiftExpired(to: String, name: String)(implicit hc: HeaderCarrier): Future[Unit] =
+  def sendSiftExpired(to: String, name: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     sendEmail(to, "fset_faststream_sift_expired", Map("name" -> name))
 }
 

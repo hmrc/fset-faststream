@@ -19,38 +19,39 @@ package services.onlinetesting.phase2
 import services.AuditService
 import akka.actor.ActorSystem
 import com.google.inject.name.Named
-import common.{ FutureEx, Phase2TestConcern }
+import common.{FutureEx, Phase2TestConcern}
 import config._
 import connectors.ExchangeObjects._
-import connectors.{ AuthProviderClient, OnlineTestEmailClient, OnlineTestsGatewayClient }
-import factories.{ DateTimeFactory, UUIDFactory }
-import javax.inject.{ Inject, Singleton }
+import connectors.{AuthProviderClient, OnlineTestEmailClient, OnlineTestsGatewayClient}
+import factories.{DateTimeFactory, UUIDFactory}
+
+import javax.inject.{Inject, Singleton}
 import model.Exceptions._
 import model.OnlineTestCommands._
 import model.ProgressStatuses._
 import model._
-import model.command.{ Phase3ProgressResponse, ProgressResponse }
-import model.exchange.{ Phase2TestGroupWithActiveTest, PsiRealTimeResults, PsiTestResultReady }
+import model.command.{Phase3ProgressResponse, ProgressResponse}
+import model.exchange.{Phase2TestGroupWithActiveTest, PsiRealTimeResults, PsiTestResultReady}
 import model.persisted._
 import model.stc.StcEventTypes.StcEventType
-import model.stc.{ AuditEvent, AuditEvents, DataStoreEvents }
+import model.stc.{AuditEvent, AuditEvents, DataStoreEvents}
 import org.joda.time.DateTime
 import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase2TestRepository
-import services.onlinetesting.Exceptions.{ TestCancellationException, TestRegistrationException }
+import services.onlinetesting.Exceptions.{TestCancellationException, TestRegistrationException}
 import services.onlinetesting.phase3.Phase3TestService
-import services.onlinetesting.{ TextSanitizer, OnlineTestService }
+import services.onlinetesting.{OnlineTestService, TextSanitizer}
 import services.sift.ApplicationSiftService
 import services.stc.StcEventService
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 // scalastyle:off number.of.methods
 @Singleton
@@ -68,7 +69,8 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
                                    appConfig: MicroserviceAppConfig,
                                    val eventService: StcEventService,
                                    actor: ActorSystem
-                                  ) extends OnlineTestService with Phase2TestConcern with ResetPhase2Test with Logging {
+                                  )(
+  implicit ec: ExecutionContext) extends OnlineTestService with Phase2TestConcern with ResetPhase2Test with Logging {
   type TestRepository = Phase2TestRepository
 
   val onlineTestsGatewayConfig = appConfig.onlineTestsGatewayConfig
@@ -201,7 +203,8 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
     registerAndInviteForTestGroup(Seq(application))
   }
 
-  override def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  override def processNextExpiredTest(expiryTest: TestExpirationEvent)(
+    implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit] = {
     testRepository.nextExpiringApplication(expiryTest).flatMap {
       case Some(expired) =>
         logger.warn(s"Expiring candidates for PHASE2 - expiring candidate ${expired.applicationId}")

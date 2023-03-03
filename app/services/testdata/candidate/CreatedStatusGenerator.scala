@@ -17,21 +17,22 @@
 package services.testdata.candidate
 
 import connectors.ExchangeObjects
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.ApplicationRoute
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class CreatedStatusGenerator @Inject() (val previousStatusGenerator: RegisteredStatusGenerator,
-                                        appRepository: GeneralApplicationRepository) extends ConstructiveGenerator {
+                                        appRepository: GeneralApplicationRepository)(
+  implicit ec: ExecutionContext) extends ConstructiveGenerator {
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       applicationId <- createApplication(candidateInPreviousStatus.userId, generatorConfig.statusData.applicationRoute)

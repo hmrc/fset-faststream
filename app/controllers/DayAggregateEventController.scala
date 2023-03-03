@@ -27,12 +27,12 @@ import play.api.mvc.{ Action, AnyContent, ControllerComponents }
 import repositories.events.{ EventsRepository, LocationsWithVenuesRepository }
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 @Singleton
 class DayAggregateEventController @Inject() (cc: ControllerComponents,
                                              locationsWithVenuesRepo: LocationsWithVenuesRepository,
                                              eventsRepository: EventsRepository) extends BackendController(cc) {
+
+  implicit val ec = cc.executionContext
 
   def findBySkillTypes(skills: Seq[SkillType]): Action[AnyContent] = Action.async { implicit request =>
     find(None, skills).map ( dayAggregateEvents => Ok(Json.toJson(dayAggregateEvents)) )

@@ -35,7 +35,7 @@ class EvaluatePhase1ResultJobSpec extends UnitWithAppSpec {
 
   "Scheduler execution" should {
     "evaluate applications ready for evaluation" in new TestFixture {
-      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase1PassMarkSettings]]))
+      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase1PassMarkSettings]], any[ExecutionContext]))
         .thenReturn(Future.successful(Some((apps.toList, passmark))))
 
       scheduler.tryExecute().futureValue
@@ -44,7 +44,7 @@ class EvaluatePhase1ResultJobSpec extends UnitWithAppSpec {
     }
 
     "evaluate all applications even when some of them fail" in new TestFixture {
-      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase1PassMarkSettings]]))
+      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase1PassMarkSettings]], any[ExecutionContext]))
         .thenReturn(Future.successful(Some((apps.toList, passmark))))
       when(mockEvaluateService.evaluate(apps(0), passmark)).thenReturn(Future.failed(new IllegalStateException("first application fails")))
       when(mockEvaluateService.evaluate(apps(5), passmark)).thenReturn(Future.failed(new Exception("fifth application fails")))
@@ -56,7 +56,7 @@ class EvaluatePhase1ResultJobSpec extends UnitWithAppSpec {
     }
 
     "do not evaluate candidate if none of them are ready to evaluate" in new TestFixture {
-      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase1PassMarkSettings]]))
+      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase1PassMarkSettings]], any[ExecutionContext]))
         .thenReturn(Future.successful(None))
       scheduler.tryExecute().futureValue
 

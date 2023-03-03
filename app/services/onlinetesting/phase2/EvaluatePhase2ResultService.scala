@@ -31,8 +31,7 @@ import services.onlinetesting.CurrentSchemeStatusHelper
 import services.passmarksettings.PassMarkSettingsService
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class EvaluatePhase2ResultService @Inject() (@Named("Phase2EvaluationRepository") val evaluationRepository: OnlineTestEvaluationRepository,
@@ -40,7 +39,8 @@ class EvaluatePhase2ResultService @Inject() (@Named("Phase2EvaluationRepository"
                                              val generalAppRepository: GeneralApplicationRepository,
                                              appConfig: MicroserviceAppConfig,
                                              val uuidFactory: UUIDFactory
-                                            ) extends EvaluateOnlineTestResultService[Phase2PassMarkSettings] with Phase2TestSelector
+                                            )(implicit ec: ExecutionContext)
+  extends EvaluateOnlineTestResultService[Phase2PassMarkSettings] with Phase2TestSelector
   with Phase2TestEvaluation with PassMarkSettingsService[Phase2PassMarkSettings] with CurrentSchemeStatusHelper with Logging {
 
   val phase = Phase.PHASE2

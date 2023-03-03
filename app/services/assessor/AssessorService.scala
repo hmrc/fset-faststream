@@ -18,26 +18,26 @@ package services.assessor
 
 import com.google.inject.name.Named
 import common.FutureEx
-import connectors.{ AuthProviderClient, OnlineTestEmailClient }
-import javax.inject.{ Inject, Singleton }
+import connectors.{AuthProviderClient, OnlineTestEmailClient}
+
+import javax.inject.{Inject, Singleton}
 import model.AllocationStatuses.AllocationStatus
 import model.Exceptions._
 import model.command.AllocationWithEvent
-import model.exchange.{ AssessorAvailabilities, AssessorSkill, UpdateAllocationStatusRequest }
+import model.exchange.{AssessorAvailabilities, AssessorSkill, UpdateAllocationStatusRequest}
 import model.persisted.AssessorAllocation
-import model.persisted.assessor.{ Assessor, AssessorStatus }
+import model.persisted.assessor.{Assessor, AssessorStatus}
 import model.persisted.eventschedules.SkillType.SkillType
-import model.persisted.eventschedules.{ Event, Location, SkillType }
-import model.{ SerialUpdateResult, UniqueIdentifier, exchange, persisted }
-import org.joda.time.{ DateTime, LocalDate }
+import model.persisted.eventschedules.{Event, Location, SkillType}
+import model.{SerialUpdateResult, UniqueIdentifier, exchange, persisted}
+import org.joda.time.{DateTime, LocalDate}
 import play.api.Logging
 import repositories.events.LocationsWithVenuesRepository
-import repositories.{ AssessorAllocationRepository, AssessorRepository }
+import repositories.{AssessorAllocationRepository, AssessorRepository}
 import services.events.EventsService
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AssessorService @Inject() (assessorRepository: AssessorRepository,
@@ -46,7 +46,7 @@ class AssessorService @Inject() (assessorRepository: AssessorRepository,
                                  locationsWithVenuesRepo: LocationsWithVenuesRepository,
                                  authProviderClient: AuthProviderClient,
                                  @Named("CSREmailClient") emailClient: OnlineTestEmailClient //TODO:fix changed type
-                                ) extends Logging {
+                                )(implicit ec: ExecutionContext) extends Logging {
 
   private[assessor] def newVersion = Some(UniqueIdentifier.randomUniqueIdentifier.toString())
 

@@ -24,10 +24,9 @@ import model.persisted.FSACIndicator
 import org.mongodb.scala.bson.collection.immutable.Document
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-import repositories.{ CollectionNames, ReactiveRepositoryHelpers }
+import repositories.{CollectionNames, ReactiveRepositoryHelpers}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait FSACIndicatorRepository {
   def update(applicationId: String, userId: String, indicator: FSACIndicator): Future[Unit]
@@ -35,7 +34,7 @@ trait FSACIndicatorRepository {
 }
 
 @Singleton
-class FSACIndicatorMongoRepository @Inject() (mongo: MongoComponent)
+class FSACIndicatorMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[FSACIndicator](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongo,

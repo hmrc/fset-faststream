@@ -18,19 +18,20 @@ package services.onlinetesting.phase1
 
 import akka.actor.ActorSystem
 import com.google.inject.name.Named
-import common.{ FutureEx, Phase1TestConcern }
-import config.{ MicroserviceAppConfig, PsiTestIds, OnlineTestsGatewayConfig }
+import common.{FutureEx, Phase1TestConcern}
+import config.{MicroserviceAppConfig, OnlineTestsGatewayConfig, PsiTestIds}
 import connectors.ExchangeObjects._
-import connectors.{ OnlineTestEmailClient, OnlineTestsGatewayClient }
-import factories.{ DateTimeFactory, UUIDFactory }
-import javax.inject.{ Inject, Singleton }
+import connectors.{OnlineTestEmailClient, OnlineTestsGatewayClient}
+import factories.{DateTimeFactory, UUIDFactory}
+
+import javax.inject.{Inject, Singleton}
 import model.Exceptions._
 import model.OnlineTestCommands._
 import model.ProgressStatuses.PHASE1_TESTS_STARTED
 import model._
-import model.exchange.{ Phase1TestGroupWithNames, PsiRealTimeResults }
-import model.persisted.{ Phase1TestProfile, PsiTestResult => _, _ }
-import model.stc.{ AuditEvents, DataStoreEvents }
+import model.exchange.{Phase1TestGroupWithNames, PsiRealTimeResults}
+import model.persisted.{Phase1TestProfile, PsiTestResult => _, _}
+import model.stc.{AuditEvents, DataStoreEvents}
 import org.joda.time.DateTime
 import play.api.Logging
 import play.api.mvc.RequestHeader
@@ -38,16 +39,16 @@ import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
-import services.onlinetesting.Exceptions.{ TestCancellationException, TestRegistrationException }
-import services.onlinetesting.{ TextSanitizer, OnlineTestService }
+import services.onlinetesting.Exceptions.{TestCancellationException, TestRegistrationException}
+import services.onlinetesting.{OnlineTestService, TextSanitizer}
 import services.sift.ApplicationSiftService
 import services.stc.StcEventService
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import scala.util.{ Failure, Success }
+import scala.util.{Failure, Success}
 
 @Singleton
 class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
@@ -62,7 +63,8 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
                                    val siftService: ApplicationSiftService,
                                    val eventService: StcEventService,
                                    val actor: ActorSystem
-                                  ) extends OnlineTestService with Phase1TestConcern with ResetPhase1Test with Logging {
+                                  )(
+  implicit ec: ExecutionContext) extends OnlineTestService with Phase1TestConcern with ResetPhase1Test with Logging {
 
   type TestRepository = Phase1TestRepository
 
@@ -163,7 +165,8 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
     registerCandidateForTests(application, getTestNamesForApplication(application))
   }
 
-  override def processNextExpiredTest(expiryTest: TestExpirationEvent)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  override def processNextExpiredTest(expiryTest: TestExpirationEvent)(
+    implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit] = {
     testRepository.nextExpiringApplication(expiryTest).flatMap {
       case Some(expired) =>
         logger.warn(s"Expiring candidates for PHASE1 - expiring candidate ${expired.applicationId}")

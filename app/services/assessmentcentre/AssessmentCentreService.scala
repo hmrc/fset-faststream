@@ -18,27 +18,27 @@ package services.assessmentcentre
 
 import com.google.inject.name.Named
 import common.FutureEx
-import javax.inject.{ Inject, Singleton }
-import model.EvaluationResults.{ AssessmentEvaluationResult, CompetencyAverageResult, Green }
+
+import javax.inject.{Inject, Singleton}
+import model.EvaluationResults.{AssessmentEvaluationResult, CompetencyAverageResult, Green}
 import model.Exceptions.NoResultsReturned
 import model.ProgressStatuses._
 import model._
-import model.assessmentscores.{ AssessmentScoresExercise, FixUserStuckInScoresAccepted }
+import model.assessmentscores.{AssessmentScoresExercise, FixUserStuckInScoresAccepted}
 import model.command.ApplicationForProgression
 import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
 import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
 import model.persisted.SchemeEvaluationResult
-import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
+import model.persisted.fsac.{AnalysisExercise, AssessmentCentreTests}
 import play.api.Logging
 import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.AssessmentCentreRepository
-import repositories.{ AssessmentScoresRepository, CurrentSchemeStatusHelper }
+import repositories.{AssessmentScoresRepository, CurrentSchemeStatusHelper}
 import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
 import services.evaluation.AssessmentCentreEvaluationEngine
 import services.passmarksettings.AssessmentCentrePassMarkSettingsService
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 object AssessmentCentreService {
   case class CandidateAlreadyHasAnAnalysisExerciseException(message: String) extends Exception(message)
@@ -52,7 +52,7 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
                                          passmarkService: AssessmentCentrePassMarkSettingsService,
                                          @Named("ReviewerAssessmentScoresRepo") assessmentScoresRepo: AssessmentScoresRepository,
                                          evaluationEngine: AssessmentCentreEvaluationEngine
-                                        ) extends CurrentSchemeStatusHelper with Logging {
+                                        )(implicit ec: ExecutionContext) extends CurrentSchemeStatusHelper with Logging {
 
   private val logPrefix = "[Assessment Evaluation]"
 

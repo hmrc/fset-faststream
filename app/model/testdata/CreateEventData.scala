@@ -18,11 +18,13 @@ package model.testdata
 
 import model.command.testdata.CreateEventRequest
 import model.persisted.eventschedules._
-import org.joda.time.{ DateTime, LocalDate, LocalTime }
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.{ Json, OFormat }
+import org.joda.time.{DateTime, LocalDate, LocalTime}
+import play.api.libs.json.JodaWrites._
+import play.api.libs.json.JodaReads._
+import play.api.libs.json.{Json, OFormat}
 import services.testdata.faker.DataFaker
+
+import scala.concurrent.ExecutionContext
 
 case class CreateEventData(id: String,
                            eventType: EventType.EventType,
@@ -47,7 +49,8 @@ object CreateEventData {
   implicit val format: OFormat[CreateEventData] = Json.format[CreateEventData]
 
   //TODO: what is the generatorId for - delete??
-  def apply(createRequest: CreateEventRequest, venues: List[Venue], dataFaker: DataFaker)(generatorId: Int): CreateEventData = {
+  def apply(createRequest: CreateEventRequest, venues: List[Venue], dataFaker: DataFaker)(generatorId: Int)(
+    implicit ec: ExecutionContext): CreateEventData = {
 
     val id = createRequest.id.getOrElse(dataFaker.Event.id)
     val eventType = createRequest.eventType.getOrElse(dataFaker.Event.eventType)

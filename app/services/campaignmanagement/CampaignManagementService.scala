@@ -17,9 +17,10 @@
 package services.campaignmanagement
 
 import factories.UUIDFactory
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.command.SetTScoreRequest
-import model.exchange.campaignmanagement.{ AfterDeadlineSignupCode, AfterDeadlineSignupCodeUnused }
+import model.exchange.campaignmanagement.{AfterDeadlineSignupCode, AfterDeadlineSignupCodeUnused}
 import model.persisted._
 import org.joda.time.DateTime
 import repositories._
@@ -28,8 +29,7 @@ import repositories.campaignmanagement.CampaignManagementAfterDeadlineSignupCode
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class CampaignManagementService @Inject() (afterDeadlineCodeRepository: CampaignManagementAfterDeadlineSignupCodeRepository,
@@ -39,7 +39,7 @@ class CampaignManagementService @Inject() (afterDeadlineCodeRepository: Campaign
                                            phase2TestRepo: Phase2TestRepository,
                                            questionnaireRepo: QuestionnaireRepository,
                                            mediaRepo: MediaRepository,
-                                           contactDetailsRepo: ContactDetailsRepository) {
+                                           contactDetailsRepo: ContactDetailsRepository)(implicit ec: ExecutionContext) {
 
   def afterDeadlineSignupCodeUnusedAndValid(code: String): Future[AfterDeadlineSignupCodeUnused] = {
     afterDeadlineCodeRepository.findUnusedValidCode(code).map(storedCodeOpt =>

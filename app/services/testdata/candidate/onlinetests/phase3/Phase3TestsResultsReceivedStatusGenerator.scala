@@ -17,10 +17,11 @@
 package services.testdata.candidate.onlinetests.phase3
 
 import connectors.launchpadgateway.exchangeobjects.in.reviewed._
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import org.joda.time.{ DateTime, LocalDate }
+import org.joda.time.{DateTime, LocalDate}
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase3TestRepository
@@ -28,8 +29,7 @@ import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 //object Phase3TestsResultsReceivedStatusGenerator extends Phase3TestsResultsReceivedStatusGenerator {
 //  val previousStatusGenerator = Phase3TestsCompletedStatusGenerator
@@ -42,7 +42,7 @@ class Phase3TestsResultsReceivedStatusGenerator @Inject() (val previousStatusGen
                                                            appRepository: GeneralApplicationRepository,
                                                            phase3TestRepo: Phase3TestRepository,
                                                            dataFaker: DataFaker
-                                                          ) extends ConstructiveGenerator {
+                                                          )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
 //  val appRepository: GeneralApplicationRepository
 //  val phase3TestRepo: Phase3TestRepository
 
@@ -90,7 +90,7 @@ class Phase3TestsResultsReceivedStatusGenerator @Inject() (val previousStatusGen
     )
   }
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
     val receivedBeforeInHours = generatorConfig.phase3TestData.flatMap(_.receivedBeforeInHours).getOrElse(0)
     val scores = generatorConfig.phase3TestData.map(_.scores).getOrElse(Nil)
     val generateNullScoresForFewQuestions = generatorConfig.phase3TestData.flatMap(_.generateNullScoresForFewQuestions).getOrElse(false)

@@ -34,6 +34,7 @@ import repositories.personaldetails.PersonalDetailsRepository
 import repositories.{ AssessmentScoresRepository, CandidateAllocationRepository }
 import services.BaseServiceSpec
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class AssessorAssessmentScoresServiceSpec extends AssessmentScoresServiceSpec {

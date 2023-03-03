@@ -17,13 +17,14 @@
 package services.testdata.candidate.fsb
 
 import factories.UUIDFactory
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.command.testdata.CreateEventRequest
-import model.command.{ CandidateAllocation, CandidateAllocations }
+import model.command.{CandidateAllocation, CandidateAllocations}
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.persisted.eventschedules.EventType
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import model.{ AllocationStatuses, ProgressStatuses }
+import model.{AllocationStatuses, ProgressStatuses}
 import play.api.mvc.RequestHeader
 import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
@@ -33,8 +34,7 @@ import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.event.EventGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class FsbAllocationConfirmedStatusGenerator @Inject() (val previousStatusGenerator: FsbAwaitingAllocationStatusGenerator,
@@ -44,10 +44,10 @@ class FsbAllocationConfirmedStatusGenerator @Inject() (val previousStatusGenerat
                                                        eventGenerator: EventGenerator,
                                                        schemeRepository: SchemeRepository,
                                                        uuidFactory: UUIDFactory
-                                                      ) extends ConstructiveGenerator {
+                                                      )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
 
   def generate(generationId: Int, createCandidateData: CreateCandidateData)
-              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {
 
     val allSchemes = schemeRepository.schemes.toList
 

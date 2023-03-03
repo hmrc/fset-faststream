@@ -16,17 +16,17 @@
 
 package services.testdata
 
-import javax.inject.{ Inject, Singleton }
-import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
+import javax.inject.{Inject, Singleton}
+import model.persisted.{QuestionnaireAnswer, QuestionnaireQuestion}
 import model.testdata.candidate.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
 import repositories.application.GeneralApplicationRepository
-import services.testdata.candidate.{ ConstructiveGenerator, InProgressAssistanceDetailsStatusGenerator }
+import services.testdata.candidate.{ConstructiveGenerator, InProgressAssistanceDetailsStatusGenerator}
 import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 //object InProgressQuestionnaireStatusGenerator extends InProgressQuestionnaireStatusGenerator {
 //  override val previousStatusGenerator = InProgressAssistanceDetailsStatusGenerator
@@ -39,7 +39,7 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
                                                         appRepository: GeneralApplicationRepository,
                                                         qRepository: QuestionnaireRepository,
                                                         dataFaker: DataFaker
-                                                       ) extends ConstructiveGenerator {
+                                                       )(implicit ec : ExecutionContext) extends ConstructiveGenerator {
 //  val appRepository: GeneralApplicationRepository
 //  val qRepository: QuestionnaireRepository
 
@@ -174,7 +174,8 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
     getSuperviseEmployees(parentsOccupation)
   ).filter(_.isDefined).map { someItem => someItem.get }
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateData.CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData.CreateCandidateData)(
+    implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)

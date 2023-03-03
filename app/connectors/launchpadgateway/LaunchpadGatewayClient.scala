@@ -26,11 +26,10 @@ import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class LaunchpadGatewayClient @Inject() (http: WSHttpT, config: MicroserviceAppConfig) {
+class LaunchpadGatewayClient @Inject() (http: WSHttpT, config: MicroserviceAppConfig)(implicit ec: ExecutionContext) {
   val url: String = config.launchpadGatewayConfig.url
 
   // Blank out header carriers for calls to VIG. Passing on someone's true-client-ip header will cause them to be reassessed

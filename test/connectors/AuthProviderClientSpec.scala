@@ -52,6 +52,7 @@ class AuthProviderClientSpec extends UnitSpec with ShortTimeout {
   trait TestFixture {
     val mockWsHttp: WSHttpT = mock[WSHttpT]
     val mockMicroserviceAppConfig = mock[MicroserviceAppConfig]
+    import scala.concurrent.ExecutionContext.Implicits.global
     val authProviderClient = new AuthProviderClient(mockWsHttp, mockMicroserviceAppConfig)
   }
 }

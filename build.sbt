@@ -83,13 +83,6 @@ lazy val microservice = Project(appName, file("."))
     IntegrationTest / testGrouping := oneForkedJvmPerTest((IntegrationTest / definedTests).value),
     IntegrationTest / parallelExecution := false)
   .settings(resolvers ++= Seq(Resolver.jcenterRepo))
-//  .settings(
-//    resolvers ++= Seq(
-//      Resolver.bintrayRepo("hmrc", "releases"),
-//      Resolver.typesafeRepo("releases"),
-//      Resolver.jcenterRepo
-//    )
-//  )
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
 
 def oneForkedJvmPerTest(tests: Seq[TestDefinition]) =

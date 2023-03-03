@@ -28,8 +28,7 @@ import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[OnlineTestsGatewayClientImpl])
 trait OnlineTestsGatewayClient extends Logging {
@@ -41,7 +40,7 @@ trait OnlineTestsGatewayClient extends Logging {
   // for whitelisting in the LPG as well (even though they've gone from front -> back -> LPG), which leads to undesirable behaviour.
   implicit def blankedHeaderCarrier = HeaderCarrier()
 
-  def psiRegisterApplicant(request: RegisterCandidateRequest): Future[AssessmentOrderAcknowledgement] = {
+  def psiRegisterApplicant(request: RegisterCandidateRequest)(implicit ec: ExecutionContext): Future[AssessmentOrderAcknowledgement] = {
     logger.debug(s"$root psi registerApplicant POST request, body=${Json.toJson(request).toString}")
 
     http.POST[RegisterCandidateRequest, HttpResponse](url = s"$url/$root/faststream/psi-register", request).map { response =>
@@ -54,7 +53,7 @@ trait OnlineTestsGatewayClient extends Logging {
     }
   }
 
-  def psiCancelTest(request: CancelCandidateTestRequest): Future[AssessmentCancelAcknowledgementResponse] = {
+  def psiCancelTest(request: CancelCandidateTestRequest)(implicit ec: ExecutionContext): Future[AssessmentCancelAcknowledgementResponse] = {
     logger.debug(s"cancelTest - $request")
 
     http.GET[HttpResponse](url = s"$url/$root/faststream/psi-cancel-assessment/${request.orderId}").map { response =>
@@ -67,7 +66,7 @@ trait OnlineTestsGatewayClient extends Logging {
     }
   }
 
-  def downloadPsiTestResults(reportId: Int): Future[PsiTestResult] = {
+  def downloadPsiTestResults(reportId: Int)(implicit ec: ExecutionContext): Future[PsiTestResult] = {
     logger.debug(s"$root downloadPsiTestResults GET request - $url/$root/faststream/psi-results/$reportId")
 
     http.GET[HttpResponse](s"$url/$root/faststream/psi-results/$reportId").map { response =>
@@ -82,6 +81,7 @@ trait OnlineTestsGatewayClient extends Logging {
 }
 
 @Singleton
-class OnlineTestsGatewayClientImpl @Inject() (val http: WSHttpT, appConfig: MicroserviceAppConfig) extends OnlineTestsGatewayClient {
+class OnlineTestsGatewayClientImpl @Inject() (val http: WSHttpT, appConfig: MicroserviceAppConfig)(
+  implicit ec: ExecutionContext) extends OnlineTestsGatewayClient {
   val url: String = appConfig.onlineTestsGatewayConfig.url
 }

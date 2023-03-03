@@ -7,6 +7,8 @@ import org.mockito.Mockito.when
 import repositories.events.{LocationsWithVenuesInMemoryYamlRepository, UnknownLocationException, UnknownVenueException}
 import testkit.UnitWithAppSpec
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 class LocationsWithVenuesRepositorySpec extends UnitWithAppSpec {
 
   "LocationsWithVenuesRepository" should {

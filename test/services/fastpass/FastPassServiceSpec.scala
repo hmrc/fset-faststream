@@ -21,10 +21,10 @@ import model._
 import model.command.PersonalDetailsExamples._
 import model.command.ProgressResponse
 import model.persisted.ContactDetailsExamples.ContactDetailsUK
-import model.persisted.{ AssistanceDetails, SchemeEvaluationResult }
+import model.persisted.{AssistanceDetails, SchemeEvaluationResult}
 import org.joda.time.DateTime
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
-import org.mockito.Mockito.{ atLeast => atLeastTimes, _ }
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
+import org.mockito.Mockito.{atLeast => atLeastTimes, _}
 import play.api.mvc.RequestHeader
 import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
@@ -37,10 +37,11 @@ import services.scheme.SchemePreferencesService
 import services.sift.ApplicationSiftService
 import services.stc.StcEventServiceFixture
 import testkit.MockitoImplicits._
-import testkit.{ ExtendedTimeout, UnitSpec }
+import testkit.{ExtendedTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
 
@@ -73,7 +74,8 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(personalDetailsServiceMock).find(appId, userId)
       verify(cdRepositoryMock).find(userId)
       verify(emailClientMock).sendEmailWithName(
-        eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (any[HeaderCarrier])
+        eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (
+        any[HeaderCarrier], any[ExecutionContext])
       verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
     }
 
@@ -114,7 +116,8 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(cdRepositoryMock).find(userId)
       verify(applicationSiftServiceMock, never()).sendSiftEnteredNotification(eqTo(appId), any[DateTime])(any[HeaderCarrier])
       verify(emailClientMock).sendEmailWithName(
-        eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (any[HeaderCarrier])
+        eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (
+        any[HeaderCarrier], any[ExecutionContext])
       verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
     }
 
@@ -135,7 +138,8 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(personalDetailsServiceMock).find(appId, userId)
       verify(cdRepositoryMock).find(userId)
       verify(emailClientMock).sendEmailWithName(
-        eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (any[HeaderCarrier])
+        eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (
+        any[HeaderCarrier], any[ExecutionContext])
       verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
     }
 
@@ -169,7 +173,8 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
         verify(personalDetailsServiceMock).find(appId, userId)
         verify(cdRepositoryMock).find(userId)
         verify(emailClientMock).sendEmailWithName(
-          eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (any[HeaderCarrier])
+          eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (
+          any[HeaderCarrier], any[ExecutionContext])
         verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
     }
 
@@ -195,7 +200,8 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
         verify(personalDetailsServiceMock).find(appId, userId)
         verify(cdRepositoryMock).find(userId)
         verify(emailClientMock).sendEmailWithName(
-          eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (any[HeaderCarrier])
+          eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (
+          any[HeaderCarrier], any[ExecutionContext])
         verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
     }
 
@@ -229,7 +235,8 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
         verify(personalDetailsServiceMock).find(appId, userId)
         verify(cdRepositoryMock).find(userId)
         verify(emailClientMock).sendEmailWithName(
-          eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (any[HeaderCarrier])
+          eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (
+          any[HeaderCarrier], any[ExecutionContext])
         verifyNoMoreInteractions(csedRepositoryMock, personalDetailsServiceMock, cdRepositoryMock, emailClientMock)
     }
 
@@ -373,7 +380,8 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
     when(appRepoMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])).thenReturn(serviceFutureResponse)
     when(personalDetailsServiceMock.find(any[String], any[String])).thenReturn(personalDetailsResponse)
     when(cdRepositoryMock.find(any[String])).thenReturn(contactDetailsResponse)
-    when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier])).thenReturn(serviceFutureResponse)
+    when(emailClientMock.sendEmailWithName(any[String], any[String], any[String])(any[HeaderCarrier], any[ExecutionContext]))
+      .thenReturn(serviceFutureResponse)
     when(schemePreferencesServiceMock.find(any[String])).thenReturn(Future.successful(selectedSchemes))
     when(schemesRepositoryMock.siftableSchemeIds).thenReturn(siftableSchemes)
     when(schemesRepositoryMock.numericTestSiftRequirementSchemeIds).thenReturn(numericSchemes)

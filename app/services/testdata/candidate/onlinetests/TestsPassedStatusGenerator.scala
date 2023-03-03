@@ -17,11 +17,12 @@
 package services.testdata.candidate.onlinetests
 
 import factories.UUIDFactory
-import javax.inject.{ Inject, Named, Singleton }
+
+import javax.inject.{Inject, Named, Singleton}
 import model.EvaluationResults
-import model.ProgressStatuses.{ PHASE1_TESTS_PASSED, PHASE2_TESTS_PASSED, PHASE3_TESTS_PASSED, ProgressStatus }
+import model.ProgressStatuses.{PHASE1_TESTS_PASSED, PHASE2_TESTS_PASSED, PHASE3_TESTS_PASSED, ProgressStatus}
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
-import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
+import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories.onlinetesting._
@@ -31,8 +32,7 @@ import services.testdata.candidate.onlinetests.phase2.Phase2TestsResultsReceived
 import services.testdata.candidate.onlinetests.phase3.Phase3TestsResultsReceivedStatusGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait TestsPassedStatusGenerator extends ConstructiveGenerator {
   val evaluationRepository: OnlineTestEvaluationRepository
@@ -41,7 +41,7 @@ trait TestsPassedStatusGenerator extends ConstructiveGenerator {
   def updateGenerationResponse(dgr: CreateCandidateResponse, pme: PassmarkEvaluation): CreateCandidateResponse
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
-              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[CreateCandidateResponse] = {
+              (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {
     previousStatusGenerator.generate(generationId, generatorConfig).flatMap { candidateResponse =>
       val evaluation = passmarkEvaluation(generatorConfig, candidateResponse)
       evaluationRepository.savePassmarkEvaluation(candidateResponse.applicationId.getOrElse(""), evaluation, Some(passedStatus)).map { _ =>
@@ -56,7 +56,7 @@ class Phase1TestsPassedStatusGenerator @Inject() (val previousStatusGenerator: P
                                                   @Named("Phase1EvaluationRepository")
                                                   val evaluationRepository: OnlineTestEvaluationRepository,
                                                   val uuidFactory: UUIDFactory
-                                                 ) extends TestsPassedStatusGenerator {
+                                                 )(implicit ec: ExecutionContext) extends TestsPassedStatusGenerator {
 //  val previousStatusGenerator = Phase1TestsResultsReceivedStatusGenerator
 //  val evaluationRepository: Phase1EvaluationMongoRepository = faststreamPhase1EvaluationRepository
   override val passedStatus = PHASE1_TESTS_PASSED
@@ -83,7 +83,7 @@ class Phase2TestsPassedStatusGenerator @Inject() (val previousStatusGenerator: P
                                                   @Named("Phase2EvaluationRepository")
                                                   val evaluationRepository: OnlineTestEvaluationRepository,
                                                   val uuidFactory: UUIDFactory
-                                                 ) extends TestsPassedStatusGenerator {
+                                                 )(implicit ec: ExecutionContext) extends TestsPassedStatusGenerator {
 //  val previousStatusGenerator = Phase2TestsResultsReceivedStatusGenerator
 //  val evaluationRepository: Phase2EvaluationMongoRepository = faststreamPhase2EvaluationRepository
   val passedStatus = PHASE2_TESTS_PASSED
@@ -110,7 +110,7 @@ class Phase3TestsPassedStatusGenerator @Inject() (val previousStatusGenerator: P
                                                   @Named("Phase3EvaluationRepository")
                                                   val evaluationRepository: OnlineTestEvaluationRepository,
                                                   val uuidFactory: UUIDFactory
-                                                 ) extends TestsPassedStatusGenerator {
+                                                 )(implicit ec: ExecutionContext) extends TestsPassedStatusGenerator {
 //  val previousStatusGenerator = Phase3TestsResultsReceivedStatusGenerator
 //  val evaluationRepository: Phase3EvaluationMongoRepository = faststreamPhase3EvaluationRepository
 //  val appRepository: GeneralApplicationMongoRepository = applicationRepository

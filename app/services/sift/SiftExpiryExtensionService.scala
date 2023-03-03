@@ -17,26 +17,26 @@
 package services.sift
 
 import factories.DateTimeFactory
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.ProgressStatuses._
 import model.command.ProgressResponse
-import model.stc.{ AuditEvent, AuditEvents, DataStoreEvents }
+import model.stc.{AuditEvent, AuditEvents, DataStoreEvents}
 import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.sift.ApplicationSiftRepository
-import services.stc.{ EventSink, StcEventService }
+import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SiftExpiryExtensionService @Inject() (appRepository: GeneralApplicationRepository,
                                             siftRepository: ApplicationSiftRepository,
                                             val dateTimeFactory: DateTimeFactory,
                                             val eventService: StcEventService
-                                           ) extends EventSink {
+                                           )(implicit ec: ExecutionContext) extends EventSink {
 
   import SiftExpiryExtensionServiceImpl._
 
