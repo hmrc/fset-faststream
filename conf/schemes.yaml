@@ -40,7 +40,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: EAC_DS
-  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB_Guide_Economic_Service_2022.pdf
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB_Guide_Economic_Service.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/scheme-questions-ges-ddes.odt
 - id: Finance
   code: FIFS
@@ -89,7 +89,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: EAC
-  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB_Guide_Economic_Service_2022.pdf
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB_Guide_Economic_Service.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/1248/scheme-questions-ges.odt
 - id: GovernmentOperationalResearchService
   code: GORS
@@ -101,7 +101,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: ORAC
-  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB_Guide_GORS_2022.pdf
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Government-Operational-Research.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/1249/scheme-questions-gors.odt
 - id: GovernmentSocialResearchService
   code: GSR
@@ -113,7 +113,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: SRAC
-  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/SRAC_Candidate_guide_2022.pdf
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Social-Research.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/1262/GSR-FS-scheme-questions-gsr.odt
 - id: GovernmentStatisticalService
   code: GSS
@@ -125,7 +125,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: SAC
-  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/2022_FSB_Guide_Stats.pdf
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Government-Statistical-Service.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/1250/scheme-questions-gss.odt
 - id: HousesOfParliament
   code: HOP
