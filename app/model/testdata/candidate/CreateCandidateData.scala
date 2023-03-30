@@ -24,8 +24,8 @@ import model._
 import model.command.testdata.CreateCandidateRequest._
 import model.testdata.CreateAdminData.AssessorData
 import model.testdata.CreateTestData
-import org.joda.time.LocalDate
-import org.joda.time.format.DateTimeFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import services.testdata.faker.{ DataFaker, DataFakerRandom }
 
 object CreateCandidateData extends DataFakerRandom {
@@ -94,7 +94,7 @@ object CreateCandidateData extends DataFakerRandom {
     firstName: String = Random.firstname(1),
     lastName: String = Random.lastname(1),
     preferredName: Option[String] = None,
-    dob: LocalDate = new LocalDate(1981, Random.monthNumber, 21),
+    dob: LocalDate = LocalDate.of(1981, Random.monthNumber, 21),
     postCode: Option[String] = None,
     country: Option[String] = None,
     edipCompleted: Option[Boolean] = None,
@@ -119,7 +119,7 @@ object CreateCandidateData extends DataFakerRandom {
         firstName = fname,
         lastName = o.lastName.getOrElse(dataFaker.Random.lastname(generatorId)),
         preferredName = o.preferredName,
-        dob = o.dateOfBirth.map(x => LocalDate.parse(x, DateTimeFormat.forPattern("yyyy-MM-dd"))).getOrElse(default.dob),
+        dob = o.dateOfBirth.map(x => LocalDate.parse(x, DateTimeFormatter.ofPattern("yyyy-MM-dd"))).getOrElse(default.dob),
         postCode = o.postCode,
         country = o.country,
         edipCompleted = o.edipCompleted

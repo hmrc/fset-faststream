@@ -19,7 +19,7 @@ package services.search
 import connectors.AuthProviderClient
 import model.persisted.ContactDetailsWithId
 import model.{ Address, Candidate, SearchCandidate }
-import org.joda.time.LocalDate
+import java.time.LocalDate
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import repositories.application.GeneralApplicationRepository
@@ -72,12 +72,12 @@ class SearchForApplicantServiceSpec extends BaseServiceSpec with ShortTimeout {
       when(appRepositoryMock.findByCriteria(any[Option[String]], any[Option[String]],
         any[Option[LocalDate]], any[List[String]])
       ).thenReturn(Future.successful(List(Candidate("123", None, None, None, Some("Leia"), Some("Amadala"), None,
-        Some(new LocalDate("1990-11-25")), None, None, None, None, None))))
+        Some(LocalDate.parse("1990-11-25")), None, None, None, None, None))))
 
       val actual = searchForApplicantService.findByCriteria(SearchCandidate(firstOrPreferredName = None,
-        lastName = None, dateOfBirth = Some(new LocalDate("1990-11-25")), postCode = None)).futureValue
+        lastName = None, dateOfBirth = Some(LocalDate.parse("1990-11-25")), postCode = None)).futureValue
 
-      val expectedWithDateOfBirth = expected.copy(dateOfBirth = Some(new LocalDate("1990-11-25")))
+      val expectedWithDateOfBirth = expected.copy(dateOfBirth = Some(LocalDate.parse("1990-11-25")))
       actual mustBe List(expectedWithDateOfBirth)
     }
 

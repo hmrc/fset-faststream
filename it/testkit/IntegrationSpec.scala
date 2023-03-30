@@ -19,13 +19,13 @@ package testkit
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Span}
+import org.scalatest.wordspec.AnyWordSpec
 
 import scala.language.postfixOps
+import org.scalatest.matchers.must.Matchers
 
 abstract class IntegrationSpec
-  extends WordSpec with MustMatchers with OptionValues with Inside with Inspectors with ScalaFutures {
+  extends AnyWordSpec with Matchers with OptionValues with Inside with Inspectors with ScalaFutures {
   // System-wide setting for integration test timeouts.
   override implicit def patienceConfig = PatienceConfig(timeout = scaled(Span(5000, Millis)))
 }
-
-

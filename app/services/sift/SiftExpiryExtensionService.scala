@@ -22,13 +22,13 @@ import javax.inject.{Inject, Singleton}
 import model.ProgressStatuses._
 import model.command.ProgressResponse
 import model.stc.{AuditEvent, AuditEvents, DataStoreEvents}
-import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.sift.ApplicationSiftRepository
 import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -50,7 +50,7 @@ class SiftExpiryExtensionService @Inject() (appRepository: GeneralApplicationRep
 
       (progressResponse, siftTestGroup) match {
         case (progress, Some(group)) if progress.siftProgressResponse.siftExpired =>
-          Extension(dateTimeFactory.nowLocalTimeZone.plusDays(extraDays), expired = true, progressResponse)
+          Extension(dateTimeFactory.nowLocalTimeZoneJavaTime.plusDays(extraDays), expired = true, progressResponse)
         case (progress, Some(group)) if !progress.siftProgressResponse.siftExpired &&
           progress.siftProgressResponse.siftEntered =>
           Extension(group.expirationDate.plusDays(extraDays), expired = false, progressResponse)
@@ -85,7 +85,7 @@ class SiftExpiryExtensionService @Inject() (appRepository: GeneralApplicationRep
 
 case class SiftExtensionException(message: String) extends Exception(message)
 
-private final case class Extension(extendedExpiryDate: DateTime, expired: Boolean, progress: ProgressResponse)
+private final case class Extension(extendedExpiryDate: OffsetDateTime, expired: Boolean, progress: ProgressResponse)
 
 object SiftExpiryExtensionServiceImpl {
 

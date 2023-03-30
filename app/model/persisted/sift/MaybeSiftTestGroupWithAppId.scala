@@ -17,12 +17,11 @@
 package model.persisted.sift
 
 import model.persisted.PsiTest
-import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.Json
 
-case class MaybeSiftTestGroupWithAppId(applicationId: String, expirationDate: DateTime, tests: Option[List[PsiTest]])
+import java.time.OffsetDateTime
+
+case class MaybeSiftTestGroupWithAppId(applicationId: String, expirationDate: OffsetDateTime, tests: Option[List[PsiTest]])
 
 object MaybeSiftTestGroupWithAppId {
   implicit val siftTestGroupFormat = Json.format[MaybeSiftTestGroupWithAppId]

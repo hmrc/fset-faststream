@@ -16,12 +16,11 @@
 
 package model.exchange.sift
 
-import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.Json
 
-case class SiftState(siftEnteredDate: DateTime, expirationDate: DateTime)
+import java.time.OffsetDateTime
+
+case class SiftState(siftEnteredDate: OffsetDateTime, expirationDate: OffsetDateTime)
 
 object SiftState {
   implicit val siftStateFormat = Json.format[SiftState]

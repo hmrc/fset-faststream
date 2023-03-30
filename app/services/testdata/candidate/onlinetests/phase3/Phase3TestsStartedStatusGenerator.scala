@@ -28,6 +28,7 @@ import services.onlinetesting.phase3.Phase3TestService
 import services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -43,7 +44,7 @@ class Phase3TestsStartedStatusGenerator @Inject() (val previousStatusGenerator: 
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- FutureEx.traverseSerial(candidate.phase3TestGroup.get.tests.map(_.token))(token =>
-        otService.markAsStarted(token, generatorConfig.phase3TestData.flatMap(_.start).getOrElse(DateTime.now))
+        otService.markAsStarted(token, generatorConfig.phase3TestData.flatMap(_.start).getOrElse(OffsetDateTime.now))
       )
     } yield candidate
   }

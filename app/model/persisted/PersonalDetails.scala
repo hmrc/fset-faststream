@@ -16,7 +16,7 @@
 
 package model.persisted
 
-import org.joda.time.LocalDate
+import java.time.LocalDate
 import play.api.libs.functional.syntax._
 import play.api.libs.json.JodaReads.DefaultJodaLocalDateReads
 import play.api.libs.json.JodaWrites.DefaultJodaLocalDateWrites

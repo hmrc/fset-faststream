@@ -16,18 +16,19 @@
 
 package model.persisted
 
-import org.joda.time.DateTime
 import org.mongodb.scala.bson.collection.immutable.Document
 import play.api.libs.json.Json
 import repositories.subDocRoot
 import uk.gov.hmrc.mongo.play.json.Codecs
-import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed for ISODate
+import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+
+import java.time.OffsetDateTime // Needed for ISODate
 
 case class NotificationExpiringOnlineTest(
   applicationId: String,
   userId: String,
   preferredName: String,
-  expiryDate: DateTime
+  expiryDate: OffsetDateTime
 )
 
 object NotificationExpiringOnlineTest {
@@ -41,7 +42,7 @@ object NotificationExpiringOnlineTest {
     val preferredName = personalDetailsRoot.get("preferredName").asString().getValue
     val testGroupsRoot = subDocRoot("testGroups")(doc).get
     val PHASERoot = testGroupsRoot.get(phase).asDocument()
-    val expiryDate = Codecs.fromBson[DateTime](PHASERoot.get("expirationDate").asDateTime())
+    val expiryDate = Codecs.fromBson[OffsetDateTime](PHASERoot.get("expirationDate").asDateTime())
 
     NotificationExpiringOnlineTest(applicationId, userId, preferredName, expiryDate)
   }

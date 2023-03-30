@@ -26,7 +26,7 @@ import model.exchange.sift.SiftState
 import model.persisted.sift.{NotificationExpiringSift, SiftTestGroup}
 import model.persisted.{ContactDetails, ContactDetailsExamples, SchemeEvaluationResult}
 import model.sift.{FixUserStuckInSiftEntered, SiftFirstReminder, SiftSecondReminder}
-import org.joda.time.{DateTime, LocalDate}
+import java.time.{OffsetDateTime, LocalDate}
 import org.mongodb.scala.bson.collection.immutable.Document
 import repositories.TestSchemeRepository
 import repositories.application.GeneralApplicationRepository
@@ -46,7 +46,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
   trait TestFixture  {
     val appId = "applicationId"
     val userId = "userId"
-    val expiryDate = DateTime.now()
+    val expiryDate = OffsetDateTime.now()
     val expiringSift = NotificationExpiringSift(appId, userId, "TestUser", expiryDate)
 
     val mockApplicationSiftRepo = mock[ApplicationSiftRepository]
@@ -417,7 +417,8 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
 
       (mockApplicationRepo.find(_ : String)).expects(appId).returningAsync(Some(candidate))
       (mockContactDetailsRepo.find _ ).expects("userId").returningAsync(contactDetails)
-      (mockEmailClient.notifyCandidateSiftEnteredAdditionalQuestions(_: String, _: String, _: DateTime)(_: HeaderCarrier, _: ExecutionContext))
+      (mockEmailClient.notifyCandidateSiftEnteredAdditionalQuestions(_: String, _: String, _: OffsetDateTime)
+      (_: HeaderCarrier, _: ExecutionContext))
         .expects(contactDetails.email, candidate.name, expiryDate, *, *).returningAsync
 
       whenReady(service.sendSiftEnteredNotification(appId, expiryDate)(HeaderCarrier())) { result => result mustBe unit }
@@ -429,7 +430,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       val contactDetails = ContactDetailsExamples.ContactDetailsUK
 
       (mockContactDetailsRepo.find _ ).expects(userId).returningAsync(contactDetails)
-      (mockEmailClient.sendSiftReminder(_: String, _: String, _: Int, _: TimeUnit, _: DateTime)(_: HeaderCarrier, _: ExecutionContext))
+      (mockEmailClient.sendSiftReminder(_: String, _: String, _: Int, _: TimeUnit, _: OffsetDateTime)(_: HeaderCarrier, _: ExecutionContext))
         .expects(contactDetails.email, expiringSift.preferredName, SiftFirstReminder.hoursBeforeReminder,
           SiftFirstReminder.timeUnit, expiryDate, *, *)
         .returningAsync
@@ -443,7 +444,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       val contactDetails = ContactDetailsExamples.ContactDetailsUK
 
       (mockContactDetailsRepo.find _ ).expects(userId).returningAsync(contactDetails)
-      (mockEmailClient.sendSiftReminder(_: String, _: String, _: Int, _: TimeUnit, _: DateTime)(_: HeaderCarrier, _: ExecutionContext))
+      (mockEmailClient.sendSiftReminder(_: String, _: String, _: Int, _: TimeUnit, _: OffsetDateTime)(_: HeaderCarrier, _: ExecutionContext))
         .expects(contactDetails.email, expiringSift.preferredName, SiftSecondReminder.hoursBeforeReminder,
           SiftSecondReminder.timeUnit, expiryDate, *, *)
         .returningAsync
@@ -544,7 +545,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     // This scenario should never happen but we test to make sure it's handled
     "return no state when the candidate has no sift entered progress status but has a sift test group" in new TestFixture {
       (mockApplicationRepo.getProgressStatusTimestamps _).expects(appId).returningAsync(List.empty)
-      (mockApplicationSiftRepo.getTestGroup _).expects(appId).returningAsync(Some(SiftTestGroup(DateTime.now(), Some(List.empty))))
+      (mockApplicationSiftRepo.getTestGroup _).expects(appId).returningAsync(Some(SiftTestGroup(OffsetDateTime.now(), Some(List.empty))))
 
       whenReady(service.getSiftState(appId)) { results =>
         results mustBe None
@@ -553,7 +554,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
 
     // This scenario also should never happen but we test to make sure it's handled
     "return no state when the candidate has sift entered progress status but has no sift test group" in new TestFixture {
-      (mockApplicationRepo.getProgressStatusTimestamps _).expects(appId).returningAsync(List((SIFT_ENTERED.toString, DateTime.now())))
+      (mockApplicationRepo.getProgressStatusTimestamps _).expects(appId).returningAsync(List((SIFT_ENTERED.toString, OffsetDateTime.now())))
       (mockApplicationSiftRepo.getTestGroup _).expects(appId).returningAsync(None)
 
       whenReady(service.getSiftState(appId)) { results =>
@@ -562,8 +563,8 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     }
 
     "return state when the candidate has sift entered progress status and the sift test group" in new TestFixture {
-      val siftEnteredDateTime = DateTime.now()
-      val siftExpiryDateTime = DateTime.now()
+      val siftEnteredDateTime = OffsetDateTime.now()
+      val siftExpiryDateTime = OffsetDateTime.now()
       val progressStatusInfo = List((SIFT_ENTERED.toString, siftEnteredDateTime))
       (mockApplicationRepo.getProgressStatusTimestamps _).expects(appId).returningAsync(progressStatusInfo)
       (mockApplicationSiftRepo.getTestGroup _).expects(appId).returningAsync(Some(SiftTestGroup(siftExpiryDateTime, Some(List.empty))))

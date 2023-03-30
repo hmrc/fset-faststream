@@ -26,6 +26,7 @@ import repositories.onlinetesting.Phase1TestRepository
 import services.testdata.candidate.{ConstructiveGenerator, SubmittedStatusGenerator}
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
@@ -60,8 +61,7 @@ class Phase1TestsInvitedStatusGenerator @Inject() (val previousStatusGenerator: 
         orderId = orderId,
         usedForResults = true,
         testUrl = s"${generatorConfig.psiUrl}/PartnerRestService/$testName?key=$orderId",
-        invitationDate = generatorConfig.phase1TestData.flatMap(_.start).getOrElse(DateTime.now()).
-          withDurationAdded(OneDay, -1),
+        invitationDate = generatorConfig.phase1TestData.flatMap(_.start).getOrElse(OffsetDateTime.now()).minusDays(1),
         assessmentId = assessmentId,
         reportId = reportId,
         normId = normId
@@ -70,7 +70,7 @@ class Phase1TestsInvitedStatusGenerator @Inject() (val previousStatusGenerator: 
     }
 
     val phase1TestProfile = Phase1TestProfile(
-      expirationDate = generatorConfig.phase1TestData.flatMap(_.expiry).getOrElse(DateTime.now().plusDays(7)),
+      expirationDate = generatorConfig.phase1TestData.flatMap(_.expiry).getOrElse(OffsetDateTime.now().plusDays(7)),
       tests = psiTests
     )
 

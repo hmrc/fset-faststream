@@ -26,8 +26,8 @@ import org.mongodb.scala.bson.{BsonDocument, BsonValue}
 import play.api.libs.json._
 import uk.gov.hmrc.mongo.play.json.Codecs
 
+import java.time.OffsetDateTime
 import scala.util.Try
-
 import scala.language.postfixOps
 
 package object repositories {
@@ -101,6 +101,11 @@ package object repositories {
 
   def dateTimeToBson(dateTime: DateTime): BsonValue = {
     import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits.jotDateTimeFormat // Needed to handle storing ISODate format
+    Codecs.toBson(dateTime)
+  }
+
+  def offsetDateTimeToBson(dateTime: OffsetDateTime): BsonValue = {
+    //import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits.jotDateTimeFormat // Needed to handle storing ISODate format
     Codecs.toBson(dateTime)
   }
 

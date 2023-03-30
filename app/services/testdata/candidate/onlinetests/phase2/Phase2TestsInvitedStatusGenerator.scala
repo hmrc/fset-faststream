@@ -31,6 +31,7 @@ import services.testdata.candidate.onlinetests.Phase1TestsPassedStatusGenerator
 import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.ExecutionContext
 
 @Singleton
@@ -60,7 +61,7 @@ class Phase2TestsInvitedStatusGenerator @Inject() (val previousStatusGenerator: 
         orderId = orderId,
         usedForResults = true,
         testUrl = s"${generatorConfig.psiUrl}/PartnerRestService/$testName?key=$orderId",
-        invitationDate = generatorConfig.phase2TestData.flatMap(_.start).getOrElse(DateTime.now()).plusDays(-1),
+        invitationDate = generatorConfig.phase2TestData.flatMap(_.start).getOrElse(OffsetDateTime.now().plusDays(-1)),
         invigilatedAccessCode = generatorConfig.adjustmentInformation.flatMap { adjustments =>
           if (isInvigilated(Adjustments(adjustments))) {
             Some(dataFaker.accessCode)
@@ -76,7 +77,7 @@ class Phase2TestsInvitedStatusGenerator @Inject() (val previousStatusGenerator: 
     }
 
     val phase2TestGroup = Phase2TestGroup(
-      expirationDate = generatorConfig.phase2TestData.flatMap(_.expiry).getOrElse(DateTime.now().plusDays(7)),
+      expirationDate = generatorConfig.phase2TestData.flatMap(_.expiry).getOrElse(OffsetDateTime.now().plusDays(7)),
       tests = psiTests
     )
 

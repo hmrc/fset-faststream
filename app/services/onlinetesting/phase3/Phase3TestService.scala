@@ -33,7 +33,7 @@ import model._
 import model.command.{ApplicationForSkippingPhase3, ProgressResponse}
 import model.exchange.{Phase3TestGroupWithActiveTest, PsiRealTimeResults}
 import model.persisted.phase3tests.{LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup}
-import model.persisted.{NotificationExpiringOnlineTest, Phase3TestGroupWithAppId}
+import model.persisted.{NotificationExpiringOnlineTest}
 import model.stc.StcEventTypes.StcEventType
 import model.stc.{AuditEvents, DataStoreEvents}
 import org.joda.time.{DateTime, LocalDate}
@@ -48,6 +48,7 @@ import services.sift.ApplicationSiftService
 import services.stc.StcEventService
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
@@ -192,14 +193,14 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
     val daysUntilExpiry = gatewayConfig.phase3Tests.timeToExpireInDays
 
     val expirationDate = phase3TestGroup.map { phase3TG =>
-      if (phase3TG.expirationDate.isAfterNow) {
+      if (phase3TG.expirationDate.isAfter(OffsetDateTime.now())) {
         phase3TG.expirationDate
       } else {
-        dateTimeFactory.nowLocalTimeZone.plusDays(daysUntilExpiry)
+        dateTimeFactory.nowLocalTimeZoneJavaTime.plusDays(daysUntilExpiry)
       }
-    }.getOrElse(dateTimeFactory.nowLocalTimeZone.plusDays(daysUntilExpiry))
+    }.getOrElse(dateTimeFactory.nowLocalTimeZoneJavaTime.plusDays(daysUntilExpiry))
 
-    val invitationDate = dateTimeFactory.nowLocalTimeZone
+    val invitationDate = dateTimeFactory.nowLocalTimeZoneJavaTime
 
     def emailProcess(emailAddress: String): Future[Unit] = if (application.isInvigilatedVideo) {
       Future.successful(())
@@ -209,7 +210,7 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
 
     def extendIfInvigilatedOrIfAdjustmentsWereChanged(application: OnlineTestApplication): Future[Unit] = {
       val couldHaveBeenInvigilatedBefore = phase3TestGroup
-        .exists(_.expirationDate.isAfter(dateTimeFactory.nowLocalTimeZone.plusDays(daysUntilExpiry * 2)))
+        .exists(_.expirationDate.isAfter(dateTimeFactory.nowLocalTimeZoneJavaTime.plusDays(daysUntilExpiry * 2)))
 
       if (couldHaveBeenInvigilatedBefore && !application.isInvigilatedVideo) {
         extendTestGroupExpiryTime(
@@ -244,8 +245,8 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
   //scalastyle:off method.length
   private[onlinetesting] def registerAndInviteOrInviteOrResetOrRetakeOrNothing(phase3TestGroup: Option[Phase3TestGroup],
                                                                                application: OnlineTestApplication, emailAddress: String,
-                                                                               interviewId: Int, invitationDate: DateTime,
-                                                                               expirationDate: DateTime
+                                                                               interviewId: Int, invitationDate: OffsetDateTime,
+                                                                               expirationDate: OffsetDateTime
                                                                               )(implicit hc: HeaderCarrier,
                                                                                 rh: RequestHeader): Future[LaunchpadTest] = {
 
@@ -307,7 +308,7 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
   }
   //scalastyle:on method.length
 
-  def markAsStarted(launchpadInviteId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
+  def markAsStarted(launchpadInviteId: String, startedTime: OffsetDateTime = dateTimeFactory.nowLocalTimeZoneJavaTime)
                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     for {
       _ <- testRepository.updateTestStartTime(launchpadInviteId, startedTime)
@@ -458,20 +459,20 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
     launchpadGatewayClient.inviteApplicant(inviteApplicant)
   }
 
-  private def resetApplicant(application: OnlineTestApplication, interviewId: Int, candidateId: String, newDeadLine: LocalDate)
+  private def resetApplicant(application: OnlineTestApplication, interviewId: Int, candidateId: String, newDeadLine: java.time.LocalDate)
                             (implicit hc: HeaderCarrier): Future[ResetApplicantResponse] = {
     val resetApplicant = ResetApplicantRequest(interviewId, candidateId, newDeadLine)
     launchpadGatewayClient.resetApplicant(resetApplicant)
   }
 
-  private def retakeApplicant(application: OnlineTestApplication, interviewId: Int, candidateId: String, newDeadLine: LocalDate)
+  private def retakeApplicant(application: OnlineTestApplication, interviewId: Int, candidateId: String, newDeadLine: java.time.LocalDate)
                              (implicit hc: HeaderCarrier): Future[RetakeApplicantResponse] = {
     val retakeApplicant = RetakeApplicantRequest(interviewId, candidateId, newDeadLine)
     launchpadGatewayClient.retakeApplicant(retakeApplicant)
   }
 
   override def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
-                                      invitationDate: DateTime, expirationDate: DateTime
+                                      invitationDate: OffsetDateTime, expirationDate: OffsetDateTime
                                      )(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit] = {
     val preferredName = application.preferredName
     emailClient.sendOnlineTestInvitation(emailAddress, preferredName, expirationDate).flatMap {
@@ -529,11 +530,11 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
     }
   }
 
-  private def progressStatusesToRemoveWhenExtendTime(extendedExpiryDate: DateTime,
+  private def progressStatusesToRemoveWhenExtendTime(extendedExpiryDate: OffsetDateTime,
                                                      profile: Phase3TestGroup,
                                                      progress: ProgressResponse): Option[List[ProgressStatus]] = {
     val shouldRemoveExpired = progress.phase3ProgressResponse.phase3TestsExpired
-    val today = dateTimeFactory.nowLocalTimeZone
+    val today = dateTimeFactory.nowLocalTimeZoneJavaTime
     val shouldRemoveSecondReminder = extendedExpiryDate.minusHours(Phase3SecondReminder.hoursBeforeReminder).isAfter(today)
     val shouldRemoveFirstReminder = extendedExpiryDate.minusHours(Phase3FirstReminder.hoursBeforeReminder).isAfter(today)
 

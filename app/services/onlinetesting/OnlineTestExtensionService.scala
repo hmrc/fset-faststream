@@ -33,6 +33,7 @@ import services.onlinetesting.Exceptions.TestExtensionException
 import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -52,7 +53,7 @@ class OnlineTestExtensionService @Inject() (appRepository: GeneralApplicationRep
     } yield {
       (progressResponse, phase1TestGroup) match {
         case (progress, Some(group)) if progress.phase1ProgressResponse.phase1TestsExpired =>
-          Extension(dateTimeFactory.nowLocalTimeZone.plusDays(extraDays), expired = true, group, progressResponse)
+          Extension(dateTimeFactory.nowLocalTimeZoneJavaTime.plusDays(extraDays), expired = true, group, progressResponse)
         case (_, Some(group)) if progressResponse.phase1ProgressResponse.phase1TestsInvited ||
           progressResponse.phase1ProgressResponse.phase1TestsStarted =>
           Extension(group.expirationDate.plusDays(extraDays), expired = false, group, progressResponse)
@@ -84,18 +85,18 @@ class OnlineTestExtensionService @Inject() (appRepository: GeneralApplicationRep
   }
 }
 
-private final case class Extension(extendedExpiryDate: DateTime, expired: Boolean,
+private final case class Extension(extendedExpiryDate: OffsetDateTime, expired: Boolean,
                                    profile: Phase1TestProfile, progress: ProgressResponse)
 
 object OnlineTestExtensionServiceImpl {
 
   val NoOp: Future[Unit] = Future.successful(())
 
-  def getProgressStatusesToRemove(extendedExpiryDate: DateTime,
+  def getProgressStatusesToRemove(extendedExpiryDate: OffsetDateTime,
                                   profile: Phase1TestProfile,
                                   progress: ProgressResponse): Option[List[ProgressStatus]] = {
 
-    val today = DateTime.now()
+    val today = OffsetDateTime.now()
     val progressList = (Set.empty[ProgressStatus]
       ++ cond(progress.phase1ProgressResponse.phase1TestsExpired, PHASE1_TESTS_EXPIRED)
       ++ cond(profile.hasNotStartedYet, PHASE1_TESTS_STARTED)

@@ -185,7 +185,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       val expectedCandidate = Candidate("userId", Some("appId123"), testAccountId = None,
         email = None, firstName = Some("George"), lastName = Some("Jetson"),
-        preferredName = Some("Georgy"), dateOfBirth = Some(new LocalDate(1986, 5, 1)),
+        preferredName = Some("Georgy"), dateOfBirth = Some(java.time.LocalDate.of(1986, 5, 1)),
         address = None, postCode = None, country = None,
         applicationRoute = Some(ApplicationRoute.Faststream),
         applicationStatus = Some(ApplicationStatus.IN_PROGRESS)
@@ -243,7 +243,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val (dobYear, dobMonth, dobDay) = (dobParts.head, dobParts(1), dobParts(2))
 
       val applicationResponse = repository.findByCriteria(
-        firstOrPreferredNameOpt = None, lastNameOpt = None, dateOfBirthOpt = Some(new LocalDate(dobYear, dobMonth, dobDay))
+        firstOrPreferredNameOpt = None, lastNameOpt = None, dateOfBirthOpt = Some(java.time.LocalDate.of(dobYear, dobMonth, dobDay))
       ).futureValue
 
       applicationResponse.size mustBe 1

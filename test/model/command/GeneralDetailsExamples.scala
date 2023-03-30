@@ -16,7 +16,7 @@
 
 package model.command
 
-import org.joda.time.LocalDate
+import java.time.LocalDate
 import model.AddressExamples._
 import model.{ CivilServiceExperienceDetails, FSACIndicator }
 

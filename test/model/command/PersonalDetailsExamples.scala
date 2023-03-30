@@ -18,7 +18,7 @@ package model.command
 
 import model.Address
 import model.persisted.PersonalDetails
-import org.joda.time.LocalDate
+import java.time.LocalDate
 
 object PersonalDetailsExamples {
 

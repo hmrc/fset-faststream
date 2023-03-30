@@ -22,34 +22,36 @@ import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
 import model.{ProgressStatuses, SchemeId}
 import org.joda.time.DateTime
 
+import java.time.OffsetDateTime
+
 abstract class PhaseXTestData(
-  start: Option[DateTime] = None,
-  expiry: Option[DateTime] = None,
-  completion: Option[DateTime] = None,
+  start: Option[OffsetDateTime] = None,
+  expiry: Option[OffsetDateTime] = None,
+  completion: Option[OffsetDateTime] = None,
   scores: List[Double] = Nil,
   passmarkEvaluation: Option[PassmarkEvaluation] = None) extends TestDates {
 }
 
 case class Phase1TestData(
-  start: Option[DateTime] = None,
-  expiry: Option[DateTime] = None,
-  completion: Option[DateTime] = None,
+  start: Option[OffsetDateTime] = None,
+  expiry: Option[OffsetDateTime] = None,
+  completion: Option[OffsetDateTime] = None,
   scores: List[Double] = Nil,
   passmarkEvaluation: Option[PassmarkEvaluation] = None
 ) extends PhaseXTestData(start, expiry, completion, scores, passmarkEvaluation)
 
 case class Phase2TestData(
-  start: Option[DateTime] = None,
-  expiry: Option[DateTime] = None,
-  completion: Option[DateTime] = None,
+  start: Option[OffsetDateTime] = None,
+  expiry: Option[OffsetDateTime] = None,
+  completion: Option[OffsetDateTime] = None,
   scores: List[Double] = Nil,
   passmarkEvaluation: Option[PassmarkEvaluation] = None
 ) extends PhaseXTestData(start, expiry, completion, scores, passmarkEvaluation)
 
 case class Phase3TestData(
-  start: Option[DateTime] = None,
-  expiry: Option[DateTime] = None,
-  completion: Option[DateTime] = None,
+  start: Option[OffsetDateTime] = None,
+  expiry: Option[OffsetDateTime] = None,
+  completion: Option[OffsetDateTime] = None,
   scores: List[Double] = Nil,
   generateNullScoresForFewQuestions: Option[Boolean] = None,
   receivedBeforeInHours: Option[Int] = None,
@@ -65,9 +67,9 @@ abstract class PhaseXTestDataFactory {
     completedStatus: ProgressStatus,
     resultsReceived: ProgressStatus)
 
-  case class PhaseXTestDataComponents(start: Option[DateTime],
-    expiry: Option[DateTime],
-    completion: Option[DateTime],
+  case class PhaseXTestDataComponents(start: Option[OffsetDateTime],
+    expiry: Option[OffsetDateTime],
+    completion: Option[OffsetDateTime],
     scores: List[Double],
     passmarkEvaluation: Option[PassmarkEvaluation])
 
@@ -95,7 +97,7 @@ abstract class PhaseXTestDataFactory {
   private def getStart(testDataRequest: Option[PhaseXTestDataRequest], progressStatus: ProgressStatus) = {
     if (ProgressStatuses.ProgressStatusOrder.isEqualOrAfter(progressStatus,
       getConfig().startedStatus).getOrElse(false)) {
-      testDataRequest.flatMap(_.start.map(DateTime.parse)) //.getOrElse(DateTime.now()))
+      testDataRequest.flatMap(_.start.map(OffsetDateTime.parse)) //.getOrElse(DateTime.now()))
     } else {
       None
     }
@@ -104,7 +106,7 @@ abstract class PhaseXTestDataFactory {
   private def getExpiry(testDataRequest: Option[PhaseXTestDataRequest], progressStatus: ProgressStatus) = {
     if (ProgressStatuses.ProgressStatusOrder.isEqualOrAfter(progressStatus,
       getConfig().invitedStatus).getOrElse(false)) {
-      testDataRequest.map(_.expiry.map(DateTime.parse).getOrElse(DateTime.now().plusDays(7)))
+      testDataRequest.map(_.expiry.map(OffsetDateTime.parse).getOrElse(OffsetDateTime.now().plusDays(7)))
     } else {
       None
     }
@@ -113,7 +115,7 @@ abstract class PhaseXTestDataFactory {
   private def getCompletion(testDataRequest: Option[PhaseXTestDataRequest], progressStatus: ProgressStatus) = {
     if (ProgressStatuses.ProgressStatusOrder.isEqualOrAfter(progressStatus,
       getConfig().completedStatus).getOrElse(false)) {
-      testDataRequest.flatMap(_.completion.map(DateTime.parse)) //.getOrElse(DateTime.now()))
+      testDataRequest.flatMap(_.completion.map(OffsetDateTime.parse)) //.getOrElse(DateTime.now()))
     } else {
       None
     }

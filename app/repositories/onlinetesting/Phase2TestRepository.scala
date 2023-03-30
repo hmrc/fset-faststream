@@ -33,6 +33,7 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import repositories.{CollectionNames, subDocRoot}
 
+import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
 
 trait Phase2TestRepository extends OnlineTestRepository with Phase2TestConcern {
@@ -45,7 +46,7 @@ trait Phase2TestRepository extends OnlineTestRepository with Phase2TestConcern {
   def insertOrUpdateTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup): Future[Unit]
   def upsertTestGroupEvaluation(applicationId: String, passmarkEvaluation: PassmarkEvaluation): Future[Unit]
   def saveTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup): Future[Unit]
-  def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit]
+  def updateGroupExpiryTime(applicationId: String, expirationDate: OffsetDateTime): Future[Unit]
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
   def applicationReadyForOnlineTesting(applicationId: String): Future[Option[OnlineTestApplication]]
 }
@@ -138,7 +139,7 @@ class Phase2TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
     }
   }
 
-  override def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit] = {
+  override def updateGroupExpiryTime(applicationId: String, expirationDate: OffsetDateTime): Future[Unit] = {
     updateGroupExpiryTime(applicationId, expirationDate, phaseName)
   }
 

@@ -44,6 +44,7 @@ import scheduler.fixer.RequiredFixes.{AddMissingPhase2ResultReceived, PassToPhas
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}
 
+import java.time.OffsetDateTime
 import java.util.UUID
 import java.util.regex.Pattern
 import javax.inject.{Inject, Singleton}
@@ -69,7 +70,7 @@ trait GeneralApplicationRepository {
   def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse]
   def findCandidateByUserId(userId: String): Future[Option[Candidate]]
   def findByCriteria(firstOrPreferredName: Option[String], lastName: Option[String],
-                     dateOfBirth: Option[LocalDate], userIds: List[String] = List.empty): Future[Seq[Candidate]]
+                     dateOfBirth: Option[java.time.LocalDate], userIds: List[String] = List.empty): Future[Seq[Candidate]]
   def submit(applicationId: String): Future[Unit]
   def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit]
   def withdrawScheme(applicationId: String, schemeWithdraw: WithdrawScheme, schemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
@@ -109,7 +110,7 @@ trait GeneralApplicationRepository {
   def getApplicationRoute(applicationId: String): Future[ApplicationRoute]
   def getLatestProgressStatuses: Future[Seq[String]]
   def countByStatus(applicationStatus: ApplicationStatus): Future[Long]
-  def getProgressStatusTimestamps(applicationId: String): Future[List[(String, DateTime)]]
+  def getProgressStatusTimestamps(applicationId: String): Future[List[(String, OffsetDateTime)]]
 
   // Implemented by Hmrc ReactiveRepository class - don't use until it gets fixed. Use countLong instead
 //  @deprecated("At runtime throws a JsResultException: errmsg=readConcern.level must be either 'local', 'majority' or 'linearizable'", "")
@@ -351,7 +352,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
   override def findByCriteria(firstOrPreferredNameOpt: Option[String],
                               lastNameOpt: Option[String],
-                              dateOfBirthOpt: Option[LocalDate],
+                              dateOfBirthOpt: Option[java.time.LocalDate],
                               filterByUserIds: List[String]
                     ): Future[Seq[Candidate]] = {
 
@@ -1102,7 +1103,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
     val query = Document.empty
     val projection = Projections.include("progress-status-timestamp")
-    collection.find[Document](query).projection(projection).toFuture.map {
+    collection.find[Document](query).projection(projection).toFuture().map {
       _.map { doc =>
         doc.get("progress-status-timestamp").map { timestamps =>
           val convertedTimestamps = timestamps.asDocument().entrySet().asScala.toSet
@@ -1116,10 +1117,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
   override def countByStatus(applicationStatus: ApplicationStatus): Future[Long] = {
     val query = Document("applicationStatus" -> applicationStatus.toString)
-    collection.countDocuments(query).head
+    collection.countDocuments(query).head()
   }
 
-  override def getProgressStatusTimestamps(applicationId: String): Future[List[(String, DateTime)]] = {
+  override def getProgressStatusTimestamps(applicationId: String): Future[List[(String, OffsetDateTime)]] = {
     val query = Document("applicationId" -> applicationId)
     val projection = Projections.include("progress-status-timestamp")
 
@@ -1127,12 +1128,12 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
     import scala.collection.JavaConverters._
 
-    collection.find[Document](query).projection(projection).headOption.map {
+    collection.find[Document](query).projection(projection).headOption().map {
       case Some(doc) =>
         doc.get("progress-status-timestamp").map { timestamps =>
           val convertedTimestamps = timestamps.asDocument().entrySet().asScala.toSet
           convertedTimestamps.map { element =>
-            element.getKey -> Codecs.fromBson[DateTime](element.getValue)
+            element.getKey -> Codecs.fromBson[OffsetDateTime](element.getValue)
           }.toList
         }.getOrElse(Nil)
       case _ => Nil
@@ -1170,7 +1171,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
   }
 
   override def listCollections: Future[Seq[String]] = {
-    mongo.database.listCollectionNames.toFuture
+    mongo.database.listCollectionNames.toFuture()
   }
 
   override def removeCollection(name: String): Future[Either[Exception, Unit]] = {
@@ -1180,7 +1181,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
     collectionExists.flatMap { exists =>
       if (exists) {
-        mongo.database.getCollection(name).drop.toFuture.map ( _ => Right(()) )
+        mongo.database.getCollection(name).drop.toFuture().map ( _ => Right(()) )
       } else {
         Future.successful(Left( new Exception(s"Collection not found: $name")))
       }

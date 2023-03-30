@@ -21,7 +21,7 @@ import play.api.libs.json.JodaWrites._ // This is needed for DateTime serializat
 import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.Json
 
-case class ResetApplicantRequest(interviewId: Int, candidateId: String, newDeadline: LocalDate)
+case class ResetApplicantRequest(interviewId: Int, candidateId: String, newDeadline: java.time.LocalDate)
 
 object ResetApplicantRequest {
   implicit val resetApplicantRequestFormat = Json.format[ResetApplicantRequest]

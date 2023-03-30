@@ -45,6 +45,7 @@ import services.sift.ApplicationSiftService
 import services.stc.StcEventService
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -230,7 +231,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
   }
 
   private def registerPsiApplicant(application: OnlineTestApplication,
-                                   testIds: PsiTestIds, invitationDate: DateTime)
+                                   testIds: PsiTestIds, invitationDate: OffsetDateTime)
                                   (implicit hc: HeaderCarrier): Future[PsiTest] = {
     for {
       aoa <- registerApplicant(application, testIds)
@@ -365,7 +366,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
       }
     }
 
-  def markAsStarted(orderId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
+  def markAsStarted(orderId: String, startedTime: OffsetDateTime = dateTimeFactory.nowLocalTimeZoneJavaTime)
                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     updatePhase1Test(orderId, testRepository.updateTestStartTime(_: String, startedTime)) flatMap { u =>
       //TODO: remove the next line and comment in the following line at end of campaign 2019

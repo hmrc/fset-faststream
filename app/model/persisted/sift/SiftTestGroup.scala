@@ -17,12 +17,14 @@
 package model.persisted.sift
 
 import model.persisted.PsiTest
-import org.joda.time.DateTime
+
+import java.time.OffsetDateTime
+//import org.joda.time.DateTime
 import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format
 import play.api.libs.json.Json
 
 // The tests are optional because it depends on the candidate having schemes that require a numeric test for the tests to be populated
-case class SiftTestGroup(expirationDate: DateTime, tests: Option[List[PsiTest]]) {
+case class SiftTestGroup(expirationDate: OffsetDateTime, tests: Option[List[PsiTest]]) {
   def activeTests = tests.getOrElse(Nil).filter(_.usedForResults)
 }
 

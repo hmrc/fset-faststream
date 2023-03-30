@@ -72,7 +72,7 @@ class SearchForApplicantService @Inject() (appRepository: GeneralApplicationRepo
 
   private def searchByAllNamesOrDobAndFilterPostCode(firstOrPreferredName: Option[String],
                                                      lastName: Option[String],
-                                                     dateOfBirth: Option[LocalDate],
+                                                     dateOfBirth: Option[java.time.LocalDate],
                                                      postCodeOpt: Option[String]
                                                     )(implicit hc: HeaderCarrier): Future[Seq[Candidate]] =
     for {

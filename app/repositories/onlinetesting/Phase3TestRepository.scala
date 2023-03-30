@@ -37,6 +37,7 @@ import repositories.onlinetesting.Phase3TestRepository.CannotFindTestByLaunchpad
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}
 
+import java.time.OffsetDateTime
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -52,7 +53,7 @@ trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
   def getTestGroupByToken(token: String): Future[Phase3TestGroupWithAppId]
   def insertOrUpdateTestGroup(applicationId: String, phase3TestGroup: Phase3TestGroup): Future[Unit]
   def upsertTestGroupEvaluation(applicationId: String, passmarkEvaluation: PassmarkEvaluation): Future[Unit]
-  def updateTestStartTime(launchpadInviteId: String, startedTime: DateTime): Future[Unit]
+  def updateTestStartTime(launchpadInviteId: String, startedTime: OffsetDateTime): Future[Unit]
   def updateTestCompletionTime(launchpadInviteId: String, completionTime: DateTime): Future[Unit]
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
   def removePhase3TestGroup(applicationId: String): Future[Unit]
@@ -286,9 +287,9 @@ class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
     }
   }
 
-  override def updateTestStartTime(launchpadInviteId: String, startedTime: DateTime) : Future[Unit] = {
+  override def updateTestStartTime(launchpadInviteId: String, startedTime: OffsetDateTime) : Future[Unit] = {
     val update = BsonDocument("$set" -> BsonDocument(
-      s"testGroups.$phaseName.tests.$$.startedDateTime" -> Some(dateTimeToBson(startedTime))
+      s"testGroups.$phaseName.tests.$$.startedDateTime" -> Some(offsetDateTimeToBson(startedTime))
     ))
 
     findAndUpdateLaunchpadTest(launchpadInviteId, update)

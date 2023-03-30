@@ -42,6 +42,7 @@ import services.allocation.CandidateAllocationService.CouldNotFindCandidateWithA
 import services.onlinetesting.Exceptions.NoActiveTestException
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
@@ -113,12 +114,12 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     updates.map(SerialUpdateResult.fromEither)
   }
 
-  def saveSiftExpiryDate(applicationId: String): Future[DateTime] = {
-    val expiryDate = dateTimeFactory.nowLocalTimeZone.plusDays(SiftExpiryWindowInDays)
+  def saveSiftExpiryDate(applicationId: String): Future[OffsetDateTime] = {
+    val expiryDate = dateTimeFactory.nowLocalTimeZoneJavaTime.plusDays(SiftExpiryWindowInDays)
     applicationSiftRepo.saveSiftExpiryDate(applicationId, expiryDate).map(_ => expiryDate)
   }
 
-  def fetchSiftExpiryDate(applicationId: String): Future[DateTime] = {
+  def fetchSiftExpiryDate(applicationId: String): Future[OffsetDateTime] = {
     applicationSiftRepo.findSiftExpiryDate(applicationId)
   }
 
@@ -235,7 +236,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     case s if s.result != Withdrawn.toString && s.result != Red.toString => s.schemeId
   }
 
-  def sendSiftEnteredNotification(applicationId: String, siftExpiry: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def sendSiftEnteredNotification(applicationId: String, siftExpiry: OffsetDateTime)(implicit hc: HeaderCarrier): Future[Unit] = {
     applicationRepo.find(applicationId).flatMap {
       case Some(candidate) => contactDetailsRepo.find(candidate.userId).flatMap { contactDetails =>
         emailClient.notifyCandidateSiftEnteredAdditionalQuestions(
@@ -444,7 +445,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
 
   def extendSiftCandidateFailedByMistake(applicationId: String, extraDays: Int): Future[Unit] = {
     for {
-      _ <- applicationSiftRepo.updateExpiryTime(applicationId, dateTimeFactory.nowLocalTimeZone.plusDays(extraDays))
+      _ <- applicationSiftRepo.updateExpiryTime(applicationId, dateTimeFactory.nowLocalTimeZoneJavaTime.plusDays(extraDays))
     } yield ()
   }
 

@@ -20,6 +20,8 @@ import model.persisted.Test
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 
+import java.time.OffsetDateTime
+
 case class LaunchpadTest(interviewId: Int,
                          usedForResults: Boolean,
                          testProvider: String = "launchpad",
@@ -27,9 +29,9 @@ case class LaunchpadTest(interviewId: Int,
                          token: String,
                          candidateId: String,
                          customCandidateId: String,
-                         invitationDate: DateTime,
-                         startedDateTime: Option[DateTime],
-                         completedDateTime: Option[DateTime],
+                         invitationDate: OffsetDateTime,
+                         startedDateTime: Option[OffsetDateTime],
+                         completedDateTime: Option[OffsetDateTime],
                          callbacks: LaunchpadTestCallbacks,
                          invigilatedAccessCode: Option[String] = None
                      ) extends Test {
@@ -62,9 +64,9 @@ case class LaunchpadTestExchange(interviewId: Int,
                                  token: String,
                                  candidateId: String,
                                  customCandidateId: String,
-                                 invitationDate: DateTime,
-                                 startedDateTime: Option[DateTime],
-                                 completedDateTime: Option[DateTime],
+                                 invitationDate: OffsetDateTime,
+                                 startedDateTime: Option[OffsetDateTime],
+                                 completedDateTime: Option[OffsetDateTime],
                                  callbacks: LaunchpadTestCallbacksExchange,
                                  invigilatedAccessCode: Option[String] = None
                                 ) extends Test

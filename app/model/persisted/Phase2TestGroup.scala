@@ -16,13 +16,14 @@
 
 package model.persisted
 
-import org.joda.time.DateTime
 import org.mongodb.scala.bson.BsonValue
-import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format
-import play.api.libs.json.{Json, OFormat}
+import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+import play.api.libs.json.{Json}
 import uk.gov.hmrc.mongo.play.json.Codecs
 
-case class Phase2TestGroup(expirationDate: DateTime,
+import java.time.OffsetDateTime
+
+case class Phase2TestGroup(expirationDate: OffsetDateTime,
   tests: List[PsiTest],
   evaluation: Option[PassmarkEvaluation] = None
 ) extends PsiTestProfile

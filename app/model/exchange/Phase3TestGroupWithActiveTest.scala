@@ -22,7 +22,9 @@ import play.api.libs.json.JodaWrites._
 import play.api.libs.json.JodaReads._
 import play.api.libs.json.Json
 
-case class Phase3TestGroupWithActiveTest(expirationDate: DateTime, activeTest: LaunchpadTestExchange)
+import java.time.OffsetDateTime
+
+case class Phase3TestGroupWithActiveTest(expirationDate: OffsetDateTime, activeTest: LaunchpadTestExchange)
 
 object Phase3TestGroupWithActiveTest {
   implicit val phase3TestGroupWithActiveTestFormat = Json.format[Phase3TestGroupWithActiveTest]

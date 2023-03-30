@@ -16,10 +16,10 @@
 
 package model.persisted
 
-import org.joda.time.LocalDate
-import org.scalatest.FunSuite
+import java.time.LocalDate
+import org.scalatest.funsuite
 
-object PersonalDetailsExamples extends FunSuite {
+object PersonalDetailsExamples extends funsuite.AnyFunSuite {
   val JohnDoe = PersonalDetails("John", "Doe", "johnd", dateOfBirth = LocalDate.now().minusYears(20), edipCompleted = Some(false),
     edipYear = None, otherInternshipCompleted = Some(false), otherInternshipName = None, otherInternshipYear = None)
   val SdipJohnDoe = PersonalDetails("John", "Doe", "johnd", dateOfBirth = LocalDate.now().minusYears(20), edipCompleted = Some(true),

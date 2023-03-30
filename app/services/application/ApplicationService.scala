@@ -58,6 +58,7 @@ import services.sift.{ApplicationSiftService, SiftAnswersService}
 import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.collection.immutable.ListMap
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
@@ -939,7 +940,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
 
   def fixPhase3ExpiredCandidate(applicationId: String): Future[Unit] = {
     for {
-      _ <- phase3TestRepository.updateGroupExpiryTime(applicationId, new DateTime().plusDays(1), phase3TestRepository.phaseName)
+      _ <- phase3TestRepository.updateGroupExpiryTime(applicationId, OffsetDateTime.now().plusDays(1), phase3TestRepository.phaseName)
       _ <- appRepository.removeProgressStatuses(applicationId, List(ProgressStatuses.PHASE3_TESTS_EXPIRED))
       _ <- addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.PHASE3_TESTS_COMPLETED)
       _ <- addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)

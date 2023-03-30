@@ -34,6 +34,7 @@ import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import scala.util.Try
 import repositories._
 
+import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
 
 //scalastyle:off number.of.methods
@@ -59,9 +60,9 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     phaseTestProfileByQuery(query, phase)
   }
 
-  def updateTestStartTime(orderId: String, startedTime: DateTime)(implicit ec: ExecutionContext): Future[Unit] = {
+  def updateTestStartTime(orderId: String, startedTime: OffsetDateTime)(implicit ec: ExecutionContext): Future[Unit] = {
     val update = Document("$set" -> Document(
-      s"testGroups.$phaseName.tests.$$.startedDateTime" -> Some(dateTimeToBson(startedTime))
+      s"testGroups.$phaseName.tests.$$.startedDateTime" -> Some(offsetDateTimeToBson(startedTime))
     ))
     findAndUpdateTest(orderId, update)
   }
@@ -101,7 +102,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
           "$each" -> Codecs.toBson(newTestProfile.tests)
         )),
       "$set" -> Document(
-        s"testGroups.$phaseName.expirationDate" -> dateTimeToBson(newTestProfile.expirationDate)
+        s"testGroups.$phaseName.expirationDate" -> offsetDateTimeToBson(newTestProfile.expirationDate)
       )
     )
 
@@ -177,7 +178,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     }
   }
 
-  def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime, phase: String = "PHASE1")(
+  def updateGroupExpiryTime(applicationId: String, expirationDate: OffsetDateTime, phase: String = "PHASE1")(
     implicit ec: ExecutionContext): Future[Unit] = {
     val query = BsonDocument("applicationId" -> applicationId)
 
@@ -185,7 +186,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
       ApplicationNotFound(applicationId))
 
     collection.updateOne(query, BsonDocument("$set" -> BsonDocument(
-      s"testGroups.$phase.expirationDate" -> dateTimeToBson(expirationDate)
+      s"testGroups.$phase.expirationDate" -> offsetDateTimeToBson(expirationDate)
     ))).toFuture() map validator
   }
 

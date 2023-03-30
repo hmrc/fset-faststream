@@ -17,11 +17,13 @@
 package model.exchange
 
 import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
+import play.api.libs.json.JodaWrites._
+import play.api.libs.json.JodaReads._
 import play.api.libs.json.Json
 
-case class Phase2TestGroupWithActiveTest(expirationDate: DateTime, activeTests: Seq[PsiTest], resetAllowed: Boolean)
+import java.time.OffsetDateTime
+
+case class Phase2TestGroupWithActiveTest(expirationDate: OffsetDateTime, activeTests: Seq[PsiTest], resetAllowed: Boolean)
 
 object Phase2TestGroupWithActiveTest {
   implicit val phase2TestGroupWithActiveTestFormat = Json.format[Phase2TestGroupWithActiveTest]
