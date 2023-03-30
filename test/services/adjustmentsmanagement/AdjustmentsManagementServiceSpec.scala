@@ -23,7 +23,7 @@ import model._
 import model.command.ApplicationStatusDetails
 import model.persisted.ContactDetailsExamples._
 import org.joda.time.DateTime
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
@@ -37,6 +37,7 @@ import testkit.ExtendedTimeout
 import testkit.MockitoImplicits._
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -92,7 +93,7 @@ class AdjustmentsManagementServiceSpec extends BaseServiceSpec with ExtendedTime
 
       verify(mockAppRepository, never()).addProgressStatusAndUpdateAppStatus(AppId, ProgressStatuses.SIFT_ENTERED)
       // Check email was not sent
-      verify(mockApplicationSiftService, never()).sendSiftEnteredNotification(eqTo(AppId), any[DateTime])(any[HeaderCarrier])
+      verify(mockApplicationSiftService, never()).sendSiftEnteredNotification(eqTo(AppId), any[OffsetDateTime])(any[HeaderCarrier])
       verify(mockAppRepository).confirmAdjustments(AppId, InvigilatedETrayAdjustments)
       verifyDataStoreEvent("ManageAdjustmentsUpdated")
       verifyAuditEvent("AdjustmentsConfirmed")
@@ -109,14 +110,14 @@ class AdjustmentsManagementServiceSpec extends BaseServiceSpec with ExtendedTime
       when(mockSchemePreferencesService.find(AppId)).thenReturnAsync(schemes)
 
       when(mockAppRepository.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(mockApplicationSiftService.saveSiftExpiryDate(any[String])).thenReturnAsync(DateTime.now)
-      when(mockApplicationSiftService.sendSiftEnteredNotification(any[String], any[DateTime])(any[HeaderCarrier])).thenReturnAsync()
+      when(mockApplicationSiftService.saveSiftExpiryDate(any[String])).thenReturnAsync(OffsetDateTime.now)
+      when(mockApplicationSiftService.sendSiftEnteredNotification(any[String], any[OffsetDateTime])(any[HeaderCarrier])).thenReturnAsync()
 
       service.confirmAdjustment(AppId, ETrayTimeAdjustments).futureValue
 
       verify(mockAppRepository).addProgressStatusAndUpdateAppStatus(AppId, ProgressStatuses.SIFT_ENTERED)
       verify(mockApplicationSiftService).saveSiftExpiryDate(any[String])
-      verify(mockApplicationSiftService).sendSiftEnteredNotification(AppId, any[DateTime]) //check email was sent
+      verify(mockApplicationSiftService).sendSiftEnteredNotification(AppId, any[OffsetDateTime]) //check email was sent
       verify(mockAppRepository).confirmAdjustments(AppId, ETrayTimeAdjustments)
       verifyDataStoreEvent("ManageAdjustmentsUpdated")
       verifyAuditEvent("AdjustmentsConfirmed")

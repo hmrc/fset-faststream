@@ -37,9 +37,9 @@ class TimeExtensionSpec extends UnitSpec {
   }
 
   trait TimeExtensionFixture {
-    val now = DateTimeFactoryMock.nowLocalTimeZone
+    val now = DateTimeFactoryMock.nowLocalTimeZoneJavaTime
     val mockDateTimeFactory = mock[DateTimeFactory]
-    when(mockDateTimeFactory.nowLocalTimeZone).thenReturn(now)
+    when(mockDateTimeFactory.nowLocalTimeZoneJavaTime).thenReturn(now)
 
     val timeExtension = new TimeExtension {
       val dateTimeFactory: DateTimeFactory = mockDateTimeFactory

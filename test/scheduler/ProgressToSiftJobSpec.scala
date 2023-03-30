@@ -28,6 +28,7 @@ import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.ExecutionContext
 
 class ProgressToSiftJobSpec extends ScalaMockUnitWithAppSpec {
@@ -51,12 +52,12 @@ class ProgressToSiftJobSpec extends ScalaMockUnitWithAppSpec {
     "send notification if SIFT_ENTERED status" in {
       val applications = List(ApplicationForSiftExamples.phase3TestNotified("applicationId"))
       val expected = SerialUpdateResult(failures = Nil, successes = applications)
-      val expiryDate = DateTime.now().plusDays(7)
+      val expiryDate = OffsetDateTime.now().plusDays(7)
       (mockApplicationSiftService.nextApplicationsReadyForSiftStage _).expects(10).returningAsync(applications)
       (mockApplicationSiftService.progressApplicationToSiftStage _).expects(applications).returningAsync(expected)
       (mockApplicationSiftService.progressStatusForSiftStage(_: Seq[SchemeId])).expects(*).returning(ProgressStatuses.SIFT_ENTERED)
       (mockApplicationSiftService.saveSiftExpiryDate _).expects("applicationId").returningAsync(expiryDate)
-      (mockApplicationSiftService.sendSiftEnteredNotification(_: String, _: DateTime)(_: HeaderCarrier))
+      (mockApplicationSiftService.sendSiftEnteredNotification(_: String, _: OffsetDateTime)(_: HeaderCarrier))
         .expects("applicationId", expiryDate, *).returningAsync
       TestProgressToSiftJob.tryExecute().futureValue mustBe unit
     }
@@ -75,12 +76,12 @@ class ProgressToSiftJobSpec extends ScalaMockUnitWithAppSpec {
         ApplicationForSiftExamples.phase3TestNotifiedWithSchemes("applicationId", schemes = Seq(SchemeId("Scheme1"), SchemeId("Scheme2")))
       )
       val expected = SerialUpdateResult(failures = Nil, successes = applications)
-      val expiryDate = DateTime.now().plusDays(7)
+      val expiryDate = OffsetDateTime.now().plusDays(7)
       (mockApplicationSiftService.nextApplicationsReadyForSiftStage _).expects(10).returningAsync(applications)
       (mockApplicationSiftService.progressApplicationToSiftStage _).expects(applications).returningAsync(expected)
       (mockApplicationSiftService.progressStatusForSiftStage(_: Seq[SchemeId])).expects(*).returning(ProgressStatuses.SIFT_ENTERED)
       (mockApplicationSiftService.saveSiftExpiryDate _).expects("applicationId").returningAsync(expiryDate)
-      (mockApplicationSiftService.sendSiftEnteredNotification(_: String, _: DateTime)(_: HeaderCarrier))
+      (mockApplicationSiftService.sendSiftEnteredNotification(_: String, _: OffsetDateTime)(_: HeaderCarrier))
         .expects("applicationId", expiryDate, *).returningAsync
       TestProgressToSiftJob.tryExecute().futureValue mustBe unit
     }

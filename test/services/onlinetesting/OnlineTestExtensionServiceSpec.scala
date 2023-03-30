@@ -33,6 +33,7 @@ import testkit.MockitoImplicits.{OngoingStubbingExtension, OngoingStubbingExtens
 import testkit.{ShortTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -46,7 +47,7 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
           ))
         when(mockOtRepository.getTestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
         when(mockProgressResponse.phase1ProgressResponse.phase1TestsExpired).thenReturn(true)
-        when(mockDateTimeFactory.nowLocalTimeZone).thenReturn(Now)
+        when(mockDateTimeFactory.nowLocalTimeZoneJavaTime).thenReturn(Now)
         when(mockProfile.expirationDate).thenReturn(OneHourAgo)
         when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any(), any())(any[ExecutionContext])).thenReturnAsync()
         when(mockAppRepository.removeProgressStatuses(eqTo(applicationId), any())).thenReturnAsync()
@@ -118,7 +119,7 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
         )
         when(mockOtRepository.getTestGroup(applicationId)).thenReturnAsync(successfulTestProfile)
         when(mockProgressResponse.phase1ProgressResponse.phase1TestsExpired).thenReturn(true)
-        when(mockDateTimeFactory.nowLocalTimeZone).thenReturn(Now)
+        when(mockDateTimeFactory.nowLocalTimeZoneJavaTime).thenReturn(Now)
         when(mockProfile.expirationDate).thenReturn(OneHourAgo)
         when(mockOtRepository.updateGroupExpiryTime(eqTo(applicationId), any(), any())(any[ExecutionContext])).thenReturnAsync()
         when(mockAppRepository.removeProgressStatuses(eqTo(applicationId), any())).thenReturn(Future.failed(genericError))
@@ -181,7 +182,7 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
     val noTestProfileFoundError = TestExtensionException("No Phase1TestGroupAvailable for the given application")
     val genericError = new Exception("Dummy error!")
     val mockDateTimeFactory = mock[DateTimeFactory]
-    val Now = DateTime.now()
+    val Now = OffsetDateTime.now()
     val OneHourAgo = Now.minusHours(1)
     val InFiveHours = Now.plusHours(5)
     val InTwentyFiveHours = Now.plusHours(25)

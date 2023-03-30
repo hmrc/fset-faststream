@@ -21,6 +21,8 @@ import model.persisted.PsiTest
 import org.joda.time.DateTime
 import testkit.UnitSpec
 
+import java.time.OffsetDateTime
+
 class Phase2TestSelectorSpec extends UnitSpec {
 
   "test selector" should {
@@ -77,7 +79,7 @@ class Phase2TestSelectorSpec extends UnitSpec {
       orderId = "orderId1",
       usedForResults = true,
       testUrl = "",
-      invitationDate = DateTime.now(),
+      invitationDate = OffsetDateTime.now(),
       assessmentId = "",
       reportId = "",
       normId = ""
@@ -88,7 +90,7 @@ class Phase2TestSelectorSpec extends UnitSpec {
       orderId = "orderId2",
       usedForResults = true,
       testUrl = "",
-      invitationDate = DateTime.now(),
+      invitationDate = OffsetDateTime.now(),
       assessmentId = "",
       reportId = "",
       normId = ""
@@ -99,7 +101,7 @@ class Phase2TestSelectorSpec extends UnitSpec {
       orderId = "orderId3",
       usedForResults = true,
       testUrl = "",
-      invitationDate = DateTime.now(),
+      invitationDate = OffsetDateTime.now(),
       assessmentId = "",
       reportId = "",
       normId = ""

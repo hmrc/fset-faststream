@@ -18,19 +18,20 @@ package services.sift
 
 import factories.DateTimeFactory
 import model.ProgressStatuses._
-import model.command.{ ProgressResponse, SiftProgressResponse }
+import model.command.{ProgressResponse, SiftProgressResponse}
 import model.persisted.sift.SiftTestGroup
 import org.joda.time.DateTime
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
-import org.mockito.Mockito.{ never, verify, verifyNoMoreInteractions, when }
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
+import org.mockito.Mockito.{never, verify, verifyNoMoreInteractions, when}
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.sift.ApplicationSiftRepository
 import services.stc.StcEventServiceFixture
-import testkit.MockitoImplicits.{ OngoingStubbingExtension, OngoingStubbingExtensionUnit }
-import testkit.{ ShortTimeout, UnitSpec }
+import testkit.MockitoImplicits.{OngoingStubbingExtension, OngoingStubbingExtensionUnit}
+import testkit.{ShortTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -47,7 +48,7 @@ class SiftExpiryExtensionServiceSpec extends UnitSpec with ShortTimeout {
         )
         when(mockSiftRepository.getTestGroup(applicationId)).thenReturnAsync(siftTestGroup)
 
-        when(mockDateTimeFactory.nowLocalTimeZone).thenReturn(now)
+        when(mockDateTimeFactory.nowLocalTimeZoneJavaTime).thenReturn(now)
         when(mockSiftTestGroup.expirationDate).thenReturn(oneHourAgo)
 
         when(mockSiftRepository.updateExpiryTime(eqTo(applicationId), any())).thenReturnAsync()
@@ -104,7 +105,7 @@ class SiftExpiryExtensionServiceSpec extends UnitSpec with ShortTimeout {
         when(mockSiftRepository.getTestGroup(applicationId)).thenReturnAsync(siftTestGroup)
         when(mockSiftTestGroup.expirationDate).thenReturn(inTenDays)
 
-        when(mockDateTimeFactory.nowLocalTimeZone).thenReturn(now)
+        when(mockDateTimeFactory.nowLocalTimeZoneJavaTime).thenReturn(now)
         when(mockSiftTestGroup.expirationDate).thenReturn(now.plusDays(tenDays)) // current expiry date is 10 days from now
 
         when(mockSiftRepository.updateExpiryTime(eqTo(applicationId), any())).thenReturnAsync()
@@ -163,7 +164,7 @@ class SiftExpiryExtensionServiceSpec extends UnitSpec with ShortTimeout {
         )
         when(mockSiftRepository.getTestGroup(applicationId)).thenReturnAsync(siftTestGroup)
 
-        when(mockDateTimeFactory.nowLocalTimeZone).thenReturn(now)
+        when(mockDateTimeFactory.nowLocalTimeZoneJavaTime).thenReturn(now)
         when(mockSiftTestGroup.expirationDate).thenReturn(oneHourAgo)
 
         when(mockSiftRepository.updateExpiryTime(eqTo(applicationId), any())).thenReturnAsync()
@@ -227,7 +228,7 @@ class SiftExpiryExtensionServiceSpec extends UnitSpec with ShortTimeout {
 
     val dummyError = new Exception("Dummy error for test")
 
-    val now = DateTime.now()
+    val now = OffsetDateTime.now()
     val oneHourAgo = now.minusHours(1)
     val inTwoDays = now.plusDays(2)
     val inTenDays = now.plusDays(10)

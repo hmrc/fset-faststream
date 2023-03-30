@@ -41,6 +41,7 @@ import testkit.MockitoImplicits._
 import testkit.{ExtendedTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, ExecutionException, Future}
 
@@ -48,7 +49,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
 
   trait TestFixture extends StcEventServiceFixture {
 
-    val now: DateTime = DateTime.now
+    val now: OffsetDateTime = OffsetDateTime.now
     val inventoryIds: Map[String, String] = Map[String, String]("test1" -> "test1-uuid")
     def testIds(idx: Int): PsiTestIds =
       PsiTestIds(s"inventory-id-$idx", s"assessment-id-$idx", s"report-id-$idx", s"norm-id-$idx")
@@ -130,7 +131,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
     val contactDetails = ContactDetails(outsideUk = false, Address("line1"), postCode = None, country = None,
       email = "test@test.com", "0800900900")
 
-    val siftTestGroupNoTests = SiftTestGroup(expirationDate = DateTime.now(), tests = None)
+    val siftTestGroupNoTests = SiftTestGroup(expirationDate = OffsetDateTime.now(), tests = None)
 
     val app = NumericalTestApplication(appId, "userId", "testAccountId", ApplicationStatus.SIFT,
       "PrefName", "LastName", Seq(SchemeEvaluationResult("Commercial", Green.toString)))
@@ -164,9 +165,9 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
     "throw an exception if no SIFT_PHASE test group is found and the tests have already been populated" in new TestFixture {
       val test = PsiTest(inventoryId = "inventoryUuid", orderId = "orderUuid", assessmentId = "assessmentUuid",
         reportId = "reportUuid", normId = "normUuid", usedForResults = true,
-        testUrl = authenticateUrl, invitationDate = DateTimeFactoryMock.nowLocalTimeZone)
+        testUrl = authenticateUrl, invitationDate = DateTimeFactoryMock.nowLocalTimeZoneJavaTime)
 
-      val siftTestGroup = SiftTestGroup(expirationDate = DateTime.now(), tests = Some(List(test)))
+      val siftTestGroup = SiftTestGroup(expirationDate = OffsetDateTime.now(), tests = Some(List(test)))
       // This will result in exception being thrown
       when(mockSiftRepo.getTestGroup(any[String])).thenReturnAsync(Some(siftTestGroup))
       when(mockSiftRepo.insertNumericalTests(any[String], any[List[PsiTest]])).thenReturnAsync()
@@ -195,10 +196,10 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       when(mockContactDetailsRepo.find(any[String])).thenReturnAsync(contactDetails)
 
-      val notificationExpiringSift = NotificationExpiringSift(appId, "userId", "Jo", DateTime.now())
+      val notificationExpiringSift = NotificationExpiringSift(appId, "userId", "Jo", OffsetDateTime.now())
       when(mockSiftRepo.getNotificationExpiringSift(any[String])).thenReturnAsync(Some(notificationExpiringSift))
 
-      when(mockEmailClient.sendSiftNumericTestInvite(any[String], any[String], any[DateTime])(any[HeaderCarrier], any[ExecutionContext]))
+      when(mockEmailClient.sendSiftNumericTestInvite(any[String], any[String], any[OffsetDateTime])(any[HeaderCarrier], any[ExecutionContext]))
         .thenReturnAsync()
 
       when(mockAppRepo.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
@@ -289,11 +290,11 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       val numericTestCompleted = PsiTest(inventoryId = uuid, orderId = orderId, assessmentId = uuid, reportId = uuid,
         normId = uuid, usedForResults = true,
-        testUrl = authenticateUrl, invitationDate = DateTime.parse("2016-05-11"), completedDateTime = Some(DateTime.now))
+        testUrl = authenticateUrl, invitationDate = OffsetDateTime.parse("2016-05-11"), completedDateTime = Some(OffsetDateTime.now))
 
       val maybeSiftTestGroupWithAppId = MaybeSiftTestGroupWithAppId(
         applicationId = appId,
-        expirationDate = DateTime.now,
+        expirationDate = OffsetDateTime.now,
         tests = Some(List(numericTestCompleted)))
 
       when(mockSiftRepo.getTestGroupByOrderId(any[String])).thenReturnAsync(maybeSiftTestGroupWithAppId)
@@ -315,7 +316,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       val numericTestCompletedWithScores = PsiTest(inventoryId = uuid, orderId = orderId, assessmentId = uuid, reportId = uuid,
         normId = uuid, usedForResults = true,
-        testUrl = authenticateUrl, invitationDate = DateTime.parse("2016-05-11"), completedDateTime = Some(now),
+        testUrl = authenticateUrl, invitationDate = OffsetDateTime.parse("2016-05-11"), completedDateTime = Some(now),
         testResult = Some(PsiTestResult(tScore = 20.0, rawScore = 40.0, testReportUrl = None))
       )
 
@@ -343,7 +344,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       val numericTestNotCompletedWithScores = PsiTest(inventoryId = uuid, orderId = orderId, assessmentId = uuid, reportId = uuid,
         normId = uuid, usedForResults = true,
-        testUrl = authenticateUrl, invitationDate = DateTime.parse("2016-05-11"),
+        testUrl = authenticateUrl, invitationDate = OffsetDateTime.parse("2016-05-11"),
         testResult = Some(PsiTestResult(tScore = 20.0, rawScore = 40.0, testReportUrl = None))
       )
 
@@ -354,7 +355,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       val numericTestCompletedWithScores = PsiTest(inventoryId = uuid, orderId = orderId, assessmentId = uuid, reportId = uuid,
         normId = uuid, usedForResults = true,
-        testUrl = authenticateUrl, invitationDate = DateTime.parse("2016-05-11"), completedDateTime = Some(now),
+        testUrl = authenticateUrl, invitationDate = OffsetDateTime.parse("2016-05-11"), completedDateTime = Some(now),
         testResult = Some(PsiTestResult(tScore = 20.0, rawScore = 40.0, testReportUrl = None))
       )
 

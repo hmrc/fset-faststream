@@ -17,15 +17,19 @@
 package services
 
 import model.EmptyRequestHeader
-import org.joda.time.{ DateTime, DateTimeZone }
-import testkit.{ FutureHelper, UnitSpec }
+import org.joda.time.{DateTime, DateTimeZone}
+import testkit.{FutureHelper, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
+
+import java.time.{OffsetDateTime, ZoneId, ZoneOffset, ZonedDateTime}
 
 /**
   * Common base class for all service tests
   */
 class BaseServiceSpec extends UnitSpec with FutureHelper {
   implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
+  implicit val nowOffsetDateTime: OffsetDateTime = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC)
+
   implicit val hc = HeaderCarrier()
   implicit val rh = EmptyRequestHeader
 

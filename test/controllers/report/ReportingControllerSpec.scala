@@ -100,7 +100,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       when(mockReportingRepository.applicationsForInternshipReport(frameworkId)).thenReturn(SuccessfulInternshipReportResponse)
       when(mockContactDetailsRepository.findByUserIds(any[List[String]])).thenReturn(SuccessfulFindByUserIdsResponse)
 
-      val result = underTest.internshipReport(frameworkId)(internshipReportRequest(frameworkId)).run
+      val result = underTest.internshipReport(frameworkId)(internshipReportRequest(frameworkId)).run()
 
       val json = contentAsJson(result).as[JsArray].value
 

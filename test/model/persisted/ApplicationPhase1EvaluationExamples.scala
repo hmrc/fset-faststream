@@ -16,20 +16,22 @@
 
 package model.persisted
 
-import model.{ ApplicationRoute, ApplicationStatus, Phase1TestProfileExamples, SelectedSchemesExamples }
+import model.{ApplicationRoute, ApplicationStatus, Phase1TestProfileExamples, SelectedSchemesExamples}
 import org.joda.time.DateTime
+
+import java.time.OffsetDateTime
 
 object ApplicationPhase1EvaluationExamples {
 
-  def faststreamApplication(implicit now: DateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS,
+  def faststreamApplication(implicit now: OffsetDateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS,
     ApplicationRoute.Faststream, isGis = false, activePsiTests = Phase1TestProfileExamples.psiProfile.activeTests,
     activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
 
-  def edipApplication(implicit now: DateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS,
+  def edipApplication(implicit now: OffsetDateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS,
     ApplicationRoute.Edip, isGis = false, activePsiTests = Phase1TestProfileExamples.psiProfile.activeTests,
     activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
 
-  def sdipFaststreamApplication(implicit now: DateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS,
+  def sdipFaststreamApplication(implicit now: OffsetDateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS,
     ApplicationRoute.SdipFaststream, isGis = false, activePsiTests = Phase1TestProfileExamples.psiProfile.activeTests,
     activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
 }

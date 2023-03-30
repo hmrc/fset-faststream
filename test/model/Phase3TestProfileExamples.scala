@@ -17,14 +17,15 @@
 package model
 
 import java.util.UUID
-
 import connectors.launchpadgateway.exchangeobjects.in.reviewed._
-import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
-import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
+import model.persisted.phase3tests.{LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup}
+import org.joda.time.{DateTime, DateTimeZone, LocalDate}
+
+import java.time.OffsetDateTime
 
 object Phase3TestProfileExamples {
 
-  val Now =  DateTime.now(DateTimeZone.UTC)
+  val Now =  OffsetDateTime.now()
   val DatePlus7Days = Now.plusDays(7)
   val Token = newToken
   val sampleCandidateId = UUID.randomUUID().toString
