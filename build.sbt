@@ -47,6 +47,7 @@ lazy val microservice = Project(appName, file("."))
 
     Test / parallelExecution := false,
     Test / fork := false,
+    Test / javaOptions += "-Dlogger.resource=logback-test.xml",
     retrieveManaged := true,
     scalacOptions += "-feature",
     // Currently don't enable warning in value discard in tests until ScalaTest 3

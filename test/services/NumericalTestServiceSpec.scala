@@ -41,7 +41,8 @@ import testkit.MockitoImplicits._
 import testkit.{ExtendedTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.OffsetDateTime
+import java.time.{LocalTime, OffsetDateTime, ZoneOffset}
+import java.time.format.DateTimeFormatter
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, ExecutionException, Future}
 
@@ -290,7 +291,9 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       val numericTestCompleted = PsiTest(inventoryId = uuid, orderId = orderId, assessmentId = uuid, reportId = uuid,
         normId = uuid, usedForResults = true,
-        testUrl = authenticateUrl, invitationDate = OffsetDateTime.parse("2016-05-11"), completedDateTime = Some(OffsetDateTime.now))
+        testUrl = authenticateUrl, invitationDate = OffsetDateTime.of(
+          java.time.LocalDate.of(2016, 5, 11), java.time.LocalTime.of(0, 0), ZoneOffset.UTC),
+        completedDateTime = Some(OffsetDateTime.now))
 
       val maybeSiftTestGroupWithAppId = MaybeSiftTestGroupWithAppId(
         applicationId = appId,
@@ -316,7 +319,9 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       val numericTestCompletedWithScores = PsiTest(inventoryId = uuid, orderId = orderId, assessmentId = uuid, reportId = uuid,
         normId = uuid, usedForResults = true,
-        testUrl = authenticateUrl, invitationDate = OffsetDateTime.parse("2016-05-11"), completedDateTime = Some(now),
+        testUrl = authenticateUrl, invitationDate = OffsetDateTime.of(
+          java.time.LocalDate.of(2016, 5, 11), java.time.LocalTime.of(0, 0), ZoneOffset.UTC),
+        completedDateTime = Some(now),
         testResult = Some(PsiTestResult(tScore = 20.0, rawScore = 40.0, testReportUrl = None))
       )
 
@@ -344,7 +349,8 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       val numericTestNotCompletedWithScores = PsiTest(inventoryId = uuid, orderId = orderId, assessmentId = uuid, reportId = uuid,
         normId = uuid, usedForResults = true,
-        testUrl = authenticateUrl, invitationDate = OffsetDateTime.parse("2016-05-11"),
+        testUrl = authenticateUrl, invitationDate = OffsetDateTime.of(java.time.LocalDate.of(2016, 5, 11),
+          java.time.LocalTime.of(0, 0), ZoneOffset.UTC),
         testResult = Some(PsiTestResult(tScore = 20.0, rawScore = 40.0, testReportUrl = None))
       )
 
@@ -355,7 +361,10 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       val numericTestCompletedWithScores = PsiTest(inventoryId = uuid, orderId = orderId, assessmentId = uuid, reportId = uuid,
         normId = uuid, usedForResults = true,
-        testUrl = authenticateUrl, invitationDate = OffsetDateTime.parse("2016-05-11"), completedDateTime = Some(now),
+        testUrl = authenticateUrl,
+        invitationDate = OffsetDateTime.of(java.time.LocalDate.of(2016, 5, 11),
+          java.time.LocalTime.of(0, 0), ZoneOffset.UTC),
+        completedDateTime = Some(now),
         testResult = Some(PsiTestResult(tScore = 20.0, rawScore = 40.0, testReportUrl = None))
       )
 
