@@ -56,7 +56,7 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
 
         verify(mockAppRepository).findProgress(eqTo(applicationId))
         verify(mockOtRepository).getTestGroup(eqTo(applicationId))
-        verify(mockDateTimeFactory).nowLocalTimeZone
+        verify(mockDateTimeFactory).nowLocalTimeZoneJavaTime
         verify(mockOtRepository).updateGroupExpiryTime(eqTo(applicationId), eqTo(Now.plusDays(twoExtraDays)), any())(any[ExecutionContext])
         verify(mockAppRepository).removeProgressStatuses(eqTo(applicationId), eqTo(statusToRemoveWhenExpiryInMoreThanOneDayExpired))
       }

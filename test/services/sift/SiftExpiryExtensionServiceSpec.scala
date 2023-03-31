@@ -58,7 +58,7 @@ class SiftExpiryExtensionServiceSpec extends UnitSpec with ShortTimeout {
 
         verify(mockAppRepository).findProgress(eqTo(applicationId))
         verify(mockSiftRepository).getTestGroup(eqTo(applicationId))
-        verify(mockDateTimeFactory).nowLocalTimeZone
+        verify(mockDateTimeFactory).nowLocalTimeZoneJavaTime
         verify(mockSiftRepository).updateExpiryTime(eqTo(applicationId), eqTo(now.plusDays(twoDays)))
         // Expect sift expired and both reminder statuses to be removed
         verify(mockAppRepository).removeProgressStatuses(eqTo(applicationId),

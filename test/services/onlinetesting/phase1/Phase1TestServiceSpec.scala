@@ -117,7 +117,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
   val logonUrl = "http://localhost/logonUrl"
   val authenticateUrl = "http://localhost/authenticate"
 
-  val invitationDate = OffsetDateTime.parse("2016-05-11")
+  val invitationDate = OffsetDateTime.of(java.time.LocalDate.parse("2016-05-11"), LocalTime.of(0, 0), ZoneOffset.UTC)
   val startedDate = invitationDate.plusDays(1)
   val expirationDate = invitationDate.plusDays(5)
 
@@ -157,7 +157,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       result mustBe None
     }
 
-    val validExpireDate = OffsetDateTime.of(java.time.LocalDate.of(2016, 6, 9), LocalTime.of(0, 0), ZoneOffset.of("UTC"))
+    val validExpireDate = OffsetDateTime.of(java.time.LocalDate.of(2016, 6, 9), LocalTime.of(0, 0), ZoneOffset.UTC)
 
     "return a valid set of aggregated online test data if the user id is valid" in new OnlineTest {
       when(appRepositoryMock.findCandidateByUserId(any[String]))
