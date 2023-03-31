@@ -31,6 +31,7 @@ import repositories.application.GeneralApplicationMongoRepository
 import repositories.{CollectionNames, CommonRepository}
 import testkit.MongoRepositorySpec
 
+import java.time.OffsetDateTime
 import scala.util.Try
 
 class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonRepository {
@@ -576,7 +577,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
 
     "add data as expected" in {
       val appId = createApplication()
-      val now = DateTime.now
+      val now = OffsetDateTime.now
       repository.addFsbProgressStatuses(appId, List("test" -> now)).futureValue
       isFsbProgressStatusStored(appId, "test").futureValue mustBe true
       getFsbProgressStatusTimestamp(appId, "test").futureValue mustBe Some(now)

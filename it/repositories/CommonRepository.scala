@@ -24,11 +24,12 @@ import repositories.assessmentcentre.AssessmentCentreMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import repositories.fsb.FsbMongoRepository
 import repositories.onlinetesting._
-import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository }
+import repositories.passmarksettings.{Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository}
 import repositories.passmarksettings.Phase3PassMarkSettingsMongoRepository
 import repositories.sift.ApplicationSiftMongoRepository
 import testkit.MongoRepositorySpec
 
+import java.time.{OffsetDateTime, ZoneOffset}
 import scala.concurrent.Future
 
 //scalastyle:off number.of.methods
@@ -91,7 +92,9 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
 
   def fsbRepository = new FsbMongoRepository(ITDateTimeFactoryMock, mongo)
 
-  implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
+  implicit val now: OffsetDateTime = OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime
+  implicit val nowDateTime: DateTime = DateTime.now(DateTimeZone.UTC)
+
 
   def selectedSchemes(schemeTypes: List[SchemeId]) = SelectedSchemes(schemeTypes, orderAgreed = true, eligible = true)
 

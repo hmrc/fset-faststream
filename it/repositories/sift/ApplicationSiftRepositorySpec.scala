@@ -18,6 +18,8 @@ import play.api.Logging
 import repositories.{CollectionNames, CommonRepository}
 import testkit.{MockitoSugar, MongoRepositorySpec}
 
+import java.time.{OffsetDateTime, ZoneOffset}
+
 class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFutures with CommonRepository
   with MockitoSugar with TableDrivenPropertyChecks with Logging {
 
@@ -197,7 +199,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
     "return the expiry date when one is stored" in {
       createSiftEligibleCandidates("appId")
-      val now = DateTime.now().withZone(DateTimeZone.UTC)
+      val now = OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime
       repository.saveSiftExpiryDate("appId", now).futureValue
       val result = repository.findSiftExpiryDate("appId").futureValue
       result mustBe now
@@ -246,7 +248,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
   "update test started time" must {
     "throw an exception if no record is found" in {
-      val result = repository.updateTestStartTime("orderId", now).failed.futureValue
+      val result = repository.updateTestStartTime("orderId", nowDateTime).failed.futureValue
       result mustBe a[CannotFindTestByOrderIdException]
     }
 
@@ -259,17 +261,19 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
         testUrl = "http://testUrl.com", invitationDate = now)
       repository.insertNumericalTests(appId, List(test)).futureValue
 
-      val startedTime = DateTime.now(DateTimeZone.UTC)
+      val instantNow = OffsetDateTime.now().toInstant
+      val startedTime = new DateTime(instantNow.toEpochMilli)
+      val startedTimeOffset = OffsetDateTime.ofInstant(instantNow, ZoneOffset.UTC)
       repository.updateTestStartTime("orderUuid", startedTime).futureValue
 
       val result = repository.getTestGroupByOrderId("orderUuid").futureValue
-      result mustBe MaybeSiftTestGroupWithAppId(appId, now, Some(List(test.copy(startedDateTime = Some(startedTime)))))
+      result mustBe MaybeSiftTestGroupWithAppId(appId, now, Some(List(test.copy(startedDateTime = Some(startedTimeOffset)))))
     }
   }
 
   "update test completion time" must {
     "throw an exception if no record is found" in {
-      val result = repository.updateTestCompletionTime("orderId", now).failed.futureValue
+      val result = repository.updateTestCompletionTime("orderId", nowDateTime).failed.futureValue
       result mustBe a[CannotFindTestByOrderIdException]
     }
 
@@ -282,17 +286,19 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
         testUrl = "http://testUrl.com", invitationDate = now)
       repository.insertNumericalTests(appId, List(test)).futureValue
 
-      val completedTime = DateTime.now(DateTimeZone.UTC)
+      val instantNow = OffsetDateTime.now().toInstant
+      val completedTime = new DateTime(instantNow.toEpochMilli)
+      val completedTimeOffset = OffsetDateTime.ofInstant(instantNow, ZoneOffset.UTC)
       repository.updateTestCompletionTime("orderUuid", completedTime).futureValue
 
       val result = repository.getTestGroupByOrderId("orderUuid").futureValue
-      result mustBe MaybeSiftTestGroupWithAppId(appId, now, Some(List(test.copy(completedDateTime = Some(completedTime)))))
+      result mustBe MaybeSiftTestGroupWithAppId(appId, now, Some(List(test.copy(completedDateTime = Some(completedTimeOffset)))))
     }
   }
 
   "update expiry time" must {
     "throw an exception if no record is found" in {
-      val result = repository.updateTestCompletionTime("orderId", now).failed.futureValue
+      val result = repository.updateTestCompletionTime("orderId", nowDateTime).failed.futureValue
       result mustBe a[CannotFindTestByOrderIdException]
     }
 
@@ -301,7 +307,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       createSiftEligibleCandidates(appId)
       repository.saveSiftExpiryDate(appId, now).futureValue
 
-      val newExpiryTime = DateTime.now(DateTimeZone.UTC)
+      val newExpiryTime = OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime
       repository.updateExpiryTime(appId, newExpiryTime).futureValue
 
       val result = repository.getTestGroup(appId).futureValue
@@ -478,7 +484,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     "fetch applications that are eligible for sift expiry" in {
       val appId = "appId1"
       insertApplicationWithSiftEntered(appId, List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)))
-      repository.saveSiftExpiryDate(appId, now.minusMillis(1)).futureValue
+      repository.saveSiftExpiryDate(appId, now.minusNanos(1000)).futureValue
 
       val result = repository.nextApplicationsForSiftExpiry(1, 0).futureValue
       result.size mustBe 1

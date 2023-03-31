@@ -16,9 +16,15 @@
 
 package factories
 
-import org.joda.time.{ DateTime, LocalDate }
+import org.joda.time.{DateTime, LocalDate}
+
+import java.time.OffsetDateTime
 
 object ITDateTimeFactoryMock extends  DateTimeFactory {
   def nowLocalTimeZone: DateTime = DateTime.now()
   def nowLocalDate: LocalDate = LocalDate.now()
+
+  override def nowLocalTimeZoneJavaTime: OffsetDateTime = OffsetDateTime.now()
+
+  override def nowLocalDateJavaTime: java.time.LocalDate = java.time.LocalDate.now()
 }

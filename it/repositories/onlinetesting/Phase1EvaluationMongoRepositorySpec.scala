@@ -11,6 +11,8 @@ import uk.gov.hmrc.mongo.play.json.Codecs
 import repositories.{CollectionNames, CommonRepository}
 import testkit.MongoRepositorySpec
 
+import java.time.{OffsetDateTime, ZoneOffset}
+
 class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with CommonRepository with MockitoSugar {
 
   import Phase1EvaluationMongoRepositorySpec._
@@ -273,7 +275,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 }
 
 object Phase1EvaluationMongoRepositorySpec {
-  implicit val now = DateTime.now().withZone(DateTimeZone.UTC)
+  implicit val now = OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime
   val phase1Tests = List(
     model.Phase1TestExamples.firstPsiTest.copy(testResult = None),
     model.Phase1TestExamples.secondPsiTest.copy(testResult = None),

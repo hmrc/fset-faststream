@@ -28,13 +28,14 @@ import org.mongodb.scala.bson.collection.immutable.Document
 import repositories.{CollectionNames, dateTimeToBson}
 import testkit.MongoRepositorySpec
 
+import java.time.{OffsetDateTime, ZoneId, ZoneOffset}
 import scala.concurrent.Await
 
 class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataFixture {
 
   override val collectionName: String = CollectionNames.APPLICATION
 
-  implicit val Now = DateTime.now(DateTimeZone.UTC)
+  implicit val Now = OffsetDateTime.now.atZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime
   val DatePlus7Days = Now.plusDays(7)
 
   val phase1Test = model.Phase1TestExamples.firstPsiTest.copy(testResult = None)
@@ -241,7 +242,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   }
 
   "nextExpiringApplication" should {
-    val date = new DateTime("2015-03-08T13:04:29.643Z")
+    val date = OffsetDateTime.parse("2015-03-08T13:04:29.643Z")
     val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
     val phase1ExpirationEvent = Phase1ExpirationEvent(gracePeriodInSecs = 0)
 
@@ -265,7 +266,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(
           AppId,
-          Phase1TestProfile(expirationDate = new DateTime().plusHours(2), tests = List(phase1Test))).futureValue
+          Phase1TestProfile(expirationDate = OffsetDateTime.now().plusHours(2), tests = List(phase1Test))).futureValue
         phase1TestRepo.nextExpiringApplication(phase1ExpirationEvent).futureValue mustBe None
       }
 
@@ -300,7 +301,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   "nextTestForReminder" should {
     "return one result" when {
       "there is an application in PHASE1_TESTS and is about to expire in the next 72 hours" in {
-        val date = DateTime.now().plusHours(Phase1FirstReminder.hoursBeforeReminder - 1).plusMinutes(55)
+        val date = OffsetDateTime.now().plusHours(Phase1FirstReminder.hoursBeforeReminder - 1).plusMinutes(55)
         val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
         createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
@@ -309,13 +310,13 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         notification.get.applicationId mustBe AppId
         notification.get.userId mustBe UserId
         notification.get.preferredName mustBe "Georgy"
-        notification.get.expiryDate.getMillis mustBe date.getMillis
+        notification.get.expiryDate.toInstant.toEpochMilli mustBe date.toInstant.toEpochMilli
         // Because we are far away from the 24h reminder's window
         phase1TestRepo.nextTestForReminder(Phase1SecondReminder).futureValue mustBe None
       }
 
       "there is an application in PHASE1_TESTS and is about to expire in the next 24 hours" in {
-        val date = DateTime.now().plusHours(Phase1SecondReminder.hoursBeforeReminder - 1).plusMinutes(55)
+        val date = OffsetDateTime.now().plusHours(Phase1SecondReminder.hoursBeforeReminder - 1).plusMinutes(55)
         val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
         createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
@@ -324,12 +325,12 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         notification.get.applicationId mustBe AppId
         notification.get.userId mustBe UserId
         notification.get.preferredName mustBe "Georgy"
-        notification.get.expiryDate.getMillis mustBe date.getMillis
+        notification.get.expiryDate.toInstant.toEpochMilli mustBe date.toInstant.toEpochMilli
       }
     }
 
     "return no results" when {
-      val date = DateTime.now().plusHours(22)
+      val date = OffsetDateTime.now().plusHours(22)
       val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
 
       "there are no application in PHASE1_TESTS" in {
@@ -343,7 +344,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase1TestRepo.insertOrUpdateTestGroup(
           AppId,
-          Phase1TestProfile(expirationDate = new DateTime().plusHours(30), tests = List(phase1Test))).futureValue
+          Phase1TestProfile(expirationDate = OffsetDateTime.now().plusHours(30), tests = List(phase1Test))).futureValue
         phase1TestRepo.nextTestForReminder(Phase1SecondReminder).futureValue mustBe None
       }
 
@@ -386,7 +387,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   }
 
   "remove test group" should {
-    val date = DateTime.now().plusHours(22)
+    val date = OffsetDateTime.now().plusHours(22)
     val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
 
     "remove the test group" in {
@@ -402,7 +403,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   }
 
   "remove test group evaluation" should {
-    val date = DateTime.now().plusHours(1)
+    val date = OffsetDateTime.now().plusHours(1)
     val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
     val appId = "appId"
 
@@ -523,18 +524,19 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       insertApplication("appId", "userId")
       phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
 
-      val startedDateTime = DateTime.now()
+      val startedDateTime = OffsetDateTime.now()
       phase1TestRepo.updateTestStartTime(TestProfile.tests.head.orderId, startedDateTime).futureValue
 
       val phase1TestProfile = phase1TestRepo.getTestGroup("appId").futureValue.get
       val psiTest = phase1TestProfile.tests.head
 
-      psiTest.startedDateTime mustBe Some(new DateTime(startedDateTime.getMillis, DateTimeZone.UTC))
+      psiTest.startedDateTime mustBe Some(OffsetDateTime.ofInstant(startedDateTime.toInstant, ZoneId.of("UTC")))
     }
 
     "add the completion time for a psi test if the test group has not expired" in {
+      val nowOffsetDateTime = OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime
       val now = DateTime.now(DateTimeZone.UTC)
-      val input = Phase1TestProfile(expirationDate = now.plusDays(5), tests = List(phase1Test))
+      val input = Phase1TestProfile(expirationDate = nowOffsetDateTime.plusDays(5), tests = List(phase1Test))
 
       createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "PHASE1_TESTS", phase1TestProfile = Some(input))
         .futureValue
@@ -572,7 +574,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   }
 
   "getApplicationIdForOrderId" should {
-    val date = DateTime.now().plusHours(1)
+    val date = OffsetDateTime.now().plusHours(1)
     val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
     val appId = "appId"
 
@@ -590,7 +592,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   }
 
   "upsert test group evaluation" should {
-    val date = DateTime.now().plusHours(1)
+    val date = OffsetDateTime.now().plusHours(1)
     val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
     val appId = "appId"
 
@@ -619,7 +621,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   }
 
   "getTestGroup" should {
-    val date = DateTime.now().plusHours(1)
+    val date = OffsetDateTime.now().plusHours(1)
     val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
     val appId = "appId"
 
@@ -636,7 +638,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   }
 
   "update test group expiry time" should {
-    val date = DateTime.now().plusHours(1)
+    val date = OffsetDateTime.now().plusHours(1)
     val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
     val appId = "appId"
 
@@ -652,7 +654,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   }
 
   "next test for reminder" should {
-    val date = DateTime.now().plusHours(1)
+    val date = OffsetDateTime.now().plusHours(1)
     val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
     val appId = "appId"
 

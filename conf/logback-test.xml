@@ -72,7 +72,6 @@
     <logger name="org.mongodb.driver.connection" level="WARN"/>
     <logger name="org.mongodb.driver.protocol.command" level="WARN"/>
 
-
     <logger name="uk.gov.hmrc.audit.handler.DatastreamHandler" level="WARN"/>
 
     <root level="INFO">
