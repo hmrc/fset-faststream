@@ -17,7 +17,6 @@
 package repositories.campaignmanagement
 
 import model.persisted.CampaignManagementAfterDeadlineCode
-import org.joda.time.DateTime
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Indexes.{ascending, descending}
 import org.mongodb.scala.model.{IndexModel, IndexOptions}
@@ -25,6 +24,7 @@ import repositories.{CollectionNames, ReactiveRepositoryHelpers}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
+import java.time.OffsetDateTime
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -50,7 +50,7 @@ class CampaignManagementAfterDeadlineSignupCodeMongoRepository @Inject() (mongo:
     val query = Document(
       "code" -> code,
       "usedByApplicationId" -> Document("$exists" -> false),
-      "expires" -> Document("$gte" -> DateTime.now.getMillis)
+      "expires" -> Document("$gte" -> OffsetDateTime.now().toInstant.toEpochMilli)
     )
 
     collection.find(query).headOption

@@ -17,7 +17,6 @@
 package model
 
 import model.Phase1TestExamples.firstPsiTest
-import org.joda.time.DateTime
 
 import java.time.OffsetDateTime
 

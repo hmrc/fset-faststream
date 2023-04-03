@@ -17,7 +17,6 @@
 package model
 
 import model.persisted.Phase1TestProfile
-import org.joda.time.DateTime
 
 import java.time.OffsetDateTime
 

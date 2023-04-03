@@ -16,12 +16,11 @@
 
 package model
 
-import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.{ Json, OFormat }
+import play.api.libs.json.{Json, OFormat}
 
-case class AssessorNewEventsJobInfo(lastRun: DateTime)
+import java.time.OffsetDateTime
+
+case class AssessorNewEventsJobInfo(lastRun: org.joda.time.DateTime)
 
 object AssessorNewEventsJobInfo {
   // Do not remove this as it is needed to serialize the date as epoch millis

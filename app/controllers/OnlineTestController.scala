@@ -21,10 +21,7 @@ import model.ApplicationStatus._
 import model.Exceptions.{ CannotFindTestByOrderIdException, ExpiredTestForTokenException }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.command.{ InvigilatedTestUrl, ResetOnlineTest, ResetOnlineTest2, VerifyAccessCode }
-import org.joda.time.DateTime
 import play.api.Logging
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.{ JsValue, Json, OFormat }
 import play.api.mvc._
 import repositories.application.GeneralApplicationRepository

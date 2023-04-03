@@ -25,7 +25,6 @@ import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model.persisted._
 import model.{ApplicationStatus, ReminderNotice}
-import org.joda.time.DateTime
 import org.mongodb.scala.bson.{BsonArray, BsonDocument}
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections

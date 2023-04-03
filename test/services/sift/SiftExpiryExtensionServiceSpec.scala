@@ -20,7 +20,6 @@ import factories.DateTimeFactory
 import model.ProgressStatuses._
 import model.command.{ProgressResponse, SiftProgressResponse}
 import model.persisted.sift.SiftTestGroup
-import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito.{never, verify, verifyNoMoreInteractions, when}
 import play.api.mvc.RequestHeader

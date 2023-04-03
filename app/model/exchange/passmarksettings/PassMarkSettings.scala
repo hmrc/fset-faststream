@@ -17,23 +17,22 @@
 package model.exchange.passmarksettings
 
 import model.SchemeId
-import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.Json
+
+import java.time.OffsetDateTime
 
 trait PassMarkSettings {
   def schemes: List[PassMark]
   def version: String
-  def createDate: DateTime
+  def createDate: OffsetDateTime
   def createdBy: String
 }
 
 case class Phase1PassMarkSettings(
-  schemes: List[Phase1PassMark],
-  version: String,
-  createDate: DateTime,
-  createdBy: String
+                                   schemes: List[Phase1PassMark],
+                                   version: String,
+                                   createDate: OffsetDateTime,
+                                   createdBy: String
 ) extends PassMarkSettings
 
 object Phase1PassMarkSettings {
@@ -73,7 +72,7 @@ object Phase1PassMarkSettings {
 case class Phase2PassMarkSettings(
   schemes: List[Phase2PassMark],
   version: String,
-  createDate: DateTime,
+  createDate: OffsetDateTime,
   createdBy: String
 ) extends PassMarkSettings
 
@@ -86,7 +85,7 @@ object Phase2PassMarkSettings {
 case class Phase3PassMarkSettings(
   schemes: List[Phase3PassMark],
   version: String,
-  createDate: DateTime,
+  createDate: OffsetDateTime,
   createdBy: String
 ) extends PassMarkSettings
 
@@ -99,7 +98,7 @@ object Phase3PassMarkSettings {
 case class AssessmentCentrePassMarkSettings(
                                    schemes: List[AssessmentCentrePassMark],
                                    version: String,
-                                   createDate: DateTime,
+                                   createDate: OffsetDateTime,
                                    createdBy: String
                                  ) extends PassMarkSettings {
   // Only display pass marks for the Commercial scheme to reduce the amount we log

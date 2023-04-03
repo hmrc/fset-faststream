@@ -16,8 +16,7 @@
 
 package model.persisted
 
-import model.{ApplicationStatus, Phase1TestProfileExamples, SelectedSchemesExamples, _}
-import org.joda.time.DateTime
+import model.{ApplicationStatus, SelectedSchemesExamples, _}
 
 import java.time.OffsetDateTime
 

@@ -35,7 +35,6 @@ import model.exchange.{Phase2TestGroupWithActiveTest, PsiRealTimeResults, PsiTes
 import model.persisted._
 import model.stc.StcEventTypes.StcEventType
 import model.stc.{AuditEvent, AuditEvents, DataStoreEvents}
-import org.joda.time.DateTime
 import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
@@ -446,7 +445,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
   }
 
   private def insertPhase2TestGroups(o: List[Phase2TestInviteData])
-                                    (implicit invitationDate: DateTime,
+                                    (implicit invitationDate: OffsetDateTime,
                                      expirationDate: OffsetDateTime, hc: HeaderCarrier): Future[Unit] = {
     Future.sequence(o.map { completedInvite =>
       val maybeInvigilatedAccessCodeFut = if (completedInvite.application.isInvigilatedETray) {
@@ -531,7 +530,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
   }
 
   def markAsCompleted(orderId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    val updateTestFunc = testRepository.updateTestCompletionTime(_: String, dateTimeFactory.nowLocalTimeZone)
+    val updateTestFunc = testRepository.updateTestCompletionTime(_: String, dateTimeFactory.nowLocalTimeZoneJavaTime)
     updatePhase2Test(orderId, updateTestFunc).flatMap { u =>
       val msg = s"Active tests cannot be found when marking phase2 test complete for orderId: $orderId"
       require(u.testGroup.activeTests.nonEmpty, msg)

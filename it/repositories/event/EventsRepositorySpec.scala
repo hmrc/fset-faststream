@@ -2,12 +2,12 @@ package repositories.event
 
 import model.Exceptions.EventNotFoundException
 import model.persisted.EventExamples
-import model.persisted.eventschedules.{ EventType, SkillType, VenueType }
-import org.joda.time.DateTime
+import model.persisted.eventschedules.{EventType, SkillType}
 import repositories.CollectionNames
 import repositories.events.EventsMongoRepository
 import testkit.MongoRepositorySpec
 
+import java.time.OffsetDateTime
 import scala.util.Random
 
 class EventsRepositorySpec extends MongoRepositorySpec {
@@ -159,7 +159,7 @@ class EventsRepositorySpec extends MongoRepositorySpec {
     "return the newly created events since the specified date" in {
       // Create events 1 day ago whose bulkUpload status is false so they are manually created events
       val hoursInPast = 24
-      val createdAt1DayAgo = DateTime.now().minusDays(hoursInPast)
+      val createdAt1DayAgo = OffsetDateTime.now().minusDays(hoursInPast)
       val events = EventExamples.EventsNew.map(_.copy(createdAt = createdAt1DayAgo))
       repository.save(events).futureValue mustBe unit
 

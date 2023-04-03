@@ -22,7 +22,6 @@ import model.Exceptions.EventNotFoundException
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.SkillType.SkillType
 import model.persisted.eventschedules.{Event, EventType, Location, Venue}
-import org.joda.time.DateTime
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.{IndexModel, IndexOptions, Projections}
@@ -31,6 +30,7 @@ import repositories.{CollectionNames, ReactiveRepositoryHelpers}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
+import java.time.OffsetDateTime
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -49,7 +49,7 @@ trait EventsRepository {
   def getEvents(eventType: Option[EventType] = None, venue: Option[Venue] = None,
     location: Option[Location] = None, skills: Seq[SkillType] = Nil, description: Option[String] = None): Future[Seq[Event]]
   def getEventsById(eventIds: Seq[String], eventType: Option[EventType] = None): Future[Seq[Event]]
-  def getEventsManuallyCreatedAfter(dateTime: DateTime): Future[Seq[Event]]
+  def getEventsManuallyCreatedAfter(dateTime: OffsetDateTime): Future[Seq[Event]]
   def updateStructure(): Future[Unit]
   def updateEvent(updatedEvent: Event): Future[Unit]
   def findAllForExtract: Source[JsValue, _]
@@ -125,8 +125,8 @@ class EventsMongoRepository @Inject() (mongoComponent: MongoComponent, appConfig
     collection.find(query).toFuture()
   }
 
-  override def getEventsManuallyCreatedAfter(dateTime: DateTime): Future[Seq[Event]] = {
-    val query = Document("createdAt" -> Document("$gte" -> dateTime.getMillis), "wasBulkUploaded" -> false)
+  override def getEventsManuallyCreatedAfter(dateTime: OffsetDateTime): Future[Seq[Event]] = {
+    val query = Document("createdAt" -> Document("$gte" -> dateTime.toInstant.toEpochMilli), "wasBulkUploaded" -> false)
     collection.find(query).toFuture()
   }
 
@@ -143,7 +143,7 @@ class EventsMongoRepository @Inject() (mongoComponent: MongoComponent, appConfig
   }
 
   override def updateStructure(): Future[Unit] = {
-    val updateQuery = Document("$set" -> Document("wasBulkUploaded" -> false, "createdAt" -> DateTime.now.getMillis))
+    val updateQuery = Document("$set" -> Document("wasBulkUploaded" -> false, "createdAt" -> OffsetDateTime.now().toInstant.toEpochMilli))
     collection.updateMany(Document.empty, updateQuery).toFuture().map(_ => ())
   }
 

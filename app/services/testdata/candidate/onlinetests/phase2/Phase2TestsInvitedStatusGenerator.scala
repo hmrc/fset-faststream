@@ -23,7 +23,6 @@ import model.Adjustments
 import model.exchange.testdata.CreateCandidateResponse.{TestGroupResponse2, TestResponse2}
 import model.persisted.{Phase2TestGroup, PsiTest}
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories.onlinetesting.Phase2TestRepository
 import services.testdata.candidate.ConstructiveGenerator

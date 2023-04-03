@@ -17,8 +17,9 @@
 package model.assessmentscores
 
 import model.UniqueIdentifier
-import org.joda.time.DateTime
 import play.api.libs.json.Json
+
+import java.time.OffsetDateTime
 
 case class AssessmentScoresExercise(
                                      attended: Boolean,
@@ -40,8 +41,8 @@ case class AssessmentScoresExercise(
                                      workingTogetherDevelopingSelfAndOthersFeedback: Option[String] = None,
 
                                      updatedBy: UniqueIdentifier,
-                                     savedDate: Option[DateTime] = None,
-                                     submittedDate: Option[DateTime] = None,
+                                     savedDate: Option[OffsetDateTime] = None,
+                                     submittedDate: Option[OffsetDateTime] = None,
                                      version: Option[String] = None
 ) extends AssessmentScoresSection {
   def isSubmitted = submittedDate.isDefined
@@ -113,8 +114,8 @@ case class AssessmentScoresExerciseExchange(
                                      workingTogetherDevelopingSelfAndOthersFeedback: Option[String] = None,
 
                                      updatedBy: UniqueIdentifier,
-                                     savedDate: Option[DateTime] = None,
-                                     submittedDate: Option[DateTime] = None,
+                                     savedDate: Option[OffsetDateTime] = None,
+                                     submittedDate: Option[OffsetDateTime] = None,
                                      version: Option[String] = None
                                    ) extends AssessmentScoresSection {
   def toPersistence =

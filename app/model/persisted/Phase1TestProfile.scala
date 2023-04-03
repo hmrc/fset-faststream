@@ -16,9 +16,7 @@
 
 package model.persisted
 
-import org.joda.time.DateTime
 import org.mongodb.scala.bson.BsonValue
-import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.mongo.play.json.Codecs
 

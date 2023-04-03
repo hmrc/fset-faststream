@@ -28,7 +28,8 @@ import services.AssessorsEventsSummaryJobsService
 import services.assessor.AssessorService
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ ExecutionContext, Future }
+import java.time.OffsetDateTime
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class NotifyAssessorsOfNewEventsJobImpl @Inject() (val assessorService: AssessorService,
@@ -57,12 +58,16 @@ trait NotifyAssessorsOfNewEventsJob extends SingleInstanceScheduledJob[BasicJobC
 
     assessorsEventsSummaryJobsService.lastRun.flatMap { lastRunInfoOpt =>
       val newLastRun = AssessorNewEventsJobInfo(DateTime.now)
+      // TODO MIGUEL: Delete once everything is migrated
+      val newLastRunOffsetDateTime = OffsetDateTime.now()
       val lastRunInfo = lastRunInfoOpt.getOrElse(newLastRun)
       val isFirstJob = lastRunInfoOpt.isEmpty
       val canRun = shouldRun(lastRunInfo.lastRun, newLastRun.lastRun, isFirstJob)
 
       if (canRun) {
-        assessorService.notifyAssessorsOfNewEvents(lastRunInfo.lastRun).flatMap { _ =>
+        // TODO MIGUEL
+        //assessorService.notifyAssessorsOfNewEvents(lastRunInfo.lastRun).flatMap { _ =>
+        assessorService.notifyAssessorsOfNewEvents(newLastRunOffsetDateTime).flatMap { _ =>
           assessorsEventsSummaryJobsService.save(newLastRun).map(_ => ())
         }
       } else {

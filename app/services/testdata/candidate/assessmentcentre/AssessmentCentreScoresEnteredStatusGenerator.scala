@@ -29,6 +29,7 @@ import services.assessmentscores.AssessmentScoresService
 import services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.{OffsetDateTime, ZoneOffset}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -101,7 +102,7 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
   )
 
   def finalFeedbackSample(assessorOrReviewer: String) = AssessmentScoresFinalFeedback(
-    "final feedback for " + assessorOrReviewer, updatedBy, DateTime.now(DateTimeZone.UTC)
+    "final feedback for " + assessorOrReviewer, updatedBy, OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime
   )
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)

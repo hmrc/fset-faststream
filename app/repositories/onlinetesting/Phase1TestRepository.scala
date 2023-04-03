@@ -24,7 +24,6 @@ import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model._
 import model.persisted.{NotificationExpiringOnlineTest, Phase1TestGroupWithUserIds, Phase1TestProfile}
-import org.joda.time.DateTime
 import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections

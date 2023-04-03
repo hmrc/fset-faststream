@@ -24,7 +24,6 @@ import model.persisted.fileupload.FileUpload
 import model.persisted.fsac.{AnalysisExercise, AssessmentCentreTests}
 import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
 import model.{ApplicationResponse, ApplicationRoute, SchemeId}
-import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.libs.json.Json
@@ -43,6 +42,7 @@ import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
@@ -223,7 +223,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
       val fileUpload = FileUpload(
         id = fileId,
         contentType = "application/pdf",
-        created = DateTime.now,
+        created = OffsetDateTime.now,
         fileContents = fileContents.toCharArray.map(_.toByte)
       )
       when(mockFileUploadRepository.retrieve(any[String])).thenReturnAsync(fileUpload)

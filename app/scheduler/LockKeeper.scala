@@ -21,13 +21,14 @@ import org.joda.time.Duration
 import uk.gov.hmrc.mongo.MongoComponent
 import repositories._
 
-import scala.concurrent.{ ExecutionContext, Future }
+import java.time.temporal.{ChronoUnit, TemporalUnit}
+import scala.concurrent.{ExecutionContext, Future}
 
 trait LockKeeper {
   val repo: LockRepository
   val lockId: String
   val serverId: String
-  val forceLockReleaseAfter: Duration
+  val forceLockReleaseAfter: java.time.Duration
   val greedyLockingEnabled: Boolean
 
   def isLocked(implicit ec: ExecutionContext): Future[Boolean] = repo.isLocked(lockId, serverId)
@@ -57,7 +58,9 @@ object LockKeeper {
   def apply(mongoComponent: MongoComponent,
             lockIdToUse: String,
             forceLockReleaseAfterToUse: scala.concurrent.duration.Duration)(implicit ec: ExecutionContext) = new LockKeeper {
-    val forceLockReleaseAfter: Duration = Duration.millis(forceLockReleaseAfterToUse.toMillis)
+    //val forceLockReleaseAfter: Duration = Duration.millis(forceLockReleaseAfterToUse.toMillis)
+    val forceLockReleaseAfter: java.time.Duration = java.time.Duration.of(forceLockReleaseAfterToUse.toMillis, ChronoUnit.MILLIS)
+
     val serverId = generatedServerId
     val lockId = lockIdToUse
     val repo = new LockMongoRepository(mongoComponent)

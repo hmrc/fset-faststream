@@ -18,7 +18,6 @@ package persisted
 
 import model.persisted.ApplicationReadyForEvaluation
 import model.{ApplicationStatus, SelectedSchemesExamples, _}
-import org.joda.time.DateTime
 
 import java.time.OffsetDateTime
 

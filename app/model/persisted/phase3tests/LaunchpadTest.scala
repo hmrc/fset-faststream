@@ -17,7 +17,6 @@
 package model.persisted.phase3tests
 
 import model.persisted.Test
-import org.joda.time.DateTime
 import play.api.libs.json.Json
 
 import java.time.OffsetDateTime

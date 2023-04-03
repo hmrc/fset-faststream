@@ -20,7 +20,6 @@ import model.ProgressStatuses.ProgressStatus
 import model.command.testdata.CreateCandidateRequest.{CreateCandidateRequest, PhaseXTestDataRequest}
 import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
 import model.{ProgressStatuses, SchemeId}
-import org.joda.time.DateTime
 
 import java.time.OffsetDateTime
 

@@ -17,28 +17,30 @@
 package model.persisted.eventschedules
 
 import model.persisted.eventschedules.EventType.EventType
-import org.joda.time.{ DateTime, LocalDate, LocalTime }
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._  // This is needed for DateTime serialization
+import org.joda.time.{DateTime, LocalDate, LocalTime}
+import play.api.libs.json.JodaWrites._
+import play.api.libs.json.JodaReads._
 import play.api.libs.json._
-import model.exchange.{ Event => ExchangeEvent }
+import model.exchange.{Event => ExchangeEvent}
+
+import java.time.OffsetDateTime
 
 case class Event(
-  id: String,
-  eventType: EventType,
-  description: String,
-  location: Location,
-  venue: Venue,
-  date: LocalDate,
-  capacity: Int,
-  minViableAttendees: Int,
-  attendeeSafetyMargin: Int,
-  startTime: LocalTime,
-  endTime: LocalTime,
-  createdAt: DateTime,
-  skillRequirements: Map[String, Int],
-  sessions: List[Session],
-  wasBulkUploaded: Boolean = false
+                  id: String,
+                  eventType: EventType,
+                  description: String,
+                  location: Location,
+                  venue: Venue,
+                  date: LocalDate,
+                  capacity: Int,
+                  minViableAttendees: Int,
+                  attendeeSafetyMargin: Int,
+                  startTime: LocalTime,
+                  endTime: LocalTime,
+                  createdAt: OffsetDateTime,
+                  skillRequirements: Map[String, Int],
+                  sessions: List[Session],
+                  wasBulkUploaded: Boolean = false
 )
 
 object Event {
@@ -74,7 +76,7 @@ object Event {
       attendeeSafetyMargin = exchangeEvent.attendeeSafetyMargin,
       startTime = exchangeEvent.startTime,
       endTime = exchangeEvent.endTime,
-      createdAt = DateTime.now(),
+      createdAt = OffsetDateTime.now(),
       skillRequirements = exchangeEvent.skillRequirements,
       sessions = exchangeEvent.sessions.map(Session.apply)
     )

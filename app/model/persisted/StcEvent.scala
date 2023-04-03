@@ -16,13 +16,13 @@
 
 package model.persisted
 
-import org.joda.time.DateTime
-import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format
 import play.api.libs.json.Json
+
+import java.time.OffsetDateTime
 
 case class StcEvent(
   name: String,
-  created: DateTime,
+  created: OffsetDateTime,
   applicationId: Option[String],
   userId: Option[String],
   createdBy: Option[String] = None

@@ -18,11 +18,12 @@ package repositories
 
 import model.SchemeId
 import model.exchange.passmarksettings._
-import org.joda.time.DateTime
 import play.api.libs.json.{Format, OFormat}
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import repositories.passmarksettings._
 import testkit.MongoRepositorySpec
+
+import java.time.OffsetDateTime
 
 class Phase1PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   type T = Phase1PassMarkSettings
@@ -41,8 +42,8 @@ class Phase1PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   val collectionName: String = CollectionNames.PHASE1_PASS_MARK_SETTINGS
 
   override def copyNewPassMarkSettings(o: Phase1PassMarkSettings, newPassMarks: List[Phase1PassMark], newVersion: String, newDate:
-  DateTime, newUser: String): Phase1PassMarkSettings = {
-    o.copy(schemes = newPassMarks, newVersion, DateTime.now().plusDays(1), createdByUser)
+  OffsetDateTime, newUser: String): Phase1PassMarkSettings = {
+    o.copy(schemes = newPassMarks, newVersion, OffsetDateTime.now().plusDays(1), createdByUser)
   }
 }
 
@@ -59,8 +60,8 @@ class Phase2PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   val collectionName: String = CollectionNames.PHASE2_PASS_MARK_SETTINGS
 
   override def copyNewPassMarkSettings(o: Phase2PassMarkSettings, newPassMarks: List[Phase2PassMark], newVersion: String, newDate:
-    DateTime, newUser: String): Phase2PassMarkSettings = {
-    o.copy(schemes = newPassMarks, newVersion, DateTime.now().plusDays(1), createdByUser)
+  OffsetDateTime, newUser: String): Phase2PassMarkSettings = {
+    o.copy(schemes = newPassMarks, newVersion, OffsetDateTime.now().plusDays(1), createdByUser)
   }
 }
 
@@ -77,8 +78,8 @@ class Phase3PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   val collectionName: String = CollectionNames.PHASE3_PASS_MARK_SETTINGS
 
   override def copyNewPassMarkSettings(o: Phase3PassMarkSettings, newPassMarks: List[Phase3PassMark], newVersion: String, newDate:
-  DateTime, newUser: String): Phase3PassMarkSettings = {
-    o.copy(schemes = newPassMarks, newVersion, DateTime.now().plusDays(1), createdByUser)
+  OffsetDateTime, newUser: String): Phase3PassMarkSettings = {
+    o.copy(schemes = newPassMarks, newVersion, OffsetDateTime.now().plusDays(1), createdByUser)
   }
 }
 
@@ -103,8 +104,8 @@ class AssessmentCentrePassMarkSettingsRepositorySpec extends PassMarkRepositoryF
                                        newPassMarks: List[AssessmentCentrePassMark],
                                        newVersion: String,
                                        newDate:
-  DateTime, newUser: String): AssessmentCentrePassMarkSettings = {
-    o.copy(schemes = newPassMarks, newVersion, DateTime.now().plusDays(1), createdByUser)
+                                       OffsetDateTime, newUser: String): AssessmentCentrePassMarkSettings = {
+    o.copy(schemes = newPassMarks, newVersion, OffsetDateTime.now().plusDays(1), createdByUser)
   }
 }
 
@@ -117,11 +118,11 @@ trait PassMarkRepositoryFixture extends MongoRepositorySpec {
   val newPassMarks: List[U]
   def passMarkSettingsRepo: PassMarkSettingsRepository[T]
 
-  def copyNewPassMarkSettings(o: T, schemes: List[U], newVersion: String, newDate: DateTime, newUser: String): T
+  def copyNewPassMarkSettings(o: T, schemes: List[U], newVersion: String, newDate: OffsetDateTime, newUser: String): T
 
   val collectionName: String
   val version = "version-1"
-  val createdDate = DateTime.now()
+  val createdDate = OffsetDateTime.now()
   val createdByUser = "user-1"
 
   "Pass-mark-settings collection" should {
@@ -152,7 +153,7 @@ trait PassMarkRepositoryFixture extends MongoRepositorySpec {
     "find the latest pass mark settings" in {
       val newVersion = "version-2"
       val newPassMarkSettings = copyNewPassMarkSettings(passMarkSettings, newPassMarks, newVersion,
-       DateTime.now.plusDays(1), createdByUser)
+        OffsetDateTime.now.plusDays(1), createdByUser)
 
       passMarkSettingsRepo.create(passMarkSettings).futureValue
       passMarkSettingsRepo.create(newPassMarkSettings).futureValue

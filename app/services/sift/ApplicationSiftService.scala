@@ -31,7 +31,6 @@ import model.exchange.sift.{SiftState, SiftTestGroupWithActiveTest}
 import model.persisted.SchemeEvaluationResult
 import model.persisted.sift.NotificationExpiringSift
 import model.sift.{FixStuckUser, FixUserStuckInSiftEntered, SiftReminderNotice}
-import org.joda.time.DateTime
 import org.mongodb.scala.bson.collection.immutable.Document
 import play.api.Logging
 import repositories.application.GeneralApplicationRepository
@@ -207,7 +206,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     }
   }
 
-  def markTestAsStarted(orderId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone): Future[Unit] = {
+  def markTestAsStarted(orderId: String, startedTime: OffsetDateTime = dateTimeFactory.nowLocalTimeZoneJavaTime): Future[Unit] = {
     for {
       _ <- applicationSiftRepo.updateTestStartTime(orderId, startedTime)
       appId <- applicationSiftRepo.getApplicationIdForOrderId(orderId)

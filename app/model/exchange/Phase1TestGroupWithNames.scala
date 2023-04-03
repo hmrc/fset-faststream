@@ -16,12 +16,8 @@
 
 package model.exchange
 
-import model.persisted.{PsiTest, Test}
-import org.joda.time.DateTime
+import model.persisted.{ Test}
 import play.api.libs.json.{Json, OFormat}
-import play.api.libs.json.JodaWrites._
-import play.api.libs.json.JodaReads._
-
 import java.time.OffsetDateTime // This is needed for DateTime serialization
 
 case class Phase1TestGroupWithNames(expirationDate: OffsetDateTime, activeTests: Seq[PsiTest])

@@ -32,7 +32,6 @@ import model._
 import model.exchange.{Phase1TestGroupWithNames, PsiRealTimeResults}
 import model.persisted.{Phase1TestProfile, PsiTestResult => _, _}
 import model.stc.{AuditEvents, DataStoreEvents}
-import org.joda.time.DateTime
 import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
@@ -351,7 +350,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
 
   private def setTestCompletedTime(orderId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] =
     eventSink {
-      updatePhase1Test(orderId, testRepository.updateTestCompletionTime(_: String, dateTimeFactory.nowLocalTimeZone)) flatMap { u =>
+      updatePhase1Test(orderId, testRepository.updateTestCompletionTime(_: String, dateTimeFactory.nowLocalTimeZoneJavaTime)) flatMap { u =>
         require(u.testGroup.activeTests.nonEmpty, s"Active tests cannot be found orderId=$orderId")
         val activeTestsCompleted = u.testGroup.activeTests forall (_.completedDateTime.isDefined)
         if (activeTestsCompleted) {

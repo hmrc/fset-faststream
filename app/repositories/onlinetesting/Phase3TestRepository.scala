@@ -26,11 +26,10 @@ import model.command.ApplicationForSkippingPhase3
 import model.persisted.phase3tests.Phase3TestGroup
 import model.persisted.{NotificationExpiringOnlineTest, PassmarkEvaluation, Phase3TestGroupWithAppId, SchemeEvaluationResult}
 import model.{ApplicationRoute, ApplicationStatus, EvaluationResults, ProgressStatuses, ReminderNotice}
-import org.joda.time.DateTime
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.bson.{BsonArray, BsonDocument, BsonString}
-import org.mongodb.scala.model.{Projections, UpdateOptions}
+import org.mongodb.scala.model.{Projections}
 import play.api.libs.json.{Reads, Writes}
 import repositories._
 import repositories.onlinetesting.Phase3TestRepository.CannotFindTestByLaunchpadId
@@ -54,13 +53,13 @@ trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
   def insertOrUpdateTestGroup(applicationId: String, phase3TestGroup: Phase3TestGroup): Future[Unit]
   def upsertTestGroupEvaluation(applicationId: String, passmarkEvaluation: PassmarkEvaluation): Future[Unit]
   def updateTestStartTime(launchpadInviteId: String, startedTime: OffsetDateTime): Future[Unit]
-  def updateTestCompletionTime(launchpadInviteId: String, completionTime: DateTime): Future[Unit]
+  def updateTestCompletionTime(launchpadInviteId: String, completionTime: OffsetDateTime): Future[Unit]
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
   def removePhase3TestGroup(applicationId: String): Future[Unit]
   def removeReviewedCallbacks(token: String): Future[Unit]
   def removeTest(token: String): Future[Unit]
   def markTestAsActive(token: String): Future[Unit]
-  def updateExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit]
+  def updateExpiryDate(applicationId: String, expiryDate: OffsetDateTime): Future[Unit]
   def updateResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
   def addResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
   def nextApplicationsReadyToSkipPhase3(batchSize: Int): Future[Seq[ApplicationForSkippingPhase3]]
@@ -254,10 +253,10 @@ class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
     collection.updateOne(query, update).toFuture() map validator
   }
 
-  override def updateExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit] = {
+  override def updateExpiryDate(applicationId: String, expiryDate: OffsetDateTime): Future[Unit] = {
     val query = BsonDocument("applicationId" -> applicationId)
     val update = BsonDocument("$set" -> BsonDocument(
-      s"testGroups.$phaseName.expirationDate" -> dateTimeToBson(expiryDate)
+      s"testGroups.$phaseName.expirationDate" -> offsetDateTimeToBson(expiryDate)
     ))
 
     val validator = singleUpdateValidator(applicationId, "setting phase3 expiration date", ApplicationNotFound(applicationId))
@@ -295,9 +294,9 @@ class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
     findAndUpdateLaunchpadTest(launchpadInviteId, update)
   }
 
-  override def updateTestCompletionTime(launchpadInviteId: String, completedTime: DateTime): Future[Unit] = {
+  override def updateTestCompletionTime(launchpadInviteId: String, completedTime: OffsetDateTime): Future[Unit] = {
     val update = BsonDocument("$set" -> BsonDocument(
-      s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(dateTimeToBson(completedTime))
+      s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(offsetDateTimeToBson(completedTime))
     ))
 
     findAndUpdateLaunchpadTest(launchpadInviteId, update)

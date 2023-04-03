@@ -19,14 +19,15 @@ package model.command
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.ProgressStatuses.ProgressStatus
-import org.joda.time.DateTime
 import play.api.libs.json.Json
+
+import java.time.OffsetDateTime
 
 case class ApplicationStatusDetails(status: String, // TODO: change to ApplicationStatus type
                                     applicationRoute: ApplicationRoute,
                                     latestProgressStatus: Option[ProgressStatus],
-                                    statusDate: Option[DateTime] = None,
-                                    overrideSubmissionDeadline: Option[DateTime]) {
+                                    statusDate: Option[OffsetDateTime] = None,
+                                    overrideSubmissionDeadline: Option[OffsetDateTime]) {
   def toExchange = {
     ApplicationStatusDetailsExchange(
       status,
@@ -46,8 +47,8 @@ object ApplicationStatusDetails {
 case class ApplicationStatusDetailsExchange(status: String, // TODO: change to ApplicationStatus type
                                     applicationRoute: ApplicationRoute,
                                     latestProgressStatus: Option[ProgressStatus],
-                                    statusDate: Option[DateTime] = None,
-                                    overrideSubmissionDeadline: Option[DateTime])
+                                    statusDate: Option[OffsetDateTime] = None,
+                                    overrideSubmissionDeadline: Option[OffsetDateTime])
 
 object ApplicationStatusDetailsExchange {
   import play.api.libs.json.JodaWrites._ // This is needed for request/response DateTime serialization

@@ -24,6 +24,7 @@ import play.api.libs.json.JodaReads._
 import play.api.libs.json.{Json, OFormat}
 import services.testdata.faker.DataFaker
 
+import java.time.OffsetDateTime
 import scala.concurrent.ExecutionContext
 
 case class CreateEventData(id: String,
@@ -41,7 +42,7 @@ case class CreateEventData(id: String,
                            sessions: List[Session]) extends CreateTestData {
   def toEvent: Event = {
     Event(id, eventType, description, location, venue, date, capacity, minViableAttendees,
-      attendeeSafetyMargin, startTime, endTime, DateTime.now, skillRequirements, sessions)
+      attendeeSafetyMargin, startTime, endTime, OffsetDateTime.now, skillRequirements, sessions)
   }
 }
 

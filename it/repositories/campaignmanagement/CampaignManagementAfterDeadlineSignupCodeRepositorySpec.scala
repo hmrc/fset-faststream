@@ -1,7 +1,6 @@
 package repositories.campaignmanagement
 
 import model.persisted.CampaignManagementAfterDeadlineCode
-import org.joda.time.DateTime
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
 import repositories.CollectionNames
@@ -9,6 +8,7 @@ import testkit.MongoRepositorySpec
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
+import java.time.OffsetDateTime
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
@@ -35,7 +35,7 @@ class CampaignManagementAfterDeadlineSignupCodeRepositorySpec extends MongoRepos
 
   val campaignManagementTestRepo = new CampaignManagementRepositoryForTest(mongo)
 
-  def campaignManagementAfterDeadlineCode(expires: DateTime, usedByApplicationId: Option[String]) =
+  def campaignManagementAfterDeadlineCode(expires: OffsetDateTime, usedByApplicationId: Option[String]) =
     CampaignManagementAfterDeadlineCode(
       code = "1234",
       createdByUserId = "userId1",
@@ -59,7 +59,7 @@ class CampaignManagementAfterDeadlineSignupCodeRepositorySpec extends MongoRepos
   "save" should {
     "write a new code to the database" in {
       val newCode = campaignManagementAfterDeadlineCode(
-        expires = DateTime.now.plusDays(2),
+        expires = OffsetDateTime.now().plusDays(2),
         usedByApplicationId = None
       )
 
@@ -75,7 +75,7 @@ class CampaignManagementAfterDeadlineSignupCodeRepositorySpec extends MongoRepos
   "mark signup code as used" should {
     "mark a signup code as used" in {
       val newCode = campaignManagementAfterDeadlineCode(
-        expires = DateTime.now.plusDays(2),
+        expires = OffsetDateTime.now().plusDays(2),
         usedByApplicationId = None
       )
 
@@ -94,7 +94,7 @@ class CampaignManagementAfterDeadlineSignupCodeRepositorySpec extends MongoRepos
   "find UnusedValidCode" should {
     "return Some if code is unexpired and unused" in {
       val newCode = campaignManagementAfterDeadlineCode(
-        expires = DateTime.now.plusDays(2),
+        expires = OffsetDateTime.now().plusDays(2),
         usedByApplicationId = None
       )
 
@@ -108,7 +108,7 @@ class CampaignManagementAfterDeadlineSignupCodeRepositorySpec extends MongoRepos
 
     "return None if code is expired and unused" in {
       val newCode = campaignManagementAfterDeadlineCode(
-        expires = DateTime.now.minusDays(2),
+        expires = OffsetDateTime.now().minusDays(2),
         usedByApplicationId = None
       )
 
@@ -122,7 +122,7 @@ class CampaignManagementAfterDeadlineSignupCodeRepositorySpec extends MongoRepos
 
     "return None if code is unexpired but used" in {
       val newCode = campaignManagementAfterDeadlineCode(
-        expires = DateTime.now.plusDays(2),
+        expires = OffsetDateTime.now().plusDays(2),
         usedByApplicationId = Some("appId1")
       )
 

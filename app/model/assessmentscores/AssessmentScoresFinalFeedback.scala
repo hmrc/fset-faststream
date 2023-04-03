@@ -17,13 +17,14 @@
 package model.assessmentscores
 
 import model.UniqueIdentifier
-import org.joda.time.DateTime
 import play.api.libs.json.Json
+
+import java.time.OffsetDateTime
 
 case class AssessmentScoresFinalFeedback(
   feedback: String,
   updatedBy: UniqueIdentifier,
-  acceptedDate: DateTime,
+  acceptedDate: OffsetDateTime,
   version: Option[String] = None
 ) extends AssessmentScoresSection {
 
@@ -43,7 +44,7 @@ object AssessmentScoresFinalFeedback {
 case class AssessmentScoresFinalFeedbackExchange(
   feedback: String,
   updatedBy: UniqueIdentifier,
-  acceptedDate: DateTime,
+  acceptedDate: OffsetDateTime,
   version: Option[String] = None
 ) extends AssessmentScoresSection {
 

@@ -20,11 +20,10 @@ import model.EvaluationResults._
 import model.ProgressStatuses._
 import model._
 import model.assessmentscores.AssessmentScoresAllExercises
-import model.command.{ ApplicationForProgression, ApplicationStatusDetails }
+import model.command.{ApplicationForProgression, ApplicationStatusDetails}
 import model.exchange.passmarksettings._
 import model.persisted.SchemeEvaluationResult
-import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
-import org.joda.time.DateTime
+import model.persisted.fsac.{AnalysisExercise, AssessmentCentreTests}
 import play.api.libs.json.Format
 import repositories.AssessmentScoresRepository
 import repositories.application.GeneralApplicationRepository
@@ -35,6 +34,7 @@ import services.passmarksettings.AssessmentCentrePassMarkSettingsService
 import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitSpec
 
+import java.time.OffsetDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -525,7 +525,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
         workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(1.0, 3.0),
         overall = PassMarkThreshold(10.0, 15.0)))),
-      "1", DateTime.now(), "user")
+      "1", OffsetDateTime.now(), "user")
 
     val competencyAverageResult = CompetencyAverageResult(
       makingEffectiveDecisionsAverage = 4.0,

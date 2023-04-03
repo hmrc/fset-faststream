@@ -16,12 +16,11 @@
 
 package model
 
-import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.{ Json, OFormat }
+import play.api.libs.json.{Json, OFormat}
 
-case class OverrideSubmissionDeadlineRequest(submissionDeadline: DateTime)
+import java.time.OffsetDateTime
+
+case class OverrideSubmissionDeadlineRequest(submissionDeadline: OffsetDateTime)
 
 object OverrideSubmissionDeadlineRequest {
   implicit val submissionDeadlineFormat: OFormat[OverrideSubmissionDeadlineRequest] = Json.format[OverrideSubmissionDeadlineRequest]

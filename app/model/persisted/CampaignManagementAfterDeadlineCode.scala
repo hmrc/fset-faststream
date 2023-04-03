@@ -16,11 +16,12 @@
 
 package model.persisted
 
-import org.joda.time.DateTime
 import play.api.libs.json._
 
-case class CampaignManagementAfterDeadlineCode(code: String, createdByUserId: String, expires: DateTime,
-  usedByApplicationId: Option[String] = None)
+import java.time.OffsetDateTime
+
+case class CampaignManagementAfterDeadlineCode(code: String, createdByUserId: String, expires: OffsetDateTime,
+                                               usedByApplicationId: Option[String] = None)
 
 object CampaignManagementAfterDeadlineCode {
 

@@ -330,7 +330,7 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
           val launchpadTest = test.testGroup.tests.find(_.token == launchpadInviteId).get
           if (launchpadTest.completedDateTime.isEmpty && launchpadTest.startedDateTime.isDefined) {
             for {
-              _ <- testRepository.updateTestCompletionTime(launchpadInviteId, dateTimeFactory.nowLocalTimeZone)
+              _ <- testRepository.updateTestCompletionTime(launchpadInviteId, dateTimeFactory.nowLocalTimeZoneJavaTime)
               updated <- testRepository.getTestGroupByToken(launchpadInviteId)
               _ <- testRepository.updateProgressStatus(updated.applicationId, ProgressStatuses.PHASE3_TESTS_COMPLETED)
             } yield {

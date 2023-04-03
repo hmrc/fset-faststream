@@ -38,6 +38,7 @@ import repositories._
 import services.TimeZoneService2
 import uk.gov.hmrc.mongo.MongoComponent
 
+import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
@@ -494,6 +495,15 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2, // 
       }
     }
 
+    def getOffsetDate(doc: Document, status: ProgressStatus): Option[OffsetDateTime] = {
+      import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+      doc.get("progress-status-timestamp").map {
+        _.asDocument().get(status.key)
+      }.flatMap {
+        bson => Try(Codecs.fromBson[OffsetDateTime](bson)).toOption
+      }
+    }
+
     collection.find[Document](query).projection(projection).toFuture().map {
       _.map { doc =>
 
@@ -508,8 +518,8 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2, // 
         } yield s"$first $last"
         val preferredName = extract("preferredName")(personalDetailsDocOpt)
 
-        val submittedTimestampOpt = getDate(doc, ProgressStatuses.SUBMITTED)
-        val eligibleForOfferTimestampOpt = getDate(doc, ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER_NOTIFIED)
+        val submittedTimestampOpt = getOffsetDate(doc, ProgressStatuses.SUBMITTED)
+        val eligibleForOfferTimestampOpt = getOffsetDate(doc, ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER_NOTIFIED)
 
         val fsacIndicatorDocOpt = subDocRoot("fsac-indicator")(doc)
         val assessmentCentre = extract("assessmentCentre")(fsacIndicatorDocOpt)

@@ -21,7 +21,6 @@ import model.ProgressStatuses.{ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILE
 import model._
 import model.command.ApplicationForProgression
 import model.persisted.{ContactDetails, SchemeEvaluationResult}
-import org.joda.time.DateTime
 import repositories.SchemeRepository
 import repositories.application.{FinalOutcomeRepository, GeneralApplicationRepository}
 import repositories.contactdetails.ContactDetailsRepository

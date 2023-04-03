@@ -24,7 +24,6 @@ import model.command.ProgressResponse
 import model.persisted.Phase1TestProfile
 import model.stc.{AuditEvent, AuditEvents, DataStoreEvents}
 import model.{Phase1FirstReminder, Phase1SecondReminder}
-import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository

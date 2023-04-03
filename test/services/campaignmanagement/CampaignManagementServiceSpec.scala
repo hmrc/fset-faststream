@@ -22,7 +22,6 @@ import model.Phase2TestExamples._
 import model.command.SetTScoreRequest
 import model.exchange.campaignmanagement.{AfterDeadlineSignupCode, AfterDeadlineSignupCodeUnused}
 import model.persisted.{CampaignManagementAfterDeadlineCode, Phase1TestProfile, Phase2TestGroup}
-import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import repositories.application.GeneralApplicationRepository
@@ -40,7 +39,7 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
 
   "afterDeadlineSignupCodeUnusedAndValid" should {
     "return true with an expiry if code is unused and unexpired" in new TestFixture {
-      val expiryTime = DateTime.now
+      val expiryTime = OffsetDateTime.now
 
       when(mockAfterDeadlineCodeRepository.findUnusedValidCode("1234")
       ).thenReturnAsync(Some(CampaignManagementAfterDeadlineCode("1234", "userId1", expiryTime, None)))
@@ -50,7 +49,7 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
     }
 
     "return false without an expiry if code is used or expired"  in new TestFixture {
-      val expiryTime = DateTime.now
+      val expiryTime = OffsetDateTime.now
 
       when(mockAfterDeadlineCodeRepository.findUnusedValidCode("1234")
       ).thenReturnAsync(None)

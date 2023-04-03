@@ -25,7 +25,6 @@ import model.exchange.PsiRealTimeResults
 import model.persisted._
 import model.stc.StcEventTypes._
 import model.stc.{AuditEvents, DataStoreEvents}
-import org.joda.time.DateTime
 import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository

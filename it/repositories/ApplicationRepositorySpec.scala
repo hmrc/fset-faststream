@@ -22,7 +22,6 @@ import model.Exceptions.{ApplicationNotFound, CannotUpdateRecord}
 import model.command.WithdrawApplication
 import model.persisted.AssistanceDetails
 import model.{ApplicationRoute, ProgressStatuses}
-import org.joda.time.DateTime
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.bson.collection.immutable.Document
@@ -32,6 +31,7 @@ import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.mongo.play.json.Codecs
 
+import java.time.{OffsetDateTime, ZoneOffset}
 import scala.concurrent.Await
 
 //TODO: mongo note this tests the GeneralApplicationMongoRepository and so does
@@ -84,13 +84,13 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
   "Updating an application's submission deadline" should {
     "Succeed" in {
-      val extendTo = new DateTime(2016, 5, 21, 23, 59, 59)
+      val extendTo = OffsetDateTime.of(2016, 5, 21, 23, 59, 59, 0, ZoneOffset.UTC)
       val applicationId = applicationRepo.create("userId1", "frameworkId", ApplicationRoute.Faststream).futureValue.applicationId
       applicationRepo.updateSubmissionDeadline(applicationId, extendTo).futureValue
 
       val result = applicationRepo.findByUserId("userId1", "frameworkId").futureValue
 
-      result.overriddenSubmissionDeadline.get.getMillis mustBe extendTo.getMillis
+      result.overriddenSubmissionDeadline.get.getMillis mustBe extendTo.toInstant.toEpochMilli
     }
   }
 
@@ -139,7 +139,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       } yield appStatus).futureValue
 
       applicationStatus.status mustBe SUBMITTED.toString
-      timesApproximatelyEqual(applicationStatus.statusDate.get, DateTime.now()) mustBe true
+      timesApproximatelyEqual(applicationStatus.statusDate.get, OffsetDateTime.now()) mustBe true
     }
 
     "not allow multiple submissions" in {
@@ -167,7 +167,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       } yield appStatus).futureValue
 
       applicationStatus.status mustBe WITHDRAWN.toString
-      timesApproximatelyEqual(applicationStatus.statusDate.get, DateTime.now()) mustBe true
+      timesApproximatelyEqual(applicationStatus.statusDate.get, OffsetDateTime.now()) mustBe true
     }
   }
 

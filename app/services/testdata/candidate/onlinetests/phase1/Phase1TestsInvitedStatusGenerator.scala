@@ -20,7 +20,6 @@ import config.{MicroserviceAppConfig, OnlineTestsGatewayConfig}
 import model.exchange.testdata.CreateCandidateResponse.{TestGroupResponse2, TestResponse2}
 import model.persisted.{Phase1TestProfile, PsiTest}
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories.onlinetesting.Phase1TestRepository
 import services.testdata.candidate.{ConstructiveGenerator, SubmittedStatusGenerator}

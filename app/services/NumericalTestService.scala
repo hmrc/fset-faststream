@@ -188,7 +188,7 @@ class NumericalTestService @Inject() (applicationRepo: GeneralApplicationReposit
   }
 
   def markAsCompletedByOrderId(orderId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    applicationSiftRepo.updateTestCompletionTime(orderId, dateTimeFactory.nowLocalTimeZone).flatMap { _ =>
+    applicationSiftRepo.updateTestCompletionTime(orderId, dateTimeFactory.nowLocalTimeZoneJavaTime).flatMap { _ =>
       applicationSiftRepo.getTestGroupByOrderId(orderId).flatMap { updatedTestGroup =>
         val appId = updatedTestGroup.applicationId
         require(updatedTestGroup.tests.isDefined, s"No numerical tests exists for application: $appId")

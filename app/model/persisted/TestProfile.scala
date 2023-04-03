@@ -16,8 +16,6 @@
 
 package model.persisted
 
-import org.joda.time.DateTime
-
 import java.time.OffsetDateTime
 
 abstract class PsiTestProfile() extends TestProfile[PsiTest] {

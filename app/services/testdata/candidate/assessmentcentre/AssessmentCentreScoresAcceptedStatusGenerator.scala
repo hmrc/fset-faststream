@@ -29,6 +29,7 @@ import services.assessmentscores.AssessmentScoresService
 import services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.{OffsetDateTime, ZoneOffset}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -39,7 +40,7 @@ class AssessmentCentreScoresAcceptedStatusGenerator @Inject() (val previousStatu
 
   val updatedBy = UniqueIdentifier.randomUniqueIdentifier
 
-  private val now = DateTime.now(DateTimeZone.UTC)
+  private val now = OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
               (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {

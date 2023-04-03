@@ -29,6 +29,7 @@ import services.passmarksettings.AssessmentCentrePassMarkSettingsService
 import services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.{OffsetDateTime, ZoneId, ZoneOffset}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -56,7 +57,7 @@ class AssessmentCentrePassedStatusGenerator @Inject() (val previousStatusGenerat
         ))
       ),
       version.toString(),
-      DateTime.now(DateTimeZone.UTC),
+      OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime,
       updatedBy.toString()
     )
 

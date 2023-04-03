@@ -35,7 +35,6 @@ import model.persisted.eventschedules.EventType
 import model.stc.StcEventTypes._
 import model.stc.{AuditEvents, DataStoreEvents, EmailEvents}
 import model.{ProgressStatuses, _}
-import org.joda.time.DateTime
 import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories._
@@ -351,7 +350,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
     FutureEx.traverseSerial(toBeFixed)(fixData).map(_ => ())
   }
 
-  def overrideSubmissionDeadline(applicationId: String, newDeadline: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def overrideSubmissionDeadline(applicationId: String, newDeadline: OffsetDateTime)(implicit hc: HeaderCarrier): Future[Unit] = {
     appRepository.updateSubmissionDeadline(applicationId, newDeadline)
   }
 
@@ -974,7 +973,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
       _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE3_TESTS, statusesToRollback)
       _ <- siftAnswersService.removeAnswers(applicationId)
       _ <- appSiftRepository.removeTestGroup(applicationId)
-      _ <- phase3TestRepository.updateExpiryDate(applicationId, new DateTime().plusDays(7))
+      _ <- phase3TestRepository.updateExpiryDate(applicationId, OffsetDateTime.now().plusDays(7))
       _ <- phase3TestRepository.removeTestGroupEvaluation(applicationId)
       _ <- phase3TestRepository.removeReviewedCallbacks(token)
       evaluationOpt <- phase2TestRepository.findEvaluation(applicationId)
@@ -1044,7 +1043,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
 
   def enablePhase3ExpiredCandidateToBeEvaluated(applicationId: String): Future[Unit] = {
     for {
-      _ <- phase3TestRepository.updateExpiryDate(applicationId, new DateTime().plusDays(1))
+      _ <- phase3TestRepository.updateExpiryDate(applicationId, OffsetDateTime.now().plusDays(1))
       _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
       _ <- appRepository.removeProgressStatuses(applicationId, List(ProgressStatuses.PHASE3_TESTS_EXPIRED))
     } yield ()

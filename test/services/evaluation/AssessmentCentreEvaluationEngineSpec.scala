@@ -16,13 +16,14 @@
 
 package services.evaluation
 
-import model.EvaluationResults.{ Amber, CompetencyAverageResult, Green, Red }
+import model.EvaluationResults.{Amber, CompetencyAverageResult, Green, Red}
 import model.exchange.passmarksettings._
-import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresExercise }
+import model.assessmentscores.{AssessmentScoresAllExercises, AssessmentScoresExercise}
 import model.persisted.SchemeEvaluationResult
-import model.{ AssessmentPassMarksSchemesAndScores, SchemeId, UniqueIdentifier }
-import org.joda.time.DateTime
+import model.{AssessmentPassMarksSchemesAndScores, SchemeId, UniqueIdentifier}
 import services.BaseServiceSpec
+
+import java.time.OffsetDateTime
 
 class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
 
@@ -49,7 +50,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
           communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
           workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(1.0, 3.0),
           overall = PassMarkThreshold(8.0, 10.2)))),
-        version = "v1", createDate = DateTime.now(), "user")
+        version = "v1", createDate = OffsetDateTime.now(), "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
         writtenExercise = Some(
@@ -95,7 +96,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
           communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
           workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(1.0, 3.0),
           overall = PassMarkThreshold(8.0, 11.3)))), // overall score = 11.3 so this should evaluate to Green
-        version = "v1", createDate = DateTime.now(), "user")
+        version = "v1", createDate = OffsetDateTime.now(), "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
         writtenExercise = Some(
@@ -141,7 +142,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
           communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
           workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(1.0, 3.0),
           overall = PassMarkThreshold(8.0, 12.0)))),
-        version = "v1", createDate = DateTime.now(), "user")
+        version = "v1", createDate = OffsetDateTime.now(), "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
         writtenExercise = Some(
@@ -187,7 +188,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
           communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
           workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(1.0, 3.0),
           overall = PassMarkThreshold(8.0, 9.0)))),
-        version = "v1", createDate = DateTime.now(), "user")
+        version = "v1", createDate = OffsetDateTime.now(), "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
         writtenExercise = Some(
@@ -233,7 +234,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
           communicatingAndInfluencing = PassMarkThreshold(0.0, 0.0),
           workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(0.0, 0.0),
           overall = PassMarkThreshold(0.0, 0.0)))),
-        version = "v1", createDate = DateTime.now(), "user")
+        version = "v1", createDate = OffsetDateTime.now(), "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
         writtenExercise = Some(
@@ -292,7 +293,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
           communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
           workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(1.0, 3.0),
           overall = PassMarkThreshold(16.0, 20.0)))),
-        version = "v1", DateTime.now(), "user")
+        version = "v1", OffsetDateTime.now(), "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
         writtenExercise = Some(

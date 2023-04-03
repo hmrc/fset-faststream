@@ -45,10 +45,10 @@ trait AssessmentScoresService {
 
   def save(scores: AssessmentScoresAllExercises)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit] = {
     val scoresWithSubmittedDate = scores.copy(
-      writtenExercise = scores.writtenExercise.map(_.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))),
-      teamExercise = scores.teamExercise.map(_.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))),
-      leadershipExercise = scores.leadershipExercise.map(_.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))),
-      finalFeedback = scores.finalFeedback.map(_.copy(acceptedDate = dateTimeFactory.nowLocalTimeZone))
+      writtenExercise = scores.writtenExercise.map(_.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZoneJavaTime))),
+      teamExercise = scores.teamExercise.map(_.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZoneJavaTime))),
+      leadershipExercise = scores.leadershipExercise.map(_.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZoneJavaTime))),
+      finalFeedback = scores.finalFeedback.map(_.copy(acceptedDate = dateTimeFactory.nowLocalTimeZoneJavaTime))
     )
     for {
       _ <- assessmentScoresRepository.save(scoresWithSubmittedDate)
@@ -61,13 +61,15 @@ trait AssessmentScoresService {
   def saveExercise(applicationId: UniqueIdentifier,
                    assessmentExerciseType: AssessmentScoresSectionType.AssessmentScoresSectionType,
                    newExerciseScores: AssessmentScoresExercise)(implicit ec: ExecutionContext): Future[Unit] = {
-    saveOrSubmitExercise(applicationId, assessmentExerciseType, newExerciseScores.copy(savedDate = Some(dateTimeFactory.nowLocalTimeZone)))
+    saveOrSubmitExercise(applicationId, assessmentExerciseType, newExerciseScores.copy(
+      savedDate = Some(dateTimeFactory.nowLocalTimeZoneJavaTime)))
   }
 
   def submitExercise(applicationId: UniqueIdentifier,
                      assessmentExerciseType: AssessmentScoresSectionType.AssessmentScoresSectionType,
                      newExerciseScores: AssessmentScoresExercise)(implicit ec: ExecutionContext): Future[Unit] = {
-    saveOrSubmitExercise(applicationId, assessmentExerciseType, newExerciseScores.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone)))
+    saveOrSubmitExercise(applicationId, assessmentExerciseType, newExerciseScores.copy(
+      submittedDate = Some(dateTimeFactory.nowLocalTimeZoneJavaTime)))
   }
 
   private def saveOrSubmitExercise(applicationId: UniqueIdentifier,
@@ -110,7 +112,7 @@ trait AssessmentScoresService {
     }
 
     def buildNewAllExercisesScoresWithSubmittedDate(oldAllExercisesScoresMaybe: Option[AssessmentScoresAllExercises]) = {
-      val newSubmittedDate = dateTimeFactory.nowLocalTimeZone
+      val newSubmittedDate = dateTimeFactory.nowLocalTimeZoneJavaTime
       val newFinalFeedbackWithSubmittedDate = newFinalFeedback.copy(acceptedDate = newSubmittedDate)
 
       val oldAllExercisesScores = oldAllExercisesScoresMaybe.getOrElse(AssessmentScoresAllExercises(applicationId))

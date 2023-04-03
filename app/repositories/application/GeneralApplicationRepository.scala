@@ -44,7 +44,7 @@ import scheduler.fixer.RequiredFixes.{AddMissingPhase2ResultReceived, PassToPhas
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}
 
-import java.time.OffsetDateTime
+import java.time.{OffsetDateTime, ZoneId, ZoneOffset}
 import java.util.UUID
 import java.util.regex.Pattern
 import javax.inject.{Inject, Singleton}
@@ -84,7 +84,7 @@ trait GeneralApplicationRepository {
   def gisByApplication(applicationId: String): Future[Boolean]
   def updateStatus(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit]
   def updateApplicationStatusOnly(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit]
-  def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime): Future[Unit]
+  def updateSubmissionDeadline(applicationId: String, newDeadline: OffsetDateTime): Future[Unit]
   def getOnlineTestApplication(appId: String): Future[Option[OnlineTestApplication]]
   def addProgressStatusAndUpdateAppStatus(applicationId: String, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit]
   def removeProgressStatuses(applicationId: String, progressStatuses: List[ProgressStatuses.ProgressStatus]): Future[Unit]
@@ -270,21 +270,21 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
   def findStatus(applicationId: String): Future[ApplicationStatusDetails] = {
     val query = Document("applicationId" -> applicationId)
     val projection = Projections.include(
-      "applicationStatus",
-      "progress-status-timestamp",
-      "progress-status-dates",
-      "applicationRoute",
-      "submissionDeadline",
+      "applicationStatus", "progress-status-timestamp",
+      "progress-status-dates", "applicationRoute", "submissionDeadline",
     )
 
     import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
-
     import scala.collection.JavaConverters._
 
     def progressStatusDateFallback(applicationStatus: ApplicationStatus, document: Document) = {
       val docOpt = document.get("progress-status-dates").map( _.asDocument() )
       docOpt.flatMap { doc =>
-        Try(Codecs.fromBson[LocalDate](doc.get(applicationStatus.toLowerCase))).toOption.map( _.toDateTimeAtStartOfDay )
+        Try(Codecs.fromBson[LocalDate](doc.get(applicationStatus.toLowerCase))).toOption.map( _.toDateTimeAtStartOfDay ).map(dateTime =>
+        // TODO MIGUEL: Before it was system default but it is tricky to find out, we have to specify something, in this case I've chosen UTC
+          OffsetDateTime.of(java.time.LocalDate.of(dateTime.getYear, dateTime.getMonthOfYear, dateTime.getDayOfMonth),
+          java.time.LocalTime.of(dateTime.getHourOfDay, dateTime.getMinuteOfHour, dateTime.getSecondOfMinute), ZoneOffset.UTC
+        ))
       }
     }
 
@@ -297,20 +297,20 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
         val latestProgressStatus = progressStatusTimeStampDoc.flatMap { timestamps =>
           val convertedTimestamps = timestamps.entrySet().asScala.toSet
           val relevantProgressStatuses = convertedTimestamps.filter( _.getKey.startsWith(applicationStatus) )
-          val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element => Codecs.fromBson[DateTime](timestamps.get(element.getKey)))
+          val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element =>
+            Codecs.fromBson[OffsetDateTime](timestamps.get(element.getKey)))
           Try(ProgressStatuses.nameToProgressStatus(latestRelevantProgressStatus.getKey)).toOption
         }
 
         val progressStatusTimeStamp = progressStatusTimeStampDoc.flatMap { timestamps =>
           val convertedTimestamps = timestamps.entrySet().asScala.toSet
           val relevantProgressStatuses = convertedTimestamps.filter( _.getKey.startsWith(applicationStatus) )
-          val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element => Codecs.fromBson[DateTime](timestamps.get(element.getKey)))
-          Try(Codecs.fromBson[DateTime](timestamps.get(latestRelevantProgressStatus.getKey))).toOption
+          val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element =>
+            Codecs.fromBson[OffsetDateTime](timestamps.get(element.getKey)))
+          Try(Codecs.fromBson[OffsetDateTime](timestamps.get(latestRelevantProgressStatus.getKey))).toOption
         }
-          .orElse(
-            progressStatusDateFallback(applicationStatus, doc)
-          )
-        val submissionDeadline = doc.get("submissionDeadline").map( sd => Codecs.fromBson[DateTime](sd) )
+          .orElse(progressStatusDateFallback(applicationStatus, doc))
+        val submissionDeadline = doc.get("submissionDeadline").map( sd => Codecs.fromBson[OffsetDateTime](sd) )
         ApplicationStatusDetails(applicationStatus, applicationRoute, latestProgressStatus, progressStatusTimeStamp, submissionDeadline)
 
       case None => throw ApplicationNotFound(applicationId)
@@ -332,7 +332,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
         import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
         val submissionDeadline = doc.get("submissionDeadline").map { bsonValue =>
-          Codecs.fromBson[DateTime](bsonValue.asDateTime())
+          Codecs.fromBson[OffsetDateTime](bsonValue.asDateTime())
         }
 
         findProgress(applicationId).map { progress =>
@@ -644,7 +644,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
         val updateOp = Document("$set" ->
           Document(
             s"progress-status.${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}" -> true,
-            s"progress-status-timestamp.${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}" -> dateTimeToBson(DateTime.now())
+            s"progress-status-timestamp.${ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED}" -> offsetDateTimeToBson(OffsetDateTime.now())
           ))
 
         collection.updateOne(query, updateOp).toFuture().flatMap { _ =>
@@ -855,11 +855,11 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     collection.updateOne(query, updateOp).toFuture() map validator
   }
 
-  override def updateSubmissionDeadline(applicationId: String, newDeadline: DateTime): Future[Unit] = {
+  override def updateSubmissionDeadline(applicationId: String, newDeadline: OffsetDateTime): Future[Unit] = {
     val query = Document("applicationId" -> applicationId)
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating submission deadline")
 
-    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+    //import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
     collection.updateOne(query, Document("$set" -> Document("submissionDeadline" -> Codecs.toBson(newDeadline)))).toFuture() map validator
   }
 
@@ -1052,7 +1052,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
     import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
     val dateReadyOpt = doc.get("progress-status-timestamp").map{ _.asDocument().get(ApplicationStatus.PHASE3_TESTS_PASSED) }.flatMap {
-      bson => Try(Codecs.fromBson[DateTime](bson)).toOption
+      bson => Try(Codecs.fromBson[OffsetDateTime](bson)).toOption
     }
 
     val fsacIndicator = Codecs.fromBson[model.persisted.FSACIndicator](doc.get("fsac-indicator").get)
@@ -1072,7 +1072,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       needsAdjustment,
       fsbScoresAndFeedbackSubmitted,
       model.FSACIndicator(fsacIndicator),
-      dateReadyOpt.getOrElse(DateTime.now()))
+      dateReadyOpt.getOrElse(OffsetDateTime.now()))
   }
 
   private def applicationRouteCriteria(appRoute: ApplicationRoute) = appRoute match {
@@ -1108,7 +1108,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
         doc.get("progress-status-timestamp").map { timestamps =>
           val convertedTimestamps = timestamps.asDocument().entrySet().asScala.toSet
           convertedTimestamps.map { element =>
-            element.getKey -> Codecs.fromBson[DateTime](element.getValue)
+            element.getKey -> Codecs.fromBson[OffsetDateTime](element.getValue)
           }.toList
         }.getOrElse(Nil).sortBy(tup => tup._2).reverse.head._1
       }
@@ -1130,13 +1130,22 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
     collection.find[Document](query).projection(projection).headOption().map {
       case Some(doc) =>
+        //scalastyle:off
+        println(s"----MIGUEL0 getProgressStatusTimestamps doc $doc")
         doc.get("progress-status-timestamp").map { timestamps =>
           val convertedTimestamps = timestamps.asDocument().entrySet().asScala.toSet
+          println(s"----MIGUEL1 getProgressStatusTimestamps convertedTimestamps $convertedTimestamps")
           convertedTimestamps.map { element =>
+            println(s"----MIGUEL2 getProgressStatusTimestamps element $element")
+
             element.getKey -> Codecs.fromBson[OffsetDateTime](element.getValue)
           }.toList
         }.getOrElse(Nil)
-      case _ => Nil
+      case _ => {
+        println(s"----MIGUEL3 getProgressStatusTimestamps Nil")
+
+        Nil
+      }
     }
   }
 

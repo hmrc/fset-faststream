@@ -22,7 +22,6 @@ import model.command.PersonalDetailsExamples._
 import model.command.ProgressResponse
 import model.persisted.ContactDetailsExamples.ContactDetailsUK
 import model.persisted.{AssistanceDetails, SchemeEvaluationResult}
-import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito.{atLeast => atLeastTimes, _}
 import play.api.mvc.RequestHeader

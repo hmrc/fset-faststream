@@ -21,7 +21,6 @@ import common.FutureEx
 import javax.inject.{Inject, Singleton}
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import services.onlinetesting.phase2.Phase2TestService
 import services.testdata.candidate.ConstructiveGenerator

@@ -16,12 +16,13 @@
 
 package connectors.launchpadgateway.exchangeobjects.in.reviewed
 
-import org.joda.time.{ DateTime, LocalDate }
-
+import org.joda.time.{DateTime, LocalDate}
 import play.api.libs.json.Json
 
+import java.time.OffsetDateTime
+
 case class ReviewedCallbackRequest(
-  received: DateTime,
+  received: OffsetDateTime,
   candidateId: String,
   customCandidateId: String,
   interviewId: Int,
@@ -95,7 +96,7 @@ object ReviewedCallbackRequest {
 }
 
 case class ReviewedCallbackRequestExchange(
-                                    received: DateTime,
+                                    received: OffsetDateTime,
                                     candidateId: String,
                                     customCandidateId: String,
                                     interviewId: Int,

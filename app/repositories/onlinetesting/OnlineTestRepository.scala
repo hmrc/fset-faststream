@@ -24,7 +24,6 @@ import model.ProgressStatuses.ProgressStatus
 import model._
 import model.exchange.PsiTestResultReady
 import model.persisted._
-import org.joda.time.DateTime
 import org.mongodb.scala.bson.{BsonArray, BsonDocument, BsonString, BsonValue}
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
@@ -32,7 +31,7 @@ import play.api.libs.json.Reads
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
 import scala.util.Try
-import repositories._
+import repositories.{offsetDateTimeToBson, _}
 
 import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
@@ -125,9 +124,9 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     throw CannotFindTestByOrderIdException(s"Cannot find test group by orderId=$orderId")
   }
 
-  def updateTestCompletionTime(orderId: String, completedTime: DateTime)(implicit ec: ExecutionContext): Future[Unit] = {
+  def updateTestCompletionTime(orderId: String, completedTime: OffsetDateTime)(implicit ec: ExecutionContext): Future[Unit] = {
     val update = Document("$set" -> Document(
-      s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(dateTimeToBson(completedTime))
+      s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(offsetDateTimeToBson(completedTime))
     ))
 
     findAndUpdatePsiTest(orderId, update, ignoreNotFound = true)
@@ -196,6 +195,11 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
       Document(s"testGroups.${expiryTest.phase}.expirationDate" ->
         Document("$lte" ->
           dateTimeToBson(dateTimeFactory.nowLocalTimeZone.minusSeconds(expiryTest.gracePeriodInSecs)) // Serialises to UTC.
+//          offsetDateTimeToBson(dateTimeFactory.nowLocalTimeZoneJavaTime.minusSeconds(expiryTest.gracePeriodInSecs)) // Serialises to UTC.
+          // TODO MIGUEL: Este problema demuestra que algo grabado como OffsetDateTime con el sistema por defecto
+          // No puede ser leido por joda date time y viceversa. Quiza haya que trabajar en los  serialisers, para que
+          // funcionen con el mismo formato. En CSR-auth-provider, creo que cambie algo para que pudiera leer los mismos
+          // datos de mongo.
         )
       ),
       expiredTestQuery

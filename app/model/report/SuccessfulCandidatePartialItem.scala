@@ -16,10 +16,10 @@
 
 package model.report
 
-import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.{ Json, OFormat }
+
+import play.api.libs.json.{Json, OFormat}
+
+import java.time.OffsetDateTime
 
 case class SuccessfulCandidatePartialItem(userId: String,
                                           applicationId: String,
@@ -27,8 +27,8 @@ case class SuccessfulCandidatePartialItem(userId: String,
                                           applicationRoute: String,
                                           fullName: Option[String],
                                           preferredName: Option[String],
-                                          submittedDate: Option[DateTime],
-                                          eligibleForOfferNotifiedTimestamp: Option[DateTime],
+                                          submittedDate: Option[OffsetDateTime],
+                                          eligibleForOfferNotifiedTimestamp: Option[OffsetDateTime],
                                           fsacIndicator: Option[String])
 
 object SuccessfulCandidatePartialItem {

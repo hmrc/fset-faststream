@@ -18,7 +18,6 @@ package services.onlinetesting.phase2
 
 import config._
 import model.persisted.PsiTest
-import org.joda.time.DateTime
 import testkit.UnitSpec
 
 import java.time.OffsetDateTime

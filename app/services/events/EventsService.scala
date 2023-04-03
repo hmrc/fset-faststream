@@ -21,12 +21,12 @@ import model._
 import model.exchange.{CandidateAllocationPerSession, EventAssessorAllocationsSummaryPerSkill, EventWithAllocationsSummary}
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.{Event, UpdateEvent, Venue}
-import org.joda.time.DateTime
 import play.api.Logging
 import repositories.SchemeRepository
 import repositories.events._
 import services.allocation.AllocationServiceCommon
 
+import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
 
 trait EventsService {
@@ -40,7 +40,7 @@ trait EventsService {
   def getEvents(ids: List[String]): Future[List[Event]]
   def getEventsWithAllocationsSummary(venue: Venue, eventType: EventType,
                                       description: Option[String] = None): Future[List[EventWithAllocationsSummary]]
-  def getEventsCreatedAfter(dateTime: DateTime): Future[Seq[Event]]
+  def getEventsCreatedAfter(dateTime: OffsetDateTime): Future[Seq[Event]]
   def updateStructure(): Future[Unit]
   def getFsbTypes: Seq[FsbType]
   def findSchemeByEvent(eventId: String): Future[Scheme]
@@ -118,7 +118,7 @@ class EventsServiceImpl @Inject() (eventsRepo: EventsRepository,
     }
   }
 
-  override def getEventsCreatedAfter(dateTime: DateTime): Future[Seq[Event]] = {
+  override def getEventsCreatedAfter(dateTime: OffsetDateTime): Future[Seq[Event]] = {
     eventsRepo.getEventsManuallyCreatedAfter(dateTime)
   }
 

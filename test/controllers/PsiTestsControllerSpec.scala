@@ -18,7 +18,6 @@ package controllers
 
 import model.Exceptions.CannotFindTestByOrderIdException
 import model.exchange.PsiRealTimeResults
-import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader

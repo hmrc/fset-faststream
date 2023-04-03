@@ -17,7 +17,6 @@
 package model.persisted.phase3tests
 
 import model.persisted.{PassmarkEvaluation, TestProfile}
-import org.joda.time.DateTime
 import org.mongodb.scala.bson.BsonValue
 import play.api.libs.json.Json
 import uk.gov.hmrc.mongo.play.json.Codecs

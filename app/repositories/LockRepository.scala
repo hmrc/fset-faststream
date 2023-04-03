@@ -26,6 +26,7 @@ import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
+import java.time.{OffsetDateTime, ZoneOffset}
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -44,7 +45,7 @@ object LockFormats {
 }
 
 trait LockRepository {
-  def lock(reqLockId: String, reqOwner: String, forceReleaseAfter: Duration): Future[Boolean]
+  def lock(reqLockId: String, reqOwner: String, forceReleaseAfter: java.time.Duration): Future[Boolean]
   def isLocked(reqLockId: String, reqOwner: String): Future[Boolean]
   def releaseLock(reqLockId: String, reqOwner: String): Future[Unit]
 }
@@ -68,10 +69,10 @@ class LockMongoRepository @Inject() (mongoComponent: MongoComponent)(implicit ec
   // Use this collection when using hand written bson documents
   val lockCollection: MongoCollection[Document] = mongoComponent.database.getCollection(CollectionNames.LOCKS)
 
-  override def lock(reqLockId: String, reqOwner: String, forceReleaseAfter: Duration): Future[Boolean] = withCurrentTime { now =>
+  override def lock(reqLockId: String, reqOwner: String, forceReleaseAfter: java.time.Duration): Future[Boolean] = withCurrentTime { now =>
     val filter = Document(
       id -> reqLockId,
-      expiryTime -> Document("$lte" -> dateTimeToBson(now))
+      expiryTime -> Document("$lte" -> offsetDateTimeToBson(now))
     )
 
     collection.deleteOne(filter).toFuture().flatMap { writeResult =>
@@ -83,8 +84,8 @@ class LockMongoRepository @Inject() (mongoComponent: MongoComponent)(implicit ec
       val lockBson = Document(
         id -> reqLockId,
         owner -> reqOwner,
-        timeCreated -> dateTimeToBson(now),
-        expiryTime -> dateTimeToBson(expiryDateTime)
+        timeCreated -> offsetDateTimeToBson(now),
+        expiryTime -> offsetDateTimeToBson(expiryDateTime)
       )
       lockCollection.insertOne(lockBson).toFuture()
         .map { _ =>
@@ -103,7 +104,7 @@ class LockMongoRepository @Inject() (mongoComponent: MongoComponent)(implicit ec
     val filter = Document(
       id -> reqLockId,
       owner -> reqOwner,
-      expiryTime -> Document("$gt" -> dateTimeToBson(now))
+      expiryTime -> Document("$gt" -> offsetDateTimeToBson(now))
     )
     collection.find(filter).headOption().map( _.isDefined )
   }
@@ -116,9 +117,8 @@ class LockMongoRepository @Inject() (mongoComponent: MongoComponent)(implicit ec
 
 // Copied from simple-reactivemongo_2.12-8.0.0-play-28.jar
 // uk.gov.hmrc.mongo.CurrentTime when migrating from simple-reactivemongo to scala mongo driver
-import org.joda.time.DateTimeZone
 
 trait CurrentTime {
   // Invoke the passed function f with DateTime.now instant
-  def withCurrentTime[A](f: DateTime => A) = f(DateTime.now.withZone(DateTimeZone.UTC))
+  def withCurrentTime[A](f: OffsetDateTime => A) = f(OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime())
 }

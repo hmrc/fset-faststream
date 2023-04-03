@@ -17,7 +17,6 @@
 package model
 
 import model.persisted.{PsiTest, PsiTestResult}
-import org.joda.time.DateTime
 
 import java.time.OffsetDateTime
 

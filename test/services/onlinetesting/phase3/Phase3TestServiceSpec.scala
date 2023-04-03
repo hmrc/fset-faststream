@@ -28,7 +28,6 @@ import model._
 import model.command.{Phase3ProgressResponse, ProgressResponse}
 import model.persisted.phase3tests.{LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup}
 import model.persisted._
-import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
@@ -760,7 +759,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       when(p3TestRepositoryMock.getTestGroupByToken(testInviteId))
         .thenReturn(Future.successful(Phase3TestGroupWithAppId("appId123", testTestGroup)))
       when(p3TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_COMPLETED)).thenReturn(Future.successful(()))
-      when(p3TestRepositoryMock.updateTestCompletionTime(any[String], any[DateTime])).thenReturn(Future.successful(()))
+      when(p3TestRepositoryMock.updateTestCompletionTime(any[String], any[OffsetDateTime])).thenReturn(Future.successful(()))
     }
 
     private def markAsResultsReceivedMocks = {

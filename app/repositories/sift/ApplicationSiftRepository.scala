@@ -30,7 +30,6 @@ import model.persisted._
 import model.persisted.sift._
 import model.report.SiftPhaseReportItem
 import model.sift.{FixStuckUser, FixUserStuckInSiftEntered}
-import org.joda.time.DateTime
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
@@ -79,10 +78,10 @@ trait ApplicationSiftRepository {
   def getTestGroup(applicationId: String): Future[Option[SiftTestGroup]]
   def getTestGroupByOrderId(orderId: String): Future[MaybeSiftTestGroupWithAppId]
   def updateExpiryTime(applicationId: String, expiryDateTime: OffsetDateTime): Future[Unit]
-  def updateTestStartTime(orderId: String, startedTime: DateTime): Future[Unit]
+  def updateTestStartTime(orderId: String, startedTime: OffsetDateTime): Future[Unit]
   def getApplicationIdForOrderId(orderId: String): Future[String]
   def insertNumericalTests(applicationId: String, tests: List[PsiTest]): Future[Unit]
-  def updateTestCompletionTime(orderId: String, completedTime: DateTime): Future[Unit]
+  def updateTestCompletionTime(orderId: String, completedTime: OffsetDateTime): Future[Unit]
   def insertPsiTestResult(appId: String, psiTest: PsiTest, testResult: PsiTestResult): Future[Unit]
   def nextApplicationWithResultsReceived: Future[Option[String]]
   def getNotificationExpiringSift(applicationId: String): Future[Option[NotificationExpiringSift]]
@@ -129,7 +128,7 @@ class ApplicationSiftMongoRepository @Inject() (
     ApplicationForSift(applicationId, userId, appStatus, currentSchemeStatus)
   }
 
-  override def updateTestStartTime(orderId: String, startedTime: DateTime): Future[Unit] = {
+override def updateTestStartTime(orderId: String, startedTime: OffsetDateTime): Future[Unit] = {
     val filter = Document(
       s"testGroups.$phaseName.tests" -> Document(
         "$elemMatch" -> Document("orderId" -> orderId)
@@ -137,7 +136,7 @@ class ApplicationSiftMongoRepository @Inject() (
     )
 
     val update = Document("$set" -> Document(
-      s"testGroups.$phaseName.tests.$$.startedDateTime" -> dateTimeToBson(startedTime)
+      s"testGroups.$phaseName.tests.$$.startedDateTime" -> offsetDateTimeToBson(startedTime)
     ))
 
     val validator = singleUpdateValidator(orderId, actionDesc = s"updating test group start time in $phaseName",
@@ -507,9 +506,9 @@ class ApplicationSiftMongoRepository @Inject() (
         val progressStatuses = subDocRoot("progress-status")(doc)
         import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed for ISODate
         val firstSiftTime = progressStatuses.flatMap { obj =>
-          Try(Codecs.fromBson[DateTime](obj.get(ProgressStatuses.SIFT_ENTERED.toString).asDateTime())).toOption
-          .orElse(Try(Codecs.fromBson[DateTime](obj.get(ProgressStatuses.SIFT_READY.toString).asDateTime())).toOption)
-        }.getOrElse(DateTime.now())
+          Try(Codecs.fromBson[OffsetDateTime](obj.get(ProgressStatuses.SIFT_ENTERED.toString).asDateTime())).toOption
+          .orElse(Try(Codecs.fromBson[OffsetDateTime](obj.get(ProgressStatuses.SIFT_READY.toString).asDateTime())).toOption)
+        }.getOrElse(OffsetDateTime.now())
 
         val css = doc.get("currentSchemeStatus").map { bsonValue =>
           Codecs.fromBson[List[SchemeEvaluationResult]](bsonValue)
@@ -675,9 +674,9 @@ class ApplicationSiftMongoRepository @Inject() (
     collection.updateOne(query, update).toFuture() map validator
   }
 
-  override def updateTestCompletionTime(orderId: String, completedTime: DateTime): Future[Unit] = {
+  override def updateTestCompletionTime(orderId: String, completedTime: OffsetDateTime): Future[Unit] = {
     val update = Document(
-      "$set" -> Document(s"testGroups.$phaseName.tests.$$.completedDateTime" -> dateTimeToBson(completedTime))
+      "$set" -> Document(s"testGroups.$phaseName.tests.$$.completedDateTime" -> offsetDateTimeToBson(completedTime))
     )
     findAndUpdateTest(orderId, update, ignoreNotFound = false, s"updating test completion time by orderId in $phaseName tests")
   }

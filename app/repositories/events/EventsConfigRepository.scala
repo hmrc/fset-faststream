@@ -30,6 +30,7 @@ import org.joda.time.format.DateTimeFormat
 import play.api.{Application, Play}
 import resource._
 
+import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
 import scala.io.Source
 
@@ -126,7 +127,7 @@ class EventsConfigRepositoryImpl @Inject() (application: Application,
         configItem.attendeeSafetyMargin,
         configItem.startTime,
         configItem.endTime,
-        DateTime.now,
+        OffsetDateTime.now,
         configItem.skillRequirements,
         configItem.sessions.map(s => Session(s)),
         wasBulkUploaded = true

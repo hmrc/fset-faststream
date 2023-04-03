@@ -1,18 +1,19 @@
 package services.onlinetesting.phase3
 
-import config.{ LaunchpadGatewayConfig, Phase3TestsConfig }
+import config.{LaunchpadGatewayConfig, Phase3TestsConfig}
 import factories.UUIDFactory
-import model.ApplicationStatus.{ apply => _, _ }
-import model.EvaluationResults.{ Amber, _ }
+import model.ApplicationStatus.{apply => _, _}
+import model.EvaluationResults.{Amber, _}
 import model.Exceptions.PassMarkEvaluationNotFound
 import model.exchange.passmarksettings._
-import model.persisted.{ ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult }
-import model.{ ApplicationStatus, SchemeId }
-import org.joda.time.DateTime
+import model.persisted.{ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult}
+import model.{ApplicationStatus, SchemeId}
 import org.mockito.Mockito.when
 import org.scalatest.prop._
-import repositories.{ CollectionNames, CommonRepository }
+import repositories.{CollectionNames, CommonRepository}
 import testkit.MongoRepositorySpec
+
+import java.time.OffsetDateTime
 
 class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   with TableDrivenPropertyChecks {
@@ -262,7 +263,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       val phase3PassMarkSettings = Phase3PassMarkSettings(
         schemeThresholds,
         "version-1",
-        DateTime.now,
+        OffsetDateTime.now,
         "user-1"
       )
       phase3PassMarkSettingRepo.create(phase3PassMarkSettings).futureValue
