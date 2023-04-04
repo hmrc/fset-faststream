@@ -57,7 +57,7 @@ class AssessmentCentrePassedStatusGenerator @Inject() (val previousStatusGenerat
         ))
       ),
       version.toString(),
-      OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime,
+      OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC).toInstant,
       updatedBy.toString()
     )
 

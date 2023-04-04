@@ -525,7 +525,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         communicatingAndInfluencing = PassMarkThreshold(1.0, 3.0),
         workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(1.0, 3.0),
         overall = PassMarkThreshold(10.0, 15.0)))),
-      "1", OffsetDateTime.now(), "user")
+      "1", OffsetDateTime.now().toInstant, "user")
 
     val competencyAverageResult = CompetencyAverageResult(
       makingEffectiveDecisionsAverage = 4.0,

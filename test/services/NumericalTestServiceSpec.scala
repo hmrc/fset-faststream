@@ -310,7 +310,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
       exception mustBe an[Exception]
       exception.getMessage mustBe s"No sift test group returned for $appId"
 
-      verify(mockSiftRepo, never()).updateTestCompletionTime(any[String], any[DateTime])
+      verify(mockSiftRepo, never()).updateTestCompletionTime(any[String], any[OffsetDateTime])
       verify(mockAppRepo, never()).addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatuses.ProgressStatus])
     }
 
@@ -339,7 +339,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       service.storeRealTimeResults(orderId, realTimeResults).futureValue
 
-      verify(mockSiftRepo, never()).updateTestCompletionTime(any[String], any[DateTime])
+      verify(mockSiftRepo, never()).updateTestCompletionTime(any[String], any[OffsetDateTime])
       verify(mockAppRepo, times(1)).addProgressStatusAndUpdateAppStatus(any[String],
         eqTo(ProgressStatuses.SIFT_TEST_RESULTS_RECEIVED))
     }
@@ -378,7 +378,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
         .thenReturnAsync(maybeSiftTestGroupWithAppIdTestNotCompleted)
         .thenReturnAsync(maybeSiftTestGroupWithAppIdTestCompleted)
 
-      when(mockSiftRepo.updateTestCompletionTime(any[String], any[DateTime])).thenReturnAsync()
+      when(mockSiftRepo.updateTestCompletionTime(any[String], any[OffsetDateTime])).thenReturnAsync()
       when(mockSiftRepo.insertPsiTestResult(any[String], any[PsiTest], any[model.persisted.PsiTestResult])).thenReturnAsync()
 
       when(mockAppRepo.addProgressStatusAndUpdateAppStatus(any[String], eqTo(ProgressStatuses.SIFT_TEST_COMPLETED))).thenReturnAsync()
@@ -390,7 +390,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       service.storeRealTimeResults(orderId, realTimeResults).futureValue
 
-      verify(mockSiftRepo, times(1)).updateTestCompletionTime(any[String], any[DateTime])
+      verify(mockSiftRepo, times(1)).updateTestCompletionTime(any[String], any[OffsetDateTime])
       verify(mockAppRepo, times(1)).addProgressStatusAndUpdateAppStatus(any[String], eqTo(ProgressStatuses.SIFT_TEST_COMPLETED))
       verify(mockAppRepo, times(1)).addProgressStatusAndUpdateAppStatus(any[String], eqTo(ProgressStatuses.SIFT_TEST_RESULTS_RECEIVED))
     }

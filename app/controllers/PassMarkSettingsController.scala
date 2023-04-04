@@ -26,7 +26,7 @@ import services.AuditService
 import services.passmarksettings._
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import java.time.OffsetDateTime
+import java.time.{Instant, OffsetDateTime}
 
 @Singleton
 class Phase1PassMarkSettingsController @Inject() (val cc: ControllerComponents,
@@ -37,7 +37,7 @@ class Phase1PassMarkSettingsController @Inject() (val cc: ControllerComponents,
 
   val passMarksCreatedEvent = "Phase1PassMarkSettingsCreated"
   def upgradeVersion(passMarkSettings:Phase1PassMarkSettings, newVersionUUID: String) =
-    passMarkSettings.copy(version = newVersionUUID, createDate = OffsetDateTime.now())
+    passMarkSettings.copy(version = newVersionUUID, createDate = Instant.now())
 }
 
 @Singleton
@@ -49,7 +49,7 @@ class Phase2PassMarkSettingsController @Inject() (val cc: ControllerComponents,
 
   val passMarksCreatedEvent = "Phase2PassMarkSettingsCreated"
   def upgradeVersion(passMarkSettings:Phase2PassMarkSettings, newVersionUUID: String) =
-    passMarkSettings.copy(version = newVersionUUID, createDate = OffsetDateTime.now())
+    passMarkSettings.copy(version = newVersionUUID, createDate = Instant.now())
 }
 
 @Singleton
@@ -61,7 +61,7 @@ class Phase3PassMarkSettingsController @Inject() (val cc: ControllerComponents,
 
   val passMarksCreatedEvent = "Phase3PassMarkSettingsCreated"
   def upgradeVersion(passMarkSettings:Phase3PassMarkSettings, newVersionUUID: String) =
-    passMarkSettings.copy(version = newVersionUUID, createDate = OffsetDateTime.now())
+    passMarkSettings.copy(version = newVersionUUID, createDate = Instant.now())
 }
 
 @Singleton
@@ -73,7 +73,7 @@ class AssessmentCentrePassMarkSettingsController @Inject() (val cc: ControllerCo
 
   val passMarksCreatedEvent = "AssessmentCentrePassMarkSettingsCreated"
   def upgradeVersion(passMarkSettings: AssessmentCentrePassMarkSettings, newVersionUUID: String) =
-    passMarkSettings.copy(version = newVersionUUID, createDate = OffsetDateTime.now())
+    passMarkSettings.copy(version = newVersionUUID, createDate = Instant.now())
 }
 
 abstract class PassMarkSettingsController[T <: PassMarkSettings] @Inject() (cc: ControllerComponents)
@@ -88,21 +88,38 @@ abstract class PassMarkSettingsController[T <: PassMarkSettings] @Inject() (cc: 
   def upgradeVersion(passMarkSettings:T, newVersionUUID: String) : T
 
   def create = Action.async(parse.json) { implicit request =>
+    // TODO MIGUEL
+    //scalastyle:off
+    println(s"-----MIGUEL create")
+    println(s"-----MIGUEL create request=[$request}")
+    println(s"-----MIGUEL create request.body=[${request.body}")
+
     withJsonBody[T] { passMarkSettings => {
-        val newVersionUUID = uuidFactory.generateUUID()
-        val newPassMarkSettings = upgradeVersion(passMarkSettings, newVersionUUID)
-        for {
-          createResult <- passMarkService.createPassMarkSettings(newPassMarkSettings)
-        } yield {
-          auditService.logEvent(passMarksCreatedEvent, Map(
-            "Version" -> newVersionUUID,
-            "CreatedByUserId" -> passMarkSettings.createdBy,
-            "StoredCreateDate" -> passMarkSettings.createDate.toString
-          ))
-          Ok(Json.toJson(createResult))
-        }
+      // TODO MIGUEL
+      //scalastyle:off
+      println(s"-----MIGUEL create passMarkSettings=[$passMarkSettings]")
+      val newVersionUUID = uuidFactory.generateUUID()
+      println(s"-----MIGUEL create newVersionUUID=[$newVersionUUID]")
+      val newPassMarkSettings = upgradeVersion(passMarkSettings, newVersionUUID)
+      println(s"-----MIGUEL create newPassMarkSettings=[$newPassMarkSettings]")
+      for {
+        createResult <- passMarkService.createPassMarkSettings(newPassMarkSettings)
+      } yield {
+        auditService.logEvent(passMarksCreatedEvent, Map(
+          "Version" -> newVersionUUID,
+          "CreatedByUserId" -> passMarkSettings.createdBy,
+          "StoredCreateDate" -> passMarkSettings.createDate.toString
+        ))
+        println(s"-----MIGUEL create createResult=[$createResult]")
+
+        Ok(Json.toJson(createResult))
       }
     }
+    //}.recover { case e: Exception => 0 }
+    }.map(res => {
+      println(s"-----MIGUEL create res.body=[${res.body}]")
+      res
+  })
   }
 
   def getLatestVersion = Action.async { implicit request =>

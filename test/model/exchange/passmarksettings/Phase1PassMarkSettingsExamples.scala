@@ -22,11 +22,11 @@ import model.SchemeId
 import java.time.OffsetDateTime
 
 object Phase1PassMarkSettingsExamples {
-  def passmark(implicit now: OffsetDateTime) = Phase1PassMarkSettings(List(), "version", now, "userId")
+  def passmark(implicit now: OffsetDateTime) = Phase1PassMarkSettings(List(), "version", now.toInstant, "userId")
 
   def passMarkSettings(schemes: List[(SchemeId, Double, Double)])(implicit now: OffsetDateTime) =
     Phase1PassMarkSettings(schemes.map { case (s, fail, pass) => createPhase1PassMark(s, fail, pass) },
-      UUID.randomUUID().toString, now, "userId")
+      UUID.randomUUID().toString, now.toInstant, "userId")
 
   def createPhase1PassMark(schemeName: SchemeId, fail: Double, pass: Double) = {
     Phase1PassMark(schemeName, Phase1PassMarkThresholds(

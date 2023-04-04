@@ -18,23 +18,24 @@ package controllers
 
 import config.TestFixtureBase
 import model.AllocationStatuses
-import model.Exceptions.{ EventNotFoundException, OptimisticLockException }
+import model.Exceptions.{EventNotFoundException, OptimisticLockException}
 import model.exchange._
-import model.persisted.eventschedules.{ Event, EventType, Location, Venue, _ }
-import org.joda.time.{ DateTime, LocalDate, LocalTime }
-import org.mockito.ArgumentMatchers.{ any, eq => eqTo }
+import model.persisted.eventschedules.{Event, EventType, Location, Venue, _}
+import org.joda.time.{DateTime, LocalDate, LocalTime}
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
 import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repositories.application.GeneralApplicationRepository
-import repositories.events.{ LocationsWithVenuesRepository, UnknownVenueException }
+import repositories.events.{LocationsWithVenuesRepository, UnknownVenueException}
 import services.allocation.AssessorAllocationService
 import services.events.EventsService
 import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.Future
 
 class EventsControllerSpec extends UnitWithAppSpec {
@@ -142,7 +143,7 @@ class EventsControllerSpec extends UnitWithAppSpec {
     when(mockLocationsWithVenuesRepo.venue(eqTo(venue.name))).thenReturnAsync(venue)
 
     val event = new Event("id", EventType.FSAC, "description", location, venue,
-            LocalDate.now, 32, 10, 5, LocalTime.now, LocalTime.now, DateTime.now, Map.empty, List.empty)
+            LocalDate.now, 32, 10, 5, LocalTime.now, LocalTime.now, OffsetDateTime.now, Map.empty, List.empty)
     val eventWithAllocationsSummaryWithDescription = new EventWithAllocationsSummary(LocalDate.now, event, Nil, Nil)
   }
 }

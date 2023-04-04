@@ -22,7 +22,7 @@ import play.api.libs.json.Json
 import java.time.OffsetDateTime
 
 case class ReviewedCallbackRequest(
-  received: OffsetDateTime,
+  received: DateTime,
   candidateId: String,
   customCandidateId: String,
   interviewId: Int,
@@ -96,7 +96,7 @@ object ReviewedCallbackRequest {
 }
 
 case class ReviewedCallbackRequestExchange(
-                                    received: OffsetDateTime,
+                                    received: DateTime,
                                     candidateId: String,
                                     customCandidateId: String,
                                     interviewId: Int,

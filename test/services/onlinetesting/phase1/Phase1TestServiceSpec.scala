@@ -363,7 +363,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
   "mark as completed" should {
     "change progress to completed if there are all tests completed and the test profile hasn't expired" in new OnlineTest {
-      when(phase1TestRepositoryMock.updateTestCompletionTime(any[String], any[DateTime])(any[ExecutionContext])).thenReturnAsync()
+      when(phase1TestRepositoryMock.updateTestCompletionTime(any[String], any[OffsetDateTime])(any[ExecutionContext])).thenReturnAsync()
       val phase1Tests: Phase1TestProfile = phase1TestProfile.copy(
         tests = phase1TestProfile.tests.map(t => t.copy(orderId = orderId, completedDateTime = Some(OffsetDateTime.now()))),
         expirationDate = OffsetDateTime.now().plusDays(2)
@@ -547,7 +547,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       exception mustBe an[Exception]
       exception.getMessage mustBe s"No test profile returned for $appId"
 
-      verify(phase1TestRepositoryMock, never()).updateTestCompletionTime(any[String], any[DateTime])(any[ExecutionContext])
+      verify(phase1TestRepositoryMock, never()).updateTestCompletionTime(any[String], any[OffsetDateTime])(any[ExecutionContext])
       verify(phase1TestRepositoryMock, never()).updateProgressStatus(any[String], any[ProgressStatuses.ProgressStatus])(any[ExecutionContext])
     }
 
@@ -570,7 +570,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
       phase1TestService.storeRealTimeResults(orderId, realTimeResults).futureValue
 
-      verify(phase1TestRepositoryMock, never()).updateTestCompletionTime(any[String], any[DateTime])(any[ExecutionContext])
+      verify(phase1TestRepositoryMock, never()).updateTestCompletionTime(any[String], any[OffsetDateTime])(any[ExecutionContext])
       verify(phase1TestRepositoryMock, times(1)).updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED))(
         any[ExecutionContext])
     }
@@ -586,7 +586,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       when(phase1TestRepositoryMock.getTestProfileByOrderId(any[String])).thenReturnAsync(phase1TestsNotCompleted)
       when(phase1TestRepositoryMock.insertTestResult(any[String], any[PsiTest], any[model.persisted.PsiTestResult])(any[ExecutionContext]))
         .thenReturnAsync()
-      when(phase1TestRepositoryMock.updateTestCompletionTime(any[String], any[DateTime])(any[ExecutionContext])).thenReturnAsync()
+      when(phase1TestRepositoryMock.updateTestCompletionTime(any[String], any[OffsetDateTime])(any[ExecutionContext])).thenReturnAsync()
 
       val phase1TestsCompleted: Phase1TestProfile = phase1TestProfile.copy(
         tests = phase1TestProfile.tests.map(t => t.copy(orderId = orderId, completedDateTime = Some(OffsetDateTime.now()))),
@@ -606,7 +606,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
       phase1TestService.storeRealTimeResults(orderId, realTimeResults).futureValue
 
-      verify(phase1TestRepositoryMock, times(1)).updateTestCompletionTime(any[String], any[DateTime])(any[ExecutionContext])
+      verify(phase1TestRepositoryMock, times(1)).updateTestCompletionTime(any[String], any[OffsetDateTime])(any[ExecutionContext])
       verify(phase1TestRepositoryMock, times(1)).updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE1_TESTS_COMPLETED))(
         any[ExecutionContext])
       verify(phase1TestRepositoryMock, times(1)).updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED))(

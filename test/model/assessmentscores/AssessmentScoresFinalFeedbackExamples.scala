@@ -18,9 +18,13 @@ package model.fsacscores
 
 import model.UniqueIdentifier
 import model.assessmentscores.AssessmentScoresFinalFeedback
-import org.joda.time.{ DateTime, DateTimeZone }
+import org.joda.time.{DateTime, DateTimeZone}
+
+import java.time.{OffsetDateTime, ZoneOffset}
 
 object AssessmentScoresFinalFeedbackExamples {
-  val Example1 = AssessmentScoresFinalFeedback("feedback1", UniqueIdentifier.randomUniqueIdentifier, DateTime.now(DateTimeZone.UTC))
-  val Example2 = AssessmentScoresFinalFeedback("feedback2", UniqueIdentifier.randomUniqueIdentifier, DateTime.now(DateTimeZone.UTC))
+  val Example1 = AssessmentScoresFinalFeedback("feedback1", UniqueIdentifier.randomUniqueIdentifier,
+    OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC))
+  val Example2 = AssessmentScoresFinalFeedback("feedback2", UniqueIdentifier.randomUniqueIdentifier,
+    OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC))
 }

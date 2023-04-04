@@ -19,25 +19,26 @@ package model.exchange.passmarksettings
 import model.SchemeId
 import play.api.libs.json.Json
 
-import java.time.OffsetDateTime
+import java.time.{Instant, OffsetDateTime}
 
 trait PassMarkSettings {
   def schemes: List[PassMark]
   def version: String
-  def createDate: OffsetDateTime
+  def createDate: Instant
   def createdBy: String
 }
 
 case class Phase1PassMarkSettings(
                                    schemes: List[Phase1PassMark],
                                    version: String,
-                                   createDate: OffsetDateTime,
+                                   createDate: Instant,
                                    createdBy: String
 ) extends PassMarkSettings
 
 object Phase1PassMarkSettings {
   // Do not remove this as it is needed to serialize the date as epoch millis
-  import model.persisted.Play25DateCompatibility.epochMillisDateFormat
+  //import model.persisted.Play25DateCompatibility.epochMillisDateFormat
+  import model.persisted.Play25DateCompatibility.javaTimeInstantEpochMillisDateFormat
   implicit val jsonFormat = Json.format[Phase1PassMarkSettings]
 
   def merge(oldPassMarkSettings: Option[Phase1PassMarkSettings],
@@ -72,7 +73,7 @@ object Phase1PassMarkSettings {
 case class Phase2PassMarkSettings(
   schemes: List[Phase2PassMark],
   version: String,
-  createDate: OffsetDateTime,
+  createDate: Instant,
   createdBy: String
 ) extends PassMarkSettings
 
@@ -85,7 +86,7 @@ object Phase2PassMarkSettings {
 case class Phase3PassMarkSettings(
   schemes: List[Phase3PassMark],
   version: String,
-  createDate: OffsetDateTime,
+  createDate: Instant,
   createdBy: String
 ) extends PassMarkSettings
 
@@ -98,7 +99,7 @@ object Phase3PassMarkSettings {
 case class AssessmentCentrePassMarkSettings(
                                    schemes: List[AssessmentCentrePassMark],
                                    version: String,
-                                   createDate: OffsetDateTime,
+                                   createDate: Instant,
                                    createdBy: String
                                  ) extends PassMarkSettings {
   // Only display pass marks for the Commercial scheme to reduce the amount we log

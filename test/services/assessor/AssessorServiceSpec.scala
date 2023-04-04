@@ -38,6 +38,8 @@ import services.events.EventsService
 import testkit.MockitoImplicits._
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -176,7 +178,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
     }
 
     "return assessor to events mapping since a specified date" in new AssessorsEventsSummaryFixture {
-      val result = service.assessorToEventsMappingSince(DateTime.now).futureValue
+      val result = service.assessorToEventsMappingSince(OffsetDateTime.now).futureValue
       val resultKeys = result.keys.toList
       resultKeys.size mustBe assessorToEventsMapping.keys.toList.size
       resultKeys.foreach { key =>
@@ -188,7 +190,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
     }
 
     "notify assessors of new events" in new AssessorsEventsSummaryFixture {
-      val now = DateTime.now
+      val now = OffsetDateTime.now
       val result = service.notifyAssessorsOfNewEvents(now)(new HeaderCarrier).futureValue
       val emailBodyCaptor = ArgumentCaptor.forClass(classOf[String])
       verify(mockEmailClient, times(2)).notifyAssessorsOfNewEvents(
@@ -207,9 +209,10 @@ class AssessorServiceSpec extends BaseServiceSpec {
       // Event(eventId1,FSAC,GCFS FSB,Location(London),Venue(London FSAC,Bush House)      (FSAC - Virtual)
       // Event(eventId4,FSAC,DFS FSB,Location(Newcastle),Venue(Newcastle FSAC,Longbenton) (FSAC - Virtual)
 
-      val fsacVirtual = s"${now.toString("EEEE, dd MMMM YYYY")} (FSAC - Virtual)"
-      val fsbLondon = s"${now.toString("EEEE, dd MMMM YYYY")} (FSB - London)"
-      val fsbNewcastle = s"${now.toString("EEEE, dd MMMM YYYY")} (FSB - Newcastle)"
+      // TODO MIGUEL: Compare foramts in scala worksheet
+      val fsacVirtual = s"${now.format(DateTimeFormatter.ofPattern("EEEE, dd MMMM YYYY"))} (FSAC - Virtual)"
+      val fsbLondon = s"${now.format(DateTimeFormatter.ofPattern("EEEE, dd MMMM YYYY"))} (FSB - London)"
+      val fsbNewcastle = s"${now.format(DateTimeFormatter.ofPattern("EEEE, dd MMMM YYYY"))} (FSB - Newcastle)"
 
       val event1ExpectedEmails = s"$fsacVirtual\n$fsbLondon\n$fsbNewcastle"
       emailsForEvent1 mustBe event1ExpectedEmails
@@ -336,23 +339,23 @@ class AssessorServiceSpec extends BaseServiceSpec {
     val e1 = Event(id = "eventId1", eventType = EventType.FSAC, description = "GCFS FSB", location = LocationLondon,
       venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now().plusMinutes(30), endTime = LocalTime.now().plusHours(3),
-      createdAt = DateTime.now, skillRequirements = Map(SkillType.ASSESSOR.toString -> 1,
+      createdAt = OffsetDateTime.now, skillRequirements = Map(SkillType.ASSESSOR.toString -> 1,
         SkillType.QUALITY_ASSURANCE_COORDINATOR.toString -> 1), sessions = List())
 
     val e2 = Event(id = "eventId2", eventType = EventType.FSB, description = "ORAC", location = LocationLondon,
       venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now().plusMinutes(30), endTime = LocalTime.now().plusHours(3),
-      createdAt = DateTime.now, skillRequirements = Map(SkillType.CHAIR.toString -> 1), sessions = List())
+      createdAt = OffsetDateTime.now, skillRequirements = Map(SkillType.CHAIR.toString -> 1), sessions = List())
 
     val e3 = Event(id = "eventId3", eventType = EventType.FSB, description = "GCFS FSB",
       location = LocationNewcastle, venue = VenueNewcastle, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3),
-      createdAt = DateTime.now, skillRequirements = Map(SkillType.ASSESSOR.toString -> 1), sessions = List())
+      createdAt = OffsetDateTime.now, skillRequirements = Map(SkillType.ASSESSOR.toString -> 1), sessions = List())
 
     val e4 = Event(id = "eventId4", eventType = EventType.FSAC, description = "DFS FSB", location = LocationNewcastle,
       venue = VenueNewcastle, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3),
-      createdAt = DateTime.now, skillRequirements = Map(SkillType.QUALITY_ASSURANCE_COORDINATOR.toString -> 1), sessions = List())
+      createdAt = OffsetDateTime.now, skillRequirements = Map(SkillType.QUALITY_ASSURANCE_COORDINATOR.toString -> 1), sessions = List())
 
     val events = Seq(e1, e2, e3, e4)
     val a1Skills = List(SkillType.ASSESSOR, SkillType.CHAIR)
@@ -375,7 +378,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
       a2 -> Seq(e1, e4)
     )
 
-    when(mockEventService.getEventsCreatedAfter(any[DateTime])).thenReturn(Future(events))
+    when(mockEventService.getEventsCreatedAfter(any[OffsetDateTime])).thenReturn(Future(events))
     when(mockAssessorRepository.findUnavailableAssessors(
       eqTo(Seq(SkillType.ASSESSOR, SkillType.QUALITY_ASSURANCE_COORDINATOR)), any[Location], any[LocalDate])).thenReturnAsync(Seq(a1, a2))
     when(mockAssessorRepository.findUnavailableAssessors(

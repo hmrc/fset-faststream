@@ -52,7 +52,7 @@ import testkit.MockitoImplicits._
 import testkit.{ExtendedTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.OffsetDateTime
+import java.time.{OffsetDateTime, ZoneOffset}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -200,7 +200,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout {
 
   "Override submission deadline" must {
     "update the submission deadline in the repository" in new TestFixture {
-      val newDeadline = new OffsetDateTime(2016, 5, 21, 23, 59, 59)
+      val newDeadline = OffsetDateTime.of(java.time.LocalDate.of(2016, 5, 21), java.time.LocalTime.of(23, 59, 59), ZoneOffset.UTC)
 
       when(appRepositoryMock.updateSubmissionDeadline(applicationId, newDeadline)).thenReturnAsync()
 

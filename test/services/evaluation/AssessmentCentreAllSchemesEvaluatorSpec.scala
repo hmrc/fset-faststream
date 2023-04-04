@@ -51,7 +51,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
             workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(0d, 0d),
             overall = PassMarkThreshold(0d, 0d)
           ))
-        ), version = "v1", createDate = OffsetDateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now().toInstant, createdBy = "test"
       )
       val averageScores = competencyAverageResult(0d, 0d, 0d, 0d, 0d)
       val schemes = Seq(commercial)
@@ -70,7 +70,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
             workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(0d, 1d),
             overall = PassMarkThreshold(0d, 1d)
           ))
-        ), version = "v1", createDate = OffsetDateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now().toInstant, createdBy = "test"
       )
       val averageScores = competencyAverageResult(1d, 1d, 1d, 1d, 1d)
       val schemes = Seq(commercial)
@@ -89,7 +89,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
             workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(0d, 0d),
             overall = PassMarkThreshold(0d, 0d)
           ))
-        ), version = "v1", createDate = OffsetDateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now().toInstant, createdBy = "test"
       )
       val averageScores = competencyAverageResult(1d, 0d, 0d, 0d, 0d)
       val schemes = Seq(commercial)
@@ -108,7 +108,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
             workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(0d, 0d),
             overall = PassMarkThreshold(0d, 0d)
           ))
-        ), version = "v1", createDate = OffsetDateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now().toInstant, createdBy = "test"
       )
       val averageScores = competencyAverageResult(0d, 1d, 0d, 0d, 0d)
       val schemes = Seq(commercial)
@@ -127,7 +127,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
             workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(0d, 0d),
             overall = PassMarkThreshold(0d, 0d)
           ))
-        ), version = "v1", createDate = OffsetDateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now().toInstant, createdBy = "test"
       )
       val averageScores = competencyAverageResult(0d, 0d, 1d, 0d, 0d)
       val schemes = Seq(commercial)
@@ -146,7 +146,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
             workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(2d, 2d),
             overall = PassMarkThreshold(0d, 0d)
           ))
-        ), version = "v1", createDate = OffsetDateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now().toInstant, createdBy = "test"
       )
       val averageScores = competencyAverageResult(0d, 0d, 0d, 1d, 0d)
       val schemes = Seq(commercial)
@@ -165,7 +165,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
             workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(0d, 0d),
             overall = PassMarkThreshold(2d, 2d)
           ))
-        ), version = "v1", createDate = OffsetDateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now().toInstant, createdBy = "test"
       )
       val averageScores = competencyAverageResult(0d, 0d, 0d, 0d, 1d)
       val schemes = Seq(commercial)
@@ -184,7 +184,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
             workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(0d, 0d),
             overall = PassMarkThreshold(0d, 0d)
           ))
-        ), version = "v1", createDate = OffsetDateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now().toInstant, createdBy = "test"
       )
       val averageScores = competencyAverageResult(1d, 0d, 0d, 0d, 0d)
       val schemes = Seq(commercial)
@@ -203,7 +203,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
             workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(0d, 0d),
             overall = PassMarkThreshold(0d, 0d)
           ))
-        ), version = "v1", createDate = OffsetDateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now().toInstant, createdBy = "test"
       )
       val averageScores = competencyAverageResult(0d, 1d, 0d, 0d, 0d)
       val schemes = Seq(commercial)
@@ -222,7 +222,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
             workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(0d, 0d),
             overall = PassMarkThreshold(0d, 0d)
           ))
-        ), version = "v1", createDate = OffsetDateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now().toInstant, createdBy = "test"
       )
       val averageScores = competencyAverageResult(0d, 0d, 1d, 0d, 0d)
       val schemes = Seq(commercial)
@@ -241,7 +241,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
             workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(1d, 2d),
             overall = PassMarkThreshold(0d, 0d)
           ))
-        ), version = "v1", createDate = OffsetDateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now().toInstant, createdBy = "test"
       )
       val averageScores = competencyAverageResult(0d, 0d, 0d, 1d, 0d)
       val schemes = Seq(commercial)
@@ -260,7 +260,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
             workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(0d, 0d),
             overall = PassMarkThreshold(1d, 2d)
           ))
-        ), version = "v1", createDate = OffsetDateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now().toInstant, createdBy = "test"
       )
       val averageScores = competencyAverageResult(0d, 0d, 0d, 0d, 1d)
       val schemes = Seq(commercial)

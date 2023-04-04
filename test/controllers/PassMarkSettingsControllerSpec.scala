@@ -16,6 +16,7 @@
 
 package controllers
 
+import akka.event.Logging
 import factories.UUIDFactory
 import model.PassMarkSettingsCreateResponse
 import model.SchemeId
@@ -23,6 +24,7 @@ import model.exchange.passmarksettings._
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
+import play.api.Logging
 import play.api.libs.json.{Format, Json}
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest, Helpers}
@@ -34,7 +36,7 @@ import java.time.{Instant, OffsetDateTime, ZoneOffset}
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-class Phase1PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpec {
+class Phase1PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpec with Logging {
   type T = Phase1PassMarkSettings
   type U = Phase1PassMark
   implicit val formatter = Phase1PassMarkSettings.jsonFormat
@@ -62,7 +64,7 @@ class Phase1PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
     val auditService = mockAuditService
     val uuidFactory = mockUUIDFactory
     def upgradeVersion(passMarkSettings:Phase1PassMarkSettings, newVersionUUID: String) =
-      passMarkSettings.copy(version = uuidFactory.generateUUID(), createDate = OffsetDateTime.now())
+      passMarkSettings.copy(version = uuidFactory.generateUUID(), createDate = Instant.now())
     val passMarksCreatedEvent = createdEvent
   }
 
@@ -116,7 +118,7 @@ class Phase2PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
     val auditService = mockAuditService
     val uuidFactory = mockUUIDFactory
     def upgradeVersion(passMarkSettings:Phase2PassMarkSettings, newVersionUUID: String) =
-      passMarkSettings.copy(version = uuidFactory.generateUUID(), createDate = OffsetDateTime.now())
+      passMarkSettings.copy(version = uuidFactory.generateUUID(), createDate = Instant.now())
     val passMarksCreatedEvent = createdEvent
   }
   val jsonSchemeThresholds = """
@@ -162,7 +164,7 @@ class Phase3PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
     val auditService = mockAuditService
     val uuidFactory = mockUUIDFactory
     def upgradeVersion(passMarkSettings:Phase3PassMarkSettings, newVersionUUID: String) =
-      passMarkSettings.copy(version = uuidFactory.generateUUID(), createDate = OffsetDateTime.now())
+      passMarkSettings.copy(version = uuidFactory.generateUUID(), createDate = Instant.now())
     val passMarksCreatedEvent = createdEvent
   }
   val jsonSchemeThresholds = """
@@ -207,7 +209,7 @@ class AssessmentCentrePassMarkSettingsControllerSpec extends PassMarkSettingsCon
     val auditService = mockAuditService
     val uuidFactory = mockUUIDFactory
     def upgradeVersion(passMarkSettings:AssessmentCentrePassMarkSettings, newVersionUUID: String) =
-      passMarkSettings.copy(version = uuidFactory.generateUUID(), createDate = OffsetDateTime.now())
+      passMarkSettings.copy(version = uuidFactory.generateUUID(), createDate = Instant.now())
     val passMarksCreatedEvent = createdEvent
   }
 
@@ -238,7 +240,7 @@ class AssessmentCentrePassMarkSettingsControllerSpec extends PassMarkSettingsCon
   val createUrl = controllers.routes.AssessmentCentrePassMarkSettingsController.create.url
 }
 
-trait PassMarkSettingsControllerSpec extends UnitWithAppSpec {
+trait PassMarkSettingsControllerSpec extends UnitWithAppSpec with Logging {
   type T <: PassMarkSettings
   type U <: PassMark
   implicit val formatter: Format[T]
@@ -255,7 +257,7 @@ trait PassMarkSettingsControllerSpec extends UnitWithAppSpec {
   val defaultSchemeThreshold = PassMarkThreshold(20d, 80d)
 
   val mockVersion = "uuid-1"
-  val mockCreateDate = OffsetDateTime.ofInstant(Instant.ofEpochMilli( 1459504800000L), ZoneOffset.UTC)
+  val mockCreateDate = OffsetDateTime.ofInstant(Instant.ofEpochMilli( 1459504800000L), ZoneOffset.UTC).toInstant
   val mockCreatedBy = "TestUser"
 
   val mockUUIDFactory = mock[UUIDFactory]
@@ -266,8 +268,14 @@ trait PassMarkSettingsControllerSpec extends UnitWithAppSpec {
 
   def createPassMarkSettingsRequest(jsonString: String) = {
     val json = Json.parse(jsonString)
-    FakeRequest(Helpers.PUT, createUrl, FakeHeaders(), json)
+    // TODO MIGUEL
+    //scalastyle:off
+    println(s"-----MIGUEL createPassMarkSettingsRequest json=[$json]")
+    val fakeRequest = FakeRequest(Helpers.PUT, createUrl, FakeHeaders(), json)
       .withHeaders("Content-Type" -> "application/json")
+
+    println(s"-----MIGUEL createPassMarkSettingsRequest fakeRequest=[$fakeRequest]")
+    fakeRequest
   }
 
   def validSettingsCreateRequestJSON = s"""
@@ -315,16 +323,25 @@ trait PassMarkSettingsControllerSpec extends UnitWithAppSpec {
 
   "Save new settings" should {
     "Send a complete settings object to the repository with a version UUID appended" in {
+      val creationDate = Instant.now()
       when(mockPassMarkSettingsService.createPassMarkSettings(any())(any(), any())).thenReturn(Future.successful(
         PassMarkSettingsCreateResponse(
           "uuid-1",
-          OffsetDateTime.now()
+          creationDate
         )
       ))
 
       val result = controller.create()(createPassMarkSettingsRequest(validSettingsCreateRequestJSON))
 
-      status(result) mustBe OK
+      val statusResult = status(result)
+
+      statusResult mustBe OK
+
+      val resultPojo = contentAsJson(result).as(PassMarkSettingsCreateResponse.passMarkSettingsCreateResponseFormat)
+      resultPojo.passMarkSettingsCreateDate mustBe creationDate
+
+//      println(s"-----MIGUEL failed:${result.failed.futureValue}")
+//      logger.error(s"-----MIGUEL failed:${result.failed.futureValue}")
 
       verify(mockPassMarkSettingsService).createPassMarkSettings(argumentCaptor.capture)(any(), any())
 

@@ -18,9 +18,9 @@ package model
 
 import play.api.libs.json.{Json, OFormat}
 
-import java.time.OffsetDateTime
+import java.time.{Instant, OffsetDateTime}
 
-case class PassMarkSettingsCreateResponse(passMarkSettingsVersion: String, passMarkSettingsCreateDate: OffsetDateTime)
+case class PassMarkSettingsCreateResponse(passMarkSettingsVersion: String, passMarkSettingsCreateDate: Instant)
 
 object PassMarkSettingsCreateResponse {
   implicit val passMarkSettingsCreateResponseFormat: OFormat[PassMarkSettingsCreateResponse] = Json.format[PassMarkSettingsCreateResponse]

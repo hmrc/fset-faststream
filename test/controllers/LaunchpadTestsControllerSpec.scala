@@ -29,6 +29,7 @@ import services.onlinetesting.phase3.{Phase3TestCallbackService, Phase3TestServi
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.{OffsetDateTime, ZoneOffset}
 import scala.concurrent.Future
 
 class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
@@ -124,7 +125,7 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
     }
 
     val sampleReviewedCallback = ReviewedCallbackRequest(
-      DateTime.now(DateTimeZone.UTC),
+      DateTime.now().withZone(DateTimeZone.UTC),
       sampleCandidateId,
       sampleCustomCandidateId,
       sampleInterviewId,

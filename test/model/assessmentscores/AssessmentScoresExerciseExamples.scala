@@ -17,7 +17,9 @@
 package model.assessmentscores
 
 import model.UniqueIdentifier
-import org.joda.time.{ DateTime, DateTimeZone }
+import org.joda.time.{DateTime, DateTimeZone}
+
+import java.time.{OffsetDateTime, ZoneOffset}
 
 object AssessmentScoresExerciseExamples {
   val Example1 = getExample(1)
@@ -25,7 +27,7 @@ object AssessmentScoresExerciseExamples {
   val Example3 = getExample(2)
   val Example4 = getExample(2.5)
   val ExampleNoFractions = getExampleNoFractions
-  lazy val dateTimeNow = DateTime.now(DateTimeZone.UTC)
+  lazy val dateTimeNow = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC)
 
   lazy val updatedBy = UniqueIdentifier.randomUniqueIdentifier
 

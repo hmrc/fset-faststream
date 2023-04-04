@@ -42,6 +42,7 @@ import testkit.ExtendedTimeout
 import testkit.MockitoImplicits._
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -231,9 +232,9 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
     "return all candidates except no-shows" in new TestFixture {
       private val fsacIndicator = model.FSACIndicator("","")
       private val c1 = CandidateEligibleForEvent("app1", "", "", needsAdjustment = true, fsbScoresAndFeedbackSubmitted = false,
-        fsacIndicator, DateTime.now())
+        fsacIndicator, OffsetDateTime.now())
       private val c2 = CandidateEligibleForEvent("app2", "", "", needsAdjustment = true, fsbScoresAndFeedbackSubmitted = false,
-        fsacIndicator, DateTime.now())
+        fsacIndicator, OffsetDateTime.now())
       private val loc = "London"
       private val eventType = EventType.FSAC
       private val desc = "ORAC"
@@ -308,7 +309,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
 
     protected def mockGetEvent: OngoingStubbing[Future[Event]] = when(mockEventsService.getEvent(any[String]())).thenReturnAsync(new Event(
       "eventId", EventType.FSAC, "Description", Location("London"), Venue("Venue 1", "venue description"),
-      LocalDate.now, 10, 10, 10, LocalTime.now, LocalTime.now, DateTime.now, Map(), Nil
+      LocalDate.now, 10, 10, 10, LocalTime.now, LocalTime.now, OffsetDateTime.now, Map(), Nil
     ))
 
     protected def mockAuthProviderFindByUserIds(userId: String*): Unit = userId.foreach { uid =>

@@ -16,24 +16,25 @@
 
 package services.assessmentscores
 
-import factories.{ DateTimeFactory, DateTimeFactoryMock }
+import factories.{DateTimeFactory, DateTimeFactoryMock}
 import model.Exceptions.EventNotFoundException
 import model.ProgressStatuses.ProgressStatus
-import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresAllExercisesExamples, AssessmentScoresExerciseExamples }
-import model.command.AssessmentScoresCommands.{ AssessmentScoresCandidateSummary, AssessmentScoresFindResponse, AssessmentScoresSectionType }
+import model.assessmentscores.{AssessmentScoresAllExercises, AssessmentScoresAllExercisesExamples, AssessmentScoresExerciseExamples}
+import model.command.AssessmentScoresCommands.{AssessmentScoresCandidateSummary, AssessmentScoresFindResponse, AssessmentScoresSectionType}
 import model.command.PersonalDetailsExamples
 import model.fsacscores.AssessmentScoresFinalFeedbackExamples
-import model.persisted.{ CandidateAllocation, EventExamples }
-import model.{ AllocationStatuses, ProgressStatuses, UniqueIdentifier }
-import org.joda.time.{ DateTimeZone, LocalDate }
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
-import org.mockito.Mockito.{ when, _ }
+import model.persisted.{CandidateAllocation, EventExamples}
+import model.{AllocationStatuses, ProgressStatuses, UniqueIdentifier}
+import org.joda.time.{DateTimeZone, LocalDate}
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
+import org.mockito.Mockito.{when, _}
 import repositories.application.GeneralApplicationRepository
 import repositories.events.EventsRepository
 import repositories.personaldetails.PersonalDetailsRepository
-import repositories.{ AssessmentScoresRepository, CandidateAllocationRepository }
+import repositories.{AssessmentScoresRepository, CandidateAllocationRepository}
 import services.BaseServiceSpec
 
+import java.time.ZoneOffset
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -392,8 +393,8 @@ trait AssessmentScoresServiceSpec extends BaseServiceSpec {
     val dataTimeFactoryMock = mock[DateTimeFactory]
 
     val appId = AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise.applicationId
-    val now = DateTimeFactoryMock.nowLocalTimeZone.withZone(DateTimeZone.UTC)
-    when(dataTimeFactoryMock.nowLocalTimeZone).thenReturn(now)
+    val now = DateTimeFactoryMock.nowLocalTimeZoneJavaTime.withOffsetSameInstant(ZoneOffset.UTC)
+    when(dataTimeFactoryMock.nowLocalTimeZoneJavaTime).thenReturn(now)
     val today = DateTimeFactoryMock.nowLocalDate
     when(dataTimeFactoryMock.nowLocalDate).thenReturn(today)
   }

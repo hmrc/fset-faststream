@@ -18,17 +18,19 @@ package controllers
 
 import config.TestFixtureBase
 import model.FSACIndicator
-import model.exchange.{ CandidateEligibleForEvent, CandidatesEligibleForEventResponse }
+import model.exchange.{CandidateEligibleForEvent, CandidatesEligibleForEventResponse}
 import model.persisted.eventschedules.EventType.EventType
-import model.persisted.eventschedules.{ Event, EventType, Location, Venue }
-import org.joda.time.{ DateTime, LocalDate, LocalTime }
+import model.persisted.eventschedules.{Event, EventType, Location, Venue}
+import org.joda.time.{DateTime, LocalDate, LocalTime}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import play.api.test.Helpers.{ contentAsJson, status, _ }
-import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
+import play.api.test.Helpers.{contentAsJson, status, _}
+import play.api.test.{FakeHeaders, FakeRequest, Helpers}
 import services.allocation.CandidateAllocationService
 import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
+
+import java.time.OffsetDateTime
 
 class CandidateAllocationControllerSpec  extends UnitWithAppSpec {
 
@@ -54,7 +56,7 @@ class CandidateAllocationControllerSpec  extends UnitWithAppSpec {
     "handle candidates" in new TestFixture {
       val fsacIndicator = FSACIndicator("SouthWest London", "London")
       val candidate = CandidateEligibleForEvent(applicationId = "appId", firstName = "Joe", lastName = "Bloggs",
-        needsAdjustment = true, fsbScoresAndFeedbackSubmitted = false, fsacIndicator = fsacIndicator, dateReady = DateTime.now())
+        needsAdjustment = true, fsbScoresAndFeedbackSubmitted = false, fsacIndicator = fsacIndicator, dateReady = OffsetDateTime.now())
       when(mockCandidateAllocationService.findCandidatesEligibleForEventAllocation(any[String], any[EventType], any[String]))
         .thenReturnAsync(CandidatesEligibleForEventResponse(List(candidate), 1))
 
@@ -75,7 +77,7 @@ class CandidateAllocationControllerSpec  extends UnitWithAppSpec {
     val MockLocation = Location("London")
 
     val MockEvent = new Event("id", EventType.FSAC, "description", MockLocation, MockVenue,
-      LocalDate.now, 32, 10, 5, LocalTime.now, LocalTime.now, DateTime.now, Map.empty, List.empty)
+      LocalDate.now, 32, 10, 5, LocalTime.now, LocalTime.now, OffsetDateTime.now, Map.empty, List.empty)
 
     val controller = new CandidateAllocationController(
       stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
