@@ -234,7 +234,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       createApplicationWithAllFields("userId", "appId", "testAccountId","frameworkId",
         "PHASE2_TESTS", phase2TestGroup = Some(input)).futureValue
 
-      phase2TestRepo.updateTestCompletionTime("orderId5", now).futureValue
+      phase2TestRepo.updateTestCompletionTime("orderId5", nowOffsetDateTime).futureValue
       val result = phase2TestRepo.getTestProfileByOrderId("orderId5").futureValue
       result.testGroup.tests.head.completedDateTime mustBe Some(now)
     }

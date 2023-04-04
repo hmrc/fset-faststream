@@ -18,12 +18,14 @@ package model
 
 import play.api.libs.json.{Json, OFormat}
 
-import java.time.OffsetDateTime
+import java.time.{Instant, OffsetDateTime}
 
-case class AssessorNewEventsJobInfo(lastRun: org.joda.time.DateTime)
+//case class AssessorNewEventsJobInfo(lastRun: org.joda.time.DateTime)
+case class AssessorNewEventsJobInfo(lastRun: Instant)
 
 object AssessorNewEventsJobInfo {
   // Do not remove this as it is needed to serialize the date as epoch millis
-  import model.persisted.Play25DateCompatibility.epochMillisDateFormat
+  //import model.persisted.Play25DateCompatibility.epochMillisDateFormat
+  import model.persisted.Play25DateCompatibility.javaTimeInstantEpochMillisDateFormat
   implicit val format: OFormat[AssessorNewEventsJobInfo] = Json.format[AssessorNewEventsJobInfo]
 }

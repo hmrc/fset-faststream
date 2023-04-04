@@ -13,7 +13,7 @@ import org.scalatest.prop._
 import repositories.{CollectionNames, CommonRepository}
 import testkit.MongoRepositorySpec
 
-import java.time.OffsetDateTime
+import java.time.{Instant, OffsetDateTime}
 
 class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   with TableDrivenPropertyChecks {
@@ -263,7 +263,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       val phase3PassMarkSettings = Phase3PassMarkSettings(
         schemeThresholds,
         "version-1",
-        OffsetDateTime.now,
+        Instant.now,
         "user-1"
       )
       phase3PassMarkSettingRepo.create(phase3PassMarkSettings).futureValue

@@ -38,7 +38,7 @@ import services.events.EventsService
 import testkit.MockitoImplicits._
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.OffsetDateTime
+import java.time.{Instant, OffsetDateTime}
 import java.time.format.DateTimeFormatter
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -178,7 +178,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
     }
 
     "return assessor to events mapping since a specified date" in new AssessorsEventsSummaryFixture {
-      val result = service.assessorToEventsMappingSince(OffsetDateTime.now).futureValue
+      val result = service.assessorToEventsMappingSince(OffsetDateTime.now.toInstant).futureValue
       val resultKeys = result.keys.toList
       resultKeys.size mustBe assessorToEventsMapping.keys.toList.size
       resultKeys.foreach { key =>
@@ -191,7 +191,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
 
     "notify assessors of new events" in new AssessorsEventsSummaryFixture {
       val now = OffsetDateTime.now
-      val result = service.notifyAssessorsOfNewEvents(now)(new HeaderCarrier).futureValue
+      val result = service.notifyAssessorsOfNewEvents(now.toInstant)(new HeaderCarrier).futureValue
       val emailBodyCaptor = ArgumentCaptor.forClass(classOf[String])
       verify(mockEmailClient, times(2)).notifyAssessorsOfNewEvents(
         to = any[String], name = any[String], htmlBody = any[String], txtBody = emailBodyCaptor.capture)(
@@ -378,7 +378,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
       a2 -> Seq(e1, e4)
     )
 
-    when(mockEventService.getEventsCreatedAfter(any[OffsetDateTime])).thenReturn(Future(events))
+    when(mockEventService.getEventsCreatedAfter(any[Instant])).thenReturn(Future(events))
     when(mockAssessorRepository.findUnavailableAssessors(
       eqTo(Seq(SkillType.ASSESSOR, SkillType.QUALITY_ASSURANCE_COORDINATOR)), any[Location], any[LocalDate])).thenReturnAsync(Seq(a1, a2))
     when(mockAssessorRepository.findUnavailableAssessors(

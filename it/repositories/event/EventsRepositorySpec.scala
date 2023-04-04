@@ -176,7 +176,7 @@ class EventsRepositorySpec extends MongoRepositorySpec {
       repository.save(newEvents).futureValue mustBe unit
 
       // Look for events whose bulkUpload status is false and which have been created 1 minute after the createdAt1DayAgo time stamp
-      val result = repository.getEventsManuallyCreatedAfter(createdAt1DayAgo.plusMinutes(1)).futureValue
+      val result = repository.getEventsManuallyCreatedAfter(createdAt1DayAgo.plusMinutes(1).toInstant).futureValue
       result mustBe newEvents
     }
   }

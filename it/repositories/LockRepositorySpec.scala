@@ -21,6 +21,7 @@ import testkit.MongoRepositorySpec
 
 class LockRepositorySpec extends MongoRepositorySpec {
   val lockTimeout = new Duration(1000L)
+  val lockTimeoutJavaTime = java.time.Duration.ofMillis(1000L)
 
   override val collectionName: String = CollectionNames.LOCKS
 
@@ -39,33 +40,33 @@ class LockRepositorySpec extends MongoRepositorySpec {
     }
 
     "insert a lock when the database is empty" in {
-      val result = repo.lock("lockId", "owner", lockTimeout).futureValue
+      val result = repo.lock("lockId", "owner", lockTimeoutJavaTime).futureValue
       result mustBe true
     }
 
     "fail to insert another lock when the first one has not yet expired" in {
-      repo.lock("lockId", "owner", lockTimeout).futureValue
-      val result = repo.lock("lockId", "owner", lockTimeout).futureValue
+      repo.lock("lockId", "owner", lockTimeoutJavaTime).futureValue
+      val result = repo.lock("lockId", "owner", lockTimeoutJavaTime).futureValue
       result mustBe false
     }
 
     "be locked when one lock has expired, but another one has been created afterwards" in {
-      repo.lock("lockId", "owner", new Duration(500L)).futureValue
+      repo.lock("lockId", "owner", java.time.Duration.ofMillis(500L)).futureValue
       Thread.sleep(505L) // Wait for the lock to expire (5 millis longer than the lock duration)
-      repo.lock("lockId", "owner", new Duration(500L)).futureValue
+      repo.lock("lockId", "owner", java.time.Duration.ofMillis(500L)).futureValue
       val isLocked = repo.isLocked("lockId", "owner").futureValue
       isLocked mustBe true
     }
 
     "is not locked when the lock has expired" in {
-      repo.lock("lockId", "owner", new Duration(500L)).futureValue
+      repo.lock("lockId", "owner", java.time.Duration.ofMillis(500L)).futureValue
       Thread.sleep(501L)
       val result = repo.isLocked("lockId", "owner").futureValue
       result mustBe false
     }
 
     "has no lock when the lock has been released" in {
-      repo.lock("lockId", "owner", lockTimeout).futureValue
+      repo.lock("lockId", "owner", lockTimeoutJavaTime).futureValue
       repo.releaseLock("lockId", "owner").futureValue
       val result = repo.isLocked("lockId", "owner").futureValue
       result mustBe false

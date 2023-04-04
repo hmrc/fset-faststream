@@ -37,7 +37,7 @@ import repositories.{AssessorAllocationRepository, AssessorRepository}
 import services.events.EventsService
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.OffsetDateTime
+import java.time.{Instant, OffsetDateTime}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -252,7 +252,7 @@ class AssessorService @Inject() (assessorRepository: AssessorRepository,
     assessorRepository.findUnavailableAssessors(skills, location, date)
   }
 
-  private[assessor] def assessorToEventsMappingSince(eventsSince: OffsetDateTime): Future[Map[Assessor, Seq[Event]]] = {
+  private[assessor] def assessorToEventsMappingSince(eventsSince: Instant): Future[Map[Assessor, Seq[Event]]] = {
     val newlyCreatedEvents = eventsService.getEventsCreatedAfter(eventsSince)
     val assessorToEventsTableFut: Future[Seq[(Assessor, Event)]] = newlyCreatedEvents.flatMap { events =>
       val mapping = events.map { event =>
@@ -269,7 +269,7 @@ class AssessorService @Inject() (assessorRepository: AssessorRepository,
     assessorEventsMapping
   }
 
-  def notifyAssessorsOfNewEvents(lastNotificationDate: OffsetDateTime)(implicit hc: HeaderCarrier): Future[Seq[Unit]] = {
+  def notifyAssessorsOfNewEvents(lastNotificationDate: Instant)(implicit hc: HeaderCarrier): Future[Seq[Unit]] = {
     logger.info(s"Notifying assessors of new events created since $lastNotificationDate")
     val assessorEventsMapping: Future[Map[Assessor, Seq[Event]]] = assessorToEventsMappingSince(lastNotificationDate)
     assessorEventsMapping.flatMap { assessorToEvent =>

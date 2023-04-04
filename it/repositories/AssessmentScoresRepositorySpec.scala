@@ -29,6 +29,8 @@ import org.mockito.Mockito.when
 import repositories.application.PreviousYearCandidatesDetailsMongoRepository
 import testkit.MongoRepositorySpec
 
+import java.time.ZoneOffset
+
 class AssessorAssessmentScoresRepositorySpec extends AssessmentScoresRepositorySpec {
   override val collectionName = CollectionNames.ASSESSOR_ASSESSMENT_SCORES
   override def getRepository = new AssessorAssessmentScoresMongoRepository(mongo, UUIDFactory)
@@ -205,12 +207,13 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
   // save final feedback will only be called once per assessment scores, once called, it called be called from frontend.
   "save final feedback" should {
     "create new assessment scores with final feedback when it does not exist" in new TestFixture  {
-      val FinalFeedbackToSave = FinalFeedback.copy(version = None, acceptedDate = LocalTime)
+      val FinalFeedbackToSave = FinalFeedback.copy(version = None, acceptedDate = LocalOffsetDateTime)
 
       repository.saveFinalFeedback(ApplicationId, FinalFeedbackToSave, Some(NewVersion)).futureValue
 
       val result = repository.find(ApplicationId).futureValue
-      val FinalFeedbackExpected = FinalFeedback.copy(acceptedDate = LocalTime.withZone(DateTimeZone.UTC), version = Some(NewVersion))
+      val FinalFeedbackExpected = FinalFeedback.copy(acceptedDate = LocalOffsetDateTime.withOffsetSameInstant(ZoneOffset.UTC)
+        , version = Some(NewVersion))
       val ExpectedScores = AssessmentScoresAllExercises(
         ApplicationId, writtenExercise = None, teamExercise = None, leadershipExercise = None, Some(FinalFeedbackExpected)
       )
@@ -219,10 +222,10 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
 
     "throw OptimisticLockException " +
       "when the exercise to be updated was updated before by another user" in new TestFixture {
-      val FinalFeedbackToSave = FinalFeedback.copy(version = None, acceptedDate = LocalTime)
+      val FinalFeedbackToSave = FinalFeedback.copy(version = None, acceptedDate = LocalOffsetDateTime)
       repository.saveFinalFeedback(ApplicationId, FinalFeedbackToSave, Some(NewVersion)).futureValue
 
-      val FinalFeedbackToSave2 = FinalFeedback2.copy(version = None, acceptedDate = LocalTime, updatedBy = UpdatedBy2)
+      val FinalFeedbackToSave2 = FinalFeedback2.copy(version = None, acceptedDate = LocalOffsetDateTime, updatedBy = UpdatedBy2)
       val result = repository.saveFinalFeedback(ApplicationId, FinalFeedbackToSave2, Some(NewVersion2)).failed.futureValue
       result mustBe a[model.Exceptions.OptimisticLockException]
       result.getMessage mustBe
@@ -231,10 +234,10 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
 
     "throw CannotUpdateRecord " +
       "when the exercise to be updated is an old version of the existing one" in new TestFixture {
-      val FinalFeedbackToSave = FinalFeedback.copy(version = None, acceptedDate = LocalTime)
+      val FinalFeedbackToSave = FinalFeedback.copy(version = None, acceptedDate = LocalOffsetDateTime)
       repository.saveFinalFeedback(ApplicationId, FinalFeedbackToSave, Some(NewVersion)).futureValue
 
-      val FinalFeedbackToSave2 = FinalFeedback2.copy(version = Some(OldVersion), acceptedDate = LocalTime, updatedBy = UpdatedBy2)
+      val FinalFeedbackToSave2 = FinalFeedback2.copy(version = Some(OldVersion), acceptedDate = LocalOffsetDateTime, updatedBy = UpdatedBy2)
       val result = repository.saveFinalFeedback(ApplicationId, FinalFeedbackToSave2, Some(NewVersion2)).failed.futureValue
       result mustBe a[model.Exceptions.CannotUpdateRecord]
       result.getMessage mustBe
@@ -293,7 +296,7 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     }
 
     "return all assessment scores when there are some" in new TestFixture {
-      val finalFeedbackToSave = FinalFeedback.copy(version = None, acceptedDate = LocalTime)
+      val finalFeedbackToSave = FinalFeedback.copy(version = None, acceptedDate = LocalOffsetDateTime)
       repository.saveFinalFeedback(ApplicationId, finalFeedbackToSave, Some(NewVersion)).futureValue
 
       if (collectionName == CollectionNames.ASSESSOR_ASSESSMENT_SCORES) {
@@ -307,7 +310,8 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
         // Only applicable for a reviewer
         val result = repository.findAccepted(ApplicationId).futureValue
 
-        val FinalFeedbackExpected = FinalFeedback.copy(acceptedDate = LocalTime.withZone(DateTimeZone.UTC), version = Some(NewVersion))
+        val FinalFeedbackExpected = FinalFeedback.copy(acceptedDate = LocalOffsetDateTime.withOffsetSameInstant(ZoneOffset.UTC)
+          , version = Some(NewVersion))
         val ExpectedScores = AssessmentScoresAllExercises(
           ApplicationId, writtenExercise = None, teamExercise = None, leadershipExercise = None, finalFeedback = Some(FinalFeedbackExpected)
         )
@@ -366,6 +370,8 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
 
     val LocalTime = ITDateTimeFactoryMock.nowLocalTimeZone
     val LocalDate = ITDateTimeFactoryMock.nowLocalDate
+    val LocalOffsetDateTime = ITDateTimeFactoryMock.nowLocalTimeZoneJavaTime
+
     val OldVersion = UUIDFactory.generateUUID()
     val NewVersion = UUIDFactory.generateUUID()
     val NewVersion2 = UUIDFactory.generateUUID()

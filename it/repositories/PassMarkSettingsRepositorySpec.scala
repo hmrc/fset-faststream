@@ -23,7 +23,8 @@ import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import repositories.passmarksettings._
 import testkit.MongoRepositorySpec
 
-import java.time.OffsetDateTime
+import java.time.temporal.ChronoUnit
+import java.time.{Instant, OffsetDateTime}
 
 class Phase1PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
   type T = Phase1PassMarkSettings
@@ -43,7 +44,7 @@ class Phase1PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
 
   override def copyNewPassMarkSettings(o: Phase1PassMarkSettings, newPassMarks: List[Phase1PassMark], newVersion: String, newDate:
   OffsetDateTime, newUser: String): Phase1PassMarkSettings = {
-    o.copy(schemes = newPassMarks, newVersion, OffsetDateTime.now().plusDays(1), createdByUser)
+    o.copy(schemes = newPassMarks, newVersion, Instant.now().plus(1, ChronoUnit.DAYS), createdByUser)
   }
 }
 
@@ -61,7 +62,7 @@ class Phase2PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
 
   override def copyNewPassMarkSettings(o: Phase2PassMarkSettings, newPassMarks: List[Phase2PassMark], newVersion: String, newDate:
   OffsetDateTime, newUser: String): Phase2PassMarkSettings = {
-    o.copy(schemes = newPassMarks, newVersion, OffsetDateTime.now().plusDays(1), createdByUser)
+    o.copy(schemes = newPassMarks, newVersion, Instant.now().plus(1, ChronoUnit.DAYS), createdByUser)
   }
 }
 
@@ -79,7 +80,7 @@ class Phase3PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
 
   override def copyNewPassMarkSettings(o: Phase3PassMarkSettings, newPassMarks: List[Phase3PassMark], newVersion: String, newDate:
   OffsetDateTime, newUser: String): Phase3PassMarkSettings = {
-    o.copy(schemes = newPassMarks, newVersion, OffsetDateTime.now().plusDays(1), createdByUser)
+    o.copy(schemes = newPassMarks, newVersion, Instant.now().plus(1, ChronoUnit.DAYS), createdByUser)
   }
 }
 
@@ -105,7 +106,7 @@ class AssessmentCentrePassMarkSettingsRepositorySpec extends PassMarkRepositoryF
                                        newVersion: String,
                                        newDate:
                                        OffsetDateTime, newUser: String): AssessmentCentrePassMarkSettings = {
-    o.copy(schemes = newPassMarks, newVersion, OffsetDateTime.now().plusDays(1), createdByUser)
+    o.copy(schemes = newPassMarks, newVersion, Instant.now().plus(1, ChronoUnit.DAYS), createdByUser)
   }
 }
 
@@ -122,7 +123,7 @@ trait PassMarkRepositoryFixture extends MongoRepositorySpec {
 
   val collectionName: String
   val version = "version-1"
-  val createdDate = OffsetDateTime.now()
+  val createdDate = Instant.now()
   val createdByUser = "user-1"
 
   "Pass-mark-settings collection" should {

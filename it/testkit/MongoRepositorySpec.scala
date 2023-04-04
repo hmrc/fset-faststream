@@ -32,6 +32,7 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 import java.time.OffsetDateTime
+import java.time.temporal.ChronoUnit.SECONDS
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.postfixOps
@@ -50,8 +51,7 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
   val FrameworkId = "FrameworkId"
 
   val timesApproximatelyEqual: (OffsetDateTime, OffsetDateTime) => Boolean = (time1: OffsetDateTime, time2: OffsetDateTime)
-  => secondsBetween(time1, time2)
-    .isLessThan(seconds(5))
+  => time1.until(time2, SECONDS) < 5
 
   implicit final val app: Application = new GuiceApplicationBuilder()
     .disable[PlayModule]

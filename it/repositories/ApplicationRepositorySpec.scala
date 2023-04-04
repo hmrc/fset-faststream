@@ -90,7 +90,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
       val result = applicationRepo.findByUserId("userId1", "frameworkId").futureValue
 
-      result.overriddenSubmissionDeadline.get.getMillis mustBe extendTo.toInstant.toEpochMilli
+      result.overriddenSubmissionDeadline.get.toInstant.toEpochMilli mustBe extendTo.toInstant.toEpochMilli
     }
   }
 

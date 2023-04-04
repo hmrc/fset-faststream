@@ -28,7 +28,7 @@ import services.AssessorsEventsSummaryJobsService
 import services.assessor.AssessorService
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.OffsetDateTime
+import java.time.{Instant, OffsetDateTime}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -53,16 +53,25 @@ trait NotifyAssessorsOfNewEventsJob extends SingleInstanceScheduledJob[BasicJobC
     }
   }
 
+  def shouldRunInstant(lastRun: Instant, now: Instant, isFirstJob: Boolean): Boolean = {
+    if (isFirstJob) {
+      true
+    } else {
+      val duration = java.time.Duration.between(lastRun, now)
+      duration.getSeconds >= (TimeSpan * 60 * 60)
+    }
+  }
+
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     assessorsEventsSummaryJobsService.lastRun.flatMap { lastRunInfoOpt =>
-      val newLastRun = AssessorNewEventsJobInfo(DateTime.now)
+      val newLastRun = AssessorNewEventsJobInfo(Instant.now)
       // TODO MIGUEL: Delete once everything is migrated
-      val newLastRunOffsetDateTime = OffsetDateTime.now()
+      val newLastRunOffsetDateTime = Instant.now()
       val lastRunInfo = lastRunInfoOpt.getOrElse(newLastRun)
       val isFirstJob = lastRunInfoOpt.isEmpty
-      val canRun = shouldRun(lastRunInfo.lastRun, newLastRun.lastRun, isFirstJob)
+      val canRun = shouldRunInstant(lastRunInfo.lastRun, newLastRun.lastRun, isFirstJob)
 
       if (canRun) {
         // TODO MIGUEL

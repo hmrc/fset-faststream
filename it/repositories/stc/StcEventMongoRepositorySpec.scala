@@ -8,6 +8,8 @@ import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.mongo.play.json.Codecs
 
+import java.time.{OffsetDateTime, ZoneOffset}
+
 class StcEventMongoRepositorySpec extends MongoRepositorySpec {
 
   override val collectionName = CollectionNames.EVENT
@@ -25,7 +27,7 @@ class StcEventMongoRepositorySpec extends MongoRepositorySpec {
 
   "Stop the Clock event repository" should {
     "insert new event" in {
-      val event = StcEvent("ExampleEvent", DateTime.now(DateTimeZone.UTC), Some("appId"), Some("userId"))
+      val event = StcEvent("ExampleEvent", OffsetDateTime.now.atZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime, Some("appId"), Some("userId"))
       repository.create(event).futureValue
       val result = getEvent
       result mustBe event

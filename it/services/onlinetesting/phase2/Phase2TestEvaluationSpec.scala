@@ -16,7 +16,7 @@ import org.scalatest.prop._
 import repositories.{CollectionNames, CommonRepository}
 import testkit.MongoRepositorySpec
 
-import java.time.OffsetDateTime
+import java.time.{Instant, OffsetDateTime}
 import scala.concurrent.Future
 
 class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
@@ -134,7 +134,7 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       val phase2PassMarkSettings = Phase2PassMarkSettings(
         schemeThresholds,
         "version-1",
-        OffsetDateTime.now,
+        Instant.now,
         "user-1"
       )
       phase2PassMarkSettingRepo.create(phase2PassMarkSettings).flatMap { _ =>

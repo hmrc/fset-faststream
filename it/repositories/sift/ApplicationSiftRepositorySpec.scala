@@ -10,7 +10,7 @@ import model.command.ApplicationForSift
 import model.persisted.sift.{MaybeSiftTestGroupWithAppId, SiftTestGroup}
 import model.persisted.{PassmarkEvaluation, PsiTest, PsiTestResult, SchemeEvaluationResult}
 import model.report.SiftPhaseReportItem
-import org.joda.time.{DateTime, DateTimeZone}
+import org.joda.time.{DateTime}
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.prop.TableDrivenPropertyChecks
@@ -248,7 +248,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
   "update test started time" must {
     "throw an exception if no record is found" in {
-      val result = repository.updateTestStartTime("orderId", nowDateTime).failed.futureValue
+      val result = repository.updateTestStartTime("orderId", now).failed.futureValue
       result mustBe a[CannotFindTestByOrderIdException]
     }
 
@@ -264,7 +264,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       val instantNow = OffsetDateTime.now().toInstant
       val startedTime = new DateTime(instantNow.toEpochMilli)
       val startedTimeOffset = OffsetDateTime.ofInstant(instantNow, ZoneOffset.UTC)
-      repository.updateTestStartTime("orderUuid", startedTime).futureValue
+      repository.updateTestStartTime("orderUuid", startedTimeOffset).futureValue
 
       val result = repository.getTestGroupByOrderId("orderUuid").futureValue
       result mustBe MaybeSiftTestGroupWithAppId(appId, now, Some(List(test.copy(startedDateTime = Some(startedTimeOffset)))))
@@ -273,7 +273,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
   "update test completion time" must {
     "throw an exception if no record is found" in {
-      val result = repository.updateTestCompletionTime("orderId", nowDateTime).failed.futureValue
+      val result = repository.updateTestCompletionTime("orderId", now).failed.futureValue
       result mustBe a[CannotFindTestByOrderIdException]
     }
 
@@ -289,7 +289,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       val instantNow = OffsetDateTime.now().toInstant
       val completedTime = new DateTime(instantNow.toEpochMilli)
       val completedTimeOffset = OffsetDateTime.ofInstant(instantNow, ZoneOffset.UTC)
-      repository.updateTestCompletionTime("orderUuid", completedTime).futureValue
+      repository.updateTestCompletionTime("orderUuid", completedTimeOffset).futureValue
 
       val result = repository.getTestGroupByOrderId("orderUuid").futureValue
       result mustBe MaybeSiftTestGroupWithAppId(appId, now, Some(List(test.copy(completedDateTime = Some(completedTimeOffset)))))
@@ -298,7 +298,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
   "update expiry time" must {
     "throw an exception if no record is found" in {
-      val result = repository.updateTestCompletionTime("orderId", nowDateTime).failed.futureValue
+      val result = repository.updateTestCompletionTime("orderId", now).failed.futureValue
       result mustBe a[CannotFindTestByOrderIdException]
     }
 

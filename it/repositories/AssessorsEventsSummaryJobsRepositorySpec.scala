@@ -17,10 +17,10 @@ class AssessorsEventsSummaryJobsRepositorySpec extends MongoRepositorySpec {
       val dateTimes = Seq(now, now.plusDays(1), now.plusDays(2), now.plusDays(3), futureTime)
 
       dateTimes.foreach { dateTime =>
-        repository.save(AssessorNewEventsJobInfo(dateTime)).futureValue mustBe unit
+        repository.save(AssessorNewEventsJobInfo(dateTime.toInstant)).futureValue mustBe unit
       }
 
-      repository.lastRun.futureValue mustBe Option(AssessorNewEventsJobInfo(futureTime))
+      repository.lastRun.futureValue mustBe Option(AssessorNewEventsJobInfo(futureTime.toInstant))
     }
   }
 }
