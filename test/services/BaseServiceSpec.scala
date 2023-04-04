@@ -21,7 +21,7 @@ import org.joda.time.{DateTime, DateTimeZone}
 import testkit.{FutureHelper, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.{OffsetDateTime, ZoneId, ZoneOffset, ZonedDateTime}
+import java.time.{Instant, OffsetDateTime, ZoneId, ZoneOffset, ZonedDateTime}
 
 /**
   * Common base class for all service tests
@@ -29,6 +29,7 @@ import java.time.{OffsetDateTime, ZoneId, ZoneOffset, ZonedDateTime}
 class BaseServiceSpec extends UnitSpec with FutureHelper {
   implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
   implicit val nowOffsetDateTime: OffsetDateTime = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC)
+  implicit val nowInstant: Instant = Instant.now()
 
   implicit val hc = HeaderCarrier()
   implicit val rh = EmptyRequestHeader

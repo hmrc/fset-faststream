@@ -26,13 +26,15 @@ import play.api.libs.json.Format
 import uk.gov.hmrc.mongo.MongoComponent
 import testkit.UnitWithAppSpec
 
-import java.time.{OffsetDateTime, ZoneOffset}
+import java.time.{Instant, OffsetDateTime, ZoneOffset}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.concurrent.{ExecutionContext, Future}
 
 class EvaluatePhase1ResultJobSpec extends UnitWithAppSpec {
   implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
+  implicit val nowInstant: Instant = Instant.now()
+
   implicit val nowOffset: OffsetDateTime = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC)
 
   "Scheduler execution" should {

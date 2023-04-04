@@ -21,11 +21,12 @@ import model.SchemeId._
 import model.exchange.passmarksettings.Phase1PassMarkSettingsExamples._
 import org.scalatestplus.play.PlaySpec
 
-import java.time.OffsetDateTime
+import java.time.temporal.ChronoUnit
+import java.time.{Instant, OffsetDateTime}
 
 class Phase1PassMarkSettingsSpec extends PlaySpec {
-  val pastDate: OffsetDateTime = OffsetDateTime.now().minusDays(1)
-  implicit val now: OffsetDateTime = OffsetDateTime.now()
+  val pastDate: Instant = Instant.now().minus(1, ChronoUnit.DAYS)
+  implicit val now: Instant = Instant.now()
 
   private val faststreamPassMarkToSave = passMarkSettings(List((SchemeId("Commercial"), 20.0, 80.0)))(pastDate)
   private val edipPassMarkToSave = passMarkSettings(List((SchemeId("Edip"), 20.0, 80.0)))
