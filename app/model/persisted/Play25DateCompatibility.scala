@@ -37,7 +37,6 @@ object Play25DateCompatibility {
 
   implicit val javaTimeInstantEpochMillisDateFormat = new Format[Instant] {
     override def reads(json: JsValue): JsResult[Instant] = JavaTimeReads.DefaultJavaTimeDateTimeReads.reads(json)
-
     override def writes(o: Instant): JsValue = JavaTimeWrites.JavaTimeInstantNumberWrites.writes(o)
   }
 }

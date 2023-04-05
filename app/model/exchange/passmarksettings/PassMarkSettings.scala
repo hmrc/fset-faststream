@@ -19,7 +19,7 @@ package model.exchange.passmarksettings
 import model.SchemeId
 import play.api.libs.json.Json
 
-import java.time.{Instant, OffsetDateTime}
+import java.time.Instant
 
 trait PassMarkSettings {
   def schemes: List[PassMark]
@@ -37,7 +37,6 @@ case class Phase1PassMarkSettings(
 
 object Phase1PassMarkSettings {
   // Do not remove this as it is needed to serialize the date as epoch millis
-  //import model.persisted.Play25DateCompatibility.epochMillisDateFormat
   import model.persisted.Play25DateCompatibility.javaTimeInstantEpochMillisDateFormat
   implicit val jsonFormat = Json.format[Phase1PassMarkSettings]
 
@@ -79,7 +78,7 @@ case class Phase2PassMarkSettings(
 
 object Phase2PassMarkSettings {
   // Do not remove this as it is needed to serialize the date as epoch millis
-  import model.persisted.Play25DateCompatibility.epochMillisDateFormat
+  import model.persisted.Play25DateCompatibility.javaTimeInstantEpochMillisDateFormat
   implicit val jsonFormat = Json.format[Phase2PassMarkSettings]
 }
 
@@ -92,7 +91,7 @@ case class Phase3PassMarkSettings(
 
 object Phase3PassMarkSettings {
   // Do not remove this as it is needed to serialize the date as epoch millis
-  import model.persisted.Play25DateCompatibility.epochMillisDateFormat
+  import model.persisted.Play25DateCompatibility.javaTimeInstantEpochMillisDateFormat
   implicit val jsonFormat = Json.format[Phase3PassMarkSettings]
 }
 
@@ -109,6 +108,6 @@ case class AssessmentCentrePassMarkSettings(
 
 object AssessmentCentrePassMarkSettings {
   // Do not remove this as it is needed to serialize the date as epoch millis
-  import model.persisted.Play25DateCompatibility.epochMillisDateFormat
+  import model.persisted.Play25DateCompatibility.javaTimeInstantEpochMillisDateFormat
   implicit val jsonFormat = Json.format[AssessmentCentrePassMarkSettings]
 }

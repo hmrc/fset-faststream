@@ -18,7 +18,7 @@ package model
 
 import play.api.libs.json.{Json, OFormat}
 
-import java.time.{Instant, OffsetDateTime}
+import java.time.Instant
 
 case class PassMarkSettingsCreateResponse(passMarkSettingsVersion: String, passMarkSettingsCreateDate: Instant)
 

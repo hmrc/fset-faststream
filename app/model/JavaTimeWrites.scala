@@ -28,6 +28,8 @@ trait JavaTimeWrites {
     * Serializer DateTime -> JsNumber(d.getMillis (number of milliseconds since the Epoch))
     */
   object JavaTimeInstantNumberWrites extends Writes[Instant] {
+    // this "Writes" is storing java time Instant as NumberLong in Mongo using only upto Millis for compatibility,
+    // nanos are not included, nanos are an addition in java time, that was not present in Joda time.
     def writes(d: Instant): JsValue = JsNumber(d.toEpochMilli)
   }
 

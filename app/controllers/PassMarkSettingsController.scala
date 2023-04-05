@@ -26,7 +26,7 @@ import services.AuditService
 import services.passmarksettings._
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import java.time.{Instant, OffsetDateTime}
+import java.time.Instant
 
 @Singleton
 class Phase1PassMarkSettingsController @Inject() (val cc: ControllerComponents,
@@ -88,20 +88,9 @@ abstract class PassMarkSettingsController[T <: PassMarkSettings] @Inject() (cc: 
   def upgradeVersion(passMarkSettings:T, newVersionUUID: String) : T
 
   def create = Action.async(parse.json) { implicit request =>
-    // TODO MIGUEL
-    //scalastyle:off
-    println(s"-----MIGUEL create")
-    println(s"-----MIGUEL create request=[$request}")
-    println(s"-----MIGUEL create request.body=[${request.body}")
-
     withJsonBody[T] { passMarkSettings => {
-      // TODO MIGUEL
-      //scalastyle:off
-      println(s"-----MIGUEL create passMarkSettings=[$passMarkSettings]")
       val newVersionUUID = uuidFactory.generateUUID()
-      println(s"-----MIGUEL create newVersionUUID=[$newVersionUUID]")
       val newPassMarkSettings = upgradeVersion(passMarkSettings, newVersionUUID)
-      println(s"-----MIGUEL create newPassMarkSettings=[$newPassMarkSettings]")
       for {
         createResult <- passMarkService.createPassMarkSettings(newPassMarkSettings)
       } yield {
@@ -110,16 +99,10 @@ abstract class PassMarkSettingsController[T <: PassMarkSettings] @Inject() (cc: 
           "CreatedByUserId" -> passMarkSettings.createdBy,
           "StoredCreateDate" -> passMarkSettings.createDate.toString
         ))
-        println(s"-----MIGUEL create createResult=[$createResult]")
-
         Ok(Json.toJson(createResult))
       }
     }
-    //}.recover { case e: Exception => 0 }
-    }.map(res => {
-      println(s"-----MIGUEL create res.body=[${res.body}]")
-      res
-  })
+    }
   }
 
   def getLatestVersion = Action.async { implicit request =>
