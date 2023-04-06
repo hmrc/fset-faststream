@@ -16,11 +16,10 @@
 
 package repositories
 
-import org.joda.time.Duration
 import testkit.MongoRepositorySpec
 
 class LockRepositorySpec extends MongoRepositorySpec {
-  val lockTimeout = new Duration(1000L)
+  //val lockTimeout = Duration(1000L)
   val lockTimeoutJavaTime = java.time.Duration.ofMillis(1000L)
 
   override val collectionName: String = CollectionNames.LOCKS
