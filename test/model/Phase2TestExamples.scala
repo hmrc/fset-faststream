@@ -18,10 +18,10 @@ package model
 
 import model.Phase1TestExamples.firstPsiTest
 
-import java.time.OffsetDateTime
+import java.time.{Instant, OffsetDateTime}
 
 object Phase2TestExamples {
-  def fifthPsiTest(implicit now: OffsetDateTime) = firstPsiTest.copy(inventoryId = "inventoryId5", orderId = "orderId5")
+  def fifthPsiTest(implicit now: Instant) = firstPsiTest.copy(inventoryId = "inventoryId5", orderId = "orderId5")
 
-  def sixthPsiTest(implicit now: OffsetDateTime) = firstPsiTest.copy(inventoryId = "inventoryId6", orderId = "orderId6")
+  def sixthPsiTest(implicit now: Instant) = firstPsiTest.copy(inventoryId = "inventoryId6", orderId = "orderId6")
 }

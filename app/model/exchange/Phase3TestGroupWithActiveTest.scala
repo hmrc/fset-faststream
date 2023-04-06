@@ -19,9 +19,9 @@ package model.exchange
 import model.persisted.phase3tests.LaunchpadTestExchange
 import play.api.libs.json.Json
 
-import java.time.OffsetDateTime
+import java.time.{Instant, OffsetDateTime}
 
-case class Phase3TestGroupWithActiveTest(expirationDate: OffsetDateTime, activeTest: LaunchpadTestExchange)
+case class Phase3TestGroupWithActiveTest(expirationDate: Instant, activeTest: LaunchpadTestExchange)
 
 object Phase3TestGroupWithActiveTest {
   implicit val phase3TestGroupWithActiveTestFormat = Json.format[Phase3TestGroupWithActiveTest]

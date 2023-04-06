@@ -18,9 +18,9 @@ package model.exchange
 
 import play.api.libs.json.Json
 
-import java.time.OffsetDateTime
+import java.time.{Instant, OffsetDateTime}
 
-case class Phase2TestGroupWithActiveTest(expirationDate: OffsetDateTime, activeTests: Seq[PsiTest], resetAllowed: Boolean)
+case class Phase2TestGroupWithActiveTest(expirationDate: Instant, activeTests: Seq[PsiTest], resetAllowed: Boolean)
 
 object Phase2TestGroupWithActiveTest {
   implicit val phase2TestGroupWithActiveTestFormat = Json.format[Phase2TestGroupWithActiveTest]

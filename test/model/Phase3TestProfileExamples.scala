@@ -21,12 +21,13 @@ import connectors.launchpadgateway.exchangeobjects.in.reviewed._
 import model.persisted.phase3tests.{LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup}
 import org.joda.time.{DateTime, DateTimeZone, LocalDate}
 
-import java.time.OffsetDateTime
+import java.time.temporal.ChronoUnit
+import java.time.{Instant, OffsetDateTime}
 
 object Phase3TestProfileExamples {
 
-  val Now =  OffsetDateTime.now()
-  val DatePlus7Days = Now.plusDays(7)
+  val Now =  Instant.now()
+  val DatePlus7Days = Now.plus(7, ChronoUnit.DAYS)
   val Token = newToken
   val sampleCandidateId = UUID.randomUUID().toString
   val sampleCustomCandidateId = "FSCND-456"

@@ -16,11 +16,12 @@
 
 package model.exchange
 
-import model.persisted.{ Test}
+import model.persisted.Test
 import play.api.libs.json.{Json, OFormat}
-import java.time.OffsetDateTime // This is needed for DateTime serialization
 
-case class Phase1TestGroupWithNames(expirationDate: OffsetDateTime, activeTests: Seq[PsiTest])
+import java.time.Instant // This is needed for DateTime serialization
+
+case class Phase1TestGroupWithNames(expirationDate: Instant, activeTests: Seq[PsiTest])
 
 object Phase1TestGroupWithNames {
   implicit val phase1TestGroupWithNamesFormat = Json.format[Phase1TestGroupWithNames]
@@ -31,9 +32,9 @@ case class PsiTest(inventoryId: String,
                    usedForResults: Boolean,
                    testUrl: String,
                    testProvider: String = "psi",
-                   invitationDate: OffsetDateTime,
-                   startedDateTime: Option[OffsetDateTime] = None,
-                   completedDateTime: Option[OffsetDateTime] = None,
+                   invitationDate: Instant,
+                   startedDateTime: Option[Instant] = None,
+                   completedDateTime: Option[Instant] = None,
                    resultsReadyToDownload: Boolean = false,
                    assessmentId: String,
                    reportId: String,

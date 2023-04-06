@@ -18,19 +18,19 @@ package model.persisted
 
 import model.{ApplicationRoute, ApplicationStatus, Phase1TestProfileExamples, SelectedSchemesExamples}
 
-import java.time.OffsetDateTime
+import java.time.{Instant, OffsetDateTime}
 
 object ApplicationPhase1EvaluationExamples {
 
-  def faststreamApplication(implicit now: OffsetDateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS,
+  def faststreamApplication(implicit now: Instant) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS,
     ApplicationRoute.Faststream, isGis = false, activePsiTests = Phase1TestProfileExamples.psiProfile.activeTests,
     activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
 
-  def edipApplication(implicit now: OffsetDateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS,
+  def edipApplication(implicit now: Instant) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS,
     ApplicationRoute.Edip, isGis = false, activePsiTests = Phase1TestProfileExamples.psiProfile.activeTests,
     activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
 
-  def sdipFaststreamApplication(implicit now: OffsetDateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS,
+  def sdipFaststreamApplication(implicit now: Instant) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS,
     ApplicationRoute.SdipFaststream, isGis = false, activePsiTests = Phase1TestProfileExamples.psiProfile.activeTests,
     activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
 }

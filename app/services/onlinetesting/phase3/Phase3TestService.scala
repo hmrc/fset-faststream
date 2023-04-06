@@ -33,7 +33,7 @@ import model._
 import model.command.{ApplicationForSkippingPhase3, ProgressResponse}
 import model.exchange.{Phase3TestGroupWithActiveTest, PsiRealTimeResults}
 import model.persisted.phase3tests.{LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup}
-import model.persisted.{NotificationExpiringOnlineTest}
+import model.persisted.NotificationExpiringOnlineTest
 import model.stc.StcEventTypes.StcEventType
 import model.stc.{AuditEvents, DataStoreEvents}
 import org.joda.time.{DateTime, LocalDate}
@@ -48,7 +48,7 @@ import services.sift.ApplicationSiftService
 import services.stc.StcEventService
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.OffsetDateTime
+import java.time.{Instant, OffsetDateTime, ZoneOffset}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
@@ -193,24 +193,24 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
     val daysUntilExpiry = gatewayConfig.phase3Tests.timeToExpireInDays
 
     val expirationDate = phase3TestGroup.map { phase3TG =>
-      if (phase3TG.expirationDate.isAfter(OffsetDateTime.now())) {
+      if (phase3TG.expirationDate.isAfter(Instant.now())) {
         phase3TG.expirationDate
       } else {
-        dateTimeFactory.nowLocalTimeZoneJavaTime.plusDays(daysUntilExpiry)
+        dateTimeFactory.nowLocalTimeZoneJavaTime.plusDays(daysUntilExpiry).toInstant
       }
-    }.getOrElse(dateTimeFactory.nowLocalTimeZoneJavaTime.plusDays(daysUntilExpiry))
+    }.getOrElse(dateTimeFactory.nowLocalTimeZoneJavaTime.plusDays(daysUntilExpiry).toInstant)
 
-    val invitationDate = dateTimeFactory.nowLocalTimeZoneJavaTime
+    val invitationDate = dateTimeFactory.nowLocalTimeZoneJavaTime.toInstant
 
     def emailProcess(emailAddress: String): Future[Unit] = if (application.isInvigilatedVideo) {
       Future.successful(())
     } else {
-      emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
+      emailInviteToApplicant(application, emailAddress, invitationDate.atOffset(ZoneOffset.UTC), expirationDate.atOffset(ZoneOffset.UTC))
     }
 
     def extendIfInvigilatedOrIfAdjustmentsWereChanged(application: OnlineTestApplication): Future[Unit] = {
       val couldHaveBeenInvigilatedBefore = phase3TestGroup
-        .exists(_.expirationDate.isAfter(dateTimeFactory.nowLocalTimeZoneJavaTime.plusDays(daysUntilExpiry * 2)))
+        .exists(_.expirationDate.isAfter(dateTimeFactory.nowLocalTimeZoneJavaTime.plusDays(daysUntilExpiry * 2).toInstant))
 
       if (couldHaveBeenInvigilatedBefore && !application.isInvigilatedVideo) {
         extendTestGroupExpiryTime(
@@ -231,7 +231,8 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
     for {
       emailAddress <- candidateEmailAddress(application)
       launchPadTest <- registerAndInviteOrInviteOrResetOrRetakeOrNothing(
-        phase3TestGroup, application, emailAddress, interviewId, invitationDate, expirationDate)
+        phase3TestGroup, application, emailAddress, interviewId,
+        invitationDate.atOffset(ZoneOffset.UTC), expirationDate.atOffset(ZoneOffset.UTC))
       _ <- emailProcess(emailAddress)
       _ <- markAsInvited(application)(Phase3TestGroup(expirationDate = expirationDate, tests = List(launchPadTest)))
       _ <- extendIfInvigilatedOrIfAdjustmentsWereChanged(application)
@@ -266,7 +267,8 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
                     InviteResetOrTakeResponse(candidateId, retakeResponse.testUrl, retakeResponse.customInviteId, getInitialCustomCandidateId)
                 }
               } else if (launchpadTest.startedDateTime.isDefined && launchpadTest.completedDateTime.isEmpty) {
-                resetApplicant(application, interviewId, candidateId, phase3TestGroupContent.expirationDate.toLocalDate).map {
+                resetApplicant(application, interviewId, candidateId,
+                  phase3TestGroupContent.expirationDate.atOffset(ZoneOffset.UTC).toLocalDate).map {
                   resetResponse =>
                     InviteResetOrTakeResponse(candidateId, resetResponse.testUrl, resetResponse.customInviteId, getInitialCustomCandidateId)
                 }
@@ -299,7 +301,7 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
         token = response.customInviteId,
         candidateId = response.candidateId,
         customCandidateId = response.customCandidateId.getOrElse(""),
-        invitationDate = invitationDate,
+        invitationDate = invitationDate.toInstant,
         startedDateTime = None,
         completedDateTime = None,
         callbacks = LaunchpadTestCallbacks()
@@ -397,7 +399,7 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
       progress <- progressFut
       phase3 <- phase3TestGroup
       isAlreadyExpired = progress.phase3ProgressResponse.phase3TestsExpired
-      extendDays = extendTime(isAlreadyExpired, phase3.expirationDate)
+      extendDays = extendTime(isAlreadyExpired, phase3.expirationDate.atOffset(ZoneOffset.UTC))
       newExpiryDate = extendDays(extraDays)
       activeTest = phase3.activeTest
       launchpadExtendRequest = ExtendDeadlineRequest(activeTest.interviewId, activeTest.candidateId, newExpiryDate.toLocalDate)
@@ -427,7 +429,7 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
       phase3 <- phase3TestGroup
       isAlreadyExpired = progress.phase3ProgressResponse.phase3TestsExpired
       // If the candidate has expired then the days are added to today otherwise they are added to the current expiry date
-      extendDays = extendTime(isAlreadyExpired, phase3.expirationDate)
+      extendDays = extendTime(isAlreadyExpired, phase3.expirationDate.atOffset(ZoneOffset.UTC))
       newExpiryDate = extendDays(extraDays)
       _ <- testRepository.updateGroupExpiryTime(applicationId, newExpiryDate, testRepository.phaseName)
     } yield ()

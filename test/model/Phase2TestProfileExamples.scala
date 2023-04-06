@@ -19,17 +19,17 @@ package model
 import model.persisted._
 import org.joda.time.{DateTime, DateTimeZone}
 
-import java.time.{OffsetDateTime, ZoneOffset}
+import java.time.{Instant, OffsetDateTime, ZoneOffset}
 
 object Phase2TestProfileExamples {
 
-  val now = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC)
+  val now = OffsetDateTime.now().withOffsetSameInstant(ZoneOffset.UTC).toInstant
 
-  def profile(implicit now: OffsetDateTime) = Phase2TestGroup(now, List(firstP2PsiTest, secondP2PsiTest))
+  def profile(implicit now: Instant) = Phase2TestGroup(now, List(firstP2PsiTest, secondP2PsiTest))
 
   val psiTestResult = PsiTestResult(tScore = 12.5, rawScore = 5.5, None)
 
-  def firstP2PsiTest(implicit now: OffsetDateTime) =
+  def firstP2PsiTest(implicit now: Instant) =
     PsiTest(
       inventoryId = "inventoryId5",
       orderId = "orderId5",
@@ -42,5 +42,5 @@ object Phase2TestProfileExamples {
       testResult = Some(psiTestResult)
     )
 
-  def secondP2PsiTest(implicit now: OffsetDateTime) = firstP2PsiTest.copy(inventoryId = "inventoryId6", orderId = "orderId6")
+  def secondP2PsiTest(implicit now: Instant) = firstP2PsiTest.copy(inventoryId = "inventoryId6", orderId = "orderId6")
 }

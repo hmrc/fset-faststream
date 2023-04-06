@@ -46,7 +46,8 @@ import testkit.MockitoImplicits._
 import testkit.{ExtendedTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.{LocalTime, OffsetDateTime, ZoneId, ZoneOffset}
+import java.time.temporal.ChronoUnit
+import java.time.{Instant, LocalTime, OffsetDateTime, ZoneId, ZoneOffset}
 import scala.concurrent.{ExecutionContext, Future}
 
 class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
@@ -117,9 +118,9 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
   val logonUrl = "http://localhost/logonUrl"
   val authenticateUrl = "http://localhost/authenticate"
 
-  val invitationDate = OffsetDateTime.of(java.time.LocalDate.parse("2016-05-11"), LocalTime.of(0, 0), ZoneOffset.UTC)
-  val startedDate = invitationDate.plusDays(1)
-  val expirationDate = invitationDate.plusDays(5)
+  val invitationDate = OffsetDateTime.of(java.time.LocalDate.parse("2016-05-11"), LocalTime.of(0, 0), ZoneOffset.UTC).toInstant
+  val startedDate = invitationDate.plus(1, ChronoUnit.DAYS)
+  val expirationDate = invitationDate.plus(5, ChronoUnit.DAYS)
 
   val phase1Test = PsiTest(inventoryId = uuid, orderId = uuid, assessmentId = uuid, reportId = uuid, normId = uuid,
     usedForResults = true, testUrl = authenticateUrl, invitationDate = invitationDate)
@@ -147,7 +148,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
   val applicationId = "31009ccc-1ac3-4d55-9c53-1908a13dc5e1"
   val expiredApplication = ExpiringOnlineTest(applicationId, userId, preferredName)
-  val expiryReminder = NotificationExpiringOnlineTest(applicationId, userId, preferredName, expirationDate)
+  val expiryReminder = NotificationExpiringOnlineTest(applicationId, userId, preferredName, expirationDate.atOffset(ZoneOffset.UTC))
   val success = Future.successful(())
 
   "get online test" should {
@@ -157,7 +158,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       result mustBe None
     }
 
-    val validExpireDate = OffsetDateTime.of(java.time.LocalDate.of(2016, 6, 9), LocalTime.of(0, 0), ZoneOffset.UTC)
+    val validExpireDate = OffsetDateTime.of(java.time.LocalDate.of(2016, 6, 9), LocalTime.of(0, 0), ZoneOffset.UTC).toInstant
 
     "return a valid set of aggregated online test data if the user id is valid" in new OnlineTest {
       when(appRepositoryMock.findCandidateByUserId(any[String]))
@@ -183,7 +184,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
       verify(onlineTestsGatewayClientMock, times(2)).psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext])
       verify(emailClientMock, times(1)).sendOnlineTestInvitation(
-        eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate)
+        eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate.atOffset(ZoneOffset.UTC))
       )(any[HeaderCarrier], any[ExecutionContext])
 
       verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
@@ -203,7 +204,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
       verify(onlineTestsGatewayClientMock, times(4)).psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext])
       verify(emailClientMock, times(1)).sendOnlineTestInvitation(
-        eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate)
+        eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate.atOffset(ZoneOffset.UTC))
       )(any[HeaderCarrier], any[ExecutionContext])
 
       verify(auditServiceMock, times(4)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
@@ -249,7 +250,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       when(cdRepositoryMock.find(userId)).thenReturnAsync(contactDetails)
 
       when(emailClientMock.sendOnlineTestInvitation(
-        eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate)
+        eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate.atOffset(ZoneOffset.UTC))
       )(any[HeaderCarrier], any[ExecutionContext]))
         .thenReturn(Future.failed(new Exception))
 
@@ -284,7 +285,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
       when(cdRepositoryMock.find(any[String])).thenReturnAsync(contactDetails)
       when(emailClientMock.sendOnlineTestInvitation(
-        eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(
+        eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate.atOffset(ZoneOffset.UTC)))(
         any[HeaderCarrier], any[ExecutionContext]
       )).thenReturnAsync()
       when(phase1TestRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile]))
@@ -294,7 +295,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       result.futureValue mustBe unit
 
       verify(emailClientMock, times(1)).sendOnlineTestInvitation(
-        eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate)
+        eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate.atOffset(ZoneOffset.UTC))
       )(any[HeaderCarrier], any[ExecutionContext])
 
       verify(auditServiceMock, times(4)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
@@ -365,8 +366,8 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
     "change progress to completed if there are all tests completed and the test profile hasn't expired" in new OnlineTest {
       when(phase1TestRepositoryMock.updateTestCompletionTime(any[String], any[OffsetDateTime])(any[ExecutionContext])).thenReturnAsync()
       val phase1Tests: Phase1TestProfile = phase1TestProfile.copy(
-        tests = phase1TestProfile.tests.map(t => t.copy(orderId = orderId, completedDateTime = Some(OffsetDateTime.now()))),
-        expirationDate = OffsetDateTime.now().plusDays(2)
+        tests = phase1TestProfile.tests.map(t => t.copy(orderId = orderId, completedDateTime = Some(OffsetDateTime.now().toInstant))),
+        expirationDate = OffsetDateTime.now().plusDays(2).toInstant
       )
       when(phase1TestRepositoryMock.getTestProfileByOrderId(anyString()))
         .thenReturnAsync(phase1Tests)
@@ -411,7 +412,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
       verify(onlineTestsGatewayClientMock, times(0)).psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext])
       verify(emailClientMock, times(0))
-        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(
+        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate.atOffset(ZoneOffset.UTC)))(
           any[HeaderCarrier], any[ExecutionContext])
 
       verify(auditServiceMock, times(0)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
@@ -445,7 +446,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
       verify(onlineTestsGatewayClientMock, times(1)).psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext])
       verify(emailClientMock, times(0))
-        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(
+        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate.atOffset(ZoneOffset.UTC)))(
           any[HeaderCarrier], any[ExecutionContext])
 
       verify(auditServiceMock, times(0)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
@@ -469,7 +470,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
       verify(onlineTestsGatewayClientMock, times(1)).psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext])
       verify(emailClientMock, times(0))
-        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(
+        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate.atOffset(ZoneOffset.UTC)))(
           any[HeaderCarrier], any[ExecutionContext])
 
       verify(auditServiceMock, times(0)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
@@ -493,7 +494,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
       verify(onlineTestsGatewayClientMock, times(1)).psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext])
       verify(emailClientMock, times(1))
-        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(
+        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate.atOffset(ZoneOffset.UTC)))(
           any[HeaderCarrier], any[ExecutionContext])
 
       verify(auditServiceMock, times(0)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
@@ -532,8 +533,8 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       when(phase1TestRepositoryMock.getApplicationIdForOrderId(any[String], any[String])(any[ExecutionContext])).thenReturnAsync(Some(appId))
 
       val phase1Tests: Phase1TestProfile = phase1TestProfile.copy(
-        tests = phase1TestProfile.tests.map(t => t.copy(orderId = orderId, completedDateTime = Some(OffsetDateTime.now()))),
-        expirationDate = OffsetDateTime.now().plusDays(2)
+        tests = phase1TestProfile.tests.map(t => t.copy(orderId = orderId, completedDateTime = Some(Instant.now()))),
+        expirationDate = OffsetDateTime.now().plusDays(2).toInstant
       )
 
       when(phase1TestRepositoryMock.getTestProfileByOrderId(any[String])).thenReturnAsync(phase1Tests)
@@ -555,15 +556,16 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       when(phase1TestRepositoryMock.getApplicationIdForOrderId(any[String], any[String])(any[ExecutionContext])).thenReturnAsync(Some(appId))
 
       val phase1Tests: Phase1TestProfile = phase1TestProfile.copy(
-        tests = phase1TestProfile.tests.map(t => t.copy(orderId = orderId, completedDateTime = Some(OffsetDateTime.now()))),
-        expirationDate = OffsetDateTime.now().plusDays(2)
+        tests = phase1TestProfile.tests.map(t => t.copy(orderId = orderId, completedDateTime = Some(Instant.now()))),
+        expirationDate = OffsetDateTime.now().plusDays(2).toInstant
       )
 
       when(phase1TestRepositoryMock.getTestProfileByOrderId(any[String])).thenReturnAsync(phase1Tests)
       when(phase1TestRepositoryMock.insertTestResult(any[String], any[PsiTest], any[model.persisted.PsiTestResult])(any[ExecutionContext]))
         .thenReturnAsync()
 
-      val phase1TestProfile2 = Phase1TestProfile(expirationDate = now, tests = List(firstPsiTest, secondPsiTest, thirdPsiTest, fourthPsiTest))
+      val phase1TestProfile2 = Phase1TestProfile(expirationDate = instantNow,
+        tests = List(firstPsiTest, secondPsiTest, thirdPsiTest, fourthPsiTest))
       when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile2))
       when(phase1TestRepositoryMock.updateProgressStatus(any[String], any[ProgressStatuses.ProgressStatus])(any[ExecutionContext]))
         .thenReturnAsync()
@@ -580,7 +582,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
       val phase1TestsNotCompleted: Phase1TestProfile = phase1TestProfile.copy(
         tests = phase1TestProfile.tests.map(t => t.copy(orderId = orderId)),
-        expirationDate = OffsetDateTime.now().plusDays(2)
+        expirationDate = OffsetDateTime.now().plusDays(2).toInstant
       )
 
       when(phase1TestRepositoryMock.getTestProfileByOrderId(any[String])).thenReturnAsync(phase1TestsNotCompleted)
@@ -589,8 +591,8 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       when(phase1TestRepositoryMock.updateTestCompletionTime(any[String], any[OffsetDateTime])(any[ExecutionContext])).thenReturnAsync()
 
       val phase1TestsCompleted: Phase1TestProfile = phase1TestProfile.copy(
-        tests = phase1TestProfile.tests.map(t => t.copy(orderId = orderId, completedDateTime = Some(OffsetDateTime.now()))),
-        expirationDate = OffsetDateTime.now().plusDays(2)
+        tests = phase1TestProfile.tests.map(t => t.copy(orderId = orderId, completedDateTime = Some(Instant.now()))),
+        expirationDate = OffsetDateTime.now().plusDays(2).toInstant
       )
 
       val phase1TestGroupWithUserIds2 = Phase1TestGroupWithUserIds(applicationId = "appId", userId = "userId", testGroup = phase1TestsCompleted)
@@ -599,7 +601,8 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       when(phase1TestRepositoryMock.updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE1_TESTS_COMPLETED))(any[ExecutionContext]))
         .thenReturnAsync()
 
-      val phase1TestProfile2 = Phase1TestProfile(expirationDate = now, tests = List(firstPsiTest, secondPsiTest, thirdPsiTest, fourthPsiTest))
+      val phase1TestProfile2 = Phase1TestProfile(expirationDate = instantNow,
+        tests = List(firstPsiTest, secondPsiTest, thirdPsiTest, fourthPsiTest))
       when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile2))
       when(phase1TestRepositoryMock.updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED))(
         any[ExecutionContext])).thenReturnAsync()
@@ -667,6 +670,8 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
     implicit val hc: HeaderCarrier = HeaderCarrier()
     implicit val rh: RequestHeader = mock[RequestHeader]
     implicit val now: OffsetDateTime = OffsetDateTime.now
+    implicit val instantNow: Instant = Instant.now
+
 
     val appConfigMock = mock[MicroserviceAppConfig]
     val appRepositoryMock = mock[GeneralApplicationRepository]
@@ -699,7 +704,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
     )
 
     when(tokenFactoryMock.generateUUID()).thenReturn(uuid)
-    when(dateTimeFactoryMock.nowLocalTimeZoneJavaTime).thenReturn(invitationDate)
+    when(dateTimeFactoryMock.nowLocalTimeZoneJavaTime).thenReturn(invitationDate.atOffset(ZoneOffset.UTC))
     when(phase1TestRepositoryMock.resetTestProfileProgresses(any[String], any[List[ProgressStatus]], any[Boolean])(any[ExecutionContext]))
       .thenReturnAsync()
 
@@ -729,7 +734,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
     when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext])).thenReturnAsync(aoa)
     when(cdRepositoryMock.find(any[String])).thenReturnAsync(contactDetails)
     when(emailClientMock.sendOnlineTestInvitation(
-      eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(
+      eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate.atOffset(ZoneOffset.UTC)))(
       any[HeaderCarrier], any[ExecutionContext]
     )).thenReturnAsync()
     when(phase1TestRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile])).thenReturnAsync()

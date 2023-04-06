@@ -32,7 +32,7 @@ import play.api.mvc.RequestHeader
 import repositories.onlinetesting.Phase3TestRepository
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.OffsetDateTime
+import java.time.{Instant, OffsetDateTime}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -53,15 +53,15 @@ class Phase3TestsInvitedStatusGenerator @Inject() (val previousStatusGenerator: 
       token = UUID.randomUUID().toString,
       candidateId = UUID.randomUUID().toString,
       customCandidateId = "FSCND-123",
-      invitationDate = generatorConfig.phase3TestData.flatMap(_.start)
-        .getOrElse(OffsetDateTime.now()),
-      startedDateTime = generatorConfig.phase3TestData.flatMap(_.start),
-      completedDateTime = generatorConfig.phase3TestData.flatMap(_.completion),
+      invitationDate = generatorConfig.phase3TestData.flatMap(_.start.map(_.toInstant))
+        .getOrElse(Instant.now()),
+      startedDateTime = generatorConfig.phase3TestData.flatMap(_.start.map(_.toInstant)),
+      completedDateTime = generatorConfig.phase3TestData.flatMap(_.completion.map(_.toInstant)),
       callbacks = LaunchpadTestCallbacks()
     )
 
     val phase3TestGroup = Phase3TestGroup(
-      expirationDate = generatorConfig.phase3TestData.flatMap(_.expiry).getOrElse(OffsetDateTime.now().plusDays(7)),
+      expirationDate = generatorConfig.phase3TestData.flatMap(_.expiry.map(_.toInstant)).getOrElse(OffsetDateTime.now().plusDays(7).toInstant),
       tests = List(launchpad)
     )
 

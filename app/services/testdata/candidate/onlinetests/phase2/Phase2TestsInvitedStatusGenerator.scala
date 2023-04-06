@@ -60,7 +60,7 @@ class Phase2TestsInvitedStatusGenerator @Inject() (val previousStatusGenerator: 
         orderId = orderId,
         usedForResults = true,
         testUrl = s"${generatorConfig.psiUrl}/PartnerRestService/$testName?key=$orderId",
-        invitationDate = generatorConfig.phase2TestData.flatMap(_.start).getOrElse(OffsetDateTime.now().plusDays(-1)),
+        invitationDate = generatorConfig.phase2TestData.flatMap(_.start.map(_.toInstant)).getOrElse(OffsetDateTime.now().plusDays(-1).toInstant),
         invigilatedAccessCode = generatorConfig.adjustmentInformation.flatMap { adjustments =>
           if (isInvigilated(Adjustments(adjustments))) {
             Some(dataFaker.accessCode)
@@ -76,7 +76,7 @@ class Phase2TestsInvitedStatusGenerator @Inject() (val previousStatusGenerator: 
     }
 
     val phase2TestGroup = Phase2TestGroup(
-      expirationDate = generatorConfig.phase2TestData.flatMap(_.expiry).getOrElse(OffsetDateTime.now().plusDays(7)),
+      expirationDate = generatorConfig.phase2TestData.flatMap(_.expiry.map(_.toInstant)).getOrElse(OffsetDateTime.now().plusDays(7).toInstant),
       tests = psiTests
     )
 

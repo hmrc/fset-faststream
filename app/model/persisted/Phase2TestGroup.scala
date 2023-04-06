@@ -17,13 +17,16 @@
 package model.persisted
 
 import org.mongodb.scala.bson.BsonValue
-import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+
+import java.time.Instant
+//import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits._
+
 import play.api.libs.json.{Json}
 import uk.gov.hmrc.mongo.play.json.Codecs
 
-import java.time.OffsetDateTime
 
-case class Phase2TestGroup(expirationDate: OffsetDateTime,
+case class Phase2TestGroup(expirationDate: Instant,
   tests: List[PsiTest],
   evaluation: Option[PassmarkEvaluation] = None
 ) extends PsiTestProfile

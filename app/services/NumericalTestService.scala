@@ -106,7 +106,7 @@ class NumericalTestService @Inject() (applicationRepo: GeneralApplicationReposit
           orderId = aoa.orderId,
           usedForResults = true,
           testUrl = aoa.testLaunchUrl,
-          invitationDate = dateTimeFactory.nowLocalTimeZoneJavaTime,
+          invitationDate = dateTimeFactory.nowLocalTimeZoneJavaTime.toInstant,
           assessmentId = testIds.assessmentId,
           reportId = testIds.reportId,
           normId = testIds.normId

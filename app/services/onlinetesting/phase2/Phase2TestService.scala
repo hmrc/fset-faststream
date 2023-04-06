@@ -47,7 +47,7 @@ import services.sift.ApplicationSiftService
 import services.stc.StcEventService
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.OffsetDateTime
+import java.time.{Instant, OffsetDateTime, ZoneOffset}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -146,7 +146,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
       _ = logger.info(s"psiIds -- $psiIds")
 
       // Register applicant
-      testInvite <- registerPsiApplicant(application, psiIds, invitationDate)
+      testInvite <- registerPsiApplicant(application, psiIds, invitationDate.atOffset(ZoneOffset.UTC))
       newPsiTest = testInvite.psiTest
       _ = logger.info(s"newPsiTest -- $newPsiTest")
 
@@ -161,7 +161,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
       _ = logger.info(s"updatedTests -- $updatedTests")
 
       _ <- insertOrUpdateTestGroup(application)(testGroup.copy(expirationDate = expirationDate, tests = updatedTests))
-      _ <- emailInviteToApplicant(application)(hc, rh, invitationDate, expirationDate)
+      _ <- emailInviteToApplicant(application)(hc, rh, invitationDate.atOffset(ZoneOffset.UTC), expirationDate.atOffset(ZoneOffset.UTC))
 
     } yield ()
   }
@@ -259,7 +259,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
       _ <- processFailedRegistrations
       emailAddress <- candidateEmailAddress(application.userId)
       (invitationDate, expirationDate) = calculateDates(application)
-      _ <- emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
+      _ <- emailInviteToApplicant(application, emailAddress, invitationDate.atOffset(ZoneOffset.UTC), expirationDate.atOffset(ZoneOffset.UTC))
     } yield audit("Phase2InvitationComplete", application.userId)
   }
 
@@ -297,7 +297,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
         currentTestGroupOpt <- testRepository.getTestGroup(applicationId)
         currentTestGroup = currentTestGroupOpt.getOrElse(throw new Exception(s"No existing p2 test group found for $applicationId"))
 
-        _ <- insertPhase2TestGroups(registeredApplicant)(invitationDate, currentTestGroup.expirationDate, hc)
+        _ <- insertPhase2TestGroups(registeredApplicant)(invitationDate, currentTestGroup.expirationDate.atOffset(ZoneOffset.UTC), hc)
       } yield ()
     }
 
@@ -329,7 +329,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
         val psiTestOpt = phase2TestGroup.activeTests.find( _.invigilatedAccessCode == Option(accessCode) )
 
         psiTestOpt.map { psiTest =>
-          if(phase2TestGroup.expirationDate.isBefore(dateTimeFactory.nowLocalTimeZoneJavaTime)) {
+          if(phase2TestGroup.expirationDate.isBefore(dateTimeFactory.nowLocalTimeZoneJavaTime.toInstant)) {
             Failure(ExpiredTestForTokenException("Phase 2 test expired for invigilated access code"))
           } else {
             Success(psiTest.testUrl)
@@ -340,7 +340,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
     }
   }
 
-  private def calculateDates(application: OnlineTestApplication, expiresDate: Option[OffsetDateTime] = None) = {
+  private def calculateDates(application: OnlineTestApplication, expiresDate: Option[Instant] = None) = {
     val isInvigilatedETray = application.isInvigilatedETray
     val expiryTimeInDays = if (isInvigilatedETray) {
       onlineTestsGatewayConfig.phase2Tests.expiryTimeInDaysForInvigilatedETray
@@ -349,7 +349,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
     }
 
     val (invitationDate, expirationDate) = expiresDate match {
-      case Some(expDate) => (dateTimeFactory.nowLocalTimeZoneJavaTime, expDate)
+      case Some(expDate) => (dateTimeFactory.nowLocalTimeZoneJavaTime.toInstant, expDate)
       case _ => calcOnlineTestDates(expiryTimeInDays)
     }
 
@@ -363,11 +363,11 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
     //TODO: Do we need to worry about this for PSI?
     //    require(applications.map(_.isInvigilatedETray).distinct.size <= 1, "the batch can have only one type of invigilated e-tray")
 
-    implicit val (invitationDate, expirationDate) = calculateDates(application, expiresDate)
+    implicit val (invitationDate, expirationDate) = calculateDates(application, expiresDate.map(_.toInstant))
 
     for {
-      registeredApplicant <- registerPsiApplicant(application, testIds, invitationDate)
-      _ <- insertPhase2TestGroups(registeredApplicant)(invitationDate, expirationDate, hc)
+      registeredApplicant <- registerPsiApplicant(application, testIds, invitationDate.atOffset(ZoneOffset.UTC))
+      _ <- insertPhase2TestGroups(registeredApplicant)(invitationDate.atOffset(ZoneOffset.UTC), expirationDate.atOffset(ZoneOffset.UTC), hc)
     } yield {
       logger.warn(s"Phase2 candidate ${application.applicationId} successfully invited to P2 test - inventoryId:${testIds.inventoryId}")
       application
@@ -399,7 +399,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
           orderId = aoa.orderId,
           usedForResults = true,
           testUrl = aoa.testLaunchUrl,
-          invitationDate = invitationDate,
+          invitationDate = invitationDate.toInstant,
           assessmentId = testIds.assessmentId,
           reportId = testIds.reportId,
           normId = testIds.normId
@@ -457,7 +457,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
       for {
         maybeInvigilatedAccessCode <- maybeInvigilatedAccessCodeFut
         testWithAccessCode = completedInvite.psiTest.copy(invigilatedAccessCode = maybeInvigilatedAccessCode)
-        newTestGroup = Phase2TestGroup(expirationDate = expirationDate, List(testWithAccessCode))
+        newTestGroup = Phase2TestGroup(expirationDate = expirationDate.toInstant, List(testWithAccessCode))
         _ <- insertOrUpdateTestGroup(completedInvite.application)(newTestGroup)
       } yield {}
     }).map(_ => ())
@@ -479,7 +479,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
       currentTestGroupOpt <- testRepository.getTestGroup(appId)
       existingTests = currentTestGroupOpt.map(_.tests).getOrElse(Nil)
       testWithAccessCode = completedInvite.psiTest.copy(invigilatedAccessCode = maybeInvigilatedAccessCode)
-      newTestGroup = Phase2TestGroup(expirationDate = expirationDate, existingTests :+ testWithAccessCode)
+      newTestGroup = Phase2TestGroup(expirationDate = expirationDate.toInstant, existingTests :+ testWithAccessCode)
       _ <- insertOrUpdateTestGroup(completedInvite.application)(newTestGroup)
     } yield {}
   }
@@ -645,7 +645,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
       progress <- progressFut
       phase2 <- phase2TestGroup
       isAlreadyExpired = progress.phase2ProgressResponse.phase2TestsExpired
-      extendDays = extendTime(isAlreadyExpired, phase2.expirationDate)
+      extendDays = extendTime(isAlreadyExpired, phase2.expirationDate.atOffset(ZoneOffset.UTC))
       newExpiryDate = extendDays(extraDays)
       _ <- testRepository.updateGroupExpiryTime(applicationId, newExpiryDate, testRepository.phaseName)
       _ <- progressStatusesToRemoveWhenExtendTime(newExpiryDate, phase2, progress)

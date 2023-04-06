@@ -20,7 +20,7 @@ import config._
 import model.persisted.PsiTest
 import testkit.UnitSpec
 
-import java.time.OffsetDateTime
+import java.time.{Instant, OffsetDateTime}
 
 class Phase2TestSelectorSpec extends UnitSpec {
 
@@ -78,7 +78,7 @@ class Phase2TestSelectorSpec extends UnitSpec {
       orderId = "orderId1",
       usedForResults = true,
       testUrl = "",
-      invitationDate = OffsetDateTime.now(),
+      invitationDate = Instant.now(),
       assessmentId = "",
       reportId = "",
       normId = ""
@@ -89,7 +89,7 @@ class Phase2TestSelectorSpec extends UnitSpec {
       orderId = "orderId2",
       usedForResults = true,
       testUrl = "",
-      invitationDate = OffsetDateTime.now(),
+      invitationDate = Instant.now(),
       assessmentId = "",
       reportId = "",
       normId = ""
@@ -100,7 +100,7 @@ class Phase2TestSelectorSpec extends UnitSpec {
       orderId = "orderId3",
       usedForResults = true,
       testUrl = "",
-      invitationDate = OffsetDateTime.now(),
+      invitationDate = Instant.now(),
       assessmentId = "",
       reportId = "",
       normId = ""

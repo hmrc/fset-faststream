@@ -94,6 +94,8 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
 
   implicit val now: OffsetDateTime = OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime
   implicit val nowDateTime: DateTime = DateTime.now(DateTimeZone.UTC)
+  implicit val nowInstant: java.time.Instant = java.time.Instant.now
+
 
 
   def selectedSchemes(schemeTypes: List[SchemeId]) = SelectedSchemes(schemeTypes, orderAgreed = true, eligible = true)
@@ -109,7 +111,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
     val phase1Tests = if(isGis) List(test1, test4) else List(test1, test2, test3, test4)
     insertApplication(appId, ApplicationStatus.PHASE1_TESTS, Some(phase1Tests), applicationRoute = Some(applicationRoute))
     ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE1_TESTS, applicationRoute, isGis,
-      Phase1TestProfile(now, phase1Tests).activeTests, None, None, selectedSchemes(schemes.toList)
+      Phase1TestProfile(nowInstant, phase1Tests).activeTests, None, None, selectedSchemes(schemes.toList)
     )
   }
 
@@ -246,7 +248,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
     insertPhase1Tests(appId, phase1Tests, phase1Evaluation)
     insertPhase2Tests(appId, phase2Tests, phase2Evaluation)
     phase3Tests.foreach { t =>
-      phase3TestRepository.insertOrUpdateTestGroup(appId, Phase3TestGroup(now, t)).futureValue
+      phase3TestRepository.insertOrUpdateTestGroup(appId, Phase3TestGroup(nowInstant, t)).futureValue
       if(t.headOption.exists(_.callbacks.reviewed.nonEmpty)) {
         phase3TestRepository.updateProgressStatus(appId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED).futureValue
       }
@@ -259,7 +261,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
 
   private def insertPhase2Tests(appId: String, phase2Tests: Option[List[PsiTest]], phase2Evaluation: Option[PassmarkEvaluation]): Unit = {
     phase2Tests.foreach { t =>
-      phase2TestRepository.insertOrUpdateTestGroup(appId, Phase2TestGroup(now, t, phase2Evaluation)).futureValue
+      phase2TestRepository.insertOrUpdateTestGroup(appId, Phase2TestGroup(nowInstant, t, phase2Evaluation)).futureValue
       if (t.exists(_.testResult.isDefined)) {
         phase2TestRepository.updateProgressStatus(appId, ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED).futureValue
       }
@@ -268,7 +270,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
 
   private def insertPhase1Tests(appId: String, phase1Tests: Option[List[PsiTest]], phase1Evaluation: Option[PassmarkEvaluation]): Unit = {
     phase1Tests.foreach { t =>
-      phase1TestRepository.insertOrUpdateTestGroup(appId, Phase1TestProfile(now, t, phase1Evaluation)).futureValue
+      phase1TestRepository.insertOrUpdateTestGroup(appId, Phase1TestProfile(nowInstant, t, phase1Evaluation)).futureValue
       if (t.exists(_.testResult.isDefined)) {
         phase1TestRepository.updateProgressStatus(appId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).futureValue
       }

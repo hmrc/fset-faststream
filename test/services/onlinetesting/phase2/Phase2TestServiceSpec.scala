@@ -46,7 +46,7 @@ import testkit.MockitoImplicits._
 import testkit.{ExtendedTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.{OffsetDateTime, ZoneId}
+import java.time.{Instant, OffsetDateTime, ZoneId, ZoneOffset}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
@@ -59,7 +59,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       val accessCode = "TEST-CODE"
       val phase2TestGroup = Phase2TestGroup(
-        expirationDate,
+        expirationDate.toInstant,
         List(phase2Test.copy(invigilatedAccessCode = Some(accessCode)))
       )
       when(phase2TestRepositoryMock.getTestGroupByUserId(any[String])).thenReturnAsync(Some(phase2TestGroup))
@@ -73,7 +73,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       val accessCode = "TEST-CODE"
       val phase2TestGroup = Phase2TestGroup(
-        expirationDate,
+        expirationDate.toInstant,
         phase2Test.copy(invigilatedAccessCode = Some(accessCode)) :: Nil
       )
       when(phase2TestRepositoryMock.getTestGroupByUserId(any[String])).thenReturnAsync(Some(phase2TestGroup))
@@ -94,7 +94,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       val accessCode = "TEST-CODE"
       val phase2TestGroup = Phase2TestGroup(
-        expiredDate,
+        expiredDate.toInstant,
         List(phase2Test.copy(invigilatedAccessCode = Some(accessCode)))
       )
       when(phase2TestRepositoryMock.getTestGroupByUserId(any[String])).thenReturnAsync(Some(phase2TestGroup))
@@ -267,8 +267,8 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
   "mark as completed" should {
     "change progress to completed if there are all tests completed" in new TestFixture {
       when(phase2TestRepositoryMock.updateTestCompletionTime(any[String], any[OffsetDateTime])(any[ExecutionContext])).thenReturnAsync()
-      val phase2Tests = phase2TestProfile.copy(tests = phase2TestProfile.tests.map(t => t.copy(completedDateTime = Some(OffsetDateTime.now()))),
-        expirationDate = OffsetDateTime.now().plusDays(2)
+      val phase2Tests = phase2TestProfile.copy(tests = phase2TestProfile.tests.map(t => t.copy(completedDateTime = Some(Instant.now()))),
+        expirationDate = OffsetDateTime.now().plusDays(2).toInstant
       )
 
       when(phase2TestRepositoryMock.getTestProfileByOrderId(orderId))
@@ -392,7 +392,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
       verify(onlineTestsGatewayClientMock, times(1)).psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext])
       verify(emailClientMock, times(1))
-        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(onlineTestApplication.preferredName), eqTo(expirationDate))(
+        .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(onlineTestApplication.preferredName), eqTo(expirationDate.toInstant.atOffset(ZoneOffset.UTC)))(
           any[HeaderCarrier], any[ExecutionContext])
 
       verify(auditServiceMock, times(0)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
@@ -411,7 +411,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "extend the test to 5 days from now and remove: expired and two reminder progress statuses" in new TestFixture {
       when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(progress))
-      val phase2TestProfileWithExpirationInPast = Phase2TestGroup(now.minusDays(1), List(phase2Test))
+      val phase2TestProfileWithExpirationInPast = Phase2TestGroup(now.minusDays(1).toInstant, List(phase2Test))
       when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfileWithExpirationInPast)))
 
       phase2TestService.extendTestGroupExpiryTime("appId", 5, "admin").futureValue
@@ -424,7 +424,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "extend the test to 3 days from now and remove: expired and only one reminder progress status" in new TestFixture {
       when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(progress))
-      val phase2TestProfileWithExpirationInPast = Phase2TestGroup(now.minusDays(1), List(phase2Test))
+      val phase2TestProfileWithExpirationInPast = Phase2TestGroup(now.minusDays(1).toInstant, List(phase2Test))
       when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfileWithExpirationInPast)))
 
       phase2TestService.extendTestGroupExpiryTime("appId", 3, "admin").futureValue
@@ -437,7 +437,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "extend the test to 1 day from now and remove: expired progress status" in new TestFixture {
       when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(progress))
-      val phase2TestProfileWithExpirationInPast = Phase2TestGroup(now.minusDays(1), List(phase2Test))
+      val phase2TestProfileWithExpirationInPast = Phase2TestGroup(now.minusDays(1).toInstant, List(phase2Test))
       when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfileWithExpirationInPast)))
 
       phase2TestService.extendTestGroupExpiryTime("appId", 1, "admin").futureValue
@@ -456,12 +456,13 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
         ))
 
       when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(progress))
-      val phase2TestProfileWithExpirationInPast = Phase2TestGroup(now.plusDays(1), List(phase2Test))
+      val phase2TestProfileWithExpirationInPast = Phase2TestGroup(now.plusDays(1).toInstant, List(phase2Test))
       when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfileWithExpirationInPast)))
 
       phase2TestService.extendTestGroupExpiryTime("appId", 5, "admin").futureValue
 
-      verify(phase2TestRepositoryMock).updateGroupExpiryTime("appId", now.plusDays(6), "phase2")
+      verify(phase2TestRepositoryMock).updateGroupExpiryTime("appId",
+        now.plusDays(6).toInstant.atOffset(ZoneOffset.UTC), "phase2")
       verify(appRepositoryMock).removeProgressStatuses("appId", List(
         PHASE2_TESTS_SECOND_REMINDER, PHASE2_TESTS_FIRST_REMINDER)
       )
@@ -475,13 +476,13 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
         ))
 
       when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(progress))
-      val phase2TestProfileWithExpirationInPast = Phase2TestGroup(now.plusDays(1), List(phase2Test))
+      val phase2TestProfileWithExpirationInPast = Phase2TestGroup(now.plusDays(1).toInstant, List(phase2Test))
       when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfileWithExpirationInPast)))
 
       phase2TestService.extendTestGroupExpiryTime("appId", 2, "admin").futureValue
 
       val newExpirationDate = now.plusDays(3)
-      verify(phase2TestRepositoryMock).updateGroupExpiryTime("appId", newExpirationDate, "phase2")
+      verify(phase2TestRepositoryMock).updateGroupExpiryTime("appId", newExpirationDate.toInstant.atOffset(ZoneOffset.UTC), "phase2")
       verify(appRepositoryMock).removeProgressStatuses("appId", List(PHASE2_TESTS_SECOND_REMINDER))
     }
 
@@ -493,13 +494,14 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
         ))
 
       when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(progress))
-      val phase2TestProfileWithExpirationInPast = Phase2TestGroup(now, List(phase2Test))
+      val phase2TestProfileWithExpirationInPast = Phase2TestGroup(now.toInstant, List(phase2Test))
       when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturn(Future.successful(Some(phase2TestProfileWithExpirationInPast)))
 
       phase2TestService.extendTestGroupExpiryTime("appId", 1, "admin").futureValue
 
       val newExpirationDate = now.plusDays(1)
-      verify(phase2TestRepositoryMock).updateGroupExpiryTime("appId", newExpirationDate, "phase2")
+      verify(phase2TestRepositoryMock).updateGroupExpiryTime("appId",
+        newExpirationDate.toInstant.atOffset(ZoneOffset.UTC), "phase2")
       verify(appRepositoryMock, never).removeProgressStatuses(any[String], any[List[ProgressStatus]])
     }
   }
@@ -611,7 +613,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       when(phase2TestRepositoryMock.insertTestResult(any[String], any[PsiTest], any[model.persisted.PsiTestResult])(any[ExecutionContext]))
         .thenReturnAsync()
 
-      val phase2TestGroup = Phase2TestGroup(expirationDate = now, tests = List(fifthPsiTest, sixthPsiTest))
+      val phase2TestGroup = Phase2TestGroup(expirationDate = nowInstant, tests = List(fifthPsiTest, sixthPsiTest))
       when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestGroup))
       when(phase2TestRepositoryMock.updateProgressStatus(any[String], any[ProgressStatuses.ProgressStatus])(any[ExecutionContext]))
         .thenReturnAsync()
@@ -639,10 +641,10 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       when(phase2TestRepositoryMock.updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE2_TESTS_COMPLETED))(any[ExecutionContext]))
         .thenReturnAsync()
 
-      val phase2TestGroup = Phase2TestGroup(expirationDate = now, tests = List(fifthPsiTest, sixthPsiTest))
+      val phase2TestGroup = Phase2TestGroup(expirationDate = nowInstant, tests = List(fifthPsiTest, sixthPsiTest))
       val phase2TestsCompleted: Phase2TestGroup = phase2TestGroup.copy(
-        tests = phase2TestGroup.tests.map(t => t.copy(orderId = orderId, completedDateTime = Some(OffsetDateTime.now()))),
-        expirationDate = OffsetDateTime.now().plusDays(2)
+        tests = phase2TestGroup.tests.map(t => t.copy(orderId = orderId, completedDateTime = Some(Instant.now()))),
+        expirationDate = OffsetDateTime.now().plusDays(2).toInstant
       )
 
       when(phase2TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase2TestsCompleted))
@@ -670,6 +672,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
     val dateTimeFactoryMock: DateTimeFactory = mock[DateTimeFactory]
     implicit val now: OffsetDateTime = DateTimeFactoryMock.nowLocalTimeZoneJavaTime
+    implicit val nowInstant: Instant = now.toInstant
     when(dateTimeFactoryMock.nowLocalTimeZoneJavaTime).thenReturn(now)
 
     val scheduleCompletionBaseUrl = "http://localhost:9284/fset-fast-stream/online-tests/phase2"
@@ -784,20 +787,20 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
     val phase2Test = PsiTest(
       inventoryId = uuid, orderId = uuid, assessmentId = uuid, reportId = uuid, normId = uuid, usedForResults = true,
-      testUrl = authenticateUrl, invitationDate = invitationDate
+      testUrl = authenticateUrl, invitationDate = invitationDate.toInstant
     )
 
-    val phase2TestProfile = Phase2TestGroup(expirationDate,
+    val phase2TestProfile = Phase2TestGroup(expirationDate.toInstant,
       List(phase2Test, phase2Test.copy(inventoryId = uuid))
     )
 
-    val phase2TestProfileWithNoTest = Phase2TestGroup(expirationDate, Nil)
+    val phase2TestProfileWithNoTest = Phase2TestGroup(expirationDate.toInstant, Nil)
 
     val phase2CompletedTestGroupWithAppId: Phase2TestGroupWithAppId = Phase2TestGroupWithAppId(
       applicationId,
       testGroup = phase2TestProfile.copy(
         tests = phase2TestProfile.tests.map( t =>
-          t.copy(orderId = orderId, completedDateTime = Some(OffsetDateTime.now()))
+          t.copy(orderId = orderId, completedDateTime = Some(Instant.now()))
         )
       )
     )
@@ -812,7 +815,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     )
 
     val invigilatedTestProfile = Phase2TestGroup(
-      invigilatedExpirationDate, List(phase2Test.copy(inventoryId = uuid, invigilatedAccessCode = Some("accessCode")))
+      invigilatedExpirationDate.toInstant, List(phase2Test.copy(inventoryId = uuid, invigilatedAccessCode = Some("accessCode")))
     )
 
     val invigilatedETrayApp = onlineTestApplication.copy(

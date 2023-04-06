@@ -29,7 +29,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     usedForResults = true,
     token = Token,
     testUrl = "test.com",
-    invitationDate = Now,
+    invitationDate = Now.toInstant,
     candidateId = "CND_123456",
     customCandidateId = "FSCND_123",
     startedDateTime = None,
@@ -47,7 +47,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     LocalDate.parse("2016-11-09")
   )
 
-  val TestGroup = Phase3TestGroup(expirationDate = DatePlus7Days, tests = List(phase3Test))
+  val TestGroup = Phase3TestGroup(expirationDate = DatePlus7Days.toInstant, tests = List(phase3Test))
 
   def multiTestGroup(interviewOffset: Int = 0): Phase3TestGroup = TestGroup.copy(
     tests = List(
@@ -109,7 +109,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
   "Skip phase3 test" should {
     "fetch an application who can skip phase3 test if there is at least a single Green scheme and no Amber schemes at P2 " in {
-      val now: OffsetDateTime = OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime
+      val now: java.time.Instant = java.time.Instant.now()
       val p2 = Phase2TestGroup(
         expirationDate = now, tests = List(model.Phase2TestExamples.fifthPsiTest(now)),
         evaluation = Some(
@@ -143,7 +143,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
     "do not fetch an application who can skip phase3 test if there is a single Amber scheme at P2 " in {
       val p2 = Phase2TestGroup(
-        expirationDate = Now, tests = List(model.Phase2TestExamples.fifthPsiTest(Now)),
+        expirationDate = Now.toInstant, tests = List(model.Phase2TestExamples.fifthPsiTest(Now.toInstant)),
         evaluation = Some(
           PassmarkEvaluation(
             passmarkVersion = "previousVersion",
@@ -173,7 +173,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "process an application so they skip to the end of phase 3" in {
-      val now: OffsetDateTime = OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime
+      val now = java.time.Instant.now()
       val p2 = Phase2TestGroup(
         expirationDate = now, tests = List(model.Phase2TestExamples.fifthPsiTest(now)),
         evaluation = Some(
@@ -381,7 +381,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   "nextTestForReminder" should {
     "return one result" when {
       "there is an application in PHASE3_TESTS and is about to expire in the next 72 hours" in {
-        val date: OffsetDateTime = OffsetDateTime.now().plusHours(Phase3FirstReminder.hoursBeforeReminder - 1).plusMinutes(55)
+        val date = OffsetDateTime.now().plusHours(Phase3FirstReminder.hoursBeforeReminder - 1).plusMinutes(55).toInstant
         val testGroup = Phase3TestGroup(expirationDate = date, tests = List(phase3Test))
         createApplicationWithAllFields(UserId, AppId, TestAccountId,"frameworkId", "SUBMITTED").futureValue
         phase3TestRepo.insertOrUpdateTestGroup(AppId, testGroup).futureValue
@@ -390,13 +390,13 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         notification.get.applicationId mustBe AppId
         notification.get.userId mustBe UserId
         notification.get.preferredName mustBe "Georgy"
-        notification.get.expiryDate.toInstant.toEpochMilli mustBe date.toInstant.toEpochMilli
+        notification.get.expiryDate.toInstant.toEpochMilli mustBe date.toEpochMilli
         // Because we are far away from the 24h reminder's window
         phase3TestRepo.nextTestForReminder(Phase3SecondReminder).futureValue mustBe None
       }
 
       "there is an application in PHASE3_TESTS and is about to expire in the next 24 hours" in {
-        val date = OffsetDateTime.now().plusHours(Phase3SecondReminder.hoursBeforeReminder - 1).plusMinutes(55)
+        val date = OffsetDateTime.now().plusHours(Phase3SecondReminder.hoursBeforeReminder - 1).plusMinutes(55).toInstant
         val testGroup = Phase3TestGroup(expirationDate = date, tests = List(phase3Test))
         createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase3TestRepo.insertOrUpdateTestGroup(AppId, testGroup).futureValue
@@ -410,7 +410,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "return no results" when {
-      val date = OffsetDateTime.now().plusHours(22)
+      val date = OffsetDateTime.now().plusHours(22).toInstant
       val testProfile = Phase3TestGroup(expirationDate = date, tests = List(phase3Test))
 
       "there are no applications in PHASE3_TESTS" in {
@@ -424,7 +424,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase3TestRepo.insertOrUpdateTestGroup(
           AppId,
-          Phase3TestGroup(expirationDate = OffsetDateTime.now().plusHours(30), tests = List(phase3Test))).futureValue
+          Phase3TestGroup(expirationDate = OffsetDateTime.now().plusHours(30).toInstant, tests = List(phase3Test))).futureValue
         phase3TestRepo.nextTestForReminder(Phase3SecondReminder).futureValue mustBe None
       }
 

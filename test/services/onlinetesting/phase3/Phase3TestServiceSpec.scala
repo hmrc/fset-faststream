@@ -45,7 +45,7 @@ import testkit.{ExtendedTimeout, UnitSpec}
 import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.OffsetDateTime
+import java.time.{OffsetDateTime, ZoneOffset}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
@@ -97,7 +97,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId, None).futureValue
 
       verify(p3TestRepositoryMock).insertOrUpdateTestGroup(eqTo(onlineTestApplication.applicationId), eqTo(Phase3TestGroup(
-        expectedFromNowExpiryTime,
+        expectedFromNowExpiryTime.toInstant,
         List(
           testPhase3Test.copy(startedDateTime = None)
         ),
@@ -253,7 +253,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
         ResetApplicantRequest(
           testInterviewId,
           testLaunchpadCandidateId,
-          phase3TestGroupNotCompleted.expirationDate.toLocalDate //,
+          phase3TestGroupNotCompleted.expirationDate.atOffset(ZoneOffset.UTC).toLocalDate //,
         )
       ))
       verify(p3TestRepositoryMock).resetTestProfileProgresses(any(), any(), any())(any())
@@ -296,7 +296,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
         RetakeApplicantRequest(
           testInterviewId,
           testLaunchpadCandidateId,
-          testTestGroup.expirationDate.toLocalDate
+          testTestGroup.expirationDate.atOffset(ZoneOffset.UTC).toLocalDate
         )
       ))
       verify(p3TestRepositoryMock).resetTestProfileProgresses(any(), any(), any())(any())
@@ -560,8 +560,8 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       testInviteId,
       testLaunchpadCandidateId,
       testFaststreamCustomCandidateId,
-      testTimeNow,
-      Some(testTimeNow),
+      testTimeNow.toInstant,
+      Some(testTimeNow.toInstant),
       None,
       LaunchpadTestCallbacks()
     )
@@ -574,21 +574,21 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       testInviteId,
       testLaunchpadCandidateId,
       testFaststreamCustomCandidateId,
-      testTimeNow,
-      Some(testTimeNow),
+      testTimeNow.toInstant,
+      Some(testTimeNow.toInstant),
       None,
       LaunchpadTestCallbacks()
     )
 
-    val testPhase3TestCompleted = testPhase3TestNotCompleted.copy(completedDateTime = Some(testTimeNow))
+    val testPhase3TestCompleted = testPhase3TestNotCompleted.copy(completedDateTime = Some(testTimeNow.toInstant))
 
     val testTestGroup = Phase3TestGroup(
-      expectedFromNowExpiryTime,
+      expectedFromNowExpiryTime.toInstant,
       List(testPhase3Test)
     )
 
     val phase3TestGroupUnexpiring = Phase3TestGroup(
-      unexpiredTestExpiryTime,
+      unexpiredTestExpiryTime.toInstant,
       List(
         testPhase3Test
       ),
@@ -596,7 +596,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     )
 
     val phase3TestGroupNotCompleted = Phase3TestGroup(
-      unexpiredTestExpiryTime,
+      unexpiredTestExpiryTime.toInstant,
       List(
         testPhase3TestNotCompleted
       ),
@@ -604,7 +604,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     )
 
     val phase3TestGroupCompleted = Phase3TestGroup(
-      unexpiredTestExpiryTime,
+      unexpiredTestExpiryTime.toInstant,
       List(
         testPhase3TestCompleted
       ),
@@ -770,7 +770,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     lazy val phase3TestServiceWithExpiredTestGroup = mockService {
       when(p3TestRepositoryMock.getTestGroup(any())).thenReturn(Future.successful(Some(
         Phase3TestGroup(
-          testExpiredTime,
+          testExpiredTime.toInstant,
           List(
             testPhase3Test
           ),
@@ -796,7 +796,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     lazy val phase3TestServiceWithCompletedTestGroup = mockService {
       when(p3TestRepositoryMock.getTestGroupByToken(testInviteId))
         .thenReturn(Future.successful(Phase3TestGroupWithAppId("appId", Phase3TestGroup(
-          testExpiredTime,
+          testExpiredTime.toInstant,
           List(
             testPhase3Test
           ),
@@ -815,7 +815,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
     lazy val phase3TestServiceWithResultsReceivedTestGroup = mockService {
       when(p3TestRepositoryMock.getTestGroupByToken(testInviteId))
         .thenReturn(Future.successful(Phase3TestGroupWithAppId("appId", Phase3TestGroup(
-          testExpiredTime,
+          testExpiredTime.toInstant,
           List(
             testPhase3Test
           ),

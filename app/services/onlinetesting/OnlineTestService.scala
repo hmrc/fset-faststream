@@ -35,7 +35,8 @@ import services.sift.ApplicationSiftService
 import services.stc.EventSink
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.OffsetDateTime
+import java.time.temporal.ChronoUnit
+import java.time.{Instant, OffsetDateTime}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
@@ -135,9 +136,9 @@ trait OnlineTestService extends TimeExtension with EventSink with Logging {
     }
   }
 
-  protected def calcOnlineTestDates(expiryTimeInDays: Int): (OffsetDateTime, OffsetDateTime) = {
-    val invitationDate = dateTimeFactory.nowLocalTimeZoneJavaTime
-    val expirationDate = invitationDate.plusDays(expiryTimeInDays)
+  protected def calcOnlineTestDates(expiryTimeInDays: Int): (Instant, Instant) = {
+    val invitationDate = dateTimeFactory.nowLocalTimeZoneJavaTime.toInstant
+    val expirationDate = invitationDate.plus(expiryTimeInDays, ChronoUnit.DAYS)
     (invitationDate, expirationDate)
   }
 

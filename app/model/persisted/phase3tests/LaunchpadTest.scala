@@ -19,7 +19,7 @@ package model.persisted.phase3tests
 import model.persisted.Test
 import play.api.libs.json.Json
 
-import java.time.OffsetDateTime
+import java.time.{Instant, OffsetDateTime}
 
 case class LaunchpadTest(interviewId: Int,
                          usedForResults: Boolean,
@@ -28,9 +28,9 @@ case class LaunchpadTest(interviewId: Int,
                          token: String,
                          candidateId: String,
                          customCandidateId: String,
-                         invitationDate: OffsetDateTime,
-                         startedDateTime: Option[OffsetDateTime],
-                         completedDateTime: Option[OffsetDateTime],
+                         invitationDate: Instant,
+                         startedDateTime: Option[Instant],
+                         completedDateTime: Option[Instant],
                          callbacks: LaunchpadTestCallbacks,
                          invigilatedAccessCode: Option[String] = None
                      ) extends Test {
@@ -63,9 +63,9 @@ case class LaunchpadTestExchange(interviewId: Int,
                                  token: String,
                                  candidateId: String,
                                  customCandidateId: String,
-                                 invitationDate: OffsetDateTime,
-                                 startedDateTime: Option[OffsetDateTime],
-                                 completedDateTime: Option[OffsetDateTime],
+                                 invitationDate: Instant,
+                                 startedDateTime: Option[Instant],
+                                 completedDateTime: Option[Instant],
                                  callbacks: LaunchpadTestCallbacksExchange,
                                  invigilatedAccessCode: Option[String] = None
                                 ) extends Test

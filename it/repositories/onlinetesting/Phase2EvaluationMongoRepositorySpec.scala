@@ -52,7 +52,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         ApplicationStatus.PHASE2_TESTS,
         ApplicationRoute.Faststream,
         isGis = false,
-        activePsiTests = Phase2TestGroup(now, phase2TestWithResult).activeTests,
+        activePsiTests = Phase2TestGroup(nowInstant, phase2TestWithResult).activeTests,
         activeLaunchpadTest = None,
         prevPhaseEvaluation = Some(phase1Evaluation),
         selectedSchemes(List(SchemeId("Commercial")))
@@ -73,7 +73,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         ApplicationStatus.PHASE2_TESTS,
         ApplicationRoute.Faststream,
         isGis = false,
-        activePsiTests = Phase2TestGroup(now, phase2TestWithResult).activeTests,
+        activePsiTests = Phase2TestGroup(nowInstant, phase2TestWithResult).activeTests,
         activeLaunchpadTest = None,
         prevPhaseEvaluation = Some(phase1Evaluation),
         selectedSchemes(List(SchemeId("Commercial")))
@@ -127,7 +127,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         ApplicationStatus.PHASE2_TESTS,
         ApplicationRoute.Faststream,
         isGis = false,
-        Phase2TestGroup(now, phase2TestWithResult).activeTests,
+        Phase2TestGroup(nowInstant, phase2TestWithResult).activeTests,
         activeLaunchpadTest = None,
         Some(phase1Evaluation),
         selectedSchemes(List(SchemeId("Commercial")))
@@ -152,7 +152,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         ApplicationStatus.PHASE2_TESTS,
         ApplicationRoute.Faststream,
         isGis = false,
-        Phase2TestGroup(now, phase2TestWithResult).activeTests,
+        Phase2TestGroup(nowInstant, phase2TestWithResult).activeTests,
         activeLaunchpadTest = None,
         prevPhaseEvaluation = Some(phase1Evaluation),
         selectedSchemes(List(SchemeId("Commercial"))))
@@ -222,7 +222,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 }
 
 object Phase2EvaluationMongoRepositorySpec {
-  val now = OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime
+  val now = java.time.Instant.now()
   val phase2Test = List(PsiTest(
     inventoryId = "test-inventoryId",
     orderId = "test-orderId",

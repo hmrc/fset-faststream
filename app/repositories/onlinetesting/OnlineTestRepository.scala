@@ -101,7 +101,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
           "$each" -> Codecs.toBson(newTestProfile.tests)
         )),
       "$set" -> Document(
-        s"testGroups.$phaseName.expirationDate" -> offsetDateTimeToBson(newTestProfile.expirationDate)
+        s"testGroups.$phaseName.expirationDate" -> instantToBson(newTestProfile.expirationDate)
       )
     )
 

@@ -58,7 +58,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         ApplicationStatus.PHASE1_TESTS,
         ApplicationRoute.Faststream,
         isGis = false,
-        Phase1TestProfile(now, phase1TestsWithResult).activeTests,
+        Phase1TestProfile(nowInstant, phase1TestsWithResult).activeTests,
         activeLaunchpadTest = None,
         prevPhaseEvaluation = None,
         selectedSchemes(List(SchemeId("Commercial")))
@@ -76,7 +76,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         ApplicationStatus.PHASE1_TESTS,
         ApplicationRoute.Faststream,
         isGis = true,
-        Phase1TestProfile(now, phase1TestsWithResult).activeTests,
+        Phase1TestProfile(nowInstant, phase1TestsWithResult).activeTests,
         activeLaunchpadTest = None,
         prevPhaseEvaluation = None,
         selectedSchemes(List(SchemeId("Commercial"))))
@@ -276,6 +276,8 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
 object Phase1EvaluationMongoRepositorySpec {
   implicit val now = OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime
+  implicit val nowInstant = java.time.Instant.now()
+
   val phase1Tests = List(
     model.Phase1TestExamples.firstPsiTest.copy(testResult = None),
     model.Phase1TestExamples.secondPsiTest.copy(testResult = None),

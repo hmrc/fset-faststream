@@ -32,7 +32,7 @@ import testkit.MockitoImplicits.{OngoingStubbingExtension, OngoingStubbingExtens
 import testkit.{ShortTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.OffsetDateTime
+import java.time.{OffsetDateTime, ZoneOffset}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -75,7 +75,8 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
         verifyAuditEvents(1, "NonExpiredTestsExtended")
         verifyDataStoreEvents(1, "OnlineExerciseExtended")
 
-        verify(mockOtRepository).updateGroupExpiryTime(eqTo(applicationId), eqTo(InFiveHours.plusDays(threeExtraDays)), any())(
+        verify(mockOtRepository).updateGroupExpiryTime(eqTo(applicationId), eqTo(InFiveHours.atOffset(ZoneOffset.UTC).
+          plusDays(threeExtraDays)), any())(
           any[ExecutionContext])
         verify(mockAppRepository).removeProgressStatuses(eqTo(applicationId), eqTo(statusToRemoveWhenExpiryInMoreThanThreeDays))
       }
@@ -159,7 +160,7 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
 
       "the new expiry date is less than 1 day ahead" in new TestFixture {
         when(mockProgressResponse.phase1ProgressResponse).thenReturn(new Phase1ProgressResponse)
-        val result = getProgressStatusesToRemove(InFiveHours, mockProfile, mockProgressResponse)
+        val result = getProgressStatusesToRemove(InFiveHours.atOffset(ZoneOffset.UTC), mockProfile, mockProgressResponse)
         result mustBe None
       }
     }
@@ -182,8 +183,8 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
     val genericError = new Exception("Dummy error!")
     val mockDateTimeFactory = mock[DateTimeFactory]
     val Now = OffsetDateTime.now()
-    val OneHourAgo = Now.minusHours(1)
-    val InFiveHours = Now.plusHours(5)
+    val OneHourAgo = Now.minusHours(1).toInstant
+    val InFiveHours = Now.plusHours(5).toInstant
     val InTwentyFiveHours = Now.plusHours(25)
     val InMoreThanThreeDays = Now.plusHours(73)
     val mockProfile = mock[Phase1TestProfile]

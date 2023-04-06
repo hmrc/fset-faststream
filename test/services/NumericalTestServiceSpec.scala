@@ -41,7 +41,7 @@ import testkit.MockitoImplicits._
 import testkit.{ExtendedTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.{LocalTime, OffsetDateTime, ZoneOffset}
+import java.time.{Instant, LocalTime, OffsetDateTime, ZoneOffset}
 import java.time.format.DateTimeFormatter
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, ExecutionException, Future}
@@ -50,7 +50,8 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
 
   trait TestFixture extends StcEventServiceFixture {
 
-    val now: OffsetDateTime = OffsetDateTime.now
+    val now: OffsetDateTime = OffsetDateTime.now()
+    val nowInstant: Instant = Instant.now()
     val inventoryIds: Map[String, String] = Map[String, String]("test1" -> "test1-uuid")
     def testIds(idx: Int): PsiTestIds =
       PsiTestIds(s"inventory-id-$idx", s"assessment-id-$idx", s"report-id-$idx", s"norm-id-$idx")
@@ -94,7 +95,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
     val mockMicroserviceAppConfig = mock[MicroserviceAppConfig]
     when(mockMicroserviceAppConfig.onlineTestsGatewayConfig).thenReturn(integrationConfig)
     val tokenFactory: UUIDFactory = new UUIDFactoryImpl
-    val mockDateTimeFactory = mock[DateTimeFactory]
+    val mockDateTimeFactory = DateTimeFactoryMock
     val mockSchemeRepository = mock[SchemeRepository]
     when(mockSchemeRepository.schemes).thenReturn(
       Seq(
@@ -166,7 +167,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
     "throw an exception if no SIFT_PHASE test group is found and the tests have already been populated" in new TestFixture {
       val test = PsiTest(inventoryId = "inventoryUuid", orderId = "orderUuid", assessmentId = "assessmentUuid",
         reportId = "reportUuid", normId = "normUuid", usedForResults = true,
-        testUrl = authenticateUrl, invitationDate = DateTimeFactoryMock.nowLocalTimeZoneJavaTime)
+        testUrl = authenticateUrl, invitationDate = DateTimeFactoryMock.nowLocalTimeZoneJavaTime.toInstant)
 
       val siftTestGroup = SiftTestGroup(expirationDate = OffsetDateTime.now(), tests = Some(List(test)))
       // This will result in exception being thrown
@@ -292,8 +293,8 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
       val numericTestCompleted = PsiTest(inventoryId = uuid, orderId = orderId, assessmentId = uuid, reportId = uuid,
         normId = uuid, usedForResults = true,
         testUrl = authenticateUrl, invitationDate = OffsetDateTime.of(
-          java.time.LocalDate.of(2016, 5, 11), java.time.LocalTime.of(0, 0), ZoneOffset.UTC),
-        completedDateTime = Some(OffsetDateTime.now))
+          java.time.LocalDate.of(2016, 5, 11), java.time.LocalTime.of(0, 0), ZoneOffset.UTC).toInstant,
+        completedDateTime = Some(Instant.now))
 
       val maybeSiftTestGroupWithAppId = MaybeSiftTestGroupWithAppId(
         applicationId = appId,
@@ -320,8 +321,8 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
       val numericTestCompletedWithScores = PsiTest(inventoryId = uuid, orderId = orderId, assessmentId = uuid, reportId = uuid,
         normId = uuid, usedForResults = true,
         testUrl = authenticateUrl, invitationDate = OffsetDateTime.of(
-          java.time.LocalDate.of(2016, 5, 11), java.time.LocalTime.of(0, 0), ZoneOffset.UTC),
-        completedDateTime = Some(now),
+          java.time.LocalDate.of(2016, 5, 11), java.time.LocalTime.of(0, 0), ZoneOffset.UTC).toInstant,
+        completedDateTime = Some(now.toInstant),
         testResult = Some(PsiTestResult(tScore = 20.0, rawScore = 40.0, testReportUrl = None))
       )
 
@@ -350,7 +351,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
       val numericTestNotCompletedWithScores = PsiTest(inventoryId = uuid, orderId = orderId, assessmentId = uuid, reportId = uuid,
         normId = uuid, usedForResults = true,
         testUrl = authenticateUrl, invitationDate = OffsetDateTime.of(java.time.LocalDate.of(2016, 5, 11),
-          java.time.LocalTime.of(0, 0), ZoneOffset.UTC),
+          java.time.LocalTime.of(0, 0), ZoneOffset.UTC).toInstant,
         testResult = Some(PsiTestResult(tScore = 20.0, rawScore = 40.0, testReportUrl = None))
       )
 
@@ -363,8 +364,8 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
         normId = uuid, usedForResults = true,
         testUrl = authenticateUrl,
         invitationDate = OffsetDateTime.of(java.time.LocalDate.of(2016, 5, 11),
-          java.time.LocalTime.of(0, 0), ZoneOffset.UTC),
-        completedDateTime = Some(now),
+          java.time.LocalTime.of(0, 0), ZoneOffset.UTC).toInstant,
+        completedDateTime = Some(now.toInstant),
         testResult = Some(PsiTestResult(tScore = 20.0, rawScore = 40.0, testReportUrl = None))
       )
 

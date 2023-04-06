@@ -32,7 +32,8 @@ import services.onlinetesting.Exceptions.TestExtensionException
 import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.OffsetDateTime
+import java.time.{OffsetDateTime, ZoneOffset}
+import java.time.temporal.ChronoUnit
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -55,7 +56,7 @@ class OnlineTestExtensionService @Inject() (appRepository: GeneralApplicationRep
           Extension(dateTimeFactory.nowLocalTimeZoneJavaTime.plusDays(extraDays), expired = true, group, progressResponse)
         case (_, Some(group)) if progressResponse.phase1ProgressResponse.phase1TestsInvited ||
           progressResponse.phase1ProgressResponse.phase1TestsStarted =>
-          Extension(group.expirationDate.plusDays(extraDays), expired = false, group, progressResponse)
+          Extension(group.expirationDate.plus(extraDays, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC), expired = false, group, progressResponse)
         case (_, None) =>
           throw TestExtensionException("No Phase1TestGroupAvailable for the given application")
         case _ =>

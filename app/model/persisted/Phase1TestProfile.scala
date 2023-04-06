@@ -20,9 +20,9 @@ import org.mongodb.scala.bson.BsonValue
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.mongo.play.json.Codecs
 
-import java.time.OffsetDateTime
+import java.time.Instant
 
-case class Phase1TestProfile(expirationDate: OffsetDateTime,
+case class Phase1TestProfile(expirationDate: Instant,
                              tests: List[PsiTest],
                              evaluation: Option[PassmarkEvaluation] = None) extends PsiTestProfile
 
@@ -40,9 +40,9 @@ case class PsiTest(inventoryId: String,
                    usedForResults: Boolean,
                    testUrl: String,
                    testProvider: String = "psi",
-                   invitationDate: OffsetDateTime,
-                   startedDateTime: Option[OffsetDateTime] = None,
-                   completedDateTime: Option[OffsetDateTime] = None,
+                   invitationDate: Instant,
+                   startedDateTime: Option[Instant] = None,
+                   completedDateTime: Option[Instant] = None,
                    resultsReadyToDownload: Boolean = false,
                    assessmentId: String,
                    reportId: String,

@@ -18,14 +18,14 @@ package model.persisted
 
 import model.{ApplicationStatus, SelectedSchemesExamples, _}
 
-import java.time.OffsetDateTime
+import java.time.{Instant, OffsetDateTime}
 
 object ApplicationPhase2EvaluationExamples {
-  def faststreamApplication(implicit now: OffsetDateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE2_TESTS,
+  def faststreamApplication(implicit now: Instant) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE2_TESTS,
     ApplicationRoute.Faststream, isGis = false, activePsiTests = Phase2TestProfileExamples.profile.activeTests,
     activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
 
-  def sdipFaststreamApplication(implicit now: OffsetDateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE2_TESTS,
+  def sdipFaststreamApplication(implicit now: Instant) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE2_TESTS,
     ApplicationRoute.SdipFaststream, isGis = false, activePsiTests = Phase2TestProfileExamples.profile.activeTests,
     activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
 }

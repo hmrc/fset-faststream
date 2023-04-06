@@ -18,9 +18,9 @@ package model
 
 import model.persisted.Phase1TestProfile
 
-import java.time.OffsetDateTime
+import java.time.{Instant, OffsetDateTime}
 
 object Phase1TestProfileExamples {
 
-  def psiProfile(implicit now: OffsetDateTime) = Phase1TestProfile(now, List(Phase1TestExamples.firstPsiTest))
+  def psiProfile(implicit now: Instant) = Phase1TestProfile(now, List(Phase1TestExamples.firstPsiTest))
 }

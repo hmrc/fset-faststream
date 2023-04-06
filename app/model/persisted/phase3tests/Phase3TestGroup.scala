@@ -21,9 +21,9 @@ import org.mongodb.scala.bson.BsonValue
 import play.api.libs.json.Json
 import uk.gov.hmrc.mongo.play.json.Codecs
 
-import java.time.OffsetDateTime
+import java.time.{Instant, OffsetDateTime, ZoneOffset}
 
-case class Phase3TestGroup(expirationDate: OffsetDateTime,
+case class Phase3TestGroup(expirationDate: Instant,
                            tests: List[LaunchpadTest],
                            evaluation: Option[PassmarkEvaluation] = None) extends TestProfile[LaunchpadTest] {
   def activeTest = {
@@ -45,7 +45,7 @@ object Phase3TestGroup {
 }
 
 case class Phase3TestGroupExchange(
-                                  expirationDate: OffsetDateTime,
+                                  expirationDate: Instant,
                                   tests: List[LaunchpadTestExchange],
                                   evaluation: Option[PassmarkEvaluation] = None) extends TestProfile[LaunchpadTestExchange]
 

@@ -16,14 +16,14 @@
 
 package model.persisted
 
-import java.time.OffsetDateTime
+import java.time.Instant
 
 abstract class PsiTestProfile() extends TestProfile[PsiTest] {
   def hasNotResultReadyToDownloadForAllTestsYet: Boolean = activeTests.exists(!_.resultsReadyToDownload)
 }
 
 trait TestProfile[T <: Test] {
-  def expirationDate: OffsetDateTime
+  def expirationDate: Instant
   def tests: List[T]
   def activeTests = tests.filter(_.usedForResults)
   def hasNotStartedYet = activeTests.forall(_.startedDateTime.isEmpty)
@@ -35,7 +35,7 @@ trait TestProfile[T <: Test] {
 trait Test {
   def usedForResults: Boolean
   def testProvider: String
-  def startedDateTime: Option[OffsetDateTime]
-  def completedDateTime: Option[OffsetDateTime]
+  def startedDateTime: Option[Instant]
+  def completedDateTime: Option[Instant]
   def invigilatedAccessCode: Option[String]
 }

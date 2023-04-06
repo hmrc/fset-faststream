@@ -44,7 +44,7 @@ import services.sift.ApplicationSiftService
 import services.stc.StcEventService
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.OffsetDateTime
+import java.time.{OffsetDateTime, ZoneOffset}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -137,7 +137,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
         val delay = (delayModifier * onlineTestsGatewayConfig.phase1Tests.testRegistrationDelayInSecs).second
         akka.pattern.after(delay, actor.scheduler) {
           logger.debug(s"Phase1TestService - about to call registerPsiApplicant with testIds - $testIds")
-          registerPsiApplicant(application, testIds, invitationDate)
+          registerPsiApplicant(application, testIds, invitationDate.atOffset(ZoneOffset.UTC))
         }
     }
 
@@ -150,7 +150,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
     for {
       _ <- processRegistration
       emailAddress <- candidateEmailAddress(application.userId)
-      _ <- emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
+      _ <- emailInviteToApplicant(application, emailAddress, invitationDate.atOffset(ZoneOffset.UTC), expirationDate.atOffset(ZoneOffset.UTC))
     } yield audit("OnlineTestInvitationProcessComplete", application.userId)
   }
 
@@ -200,7 +200,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
       _ = logger.info(s"psiIds -- $psiIds")
 
       // Register applicant
-      newPsiTest <- registerPsiApplicant(application, psiIds, invitationDate)
+      newPsiTest <- registerPsiApplicant(application, psiIds, invitationDate.atOffset(ZoneOffset.UTC))
       _ = logger.info(s"newPsiTest -- $newPsiTest")
 
       // Set old test to inactive
@@ -215,7 +215,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
 
       _ <- markAsInvited(application)(Phase1TestProfile(expirationDate, updatedTests))
       emailAddress <- candidateEmailAddress(application.userId)
-      _ <- emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
+      _ <- emailInviteToApplicant(application, emailAddress, invitationDate.atOffset(ZoneOffset.UTC), expirationDate.atOffset(ZoneOffset.UTC))
     } yield {
       List(
         AuditEvents.Phase1TestsReset(Map("userId" -> application.userId, "orderId" -> orderIdToReset)),
@@ -247,7 +247,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
           orderId = aoa.orderId,
           usedForResults = true,
           testUrl = aoa.testLaunchUrl,
-          invitationDate = invitationDate,
+          invitationDate = invitationDate.toInstant,
           assessmentId = testIds.assessmentId,
           reportId = testIds.reportId,
           normId = testIds.normId
