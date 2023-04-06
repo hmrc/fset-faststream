@@ -20,7 +20,7 @@ import model.{JavaTimeReads, JavaTimeWrites}
 import org.joda.time.DateTime
 import play.api.libs.json._
 
-import java.time.Instant
+import java.time.{Instant, OffsetDateTime}
 
 // Provides backward compatibility for Play 2.5 play-json, which stores dates as epoch milliseconds
 // The new play-json-joda lib that we use with Play 2.6 writes dates using ISO8601 by default eg.
@@ -36,7 +36,13 @@ object Play25DateCompatibility {
     }
 
   implicit val javaTimeInstantEpochMillisDateFormat = new Format[Instant] {
-    override def reads(json: JsValue): JsResult[Instant] = JavaTimeReads.DefaultJavaTimeDateTimeReads.reads(json)
+    override def reads(json: JsValue): JsResult[Instant] = JavaTimeReads.DefaultJavaTimeInstantReads.reads(json)
     override def writes(o: Instant): JsValue = JavaTimeWrites.JavaTimeInstantNumberWrites.writes(o)
+  }
+
+  implicit val javaTimeOffsetDateTimeEpochMillisDateFormat = new Format[OffsetDateTime] {
+    override def reads(json: JsValue): JsResult[OffsetDateTime] = JavaTimeReads.DefaultJavaTimeOffsetDateTimeReads.reads(json)
+
+    override def writes(o: OffsetDateTime): JsValue = JavaTimeWrites.JavaTimeOffsetDateTimeWrites.writes(o)
   }
 }

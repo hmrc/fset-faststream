@@ -40,6 +40,20 @@ trait JavaTimeWrites {
     def writes(d: Instant): JsValue = JsString(d.toString)
   }
 
+
+  object JavaTimeOffsetDateTimeWrites extends Writes[OffsetDateTime] {
+    // this "Writes" is storing java time Instant as NumberLong in Mongo using only upto Millis for compatibility,
+    // nanos are not included, nanos are an addition in java time, that was not present in Joda time.
+    def writes(d: OffsetDateTime): JsValue = JsNumber(d.toInstant.toEpochMilli)
+  }
+
+  /**
+    * Default Serializer LocalDate -> JsString(ISO8601 format (yyyy-MM-dd))
+    */
+  implicit object JavaTimeOffsetDataTimeWrites extends Writes[OffsetDateTime] {
+    def writes(d: OffsetDateTime): JsValue = JsString(d.toString)
+  }
+
 //  /**
 //    * Serializer for LocalDate
 //    * @param pattern the pattern used by org.joda.time.format.DateTimeFormat

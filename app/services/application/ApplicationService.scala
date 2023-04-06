@@ -57,7 +57,7 @@ import services.sift.{ApplicationSiftService, SiftAnswersService}
 import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.OffsetDateTime
+import java.time.{Instant, OffsetDateTime}
 import scala.collection.immutable.ListMap
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
@@ -350,7 +350,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
     FutureEx.traverseSerial(toBeFixed)(fixData).map(_ => ())
   }
 
-  def overrideSubmissionDeadline(applicationId: String, newDeadline: OffsetDateTime)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def overrideSubmissionDeadline(applicationId: String, newDeadline: Instant)(implicit hc: HeaderCarrier): Future[Unit] = {
     appRepository.updateSubmissionDeadline(applicationId, newDeadline)
   }
 

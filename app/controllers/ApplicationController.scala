@@ -150,7 +150,7 @@ class ApplicationController @Inject() (cc: ControllerComponents,
 
   def overrideSubmissionDeadline(applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[OverrideSubmissionDeadlineRequest] { overrideRequest =>
-      applicationService.overrideSubmissionDeadline(applicationId, overrideRequest.submissionDeadline).map(_ => Ok)
+      applicationService.overrideSubmissionDeadline(applicationId, overrideRequest.submissionDeadline.toInstant).map(_ => Ok)
         .recover {
           case _: NotFoundException => NotFound(s"cannot find application with id $applicationId")
         }

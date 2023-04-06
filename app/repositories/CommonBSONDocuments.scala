@@ -42,14 +42,16 @@ trait CommonBSONDocuments extends BaseBSONReader {
         Document(
           "applicationStatus" -> applicationStatus.toBson,
           s"progress-status.${progressStatus.key}" -> true,
-          s"progress-status-timestamp.${progressStatus.key}" -> dateTimeToBson(dateTimeFactory.nowLocalTimeZone)
+//          s"progress-status-timestamp.${progressStatus.key}" -> dateTimeToBson(dateTimeFactory.nowLocalTimeZone)
+          s"progress-status-timestamp.${progressStatus.key}" -> instantToBson(dateTimeFactory.nowLocalTimeZoneJavaTime.toInstant)
         )
       // For in progress application status we store application status in progress-status-timestamp
       case _ if applicationStatus == ApplicationStatus.IN_PROGRESS =>
         Document(
           "applicationStatus" -> applicationStatus.toBson,
           s"progress-status.${ApplicationStatus.IN_PROGRESS}" -> true,
-          s"progress-status-timestamp.${ApplicationStatus.IN_PROGRESS}" -> dateTimeToBson(dateTimeFactory.nowLocalTimeZone)
+//          s"progress-status-timestamp.${ApplicationStatus.IN_PROGRESS}" -> dateTimeToBson(dateTimeFactory.nowLocalTimeZone)
+          s"progress-status-timestamp.${ApplicationStatus.IN_PROGRESS}" -> instantToBson(dateTimeFactory.nowLocalTimeZoneJavaTime.toInstant)
         )
       case _ =>
         Document("applicationStatus" -> applicationStatus.toBson)
@@ -57,11 +59,18 @@ trait CommonBSONDocuments extends BaseBSONReader {
   }
 
   protected def applicationStatusBSON(progressStatus: ProgressStatus) = {
-    Document(
+    //scalastyle:off
+    println(s"-----MIGUEL applicationStatusBSON 1")
+    println(s"-----MIGUEL applicationStatusBSON 2 instantToBson(dateTimeFactory.nowLocalTimeZoneJavaTime.toInstant):" +
+      s" [${instantToBson(dateTimeFactory.nowLocalTimeZoneJavaTime.toInstant)}]")
+    println(s"-----MIGUEL applicationStatusBSON 3")
+    val doc = Document(
       "applicationStatus" -> Codecs.toBson(progressStatus.applicationStatus),
       s"progress-status.${progressStatus.key}" -> true,
-      s"progress-status-timestamp.${progressStatus.key}" -> dateTimeToBson(dateTimeFactory.nowLocalTimeZone)
+      s"progress-status-timestamp.${progressStatus.key}" -> instantToBson(dateTimeFactory.nowLocalTimeZoneJavaTime.toInstant)
     )
+    println(s"-----MIGUEL applicationStatusBSON 4 doc=[$doc]")
+    doc
   }
 
   def progressStatusOnlyBSON(progressStatus: ProgressStatus) = {

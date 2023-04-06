@@ -84,13 +84,20 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
   "Updating an application's submission deadline" should {
     "Succeed" in {
-      val extendTo = OffsetDateTime.of(2016, 5, 21, 23, 59, 59, 0, ZoneOffset.UTC)
+      //scalastyle:off
+      val extendTo = OffsetDateTime.of(2016, 5, 21, 23, 59, 59, 0, ZoneOffset.UTC).toInstant
+      println(s"----MIGUEL: 1")
+
       val applicationId = applicationRepo.create("userId1", "frameworkId", ApplicationRoute.Faststream).futureValue.applicationId
+      println(s"----MIGUEL: 2")
       applicationRepo.updateSubmissionDeadline(applicationId, extendTo).futureValue
+      println(s"----MIGUEL: 3")
 
       val result = applicationRepo.findByUserId("userId1", "frameworkId").futureValue
+      println(s"----MIGUEL: 4 result:[$result]")
+      result.overriddenSubmissionDeadline.get.toInstant.toEpochMilli mustBe extendTo.toEpochMilli
+      println(s"----MIGUEL: 5")
 
-      result.overriddenSubmissionDeadline.get.toInstant.toEpochMilli mustBe extendTo.toInstant.toEpochMilli
     }
   }
 

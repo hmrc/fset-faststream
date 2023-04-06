@@ -21,17 +21,25 @@ class PersonalDetailsRepositorySpec extends MongoRepositorySpec {
 
   "update candidate" should {
     "modify the details and find the personal details successfully" in {
+      //scalastyle:off
+      println(s"-----MIGUEL test 1")
       val personalDetails = (for {
         _ <- insert(Document("applicationId" -> AppId, "userId" -> UserId, "applicationStatus" -> CREATED.toBson))
         _ <- repository.update(AppId, UserId, JohnDoe, List(CREATED), IN_PROGRESS)
         pd <- repository.find(AppId)
       } yield pd).futureValue
+      println(s"-----MIGUEL test 2 personalDetails:[$personalDetails]")
 
       val applicationStatus = appRepository.findStatus(AppId).futureValue
+      println(s"-----MIGUEL test 3 applicationStatus:[$applicationStatus]")
 
       personalDetails mustBe JohnDoe
+      println(s"-----MIGUEL test 4")
+
       applicationStatus.status mustBe IN_PROGRESS.toString
-//      timesApproximatelyEqual(applicationStatus.statusDate.get, DateTime.now()) mustBe true
+      println(s"-----MIGUEL test 5")
+
+      //      timesApproximatelyEqual(applicationStatus.statusDate.get, DateTime.now()) mustBe true
     }
 
     "do not update the application in different status than required" in {

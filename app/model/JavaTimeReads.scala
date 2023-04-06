@@ -37,19 +37,30 @@ trait JavaTimeReads {
     * @param corrector a simple string transformation function that can be used to transform input String before parsing.
     *                  Useful when standards are not respected and require a few tweaks. Defaults to identity function.
     */
-  def javaTimeDateReads(pattern: String, corrector: String => String = identity): Reads[Instant] = new Reads[Instant] {
+  def javaTimeInstantReads(pattern: String, corrector: String => String = identity): Reads[Instant] = new Reads[Instant] {
     // TODO MIGUEL: Not sure if it is the same
     //    val df = if (pattern == "") ISODateTimeFormat.dateOptionalTimeParser else DateTimeFormat.forPattern(pattern)
     //val df = if (pattern == "") java.time.format.DateTimeFormatter.ISO_DATE_TIME else java.time.format.DateTimeFormatter.ofPattern(pattern)
 
-    def reads(json: JsValue): JsResult[Instant] = json match {
-      case JsNumber(d) => JsSuccess(Instant.ofEpochMilli(d.toLong))
-      case JsString(s) =>
-        parseDate(corrector(s)) match {
-          case Some(d) => JsSuccess(d)
-          case _       => JsError(Seq(JsPath() -> Seq(JsonValidationError("error.expected.javatimedate.format", pattern))))
-        }
-      case _ => JsError(Seq(JsPath() -> Seq(JsonValidationError("error.expected.date"))))
+    def reads(json: JsValue): JsResult[Instant] = {
+      //scalastyle:off
+      println(s"-----MIGUEL reads json:[$json]")
+      json match {
+        case JsNumber(d) =>
+          println(s"-----MIGUEL JSNumber d:[$d]")
+          JsSuccess(Instant.ofEpochMilli(d.toLong))
+        case JsString(s) =>
+          println(s"-----MIGUEL JsString s:[$s]")
+          parseDate(corrector(s)) match {
+            case Some(d) =>
+              println(s"-----MIGUEL Some(d) d:[$d]")
+              JsSuccess(d)
+            case _       => JsError(Seq(JsPath() -> Seq(JsonValidationError("error.expected.javatimedate.format", pattern))))
+          }
+        case _ =>
+          println(s"-----MIGUEL JSError")
+          JsError(Seq(JsPath() -> Seq(JsonValidationError("error.expected.date"))))
+      }
     }
 
     private def parseDate(input: String): Option[Instant] = {
@@ -62,14 +73,49 @@ trait JavaTimeReads {
   /**
     * The default implicit JodaDate reads, using yyyy-MM-dd format
     */
-  val JavaTimeDateReads = javaTimeDateReads("yyyy-MM-dd")
+  val JavaTimeInstantReads = javaTimeInstantReads("yyyy-MM-dd")
 
   /**
     * The default implicit JodaDate reads, using ISO-8601 format
     */
-  implicit val DefaultJavaTimeDateTimeReads = javaTimeDateReads("")
+  implicit val DefaultJavaTimeInstantReads = javaTimeInstantReads("")
 
-//  /**
+
+  def javaTimeOffsetDateTimeReads(pattern: String, corrector: String => String = identity): Reads[OffsetDateTime] = new Reads[OffsetDateTime] {
+    // TODO MIGUEL: Not sure if it is the same
+    //    val df = if (pattern == "") ISODateTimeFormat.dateOptionalTimeParser else DateTimeFormat.forPattern(pattern)
+    //val df = if (pattern == "") java.time.format.DateTimeFormatter.ISO_DATE_TIME else java.time.format.DateTimeFormatter.ofPattern(pattern)
+
+    def reads(json: JsValue): JsResult[OffsetDateTime] = json match {
+      case JsNumber(d) => JsSuccess(Instant.ofEpochMilli(d.toLong).atOffset(ZoneOffset.UTC))
+      case JsString(s) =>
+        parseDate(corrector(s)) match {
+          case Some(d) => JsSuccess(d)
+          case _ => JsError(Seq(JsPath() -> Seq(JsonValidationError("error.expected.javatimedate.format", pattern))))
+        }
+      case _ => JsError(Seq(JsPath() -> Seq(JsonValidationError("error.expected.date"))))
+    }
+
+    private def parseDate(input: String): Option[OffsetDateTime] = {
+      //scala.util.control.Exception.nonFatalCatch[Instant].opt(Instant.parse(input, df))
+      // TODO MIGUEL: It users ISO_INSTANT
+      scala.util.control.Exception.nonFatalCatch[OffsetDateTime].opt(Instant.parse(input).atOffset(ZoneOffset.UTC))
+    }
+  }
+
+  /**
+    * The default implicit JodaDate reads, using yyyy-MM-dd format
+    */
+  val JavaTimeOffsetDateTimeReads = javaTimeOffsetDateTimeReads("yyyy-MM-dd")
+
+  /**
+    * The default implicit JodaDate reads, using ISO-8601 format
+    */
+  implicit val DefaultJavaTimeOffsetDateTimeReads = javaTimeOffsetDateTimeReads("")
+
+
+
+  //  /**
 //    * Reads for the `org.joda.time.LocalDate` type.
 //    *
 //    * @param pattern a date pattern, as specified in `org.joda.time.format.DateTimeFormat`, or "" to use ISO format.
