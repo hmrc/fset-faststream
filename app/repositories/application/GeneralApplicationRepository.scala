@@ -1225,11 +1225,13 @@ val submissionDeadline = doc.get("submissionDeadline").map( sd => Codecs.fromBso
     collection.countDocuments(query).head()
   }
 
+  //override def getProgressStatusTimestamps(applicationId: String): Future[List[(String, OffsetDateTime)]] = {
   override def getProgressStatusTimestamps(applicationId: String): Future[List[(String, OffsetDateTime)]] = {
     val query = Document("applicationId" -> applicationId)
     val projection = Projections.include("progress-status-timestamp")
 
     import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+    import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.Implicits._
 
     import scala.collection.JavaConverters._
 
@@ -1243,7 +1245,9 @@ val submissionDeadline = doc.get("submissionDeadline").map( sd => Codecs.fromBso
           convertedTimestamps.map { element =>
             println(s"----MIGUEL2 getProgressStatusTimestamps element $element")
 
-            element.getKey -> Codecs.fromBson[OffsetDateTime](element.getValue)
+//            element.getKey -> Codecs.fromBson[OffsetDateTime](element.getValue)
+            // TODO MIGUEL:
+            element.getKey -> Codecs.fromBson[Instant](element.getValue).atOffset(ZoneOffset.UTC)
           }.toList
         }.getOrElse(Nil)
       case _ => {
