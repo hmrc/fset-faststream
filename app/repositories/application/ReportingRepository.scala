@@ -477,7 +477,6 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2, // 
       "applicationId" -> true,
       "applicationStatus" -> true,
       "applicationRoute" -> true,
-      "personal-details" -> true,
       "progress-status" -> true,
       "progress-status-dates" -> true,
       "progress-status-timestamp" -> true,
