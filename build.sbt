@@ -36,7 +36,6 @@ lazy val microservice = Project(appName, file("."))
   .settings(majorVersion := 1)
   .settings(playSettings : _*)
   .settings(scalaSettings: _*)
-  .settings(publishingSettings)
   .settings(defaultSettings(): _*)
   .settings(playDefaultPort := 8101)
   .settings(

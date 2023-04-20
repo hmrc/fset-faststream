@@ -18,7 +18,7 @@ package scheduler.onlinetesting
 
 import factories.UUIDFactory
 import model.Phase
-import model.exchange.passmarksettings.PassMarkSettings
+import model.exchange.passmarksettings.{PassMarkSettings, PassMarkSettingsPersistence}
 import model.persisted.{ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult}
 import play.api.Logging
 import play.api.libs.json.Format
@@ -28,7 +28,7 @@ import services.passmarksettings.PassMarkSettingsService
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait EvaluateOnlineTestResultService[T <: PassMarkSettings] extends ApplicationStatusCalculator with Logging {
+trait EvaluateOnlineTestResultService[T <: PassMarkSettingsPersistence] extends ApplicationStatusCalculator with Logging {
   this: PassMarkSettingsService[T] =>
 
   val evaluationRepository: OnlineTestEvaluationRepository

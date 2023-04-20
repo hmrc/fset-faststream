@@ -23,7 +23,7 @@ import factories.UUIDFactory
 
 import javax.inject.{Inject, Singleton}
 import model.Phase
-import model.exchange.passmarksettings.Phase3PassMarkSettings
+import model.exchange.passmarksettings.{Phase3PassMarkSettings, Phase3PassMarkSettingsPersistence}
 import model.persisted.ApplicationReadyForEvaluation
 import play.api.Logging
 import repositories.application.GeneralApplicationRepository
@@ -41,13 +41,13 @@ class EvaluatePhase3ResultService @Inject() (@Named("Phase3EvaluationRepository"
                                              appConfig: MicroserviceAppConfig,
                                              val uuidFactory: UUIDFactory
                                             )(implicit ec: ExecutionContext)
-  extends EvaluateOnlineTestResultService[Phase3PassMarkSettings] with Phase3TestEvaluation
-  with PassMarkSettingsService[Phase3PassMarkSettings] with ApplicationStatusCalculator with CurrentSchemeStatusHelper with Logging {
+  extends EvaluateOnlineTestResultService[Phase3PassMarkSettingsPersistence] with Phase3TestEvaluation
+  with PassMarkSettingsService[Phase3PassMarkSettingsPersistence] with ApplicationStatusCalculator with CurrentSchemeStatusHelper with Logging {
 
   val phase = Phase.PHASE3
   val launchpadGWConfig = appConfig.launchpadGatewayConfig
 
-  def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase3PassMarkSettings): Future[Unit] = {
+  def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase3PassMarkSettingsPersistence): Future[Unit] = {
     logger.warn(s"Evaluating Phase3 appId=${application.applicationId}")
 
     val optLaunchpadTest = application.activeLaunchpadTest

@@ -6,7 +6,7 @@ import model.ApplicationStatus._
 import model.EvaluationResults.CompetencyAverageResult
 import model._
 import model.assessmentscores._
-import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
+import model.exchange.passmarksettings.{AssessmentCentrePassMarkSettings, AssessmentCentrePassMarkSettingsPersistence}
 import model.persisted.SchemeEvaluationResult
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
@@ -122,12 +122,12 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
     logger.info(s"$prefix executing suites found in directory = $suiteName...")
 
     // Reads the passmarkSettings.conf file
-    def loadPassmarkSettings: AssessmentCentrePassMarkSettings = {
+    def loadPassmarkSettings: AssessmentCentrePassMarkSettingsPersistence = {
       val passmarkSettingsFile = new File(suiteName.getAbsolutePath + "/" + PassmarkSettingsFile)
 
       require(passmarkSettingsFile.exists(), s"Pass mark settings file does not exist: ${passmarkSettingsFile.getAbsolutePath}")
       val passmarkSettingsJson = Json.parse(Source.fromFile(passmarkSettingsFile).getLines().mkString)
-      passmarkSettingsJson.as[AssessmentCentrePassMarkSettings]
+      passmarkSettingsJson.as[AssessmentCentrePassMarkSettings].toPersistence
     }
 
     // Returns all suite files, ignoring the config file (passmarkSettings.conf)
@@ -149,7 +149,7 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
 
   // Execute a single test suite file (which may consist of several test cases within it)
   private def executeTestCases(testSuite: File,
-                               passmarks: AssessmentCentrePassMarkSettings) = {
+                               passmarks: AssessmentCentrePassMarkSettingsPersistence) = {
     logger.info(s"$prefix START: Processing test suite: ${testSuite.getAbsolutePath}")
 
     if (DebugRunTestSuitePathPatternOnly.isEmpty || testSuite.getAbsolutePath.contains(DebugRunTestSuitePathPatternOnly.get)) {

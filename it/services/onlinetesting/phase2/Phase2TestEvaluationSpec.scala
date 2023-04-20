@@ -74,7 +74,7 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     )
     // format: ON
 
-    var phase2PassMarkSettings: Phase2PassMarkSettings = _
+    var phase2PassMarkSettings: Phase2PassMarkSettingsPersistence = _
 
     var applicationReadyForEvaluation: ApplicationReadyForEvaluation = _
 
@@ -119,7 +119,7 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     }
 
     private def createPhase2PassMarkSettings(phase2PassMarkSettingsTable:
-                                             TableFor5[SchemeId, Double, Double, Double, Double]): Future[Phase2PassMarkSettings] = {
+                                             TableFor5[SchemeId, Double, Double, Double, Double]): Future[Phase2PassMarkSettingsPersistence] = {
       val schemeThresholds = phase2PassMarkSettingsTable.map {
         case (schemeName, test1FailThreshold, test1PassThreshold, test2FailThreshold, test2PassThreshold) =>
           Phase2PassMark(
@@ -131,7 +131,7 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
           )
       }.toList
 
-      val phase2PassMarkSettings = Phase2PassMarkSettings(
+      val phase2PassMarkSettings = Phase2PassMarkSettingsPersistence(
         schemeThresholds,
         "version-1",
         DateTime.now,

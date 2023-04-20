@@ -35,7 +35,7 @@ class EvaluatePhase3ResultJobSpec extends UnitWithAppSpec {
 
   "Scheduler execution" should {
     "evaluate applications ready for evaluation" in new TestFixture {
-      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase3PassMarkSettings]], any[ExecutionContext]))
+      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase3PassMarkSettingsPersistence]], any[ExecutionContext]))
         .thenReturn(Future.successful(Some((apps.toList, passmark))))
 
       scheduler.tryExecute().futureValue
@@ -43,7 +43,7 @@ class EvaluatePhase3ResultJobSpec extends UnitWithAppSpec {
     }
 
     "evaluate all applications even when some of them fail" in new TestFixture {
-      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase3PassMarkSettings]], any[ExecutionContext]))
+      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase3PassMarkSettingsPersistence]], any[ExecutionContext]))
         .thenReturn(Future.successful(Some((apps.toList, passmark))))
       when(mockEvaluateService.evaluate(apps(0), passmark)).thenReturn(Future.failed(new IllegalStateException("first application fails")))
       when(mockEvaluateService.evaluate(apps(5), passmark)).thenReturn(Future.failed(new Exception("fifth application fails")))
@@ -55,16 +55,16 @@ class EvaluatePhase3ResultJobSpec extends UnitWithAppSpec {
     }
 
     "do not evaluate candidate if none of them are ready to evaluate" in new TestFixture {
-      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase3PassMarkSettings]], any[ExecutionContext]))
+      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase3PassMarkSettingsPersistence]], any[ExecutionContext]))
         .thenReturn(Future.successful(None))
       scheduler.tryExecute().futureValue
 
-      verify(mockEvaluateService, never).evaluate(any[ApplicationReadyForEvaluation], any[Phase3PassMarkSettings])
+      verify(mockEvaluateService, never).evaluate(any[ApplicationReadyForEvaluation], any[Phase3PassMarkSettingsPersistence])
     }
   }
 
   trait TestFixture {
-    val mockEvaluateService = mock[EvaluateOnlineTestResultService[Phase3PassMarkSettings]]
+    val mockEvaluateService = mock[EvaluateOnlineTestResultService[Phase3PassMarkSettingsPersistence]]
     val profile = Phase3TestProfileExamples.phase3Test
     val schemes = SelectedSchemesExamples.TwoSchemes
     val passmark = Phase3PassMarkSettingsExamples.passmark
@@ -78,7 +78,7 @@ class EvaluatePhase3ResultJobSpec extends UnitWithAppSpec {
       when(mockEvaluateService.evaluate(app, passmark)).thenReturn(Future.successful(()))
     }
 
-    lazy val scheduler = new EvaluateOnlineTestResultJob[Phase3PassMarkSettings] {
+    lazy val scheduler = new EvaluateOnlineTestResultJob[Phase3PassMarkSettingsPersistence] {
       val phase = Phase.PHASE3
       val evaluateService = mockEvaluateService
       override val mongoComponent = mock[MongoComponent]

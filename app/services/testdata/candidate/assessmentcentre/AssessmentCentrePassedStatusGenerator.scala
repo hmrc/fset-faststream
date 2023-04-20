@@ -45,7 +45,7 @@ class AssessmentCentrePassedStatusGenerator @Inject() (val previousStatusGenerat
               (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {
 
     val schemes = schemeRepository.schemes.map(_.id).toList
-    val dummyPassmarks = AssessmentCentrePassMarkSettings(
+    val dummyPassmarks = AssessmentCentrePassMarkSettingsPersistence(
       schemes.map(schemeId =>
         AssessmentCentrePassMark(schemeId, AssessmentCentrePassMarkThresholds(
           seeingTheBigPicture = PassMarkThreshold(0.2, 0.4),

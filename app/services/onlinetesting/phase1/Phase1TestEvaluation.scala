@@ -18,24 +18,24 @@ package services.onlinetesting.phase1
 
 import model.EvaluationResults.Green
 import model.SchemeId
-import model.exchange.passmarksettings.Phase1PassMarkSettings
-import model.persisted.{ PsiTestResult, SchemeEvaluationResult }
+import model.exchange.passmarksettings.{Phase1PassMarkSettings, Phase1PassMarkSettingsPersistence}
+import model.persisted.{PsiTestResult, SchemeEvaluationResult}
 import services.onlinetesting.OnlineTestResultsCalculator
 
 trait Phase1TestEvaluation extends OnlineTestResultsCalculator {
 
   def evaluateForGis(schemes: List[SchemeId], test1Result: PsiTestResult, test4Result: PsiTestResult,
-                     passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
+                     passmark: Phase1PassMarkSettingsPersistence): List[SchemeEvaluationResult] = {
     evaluate(isGis = true, schemes, passmark, test1Result, None, None, test4Result)
   }
 
   def evaluateForNonGis(schemes: List[SchemeId], test1Result: PsiTestResult, test2Result: PsiTestResult,
                         test3Result: PsiTestResult, test4Result: PsiTestResult,
-                        passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
+                        passmark: Phase1PassMarkSettingsPersistence): List[SchemeEvaluationResult] = {
     evaluate(isGis = false, schemes, passmark, test1Result, Some(test2Result), Some(test3Result), test4Result)
   }
 
-  private def evaluate(isGis: Boolean, schemes: List[SchemeId], passmark: Phase1PassMarkSettings,
+  private def evaluate(isGis: Boolean, schemes: List[SchemeId], passmark: Phase1PassMarkSettingsPersistence,
                        test1Result: PsiTestResult, test2ResultOpt: Option[PsiTestResult] = None,
                        test3ResultOpt: Option[PsiTestResult] = None, test4Result: PsiTestResult) = {
     for {

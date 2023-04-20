@@ -18,8 +18,6 @@ package model.exchange.passmarksettings
 
 import model.SchemeId
 import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.Json
 
 trait PassMarkSettings {
@@ -27,6 +25,29 @@ trait PassMarkSettings {
   def version: String
   def createDate: DateTime
   def createdBy: String
+  def toPersistence: PassMarkSettingsPersistence
+}
+
+trait PassMarkSettingsPersistence {
+  def schemes: List[PassMark]
+  def version: String
+  def createDate: DateTime
+  def createdBy: String
+  def toExchange: PassMarkSettings
+}
+
+case class Phase1PassMarkSettingsPersistence(
+  schemes: List[Phase1PassMark],
+  version: String,
+  createDate: DateTime,
+  createdBy: String
+) extends PassMarkSettingsPersistence {
+  override def toExchange = Phase1PassMarkSettings(schemes, version, createDate, createdBy)
+}
+
+object Phase1PassMarkSettingsPersistence {
+  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format in Mongo
+  implicit val jsonFormat = Json.format[Phase1PassMarkSettingsPersistence]
 }
 
 case class Phase1PassMarkSettings(
@@ -34,20 +55,22 @@ case class Phase1PassMarkSettings(
   version: String,
   createDate: DateTime,
   createdBy: String
-) extends PassMarkSettings
+) extends PassMarkSettings {
+  override def toPersistence = Phase1PassMarkSettingsPersistence(schemes, version, createDate, createdBy)
+}
 
 object Phase1PassMarkSettings {
-  // Do not remove this as it is needed to serialize the date as epoch millis
-  import model.persisted.Play25DateCompatibility.epochMillisDateFormat
+  import play.api.libs.json.JodaWrites._ // This is needed for request/response DateTime serialization
+  import play.api.libs.json.JodaReads._ // This is needed for request/response DateTime serialization
   implicit val jsonFormat = Json.format[Phase1PassMarkSettings]
 
-  def merge(oldPassMarkSettings: Option[Phase1PassMarkSettings],
-            newPassMarkSettings: Phase1PassMarkSettings): Phase1PassMarkSettings = {
-    def toMap(passmark: Phase1PassMarkSettings) = passmark.schemes.groupBy(_.schemeId).view.mapValues { v =>
+  def merge(oldPassMarkSettings: Option[Phase1PassMarkSettingsPersistence],
+            newPassMarkSettings: Phase1PassMarkSettingsPersistence): Phase1PassMarkSettingsPersistence = {
+    def toMap(passmark: Phase1PassMarkSettingsPersistence) = passmark.schemes.groupBy(_.schemeId).view.mapValues { v =>
       require(v.size == 1, s"Scheme name must be non empty and must be unique: ${v.mkString(",")}")
       v.head
     }.toMap
-    def toSchemeNames(passmark: Phase1PassMarkSettings) = passmark.schemes.map(_.schemeId)
+    def toSchemeNames(passmark: Phase1PassMarkSettingsPersistence) = passmark.schemes.map(_.schemeId)
 
     oldPassMarkSettings match {
       case Some(latest) =>
@@ -75,12 +98,28 @@ case class Phase2PassMarkSettings(
   version: String,
   createDate: DateTime,
   createdBy: String
-) extends PassMarkSettings
+) extends PassMarkSettings {
+  override def toPersistence = Phase2PassMarkSettingsPersistence(schemes, version, createDate, createdBy)
+}
 
 object Phase2PassMarkSettings {
-  // Do not remove this as it is needed to serialize the date as epoch millis
-  import model.persisted.Play25DateCompatibility.epochMillisDateFormat
+  import play.api.libs.json.JodaWrites._ // This is needed for request/response DateTime serialization
+  import play.api.libs.json.JodaReads._ // This is needed for request/response DateTime serialization
   implicit val jsonFormat = Json.format[Phase2PassMarkSettings]
+}
+
+case class Phase2PassMarkSettingsPersistence(
+                                   schemes: List[Phase2PassMark],
+                                   version: String,
+                                   createDate: DateTime,
+                                   createdBy: String
+                                 ) extends PassMarkSettingsPersistence {
+  override def toExchange = Phase2PassMarkSettings(schemes, version, createDate, createdBy)
+}
+
+object Phase2PassMarkSettingsPersistence {
+  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format in Mongo
+  implicit val jsonFormat = Json.format[Phase2PassMarkSettingsPersistence]
 }
 
 case class Phase3PassMarkSettings(
@@ -88,12 +127,28 @@ case class Phase3PassMarkSettings(
   version: String,
   createDate: DateTime,
   createdBy: String
-) extends PassMarkSettings
+) extends PassMarkSettings {
+  override def toPersistence = Phase3PassMarkSettingsPersistence(schemes, version, createDate, createdBy)
+}
 
 object Phase3PassMarkSettings {
-  // Do not remove this as it is needed to serialize the date as epoch millis
-  import model.persisted.Play25DateCompatibility.epochMillisDateFormat
+  import play.api.libs.json.JodaWrites._ // This is needed for request/response DateTime serialization
+  import play.api.libs.json.JodaReads._ // This is needed for request/response DateTime serialization
   implicit val jsonFormat = Json.format[Phase3PassMarkSettings]
+}
+
+case class Phase3PassMarkSettingsPersistence(
+                                              schemes: List[Phase3PassMark],
+                                              version: String,
+                                              createDate: DateTime,
+                                              createdBy: String
+                                            ) extends PassMarkSettingsPersistence {
+  override def toExchange = Phase3PassMarkSettings(schemes, version, createDate, createdBy)
+}
+
+object Phase3PassMarkSettingsPersistence {
+  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format in Mongo
+  implicit val jsonFormat = Json.format[Phase3PassMarkSettingsPersistence]
 }
 
 case class AssessmentCentrePassMarkSettings(
@@ -102,13 +157,29 @@ case class AssessmentCentrePassMarkSettings(
                                    createDate: DateTime,
                                    createdBy: String
                                  ) extends PassMarkSettings {
-  // Only display pass marks for the Commercial scheme to reduce the amount we log
-  def abbreviated = s"schemes=${schemes.filter(s => s.schemeId == SchemeId("Commercial"))},<<truncated>>" +
-    s"version=$version,createDate=$createDate,createdBy=$createdBy"
+  override def toPersistence = AssessmentCentrePassMarkSettingsPersistence(schemes, version, createDate, createdBy)
 }
 
 object AssessmentCentrePassMarkSettings {
-  // Do not remove this as it is needed to serialize the date as epoch millis
-  import model.persisted.Play25DateCompatibility.epochMillisDateFormat
+  import play.api.libs.json.JodaWrites._ // This is needed for request/response DateTime serialization
+  import play.api.libs.json.JodaReads._ // This is needed for request/response DateTime serialization
   implicit val jsonFormat = Json.format[AssessmentCentrePassMarkSettings]
+}
+
+case class AssessmentCentrePassMarkSettingsPersistence(
+                                              schemes: List[AssessmentCentrePassMark],
+                                              version: String,
+                                              createDate: DateTime,
+                                              createdBy: String
+                                            ) extends PassMarkSettingsPersistence {
+  // Only display pass marks for the Commercial scheme to reduce the amount we log
+  def abbreviated = s"schemes=${schemes.filter(s => s.schemeId == SchemeId("Commercial"))},<<truncated>>" +
+    s"version=$version,createDate=$createDate,createdBy=$createdBy"
+
+  override def toExchange = AssessmentCentrePassMarkSettings(schemes, version, createDate, createdBy)
+}
+
+object AssessmentCentrePassMarkSettingsPersistence {
+  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format in Mongo
+  implicit val jsonFormat = Json.format[AssessmentCentrePassMarkSettingsPersistence]
 }

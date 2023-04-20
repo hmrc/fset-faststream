@@ -20,7 +20,7 @@ import com.google.inject.name.Named
 import config.MicroserviceAppConfig
 import factories.UUIDFactory
 import model.Phase
-import model.exchange.passmarksettings.Phase2PassMarkSettings
+import model.exchange.passmarksettings.{Phase2PassMarkSettings, Phase2PassMarkSettingsPersistence}
 import model.persisted.{ApplicationReadyForEvaluation, PsiTestResult}
 import play.api.Logging
 import repositories.application.GeneralApplicationRepository
@@ -40,13 +40,13 @@ class EvaluatePhase2ResultService @Inject() (@Named("Phase2EvaluationRepository"
                                              appConfig: MicroserviceAppConfig,
                                              val uuidFactory: UUIDFactory
                                             )(implicit ec: ExecutionContext)
-  extends EvaluateOnlineTestResultService[Phase2PassMarkSettings] with Phase2TestSelector
-  with Phase2TestEvaluation with PassMarkSettingsService[Phase2PassMarkSettings] with CurrentSchemeStatusHelper with Logging {
+  extends EvaluateOnlineTestResultService[Phase2PassMarkSettingsPersistence] with Phase2TestSelector
+  with Phase2TestEvaluation with PassMarkSettingsService[Phase2PassMarkSettingsPersistence] with CurrentSchemeStatusHelper with Logging {
 
   val phase = Phase.PHASE2
   val gatewayConfig = appConfig.onlineTestsGatewayConfig
 
-  def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase2PassMarkSettings): Future[Unit] = {
+  def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase2PassMarkSettingsPersistence): Future[Unit] = {
     logger.warn(s"Evaluating phase2 appId=${application.applicationId}")
 
     val activeTests = application.activePsiTests
@@ -68,7 +68,7 @@ class EvaluatePhase2ResultService @Inject() (@Named("Phase2EvaluationRepository"
   }
 
   private def getSchemeResults(test1ResultOpt: Option[PsiTestResult], test2ResultOpt: Option[PsiTestResult])
-                              (implicit application: ApplicationReadyForEvaluation, passmark: Phase2PassMarkSettings) = {
+                              (implicit application: ApplicationReadyForEvaluation, passmark: Phase2PassMarkSettingsPersistence) = {
     val schemeResults = (test1ResultOpt, test2ResultOpt, application.prevPhaseEvaluation) match {
       case (Some(test1Result), Some(test2Result), Some(prevPhaseEvaluation)) =>
         evaluate(application.preferences.schemes, test1Result, test2Result, prevPhaseEvaluation.result, passmark)

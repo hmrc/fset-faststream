@@ -51,9 +51,9 @@ class ReportingControllerSpec extends UnitWithAppSpec {
   "Reporting controller create adjustment report" must {
     "return the adjustment report when we execute adjustment reports" in new TestFixture {
       when(mockContactDetailsRepository.findAll).thenReturn(Future.successful(List(
-        ContactDetailsWithId("1", Address("First Line", None, None, None), Some("HP18 9DN"), outsideUk = false, "joe@bloggs.com", None),
-        ContactDetailsWithId("2", Address("First Line", None, None, None), Some("HP18 9DN"), outsideUk = false, "joe@bloggs.com", None),
-        ContactDetailsWithId("3", Address("First Line", None, None, None), Some("HP18 9DN"), outsideUk = false, "joe@bloggs.com", None)
+        ContactDetailsWithId("1", Address("First Line", None, None, None), Some("HP18 9DN"), outsideUk = false, "joe@bloggs.com", phone = None),
+        ContactDetailsWithId("2", Address("First Line", None, None, None), Some("HP18 9DN"), outsideUk = false, "joe@bloggs.com", phone = None),
+        ContactDetailsWithId("3", Address("First Line", None, None, None), Some("HP18 9DN"), outsideUk = false, "joe@bloggs.com", phone = None)
       )))
       when(mockReportingRepository.adjustmentReport(frameworkId)).thenReturn(SuccessfulAdjustmentReportResponse)
       val controller = testableReportingController

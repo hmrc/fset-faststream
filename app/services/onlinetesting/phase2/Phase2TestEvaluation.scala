@@ -18,15 +18,15 @@ package services.onlinetesting.phase2
 
 import model.EvaluationResults.Result
 import model.SchemeId
-import model.exchange.passmarksettings.Phase2PassMarkSettings
-import model.persisted.{ PsiTestResult, SchemeEvaluationResult }
+import model.exchange.passmarksettings.{Phase2PassMarkSettings, Phase2PassMarkSettingsPersistence}
+import model.persisted.{PsiTestResult, SchemeEvaluationResult}
 import services.onlinetesting.OnlineTestResultsCalculator
 
 trait Phase2TestEvaluation extends OnlineTestResultsCalculator {
 
   def evaluate(schemes: List[SchemeId], test1Result: PsiTestResult, test2Result: PsiTestResult,
                phase1SchemesEvaluation: List[SchemeEvaluationResult],
-               passmark: Phase2PassMarkSettings): List[SchemeEvaluationResult] = {
+               passmark: Phase2PassMarkSettingsPersistence): List[SchemeEvaluationResult] = {
     for {
       schemeToEvaluate <- schemes
       schemePassmark <- passmark.schemes find (_.schemeId == schemeToEvaluate)

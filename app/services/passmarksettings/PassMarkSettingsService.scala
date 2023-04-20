@@ -26,13 +26,13 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class Phase1PassMarkSettingsService @Inject() (val passMarkSettingsRepo: Phase1PassMarkSettingsMongoRepository)(implicit ec: ExecutionContext)
-  extends PassMarkSettingsService[Phase1PassMarkSettings] {
+  extends PassMarkSettingsService[Phase1PassMarkSettingsPersistence] {
 
-  override def createPassMarkSettings(passMarkSettings: Phase1PassMarkSettings)(
-    implicit jsonFormat: Format[Phase1PassMarkSettings], ec: ExecutionContext): Future[PassMarkSettingsCreateResponse] = {
+  override def createPassMarkSettings(passMarkSettingsPersistence: Phase1PassMarkSettingsPersistence)(
+    implicit jsonFormat: Format[Phase1PassMarkSettingsPersistence], ec: ExecutionContext): Future[PassMarkSettingsCreateResponse] = {
     for {
       latestPassMarkSettingsOpt <- getLatestPassMarkSettings
-      merged = Phase1PassMarkSettings.merge(latestPassMarkSettingsOpt, passMarkSettings)
+      merged = Phase1PassMarkSettings.merge(latestPassMarkSettingsOpt, passMarkSettingsPersistence)
       response <- super.createPassMarkSettings(merged)
     } yield response
   }
@@ -40,23 +40,23 @@ class Phase1PassMarkSettingsService @Inject() (val passMarkSettingsRepo: Phase1P
 
 @Singleton
 class Phase2PassMarkSettingsService @Inject() (val passMarkSettingsRepo: Phase2PassMarkSettingsMongoRepository)
-  extends PassMarkSettingsService[Phase2PassMarkSettings] {
+  extends PassMarkSettingsService[Phase2PassMarkSettingsPersistence] {
 }
 
 @Singleton
 class Phase3PassMarkSettingsService @Inject() (val passMarkSettingsRepo: Phase3PassMarkSettingsMongoRepository)
-  extends PassMarkSettingsService[Phase3PassMarkSettings] {
+  extends PassMarkSettingsService[Phase3PassMarkSettingsPersistence] {
 }
 
 @Singleton
 class AssessmentCentrePassMarkSettingsService @Inject() (val passMarkSettingsRepo: AssessmentCentrePassMarkSettingsMongoRepository)(
-  implicit ec: ExecutionContext) extends PassMarkSettingsService[AssessmentCentrePassMarkSettings] {
+  implicit ec: ExecutionContext) extends PassMarkSettingsService[AssessmentCentrePassMarkSettingsPersistence] {
 }
 
-trait PassMarkSettingsService[T <: PassMarkSettings] {
+trait PassMarkSettingsService[T <: PassMarkSettingsPersistence] {
   val passMarkSettingsRepo: PassMarkSettingsRepository[T]
 
   def getLatestPassMarkSettings(implicit jsonFormat: Format[T]): Future[Option[T]] = passMarkSettingsRepo.getLatestVersion
-  def createPassMarkSettings(passMarkSettings: T)(implicit jsonFormat: Format[T], ec: ExecutionContext):Future[PassMarkSettingsCreateResponse]
+  def createPassMarkSettings(passMarkSettings: T)(implicit jsonFormat: Format[T], ec: ExecutionContext): Future[PassMarkSettingsCreateResponse]
   = passMarkSettingsRepo.create(passMarkSettings)
 }

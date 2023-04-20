@@ -27,7 +27,7 @@ import model._
 import model.assessmentscores.{AssessmentScoresExercise, FixUserStuckInScoresAccepted}
 import model.command.ApplicationForProgression
 import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
-import model.exchange.passmarksettings.AssessmentCentrePassMarkSettings
+import model.exchange.passmarksettings.{AssessmentCentrePassMarkSettings, AssessmentCentrePassMarkSettingsPersistence}
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.{AnalysisExercise, AssessmentCentreTests}
 import play.api.Logging
@@ -85,7 +85,7 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
     }
   }
 
-  private def commonProcessApplicationIds(applicationIds: Seq[UniqueIdentifier], passmark: AssessmentCentrePassMarkSettings) = {
+  private def commonProcessApplicationIds(applicationIds: Seq[UniqueIdentifier], passmark: AssessmentCentrePassMarkSettingsPersistence) = {
     applicationIds match {
       case appIds if appIds.nonEmpty =>
         logger.warn(
@@ -113,7 +113,7 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
 
   // Find existing evaluation data: 1. assessment centre pass marks, 2. the schemes to evaluate and 3. the scores awarded by the reviewer
   def tryToFindEvaluationData(appId: UniqueIdentifier,
-                              passmark: AssessmentCentrePassMarkSettings): Future[Option[AssessmentPassMarksSchemesAndScores]] = {
+                              passmark: AssessmentCentrePassMarkSettingsPersistence): Future[Option[AssessmentPassMarksSchemesAndScores]] = {
 
     def filterSchemesToEvaluate(schemeList: Seq[SchemeEvaluationResult]) = {
       schemeList.filterNot( schemeEvaluationResult =>

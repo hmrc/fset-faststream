@@ -211,7 +211,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     )
     // format: ON
 
-    var phase3PassMarkSettings: Phase3PassMarkSettings = createPhase3PassMarkSettings(phase3PassMarkSettingsTable)
+    var phase3PassMarkSettings: Phase3PassMarkSettingsPersistence = createPhase3PassMarkSettings(phase3PassMarkSettingsTable)
 
     var applicationReadyForEvaluation: ApplicationReadyForEvaluation = _
 
@@ -253,13 +253,13 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     }
 
     private def createPhase3PassMarkSettings(phase3PassMarkSettingsTable:
-                                             TableFor3[SchemeId, Double, Double]): Phase3PassMarkSettings = {
+                                             TableFor3[SchemeId, Double, Double]): Phase3PassMarkSettingsPersistence = {
       val schemeThresholds = phase3PassMarkSettingsTable.map {
         fields => Phase3PassMark(fields._1,
           Phase3PassMarkThresholds(PassMarkThreshold(fields._2, fields._3)))
       }.toList
 
-      val phase3PassMarkSettings = Phase3PassMarkSettings(
+      val phase3PassMarkSettings = Phase3PassMarkSettingsPersistence(
         schemeThresholds,
         "version-1",
         DateTime.now,

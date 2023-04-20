@@ -22,10 +22,10 @@ import model.SchemeId
 import org.joda.time.DateTime
 
 object Phase1PassMarkSettingsExamples {
-  def passmark(implicit now: DateTime) = Phase1PassMarkSettings(List(), "version", now, "userId")
+  def passmark(implicit now: DateTime) = Phase1PassMarkSettingsPersistence(List(), "version", now, "userId")
 
   def passMarkSettings(schemes: List[(SchemeId, Double, Double)])(implicit now: DateTime) =
-    Phase1PassMarkSettings(schemes.map { case (s, fail, pass) => createPhase1PassMark(s, fail, pass) },
+    Phase1PassMarkSettingsPersistence(schemes.map { case (s, fail, pass) => createPhase1PassMark(s, fail, pass) },
       UUID.randomUUID().toString, now, "userId")
 
   def createPhase1PassMark(schemeName: SchemeId, fail: Double, pass: Double) = {
