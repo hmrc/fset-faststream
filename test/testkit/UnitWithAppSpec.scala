@@ -42,7 +42,7 @@ trait WithAppSpec extends GuiceOneAppPerSuite with Results with FutureHelper wit
   override implicit lazy val app: Application = new GuiceApplicationBuilder()
     .disable[PlayModule]
 //    .disable[ReactiveMongoHmrcModule] TODO: mongo fix me
-    .build
+    .build()
 
   implicit def materializer: Materializer = Play.materializer(app)
 

@@ -69,7 +69,7 @@ class ApplicationController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def findByApplicationId(applicationId: String) = Action.async { implicit request =>
+  def findByApplicationId(applicationId: String) = Action.async {
     appRepository.find(applicationId).map { app =>
       Ok(Json.toJson(UserIdResponse(app.map(_.userId).getOrElse(throw CandidateNotFound(applicationId)))))
     }. recover {
@@ -77,7 +77,7 @@ class ApplicationController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def applicationProgress(applicationId: String) = Action.async { implicit request =>
+  def applicationProgress(applicationId: String) = Action.async {
     appRepository.findProgress(applicationId).map { result =>
       Ok(Json.toJson(result))
     }.recover {
@@ -85,7 +85,7 @@ class ApplicationController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def findApplicationStatusDetails(applicationId: String) = Action.async { implicit request =>
+  def findApplicationStatusDetails(applicationId: String) = Action.async {
     appRepository.findStatus(applicationId).map { result =>
       Ok(Json.toJson(result.toExchange))
     }.recover {
@@ -93,7 +93,7 @@ class ApplicationController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def findApplication(userId: String, frameworkId: String) = Action.async { implicit request =>
+  def findApplication(userId: String, frameworkId: String) = Action.async {
     appRepository.findByUserId(userId, frameworkId).map(result =>
       Ok(Json.toJson(result))).recover {
       case e: ApplicationNotFound => NotFound(s"cannot find application for user with id: ${e.id}")
@@ -111,7 +111,7 @@ class ApplicationController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def getPhase3Results(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+  def getPhase3Results(applicationId: String): Action[AnyContent] = Action.async {
     passmarkService.getPassmarkEvaluation(applicationId).map { passmarks =>
       Ok(Json.toJson(passmarks.result))
     } recover {
@@ -119,7 +119,7 @@ class ApplicationController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def getSiftResults(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+  def getSiftResults(applicationId: String): Action[AnyContent] = Action.async {
     siftService.getSiftEvaluations(applicationId).map { passmarks =>
       Ok(Json.toJson(passmarks))
     } recover {
@@ -127,7 +127,7 @@ class ApplicationController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def getCurrentSchemeStatus(applicationId: String) = Action.async { implicit request =>
+  def getCurrentSchemeStatus(applicationId: String) = Action.async {
       applicationService.currentSchemeStatusWithFailureDetails(applicationId).map { currentSchemeStatus =>
         Ok(Json.toJson(currentSchemeStatus))
       }
@@ -160,7 +160,7 @@ class ApplicationController @Inject() (cc: ControllerComponents,
   def uploadAnalysisExercise(applicationId: String, contentType: String) = Action.async(parse.temporaryFile) {
     implicit request =>
       (for {
-        fileId <- uploadRepository.add(contentType, Files.readAllBytes(request.body.file.toPath))
+        fileId <- uploadRepository.add(contentType, Files.readAllBytes(request.body.path))
         _ <- assessmentCentreService.updateAnalysisTest(applicationId, fileId)
       } yield {
         Ok
@@ -176,7 +176,7 @@ class ApplicationController @Inject() (cc: ControllerComponents,
       for {
         assessmentCentreTests <- assessmentCentreService.getTests(applicationId)
         oldFileId = assessmentCentreTests.analysisExercise.map(_.fileId).getOrElse("NONE")
-        newFileId <- uploadRepository.add(contentType, Files.readAllBytes(request.body.file.toPath))
+        newFileId <- uploadRepository.add(contentType, Files.readAllBytes(request.body.path))
         _ <- assessmentCentreService.updateAnalysisTest(applicationId, newFileId, isAdminUpdate = true)
         auditDetails = Map("applicationId" -> applicationId, "oldFileId" -> oldFileId, "newFileId" -> newFileId, "updatedBy" -> updatedBy)
         _ = auditService.logEvent("Analysis exercise updated", auditDetails)
@@ -186,57 +186,53 @@ class ApplicationController @Inject() (cc: ControllerComponents,
   }
 
   def downloadAnalysisExercise(applicationId: String) = Action.async {
-    implicit request =>
-      for {
-        assessmentCentreTests <- assessmentCentreService.getTests(applicationId)
-        analysis = assessmentCentreTests.analysisExercise.getOrElse(throw CandidateHasNoAnalysisExerciseException(applicationId))
-        file <- uploadRepository.retrieve(analysis.fileId)
-      } yield {
-        val inputStream = new ByteArrayInputStream(file.fileContents)
-        val source = StreamConverters.fromInputStream(() => inputStream)
+    for {
+      assessmentCentreTests <- assessmentCentreService.getTests(applicationId)
+      analysis = assessmentCentreTests.analysisExercise.getOrElse(throw CandidateHasNoAnalysisExerciseException(applicationId))
+      file <- uploadRepository.retrieve(analysis.fileId)
+    } yield {
+      val inputStream = new ByteArrayInputStream(file.fileContents)
+      val source = StreamConverters.fromInputStream(() => inputStream)
 
-          Ok.chunked(source).as(file.contentType)
-      }
+        Ok.chunked(source).as(file.contentType)
+    }
   }
 
   def analysisExerciseStatistics: Action[AnyContent] = Action.async {
-    implicit request =>
-      val result = for {
-        allFileInfo <- uploadRepository.retrieveAllIdsAndSizes
-        allApplicationFiles <- appRepository.findAllFileInfo
-      } yield {
-        allApplicationFiles.map { applicationFile =>
-          val matchingFileInfo = allFileInfo.find(_.id == applicationFile.analysisExerciseId)
-            .map(fileInfo => Json.toJson(fileInfo).as[JsObject]).getOrElse(Json.obj("notFoundMatch" -> true))
+    val result = for {
+      allFileInfo <- uploadRepository.retrieveAllIdsAndSizes
+      allApplicationFiles <- appRepository.findAllFileInfo
+    } yield {
+      allApplicationFiles.map { applicationFile =>
+        val matchingFileInfo = allFileInfo.find(_.id == applicationFile.analysisExerciseId)
+          .map(fileInfo => Json.toJson(fileInfo).as[JsObject]).getOrElse(Json.obj("notFoundMatch" -> true))
 
-            Json.toJson(applicationFile).as[JsObject].deepMerge(matchingFileInfo)
-        }
+          Json.toJson(applicationFile).as[JsObject].deepMerge(matchingFileInfo)
       }
+    }
 
-      result.map(_.foldLeft(Json.arr())((a,b) => a.:+(b))).map(Ok(_))
+    result.map(_.foldLeft(Json.arr())((a,b) => a.:+(b))).map(Ok(_))
   }
 
   def hasAnalysisExercise(applicationId: String): Action[AnyContent] = Action.async {
-    implicit request =>
-      for {
-        assessmentCentreTests <- assessmentCentreService.getTests(applicationId)
-        analysis = assessmentCentreTests.analysisExercise
-      } yield {
-        Ok(Json.toJson(analysis.nonEmpty))
-      }
+    for {
+      assessmentCentreTests <- assessmentCentreService.getTests(applicationId)
+      analysis = assessmentCentreTests.analysisExercise
+    } yield {
+      Ok(Json.toJson(analysis.nonEmpty))
+    }
   }
 
   def retrieveAnalysisExerciseInfo(applicationId: String): Action[AnyContent] = Action.async {
-    implicit request =>
-      for {
-        assessmentCentreTests <- assessmentCentreService.getTests(applicationId)
-        analysis = assessmentCentreTests.analysisExercise
-      } yield {
-        Ok(Json.toJson(analysis))
-      }
+    for {
+      assessmentCentreTests <- assessmentCentreService.getTests(applicationId)
+      analysis = assessmentCentreTests.analysisExercise
+    } yield {
+      Ok(Json.toJson(analysis))
+    }
   }
 
-  def analysisExerciseFileMetadata(fileId: String): Action[AnyContent] = Action.async { implicit request =>
+  def analysisExerciseFileMetadata(fileId: String): Action[AnyContent] = Action.async {
     uploadRepository.retrieveMetaData(fileId).map(f => Ok(Json.toJson(f)))
   }
 
@@ -260,25 +256,24 @@ class ApplicationController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def findCandidatesByApplicationIds(applicationIds: List[String]) = Action.async { implicit request =>
+  def findCandidatesByApplicationIds(applicationIds: List[String]) = Action.async {
     appRepository.find(applicationIds).map { candidates =>
       Ok(Json.toJson(candidates))
     }
   }
 
   def getFsacEvaluationResultAverages(applicationId: String) = Action.async {
-    implicit request =>
-      for {
-        averagesOpt <- assessmentCentreService.getFsacEvaluationResultAverages(applicationId)
-      } yield {
-        averagesOpt match {
-          case Some(averages) => Ok(Json.toJson(averages))
-          case None => NotFound(s"Cannot find evaluation averages for applicationId: $applicationId")
-        }
+    for {
+      averagesOpt <- assessmentCentreService.getFsacEvaluationResultAverages(applicationId)
+    } yield {
+      averagesOpt match {
+        case Some(averages) => Ok(Json.toJson(averages))
+        case None => NotFound(s"Cannot find evaluation averages for applicationId: $applicationId")
       }
+    }
   }
 
-  def updateFsacIndicator(userId: String, applicationId: String, fsacAssessmentCentre: String) = Action.async { implicit request =>
+  def updateFsacIndicator(userId: String, applicationId: String, fsacAssessmentCentre: String) = Action.async {
     personalDetailsService.updateFsacIndicator(applicationId, userId, fsacAssessmentCentre) map { _ =>
       Ok
     } recover {

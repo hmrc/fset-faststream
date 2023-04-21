@@ -31,7 +31,7 @@ class FlagCandidateController @Inject() (cc: ControllerComponents,
 
   implicit val ec = cc.executionContext
 
-  def find(appId: String): Action[AnyContent] = Action.async { implicit request =>
+  def find(appId: String): Action[AnyContent] = Action.async {
     fcRepository.tryGetCandidateIssue(appId).map {
       case Some(DbFlagCandidate(_, Some(issue))) =>
         Ok(Json.toJson(RqFlagCandidate(issue)))
@@ -50,7 +50,7 @@ class FlagCandidateController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def remove(appId: String): Action[AnyContent] = Action.async { implicit request =>
+  def remove(appId: String): Action[AnyContent] = Action.async {
     fcRepository.remove(appId).map { _ =>
       NoContent
     } recover {

@@ -60,7 +60,7 @@ class AssessorController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def findAssessor(userId: String): Action[AnyContent] = Action.async { implicit request =>
+  def findAssessor(userId: String): Action[AnyContent] = Action.async {
     assessorService.findAssessor(userId) map { assessor =>
       Ok(Json.toJson(assessor))
     } recover {
@@ -76,7 +76,7 @@ class AssessorController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def findAvailability(userId: String): Action[AnyContent] = Action.async { implicit request =>
+  def findAvailability(userId: String): Action[AnyContent] = Action.async {
     assessorService.findAvailability(userId) map { assessor =>
       Ok(Json.toJson(assessor))
     } recover {
@@ -84,7 +84,7 @@ class AssessorController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def countSubmittedAvailability(): Action[AnyContent] = Action.async { implicit request =>
+  def countSubmittedAvailability(): Action[AnyContent] = Action.async {
     assessorService.countSubmittedAvailability().map { count =>
       Ok(Json.obj("size" -> count))
     } recover {
@@ -94,11 +94,11 @@ class AssessorController @Inject() (cc: ControllerComponents,
 
   def findAvailableAssessorsForLocationAndDate(locationName: String, date: LocalDate,
     skills: Seq[SkillType]
-  ): Action[AnyContent] = Action.async { implicit request =>
+  ): Action[AnyContent] = Action.async {
     assessorService.findAvailabilitiesForLocationAndDate(locationName, date, skills).map { a => Ok(Json.toJson(a)) }
   }
 
-  def findAssessorAllocations(assessorId: String, status: Option[AllocationStatus]): Action[AnyContent] = Action.async { implicit request =>
+  def findAssessorAllocations(assessorId: String, status: Option[AllocationStatus]): Action[AnyContent] = Action.async {
     assessorService.findAssessorAllocations(assessorId, status).map(allocations => Ok(Json.toJson(allocations)))
   }
 

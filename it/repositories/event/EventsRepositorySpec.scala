@@ -2,8 +2,8 @@ package repositories.event
 
 import model.Exceptions.EventNotFoundException
 import model.persisted.EventExamples
-import model.persisted.eventschedules.{ EventType, SkillType, VenueType }
-import org.joda.time.DateTime
+import model.persisted.eventschedules.{ EventType, SkillType }
+import org.joda.time.{ DateTime, DateTimeZone }
 import repositories.CollectionNames
 import repositories.events.EventsMongoRepository
 import testkit.MongoRepositorySpec
@@ -158,12 +158,12 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
     "return the newly created events since the specified date" in {
       // Create events 1 day ago whose bulkUpload status is false so they are manually created events
-      val hoursInPast = 24
-      val createdAt1DayAgo = DateTime.now().minusDays(hoursInPast)
+      val createdAt1DayAgo = DateTime.now(DateTimeZone.UTC).minusDays(1)
       val events = EventExamples.EventsNew.map(_.copy(createdAt = createdAt1DayAgo))
       repository.save(events).futureValue mustBe unit
 
       // This helps us create events at random hours rather than using just one
+      val hoursInPast = 24
       def randomHour = 1 + new Random().nextInt( (hoursInPast - 1) + 1 )
 
       // The bulkUpload status on this event is true so we do not expect to find it when we look for manually created events

@@ -30,7 +30,7 @@ class DuplicateApplicationReportController @Inject() (cc: ControllerComponents,
 
   implicit val ec = cc.executionContext
 
-  def findPotentialDuplicates = Action.async { implicit request =>
+  def findPotentialDuplicates = Action.async {
     duplicateDetectionService.findAll.map { potentialDuplications =>
       val result = potentialDuplications.zipWithIndex.flatMap { case (dup, matchGroup) =>
         toReportItem(dup, matchGroup)

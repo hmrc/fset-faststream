@@ -34,7 +34,7 @@ case class ReviewedCallbackRequest(
   val latestReviewer = reviewers.reviewer3.getOrElse(reviewers.reviewer2.getOrElse(reviewers.reviewer1))
 
   def calculateTotalScore(): Double = {
-    calculateReviewCriteria1Score + calculateReviewCriteria2Score
+    calculateReviewCriteria1Score() + calculateReviewCriteria2Score()
   }
 
   def calculateReviewCriteria1Score(): Double = {

@@ -126,7 +126,8 @@ class EventsMongoRepository @Inject() (mongoComponent: MongoComponent, appConfig
   }
 
   override def getEventsManuallyCreatedAfter(dateTime: DateTime): Future[Seq[Event]] = {
-    val query = Document("createdAt" -> Document("$gte" -> dateTime.getMillis), "wasBulkUploaded" -> false)
+    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits.jotDateTimeFormat // Needed to handle storing ISODate format in Mongo
+    val query = Document("createdAt" -> Document("$gte" -> Codecs.toBson(dateTime)), "wasBulkUploaded" -> false)
     collection.find(query).toFuture()
   }
 
@@ -143,7 +144,8 @@ class EventsMongoRepository @Inject() (mongoComponent: MongoComponent, appConfig
   }
 
   override def updateStructure(): Future[Unit] = {
-    val updateQuery = Document("$set" -> Document("wasBulkUploaded" -> false, "createdAt" -> DateTime.now.getMillis))
+    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits.jotDateTimeFormat // Needed to handle storing ISODate format in Mongo
+    val updateQuery = Document("$set" -> Document("wasBulkUploaded" -> false, "createdAt" -> Codecs.toBson(DateTime.now)))
     collection.updateMany(Document.empty, updateQuery).toFuture().map(_ => ())
   }
 

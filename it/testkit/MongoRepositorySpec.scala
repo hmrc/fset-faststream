@@ -54,7 +54,7 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
 
   implicit final val app: Application = new GuiceApplicationBuilder()
     .disable[PlayModule]
-    .build
+    .build()
 
   override implicit def patienceConfig = PatienceConfig(timeout = scaled(Span(timeout.toMillis, Millis)))
 
@@ -91,9 +91,9 @@ trait IndexesReader {
   this: ScalaFutures =>
 
   def indexDetails(repo: PlayMongoRepository[_])(implicit ec: ExecutionContext): Future[Seq[IndexDetails]] = {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
 
-    repo.collection.listIndexes.toFuture.map { _.map {
+    repo.collection.listIndexes().toFuture().map { _.map {
       doc =>
         val name = doc("name").asString().getValue
         val indexKeys = doc("key").asDocument().keySet().asScala.toSeq

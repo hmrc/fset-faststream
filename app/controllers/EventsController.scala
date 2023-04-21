@@ -41,7 +41,7 @@ class EventsController @Inject() (cc: ControllerComponents,
 
   implicit val ec = cc.executionContext
 
-  def saveAssessmentEvents(): Action[AnyContent] = Action.async { implicit request =>
+  def saveAssessmentEvents(): Action[AnyContent] = Action.async {
     eventsService.saveAssessmentEvents().map(_ => Created("Events saved"))
       .recover { case e: Exception => UnprocessableEntity(e.getMessage) }
   }
@@ -61,7 +61,7 @@ class EventsController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def getEvent(eventId: String): Action[AnyContent] = Action.async { implicit request =>
+  def getEvent(eventId: String): Action[AnyContent] = Action.async {
     eventsService.getEvent(eventId).map { event =>
       Ok(Json.toJson(event))
     }.recover {
@@ -69,7 +69,7 @@ class EventsController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def getEvents(eventTypeParam: String, venueParam: String, description: Option[String] = None) = Action.async { implicit request =>
+  def getEvents(eventTypeParam: String, venueParam: String, description: Option[String] = None) = Action.async {
     locationsAndVenuesRepository.venue(venueParam).flatMap { venue =>
       eventsService.getEvents(EventType.withName(eventTypeParam.toUpperCase), venue, description).map { events =>
         if (events.isEmpty) {
@@ -84,7 +84,7 @@ class EventsController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def getAssessorAllocations(eventId: String): Action[AnyContent] = Action.async { implicit request =>
+  def getAssessorAllocations(eventId: String): Action[AnyContent] = Action.async {
     assessorAllocationService.getAllocations(eventId).map { allocations =>
       if (allocations.allocations.isEmpty) {
         Ok(Json.toJson(AssessorAllocations(version = None, allocations = Nil)))
@@ -94,11 +94,11 @@ class EventsController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def delete(eventId: String): Action[AnyContent] = Action.async { implicit request =>
+  def delete(eventId: String): Action[AnyContent] = Action.async {
     eventsService.delete(eventId).map(_ => Ok)
   }
 
-  def getAssessorAllocation(eventId: String, userId: String): Action[AnyContent] = Action.async { implicit request =>
+  def getAssessorAllocation(eventId: String, userId: String): Action[AnyContent] = Action.async {
     assessorAllocationService.getAllocation(eventId, userId).map {
       case Some(allocation) => Ok(Json.toJson(allocation))
       case None => NotFound
@@ -121,7 +121,7 @@ class EventsController @Inject() (cc: ControllerComponents,
   def getEventsWithAllocationsSummary(
     venueName: String,
     eventType: EventType,
-    description: Option[String] = None): Action[AnyContent] = Action.async { implicit request =>
+    description: Option[String] = None): Action[AnyContent] = Action.async {
     locationsAndVenuesRepository.venue(venueName).flatMap { venue =>
       eventsService.getEventsWithAllocationsSummary(venue, eventType, description).map { eventsWithAllocations =>
         Ok(Json.toJson(eventsWithAllocations))
@@ -132,7 +132,7 @@ class EventsController @Inject() (cc: ControllerComponents,
   def getEventsWithAllocationsSummaryWithDescription(venueName: String, eventType: EventType, description: String) =
     getEventsWithAllocationsSummary(venueName, eventType, Some(description))
 
-  def addNewAttributes() = Action.async { implicit request =>
+  def addNewAttributes() = Action.async {
     eventsService.updateStructure().map(_ => Ok)
   }
 

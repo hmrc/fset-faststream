@@ -20,7 +20,7 @@ import controllers.DayAggregateEvent
 import factories.UUIDFactory
 import model.UniqueIdentifier
 import model.persisted.eventschedules._
-import org.joda.time.{ DateTime, LocalDate, LocalTime }
+import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalTime }
 
 object EventExamples {
   val VenueAll = Venue("ALL_VENUES", "All venues")
@@ -31,14 +31,16 @@ object EventExamples {
   val LocationLondon = Location("London")
   val LocationNewcastle = Location("Newcastle")
 
+  val now = DateTime.now(DateTimeZone.UTC)
+
   val e1 = Event(id = UniqueIdentifier.randomUniqueIdentifier.toString(), eventType = EventType.FSAC, description = "",
     location = LocationLondon, venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
     attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3),
-    createdAt = DateTime.now, skillRequirements = Map(), sessions = List())
+    createdAt = now, skillRequirements = Map(), sessions = List())
 
   val e2 = Event(id = UniqueIdentifier.randomUniqueIdentifier.toString(), eventType = EventType.FSB, description = "ORAC",
     location = LocationLondon, venue = VenueLondon, date = LocalDate.now().plusDays(2), capacity = 60, minViableAttendees = 55,
-    attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), createdAt = DateTime.now,
+    attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), createdAt = now,
     skillRequirements = Map(), sessions = List())
 
   val e1Session1Id = UniqueIdentifier.randomUniqueIdentifier.toString()
@@ -58,22 +60,22 @@ object EventExamples {
     Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSAC, description = "", location = LocationLondon,
       venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now().plusMinutes(30), endTime = LocalTime.now().plusHours(3),
-      createdAt = DateTime.now, skillRequirements = Map(), sessions = List()),
+      createdAt = now, skillRequirements = Map(), sessions = List()),
 
     Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSB, description = "ORAC", location = LocationLondon,
       venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now().plusMinutes(30), endTime = LocalTime.now().plusHours(3),
-      createdAt = DateTime.now, skillRequirements = Map(), sessions = List()),
+      createdAt = now, skillRequirements = Map(), sessions = List()),
 
     Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSB, description = "GCFS FSB", location = LocationNewcastle,
       venue = VenueNewcastle, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3),
-      createdAt = DateTime.now, skillRequirements = Map(SkillType.ASSESSOR.toString -> 1), sessions = List()),
+      createdAt = now, skillRequirements = Map(SkillType.ASSESSOR.toString -> 1), sessions = List()),
 
     Event(id = UUIDFactory.generateUUID(), eventType = EventType.FSB, description = "EAC", location = LocationNewcastle,
       venue = VenueNewcastle, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
       attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3),
-      createdAt = DateTime.now, skillRequirements = Map(SkillType.QUALITY_ASSURANCE_COORDINATOR.toString -> 1), sessions = List())
+      createdAt = now, skillRequirements = Map(SkillType.QUALITY_ASSURANCE_COORDINATOR.toString -> 1), sessions = List())
   )
 
   val DayAggregateEventsNew = List(

@@ -42,7 +42,7 @@ class DiagnosticReportController @Inject() (cc: ControllerComponents,
 
   implicit val ec = cc.executionContext
 
-  def getApplicationByUserId(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+  def getApplicationByUserId(applicationId: String): Action[AnyContent] = Action.async {
 
     (for {
       application <- drRepository.findByApplicationId(applicationId)
@@ -79,11 +79,11 @@ class DiagnosticReportController @Inject() (cc: ControllerComponents,
     }.map( report => Ok(Json.toJson(report)))
   }
 
-  def getAllApplications = Action { implicit request =>
+  def getAllApplications = Action {
     Ok.chunked(drRepository.findAll)
   }
 
-  def getAllEvents = Action { implicit request =>
+  def getAllEvents = Action {
     Ok.chunked(eventsRepo.findAllForExtract)
   }
 }

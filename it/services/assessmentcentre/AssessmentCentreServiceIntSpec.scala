@@ -25,6 +25,7 @@ import testkit.MongoRepositorySpec
 import uk.gov.hmrc.mongo.play.json.Codecs
 
 import java.io.File
+import scala.concurrent.Future
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
@@ -171,7 +172,7 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
           service.evaluateAssessmentCandidate(candidateData).futureValue
 
           val applicationId = t.scores.applicationId.toString()
-          val actualResult = findApplicationInDb(t.scores.applicationId.toString())
+          val actualResult = findApplicationInDb(t.scores.applicationId.toString()).futureValue
           logger.info(s"$prefix data read from db for appId $applicationId = $actualResult")
 
           val expectedResult = t.expected
@@ -202,7 +203,7 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
 
   val appCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
 
-  private def createApplicationInDb(appId: String) = Try(findApplicationInDb(appId)) match {
+  private def createApplicationInDb(appId: String) = Try(findApplicationInDb(appId).futureValue) match {
     case Success(_) =>
       val msg = s"Found application in database for applicationId $appId - this should not happen. Are you using a unique applicationId ?"
       throw new IllegalStateException(msg)
@@ -219,10 +220,10 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
       } yield ()
   }
 
-  private def findApplicationInDb(appId: String): ActualResult = {
+  private def findApplicationInDb(appId: String): Future[ActualResult] = {
     import com.github.nscala_time.time.OrderingImplicits.DateTimeOrdering
 
-    (applicationRepo.collection.find[Document](Document("applicationId" -> appId)).headOption() map { docOpt =>
+    applicationRepo.collection.find[Document](Document("applicationId" -> appId)).headOption() map { docOpt =>
       require(docOpt.isDefined)
       val document = docOpt.get
 
@@ -250,7 +251,7 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
       val schemesEvaluationOpt = evaluationDocOpt.map(bson => Codecs.fromBson[Seq[SchemeEvaluationResult]](bson.get("schemes-evaluation")))
 
       ActualResult(applicationStatusOpt, latestProgressStatusOpt, passmarkVersionOpt, competencyAverageOpt, schemesEvaluationOpt)
-    }).futureValue
+    }
   }
 
   private def assert(testCase: File, testName: String, expected: AssessmentScoreEvaluationTestExpectation, actual: ActualResult) = {

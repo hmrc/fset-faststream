@@ -48,7 +48,7 @@ class PersonalDetailsController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def find(userId: String, applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+  def find(userId: String, applicationId: String): Action[AnyContent] = Action.async {
     personalDetailsService.find(applicationId, userId) map { candidateDetails =>
       Ok(Json.toJson(candidateDetails))
     } recover {
@@ -60,7 +60,7 @@ class PersonalDetailsController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def findByApplicationId(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+  def findByApplicationId(applicationId: String): Action[AnyContent] = Action.async {
     personalDetailsService.find(applicationId) map { candidateDetails =>
       Ok(Json.toJson(candidateDetails))
     } recover {

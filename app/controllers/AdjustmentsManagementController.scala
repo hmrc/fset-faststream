@@ -41,7 +41,7 @@ class AdjustmentsManagementController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def findAdjustments(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+  def findAdjustments(applicationId: String): Action[AnyContent] = Action.async {
     adjustmentsManagementService.find(applicationId).map { adjustments =>
       if (adjustments.isDefined) {
         Ok(Json.toJson(adjustments))
@@ -61,7 +61,7 @@ class AdjustmentsManagementController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def findAdjustmentsComment(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+  def findAdjustmentsComment(applicationId: String): Action[AnyContent] = Action.async {
     adjustmentsManagementService.findAdjustmentsComment(applicationId).map { adjustmentsComment =>
       Ok(Json.toJson(adjustmentsComment))
     }.recover {

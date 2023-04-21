@@ -29,8 +29,6 @@ import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.language.postfixOps
-
 class MediaControllerSpec extends UnitWithAppSpec {
 
   "Add Media" should {

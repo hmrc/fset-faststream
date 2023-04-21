@@ -19,7 +19,7 @@ package services.assessmentscores
 import factories.{ DateTimeFactory, DateTimeFactoryMock }
 import model.Exceptions.EventNotFoundException
 import model.ProgressStatuses.ProgressStatus
-import model.assessmentscores.{ AssessmentScoresAllExercises, AssessmentScoresAllExercisesExamples, AssessmentScoresExerciseExamples }
+import model.assessmentscores.{ AssessmentScoresAllExercisesExamples, AssessmentScoresExerciseExamples }
 import model.command.AssessmentScoresCommands.{ AssessmentScoresCandidateSummary, AssessmentScoresFindResponse, AssessmentScoresSectionType }
 import model.command.PersonalDetailsExamples
 import model.fsacscores.AssessmentScoresFinalFeedbackExamples
@@ -100,7 +100,7 @@ trait AssessmentScoresServiceSpec extends BaseServiceSpec {
 
       val service = buildService(applicationRepositoyMock, assessmentScoresRepositoryMock, candidateAllocationRepositoryMock,
         eventsRepositoryMock, personalDetailsRepositoryMock, dataTimeFactoryMock)
-      val result = service.save(AssessmentScoresAllExercisesExamples.AllExercises).futureValue
+      service.save(AssessmentScoresAllExercisesExamples.AllExercises).futureValue
 
       verify(assessmentScoresRepositoryMock).save(eqTo(UpdatedExample))
       verify(applicationRepositoyMock).addProgressStatusAndUpdateAppStatus(
@@ -184,8 +184,6 @@ trait AssessmentScoresServiceSpec extends BaseServiceSpec {
     "create assessment scores with analysis exercise scores " +
       "when assessment scores does not exist and we pass analysis exercise scores" in new SaveExerciseTestFixture {
       when(assessmentScoresRepositoryMock.find(eqTo(appId))).thenReturn(Future.successful(None))
-      val expectedAssessmentScores = AssessmentScoresAllExercises(appId,
-        Some(AssessmentScoresExerciseExamples.Example4.copy(submittedDate = Some(now))), None, None)
       val ExpectedExercise = AssessmentScoresExerciseExamples.Example4.copy(submittedDate = Some(now))
       when(assessmentScoresRepositoryMock.saveExercise(eqTo(appId),
         eqTo(AssessmentScoresSectionType.writtenExercise), eqTo(ExpectedExercise), any())).thenReturn(Future.successful(()))

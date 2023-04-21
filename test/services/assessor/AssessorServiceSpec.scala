@@ -189,7 +189,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
 
     "notify assessors of new events" in new AssessorsEventsSummaryFixture {
       val now = DateTime.now
-      val result = service.notifyAssessorsOfNewEvents(now)(new HeaderCarrier).futureValue
+      service.notifyAssessorsOfNewEvents(now)(new HeaderCarrier).futureValue
       val emailBodyCaptor = ArgumentCaptor.forClass(classOf[String])
       verify(mockEmailClient, times(2)).notifyAssessorsOfNewEvents(
         to = any[String], name = any[String], htmlBody = any[String], txtBody = emailBodyCaptor.capture)(

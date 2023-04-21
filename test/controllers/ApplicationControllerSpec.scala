@@ -43,9 +43,7 @@ import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
-import scala.language.postfixOps
 
 class ApplicationControllerSpec extends UnitWithAppSpec {
 
@@ -96,7 +94,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     "return the progress of an application" in new TestFixture {
       when(mockApplicationRepository.findProgress(any())).thenReturnAsync(ProgressResponse(ApplicationId, personalDetails = true))
 
-      val result = testApplicationController.applicationProgress(ApplicationId)(applicationProgressRequest(ApplicationId)).run
+      val result = testApplicationController.applicationProgress(ApplicationId)(applicationProgressRequest(ApplicationId)).run()
       val jsonResponse = contentAsJson(result)
 
       (jsonResponse \ "applicationId").as[String] mustBe ApplicationId
@@ -108,7 +106,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     "return a system error when applicationId doesn't exists" in new TestFixture {
       when(mockApplicationRepository.findProgress(any())).thenReturn(Future.failed(ApplicationNotFound("1111-1234")))
 
-      val result = testApplicationController.applicationProgress("1111-1234")(applicationProgressRequest("1111-1234")).run
+      val result = testApplicationController.applicationProgress("1111-1234")(applicationProgressRequest("1111-1234")).run()
 
       status(result) mustBe NOT_FOUND
     }
@@ -124,7 +122,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
       val result = testApplicationController.findApplication(
         "validUser",
         "validFramework"
-      )(findApplicationRequest("validUser", "validFramework")).run
+      )(findApplicationRequest("validUser", "validFramework")).run()
       val jsonResponse = contentAsJson(result)
 
       (jsonResponse \ "applicationId").as[String] mustBe ApplicationId
@@ -140,7 +138,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
       val result = testApplicationController.findApplication(
         "invalidUser",
         "invalidFramework"
-      )(findApplicationRequest("invalidUser", "invalidFramework")).run
+      )(findApplicationRequest("invalidUser", "invalidFramework")).run()
 
       status(result) mustBe NOT_FOUND
     }
@@ -167,7 +165,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version2", None)
       when(mockPassmarkService.getPassmarkEvaluation(any[String])(any[ExecutionContext])).thenReturn(Future.successful(evaluation))
 
-      val result = testApplicationController.getPhase3Results(ApplicationId)(getPhase3ResultsRequest(ApplicationId)).run
+      val result = testApplicationController.getPhase3Results(ApplicationId)(getPhase3ResultsRequest(ApplicationId)).run()
       val jsonResponse = contentAsJson(result)
 
       jsonResponse mustBe Json.toJson(resultToSave)
@@ -176,7 +174,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
 
     "Return a 404 if no results are found for the application Id" in new TestFixture {
       when(mockApplicationRepository.findProgress(any())).thenReturn(Future.failed(ApplicationNotFound("1111-1234")))
-      val result = testApplicationController.applicationProgress("1111-1234")(applicationProgressRequest("1111-1234")).run
+      val result = testApplicationController.applicationProgress("1111-1234")(applicationProgressRequest("1111-1234")).run()
       status(result) mustBe NOT_FOUND
     }
   }
@@ -188,7 +186,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
 
       val request = FakeRequest(Helpers.POST,
         controllers.routes.ApplicationController.updateFsacIndicator(userId, ApplicationId, "London").url, FakeHeaders(), "")
-      val result = testApplicationController.updateFsacIndicator(userId, ApplicationId, "London")(request).run
+      val result = testApplicationController.updateFsacIndicator(userId, ApplicationId, "London")(request).run()
       status(result) mustBe OK
     }
 
@@ -198,7 +196,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
 
       val request = FakeRequest(Helpers.POST,
         controllers.routes.ApplicationController.updateFsacIndicator(userId, ApplicationId, "London").url, FakeHeaders(), "")
-      val result = testApplicationController.updateFsacIndicator(userId, ApplicationId, "London")(request).run
+      val result = testApplicationController.updateFsacIndicator(userId, ApplicationId, "London")(request).run()
       status(result) mustBe BAD_REQUEST
     }
 
@@ -208,7 +206,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
 
       val request = FakeRequest(Helpers.POST,
         controllers.routes.ApplicationController.updateFsacIndicator(userId, ApplicationId, "London").url, FakeHeaders(), "")
-      val result = testApplicationController.updateFsacIndicator(userId, ApplicationId, "London")(request).run
+      val result = testApplicationController.updateFsacIndicator(userId, ApplicationId, "London")(request).run()
       status(result) mustBe BAD_REQUEST
     }
   }
@@ -228,7 +226,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
       )
       when(mockFileUploadRepository.retrieve(any[String])).thenReturnAsync(fileUpload)
 
-      val result = testApplicationController.downloadAnalysisExercise(ApplicationId)(downloadAnalysisExerciseRequest(ApplicationId)).run
+      val result = testApplicationController.downloadAnalysisExercise(ApplicationId)(downloadAnalysisExerciseRequest(ApplicationId)).run()
       status(result) mustBe OK
       contentAsString(result) mustBe fileContents
     }
@@ -239,7 +237,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
       val fsacTestsNoAnalysisExercise = AssessmentCentreTests()
       when(mockAssessmentCentreService.getTests(any[String])).thenReturnAsync(fsacTestsNoAnalysisExercise)
 
-      val result = testApplicationController.downloadAnalysisExercise(ApplicationId)(downloadAnalysisExerciseRequest(ApplicationId)).run
+      val result = testApplicationController.downloadAnalysisExercise(ApplicationId)(downloadAnalysisExerciseRequest(ApplicationId)).run()
       result.failed.futureValue mustBe an[CandidateHasNoAnalysisExerciseException]
     }
   }

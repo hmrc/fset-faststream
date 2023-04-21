@@ -37,7 +37,6 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
-import scala.language.postfixOps
 
 class AssessorAssessmentScoresControllerSpec extends AssessmentScoresControllerSpec {
   override val userIdForAudit = "assessorId"
