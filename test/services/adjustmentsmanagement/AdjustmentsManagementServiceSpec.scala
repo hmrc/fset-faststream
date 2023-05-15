@@ -67,7 +67,7 @@ class AdjustmentsManagementServiceSpec extends BaseServiceSpec with ExtendedTime
         applicationStatusDetails.copy(status = ApplicationStatus.FAST_PASS_ACCEPTED.toString)
       )
 
-      val schemes = SelectedSchemes(List(generalist, humanResources), orderAgreed = true, eligible = true)
+      val schemes = SelectedSchemes(List(operationalDelivery, humanResources), orderAgreed = true, eligible = true)
       when(mockSchemePreferencesService.find(AppId)).thenReturnAsync(schemes)
 
       service.confirmAdjustment(AppId, InvigilatedETrayAdjustments).futureValue
@@ -148,18 +148,18 @@ class AdjustmentsManagementServiceSpec extends BaseServiceSpec with ExtendedTime
     }
   }
 
-  trait TestFixture extends StcEventServiceFixture {
+  trait TestFixture extends StcEventServiceFixture with Schemes {
     val mockAppRepository = mock[GeneralApplicationRepository]
     val mockCdRepository = mock[ContactDetailsRepository]
     val mockSchemePreferencesService = mock[SchemePreferencesService]
     val mockSchemeRepository = mock[SchemeRepository]
     val mockApplicationSiftService = mock[ApplicationSiftService]
 
-    val commercial = SchemeId("Commercial") // sift numeric scheme, evaluation required
-    val finance = SchemeId("Finance") // sift numeric scheme, evaluation required
-    val generalist = SchemeId("Generalist") // no sift requirement
-    val humanResources = SchemeId("HumanResources") // no sift requirement
-    val digitalDataTechnologyAndCyber = SchemeId("DigitalDataTechnologyAndCyber") // sift form, no evaluation
+    val commercial = Commercial // sift numeric scheme, evaluation required
+    val finance = Finance // sift numeric scheme, evaluation required
+    val operationalDelivery = OperationalDelivery // no sift requirement
+    val humanResources = HumanResources // no sift requirement
+    val digitalDataTechnologyAndCyber = DigitalDataTechnologyAndCyber // sift form, no evaluation
 
     val applicationStatusDetails = ApplicationStatusDetails(
       status = ApplicationStatus.SUBMITTED.toString,

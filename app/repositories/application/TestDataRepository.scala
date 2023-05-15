@@ -87,7 +87,7 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: Exe
     mongoComponent = mongo,
     domainFormat = ContactDetails.contactDetailsFormat,
     indexes = Nil
-  ) with TestDataRepository with ReactiveRepositoryHelpers {
+  ) with TestDataRepository with ReactiveRepositoryHelpers with Schemes {
 
   import Utils.chooseOne
 
@@ -136,7 +136,7 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: Exe
       "userId" -> userId,
       "frameworkId" -> frameworkId,
       "scheme-preferences" -> Document(
-        "schemes" -> BsonArray(SchemeId("DiplomaticAndDevelopment").toBson, SchemeId("GovernmentOperationalResearchService").toBson)
+        "schemes" -> BsonArray(DiplomaticAndDevelopment.toBson, GovernmentOperationalResearchService.toBson)
       ),
       "personal-details" -> Document(
         "firstName" -> firstName.getOrElse(s"${testCandidate("firstName")}"),

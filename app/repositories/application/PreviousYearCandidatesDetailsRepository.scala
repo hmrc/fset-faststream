@@ -244,7 +244,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
                                                               appConfig: MicroserviceAppConfig,
                                                               schemeRepository: SchemeRepository,
                                                               mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
-  extends PreviousYearCandidatesDetailsRepository with CommonBSONDocuments with DiversityQuestionsText with Logging {
+  extends PreviousYearCandidatesDetailsRepository with CommonBSONDocuments with DiversityQuestionsText with Logging with Schemes {
 
   val applicationDetailsCollection = mongoComponent.database.getCollection(CollectionNames.APPLICATION)
   val contactDetailsCollection = mongoComponent.database.getCollection(CollectionNames.CONTACT_DETAILS)
@@ -662,11 +662,11 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
 
   // Limit the access so that test class still has access
   protected[application] def isSdipFsWithFsFailedAndSdipNotFailed(doc: Document) = {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     val testEvalResultsListOpt = doc.get("currentSchemeStatus").map(_.asArray().getValues.asScala.toList)
     val css = testEvalResultsListOpt.map( bsonValueList => bsonValueList.map( bsonValue => Codecs.fromBson[SchemeEvaluationResult](bsonValue)) ).getOrElse(Nil)
 
-    val sdipSchemeId = SchemeId("Sdip")
+    val sdipSchemeId = Sdip
     val sdipPresent = css.count( schemeEvaluationResult => schemeEvaluationResult.schemeId == sdipSchemeId ) == 1
     val sdipNotFailed = sdipPresent &&
       css.count( schemeEvaluationResult =>

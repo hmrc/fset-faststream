@@ -17,8 +17,8 @@
 package services.onlinetesting
 
 import model.EvaluationResults.Amber
-import model.persisted.{ ApplicationReadyForEvaluation, SchemeEvaluationResult }
-import model.{ ApplicationRoute, ApplicationStatus, SchemeId, SelectedSchemes }
+import model.persisted.{ApplicationReadyForEvaluation, SchemeEvaluationResult}
+import model.{ApplicationRoute, ApplicationStatus, Schemes, SelectedSchemes}
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito.when
 import repositories.application.GeneralApplicationRepository
@@ -27,7 +27,7 @@ import testkit.UnitSpec
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class CurrentSchemeStatusHelperSpec extends UnitSpec {
+class CurrentSchemeStatusHelperSpec extends UnitSpec with Schemes {
   "CurrentSchemeStatusHelper" must {
     "return no data when the application is not sdip faststream" in new TestFixture {
       val result = helper.getSdipResults(application).futureValue
@@ -35,7 +35,7 @@ class CurrentSchemeStatusHelperSpec extends UnitSpec {
     }
 
     "return data when the application is sdip faststream and there is sdip data in current scheme status" in new TestFixture {
-      val data = Seq(SchemeEvaluationResult(SchemeId("Sdip"), Amber.toString))
+      val data = Seq(SchemeEvaluationResult(Sdip, Amber.toString))
       when(mockAppRepo.getCurrentSchemeStatus(any[String])).thenReturnAsync(data)
       val result = helper.getSdipResults(application.copy(applicationRoute = ApplicationRoute.SdipFaststream)).futureValue
       result mustBe data
@@ -63,6 +63,6 @@ class CurrentSchemeStatusHelperSpec extends UnitSpec {
       activePsiTests = Nil,
       activeLaunchpadTest = None,
       prevPhaseEvaluation = None,
-      preferences = SelectedSchemes(List(SchemeId("Commercial")), orderAgreed = true, eligible = true))
+      preferences = SelectedSchemes(List(Commercial), orderAgreed = true, eligible = true))
   }
 }

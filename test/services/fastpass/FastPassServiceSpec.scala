@@ -43,7 +43,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
+class FastPassServiceSpec extends UnitSpec with ExtendedTimeout with Schemes {
 
   "processFastPassCandidate" should {
     "correctly process an approved fast pass candidate with a submitted application who has numeric schemes and no adjustments" in
@@ -102,7 +102,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
     }
 
     "promote candidates with non-siftable schemes to FSAC" in new TestFixtureWithMockResponses {
-      val schemes = SelectedSchemes(List(generalist, humanResources), orderAgreed = true, eligible = true)
+      val schemes = SelectedSchemes(List(operationalDelivery, humanResources), orderAgreed = true, eligible = true)
       when(schemePreferencesServiceMock.find(any[String])).thenReturn(Future.successful(schemes))
 
       val (name, surname) = underTest.processFastPassCandidate(userId, appId, accepted, triggeredBy).futureValue
@@ -123,7 +123,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "promote candidates with non-numeric siftable schemes to SIFT_ENTERED" in new TestFixtureWithMockResponses {
       val schemes = SelectedSchemes(
-        List(generalist, humanResources, digitalDataTechnologyAndCyber), orderAgreed = true, eligible = true)
+        List(operationalDelivery, humanResources, digitalDataTechnologyAndCyber), orderAgreed = true, eligible = true)
       when(schemePreferencesServiceMock.find(any[String])).thenReturn(Future.successful(schemes))
       when(applicationSiftServiceMock.saveSiftExpiryDate(any[String])).thenReturn(Future.successful(DateTime.now))
       when(applicationSiftServiceMock.progressStatusForSiftStage(any[Seq[SchemeId]])).thenReturn(ProgressStatuses.SIFT_ENTERED)
@@ -315,11 +315,11 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout {
     val adjustmentsManagementServiceMock = mock[AdjustmentsManagementService]
     val assistanceDetailsRepositoryMock = mock[AssistanceDetailsRepository]
 
-    val commercial = SchemeId("Commercial") // sift numeric scheme, evaluation required
-    val finance = SchemeId("Finance") // sift numeric scheme, evaluation required
-    val generalist = SchemeId("Generalist") // no sift requirement
-    val humanResources = SchemeId("HumanResources") // no sift requirement
-    val digitalDataTechnologyAndCyber = SchemeId("DigitalDataTechnologyAndCyber") // sift form, no evaluation
+    val commercial = Commercial // sift numeric scheme, evaluation required
+    val finance = Finance // sift numeric scheme, evaluation required
+    val operationalDelivery = OperationalDelivery // no sift requirement
+    val humanResources = HumanResources // no sift requirement
+    val digitalDataTechnologyAndCyber = DigitalDataTechnologyAndCyber // sift form, no evaluation
 
     val accepted = true
     val rejected = false

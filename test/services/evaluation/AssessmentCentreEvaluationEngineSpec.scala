@@ -16,19 +16,15 @@
 
 package services.evaluation
 
-import model.EvaluationResults.{Amber, CompetencyAverageResult, ExerciseAverageResult, Green, Red}
-import model.exchange.passmarksettings._
+import model.EvaluationResults._
 import model.assessmentscores.{AssessmentScoresAllExercises, AssessmentScoresExercise}
+import model.exchange.passmarksettings._
 import model.persisted.SchemeEvaluationResult
-import model.{AssessmentPassMarksSchemesAndScores, SchemeId, UniqueIdentifier}
+import model.{AssessmentPassMarksSchemesAndScores, Schemes, UniqueIdentifier}
 import org.joda.time.DateTime
 import services.BaseServiceSpec
 
-class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
-
-  val commercial = "Commercial"
-  val digitalDataTechnologyAndCyber = "DigitalDataTechnologyAndCyber"
-  val diplomaticAndDevelopment = "DiplomaticAndDevelopment"
+class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec with Schemes {
 
   val applicationId = UniqueIdentifier.randomUniqueIdentifier
   val updatedBy = UniqueIdentifier.randomUniqueIdentifier
@@ -45,10 +41,10 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
     //  2.3967   3.1      3.1      8.5967
     //   R        G        G          G
     "evaluate to Red with a single Red and the others Green" in {
-      val schemes = List(SchemeId(commercial))
+      val schemes = List(Commercial)
 
       val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(List(
-        AssessmentCentreExercisePassMark(SchemeId(commercial), AssessmentCentreExercisePassMarkThresholds(
+        AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
           writtenExercise = PassMarkThreshold(2.5, 3.0),
           teamExercise = PassMarkThreshold(1.0, 3.0),
           leadershipExercise = PassMarkThreshold(1.0, 3.0),
@@ -84,7 +80,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
 
       val candidateScore = AssessmentPassMarksSchemesAndScores(passMarkSettings, schemes, candidateScores)
       val result = evaluationEngine.evaluate(candidateScore)
-      result.schemesEvaluation mustBe List(SchemeEvaluationResult(SchemeId(commercial), Red.toString))
+      result.schemesEvaluation mustBe List(SchemeEvaluationResult(Commercial, Red.toString))
     }
 
     // scheme | e1 | e2 | e3 | overall | expected result
@@ -95,10 +91,10 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
     //  2.7333   3.1      3.1      8.9333
     //   R        G        G          G
     "evaluate to Amber with a single Amber and the others Green" in {
-      val schemes = List(SchemeId(commercial))
+      val schemes = List(Commercial)
 
       val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(List(
-        AssessmentCentreExercisePassMark(SchemeId(commercial), AssessmentCentreExercisePassMarkThresholds(
+        AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
           writtenExercise = PassMarkThreshold(1.0, 3.0),
           teamExercise = PassMarkThreshold(1.0, 3.0),
           leadershipExercise = PassMarkThreshold(1.0, 3.0),
@@ -134,7 +130,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
 
       val candidateScore = AssessmentPassMarksSchemesAndScores(passMarkSettings, schemes, candidateScores)
       val result = evaluationEngine.evaluate(candidateScore)
-      result.schemesEvaluation mustBe List(SchemeEvaluationResult(SchemeId(commercial), Amber.toString))
+      result.schemesEvaluation mustBe List(SchemeEvaluationResult(Commercial, Amber.toString))
     }
 
     // scheme | e1 | e2 | e3 | overall | expected result
@@ -145,10 +141,10 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
     //  3.1      3.1      3.1      9.3
     //   G        G        G          G
     "evaluate to Green when all are Green" in {
-      val schemes = List(SchemeId(commercial))
+      val schemes = List(Commercial)
 
       val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(List(
-        AssessmentCentreExercisePassMark(SchemeId(commercial), AssessmentCentreExercisePassMarkThresholds(
+        AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
           writtenExercise = PassMarkThreshold(1.0, 3.0),
           teamExercise = PassMarkThreshold(1.0, 3.0),
           leadershipExercise = PassMarkThreshold(1.0, 3.0),
@@ -184,7 +180,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
 
       val candidateScore = AssessmentPassMarksSchemesAndScores(passMarkSettings, schemes, candidateScores)
       val result = evaluationEngine.evaluate(candidateScore)
-      result.schemesEvaluation mustBe List(SchemeEvaluationResult(SchemeId(commercial), Green.toString))
+      result.schemesEvaluation mustBe List(SchemeEvaluationResult(Commercial, Green.toString))
     }
 
     // scheme | e1 | e2 | e3 | overall | expected result
@@ -195,10 +191,10 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
     //  2.03     3.1      2.03     7.16
     //   A        G        G          G
     "evaluate to Red with a mix of Amber, Green, Red" in {
-      val schemes = List(SchemeId(commercial))
+      val schemes = List(Commercial)
 
       val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(List(
-        AssessmentCentreExercisePassMark(SchemeId(commercial), AssessmentCentreExercisePassMarkThresholds(
+        AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
           writtenExercise = PassMarkThreshold(1.0, 3.0),
           teamExercise = PassMarkThreshold(1.0, 3.0),
           leadershipExercise = PassMarkThreshold(2.1, 3.0),
@@ -234,16 +230,16 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
 
       val candidateScore = AssessmentPassMarksSchemesAndScores(passMarkSettings, schemes, candidateScores)
       val result = evaluationEngine.evaluate(candidateScore)
-      result.schemesEvaluation mustBe List(SchemeEvaluationResult(SchemeId(commercial), Red.toString))
+      result.schemesEvaluation mustBe List(SchemeEvaluationResult(Commercial, Red.toString))
     }
 
     // scheme | e1 | e2 | e3 | overall | expected result
     // s1     | G  | G  | G  | G       | G
     "evaluate to Green when zero pass marks are specified" in {
-      val schemes = List(SchemeId(commercial))
+      val schemes = List(Commercial)
 
       val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(List(
-        AssessmentCentreExercisePassMark(SchemeId(commercial), AssessmentCentreExercisePassMarkThresholds(
+        AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
           writtenExercise = PassMarkThreshold(0.0, 0.0),
           teamExercise = PassMarkThreshold(0.0, 0.0),
           leadershipExercise = PassMarkThreshold(0.0, 0.0),
@@ -279,7 +275,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
 
       val candidateScore = AssessmentPassMarksSchemesAndScores(passMarkSettings, schemes, candidateScores)
       val result = evaluationEngine.evaluate(candidateScore)
-      result.schemesEvaluation mustBe List(SchemeEvaluationResult(SchemeId(commercial), Green.toString))
+      result.schemesEvaluation mustBe List(SchemeEvaluationResult(Commercial, Green.toString))
     }
 
     // scheme | e1 | e2 | e3 | overall | expected result
@@ -289,17 +285,17 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
     "evaluate multiple schemes to Amber or Red" in {
       // The pass marks which the evaluation engine uses to work out if each scheme has passed/failed
       val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(List(
-        AssessmentCentreExercisePassMark(SchemeId(commercial), AssessmentCentreExercisePassMarkThresholds(
+        AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
           writtenExercise = PassMarkThreshold(1.0, 3.4),
           teamExercise = PassMarkThreshold(1.0, 3.0),
           leadershipExercise = PassMarkThreshold(1.0, 3.0),
           overall = PassMarkThreshold(10.0, 11.0))),
-        AssessmentCentreExercisePassMark(SchemeId(digitalDataTechnologyAndCyber), AssessmentCentreExercisePassMarkThresholds(
+        AssessmentCentreExercisePassMark(DigitalDataTechnologyAndCyber, AssessmentCentreExercisePassMarkThresholds(
           writtenExercise = PassMarkThreshold(1.0, 3.4),
           teamExercise = PassMarkThreshold(1.0, 3.0),
           leadershipExercise = PassMarkThreshold(1.0, 3.0),
           overall = PassMarkThreshold(10.0, 11.0))),
-        AssessmentCentreExercisePassMark(SchemeId(diplomaticAndDevelopment), AssessmentCentreExercisePassMarkThresholds(
+        AssessmentCentreExercisePassMark(DiplomaticAndDevelopment, AssessmentCentreExercisePassMarkThresholds(
           writtenExercise = PassMarkThreshold(1.0, 3.4),
           teamExercise = PassMarkThreshold(1.0, 3.0),
           leadershipExercise = PassMarkThreshold(1.0, 3.0),
@@ -325,14 +321,14 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
       )
 
       // List of schemes for which the candidate will be evaluated
-      val candidateSchemes = List(SchemeId(commercial), SchemeId(digitalDataTechnologyAndCyber), SchemeId(diplomaticAndDevelopment))
+      val candidateSchemes = List(Commercial, DigitalDataTechnologyAndCyber, DiplomaticAndDevelopment)
       val candidateScore = AssessmentPassMarksSchemesAndScores(passMarkSettings, candidateSchemes, candidateScores)
 
       val result = evaluationEngine.evaluate(candidateScore)
       result.schemesEvaluation mustBe List(
-        SchemeEvaluationResult(SchemeId(commercial), Amber.toString),
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), Amber.toString),
-        SchemeEvaluationResult(SchemeId(diplomaticAndDevelopment), Red.toString)
+        SchemeEvaluationResult(Commercial, Amber.toString),
+        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Amber.toString),
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Red.toString)
       )
 
       val expectedCompetencyAverage = CompetencyAverageResult(

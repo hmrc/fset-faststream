@@ -38,7 +38,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRepositoryHelpers with RandomSelection
-  with CurrentSchemeStatusHelper {
+  with CurrentSchemeStatusHelper with Schemes {
 
   // Enforce that the class implementing the trait must be a PlayMongoRepository[ApplicationReadyForEvaluation]
   this: PlayMongoRepository[ApplicationReadyForEvaluation] =>
@@ -96,7 +96,7 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
 
     val removeEvaluationIfExists = Document(
       "$pull" -> Document(s"testGroups.$phase.evaluation.result" ->
-        Document("schemeId" -> SchemeId("Sdip").toBson)))
+        Document("schemeId" -> Sdip.toBson)))
 
     val passMarkEvaluation = Document(
       "$addToSet" -> Document(s"testGroups.$phase.evaluation.result" -> schemeEvaluationResult.toBson),

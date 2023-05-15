@@ -32,7 +32,7 @@ import testkit.MongoRepositorySpec
 import scala.concurrent.Future
 
 //scalastyle:off number.of.methods
-trait CommonRepository extends CurrentSchemeStatusHelper {
+trait CommonRepository extends CurrentSchemeStatusHelper with Schemes {
   this: MongoRepositorySpec with ScalaFutures =>
 
   val mockOnlineTestsGatewayConfig = mock[OnlineTestsGatewayConfig]
@@ -42,15 +42,6 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
   val mockLaunchpadConfig = mock[LaunchpadGatewayConfig]
 
   val mockAppConfig = mock[MicroserviceAppConfig]
-
-  val DiplomaticAndDevelopmentEconomics: SchemeId = SchemeId("DiplomaticAndDevelopmentEconomics")
-  val Finance = SchemeId("Finance")
-  val DiplomaticAndDevelopment = SchemeId("DiplomaticAndDevelopment")
-  val GovernmentEconomicsService = SchemeId("GovernmentEconomicsService")
-  val DigitalDataTechnologyAndCyber = SchemeId("DigitalDataTechnologyAndCyber")
-  val Sdip = SchemeId("Sdip")
-  val Edip = SchemeId("Edip")
-  val siftableSchemeDefinitions = List(DiplomaticAndDevelopmentEconomics, DiplomaticAndDevelopment, GovernmentEconomicsService, Sdip)
 
   def applicationRepository = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, mockAppConfig, mongo)
 
@@ -164,11 +155,13 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
                                                      applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
                                                     ): Future[Unit] = {
     val schemes = results.map(_.schemeId)
-    val phase3PassMarkEvaluation = PassmarkEvaluation("", Some(""), results, "", Some(""))
+    val phase3PassMarkEvaluation = PassmarkEvaluation(
+      passmarkVersion = "", previousPhasePassMarkVersion = Some(""), results, resultVersion = "", previousPhaseResultVersion = Some("")
+    )
 
     val launchPadTests = phase3TestWithResults(videoInterviewScore).activeTests
-    insertApplication(appId, ApplicationStatus.PHASE3_TESTS, None, None, Some(launchPadTests), applicationRoute = Some(applicationRoute),
-      schemes = schemes
+    insertApplication(appId, ApplicationStatus.PHASE3_TESTS, phase1Tests = None, phase2Tests = None, Some(launchPadTests),
+      applicationRoute = Some(applicationRoute), schemes = schemes
     )
 
     phase3EvaluationRepo.savePassmarkEvaluation(appId, phase3PassMarkEvaluation, None).futureValue
@@ -207,7 +200,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper {
   // scalastyle:off
   def insertApplication(appId: String, applicationStatus: ApplicationStatus, phase1Tests: Option[List[PsiTest]] = None,
                          phase2Tests: Option[List[PsiTest]] = None, phase3Tests: Option[List[LaunchpadTest]] = None,
-                         isGis: Boolean = false, schemes: List[SchemeId] = List(SchemeId("Commercial")),
+                         isGis: Boolean = false, schemes: List[SchemeId] = List(Commercial),
                          phase1Evaluation: Option[PassmarkEvaluation] = None,
                          phase2Evaluation: Option[PassmarkEvaluation] = None,
                          additionalProgressStatuses: List[(ProgressStatus, Boolean)] = List.empty,

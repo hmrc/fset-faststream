@@ -44,6 +44,7 @@ object AssessorSkill {
     AssessorSkill(ORAC_ASSESSOR, "ORAC Assessor"),
     AssessorSkill(ORAC_EM_ASSESSOR, "ORAC_EM Assessor"),
     AssessorSkill(ORAC_QAC, "ORAC QAC"),
+    AssessorSkill(OPD_ASSESSOR, "OPD Assessor"),
     AssessorSkill(PDFS_ASSESSOR, "PDFS Assessor"),
     AssessorSkill(PRO_ASSESSOR, "PRO Assessor"),
     AssessorSkill(QUALITY_ASSURANCE_COORDINATOR, "Quality Assurance Coordinator"),

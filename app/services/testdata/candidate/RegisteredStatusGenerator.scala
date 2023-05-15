@@ -17,9 +17,7 @@
 package services.testdata.candidate
 
 import connectors.AuthProviderClient
-
-import javax.inject.{Inject, Singleton}
-import model.SchemeId
+import model.Schemes
 import model.exchange.testdata.CreateAdminResponse.AssessorResponse
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.persisted.Media
@@ -33,13 +31,14 @@ import services.testdata.admin.AssessorCreatedStatusGenerator
 import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class RegisteredStatusGenerator @Inject()(authProviderClient: AuthProviderClient,
                                           medRepository: MediaRepository,
                                           assessorGenerator: AssessorCreatedStatusGenerator,
-                                          dataFaker: DataFaker)(implicit ec: ExecutionContext) extends BaseGenerator {
+                                          dataFaker: DataFaker)(implicit ec: ExecutionContext) extends BaseGenerator with Schemes {
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
               (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {
@@ -80,7 +79,7 @@ class RegisteredStatusGenerator @Inject()(authProviderClient: AuthProviderClient
         assessorGenerator.createAssessor(user.userId,
           AssessorData(
             List(SkillType.ASSESSOR.toString, SkillType.QUALITY_ASSURANCE_COORDINATOR.toString, SkillType.SIFTER.toString),
-            List(SchemeId("Sdip"), SchemeId("Commercial")),
+            List(Sdip, Commercial),
             dataFaker.Random.bool,
             None,
             AssessorStatus.CREATED)).map {

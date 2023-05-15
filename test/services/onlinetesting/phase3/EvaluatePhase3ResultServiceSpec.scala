@@ -36,7 +36,7 @@ import services.BaseServiceSpec
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class EvaluatePhase3ResultServiceSpec extends BaseServiceSpec {
+class EvaluatePhase3ResultServiceSpec extends BaseServiceSpec with Schemes {
 
   "evaluate candidate" should {
     "throw an exception if there are no active tests" in new TestFixture {
@@ -70,8 +70,8 @@ class EvaluatePhase3ResultServiceSpec extends BaseServiceSpec {
 
       applicationIdCaptor.getValue.toString mustBe appId
       val expected = List(SchemeEvaluationResult(
-        SchemeId(digitalDataTechnologyAndCyber), Green.toString),
-        SchemeEvaluationResult(SchemeId(commercial), Green.toString)
+        DigitalDataTechnologyAndCyber, Green.toString),
+        SchemeEvaluationResult(Commercial, Green.toString)
       )
       passmarkEvaluationCaptor.getValue.result mustBe expected
       progressStatusCaptor.getValue mustBe None
@@ -83,7 +83,7 @@ class EvaluatePhase3ResultServiceSpec extends BaseServiceSpec {
       ).copy(applicationStatus = ApplicationStatus.PHASE2_TESTS_PASSED, prevPhaseEvaluation = previousPhaseEvaluation)
 
       when(mockApplicationRepository.getCurrentSchemeStatus(eqTo(appId))).thenReturn(
-        Future.successful(Seq(SchemeEvaluationResult(SchemeId(sdip), Green.toString))))
+        Future.successful(Seq(SchemeEvaluationResult(Sdip, Green.toString))))
 
       service.evaluate(application, passmarkSettings).futureValue
 
@@ -96,9 +96,9 @@ class EvaluatePhase3ResultServiceSpec extends BaseServiceSpec {
 
       applicationIdCaptor.getValue.toString mustBe appId
       val expectedEvaluation = List(SchemeEvaluationResult(
-        SchemeId(digitalDataTechnologyAndCyber),Green.toString),
-        SchemeEvaluationResult(SchemeId(commercial), Green.toString),
-        SchemeEvaluationResult(SchemeId(sdip), Green.toString)
+        DigitalDataTechnologyAndCyber, Green.toString),
+        SchemeEvaluationResult(Commercial, Green.toString),
+        SchemeEvaluationResult(Sdip, Green.toString)
       )
       passmarkEvaluationCaptor.getValue.result mustBe expectedEvaluation
       progressStatusCaptor.getValue mustBe None
@@ -107,12 +107,9 @@ class EvaluatePhase3ResultServiceSpec extends BaseServiceSpec {
 
   trait TestFixture {
     val appId = ApplicationPhase1EvaluationExamples.faststreamApplication.applicationId
-    val sdip = "Sdip"
-    val commercial = "Commercial"
-    val digitalDataTechnologyAndCyber = "DigitalDataTechnologyAndCyber"
     val passmarkSettings = Phase3PassMarkSettingsExamples.passMarkSettings(List(
-      (SchemeId(commercial), 10.0, 20.0),
-      (SchemeId(digitalDataTechnologyAndCyber), 10.0, 20.0)
+      (Commercial,                    10.0, 20.0),
+      (DigitalDataTechnologyAndCyber, 10.0, 20.0)
     ))
 
     val mockPhase3EvaluationRepository = mock[OnlineTestEvaluationRepository]
@@ -129,8 +126,8 @@ class EvaluatePhase3ResultServiceSpec extends BaseServiceSpec {
       PassmarkEvaluation(
         passmarkVersion = "v2",
         previousPhasePassMarkVersion = Some("v1"),
-        result = List(SchemeEvaluationResult(SchemeId(commercial), Green.toString),
-          SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), Green.toString)),
+        result = List(SchemeEvaluationResult(Commercial, Green.toString),
+          SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString)),
         resultVersion = "res-v2",
         previousPhaseResultVersion = Some("res-v1"))
     )

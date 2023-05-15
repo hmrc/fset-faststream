@@ -297,7 +297,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  trait TestFixture extends TestFixtureBase {
+  trait TestFixture extends TestFixtureBase with Schemes {
     val frameworkId = "FastStream-2016"
 
     val mockContactDetailsRepository = mock[ContactDetailsRepository]
@@ -354,29 +354,29 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       "userId1", "appId1",
       ApplicationRoute.Faststream, "Firstname", "Lastname", "PreferredName",
       ProgressStatuses.SIFT_ENTERED,
-      schemes = List(SchemeId("Commercial"), SchemeId("Finance"), SchemeId("Generalist"), SchemeId("HumanResources")),
+      schemes = List(Commercial, Finance, OperationalDelivery, HumanResources),
       disability = None, gis = None, onlineAdjustments = None, assessmentCentreAdjustments = None,
       testResults = TestResultsForOnlineTestPassMarkReportItemExamples.testResults1,
       currentSchemeStatus =
-        List("Commercial", "Finance", "Generalist", "HumanResources").map(s => SchemeEvaluationResult(s, Green.toString))
+        List("Commercial", "Finance", "OperationalDelivery", "HumanResources").map(s => SchemeEvaluationResult(s, Green.toString))
     )
 
     val applicationForFormSift = ApplicationForNumericTestExtractReport(
       "userId2", "appId2",
       ApplicationRoute.Faststream, "Firstname", "Lastname", "PreferredName",
       ProgressStatuses.SIFT_ENTERED,
-      schemes = List(SchemeId("Generalist")),
+      schemes = List(OperationalDelivery),
       disability = None, gis = None, onlineAdjustments = None, assessmentCentreAdjustments = None,
       testResults = TestResultsForOnlineTestPassMarkReportItemExamples.testResults1,
       currentSchemeStatus =
-        List("Generalist").map(s => SchemeEvaluationResult(s, Green.toString))
+        List("OperationalDelivery").map(s => SchemeEvaluationResult(s, Green.toString))
     )
 
     val applicationForNoSift = ApplicationForNumericTestExtractReport(
       "userId3", "appId3",
       ApplicationRoute.Faststream, "Firstname", "Lastname", "PreferredName",
       ProgressStatuses.SIFT_ENTERED,
-      schemes = List(SchemeId("HumanResources")),
+      schemes = List(HumanResources),
       disability = None, gis = None, onlineAdjustments = None, assessmentCentreAdjustments = None,
       testResults = TestResultsForOnlineTestPassMarkReportItemExamples.testResults1,
       currentSchemeStatus =
@@ -390,7 +390,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
             siftEvaluationRequired = true, fsbType = None, schemeGuide = None, None),
           Scheme("Finance", "FIN", "Finance", civilServantEligible = false, None, Some(SiftRequirement.NUMERIC_TEST),
             siftEvaluationRequired = true, fsbType = None, schemeGuide = None, None),
-          Scheme("Generalist", "GCS", "Generalist", civilServantEligible = false, None, Some(SiftRequirement.FORM),
+          Scheme("OperationalDelivery", "OPD", "Operational Delivery", civilServantEligible = false, None, Some(SiftRequirement.FORM),
             siftEvaluationRequired = true, fsbType = None, schemeGuide = None, None),
           Scheme("HumanResources", "HRS", "Human Resources", civilServantEligible = false, None, None,
             siftEvaluationRequired = false, fsbType = None, schemeGuide = None, None)
@@ -464,22 +464,22 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     val SuccessfulProgressReportResponse = Future.successful(
       List(
         CandidateProgressReportItem("user1", "app1", Some("submitted"),
-          List(SchemeId("DiplomaticAndDevelopment"), SchemeId("GovernmentOperationalResearchService")), disability = Some("Yes"),
+          List(DiplomaticAndDevelopment, GovernmentOperationalResearchService), disability = Some("Yes"),
           onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
           civilServant = Some("No"), edip = Some("No"), sdip = Some("No"), otherInternship = Some("No"),
           fastPassCertificate = Some("1234567"), assessmentCentre = Some("London"), ApplicationRoute.Faststream),
         CandidateProgressReportItem("user2", "app2", Some("registered"),
-          List(SchemeId("DiplomaticAndDevelopment"), SchemeId("GovernmentOperationalResearchService")), disability = Some("Yes"),
+          List(DiplomaticAndDevelopment, GovernmentOperationalResearchService), disability = Some("Yes"),
           onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
           civilServant = Some("No"), edip = Some("No"), sdip = Some("No"), otherInternship = Some("No"),
           fastPassCertificate = Some("1234567"), assessmentCentre = None, ApplicationRoute.Faststream),
         CandidateProgressReportItem("user3", "app3", Some("submitted"),
-          List(SchemeId("DiplomaticAndDevelopment"), SchemeId("GovernmentOperationalResearchService")), disability = Some("Yes"),
+          List(DiplomaticAndDevelopment, GovernmentOperationalResearchService), disability = Some("Yes"),
           onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
           civilServant = Some("No"), edip = Some("No"), sdip = Some("No"), otherInternship = Some("No"), fastPassCertificate = Some("1234567"),
           assessmentCentre = None, ApplicationRoute.Edip),
         CandidateProgressReportItem("user4", "app4", Some("submitted"),
-          List(SchemeId("DiplomaticAndDevelopment"), SchemeId("GovernmentOperationalResearchService")), disability = Some("Yes"),
+          List(DiplomaticAndDevelopment, GovernmentOperationalResearchService), disability = Some("Yes"),
           onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
           civilServant = Some("No"), edip = Some("No"), sdip = Some("No"), otherInternship = Some("No"), fastPassCertificate = Some("1234567"),
           assessmentCentre = Some("Newcastle"), ApplicationRoute.Faststream)

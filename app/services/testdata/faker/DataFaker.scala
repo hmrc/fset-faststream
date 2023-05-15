@@ -40,7 +40,7 @@ class DataFakerImpl @Inject () (schemeRepository: SchemeRepository,
 //scalastyle:off number.of.methods
 @ImplementedBy(classOf[DataFakerImpl])
 abstract class DataFaker(schemeRepo: SchemeRepository,
-                         locationsWithVenuesRepo: LocationsWithVenuesInMemoryYamlRepository) extends DataFakerRandom {
+                         locationsWithVenuesRepo: LocationsWithVenuesInMemoryYamlRepository) extends DataFakerRandom with Schemes {
 
   object ExchangeObjects {
     case class AvailableAssessmentSlot(venue: Venue, date: LocalDate, session: String)
@@ -211,7 +211,7 @@ abstract class DataFaker(schemeRepo: SchemeRepository,
     SkillType.CHAIR.toString), 4)
 
   def sifterSchemes: List[SchemeId] = Random.randList(
-    List(SchemeId("GovernmentEconomicsService"), SchemeId("ProjectDelivery"), SchemeId("Sdip")), 3
+    List(GovernmentEconomicsService, ProjectDelivery, Sdip), 3
   )
 
   def parentsOccupationDetails: String = Random.randOne(List(

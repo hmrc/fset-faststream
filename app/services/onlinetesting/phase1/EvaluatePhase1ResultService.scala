@@ -19,17 +19,16 @@ package services.onlinetesting.phase1
 import com.google.inject.name.Named
 import config.MicroserviceAppConfig
 import factories.UUIDFactory
+import model.exchange.passmarksettings.Phase1PassMarkSettingsPersistence
+import model.persisted.{ApplicationReadyForEvaluation, PsiTest}
+import model.{Phase, Schemes}
+import play.api.Logging
+import repositories.onlinetesting.OnlineTestEvaluationRepository
+import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
+import scheduler.onlinetesting.EvaluateOnlineTestResultService
 import services.passmarksettings.PassMarkSettingsService
 
 import javax.inject.{Inject, Singleton}
-import model.exchange.passmarksettings.{Phase1PassMarkSettings, Phase1PassMarkSettingsPersistence}
-import model.persisted.{ApplicationReadyForEvaluation, PsiTest}
-import model.{Phase, SchemeId}
-import play.api.Logging
-import repositories.onlinetesting.{OnlineTestEvaluationRepository, Phase1EvaluationMongoRepository}
-import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
-import scheduler.onlinetesting.EvaluateOnlineTestResultService
-
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -37,15 +36,15 @@ class EvaluatePhase1ResultService @Inject() (@Named("Phase1EvaluationRepository"
                                              val passMarkSettingsRepo: Phase1PassMarkSettingsMongoRepository,
                                              appConfig: MicroserviceAppConfig,
                                              val uuidFactory: UUIDFactory
-                                            )(
-  implicit ec: ExecutionContext) extends EvaluateOnlineTestResultService[Phase1PassMarkSettingsPersistence] with Phase1TestSelector with
-  Phase1TestEvaluation with PassMarkSettingsService[Phase1PassMarkSettingsPersistence] with Logging {
+                                            )(implicit ec: ExecutionContext)
+  extends EvaluateOnlineTestResultService[Phase1PassMarkSettingsPersistence] with Phase1TestSelector with
+  Phase1TestEvaluation with PassMarkSettingsService[Phase1PassMarkSettingsPersistence] with Logging with Schemes {
 
   val phase = Phase.PHASE1
   val gatewayConfig = appConfig.onlineTestsGatewayConfig
 
   def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettingsPersistence): Future[Unit] = {
-    if (application.isSdipFaststream && !passmark.schemes.exists(_.schemeId == SchemeId("Sdip"))) {
+    if (application.isSdipFaststream && !passmark.schemes.exists(_.schemeId == Sdip)) {
       logger.warn(s"Evaluating Phase1 Sdip Faststream candidate with no Sdip passmarks set, so skipping - appId=${application.applicationId}")
       Future.successful(())
     } else {

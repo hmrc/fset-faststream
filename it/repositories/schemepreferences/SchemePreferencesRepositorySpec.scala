@@ -2,9 +2,9 @@ package repositories.schemepreferences
 
 import factories.ITDateTimeFactoryMock
 import model.ApplicationStatus._
-import model.Exceptions.{CannotUpdateRecord, CannotUpdateSchemePreferences, SchemePreferencesNotFound}
+import model.Exceptions.{ CannotUpdateSchemePreferences, SchemePreferencesNotFound }
 import model.SelectedSchemesExamples._
-import model.{ApplicationRoute, SchemeId}
+import model.{ApplicationRoute, SchemeId, Schemes}
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
 import repositories.CollectionNames
@@ -12,7 +12,7 @@ import repositories.application.GeneralApplicationMongoRepository
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.mongo.play.json.Codecs
 
-class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
+class SchemePreferencesRepositorySpec extends MongoRepositorySpec with Schemes {
 
   val collectionName: String = CollectionNames.APPLICATION
 
@@ -60,21 +60,21 @@ class SchemePreferencesRepositorySpec extends MongoRepositorySpec {
   "add scheme" should {
     "add a new scheme to the application" in {
       val actualSchemes = createTwoSchemes()
-      repository.add(AppId, SchemeId("Sdip")).futureValue
+      repository.add(AppId, Sdip).futureValue
 
       val schemes = repository.find(AppId).futureValue
       schemes.schemes.size mustBe (actualSchemes.size + 1)
-      schemes.schemes must contain theSameElementsAs (SchemeId("Sdip") :: actualSchemes)
+      schemes.schemes must contain theSameElementsAs (Sdip :: actualSchemes)
     }
 
     "not add duplicates" in {
       val actualSchemes = createTwoSchemes()
-      repository.add(AppId, SchemeId("Sdip")).futureValue
-      repository.add(AppId, SchemeId("Sdip")).futureValue
+      repository.add(AppId, Sdip).futureValue
+      repository.add(AppId, Sdip).futureValue
 
       val schemes = repository.find(AppId).futureValue
       schemes.schemes.size mustBe (actualSchemes.size + 1)
-      schemes.schemes must contain theSameElementsAs (SchemeId("Sdip") :: actualSchemes)
+      schemes.schemes must contain theSameElementsAs (Sdip :: actualSchemes)
     }
   }
 

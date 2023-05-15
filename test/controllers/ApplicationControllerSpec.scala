@@ -23,7 +23,7 @@ import model.command.{ProgressResponse, WithdrawApplication}
 import model.persisted.fileupload.FileUpload
 import model.persisted.fsac.{AnalysisExercise, AssessmentCentreTests}
 import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
-import model.{ApplicationResponse, ApplicationRoute, SchemeId}
+import model.{ApplicationResponse, ApplicationRoute, Schemes}
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
@@ -161,7 +161,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
 
   "Get Scheme Results" must {
     "return the scheme results for an application" in new TestFixture {
-      val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString))
+      val resultToSave = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version2", None)
       when(mockPassmarkService.getPassmarkEvaluation(any[String])(any[ExecutionContext])).thenReturn(Future.successful(evaluation))
 
@@ -242,7 +242,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     }
   }
 
-  trait TestFixture extends TestFixtureBase {
+  trait TestFixture extends TestFixtureBase with Schemes {
     val mockApplicationRepository = mock[GeneralApplicationRepository]
     val mockApplicationService = mock[ApplicationService]
     val mockPassmarkService = mock[EvaluatePhase3ResultService]

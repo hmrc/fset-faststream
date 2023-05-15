@@ -41,7 +41,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.TimeUnit
 
-class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
+class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec with Schemes {
 
   trait TestFixture  {
     val appId = "applicationId"
@@ -65,8 +65,8 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
             civilServantEligible = false, degree = None, siftRequirement = Some(SiftRequirement.FORM), siftEvaluationRequired = false,
             fsbType = None, schemeGuide = None, schemeQuestion = None
           ),
-          Scheme(id = "Generalist", code = "GFS", name = "Generalist", civilServantEligible = true, degree = None, siftRequirement = None,
-            siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None
+          Scheme(id = "OperationalDelivery", code = "OPD", name = "Operational Delivery", civilServantEligible = true, degree = None,
+            siftRequirement = None, siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None
           ),
           Scheme(id = "GovernmentEconomicsService", code = "GES", name = "Government Economics Service", civilServantEligible = false,
             degree = None, siftRequirement = Some(SiftRequirement.FORM), siftEvaluationRequired = true, fsbType = None, schemeGuide = None,
@@ -97,7 +97,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
             schemeQuestion = None
           )
         )
-      override lazy val siftableSchemeIds: Seq[SchemeId] = Seq(SchemeId("GovernmentSocialResearchService"), SchemeId("Commercial"))
+      override lazy val siftableSchemeIds: Seq[SchemeId] = Seq(GovernmentSocialResearchService, Commercial)
       override lazy val siftableAndEvaluationRequiredSchemeIds: Seq[SchemeId] =
         schemes.collect { case s if s.siftRequirement.isDefined && s.siftEvaluationRequired => s.id }
       override lazy val nonSiftableSchemeIds: Seq[SchemeId] = schemes.collect { case s if s.siftRequirement.isEmpty => s.id }
@@ -132,7 +132,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
         }
       )
 
-    lazy val schemeSiftResult = SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Green.toString)
+    lazy val schemeSiftResult = SchemeEvaluationResult(GovernmentSocialResearchService, EvaluationResults.Green.toString)
     val queryBson = Document("applicationId" -> appId)
     val updateBson = Document("test" -> "test")
 
@@ -143,11 +143,11 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     "progress all applications regardless of failures" in new TestFixture {
       val applicationsToProgressToSift = List(
         ApplicationForSift("appId1", "userId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-          List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))),
+          List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString))),
         ApplicationForSift("appId2", "userId2", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-          List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), EvaluationResults.Green.toString))),
+          List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Green.toString))),
         ApplicationForSift("appId3", "userId3", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-            List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)))
+            List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)))
       )
 
       (mockApplicationRepo.addProgressStatusAndUpdateAppStatus _).expects("appId1", ProgressStatuses.SIFT_ENTERED).returningAsync
@@ -167,8 +167,8 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       "requiring a numeric test and form based schemes are failed" in new TestFixture {
       val applicationToProgressToSift = List(
         ApplicationForSift("appId1", "userId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-          List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString),
-            SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString)
+          List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString),
+            SchemeEvaluationResult(GovernmentSocialResearchService, EvaluationResults.Red.toString)
           )
         )
       )
@@ -184,12 +184,12 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     }
 
     "progress candidate to SIFT_ENTERED (eligible to be sifted) when the candidate is still in the running for schemes " +
-      "requiring a numeric test and Generalist and form based schemes are failed" in new TestFixture {
+      "requiring a numeric test and OperationalDelivery and form based schemes are failed" in new TestFixture {
       val applicationToProgressToSift = List(
         ApplicationForSift("appId1", "userId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-          List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString),
-            SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString),
-            SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString)
+          List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString),
+            SchemeEvaluationResult(GovernmentSocialResearchService, EvaluationResults.Red.toString),
+            SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString)
           )
         )
       )
@@ -205,9 +205,9 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     }
 
     "find relevant applications for scheme sifting" in new TestFixture {
-      val candidates = Seq(Candidate("userId1", Some("appId1"), Some(""), Some(""), Some(""), Some(""), Some(""),
-        Some(LocalDate.now), Some(Address("")),
-        Some("E1 7UA"), Some("UK"), Some(ApplicationRoute.Faststream), Some("")))
+      val candidates = Seq(Candidate("userId1", Some("appId1"), testAccountId = Some(""), email = Some(""), firstName = Some(""),
+        lastName = Some(""), preferredName = Some(""), Some(LocalDate.now), Some(Address("")),
+        Some("E1 7UA"), Some("UK"), Some(ApplicationRoute.Faststream), applicationStatus = Some("")))
 
       (mockApplicationSiftRepo.findApplicationsReadyForSchemeSift _).expects(*).returningAsync(candidates)
 
@@ -226,7 +226,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       )
 
       (mockApplicationRepo.getCurrentSchemeStatus _).expects(appId).returningAsync(Seq(
-        SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Green.toString)
+        SchemeEvaluationResult(GovernmentSocialResearchService, EvaluationResults.Green.toString)
       ))
       (mockApplicationSiftRepo.siftApplicationForScheme _).expects(appId, schemeSiftResult, expectedUpdateBson).returningAsync
       (mockApplicationRepo.getApplicationRoute _).expects(appId).returningAsync(ApplicationRoute.Faststream)
@@ -237,25 +237,25 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     "sift a faststream scheme to RED and update progress status for an SdipFaststream candidate whose other fast stream " +
       "schemes are Red or Withdrawn, all require a sift and have been sifted" in new SiftUpdateTest {
       (mockApplicationSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Seq(
-        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Withdrawn.toString),
-        SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString)
+        SchemeEvaluationResult(Commercial, EvaluationResults.Withdrawn.toString),
+        SchemeEvaluationResult(GovernmentSocialResearchService, EvaluationResults.Red.toString)
       ))
 
       (mockApplicationRepo.getApplicationRoute _).expects(appId).returningAsync(ApplicationRoute.SdipFaststream)
 
       (mockApplicationRepo.getCurrentSchemeStatus _).expects(appId).returningAsync(Seq(
-        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Withdrawn.toString),
-        SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString),
-        SchemeEvaluationResult(SchemeId("GovernmentEconomicsService"), EvaluationResults.Green.toString),
-        SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString)
+        SchemeEvaluationResult(Commercial, EvaluationResults.Withdrawn.toString),
+        SchemeEvaluationResult(GovernmentSocialResearchService, EvaluationResults.Red.toString),
+        SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Green.toString),
+        SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString)
       ))
 
-      override lazy val schemeSiftResult = SchemeEvaluationResult(SchemeId("GovernmentEconomicsService"), EvaluationResults.Red.toString)
+      override lazy val schemeSiftResult = SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Red.toString)
       val expectedUpdateBson = Seq(
-        currentSchemeUpdateBson(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Withdrawn.toString) ::
-          SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString) ::
+        currentSchemeUpdateBson(SchemeEvaluationResult(Commercial, EvaluationResults.Withdrawn.toString) ::
+          SchemeEvaluationResult(GovernmentSocialResearchService, EvaluationResults.Red.toString) ::
           schemeSiftResult ::
-          SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString) ::
+          SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString) ::
            Nil: _*),
         progressStatusUpdateBson(ProgressStatuses.SIFT_COMPLETED),
         progressStatusUpdateBson(ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN)
@@ -272,18 +272,18 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       (mockApplicationRepo.getApplicationRoute _).expects(appId).returningAsync(ApplicationRoute.SdipFaststream)
 
       (mockApplicationRepo.getCurrentSchemeStatus _).expects(appId).returningAsync(Seq(
-        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Withdrawn.toString),
-        SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Withdrawn.toString),
-        SchemeEvaluationResult(SchemeId("GovernmentEconomicsService"), EvaluationResults.Green.toString),
-        SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString)
+        SchemeEvaluationResult(Commercial, EvaluationResults.Withdrawn.toString),
+        SchemeEvaluationResult(GovernmentSocialResearchService, EvaluationResults.Withdrawn.toString),
+        SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Green.toString),
+        SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString)
       ))
 
-      override lazy val schemeSiftResult = SchemeEvaluationResult(SchemeId("GovernmentEconomicsService"), EvaluationResults.Red.toString)
+      override lazy val schemeSiftResult = SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Red.toString)
       val expectedUpdateBson = Seq(
-        currentSchemeUpdateBson(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Withdrawn.toString) ::
-          SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Withdrawn.toString) ::
+        currentSchemeUpdateBson(SchemeEvaluationResult(Commercial, EvaluationResults.Withdrawn.toString) ::
+          SchemeEvaluationResult(GovernmentSocialResearchService, EvaluationResults.Withdrawn.toString) ::
           schemeSiftResult ::
-          SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString) ::
+          SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString) ::
           Nil: _*),
         progressStatusUpdateBson(ProgressStatuses.SIFT_COMPLETED),
         progressStatusUpdateBson(ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN)
@@ -297,25 +297,25 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       "schemes which require a sift are Red or Withdrawn and have been sifted, but also has a fast stream scheme that " +
       "does not require a sift" in new SiftUpdateTest {
       (mockApplicationSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Seq(
-        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Withdrawn.toString),
-        SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString)
+        SchemeEvaluationResult(Commercial, EvaluationResults.Withdrawn.toString),
+        SchemeEvaluationResult(GovernmentSocialResearchService, EvaluationResults.Red.toString)
       ))
 
       (mockApplicationRepo.getApplicationRoute _).expects(appId).returningAsync(ApplicationRoute.SdipFaststream)
 
       (mockApplicationRepo.getCurrentSchemeStatus _).expects(appId).returningAsync(Seq(
-        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Withdrawn.toString),
-        SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString),
-        SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString),
-        SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), EvaluationResults.Green.toString)
+        SchemeEvaluationResult(Commercial, EvaluationResults.Withdrawn.toString),
+        SchemeEvaluationResult(GovernmentSocialResearchService, EvaluationResults.Red.toString),
+        SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString),
+        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Green.toString)
       ))
 
-      override lazy val schemeSiftResult = SchemeEvaluationResult(SchemeId("Sdip"), EvaluationResults.Green.toString)
+      override lazy val schemeSiftResult = SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString)
       val expectedUpdateBson = Seq(
-        currentSchemeUpdateBson(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Withdrawn.toString) ::
-          SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Red.toString) ::
+        currentSchemeUpdateBson(SchemeEvaluationResult(Commercial, EvaluationResults.Withdrawn.toString) ::
+          SchemeEvaluationResult(GovernmentSocialResearchService, EvaluationResults.Red.toString) ::
           schemeSiftResult ::
-          SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), EvaluationResults.Green.toString) :: Nil: _*),
+          SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Green.toString) :: Nil: _*),
         progressStatusUpdateBson(ProgressStatuses.SIFT_COMPLETED)
       )
       (mockApplicationSiftRepo.siftApplicationForScheme _).expects(appId, schemeSiftResult, expectedUpdateBson).returningAsync
@@ -327,8 +327,8 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       (mockApplicationSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Nil)
 
       val currentStatus = Seq(
-        SchemeEvaluationResult(SchemeId("GovernmentSocialResearchService"), EvaluationResults.Green.toString),
-        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
+        SchemeEvaluationResult(GovernmentSocialResearchService, EvaluationResults.Green.toString),
+        SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)
       )
       val expectedUpdateBson = Seq(
         currentSchemeUpdateBson(currentStatus:_*)
@@ -345,16 +345,16 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       (mockApplicationSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Nil)
 
       val currentStatus = Seq(
-        SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), EvaluationResults.Green.toString),
-        SchemeEvaluationResult(SchemeId("HousesOfParliament"), EvaluationResults.Green.toString),
-        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
+        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Green.toString),
+        SchemeEvaluationResult(HousesOfParliament, EvaluationResults.Green.toString),
+        SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)
       )
       val expectedUpdateBson = Seq(
         currentSchemeUpdateBson(currentStatus:_*),
         progressStatusUpdateBson(ProgressStatuses.SIFT_COMPLETED)
       )
 
-      override lazy val schemeSiftResult = SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
+      override lazy val schemeSiftResult = SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)
 
       (mockApplicationRepo.getApplicationRoute _).expects(appId).returningAsync(ApplicationRoute.Faststream)
       (mockApplicationRepo.getCurrentSchemeStatus _).expects(appId).returningAsync(currentStatus)
@@ -363,21 +363,21 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
       whenReady(service.siftApplicationForScheme("applicationId", schemeSiftResult)) { result => result mustBe unit }
     }
 
-    "sift candidate and update progress status if remaining schemes are generalists and/or dont require sift" in new SiftUpdateTest {
+    "sift candidate and update progress status if remaining schemes are OperationalDelivery and/or dont require sift" in new SiftUpdateTest {
       (mockApplicationSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Nil)
 
       val currentStatus = Seq(
-        SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), EvaluationResults.Green.toString),
-        SchemeEvaluationResult(SchemeId("HousesOfParliament"), EvaluationResults.Green.toString),
-        SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
-        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
+        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Green.toString),
+        SchemeEvaluationResult(HousesOfParliament, EvaluationResults.Green.toString),
+        SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
+        SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)
       )
       val expectedUpdateBson = Seq(
         currentSchemeUpdateBson(currentStatus: _*),
         progressStatusUpdateBson(ProgressStatuses.SIFT_COMPLETED)
       )
 
-      override lazy val schemeSiftResult = SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
+      override lazy val schemeSiftResult = SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)
 
       (mockApplicationRepo.getApplicationRoute _).expects(appId).returningAsync(ApplicationRoute.Faststream)
       (mockApplicationRepo.getCurrentSchemeStatus _).expects(appId).returningAsync(currentStatus)
@@ -457,7 +457,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
   "findUsersInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase" must {
     "return no candidates if the candidates have no numeric test schemes" in new TestFixture {
       (mockApplicationSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(
-        FixUserStuckInSiftEntered("app1", Seq(SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString)))
+        FixUserStuckInSiftEntered("app1", Seq(SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString)))
       ))
       whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase) { result => result mustBe Nil }
     }
@@ -465,8 +465,8 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     "return no candidates if the candidates have no green numeric test schemes" in new TestFixture {
       (mockApplicationSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(
         FixUserStuckInSiftEntered("app1", Seq(
-          SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
-          SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Red.toString)
+          SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
+          SchemeEvaluationResult(Commercial, EvaluationResults.Red.toString)
         ))
       ))
       whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase) { result => result mustBe Nil }
@@ -474,8 +474,8 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
 
     "return candidates if the candidates have at least one green numeric test scheme" in new TestFixture {
       val oneCandidate = FixUserStuckInSiftEntered("app1", Seq(
-        SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
-        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
+        SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
+        SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)
       ))
 
       (mockApplicationSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(oneCandidate))
@@ -485,8 +485,8 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
 
     "return candidates if the candidates only have one green numeric test scheme" in new TestFixture {
       val oneCandidate = FixUserStuckInSiftEntered("app1", Seq(
-        SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Red.toString),
-        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
+        SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Red.toString),
+        SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)
       ))
 
       (mockApplicationSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(oneCandidate))
@@ -498,8 +498,8 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
   "findUsersInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes" must {
     "return candidates if the candidates still have numeric test schemes and have withdrawn from all form schemes" in new TestFixture {
       val oneCandidate = FixUserStuckInSiftEntered("app1", Seq(
-        SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), EvaluationResults.Withdrawn.toString),
-        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
+        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Withdrawn.toString),
+        SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)
       ))
 
       (mockApplicationSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(oneCandidate))
@@ -510,9 +510,9 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     "return no candidates if the candidates have no green numeric test schemes" in new TestFixture {
       (mockApplicationSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(
         FixUserStuckInSiftEntered("app1", Seq(
-          SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), EvaluationResults.Withdrawn.toString),
-          SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
-          SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Red.toString)
+          SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Withdrawn.toString),
+          SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
+          SchemeEvaluationResult(Commercial, EvaluationResults.Red.toString)
         ))
       ))
       whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes) { result =>
@@ -522,9 +522,9 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec {
     "return no candidates if the candidates have no withdrawn schemes" in new TestFixture {
       (mockApplicationSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(
         FixUserStuckInSiftEntered("app1", Seq(
-          SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), EvaluationResults.Red.toString),
-          SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
-          SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString)
+          SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Red.toString),
+          SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
+          SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)
         ))
       ))
       whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes) { result => result mustBe Nil }

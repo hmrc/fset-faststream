@@ -8,7 +8,7 @@ import model.EvaluationResults.Result
 import model.ProgressStatuses.ProgressStatus
 import model.exchange.passmarksettings.{PassMarkThreshold, Phase1PassMark, Phase1PassMarkSettingsPersistence, Phase1PassMarkThresholds}
 import model.persisted.{ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult}
-import model.{ApplicationRoute, ApplicationStatus, SchemeId}
+import model.{ApplicationRoute, ApplicationStatus, SchemeId, Schemes}
 import org.joda.time.DateTime
 import org.mockito.Mockito.when
 import org.mongodb.scala.MongoCollection
@@ -51,36 +51,36 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     )
   }
 
-  trait TestFixture {
+  trait TestFixture extends Schemes {
 
     // format: OFF
     //scalastyle:off
     val phase1PassMarkSettingsTable = Table[SchemeId, Double, Double, Double, Double, Double, Double, Double, Double](
-      ("Scheme Name",                                   "Test1 Fail", "Test1 Pass", "Test2 Fail", "Test2 Pass", "Test3 Fail", "Test3 Pass", "Test4 Fail", "Test4 Pass"),
-      (SchemeId("Commercial"),                            20.0,         80.0,         30.0,         70.0,         30.0,         70.0,         20.0,         70.0),
-      (SchemeId("DigitalDataTechnologyAndCyber"),         20.001,       20.001,       20.01,        20.05,        19.0,         20.0,         19.0,         20.0),
-      (SchemeId("DiplomaticAndDevelopment"),              20.01,        20.02,        20.01,        20.02,        20.0,         80.0,         20.0,         80.0),
-      (SchemeId("DiplomaticAndDevelopmentEconomics"),     30.0,         70.0,         30.0,         70.0,         30.0,         70.0,         30.0,         70.0),
-      (SchemeId("DiplomaticServiceEuropean"),             30.0,         70.0,         30.0,         70.0,         30.0,         70.0,         30.0,         70.0),
-      (SchemeId("European"),                              40.0,         70.0,         30.0,         70.0,         30.0,         70.0,         30.0,         70.0),
-      (SchemeId("Finance"),                               25.01,        25.02,        25.01,        25.02,        25.01,        25.02,        25.01,        25.02),
-      (SchemeId("Generalist"),                            30.0,         30.0,         30.0,         30.0,         30.0,         30.0,         30.0,         30.0),
-      (SchemeId("GovernmentCommunicationService"),        30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
-      (SchemeId("GovernmentEconomicsService"),            30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
-      (SchemeId("GovernmentOperationalResearchService"),  30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
-      (SchemeId("GovernmentSocialResearchService"),       30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
-      (SchemeId("GovernmentStatisticalService"),          30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
-      (SchemeId("HousesOfParliament"),                    30.0,         79.999,       30.0,         78.08,        20.0,         77.77,        20.0,         76.66),
-      (SchemeId("HumanResources"),                        30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
-      (SchemeId("ProjectDelivery"),                       30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
-      (SchemeId("ScienceAndEngineering"),                 69.00,        69.00,        78.99,        78.99,        20.0,         80.0,         20.0,         80.0)
+      ("Scheme Name",                           "Test1 Fail", "Test1 Pass", "Test2 Fail", "Test2 Pass", "Test3 Fail", "Test3 Pass", "Test4 Fail", "Test4 Pass"),
+      (Commercial,                                20.0,         80.0,         30.0,         70.0,         30.0,         70.0,         20.0,         70.0),
+      (DigitalDataTechnologyAndCyber,             20.001,       20.001,       20.01,        20.05,        19.0,         20.0,         19.0,         20.0),
+      (DiplomaticAndDevelopment,                  20.01,        20.02,        20.01,        20.02,        20.0,         80.0,         20.0,         80.0),
+      (DiplomaticAndDevelopmentEconomics,         30.0,         70.0,         30.0,         70.0,         30.0,         70.0,         30.0,         70.0),
+      (Finance,                                   25.01,        25.02,        25.01,        25.02,        25.01,        25.02,        25.01,        25.02),
+      (GovernmentCommunicationService,            30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
+      (GovernmentEconomicsService,                30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
+      (GovernmentOperationalResearchService,      30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
+      (GovernmentSocialResearchService,           30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
+      (GovernmentStatisticalService,              30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
+      (HousesOfParliament,                        30.0,         79.999,       30.0,         78.08,        20.0,         77.77,        20.0,         76.66),
+      (HumanResources,                            30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
+      (OperationalDelivery,                       30.0,         30.0,         30.0,         30.0,         30.0,         30.0,         30.0,         30.0),
+      (PolicyStrategyAndGovernmentAdministration, 30.0,         70.0,         30.0,         70.0,         30.0,         70.0,         30.0,         70.0),
+      (ProjectDelivery,                           30.0,         70.0,         30.0,         70.0,         20.0,         80.0,         20.0,         80.0),
+      (Property,                                  40.0,         70.0,         30.0,         70.0,         30.0,         70.0,         30.0,         70.0),
+      (ScienceAndEngineering,                     69.00,        69.00,        78.99,        78.99,        20.0,         80.0,         20.0,         80.0)
     )
     //scalastyle:on
     // format: ON
 
     val phase1PassMarkSettingWithSdipTable =
       getPassMarkSettingWithNewSettings(
-        phase1PassMarkSettingsTable, (SchemeId("Finance"), 90.00, 90.00, 90.00, 90.00, 90.00, 90.00, 90.00, 90.00)
+        phase1PassMarkSettingsTable, (Finance, 90.00, 90.00, 90.00, 90.00, 90.00, 90.00, 90.00, 90.00)
       )
 
     var phase1PassMarkSettings: Phase1PassMarkSettingsPersistence = _

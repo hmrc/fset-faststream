@@ -16,13 +16,13 @@
 
 package services.onlinetesting
 
-import model.SchemeId
+import model.Schemes
 import model.persisted.{ApplicationReadyForEvaluation, SchemeEvaluationResult}
 import repositories.application.GeneralApplicationRepository
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait CurrentSchemeStatusHelper {
+trait CurrentSchemeStatusHelper extends Schemes {
 
   val generalAppRepository: GeneralApplicationRepository
 
@@ -31,7 +31,7 @@ trait CurrentSchemeStatusHelper {
       for {
         currentSchemeStatus <- generalAppRepository.getCurrentSchemeStatus(application.applicationId)
       } yield {
-        currentSchemeStatus.find(_.schemeId == SchemeId("Sdip")).toList
+        currentSchemeStatus.find(_.schemeId == Sdip).toList
       }
     } else {
       Future.successful(Nil)

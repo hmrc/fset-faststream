@@ -2,13 +2,13 @@ package repositories
 
 import factories.UUIDFactory
 import model.persisted.EventExamples
-import model.persisted.assessor.{ Assessor, AssessorAvailability, AssessorStatus }
-import model.persisted.eventschedules.{ Location, SkillType }
-import model.{ SchemeId, UniqueIdentifier }
+import model.persisted.assessor.{Assessor, AssessorAvailability, AssessorStatus}
+import model.persisted.eventschedules.{Location, SkillType}
+import model.{SchemeId, Schemes, UniqueIdentifier}
 import org.joda.time.LocalDate
 import testkit.MongoRepositorySpec
 
-class AssessorRepositorySpec extends MongoRepositorySpec {
+class AssessorRepositorySpec extends MongoRepositorySpec with Schemes {
 
   override val collectionName: String = CollectionNames.ASSESSOR
 
@@ -17,7 +17,7 @@ class AssessorRepositorySpec extends MongoRepositorySpec {
   private val userId = UniqueIdentifier.randomUniqueIdentifier.toString
   private val AssessorWithAvailabilities = Assessor(userId, version = None,
     skills = List(SkillType.ASSESSOR.toString, SkillType.QUALITY_ASSURANCE_COORDINATOR.toString),
-    sifterSchemes = List(SchemeId("Sdip")), civilServant = true,
+    sifterSchemes = List(Sdip), civilServant = true,
     availability = Set(
       AssessorAvailability(EventExamples.LocationLondon, new LocalDate(2017, 9, 11)),
       AssessorAvailability(EventExamples.LocationNewcastle, new LocalDate(2017, 9, 12))

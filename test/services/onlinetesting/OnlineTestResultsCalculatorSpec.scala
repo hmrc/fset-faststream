@@ -16,12 +16,12 @@
 
 package services.onlinetesting
 
-import model.EvaluationResults.{ Amber, Green, Red }
-import model.SchemeId
+import model.EvaluationResults.{Amber, Green, Red}
+import model.{SchemeId, Schemes}
 import model.exchange.passmarksettings.PassMarkThreshold
 import testkit.UnitSpec
 
-class OnlineTestResultsCalculatorSpec extends UnitSpec {
+class OnlineTestResultsCalculatorSpec extends UnitSpec with Schemes {
 
   "evaluate test result" should {
     "give green result" in new OnlineTestResultsCalculator {
@@ -45,7 +45,7 @@ class OnlineTestResultsCalculatorSpec extends UnitSpec {
   }
 
   "combine test results" should {
-    val scheme = SchemeId("Commercial")
+    val scheme = Commercial
 
     "give correct result" in new OnlineTestResultsCalculator {
       combineTestResults(scheme, Red) mustBe Red

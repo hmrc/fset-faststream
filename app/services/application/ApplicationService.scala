@@ -105,7 +105,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
                                     assessorAssessmentScoresRepository: AssessorAssessmentScoresMongoRepository,
                                     reviewerAssessmentScoresRepository: ReviewerAssessmentScoresMongoRepository,
                                     val eventService: StcEventService
-                                   )(implicit ec: ExecutionContext) extends EventSink with CurrentSchemeStatusHelper with Logging {
+                                   )(implicit ec: ExecutionContext) extends EventSink with CurrentSchemeStatusHelper with Logging with Schemes {
 
   val Candidate_Role = "Candidate"
 
@@ -271,7 +271,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
       candidate <- appRepository.find(applicationId).map(_.getOrElse(throw ApplicationNotFound(applicationId)))
       contactDetails <- cdRepository.find(candidate.userId)
       _ <- appRepository.updateApplicationRoute(applicationId, ApplicationRoute.Faststream, ApplicationRoute.SdipFaststream)
-      _ <- schemePrefsRepository.add(applicationId, SchemeId("Sdip"))
+      _ <- schemePrefsRepository.add(applicationId, Sdip)
     } yield {
       List(EmailEvents.ApplicationConvertedToSdip(contactDetails.email, candidate.name))
     }
@@ -1152,7 +1152,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
           resultVersion = "", previousPhaseResultVersion = None)
     }
   } yield {
-    phase1.result.find(_.schemeId == SchemeId("Sdip")).toList.filter(r => r.result == Green.toString).map(_.schemeId)
+    phase1.result.find(_.schemeId == Sdip).toList.filter(r => r.result == Green.toString).map(_.schemeId)
   }
 
   private def fixData(fixType: FixBatch)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {

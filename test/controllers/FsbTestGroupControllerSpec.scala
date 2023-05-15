@@ -16,9 +16,9 @@
 
 package controllers
 
-import model.SchemeId
-import model.exchange.{ ApplicationResult, FsbEvaluationResults }
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import model.Schemes
+import model.exchange.{ApplicationResult, FsbEvaluationResults}
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.test.Helpers._
 import services.application.FsbService
@@ -26,7 +26,7 @@ import services.events.EventsService
 import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 
-class FsbTestGroupControllerSpec extends UnitWithAppSpec {
+class FsbTestGroupControllerSpec extends UnitWithAppSpec with Schemes {
 
   val mockFsbTestGroupService = mock[FsbService]
   val mockEventsService = mock[EventsService]
@@ -43,7 +43,7 @@ class FsbTestGroupControllerSpec extends UnitWithAppSpec {
         ApplicationResult("applicationId1", "Pass"),
         ApplicationResult("applicationId2", "Pass")
       )
-      val fsbEvaluationResults = FsbEvaluationResults(SchemeId("DiplomaticAndDevelopment"), applicationResults)
+      val fsbEvaluationResults = FsbEvaluationResults(DiplomaticAndDevelopment, applicationResults)
       when(mockFsbTestGroupService.saveResults(eqTo(fsbEvaluationResults.schemeId), any[List[ApplicationResult]])).thenReturnAsync(List.empty)
       val response = controller.savePerScheme()(fakeRequest(fsbEvaluationResults))
       status(response) mustBe OK

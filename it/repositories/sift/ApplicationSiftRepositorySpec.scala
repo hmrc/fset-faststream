@@ -23,10 +23,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
   val collectionName: String = CollectionNames.APPLICATION
 
-  val Commercial: SchemeId = SchemeId("Commercial")
-  val Generalist: SchemeId = SchemeId("Generalist")
-  val ProjectDelivery = SchemeId("Project Delivery")
-  val schemeDefinitions = List(Commercial, ProjectDelivery, Generalist)
+  val schemeDefinitions = List(Commercial, ProjectDelivery, OperationalDelivery)
 
   def repository: ApplicationSiftMongoRepository = applicationSiftRepository
 
@@ -59,7 +56,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
         List(SchemeEvaluationResult(DiplomaticAndDevelopment, EvaluationResults.Green.toString))).futureValue
 
       insertApplicationWithPhase3TestNotifiedResults("appId5",
-        List(SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString))).futureValue
+        List(SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Red.toString))).futureValue
 
       insertApplicationWithPhase1TestNotifiedResults("appId6",
         List(SchemeEvaluationResult(Edip, EvaluationResults.Green.toString)), appRoute = ApplicationRoute.Edip).futureValue
@@ -110,7 +107,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
         PassmarkEvaluation("1", None, List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString)), "1", None))(Finance)
 
       insertApplicationWithPhase3TestNotifiedResults("appId8",
-        List(SchemeEvaluationResult(Generalist, EvaluationResults.Green.toString))).futureValue
+        List(SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString))).futureValue
       updateApplicationStatus("appId8", ApplicationStatus.PHASE3_TESTS_FAILED)
       insertApplicationWithPhase3TestNotifiedResults("appId9",
         List(SchemeEvaluationResult(Finance, EvaluationResults.Red.toString))).futureValue
@@ -163,7 +160,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       val schemeStatus = List(
         SchemeEvaluationResult(Commercial, Red.toString),
         SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, Withdrawn.toString),
-        SchemeEvaluationResult(Generalist, Red.toString)
+        SchemeEvaluationResult(OperationalDelivery, Red.toString)
       )
       createSiftEligibleCandidates("appId", schemeStatus)
       applicationRepository.addProgressStatusAndUpdateAppStatus("appId", ProgressStatuses.SIFT_COMPLETED).futureValue
@@ -177,7 +174,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       val schemeStatus = List(
         SchemeEvaluationResult(Commercial, Red.toString),
         SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, Green.toString),
-        SchemeEvaluationResult(Generalist, Red.toString)
+        SchemeEvaluationResult(OperationalDelivery, Red.toString)
       )
       createSiftEligibleCandidates("appId", schemeStatus)
       applicationRepository.addProgressStatusAndUpdateAppStatus("appId", ProgressStatuses.SIFT_COMPLETED).futureValue
@@ -378,7 +375,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
     "return no applications when none are eligible" in {
       insertApplicationWithSiftEntered("appId1",
-        List(SchemeEvaluationResult(Generalist, EvaluationResults.Green.toString)))
+        List(SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString)))
 
       val appsForSift = repository.nextApplicationsReadyForNumericTestsInvitation(10, Seq(Commercial)).futureValue
       appsForSift mustBe Nil
@@ -403,7 +400,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
     "return false when the application is not expired" in {
       insertApplicationWithSiftEntered("appId1",
-        List(SchemeEvaluationResult(Generalist, EvaluationResults.Green.toString)))
+        List(SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString)))
 
       val result = repository.isSiftExpired("appId1").futureValue
       result mustBe false
@@ -620,12 +617,12 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       val schemeEvaluationResult = SchemeEvaluationResult(Commercial, Green.toString)
       repository.siftApplicationForScheme(appId, schemeEvaluationResult, Nil).futureValue
 
-      val result = repository.siftResultsExistsForScheme(appId, Generalist).futureValue
+      val result = repository.siftResultsExistsForScheme(appId, OperationalDelivery).futureValue
       result mustBe false
     }
 
     "return false when there is no matching application" in {
-      val result = repository.siftResultsExistsForScheme("appId1", Generalist).futureValue
+      val result = repository.siftResultsExistsForScheme("appId1", OperationalDelivery).futureValue
       result mustBe false
     }
 
@@ -633,7 +630,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       val appId = "appId1"
       createSiftEligibleCandidates(appId)
 
-      val result = repository.siftResultsExistsForScheme(appId, Generalist).futureValue
+      val result = repository.siftResultsExistsForScheme(appId, OperationalDelivery).futureValue
       result mustBe false
     }
   }
@@ -705,7 +702,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
   private def createSiftEligibleCandidates(appAndUserId: String, resultToSave: List[SchemeEvaluationResult] = List(
     SchemeEvaluationResult(Commercial, Green.toString),
     SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, Green.toString),
-    SchemeEvaluationResult(Generalist, Red.toString)
+    SchemeEvaluationResult(OperationalDelivery, Red.toString)
   )
   ) = {
 

@@ -37,7 +37,7 @@ import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
+class FsbServiceSpec extends UnitSpec with ExtendedTimeout with Schemes {
 
   "find scores and feedback" must {
     "handle no data" in new TestFixture {
@@ -81,7 +81,7 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
     // Old test before we replaced EAC_DS with GES_DS
     "fail to evaluate scheme GES_DS if FCO results were not submitted" ignore new TestFixture {
       val curSchemeStatus = List(
-        SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Red.toString),
+        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Red.toString),
         SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Green.toString)
       )
       val res = FsbTestGroup(List(SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Green.toString)))
@@ -146,7 +146,7 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
     "evaluate scheme GES_DS as failed, and then GES as failed, but finally DS passed" ignore new TestFixture {
       val curSchemeStatus = List(
         SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Green.toString),
-        SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Red.toString),
+        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Red.toString),
         SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Green.toString),
         SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopment, Green.toString)
       )
@@ -163,7 +163,7 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       when(mockFsbRepo.updateCurrentSchemeStatus(uid.toString(),
         List(
           SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Red.toString),
-          SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Red.toString),
+          SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Red.toString),
           SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Green.toString),
           SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopment, Green.toString)
         )
@@ -174,7 +174,7 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       when(mockFsbRepo.updateCurrentSchemeStatus(uid.toString(),
         List(
           SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Red.toString),
-          SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Red.toString),
+          SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Red.toString),
           SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Red.toString),
           SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopment, Green.toString)
         )
@@ -500,10 +500,10 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
     )
 
     val schemes = List(
-      SchemeId("DigitalDataTechnologyAndCyber"),
-      SchemeId("DiplomaticAndDevelopment"),
-      SchemeId("DiplomaticAndDevelopmentEconomics"),
-      SchemeId("GovernmentEconomicsService")
+      DigitalDataTechnologyAndCyber,
+      DiplomaticAndDevelopment,
+      DiplomaticAndDevelopmentEconomics,
+      GovernmentEconomicsService
     )
 
     val selectedSchemes = SelectedSchemes(schemes, orderAgreed = true, eligible = true)

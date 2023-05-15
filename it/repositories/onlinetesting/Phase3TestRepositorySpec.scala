@@ -115,8 +115,8 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
             passmarkVersion = "previousVersion",
             previousPhasePassMarkVersion = None,
             result = List(
-              SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
-              SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Red.toString)
+              SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
+              SchemeEvaluationResult(Commercial, EvaluationResults.Red.toString)
             ),
             resultVersion = "version1",
             previousPhaseResultVersion = None
@@ -128,8 +128,8 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         additionalProgressStatuses = List((PHASE2_TESTS_PASSED, true)),
         phase2TestGroup = Some(p2),
         currentSchemeStatus = Some(Seq(
-          SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
-          SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Red.toString)
+          SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
+          SchemeEvaluationResult(Commercial, EvaluationResults.Red.toString)
         ))
       ).futureValue
 
@@ -148,8 +148,8 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
             passmarkVersion = "previousVersion",
             previousPhasePassMarkVersion = None,
             result = List(
-              SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
-              SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Amber.toString)
+              SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
+              SchemeEvaluationResult(Commercial, EvaluationResults.Amber.toString)
             ),
             resultVersion = "version1",
             previousPhaseResultVersion = None
@@ -161,8 +161,8 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         additionalProgressStatuses = List((PHASE2_TESTS_PASSED, true)),
         phase2TestGroup = Some(p2),
         currentSchemeStatus = Some(Seq(
-          SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
-          SchemeEvaluationResult(SchemeId("ommercial"), EvaluationResults.Amber.toString)
+          SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
+          SchemeEvaluationResult(Commercial, EvaluationResults.Amber.toString)
         ))
       ).futureValue
 
@@ -180,8 +180,8 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
             passmarkVersion = "previousVersion",
             previousPhasePassMarkVersion = None,
             result = List(
-              SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
-              SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Red.toString)
+              SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
+              SchemeEvaluationResult(Commercial, EvaluationResults.Red.toString)
             ),
             resultVersion = "version1",
             previousPhaseResultVersion = None
@@ -193,15 +193,15 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         additionalProgressStatuses = List((PHASE2_TESTS_PASSED, true)),
         phase2TestGroup = Some(p2),
         currentSchemeStatus = Some(Seq(
-          SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
-          SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Red.toString)
+          SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
+          SchemeEvaluationResult(Commercial, EvaluationResults.Red.toString)
         ))
       ).futureValue
 
       val application = ApplicationForSkippingPhase3("appId",
         currentSchemeStatus = Seq(
-          SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
-          SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Red.toString)
+          SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
+          SchemeEvaluationResult(Commercial, EvaluationResults.Red.toString)
         )
       )
       phase3TestRepo.skipPhase3(application).futureValue
@@ -209,8 +209,8 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       status.status mustBe ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED.toString
       fetchPhase3Evaluation(application.applicationId).futureValue mustBe
         Seq(
-          SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString),
-          SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Red.toString)
+          SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
+          SchemeEvaluationResult(Commercial, EvaluationResults.Red.toString)
         )
     }
   }

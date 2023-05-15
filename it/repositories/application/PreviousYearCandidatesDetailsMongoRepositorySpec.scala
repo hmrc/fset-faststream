@@ -27,7 +27,7 @@ class PreviousYearCandidatesDetailsMongoRepositorySpec extends MongoRepositorySp
     "return false if the candidate is a faststream candidate" in {
       val appId = createApplication(ApplicationRoute.Faststream)
       val evaluationResults = Seq(
-        SchemeEvaluationResult("Generalist", Green.toString)
+        SchemeEvaluationResult("OperationalDelivery", Green.toString)
       )
       appRepository.updateCurrentSchemeStatus(appId, evaluationResults).futureValue
 
@@ -39,7 +39,7 @@ class PreviousYearCandidatesDetailsMongoRepositorySpec extends MongoRepositorySp
     "return false if the candidate has green sdip and faststream schemes are green" in {
       val appId = createApplication(ApplicationRoute.SdipFaststream)
       val evaluationResults = Seq(
-        SchemeEvaluationResult("Generalist", Green.toString),
+        SchemeEvaluationResult("OperationalDelivery", Green.toString),
         SchemeEvaluationResult("Sdip", Green.toString)
       )
       appRepository.updateCurrentSchemeStatus(appId, evaluationResults).futureValue
@@ -53,7 +53,7 @@ class PreviousYearCandidatesDetailsMongoRepositorySpec extends MongoRepositorySp
       val appId = createApplication(ApplicationRoute.SdipFaststream)
       val evaluationResults = Seq(
         SchemeEvaluationResult("Commercial", Green.toString),
-        SchemeEvaluationResult("Generalist", Green.toString),
+        SchemeEvaluationResult("OperationalDelivery", Green.toString),
         SchemeEvaluationResult("Sdip", Green.toString)
       )
       appRepository.updateCurrentSchemeStatus(appId, evaluationResults).futureValue
@@ -66,7 +66,7 @@ class PreviousYearCandidatesDetailsMongoRepositorySpec extends MongoRepositorySp
     "return true if the candidate has green sdip and faststream schemes are red" in {
       val appId = createApplication(ApplicationRoute.SdipFaststream)
       val evaluationResults = Seq(
-        SchemeEvaluationResult("Generalist", Red.toString),
+        SchemeEvaluationResult("OperationalDelivery", Red.toString),
         SchemeEvaluationResult("Sdip", Green.toString)
       )
       appRepository.updateCurrentSchemeStatus(appId, evaluationResults).futureValue
@@ -80,7 +80,7 @@ class PreviousYearCandidatesDetailsMongoRepositorySpec extends MongoRepositorySp
       val appId = createApplication(ApplicationRoute.SdipFaststream)
       val evaluationResults = Seq(
         SchemeEvaluationResult("Commercial", Red.toString),
-        SchemeEvaluationResult("Generalist", Red.toString),
+        SchemeEvaluationResult("OperationalDelivery", Red.toString),
         SchemeEvaluationResult("Sdip", Green.toString)
       )
       appRepository.updateCurrentSchemeStatus(appId, evaluationResults).futureValue
@@ -93,7 +93,7 @@ class PreviousYearCandidatesDetailsMongoRepositorySpec extends MongoRepositorySp
     "return true if the candidate has green sdip and faststream schemes are withdrawn" in {
       val appId = createApplication(ApplicationRoute.SdipFaststream)
       val evaluationResults = Seq(
-        SchemeEvaluationResult("Generalist", Withdrawn.toString),
+        SchemeEvaluationResult("OperationalDelivery", Withdrawn.toString),
         SchemeEvaluationResult("Sdip", Green.toString)
       )
       appRepository.updateCurrentSchemeStatus(appId, evaluationResults).futureValue
@@ -107,7 +107,7 @@ class PreviousYearCandidatesDetailsMongoRepositorySpec extends MongoRepositorySp
       val appId = createApplication(ApplicationRoute.SdipFaststream)
       val evaluationResults = Seq(
         SchemeEvaluationResult("Commercial", Withdrawn.toString),
-        SchemeEvaluationResult("Generalist", Withdrawn.toString),
+        SchemeEvaluationResult("OperationalDelivery", Withdrawn.toString),
         SchemeEvaluationResult("Sdip", Green.toString)
       )
       appRepository.updateCurrentSchemeStatus(appId, evaluationResults).futureValue
@@ -121,7 +121,7 @@ class PreviousYearCandidatesDetailsMongoRepositorySpec extends MongoRepositorySp
       val appId = createApplication(ApplicationRoute.SdipFaststream)
       val evaluationResults = Seq(
         SchemeEvaluationResult("Commercial", Red.toString),
-        SchemeEvaluationResult("Generalist", Withdrawn.toString),
+        SchemeEvaluationResult("OperationalDelivery", Withdrawn.toString),
         SchemeEvaluationResult("Sdip", Green.toString)
       )
       appRepository.updateCurrentSchemeStatus(appId, evaluationResults).futureValue

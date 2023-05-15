@@ -44,7 +44,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, ExecutionException, Future}
 
-class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
+class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout with Schemes {
 
   trait TestFixture extends StcEventServiceFixture {
 
@@ -228,7 +228,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
       when(mockSiftRepo.nextApplicationWithResultsReceived).thenReturnAsync(Some(appId))
       when(mockAppRepo.findProgress(eqTo(appId))).thenReturnAsync(ProgressResponseExamples.InSiftEntered)
 
-      val currentSchemeStatus = Seq(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString))
+      val currentSchemeStatus = Seq(SchemeEvaluationResult(Commercial, Green.toString))
       when(mockAppRepo.getCurrentSchemeStatus(eqTo(appId))).thenReturnAsync(currentSchemeStatus)
 
       val result = service.nextApplicationWithResultsReceived.futureValue
@@ -240,7 +240,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
       when(mockSiftRepo.nextApplicationWithResultsReceived).thenReturnAsync(Some(appId))
       when(mockAppRepo.findProgress(eqTo(appId))).thenReturnAsync(ProgressResponseExamples.InSiftFormsCompleteNumericTestPendingProgress)
 
-      val currentSchemeStatus = Seq(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString))
+      val currentSchemeStatus = Seq(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
       when(mockAppRepo.getCurrentSchemeStatus(eqTo(appId))).thenReturnAsync(currentSchemeStatus)
 
       val result = service.nextApplicationWithResultsReceived.futureValue
@@ -252,7 +252,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout {
       when(mockSiftRepo.nextApplicationWithResultsReceived).thenReturnAsync(Some(appId))
       when(mockAppRepo.findProgress(eqTo(appId))).thenReturnAsync(ProgressResponseExamples.InSiftEntered)
 
-      val currentSchemeStatus = Seq(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString))
+      val currentSchemeStatus = Seq(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
       when(mockAppRepo.getCurrentSchemeStatus(eqTo(appId))).thenReturnAsync(currentSchemeStatus)
 
       val result = service.nextApplicationWithResultsReceived.futureValue

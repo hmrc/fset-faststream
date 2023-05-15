@@ -17,23 +17,22 @@
 package controllers
 
 import factories.UUIDFactory
-import model.PassMarkSettingsCreateResponse
-import model.SchemeId
 import model.exchange.passmarksettings._
+import model.{PassMarkSettingsCreateResponse, Schemes}
 import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import play.api.libs.json.{ Format, Json }
+import play.api.libs.json.{Format, Json}
 import play.api.test.Helpers._
-import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
+import play.api.test.{FakeHeaders, FakeRequest, Helpers}
 import services.AuditService
 import services.passmarksettings.PassMarkSettingsService
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
 
-class Phase1PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpec {
+class Phase1PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpec with Schemes {
   override type T = Phase1PassMarkSettings
   override type U = Phase1PassMark
   override type V = Phase1PassMarkSettingsPersistence
@@ -43,9 +42,9 @@ class Phase1PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
   val passMarkThresholds = Phase1PassMarkThresholds(defaultSchemeThreshold, defaultSchemeThreshold,
     defaultSchemeThreshold, defaultSchemeThreshold)
   override val passMarks = List(
-    Phase1PassMark(SchemeId("Finance"), passMarkThresholds),
-    Phase1PassMark(SchemeId("Commercial"), passMarkThresholds),
-    Phase1PassMark(SchemeId("Generalist"), passMarkThresholds))
+    Phase1PassMark(Finance, passMarkThresholds),
+    Phase1PassMark(Commercial, passMarkThresholds),
+    Phase1PassMark(OperationalDelivery, passMarkThresholds))
   override val passMarkSettings = Phase1PassMarkSettings(
     schemes = passMarks,
     version = mockVersion,
@@ -96,7 +95,7 @@ class Phase1PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
   override val createUrl = controllers.routes.Phase1PassMarkSettingsController.create.url
 }
 
-class Phase2PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpec {
+class Phase2PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpec with Schemes {
   override type T = Phase2PassMarkSettings
   override type U = Phase2PassMark
   override type V = Phase2PassMarkSettingsPersistence
@@ -105,9 +104,9 @@ class Phase2PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
   override val argumentCaptor = ArgumentCaptor.forClass(classOf[Phase2PassMarkSettingsPersistence])
   override val passMarkThresholds = Phase2PassMarkThresholds(defaultSchemeThreshold, defaultSchemeThreshold)
   override val passMarks = List(
-    Phase2PassMark(SchemeId("Finance"), passMarkThresholds),
-    Phase2PassMark(SchemeId("Commercial"), passMarkThresholds),
-    Phase2PassMark(SchemeId("Generalist"), passMarkThresholds))
+    Phase2PassMark(Finance, passMarkThresholds),
+    Phase2PassMark(Commercial, passMarkThresholds),
+    Phase2PassMark(OperationalDelivery, passMarkThresholds))
   override val passMarkSettings = Phase2PassMarkSettings(
     schemes = passMarks,
     version = mockVersion,
@@ -149,7 +148,7 @@ class Phase2PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
   override val createUrl = controllers.routes.Phase2PassMarkSettingsController.create.url
 }
 
-class Phase3PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpec {
+class Phase3PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpec with Schemes {
   override type T = Phase3PassMarkSettings
   override type U = Phase3PassMark
   override type V = Phase3PassMarkSettingsPersistence
@@ -158,9 +157,9 @@ class Phase3PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
   override val argumentCaptor = ArgumentCaptor.forClass(classOf[Phase3PassMarkSettingsPersistence])
   override val passMarkThresholds = Phase3PassMarkThresholds(defaultSchemeThreshold)
   override val passMarks = List(
-    Phase3PassMark(SchemeId("Finance"), passMarkThresholds),
-    Phase3PassMark(SchemeId("Commercial"), passMarkThresholds),
-    Phase3PassMark(SchemeId("Generalist"), passMarkThresholds))
+    Phase3PassMark(Finance, passMarkThresholds),
+    Phase3PassMark(Commercial, passMarkThresholds),
+    Phase3PassMark(OperationalDelivery, passMarkThresholds))
   override val passMarkSettings = Phase3PassMarkSettings(
     schemes = passMarks,
     version = mockVersion,
@@ -198,7 +197,7 @@ class Phase3PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
   override val createUrl = controllers.routes.Phase3PassMarkSettingsController.create.url
 }
 
-class AssessmentCentrePassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpec {
+class AssessmentCentrePassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpec with Schemes {
   type T = AssessmentCentrePassMarkSettings
   type U = AssessmentCentreExercisePassMark
   override type V = AssessmentCentrePassMarkSettingsPersistence
@@ -211,9 +210,9 @@ class AssessmentCentrePassMarkSettingsControllerSpec extends PassMarkSettingsCon
     exerciseSchemeThreshold, exerciseSchemeThreshold, exerciseSchemeThreshold, overallSchemeThreshold
   )
   val passMarks = List(
-    AssessmentCentreExercisePassMark(SchemeId("Finance"), passMarkThresholds),
-    AssessmentCentreExercisePassMark(SchemeId("Commercial"), passMarkThresholds),
-    AssessmentCentreExercisePassMark(SchemeId("Generalist"), passMarkThresholds))
+    AssessmentCentreExercisePassMark(Finance, passMarkThresholds),
+    AssessmentCentreExercisePassMark(Commercial, passMarkThresholds),
+    AssessmentCentreExercisePassMark(OperationalDelivery, passMarkThresholds))
   val passMarkSettings = AssessmentCentrePassMarkSettings(
     schemes = passMarks,
     version = mockVersion,
@@ -316,7 +315,7 @@ trait PassMarkSettingsControllerSpec extends UnitWithAppSpec {
                                           |            $jsonSchemeThresholds
                                           |        },
                                           |        {
-                                          |            "schemeId": "Generalist",
+                                          |            "schemeId": "OperationalDelivery",
                                           |            $jsonSchemeThresholds
                                           |        }
                                           |    ],
