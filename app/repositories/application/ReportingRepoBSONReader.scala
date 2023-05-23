@@ -335,7 +335,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     testGroupsDocOpt.flatMap( doc => subDocRoot(Phase.PHASE1)(doc) ).map { phase1Doc =>
       val phase1TestProfile = Codecs.fromBson[Phase1TestProfile](phase1Doc)
 
-      // Sort the tests in config based on their names eg. test1, test2, test3, test4
+      // Sort the tests in config based on their names eg. test1, test2, test3
       val p1TestNamesSorted = appConfig.onlineTestsGatewayConfig.phase1Tests.tests.keys.toList.sorted
       val p1TestIds = p1TestNamesSorted.map(testName => appConfig.onlineTestsGatewayConfig.phase1Tests.tests(testName))
 

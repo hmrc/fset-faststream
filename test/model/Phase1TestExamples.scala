@@ -39,6 +39,4 @@ object Phase1TestExamples {
   def secondPsiTest(implicit now: DateTime) = firstPsiTest.copy(inventoryId = "inventoryId2", orderId = "orderId2")
 
   def thirdPsiTest(implicit now: DateTime) = firstPsiTest.copy(inventoryId = "inventoryId3", orderId = "orderId3")
-
-  def fourthPsiTest(implicit now: DateTime) = firstPsiTest.copy(inventoryId = "inventoryId4", orderId = "orderId4")
 }

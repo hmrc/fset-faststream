@@ -275,8 +275,7 @@ object Phase1EvaluationMongoRepositorySpec {
   val phase1Tests = List(
     model.Phase1TestExamples.firstPsiTest.copy(testResult = None),
     model.Phase1TestExamples.secondPsiTest.copy(testResult = None),
-    model.Phase1TestExamples.thirdPsiTest.copy(testResult = None),
-    model.Phase1TestExamples.fourthPsiTest.copy(testResult = None)
+    model.Phase1TestExamples.thirdPsiTest.copy(testResult = None)
   )
 
   val phase1TestsWithResult = phase1TestsWithResults(PsiTestResult(tScore = 20.5d, rawScore = 10.0d, testReportUrl = None))

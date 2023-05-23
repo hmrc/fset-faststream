@@ -58,26 +58,15 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
   }
 
   "evaluate candidate" should {
-    import Phase1TestExamples._
-
-    "throw an exception if more than 2 tests are active" in new TestFixture {
-      val threeTests = twoTests :+ thirdPsiTest
-      val application = createAppWithTestGroup(threeTests)
+    "throw an exception if non-GIS candidate only has one test" in new TestFixture {
+      val application = createAppWithTestGroup(oneTest)
 
       intercept[IllegalArgumentException] {
         service.evaluate(application, PassmarkSettings).futureValue
       }
     }
 
-    "throw an exception if GIS candidate has four tests" in new TestFixture {
-      val application = createGisAppWithTestGroup(twoTests)
-
-      intercept[IllegalStateException] {
-        service.evaluate(application, PassmarkSettings).futureValue
-      }
-    }
-
-    "throw an exception if non-GIS candidate has two tests" in new TestFixture {
+    "throw an exception if non-GIS candidate only has two tests" in new TestFixture {
       val application = createAppWithTestGroup(twoTests)
 
       intercept[IllegalStateException] {
@@ -85,8 +74,16 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
       }
     }
 
+    "throw an exception if GIS candidate has three tests" in new TestFixture {
+      val application = createGisAppWithTestGroup(threeTests)
+
+      intercept[IllegalStateException] {
+        service.evaluate(application, PassmarkSettings).futureValue
+      }
+    }
+
     "save evaluated result and update the application status" in new TestFixture {
-      val application = createAppWithTestGroup(fourTests).copy(applicationStatus = ApplicationStatus.PHASE1_TESTS)
+      val application = createAppWithTestGroup(threeTests).copy(applicationStatus = ApplicationStatus.PHASE1_TESTS)
 
       service.evaluate(application, PassmarkSettings).futureValue
 
@@ -105,7 +102,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     }
 
     "save evaluated result and do not update the application status for PHASE1_TESTS_PASSED" in new TestFixture {
-      val application = createAppWithTestGroup(fourTests).copy(applicationStatus = ApplicationStatus.PHASE1_TESTS_PASSED)
+      val application = createAppWithTestGroup(threeTests).copy(applicationStatus = ApplicationStatus.PHASE1_TESTS_PASSED)
 
       service.evaluate(application, PassmarkSettings).futureValue
 
@@ -124,7 +121,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     }
 
     "save evaluated result and do not update the application status for PHASE2_TESTS" in new TestFixture {
-      val application = createAppWithTestGroup(fourTests).copy(applicationStatus = ApplicationStatus.PHASE2_TESTS)
+      val application = createAppWithTestGroup(threeTests).copy(applicationStatus = ApplicationStatus.PHASE2_TESTS)
 
       service.evaluate(application, PassmarkSettings).futureValue
 
@@ -145,7 +142,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
   "evaluate edip candidate" should {
     "not save the phase1 test results" in new TestFixture {
-      val application = createAppWithTestGroup(fourTests).copy(applicationStatus = ApplicationStatus.PHASE1_TESTS)
+      val application = createAppWithTestGroup(threeTests).copy(applicationStatus = ApplicationStatus.PHASE1_TESTS)
 
       edipSkipEvaluationService.evaluate(application, PassmarkSettings).futureValue
 
@@ -175,7 +172,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
     val oneTest = List(firstPsiTest)
     val twoTests = oneTest :+ secondPsiTest
-    val fourTests = twoTests :+ thirdPsiTest :+ fourthPsiTest
+    val threeTests = twoTests :+ thirdPsiTest
 
     def testIds(idx: Int): PsiTestIds =
       PsiTestIds(s"inventory-id-$idx", s"assessment-id-$idx", s"report-id-$idx", s"norm-id-$idx")
@@ -183,13 +180,12 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     val tests = Map[String, PsiTestIds](
       "test1" -> testIds(1),
       "test2" -> testIds(2),
-      "test3" -> testIds(3),
-      "test4" -> testIds(4)
+      "test3" -> testIds(3)
     )
 
     val mockPhase1TestConfig = Phase1TestsConfig(
-      expiryTimeInDays = 5, gracePeriodInSecs = 0, testRegistrationDelayInSecs = 1, tests, standard = List("test1", "test2", "test3", "test4"),
-      gis = List("test1", "test4")
+      expiryTimeInDays = 5, gracePeriodInSecs = 0, testRegistrationDelayInSecs = 1, tests, standard = List("test1", "test2", "test3"),
+      gis = List("test1")
     )
     when(mockOnlineTestsGatewayConfig.phase1Tests).thenReturn(mockPhase1TestConfig)
 
@@ -204,7 +200,6 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
           case "test1" => "inventoryId1"
           case "test2" => "inventoryId2"
           case "test3" => "inventoryId3"
-          case "test4" => "inventoryId4"
           case _ => throw new IllegalStateException(s"Unknown test: $testName")
         }
       }
@@ -221,7 +216,6 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
           case "test1" => "inventoryId1"
           case "test2" => "inventoryId2"
           case "test3" => "inventoryId3"
-          case "test4" => "inventoryId4"
           case _ => throw new IllegalStateException(s"Unknown test: $testName")
         }
       }
@@ -238,7 +232,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
 
     trait StubbedPhase1TestEvaluation extends Phase1TestEvaluation {
       override def evaluateForNonGis(schemes: List[SchemeId], test1Result: PsiTestResult, test2Result: PsiTestResult,
-                                     test3Result: PsiTestResult, test4Result: PsiTestResult,
+                                     test3Result: PsiTestResult,
                                      passmark: Phase1PassMarkSettingsPersistence): List[SchemeEvaluationResult] = {
         EvaluateForNonGis
       }
