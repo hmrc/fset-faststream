@@ -121,7 +121,6 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: Exe
   // scalastyle:off parameter.number method.length
   def createApplicationWithAllFields(userId: String, appId: String, testAccountId: String, frameworkId: String,
                                      appStatus: ApplicationStatus = ApplicationStatus.IN_PROGRESS, hasDisability: String = "Yes",
-                                     needsSupportForOnlineAssessment: Boolean = false,
                                      needsSupportAtVenue: Boolean = false, guaranteedInterview: Boolean = false, lastName: Option[String] = None,
                                      firstName: Option[String] = None, preferredName: Option[String] = None,
                                      additionalProgressStatuses: List[(ProgressStatus, Boolean)] = Nil,
@@ -161,7 +160,6 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: Exe
       ),
       "assistance-details" -> Document(
         "hasDisability" -> "Yes",
-        "needsSupportForOnlineAssessment" -> needsSupportForOnlineAssessment,
         "needsSupportAtVenue" -> needsSupportAtVenue,
         "guaranteedInterview" -> guaranteedInterview
       ),
@@ -266,10 +264,8 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: Exe
     case _ =>
       Some(Document(
         "hasDisability" -> "Yes",
-        "needsSupportForOnlineAssessment" -> true,
         "needsSupportAtVenue" -> true,
         "needsSupportAtVenueDescription" -> "A nice cup of coffee",
-        "needsSupportForOnlineAssessmentDescription" -> "Extra time",
         "guaranteedInterview" -> true,
         "hasDisabilityDescription" -> "Wooden leg"
       ))

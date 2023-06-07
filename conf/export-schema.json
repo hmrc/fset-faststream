@@ -224,18 +224,10 @@
               "minLength": 2,
               "maxLength": 35
             },
-            "needsSupportForOnlineAssessment": {
-              "type": "boolean"
-            },
             "needsSupportAtVenue": {
               "type": "boolean"
             },
             "needsSupportAtVenueDescription": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 200
-            },
-            "needsSupportForOnlineAssessmentDescription": {
               "type": "string",
               "minLength": 1,
               "maxLength": 200
@@ -288,7 +280,6 @@
           },
           "required": [
             "hasDisability",
-            "needsSupportForOnlineAssessment",
             "needsSupportAtVenue",
             "guaranteedInterview"
 

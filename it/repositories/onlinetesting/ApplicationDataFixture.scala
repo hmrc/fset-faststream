@@ -125,7 +125,6 @@ trait ApplicationDataFixture extends Schemes {
                                      testAccountId: String,
                                      frameworkId: String = "frameworkId",
                                      appStatus: String,
-                                     needsSupportForOnlineAssessment: Boolean = false,
                                      needsSupportAtVenue: Boolean = false,
                                      adjustmentsConfirmed: Boolean = false,
                                      timeExtensionAdjustments: Boolean = false,
@@ -161,8 +160,9 @@ trait ApplicationDataFixture extends Schemes {
         "dateOfBirth" -> s"${testCandidate("dateOfBirth")}"
       ),
       "civil-service-experience-details" -> civilServiceExperienceDetails(fastPassApplicable, fastPassReceived, fastPassAccepted),
-      "assistance-details" -> createAssistanceDetails(needsSupportForOnlineAssessment, adjustmentsConfirmed, timeExtensionAdjustments,
-        needsSupportAtVenue, isGis, typeOfEtrayOnlineAdjustments),
+      "assistance-details" -> createAssistanceDetails(
+        adjustmentsConfirmed, timeExtensionAdjustments, needsSupportAtVenue, isGis, typeOfEtrayOnlineAdjustments
+      ),
       "issue" -> "this candidate has changed the email",
       "progress-status" -> progressStatus(additionalProgressStatuses),
       "scheme-preferences" -> schemes,
@@ -207,48 +207,36 @@ trait ApplicationDataFixture extends Schemes {
   }
 
   //scalastyle:off
-  private def createAssistanceDetails(needsSupportForOnlineAssessment: Boolean, adjustmentsConfirmed: Boolean,
+  private def createAssistanceDetails(adjustmentsConfirmed: Boolean,
                                       timeExtensionAdjustments: Boolean, needsSupportAtVenue: Boolean = false, isGis: Boolean = false,
                                       typeOfAdjustments: List[String] = List("etrayTimeExtension", "etrayOther")) = {
-    if (needsSupportForOnlineAssessment) {
-      if (adjustmentsConfirmed) {
-        if (timeExtensionAdjustments) {
-          Document(
-            "hasDisability" -> "No",
-            "needsSupportForOnlineAssessment" -> true,
-            "needsSupportAtVenue" -> needsSupportAtVenue,
-            "typeOfAdjustments" -> BsonArray(typeOfAdjustments),
-            "adjustmentsConfirmed" -> true,
-            "etray" -> Document(
-              "timeNeeded" -> 20,
-              "otherInfo" -> "other online adjustments"
-            ),
-            "guaranteedInterview" -> isGis
-          )
-        } else {
-          Document(
-            "needsSupportForOnlineAssessment" -> true,
-            "needsSupportAtVenue" -> needsSupportAtVenue,
-            "typeOfAdjustments" -> BsonArray(typeOfAdjustments),
-            "adjustmentsConfirmed" -> true,
-            "guaranteedInterview" -> isGis
-          )
-        }
-      } else {
+    if (adjustmentsConfirmed) {
+      if (timeExtensionAdjustments) {
         Document(
-          "needsSupportForOnlineAssessment" -> true,
+          "hasDisability" -> "No",
           "needsSupportAtVenue" -> needsSupportAtVenue,
           "typeOfAdjustments" -> BsonArray(typeOfAdjustments),
-          "adjustmentsConfirmed" -> false,
+          "adjustmentsConfirmed" -> true,
+          "etray" -> Document(
+            "timeNeeded" -> 20,
+            "otherInfo" -> "other online adjustments"
+          ),
+          "guaranteedInterview" -> isGis
+        )
+      } else {
+        Document(
+          "needsSupportAtVenue" -> needsSupportAtVenue,
+          "typeOfAdjustments" -> BsonArray(typeOfAdjustments),
+          "adjustmentsConfirmed" -> true,
           "guaranteedInterview" -> isGis
         )
       }
     } else {
       Document(
-        "needsSupportForOnlineAssessment" -> false,
         "needsSupportAtVenue" -> needsSupportAtVenue,
-        "guaranteedInterview" -> isGis,
-        "adjustmentsConfirmed" -> adjustmentsConfirmed
+        "typeOfAdjustments" -> BsonArray(typeOfAdjustments),
+        "adjustmentsConfirmed" -> false,
+        "guaranteedInterview" -> isGis
       )
     }
   }//scalastyle:on

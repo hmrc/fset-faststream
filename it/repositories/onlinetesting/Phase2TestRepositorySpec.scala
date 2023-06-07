@@ -98,7 +98,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     "return application when needs online adjustments, adjustments have been confirmed and its status is PHASE1_TESTS_PASSED" +
       " and adjustment is etray time extension" in {
       createApplicationWithAllFields("userId4", "appId4", "testAccountId4", "frameworkId", "PHASE1_TESTS_PASSED",
-        needsSupportForOnlineAssessment = true, adjustmentsConfirmed = true, timeExtensionAdjustments = true, isGis = true,
+        adjustmentsConfirmed = true, timeExtensionAdjustments = true, isGis = true,
         additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true)), typeOfEtrayOnlineAdjustments = List("etrayTimeExtension")
       ).futureValue
 
@@ -109,11 +109,11 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       results.head.userId mustBe "userId4"
     }
 
-    "return application when needs adjustments at venue, adjustments have been confirmed and its status is PHASE1_TESTS_PASSED" +
-      " and adjustment is etray time extension" in {
+    "return application which needs adjustments at venue, adjustments have been confirmed and its status is PHASE1_TESTS_PASSED" +
+      " but no specific adjustment has been applied" in {
       createApplicationWithAllFields("userId5", "appId5", "testAccountId5", "frameworkId", "PHASE1_TESTS_PASSED",
-        needsSupportAtVenue = true, adjustmentsConfirmed = true, timeExtensionAdjustments = true, isGis = true,
-        additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true)), typeOfEtrayOnlineAdjustments = List("etrayTimeExtension")
+        needsSupportAtVenue = true, adjustmentsConfirmed = true, isGis = true,
+        additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true))
       ).futureValue
 
       val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
@@ -142,9 +142,9 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       results.length mustBe 0
     }
 
-    "do not return application when application status is PHASE1_TESTS_PASSED and is no gis but there is need for online adjustments" +
+    "do not return application when application status is PHASE1_TESTS_PASSED and is not gis but there is need for online adjustments" +
       "(e-tray time extension) and adjustments have not been confirmed" in {
-      createApplicationWithAllFields("userId7", "appId7", "testAccountId7", "frameworkId", "SUBMITTED", needsSupportForOnlineAssessment = true,
+      createApplicationWithAllFields("userId7", "appId7", "testAccountId7", "frameworkId", "SUBMITTED",
         timeExtensionAdjustments = true, additionalProgressStatuses = List((SUBMITTED, true)),
         typeOfEtrayOnlineAdjustments = List("etrayTimeExtension")
       ).futureValue
@@ -174,23 +174,28 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       results.length mustBe 0
     }
 
-    "exclude applications that need adjustments and have not been confirmed" in {
+    // Before the 2023/24 campaign changes, candidates with unconfirmed adjustments were not invited to P2
+    // This has now changed and these candidates are invited to P2. The only adjustment type now is a fsac
+    // adjustment, whereas previously there were also online test adjustments. The fsac adjustment no
+    // longer causes the candidate to be held at PHASE1_TESTS_PASSED
+    "include applications that need adjustments and have not been confirmed" in {
+      // This candidate has adjustments, which have not yet been confirmed and should be invited to P2
       createApplicationWithAllFields(
         "userId1", "appId1", "testAccountId1", "frameworkId",
-        "PHASE1_TESTS_PASSED", needsSupportForOnlineAssessment = true,
-        timeExtensionAdjustments = true, additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true)),
-        typeOfEtrayOnlineAdjustments = List("etrayTimeExtension")
+        "PHASE1_TESTS_PASSED", needsSupportAtVenue = true,
+        additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true))
       ).futureValue
 
+      // This candidate has no adjustments and should be invited to P2
       createApplicationWithAllFields("userId2", "appId2", "testAccountId2", "frameworkId", "PHASE1_TESTS_PASSED",
         additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true))
       ).futureValue
 
-      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
+      val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting(2).futureValue
 
-      results.length mustBe 1
-      results.head.applicationId mustBe "appId2"
-      results.head.userId mustBe "userId2"
+      results.length mustBe 2
+      results.map(_.applicationId) must contain theSameElementsAs Seq("appId1", "appId2")
+      results.map(_.userId) must contain theSameElementsAs Seq("userId1", "userId2")
     }
 
     "return more than one candidate for batch processing" ignore {
@@ -199,7 +204,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
     "Not return candidates whose phase 1 tests have expired" in {
       createApplicationWithAllFields("userId1", "appId1", "testAccountId", "frameworkId", "PHASE1_TESTS_PASSED",
-        needsSupportForOnlineAssessment = true, additionalProgressStatuses = List(PHASE1_TESTS_EXPIRED -> true)
+        additionalProgressStatuses = List(PHASE1_TESTS_EXPIRED -> true)
       ).futureValue
 
       val results = phase2TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue

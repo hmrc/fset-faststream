@@ -75,8 +75,8 @@ trait GeneralApplicationRepository {
   def withdrawScheme(applicationId: String, schemeWithdraw: WithdrawScheme, schemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
   def preview(applicationId: String): Future[Unit]
   def updateQuestionnaireStatus(applicationId: String, sectionKey: String): Future[Unit]
-  def confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit]
-  def findAdjustments(applicationId: String): Future[Option[Adjustments]]
+//  def confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit]
+//  def findAdjustments(applicationId: String): Future[Option[Adjustments]]
   def updateAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment): Future[Unit]
   def findAdjustmentsComment(applicationId: String): Future[AdjustmentsComment]
   def removeAdjustmentsComment(applicationId: String): Future[Unit]
@@ -142,7 +142,6 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       IndexModel(ascending("applicationId", "userId"), IndexOptions().unique(true)),
       IndexModel(ascending("userId", "frameworkId"), IndexOptions().unique(true)),
       IndexModel(ascending("applicationStatus"), IndexOptions().unique(false)),
-      IndexModel(ascending("assistance-details.needsSupportForOnlineAssessment"), IndexOptions().unique(false)),
       IndexModel(ascending("assistance-details.needsSupportAtVenue"), IndexOptions().unique(false)),
       IndexModel(ascending("assistance-details.guaranteedInterview"), IndexOptions().unique(false))
     )
@@ -737,6 +736,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     isNotWithdrawn && isNotSubmitted
   }
 
+  /*
   override def confirmAdjustments(applicationId: String, data: Adjustments): Future[Unit] = {
     val query = Document("applicationId" -> applicationId)
 
@@ -759,7 +759,9 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       collection.updateOne(query, adjustmentsConfirmationBSON).toFuture() map adjustmentValidator
     }
   }
+   */
 
+  /*
   override def findAdjustments(applicationId: String): Future[Option[Adjustments]] = {
     val query = Document("$and" -> BsonArray(
       Document("applicationId" -> applicationId),
@@ -778,6 +780,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       }
     }
   }
+   */
 
   // Note that this should be successful as long as we match an existing document even if that document
   // does not actually have the adjustmentsComment stored within it
@@ -936,7 +939,6 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       "personal-details.firstName",
       "personal-details.lastName",
       "assistance-details.needsSupportAtVenue",
-      "assistance-details.needsSupportForOnlineAssessment",
       "progress-status-timestamp",
       "fsac-indicator",
       "testGroups.FSB.scoresAndFeedback"
@@ -984,7 +986,6 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
           "personal-details.firstName",
           "personal-details.lastName",
           "assistance-details.needsSupportAtVenue",
-          "assistance-details.needsSupportForOnlineAssessment",
           "progress-status-timestamp",
           "fsac-indicator"
         )
@@ -1045,9 +1046,8 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
     val assistanceDetailsRoot = doc.get("assistance-details").map(_.asDocument()).get
     val needsSupportAtVenue = Try(assistanceDetailsRoot.get("needsSupportAtVenue").asBoolean().getValue).getOrElse(false)
-    val needsSupportForOnlineTests = Try(assistanceDetailsRoot.get("needsSupportForOnlineAssessment").asBoolean().getValue).getOrElse(false)
 
-    val needsAdjustment = needsSupportAtVenue || needsSupportForOnlineTests
+    val needsAdjustment = needsSupportAtVenue
 
     import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
     val dateReadyOpt = doc.get("progress-status-timestamp").map{ _.asDocument().get(ApplicationStatus.PHASE3_TESTS_PASSED) }.flatMap {

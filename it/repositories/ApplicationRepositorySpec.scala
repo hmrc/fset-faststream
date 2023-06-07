@@ -57,8 +57,6 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
           IndexDetails(name = "applicationId_1_userId_1", keys = Seq(("applicationId", "Ascending"), ("userId", "Ascending")), unique = true),
           IndexDetails(name = "userId_1_frameworkId_1", keys = Seq(("userId", "Ascending"), ("frameworkId", "Ascending")), unique = true),
           IndexDetails(name = "applicationStatus_1", keys = Seq(("applicationStatus", "Ascending")), unique = false),
-          IndexDetails(name = "assistance-details.needsSupportForOnlineAssessment_1",
-            keys = Seq(("assistance-details.needsSupportForOnlineAssessment", "Ascending")), unique = false),
           IndexDetails(name = "assistance-details.needsSupportAtVenue_1",
             keys = Seq(("assistance-details.needsSupportAtVenue", "Ascending")), unique = false),
           IndexDetails(name = "assistance-details.guaranteedInterview_1",
@@ -72,8 +70,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
 
       val details = AssistanceDetails(hasDisability = "Yes", disabilityImpact = Some("No"),
         disabilityCategories = Some(List("category1")), otherDisabilityDescription = Some("disability"),
-        guaranteedInterview = Some(true), needsSupportForOnlineAssessment = Some(true),
-        needsSupportForOnlineAssessmentDescription = Some("adjustment online"), needsSupportAtVenue = Some(true),
+        guaranteedInterview = Some(true),  needsSupportAtVenue = Some(true),
         needsSupportAtVenueDescription = Some("adjustment venue"), needsSupportForPhoneInterview = None,
         needsSupportForPhoneInterviewDescription = None)
       assistanceRepo.update(applicationId, userId, details).futureValue

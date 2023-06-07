@@ -505,7 +505,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
   "build time adjustments" should {
     "return Nil when there is no need for adjustments and no gis" in new TestFixture {
       val onlineTestApplicationWithNoAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", "testAccountId",
-        guaranteedInterview = false, needsOnlineAdjustments = false, needsAtVenueAdjustments = false, preferredName = "PrefName1",
+        guaranteedInterview = false, needsAtVenueAdjustments = false, preferredName = "PrefName1",
         lastName = "LastName1", eTrayAdjustments = None, videoInterviewAdjustments = None)
       val result = phase2TestService.buildTimeAdjustments(5, onlineTestApplicationWithNoAdjustments)
       result mustBe List()
@@ -513,7 +513,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "return time adjustments when gis" in new TestFixture {
       val onlineTestApplicationGisWithAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", "testAccountId",
-        guaranteedInterview = true, needsOnlineAdjustments = false, needsAtVenueAdjustments = false, preferredName = "PrefName1",
+        guaranteedInterview = true, needsAtVenueAdjustments = false, preferredName = "PrefName1",
         lastName = "LastName1", eTrayAdjustments = Some(AdjustmentDetail(Some(25), None, None)), videoInterviewAdjustments = None)
       val result = phase2TestService.buildTimeAdjustments(5, onlineTestApplicationGisWithAdjustments)
       result mustBe List(TimeAdjustments(5, 1, 100))
@@ -521,7 +521,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "return time adjustments when adjustments needed" in new TestFixture {
       val onlineTestApplicationGisWithAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", "testAccountId",
-        guaranteedInterview = false, needsOnlineAdjustments = true, needsAtVenueAdjustments = false, preferredName = "PrefName1",
+        guaranteedInterview = false, needsAtVenueAdjustments = false, preferredName = "PrefName1",
         lastName = "LastName1", eTrayAdjustments = Some(AdjustmentDetail(Some(50), None, None)), videoInterviewAdjustments = None)
       val result = phase2TestService.buildTimeAdjustments(5, onlineTestApplicationGisWithAdjustments)
       result mustBe List(TimeAdjustments(5, 1, 120))
@@ -531,7 +531,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
   "calculate absolute time with adjustments" should {
     "return 140 when adjustment is 75%" in new TestFixture {
       val onlineTestApplicationGisWithAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", "testAccountId",
-        guaranteedInterview = true, needsOnlineAdjustments = true, needsAtVenueAdjustments = false, preferredName = "PrefName1",
+        guaranteedInterview = true, needsAtVenueAdjustments = false, preferredName = "PrefName1",
         lastName = "LastName1", eTrayAdjustments = Some(AdjustmentDetail(Some(75), None, None)), videoInterviewAdjustments = None)
       val result = phase2TestService.calculateAbsoluteTimeWithAdjustments(onlineTestApplicationGisWithAdjustments)
       result mustBe 140
@@ -539,7 +539,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "return 80 when no adjustments needed" in new TestFixture {
       val onlineTestApplicationGisWithNoAdjustments = OnlineTestApplication("appId1", "PHASE1_TESTS", "userId1", "testAccountId",
-        guaranteedInterview = true, needsOnlineAdjustments = false, needsAtVenueAdjustments = false, preferredName = "PrefName1",
+        guaranteedInterview = true, needsAtVenueAdjustments = false, preferredName = "PrefName1",
         lastName = "LastName1", eTrayAdjustments = None, videoInterviewAdjustments = None)
       val result = phase2TestService.calculateAbsoluteTimeWithAdjustments(onlineTestApplicationGisWithNoAdjustments)
       result mustBe 80
@@ -763,7 +763,6 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       userId = "userId",
       testAccountId = "testAccountId",
       guaranteedInterview = false,
-      needsOnlineAdjustments = false,
       needsAtVenueAdjustments = false,
       preferredName = "Optimus",
       lastName = "Prime1",
@@ -774,8 +773,8 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     val preferredNameSanitized = "Preferred Name"
     val lastName = ""
     val onlineTestApplication2 = onlineTestApplication.copy(applicationId = "appId2", userId = "userId2", lastName = "Prime2")
-    val adjustmentApplication = onlineTestApplication.copy(applicationId = "appId3", userId = "userId3", needsOnlineAdjustments = true)
-    val adjustmentApplication2 = onlineTestApplication.copy(applicationId = "appId4", userId = "userId4", needsOnlineAdjustments = true)
+    val adjustmentApplication = onlineTestApplication.copy(applicationId = "appId3", userId = "userId3")
+    val adjustmentApplication2 = onlineTestApplication.copy(applicationId = "appId4", userId = "userId4")
     val candidates = List(onlineTestApplication, onlineTestApplication2)
 
     def uuid: String = UUIDFactory.generateUUID()
@@ -814,10 +813,9 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
     )
 
     val invigilatedETrayApp = onlineTestApplication.copy(
-      needsOnlineAdjustments = true,
       eTrayAdjustments = Some(AdjustmentDetail(invigilatedInfo = Some("e-tray help needed")))
     )
-    val nonInvigilatedETrayApp = onlineTestApplication.copy(needsOnlineAdjustments = false)
+    val nonInvigilatedETrayApp = onlineTestApplication
 
     when(phase2TestRepositoryMock.insertOrUpdateTestGroup(any[String], any[Phase2TestGroup]))
         .thenReturnAsync()

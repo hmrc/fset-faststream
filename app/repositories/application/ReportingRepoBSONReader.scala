@@ -45,9 +45,6 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
     val adDocOpt = doc.get("assistance-details").map(_.asDocument())
     val disability = adDocOpt.flatMap( doc => Try(doc.get("hasDisability").asString().getValue).toOption )
-    val onlineAdjustments = adDocOpt.flatMap( doc =>
-      Try(doc.get("needsSupportForOnlineAssessment").asBoolean().getValue).map(booleanTranslator).toOption
-    )
     val assessmentCentreAdjustments = adDocOpt.flatMap( doc =>
       Try(doc.get("needsSupportAtVenue").asBoolean().getValue).map(booleanTranslator).toOption
     )
@@ -102,7 +99,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     val assessmentCentre = fsacIndicatorDocOpt.map(_.get("assessmentCentre").asString().getValue)
 
     CandidateProgressReportItem(userId, applicationId, Some(ProgressStatusesReportLabels.progressStatusNameInReports(progress)),
-      schemes.getOrElse(Nil), disability, onlineAdjustments, assessmentCentreAdjustments, phoneAdjustments, gis, csedCivilServant,
+      schemes.getOrElse(Nil), disability, assessmentCentreAdjustments, phoneAdjustments, gis, csedCivilServant,
       edipReportColumn, csedSdip, otherInternshipColumn, fastPassCertificate, assessmentCentre, applicationRoute)
   } //scalastyle:on
 
@@ -194,7 +191,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
     val onlineAdjustmentsKey = if(applicationRoute == ApplicationRoute.Edip) { "needsSupportForPhoneInterview" }
       else if (applicationRoute == ApplicationRoute.Sdip) { "needsSupportForPhoneInterview" }
-      else { "needsSupportForOnlineAssessment" }
+      else { "" } // There are no longer online adjustments for faststream candidates
 
     val adDocOpt = subDocRoot("assistance-details")(doc)
     val onlineAdjustments = extractBoolean(onlineAdjustmentsKey)(adDocOpt).map(booleanTranslator)
@@ -226,7 +223,6 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     val adDoc = subDocRoot("assistance-details")(doc)
     val gis = extractBoolean("guaranteedInterview")(adDoc)
     val disability = extract("hasDisability")(adDoc)
-    val onlineAdjustments = extractBoolean("needsSupportForOnlineAssessment")(adDoc).map(booleanTranslator)
     val assessmentCentreAdjustments = extractBoolean("needsSupportAtVenue")(adDoc).map(booleanTranslator)
     val curSchemeStatus = extractCurrentSchemeStatus(doc, schemes)
 
@@ -241,7 +237,6 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       schemes.getOrElse(Nil),
       disability,
       gis,
-      onlineAdjustments,
       assessmentCentreAdjustments,
       toTestResultsForOnlineTestPassMarkReportItem(doc, applicationId),
       curSchemeStatus)
@@ -260,7 +255,6 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     val adDocOpt = subDocRoot("assistance-details")(doc)
     val gis = extractBoolean("guaranteedInterview")(adDocOpt)
     val disability = extract("hasDisability")(adDocOpt)
-    val onlineAdjustments = extractBoolean("needsSupportForOnlineAssessment")(adDocOpt).map(booleanTranslator)
     val assessmentCentreAdjustments = extractBoolean("needsSupportAtVenue")(adDocOpt).map(booleanTranslator)
 
     val currentSchemeStatus = Codecs.fromBson[List[SchemeEvaluationResult]](doc.get("currentSchemeStatus").getOrElse(
@@ -280,7 +274,6 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       schemes.getOrElse(Nil),
       disability,
       gis,
-      onlineAdjustments,
       assessmentCentreAdjustments,
       toTestResultsForOnlineTestPassMarkReportItem(doc, applicationId),
       currentSchemeStatus

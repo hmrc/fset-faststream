@@ -24,8 +24,6 @@ case class AssistanceDetailsExchange(hasDisability: String,
                                      disabilityCategories: Option[List[String]],
                                      otherDisabilityDescription: Option[String],
                                      guaranteedInterview: Option[Boolean],
-                                     needsSupportForOnlineAssessment: Option[Boolean],
-                                     needsSupportForOnlineAssessmentDescription: Option[String],
                                      needsSupportAtVenue: Option[Boolean],
                                      needsSupportAtVenueDescription: Option[String],
                                      needsSupportForPhoneInterview: Option[Boolean],
@@ -35,8 +33,8 @@ object AssistanceDetailsExchange {
   implicit val assistanceDetailsExchangeFormat = Json.format[AssistanceDetailsExchange]
 
   def apply(ad: AssistanceDetails): AssistanceDetailsExchange =
-    AssistanceDetailsExchange(ad.hasDisability, ad.disabilityImpact, ad.disabilityCategories, ad.otherDisabilityDescription,
-      ad.guaranteedInterview, ad.needsSupportForOnlineAssessment, ad.needsSupportForOnlineAssessmentDescription,
+    AssistanceDetailsExchange(ad.hasDisability, ad.disabilityImpact, ad.disabilityCategories,
+      ad.otherDisabilityDescription, ad.guaranteedInterview,
       ad.needsSupportAtVenue, ad.needsSupportAtVenueDescription, ad.needsSupportForPhoneInterview,
       ad.needsSupportForPhoneInterviewDescription)
 }

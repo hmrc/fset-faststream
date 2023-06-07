@@ -25,7 +25,6 @@ object OnlineTestCommands {
                                    userId: String,
                                    testAccountId: String,
                                    guaranteedInterview: Boolean,
-                                   needsOnlineAdjustments: Boolean,
                                    needsAtVenueAdjustments: Boolean,
                                    preferredName: String,
                                    lastName: String,

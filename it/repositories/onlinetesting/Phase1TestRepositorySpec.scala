@@ -197,7 +197,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       onlineTestApplications.length mustBe 1
 
       inside(onlineTestApplications.head) { case OnlineTestApplication(applicationId, applicationStatus, userId, testAccountId,
-      guaranteedInterview, needsOnlineAdjustments, needsAtVenueAdjustments, preferredName, lastName, etrayAdjustments,
+      guaranteedInterview, needsAtVenueAdjustments, preferredName, lastName, etrayAdjustments,
       videoInterviewAdjustments) =>
 
         applicationId mustBe "appId"
@@ -205,7 +205,6 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         userId mustBe "userId"
         testAccountId mustBe "testAccountId"
         guaranteedInterview mustBe true
-        needsOnlineAdjustments mustBe false
         needsAtVenueAdjustments mustBe false
         preferredName mustBe testCandidate("preferredName")
         lastName mustBe testCandidate("lastName")
@@ -222,7 +221,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       onlineTestApplications.length mustBe 1
 
       inside(onlineTestApplications.head) { case OnlineTestApplication(applicationId, applicationStatus, userId, testAccountId,
-      guaranteedInterview, needsOnlineAdjustments, needsAtVenueAdjustments, preferredName, lastName, etrayAdjustments,
+      guaranteedInterview, needsAtVenueAdjustments, preferredName, lastName, etrayAdjustments,
       videoInterviewAdjustments) =>
 
         applicationId mustBe "appId"
@@ -230,7 +229,6 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         userId mustBe "userId"
         testAccountId mustBe "testAccountId"
         guaranteedInterview mustBe true
-        needsOnlineAdjustments mustBe false
         needsAtVenueAdjustments mustBe false
         preferredName mustBe testCandidate("preferredName")
         lastName mustBe testCandidate("lastName")

@@ -47,7 +47,6 @@ object ApplicationForOnlineTestPassMarkReportExamples extends Schemes {
       List(Commercial, DigitalDataTechnologyAndCyber),
       disability = None,
       gis = None,
-      onlineAdjustments = None,
       assessmentCentreAdjustments = None,
       testsResult,
       List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString),

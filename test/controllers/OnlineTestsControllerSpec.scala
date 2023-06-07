@@ -48,7 +48,6 @@ class OnlineTestsControllerSpec extends UnitWithAppSpec {
     userId = "userId",
     testAccountId = "testAccountId",
     guaranteedInterview = false,
-    needsOnlineAdjustments = false,
     needsAtVenueAdjustments = false,
     preferredName = "Optimus",
     lastName = "Prime",

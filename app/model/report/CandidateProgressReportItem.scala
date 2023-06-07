@@ -21,7 +21,7 @@ import model.SchemeId
 import play.api.libs.json.Json
 
 case class CandidateProgressReportItem(userId: String, applicationId: String, progress: Option[String], schemes: List[SchemeId],
-                                       disability: Option[String], onlineAdjustments: Option[String],
+                                       disability: Option[String],
                                        assessmentCentreAdjustments: Option[String], phoneAdjustments: Option[String],
                                        gis: Option[String],
                                        civilServant: Option[String],
@@ -36,7 +36,6 @@ case class CandidateProgressReportItem(userId: String, applicationId: String, pr
       s"progress=$progress," +
       s"schemes=$schemes," +
       s"disability=$disability," +
-      s"onlineAdjustments=$onlineAdjustments," +
       s"assessmentCentreAdjustments=$assessmentCentreAdjustments," +
       s"phoneAdjustments=$phoneAdjustments," +
       s"gis=$gis," +

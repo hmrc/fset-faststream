@@ -31,7 +31,6 @@ case class ApplicationForOnlineTestPassMarkReportItem(
                                                        schemes: List[SchemeId],
                                                        disability: Option[String],
                                                        gis: Option[Boolean],
-                                                       onlineAdjustments: Option[String],
                                                        assessmentCentreAdjustments: Option[String],
                                                        testResults: TestResultsForOnlineTestPassMarkReportItem,
                                                        currentSchemeStatus: List[SchemeEvaluationResult])
@@ -54,7 +53,6 @@ object ApplicationForOnlineTestPassMarkReportItem {
       schemes = a.schemes,
       disability = a.disability,
       gis = a.gis,
-      onlineAdjustments = a.onlineAdjustments,
       assessmentCentreAdjustments = a.assessmentCentreAdjustments,
       testResults = a.testResults.copy(
         fsac = fsacResults.map(_.toExchange), overallFsacScore = overallScoreOpt, sift = siftResults, fsb = fsbScoresAndFeedback

@@ -36,8 +36,6 @@ object CreateCandidateData extends DataFakerRandom {
     disabilityCategories: List[String] = List("Prefer Not to Say"),
     hasDisabilityDescription: String = "",
     setGis: Boolean = false,
-    onlineAdjustments: Boolean = false,
-    onlineAdjustmentsDescription: String = "",
     assessmentCentreAdjustments: Boolean = false,
     assessmentCentreAdjustmentsDescription: String = "",
     phoneAdjustments: Boolean = false,
@@ -53,8 +51,6 @@ object CreateCandidateData extends DataFakerRandom {
         disabilityCategories = o.disabilityCategories.getOrElse(default.disabilityCategories),
         hasDisabilityDescription = o.hasDisabilityDescription.getOrElse(default.hasDisabilityDescription),
         setGis = o.setGis.getOrElse(default.setGis),
-        onlineAdjustments = o.onlineAdjustments.getOrElse(default.onlineAdjustments),
-        onlineAdjustmentsDescription = o.onlineAdjustmentsDescription.getOrElse(default.onlineAdjustmentsDescription),
         assessmentCentreAdjustments = o.assessmentCentreAdjustments.getOrElse(default.assessmentCentreAdjustments),
         assessmentCentreAdjustmentsDescription =
           o.assessmentCentreAdjustmentsDescription.getOrElse(default.assessmentCentreAdjustmentsDescription),

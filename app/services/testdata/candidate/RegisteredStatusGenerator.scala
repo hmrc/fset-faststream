@@ -56,7 +56,7 @@ class RegisteredStatusGenerator @Inject()(authProviderClient: AuthProviderClient
 
     } yield {
       CreateCandidateResponse(
-        generationId, user.userId, None, None, email, firstName,
+        generationId, user.userId, applicationId = None, testAccountId = None, email, firstName,
         lastName, mediaReferrer = mediaReferrer)
     }
   }
@@ -70,7 +70,7 @@ class RegisteredStatusGenerator @Inject()(authProviderClient: AuthProviderClient
       token <- authProviderClient.getToken(email)
       _ <- authProviderClient.activate(email, token)
     } yield {
-      CreateCandidateResponse(generationId, user.userId.toString, None, None, email, firstName, lastName)
+      CreateCandidateResponse(generationId, user.userId.toString, applicationId = None, testAccountId = None, email, firstName, lastName)
     }
 
     val assessorRoles = List(AuthProviderClient.AssessorRole, AuthProviderClient.QacRole)

@@ -223,8 +223,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper with Schemes {
     ).toFuture().futureValue
 
     val ad = AssistanceDetails(hasDisability = "No", disabilityImpact = None, disabilityCategories = None,
-      otherDisabilityDescription = None, guaranteedInterview = gis, needsSupportForOnlineAssessment = Some(false),
-      needsSupportForOnlineAssessmentDescription = None, needsSupportAtVenue = Some(false),
+      otherDisabilityDescription = None, guaranteedInterview = gis, needsSupportAtVenue = Some(false),
       needsSupportAtVenueDescription = None, needsSupportForPhoneInterview = None,
       needsSupportForPhoneInterviewDescription = None)
     assistanceDetailsRepository.update(appId, appId, ad).futureValue

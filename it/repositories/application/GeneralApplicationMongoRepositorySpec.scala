@@ -67,8 +67,6 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
           IndexDetails(name = "applicationId_1_userId_1", keys = Seq(("applicationId", "Ascending"), ("userId", "Ascending")), unique = true),
           IndexDetails(name = "userId_1_frameworkId_1", keys = Seq(("userId", "Ascending"), ("frameworkId", "Ascending")), unique = true),
           IndexDetails(name = "applicationStatus_1", keys = Seq(("applicationStatus", "Ascending")), unique = false),
-          IndexDetails(name = "assistance-details.needsSupportForOnlineAssessment_1",
-            keys = Seq(("assistance-details.needsSupportForOnlineAssessment", "Ascending")), unique = false),
           IndexDetails(name = "assistance-details.needsSupportAtVenue_1",
             keys = Seq(("assistance-details.needsSupportAtVenue", "Ascending")), unique = false),
           IndexDetails(name = "assistance-details.guaranteedInterview_1",
@@ -409,6 +407,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
+  /*
   "findAdjustments" should {
     "return None if assistance-details does not exist" in {
       val result = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
@@ -447,6 +446,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       repository.findAdjustments(result.applicationId).futureValue mustBe Some(updatedAdjustments)
     }
   }
+   */
 
   "findTestForNotification" should {
     "find an edip candidate that needs to be notified of successful phase1 test results" in new NewApplication {
@@ -933,6 +933,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       result mustBe an[ApplicationNotFound]
     }
 
+    /*
     "throw an exception if there is an application with assistance-details but no comment" in {
       val newCandidate = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
 
@@ -947,6 +948,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val result = repository.findAdjustmentsComment(newCandidate.applicationId).failed.futureValue
       result mustBe an[AdjustmentsCommentNotFound]
     }
+     */
 
     "save and fetch the comment" in {
       val newCandidate = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
@@ -991,7 +993,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       createApplications(num = 1, ApplicationStatus.SUBMITTED, additionalProgressStatuses = Nil).futureValue
 
       val expected = OnlineTestApplication("AppId1", ApplicationStatus.SUBMITTED, "UserId1", "TestAccountId1",
-        guaranteedInterview = false, needsOnlineAdjustments = false, needsAtVenueAdjustments = false,
+        guaranteedInterview = false, needsAtVenueAdjustments = false,
         preferredName = "Georgy", lastName = "Jetson01", eTrayAdjustments = None, videoInterviewAdjustments = None)
       repository.getOnlineTestApplication("AppId1").futureValue mustBe Some(expected)
     }
@@ -999,21 +1001,21 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "return data if a fully populated application exists" in {
       createApplications(num = 1, ApplicationStatus.SUBMITTED, additionalProgressStatuses = Nil).futureValue
 
-      val adjustments = Adjustments(
-        adjustments = Some(List("Test adjustment")),
-        adjustmentsConfirmed = Some(true),
-        etray = Some(AdjustmentDetail(timeNeeded = Some(10), percentage = Some(20))),
-        video = Some(AdjustmentDetail(timeNeeded = Some(30), percentage = Some(40)))
-      )
+//      val adjustments = Adjustments(
+//        adjustments = Some(List("Test adjustment")),
+//        adjustmentsConfirmed = Some(true),
+//        etray = Some(AdjustmentDetail(timeNeeded = Some(10), percentage = Some(20))),
+//        video = Some(AdjustmentDetail(timeNeeded = Some(30), percentage = Some(40)))
+//      )
 
       val appId = "AppId1"
-      repository.confirmAdjustments(appId, adjustments).futureValue
+//      repository.confirmAdjustments(appId, adjustments).futureValue
 
       val expected = OnlineTestApplication(appId, ApplicationStatus.SUBMITTED, "UserId1", "TestAccountId1",
-        guaranteedInterview = false, needsOnlineAdjustments = false, needsAtVenueAdjustments = false,
+        guaranteedInterview = false, needsAtVenueAdjustments = false,
         preferredName = "Georgy", lastName = "Jetson01",
-        eTrayAdjustments = Some(AdjustmentDetail(timeNeeded = Some(10), percentage = Some(20))),
-        videoInterviewAdjustments = Some(AdjustmentDetail(timeNeeded = Some(30), percentage = Some(40)))
+        eTrayAdjustments = None, //Some(AdjustmentDetail(timeNeeded = Some(10), percentage = Some(20))),
+        videoInterviewAdjustments = None //Some(AdjustmentDetail(timeNeeded = Some(30), percentage = Some(40)))
       )
       repository.getOnlineTestApplication(appId).futureValue mustBe Some(expected)
     }

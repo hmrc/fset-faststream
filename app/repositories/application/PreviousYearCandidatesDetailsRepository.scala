@@ -122,10 +122,9 @@ trait PreviousYearCandidatesDetailsRepository {
 
   val assistanceDetailsHeaders = "Do you have a disability,Disability impact," +
     "Deaf,Learning disability,Long-standing disability,Mental health condition,Neurodiverse,Other neurodiverse,Physical or mobility," +
-    "Speech impairment,Visible difference,Sight loss,Prefer not to say,Other,Other description,GIS,Extra support online tests," +
-    "What adjustments will you need,Extra support f2f,What adjustments will you need,Extra support phone interview,What adjustments will you need," +
-    "E-Tray time extension,E-Tray invigilated,E-Tray invigilated notes,E-Tray other notes,Video time extension,Video invigilated,Video invigilated notes," +
-    "Video other notes,Additional comments,Adjustments confirmed,"
+    "Speech impairment,Visible difference,Sight loss,Prefer not to say,Other,Other description,GIS," +
+    "Extra support f2f,What adjustments will you need,Extra support phone interview,What adjustments will you need," +
+    "Additional comments,"
 
   def applicationDetailsHeader(numOfSchemes: Int) = "applicationId,userId,testAccountId,Framework ID,Application Status,Route,SdipDiversity,First name,Last name," +
     "Preferred Name,Date of Birth,Are you eligible,Terms and Conditions," +
@@ -1482,7 +1481,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
 
     val testGroupsOpt = subDocRoot("testGroups")(doc)
 
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     val phase1Tests = for {
       testGroups <- testGroupsOpt
       phase1Tests <- subDocRoot("PHASE1")(testGroups).map(_.get("tests").asArray())
@@ -1625,31 +1624,18 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
       List(
         assistanceDetailsOpt.getStringOpt("otherDisabilityDescription"),
         if (assistanceDetailsOpt.getAsBoolean("guaranteedInterview")) Y else N,
-        if (assistanceDetailsOpt.getAsBoolean("needsSupportForOnlineAssessment")) Y else N,
-        assistanceDetailsOpt.getStringOpt("needsSupportForOnlineAssessmentDescription"),
         if (assistanceDetailsOpt.getAsBoolean("needsSupportAtVenue")) Y else N,
         assistanceDetailsOpt.getStringOpt("needsSupportAtVenueDescription"),
         if (assistanceDetailsOpt.getAsBoolean("needsSupportForPhoneInterview")) Y else N,
         assistanceDetailsOpt.getStringOpt("needsSupportForPhoneInterviewDescription"),
-        etrayAdjustmentsOpt.getAsIntOpt("timeNeeded").map(_ + "%"),
-
-        if (typeOfAdjustments.contains("etrayInvigilated")) Y else N,
-        etrayAdjustmentsOpt.getStringOpt("invigilatedInfo"),
-        etrayAdjustmentsOpt.getStringOpt("otherInfo"),
-
-        videoAdjustmentsOpt.getAsIntOpt("timeNeeded").map(_ + "%"),
-        if (typeOfAdjustments.contains("videoInvigilated")) Y else N,
-        videoAdjustmentsOpt.getStringOpt("invigilatedInfo"),
-        videoAdjustmentsOpt.getStringOpt("otherInfo"),
-        assistanceDetailsOpt.getStringOpt("adjustmentsComment"),
-        if (assistanceDetailsOpt.getAsBoolean("adjustmentsConfirmed")) Y else N
+        assistanceDetailsOpt.getStringOpt("adjustmentsComment")
       )
   }
 
   private def disabilityDetails(doc: Document): List[Option[String]] = {
     val assistanceDetailsOpt = subDocRoot("assistance-details")(doc)
 
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     val markedDisabilityCategories = markDisabilityCategories(
       assistanceDetailsOpt.map { ad =>
         if (ad.containsKey("disabilityCategories"))

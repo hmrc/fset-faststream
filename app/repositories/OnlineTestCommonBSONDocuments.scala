@@ -26,12 +26,9 @@ trait OnlineTestCommonBSONDocuments {
       Document("applicationStatus" -> targetProgressStatus.applicationStatus.toString),
       Document(s"progress-status.${targetProgressStatus.key}" -> true),
       Document("$or" -> BsonArray(
-        Document("$and" -> BsonArray(
-          Document("assistance-details.needsSupportForOnlineAssessment" -> false),
-          Document("assistance-details.needsSupportAtVenue" -> false),
-          Document("assistance-details.guaranteedInterview" -> Document("$ne" -> true)))),
+        Document("assistance-details.guaranteedInterview" -> Document("$ne" -> true)),
         Document("assistance-details.adjustmentsConfirmed" -> true)
-        ))
       ))
+    ))
   }
 }

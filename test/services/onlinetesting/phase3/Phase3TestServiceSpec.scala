@@ -71,7 +71,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "suppress the invitation email for invigilated applicants" in new Phase3TestServiceFixture {
       val videoAdjustments = AdjustmentDetail(timeNeeded = Some(10), invigilatedInfo = Some("blah blah"), otherInfo = Some("more blah"))
-      val invigilatedApplicant = onlineTestApplication.copy(needsOnlineAdjustments = true, videoInterviewAdjustments = Some(videoAdjustments))
+      val invigilatedApplicant = onlineTestApplication.copy(videoInterviewAdjustments = Some(videoAdjustments))
       phase3TestServiceNoTestGroupForInvigilated.registerAndInviteForTestGroup(invigilatedApplicant, testInterviewId, None).futureValue
       verify(emailClientMock, times(0)).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(
         any[HeaderCarrier], any[ExecutionContext])
@@ -79,7 +79,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
     "invite and immediately extend invigilated applicants" in new Phase3TestServiceFixture {
       val videoAdjustments = AdjustmentDetail(timeNeeded = Some(10), invigilatedInfo = Some("blah blah"), otherInfo = Some("more blah"))
-      val invigilatedApplicant = onlineTestApplication.copy(needsOnlineAdjustments = true, videoInterviewAdjustments = Some(videoAdjustments))
+      val invigilatedApplicant = onlineTestApplication.copy(videoInterviewAdjustments = Some(videoAdjustments))
       phase3TestServiceNoTestGroupForInvigilated.registerAndInviteForTestGroup(invigilatedApplicant, testInterviewId, None).futureValue
       verify(phase3TestServiceNoTestGroupForInvigilated, times(1)).extendTestGroupExpiryTime(any(), any(),
         any())(any[HeaderCarrier](), any[RequestHeader]())
@@ -507,7 +507,6 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       userId = "userId",
       testAccountId = "testAccountId",
       guaranteedInterview = false,
-      needsOnlineAdjustments = false,
       needsAtVenueAdjustments = false,
       preferredName = testFirstName,
       lastName = testLastName,

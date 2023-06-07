@@ -48,8 +48,6 @@ POST        /application/:userId/:applicationId/:fsacAssessmentCentre    @contro
 GET         /application/markSignupCodeAsUsed                            @controllers.CampaignManagementController.markSignupCodeAsUsed(code: String, applicationId: String)
 # Application routes end
 
-PUT         /adjustments/:applicationId                                  @controllers.AdjustmentsManagementController.confirmAdjustments(applicationId:String)
-GET         /adjustments/:applicationId                                  @controllers.AdjustmentsManagementController.findAdjustments(applicationId: String)
 PUT         /adjustments/comment/:applicationId                          @controllers.AdjustmentsManagementController.updateAdjustmentsComment(applicationId: String)
 GET         /adjustments/comment/:applicationId                          @controllers.AdjustmentsManagementController.findAdjustmentsComment(applicationId: String)
 DELETE      /adjustments/comment/:applicationId                          @controllers.AdjustmentsManagementController.removeAdjustmentsComment(applicationId: String)
