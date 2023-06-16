@@ -187,7 +187,7 @@ class EventsRepositorySpec extends MongoRepositorySpec {
       repository.save(List(bulkUploadedEvent)).futureValue
       val result = repository.getEvent(EventExamples.e1.id).futureValue
       result mustBe bulkUploadedEvent
-      repository.updateStructure() // Sets wasBulkUploaded to false and updates the createdAt timestamp
+      repository.updateStructure().futureValue // Sets wasBulkUploaded to false and updates the createdAt timestamp
       val resultAfterUpdate = repository.getEvent(EventExamples.e1.id).futureValue
       resultAfterUpdate.wasBulkUploaded mustBe false
       resultAfterUpdate.createdAt must not be bulkUploadedEvent.createdAt
