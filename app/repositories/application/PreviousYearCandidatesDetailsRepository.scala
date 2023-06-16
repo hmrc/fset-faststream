@@ -95,10 +95,15 @@ trait PreviousYearCandidatesDetailsRepository {
     "seeingTheBigPictureAverage,overallScore,"
 
   private def appTestResults(numOfSchemes: Int) = {
-    val otherColumns = "result," * (numOfSchemes - 2) + "result"
-    List("PHASE 1", "PHASE 2", "PHASE 3", "SIFT", "FSAC", "FSB", "Current Scheme Status").map { s =>
-      s"$s result,$otherColumns"
+    val otherEvaluationColumns = "result," * (numOfSchemes - 2) + "result"
+    val evaluationColumns = List("PHASE 1", "PHASE 2", "PHASE 3", "SIFT", "FSAC", "FSB").map { s =>
+      s"$s result,$otherEvaluationColumns"
     }.mkString(",")
+    val otherCssColumns = "result," * numOfSchemes + "result"
+    val currentSchemeStatusColumns = List("Current Scheme Status").map { s =>
+      s"$s result,$otherCssColumns"
+    }.mkString(",")
+    s"$evaluationColumns,$currentSchemeStatusColumns"
   }
 
   def dataAnalystApplicationDetailsHeader(numOfSchemes: Int) =
@@ -254,6 +259,13 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
   private val Y = Some("Yes")
   private val N = Some("No")
 
+  // When dealing with the currentSchemeStatus, it is possible for a candidate, who is evaluated at fsb to get 2 additional schemes
+  // added to the css if they are have a DiplomaticAndDevelopmentEconomics fsb. If this is the case, GovernmentEconomicsService
+  // and DiplomaticAndDevelopment will be added to the css. This is why we add 2 to the numOfSchemes to handle a max number of
+  // 7 scheme result columns: 5 for a SdipFaststream candidate + 2 to handle if the candidate has DiplomaticAndDevelopmentEconomics
+  // as one of the schemes
+  private val fsbAdditionalSchemesForEacDs = 2
+
   override val allSchemes: List[String] = schemeRepository.schemes.map(_.id.value).toList
 
   override val siftAnswersHeader: String = "Sift Answers status,multipleNationalities,secondNationality,nationality," +
@@ -407,7 +419,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
             fsacCompetency(doc) :::
             testEvaluations(doc, numOfSchemes) :::
 
-            currentSchemeStatus(doc, numOfSchemes) :::
+            currentSchemeStatus(doc, numOfSchemes + fsbAdditionalSchemesForEacDs) :::
             List(maybePrefixWithdrawer(withdrawalInfoOpt.map(_.withdrawer))) :::
             List(withdrawalInfoOpt.map(_.reason)) :::
             List(withdrawalInfoOpt.map(_.otherReason.getOrElse(""))) :::
@@ -695,7 +707,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
             progressStatusTimestamps(doc) :::
             List(lastProgressStatusPriorToWithdrawal(doc)) :::
             testEvaluations(doc, numOfSchemes) :::
-            currentSchemeStatus(doc, numOfSchemes) :::
+            currentSchemeStatus(doc, numOfSchemes + fsbAdditionalSchemesForEacDs) :::
             List(fsacIndicatorOpt.map(_.area)) :::
             List(fsacIndicatorOpt.map(_.assessmentCentre))
             : _*
@@ -1316,7 +1328,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
   private def videoInterview(doc: Document): List[Option[String]] = {
     val testGroupsOpt = subDocRoot("testGroups")(doc)
     val videoTestSectionOpt = testGroupsOpt.flatMap(testGroups => subDocRoot("PHASE3")(testGroups))
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     val videoTestsOpt = videoTestSectionOpt.flatMap{ p3 =>
       Try(p3.get("tests").asArray().getValues.asScala.toList.map ( _.asDocument() )).toOption
     }
@@ -1397,7 +1409,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
       val testSectionOpt = testGroupsOpt.flatMap( section => subDocRoot(sectionName)(section) )
       val testsEvaluationOpt = testSectionOpt.flatMap ( evaluation => subDocRoot("evaluation")(evaluation) )
 
-      import scala.collection.JavaConverters._
+      import scala.jdk.CollectionConverters._
       // Handle NPE
       val testEvalResults = testsEvaluationOpt.flatMap( eval => Try(eval.get("result").asArray().getValues.asScala.toList.map ( _.asDocument() )).toOption
         .orElse(testsEvaluationOpt.map( eval => eval.get("schemes-evaluation").asArray().getValues.asScala.toList.map ( _.asDocument() )) ))
@@ -1408,7 +1420,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
   }
 
   private def currentSchemeStatus(doc: Document, numOfSchemes: Int): List[Option[String]] = {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     val testEvalResults = doc.get("currentSchemeStatus").map(_.asArray().getValues.asScala.toList.map ( _.asDocument() ))
 
     val evalResultsMap = testEvalResults.map(getSchemeResults)
