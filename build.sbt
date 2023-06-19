@@ -21,7 +21,6 @@ import sbt.Tests.{Group, SubProcess}
 import sbt._
 import uk.gov.hmrc.DefaultBuildSettings.{addTestReportOption, defaultSettings, scalaSettings, targetJvm}
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
-import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 import uk.gov.hmrc.versioning.SbtGitVersioning.autoImport.majorVersion
 
 val appName = "fset-faststream"
@@ -36,7 +35,6 @@ lazy val microservice = Project(appName, file("."))
   .settings(majorVersion := 1)
   .settings(playSettings : _*)
   .settings(scalaSettings: _*)
-  .settings(publishingSettings)
   .settings(defaultSettings(): _*)
   .settings(playDefaultPort := 8101)
   .settings(
@@ -53,6 +51,10 @@ lazy val microservice = Project(appName, file("."))
     Compile / compile / scalacOptions += "-Ywarn-value-discard",
     Compile / compile / scalacOptions += "-Xlint:-missing-interpolator,_",
     Compile / compile / scalacOptions += "-Ywarn-unused")
+  // Even though log4j does not appear in the dependency graph, sbt still downloads it into the Coursier cache
+  // when we compile. It is version log4j-1.2.17.jar, which contains the security vulnerabilities so as a workaround
+  // we exclude any log4j library here
+  .settings(excludeDependencies += "log4j" % "log4j")
   .settings(Compile / doc / sources := Seq.empty)
   .configs(IntegrationTest)
   .settings(inConfig(IntegrationTest)(Defaults.itSettings))
