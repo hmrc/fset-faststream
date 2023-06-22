@@ -18,12 +18,14 @@ package services.evaluation
 
 import model.EvaluationResults._
 import model.SchemeId
-import model.exchange.passmarksettings.{AssessmentCentrePassMarkSettings, AssessmentCentrePassMarkSettingsPersistence, PassMarkThreshold}
+import model.exchange.passmarksettings.{ AssessmentCentrePassMarkSettingsPersistence, PassMarkThreshold }
 import model.persisted.SchemeEvaluationResult
 import play.api.Logging
 
 trait AssessmentCentreAllSchemesEvaluator extends Logging {
 
+  // Previous implementation of evaluation routine that used competency based pass marks
+  /*
   def evaluateSchemes(appId: String,
                       passmark: AssessmentCentrePassMarkSettingsPersistence,
                       competencyAverages: CompetencyAverageResult,
@@ -48,6 +50,30 @@ trait AssessmentCentreAllSchemesEvaluator extends Logging {
         workingTogetherDevelopingSelfAndOthersResult, communicatingAndInfluencingResult, seeingTheBigPictureResult, overallResult).toString)
     }
   }
+   */
+
+  def evaluateSchemes(appId: String,
+                       passmark: AssessmentCentrePassMarkSettingsPersistence,
+                       competencyAverages: ExerciseAverageResult,
+                       schemes: Seq[SchemeId]): Seq[SchemeEvaluationResult] = {
+    schemes.map { scheme =>
+      val assessmentCentrePassMark = passmark.schemes.find { _.schemeId == scheme }
+        .getOrElse(throw new IllegalStateException(s"Did not find assessment centre pass marks for scheme = $scheme, " +
+          s"applicationId = $appId"))
+      val writtenExerciseResult = evaluateScore(appId, "writtenExercise", competencyAverages.writtenExerciseAverage,
+        assessmentCentrePassMark.schemeThresholds.writtenExercise)
+      val teamExerciseResult = evaluateScore(appId, "teamExercise",
+        competencyAverages.teamExerciseAverage,
+        assessmentCentrePassMark.schemeThresholds.teamExercise)
+      val leadershipExerciseResult = evaluateScore(appId, "leadershipExercise",
+        competencyAverages.leadershipExerciseAverage,
+        assessmentCentrePassMark.schemeThresholds.leadershipExercise)
+      val overallResult = evaluateScore(appId, "overall", competencyAverages.overallScore, assessmentCentrePassMark.schemeThresholds.overall)
+
+      SchemeEvaluationResult(scheme, combineTestResults(appId, scheme, writtenExerciseResult,
+        teamExerciseResult, leadershipExerciseResult, overallResult).toString)
+    }
+  }
 
   private def evaluateScore(appId: String, name: String, score: Double, threshold: PassMarkThreshold): Result = {
     val result = if (score >= threshold.passThreshold) {
@@ -67,7 +93,7 @@ trait AssessmentCentreAllSchemesEvaluator extends Logging {
     require(results.nonEmpty, "Test results not found")
     val result = results match {
       case _ if results.contains(Red) => Red        // single red then red overall
-      case _ if results.contains(Amber) => Amber    // single green then green overall
+      case _ if results.contains(Amber) => Amber    // single amber then amber overall
       case _ if results.forall(_ == Green) => Green // all green then green overall
     }
     logger.warn(s"[FSAC evaluator] - $applicationId combining results for $scheme: $results = $result")

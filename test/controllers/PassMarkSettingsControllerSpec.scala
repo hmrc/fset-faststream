@@ -199,21 +199,22 @@ class Phase3PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
 }
 
 class AssessmentCentrePassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpec {
-  override type T = AssessmentCentrePassMarkSettings
-  override type U = AssessmentCentrePassMark
+  type T = AssessmentCentrePassMarkSettings
+  type U = AssessmentCentreExercisePassMark
   override type V = AssessmentCentrePassMarkSettingsPersistence
-  override implicit val formatter = AssessmentCentrePassMarkSettings.jsonFormat
+  implicit val formatter = AssessmentCentrePassMarkSettings.jsonFormat
   implicit val formatter2 = AssessmentCentrePassMarkSettingsPersistence.jsonFormat
-  override val argumentCaptor = ArgumentCaptor.forClass(classOf[AssessmentCentrePassMarkSettingsPersistence])
-  val competencySchemeThreshold = PassMarkThreshold(2.0d, 3.0d)
-  val overallSchemeThreshold = PassMarkThreshold(2.0d, 14.0d)
-  val passMarkThresholds = AssessmentCentrePassMarkThresholds(competencySchemeThreshold, competencySchemeThreshold, competencySchemeThreshold,
-    competencySchemeThreshold, overallSchemeThreshold)
-  override val passMarks = List(
-    AssessmentCentrePassMark(SchemeId("Finance"), passMarkThresholds),
-    AssessmentCentrePassMark(SchemeId("Commercial"), passMarkThresholds),
-    AssessmentCentrePassMark(SchemeId("Generalist"), passMarkThresholds))
-  override val passMarkSettings = AssessmentCentrePassMarkSettings(
+  val argumentCaptor = ArgumentCaptor.forClass(classOf[AssessmentCentrePassMarkSettingsPersistence])
+  val exerciseSchemeThreshold = PassMarkThreshold(2.0d, 3.0d)
+  val overallSchemeThreshold = PassMarkThreshold(2.0d, 9.0d)
+  val passMarkThresholds = AssessmentCentreExercisePassMarkThresholds(
+    exerciseSchemeThreshold, exerciseSchemeThreshold, exerciseSchemeThreshold, overallSchemeThreshold
+  )
+  val passMarks = List(
+    AssessmentCentreExercisePassMark(SchemeId("Finance"), passMarkThresholds),
+    AssessmentCentreExercisePassMark(SchemeId("Commercial"), passMarkThresholds),
+    AssessmentCentreExercisePassMark(SchemeId("Generalist"), passMarkThresholds))
+  val passMarkSettings = AssessmentCentrePassMarkSettings(
     schemes = passMarks,
     version = mockVersion,
     createDate = mockCreateDate,
@@ -243,25 +244,21 @@ class AssessmentCentrePassMarkSettingsControllerSpec extends PassMarkSettingsCon
 
   override val jsonSchemeThresholds = """
                                | "schemeThresholds": {
-                               |   "seeingTheBigPicture": {
+                               |   "writtenExercise": {
                                |     "failThreshold": 2.0,
                                |     "passThreshold": 3.0
                                |   },
-                               |   "makingEffectiveDecisions": {
+                               |   "teamExercise": {
                                |     "failThreshold": 2.0,
                                |     "passThreshold": 3.0
                                |   },
-                               |   "communicatingAndInfluencing": {
-                               |     "failThreshold": 2.0,
-                               |     "passThreshold": 3.0
-                               |   },
-                               |   "workingTogetherDevelopingSelfAndOthers": {
+                               |   "leadershipExercise": {
                                |     "failThreshold": 2.0,
                                |     "passThreshold": 3.0
                                |   },
                                |   "overall": {
                                |     "failThreshold": 2.0,
-                               |     "passThreshold": 14.0
+                               |     "passThreshold": 9.0
                                |   }
                                | }
                              """

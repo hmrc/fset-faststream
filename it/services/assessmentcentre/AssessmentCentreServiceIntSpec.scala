@@ -3,7 +3,7 @@ package services.assessmentcentre
 import com.typesafe.config.{Config, ConfigFactory}
 import factories.ITDateTimeFactoryMock
 import model.ApplicationStatus._
-import model.EvaluationResults.CompetencyAverageResult
+import model.EvaluationResults.{CompetencyAverageResult, ExerciseAverageResult}
 import model._
 import model.assessmentscores._
 import model.exchange.passmarksettings.{AssessmentCentrePassMarkSettings, AssessmentCentrePassMarkSettingsPersistence}
@@ -50,11 +50,10 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
   // Use this when debugging so the test framework only runs one test scenario. The tests will still be loaded, however
   val DebugRunTestNameOnly: Option[String] = None
   //    val DebugRunTestNameOnly: Option[String] = Some("multipleSchemesSuite_Mix_Scenario1")
-  //    val DebugRunTestNameOnly: Option[String] = Some("oneSchemeSuite_Green_Scenario1")
   // Use this when debugging so the test framework only runs tests which contain the specified test suite name in their path
   // the tests will still be loaded, however
   val DebugRunTestSuitePathPatternOnly: Option[String] = None
-  //    val DebugRunTestSuitePathPatternOnly: Option[String] = Some("1_oneSchemeSuite/")
+  //  val DebugRunTestSuitePathPatternOnly: Option[String] = Some("2_multipleSchemesSuite/")
 
   val prefix= "****"
 
@@ -127,8 +126,14 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
       val passmarkSettingsFile = new File(suiteName.getAbsolutePath + "/" + PassmarkSettingsFile)
 
       require(passmarkSettingsFile.exists(), s"Pass mark settings file does not exist: ${passmarkSettingsFile.getAbsolutePath}")
-      val passmarkSettingsJson = Json.parse(Source.fromFile(passmarkSettingsFile).getLines().mkString)
-      passmarkSettingsJson.as[AssessmentCentrePassMarkSettings].toPersistence
+
+      val source = Source.fromFile(passmarkSettingsFile)
+      try {
+        val passmarkSettingsJson = Json.parse(source.getLines().mkString)
+        passmarkSettingsJson.as[AssessmentCentrePassMarkSettings].toPersistence
+      } finally {
+        source.close()
+      }
     }
 
     // Returns all suite files, ignoring the config file (passmarkSettings.conf)
@@ -248,19 +253,23 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
 
       val passmarkVersionOpt = evaluationDocOpt.map(_.get("passmarkVersion").asString().getValue)
       val competencyAverageOpt = evaluationDocOpt.map(bson => Codecs.fromBson[CompetencyAverageResult](bson.get("competency-average")))
+      val exerciseAverageOpt = evaluationDocOpt.map(bson => Codecs.fromBson[ExerciseAverageResult](bson.get("exercise-average")))
       val schemesEvaluationOpt = evaluationDocOpt.map(bson => Codecs.fromBson[Seq[SchemeEvaluationResult]](bson.get("schemes-evaluation")))
 
-      ActualResult(applicationStatusOpt, latestProgressStatusOpt, passmarkVersionOpt, competencyAverageOpt, schemesEvaluationOpt)
+      ActualResult(
+        applicationStatusOpt, latestProgressStatusOpt, passmarkVersionOpt, competencyAverageOpt, exerciseAverageOpt, schemesEvaluationOpt
+      )
     }
   }
 
+  //scalastyle:off method.length
   private def assert(testCase: File, testName: String, expected: AssessmentScoreEvaluationTestExpectation, actual: ActualResult) = {
 
     val testMessage = s"file=${testCase.getAbsolutePath}, testName=$testName"
     val message = s"Test location: $testMessage:"
-    logger.info(s"$prefix $message - now performing checks...")
+    logger.info(s"$prefix $message - NOW PERFORMING CHECKS...")
 
-    def doIt(dataName: String)(fun: => org.scalatest.Assertion) = {
+    def performCheck(dataName: String)(fun: => org.scalatest.Assertion) = {
       logger.info(s"$prefix $dataName check")
       // If the test fails, withClue will display a helpful message
       withClue(s"$message $dataName") {
@@ -269,11 +278,20 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
       logger.info(s"$prefix $dataName passed")
     }
 
-    doIt("applicationStatus"){ actual.applicationStatus mustBe expected.applicationStatus }
+    performCheck("applicationStatus"){
+      logger.info(s"$prefix comparing actual ${actual.applicationStatus} equals expected ${expected.applicationStatus}")
+      actual.applicationStatus mustBe expected.applicationStatus
+    }
 
-    doIt("progressStatus"){ actual.progressStatus mustBe expected.progressStatus }
+    performCheck("progressStatus"){
+      logger.info(s"$prefix comparing actual ${actual.progressStatus} equals expected ${expected.progressStatus}")
+      actual.progressStatus mustBe expected.progressStatus
+    }
 
-    doIt("passmarkVersion"){ actual.passmarkVersion mustBe expected.passmarkVersion }
+    performCheck("passmarkVersion"){
+      logger.info(s"$prefix comparing actual ${actual.passmarkVersion} equals expected ${expected.passmarkVersion}")
+      actual.passmarkVersion mustBe expected.passmarkVersion
+    }
 
     val actualSchemes = actual.schemesEvaluation.getOrElse(List()).map(x => (x.schemeId, x.result)).toMap
     val expectedSchemes = expected.allSchemesEvaluationExpectations.getOrElse(List()).map(x => (x.schemeId, x.result)).toMap
@@ -283,22 +301,44 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
     logger.info(s"$prefix schemesEvaluation check")
     allSchemes.foreach { s =>
       withClue(s"$message schemesEvaluation for scheme: $s") {
+        logger.info(s"$prefix ${s.toString} scheme comparing actual ${actualSchemes(s)} equals expected ${expectedSchemes(s)}")
         actualSchemes(s) mustBe expectedSchemes(s)
       }
     }
     logger.info(s"$prefix schemesEvaluation passed")
 
-    doIt("competencyAverage"){ actual.competencyAverageResult mustBe expected.competencyAverage }
+    performCheck("competencyAverages"){
+      logger.info(s"$prefix comparing actual ${actual.competencyAverageResult} equals expected ${expected.competencyAverage}")
+      actual.competencyAverageResult mustBe expected.competencyAverage
+    }
 
     logger.info(s"$prefix competencyAverage overallScore check")
     withClue(s"$message competencyAverage overallScore") {
       expected.overallScore.foreach { overallScore =>
+        logger.info(s"$prefix comparing actual ${actual.competencyAverageResult.get.overallScore} equals expected ${expected.overallScore}")
         actual.competencyAverageResult.get.overallScore mustBe overallScore
       }
     }
     logger.info(s"$prefix competencyAverage overallScore passed")
-    logger.info(s"$prefix $testName passed")
-  }
+
+    performCheck("exerciseAverages"){
+      logger.info(s"$prefix comparing actual ${actual.exerciseAverageResult} equals expected ${expected.exerciseAverage}")
+      actual.exerciseAverageResult mustBe expected.exerciseAverage
+    }
+
+    logger.info(s"$prefix exerciseAverage overallScore check")
+    withClue(s"$message exerciseAverage overallScore") {
+      expected.exerciseOverallScore.foreach { overallScore =>
+        logger.info(
+          s"$prefix comparing actual ${actual.exerciseAverageResult.get.overallScore} equals expected ${expected.exerciseOverallScore}"
+        )
+        actual.exerciseAverageResult.get.overallScore mustBe overallScore
+      }
+    }
+    logger.info(s"$prefix exerciseAverage overallScore passed")
+
+    logger.info(s"$prefix $testName PASSED $prefix")
+  } //scalastyle:on
 }
 
 object AssessmentCentreServiceIntSpec {
@@ -322,6 +362,7 @@ object AssessmentCentreServiceIntSpec {
                            progressStatus: Option[ProgressStatuses.ProgressStatus],
                            passmarkVersion: Option[String],
                            competencyAverageResult: Option[CompetencyAverageResult],
+                           exerciseAverageResult: Option[ExerciseAverageResult],
                            schemesEvaluation: Option[Seq[SchemeEvaluationResult]]
                          )
 }

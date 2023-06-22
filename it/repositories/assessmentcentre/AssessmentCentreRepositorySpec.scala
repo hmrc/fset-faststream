@@ -16,7 +16,7 @@
 
 package repositories.assessmentcentre
 
-import model.EvaluationResults.{Amber, AssessmentEvaluationResult, CompetencyAverageResult, Green, Red}
+import model.EvaluationResults.{Amber, AssessmentEvaluationResult, CompetencyAverageResult, ExerciseAverageResult, FsacResults, Green, Red}
 import model.Exceptions.NotFoundException
 import model.ProgressStatuses.{ASSESSMENT_CENTRE_AWAITING_ALLOCATION, ASSESSMENT_CENTRE_SCORES_ACCEPTED}
 import model.assessmentscores.FixUserStuckInScoresAccepted
@@ -149,7 +149,10 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
           appId,
           "passMarkVersion",
           AssessmentEvaluationResult(
-            CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
+            FsacResults(
+              CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
+              ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)
+            ),
             Seq(SchemeEvaluationResult("GovernmentCommunicationService", Green.toString))
           )
         ),
@@ -214,7 +217,10 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
           UniqueIdentifier(guid),
           "passMarkVersion1",
           AssessmentEvaluationResult(
-            CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
+            FsacResults(
+              CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
+              ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)
+            ),
             Seq(SchemeEvaluationResult("Commercial", Green.toString))
           )
         ),
@@ -251,7 +257,10 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
           UniqueIdentifier(guid),
           "passMarkVersion1",
           AssessmentEvaluationResult(
-            CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
+            FsacResults(
+              CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
+              ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)
+            ),
             Seq(SchemeEvaluationResult("Commercial", Green.toString))
           )
         ),
@@ -280,7 +289,10 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
           UniqueIdentifier(guid),
           "passMarkVersion1",
           AssessmentEvaluationResult(
-            competencyAverageResult,
+            FsacResults(
+              competencyAverageResult,
+              ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)
+            ),
             Seq(SchemeEvaluationResult("Commercial", Green.toString))
           )
         ),
@@ -319,7 +331,10 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
           UniqueIdentifier(guid),
           "passMarkVersion1",
           AssessmentEvaluationResult(
-            CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
+            FsacResults(
+              CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
+              ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)
+            ),
             schemeEvaluationResult
           )
         ),
@@ -345,7 +360,10 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
           UniqueIdentifier(guid),
           "passMarkVersion1",
           AssessmentEvaluationResult(
-            CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
+            FsacResults(
+              CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
+              ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)
+            ),
             Seq(SchemeEvaluationResult("Commercial", Green.toString))
           )
         ),
@@ -377,7 +395,10 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
           UniqueIdentifier(guid),
           "passMarkVersion1",
           AssessmentEvaluationResult(
-            CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
+            FsacResults(
+              CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
+              ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)
+            ),
             Seq(SchemeEvaluationResult("Commercial", Green.toString))
           )
         ),
@@ -407,7 +428,10 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
           UniqueIdentifier(guid),
           "passMarkVersion1",
           AssessmentEvaluationResult(
-            CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
+            FsacResults(
+              CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
+              ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)
+            ),
             Seq(
               SchemeEvaluationResult("Commercial", Green.toString),
               SchemeEvaluationResult("Generalist", Red.toString)
@@ -438,7 +462,10 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
           UniqueIdentifier(guid),
           "passMarkVersion1",
           AssessmentEvaluationResult(
-            CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
+            FsacResults(
+              CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
+              ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)
+            ),
             Seq(
               SchemeEvaluationResult("Commercial", Green.toString),
               SchemeEvaluationResult("Generalist", Amber.toString)

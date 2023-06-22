@@ -83,27 +83,29 @@ class Phase3PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
 }
 
 class AssessmentCentrePassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture {
-  override type T = AssessmentCentrePassMarkSettingsPersistence
-  override type U = AssessmentCentrePassMark
+  type T = AssessmentCentrePassMarkSettingsPersistence
+  type U = AssessmentCentreExercisePassMark
   override implicit val formatter: OFormat[AssessmentCentrePassMarkSettingsPersistence] = AssessmentCentrePassMarkSettingsPersistence.jsonFormat
-  val competencyPassMark = PassMarkThreshold(2.0d, 3.0d)
+  val exercisePassMark = PassMarkThreshold(2.0d, 3.0d)
   val overallPassMark = PassMarkThreshold(2.0d, 14.0d)
-  val assessmentCentrePassMarkThresholds = AssessmentCentrePassMarkThresholds(competencyPassMark, competencyPassMark, competencyPassMark,
-    competencyPassMark, overallPassMark)
-  val assessmentCentrePassMarks = List(AssessmentCentrePassMark(SchemeId("Finance"), assessmentCentrePassMarkThresholds))
-  override val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(assessmentCentrePassMarks, version, createdDate, createdByUser)
+  val assessmentCentrePassMarkThresholds = AssessmentCentreExercisePassMarkThresholds(
+    exercisePassMark, exercisePassMark, exercisePassMark, overallPassMark
+  )
+  val assessmentCentrePassMarks = List(AssessmentCentreExercisePassMark(SchemeId("Finance"), assessmentCentrePassMarkThresholds))
+  val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(assessmentCentrePassMarks, version, createdDate, createdByUser)
   val newOverallPassMark = PassMarkThreshold(2.0d, 16.0d)
-  override val newPassMarkThresholds = AssessmentCentrePassMarkThresholds(competencyPassMark, competencyPassMark, competencyPassMark,
-    competencyPassMark, newOverallPassMark)
-  override val newPassMarks = List(AssessmentCentrePassMark(SchemeId("Finance"), newPassMarkThresholds))
-  override def passMarkSettingsRepo = new AssessmentCentrePassMarkSettingsMongoRepository(mongo)
+  val newPassMarkThresholds = AssessmentCentreExercisePassMarkThresholds(
+    exercisePassMark, exercisePassMark, exercisePassMark, newOverallPassMark
+  )
+  val newPassMarks = List(AssessmentCentreExercisePassMark(SchemeId("Finance"), newPassMarkThresholds))
+  def passMarkSettingsRepo = new AssessmentCentrePassMarkSettingsMongoRepository(mongo)
   val collectionName: String = CollectionNames.ASSESSMENT_CENTRE_PASS_MARK_SETTINGS
 
   override def copyNewPassMarkSettings(passMarks: AssessmentCentrePassMarkSettingsPersistence,
-                                       newPassMarks: List[AssessmentCentrePassMark],
+                                       newPassMarks: List[AssessmentCentreExercisePassMark],
                                        newVersion: String,
-                                       newDate:
-  DateTime, newUser: String): AssessmentCentrePassMarkSettingsPersistence = {
+                                       newDate: DateTime,
+                                       newUser: String): AssessmentCentrePassMarkSettingsPersistence = {
     passMarks.copy(schemes = newPassMarks, newVersion, createdDate.plusDays(1), createdByUser)
   }
 }

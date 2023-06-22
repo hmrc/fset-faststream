@@ -16,14 +16,15 @@
 
 package services.evaluation
 
-import model.EvaluationResults.CompetencyAverageResult
+import model.EvaluationResults.{CompetencyAverageResult, ExerciseAverageResult}
+import model.UniqueIdentifier
 import model.assessmentscores.AssessmentScoresAllExercises
 
 object AssessmentScoreCalculator extends AssessmentScoreCalculator
 
 trait AssessmentScoreCalculator {
 
-  def countAverage(scores: AssessmentScoresAllExercises): CompetencyAverageResult = {
+  def calculateCompetencyAverages(scores: AssessmentScoresAllExercises): CompetencyAverageResult = {
     val overallScores = List(
       scores.makingEffectiveDecisionsAvg,
       scores.workingTogetherDevelopingSelfAndOthersAvg,
@@ -39,6 +40,24 @@ trait AssessmentScoreCalculator {
       scores.workingTogetherDevelopingSelfAndOthersAvg,
       scores.communicatingAndInfluencingAvg,
       scores.seeingTheBigPictureAvg,
+      overallScores.toDouble)
+  }
+
+  def calculateExerciseAverages(scores: AssessmentScoresAllExercises, appId: String): ExerciseAverageResult = {
+    val overallScores = List(
+      scores.writtenExerciseAvg(appId),
+      scores.teamExerciseAvg(appId),
+      scores.leadershipExerciseAvg(appId)
+    ).map{ avg =>
+      val bd = BigDecimal.apply(avg)
+      val decimalPlaces = 4
+      bd.setScale(decimalPlaces, BigDecimal.RoundingMode.HALF_UP)
+    }.sum
+
+    ExerciseAverageResult(
+      scores.writtenExerciseAvg(appId),
+      scores.teamExerciseAvg(appId),
+      scores.leadershipExerciseAvg(appId),
       overallScores.toDouble)
   }
 }

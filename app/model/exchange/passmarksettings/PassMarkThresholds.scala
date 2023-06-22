@@ -36,11 +36,18 @@ trait Phase3Thresholds {
   def videoInterview: PassMarkThreshold
 }
 
-trait AssessmentCentreThresholds {
+trait AssessmentCentreCompetencyThresholds {
   def seeingTheBigPicture: PassMarkThreshold
   def makingEffectiveDecisions: PassMarkThreshold
   def communicatingAndInfluencing: PassMarkThreshold
   def workingTogetherDevelopingSelfAndOthers: PassMarkThreshold
+  def overall: PassMarkThreshold
+}
+
+trait AssessmentCentreExerciseThresholds {
+  def writtenExercise: PassMarkThreshold
+  def teamExercise: PassMarkThreshold
+  def leadershipExercise: PassMarkThreshold
   def overall: PassMarkThreshold
 }
 
@@ -72,13 +79,14 @@ object Phase3PassMarkThresholds {
   implicit val phase3PassMarkThresholds = Json.format[Phase3PassMarkThresholds]
 }
 
-case class AssessmentCentrePassMarkThresholds(
+// These are competency pass marks. The 1st version of the FSAC evaluation used these pass marks
+case class AssessmentCentreCompetencyPassMarkThresholds(
                                     override val seeingTheBigPicture: PassMarkThreshold,
                                     override val makingEffectiveDecisions: PassMarkThreshold,
                                     override val communicatingAndInfluencing: PassMarkThreshold,
                                     override val workingTogetherDevelopingSelfAndOthers: PassMarkThreshold,
                                     override val overall: PassMarkThreshold
-                                   ) extends PassMarkThresholds with AssessmentCentreThresholds {
+                                   ) extends PassMarkThresholds with AssessmentCentreCompetencyThresholds {
   override def toString =
     s"seeingTheBigPicture=$seeingTheBigPicture," +
     s"makingEffectiveDecisions=$makingEffectiveDecisions," +
@@ -87,6 +95,26 @@ case class AssessmentCentrePassMarkThresholds(
     s"overall=$overall"
 }
 
-object AssessmentCentrePassMarkThresholds {
-  implicit val jsonFormat = Json.format[AssessmentCentrePassMarkThresholds]
+object AssessmentCentreCompetencyPassMarkThresholds {
+  implicit val jsonFormat = Json.format[AssessmentCentreCompetencyPassMarkThresholds]
 }
+
+// These are exercise pass marks. The latest version of the FSAC evaluation uses these pass marks
+case class AssessmentCentreExercisePassMarkThresholds(
+                                    override val writtenExercise: PassMarkThreshold,
+                                    override val teamExercise: PassMarkThreshold,
+                                    override val leadershipExercise: PassMarkThreshold,
+                                    override val overall: PassMarkThreshold
+                                   ) extends PassMarkThresholds with AssessmentCentreExerciseThresholds {
+  override def toString =
+    s"writtenExercise=$writtenExercise," +
+    s"teamExercise=$teamExercise," +
+    s"leadershipExercise=$leadershipExercise," +
+    s"overall=$overall"
+}
+
+object AssessmentCentreExercisePassMarkThresholds {
+  implicit val jsonFormat = Json.format[AssessmentCentreExercisePassMarkThresholds]
+}
+
+
