@@ -165,7 +165,7 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
           logger.info(s"$prefix Now running test case $testName...")
           logTestData(t)
           val appId = t.scores.applicationId.toString()
-          createApplicationInDb(appId)
+          createApplicationInDb(appId).futureValue
 
           val candidateData = AssessmentPassMarksSchemesAndScores(passmarks, t.schemes, t.scores)
           service.evaluateAssessmentCandidate(candidateData).futureValue
@@ -208,14 +208,13 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
       throw new IllegalStateException(msg)
     case Failure(_) =>
       logger.info(s"$prefix creating db application")
-      appCollection.insertOne(
-        Document(
-          "applicationId" -> appId,
-          "userId" -> ("user" + appId)
-        )
-      ).toFuture().map( _ => () )
-
       for {
+        _ <- appCollection.insertOne(
+          Document(
+            "applicationId" -> appId,
+            "userId" -> ("user" + appId)
+          )
+        ).toFuture()
         _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED)
       } yield ()
   }
@@ -233,7 +232,7 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
       val applicationStatus = applicationStatusOpt.get
       val progressStatusTimeStampDocOpt = document.get("progress-status-timestamp").map(_.asDocument())
       val latestProgressStatusOpt = progressStatusTimeStampDocOpt.flatMap { timestamps =>
-        import scala.collection.JavaConverters._
+        import scala.jdk.CollectionConverters._
         val convertedTimestamps = timestamps.entrySet().asScala.toSet
         val relevantProgressStatuses = convertedTimestamps.filter( _.getKey.startsWith(applicationStatus) )
         import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
