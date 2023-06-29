@@ -101,9 +101,10 @@ class Phase3TestsResultsReceivedStatusGenerator @Inject() (val previousStatusGen
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
       token <- Future.successful(candidate.phase3TestGroup.get.tests.head.token)
-      _ <- phase3TestRepo.appendCallback(token, ReviewedCallbackRequest.key, callbackData1)
-      _ <- phase3TestRepo.appendCallback(token, ReviewedCallbackRequest.key, callbackData2)
-      _ <- phase3TestRepo.appendCallback(token, ReviewedCallbackRequest.key, callbackData3)
+      // Remove these to reduce the amount of data created for test candidates whilst P3 is disabled
+//      _ <- phase3TestRepo.appendCallback(token, ReviewedCallbackRequest.key, callbackData1)
+//      _ <- phase3TestRepo.appendCallback(token, ReviewedCallbackRequest.key, callbackData2)
+//      _ <- phase3TestRepo.appendCallback(token, ReviewedCallbackRequest.key, callbackData3)
       _ <- appRepository.addProgressStatusAndUpdateAppStatus(candidate.applicationId.get, PHASE3_TESTS_RESULTS_RECEIVED)
     } yield candidate
   }
