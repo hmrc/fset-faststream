@@ -135,7 +135,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
 
     "return fsb types" in new TestFixture {
       val expected = Seq(
-        FsbType("CFS - Skype interview"), FsbType("FCO"), FsbType("EAC_DS"),
+        FsbType("CFS - Skype interview"), FsbType("FCO"), FsbType("GES_DS"),
         FsbType("GCFS FSB"), FsbType("EAC"), FsbType("ORAC"),
         FsbType("SRAC"), FsbType("SAC"), FsbType("HOP FSB"),
         FsbType("PDFS - Skype interview"), FsbType("PRO - Skype interview"),

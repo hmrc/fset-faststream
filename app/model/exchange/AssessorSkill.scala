@@ -32,7 +32,9 @@ object AssessorSkill {
     AssessorSkill(DAT_ASSESSOR, "DAT Assessor"),
     AssessorSkill(DEPARTMENTAL_ASSESSOR, "Departmental Assessor"),
     AssessorSkill(EAC_ASSESSOR, "EAC Assessor"),
+    // This has been replaced by GES_DS_ASSESSOR but we are keeping it for now
     AssessorSkill(EAC_DS_ASSESSOR, "EAC_DS Assessor"),
+    AssessorSkill(GES_DS_ASSESSOR, "GES_DS Assessor"),
     AssessorSkill(EDIP_ASSESSOR, "EDIP Assessor"),
     AssessorSkill(EDIP_QAC, "EDIP QAC"),
     AssessorSkill(EXERCISE_MARKER, "Exercise Marker"),

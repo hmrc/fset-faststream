@@ -78,7 +78,8 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED)
     }
 
-    "fail to evaluate scheme GES_DS if FCO results were not submitted" in new TestFixture {
+    // Old test before we replaced EAC_DS with GES_DS
+    "fail to evaluate scheme GES_DS if FCO results were not submitted" ignore new TestFixture {
       val curSchemeStatus = List(
         SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Red.toString),
         SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Green.toString)
@@ -95,7 +96,9 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       }
     }
 
-    "evaluate DS as failed, and then GES_DS as failed too, but do not evaluate GES as EAC evaluation hasn't happened yet" in new TestFixture {
+    // Old test before we replaced EAC_DS with GES_DS
+    "evaluate DS as failed, and then GES_DS as failed too, but do not evaluate GES as EAC evaluation " +
+      "hasn't happened yet" ignore new TestFixture {
       val curSchemeStatus = List(
         SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopment, Green.toString),
         SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Green.toString),
@@ -139,7 +142,8 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(mockApplicationRepo, times(2)).addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.FSB_FAILED)
     }
 
-    "evaluate scheme GES_DS as failed, and then GES as failed, but finally DS passed" in new TestFixture {
+    // Old test before we replaced EAC_DS with GES_DS
+    "evaluate scheme GES_DS as failed, and then GES as failed, but finally DS passed" ignore new TestFixture {
       val curSchemeStatus = List(
         SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Green.toString),
         SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Red.toString),
@@ -193,9 +197,9 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       * pass          fail          offered a job           fail
       *
       */
-
+    // Old test before we replaced EAC_DS with GES_DS
     "Pass the candidate who is only in the running for GES-DS if the candidate passes " +
-      "both the EAC and FCO parts of the fsb" in new TestFixture {
+      "both the EAC and FCO parts of the fsb" ignore new TestFixture {
       val fsbResult = FsbTestGroup(List(
         SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopment, Green.toString),
         SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Green.toString)
@@ -216,8 +220,30 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER)
     }
 
+    // This test replaces the one above
+    "Pass the candidate who is only in the running for GES-DS if the candidate passes the GES_DS fsb" in new TestFixture {
+      val fsbResult = FsbTestGroup(List(
+        SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Green.toString)
+      ))
+      when(mockFsbRepo.findByApplicationId(uid.toString())).thenReturnAsync(Some(fsbResult))
+
+      override val schemes = List(DSSchemeIds.DiplomaticAndDevelopmentEconomics)
+      override val selectedSchemes = SelectedSchemes(schemes, orderAgreed = true, eligible = true)
+      when(mockSchemePreferencesService.find(uid.toString())).thenReturnAsync(selectedSchemes)
+
+      // This is the css after FSAC and before FSB evaluation
+      val curSchemeStatus = List(SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Green.toString))
+      when(mockApplicationRepo.getCurrentSchemeStatus(uid.toString())).thenReturnAsync(curSchemeStatus)
+
+      when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.FSB_PASSED)).thenReturnAsync()
+      when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER)).thenReturnAsync()
+      service.evaluateFsbCandidate(uid)(hc).futureValue
+      verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER)
+    }
+
+    // Old test before we replaced EAC_DS with GES_DS
     "Fail the candidate who is only in the running for GES-DS if the candidate passes " +
-      "the EAC part but fails the DS (FCO) part of the GES_DS fsb" in new TestFixture {
+      "the EAC part but fails the DS (FCO) part of the GES_DS fsb" ignore new TestFixture {
       val fsbResult = FsbTestGroup(List(
         SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopment, Red.toString),
         SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Green.toString)
@@ -247,9 +273,35 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(mockEmailClient).notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any[HeaderCarrier], any[ExecutionContext])
     }
 
+    // This test replaces the one above
+    "Fail the candidate who is only in the running for GES-DS if the candidate fails the GES_DS fsb" in new TestFixture {
+      val fsbResult = FsbTestGroup(List(
+        SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Red.toString)
+      ))
+      when(mockFsbRepo.findByApplicationId(uid.toString())).thenReturnAsync(Some(fsbResult))
+
+      override val schemes = List(DSSchemeIds.DiplomaticAndDevelopmentEconomics)
+      override val selectedSchemes = SelectedSchemes(schemes, orderAgreed = true, eligible = true)
+      when(mockSchemePreferencesService.find(uid.toString())).thenReturnAsync(selectedSchemes)
+
+      // This is the css after FSAC and before FSB evaluation
+      val curSchemeStatus = List(SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Green.toString))
+      when(mockApplicationRepo.getCurrentSchemeStatus(uid.toString())).thenReturnAsync(curSchemeStatus)
+
+      when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.FSB_FAILED)).thenReturnAsync()
+      when(mockFsbRepo.updateCurrentSchemeStatus(any[String], any[List[SchemeEvaluationResult]])).thenReturnAsync()
+      when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED)).thenReturnAsync()
+
+      service.evaluateFsbCandidate(uid)(hc).futureValue
+      verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED)
+      // verify no failure email is sent out
+      verifyNoInteractions(mockEmailClient)
+    }
+
+    // Old test before we replaced EAC_DS with GES_DS
     "Fail the candidate who is only in the running for GES-DS if the candidate fails the EAC part but passes " +
       "the DS (FCO) part of the GES_DS fsb. Note the candidate should not be invited to the DS part " +
-      "if they fail the EAC part (so this should never happen unless they also have DS as a separate scheme)" in new TestFixture {
+      "if they fail the EAC part (so this should never happen unless they also have DS as a separate scheme)" ignore new TestFixture {
       val fsbResult = FsbTestGroup(List(
         SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopment, Green.toString),
         SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Red.toString)
@@ -279,8 +331,9 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(mockEmailClient).notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any[HeaderCarrier], any[ExecutionContext])
     }
 
+    // Old test before we replaced EAC_DS with GES_DS
     "Fail the candidate who is in the running for GES-DS and DS schemes who passes the EAC part but fails the FCO part of " +
-      "the GES_DS fsb" in new TestFixture {
+      "the GES_DS fsb" ignore new TestFixture {
       val fsbResult = FsbTestGroup(List(
         SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopment, Red.toString),
         SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Green.toString)
@@ -313,8 +366,45 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(mockEmailClient).notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any[HeaderCarrier], any[ExecutionContext])
     }
 
+    // Replaces the test above
+    "Set the candidate to ALL_FSBS_AND_FSACS_FAILED who is in the running for GES and GES-DS schemes who fails the GES fsb and " +
+      "so does not take the GES-DS fsb" in new TestFixture {
+      val fsbResult = FsbTestGroup(List(
+        SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Red.toString),
+        SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Green.toString)
+      ))
+      when(mockFsbRepo.findByApplicationId(uid.toString())).thenReturnAsync(Some(fsbResult))
+
+      override val schemes = List(DSSchemeIds.GovernmentEconomicsService, DSSchemeIds.DiplomaticAndDevelopmentEconomics)
+      override val selectedSchemes = SelectedSchemes(schemes, orderAgreed = true, eligible = true)
+      when(mockSchemePreferencesService.find(uid.toString())).thenReturnAsync(selectedSchemes)
+
+      // This is the css after FSAC and before FSB evaluation
+      val curSchemeStatus = List(
+        SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Green.toString),
+        SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Green.toString)
+      )
+      when(mockApplicationRepo.getCurrentSchemeStatus(uid.toString())).thenReturnAsync(curSchemeStatus)
+
+      when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.FSB_FAILED)).thenReturnAsync()
+      when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED)).thenReturnAsync()
+      when(mockFsbRepo.updateCurrentSchemeStatus(any[String], any[List[SchemeEvaluationResult]])).thenReturnAsync()
+
+      // Mocking required to send the failure email
+      when(mockApplicationRepo.find(uid.toString())).thenReturnAsync(Some(cand1))
+      when(mockContactDetailsRepo.find(cand1.userId)).thenReturnAsync(cd1)
+      when(mockEmailClient.notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any(), any())).thenReturnAsync()
+
+      service.evaluateFsbCandidate(uid)(hc).futureValue
+      verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.FSB_FAILED)
+      verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED)
+      // verify the failure email is sent out
+      verify(mockEmailClient).notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any[HeaderCarrier], any[ExecutionContext])
+    }
+
+    // Old test before we replaced EAC_DS with GES_DS
     "Fail the candidate who is in the running for GES-DS and GES schemes who fails the EAC part and passes the FCO part of " +
-      "the GES_DS fsb" in new TestFixture {
+      "the GES_DS fsb" ignore new TestFixture {
       val fsbResult = FsbTestGroup(List(
         SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopment, Green.toString),
         SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Red.toString)
@@ -346,6 +436,40 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
       // verify the failure email is sent out
       verify(mockEmailClient).notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any[HeaderCarrier], any[ExecutionContext])
     }
+
+    // Replaces the test above
+    "Set the candidate to FSB_FAILED who is in the running for GES-DS and GES schemes who fails GES-DS fsb and has not yet taken the " +
+      "EAC fsb" in new TestFixture {
+      val fsbResult = FsbTestGroup(List(
+        SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Red.toString),
+        SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Green.toString)
+      ))
+      when(mockFsbRepo.findByApplicationId(uid.toString())).thenReturnAsync(Some(fsbResult))
+
+      override val schemes = List(DSSchemeIds.DiplomaticAndDevelopmentEconomics, DSSchemeIds.GovernmentEconomicsService)
+      override val selectedSchemes = SelectedSchemes(schemes, orderAgreed = true, eligible = true)
+      when(mockSchemePreferencesService.find(uid.toString())).thenReturnAsync(selectedSchemes)
+
+      // This is the css after FSAC and before FSB evaluation
+      val curSchemeStatus = List(
+        SchemeEvaluationResult(DSSchemeIds.DiplomaticAndDevelopmentEconomics, Green.toString),
+        SchemeEvaluationResult(DSSchemeIds.GovernmentEconomicsService, Green.toString)
+      )
+      when(mockApplicationRepo.getCurrentSchemeStatus(uid.toString())).thenReturnAsync(curSchemeStatus)
+
+      when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.FSB_FAILED)).thenReturnAsync()
+      when(mockFsbRepo.updateCurrentSchemeStatus(any[String], any[List[SchemeEvaluationResult]])).thenReturnAsync()
+
+      // Mocking required to send the failure email
+      when(mockApplicationRepo.find(uid.toString())).thenReturnAsync(Some(cand1))
+      when(mockContactDetailsRepo.find(cand1.userId)).thenReturnAsync(cd1)
+      when(mockEmailClient.notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any(), any())).thenReturnAsync()
+
+      service.evaluateFsbCandidate(uid)(hc).futureValue
+      verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.FSB_FAILED)
+      // verify the failure email is sent out
+      verify(mockEmailClient).notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any[HeaderCarrier], any[ExecutionContext])
+    }
   }
 
   trait TestFixture {
@@ -361,7 +485,9 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout {
     val mockSchemePreferencesService = mock[SchemePreferencesService]
     val mockEmailClient = mock[OnlineTestEmailClient] //TODO:changed type was EmailClient
 
-    val cand1 = Candidate("123", None, None, Some("t@t.com"), Some("Leia"), Some("Amadala"), None, None, None, None, None, None, None)
+    val cand1 = Candidate(userId = "123", applicationId = None, testAccountId = None, Some("t@t.com"), Some("Leia"), Some("Amadala"),
+      preferredName = None, dateOfBirth = None, address = None, postCode = None, country = None, applicationRoute = None,
+      applicationStatus = None)
     val cd1 = ContactDetails(outsideUk = false, Address("line1a"), Some("123"), Some("UK"), "t@t.com", "12345")
 
     val service = new FsbService(

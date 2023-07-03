@@ -96,6 +96,8 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
   private def getResultsForScheme(appId: String, schemeId: SchemeId, results: Seq[SchemeEvaluationResult]): SchemeEvaluationResult = {
     import DSSchemeIds._
     val r = schemeId match {
+      //Code removed to replace EAC_DS with GES_DS
+/*
       case DiplomaticAndDevelopmentEconomics =>
         val res = Seq(
           results.find(r => EacSchemes.contains(r.schemeId)),
@@ -107,6 +109,7 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
         res
       case GovernmentEconomicsService =>
         results.find(r => EacSchemes.contains(r.schemeId)).toSeq
+ */
       case _ =>
         results.find(_.schemeId == schemeId).toSeq
     }
@@ -125,13 +128,14 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
                                                   fsbEvaluation: Seq[SchemeEvaluationResult]
                                                 ): Boolean = {
     def schemeWasEvaluatedBefore(id: SchemeId): Boolean = {
-      currentSchemeStatus.map(_.schemeId).takeWhile(_ != newFirstPreference.get).contains(id)
+      currentSchemeStatus.map(_.schemeId).takeWhile(_ != newFirstPreference.get.schemeId).contains(id)
     }
     newFirstPreference.map(_.schemeId) match {
-      case Some(DiplomaticAndDevelopment) if fsbEvaluation.exists(_.schemeId == DiplomaticAndDevelopment) => true
-      case Some(GovernmentEconomicsService) if fsbEvaluation.exists(r => EacSchemes.contains(r.schemeId)) => true
-      case Some(DiplomaticAndDevelopmentEconomics) if schemeWasEvaluatedBefore(GovernmentEconomicsService) => true
-      case Some(DiplomaticAndDevelopmentEconomics) if schemeWasEvaluatedBefore(DiplomaticAndDevelopment) => true
+      //Code removed to replace EAC_DS with GES_DS
+//      case Some(DiplomaticAndDevelopment) if fsbEvaluation.exists(_.schemeId == DiplomaticAndDevelopment) => true
+//      case Some(GovernmentEconomicsService) if fsbEvaluation.exists(r => EacSchemes.contains(r.schemeId)) => true
+//      case Some(DiplomaticAndDevelopmentEconomics) if schemeWasEvaluatedBefore(GovernmentEconomicsService) => true
+//      case Some(DiplomaticAndDevelopmentEconomics) if schemeWasEvaluatedBefore(DiplomaticAndDevelopment) => true
       case _ =>
         logger.debug(s"$logPrefix canEvaluateNextWithExistingResults = false")
         false
@@ -282,8 +286,8 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
     }.map(_.id)
     val maybeSchemeIds = maybeSchemeId match {
       case None => List(None)
-      case Some(schemeId) if schemeId == DiplomaticAndDevelopmentEconomics =>
-        List(Some(DiplomaticAndDevelopment), Some(GovernmentEconomicsService))
+//      case Some(schemeId) if schemeId == DiplomaticAndDevelopmentEconomics =>
+//        List(Some(DiplomaticAndDevelopment), Some(GovernmentEconomicsService))
       case Some(schemeId) => List(Some(schemeId))
     }
 

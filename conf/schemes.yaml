@@ -39,7 +39,7 @@
     specificRequirement: true
   siftRequirement: FORM
   siftEvaluationRequired: true
-  fsbType: EAC_DS
+  fsbType: GES_DS
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB_Guide_Economic_Service.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/scheme-questions-ges-ddes.odt
 - id: Finance
