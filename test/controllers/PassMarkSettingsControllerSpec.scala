@@ -24,8 +24,6 @@ import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.{ Format, Json }
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
@@ -37,29 +35,37 @@ import scala.concurrent.Future
 import scala.language.postfixOps
 
 class Phase1PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpec {
-  type T = Phase1PassMarkSettings
-  type U = Phase1PassMark
-  implicit val formatter = Phase1PassMarkSettings.jsonFormat
-  val argumentCaptor = ArgumentCaptor.forClass(classOf[Phase1PassMarkSettings])
+  override type T = Phase1PassMarkSettings
+  override type U = Phase1PassMark
+  override type V = Phase1PassMarkSettingsPersistence
+  override implicit val formatter = Phase1PassMarkSettings.jsonFormat
+  implicit val formatter2 = Phase1PassMarkSettingsPersistence.jsonFormat
+  override val argumentCaptor = ArgumentCaptor.forClass(classOf[Phase1PassMarkSettingsPersistence])
   val passMarkThresholds = Phase1PassMarkThresholds(defaultSchemeThreshold, defaultSchemeThreshold,
     defaultSchemeThreshold, defaultSchemeThreshold)
-  val passMarks = List(
+  override val passMarks = List(
     Phase1PassMark(SchemeId("Finance"), passMarkThresholds),
     Phase1PassMark(SchemeId("Commercial"), passMarkThresholds),
     Phase1PassMark(SchemeId("Generalist"), passMarkThresholds))
-  val passMarkSettings = Phase1PassMarkSettings(
+  override val passMarkSettings = Phase1PassMarkSettings(
     schemes = passMarks,
     version = mockVersion,
     createDate = mockCreateDate,
     createdBy = mockCreatedBy
   )
-  val createdEvent = "Phase1PassMarksCreated"
+  override val passMarkSettingsPersistence = Phase1PassMarkSettingsPersistence(
+    schemes = passMarks,
+    version = mockVersion,
+    createDate = mockCreateDate,
+    createdBy = mockCreatedBy
+  )
+  override val createdEvent = "Phase1PassMarksCreated"
 
-  val mockPassMarkSettingsService = mock[PassMarkSettingsService[Phase1PassMarkSettings]]
+  override val mockPassMarkSettingsService = mock[PassMarkSettingsService[Phase1PassMarkSettingsPersistence]]
 
   val stubCC = stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer))
 
-  val controller = new PassMarkSettingsController[Phase1PassMarkSettings](stubCC) {
+  override val controller = new PassMarkSettingsController[Phase1PassMarkSettings, Phase1PassMarkSettingsPersistence](stubCC) {
     val passMarkService = mockPassMarkSettingsService
     val auditService = mockAuditService
     val uuidFactory = mockUUIDFactory
@@ -68,7 +74,7 @@ class Phase1PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
     val passMarksCreatedEvent = createdEvent
   }
 
-  val jsonSchemeThresholds = """
+  override val jsonSchemeThresholds = """
                                | "schemeThresholds": {
                                |   "test1": {
                                |     "failThreshold": 20.0,
@@ -88,32 +94,40 @@ class Phase1PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
                                |   }
                                | }
                              """
-  val createUrl = controllers.routes.Phase1PassMarkSettingsController.create.url
+  override val createUrl = controllers.routes.Phase1PassMarkSettingsController.create.url
 }
 
 class Phase2PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpec {
-  type T = Phase2PassMarkSettings
-  type U = Phase2PassMark
-  implicit val formatter = Phase2PassMarkSettings.jsonFormat
-  val argumentCaptor = ArgumentCaptor.forClass(classOf[Phase2PassMarkSettings])
-  val passMarkThresholds = Phase2PassMarkThresholds(defaultSchemeThreshold, defaultSchemeThreshold)
-  val passMarks = List(
+  override type T = Phase2PassMarkSettings
+  override type U = Phase2PassMark
+  override type V = Phase2PassMarkSettingsPersistence
+  override implicit val formatter = Phase2PassMarkSettings.jsonFormat
+  implicit val formatter2 = Phase1PassMarkSettingsPersistence.jsonFormat
+  override val argumentCaptor = ArgumentCaptor.forClass(classOf[Phase2PassMarkSettingsPersistence])
+  override val passMarkThresholds = Phase2PassMarkThresholds(defaultSchemeThreshold, defaultSchemeThreshold)
+  override val passMarks = List(
     Phase2PassMark(SchemeId("Finance"), passMarkThresholds),
     Phase2PassMark(SchemeId("Commercial"), passMarkThresholds),
     Phase2PassMark(SchemeId("Generalist"), passMarkThresholds))
-  val passMarkSettings = Phase2PassMarkSettings(
+  override val passMarkSettings = Phase2PassMarkSettings(
     schemes = passMarks,
     version = mockVersion,
     createDate = mockCreateDate,
     createdBy = mockCreatedBy
   )
-  val createdEvent = "Phase2PassMarksCreated"
+  override val passMarkSettingsPersistence = Phase2PassMarkSettingsPersistence(
+    schemes = passMarks,
+    version = mockVersion,
+    createDate = mockCreateDate,
+    createdBy = mockCreatedBy
+  )
+  override val createdEvent = "Phase2PassMarksCreated"
 
-  val mockPassMarkSettingsService = mock[PassMarkSettingsService[Phase2PassMarkSettings]]
+  override val mockPassMarkSettingsService = mock[PassMarkSettingsService[Phase2PassMarkSettingsPersistence]]
 
   val stubCC = stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer))
 
-  val controller = new PassMarkSettingsController[Phase2PassMarkSettings](stubCC) {
+  override val controller = new PassMarkSettingsController[Phase2PassMarkSettings, Phase2PassMarkSettingsPersistence](stubCC) {
     val passMarkService = mockPassMarkSettingsService
     val auditService = mockAuditService
     val uuidFactory = mockUUIDFactory
@@ -121,7 +135,7 @@ class Phase2PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
       passMarkSettings.copy(version = uuidFactory.generateUUID(), createDate = DateTime.now())
     val passMarksCreatedEvent = createdEvent
   }
-  val jsonSchemeThresholds = """
+  override val jsonSchemeThresholds = """
                                | "schemeThresholds": {
                                |   "test1": {
                                |     "failThreshold": 20.0,
@@ -133,33 +147,40 @@ class Phase2PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
                                |   }
                                | }
                              """
-  val createUrl = controllers.routes.Phase2PassMarkSettingsController.create.url
-
+  override val createUrl = controllers.routes.Phase2PassMarkSettingsController.create.url
 }
 
 class Phase3PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpec {
-  type T = Phase3PassMarkSettings
-  type U = Phase3PassMark
-  implicit val formatter = Phase3PassMarkSettings.jsonFormat
-  val argumentCaptor = ArgumentCaptor.forClass(classOf[Phase3PassMarkSettings])
-  val passMarkThresholds = Phase3PassMarkThresholds(defaultSchemeThreshold)
-  val passMarks = List(
+  override type T = Phase3PassMarkSettings
+  override type U = Phase3PassMark
+  override type V = Phase3PassMarkSettingsPersistence
+  override implicit val formatter = Phase3PassMarkSettings.jsonFormat
+  implicit val formatter2 = Phase3PassMarkSettingsPersistence.jsonFormat
+  override val argumentCaptor = ArgumentCaptor.forClass(classOf[Phase3PassMarkSettingsPersistence])
+  override val passMarkThresholds = Phase3PassMarkThresholds(defaultSchemeThreshold)
+  override val passMarks = List(
     Phase3PassMark(SchemeId("Finance"), passMarkThresholds),
     Phase3PassMark(SchemeId("Commercial"), passMarkThresholds),
     Phase3PassMark(SchemeId("Generalist"), passMarkThresholds))
-  val passMarkSettings = Phase3PassMarkSettings(
+  override val passMarkSettings = Phase3PassMarkSettings(
     schemes = passMarks,
     version = mockVersion,
     createDate = mockCreateDate,
     createdBy = mockCreatedBy
   )
-  val createdEvent = "Phase3PassMarksCreated"
+  override val passMarkSettingsPersistence = Phase3PassMarkSettingsPersistence(
+    schemes = passMarks,
+    version = mockVersion,
+    createDate = mockCreateDate,
+    createdBy = mockCreatedBy
+  )
+  override val createdEvent = "Phase3PassMarksCreated"
 
-  val mockPassMarkSettingsService = mock[PassMarkSettingsService[Phase3PassMarkSettings]]
+  override val mockPassMarkSettingsService = mock[PassMarkSettingsService[Phase3PassMarkSettingsPersistence]]
 
   val stubCC = stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer))
 
-  val controller = new PassMarkSettingsController[Phase3PassMarkSettings](stubCC) {
+  override val controller = new PassMarkSettingsController[Phase3PassMarkSettings, Phase3PassMarkSettingsPersistence](stubCC) {
     val passMarkService = mockPassMarkSettingsService
     val auditService = mockAuditService
     val uuidFactory = mockUUIDFactory
@@ -167,7 +188,7 @@ class Phase3PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
       passMarkSettings.copy(version = uuidFactory.generateUUID(), createDate = DateTime.now())
     val passMarksCreatedEvent = createdEvent
   }
-  val jsonSchemeThresholds = """
+  override val jsonSchemeThresholds = """
                                | "schemeThresholds": {
                                |   "videoInterview": {
                                |     "failThreshold": 20.0,
@@ -175,36 +196,44 @@ class Phase3PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
                                |   }
                                | }
                              """
-  val createUrl = controllers.routes.Phase3PassMarkSettingsController.create.url
-
+  override val createUrl = controllers.routes.Phase3PassMarkSettingsController.create.url
 }
 
 class AssessmentCentrePassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpec {
-  type T = AssessmentCentrePassMarkSettings
-  type U = AssessmentCentrePassMark
-  implicit val formatter = AssessmentCentrePassMarkSettings.jsonFormat
-  val argumentCaptor = ArgumentCaptor.forClass(classOf[AssessmentCentrePassMarkSettings])
+  override type T = AssessmentCentrePassMarkSettings
+  override type U = AssessmentCentrePassMark
+  override type V = AssessmentCentrePassMarkSettingsPersistence
+  override implicit val formatter = AssessmentCentrePassMarkSettings.jsonFormat
+  implicit val formatter2 = AssessmentCentrePassMarkSettingsPersistence.jsonFormat
+  override val argumentCaptor = ArgumentCaptor.forClass(classOf[AssessmentCentrePassMarkSettingsPersistence])
   val competencySchemeThreshold = PassMarkThreshold(2.0d, 3.0d)
   val overallSchemeThreshold = PassMarkThreshold(2.0d, 14.0d)
   val passMarkThresholds = AssessmentCentrePassMarkThresholds(competencySchemeThreshold, competencySchemeThreshold, competencySchemeThreshold,
     competencySchemeThreshold, overallSchemeThreshold)
-  val passMarks = List(
+  override val passMarks = List(
     AssessmentCentrePassMark(SchemeId("Finance"), passMarkThresholds),
     AssessmentCentrePassMark(SchemeId("Commercial"), passMarkThresholds),
     AssessmentCentrePassMark(SchemeId("Generalist"), passMarkThresholds))
-  val passMarkSettings = AssessmentCentrePassMarkSettings(
+  override val passMarkSettings = AssessmentCentrePassMarkSettings(
     schemes = passMarks,
     version = mockVersion,
     createDate = mockCreateDate,
     createdBy = mockCreatedBy
   )
-  val createdEvent = "AssessmentCentrePassMarksCreated"
+  override val passMarkSettingsPersistence = AssessmentCentrePassMarkSettingsPersistence(
+    schemes = passMarks,
+    version = mockVersion,
+    createDate = mockCreateDate,
+    createdBy = mockCreatedBy
+  )
+  override val createdEvent = "AssessmentCentrePassMarksCreated"
 
-  val mockPassMarkSettingsService = mock[PassMarkSettingsService[AssessmentCentrePassMarkSettings]]
+  override val mockPassMarkSettingsService = mock[PassMarkSettingsService[AssessmentCentrePassMarkSettingsPersistence]]
 
   val stubCC = stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer))
 
-  val controller = new PassMarkSettingsController[AssessmentCentrePassMarkSettings](stubCC) {
+  override val controller = new PassMarkSettingsController[AssessmentCentrePassMarkSettings,
+    AssessmentCentrePassMarkSettingsPersistence](stubCC) {
     val passMarkService = mockPassMarkSettingsService
     val auditService = mockAuditService
     val uuidFactory = mockUUIDFactory
@@ -213,7 +242,7 @@ class AssessmentCentrePassMarkSettingsControllerSpec extends PassMarkSettingsCon
     val passMarksCreatedEvent = createdEvent
   }
 
-  val jsonSchemeThresholds = """
+  override val jsonSchemeThresholds = """
                                | "schemeThresholds": {
                                |   "seeingTheBigPicture": {
                                |     "failThreshold": 2.0,
@@ -237,20 +266,22 @@ class AssessmentCentrePassMarkSettingsControllerSpec extends PassMarkSettingsCon
                                |   }
                                | }
                              """
-  val createUrl = controllers.routes.AssessmentCentrePassMarkSettingsController.create.url
+  override val createUrl = controllers.routes.AssessmentCentrePassMarkSettingsController.create.url
 }
 
 trait PassMarkSettingsControllerSpec extends UnitWithAppSpec {
   type T <: PassMarkSettings
   type U <: PassMark
+  type V <: PassMarkSettingsPersistence
   implicit val formatter: Format[T]
-  val argumentCaptor: ArgumentCaptor[T]
+  val argumentCaptor: ArgumentCaptor[V]
   val passMarkThresholds: PassMarkThresholds
   val passMarks: List[U]
   val passMarkSettings: T
+  val passMarkSettingsPersistence: V
   val createdEvent: String
-  val mockPassMarkSettingsService: PassMarkSettingsService[T]
-  val controller: PassMarkSettingsController[T]
+  val mockPassMarkSettingsService: PassMarkSettingsService[V]
+  val controller: PassMarkSettingsController[T, V]
   val jsonSchemeThresholds: String
   val createUrl: String
 
@@ -261,6 +292,8 @@ trait PassMarkSettingsControllerSpec extends UnitWithAppSpec {
   val mockCreatedBy = "TestUser"
 
   val mockUUIDFactory = mock[UUIDFactory]
+  import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
+  import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
   val mockJsonFormat = Json.format[Phase1PassMarkSettings]
   val mockAuditService = mock[AuditService]
 
@@ -297,7 +330,7 @@ trait PassMarkSettingsControllerSpec extends UnitWithAppSpec {
 
   "Try and get latest settings" should {
     "Return 404 if there are no settings saved" in {
-      when(mockPassMarkSettingsService.getLatestPassMarkSettings(any[Format[T]])).thenReturn(Future.successful(None))
+      when(mockPassMarkSettingsService.getLatestPassMarkSettings(any[Format[V]])).thenReturn(Future.successful(None))
 
       val result = controller.getLatestVersion()(FakeRequest())
 
@@ -305,8 +338,8 @@ trait PassMarkSettingsControllerSpec extends UnitWithAppSpec {
     }
 
     "Return a complete settings object if there are saved settings" in {
-      when(mockPassMarkSettingsService.getLatestPassMarkSettings(any[Format[T]])).thenReturn(
-        Future.successful(Some(passMarkSettings)))
+      when(mockPassMarkSettingsService.getLatestPassMarkSettings(any[Format[V]])).thenReturn(
+        Future.successful(Some(passMarkSettingsPersistence)))
 
       val result = controller.getLatestVersion()(FakeRequest())
 

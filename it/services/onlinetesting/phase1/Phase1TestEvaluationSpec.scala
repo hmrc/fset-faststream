@@ -6,7 +6,7 @@ import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Result
 import model.ProgressStatuses.ProgressStatus
-import model.exchange.passmarksettings.{PassMarkThreshold, Phase1PassMark, Phase1PassMarkSettings, Phase1PassMarkThresholds}
+import model.exchange.passmarksettings.{PassMarkThreshold, Phase1PassMark, Phase1PassMarkSettingsPersistence, Phase1PassMarkThresholds}
 import model.persisted.{ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult}
 import model.{ApplicationRoute, ApplicationStatus, SchemeId}
 import org.joda.time.DateTime
@@ -14,7 +14,7 @@ import org.mockito.Mockito.when
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor9}
-import repositories.{ CollectionNames, CommonRepository }
+import repositories.{CollectionNames, CommonRepository}
 import testkit.MongoRepositorySpec
 
 import scala.concurrent.Future
@@ -83,7 +83,7 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
         phase1PassMarkSettingsTable, (SchemeId("Finance"), 90.00, 90.00, 90.00, 90.00, 90.00, 90.00, 90.00, 90.00)
       )
 
-    var phase1PassMarkSettings: Phase1PassMarkSettings = _
+    var phase1PassMarkSettings: Phase1PassMarkSettingsPersistence = _
 
     var applicationReadyForEvaluation: ApplicationReadyForEvaluation = _
 
@@ -96,7 +96,7 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       this
     }
 
-    def applicationEvaluationWithPassMarks(passmarks: Phase1PassMarkSettings, applicationId:String,
+    def applicationEvaluationWithPassMarks(passmarks: Phase1PassMarkSettingsPersistence, applicationId:String,
                                            t1Score: Double, t2Score: Double,
                                            t3Score: Double, t4Score: Double, selectedSchemes: SchemeId*)(
                                             implicit applicationRoute: ApplicationRoute = ApplicationRoute.Faststream): TestFixture = {
@@ -150,7 +150,7 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     }
 
     def createPhase1PassMarkSettings(phase1PassMarkSettingsTable: TableFor9[SchemeId, Double, Double, Double, Double,
-      Double, Double, Double, Double]): Future[Phase1PassMarkSettings] = {
+      Double, Double, Double, Double]): Future[Phase1PassMarkSettingsPersistence] = {
       val schemeThresholds = phase1PassMarkSettingsTable.map {
         case (schemeName, t1Fail, t1Pass, t2Fail, t2Pass, t3Fail, t3Pass, t4Fail, t4Pass) =>
           Phase1PassMark(schemeName,
@@ -162,7 +162,7 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
             ))
       }.toList
 
-      val phase1PassMarkSettings = Phase1PassMarkSettings(
+      val phase1PassMarkSettings = Phase1PassMarkSettingsPersistence(
         schemeThresholds,
         "version-1",
         DateTime.now,

@@ -31,69 +31,69 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class Phase1PassMarkSettingsMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
-  extends PlayMongoRepository[Phase1PassMarkSettings](
+  extends PlayMongoRepository[Phase1PassMarkSettingsPersistence](
     collectionName = CollectionNames.PHASE1_PASS_MARK_SETTINGS,
     mongoComponent = mongo,
-    domainFormat = Phase1PassMarkSettings.jsonFormat,
+    domainFormat = Phase1PassMarkSettingsPersistence.jsonFormat,
     indexes = Seq(
       IndexModel(ascending("createDate"), IndexOptions().unique(true))
     )
-  ) with PassMarkSettingsRepository[Phase1PassMarkSettings] {
+  ) with PassMarkSettingsRepository[Phase1PassMarkSettingsPersistence] {
 
-  override def getLatestVersion: Future[Option[Phase1PassMarkSettings]] = {
+  override def getLatestVersion: Future[Option[Phase1PassMarkSettingsPersistence]] = {
     collection.find(Document.empty).sort(descending("createDate")).headOption()
   }
 }
 
 @Singleton
 class Phase2PassMarkSettingsMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
-  extends PlayMongoRepository[Phase2PassMarkSettings](
+  extends PlayMongoRepository[Phase2PassMarkSettingsPersistence](
     collectionName = CollectionNames.PHASE2_PASS_MARK_SETTINGS,
     mongoComponent = mongo,
-    domainFormat = Phase2PassMarkSettings.jsonFormat,
+    domainFormat = Phase2PassMarkSettingsPersistence.jsonFormat,
     indexes = Seq(
       IndexModel(ascending("createDate"), IndexOptions().unique(true))
     )
-  ) with PassMarkSettingsRepository[Phase2PassMarkSettings] {
+  ) with PassMarkSettingsRepository[Phase2PassMarkSettingsPersistence] {
 
-  override def getLatestVersion: Future[Option[Phase2PassMarkSettings]] = {
+  override def getLatestVersion: Future[Option[Phase2PassMarkSettingsPersistence]] = {
     collection.find(Document.empty).sort(descending("createDate")).headOption()
   }
 }
 
 @Singleton
 class Phase3PassMarkSettingsMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
-  extends PlayMongoRepository[Phase3PassMarkSettings](
+  extends PlayMongoRepository[Phase3PassMarkSettingsPersistence](
     collectionName = CollectionNames.PHASE3_PASS_MARK_SETTINGS,
     mongoComponent = mongo,
-    domainFormat = Phase3PassMarkSettings.jsonFormat,
+    domainFormat = Phase3PassMarkSettingsPersistence.jsonFormat,
     indexes = Seq(
       IndexModel(ascending("createDate"), IndexOptions().unique(true))
     )
-  ) with PassMarkSettingsRepository[Phase3PassMarkSettings] {
+  ) with PassMarkSettingsRepository[Phase3PassMarkSettingsPersistence] {
 
-  override def getLatestVersion: Future[Option[Phase3PassMarkSettings]] = {
+  override def getLatestVersion: Future[Option[Phase3PassMarkSettingsPersistence]] = {
     collection.find(Document.empty).sort(descending("createDate")).headOption()
   }
 }
 
 @Singleton
 class AssessmentCentrePassMarkSettingsMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
-  extends PlayMongoRepository[AssessmentCentrePassMarkSettings](
+  extends PlayMongoRepository[AssessmentCentrePassMarkSettingsPersistence](
     collectionName = CollectionNames.ASSESSMENT_CENTRE_PASS_MARK_SETTINGS,
     mongoComponent = mongo,
-    domainFormat = AssessmentCentrePassMarkSettings.jsonFormat,
+    domainFormat = AssessmentCentrePassMarkSettingsPersistence.jsonFormat,
     indexes = Seq(
       IndexModel(ascending("createDate"), IndexOptions().unique(true))
     )
-  ) with PassMarkSettingsRepository[AssessmentCentrePassMarkSettings] {
+  ) with PassMarkSettingsRepository[AssessmentCentrePassMarkSettingsPersistence] {
 
-  override def getLatestVersion: Future[Option[AssessmentCentrePassMarkSettings]] = {
+  override def getLatestVersion: Future[Option[AssessmentCentrePassMarkSettingsPersistence]] = {
     collection.find(Document.empty).sort(descending("createDate")).headOption()
   }
 }
 
-trait PassMarkSettingsRepository[T <: PassMarkSettings] {
+trait PassMarkSettingsRepository[T <: PassMarkSettingsPersistence] {
   this: PlayMongoRepository[T] =>
 
   def create(passMarkSettings: T)(implicit ec: ExecutionContext): Future[PassMarkSettingsCreateResponse] = {

@@ -17,14 +17,13 @@
 import com.google.inject.name.Names
 import com.google.inject.{AbstractModule, TypeLiteral}
 import connectors.{CSREmailClientImpl, OnlineTestEmailClient, Phase2OnlineTestEmailClient, Phase3OnlineTestEmailClient}
-import model.exchange.passmarksettings.{Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings}
+import model.exchange.passmarksettings.{Phase1PassMarkSettingsPersistence, Phase2PassMarkSettingsPersistence, Phase3PassMarkSettingsPersistence}
 import play.api.{Configuration, Environment, Logging}
 import repositories._
 import repositories.application._
 import repositories.assessmentcentre.{AssessmentCentreMongoRepository, AssessmentCentreRepository}
 import repositories.assistancedetails.{AssistanceDetailsMongoRepository, AssistanceDetailsRepository}
-import repositories.campaignmanagement.CampaignManagementAfterDeadlineSignupCodeMongoRepository
-import repositories.campaignmanagement.CampaignManagementAfterDeadlineSignupCodeRepository
+import repositories.campaignmanagement.{CampaignManagementAfterDeadlineSignupCodeMongoRepository, CampaignManagementAfterDeadlineSignupCodeRepository}
 import repositories.civilserviceexperiencedetails.{CivilServiceExperienceDetailsMongoRepository, CivilServiceExperienceDetailsRepository}
 import repositories.contactdetails.{ContactDetailsMongoRepository, ContactDetailsRepository}
 import repositories.events._
@@ -127,13 +126,13 @@ class Module(val environment: Environment, val configuration: Configuration) ext
       .to(classOf[Phase3TestMongoRepository])
 
     // You need TypeLiterals to keep the parameterised type information for guice to bind at runtime
-    bind(new TypeLiteral[EvaluateOnlineTestResultService[Phase1PassMarkSettings]] {})
+    bind(new TypeLiteral[EvaluateOnlineTestResultService[Phase1PassMarkSettingsPersistence]] {})
       .annotatedWith(Names.named("Phase1EvaluationService"))
       .to(classOf[EvaluatePhase1ResultService])
-    bind(new TypeLiteral[EvaluateOnlineTestResultService[Phase2PassMarkSettings]] {})
+    bind(new TypeLiteral[EvaluateOnlineTestResultService[Phase2PassMarkSettingsPersistence]] {})
       .annotatedWith(Names.named("Phase2EvaluationService"))
       .to(classOf[EvaluatePhase2ResultService])
-    bind(new TypeLiteral[EvaluateOnlineTestResultService[Phase3PassMarkSettings]] {})
+    bind(new TypeLiteral[EvaluateOnlineTestResultService[Phase3PassMarkSettingsPersistence]] {})
       .annotatedWith(Names.named("Phase3EvaluationService"))
       .to(classOf[EvaluatePhase3ResultService])
 

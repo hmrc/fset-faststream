@@ -23,7 +23,7 @@ import config.ScheduledJobConfig
 import javax.inject.{Inject, Singleton}
 import model.Phase
 import model.Phase.Phase
-import model.exchange.passmarksettings.{PassMarkSettings, Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings}
+import model.exchange.passmarksettings.{PassMarkSettings, PassMarkSettingsPersistence, Phase1PassMarkSettings, Phase1PassMarkSettingsPersistence, Phase2PassMarkSettings, Phase2PassMarkSettingsPersistence, Phase3PassMarkSettings, Phase3PassMarkSettingsPersistence}
 import model.persisted.ApplicationReadyForEvaluation
 import play.api.libs.json.Format
 import play.api.{Configuration, Logging}
@@ -31,39 +31,39 @@ import uk.gov.hmrc.mongo.MongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 
-import scala.concurrent.{ ExecutionContext, Future }
-import scala.util.{ Failure, Success, Try }
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 
 @Singleton
 class EvaluatePhase1ResultJob @Inject() (@Named("Phase1EvaluationService")
-                                         val evaluateService: EvaluateOnlineTestResultService[Phase1PassMarkSettings],
+                                         val evaluateService: EvaluateOnlineTestResultService[Phase1PassMarkSettingsPersistence],
                                          val mongoComponent: MongoComponent,
                                          val config: EvaluatePhase1ResultJobConfig
-                                        ) extends EvaluateOnlineTestResultJob[Phase1PassMarkSettings] {
+                                        ) extends EvaluateOnlineTestResultJob[Phase1PassMarkSettingsPersistence] {
   val phase = Phase.PHASE1
 }
 
 @Singleton
 class EvaluatePhase2ResultJob @Inject() (@Named("Phase2EvaluationService")
-                                         val evaluateService: EvaluateOnlineTestResultService[Phase2PassMarkSettings],
+                                         val evaluateService: EvaluateOnlineTestResultService[Phase2PassMarkSettingsPersistence],
                                          val mongoComponent: MongoComponent,
                                          val config: EvaluatePhase2ResultJobConfig
-                                        ) extends EvaluateOnlineTestResultJob[Phase2PassMarkSettings] {
+                                        ) extends EvaluateOnlineTestResultJob[Phase2PassMarkSettingsPersistence] {
   val phase = Phase.PHASE2
 }
 
 @Singleton
 class EvaluatePhase3ResultJob @Inject() (@Named("Phase3EvaluationService")
-                                         val evaluateService: EvaluateOnlineTestResultService[Phase3PassMarkSettings],
+                                         val evaluateService: EvaluateOnlineTestResultService[Phase3PassMarkSettingsPersistence],
                                          val mongoComponent: MongoComponent,
                                          val config: EvaluatePhase3ResultJobConfig
-                                        ) extends EvaluateOnlineTestResultJob[Phase3PassMarkSettings] {
+                                        ) extends EvaluateOnlineTestResultJob[Phase3PassMarkSettingsPersistence] {
   val phase = Phase.PHASE3
   override val errorLog = (app: ApplicationReadyForEvaluation) =>
     s"${app.applicationId}, Launchpad test Id: ${app.activeLaunchpadTest.map(_.token)}"
 }
 
-abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettings](implicit jsonFormat: Format[T]) extends
+abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettingsPersistence](implicit jsonFormat: Format[T]) extends
   SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] with Logging {
 
   val evaluateService: EvaluateOnlineTestResultService[T]

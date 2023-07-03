@@ -171,8 +171,8 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
     }
 
     "return none if there is no passmark settings set" in new TestFixture {
-      implicit val jsonFormat = AssessmentCentrePassMarkSettings.jsonFormat
-      (mockAssessmentCentrePassMarkSettingsService.getLatestPassMarkSettings(_: Format[AssessmentCentrePassMarkSettings])).expects(*)
+      implicit val jsonFormat = AssessmentCentrePassMarkSettingsPersistence.jsonFormat
+      (mockAssessmentCentrePassMarkSettingsService.getLatestPassMarkSettings(_: Format[AssessmentCentrePassMarkSettingsPersistence])).expects(*)
         .returning(Future.successful(None))
 
       val result = service.nextAssessmentCandidatesReadyForEvaluation(batchSize).futureValue
@@ -506,7 +506,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
 
     val applicationId = UniqueIdentifier.randomUniqueIdentifier
 
-    val passMarkSettings = AssessmentCentrePassMarkSettings(List(
+    val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(List(
       AssessmentCentrePassMark(SchemeId(commercial), AssessmentCentrePassMarkThresholds(
         seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
         makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
@@ -538,7 +538,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
 
   trait ReturnPassMarksFixture extends TestFixture {
     implicit val jsonFormat = AssessmentCentrePassMarkSettings.jsonFormat
-    (mockAssessmentCentrePassMarkSettingsService.getLatestPassMarkSettings(_: Format[AssessmentCentrePassMarkSettings])).expects(*)
+    (mockAssessmentCentrePassMarkSettingsService.getLatestPassMarkSettings(_: Format[AssessmentCentrePassMarkSettingsPersistence])).expects(*)
       .returning(Future.successful(Some(passMarkSettings)))
   }
 }

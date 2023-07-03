@@ -42,7 +42,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
     "evaluate to Red with a single Red and the others Green" in {
       val schemes = List(SchemeId(commercial))
 
-      val passMarkSettings = AssessmentCentrePassMarkSettings(List(
+      val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(List(
         AssessmentCentrePassMark(SchemeId(commercial), AssessmentCentrePassMarkThresholds(
           seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
           makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
@@ -88,7 +88,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
     "evaluate to Amber with a single Amber and the others Green" in {
       val schemes = List(SchemeId(commercial))
 
-      val passMarkSettings = AssessmentCentrePassMarkSettings(List(
+      val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(List(
         AssessmentCentrePassMark(SchemeId(commercial), AssessmentCentrePassMarkThresholds(
           seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
           makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
@@ -134,7 +134,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
     "evaluate to Green when all are Green" in {
       val schemes = List(SchemeId(commercial))
 
-      val passMarkSettings = AssessmentCentrePassMarkSettings(List(
+      val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(List(
         AssessmentCentrePassMark(SchemeId(commercial), AssessmentCentrePassMarkThresholds(
           seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
           makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
@@ -180,7 +180,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
     "evaluate to Red with a mix of Amber, Green, Red" in {
       val schemes = List(SchemeId(commercial))
 
-      val passMarkSettings = AssessmentCentrePassMarkSettings(List(
+      val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(List(
         AssessmentCentrePassMark(SchemeId(commercial), AssessmentCentrePassMarkThresholds(
           seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
           makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),
@@ -226,7 +226,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
     "evaluate to Green when zero pass marks are specified" in {
       val schemes = List(SchemeId(commercial))
 
-      val passMarkSettings = AssessmentCentrePassMarkSettings(List(
+      val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(List(
         AssessmentCentrePassMark(SchemeId(commercial), AssessmentCentrePassMarkThresholds(
           seeingTheBigPicture = PassMarkThreshold(0.0, 0.0),
           makingEffectiveDecisions = PassMarkThreshold(0.0, 0.0),
@@ -273,7 +273,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec {
     // s3     | A  | G  | G  | G  | R       | R
     "evaluate multiple schemes to Amber or Red" in {
       // The pass marks which the evaluation engine uses to work out if each scheme has passed/failed
-      val passMarkSettings = AssessmentCentrePassMarkSettings(List(
+      val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(List(
         AssessmentCentrePassMark(SchemeId(commercial), AssessmentCentrePassMarkThresholds(
           seeingTheBigPicture = PassMarkThreshold(1.0, 3.0),
           makingEffectiveDecisions = PassMarkThreshold(1.0, 3.0),

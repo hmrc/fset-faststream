@@ -22,7 +22,7 @@ import factories.UUIDFactory
 import services.passmarksettings.PassMarkSettingsService
 
 import javax.inject.{Inject, Singleton}
-import model.exchange.passmarksettings.Phase1PassMarkSettings
+import model.exchange.passmarksettings.{Phase1PassMarkSettings, Phase1PassMarkSettingsPersistence}
 import model.persisted.{ApplicationReadyForEvaluation, PsiTest}
 import model.{Phase, SchemeId}
 import play.api.Logging
@@ -37,13 +37,14 @@ class EvaluatePhase1ResultService @Inject() (@Named("Phase1EvaluationRepository"
                                              val passMarkSettingsRepo: Phase1PassMarkSettingsMongoRepository,
                                              appConfig: MicroserviceAppConfig,
                                              val uuidFactory: UUIDFactory
-                                            )(implicit ec: ExecutionContext) extends EvaluateOnlineTestResultService[Phase1PassMarkSettings] with Phase1TestSelector with
-  Phase1TestEvaluation with PassMarkSettingsService[Phase1PassMarkSettings] with Logging {
+                                            )(
+  implicit ec: ExecutionContext) extends EvaluateOnlineTestResultService[Phase1PassMarkSettingsPersistence] with Phase1TestSelector with
+  Phase1TestEvaluation with PassMarkSettingsService[Phase1PassMarkSettingsPersistence] with Logging {
 
   val phase = Phase.PHASE1
   val gatewayConfig = appConfig.onlineTestsGatewayConfig
 
-  def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettings): Future[Unit] = {
+  def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettingsPersistence): Future[Unit] = {
     if (application.isSdipFaststream && !passmark.schemes.exists(_.schemeId == SchemeId("Sdip"))) {
       logger.warn(s"Evaluating Phase1 Sdip Faststream candidate with no Sdip passmarks set, so skipping - appId=${application.applicationId}")
       Future.successful(())
@@ -64,7 +65,7 @@ class EvaluatePhase1ResultService @Inject() (@Named("Phase1EvaluationRepository"
 
   //scalastyle:off cyclomatic.complexity
   private def getSchemeResults(test1Opt: Option[PsiTest], test2Opt: Option[PsiTest], test3Opt: Option[PsiTest], test4Opt: Option[PsiTest])
-                              (implicit application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettings) =
+                              (implicit application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettingsPersistence) =
     (test1Opt, test2Opt, test3Opt, test4Opt) match {
       case (Some(test1), None, None, Some(test4)) if application.isGis && test1.testResult.isDefined && test4.testResult.isDefined =>
         evaluateForGis(getSchemesToEvaluate(application), test1.testResult.get, test4.testResult.get, passmark)

@@ -22,7 +22,7 @@ import model.EvaluationResults.Green
 import model.Phase1TestExamples._
 import model.ProgressStatuses.ProgressStatus
 import model._
-import model.exchange.passmarksettings.{Phase1PassMarkSettings, Phase1PassMarkSettingsExamples}
+import model.exchange.passmarksettings.{Phase1PassMarkSettings, Phase1PassMarkSettingsExamples, Phase1PassMarkSettingsPersistence}
 import model.persisted._
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
@@ -239,7 +239,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     trait StubbedPhase1TestEvaluation extends Phase1TestEvaluation {
       override def evaluateForNonGis(schemes: List[SchemeId], test1Result: PsiTestResult, test2Result: PsiTestResult,
                                      test3Result: PsiTestResult, test4Result: PsiTestResult,
-                                     passmark: Phase1PassMarkSettings): List[SchemeEvaluationResult] = {
+                                     passmark: Phase1PassMarkSettingsPersistence): List[SchemeEvaluationResult] = {
         EvaluateForNonGis
       }
     }

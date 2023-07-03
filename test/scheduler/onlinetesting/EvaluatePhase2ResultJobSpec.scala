@@ -17,7 +17,7 @@
 package scheduler.onlinetesting
 
 import model._
-import model.exchange.passmarksettings.{Phase2PassMarkSettings, Phase2PassMarkSettingsExamples}
+import model.exchange.passmarksettings.{Phase2PassMarkSettings, Phase2PassMarkSettingsExamples, Phase2PassMarkSettingsPersistence}
 import model.persisted.ApplicationReadyForEvaluation
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.ArgumentMatchers._
@@ -27,15 +27,15 @@ import uk.gov.hmrc.mongo.MongoComponent
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.{ Duration, FiniteDuration }
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.{ExecutionContext, Future}
 
 class EvaluatePhase2ResultJobSpec extends UnitWithAppSpec {
   implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
 
   "Scheduler execution" should {
     "evaluate applications ready for evaluation" in new TestFixture {
-      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase2PassMarkSettings]], any[ExecutionContext]))
+      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase2PassMarkSettingsPersistence]], any[ExecutionContext]))
         .thenReturn(Future.successful(Some((apps.toList, passmark))))
 
       scheduler.tryExecute().futureValue
@@ -44,7 +44,7 @@ class EvaluatePhase2ResultJobSpec extends UnitWithAppSpec {
     }
 
     "evaluate all applications even when some of them fail" in new TestFixture {
-      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase2PassMarkSettings]], any[ExecutionContext]))
+      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase2PassMarkSettingsPersistence]], any[ExecutionContext]))
         .thenReturn(Future.successful(Some((apps.toList, passmark))))
       when(mockEvaluateService.evaluate(apps(0), passmark)).thenReturn(Future.failed(new IllegalStateException("first application fails")))
       when(mockEvaluateService.evaluate(apps(5), passmark)).thenReturn(Future.failed(new Exception("fifth application fails")))
@@ -56,16 +56,16 @@ class EvaluatePhase2ResultJobSpec extends UnitWithAppSpec {
     }
 
     "do not evaluate candidate if none of them are ready to evaluate" in new TestFixture {
-      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase2PassMarkSettings]], any[ExecutionContext]))
+      when(mockEvaluateService.nextCandidatesReadyForEvaluation(any[Int])(any[Format[Phase2PassMarkSettingsPersistence]], any[ExecutionContext]))
         .thenReturn(Future.successful(None))
       scheduler.tryExecute().futureValue
 
-      verify(mockEvaluateService, never).evaluate(any[ApplicationReadyForEvaluation], any[Phase2PassMarkSettings])
+      verify(mockEvaluateService, never).evaluate(any[ApplicationReadyForEvaluation], any[Phase2PassMarkSettingsPersistence])
     }
   }
 
   trait TestFixture {
-    val mockEvaluateService = mock[EvaluateOnlineTestResultService[Phase2PassMarkSettings]]
+    val mockEvaluateService = mock[EvaluateOnlineTestResultService[Phase2PassMarkSettingsPersistence]]
     val profile2 = Phase2TestProfileExamples.profile
     val schemes = SelectedSchemesExamples.TwoSchemes
     val passmark = Phase2PassMarkSettingsExamples.passmark
@@ -79,7 +79,7 @@ class EvaluatePhase2ResultJobSpec extends UnitWithAppSpec {
       when(mockEvaluateService.evaluate(app, passmark)).thenReturn(Future.successful(()))
     }
 
-    lazy val scheduler = new EvaluateOnlineTestResultJob[Phase2PassMarkSettings] {
+    lazy val scheduler = new EvaluateOnlineTestResultJob[Phase2PassMarkSettingsPersistence] {
       val phase = Phase.PHASE2
       val evaluateService = mockEvaluateService
       override val mongoComponent = mock[MongoComponent]

@@ -41,7 +41,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
 
   "Assessment evaluator calculator" should {
     "evaluate to Green when all pass marks are zero and all scores are zero" in {
-      val passMarks = AssessmentCentrePassMarkSettings(
+      val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentrePassMark(commercial, AssessmentCentrePassMarkThresholds(
             seeingTheBigPicture = PassMarkThreshold(0d, 0d),
@@ -60,7 +60,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
     }
 
     "evaluate to Green when no pass marks are zero and all scores hit the pass mark" in {
-      val passMarks = AssessmentCentrePassMarkSettings(
+      val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentrePassMark(commercial, AssessmentCentrePassMarkThresholds(
             seeingTheBigPicture = PassMarkThreshold(0d, 1d),
@@ -79,7 +79,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
     }
 
     "evaluate to Red when seeingTheBigPicture is Red and the others are Green" in {
-      val passMarks = AssessmentCentrePassMarkSettings(
+      val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentrePassMark(commercial, AssessmentCentrePassMarkThresholds(
             seeingTheBigPicture = PassMarkThreshold(2d, 2d),
@@ -98,7 +98,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
     }
 
     "evaluate to Red when makingEffectiveDecisions is Red and the others are Green" in {
-      val passMarks = AssessmentCentrePassMarkSettings(
+      val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentrePassMark(commercial, AssessmentCentrePassMarkThresholds(
             seeingTheBigPicture = PassMarkThreshold(0d, 0d),
@@ -117,7 +117,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
     }
 
     "evaluate to Red when communicatingAndInfluencing is Red and the others are Green" in {
-      val passMarks = AssessmentCentrePassMarkSettings(
+      val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentrePassMark(commercial, AssessmentCentrePassMarkThresholds(
             seeingTheBigPicture = PassMarkThreshold(0d, 0d),
@@ -136,7 +136,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
     }
 
     "evaluate to Red when workingTogetherDevelopingSelfAndOthers is Red and the others are Green" in {
-      val passMarks = AssessmentCentrePassMarkSettings(
+      val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentrePassMark(commercial, AssessmentCentrePassMarkThresholds(
             seeingTheBigPicture = PassMarkThreshold(0d, 0d),
@@ -155,7 +155,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
     }
 
     "evaluate to Red when overall is Red and the others are Green" in {
-      val passMarks = AssessmentCentrePassMarkSettings(
+      val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentrePassMark(commercial, AssessmentCentrePassMarkThresholds(
             seeingTheBigPicture = PassMarkThreshold(0d, 0d),
@@ -174,7 +174,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
     }
 
     "evaluate to Amber when seeingTheBigPicture is Amber and the others are Green" in {
-      val passMarks = AssessmentCentrePassMarkSettings(
+      val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentrePassMark(commercial, AssessmentCentrePassMarkThresholds(
             seeingTheBigPicture = PassMarkThreshold(1d, 2d),
@@ -193,7 +193,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
     }
 
     "evaluate to Amber when makingEffectiveDecisions is Amber and the others are Green" in {
-      val passMarks = AssessmentCentrePassMarkSettings(
+      val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentrePassMark(commercial, AssessmentCentrePassMarkThresholds(
             seeingTheBigPicture = PassMarkThreshold(0d, 0d),
@@ -212,7 +212,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
     }
 
     "evaluate to Amber when communicatingAndInfluencing is Amber and the others are Green" in {
-      val passMarks = AssessmentCentrePassMarkSettings(
+      val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentrePassMark(commercial, AssessmentCentrePassMarkThresholds(
             seeingTheBigPicture = PassMarkThreshold(0d, 0d),
@@ -231,7 +231,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
     }
 
     "evaluate to Amber when workingTogetherDevelopingSelfAndOthers is Amber and the others are Green" in {
-      val passMarks = AssessmentCentrePassMarkSettings(
+      val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentrePassMark(commercial, AssessmentCentrePassMarkThresholds(
             seeingTheBigPicture = PassMarkThreshold(0d, 0d),
@@ -250,7 +250,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec {
     }
 
     "evaluate to Amber when overall is Amber and the others are Green" in {
-      val passMarks = AssessmentCentrePassMarkSettings(
+      val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentrePassMark(commercial, AssessmentCentrePassMarkThresholds(
             seeingTheBigPicture = PassMarkThreshold(0d, 0d),

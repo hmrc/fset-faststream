@@ -19,8 +19,8 @@ package services.onlinetesting.phase3
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest
 import model.EvaluationResults.Result
 import model.SchemeId
-import model.exchange.passmarksettings.Phase3PassMarkSettings
-import model.persisted.{ PassmarkEvaluation, SchemeEvaluationResult }
+import model.exchange.passmarksettings.{Phase3PassMarkSettings, Phase3PassMarkSettingsPersistence}
+import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
 import repositories.onlinetesting.Phase3EvaluationMongoRepository
 
 import scala.concurrent.Future
@@ -30,7 +30,7 @@ trait Phase3TestEvaluation extends OnlineTestResultsCalculator {
 
   def evaluate(schemes: List[SchemeId], launchpadTestResult: ReviewedCallbackRequest,
                phase2SchemesEvaluation: List[SchemeEvaluationResult],
-               passmark: Phase3PassMarkSettings): List[SchemeEvaluationResult] = {
+               passmark: Phase3PassMarkSettingsPersistence): List[SchemeEvaluationResult] = {
 
     for {
       schemeToEvaluate <- schemes

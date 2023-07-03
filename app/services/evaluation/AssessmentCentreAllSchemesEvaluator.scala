@@ -18,14 +18,14 @@ package services.evaluation
 
 import model.EvaluationResults._
 import model.SchemeId
-import model.exchange.passmarksettings.{ AssessmentCentrePassMarkSettings, PassMarkThreshold }
+import model.exchange.passmarksettings.{AssessmentCentrePassMarkSettings, AssessmentCentrePassMarkSettingsPersistence, PassMarkThreshold}
 import model.persisted.SchemeEvaluationResult
 import play.api.Logging
 
 trait AssessmentCentreAllSchemesEvaluator extends Logging {
 
   def evaluateSchemes(appId: String,
-                      passmark: AssessmentCentrePassMarkSettings,
+                      passmark: AssessmentCentrePassMarkSettingsPersistence,
                       competencyAverages: CompetencyAverageResult,
                       schemes: Seq[SchemeId]): Seq[SchemeEvaluationResult] = {
     schemes.map { scheme =>

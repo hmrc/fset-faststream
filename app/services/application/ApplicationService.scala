@@ -28,7 +28,7 @@ import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
 import model.command.AssessmentScoresCommands.AssessmentScoresSectionType._
 import model.command._
 import model.exchange.SchemeEvaluationResultWithFailureDetails
-import model.exchange.passmarksettings.{Phase1PassMarkSettings, Phase2PassMarkSettings, Phase3PassMarkSettings}
+import model.exchange.passmarksettings.{Phase1PassMarkSettings, Phase1PassMarkSettingsPersistence, Phase2PassMarkSettings, Phase2PassMarkSettingsPersistence, Phase3PassMarkSettings, Phase3PassMarkSettingsPersistence}
 import model.exchange.sift.SiftAnswersStatus
 import model.persisted._
 import model.persisted.eventschedules.EventType
@@ -79,11 +79,11 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
                                     mediaRepo: MediaRepository,
 
                                     @Named("Phase1EvaluationService")
-                                    evaluateP1ResultService: EvaluateOnlineTestResultService[Phase1PassMarkSettings],
+                                    evaluateP1ResultService: EvaluateOnlineTestResultService[Phase1PassMarkSettingsPersistence],
                                     @Named("Phase2EvaluationService")
-                                    evaluateP2ResultService: EvaluateOnlineTestResultService[Phase2PassMarkSettings],
+                                    evaluateP2ResultService: EvaluateOnlineTestResultService[Phase2PassMarkSettingsPersistence],
                                     @Named("Phase3EvaluationService")
-                                    evaluateP3ResultService: EvaluateOnlineTestResultService[Phase3PassMarkSettings],
+                                    evaluateP3ResultService: EvaluateOnlineTestResultService[Phase3PassMarkSettingsPersistence],
 
                                     @Named("Phase1EvaluationRepository") phase1EvaluationRepository: OnlineTestEvaluationRepository,
                                     @Named("Phase2EvaluationRepository") phase2EvaluationRepository: OnlineTestEvaluationRepository,
