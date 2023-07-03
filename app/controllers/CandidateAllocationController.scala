@@ -66,7 +66,7 @@ class CandidateAllocationController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def getCandidateAllocations(eventId: String, sessionId: String): Action[AnyContent] = Action.async { implicit request =>
+  def getCandidateAllocations(eventId: String, sessionId: String): Action[AnyContent] = Action.async {
     candidateAllocationService.getCandidateAllocations(eventId, sessionId).map { allocations =>
       if (allocations.allocations.isEmpty) {
         NotFound
@@ -90,12 +90,11 @@ class CandidateAllocationController @Inject() (cc: ControllerComponents,
                                                 assessmentCentreLocation: String,
                                                 eventType: EventType,
                                                 eventDescription: String): Action[AnyContent] = Action.async {
-    implicit request =>
-      candidateAllocationService.findCandidatesEligibleForEventAllocation(
-        assessmentCentreLocation, eventType, eventDescription
-      ) map { apps =>
-        Ok(Json.toJson(apps))
-      }
+    candidateAllocationService.findCandidatesEligibleForEventAllocation(
+      assessmentCentreLocation, eventType, eventDescription
+    ) map { apps =>
+      Ok(Json.toJson(apps))
+    }
   }
 
   def findAllocatedApplications(): Action[JsValue] = Action.async(parse.json) {
@@ -107,25 +106,25 @@ class CandidateAllocationController @Inject() (cc: ControllerComponents,
       }
   }
 
-  def candidateAllocationsSummary(applicationId: String) = Action.async { implicit request =>
+  def candidateAllocationsSummary(applicationId: String) = Action.async {
     candidateAllocationService.getCandidateAllocationsSummary(Seq(applicationId)) map {
       res => Ok(Json.toJson(res))
     }
   }
 
-  def findSessionsForApplication(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+  def findSessionsForApplication(applicationId: String): Action[AnyContent] = Action.async {
     candidateAllocationService.getSessionsForApplication(applicationId).map { data =>
       Ok(Json.toJson(data))
     }
   }
 
-  def removeCandidateRemovalReason(applicationId: String, eventType: EventType) = Action.async { implicit request =>
+  def removeCandidateRemovalReason(applicationId: String, eventType: EventType) = Action.async {
     candidateAllocationService.removeCandidateRemovalReason(applicationId, eventType).map { _ =>
       NoContent
     }
   }
 
-  def addNewAttributes() = Action.async { implicit request =>
+  def addNewAttributes() = Action.async {
     candidateAllocationService.updateStructure().map(_ => Ok)
   }
 

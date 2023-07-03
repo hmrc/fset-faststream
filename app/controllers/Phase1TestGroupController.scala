@@ -31,7 +31,7 @@ class Phase1TestGroupController @Inject() (cc: ControllerComponents,
 
   implicit val ec = cc.executionContext
 
-  def getTests(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+  def getTests(applicationId: String): Action[AnyContent] = Action.async {
     phase1Repository.getTestGroup(applicationId).map { maybeTestProfile =>
       maybeTestProfile
         .map(testProfile => Ok(Json.toJson(testProfile.tests)))

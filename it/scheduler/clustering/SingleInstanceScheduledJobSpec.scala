@@ -13,7 +13,7 @@ class SingleInstanceScheduledJobSpec extends MongoRepositorySpec {
   val collectionName: String = CollectionNames.LOCKS
   "SingeInstanceScheduledJob isRunning" should {
     "be true when executing" in {
-      val promise = Promise[Unit]
+      val promise = Promise[Unit]()
       val aLongTime = Duration(100, SECONDS)
 
       val job = new SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {

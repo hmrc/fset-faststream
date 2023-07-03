@@ -35,23 +35,23 @@ class CampaignManagementController @Inject() (cc: ControllerComponents,
 
   implicit val ec = cc.executionContext
 
-  def afterDeadlineSignupCodeUnusedAndValid(code: String): Action[AnyContent] = Action.async { implicit request =>
+  def afterDeadlineSignupCodeUnusedAndValid(code: String): Action[AnyContent] = Action.async {
     campaignManagementService.afterDeadlineSignupCodeUnusedAndValid(code).map(response => Ok(Json.toJson(response)))
   }
 
-  def generateAfterDeadlineSignupCode(createdByUserId: String, expiryInHours: Int): Action[AnyContent] = Action.async { implicit request =>
+  def generateAfterDeadlineSignupCode(createdByUserId: String, expiryInHours: Int): Action[AnyContent] = Action.async {
     campaignManagementService.generateAfterDeadlineSignupCode(createdByUserId, expiryInHours).map(code => Ok(Json.toJson(code)))
   }
 
-  def markSignupCodeAsUsed(code: String, applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+  def markSignupCodeAsUsed(code: String, applicationId: String): Action[AnyContent] = Action.async {
     campaignManagementService.markSignupCodeAsUsed(code, applicationId).map(_ => Ok)
   }
 
-  def listCollections: Action[AnyContent] = Action.async { implicit request =>
+  def listCollections: Action[AnyContent] = Action.async {
     campaignManagementService.listCollections.map(Ok(_))
   }
 
-  def removeCollection(name: String): Action[AnyContent] = Action.async { implicit request =>
+  def removeCollection(name: String): Action[AnyContent] = Action.async {
     campaignManagementService.removeCollection(name).map {
       case Right(_) => Ok
       case Left(ex) => BadRequest(s"Error trying to remove collection $name: ${ex.getMessage}")
@@ -77,14 +77,14 @@ class CampaignManagementController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def findCandidateByUserId(userId: String): Action[AnyContent] = Action.async { implicit request =>
+  def findCandidateByUserId(userId: String): Action[AnyContent] = Action.async {
     searchForApplicantService.findCandidateByUserId(userId).map {
       case None => NotFound
       case Some(candidate) => Ok(Json.toJson(candidate))
     }
   }
 
-  def removeCandidate(applicationId: String, userId: String): Action[AnyContent] = Action.async { implicit request =>
+  def removeCandidate(applicationId: String, userId: String): Action[AnyContent] = Action.async {
     campaignManagementService.removeCandidate(applicationId, userId).map(_ => Ok)
       .recover {
         case ex: NotFoundException => NotFound(ex.getMessage)

@@ -208,7 +208,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   }
 
   private def getOnePhase2Profile(appId: String) = {
-    applicationCollection.find(Document("applicationId" -> appId)).headOption.map( _.map { doc =>
+    applicationCollection.find(Document("applicationId" -> appId)).headOption().map( _.map { doc =>
       val applicationStatusBsonValue = doc.get("applicationStatus").get
       val applicationStatus = Codecs.fromBson[ApplicationStatus](applicationStatusBsonValue)
 

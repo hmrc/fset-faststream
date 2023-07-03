@@ -33,7 +33,7 @@ trait BaseConnectorWithWireMockSpec extends BaseSpec with BeforeAndAfterEach wit
     .configure(Map(
       "microservice.services.launchpad.api.baseUrl" -> s"http://localhost:$wireMockPort"
     ))
-    .build
+    .build()
 
   protected val wiremockBaseUrl: String = s"http://localhost:$wireMockPort"
   protected val wireMockServer = new WireMockServer(wireMockConfig().port(wireMockPort))

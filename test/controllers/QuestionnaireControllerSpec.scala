@@ -30,8 +30,6 @@ import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.language.postfixOps
-
 class QuestionnaireControllerSpec extends UnitWithAppSpec with Results {
 
   "The Questionnaire API" should {

@@ -34,11 +34,11 @@ class DayAggregateEventController @Inject() (cc: ControllerComponents,
 
   implicit val ec = cc.executionContext
 
-  def findBySkillTypes(skills: Seq[SkillType]): Action[AnyContent] = Action.async { implicit request =>
+  def findBySkillTypes(skills: Seq[SkillType]): Action[AnyContent] = Action.async {
     find(None, skills).map ( dayAggregateEvents => Ok(Json.toJson(dayAggregateEvents)) )
   }
 
-  def findBySkillTypesAndLocation(location: String, skills: Seq[SkillType]): Action[AnyContent] = Action.async { implicit request =>
+  def findBySkillTypesAndLocation(location: String, skills: Seq[SkillType]): Action[AnyContent] = Action.async {
     locationsWithVenuesRepo.location(location).flatMap { location =>
       find(Some(location), skills)
     }.map(dayAggregateEvents => Ok(Json.toJson(dayAggregateEvents)))

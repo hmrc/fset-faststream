@@ -28,7 +28,6 @@ import services.assistancedetails.AssistanceDetailsService
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
-import scala.language.postfixOps
 import uk.gov.hmrc.http.HeaderCarrier
 
 class AssistanceDetailsControllerSpec extends UnitWithAppSpec {

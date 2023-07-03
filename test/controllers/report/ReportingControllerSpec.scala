@@ -44,7 +44,6 @@ import testkit.UnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
-import scala.language.postfixOps
 
 class ReportingControllerSpec extends UnitWithAppSpec {
 
@@ -57,7 +56,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       )))
       when(mockReportingRepository.adjustmentReport(frameworkId)).thenReturn(SuccessfulAdjustmentReportResponse)
       val controller = testableReportingController
-      val result = controller.adjustmentReport(frameworkId)(createAdjustmentsRequest(frameworkId)).run
+      val result = controller.adjustmentReport(frameworkId)(createAdjustmentsRequest(frameworkId)).run()
       val finalResult = contentAsJson(result).as[JsArray].value
 
       finalResult mustBe a[scala.collection.Seq[_]]
@@ -70,7 +69,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     "return the adjustment report without contact details data" in new TestFixture {
       when(mockReportingRepository.adjustmentReport(frameworkId)).thenReturn(SuccessfulAdjustmentReportResponse)
       val controller = testableReportingController
-      val result = controller.adjustmentReport(frameworkId)(createAdjustmentsRequest(frameworkId)).run
+      val result = controller.adjustmentReport(frameworkId)(createAdjustmentsRequest(frameworkId)).run()
 
       val finalResult = contentAsJson(result).as[JsArray].value
 
@@ -85,7 +84,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     "return no adjustments if there's no data on the server" in new TestFixture {
       val controller = testableReportingController
       when(mockReportingRepository.adjustmentReport(frameworkId)).thenReturn(Future.successful(Nil))
-      val result = controller.adjustmentReport(frameworkId)(createAdjustmentsRequest(frameworkId)).run
+      val result = controller.adjustmentReport(frameworkId)(createAdjustmentsRequest(frameworkId)).run()
 
       val finalResult = contentAsJson(result).as[JsArray].value
 
@@ -100,7 +99,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       when(mockReportingRepository.applicationsForInternshipReport(frameworkId)).thenReturn(SuccessfulInternshipReportResponse)
       when(mockContactDetailsRepository.findByUserIds(any[List[String]])).thenReturn(SuccessfulFindByUserIdsResponse)
 
-      val result = underTest.internshipReport(frameworkId)(internshipReportRequest(frameworkId)).run
+      val result = underTest.internshipReport(frameworkId)(internshipReportRequest(frameworkId)).run()
 
       val json = contentAsJson(result).as[JsArray].value
 
@@ -135,7 +134,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       when(mockReportingRepository.applicationsForInternshipReport(frameworkId)).thenReturn(SuccessfulInternshipReportResponse)
       when(mockContactDetailsRepository.findByUserIds(any[List[String]])).thenReturn(Future.successful(List.empty[ContactDetailsWithId]))
 
-      val result = underTest.internshipReport(frameworkId)(internshipReportRequest(frameworkId)).run
+      val result = underTest.internshipReport(frameworkId)(internshipReportRequest(frameworkId)).run()
 
       result.failed.futureValue.isInstanceOf[IllegalStateException] mustBe true
       result.failed.futureValue.getMessage mustBe "No contact details found for user Id = user1"
@@ -148,7 +147,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       when(mockReportingRepository.applicationsForAnalyticalSchemesReport(frameworkId)).thenReturn(SuccessfulAnalyticalSchemesReportResponse)
       when(mockContactDetailsRepository.findByUserIds(any[List[String]])).thenReturn(SuccessfulFindByUserIdsResponse)
 
-      val result = underTest.analyticalSchemesReport(frameworkId)(candidateProgressRequest(frameworkId)).run
+      val result = underTest.analyticalSchemesReport(frameworkId)(candidateProgressRequest(frameworkId)).run()
 
       val json = contentAsJson(result).as[JsArray].value
 
@@ -179,7 +178,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       when(mockReportingRepository.applicationsForAnalyticalSchemesReport(frameworkId)).thenReturn(SuccessfulAnalyticalSchemesReportResponse)
       when(mockContactDetailsRepository.findByUserIds(any[List[String]])).thenReturn(Future.successful(List.empty[ContactDetailsWithId]))
 
-      val result = underTest.analyticalSchemesReport(frameworkId)(candidateProgressRequest(frameworkId)).run
+      val result = underTest.analyticalSchemesReport(frameworkId)(candidateProgressRequest(frameworkId)).run()
 
       result.failed.futureValue.isInstanceOf[IllegalStateException] mustBe true
       result.failed.futureValue.getMessage mustBe "No contact details found for user Id = user1"
@@ -191,7 +190,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       val underTest = testableReportingController
       when(mockReportingRepository.candidateProgressReport(frameworkId)).thenReturn(SuccessfulProgressReportResponse)
 
-      val response = underTest.candidateProgressReport(frameworkId)(candidateProgressRequest(frameworkId)).run
+      val response = underTest.candidateProgressReport(frameworkId)(candidateProgressRequest(frameworkId)).run()
 
       val result = contentAsJson(response).as[List[CandidateProgressReportItem]]
 
@@ -218,7 +217,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       val underTest = testableReportingController
       when(mockReportingRepository.candidateProgressReport(frameworkId)).thenReturn(GenericFailureResponse)
 
-      val result = underTest.candidateProgressReport(frameworkId)(candidateProgressRequest(frameworkId)).run
+      val result = underTest.candidateProgressReport(frameworkId)(candidateProgressRequest(frameworkId)).run()
 
       result.failed.futureValue mustBe Error
     }

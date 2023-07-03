@@ -45,7 +45,7 @@ class AssistanceDetailsController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def find(userId: String, applicationId: String) = Action.async { implicit request =>
+  def find(userId: String, applicationId: String) = Action.async {
     assistanceDetailsService.find(applicationId, userId) map { assistanceDetails =>
       Ok(Json.toJson(assistanceDetails))
     } recover {

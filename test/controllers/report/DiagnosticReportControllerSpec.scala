@@ -15,7 +15,7 @@
  */
 
 package controllers.report
-
+/*
 import config.TestFixtureBase
 import connectors.AuthProviderClient
 import controllers.DiagnosticReportController
@@ -28,13 +28,14 @@ import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import repositories.AssessmentScoresMongoRepository
 import repositories.application.DiagnosticReportingRepository
-import testkit.UnitWithAppSpec
 import org.mockito.ArgumentMatchers.any
 import repositories.events.EventsMongoRepository
 import services.assessor.AssessorService
 import testkit.MockitoImplicits.OngoingStubbingExtension
 
 import scala.concurrent.Future
+*/
+import testkit.UnitWithAppSpec
 
 class DiagnosticReportControllerSpec extends UnitWithAppSpec {
 /*

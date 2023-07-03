@@ -21,8 +21,8 @@ import factories.UUIDFactory
 import javax.inject.{Inject, Singleton}
 import model.exchange.passmarksettings.{PassMarkSettingsPersistence, _}
 import org.joda.time.DateTime
-import play.api.libs.json.{Format, Json}
-import play.api.mvc.{Action, ControllerComponents}
+import play.api.libs.json.{ Format, Json }
+import play.api.mvc.ControllerComponents
 import services.AuditService
 import services.passmarksettings._
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -108,7 +108,7 @@ abstract class PassMarkSettingsController[T <: PassMarkSettings, U <: PassMarkSe
     }}
   }
 
-  def getLatestVersion = Action.async { implicit request =>
+  def getLatestVersion = Action.async {
     for {
       latestVersionOpt <- passMarkService.getLatestPassMarkSettings
     } yield {

@@ -21,10 +21,7 @@ import model.ApplicationStatus._
 import model.Exceptions.{ CannotFindTestByOrderIdException, ExpiredTestForTokenException }
 import model.OnlineTestCommands.OnlineTestApplication
 import model.command.{ InvigilatedTestUrl, ResetOnlineTest, ResetOnlineTest2, VerifyAccessCode }
-import org.joda.time.DateTime
 import play.api.Logging
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json.{ JsValue, Json, OFormat }
 import play.api.mvc._
 import repositories.application.GeneralApplicationRepository
@@ -71,7 +68,7 @@ class OnlineTestController @Inject() (cc: ControllerComponents,
 
   implicit val ec = cc.executionContext
 
-  def getPhase1OnlineTest(applicationId: String) = Action.async { implicit request =>
+  def getPhase1OnlineTest(applicationId: String) = Action.async {
     phase1TestService.getTestGroup(applicationId) map {
       case Some(phase1TestProfileWithNames) => Ok(Json.toJson(phase1TestProfileWithNames))
       case None => logger.debug(s"No phase 1 tests found for applicationId '$applicationId'")
@@ -79,7 +76,7 @@ class OnlineTestController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def getPhase2OnlineTest(applicationId: String) = Action.async { implicit request =>
+  def getPhase2OnlineTest(applicationId: String) = Action.async {
     phase2TestService.getTestGroup(applicationId) map {
       case Some(phase2TestGroupWithNames) => Ok(Json.toJson(phase2TestGroupWithNames))
       case None => logger.debug(s"No phase 2 tests found for applicationId '$applicationId'")
@@ -87,7 +84,7 @@ class OnlineTestController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def getPhase1OnlineTestByOrderId(orderId: String) = Action.async { implicit request =>
+  def getPhase1OnlineTestByOrderId(orderId: String) = Action.async {
     phase1TestService.getTestGroupByOrderId(orderId).map { phase1TestGroupWithNames =>
       Ok(Json.toJson(phase1TestGroupWithNames))
     }.recover {
@@ -97,7 +94,7 @@ class OnlineTestController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def getPhase2OnlineTestByOrderId(orderId: String) = Action.async { implicit request =>
+  def getPhase2OnlineTestByOrderId(orderId: String) = Action.async {
     phase2TestService.getTestGroupByOrderId(orderId) map {
       case Some(phase2TestGroupWithActiveTest) => Ok(Json.toJson(phase2TestGroupWithActiveTest))
       case None => logger.debug(s"No phase 2 tests found for orderId '$orderId'")
@@ -105,7 +102,7 @@ class OnlineTestController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def getPhase3OnlineTest(applicationId: String) = Action.async { implicit request =>
+  def getPhase3OnlineTest(applicationId: String) = Action.async {
     phase3TestService.getTestGroupWithActiveTest(applicationId) map {
       case Some(phase3TestGroup) => Ok(Json.toJson(phase3TestGroup))
       case None => logger.debug(s"No phase 3 tests found for applicationId '$applicationId'")

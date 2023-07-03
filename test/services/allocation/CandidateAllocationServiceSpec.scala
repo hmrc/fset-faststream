@@ -323,7 +323,6 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
       val eventId = "E1"
       val sessionId = "S1"
       val appId = "app1"
-      val userId = "userId"
       val candidateAllocations = CandidateAllocations("v1", eventId, sessionId, Seq(CandidateAllocation(appId, AllocationStatuses.UNCONFIRMED)))
       val persistedAllocations: Seq[persisted.CandidateAllocation] = model.persisted.CandidateAllocation.fromCommand(candidateAllocations)
 

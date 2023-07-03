@@ -48,13 +48,13 @@ class FsbTestGroupController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def find(applicationIds: List[String], fsbType: Option[String]): Action[AnyContent] = Action.async { implicit request =>
+  def find(applicationIds: List[String], fsbType: Option[String]): Action[AnyContent] = Action.async {
     fsbService.findByApplicationIdsAndFsbType(applicationIds, fsbType).map { results =>
       Ok(Json.toJson(results))
     }
   }
 
-  def findScoresAndFeedback(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+  def findScoresAndFeedback(applicationId: String): Action[AnyContent] = Action.async {
     fsbService.findScoresAndFeedback(applicationId).map {
       case Some(scoresAndFeedback) => Ok(Json.toJson(scoresAndFeedback))
       case None => NotFound(s"Cannot find scores and feedback for applicationId: $applicationId")

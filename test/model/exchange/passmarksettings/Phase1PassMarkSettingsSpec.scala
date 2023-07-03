@@ -17,7 +17,6 @@
 package model.exchange.passmarksettings
 
 import model.SchemeId
-import model.SchemeId._
 import model.exchange.passmarksettings.Phase1PassMarkSettingsExamples._
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec

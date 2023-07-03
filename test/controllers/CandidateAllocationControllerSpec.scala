@@ -42,7 +42,7 @@ class CandidateAllocationControllerSpec  extends UnitWithAppSpec {
         .thenReturnAsync(CandidatesEligibleForEventResponse(List.empty, 0))
 
       val result = controller.findCandidatesEligibleForEventAllocation(location, eventType, description)(
-        findCandidatesEligibleForEventAllocationRequest(location, eventType, description)).run
+        findCandidatesEligibleForEventAllocationRequest(location, eventType, description)).run()
       val jsonResponse = contentAsJson(result)
 
       (jsonResponse \ "candidates").as[List[CandidateEligibleForEvent]] mustBe List.empty
@@ -59,7 +59,7 @@ class CandidateAllocationControllerSpec  extends UnitWithAppSpec {
         .thenReturnAsync(CandidatesEligibleForEventResponse(List(candidate), 1))
 
       val result = controller.findCandidatesEligibleForEventAllocation(location, eventType, description)(
-        findCandidatesEligibleForEventAllocationRequest(location, eventType, description)).run
+        findCandidatesEligibleForEventAllocationRequest(location, eventType, description)).run()
       val jsonResponse = contentAsJson(result)
 
       (jsonResponse \ "candidates").as[List[CandidateEligibleForEvent]] mustBe List(candidate)

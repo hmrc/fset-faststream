@@ -71,7 +71,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
 
   implicit val ec = cc.executionContext
 
-  def fsacScores(): Action[AnyContent] = Action.async { implicit request =>
+  def fsacScores(): Action[AnyContent] = Action.async {
     def removeFeedback(assessmentScoresExercise: AssessmentScoresExerciseExchange) =
       assessmentScoresExercise.copy(seeingTheBigPictureFeedback = None, makingEffectiveDecisionsFeedback = None,
         communicatingAndInfluencingFeedback = None, workingTogetherDevelopingSelfAndOthersFeedback = None)
@@ -95,7 +95,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def internshipReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
+  def internshipReport(frameworkId: String): Action[AnyContent] = Action.async {
     def buildInternshipReportItems(applications: List[ApplicationForInternshipReport],
                                    contactDetailsMap: Map[String, ContactDetailsWithId]
                                   ): List[InternshipReportItem] = {
@@ -117,7 +117,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
 
   private def contactDetailsToMap(contactDetailsList: Seq[ContactDetailsWithId]) = contactDetailsList.map(cd => cd.userId -> cd).toMap
 
-  def analyticalSchemesReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
+  def analyticalSchemesReport(frameworkId: String): Action[AnyContent] = Action.async {
 
     def buildAnalyticalSchemesReportItems(applications: Seq[ApplicationForAnalyticalSchemesReport],
                                           contactDetailsMap: Map[String, ContactDetailsWithId]): Seq[AnalyticalSchemesReportItem] = {
@@ -319,7 +319,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
   private def streamPreviousYearCandidatesDetailsReport(
                                                          applicationRoutes: Seq[ApplicationRoute],
                                                          applicationStatuses: Seq[ApplicationStatus]
-                                                       ): Action[AnyContent] = Action.async { implicit request =>
+                                                       ): Action[AnyContent] = Action.async {
     logRpt(s"started report for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses")
     prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes, applicationStatuses).flatMap { candidates =>
       logRpt(s"fetched ${candidates.size} candidates")
@@ -349,7 +349,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
 
   private def streamDataAnalystReport(applicationRoutes: Seq[ApplicationRoute],
                                       applicationStatuses: Seq[ApplicationStatus]
-                                     ): Action[AnyContent] = Action.async { implicit request =>
+                                     ): Action[AnyContent] = Action.async {
     logDataAnalystRpt(s"started report for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses")
     prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes, applicationStatuses).flatMap { candidates =>
       logDataAnalystRpt(s"fetched ${candidates.size} candidates")
@@ -363,7 +363,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
                                                          applicationRoutes: Seq[ApplicationRoute],
                                                          applicationStatuses: Seq[ApplicationStatus],
                                                          part: Int
-                                                       ): Action[AnyContent] = Action.async { implicit request =>
+                                                       ): Action[AnyContent] = Action.async {
     logRpt(s"started report for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses, part: $part")
     prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes, applicationStatuses, part).flatMap { candidates =>
       val appIds = candidates.map(_.applicationId)
@@ -394,7 +394,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
   private def streamDataAnalystReport(applicationRoutes: Seq[ApplicationRoute],
                                       applicationStatuses: Seq[ApplicationStatus],
                                       part: Int
-                                     ): Action[AnyContent] = Action.async { implicit request =>
+                                     ): Action[AnyContent] = Action.async {
     logDataAnalystRpt(s"started report for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses, part: $part")
     prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes, applicationStatuses, part).flatMap { candidates =>
       logDataAnalystRpt(s"fetched ${candidates.size} candidates")
@@ -405,7 +405,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
   }
 
   private def streamPreviousYearCandidatesDetailsReport(applicationRoutes: Seq[ApplicationRoute]): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async {
     logRpt(s"started report for appRoutes: $applicationRoutes")
     prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes).flatMap { candidates =>
       val appIds = candidates.map(_.applicationId)
@@ -432,7 +432,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
   }
 
   private def streamDataAnalystReport(applicationRoutes: Seq[ApplicationRoute],
-                                      filter: CandidateIds => Boolean): Action[AnyContent] = Action.async { implicit request =>
+                                      filter: CandidateIds => Boolean): Action[AnyContent] = Action.async {
     logDataAnalystRpt(s"started report for appRoutes: $applicationRoutes")
     prevYearCandidatesDetailsRepository.findApplicationsFor(applicationRoutes).flatMap { candidates =>
       logDataAnalystRpt(s"fetched ${candidates.size} candidates")
@@ -755,7 +755,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
   }
 
   // Includes data from the following collections: application, contact-details and media
-  def streamDataAnalystReportPt1: Action[AnyContent] = Action.async { implicit request =>
+  def streamDataAnalystReportPt1: Action[AnyContent] = Action.async {
     enrichDataAnalystReportPt1(
       (numOfSchemes, contactDetails, mediaDetails) => {
 
@@ -794,7 +794,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
   }
 
   // Includes data from the following collections: application, questionnaire and sift-answers
-  def streamDataAnalystReportPt2: Action[AnyContent] = Action.async { implicit request =>
+  def streamDataAnalystReportPt2: Action[AnyContent] = Action.async {
     enrichDataAnalystReportPt2(
       (questionnaireDetails, siftDetails) => {
 
@@ -953,7 +953,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def allocatedCandidatesReport: Action[AnyContent] = Action.async { implicit request =>
+  def allocatedCandidatesReport: Action[AnyContent] = Action.async {
 
     val prefix = "allocatedCandidatesReport"
     val candidateAllocationsFut = candidateAllocationRepository.findAll.map(_.sortBy(_.eventId))
@@ -1046,12 +1046,12 @@ class ReportingController @Inject() (cc: ControllerComponents,
   }
 
 
-  def adjustmentReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
+  def adjustmentReport(frameworkId: String): Action[AnyContent] = Action.async {
     val reports =
       for {
         applications <- reportingRepository.adjustmentReport(frameworkId)
         allCandidates <- contactDetailsRepository.findAll
-        candidates = allCandidates.groupBy(_.userId).mapValues(_.head)
+        candidates = allCandidates.groupBy(_.userId).view.mapValues(_.head).toMap
       } yield {
         applications.map { application =>
           candidates
@@ -1066,7 +1066,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def fastPassAwaitingAcceptanceReport(): Action[AnyContent] = Action.async { implicit request =>
+  def fastPassAwaitingAcceptanceReport(): Action[AnyContent] = Action.async {
     val reports =
       for {
         data <- reportingRepository.fastPassAwaitingAcceptanceReport
@@ -1081,7 +1081,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def candidateProgressReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
+  def candidateProgressReport(frameworkId: String): Action[AnyContent] = Action.async {
     val candidatesFut: Future[Seq[CandidateProgressReportItem]] = reportingRepository.candidateProgressReport(frameworkId)
 
     for {
@@ -1117,7 +1117,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
     reportItemsFut.map(items => Ok(Json.toJson(items.flatten.toList)))
   }
 
-  def diversityReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
+  def diversityReport(frameworkId: String): Action[AnyContent] = Action.async {
     val reports = for {
       applications <- reportingRepository.diversityReport(frameworkId)
       questionnaires <- questionnaireRepository.findAllForDiversityReport
@@ -1135,10 +1135,10 @@ class ReportingController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def successfulCandidatesReport(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
+  def successfulCandidatesReport(frameworkId: String): Action[AnyContent] = Action.async {
     val reports = for {
       successfulApplications <- reportingRepository.successfulCandidatesReport
-      appsByUserId <- reportingRepository.diversityReport(frameworkId).map(_.groupBy(_.userId).mapValues(_.head))
+      appsByUserId <- reportingRepository.diversityReport(frameworkId).map(_.groupBy(_.userId).view.mapValues(_.head).toMap)
       userIds = successfulApplications.map(_.userId)
       appIds = successfulApplications.map(_.applicationId)
       questionnairesByAppId <- questionnaireRepository.findQuestionsByIds(appIds)
@@ -1185,7 +1185,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def onlineActiveTestsCountReport: Action[AnyContent] = Action.async { implicit request =>
+  def onlineActiveTestsCountReport: Action[AnyContent] = Action.async {
     reportingRepository.onlineActiveTestCountReport.map { apps =>
       Ok(Json.toJson(apps))
     }
@@ -1216,7 +1216,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def onlineTestPassMarkReportFsPhase1Failed(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
+  def onlineTestPassMarkReportFsPhase1Failed(frameworkId: String): Action[AnyContent] = Action.async {
     val reports = (for {
       applications <- reportingRepository.onlineTestPassMarkReportFsPhase1Failed
     } yield {
@@ -1228,7 +1228,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def onlineTestPassMarkReportFsNotPhase1Failed(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
+  def onlineTestPassMarkReportFsNotPhase1Failed(frameworkId: String): Action[AnyContent] = Action.async {
     val reports = (for {
       applications <- reportingRepository.onlineTestPassMarkReportFsNotPhase1Failed
     } yield {
@@ -1240,7 +1240,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def onlineTestPassMarkReportNonFs(frameworkId: String): Action[AnyContent] = Action.async { implicit request =>
+  def onlineTestPassMarkReportNonFs(frameworkId: String): Action[AnyContent] = Action.async {
     val reports = (for {
       applications <- reportingRepository.onlineTestPassMarkReportNonFs
     } yield {
@@ -1252,7 +1252,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def numericTestExtractReport(): Action[AnyContent] = Action.async { implicit request =>
+  def numericTestExtractReport(): Action[AnyContent] = Action.async {
 
     val numericTestSchemeIds = schemeRepo.schemes.collect {
       case scheme if scheme.siftEvaluationRequired && scheme.siftRequirement.contains(SiftRequirement.NUMERIC_TEST) => scheme.id
@@ -1280,7 +1280,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
       reports.map(list => Ok(Json.toJson(list)))
   }
 
-  def candidateAcceptanceReport(): Action[AnyContent] = Action.async { implicit request =>
+  def candidateAcceptanceReport(): Action[AnyContent] = Action.async {
 
     val headers = Seq("Candidate email, allocation date, event date, event type, event description, location, venue")
     candidateAllocationRepository.allAllocationUnconfirmed.flatMap { allAllocations =>
@@ -1310,7 +1310,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def candidateStuckAfterFsacEvaluationReport(): Action[AnyContent] = Action.async { implicit request =>
+  def candidateStuckAfterFsacEvaluationReport(): Action[AnyContent] = Action.async {
     val candidatesFut: Future[Seq[FsacStuckCandidate]] = reportingRepository.candidatesStuckAfterFsacEvaluation
 
     for {

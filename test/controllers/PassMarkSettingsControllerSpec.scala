@@ -32,7 +32,6 @@ import services.passmarksettings.PassMarkSettingsService
 import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
-import scala.language.postfixOps
 
 class Phase1PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpec {
   override type T = Phase1PassMarkSettings

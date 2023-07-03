@@ -18,8 +18,6 @@ package model.persisted.eventschedules
 
 import model.persisted.eventschedules.EventType.EventType
 import org.joda.time.{ DateTime, LocalDate, LocalTime }
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._  // This is needed for DateTime serialization
 import play.api.libs.json._
 import model.exchange.{ Event => ExchangeEvent }
 
@@ -42,8 +40,10 @@ case class Event(
 )
 
 object Event {
-  import model.persisted.Play25DateCompatibility.epochMillisDateFormat
-
+  import play.api.libs.json.JodaWrites._ // This is needed for LocalDate and LocalTime serialization
+  import play.api.libs.json.JodaReads._  // This is needed for LocalDate and LocalTime serialization
+  // Needed to handle storing DateTime in ISODate format in Mongo
+  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits.jotDateTimeFormat
   implicit val eventFormat: OFormat[Event] = Json.format[Event]
 
   implicit def eventsToDistinctT(events: Seq[Event]) = new {

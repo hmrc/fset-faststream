@@ -30,7 +30,7 @@ class Phase3TestGroupController @Inject() (cc: ControllerComponents,
 
   implicit val ec = cc.executionContext
 
-  def getTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+  def getTestGroup(applicationId: String): Action[AnyContent] = Action.async {
     phase3TestService.getTestGroup(applicationId).map {
         case Some(testGroup) =>
           Ok(Json.toJson(testGroup.toExchange))

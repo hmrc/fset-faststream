@@ -128,7 +128,7 @@ abstract class AssessmentScoresController(cc: ControllerComponents) extends Back
       }
   }
 
-  def findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: UniqueIdentifier) = Action.async { implicit request =>
+  def findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId: UniqueIdentifier) = Action.async {
     service.findAssessmentScoresWithCandidateSummaryByApplicationId(applicationId).map { scores =>
       Ok(Json.toJson(scores))
     }.recover {
@@ -141,7 +141,7 @@ abstract class AssessmentScoresController(cc: ControllerComponents) extends Back
     }
   }
 
-  def findAssessmentScoresWithCandidateSummaryByEventId(eventId: UniqueIdentifier) = Action.async { implicit request =>
+  def findAssessmentScoresWithCandidateSummaryByEventId(eventId: UniqueIdentifier) = Action.async {
     service.findAssessmentScoresWithCandidateSummaryByEventId(eventId).map { scores =>
       Ok(Json.toJson(scores))
     }.recover {
@@ -154,19 +154,19 @@ abstract class AssessmentScoresController(cc: ControllerComponents) extends Back
     }
   }
 
-  def find(applicationId: UniqueIdentifier) = Action.async { implicit request =>
+  def find(applicationId: UniqueIdentifier) = Action.async {
     repository.find(applicationId).map { scores =>
       Ok(Json.toJson(scores))
     }
   }
 
-  def findAll = Action.async { implicit request =>
+  def findAll = Action.async {
     repository.findAll.map { scores =>
       Ok(Json.toJson(scores))
     }
   }
 
-  def findAcceptedAssessmentScoresByApplicationId(applicationId: UniqueIdentifier) = Action.async { implicit request =>
+  def findAcceptedAssessmentScoresByApplicationId(applicationId: UniqueIdentifier) = Action.async {
     service.findAcceptedAssessmentScoresAndFeedbackByApplicationId(applicationId).map {
       case Some(scores) => Ok(Json.toJson(scores))
       case None => NotFound

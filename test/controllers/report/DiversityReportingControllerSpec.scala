@@ -16,6 +16,7 @@
 
 package controllers.report
 
+/*
 import config.TestFixtureBase
 import connectors.AuthProviderClient
 import controllers.ReportingController
@@ -34,9 +35,11 @@ import repositories.fsb.FsbRepository
 import repositories.sift.ApplicationSiftRepository
 import repositories._
 import testkit.MockitoImplicits.OngoingStubbingExtension
+*/
 import testkit.UnitWithAppSpec
 
-import scala.language.postfixOps
+//import scala.language.postfixOps
+
 
 class DiversityReportingControllerSpec extends UnitWithAppSpec {
 /*
