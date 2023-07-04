@@ -6,7 +6,7 @@ import model.EvaluationResults.Green
 import model.Exceptions.PassMarkEvaluationNotFound
 import model.persisted._
 import model.persisted.phase3tests.Phase3TestGroup
-import model.{ApplicationStatus, ProgressStatuses, SchemeId}
+import model.{ApplicationStatus, ProgressStatuses}
 import org.mockito.Mockito.when
 import org.mongodb.scala.bson.collection.immutable.Document
 import uk.gov.hmrc.mongo.play.json.Codecs
@@ -46,7 +46,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   }
 
   "next Application Ready For Evaluation" must {
-    val resultToSave = List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString))
+    val resultToSave = List(SchemeEvaluationResult(Commercial, Green.toString))
 
     "return nothing if application does not have PHASE3_TESTS" in {
       insertApplication("app1", ApplicationStatus.PHASE2_TESTS, phase1Tests = None, Some(phase2Test))
@@ -185,7 +185,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   }
 
   "save passmark evaluation" must {
-    val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString))
+    val resultToSave = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
 
     "save result and update the status" in {
       insertApplication("app1", ApplicationStatus.PHASE3_TESTS, phase1Tests = None, Some(phase2TestWithResult), Some(phase3TestWithResult))
@@ -199,13 +199,13 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val (appStatus, result) = resultWithAppStatus.get
       appStatus mustBe ApplicationStatus.PHASE3_TESTS_PASSED
       result.evaluation mustBe Some(PassmarkEvaluation("version1", previousPhasePassMarkVersion = None,
-        List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString)),
+        List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString)),
         "version1-res", previousPhaseResultVersion = None))
     }
   }
 
   "retrieve passmark evaluation" must {
-    val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString))
+    val resultToSave = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
 
     "return passmarks from mongo" in {
       insertApplication("app1", ApplicationStatus.PHASE3_TESTS, phase1Tests = None, Some(phase2TestWithResult), Some(phase3TestWithResult))
@@ -231,7 +231,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     application.activePsiTests mustBe Nil
     application.activeLaunchpadTest.isDefined mustBe true
     application.prevPhaseEvaluation mustBe Some(phase2Evaluation)
-    application.preferences mustBe selectedSchemes(List(SchemeId("Commercial")))
+    application.preferences mustBe selectedSchemes(List(Commercial))
   }
 
   private def getOnePhase3Profile(appId: String) = {

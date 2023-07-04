@@ -22,11 +22,11 @@ import model.ApplicationRoute.{apply => _}
 import model.ProgressStatuses.{PHASE1_TESTS_PASSED => _, SUBMITTED => _}
 import model.persisted.{ApplicationForDiversityReport, CivilServiceExperienceDetailsForDiversityReport, SchemeEvaluationResult}
 import model.report._
-import model.{ApplicationRoute, BSONExamples, SchemeId}
+import model.{ApplicationRoute, BSONExamples, Schemes}
 import org.mongodb.scala.bson.{BsonArray, BsonDateTime, BsonDocument}
 import testkit.UnitWithAppSpec
 
-class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
+class ReportingRepoBSONReaderSpec extends UnitWithAppSpec with Schemes {
 
   val appConfigMock = mock[MicroserviceAppConfig]
 
@@ -62,7 +62,7 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
         userId = "459b5e72-e004-48ff-9f00-adbddf59d9c4",
         ApplicationRoute.Sdip,
         progress = Some("submitted"),
-        schemes = List(SchemeId("Sdip")),
+        schemes = List(Sdip),
         disability = Some("Yes"), gis = Some(false), onlineAdjustments = Some("Yes"),
         assessmentCentreAdjustments = Some("Yes"),
         civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
@@ -70,7 +70,7 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
           otherInternship = Some("Yes"), otherInternshipName = Some("Other internship name"), otherInternshipYear = Some("2020"),
           fastPassCertificate = Some("No")
         )),
-        currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("Sdip"),"Green"))
+        currentSchemeStatus = List(SchemeEvaluationResult(Sdip,"Green"))
       )
 
       applicationForDiversityReport mustBe expected
@@ -86,7 +86,7 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
         userId = "459b5e72-e004-48ff-9f00-adbddf59d9c4",
         ApplicationRoute.Faststream,
         progress = Some("submitted"),
-        schemes = List(SchemeId("Commercial")),
+        schemes = List(Commercial),
         disability = Some("Yes"), gis = Some(false), onlineAdjustments = Some("No"),
         assessmentCentreAdjustments = Some("Yes"),
         civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
@@ -94,7 +94,7 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec {
           otherInternship = Some("Yes"), otherInternshipName = Some("Other internship name"), otherInternshipYear = Some("2020"),
           fastPassCertificate = Some("1234567")
         )),
-        currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("Commercial"),"Green"))
+        currentSchemeStatus = List(SchemeEvaluationResult(Commercial, "Green"))
       )
 
       applicationForDiversityReport mustBe expected

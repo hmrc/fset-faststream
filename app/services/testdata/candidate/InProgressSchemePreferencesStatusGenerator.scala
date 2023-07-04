@@ -30,7 +30,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class InProgressSchemePreferencesStatusGenerator @Inject() (val previousStatusGenerator: InProgressPersonalDetailsStatusGenerator,
                                                             spRepository: SchemePreferencesRepository,
                                                             dataFaker: DataFaker
-                                                           )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
+                                                           )(implicit ec: ExecutionContext) extends ConstructiveGenerator with Schemes {
 
   // scalastyle:off method.length
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
@@ -43,11 +43,10 @@ class InProgressSchemePreferencesStatusGenerator @Inject() (val previousStatusGe
 
         }.getOrElse {
           generatorConfig.statusData.applicationRoute match {
-            case ApplicationRoute.Edip => SelectedSchemes(List(model.SchemeId("Edip")), orderAgreed = true, eligible = true)
-            case ApplicationRoute.Sdip => SelectedSchemes(List(model.SchemeId("Sdip")), orderAgreed = true, eligible = true)
+            case ApplicationRoute.Edip => SelectedSchemes(List(Edip), orderAgreed = true, eligible = true)
+            case ApplicationRoute.Sdip => SelectedSchemes(List(Sdip), orderAgreed = true, eligible = true)
             case ApplicationRoute.SdipFaststream =>
-              SelectedSchemes(List(model.SchemeId("Commercial"), model.SchemeId("DigitalDataTechnologyAndCyber"),
-              model.SchemeId("Finance"), model.SchemeId("Sdip")), orderAgreed = true, eligible = true)
+              SelectedSchemes(List(Commercial, DigitalDataTechnologyAndCyber, Finance, Sdip), orderAgreed = true, eligible = true)
             case _ => SelectedSchemes(dataFaker.schemeTypes.map(_.id), orderAgreed = true, eligible = true)
           }
         }

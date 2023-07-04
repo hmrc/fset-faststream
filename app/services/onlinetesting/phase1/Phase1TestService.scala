@@ -64,7 +64,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
                                    val eventService: StcEventService,
                                    val actor: ActorSystem
                                   )(
-  implicit ec: ExecutionContext) extends OnlineTestService with Phase1TestConcern with ResetPhase1Test with Logging {
+  implicit ec: ExecutionContext) extends OnlineTestService with Phase1TestConcern with ResetPhase1Test with Logging with Schemes {
 
   type TestRepository = Phase1TestRepository
 
@@ -80,7 +80,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
   def progressSdipFaststreamCandidateForSdip(o: Phase1TestGroupWithUserIds): Future[Unit] = {
 
     o.testGroup.evaluation.map { evaluation =>
-      val result = evaluation.result.find(_.schemeId == SchemeId("Sdip")).getOrElse(
+      val result = evaluation.result.find(_.schemeId == Sdip).getOrElse(
         throw new IllegalStateException(s"No SDIP results found for application ${o.applicationId}}")
       )
 

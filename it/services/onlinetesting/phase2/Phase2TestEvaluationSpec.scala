@@ -14,7 +14,7 @@ import org.mockito.Mockito.when
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.scalatest.prop._
-import repositories.{ CollectionNames, CommonRepository }
+import repositories.{CollectionNames, CommonRepository}
 import testkit.MongoRepositorySpec
 
 import scala.concurrent.Future
@@ -49,28 +49,28 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     )
   }
 
-  trait TestFixture {
+  trait TestFixture extends Schemes {
 
     // format: OFF
     val phase2PassMarkSettingsTable = Table[SchemeId, Double, Double, Double, Double](
-      ("Scheme Name", "Test1 Fail Threshold", "Test1 Pass Threshold", "Test2 Fail Threshold", "Test2 Pass Threshold"),
-      (SchemeId("Commercial"), 20.0, 80.0, 20.0, 80.0),
-      (SchemeId("DigitalDataTechnologyAndCyber"), 20.001, 20.001, 20.001, 20.001),
-      (SchemeId("DiplomaticAndDevelopment"), 20.01, 20.02, 20.01, 20.02),
-      (SchemeId("DiplomaticAndDevelopmentEconomics"), 30.0, 70.0, 30.0, 70.0),
-      (SchemeId("DiplomaticServiceEuropean"), 30.0, 70.0, 30.0, 70.0),
-      (SchemeId("European"), 40.0, 70.0, 40.0, 70.0),
-      (SchemeId("Finance"), 25.01, 25.02, 25.01, 25.02),
-      (SchemeId("Generalist"), 30.0, 30.0, 30.0, 30.0),
-      (SchemeId("GovernmentCommunicationService"), 30.0, 70.0, 30.0, 70.0),
-      (SchemeId("GovernmentEconomicsService"), 30.0, 70.0, 30.0, 70.0),
-      (SchemeId("GovernmentOperationalResearchService"), 30.0, 70.0, 30.0, 70.0),
-      (SchemeId("GovernmentSocialResearchService"), 30.0, 70.0, 30.0, 70.0),
-      (SchemeId("GovernmentStatisticalService"), 30.0, 70.0, 30.0, 70.0),
-      (SchemeId("HousesOfParliament"), 30.0, 79.999, 30.0, 79.999),
-      (SchemeId("HumanResources"), 30.0, 50.0, 30.0, 50.0),
-      (SchemeId("ProjectDelivery"), 30.0, 70.0, 30.0, 70.0),
-      (SchemeId("ScienceAndEngineering"), 69.00, 69.00, 69.00, 69.00)
+      ("Scheme Name",                           "Test1 Fail", "Test1 Pass", "Test2 Fail", "Test2 Pass"),
+      (Commercial,                                20.0,         80.0,         20.0,         80.0),
+      (DigitalDataTechnologyAndCyber,             20.001,       20.001,       20.001,       20.001),
+      (DiplomaticAndDevelopment,                  20.01,        20.02,        20.01,        20.02),
+      (DiplomaticAndDevelopmentEconomics,         30.0,         70.0,         30.0,         70.0),
+      (Finance,                                   25.01,        25.02,        25.01,        25.02),
+      (GovernmentCommunicationService,            30.0,         70.0,         30.0,         70.0),
+      (GovernmentEconomicsService,                30.0,         70.0,         30.0,         70.0),
+      (GovernmentOperationalResearchService,      30.0,         70.0,         30.0,         70.0),
+      (GovernmentSocialResearchService,           30.0,         70.0,         30.0,         70.0),
+      (GovernmentStatisticalService,              30.0,         70.0,         30.0,         70.0),
+      (HousesOfParliament,                        30.0,         79.999,       30.0,         79.999),
+      (HumanResources,                            30.0,         50.0,         30.0,         50.0),
+      (OperationalDelivery,                       30.0,         30.0,         30.0,         30.0),
+      (ProjectDelivery,                           30.0,         70.0,         30.0,         70.0),
+      (PolicyStrategyAndGovernmentAdministration, 30.0,         70.0,         30.0,         70.0),
+      (Property,                                  40.0,         70.0,         40.0,         70.0),
+      (ScienceAndEngineering,                     69.00,        69.00,        69.00,        69.00)
     )
     // format: ON
 

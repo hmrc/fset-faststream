@@ -16,11 +16,11 @@
 
 package model.persisted.assessor
 
-import model.{ SchemeId, UniqueIdentifier }
+import model.{Schemes, UniqueIdentifier}
 import model.persisted.eventschedules.Location
 import org.joda.time.LocalDate
 
-object AssessorExamples {
+object AssessorExamples extends Schemes {
 
   val AssessorUserId = UniqueIdentifier.randomUniqueIdentifier.toString
 
@@ -39,7 +39,7 @@ object AssessorExamples {
     AssessorUserId,
     version = None,
     skills = List("qac", "chair"),
-    sifterSchemes = List(SchemeId("Sdip")),
+    sifterSchemes = List(Sdip),
     civilServant = true,
     status = AssessorStatus.AVAILABILITIES_SUBMITTED,
     availability = persistedAvailabilities
@@ -75,7 +75,7 @@ object AssessorExamples {
     AssessorUserId,
     version = None,
     skills = List("ASSESSOR", "SIFTER"),
-    sifterSchemes = List(SchemeId("Commercial")),
+    sifterSchemes = List(Commercial),
     civilServant = true,
     status = AssessorStatus.AVAILABILITIES_SUBMITTED,
     availability = persistedAvailabilities

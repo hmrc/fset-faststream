@@ -45,7 +45,7 @@ import uk.gov.hmrc.mongo.play.json.Codecs
 import scala.concurrent.{Await, Future}
 import scala.util.Try
 
-class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
+class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory with Schemes {
 
   val collectionName = CollectionNames.APPLICATION
 
@@ -706,7 +706,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
           SchemeEvaluationResult("HumanResources", Red.toString),
           SchemeEvaluationResult("DigitalDataTechnologyAndCyber", Red.toString)
         )).futureValue
-      findFsbCandidatesCall(SchemeId("DigitalDataTechnologyAndCyber")).candidates mustBe empty
+      findFsbCandidatesCall(DigitalDataTechnologyAndCyber).candidates mustBe empty
     }
 
     "return an empty item when there are no FSB eligible candidates for first residual preference" in {
@@ -715,7 +715,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
           SchemeEvaluationResult("HumanResources", Green.toString),
           SchemeEvaluationResult("DigitalDataTechnologyAndCyber", Green.toString)
         )).futureValue
-      findFsbCandidatesCall(SchemeId("DigitalDataTechnologyAndCyber")).candidates mustBe empty
+      findFsbCandidatesCall(DigitalDataTechnologyAndCyber).candidates mustBe empty
     }
 
     "return an item when there are FSB eligible candidates" in {
@@ -725,7 +725,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
           SchemeEvaluationResult("DigitalDataTechnologyAndCyber", Green.toString)
         )).futureValue
 
-      findFsbCandidatesCall(SchemeId("DigitalDataTechnologyAndCyber")).candidates must have size 1
+      findFsbCandidatesCall(DigitalDataTechnologyAndCyber).candidates must have size 1
     }
   }
 
@@ -822,20 +822,19 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "add the withdraw section to the application" in {
       val newCandidate = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
 
-      val css = Seq(SchemeEvaluationResult("Commercial", Green.toString), SchemeEvaluationResult("Generalist", Green.toString))
+      val css = Seq(SchemeEvaluationResult("Commercial", Green.toString), SchemeEvaluationResult("OperationalDelivery", Green.toString))
       repository.updateCurrentSchemeStatus(newCandidate.applicationId, css).futureValue
 
       val result = repository.getCurrentSchemeStatus(newCandidate.applicationId).futureValue
       result mustBe css
 
-      val commercial = SchemeId("Commercial")
       repository.withdrawScheme(
-        newCandidate.applicationId, WithdrawScheme(commercial, reason = "test withdraw reason", withdrawer = "test withdrawer"),
-        Seq(SchemeEvaluationResult(commercial, Green.toString))
+        newCandidate.applicationId, WithdrawScheme(Commercial, reason = "test withdraw reason", withdrawer = "test withdrawer"),
+        Seq(SchemeEvaluationResult(Commercial, Green.toString))
       ).futureValue
 
-      findWithdrawReasonForScheme(newCandidate.applicationId, SchemeId("Generalist")).futureValue mustBe None
-      findWithdrawReasonForScheme(newCandidate.applicationId, commercial).futureValue mustBe Some("test withdraw reason")
+      findWithdrawReasonForScheme(newCandidate.applicationId, OperationalDelivery).futureValue mustBe None
+      findWithdrawReasonForScheme(newCandidate.applicationId, Commercial).futureValue mustBe Some("test withdraw reason")
     }
   }
 
@@ -1126,7 +1125,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         ApplicationStatus.SIFT, additionalProgressStatuses = statuses.toList,
         applicationRoute = Some(ApplicationRoute.SdipFaststream)).futureValue
 
-      val resultToSave = List(SchemeEvaluationResult(SchemeId("Sdip"), Green.toString))
+      val resultToSave = List(SchemeEvaluationResult(Sdip, Green.toString))
       val phase1Evaluation = PassmarkEvaluation(
         "phase1_version2", Some("phase1_version1"), resultToSave, "phase1-version1-res", previousPhaseResultVersion = None
       )
@@ -1150,7 +1149,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         ApplicationStatus.SIFT, additionalProgressStatuses = statuses.toList,
         applicationRoute = Some(ApplicationRoute.SdipFaststream)).futureValue
 
-      val resultToSave = List(SchemeEvaluationResult(SchemeId("Sdip"), Green.toString))
+      val resultToSave = List(SchemeEvaluationResult(Sdip, Green.toString))
       val phase1Evaluation = PassmarkEvaluation(
         "phase2_version2", Some("phase2_version1"), resultToSave, "phase2-version1-res", previousPhaseResultVersion = None
       )

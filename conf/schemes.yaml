@@ -50,22 +50,6 @@
     required: Degree_21
     specificRequirement: false
   siftEvaluationRequired: false
-- id: Generalist
-  code: GFS
-  name: Generalist
-  civilServantEligible: true
-  degree:
-    required: Degree_22
-    specificRequirement: false
-  siftEvaluationRequired: false
-- id: GeneralistSTEM
-  code: GFS_STEM
-  name: Generalist - Science, Technology, Engineering and Mathematics
-  civilServantEligible: false
-  degree:
-    required: Degree_GFS_STEM
-    specificRequirement: true
-  siftEvaluationRequired: false
 #  Currently filtered out in the candidate ui
 - id: GovernmentCommunicationService
   code: GCFS
@@ -142,6 +126,27 @@
 - id: HumanResources
   code: HRFS
   name: Human Resources
+  civilServantEligible: true
+  degree:
+    required: Degree_22
+    specificRequirement: false
+  siftEvaluationRequired: false
+# This was previously Generalist
+- id: OperationalDelivery
+  code: OPD
+  name: Operational Delivery
+  civilServantEligible: true
+  degree:
+    required: Degree_22
+    specificRequirement: false
+  siftEvaluationRequired: false
+  fsbType: OPD - Skype interview
+  # TODO: the correct link needs to be supplied - for now just use the property guide
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Property.pdf
+# This was previously GeneralistSTEM
+- id: PolicyStrategyAndGovernmentAdministration
+  code: PSGA
+  name: Policy, Strategy and Government Administration
   civilServantEligible: true
   degree:
     required: Degree_22

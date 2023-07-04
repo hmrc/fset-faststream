@@ -11,187 +11,187 @@ class FaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluationSpec {
     "result in passed results when all schemes are green" in new TestFixture {
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
-          List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
-            SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString)),
+          List(SchemeEvaluationResult(Commercial, Green.toString),
+            SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString)),
           "phase1-version1-res", None)
-        applicationEvaluation("application-1", 80, 80, SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber")) mustResultIn(
+        applicationEvaluation("application-1", 80, 80, Commercial, DigitalDataTechnologyAndCyber) mustResultIn(
           PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED),
-          SchemeId("Commercial") -> Green, SchemeId("DigitalDataTechnologyAndCyber") -> Green)
+          Commercial -> Green, DigitalDataTechnologyAndCyber -> Green)
       }
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
-          List(SchemeEvaluationResult(SchemeId("HousesOfParliament"), Green.toString)),
+          List(SchemeEvaluationResult(HousesOfParliament, Green.toString)),
           "phase1-version1-res", None)
-        applicationEvaluation("application-2", 79.999, 79.999, SchemeId("HousesOfParliament")) mustResultIn(
-          PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED), SchemeId("HousesOfParliament") -> Green)
+        applicationEvaluation("application-2", 79.999, 79.999, HousesOfParliament) mustResultIn(
+          PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED), HousesOfParliament -> Green)
       }
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
-          List(SchemeEvaluationResult(SchemeId("Generalist"), Green.toString)),
+          List(SchemeEvaluationResult(OperationalDelivery, Green.toString)),
           "phase1-version1-res", None)
-        applicationEvaluation("application-3", 30, 30, SchemeId("Generalist")) mustResultIn(
-          PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED), SchemeId("Generalist") -> Green)
+        applicationEvaluation("application-3", 30, 30, OperationalDelivery) mustResultIn(
+          PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED), OperationalDelivery -> Green)
       }
     }
 
     "result in passed results when at-least one scheme is green" in new TestFixture {
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
-          List(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString),
-            SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString)),
+          List(SchemeEvaluationResult(Commercial, Red.toString),
+            SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString)),
           "phase1-version1-res", None)
-        applicationEvaluation("application-1", 80, 80, SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber")) mustResultIn(
+        applicationEvaluation("application-1", 80, 80, Commercial, DigitalDataTechnologyAndCyber) mustResultIn(
           PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED),
-          SchemeId("Commercial") -> Red, SchemeId("DigitalDataTechnologyAndCyber") -> Green)
+          Commercial -> Red, DigitalDataTechnologyAndCyber -> Green)
       }
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
-          List(SchemeEvaluationResult(SchemeId("HumanResources"), Green.toString),
-            SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString)),
+          List(SchemeEvaluationResult(HumanResources, Green.toString),
+            SchemeEvaluationResult(ProjectDelivery, Green.toString)),
           "phase1-version1-res", None)
-        applicationEvaluation("application-2", 50, 50, SchemeId("HumanResources"), SchemeId("ProjectDelivery")) mustResultIn(
+        applicationEvaluation("application-2", 50, 50, HumanResources, ProjectDelivery) mustResultIn(
           PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED),
-          SchemeId("HumanResources") -> Green, SchemeId("ProjectDelivery") -> Amber)
+          HumanResources -> Green, ProjectDelivery -> Amber)
       }
     }
 
     "result in failed results when all the schemes are red" in new TestFixture {
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
-          List(SchemeEvaluationResult(SchemeId("European"), Green.toString),
-            SchemeEvaluationResult(SchemeId("ScienceAndEngineering"), Green.toString)),
+          List(SchemeEvaluationResult(Property, Green.toString),
+            SchemeEvaluationResult(ScienceAndEngineering, Green.toString)),
           "phase1-version1-res", None)
-        applicationEvaluation("application-1", 35, 35, SchemeId("European"), SchemeId("ScienceAndEngineering")) mustResultIn(
+        applicationEvaluation("application-1", 35, 35, Property, ScienceAndEngineering) mustResultIn(
           PHASE2_TESTS_FAILED, Some(ProgressStatuses.PHASE2_TESTS_FAILED),
-          SchemeId("European") -> Red, SchemeId("ScienceAndEngineering") -> Red)
+          Property -> Red, ScienceAndEngineering -> Red)
       }
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
-          List(SchemeEvaluationResult(SchemeId("European"), Red.toString),
-            SchemeEvaluationResult(SchemeId("ScienceAndEngineering"), Red.toString)),
+          List(SchemeEvaluationResult(Property, Red.toString),
+            SchemeEvaluationResult(ScienceAndEngineering, Red.toString)),
           "phase1-version1-res", None)
-        applicationEvaluation("application-2", 80, 80, SchemeId("European"), SchemeId("ScienceAndEngineering")) mustResultIn(
+        applicationEvaluation("application-2", 80, 80, Property, ScienceAndEngineering) mustResultIn(
           PHASE2_TESTS_FAILED, Some(ProgressStatuses.PHASE2_TESTS_FAILED),
-          SchemeId("European") -> Red, SchemeId("ScienceAndEngineering") -> Red)
+          Property -> Red, ScienceAndEngineering -> Red)
       }
     }
 
     "result in amber when no schemes are in green and at-least one scheme is in amber" in new TestFixture {
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
-          List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString)),
+          List(SchemeEvaluationResult(Commercial, Green.toString)),
           "phase1-version1-res", None)
-        applicationEvaluation("application-1", 20, 20, SchemeId("Commercial")) mustResultIn(
-          PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED), SchemeId("Commercial") -> Amber)
+        applicationEvaluation("application-1", 20, 20, Commercial) mustResultIn(
+          PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED), Commercial -> Amber)
       }
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
-          List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
-            SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString)),
+          List(SchemeEvaluationResult(Commercial, Green.toString),
+            SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString)),
           "phase1-version1-res", None)
-        applicationEvaluation("application-2", 20, 20, SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber")) mustResultIn(
+        applicationEvaluation("application-2", 20, 20, Commercial, DigitalDataTechnologyAndCyber) mustResultIn(
           PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED),
-          SchemeId("Commercial") -> Amber, SchemeId("DigitalDataTechnologyAndCyber") -> Red)
+          Commercial -> Amber, DigitalDataTechnologyAndCyber -> Red)
       }
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
-          List(SchemeEvaluationResult(SchemeId("European"), Amber.toString),
-            SchemeEvaluationResult(SchemeId("ScienceAndEngineering"), Amber.toString)),
+          List(SchemeEvaluationResult(Property, Amber.toString),
+            SchemeEvaluationResult(ScienceAndEngineering, Amber.toString)),
           "phase1-version1-res", None)
-        applicationEvaluation("application-3", 80, 80, SchemeId("European"), SchemeId("ScienceAndEngineering")) mustResultIn(
+        applicationEvaluation("application-3", 80, 80, Property, ScienceAndEngineering) mustResultIn(
           PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED),
-          SchemeId("European") -> Amber, SchemeId("ScienceAndEngineering") -> Amber)
+          Property -> Amber, ScienceAndEngineering -> Amber)
       }
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
-          List(SchemeEvaluationResult(SchemeId("European"), Green.toString)),
+          List(SchemeEvaluationResult(Property, Green.toString)),
           "phase1-version1-res", None)
-        applicationEvaluation("application-4", 50, 50, SchemeId("European")) mustResultIn(
-          PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED), SchemeId("European") -> Amber)
+        applicationEvaluation("application-4", 50, 50, Property) mustResultIn(
+          PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED), Property -> Amber)
       }
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
-          List(SchemeEvaluationResult(SchemeId("European"), Amber.toString),
-            SchemeEvaluationResult(SchemeId("ProjectDelivery"), Amber.toString)),
+          List(SchemeEvaluationResult(Property, Amber.toString),
+            SchemeEvaluationResult(ProjectDelivery, Amber.toString)),
           "phase1-version1-res", None)
-        applicationEvaluation("application-5", 50, 50, SchemeId("European"), SchemeId("ProjectDelivery")) mustResultIn(
+        applicationEvaluation("application-5", 50, 50, Property, ProjectDelivery) mustResultIn(
           PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED),
-          SchemeId("European") -> Amber, SchemeId("ProjectDelivery") -> Amber)
+          Property -> Amber, ProjectDelivery -> Amber)
       }
     }
 
     "result in passed results on re-evaluation of applicant with all schemes in amber when passmarks are decreased" in new TestFixture {
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
-          List(SchemeEvaluationResult(SchemeId("DiplomaticAndDevelopmentEconomics"), Green.toString),
-            SchemeEvaluationResult(SchemeId("DiplomaticServiceEuropean"), Green.toString)),
+          List(SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, Green.toString),
+            SchemeEvaluationResult(PolicyStrategyAndGovernmentAdministration, Green.toString)),
           "phase1-version1-res", None)
 
         applicationEvaluation("application-1", 40, 40,
-          SchemeId("DiplomaticAndDevelopmentEconomics"), SchemeId("DiplomaticServiceEuropean")) mustResultIn(
+          DiplomaticAndDevelopmentEconomics, PolicyStrategyAndGovernmentAdministration) mustResultIn(
           PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED),
-          SchemeId("DiplomaticAndDevelopmentEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
+          DiplomaticAndDevelopmentEconomics -> Amber, PolicyStrategyAndGovernmentAdministration -> Amber)
 
         applicationReEvaluationWithSettings(
-          (SchemeId("DiplomaticAndDevelopmentEconomics"), 40, 40, 40, 40),
-          (SchemeId("DiplomaticServiceEuropean"), 40, 40, 40, 40)
+          (DiplomaticAndDevelopmentEconomics,         40, 40, 40, 40),
+          (PolicyStrategyAndGovernmentAdministration, 40, 40, 40, 40)
         ) mustResultIn(PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED),
-          SchemeId("DiplomaticAndDevelopmentEconomics") -> Green, SchemeId("DiplomaticServiceEuropean") -> Green)
+          DiplomaticAndDevelopmentEconomics -> Green, PolicyStrategyAndGovernmentAdministration -> Green)
       }
     }
 
     "result in passed results on re-evaluation of applicant with one scheme in amber when passmark are decreased" in new TestFixture {
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
-          List(SchemeEvaluationResult(SchemeId("HumanResources"), Red.toString),
-            SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString)),
+          List(SchemeEvaluationResult(HumanResources, Red.toString),
+            SchemeEvaluationResult(ProjectDelivery, Green.toString)),
           "phase1-version1-res", None)
 
-        applicationEvaluation("application-2", 50, 50, SchemeId("HumanResources"), SchemeId("ProjectDelivery")) mustResultIn(
+        applicationEvaluation("application-2", 50, 50, HumanResources, ProjectDelivery) mustResultIn(
           PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED),
-          SchemeId("HumanResources") -> Red, SchemeId("ProjectDelivery") -> Amber)
+          HumanResources -> Red, ProjectDelivery -> Amber)
 
         applicationReEvaluationWithSettings(
-          (SchemeId("ProjectDelivery"), 50, 50, 50, 50))
+          (ProjectDelivery, 50, 50, 50, 50))
         mustResultIn(PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED),
-          SchemeId("HumanResources") -> Red, SchemeId("ProjectDelivery") -> Green)
+          HumanResources -> Red, ProjectDelivery -> Green)
       }
     }
 
     "result in failed results on re-evaluation of applicant in amber when failmarks are increased" in new TestFixture {
       phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
-        List(SchemeEvaluationResult(SchemeId("DiplomaticAndDevelopmentEconomics"), Green.toString),
-          SchemeEvaluationResult(SchemeId("DiplomaticServiceEuropean"), Green.toString)),
+        List(SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, Green.toString),
+          SchemeEvaluationResult(PolicyStrategyAndGovernmentAdministration, Green.toString)),
         "phase1-version1-res", None)
 
       applicationEvaluation("application-1", 40, 40,
-        SchemeId("DiplomaticAndDevelopmentEconomics"), SchemeId("DiplomaticServiceEuropean")) mustResultIn(
+        DiplomaticAndDevelopmentEconomics, PolicyStrategyAndGovernmentAdministration) mustResultIn(
         PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED),
-        SchemeId("DiplomaticAndDevelopmentEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
+        DiplomaticAndDevelopmentEconomics -> Amber, PolicyStrategyAndGovernmentAdministration -> Amber)
 
       applicationReEvaluationWithSettings(
-        (SchemeId("DiplomaticAndDevelopmentEconomics"), 41, 41, 41, 41),
-        (SchemeId("DiplomaticServiceEuropean"), 41, 41, 41, 41)
+        (DiplomaticAndDevelopmentEconomics,         41, 41, 41, 41),
+        (PolicyStrategyAndGovernmentAdministration, 41, 41, 41, 41)
       ) mustResultIn(PHASE2_TESTS_FAILED, Some(ProgressStatuses.PHASE2_TESTS_FAILED),
-        SchemeId("DiplomaticAndDevelopmentEconomics") -> Red, SchemeId("DiplomaticServiceEuropean") -> Red)
+        DiplomaticAndDevelopmentEconomics -> Red, PolicyStrategyAndGovernmentAdministration -> Red)
     }
 
     "leave applicants in amber on re-evaluation when passmarks and failmarks are changed but within the amber range" in new TestFixture {
       phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
-        List(SchemeEvaluationResult(SchemeId("DiplomaticAndDevelopmentEconomics"), Green.toString),
-          SchemeEvaluationResult(SchemeId("DiplomaticServiceEuropean"), Green.toString)),
+        List(SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, Green.toString),
+          SchemeEvaluationResult(PolicyStrategyAndGovernmentAdministration, Green.toString)),
         "phase1-version1-res", None)
 
       applicationEvaluation("application-1", 40, 40,
-        SchemeId("DiplomaticAndDevelopmentEconomics"), SchemeId("DiplomaticServiceEuropean")) mustResultIn(
+        DiplomaticAndDevelopmentEconomics, PolicyStrategyAndGovernmentAdministration) mustResultIn(
         PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED),
-        SchemeId("DiplomaticAndDevelopmentEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
+        DiplomaticAndDevelopmentEconomics -> Amber, PolicyStrategyAndGovernmentAdministration -> Amber)
 
       applicationReEvaluationWithSettings(
-        (SchemeId("DiplomaticAndDevelopmentEconomics"), 35, 45, 35, 45),
-        (SchemeId("DiplomaticServiceEuropean"), 35, 45, 35, 45)
+        (DiplomaticAndDevelopmentEconomics,         35, 45, 35, 45),
+        (PolicyStrategyAndGovernmentAdministration, 35, 45, 35, 45)
       ) mustResultIn(PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED),
-        SchemeId("DiplomaticAndDevelopmentEconomics") -> Amber, SchemeId("DiplomaticServiceEuropean") -> Amber)
+        DiplomaticAndDevelopmentEconomics -> Amber, PolicyStrategyAndGovernmentAdministration -> Amber)
     }
   }
 }

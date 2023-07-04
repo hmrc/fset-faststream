@@ -192,7 +192,7 @@ object CreateCandidateData extends DataFakerRandom {
     assessorDetails: Option[AssessorData] = None
   ) extends CreateTestData
 
-  object CreateCandidateData {
+  object CreateCandidateData extends Schemes {
     def apply(psiUrlFromConfig: String, request: CreateCandidateRequest, dataFaker: DataFaker)(generatorId: Int): CreateCandidateData = {
       val statusData = StatusData(request.statusData)
 
@@ -213,11 +213,11 @@ object CreateCandidateData extends DataFakerRandom {
 
       val schemeTypes = progressStatusMaybe.map(progressStatus => {
         if (ProgressStatuses.ProgressStatusOrder.isEqualOrAfter(progressStatus, ProgressStatuses.SCHEME_PREFERENCES).getOrElse(false)) {
-          val defaultSchemes = List(SchemeId("Commercial"), SchemeId("Finance"))
+          val defaultSchemes = List(Commercial, Finance)
           request.statusData.applicationRoute match {
-            case Some("Sdip") => List(SchemeId("Sdip"))
-            case Some("Edip") => List(SchemeId("Edip"))
-            case Some("SdipFaststream") => request.schemeTypes.getOrElse(defaultSchemes) ++ List(SchemeId("Sdip"))
+            case Some("Sdip") => List(Sdip)
+            case Some("Edip") => List(Edip)
+            case Some("SdipFaststream") => request.schemeTypes.getOrElse(defaultSchemes) ++ List(Sdip)
             case _ => request.schemeTypes.getOrElse(defaultSchemes)
           }
         } else {

@@ -39,7 +39,6 @@ import services.TimeZoneService2
 import uk.gov.hmrc.mongo.MongoComponent
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
 
 trait ReportingRepository {
   def adjustmentReport(frameworkId: String): Future[Seq[AdjustmentReportItem]]
@@ -77,7 +76,7 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2, // 
     mongoComponent = mongo,
     domainFormat = CreateApplicationRequest.createApplicationRequestFormat,
     indexes = Nil
-  ) with ReportingRepository with ReportingRepoBSONReader with ReactiveRepositoryHelpers {
+  ) with ReportingRepository with ReportingRepoBSONReader with ReactiveRepositoryHelpers with Schemes {
 
   override def candidateProgressReportNotWithdrawn(frameworkId: String): Future[Seq[CandidateProgressReportItem]] =
     candidateProgressReport(BsonDocument("$and" -> BsonArray(
@@ -152,8 +151,8 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2, // 
         BsonDocument("frameworkId" -> frameworkId),
         BsonDocument(s"progress-status.${ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED}" -> true),
         BsonDocument("$or" -> BsonArray(
-          BsonDocument(firstSchemePreference -> SchemeId("GovernmentOperationalResearchService").value),
-          BsonDocument(firstSchemePreference -> SchemeId("GovernmentStatisticalService").value)
+          BsonDocument(firstSchemePreference -> GovernmentOperationalResearchService.value),
+          BsonDocument(firstSchemePreference -> GovernmentStatisticalService.value)
         ))
       ))
 

@@ -32,43 +32,40 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
 
   val collectionName: String = CollectionNames.APPLICATION
 
-  val Commercial: SchemeId = SchemeId("Commercial")
-  val Generalist: SchemeId = SchemeId("Generalist")
-  val ProjectDelivery = SchemeId("Project Delivery")
-
   "next Application for assessment centre" must {
     "return applications from phase 1, 3 and sift stages" in {
+
       insertApplicationWithPhase3TestNotifiedResults("appId1",
-        List(SchemeEvaluationResult(SchemeId("HumanResources"), EvaluationResults.Green.toString))).futureValue
+        List(SchemeEvaluationResult(HumanResources, EvaluationResults.Green.toString))).futureValue
 
       insertApplicationWithPhase3TestNotifiedResults("appId2",
-        List(SchemeEvaluationResult(SchemeId("GovernmentEconomicsService"), EvaluationResults.Green.toString))).futureValue
+        List(SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Green.toString))).futureValue
       updateApplicationStatus("appId2", ApplicationStatus.PHASE3_TESTS_PASSED)
 
       insertApplicationWithPhase3TestNotifiedResults("appId3",
-        List(SchemeEvaluationResult(SchemeId("GovernmentEconomicsService"), EvaluationResults.Green.toString))).futureValue
+        List(SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Green.toString))).futureValue
       updateApplicationStatus("appId3", ApplicationStatus.PHASE3_TESTS_FAILED)
 
       insertApplicationWithPhase3TestNotifiedResults("appId4",
-        List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toString))).futureValue
+        List(SchemeEvaluationResult(Property, EvaluationResults.Green.toString))).futureValue
 
       insertApplicationWithPhase3TestNotifiedResults("appId5",
-        List(SchemeEvaluationResult(SchemeId("DiplomaticAndDevelopment"), EvaluationResults.Green.toString))).futureValue
+        List(SchemeEvaluationResult(DiplomaticAndDevelopment, EvaluationResults.Green.toString))).futureValue
 
       insertApplicationWithPhase3TestNotifiedResults("appId6",
-        List(SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Red.toString))).futureValue
+        List(SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Red.toString))).futureValue
 
       insertApplicationWithPhase3TestNotifiedResults("appId7",
-        List(SchemeEvaluationResult(SchemeId("Digital and technology"), EvaluationResults.Green.toString))).futureValue
+        List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Green.toString))).futureValue
 
       whenReady(assessmentCentreRepository.nextApplicationForAssessmentCentre(10)) { appsForAc =>
         appsForAc must contain theSameElementsAs Seq(
           ApplicationForProgression("appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-            List(SchemeEvaluationResult(SchemeId("HumanResources"), EvaluationResults.Green.toString))),
+            List(SchemeEvaluationResult(HumanResources, EvaluationResults.Green.toString))),
           ApplicationForProgression("appId4", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-            List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Green.toString))),
+            List(SchemeEvaluationResult(Property, EvaluationResults.Green.toString))),
           ApplicationForProgression("appId7", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-            List(SchemeEvaluationResult(SchemeId("Digital and technology"), EvaluationResults.Green.toString)))
+            List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Green.toString)))
         )
         appsForAc.length mustBe 3
       }
@@ -77,14 +74,14 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     "return no results when there are only phase 3 applications that aren't in Passed_Notified which don't apply for sift or don't have " +
       "Green/Passed results" in {
       insertApplicationWithPhase3TestNotifiedResults("appId7",
-        List(SchemeEvaluationResult(SchemeId("GovernmentEconomicsService"), EvaluationResults.Green.toString))).futureValue
+        List(SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Green.toString))).futureValue
       insertApplicationWithPhase3TestNotifiedResults("appId8",
-        List(SchemeEvaluationResult(SchemeId("Generalist"), EvaluationResults.Green.toString))).futureValue
+        List(SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString))).futureValue
       updateApplicationStatus("appId8", ApplicationStatus.PHASE3_TESTS_FAILED)
       insertApplicationWithPhase3TestNotifiedResults("appId9",
-        List(SchemeEvaluationResult(SchemeId("GovernmentEconomicsService"), EvaluationResults.Green.toString))).futureValue
+        List(SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Green.toString))).futureValue
       insertApplicationWithPhase3TestNotifiedResults("appId10",
-        List(SchemeEvaluationResult(SchemeId("Project Delivery"), EvaluationResults.Red.toString))).futureValue
+        List(SchemeEvaluationResult(ProjectDelivery, EvaluationResults.Red.toString))).futureValue
 
       whenReady(assessmentCentreRepository.nextApplicationForAssessmentCentre(10)) { appsForAc =>
         appsForAc mustBe Nil
@@ -96,21 +93,21 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     "ignore candidates who only have Sdip/Edip green at the end of sifting" in {
       insertApplicationWithSiftCompleted("appId1",
         List(SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString),
-          SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
+          SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Red.toString),
           SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Red.toString)))
       insertApplicationWithSiftCompleted("appId2",
         List(SchemeEvaluationResult(Edip, EvaluationResults.Green.toString),
-          SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
+          SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Red.toString),
           SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Red.toString)))
       insertApplicationWithSiftCompleted("appId3",
-        List(SchemeEvaluationResult(SchemeId("Finance"), EvaluationResults.Green.toString),
-          SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
+        List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString),
+          SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Red.toString),
           SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Green.toString)))
 
       whenReady(assessmentCentreRepository.nextApplicationForAssessmentCentre(1)) { result =>
         result mustBe ApplicationForProgression("appId3", ApplicationStatus.SIFT,
           List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString),
-            SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
+            SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Red.toString),
             SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Green.toString))
         ) :: Nil
       }
@@ -118,8 +115,8 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
 
     "progress candidates who have completed the sift phase" in {
       insertApplicationWithSiftCompleted("appId11",
-        List(SchemeEvaluationResult(SchemeId("Finance"), EvaluationResults.Green.toString),
-          SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
+        List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString),
+          SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Red.toString),
           SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Green.toString)))
 
 
@@ -127,7 +124,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
       nextResults mustBe List(
         ApplicationForProgression("appId11", ApplicationStatus.SIFT,
           List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString),
-            SchemeEvaluationResult(Generalist, EvaluationResults.Red.toString),
+            SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Red.toString),
             SchemeEvaluationResult(GovernmentEconomicsService, EvaluationResults.Green.toString))
         )
       )
@@ -323,7 +320,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
 
       val schemeEvaluationResult = Seq(
         SchemeEvaluationResult("Commercial", Green.toString),
-        SchemeEvaluationResult("Generalist", Green.toString)
+        SchemeEvaluationResult("OperationalDelivery", Green.toString)
       )
 
       assessmentCentreRepository.saveAssessmentScoreEvaluation(
@@ -434,13 +431,13 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
             ),
             Seq(
               SchemeEvaluationResult("Commercial", Green.toString),
-              SchemeEvaluationResult("Generalist", Red.toString)
+              SchemeEvaluationResult("OperationalDelivery", Red.toString)
             )
           )
         ),
         Seq(
           SchemeEvaluationResult("Commercial", Green.toString),
-          SchemeEvaluationResult("Generalist", Red.toString)
+          SchemeEvaluationResult("OperationalDelivery", Red.toString)
         )
       ).futureValue
 
@@ -449,7 +446,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
         guid,
         Seq(
           SchemeEvaluationResult("Commercial", Green.toString),
-          SchemeEvaluationResult("Generalist", Red.toString)
+          SchemeEvaluationResult("OperationalDelivery", Red.toString)
         )
       ))
     }
@@ -468,13 +465,13 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
             ),
             Seq(
               SchemeEvaluationResult("Commercial", Green.toString),
-              SchemeEvaluationResult("Generalist", Amber.toString)
+              SchemeEvaluationResult("OperationalDelivery", Amber.toString)
             )
           )
         ),
         Seq(
           SchemeEvaluationResult("Commercial", Green.toString),
-          SchemeEvaluationResult("Generalist", Amber.toString)
+          SchemeEvaluationResult("OperationalDelivery", Amber.toString)
         )
       ).futureValue
 

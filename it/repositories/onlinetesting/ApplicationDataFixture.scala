@@ -2,7 +2,7 @@ package repositories.onlinetesting
 
 import factories.ITDateTimeFactoryMock
 import model.ProgressStatuses.ProgressStatus
-import model.SchemeId
+import model.{SchemeId, Schemes}
 import model.persisted.phase3tests.Phase3TestGroup
 import model.persisted.{Phase1TestProfile, Phase2TestGroup, SchemeEvaluationResult}
 import org.mongodb.scala.MongoCollection
@@ -13,7 +13,7 @@ import repositories.CollectionNames
 import repositories.application.GeneralApplicationMongoRepository
 import testkit.MongoRepositorySpec
 
-trait ApplicationDataFixture {
+trait ApplicationDataFixture extends Schemes {
   this: MongoRepositorySpec =>
 
   override val collectionName: String = CollectionNames.APPLICATION
@@ -174,9 +174,6 @@ trait ApplicationDataFixture {
   // scalastyle:on method.length
   // scalastyle:on parameter.number
 
-  val Commercial = SchemeId("Commercial")
-  val Edip = SchemeId("Edip")
-  val Finance = SchemeId("Finance")
   private def schemes: Document = Document("schemes" -> Codecs.toBson(List(Commercial, Edip, Finance)))
 
   private def testGroups(p1: Option[Phase1TestProfile], p2: Option[Phase2TestGroup], p3: Option[Phase3TestGroup]): Document = {

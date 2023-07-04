@@ -55,7 +55,7 @@ class Phase1TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongo: Mon
     mongoComponent = mongo,
     domainFormat = Phase1TestProfile.phase1TestProfileFormat,
     indexes = Nil
-  ) with Phase1TestRepository {
+  ) with Phase1TestRepository with Schemes {
 
   override val phaseName = "PHASE1"
   override val thisApplicationStatus: ApplicationStatus = ApplicationStatus.PHASE1_TESTS
@@ -103,7 +103,7 @@ class Phase1TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongo: Mon
         Document(s"progress-status.${SuccessfulSdipFsTestType.progressStatus}" -> Document("$ne" -> true))
       )),
       Document("testGroups.PHASE1.evaluation.result" -> Document("$elemMatch" ->
-        Document("schemeId" -> SchemeId("Sdip").toBson,
+        Document("schemeId" -> Sdip.toBson,
           "result" -> Document("$in" -> List(Green.toString, Red.toString)))))
     ))
     collection.find[Document](query).headOption() map {

@@ -11,8 +11,6 @@ class SiftAnswersRepositorySpec extends MongoRepositorySpec with ScalaFutures wi
 
   val collectionName: String = CollectionNames.SIFT_ANSWERS
 
-  val Commercial: SchemeId = SchemeId("Commercial")
-
   def repository: SiftAnswersMongoRepository = siftAnswersRepository
 
   "sift answers repository" should {

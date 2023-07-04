@@ -64,7 +64,7 @@ class ProgressionToFsbOrOfferServiceSpec extends ScalaMockUnitSpec {
 
         // Mock no arg method, which returns data
         (mockSchemeRepository.fsbSchemeIds _).expects().returning(
-          Seq(SchemeId("DigitalDataTechnologyAndCyber"), SchemeId("DiplomaticAndDevelopment"), SchemeId("GovernmentStatisticalService")))
+          Seq(DigitalDataTechnologyAndCyber, DiplomaticAndDevelopment, GovernmentStatisticalService))
 
         (mockEmailClient.sendCandidateAssessmentCompletedMovedToFsb(_: String, _: String)(_: HeaderCarrier, _: ExecutionContext))
           .expects(candidate1.email, candidate0.name, hc, global)
@@ -95,7 +95,7 @@ class ProgressionToFsbOrOfferServiceSpec extends ScalaMockUnitSpec {
 
         // Mock no arg method, which returns data
         (mockSchemeRepository.fsbSchemeIds _).expects().returning(
-          Seq(SchemeId("DigitalDataTechnologyAndCyber"), SchemeId("DiplomaticAndDevelopment"), SchemeId("GovernmentStatisticalService")))
+          Seq(DigitalDataTechnologyAndCyber, DiplomaticAndDevelopment, GovernmentStatisticalService))
 
         (mockFsbRepository.progressToJobOffer _)
           .expects(expectedApplication)
@@ -142,7 +142,7 @@ class ProgressionToFsbOrOfferServiceSpec extends ScalaMockUnitSpec {
     }
   }
 
-  trait TestFixture  {
+  trait TestFixture extends Schemes {
     val mockSchemeRepository = mock[SchemeRepository]
     val mockApplicationRepository = mock[GeneralApplicationRepository]
     val mockContactDetailsRepo = mock[ContactDetailsRepository]
@@ -185,38 +185,38 @@ class ProgressionToFsbOrOfferServiceSpec extends ScalaMockUnitSpec {
     val candidate1 = ContactDetails(outsideUk = false, Address("line1a"), Some("123"), Some("UK"), "email1@email.com", "12345")
     val applicationsToProgressToFsb = List(
       ApplicationForProgression("appId1", ApplicationStatus.ASSESSMENT_CENTRE,
-        List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), EvaluationResults.Green.toString))),
+        List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Green.toString))),
       ApplicationForProgression("appId2", ApplicationStatus.ASSESSMENT_CENTRE,
-        List(SchemeEvaluationResult(SchemeId("DiplomaticAndDevelopment"), EvaluationResults.Green.toString))),
+        List(SchemeEvaluationResult(DiplomaticAndDevelopment, EvaluationResults.Green.toString))),
       ApplicationForProgression("appId3", ApplicationStatus.ASSESSMENT_CENTRE,
-        List(SchemeEvaluationResult(SchemeId("GovernmentStatisticalService"), EvaluationResults.Green.toString)))
+        List(SchemeEvaluationResult(GovernmentStatisticalService, EvaluationResults.Green.toString)))
     )
 
     val applicationsToProgressToJobOffer = List(
       ApplicationForProgression("appId1", ApplicationStatus.ASSESSMENT_CENTRE,
-        List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))),
+        List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString))),
       ApplicationForProgression("appId2", ApplicationStatus.ASSESSMENT_CENTRE,
-        List(SchemeEvaluationResult(SchemeId("International"), EvaluationResults.Green.toString))),
+        List(SchemeEvaluationResult(Property, EvaluationResults.Green.toString))),
       ApplicationForProgression("appId3", ApplicationStatus.ASSESSMENT_CENTRE,
-        List(SchemeEvaluationResult(SchemeId("Finance"), EvaluationResults.Green.toString)))
+        List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString)))
     )
 
     val applicationsNotToProgress = List(
       ApplicationForProgression("appId1", ApplicationStatus.ASSESSMENT_CENTRE,
-        List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), EvaluationResults.Red.toString))),
+        List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Red.toString))),
       ApplicationForProgression("appId2", ApplicationStatus.ASSESSMENT_CENTRE,
-        List(SchemeEvaluationResult(SchemeId("International"), EvaluationResults.Amber.toString))),
+        List(SchemeEvaluationResult(Property, EvaluationResults.Amber.toString))),
       ApplicationForProgression("appId3", ApplicationStatus.ASSESSMENT_CENTRE,
-        List(SchemeEvaluationResult(SchemeId("Finance"), EvaluationResults.Red.toString)))
+        List(SchemeEvaluationResult(Finance, EvaluationResults.Red.toString)))
     )
 
     val schemes = List(
-      SchemeId("DigitalDataTechnologyAndCyber"),
-      SchemeId("DiplomaticAndDevelopment"),
-      SchemeId("GovernmentStatisticalService"),
-      SchemeId("Commercial"),
-      SchemeId("International"),
-      SchemeId("Finance")
+      DigitalDataTechnologyAndCyber,
+      DiplomaticAndDevelopment,
+      GovernmentStatisticalService,
+      Commercial,
+      Property,
+      Finance
     )
 
     val selectedSchemes = SelectedSchemes(schemes, orderAgreed = true, eligible = true)

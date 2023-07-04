@@ -60,7 +60,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
                                              appConfig: MicroserviceAppConfig,
                                              uuidFactory: UUIDFactory,
                                              dataFaker: DataFaker
-                                            ) extends BackendController(cc) with Logging {
+                                            ) extends BackendController(cc) with Logging with Schemes {
 
   implicit val ec = cc.executionContext
 
@@ -120,7 +120,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
         assessmentCentreAdjustments = Some(true),
         assessmentCentreAdjustmentsDescription = Some(dataFaker.assessmentCentreAdjustmentDescription)
       )),
-      schemeTypes = Some(List(SchemeId("Commercial"), SchemeId("European"), SchemeId("DigitalDataTechnologyAndCyber"))),
+      schemeTypes = Some(List(Commercial, DigitalDataTechnologyAndCyber)),
       isCivilServant = Some(random.bool),
       civilServantAndInternshipTypes = None,
       hasFastPass = Some(false),
@@ -177,7 +177,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
       phone = Some("123456789"),
       assessor = Some(AssessorRequest(
         skills = Some(List("ASSESSOR", "QUALITY_ASSURANCE_COORDINATOR")),
-        sifterSchemes = Some(List(SchemeId("GovernmentEconomicsService"), SchemeId("ProjectDelivery"), SchemeId("Sdip"))),
+        sifterSchemes = Some(List(GovernmentEconomicsService, ProjectDelivery, Sdip)),
         civilServant = Some(true),
         availability = Some(Set(
           AssessorAvailabilityRequest("London", LocalDate.now()),

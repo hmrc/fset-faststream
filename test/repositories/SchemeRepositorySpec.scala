@@ -18,7 +18,7 @@ package repositories
 
 import config.{MicroserviceAppConfig, SchemeConfig}
 import model.Exceptions.SchemeNotFoundException
-import model.{FsbType, SchemeId}
+import model.{FsbType, SchemeId, Schemes}
 import org.mockito.Mockito.when
 import testkit.UnitWithAppSpec
 
@@ -35,9 +35,9 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
     }
 
     "return the scheme for the given fsb" in new TestFixture {
-      repo.getSchemeForFsb("CFS - Skype interview").id mustBe SchemeId("Commercial")
-      repo.getSchemeForFsb("FCO").id mustBe SchemeId("DiplomaticAndDevelopment")
-      repo.getSchemeForFsb("HOP FSB").id mustBe SchemeId("HousesOfParliament")
+      repo.getSchemeForFsb("CFS - Skype interview").id mustBe Commercial
+      repo.getSchemeForFsb("FCO").id mustBe DiplomaticAndDevelopment
+      repo.getSchemeForFsb("HOP FSB").id mustBe HousesOfParliament
     }
 
     "return the faststream schemes" in new TestFixture {
@@ -45,24 +45,24 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
     }
 
     "return the schemes for the given scheme ids" in new TestFixture {
-      repo.getSchemesForIds(Seq(SchemeId("Commercial"), SchemeId("Generalist"))).size mustBe 2
+      repo.getSchemesForIds(Seq(Commercial, OperationalDelivery)).size mustBe 2
     }
 
     "return the scheme for the given scheme id" in new TestFixture {
-      val schemeOpt = repo.getSchemeForId(SchemeId("Commercial"))
+      val schemeOpt = repo.getSchemeForId(Commercial)
       schemeOpt mustBe defined
       schemeOpt.map(_.code) mustBe Some("CFS")
     }
 
     "return fsb schemes" in new TestFixture {
       val expectedFsbSchemes = Seq(
-        SchemeId("Commercial"), SchemeId("DiplomaticAndDevelopment"),
-        SchemeId("DiplomaticAndDevelopmentEconomics"), SchemeId("GovernmentCommunicationService"),
-        SchemeId("GovernmentEconomicsService"), SchemeId("GovernmentOperationalResearchService"),
-        SchemeId("GovernmentSocialResearchService"), SchemeId("GovernmentStatisticalService"),
-        SchemeId("HousesOfParliament"), SchemeId("ProjectDelivery"),
-        SchemeId("Property"), SchemeId("ScienceAndEngineering"),
-        SchemeId("Edip"), SchemeId("Sdip")
+        Commercial, DiplomaticAndDevelopment,
+        DiplomaticAndDevelopmentEconomics, GovernmentCommunicationService,
+        GovernmentEconomicsService, GovernmentOperationalResearchService,
+        GovernmentSocialResearchService, GovernmentStatisticalService,
+        HousesOfParliament, OperationalDelivery, ProjectDelivery,
+        Property, ScienceAndEngineering,
+        Edip, Sdip
       )
       val fsbSchemes = repo.fsbSchemeIds
       fsbSchemes must contain theSameElementsAs(expectedFsbSchemes)
@@ -70,13 +70,13 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
 
     "return siftable schemes" in new TestFixture {
       val expectedSiftableSchemes = Seq(
-        SchemeId("DiplomaticAndDevelopment"),
-        SchemeId("DiplomaticAndDevelopmentEconomics"), SchemeId("GovernmentCommunicationService"),
-        SchemeId("GovernmentEconomicsService"), SchemeId("GovernmentOperationalResearchService"),
-        SchemeId("GovernmentSocialResearchService"), SchemeId("GovernmentStatisticalService"),
-        SchemeId("HousesOfParliament"), SchemeId("ProjectDelivery"),
-        SchemeId("ScienceAndEngineering"),
-        SchemeId("Edip"), SchemeId("Sdip")
+        DiplomaticAndDevelopment,
+        DiplomaticAndDevelopmentEconomics, GovernmentCommunicationService,
+        GovernmentEconomicsService, GovernmentOperationalResearchService,
+        GovernmentSocialResearchService, GovernmentStatisticalService,
+        HousesOfParliament, ProjectDelivery,
+        ScienceAndEngineering,
+        Edip, Sdip
       )
       val siftableSchemes = repo.siftableSchemeIds
       siftableSchemes must contain theSameElementsAs(expectedSiftableSchemes)
@@ -84,9 +84,9 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
 
     "return siftable and evaluation required schemes" in new TestFixture {
       val expectedSiftableAndEvaluationRequiredSchemes = Seq(
-        SchemeId("DiplomaticAndDevelopmentEconomics"), SchemeId("GovernmentEconomicsService"),
-        SchemeId("GovernmentOperationalResearchService"), SchemeId("GovernmentSocialResearchService"),
-        SchemeId("GovernmentStatisticalService"), SchemeId("ScienceAndEngineering")
+        DiplomaticAndDevelopmentEconomics, GovernmentEconomicsService,
+        GovernmentOperationalResearchService, GovernmentSocialResearchService,
+        GovernmentStatisticalService, ScienceAndEngineering
       )
       val siftableSchemes = repo.siftableAndEvaluationRequiredSchemeIds
       siftableSchemes must contain theSameElementsAs(expectedSiftableAndEvaluationRequiredSchemes)
@@ -94,12 +94,12 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
 
     "return no sift evaluation required scheme ids" in new TestFixture {
       val expected = Seq(
-        SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber"),
-        SchemeId("DiplomaticAndDevelopment"), SchemeId("Finance"),
-        SchemeId("Generalist"), SchemeId("GeneralistSTEM"), SchemeId("GovernmentCommunicationService"),
-        SchemeId("HousesOfParliament"), SchemeId("HumanResources"),
-        SchemeId("ProjectDelivery"), SchemeId("Property"),
-        SchemeId("Edip"), SchemeId("Sdip")
+        Commercial, DigitalDataTechnologyAndCyber,
+        DiplomaticAndDevelopment, Finance,
+        GovernmentCommunicationService,
+        HousesOfParliament, HumanResources, OperationalDelivery,
+        ProjectDelivery, Property, PolicyStrategyAndGovernmentAdministration,
+        Edip, Sdip
       )
       val actual = repo.noSiftEvaluationRequiredSchemeIds
       actual must contain theSameElementsAs(expected)
@@ -108,9 +108,9 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
     "return non siftable schemes" in new TestFixture {
       repo.nonSiftableSchemeIds must contain theSameElementsAs
         Seq(
-          SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber"),
-          SchemeId("Finance"), SchemeId("Generalist"),
-          SchemeId("GeneralistSTEM"), SchemeId("HumanResources"), SchemeId("Property")
+          Commercial, DigitalDataTechnologyAndCyber,
+          Finance, OperationalDelivery,
+          HumanResources, Property, PolicyStrategyAndGovernmentAdministration
         )
     }
 
@@ -121,13 +121,13 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
 
     "return form must be filled in sift schemes" in new TestFixture {
       val expectedFormMustBeFilledInSiftableSchemes = Seq(
-        SchemeId("DiplomaticAndDevelopment"), SchemeId("DiplomaticAndDevelopmentEconomics"),
-        SchemeId("GovernmentCommunicationService"), SchemeId("GovernmentEconomicsService"),
-        SchemeId("GovernmentOperationalResearchService"), SchemeId("GovernmentSocialResearchService"),
-        SchemeId("GovernmentStatisticalService"),
-        SchemeId("HousesOfParliament"), SchemeId("ProjectDelivery"),
-        SchemeId("ScienceAndEngineering"),
-        SchemeId("Edip"), SchemeId("Sdip")
+        DiplomaticAndDevelopment, DiplomaticAndDevelopmentEconomics,
+        GovernmentCommunicationService, GovernmentEconomicsService,
+        GovernmentOperationalResearchService, GovernmentSocialResearchService,
+        GovernmentStatisticalService,
+        HousesOfParliament, ProjectDelivery,
+        ScienceAndEngineering,
+        Edip, Sdip
       )
       val formMustBeFilledInSiftSchemes = repo.formMustBeFilledInSchemeIds
       formMustBeFilledInSiftSchemes must contain theSameElementsAs(expectedFormMustBeFilledInSiftableSchemes)
@@ -138,6 +138,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         FsbType("CFS - Skype interview"), FsbType("FCO"), FsbType("GES_DS"),
         FsbType("GCFS FSB"), FsbType("EAC"), FsbType("ORAC"),
         FsbType("SRAC"), FsbType("SAC"), FsbType("HOP FSB"),
+        FsbType("OPD - Skype interview"),
         FsbType("PDFS - Skype interview"), FsbType("PRO - Skype interview"),
         FsbType("SEFS FSB"), FsbType("EDIP - Telephone interview"), FsbType("SDIP - Telephone interview")
       )
@@ -146,12 +147,12 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
     }
 
     "identify valid schemeIds" in new TestFixture {
-      repo.isValidSchemeId(SchemeId("Commercial")) mustBe true
+      repo.isValidSchemeId(Commercial) mustBe true
       repo.isValidSchemeId(SchemeId("IDontExist")) mustBe false
     }
   }
 
-  trait TestFixture {
+  trait TestFixture extends Schemes {
     val appConfigMock = mock[MicroserviceAppConfig]
 
     val schemeConfig = SchemeConfig(yamlFilePath = "schemes.yaml")

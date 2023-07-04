@@ -168,7 +168,9 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
           } else {
             logger.info(s"$prefix Tests are not restricted so all tests will run")
           }
+          logger.info(s"$prefix")
           logger.info(s"$prefix Now running test case $testName...")
+          logger.info(s"$prefix")
           logTestData(t)
           val appId = t.scores.applicationId.toString()
           createApplicationInDb(appId).futureValue

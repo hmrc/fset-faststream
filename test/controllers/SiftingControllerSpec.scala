@@ -18,7 +18,7 @@ package controllers
 
 import model.exchange.ApplicationSifting
 import model.persisted.SchemeEvaluationResult
-import model.{ Candidate, CandidateExamples, SchemeId }
+import model.{Candidate, CandidateExamples, SchemeId, Schemes}
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import play.api.libs.json.Json
@@ -28,12 +28,10 @@ import testkit.UnitWithAppSpec
 
 import scala.concurrent.Future
 
-class SiftingControllerSpec extends UnitWithAppSpec {
+class SiftingControllerSpec extends UnitWithAppSpec with Schemes {
   val mockSiftService = mock[ApplicationSiftService]
 
   val controller = new SiftingController(stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)), mockSiftService)
-
-  private val Commercial = SchemeId("Commercial")
 
   "findApplicationsReadyForSifting" should {
     "return list of candidates" in {
@@ -56,4 +54,3 @@ class SiftingControllerSpec extends UnitWithAppSpec {
     }
   }
 }
-

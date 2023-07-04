@@ -38,7 +38,7 @@ import testkit.ScalaMockUnitSpec
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
+class AssessmentCentreServiceSpec extends ScalaMockUnitSpec with Schemes {
 
   "progress candidates to assessment centre" must {
     "progress candidates to assessment centre, attempting all despite errors" in new TestFixture {
@@ -89,7 +89,6 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
 
   "next assessment candidate" should {
     "return an assessment candidate score with application Id" in new ReturnPassMarksFixture {
-      val commercialScheme = SchemeId(commercial)
       (mockAssessmentCentreRepo.nextApplicationReadyForAssessmentScoreEvaluation _)
         .expects(*, *)
         .returning(Future.successful(List(applicationId)))
@@ -100,23 +99,22 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
 
       (mockAppRepo.getCurrentSchemeStatus _)
         .expects(*)
-        .returning(Future.successful(List(SchemeEvaluationResult(schemeId = commercialScheme, result = Green.toString))))
+        .returning(Future.successful(List(SchemeEvaluationResult(schemeId = Commercial, result = Green.toString))))
 
       val results = service.nextAssessmentCandidatesReadyForEvaluation(batchSize).futureValue
 
       results must not be empty
       results.foreach { result =>
         result.passmark mustBe passMarkSettings
-        result.schemes mustBe List(commercialScheme)
+        result.schemes mustBe List(Commercial)
         result.scores.applicationId mustBe applicationId
       }
     }
 
     "withdrawn schemes should be not be evaluated" in new ReturnPassMarksFixture {
-      val commercialScheme = SchemeId(commercial)
-      val datScheme = SchemeId(digitalDataTechnologyAndCyber)
+      val datScheme = DigitalDataTechnologyAndCyber
       val currentSchemeStatus = List(
-        SchemeEvaluationResult(schemeId = commercialScheme, result = Green.toString),
+        SchemeEvaluationResult(schemeId = Commercial, result = Green.toString),
         SchemeEvaluationResult(schemeId = datScheme, result = Withdrawn.toString)
       )
       (mockAssessmentCentreRepo.nextApplicationReadyForAssessmentScoreEvaluation _)
@@ -136,14 +134,14 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
       results must not be empty
       results.foreach { result =>
         result.passmark mustBe passMarkSettings
-        result.schemes mustBe List(commercialScheme)
+        result.schemes mustBe List(Commercial)
         result.scores.applicationId mustBe applicationId
       }
     }
 
     "sdip scheme should be not be evaluated for sdip faststream candidates" in new ReturnPassMarksFixture {
-      val sdipScheme = SchemeId(sdip)
-      val datScheme = SchemeId(digitalDataTechnologyAndCyber)
+      val sdipScheme = Sdip
+      val datScheme = DigitalDataTechnologyAndCyber
       val currentSchemeStatus = List(
         SchemeEvaluationResult(schemeId = sdipScheme, result = Green.toString),
         SchemeEvaluationResult(schemeId = datScheme, result = Green.toString)
@@ -192,9 +190,9 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
   "evaluate assessment scores" should {
     "write back schemes that have failed in a previous evaluation and sdip scheme and current status amber updated to green" in new TestFixture {
       // The current scheme status (the common area that represents the current status of each scheme)
-      val currentSchemeStatus = List(SchemeEvaluationResult(SchemeId(commercial), Amber.toString),
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), Red.toString),
-        SchemeEvaluationResult(SchemeId(sdip), Green.toString))
+      val currentSchemeStatus = List(SchemeEvaluationResult(Commercial, Amber.toString),
+        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Red.toString),
+        SchemeEvaluationResult(Sdip, Green.toString))
       (mockAppRepo.getCurrentSchemeStatus _)
         .expects(applicationId.toString())
         .returning(Future.successful(currentSchemeStatus))
@@ -203,12 +201,12 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
       (mockAssessmentCentreRepo.getFsacEvaluatedSchemes _)
         .expects(applicationId.toString())
         .returningAsync(Some(Seq(
-          SchemeEvaluationResult(SchemeId(commercial), Amber.toString),
-          SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), Red.toString)))
+          SchemeEvaluationResult(Commercial, Amber.toString),
+          SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Red.toString)))
         )
 
       // This is the result of current evaluation (excludes failed schemes, withdrawn schemes and sdip from previous evaluation)
-      val schemeEvaluationResult = List(SchemeEvaluationResult(SchemeId(commercial), Green.toString))
+      val schemeEvaluationResult = List(SchemeEvaluationResult(Commercial, Green.toString))
       val evaluationResult = AssessmentEvaluationResult(fsacResults, schemeEvaluationResult)
 
       (mockEvaluationEngine.evaluate _)
@@ -223,13 +221,13 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         .expects(applicationId.toString(), ASSESSMENT_CENTRE_PASSED)
         .returning(Future.successful(()))
 
-      val newSchemeStatus = List(SchemeEvaluationResult(SchemeId(commercial), Green.toString),
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), Red.toString),
-        SchemeEvaluationResult(SchemeId(sdip), Green.toString))
+      val newSchemeStatus = List(SchemeEvaluationResult(Commercial, Green.toString),
+        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Red.toString),
+        SchemeEvaluationResult(Sdip, Green.toString))
       // The merged evaluation is the current evaluation plus any failed schemes from previous evaluation
       val mergedEvaluationResult = List(
-        SchemeEvaluationResult(SchemeId(commercial), Green.toString),
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), Red.toString)
+        SchemeEvaluationResult(Commercial, Green.toString),
+        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Red.toString)
       )
       val expectedEvaluation = AssessmentPassMarkEvaluation(applicationId, "1", AssessmentEvaluationResult(
         fsacResults, mergedEvaluationResult))
@@ -238,14 +236,14 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         .expects(expectedEvaluation, newSchemeStatus)
         .returning(Future.successful(()))
 
-      val assessmentData = AssessmentPassMarksSchemesAndScores(passmark = passMarkSettings, schemes = List(SchemeId(commercial)),
+      val assessmentData = AssessmentPassMarksSchemesAndScores(passmark = passMarkSettings, schemes = List(Commercial),
         scores = AssessmentScoresAllExercises(applicationId = applicationId))
       service.evaluateAssessmentCandidate(assessmentData).futureValue
     }
 
     "move sdip faststream candidate to ASSESSMENT_CENTRE_FAILED_SDIP_GREEN when he fails all faststream schemes " +
       "but sdip is green" in new TestFixture {
-      val schemeEvaluationResult = List(SchemeEvaluationResult(SchemeId(commercial), Red.toString))
+      val schemeEvaluationResult = List(SchemeEvaluationResult(Commercial, Red.toString))
       val evaluationResult = AssessmentEvaluationResult(fsacResults, schemeEvaluationResult)
 
       (mockEvaluationEngine.evaluate _)
@@ -260,14 +258,14 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         .expects(applicationId.toString(), ASSESSMENT_CENTRE_FAILED_SDIP_GREEN)
         .returning(Future.successful(()))
 
-      val currentSchemeStatus = List(SchemeEvaluationResult(SchemeId(commercial), Green.toString),
-        SchemeEvaluationResult(SchemeId(sdip), Green.toString))
+      val currentSchemeStatus = List(SchemeEvaluationResult(Commercial, Green.toString),
+        SchemeEvaluationResult(Sdip, Green.toString))
       (mockAppRepo.getCurrentSchemeStatus _)
         .expects(applicationId.toString())
         .returning(Future.successful(currentSchemeStatus))
 
-      val newSchemeStatus = List(SchemeEvaluationResult(SchemeId(commercial), Red.toString),
-        SchemeEvaluationResult(SchemeId(sdip), Green.toString))
+      val newSchemeStatus = List(SchemeEvaluationResult(Commercial, Red.toString),
+        SchemeEvaluationResult(Sdip, Green.toString))
       val expectedEvaluation = AssessmentPassMarkEvaluation(applicationId, "1", AssessmentEvaluationResult(
         fsacResults, schemeEvaluationResult))
 
@@ -279,14 +277,14 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         .expects(expectedEvaluation, newSchemeStatus)
         .returning(Future.successful(()))
 
-      val assessmentData = AssessmentPassMarksSchemesAndScores(passmark = passMarkSettings, schemes = List(SchemeId(commercial)),
+      val assessmentData = AssessmentPassMarksSchemesAndScores(passmark = passMarkSettings, schemes = List(Commercial),
         scores = AssessmentScoresAllExercises(applicationId = applicationId))
       service.evaluateAssessmentCandidate(assessmentData).futureValue
     }
 
     "move sdip faststream candidate to ASSESSMENT_CENTRE_FAILED when he fails all faststream schemes " +
       "and has already withdrawn from sdip" in new TestFixture {
-      val schemeEvaluationResult = List(SchemeEvaluationResult(SchemeId(commercial), Red.toString))
+      val schemeEvaluationResult = List(SchemeEvaluationResult(Commercial, Red.toString))
       val evaluationResult = AssessmentEvaluationResult(fsacResults, schemeEvaluationResult)
 
       (mockEvaluationEngine.evaluate _)
@@ -301,14 +299,14 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         .expects(applicationId.toString(), ASSESSMENT_CENTRE_FAILED)
         .returning(Future.successful(()))
 
-      val currentSchemeStatus = List(SchemeEvaluationResult(SchemeId(commercial), Green.toString),
-        SchemeEvaluationResult(SchemeId(sdip), Withdrawn.toString))
+      val currentSchemeStatus = List(SchemeEvaluationResult(Commercial, Green.toString),
+        SchemeEvaluationResult(Sdip, Withdrawn.toString))
       (mockAppRepo.getCurrentSchemeStatus _)
         .expects(applicationId.toString())
         .returning(Future.successful(currentSchemeStatus))
 
-      val newSchemeStatus = List(SchemeEvaluationResult(SchemeId(commercial), Red.toString),
-        SchemeEvaluationResult(SchemeId(sdip), Withdrawn.toString))
+      val newSchemeStatus = List(SchemeEvaluationResult(Commercial, Red.toString),
+        SchemeEvaluationResult(Sdip, Withdrawn.toString))
       val expectedEvaluation = AssessmentPassMarkEvaluation(applicationId, "1", AssessmentEvaluationResult(
         fsacResults, schemeEvaluationResult))
 
@@ -320,13 +318,13 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         .expects(expectedEvaluation, newSchemeStatus)
         .returning(Future.successful(()))
 
-      val assessmentData = AssessmentPassMarksSchemesAndScores(passmark = passMarkSettings, schemes = List(SchemeId(commercial)),
+      val assessmentData = AssessmentPassMarksSchemesAndScores(passmark = passMarkSettings, schemes = List(Commercial),
         scores = AssessmentScoresAllExercises(applicationId = applicationId))
       service.evaluateAssessmentCandidate(assessmentData).futureValue
     }
 
     "save evaluation result to red with current status green updated to red" in new TestFixture {
-      val schemeEvaluationResult = List(SchemeEvaluationResult(SchemeId(commercial), Red.toString))
+      val schemeEvaluationResult = List(SchemeEvaluationResult(Commercial, Red.toString))
       val evaluationResult = AssessmentEvaluationResult(fsacResults, schemeEvaluationResult)
 
       (mockEvaluationEngine.evaluate _)
@@ -341,14 +339,14 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         .expects(applicationId.toString(), ASSESSMENT_CENTRE_FAILED)
         .returning(Future.successful(()))
 
-      val currentSchemeStatus = List(SchemeEvaluationResult(SchemeId(commercial), Green.toString),
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), Red.toString))
+      val currentSchemeStatus = List(SchemeEvaluationResult(Commercial, Green.toString),
+        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Red.toString))
       (mockAppRepo.getCurrentSchemeStatus _)
         .expects(applicationId.toString())
         .returning(Future.successful(currentSchemeStatus))
 
-      val newSchemeStatus = List(SchemeEvaluationResult(SchemeId(commercial), Red.toString),
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), Red.toString))
+      val newSchemeStatus = List(SchemeEvaluationResult(Commercial, Red.toString),
+        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Red.toString))
       val expectedEvaluation = AssessmentPassMarkEvaluation(applicationId, "1", AssessmentEvaluationResult(
         fsacResults, schemeEvaluationResult))
 
@@ -360,13 +358,13 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         .expects(expectedEvaluation, newSchemeStatus)
         .returning(Future.successful(()))
 
-      val assessmentData = AssessmentPassMarksSchemesAndScores(passmark = passMarkSettings, schemes = List(SchemeId(commercial)),
+      val assessmentData = AssessmentPassMarksSchemesAndScores(passmark = passMarkSettings, schemes = List(Commercial),
         scores = AssessmentScoresAllExercises(applicationId = applicationId))
       service.evaluateAssessmentCandidate(assessmentData).futureValue
     }
 
     "save evaluation result to green with current status green remains the same" in new TestFixture {
-      val schemeEvaluationResult = List(SchemeEvaluationResult(SchemeId(commercial), Green.toString))
+      val schemeEvaluationResult = List(SchemeEvaluationResult(Commercial, Green.toString))
       val evaluationResult = AssessmentEvaluationResult(fsacResults, schemeEvaluationResult)
 
       (mockEvaluationEngine.evaluate _)
@@ -381,14 +379,14 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         .expects(applicationId.toString(), ASSESSMENT_CENTRE_PASSED)
         .returning(Future.successful(()))
 
-      val currentSchemeStatus = List(SchemeEvaluationResult(SchemeId(commercial), Green.toString),
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), Red.toString))
+      val currentSchemeStatus = List(SchemeEvaluationResult(Commercial, Green.toString),
+        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Red.toString))
       (mockAppRepo.getCurrentSchemeStatus _)
         .expects(applicationId.toString())
         .returning(Future.successful(currentSchemeStatus))
 
-      val newSchemeStatus = List(SchemeEvaluationResult(SchemeId(commercial), Green.toString),
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), Red.toString))
+      val newSchemeStatus = List(SchemeEvaluationResult(Commercial, Green.toString),
+        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Red.toString))
       val expectedEvaluation = AssessmentPassMarkEvaluation(applicationId, "1", AssessmentEvaluationResult(
         fsacResults, schemeEvaluationResult))
 
@@ -400,13 +398,13 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         .expects(expectedEvaluation, newSchemeStatus)
         .returning(Future.successful(()))
 
-      val assessmentData = AssessmentPassMarksSchemesAndScores(passmark = passMarkSettings, schemes = List(SchemeId(commercial)),
+      val assessmentData = AssessmentPassMarksSchemesAndScores(passmark = passMarkSettings, schemes = List(Commercial),
         scores = AssessmentScoresAllExercises(applicationId = applicationId))
       service.evaluateAssessmentCandidate(assessmentData).futureValue
     }
 
     "save evaluation result to red with current status green updated to red and current scheme status containing ambers" in new TestFixture {
-      val schemeEvaluationResult = List(SchemeEvaluationResult(SchemeId(commercial), Red.toString))
+      val schemeEvaluationResult = List(SchemeEvaluationResult(Commercial, Red.toString))
       val evaluationResult = AssessmentEvaluationResult(fsacResults, schemeEvaluationResult)
 
       (mockEvaluationEngine.evaluate _)
@@ -417,14 +415,14 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         .expects(applicationId.toString())
         .returningAsync(scoresAcceptedApplicationStatusDetails)
 
-      val currentSchemeStatus = List(SchemeEvaluationResult(SchemeId(commercial), Green.toString),
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), Amber.toString))
+      val currentSchemeStatus = List(SchemeEvaluationResult(Commercial, Green.toString),
+        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Amber.toString))
       (mockAppRepo.getCurrentSchemeStatus _)
         .expects(applicationId.toString())
         .returning(Future.successful(currentSchemeStatus))
 
-      val newSchemeStatus = List(SchemeEvaluationResult(SchemeId(commercial), Red.toString),
-        SchemeEvaluationResult(SchemeId(digitalDataTechnologyAndCyber), Amber.toString))
+      val newSchemeStatus = List(SchemeEvaluationResult(Commercial, Red.toString),
+        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Amber.toString))
       val expectedEvaluation = AssessmentPassMarkEvaluation(applicationId, "1", AssessmentEvaluationResult(
         fsacResults, schemeEvaluationResult))
 
@@ -436,7 +434,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
         .expects(expectedEvaluation, newSchemeStatus)
         .returning(Future.successful(()))
 
-      val assessmentData = AssessmentPassMarksSchemesAndScores(passmark = passMarkSettings, schemes = List(SchemeId(commercial)),
+      val assessmentData = AssessmentPassMarksSchemesAndScores(passmark = passMarkSettings, schemes = List(Commercial),
         scores = AssessmentScoresAllExercises(applicationId = applicationId))
       service.evaluateAssessmentCandidate(assessmentData).futureValue
     }
@@ -449,10 +447,6 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
     val mockAssessmentCentrePassMarkSettingsService = mock[AssessmentCentrePassMarkSettingsService]
     val mockAssessmentScoresRepo = mock[AssessmentScoresRepository]
     val mockEvaluationEngine = mock[AssessmentCentreEvaluationEngine]
-    val commercial = "Commercial"
-    val digitalDataTechnologyAndCyber = "DigitalDataTechnologyAndCyber"
-    val diplomaticAndDevelopment = "DiplomaticAndDevelopment"
-    val sdip = "Sdip"
     val batchSize = 1
 /*
     val service = new AssessmentCentreService {
@@ -473,11 +467,11 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
 
     val applicationsToProgressToSift = List(
       ApplicationForProgression("appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-        List(SchemeEvaluationResult(SchemeId(commercial), EvaluationResults.Green.toString))),
+        List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString))),
       ApplicationForProgression("appId2", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-        List(SchemeEvaluationResult(SchemeId(commercial), EvaluationResults.Green.toString))),
+        List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString))),
       ApplicationForProgression("appId3", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-        List(SchemeEvaluationResult(SchemeId(commercial), EvaluationResults.Green.toString)))
+        List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)))
     )
 
     val scoresAcceptedApplicationStatusDetails = ApplicationStatusDetails(
@@ -507,17 +501,17 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec {
     val applicationId = UniqueIdentifier.randomUniqueIdentifier
 
     val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(List(
-      AssessmentCentreExercisePassMark(SchemeId(commercial), AssessmentCentreExercisePassMarkThresholds(
+      AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
         writtenExercise = PassMarkThreshold(1.0, 3.0),
         teamExercise = PassMarkThreshold(1.0, 3.0),
         leadershipExercise = PassMarkThreshold(1.0, 3.0),
         overall = PassMarkThreshold(10.0, 15.0))),
-      AssessmentCentreExercisePassMark(SchemeId(digitalDataTechnologyAndCyber), AssessmentCentreExercisePassMarkThresholds(
+      AssessmentCentreExercisePassMark(DigitalDataTechnologyAndCyber, AssessmentCentreExercisePassMarkThresholds(
         writtenExercise = PassMarkThreshold(1.0, 3.0),
         teamExercise = PassMarkThreshold(1.0, 3.0),
         leadershipExercise = PassMarkThreshold(1.0, 3.0),
         overall = PassMarkThreshold(10.0, 15.0))),
-      AssessmentCentreExercisePassMark(SchemeId(diplomaticAndDevelopment), AssessmentCentreExercisePassMarkThresholds(
+      AssessmentCentreExercisePassMark(DiplomaticAndDevelopment, AssessmentCentreExercisePassMarkThresholds(
         writtenExercise = PassMarkThreshold(1.0, 3.0),
         teamExercise = PassMarkThreshold(1.0, 3.0),
         leadershipExercise = PassMarkThreshold(1.0, 3.0),

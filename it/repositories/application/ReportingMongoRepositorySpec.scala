@@ -39,7 +39,7 @@ import uk.gov.hmrc.mongo.play.json.Codecs
 
 import scala.concurrent.Await
 
-class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory {
+class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory with Schemes {
 
   val frameworkId = "FastStream-2016"
 
@@ -70,7 +70,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
       result must not be empty
       result.head mustBe CandidateProgressReportItem(userId = userId, applicationId = appId, progress = Some("submitted"),
-        schemes = List(SchemeId("DiplomaticAndDevelopment"), SchemeId("GovernmentOperationalResearchService")), disability = Some("Yes"),
+        schemes = List(DiplomaticAndDevelopment, GovernmentOperationalResearchService), disability = Some("Yes"),
         onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
         civilServant = Some("Yes"), edip = Some("Yes"), sdip = Some("Yes"), otherInternship = Some("Yes"),
         fastPassCertificate = Some("1234567"), assessmentCentre = None, applicationRoute = ApplicationRoute.Faststream)
@@ -131,39 +131,39 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       result must contain theSameElementsAs Seq(
         ApplicationForDiversityReport(
           applicationId = appId1, userId = userId1, applicationRoute = ApplicationRoute.Faststream, progress = Some("submitted"),
-          schemes = List(SchemeId("DiplomaticAndDevelopment"), SchemeId("GovernmentOperationalResearchService")),
+          schemes = List(DiplomaticAndDevelopment, GovernmentOperationalResearchService),
           disability = Some("Yes"), gis = Some(true), onlineAdjustments = Some("Yes"), assessmentCentreAdjustments = Some("No"),
           civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
             isCivilServant = Some("Yes"), isEDIP = Some("Yes"), edipYear = Some("2018"), isSDIP = Some("Yes"), sdipYear = Some("2019"),
             otherInternship = Some("Yes"), otherInternshipName = Some("other"), otherInternshipYear = Some("2020"),
             fastPassCertificate = Some("1234567"))
           ),
-          currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("DiplomaticAndDevelopment"), EvaluationResults.Green.toString),
-            SchemeEvaluationResult(SchemeId("GovernmentOperationalResearchService"), EvaluationResults.Green.toString))
+          currentSchemeStatus = List(SchemeEvaluationResult(DiplomaticAndDevelopment, EvaluationResults.Green.toString),
+            SchemeEvaluationResult(GovernmentOperationalResearchService, EvaluationResults.Green.toString))
         ),
         ApplicationForDiversityReport(
           applicationId = appId2, userId = userId2, applicationRoute = ApplicationRoute.Faststream, progress = Some("submitted"),
-          schemes = List(SchemeId("DiplomaticAndDevelopment"), SchemeId("GovernmentOperationalResearchService")),
+          schemes = List(DiplomaticAndDevelopment, GovernmentOperationalResearchService),
           disability = Some("Yes"), gis = Some(false), onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("No"),
           civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
             isCivilServant = Some("Yes"), isEDIP = Some("Yes"), edipYear = Some("2018"), isSDIP = Some("Yes"), sdipYear = Some("2019"),
             otherInternship = Some("Yes"), otherInternshipName = Some("other"), otherInternshipYear = Some("2020"),
             fastPassCertificate = Some("1234567"))
           ),
-          currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("DiplomaticAndDevelopment"), EvaluationResults.Green.toString),
-            SchemeEvaluationResult(SchemeId("GovernmentOperationalResearchService"), EvaluationResults.Green.toString))
+          currentSchemeStatus = List(SchemeEvaluationResult(DiplomaticAndDevelopment, EvaluationResults.Green.toString),
+            SchemeEvaluationResult(GovernmentOperationalResearchService, EvaluationResults.Green.toString))
         ),
         ApplicationForDiversityReport(
           applicationId = appId3, userId = userId3, applicationRoute = ApplicationRoute.Faststream, progress = Some("submitted"),
-          schemes = List(SchemeId("DiplomaticAndDevelopment"), SchemeId("GovernmentOperationalResearchService")),
+          schemes = List(DiplomaticAndDevelopment, GovernmentOperationalResearchService),
           disability = Some("Yes"), gis = Some(false), onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("Yes"),
           civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
             isCivilServant = Some("Yes"), isEDIP = Some("Yes"), edipYear = Some("2018"), isSDIP = Some("Yes"), sdipYear = Some("2019"),
             otherInternship = Some("Yes"), otherInternshipName = Some("other"), otherInternshipYear = Some("2020"),
             fastPassCertificate = Some("1234567"))
           ),
-          currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("DiplomaticAndDevelopment"), EvaluationResults.Green.toString),
-            SchemeEvaluationResult(SchemeId("GovernmentOperationalResearchService"), EvaluationResults.Green.toString))
+          currentSchemeStatus = List(SchemeEvaluationResult(DiplomaticAndDevelopment, EvaluationResults.Green.toString),
+            SchemeEvaluationResult(GovernmentOperationalResearchService, EvaluationResults.Green.toString))
         )
       )
     }

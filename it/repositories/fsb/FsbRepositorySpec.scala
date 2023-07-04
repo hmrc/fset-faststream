@@ -33,7 +33,7 @@ import testkit.MongoRepositorySpec
 
 import scala.util.Try
 
-class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonRepository {
+class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonRepository with Schemes {
 
   val collectionName = CollectionNames.APPLICATION
 //  lazy val repository = repositories.fsbRepository
@@ -153,7 +153,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       repository.saveResult(applicationId2, SchemeEvaluationResult("GovernmentOperationalResearchService", Green.toString)).futureValue
 
       val result = repository.findByApplicationIds(
-        List(applicationId1, applicationId2), Some(SchemeId("GovernmentOperationalResearchService"))).futureValue
+        List(applicationId1, applicationId2), Some(GovernmentOperationalResearchService)).futureValue
 
       val expectedResult = List(
         FsbSchemeResult(applicationId1, List(SchemeEvaluationResult("GovernmentOperationalResearchService", Red.toString))),
@@ -191,13 +191,13 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
     "return assessment centre passed candidate" in {
       val appId = createApplication()
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ASSESSMENT_CENTRE_PASSED).futureValue
-      applicationRepo.updateCurrentSchemeStatus(appId, Seq(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString))).futureValue
+      applicationRepo.updateCurrentSchemeStatus(appId, Seq(SchemeEvaluationResult(Commercial, Green.toString))).futureValue
       repository.nextApplicationForFsbOrJobOfferProgression(10)
         .futureValue mustBe Seq(
         ApplicationForProgression(
           appId,
           ApplicationStatus.ASSESSMENT_CENTRE,
-          currentSchemeStatus = Seq(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString))
+          currentSchemeStatus = Seq(SchemeEvaluationResult(Commercial, Green.toString))
         )
       )
     }
@@ -205,13 +205,13 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
     "return specific assessment centre passed candidate" in {
       val appId = createApplication()
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ASSESSMENT_CENTRE_PASSED).futureValue
-      applicationRepo.updateCurrentSchemeStatus(appId, Seq(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString))).futureValue
+      applicationRepo.updateCurrentSchemeStatus(appId, Seq(SchemeEvaluationResult(Commercial, Green.toString))).futureValue
       repository.nextApplicationForFsbOrJobOfferProgression(appId)
         .futureValue mustBe Seq(
         ApplicationForProgression(
           appId,
           ApplicationStatus.ASSESSMENT_CENTRE,
-          currentSchemeStatus = Seq(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString))
+          currentSchemeStatus = Seq(SchemeEvaluationResult(Commercial, Green.toString))
         )
       )
     }
@@ -223,13 +223,13 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
     "return fsb failed candidate" in {
       val appId = createApplication()
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FSB_FAILED).futureValue
-      applicationRepo.updateCurrentSchemeStatus(appId, Seq(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString))).futureValue
+      applicationRepo.updateCurrentSchemeStatus(appId, Seq(SchemeEvaluationResult(Commercial, Red.toString))).futureValue
       repository.nextApplicationForFsbOrJobOfferProgression(10)
         .futureValue mustBe Seq(
         ApplicationForProgression(
           appId,
           ApplicationStatus.FSB,
-          currentSchemeStatus = Seq(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString))
+          currentSchemeStatus = Seq(SchemeEvaluationResult(Commercial, Red.toString))
         )
       )
     }
@@ -238,7 +238,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       val appId = createApplication(Some(ApplicationRoute.SdipFaststream))
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN_NOTIFIED).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
-        Seq(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString), SchemeEvaluationResult(SchemeId("Sdip"), Green.toString))
+        Seq(SchemeEvaluationResult(Commercial, Red.toString), SchemeEvaluationResult(Sdip, Green.toString))
       ).futureValue
       repository.nextApplicationForFsbOrJobOfferProgression(10)
         .futureValue mustBe Seq(
@@ -246,8 +246,8 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
           appId,
           ApplicationStatus.ASSESSMENT_CENTRE,
           currentSchemeStatus = Seq(
-            SchemeEvaluationResult(SchemeId("Commercial"), Red.toString),
-            SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
+            SchemeEvaluationResult(Commercial, Red.toString),
+            SchemeEvaluationResult(Sdip, Green.toString)
           )
         )
       )
@@ -258,8 +258,8 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
         Seq(
-          SchemeEvaluationResult(SchemeId("DiplomaticAndDevelopmentEconomics"), Red.toString),
-          SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
+          SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, Red.toString),
+          SchemeEvaluationResult(Sdip, Green.toString)
         )
       ).futureValue
       repository.nextApplicationForFsbOrJobOfferProgression(10)
@@ -268,8 +268,8 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
           appId,
           ApplicationStatus.SIFT,
           currentSchemeStatus = Seq(
-            SchemeEvaluationResult(SchemeId("DiplomaticAndDevelopmentEconomics"), Red.toString),
-            SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
+            SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, Red.toString),
+            SchemeEvaluationResult(Sdip, Green.toString)
           )
         )
       )
@@ -280,7 +280,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       val appId = createApplication(Some(ApplicationRoute.SdipFaststream))
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_COMPLETED).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
-        Seq(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString), SchemeEvaluationResult(SchemeId("Sdip"), Green.toString))
+        Seq(SchemeEvaluationResult(Commercial, Red.toString), SchemeEvaluationResult(Sdip, Green.toString))
       ).futureValue
       repository.nextApplicationForFsbOrJobOfferProgression(10)
         .futureValue mustBe Seq(
@@ -288,8 +288,8 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
           appId,
           ApplicationStatus.SIFT,
           currentSchemeStatus = Seq(
-            SchemeEvaluationResult(SchemeId("Commercial"), Red.toString),
-            SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
+            SchemeEvaluationResult(Commercial, Red.toString),
+            SchemeEvaluationResult(Sdip, Green.toString)
           )
         )
       )
@@ -301,7 +301,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       val appId = createApplication(Some(ApplicationRoute.SdipFaststream))
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_COMPLETED).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
-        Seq(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString), SchemeEvaluationResult(SchemeId("Sdip"), Green.toString))
+        Seq(SchemeEvaluationResult(Commercial, Green.toString), SchemeEvaluationResult(Sdip, Green.toString))
       ).futureValue
       repository.nextApplicationForFsbOrJobOfferProgression(10)
         .futureValue mustBe Nil
@@ -311,16 +311,14 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       val appId = createApplication(Some(ApplicationRoute.Sdip))
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_COMPLETED).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
-        Seq(SchemeEvaluationResult(SchemeId("Sdip"), Green.toString))
+        Seq(SchemeEvaluationResult(Sdip, Green.toString))
       ).futureValue
       repository.nextApplicationForFsbOrJobOfferProgression(10)
         .futureValue mustBe Seq(
         ApplicationForProgression(
           appId,
           ApplicationStatus.SIFT,
-          currentSchemeStatus = Seq(
-            SchemeEvaluationResult(SchemeId("Sdip"), Green.toString)
-          )
+          currentSchemeStatus = Seq(SchemeEvaluationResult(Sdip, Green.toString))
         )
       )
     }
@@ -329,7 +327,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       val appId = createApplication(Some(ApplicationRoute.Sdip))
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_COMPLETED).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
-        Seq(SchemeEvaluationResult(SchemeId("Sdip"), Red.toString))
+        Seq(SchemeEvaluationResult(Sdip, Red.toString))
       ).futureValue
       repository.nextApplicationForFsbOrJobOfferProgression(10).futureValue mustBe Nil
     }
@@ -338,16 +336,14 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       val appId = createApplication(Some(ApplicationRoute.Edip))
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_COMPLETED).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
-        Seq(SchemeEvaluationResult(SchemeId("Edip"), Green.toString))
+        Seq(SchemeEvaluationResult(Edip, Green.toString))
       ).futureValue
       repository.nextApplicationForFsbOrJobOfferProgression(10)
         .futureValue mustBe Seq(
         ApplicationForProgression(
           appId,
           ApplicationStatus.SIFT,
-          currentSchemeStatus = Seq(
-            SchemeEvaluationResult(SchemeId("Edip"), Green.toString)
-          )
+          currentSchemeStatus = Seq(SchemeEvaluationResult(Edip, Green.toString))
         )
       )
     }
@@ -356,7 +352,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       val appId = createApplication(Some(ApplicationRoute.Edip))
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_COMPLETED).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
-        Seq(SchemeEvaluationResult(SchemeId("Edip"), Red.toString))
+        Seq(SchemeEvaluationResult(Edip, Red.toString))
       ).futureValue
       repository.nextApplicationForFsbOrJobOfferProgression(10).futureValue mustBe Nil
     }
@@ -409,16 +405,14 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       val appId = createApplication()
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FSB_FAILED).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
-        Seq(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString))
+        Seq(SchemeEvaluationResult(Commercial, Red.toString))
       ).futureValue
       repository.nextApplicationFailedAtFsb(10)
         .futureValue mustBe Seq(
         ApplicationForProgression(
           appId,
           ApplicationStatus.FSB,
-          currentSchemeStatus = Seq(
-            SchemeEvaluationResult(SchemeId("Commercial"), Red.toString)
-          )
+          currentSchemeStatus = Seq(SchemeEvaluationResult(Commercial, Red.toString))
         )
       )
     }
@@ -428,7 +422,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FSB_FAILED).futureValue
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
-        Seq(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString))
+        Seq(SchemeEvaluationResult(Commercial, Green.toString))
       ).futureValue
       repository.nextApplicationFailedAtFsb(10).futureValue mustBe Nil
     }
@@ -438,7 +432,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FSB_FAILED).futureValue
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
-        Seq(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString))
+        Seq(SchemeEvaluationResult(Commercial, Red.toString))
       ).futureValue
       repository.nextApplicationFailedAtFsb(10).futureValue mustBe Nil
     }
@@ -448,8 +442,8 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FSB_FAILED).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
         Seq(
-          SchemeEvaluationResult(SchemeId("Commercial"), Green.toString),
-          SchemeEvaluationResult(SchemeId("DiplomaticService"), Red.toString)
+          SchemeEvaluationResult(Commercial, Green.toString),
+          SchemeEvaluationResult(DiplomaticAndDevelopment, Red.toString)
         )
       ).futureValue
       repository.nextApplicationFailedAtFsb(10).futureValue mustBe Nil
@@ -460,8 +454,8 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FSB_FAILED).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
         Seq(
-          SchemeEvaluationResult(SchemeId("Commercial"), Amber.toString),
-          SchemeEvaluationResult(SchemeId("DiplomaticService"), Red.toString)
+          SchemeEvaluationResult(Commercial, Amber.toString),
+          SchemeEvaluationResult(DiplomaticAndDevelopment, Red.toString)
         )
       ).futureValue
       repository.nextApplicationFailedAtFsb(10).futureValue mustBe Nil
@@ -475,16 +469,14 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       val appId = createApplication()
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FSB_FAILED).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
-        Seq(SchemeEvaluationResult(SchemeId("Commercial"), Red.toString))
+        Seq(SchemeEvaluationResult(Commercial, Red.toString))
       ).futureValue
       repository.nextApplicationFailedAtFsb(appId)
         .futureValue mustBe Seq(
         ApplicationForProgression(
           appId,
           ApplicationStatus.FSB,
-          currentSchemeStatus = Seq(
-            SchemeEvaluationResult(SchemeId("Commercial"), Red.toString)
-          )
+          currentSchemeStatus = Seq(SchemeEvaluationResult(Commercial, Red.toString))
         )
       )
     }

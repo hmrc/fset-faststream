@@ -16,19 +16,19 @@
 
 package model.exchange.assessor
 
-import model.SchemeId
-import model.exchange.{ Assessor, AssessorAvailabilities, AssessorAvailability }
+import model.Schemes
+import model.exchange.{Assessor, AssessorAvailabilities, AssessorAvailability}
 import model.persisted.EventExamples
 import model.persisted.assessor.AssessorStatus
 import org.joda.time.LocalDate
 
-object AssessorExamples {
+object AssessorExamples extends Schemes {
   val UserId1 = "57364"
   val Assessor1 = Assessor(
     userId = UserId1,
     version = None,
     skills = List("assessor", "qac"),
-    sifterSchemes = List(SchemeId("Sdip")),
+    sifterSchemes = List(Sdip),
     civilServant = true,
     status = AssessorStatus.CREATED
   )

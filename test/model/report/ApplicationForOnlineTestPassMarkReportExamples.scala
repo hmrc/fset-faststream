@@ -18,13 +18,13 @@ package model.report
 
 import factories.UUIDFactory
 import model.OnlineTestCommands.PsiTestResult
-import model.persisted.{ ApplicationForOnlineTestPassMarkReport, SchemeEvaluationResult }
+import model.persisted.{ApplicationForOnlineTestPassMarkReport, SchemeEvaluationResult}
 import model.report.onlinetestpassmark.TestResultsForOnlineTestPassMarkReportItemExamples
-import model.{ ApplicationRoute, EvaluationResults, SchemeId }
+import model.{ApplicationRoute, EvaluationResults, SchemeId, Schemes}
 
 import scala.util.Random
 
-object ApplicationForOnlineTestPassMarkReportExamples {
+object ApplicationForOnlineTestPassMarkReportExamples extends Schemes {
   lazy val application1 = newApplicationForOnlineTestPassMarkReport(TestResultsForOnlineTestPassMarkReportItemExamples.testResults1)
   lazy val application2 = newApplicationForOnlineTestPassMarkReport(TestResultsForOnlineTestPassMarkReportItemExamples.testResults2)
 
@@ -44,14 +44,14 @@ object ApplicationForOnlineTestPassMarkReportExamples {
       "phase1_tests_results_received",
       ApplicationRoute.Faststream,
       sdipDiversity = None,
-      List(SchemeId("Commercial"), SchemeId("DigitalDataTechnologyAndCyber")),
+      List(Commercial, DigitalDataTechnologyAndCyber),
       disability = None,
       gis = None,
       onlineAdjustments = None,
       assessmentCentreAdjustments = None,
       testsResult,
-      List(SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString),
-        SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), EvaluationResults.Green.toString)))
+      List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString),
+        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Green.toString)))
 
   def rnd(prefix: String) = s"$prefix-${Random.nextInt(100)}"
 }

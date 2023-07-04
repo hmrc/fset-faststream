@@ -32,7 +32,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
+class FinalOutcomeServiceSpec extends ScalaMockUnitSpec with Schemes {
 
   "final success notified" must {
     "progress candidate" in new TestFixture {
@@ -45,11 +45,11 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
         .returningAsync(Cd1)
 
       ( mockSchemeRepo.getSchemeForId(_: SchemeId) )
-        .expects(SchemeId(Commercial))
+        .expects(Commercial)
         .returning(Option(CommercialScheme))
 
       ( mockEmailClient.notifyCandidateOnFinalSuccess(_: String, _: String, _: String)(_: HeaderCarrier, _: ExecutionContext) )
-        .expects(Cd1.email, C1.name, Commercial, hc, global)
+        .expects(Cd1.email, C1.name, "Commercial", hc, global)
         .returningAsync
 
       (mockFinalOutcomeRepo.firstResidualPreference _)
@@ -121,11 +121,10 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec {
 
     implicit val hc = HeaderCarrier()
 
-    val Commercial = "Commercial"
     val App1 = ApplicationForProgression("appId1", ApplicationStatus.ASSESSMENT_CENTRE,
-      List(SchemeEvaluationResult(SchemeId(Commercial), EvaluationResults.Green.toString)))
+      List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)))
     val CommercialScheme = Scheme(
-      id = SchemeId("Commercial"),
+      id = Commercial,
       code = "Commercial",
       name = "Commercial",
       civilServantEligible = false,

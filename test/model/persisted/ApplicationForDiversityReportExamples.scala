@@ -16,36 +16,36 @@
 
 package model.persisted
 
-import model.{ApplicationRoute, EvaluationResults, SchemeId}
+import model.{ApplicationRoute, EvaluationResults, Schemes}
 
-object ApplicationForDiversityReportExamples {
+object ApplicationForDiversityReportExamples extends Schemes {
 
   val Example1 =
     ApplicationForDiversityReport("appId5", "userId10", ApplicationRoute.Faststream,  progress = Some("phase1_tests_completed"),
-      List(SchemeId("DiplomaticAndDevelopment"), SchemeId("Commercial")), disability = Some("No"), gis = Some(false),
+      List(DiplomaticAndDevelopment, Commercial), disability = Some("No"), gis = Some(false),
       onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("No"),
       Some(CivilServiceExperienceDetailsForDiversityReport(
         isCivilServant = Some("Yes"), isEDIP = Some("Yes"), edipYear = Some("2018"), isSDIP = Some("Yes"), sdipYear = Some("2019"),
         otherInternship = Some("Yes"), otherInternshipName = Some("Name"), otherInternshipYear = Some("2020"),
         fastPassCertificate = Some("1234567")
       )),
-      currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("DiplomaticAndDevelopment"), EvaluationResults.Green.toString),
-        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString))
+      currentSchemeStatus = List(SchemeEvaluationResult(DiplomaticAndDevelopment, EvaluationResults.Green.toString),
+        SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString))
     )
 
   val Example2 =
     ApplicationForDiversityReport("appId6", "userId11", ApplicationRoute.Faststream, progress = Some("submitted"),
-      List(SchemeId("DiplomaticAndDevelopmentEconomics"), SchemeId("Commercial"), SchemeId("GovernmentCommunicationService"),
-        SchemeId("European")), disability = Some("Yes"), gis = Some(true), onlineAdjustments = Some("Yes"),
+      List(DiplomaticAndDevelopmentEconomics, Commercial, GovernmentCommunicationService, Property),
+      disability = Some("Yes"), gis = Some(true), onlineAdjustments = Some("Yes"),
       assessmentCentreAdjustments = Some("No"),
       Some(CivilServiceExperienceDetailsForDiversityReport(
         isCivilServant = Some("Yes"), isEDIP = Some("No"), edipYear = None, isSDIP = Some("No"), sdipYear = None,
         otherInternship = Some("No"), otherInternshipName = None, otherInternshipYear = None,
         fastPassCertificate = Some("fastPass-101")
       )),
-      currentSchemeStatus = List(SchemeEvaluationResult(SchemeId("DiplomaticAndDevelopment"), EvaluationResults.Green.toString),
-        SchemeEvaluationResult(SchemeId("Commercial"), EvaluationResults.Green.toString),
-        SchemeEvaluationResult(SchemeId("GovernmentCommunicationService"), EvaluationResults.Green.toString),
-        SchemeEvaluationResult(SchemeId("European"), EvaluationResults.Green.toString))
+      currentSchemeStatus = List(SchemeEvaluationResult(DiplomaticAndDevelopment, EvaluationResults.Green.toString),
+        SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString),
+        SchemeEvaluationResult(GovernmentCommunicationService, EvaluationResults.Green.toString),
+        SchemeEvaluationResult(Property, EvaluationResults.Green.toString))
     )
 }

@@ -619,8 +619,8 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
         .thenReturn(Future.successful(unit))
 
       val testProfileWithEvaluation = phase1TestProfile.copy(
-        evaluation = Some(PassmarkEvaluation("version", None, result = List(SchemeEvaluationResult(SchemeId("Finance"), "Green"),
-          SchemeEvaluationResult(SchemeId("Sdip"), "Green")), "version-res", None
+        evaluation = Some(PassmarkEvaluation("version", None, result = List(SchemeEvaluationResult(Finance, "Green"),
+          SchemeEvaluationResult(Sdip, "Green")), "version-res", None
         ))
       )
 
@@ -632,7 +632,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
       verify(phase1TestRepositoryMock).updateProgressStatusOnly(any[String], eventCaptor.capture)(any[ExecutionContext])
 
-      import scala.collection.JavaConverters._
+      import scala.jdk.CollectionConverters._
       eventCaptor.getAllValues.asScala.head.toString mustBe
         ProgressStatuses.getProgressStatusForSdipFsSuccess(ApplicationStatus.PHASE1_TESTS).toString
     }
@@ -643,7 +643,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
       val testProfileWithEvaluation = phase1TestProfile.copy(
         evaluation = Some(PassmarkEvaluation("version", None,
-          result = List(SchemeEvaluationResult(SchemeId("Finance"), "Green"), SchemeEvaluationResult(SchemeId("Sdip"), "Red")),
+          result = List(SchemeEvaluationResult(Finance, "Green"), SchemeEvaluationResult(Sdip, "Red")),
           "version-res", None
         ))
       )
@@ -662,7 +662,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
   import services.stc.StcEventServiceFixture
 
-  trait OnlineTest extends StcEventServiceFixture {
+  trait OnlineTest extends StcEventServiceFixture with Schemes {
     implicit val hc: HeaderCarrier = HeaderCarrier()
     implicit val rh: RequestHeader = mock[RequestHeader]
     implicit val now: DateTime = DateTime.now

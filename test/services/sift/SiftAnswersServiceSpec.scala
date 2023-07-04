@@ -21,7 +21,7 @@ import model.EvaluationResults.{Green, Withdrawn}
 import model.ProgressStatuses.{SIFT_COMPLETED, SIFT_FORMS_COMPLETE_NUMERIC_TEST_PENDING, SIFT_READY}
 import model.command.ProgressResponseExamples
 import model.persisted.SchemeEvaluationResult
-import model.{Scheme, SchemeId, SiftRequirement}
+import model.{Scheme, Schemes, SiftRequirement}
 import repositories.SchemeYamlRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.sift.SiftAnswersRepository
@@ -30,24 +30,24 @@ import testkit.ScalaMockUnitWithAppSpec
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class SiftAnswersServiceSpec extends ScalaMockUnitWithAppSpec {
+class SiftAnswersServiceSpec extends ScalaMockUnitWithAppSpec with Schemes {
 
-  val Commercial = Scheme(SchemeId("Commercial"), "CFS", "Commercial", civilServantEligible = true,
+  val CommercialScheme = Scheme(Commercial, "CFS", "Commercial", civilServantEligible = true,
     degree = None, siftEvaluationRequired = true, siftRequirement = Some(SiftRequirement.NUMERIC_TEST),
     fsbType = None, schemeGuide = None, schemeQuestion = None)
-  val DDTaC = Scheme(SchemeId("DigitalDataTechnologyAndCyber"), "DDTaC", "Digital, Data, Technology & Cyber",
+  val DDTaCScheme = Scheme(DigitalDataTechnologyAndCyber, "DDTaC", "Digital, Data, Technology & Cyber",
     civilServantEligible = false, degree = None, siftEvaluationRequired = true, siftRequirement = Some(SiftRequirement.FORM),
     fsbType = None, schemeGuide = None, schemeQuestion = None)
-  val HoP = Scheme(SchemeId("HousesOfParliament"), "HoP", "Houses of Parliament", civilServantEligible = false,
+  val HoPScheme = Scheme(HousesOfParliament, "HoP", "Houses of Parliament", civilServantEligible = false,
     degree = None, siftEvaluationRequired = true, siftRequirement = Some(SiftRequirement.FORM),
     fsbType = None, schemeGuide = None, schemeQuestion = None)
-  val Generalist = Scheme(SchemeId("Generalist"), "GFS", "Generalist", civilServantEligible = false,
+  val OperationalDeliveryScheme = Scheme(OperationalDelivery, "OPD", "Operational Delivery", civilServantEligible = false,
     degree = None, siftEvaluationRequired = false, siftRequirement = None,
     fsbType = None, schemeGuide = None, schemeQuestion = None)
-  val HumanResources = Scheme(SchemeId("HumanResources"), "HR", "Human Resources", civilServantEligible = false,
+  val HumanResourcesScheme = Scheme(HumanResources, "HR", "Human Resources", civilServantEligible = false,
     degree = None, siftEvaluationRequired = false, siftRequirement = None,
     fsbType = None, schemeGuide = None, schemeQuestion = None)
-  val Sdip = Scheme(SchemeId("Sdip"), "Sdip", "Sdip", civilServantEligible = false,
+  val SdipScheme = Scheme(Sdip, "Sdip", "Sdip", civilServantEligible = false,
     degree = None, siftEvaluationRequired = true, siftRequirement = Some(SiftRequirement.FORM),
     fsbType = None, schemeGuide = None, schemeQuestion = None)
 
@@ -59,7 +59,8 @@ class SiftAnswersServiceSpec extends ScalaMockUnitWithAppSpec {
 //    implicit val appConfig = app.injector.instanceOf(classOf[MicroserviceAppConfig])
     implicit val mockAppConfig = mock[MicroserviceAppConfig] // This also works
     val schemeRepo = new SchemeYamlRepository {
-      override lazy val schemes = Commercial :: DDTaC :: HoP :: Generalist :: HumanResources :: Sdip :: Nil
+      override lazy val schemes = CommercialScheme :: DDTaCScheme :: HoPScheme :: OperationalDeliveryScheme ::
+        HumanResourcesScheme :: SdipScheme :: Nil
     }
     val service = new SiftAnswersService(
       mockAppRepo,
@@ -71,8 +72,8 @@ class SiftAnswersServiceSpec extends ScalaMockUnitWithAppSpec {
   "Submitting sift answers" must {
     "update sift status and progress status to ready" in new TestFixture {
       val currentSchemeStatus = Seq(
-        SchemeEvaluationResult(DDTaC.id, Green.toString),
-        SchemeEvaluationResult(HoP.id, Withdrawn.toString)
+        SchemeEvaluationResult(DDTaCScheme.id, Green.toString),
+        SchemeEvaluationResult(HoPScheme.id, Withdrawn.toString)
       )
 
       (mockAppRepo.getCurrentSchemeStatus _).expects(AppId).returningAsync(currentSchemeStatus)
@@ -88,8 +89,8 @@ class SiftAnswersServiceSpec extends ScalaMockUnitWithAppSpec {
 
     "update sift status and progress status to completed when no schemes are siftable" in new TestFixture {
       val currentSchemeStatus = Seq(
-        SchemeEvaluationResult(Generalist.id, Green.toString),
-        SchemeEvaluationResult(HumanResources.id, Green.toString)
+        SchemeEvaluationResult(OperationalDeliveryScheme.id, Green.toString),
+        SchemeEvaluationResult(HumanResourcesScheme.id, Green.toString)
       )
 
       (mockAppRepo.getCurrentSchemeStatus _).expects(AppId).returningAsync(currentSchemeStatus)
@@ -106,9 +107,9 @@ class SiftAnswersServiceSpec extends ScalaMockUnitWithAppSpec {
 
     "do not update sift status to SIFT_COMPLETED when sdip is the only siftable scheme and it has not yet been sifted" in new TestFixture {
       val currentSchemeStatus = Seq(
-        SchemeEvaluationResult(Generalist.id, Green.toString),
-        SchemeEvaluationResult(HumanResources.id, Green.toString),
-        SchemeEvaluationResult(Sdip.id, Green.toString)
+        SchemeEvaluationResult(OperationalDeliveryScheme.id, Green.toString),
+        SchemeEvaluationResult(HumanResourcesScheme.id, Green.toString),
+        SchemeEvaluationResult(SdipScheme.id, Green.toString)
       )
 
       (mockAppRepo.getCurrentSchemeStatus _).expects(AppId).returningAsync(currentSchemeStatus)
@@ -125,8 +126,8 @@ class SiftAnswersServiceSpec extends ScalaMockUnitWithAppSpec {
 
     "update sift status to SIFT_READY when numeric test has already been completed and the results received" in new TestFixture {
       val currentSchemeStatus = Seq(
-        SchemeEvaluationResult(Commercial.id, Green.toString), // Scheme requiring numeric test
-        SchemeEvaluationResult(DDTaC.id, Green.toString) // Scheme requiring form
+        SchemeEvaluationResult(CommercialScheme.id, Green.toString), // Scheme requiring numeric test
+        SchemeEvaluationResult(DDTaCScheme.id, Green.toString) // Scheme requiring form
       )
 
       (mockAppRepo.getCurrentSchemeStatus _).expects(AppId).returningAsync(currentSchemeStatus)
@@ -143,8 +144,8 @@ class SiftAnswersServiceSpec extends ScalaMockUnitWithAppSpec {
     "update sift status to SIFT_FORMS_COMPLETE_NUMERIC_TEST_PENDING when the candidate has a numeric test requirement, " +
       "which has not been done" in new TestFixture {
       val currentSchemeStatus = Seq(
-        SchemeEvaluationResult(Commercial.id, Green.toString), // Scheme requiring numeric test
-        SchemeEvaluationResult(DDTaC.id, Green.toString) // Scheme requiring form
+        SchemeEvaluationResult(CommercialScheme.id, Green.toString), // Scheme requiring numeric test
+        SchemeEvaluationResult(DDTaCScheme.id, Green.toString) // Scheme requiring form
       )
 
       (mockAppRepo.getCurrentSchemeStatus _).expects(AppId).returningAsync(currentSchemeStatus)

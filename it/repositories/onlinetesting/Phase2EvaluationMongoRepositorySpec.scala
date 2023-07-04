@@ -3,7 +3,7 @@ package repositories.onlinetesting
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
 import model.persisted._
-import model.{ApplicationRoute, ApplicationStatus, ProgressStatuses, SchemeId}
+import model.{ApplicationRoute, ApplicationStatus, ProgressStatuses}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.scalatestplus.mockito.MockitoSugar
@@ -28,7 +28,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   }
 
   "next Application Ready For Evaluation" should {
-    val resultToSave = List(SchemeEvaluationResult(SchemeId("Commercial"), Green.toString))
+    val resultToSave = List(SchemeEvaluationResult(Commercial, Green.toString))
 
     "return nothing if application does not have PHASE2_TESTS" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1Tests))
@@ -53,7 +53,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         activePsiTests = Phase2TestGroup(now, phase2TestWithResult).activeTests,
         activeLaunchpadTest = None,
         prevPhaseEvaluation = Some(phase1Evaluation),
-        selectedSchemes(List(SchemeId("Commercial")))
+        selectedSchemes(List(Commercial))
       )
     }
 
@@ -74,7 +74,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         activePsiTests = Phase2TestGroup(now, phase2TestWithResult).activeTests,
         activeLaunchpadTest = None,
         prevPhaseEvaluation = Some(phase1Evaluation),
-        selectedSchemes(List(SchemeId("Commercial")))
+        selectedSchemes(List(Commercial))
       )
     }
 
@@ -128,7 +128,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         Phase2TestGroup(now, phase2TestWithResult).activeTests,
         activeLaunchpadTest = None,
         Some(phase1Evaluation),
-        selectedSchemes(List(SchemeId("Commercial")))
+        selectedSchemes(List(Commercial))
       )
     }
 
@@ -153,7 +153,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         Phase2TestGroup(now, phase2TestWithResult).activeTests,
         activeLaunchpadTest = None,
         prevPhaseEvaluation = Some(phase1Evaluation),
-        selectedSchemes(List(SchemeId("Commercial"))))
+        selectedSchemes(List(Commercial)))
     }
 
     "limit number of next applications to the batch size limit" in {
@@ -184,7 +184,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   }
 
   "save passmark evaluation" should {
-    val resultToSave = List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString))
+    val resultToSave = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
 
     "save result and update the status" in {
       insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult), Some(phase2TestWithResult))
@@ -201,7 +201,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       appStatus mustBe ApplicationStatus.PHASE2_TESTS_PASSED
 
       result.evaluation mustBe Some(PassmarkEvaluation("version1", previousPhasePassMarkVersion = None,
-        List(SchemeEvaluationResult(SchemeId("DigitalDataTechnologyAndCyber"), Green.toString)),
+        List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString)),
         "version1-res", previousPhaseResultVersion = None
       ))
     }
