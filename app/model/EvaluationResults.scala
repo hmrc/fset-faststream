@@ -79,7 +79,6 @@ object EvaluationResults {
       case PassFail.Pass => EvaluationResults.Green
       case PassFail.Fail => EvaluationResults.Red
     }
-
   }
 
   object PassFail extends Enumeration {
@@ -91,12 +90,9 @@ object EvaluationResults {
                                       workingTogetherDevelopingSelfAndOthersAverage: Double,
                                       communicatingAndInfluencingAverage: Double,
                                       seeingTheBigPictureAverage: Double,
-                                      overallScore: Double) {
+                                      overallScore: Double
+                                    ) {
 
-    def competencyAverageScores = List(
-      makingEffectiveDecisionsAverage, workingTogetherDevelopingSelfAndOthersAverage,
-      communicatingAndInfluencingAverage, seeingTheBigPictureAverage
-    )
     override def toString = s"makingEffectiveDecisionsAverage=$makingEffectiveDecisionsAverage," +
       s"workingTogetherDevelopingSelfAndOthersAverage=$workingTogetherDevelopingSelfAndOthersAverage," +
       s"communicatingAndInfluencingAverage=$communicatingAndInfluencingAverage," +
@@ -108,7 +104,38 @@ object EvaluationResults {
     implicit val competencyAverageResultFormat = Json.format[CompetencyAverageResult]
   }
 
+  case class ExerciseAverageResult(
+                                    writtenExerciseAverage: Double,
+                                    teamExerciseAverage: Double,
+                                    leadershipExerciseAverage: Double,
+                                    overallScore: Double) {
+
+    override def toString = s"writtenExerciseAverage=$writtenExerciseAverage," +
+      s"teamExerciseAverage=$teamExerciseAverage," +
+      s"leadershipExerciseAverage=$leadershipExerciseAverage," +
+      s"overallScore=$overallScore"
+  }
+
+  object ExerciseAverageResult {
+    implicit val exerciseAverageResultFormat = Json.format[ExerciseAverageResult]
+  }
+
+  case class FsacResults(competencyAverageResult: CompetencyAverageResult, exerciseAverageResult: ExerciseAverageResult) {
+
+    override def toString =
+//      s"makingEffectiveDecisionsAverage=${competencyAverageResult.makingEffectiveDecisionsAverage}," +
+//      s"workingTogetherDevelopingSelfAndOthersAverage=${competencyAverageResult.workingTogetherDevelopingSelfAndOthersAverage}," +
+//      s"communicatingAndInfluencingAverage=${competencyAverageResult.communicatingAndInfluencingAverage}," +
+//      s"seeingTheBigPictureAverage=${competencyAverageResult.seeingTheBigPictureAverage}," +
+//      s"overallScore=${competencyAverageResult.overallScore}," +
+      s"writtenExerciseAverage=${exerciseAverageResult.writtenExerciseAverage}," +
+      s"teamExerciseAverage=${exerciseAverageResult.teamExerciseAverage}," +
+      s"leadershipExerciseAverage=${exerciseAverageResult.leadershipExerciseAverage}," +
+      s"overallScore=${exerciseAverageResult.overallScore}"
+  }
+
   case class AssessmentEvaluationResult(
-    competencyAverageResult: CompetencyAverageResult,
-    schemesEvaluation: Seq[SchemeEvaluationResult])
+                                         fsacResults: FsacResults,
+                                         schemesEvaluation: Seq[SchemeEvaluationResult]
+                                       )
 }

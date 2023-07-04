@@ -46,7 +46,7 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
         leadershipExercise = None
       )
 
-      val result = AssessmentScoreCalculatorUnderTest.countAverage(assessmentScores)
+      val result = AssessmentScoreCalculatorUnderTest.calculateCompetencyAverages(assessmentScores)
 
       val expected = CompetencyAverageResult(
         makingEffectiveDecisionsAverage = 2.788,
@@ -76,7 +76,7 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
         ))
       )
 
-      val result = AssessmentScoreCalculatorUnderTest.countAverage(assessmentScores)
+      val result = AssessmentScoreCalculatorUnderTest.calculateCompetencyAverages(assessmentScores)
 
       val expected = CompetencyAverageResult(
         makingEffectiveDecisionsAverage = 0,
@@ -110,7 +110,7 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
         ))
       )
 
-      val result = AssessmentScoreCalculatorUnderTest.countAverage(assessmentScores)
+      val result = AssessmentScoreCalculatorUnderTest.calculateCompetencyAverages(assessmentScores)
 
       val expected = CompetencyAverageResult(
         makingEffectiveDecisionsAverage = 0,
@@ -139,7 +139,7 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
         ))
       )
 
-      val result = AssessmentScoreCalculatorUnderTest.countAverage(assessmentScores)
+      val result = AssessmentScoreCalculatorUnderTest.calculateCompetencyAverages(assessmentScores)
 
       val expected = CompetencyAverageResult(
         makingEffectiveDecisionsAverage = 0,
@@ -180,7 +180,7 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
         ))
       )
 
-      val result = AssessmentScoreCalculatorUnderTest.countAverage(assessmentScores)
+      val result = AssessmentScoreCalculatorUnderTest.calculateCompetencyAverages(assessmentScores)
 
       val expected = CompetencyAverageResult(
         makingEffectiveDecisionsAverage = 5.544,

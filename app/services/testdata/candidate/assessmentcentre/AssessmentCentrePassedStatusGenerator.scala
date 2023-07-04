@@ -47,12 +47,11 @@ class AssessmentCentrePassedStatusGenerator @Inject() (val previousStatusGenerat
     val schemes = schemeRepository.schemes.map(_.id).toList
     val dummyPassmarks = AssessmentCentrePassMarkSettingsPersistence(
       schemes.map(schemeId =>
-        AssessmentCentrePassMark(schemeId, AssessmentCentrePassMarkThresholds(
-          seeingTheBigPicture = PassMarkThreshold(0.2, 0.4),
-          makingEffectiveDecisions = PassMarkThreshold(0.2, 0.4),
-          communicatingAndInfluencing = PassMarkThreshold(0.2, 0.4),
-          workingTogetherDevelopingSelfAndOthers = PassMarkThreshold(0.2, 0.4),
-          overall = PassMarkThreshold(2, 16)
+        AssessmentCentreExercisePassMark(schemeId, AssessmentCentreExercisePassMarkThresholds(
+          writtenExercise = PassMarkThreshold(0.2, 0.4),
+          teamExercise = PassMarkThreshold(0.2, 0.4),
+          leadershipExercise = PassMarkThreshold(0.2, 0.4),
+          overall = PassMarkThreshold(2, 12)
         ))
       ),
       version.toString(),

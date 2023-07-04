@@ -17,6 +17,7 @@
 package services.evaluation
 
 import com.google.inject.ImplementedBy
+
 import javax.inject.Singleton
 import model.AssessmentPassMarksSchemesAndScores
 import model.EvaluationResults._
@@ -32,10 +33,13 @@ class AssessmentCentreEvaluationEngineImpl extends AssessmentCentreEvaluationEng
 
   def evaluate(candidateScores: AssessmentPassMarksSchemesAndScores): AssessmentEvaluationResult = {
     val appId = candidateScores.scores.applicationId
-    val competencyAverages = countAverage(candidateScores.scores)
-    logger.debug(s"CompetencyAverages = $competencyAverages - applicationId = $appId")
 
-    val evaluationResult = evaluateSchemes(appId.toString(), candidateScores.passmark, competencyAverages, candidateScores.schemes)
-    AssessmentEvaluationResult(competencyAverages, evaluationResult)
+    val competencyAverages = calculateCompetencyAverages(candidateScores.scores)
+    //    logger.debug(s"CompetencyAverages = $competencyAverages - applicationId = ${appId.toString}")
+    val exerciseAverages = calculateExerciseAverages(candidateScores.scores, appId.toString)
+    logger.debug(s"ExerciseAverages = $exerciseAverages - applicationId = ${appId.toString}")
+
+    val evaluationResult = evaluateSchemes(appId.toString(), candidateScores.passmark, exerciseAverages, candidateScores.schemes)
+    AssessmentEvaluationResult(FsacResults(competencyAverages, exerciseAverages), evaluationResult)
   }
 }

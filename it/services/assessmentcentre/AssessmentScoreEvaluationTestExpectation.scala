@@ -1,9 +1,9 @@
 package services.assessmentcentre
 
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.CompetencyAverageResult
+import model.EvaluationResults.{CompetencyAverageResult, ExerciseAverageResult}
 import model.persisted.SchemeEvaluationResult
-import model.{ ProgressStatuses, SchemeId }
+import model.{ProgressStatuses, SchemeId}
 
 case class AssessmentScoreEvaluationTestExpectation(
                                                      applicationStatus: Option[ApplicationStatus],
@@ -14,6 +14,10 @@ case class AssessmentScoreEvaluationTestExpectation(
                                                      communicatingAndInfluencingAverage: Option[Double],
                                                      seeingTheBigPictureAverage: Option[Double],
                                                      overallScore: Option[Double],
+                                                     writtenExerciseAverage: Option[Double],
+                                                     teamExerciseAverage: Option[Double],
+                                                     leadershipExerciseAverage: Option[Double],
+                                                     exerciseOverallScore: Option[Double],
                                                      schemesEvaluation: Option[String]
 ) {
 
@@ -35,6 +39,26 @@ case class AssessmentScoreEvaluationTestExpectation(
         communicatingAndInfluencingAverage.get,
         seeingTheBigPictureAverage.get,
         overallScore.get))
+    } else {
+      None
+    }
+  }
+  def exerciseAverage: Option[ExerciseAverageResult] = {
+    val allResults = List(writtenExerciseAverage, teamExerciseAverage, leadershipExerciseAverage, exerciseOverallScore)
+
+    val data = s"writtenExerciseAverage=$writtenExerciseAverage, " +
+      s"teamExerciseAverage=$teamExerciseAverage, " +
+      s"leadershipExerciseAverage=$leadershipExerciseAverage, " +
+      s"exerciseOverallScore=$exerciseOverallScore"
+
+    require(allResults.forall(_.isDefined) || allResults.forall(_.isEmpty), s"all competencies or none of them must be defined - $data")
+
+    if (allResults.forall(_.isDefined)) {
+      Some(ExerciseAverageResult(
+        writtenExerciseAverage.get,
+        teamExerciseAverage.get,
+        leadershipExerciseAverage.get,
+        exerciseOverallScore.get))
     } else {
       None
     }

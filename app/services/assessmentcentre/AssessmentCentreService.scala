@@ -266,7 +266,7 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
     val allSchemes = evaluation ++ failedSchemes
     assessmentPassmarkEvaluation.copy(evaluationResult =
       AssessmentEvaluationResult(
-        competencyAverageResult = assessmentPassmarkEvaluation.evaluationResult.competencyAverageResult,
+        fsacResults = assessmentPassmarkEvaluation.evaluationResult.fsacResults,
         schemesEvaluation = allSchemes))
   }
 

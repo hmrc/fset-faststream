@@ -19,6 +19,8 @@ package model.assessmentscores
 import model.UniqueIdentifier
 import play.api.libs.json.Json
 
+import scala.math.BigDecimal.RoundingMode
+
 // finalFeedback should be None in case of Reviewer Assessment scores
 case class AssessmentScoresAllExercises(
                                          applicationId: UniqueIdentifier,
@@ -44,8 +46,45 @@ case class AssessmentScoresAllExercises(
     average(List(writtenExercise, teamExercise, leadershipExercise).flatMap(_.flatMap(_.communicatingAndInfluencingAverage)), 3)
   }
 
+  def writtenExerciseAvg(appId: String): Double = {
+    writtenExercise.flatMap( ex =>
+      for {
+        a1 <- ex.seeingTheBigPictureAverage
+        a2 <- ex.makingEffectiveDecisionsAverage
+        a3 <- ex.communicatingAndInfluencingAverage
+      } yield {
+        average(List(a1, a2, a3), 3)
+      }
+    ).getOrElse(throw new Exception(s"Error generating fsac written exercise average for appId: $appId"))
+  }
+
+  def teamExerciseAvg(appId: String): Double = {
+    teamExercise.flatMap( ex =>
+      for {
+        a1 <- ex.makingEffectiveDecisionsAverage
+        a2 <- ex.workingTogetherDevelopingSelfAndOthersAverage
+        a3 <- ex.communicatingAndInfluencingAverage
+      } yield {
+        average(List(a1, a2, a3), 3)
+      }
+    ).getOrElse(throw new Exception(s"Error generating fsac team exercise average for appId: $appId"))
+  }
+
+  def leadershipExerciseAvg(appId: String): Double = {
+    leadershipExercise.flatMap( ex =>
+      for {
+        a1 <- ex.seeingTheBigPictureAverage
+        a2 <- ex.workingTogetherDevelopingSelfAndOthersAverage
+        a3 <- ex.communicatingAndInfluencingAverage
+      } yield {
+        average(List(a1, a2, a3), 3)
+      }
+    ).getOrElse(throw new Exception(s"Error generating fsac leadership exercise average for appId: $appId"))
+  }
+
   private def average(list: List[Double], mandatoryNumberOfElements: Int): Double = {
-    (list.map(BigDecimal(_)).sum / mandatoryNumberOfElements).toDouble
+    val decimalPlaces = 4
+    (list.map(BigDecimal(_)).sum / mandatoryNumberOfElements).setScale(decimalPlaces, RoundingMode.HALF_UP).toDouble
   }
 
   def toExchange = AssessmentScoresAllExercisesExchange(

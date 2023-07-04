@@ -151,11 +151,12 @@ object Phase3PassMarkSettingsPersistence {
   implicit val jsonFormat = Json.format[Phase3PassMarkSettingsPersistence]
 }
 
+// This class is now based on exercise pass marks not competency pass marks
 case class AssessmentCentrePassMarkSettings(
-                                   schemes: List[AssessmentCentrePassMark],
-                                   version: String,
-                                   createDate: DateTime,
-                                   createdBy: String
+                                             schemes: List[AssessmentCentreExercisePassMark],
+                                             version: String,
+                                             createDate: DateTime,
+                                             createdBy: String
                                  ) extends PassMarkSettings {
   override def toPersistence = AssessmentCentrePassMarkSettingsPersistence(schemes, version, createDate, createdBy)
 }
@@ -167,7 +168,7 @@ object AssessmentCentrePassMarkSettings {
 }
 
 case class AssessmentCentrePassMarkSettingsPersistence(
-                                              schemes: List[AssessmentCentrePassMark],
+                                              schemes: List[AssessmentCentreExercisePassMark],
                                               version: String,
                                               createDate: DateTime,
                                               createdBy: String

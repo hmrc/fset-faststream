@@ -51,11 +51,22 @@ object Phase3PassMark {
   implicit val phase3PassMark = Json.format[Phase3PassMark]
 }
 
-case class AssessmentCentrePassMark(
-                                   schemeId: SchemeId,
-                                   schemeThresholds: AssessmentCentrePassMarkThresholds
+// Competency based FSAC pass marks (no longer used)
+case class AssessmentCentreCompetencyPassMark(
+                                               schemeId: SchemeId,
+                                               schemeThresholds: AssessmentCentreCompetencyPassMarkThresholds
                          ) extends PassMark
 
-object AssessmentCentrePassMark {
-  implicit val jsonFormat = Json.format[AssessmentCentrePassMark]
+object AssessmentCentreCompetencyPassMark {
+  implicit val jsonFormat = Json.format[AssessmentCentreCompetencyPassMark]
+}
+
+// Exercise based FSAC pass marks (used in the current version of the fsac evaluation)
+case class AssessmentCentreExercisePassMark(
+                                             schemeId: SchemeId,
+                                             schemeThresholds: AssessmentCentreExercisePassMarkThresholds
+                         ) extends PassMark
+
+object AssessmentCentreExercisePassMark {
+  implicit val jsonFormat = Json.format[AssessmentCentreExercisePassMark]
 }

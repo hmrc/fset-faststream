@@ -1162,7 +1162,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
         val onlineTestResults = applicationsForOnlineTest.find(_.userId == userId)
         val siftResult = siftResults.find(_.applicationId == appId)
         val fsacResult = fsacResults.find(_.applicationId.toString() == appId)
-        val overallFsacScoreOpt = fsacResult.map(res => AssessmentScoreCalculator.countAverage(res).overallScore)
+        val overallFsacScoreOpt = fsacResult.map(res => AssessmentScoreCalculator.calculateCompetencyAverages(res).overallScore)
         val fsbResult = Option(FsbReportItem(appId, fsbResults.find(_.applicationId == appId).map(_.results)))
 
         applicationRepository.getCurrentSchemeStatus(appId).map { currentSchemeStatus =>
@@ -1205,7 +1205,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
         application <- applications
         appId = UniqueIdentifier(application.applicationId)
         fsac = fsacResults.find(_.applicationId == appId)
-        overallFsacScoreOpt = fsac.map(res => AssessmentScoreCalculator.countAverage(res).overallScore)
+        overallFsacScoreOpt = fsac.map(res => AssessmentScoreCalculator.calculateCompetencyAverages(res).overallScore)
         sift = siftResults.find(_.applicationId == application.applicationId)
         q <- questionnaires.get(application.applicationId)
         fsb <- fsbScoresAndFeedback.get(application.applicationId)

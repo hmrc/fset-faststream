@@ -18,7 +18,7 @@ package repositories.assessmentcentre
 
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.{Amber, AssessmentEvaluationResult, CompetencyAverageResult}
+import model.EvaluationResults.{Amber, AssessmentEvaluationResult, CompetencyAverageResult, ExerciseAverageResult, FsacResults}
 import model.Exceptions.NotFoundException
 import model.ProgressStatuses.{ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED}
 import model._
@@ -62,6 +62,8 @@ trait AssessmentCentreRepository {
   def getAssessmentScoreEvaluation(applicationId: String): Future[Option[AssessmentPassMarkEvaluation]]
   def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation,
                                     currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
+//  def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation2,
+//                                    currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
   def getFsacEvaluationResultAverages(applicationId: String): Future[Option[CompetencyAverageResult]]
   def getFsacEvaluatedSchemes(applicationId: String): Future[Option[Seq[SchemeEvaluationResult]]]
   def removeFsacTestGroup(applicationId: String): Future[Unit]
@@ -208,7 +210,10 @@ class AssessmentCentreMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
               UniqueIdentifier(applicationId),
               passmarkVersion = evaluationBson.asDocument().get("passmarkVersion").asString().getValue,
               evaluationResult = AssessmentEvaluationResult(
-                Codecs.fromBson[CompetencyAverageResult](evaluationBson.asDocument().get("competency-average")),
+                FsacResults( //TODO: can we improve this????
+                  Codecs.fromBson[CompetencyAverageResult](evaluationBson.asDocument().get("competency-average")),
+                  Codecs.fromBson[ExerciseAverageResult](evaluationBson.asDocument().get("exercise-average")),
+                ),
                 Codecs.fromBson[Seq[SchemeEvaluationResult]](evaluationBson.asDocument().get("schemes-evaluation"))
               )
             )
@@ -225,12 +230,18 @@ class AssessmentCentreMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
     )
 
     val passMarkEvaluation = Document("$set" ->
-      (Document("testGroups.FSAC.evaluation" -> Document("passmarkVersion" -> evaluation.passmarkVersion).++(
-        Document("competency-average" -> Codecs.toBson(evaluation.evaluationResult.competencyAverageResult))
-      ).++(
-        Document("schemes-evaluation" -> Codecs.toBson(evaluation.evaluationResult.schemesEvaluation))
-      )) ++
-      currentSchemeStatusBSON(currentSchemeStatus))
+      (
+        Document("testGroups.FSAC.evaluation" -> Document("passmarkVersion" -> evaluation.passmarkVersion)
+        .++(
+          Document("competency-average" -> Codecs.toBson(evaluation.evaluationResult.fsacResults.competencyAverageResult))
+        ).++(
+          Document("exercise-average" -> Codecs.toBson(evaluation.evaluationResult.fsacResults.exerciseAverageResult))
+        ).++(
+          Document("schemes-evaluation" -> Codecs.toBson(evaluation.evaluationResult.schemesEvaluation))
+        )
+        ) ++
+        currentSchemeStatusBSON(currentSchemeStatus)
+      )
     )
 
     collection.updateOne(query, passMarkEvaluation).toFuture() map { _ => () }
