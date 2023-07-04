@@ -83,7 +83,7 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
 
     "handle finding a test profile that contains fewer than the full set of active tests" in new TestFixture {
       val phase1TestProfile = Phase1TestProfile(expirationDate = DateTime.now(),
-                                    tests = List(firstPsiTest, secondPsiTest, thirdPsiTest),
+                                    tests = List(firstPsiTest, secondPsiTest),
                                     evaluation = None)
 
       when(mockPhase1TestRepository.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
@@ -97,7 +97,7 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
 
     "handle finding a test profile that contains the full set of active tests but missing one test result" in new TestFixture {
       val phase1TestProfile = Phase1TestProfile(expirationDate = DateTime.now(),
-                                    tests = List(firstPsiTest, secondPsiTest, thirdPsiTest, fourthPsiTest.copy(testResult = None)),
+                                    tests = List(firstPsiTest, secondPsiTest, thirdPsiTest.copy(testResult = None)),
                                     evaluation = None)
 
       when(mockPhase1TestRepository.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
@@ -111,7 +111,7 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
 
     "successfully process a request when updating the full set of active tests with test results" in new TestFixture {
       val phase1TestProfile = Phase1TestProfile(expirationDate = DateTime.now(),
-                                    tests = List(firstPsiTest, secondPsiTest, thirdPsiTest, fourthPsiTest),
+                                    tests = List(firstPsiTest, secondPsiTest, thirdPsiTest),
                                     evaluation = None)
       when(mockPhase1TestRepository.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
 
@@ -124,7 +124,7 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
 
     "successfully process a request when updating the full set of active tests with test results for a gis candidate" in new TestFixture {
       val phase1TestProfile = Phase1TestProfile(expirationDate = DateTime.now(),
-        tests = List(firstPsiTest, fourthPsiTest), evaluation = None)
+        tests = List(firstPsiTest, thirdPsiTest), evaluation = None)
       when(mockApplicationRepository.gisByApplication(any[String])).thenReturnAsync(true)
       when(mockPhase1TestRepository.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
 
@@ -137,7 +137,7 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
 
     "throw an exception when updating tests for a gis candidate and the number of tests is not as expected" in new TestFixture {
       val phase1TestProfile = Phase1TestProfile(expirationDate = DateTime.now(),
-        tests = List(firstPsiTest, secondPsiTest, thirdPsiTest, fourthPsiTest), evaluation = None)
+        tests = List(firstPsiTest, secondPsiTest, thirdPsiTest), evaluation = None)
       when(mockApplicationRepository.gisByApplication(any[String])).thenReturnAsync(true)
       when(mockPhase1TestRepository.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
 
@@ -150,20 +150,20 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
 
     "successfully process a request when updating a single active test" in new TestFixture {
       val phase1TestProfile = Phase1TestProfile(expirationDate = DateTime.now(),
-                                    tests = List(firstPsiTest, secondPsiTest, thirdPsiTest, fourthPsiTest),
+                                    tests = List(firstPsiTest, secondPsiTest, thirdPsiTest),
                                     evaluation = None)
       when(mockPhase1TestRepository.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
 
       when(mockPhase1TestRepository.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile])).thenReturnAsync()
 
-      val request = SetTScoreRequest(applicationId = "appId", inventoryId = Some("inventoryId4"), phase = phase1, tScore = 20.0)
+      val request = SetTScoreRequest(applicationId = "appId", inventoryId = Some("inventoryId3"), phase = phase1, tScore = 20.0)
       val response = service.setPhase1TScore(request).futureValue
       response mustBe unit
     }
 
     "handle an incorrect inventory id when processing a request to updating a single active test" in new TestFixture {
       val phase1TestProfile = Phase1TestProfile(expirationDate = DateTime.now(),
-                                    tests = List(firstPsiTest, secondPsiTest, thirdPsiTest, fourthPsiTest),
+                                    tests = List(firstPsiTest, secondPsiTest, thirdPsiTest),
                                     evaluation = None)
       when(mockPhase1TestRepository.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
 

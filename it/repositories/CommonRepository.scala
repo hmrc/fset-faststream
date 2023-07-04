@@ -87,14 +87,13 @@ trait CommonRepository extends CurrentSchemeStatusHelper with Schemes {
   def selectedSchemes(schemeTypes: List[SchemeId]) = SelectedSchemes(schemeTypes, orderAgreed = true, eligible = true)
 
   def insertApplicationWithPhase1TestResults(appId: String, t1Score: Double, t2Score: Option[Double] = None,
-                                             t3Score: Option[Double] = None, t4Score: Double, isGis: Boolean = false,
+                                             t3Score: Double, isGis: Boolean = false,
                                              applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
                                              )(schemes: SchemeId*): ApplicationReadyForEvaluation = {
     val test1 = firstPsiTest.copy(testResult = Some(PsiTestResult(tScore = t1Score, rawScore = 10.0, None)))
     val test2 = secondPsiTest.copy(testResult = Some(PsiTestResult(tScore = t2Score.getOrElse(0.0), rawScore = 10.0, None)))
-    val test3 = thirdPsiTest.copy(testResult = Some(PsiTestResult(tScore = t3Score.getOrElse(0.0), rawScore = 10.0, None)))
-    val test4 = fourthPsiTest.copy(testResult = Some(PsiTestResult(tScore = t4Score, rawScore = 10.0, None)))
-    val phase1Tests = if(isGis) List(test1, test4) else List(test1, test2, test3, test4)
+    val test3 = thirdPsiTest.copy(testResult = Some(PsiTestResult(tScore = t3Score, rawScore = 10.0, None)))
+    val phase1Tests = if(isGis) List(test1, test3) else List(test1, test2, test3)
     insertApplication(appId, ApplicationStatus.PHASE1_TESTS, Some(phase1Tests), applicationRoute = Some(applicationRoute))
     ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE1_TESTS, applicationRoute, isGis,
       Phase1TestProfile(now, phase1Tests).activeTests, None, None, selectedSchemes(schemes.toList)
@@ -110,8 +109,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper with Schemes {
     val p1Test1 = firstPsiTest.copy(testResult = Some(PsiTestResult(tScore = 45.0, rawScore = 10.0, None)))
     val p1Test2 = secondPsiTest.copy(testResult = Some(PsiTestResult(tScore = 45.0, rawScore = 10.0, None)))
     val p1Test3 = thirdPsiTest.copy(testResult = Some(PsiTestResult(tScore = 45.0, rawScore = 10.0, None)))
-    val p1Test4 = fourthPsiTest.copy(testResult = Some(PsiTestResult(tScore = 45.0, rawScore = 10.0, None)))
-    val phase1Tests = List(p1Test1, p1Test2, p1Test3, p1Test4)
+    val phase1Tests = List(p1Test1, p1Test2, p1Test3)
 
     insertApplication(appId, ApplicationStatus.PHASE1_TESTS, Some(phase1Tests), applicationRoute = Some(appRoute))
 
@@ -127,11 +125,10 @@ trait CommonRepository extends CurrentSchemeStatusHelper with Schemes {
     val p1Test1 = firstPsiTest.copy(testResult = Some(PsiTestResult(tScore = 45.0, rawScore = 10.0, None)))
     val p1Test2 = secondPsiTest.copy(testResult = Some(PsiTestResult(tScore = 45.0, rawScore = 10.0, None)))
     val p1Test3 = thirdPsiTest.copy(testResult = Some(PsiTestResult(tScore = 45.0, rawScore = 10.0, None)))
-    val p1Test4 = fourthPsiTest.copy(testResult = Some(PsiTestResult(tScore = 45.0, rawScore = 10.0, None)))
 
     val p2Test1 = firstP2PsiTest.copy(testResult = Some(PsiTestResult(t1Score, 10.0, None)))
     val p2Test2 = secondP2PsiTest.copy(testResult = Some(PsiTestResult(t2Score, 10.0, None)))
-    val phase1Tests = List(p1Test1, p1Test2, p1Test3, p1Test4)
+    val phase1Tests = List(p1Test1, p1Test2, p1Test3)
     val phase2Tests = List(p2Test1, p2Test2)
     insertApplication(appId, ApplicationStatus.PHASE2_TESTS, Some(phase1Tests), Some(phase2Tests))
     phase1EvaluationRepo.savePassmarkEvaluation(appId, phase1PassMarkEvaluation, None).futureValue

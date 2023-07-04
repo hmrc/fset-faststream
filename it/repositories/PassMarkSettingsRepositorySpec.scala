@@ -29,12 +29,12 @@ class Phase1PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture wit
   override type U = Phase1PassMark
   override implicit val formatter: OFormat[Phase1PassMarkSettingsPersistence] = Phase1PassMarkSettingsPersistence.jsonFormat
   val phase1PassMarkThresholds = Phase1PassMarkThresholds(
-    PassMarkThreshold(20d, 80d), PassMarkThreshold(20d, 80d), PassMarkThreshold(20d, 80d), PassMarkThreshold(20d, 80d)
+    PassMarkThreshold(20d, 80d), PassMarkThreshold(20d, 80d), PassMarkThreshold(20d, 80d)
   )
   val phase1PassMarks = List(Phase1PassMark(Finance, phase1PassMarkThresholds))
   override val passMarkSettings = Phase1PassMarkSettingsPersistence(phase1PassMarks, version, createdDate, createdByUser)
   override val newPassMarkThresholds = Phase1PassMarkThresholds(
-    PassMarkThreshold(30d, 80d), PassMarkThreshold(20d, 60d), PassMarkThreshold(30d, 80d), PassMarkThreshold(20d, 60d)
+    PassMarkThreshold(30d, 80d), PassMarkThreshold(20d, 60d), PassMarkThreshold(30d, 80d)
   )
   override val newPassMarks = List(Phase1PassMark(Finance, newPassMarkThresholds))
   override def passMarkSettingsRepo = new Phase1PassMarkSettingsMongoRepository(mongo)

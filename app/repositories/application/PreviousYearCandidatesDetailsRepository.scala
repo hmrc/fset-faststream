@@ -136,7 +136,6 @@ trait PreviousYearCandidatesDetailsRepository {
     testTitles("Phase1 test1") +
     testTitles("Phase1 test2") +
     testTitles("Phase1 test3") +
-    testTitles("Phase1 test4") +
     testTitles("Phase2 test1") +
     testTitles("Phase2 test2") +
     // Phase 3 test columns
@@ -329,7 +328,6 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
               onlineTestResults(Tests.Phase1Test1.toString) :::
               onlineTestResults(Tests.Phase1Test2.toString) :::
               onlineTestResults(Tests.Phase1Test3.toString) :::
-              onlineTestResults(Tests.Phase1Test4.toString) :::
               onlineTestResults(Tests.Phase2Test1.toString) :::
               onlineTestResults(Tests.Phase2Test2.toString) :::
               videoInterview(doc) :::
@@ -409,7 +407,6 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
             onlineTestResults(Tests.Phase1Test1.toString) :::
             onlineTestResults(Tests.Phase1Test2.toString) :::
             onlineTestResults(Tests.Phase1Test3.toString) :::
-            onlineTestResults(Tests.Phase1Test4.toString) :::
             onlineTestResults(Tests.Phase2Test1.toString) :::
             onlineTestResults(Tests.Phase2Test2.toString) :::
             videoInterview(doc) :::
@@ -1482,7 +1479,6 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     val test1InventoryId = getInventoryId(phase1TestConfig, "test1", "phase1")
     val test2InventoryId = getInventoryId(phase1TestConfig, "test2", "phase1")
     val test3InventoryId = getInventoryId(phase1TestConfig, "test3", "phase1")
-    val test4InventoryId = getInventoryId(phase1TestConfig, "test4", "phase1")
 
     val testGroupsOpt = subDocRoot("testGroups")(doc)
 
@@ -1505,11 +1501,6 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     val phase1Test3 = phase1Tests.flatMap( tests =>
       tests.find { test =>
         test.getString("inventoryId").getValue == test3InventoryId && test.getBoolean("usedForResults").getValue
-      }
-    )
-    val phase1Test4 = phase1Tests.flatMap( tests =>
-      tests.find { test =>
-        test.getString("inventoryId").getValue == test4InventoryId && test.getBoolean("usedForResults").getValue
       }
     )
 
@@ -1553,7 +1544,6 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
       Tests.Phase1Test1.toString -> extractDataFromTest(phase1Test1),
       Tests.Phase1Test2.toString -> extractDataFromTest(phase1Test2),
       Tests.Phase1Test3.toString -> extractDataFromTest(phase1Test3),
-      Tests.Phase1Test4.toString -> extractDataFromTest(phase1Test4),
       Tests.Phase2Test1.toString -> extractDataFromTest(phase2Test1),
       Tests.Phase2Test2.toString -> extractDataFromTest(phase2Test2),
       Tests.SiftTest.toString -> extractDataFromTest(siftTest)
@@ -1575,10 +1565,6 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
 
     case object Phase1Test3 extends Test {
       override def name = "phase1test3"
-    }
-
-    case object Phase1Test4 extends Test {
-      override def name = "phase1test4"
     }
 
     case object Phase2Test1 extends Test {

@@ -39,8 +39,7 @@ class Phase1PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
   override implicit val formatter = Phase1PassMarkSettings.jsonFormat
   implicit val formatter2 = Phase1PassMarkSettingsPersistence.jsonFormat
   override val argumentCaptor = ArgumentCaptor.forClass(classOf[Phase1PassMarkSettingsPersistence])
-  val passMarkThresholds = Phase1PassMarkThresholds(defaultSchemeThreshold, defaultSchemeThreshold,
-    defaultSchemeThreshold, defaultSchemeThreshold)
+  val passMarkThresholds = Phase1PassMarkThresholds(defaultSchemeThreshold, defaultSchemeThreshold, defaultSchemeThreshold)
   override val passMarks = List(
     Phase1PassMark(Finance, passMarkThresholds),
     Phase1PassMark(Commercial, passMarkThresholds),

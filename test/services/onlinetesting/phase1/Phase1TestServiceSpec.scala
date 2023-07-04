@@ -57,8 +57,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
   val inventoryIds: Map[String, String] = Map[String, String](
   "test1" -> "test1-uuid",
   "test2" -> "test2-uuid",
-  "test3" -> "test3-uuid",
-  "test4"->"test4-uuid")
+  "test3" -> "test3-uuid")
 
   def testIds(idx: Int): PsiTestIds =
     PsiTestIds(s"inventory-id-$idx", s"assessment-id-$idx", s"report-id-$idx", s"norm-id-$idx")
@@ -66,13 +65,12 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
   val tests = Map[String, PsiTestIds](
     "test1" -> testIds(1),
     "test2" -> testIds(2),
-    "test3" -> testIds(3),
-    "test4" -> testIds(4)
+    "test3" -> testIds(3)
   )
 
   val mockPhase1TestConfig = Phase1TestsConfig(
-    expiryTimeInDays = 5, gracePeriodInSecs = 0, testRegistrationDelayInSecs = 1, tests, standard = List("test1", "test2", "test3", "test4"),
-    gis = List("test1", "test4")
+    expiryTimeInDays = 5, gracePeriodInSecs = 0, testRegistrationDelayInSecs = 1, tests, standard = List("test1", "test2", "test3"),
+    gis = List("test1")
   )
   val mockPhase2TestConfig = Phase2TestsConfig(
     expiryTimeInDays = 5, expiryTimeInDaysForInvigilatedETray = 90, gracePeriodInSecs = 0, testRegistrationDelayInSecs = 1,
@@ -180,16 +178,16 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
       result.futureValue mustBe unit
 
-      verify(onlineTestsGatewayClientMock, times(2)).psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext])
+      verify(onlineTestsGatewayClientMock, times(1)).psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext])
       verify(emailClientMock, times(1)).sendOnlineTestInvitation(
         eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate)
       )(any[HeaderCarrier], any[ExecutionContext])
 
-      verify(auditServiceMock, times(2)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+      verify(auditServiceMock, times(1)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationProcessComplete", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvited", auditDetails)
-      verify(auditServiceMock, times(5)).logEventNoRequest(any[String], any[Map[String, String]])
+      verify(auditServiceMock, times(4)).logEventNoRequest(any[String], any[Map[String, String]])
     }
 
     "Invite to 4 tests and issue one email for non-GIS candidates" in new SuccessfulTestInviteFixture {
@@ -200,16 +198,16 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
       result.futureValue mustBe unit
 
-      verify(onlineTestsGatewayClientMock, times(4)).psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext])
+      verify(onlineTestsGatewayClientMock, times(3)).psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext])
       verify(emailClientMock, times(1)).sendOnlineTestInvitation(
         eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate)
       )(any[HeaderCarrier], any[ExecutionContext])
 
-      verify(auditServiceMock, times(4)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+      verify(auditServiceMock, times(3)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationProcessComplete", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvited", auditDetails)
-      verify(auditServiceMock, times(7)).logEventNoRequest(any[String], any[Map[String, String]])
+      verify(auditServiceMock, times(6)).logEventNoRequest(any[String], any[Map[String, String]])
     }
 
     "fail if registration fails" in new OnlineTest {
@@ -232,9 +230,9 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       val result = phase1TestService.registerAndInviteForTestGroup(List(onlineTestApplication))
       result.failed.futureValue mustBe an[Exception]
 
-      verify(auditServiceMock, times(4)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+      verify(auditServiceMock, times(3)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvited", auditDetails)
-      verify(auditServiceMock, times(5)).logEventNoRequest(any[String], any[Map[String, String]])
+      verify(auditServiceMock, times(4)).logEventNoRequest(any[String], any[Map[String, String]])
     }
 
     "fail, audit 'UserRegisteredForOnlineTest' and audit 'OnlineTestInvited'" +
@@ -255,9 +253,9 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       val result = phase1TestService.registerAndInviteForTestGroup(List(onlineTestApplication))
       result.failed.futureValue mustBe an[Exception]
 
-      verify(auditServiceMock, times(4)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+      verify(auditServiceMock, times(3)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvited", auditDetails)
-      verify(auditServiceMock, times(5)).logEventNoRequest(any[String], any[Map[String, String]])
+      verify(auditServiceMock, times(4)).logEventNoRequest(any[String], any[Map[String, String]])
     }
 
     "fail, audit 'UserRegisteredForOnlineTest', audit 'UserInvitedToOnlineTest'" +
@@ -273,9 +271,9 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
       verify(emailClientMock, never()).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(
         any[HeaderCarrier], any[ExecutionContext])
-      verify(auditServiceMock, times(4)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+      verify(auditServiceMock, times(3)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
       verify(auditServiceMock, never()).logEventNoRequest("OnlineTestInvited", auditDetails)
-      verify(auditServiceMock, times(4)).logEventNoRequest(any[String], any[Map[String, String]])
+      verify(auditServiceMock, times(3)).logEventNoRequest(any[String], any[Map[String, String]])
     }
 
     "audit 'OnlineTestInvitationProcessComplete' on success" in new OnlineTest {
@@ -296,11 +294,11 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
         eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate)
       )(any[HeaderCarrier], any[ExecutionContext])
 
-      verify(auditServiceMock, times(4)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
+      verify(auditServiceMock, times(3)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationProcessComplete", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvited", auditDetails)
-      verify(auditServiceMock, times(7)).logEventNoRequest(any[String], any[Map[String, String]])
+      verify(auditServiceMock, times(6)).logEventNoRequest(any[String], any[Map[String, String]])
     }
   }
 
@@ -562,7 +560,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       when(phase1TestRepositoryMock.insertTestResult(any[String], any[PsiTest], any[model.persisted.PsiTestResult])(any[ExecutionContext]))
         .thenReturnAsync()
 
-      val phase1TestProfile2 = Phase1TestProfile(expirationDate = now, tests = List(firstPsiTest, secondPsiTest, thirdPsiTest, fourthPsiTest))
+      val phase1TestProfile2 = Phase1TestProfile(expirationDate = now, tests = List(firstPsiTest, secondPsiTest, thirdPsiTest))
       when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile2))
       when(phase1TestRepositoryMock.updateProgressStatus(any[String], any[ProgressStatuses.ProgressStatus])(any[ExecutionContext]))
         .thenReturnAsync()
@@ -598,7 +596,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       when(phase1TestRepositoryMock.updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE1_TESTS_COMPLETED))(any[ExecutionContext]))
         .thenReturnAsync()
 
-      val phase1TestProfile2 = Phase1TestProfile(expirationDate = now, tests = List(firstPsiTest, secondPsiTest, thirdPsiTest, fourthPsiTest))
+      val phase1TestProfile2 = Phase1TestProfile(expirationDate = now, tests = List(firstPsiTest, secondPsiTest, thirdPsiTest))
       when(phase1TestRepositoryMock.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile2))
       when(phase1TestRepositoryMock.updateProgressStatus(any[String], eqTo(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED))(
         any[ExecutionContext])).thenReturnAsync()

@@ -89,7 +89,7 @@ class CampaignManagementService @Inject() (afterDeadlineCodeRepository: Campaign
       phase1TestProfileOpt <- phase1TestRepo.getTestGroup(tScoreRequest.applicationId)
     } yield {
       val testsPresentWithResultsSaved = phase1TestProfileOpt.exists { phase1TestProfile =>
-        val expectedNumberOfTests = if (isGis) { 2 } else { 4 }
+        val expectedNumberOfTests = if (isGis) { 2 } else { 3 }
         val allTestsPresent = phase1TestProfile.activeTests.size == expectedNumberOfTests
         val allTestsHaveATestResult = phase1TestProfile.activeTests.forall(_.testResult.isDefined)
         allTestsPresent && allTestsHaveATestResult

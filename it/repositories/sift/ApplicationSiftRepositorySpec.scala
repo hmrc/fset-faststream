@@ -100,8 +100,8 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     "return no results when there are only applications that aren't in Passed_Notified which apply for sift " +
       "or don't have Green/Passed results" in {
 
-      insertApplicationWithPhase1TestResults("appId5", 5.5d, None, None, 5.5d, applicationRoute = ApplicationRoute.Edip)(Edip)
-      insertApplicationWithPhase1TestResults("appId6", 5.5d, None, None, 5.5d, applicationRoute = ApplicationRoute.Sdip)(Sdip)
+      insertApplicationWithPhase1TestResults("appId5", 5.5d, None, 5.5d, applicationRoute = ApplicationRoute.Edip)(Edip)
+      insertApplicationWithPhase1TestResults("appId6", 5.5d, None, 5.5d, applicationRoute = ApplicationRoute.Sdip)(Sdip)
 
       insertApplicationWithPhase3TestResults("appId7", None,
         PassmarkEvaluation("1", None, List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString)), "1", None))(Finance)
