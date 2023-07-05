@@ -87,7 +87,7 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec with Schemes {
         ApplicationRoute.Faststream,
         progress = Some("submitted"),
         schemes = List(Commercial),
-        disability = Some("Yes"), gis = Some(false), onlineAdjustments = Some("No"),
+        disability = Some("Yes"), gis = Some(false), onlineAdjustments = None,
         assessmentCentreAdjustments = Some("Yes"),
         civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
           isCivilServant = Some("Yes"), isEDIP = Some("Yes"), edipYear = Some("2018"), isSDIP = Some("Yes"), sdipYear = Some("2019"),

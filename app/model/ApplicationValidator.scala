@@ -30,17 +30,9 @@ case class ApplicationValidator(gd: PersonalDetails, ad: AssistanceDetails, sl: 
 
   def validateAssistanceDetails: Boolean = {
 
-    def ifNeeds(value: Option[Boolean])(f: AssistanceDetails => Boolean) = value match {
+    def ifNeeds(value: Option[Boolean], f: AssistanceDetails => Boolean) = value match {
       case Some(true) => f(ad)
-      case _ => true
-    }
-
-    val ifNeedsOnlineAdjustments = ifNeeds(ad.needsSupportForOnlineAssessment) _
-    val ifNeedsVenueAdjustments = ifNeeds(ad.needsSupportAtVenue) _
-
-    def hasOnlineAdjustmentDescription(ad: AssistanceDetails): Boolean = ad.needsSupportForOnlineAssessmentDescription match {
-      case Some(x) => x.nonEmpty
-      case _ => false
+      case _ => true // True indicates validation is valid
     }
 
     def hasVenueAdjustmentDescription(ad: AssistanceDetails): Boolean = ad.needsSupportAtVenueDescription match {
@@ -48,7 +40,7 @@ case class ApplicationValidator(gd: PersonalDetails, ad: AssistanceDetails, sl: 
       case _ => false
     }
 
-    ifNeedsOnlineAdjustments(hasOnlineAdjustmentDescription) && ifNeedsVenueAdjustments(hasVenueAdjustmentDescription)
+    ifNeeds(ad.needsSupportAtVenue, hasVenueAdjustmentDescription)
   }
 
   def validateSchemes: Boolean = {

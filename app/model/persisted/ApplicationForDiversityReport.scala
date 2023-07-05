@@ -27,6 +27,7 @@ case class ApplicationForDiversityReport(applicationId: String,
                                          schemes: List[SchemeId],
                                          disability: Option[String],
                                          gis: Option[Boolean],
+                                         // This is needed for edip & sdip candidates (needsSupportForPhoneInterview)
                                          onlineAdjustments: Option[String],
                                          assessmentCentreAdjustments: Option[String],
                                          civilServiceExperiencesDetails: Option[CivilServiceExperienceDetailsForDiversityReport],

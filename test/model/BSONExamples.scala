@@ -73,7 +73,6 @@ object BSONExamples {
         "needsSupportForPhoneInterview" -> true,
         "needsSupportAtVenueDescription" -> "I need a comfortable chair because of my back problem",
         "needsSupportAtVenue" -> true,
-        "needsSupportForOnlineAssessment" -> false,
         "guaranteedInterview" -> false
       )
     )
@@ -134,7 +133,6 @@ object BSONExamples {
         "needsSupportForPhoneInterview" -> true,
         "needsSupportAtVenueDescription" -> "I need a comfortable chair because of my back problem",
         "needsSupportAtVenue" -> true,
-        "needsSupportForOnlineAssessment" -> false,
         "guaranteedInterview" -> false
       )
     )

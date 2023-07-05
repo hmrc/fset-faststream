@@ -30,11 +30,9 @@ final case class AdjustmentReportItem(userId: String,
                                       disabilityCategories: Option[List[String]],
                                       otherDisabilityDescription: Option[String],
                                       applicationStatus: Option[String],
-                                      needsSupportForOnlineAssessmentDescription: Option[String],
                                       needsSupportAtVenueDescription: Option[String],
                                       hasDisability: Option[String],
                                       hasDisabilityDescription: Option[String],
-                                      adjustments: Option[Adjustments],
                                       adjustmentsComment: Option[String])
 
 object AdjustmentReportItem {

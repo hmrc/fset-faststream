@@ -74,7 +74,7 @@ class Phase3TestsInvitedStatusGenerator @Inject() (val previousStatusGenerator: 
         // TODO: This is not set in code, so it will always generate a random useless value, anyway it is not used yet
         candidateInPreviousStatus.testAccountId.getOrElse("TODOTestAccountId"),
         guaranteedInterview = false,
-        needsOnlineAdjustments = false, needsAtVenueAdjustments = false,
+        needsAtVenueAdjustments = false,
         preferredName = generatorConfig.personalData.getPreferredName,
         lastName = candidateInPreviousStatus.lastName,
         eTrayAdjustments = None,

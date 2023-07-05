@@ -29,7 +29,6 @@ case class ApplicationForOnlineTestPassMarkReport(userId: String,
                                                   schemes: List[SchemeId],
                                                   disability: Option[String],
                                                   gis: Option[Boolean],
-                                                  onlineAdjustments: Option[String],
                                                   assessmentCentreAdjustments: Option[String],
                                                   testResults: TestResultsForOnlineTestPassMarkReportItem,
                                                   currentSchemeStatus: List[SchemeEvaluationResult])

@@ -33,12 +33,6 @@ class InProgressAssistanceDetailsStatusGenerator @Inject() (val previousStatusGe
                                                             adRepository: AssistanceDetailsRepository,
                                                             adjustmentsManagementService: AdjustmentsManagementService
                                                            )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
-//  val adRepository: AssistanceDetailsRepository
-//  val adjustmentsManagementService: AdjustmentsManagementService
-
-//  override def getPreviousStatusGenerator(generatorConfig: CreateCandidateData) = {
-//    (ApplicationStatus.IN_PROGRESS, InProgressSchemePreferencesStatusGenerator)
-//  }
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
     val assistanceDetails = getAssistanceDetails(generatorConfig)
@@ -48,11 +42,13 @@ class InProgressAssistanceDetailsStatusGenerator @Inject() (val previousStatusGe
       candidateInPreviousStatus <- getPreviousStatusGenerator(generatorConfig)._2.generate(generationId, generatorConfig)
       appId = candidateInPreviousStatus.applicationId.get
       _ <- adRepository.update(appId, candidateInPreviousStatus.userId, assistanceDetails)
+/*
       _ <- if (adjustmentsDataOpt.exists(_.adjustmentsConfirmed.getOrElse(false))) {
         adjustmentsManagementService.confirmAdjustment(appId, Adjustments(adjustmentsDataOpt.get))
       } else {
         Future.successful(())
       }
+ */
     } yield {
       candidateInPreviousStatus.copy(assistanceDetails = Some(assistanceDetails),
         adjustmentInformation = adjustmentsDataOpt.map(Adjustments(_)))
@@ -90,13 +86,6 @@ class InProgressAssistanceDetailsStatusGenerator @Inject() (val previousStatusGe
       Some(false)
     }
 
-    val onlineAdjustmentsFinalValue = config.assistanceDetails.onlineAdjustments
-    val onlineAdjustmentsDescriptionFinalValue =
-      if (onlineAdjustmentsFinalValue) {
-        Some(config.assistanceDetails.onlineAdjustmentsDescription)
-      } else {
-        None
-      }
     val assessmentCentreAdjustmentsFinalValue = config.assistanceDetails.assessmentCentreAdjustments
     val assessmentCentreAdjustmentsDescriptionFinalValue =
       if (assessmentCentreAdjustmentsFinalValue) {
@@ -123,8 +112,6 @@ class InProgressAssistanceDetailsStatusGenerator @Inject() (val previousStatusGe
       disabilityCategoriesFinalValue,
       hasDisabilityDescriptionFinalValue,
       gisFinalValue,
-      Some(onlineAdjustmentsFinalValue),
-      onlineAdjustmentsDescriptionFinalValue,
       Some(assessmentCentreAdjustmentsFinalValue),
       assessmentCentreAdjustmentsDescriptionFinalValue,
       Some(phoneAdjustmentsFinalValue),

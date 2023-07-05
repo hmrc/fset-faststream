@@ -17,9 +17,8 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
-import model.Adjustments._
 import model.Exceptions._
-import model.{Adjustments, AdjustmentsComment}
+import model.AdjustmentsComment
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.adjustmentsmanagement.AdjustmentsManagementService
@@ -31,6 +30,7 @@ class AdjustmentsManagementController @Inject() (cc: ControllerComponents,
 
   implicit val ec = cc.executionContext
 
+  /*
   def confirmAdjustments(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[Adjustments] { data =>
       adjustmentsManagementService.confirmAdjustment(applicationId, data).map { _ =>
@@ -40,7 +40,9 @@ class AdjustmentsManagementController @Inject() (cc: ControllerComponents,
       }
     }
   }
+   */
 
+  /*
   def findAdjustments(applicationId: String): Action[AnyContent] = Action.async {
     adjustmentsManagementService.find(applicationId).map { adjustments =>
       if (adjustments.isDefined) {
@@ -50,6 +52,7 @@ class AdjustmentsManagementController @Inject() (cc: ControllerComponents,
       }
     }
   }
+   */
 
   def updateAdjustmentsComment(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[AdjustmentsComment] { data =>

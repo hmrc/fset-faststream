@@ -55,14 +55,13 @@ package object repositories {
 
     val assistanceDetailsRoot = doc.get("assistance-details").map(_.asDocument()).get
     val guaranteedInterview = Try(assistanceDetailsRoot.get("guaranteedInterview").asBoolean().getValue).getOrElse(false)
-    val needsAdjustmentForOnlineTests = Try(assistanceDetailsRoot.get("needsSupportForOnlineAssessment").asBoolean().getValue).getOrElse(false)
     val needsAdjustmentsAtVenue = Try(assistanceDetailsRoot.get("needsSupportAtVenue").asBoolean().getValue).getOrElse(false)
     val etrayAdjustments = Try(Codecs.fromBson[AdjustmentDetail](assistanceDetailsRoot.get("etray"))).toOption
     val videoInterviewAdjustments = Try(Codecs.fromBson[AdjustmentDetail](assistanceDetailsRoot.get("video"))).toOption
 
     OnlineTestApplication(
       applicationId, applicationStatus, userId, testAccountId, guaranteedInterview,
-      needsAdjustmentForOnlineTests, needsAdjustmentsAtVenue, preferredName, lastName,
+      needsAdjustmentsAtVenue, preferredName, lastName,
       etrayAdjustments, videoInterviewAdjustments
     )
   }

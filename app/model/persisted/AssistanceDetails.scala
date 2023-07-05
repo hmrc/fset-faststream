@@ -26,8 +26,6 @@ case class AssistanceDetails(
                               disabilityCategories: Option[List[String]],
                               otherDisabilityDescription: Option[String],
                               guaranteedInterview: Option[Boolean],
-                              needsSupportForOnlineAssessment: Option[Boolean],
-                              needsSupportForOnlineAssessmentDescription: Option[String],
                               needsSupportAtVenue: Option[Boolean],
                               needsSupportAtVenueDescription: Option[String],
                               needsSupportForPhoneInterview: Option[Boolean],
@@ -38,8 +36,6 @@ case class AssistanceDetails(
     s"disabilityCategories=$disabilityCategories," +
     s"otherDisabilityDescription=$otherDisabilityDescription," +
     s"guaranteedInterview=$guaranteedInterview," +
-    s"needsSupportForOnlineAssessment=$needsSupportForOnlineAssessment," +
-    s"needsSupportForOnlineAssessmentDescription=$needsSupportForOnlineAssessmentDescription," +
     s"needsSupportAtVenue=$needsSupportAtVenue," +
     s"needsSupportAtVenueDescription=$needsSupportAtVenueDescription," +
     s"needsSupportForPhoneInterview=$needsSupportForPhoneInterview," +
@@ -58,8 +54,6 @@ object AssistanceDetails {
       (__ \ root \ "disabilityCategories").formatNullable[List[String]] and
       (__ \ root \ "otherDisabilityDescription").formatNullable[String] and
       (__ \ root \ "guaranteedInterview").formatNullable[Boolean] and
-      (__ \ root \ "needsSupportForOnlineAssessment").formatNullable[Boolean] and
-      (__ \ root \ "needsSupportForOnlineAssessmentDescription").formatNullable[String] and
       (__ \ root \ "needsSupportAtVenue").formatNullable[Boolean] and
       (__ \ root \ "needsSupportAtVenueDescription").formatNullable[String] and
       (__ \ root \ "needsSupportForPhoneInterview").formatNullable[Boolean] and
@@ -68,8 +62,8 @@ object AssistanceDetails {
 
   def apply(ex: AssistanceDetailsExchange): AssistanceDetails =
     AssistanceDetails(ex.hasDisability, ex.disabilityImpact, ex.disabilityCategories,
-      ex.otherDisabilityDescription, ex.guaranteedInterview, ex.needsSupportForOnlineAssessment,
-      ex.needsSupportForOnlineAssessmentDescription, ex.needsSupportAtVenue,
-      ex.needsSupportAtVenueDescription, ex.needsSupportForPhoneInterview,
-      ex.needsSupportForPhoneInterviewDescription)
+      ex.otherDisabilityDescription, ex.guaranteedInterview,
+      ex.needsSupportAtVenue, ex.needsSupportAtVenueDescription,
+      ex.needsSupportForPhoneInterview, ex.needsSupportForPhoneInterviewDescription
+    )
 }

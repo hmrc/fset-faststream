@@ -71,7 +71,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       result must not be empty
       result.head mustBe CandidateProgressReportItem(userId = userId, applicationId = appId, progress = Some("submitted"),
         schemes = List(DiplomaticAndDevelopment, GovernmentOperationalResearchService), disability = Some("Yes"),
-        onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
+        assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
         civilServant = Some("Yes"), edip = Some("Yes"), sdip = Some("Yes"), otherInternship = Some("Yes"),
         fastPassCertificate = Some("1234567"), assessmentCentre = None, applicationRoute = ApplicationRoute.Faststream)
     }
@@ -85,7 +85,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
       result must not be empty
       result.head mustBe CandidateProgressReportItem(userId = userId, applicationId = appId, progress = Some("registered"),
-        schemes = List.empty[SchemeId], disability = None, onlineAdjustments = None, assessmentCentreAdjustments = None,
+        schemes = List.empty[SchemeId], disability = None, assessmentCentreAdjustments = None,
         phoneAdjustments = None, gis = None, civilServant = None, edip = None, sdip = None, otherInternship = None,
         fastPassCertificate = None, assessmentCentre = None, applicationRoute = ApplicationRoute.Faststream)
     }
@@ -121,8 +121,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       val testAccountId2 = generateUUID()
       val testAccountId3 = generateUUID()
 
-      testDataRepo.createApplicationWithAllFields(userId1, appId1, testAccountId1,"FastStream-2016", guaranteedInterview = true,
-        needsSupportForOnlineAssessment = true).futureValue
+      testDataRepo.createApplicationWithAllFields(userId1, appId1, testAccountId1,"FastStream-2016", guaranteedInterview = true).futureValue
       testDataRepo.createApplicationWithAllFields(userId2, appId2, testAccountId2,"FastStream-2016", hasDisability = "No").futureValue
       testDataRepo.createApplicationWithAllFields(userId3, appId3, testAccountId3,"FastStream-2016", needsSupportAtVenue = true).futureValue
 
@@ -132,7 +131,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
         ApplicationForDiversityReport(
           applicationId = appId1, userId = userId1, applicationRoute = ApplicationRoute.Faststream, progress = Some("submitted"),
           schemes = List(DiplomaticAndDevelopment, GovernmentOperationalResearchService),
-          disability = Some("Yes"), gis = Some(true), onlineAdjustments = Some("Yes"), assessmentCentreAdjustments = Some("No"),
+          disability = Some("Yes"), gis = Some(true), onlineAdjustments = None, assessmentCentreAdjustments = Some("No"),
           civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
             isCivilServant = Some("Yes"), isEDIP = Some("Yes"), edipYear = Some("2018"), isSDIP = Some("Yes"), sdipYear = Some("2019"),
             otherInternship = Some("Yes"), otherInternshipName = Some("other"), otherInternshipYear = Some("2020"),
@@ -144,7 +143,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
         ApplicationForDiversityReport(
           applicationId = appId2, userId = userId2, applicationRoute = ApplicationRoute.Faststream, progress = Some("submitted"),
           schemes = List(DiplomaticAndDevelopment, GovernmentOperationalResearchService),
-          disability = Some("Yes"), gis = Some(false), onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("No"),
+          disability = Some("Yes"), gis = Some(false), onlineAdjustments = None, assessmentCentreAdjustments = Some("No"),
           civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
             isCivilServant = Some("Yes"), isEDIP = Some("Yes"), edipYear = Some("2018"), isSDIP = Some("Yes"), sdipYear = Some("2019"),
             otherInternship = Some("Yes"), otherInternshipName = Some("other"), otherInternshipYear = Some("2020"),
@@ -156,7 +155,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
         ApplicationForDiversityReport(
           applicationId = appId3, userId = userId3, applicationRoute = ApplicationRoute.Faststream, progress = Some("submitted"),
           schemes = List(DiplomaticAndDevelopment, GovernmentOperationalResearchService),
-          disability = Some("Yes"), gis = Some(false), onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("Yes"),
+          disability = Some("Yes"), gis = Some(false), onlineAdjustments = None, assessmentCentreAdjustments = Some("Yes"),
           civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
             isCivilServant = Some("Yes"), isEDIP = Some("Yes"), edipYear = Some("2018"), isSDIP = Some("Yes"), sdipYear = Some("2019"),
             otherInternship = Some("Yes"), otherInternshipName = Some("other"), otherInternshipYear = Some("2020"),
@@ -205,30 +204,6 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
     }
 
     // This test only works when run in isolation, change ignore to in for that
-    "return candidate who requested online adjustments" ignore {
-      val request = CreateCandidateRequest.create("SUBMITTED", None, None).copy(
-        assistanceDetails = Some(AssistanceDetailsRequest(
-          hasDisability = Some("Yes"),
-          onlineAdjustments = Some(true),
-          onlineAdjustmentsDescription = Some("I need a bigger screen")
-        ))
-      )
-
-      testDataGeneratorService.createCandidates(1,
-        getCandidateStatusGeneratorFactory.getGenerator, CreateCandidateData.apply("", request, dataFaker)
-      )(HeaderCarrier(), EmptyRequestHeader)
-
-      val result = repository.adjustmentReport(frameworkId).futureValue
-
-      result mustBe a[List[_]]
-      result must not be empty
-      result.head mustBe a[AdjustmentReportItem]
-      result.head.userId must not be empty
-      result.head.applicationId must not be empty
-      result.head.needsSupportForOnlineAssessmentDescription mustBe Some("I need a bigger screen")
-    }
-
-    // This test only works when run in isolation, change ignore to in for that
     "return candidate who requested at venue adjustments" ignore {
       val request = CreateCandidateRequest.create("SUBMITTED", None, None).copy(
         assistanceDetails = Some(AssistanceDetailsRequest(
@@ -252,20 +227,14 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
     }
 
     // This test only works when run in isolation, change ignore to in for that
-    "return faststream candidate who did not requested adjustments but has adjustments confirmed" ignore {
+    "return faststream candidate who did not request adjustments" ignore {
       val request = CreateCandidateRequest.create("SUBMITTED", None, None).copy(
         assistanceDetails = Some(AssistanceDetailsRequest(
           hasDisability = Some("No"),
           assessmentCentreAdjustments = Some(false),
-          onlineAdjustments = Some(false),
           setGis = Some(false)
         )),
-        adjustmentInformation = Some(AdjustmentsRequest(
-          adjustments = Some(List("other adjustments")),
-          adjustmentsConfirmed = Some(true),
-          etray = None,
-          video = None)
-        )
+        adjustmentInformation = None
       )
       testDataGeneratorService.createCandidates(1,
         getCandidateStatusGeneratorFactory.getGenerator, CreateCandidateData.apply("", request, dataFaker)
@@ -278,8 +247,6 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       result.head mustBe a[AdjustmentReportItem]
       result.head.userId must not be empty
       result.head.applicationId must not be empty
-      result.head.adjustments mustBe Some(Adjustments(adjustments=Some(List("other adjustments")),
-        adjustmentsConfirmed = Some(true), etray = None, video = None))
     }
 
     // This test only works when run in isolation, change ignore to in for that
@@ -292,7 +259,6 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
         assistanceDetails = Some(AssistanceDetailsRequest(
           hasDisability = Some("Yes"),
           assessmentCentreAdjustments = Some(false),
-          onlineAdjustments = Some(false),
           phoneAdjustments = Some(true),
           setGis = Some(false)
         )),

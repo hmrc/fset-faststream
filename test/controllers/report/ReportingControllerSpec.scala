@@ -355,7 +355,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       ApplicationRoute.Faststream, "Firstname", "Lastname", "PreferredName",
       ProgressStatuses.SIFT_ENTERED,
       schemes = List(Commercial, Finance, OperationalDelivery, HumanResources),
-      disability = None, gis = None, onlineAdjustments = None, assessmentCentreAdjustments = None,
+      disability = None, gis = None, assessmentCentreAdjustments = None,
       testResults = TestResultsForOnlineTestPassMarkReportItemExamples.testResults1,
       currentSchemeStatus =
         List("Commercial", "Finance", "OperationalDelivery", "HumanResources").map(s => SchemeEvaluationResult(s, Green.toString))
@@ -366,7 +366,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       ApplicationRoute.Faststream, "Firstname", "Lastname", "PreferredName",
       ProgressStatuses.SIFT_ENTERED,
       schemes = List(OperationalDelivery),
-      disability = None, gis = None, onlineAdjustments = None, assessmentCentreAdjustments = None,
+      disability = None, gis = None, assessmentCentreAdjustments = None,
       testResults = TestResultsForOnlineTestPassMarkReportItemExamples.testResults1,
       currentSchemeStatus =
         List("OperationalDelivery").map(s => SchemeEvaluationResult(s, Green.toString))
@@ -377,7 +377,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       ApplicationRoute.Faststream, "Firstname", "Lastname", "PreferredName",
       ProgressStatuses.SIFT_ENTERED,
       schemes = List(HumanResources),
-      disability = None, gis = None, onlineAdjustments = None, assessmentCentreAdjustments = None,
+      disability = None, gis = None, assessmentCentreAdjustments = None,
       testResults = TestResultsForOnlineTestPassMarkReportItemExamples.testResults1,
       currentSchemeStatus =
         List("HumanResources").map(s => SchemeEvaluationResult(s, Green.toString))
@@ -386,14 +386,14 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     def mocksForNumericTestExtract = {
       when(mockSchemeRepo.schemes).thenReturn(
         Seq(
-          Scheme("Commercial", "COM", "Commercial", civilServantEligible = false, None, Some(SiftRequirement.NUMERIC_TEST),
-            siftEvaluationRequired = true, fsbType = None, schemeGuide = None, None),
-          Scheme("Finance", "FIN", "Finance", civilServantEligible = false, None, Some(SiftRequirement.NUMERIC_TEST),
-            siftEvaluationRequired = true, fsbType = None, schemeGuide = None, None),
-          Scheme("OperationalDelivery", "OPD", "Operational Delivery", civilServantEligible = false, None, Some(SiftRequirement.FORM),
-            siftEvaluationRequired = true, fsbType = None, schemeGuide = None, None),
-          Scheme("HumanResources", "HRS", "Human Resources", civilServantEligible = false, None, None,
-            siftEvaluationRequired = false, fsbType = None, schemeGuide = None, None)
+          Scheme("Commercial", "COM", "Commercial", civilServantEligible = false, degree = None, Some(SiftRequirement.NUMERIC_TEST),
+            siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None),
+          Scheme("Finance", "FIN", "Finance", civilServantEligible = false, degree = None, Some(SiftRequirement.NUMERIC_TEST),
+            siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None),
+          Scheme("OperationalDelivery", "OPD", "Operational Delivery", civilServantEligible = false, degree = None, Some(SiftRequirement.FORM),
+            siftEvaluationRequired = true, fsbType = None, schemeGuide = None, schemeQuestion = None),
+          Scheme("HumanResources", "HRS", "Human Resources", civilServantEligible = false, degree = None, siftRequirement = None,
+            siftEvaluationRequired = false, fsbType = None, schemeGuide = None, schemeQuestion = None)
         )
       )
 
@@ -424,25 +424,17 @@ class ReportingControllerSpec extends UnitWithAppSpec {
           preferredName = Some("Spiderman"), email = None, telephone = None, gis = Some("Yes"),
           disabilityCategories = None,
           otherDisabilityDescription = None,
-          applicationStatus = Some(ApplicationStatus.SUBMITTED), needsSupportForOnlineAssessmentDescription = Some("Need help for online tests"),
+          applicationStatus = Some(ApplicationStatus.SUBMITTED),
           needsSupportAtVenueDescription = Some("Need help at the venue"),
           hasDisability = Some("Yes"), hasDisabilityDescription = Some("A wooden leg"),
-          adjustments = Some(Adjustments(
-            adjustments = Some(List("etrayTimeExtension")), adjustmentsConfirmed = Some(true),
-            etray = Some(AdjustmentDetail(timeNeeded = Some(55))), video = None)
-          ),
           adjustmentsComment = None
         ),
         AdjustmentReportItem(userId = "2", applicationId = Some("22"), firstName = Some("Jones"), lastName = Some("Batman"),
           preferredName = None,email =  None, telephone = None, gis = None,
           disabilityCategories = None,
           otherDisabilityDescription = None,
-          applicationStatus = Some(ApplicationStatus.PHASE1_TESTS), needsSupportForOnlineAssessmentDescription = None,
+          applicationStatus = Some(ApplicationStatus.PHASE1_TESTS),
           needsSupportAtVenueDescription = Some("Need help at the venue"), hasDisability = None, hasDisabilityDescription = None,
-          adjustments = Some(Adjustments(
-            adjustments = Some(List("etrayTimeExtension")), adjustmentsConfirmed = Some(true),
-            etray = Some(AdjustmentDetail(timeNeeded = Some(55))), video = None)
-          ),
           adjustmentsComment = None
         ),
         AdjustmentReportItem(userId = "3", applicationId = Some("33"), firstName = Some("Kathrine"), lastName = Some("Jones"),
@@ -450,12 +442,8 @@ class ReportingControllerSpec extends UnitWithAppSpec {
           disabilityCategories = None,
           otherDisabilityDescription = None,
           applicationStatus = Some(ApplicationStatus.PHASE1_TESTS_PASSED),
-          needsSupportForOnlineAssessmentDescription = Some("Need help for online tests"), needsSupportAtVenueDescription = None,
+          needsSupportAtVenueDescription = None,
           hasDisability = Some("Yes"), hasDisabilityDescription = Some("A glass eye"),
-          adjustments = Some(Adjustments(
-            adjustments = Some(List("etrayTimeExtension")), adjustmentsConfirmed = Some(true),
-            etray = Some(AdjustmentDetail(timeNeeded = Some(55))), video = None)
-          ),
           adjustmentsComment = None
         )
       )
@@ -465,22 +453,22 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       List(
         CandidateProgressReportItem("user1", "app1", Some("submitted"),
           List(DiplomaticAndDevelopment, GovernmentOperationalResearchService), disability = Some("Yes"),
-          onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
+          assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
           civilServant = Some("No"), edip = Some("No"), sdip = Some("No"), otherInternship = Some("No"),
           fastPassCertificate = Some("1234567"), assessmentCentre = Some("London"), ApplicationRoute.Faststream),
         CandidateProgressReportItem("user2", "app2", Some("registered"),
           List(DiplomaticAndDevelopment, GovernmentOperationalResearchService), disability = Some("Yes"),
-          onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
+          assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
           civilServant = Some("No"), edip = Some("No"), sdip = Some("No"), otherInternship = Some("No"),
           fastPassCertificate = Some("1234567"), assessmentCentre = None, ApplicationRoute.Faststream),
         CandidateProgressReportItem("user3", "app3", Some("submitted"),
           List(DiplomaticAndDevelopment, GovernmentOperationalResearchService), disability = Some("Yes"),
-          onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
+          assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
           civilServant = Some("No"), edip = Some("No"), sdip = Some("No"), otherInternship = Some("No"), fastPassCertificate = Some("1234567"),
           assessmentCentre = None, ApplicationRoute.Edip),
         CandidateProgressReportItem("user4", "app4", Some("submitted"),
           List(DiplomaticAndDevelopment, GovernmentOperationalResearchService), disability = Some("Yes"),
-          onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
+          assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
           civilServant = Some("No"), edip = Some("No"), sdip = Some("No"), otherInternship = Some("No"), fastPassCertificate = Some("1234567"),
           assessmentCentre = Some("Newcastle"), ApplicationRoute.Faststream)
       )

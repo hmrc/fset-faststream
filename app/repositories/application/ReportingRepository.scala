@@ -352,10 +352,8 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2, // 
             ),
             BsonDocument("$or" ->
               BsonArray(
-                Document("assistance-details.needsSupportForOnlineAssessment" -> true),
                 Document("assistance-details.needsSupportAtVenue" -> true),
-                Document("assistance-details.guaranteedInterview" -> true),
-                Document("assistance-details.adjustmentsConfirmed" -> true)
+                Document("assistance-details.guaranteedInterview" -> true)
               )
             )
           )
@@ -393,27 +391,15 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2, // 
         val candidateProgressStatuses = toProgressResponse(applicationId.get)(document)
         val latestProgressStatus = Some(ProgressStatusesReportLabels.progressStatusNameInReports(candidateProgressStatuses))
 
-        val needsSupportForOnlineAssessmentDescription = extract("needsSupportForOnlineAssessmentDescription")(adDocOpt)
         val needsSupportAtVenueDescription = extract("needsSupportAtVenueDescription")(adDocOpt)
         val hasDisability = extract("hasDisability")(adDocOpt)
         val hasDisabilityDescription = extract("hasDisabilityDescription")(adDocOpt)
-
-        val adjustmentsConfirmed = extractBoolean("adjustmentsConfirmed")(adDocOpt)
-        val typeOfAdjustments = adDocOpt.flatMap( doc => Try(Codecs.fromBson[List[String]](doc.get("typeOfAdjustments"))).toOption )
-
-        val etray = adDocOpt.flatMap( doc => Try(Codecs.fromBson[AdjustmentDetail](doc.get("etray"))).toOption )
-        val video = adDocOpt.flatMap( doc => Try(Codecs.fromBson[AdjustmentDetail](doc.get("video"))).toOption )
-
-        val adjustments = adjustmentsConfirmed.flatMap { ac =>
-          if (ac) Some(Adjustments(typeOfAdjustments, adjustmentsConfirmed, etray, video)) else None
-        }
-
         val adjustmentsComment = extract("adjustmentsComment")(adDocOpt)
 
         AdjustmentReportItem(
           userId, applicationId, firstName, lastName, preferredName, email = None, telephone = None, gis,
-          disabilityCategories, otherDisabilityDescription, latestProgressStatus, needsSupportForOnlineAssessmentDescription,
-          needsSupportAtVenueDescription, hasDisability, hasDisabilityDescription, adjustments, adjustmentsComment
+          disabilityCategories, otherDisabilityDescription, latestProgressStatus,
+          needsSupportAtVenueDescription, hasDisability, hasDisabilityDescription, adjustmentsComment
         )
       }
     }

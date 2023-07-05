@@ -28,8 +28,6 @@ object CreateCandidateRequest {
     disabilityCategories: Option[List[String]] = None,
     hasDisabilityDescription: Option[String] = None,
     setGis: Option[Boolean] = None,
-    onlineAdjustments: Option[Boolean] = None,
-    onlineAdjustmentsDescription: Option[String] = None,
     assessmentCentreAdjustments: Option[Boolean] = None,
     assessmentCentreAdjustmentsDescription: Option[String] = None,
     phoneAdjustments: Option[Boolean] = None,

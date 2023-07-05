@@ -100,7 +100,6 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
     userId = userId,
     testAccountId = "testAccountId",
     guaranteedInterview = false,
-    needsOnlineAdjustments = false,
     needsAtVenueAdjustments = false,
     preferredName,
     lastName,

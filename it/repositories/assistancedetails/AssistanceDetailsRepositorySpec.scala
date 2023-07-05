@@ -63,8 +63,6 @@ class AssistanceDetailsRepositorySpec extends MongoRepositorySpec {
       "disabilityCategories" -> List("Other"),
       "otherDisabilityDescription" -> "My disability",
       "guaranteedInterview" -> true,
-      "needsSupportForOnlineAssessment" -> true,
-      "needsSupportForOnlineAssessmentDescription" -> "needsSupportForOnlineAssessmentDescription",
       "needsSupportAtVenue" -> true,
       "needsSupportAtVenueDescription" -> "needsSupportAtVenueDescription"
     )

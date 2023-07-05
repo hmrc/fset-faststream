@@ -28,31 +28,31 @@ class ApplicationValidatorSpec extends UnitSpec {
 
   "given valid personal details" should {
     "return true when details are valid" in {
-      val validator = ApplicationValidator(personalDetails, assistanceDetails, None, List())
+      val validator = ApplicationValidator(personalDetails, assistanceDetails, sl = None, availableRegions = List())
       validator.validateGeneralDetails mustBe true
     }
   }
 
   "given assistance details" should {
     "return true when details are all there" in {
-      val validator = ApplicationValidator(personalDetails, assistanceDetails, None, List())
+      val validator = ApplicationValidator(personalDetails, assistanceDetails, sl = None, availableRegions = List())
       validator.validateAssistanceDetails mustBe true
     }
 
-    "return false if we don't have a description for at venue adjustment" in {
+    "return false if we don't have a description for at venue adjustment but support is required" in {
       val validator = ApplicationValidator(
         personalDetails,
-        assistanceDetails.copy(needsSupportAtVenueDescription = None), None, List()
+        assistanceDetails.copy(needsSupportAtVenueDescription = None), sl = None, availableRegions = List()
       )
       validator.validateAssistanceDetails mustBe false
     }
 
-    "return false if we don't have a description for online adjustment" in {
+    "return true when we don't need adjustments" in {
       val validator = ApplicationValidator(
         personalDetails,
-        assistanceDetails.copy(needsSupportForOnlineAssessmentDescription = None), None, List()
+        assistanceDetails.copy(needsSupportAtVenue = None, needsSupportAtVenueDescription = None), sl = None, availableRegions = List()
       )
-      validator.validateAssistanceDetails mustBe false
+      validator.validateAssistanceDetails mustBe true
     }
 
     // This test should now return true instead of false because gis has now been removed from the frontend

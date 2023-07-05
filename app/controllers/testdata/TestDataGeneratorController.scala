@@ -115,8 +115,6 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
         hasDisability = Some("Yes"),
         hasDisabilityDescription = Some(dataFaker.hasDisabilityDescription),
         setGis = Some(true),
-        onlineAdjustments = Some(true),
-        onlineAdjustmentsDescription = Some(dataFaker.onlineAdjustmentsDescription),
         assessmentCentreAdjustments = Some(true),
         assessmentCentreAdjustmentsDescription = Some(dataFaker.assessmentCentreAdjustmentDescription)
       )),

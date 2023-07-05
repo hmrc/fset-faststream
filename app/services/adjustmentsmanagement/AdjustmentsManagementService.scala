@@ -36,14 +36,11 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AdjustmentsManagementService @Inject() (appRepository: GeneralApplicationRepository,
-                                              cdRepository: ContactDetailsRepository,
-                                              schemePreferencesService: SchemePreferencesService,
-                                              schemesRepository: SchemeRepository,
-                                              applicationSiftService: ApplicationSiftService,
                                               val eventService: StcEventService
                                              )(implicit ec: ExecutionContext) extends EventSink with Logging {
   val intro = "Adjustments management service"
 
+  /*
   private def progressToSiftOrFSAC(applicationId: String, adjustmentInformation: Adjustments)(implicit hc: HeaderCarrier): Future[Unit] = {
 
     def progressCandidateToSift(schemes: SelectedSchemes): Future[Unit] = {
@@ -84,7 +81,9 @@ class AdjustmentsManagementService @Inject() (appRepository: GeneralApplicationR
       }
     }).flatMap(identity)
   }
+   */
 
+  /*
   def confirmAdjustment(applicationId: String, adjustmentInformation: Adjustments)
                        (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
@@ -125,7 +124,9 @@ class AdjustmentsManagementService @Inject() (appRepository: GeneralApplicationR
       case None => throw ApplicationNotFound(applicationId)
     }.map(_ => ())
   }
+   */
 
+  /*
   private def createEmailEvents(candidate: Candidate, adjustmentInformation: Adjustments,
                                 hasPreviousAdjustments: Boolean, cd: ContactDetails) = {
     if (hasPreviousAdjustments) {
@@ -144,7 +145,9 @@ class AdjustmentsManagementService @Inject() (appRepository: GeneralApplicationR
       )
     }
   }
+   */
 
+  /*
   private def toEmailString(header: String, adjustmentDetail: Option[AdjustmentDetail]): String = {
 
     def mkString(ad: Option[AdjustmentDetail]): Option[String] =
@@ -155,10 +158,13 @@ class AdjustmentsManagementService @Inject() (appRepository: GeneralApplicationR
       case _ => ""
     }
   }
+   */
 
+  /*
   def find(applicationId: String): Future[Option[Adjustments]] = {
     appRepository.findAdjustments(applicationId)
   }
+   */
 
   def updateAdjustmentsComment(applicationId: String, adjustmentsComment: AdjustmentsComment)
                               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
