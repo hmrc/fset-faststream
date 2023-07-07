@@ -106,12 +106,15 @@ trait PreviousYearCandidatesDetailsRepository {
     s"$evaluationColumns,$currentSchemeStatusColumns"
   }
 
+  val disabilityCategoriesHeaders = "Learning difference,Social/communication conditions,Long-term illness,Mental health condition," +
+  "Physical impairment,Deaf,Blind,Development condition,No known impairment,Condition not listed,Prefer not to say,Other,Other description,"
+
   def dataAnalystApplicationDetailsHeader(numOfSchemes: Int) =
     "ApplicationId,Date of Birth,Application status,Route,All FS schemes failed SDIP not failed," +
       "Civil servant,EDIP,EDIP year,SDIP,SDIP year,Other internship,Other internship name,Other internship year,Fast Pass No," +
       "Scheme preferences," +
-      "Do you have a disability,Disability impact,Deaf,Learning disability,Long-standing disability,Mental health condition,Neurodiverse," +
-      "Other neurodiverse,Physical or mobility,Speech impairment,Visible difference,Sight loss,Prefer not to say,Other,Other description," +
+      "Do you have a disability,Disability impact," +
+      disabilityCategoriesHeaders +
       appTestStatuses +
       "Final Progress Status prior to withdrawal," +
       appTestResults(numOfSchemes) +
@@ -121,9 +124,8 @@ trait PreviousYearCandidatesDetailsRepository {
     s"completedDateTime,tScore,rawScore,testReportUrl,"
 
   val assistanceDetailsHeaders = "Do you have a disability,Disability impact," +
-    "Deaf,Learning disability,Long-standing disability,Mental health condition,Neurodiverse,Other neurodiverse,Physical or mobility," +
-    "Speech impairment,Visible difference,Sight loss,Prefer not to say,Other,Other description,GIS," +
-    "Extra support f2f,What adjustments will you need,Extra support phone interview,What adjustments will you need," +
+    disabilityCategoriesHeaders +
+    "GIS,Extra support f2f,What adjustments will you need,Extra support phone interview,What adjustments will you need," +
     "Additional comments,"
 
   def applicationDetailsHeader(numOfSchemes: Int) = "applicationId,userId,testAccountId,Framework ID,Application Status,Route,SdipDiversity,First name,Last name," +
@@ -1581,16 +1583,16 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
 
   private def markDisabilityCategories(disabilityCategories: List[String]) = {
     val disabilityCategoriesList = List(
-      "Deaf or Hard of Hearing",
-      "Learning disability such as Down's Syndrome & Fragile X",
-      "Long-standing, chronic or fluctuating condition or disability",
-      "Mental Health Condition such as depression, anxiety, bipolar, schizophrenia",
-      "Neurodiverse conditions: Autism Spectrum",
-      "Other neurodiverse conditions such as dyslexia, dyspraxia or AD(H)D",
-      "Physical or Mobility limiting condition or disability",
-      "Speech Impairment",
-      "Visible Difference such as facial disfigurement, skin condition, or alopecia",
-      "Visual Impairment or Sight Loss",
+      "Learning difference such as dyslexia, dyspraxia or AD(H)D",
+      "Social/communication conditions such as a speech and language impairment or an autistic spectrum condition",
+      "Long-term illness or health condition such as cancer, HIV, diabetes, chronic heart disease, or epilepsy",
+      "Mental health condition, challenge or disorder, such as depression, schizophrenia or anxiety",
+      "Physical impairment (a condition that substantially limits one or more basic physical activities such as walking, climbing stairs, lifting or carrying)",
+      "D/deaf or have a hearing impairment",
+      "Blind or have a visual impairment uncorrected by glasses",
+      "Development condition that you have had since childhood which affects motor, cognitive, social and emotional skills, and speech and language",
+      "No known impairment, health condition or learning difference",
+      "An impairment, health condition or learning difference not listed above",
       "Prefer Not to Say",
       "Other"
     )
@@ -1602,7 +1604,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     val etrayAdjustmentsOpt = Try(assistanceDetailsOpt.map( doc => doc.get("etray").asDocument() )).toOption.flatten // Handle NPE
     val videoAdjustmentsOpt = Try(assistanceDetailsOpt.map( doc => doc.get("video").asDocument() )).toOption.flatten // Handle NPE
 
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     val typeOfAdjustments = assistanceDetailsOpt.map { ad =>
       if (ad.containsKey("typeOfAdjustments"))
         ad.get("typeOfAdjustments").asArray().getValues.asScala.toList.map(_.asString().getValue)
