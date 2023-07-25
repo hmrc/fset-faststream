@@ -23,6 +23,7 @@ import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.{IndexModel, IndexOptions, Projections, UpdateOptions}
 import play.api.libs.json._
+import repositories.application.DiversityQuestionsText
 import services.reporting.SocioEconomicScoreCalculator
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
@@ -32,7 +33,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 import scala.util.Try
 
-trait QuestionnaireRepository {
+trait QuestionnaireRepository extends DiversityQuestionsText {
   def addQuestions(applicationId: String, questions: List[QuestionnaireQuestion]): Future[Unit]
   def findQuestions(applicationId: String): Future[Map[String, QuestionnaireAnswer]]
   def findForOnlineTestPassMarkReport(applicationIds: Seq[String]): Future[Map[String, QuestionnaireReportItem]]
@@ -40,15 +41,20 @@ trait QuestionnaireRepository {
   def findQuestionsByIds(applicationIds: Seq[String]): Future[Map[String, QuestionnaireReportItem]]
   def removeQuestions(applicationId: String): Future[Unit]
 
-  val GenderQuestionText = "What is your gender identity?"
-  val SexualOrientationQuestionText = "What is your sexual orientation?"
-  val EthnicityQuestionText = "What is your ethnic group?"
-  val EnglishLanguageQuestionText = "Is English your first language?"
-  val UniversityQuestionText = "What is the name of the university you received your degree from?"
-  val socioEconomicQuestionText = "Do you consider yourself to come from a lower socio-economic background?"
-  val EmploymentStatusQuestionText = "When you were 14, what kind of work did your highest-earning parent or guardian do?"
-  val ParentEmployedOrSelfEmployedQuestionText = "Did they work as an employee or were they self-employed?"
-  val ParentCompanySizeQuestionText = "Which size would best describe their place of work?"
+  val GenderQuestionText = genderIdentity
+  val SexualOrientationQuestionText = sexualOrientation
+  val EthnicityQuestionText = ethnicGroup
+  val EnglishLanguageQuestionText = englishLanguage
+  val UniversityQuestionText = universityName
+  val CategoryOfDegreeText = categoryOfDegree
+  val DegreeTypeText = degreeType
+  val PostgradUniversityQuestionText = postgradUniversityName
+  val PostgradCategoryOfDegreeText = postgradCategoryOfDegree
+  val PostgradDegreeTypeText = postgradDegreeType
+  val SocioEconomicQuestionText = lowerSocioEconomicBackground
+  val EmploymentStatusQuestionText = highestEarningParentOrGuardianTypeOfWorkAtAge14
+  val ParentEmployedOrSelfEmployedQuestionText = employeeOrSelfEmployed
+  val ParentCompanySizeQuestionText = sizeOfPlaceOfWork
 
   val DontKnowAnswerText = "I don't know/prefer not to say"
   val EmployedAnswerText = "Employed"
@@ -163,8 +169,14 @@ class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEcon
     val englishLanguage = getAnswer(EnglishLanguageQuestionText)
 
     val university = getAnswer(UniversityQuestionText)
+    val categoryOfDegree = getAnswer(CategoryOfDegreeText)
+    val degreeType = getAnswer(DegreeTypeText)
 
-    val socioEconomic = getAnswer(socioEconomicQuestionText)
+    val postgradUniversity = getAnswer(PostgradUniversityQuestionText)
+    val postgradCategoryOfDegree = getAnswer(PostgradCategoryOfDegreeText)
+    val postgradDegreeType = getAnswer(PostgradDegreeTypeText)
+
+    val socioEconomic = getAnswer(SocioEconomicQuestionText)
 
     val employmentStatus = getAnswer(EmploymentStatusQuestionText)
     val isEmployed = employmentStatus.exists (s => !s.startsWith(UnemployedAnswerText) && !s.startsWith(UnknownAnswerText))
@@ -175,7 +187,7 @@ class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEcon
     val parentEmployedOrSelf = getAnswer(ParentEmployedOrSelfEmployedQuestionText)
     val parentCompanySize = getAnswer(ParentCompanySizeQuestionText)
 
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     val qAndA = questionsDocOpt.map( _.keySet().asScala.toList).map{ _.map { question =>
       val answer = getAnswer(question).getOrElse(UnknownAnswerText)
       question -> answer
@@ -194,7 +206,12 @@ class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEcon
       parentCompanySize,
       socioEconomic,
       socioEconomicScore,
-      university
+      university,
+      categoryOfDegree,
+      degreeType,
+      postgradUniversity,
+      postgradCategoryOfDegree,
+      postgradDegreeType
     )
   }
 }

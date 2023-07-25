@@ -45,7 +45,7 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
     def getWhatWasYourHomePostCodeWhenYouWere14 = {
       if (didYouLiveInUkBetween14and18Answer == "Yes") {
         Some(QuestionnaireQuestion(postcodeAtAge14,
-          QuestionnaireAnswer(Some(dataFaker.homePostcode), None, None)))
+          QuestionnaireAnswer(Some(dataFaker.homePostcode), otherDetails = None, unknown = None)))
       } else {
         None
       }
@@ -54,7 +54,7 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
     def getSchoolName14to16Answer = {
       if (didYouLiveInUkBetween14and18Answer == "Yes") {
         Some(QuestionnaireQuestion(schoolNameAged14to16,
-          QuestionnaireAnswer(Some(dataFaker.age14to16School), None, None)))
+          QuestionnaireAnswer(Some(dataFaker.age14to16School), otherDetails = None, unknown = None)))
       } else {
         None
       }
@@ -62,14 +62,14 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
 
     def getSchoolType14to16Answer = if (didYouLiveInUkBetween14and18Answer == "Yes") {
       Some(QuestionnaireQuestion(schoolTypeAged14to16,
-        QuestionnaireAnswer(Some(dataFaker.schoolType14to16), None, None))
+        QuestionnaireAnswer(Some(dataFaker.schoolType14to16), otherDetails = None, unknown = None))
       )
     } else { None }
 
     def getSchoolName16to18Answer = {
       if (didYouLiveInUkBetween14and18Answer == "Yes") {
         Some(QuestionnaireQuestion(schoolNameAged16to18,
-          QuestionnaireAnswer(Some(dataFaker.age16to18School), None, None)))
+          QuestionnaireAnswer(Some(dataFaker.age16to18School), otherDetails = None, unknown = None)))
       } else {
         None
       }
@@ -78,7 +78,7 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
     def getFreeSchoolMealsAnswer = {
       if (didYouLiveInUkBetween14and18Answer == "Yes") {
         Some(QuestionnaireQuestion(eligibleForFreeSchoolMeals,
-          QuestionnaireAnswer(Some(dataFaker.yesNoPreferNotToSay), None, None)))
+          QuestionnaireAnswer(Some(dataFaker.yesNoPreferNotToSay), otherDetails = None, unknown = None)))
       } else {
         None
       }
@@ -87,7 +87,7 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
     def getHaveDegreeAnswer = {
       if (generatorConfig.isCivilServant) {
         Some(QuestionnaireQuestion(doYouHaveADegree,
-          QuestionnaireAnswer(Some(if (generatorConfig.hasDegree) { "Yes" } else { "No" }), None, None))
+          QuestionnaireAnswer(Some(if (generatorConfig.hasDegree) { "Yes" } else { "No" }), otherDetails = None, unknown = None))
         )
       } else { None }
     }
@@ -95,7 +95,7 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
     def getUniversityAnswer = {
       if (generatorConfig.hasDegree) {
         Some(QuestionnaireQuestion(universityName,
-          QuestionnaireAnswer(Some(generatorConfig.diversityDetails.universityAttended), None, None)))
+          QuestionnaireAnswer(Some(generatorConfig.diversityDetails.universityAttended), otherDetails = None, unknown = None)))
       } else {
         None
       }
@@ -104,7 +104,25 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
     def getUniversityDegreeCategoryAnswer = {
       if (generatorConfig.hasDegree) {
         Some(QuestionnaireQuestion(categoryOfDegree,
-          QuestionnaireAnswer(Some(dataFaker.degreeCategory._2), None, None)))
+          QuestionnaireAnswer(Some(dataFaker.degreeCategory._2), otherDetails = None, unknown = None)))
+      } else {
+        None
+      }
+    }
+
+    def getUniversityDegreeTypeAnswer = {
+      if (generatorConfig.hasDegree) {
+        Some(QuestionnaireQuestion(degreeType,
+          QuestionnaireAnswer(answer = Some(dataFaker.degreeType), otherDetails = None, unknown = None)))
+      } else {
+        None
+      }
+    }
+
+    def getHasPostgradDegreeAnswer = {
+      if (generatorConfig.hasDegree) {
+        // Always set to "No" in TDG
+        Some(QuestionnaireQuestion(postgradDoYouHaveADegree, QuestionnaireAnswer(Some("No"), otherDetails = None, unknown = None)))
       } else {
         None
       }
@@ -113,7 +131,7 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
     def getEmployedOrSelfEmployed(parentsOccupation: String) = {
       if (parentsOccupation == "Employed") {
         Some(QuestionnaireQuestion(employeeOrSelfEmployed,
-          QuestionnaireAnswer(Some(dataFaker.employeeOrSelf), None, None)))
+          QuestionnaireAnswer(Some(dataFaker.employeeOrSelf), otherDetails = None, unknown = None)))
       } else {
         None
       }
@@ -122,24 +140,25 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
     def getSizeParentsEmployer(occupation: Option[String]) = occupation.flatMap { occ =>
       if (occ == "Employed") {
         Some(QuestionnaireQuestion(sizeOfPlaceOfWork,
-          QuestionnaireAnswer(Some(dataFaker.sizeOfPlaceOfWork), None, None)))
+          QuestionnaireAnswer(Some(dataFaker.sizeOfPlaceOfWork), otherDetails = None, unknown = None)))
       } else { None }
     }
 
     def getSuperviseEmployees(parentsOccupation: Option[String]) = parentsOccupation.flatMap { occ =>
       if (occ == "Employed") {
         Some(QuestionnaireQuestion(superviseEmployees,
-          QuestionnaireAnswer(Some(dataFaker.yesNoPreferNotToSay), None, None)))
+          QuestionnaireAnswer(Some(dataFaker.yesNoPreferNotToSay), otherDetails = None, unknown = None)))
       } else { None }
     }
 
     def getAllQuestionnaireQuestions(dd: DiversityDetails) = List(
-      Some(QuestionnaireQuestion("I understand this won't affect my application", QuestionnaireAnswer(Some(dataFaker.yesNo), None, None))),
-      Some(QuestionnaireQuestion(genderIdentity, QuestionnaireAnswer(Some(dd.genderIdentity), None, None))),
-      Some(QuestionnaireQuestion(sexualOrientation, QuestionnaireAnswer(Some(dd.sexualOrientation), None, None))),
-      Some(QuestionnaireQuestion(ethnicGroup, QuestionnaireAnswer(Some(dd.ethnicity), None, None))),
+      Some(QuestionnaireQuestion("I understand this won't affect my application",
+        QuestionnaireAnswer(Some(dataFaker.yesNo), None, unknown = None))),
+      Some(QuestionnaireQuestion(genderIdentity, QuestionnaireAnswer(Some(dd.genderIdentity), otherDetails = None, unknown = None))),
+      Some(QuestionnaireQuestion(sexualOrientation, QuestionnaireAnswer(Some(dd.sexualOrientation), otherDetails = None, unknown = None))),
+      Some(QuestionnaireQuestion(ethnicGroup, QuestionnaireAnswer(Some(dd.ethnicity), otherDetails = None, unknown = None))),
       Some(QuestionnaireQuestion(liveInUkAged14to18, QuestionnaireAnswer(
-        Some(didYouLiveInUkBetween14and18Answer), None, None))
+        Some(didYouLiveInUkBetween14and18Answer), otherDetails = None, unknown = None))
       ),
       getWhatWasYourHomePostCodeWhenYouWere14,
       getSchoolName14to16Answer,
@@ -149,14 +168,16 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
       getHaveDegreeAnswer,
       getUniversityAnswer,
       getUniversityDegreeCategoryAnswer,
+      getUniversityDegreeTypeAnswer,
+      getHasPostgradDegreeAnswer,
       Some(QuestionnaireQuestion(lowerSocioEconomicBackground,
-        QuestionnaireAnswer(Some(dataFaker.yesNoPreferNotToSay), None, None))
+        QuestionnaireAnswer(Some(dataFaker.yesNoPreferNotToSay), otherDetails = None, unknown = None))
       ),
       Some(QuestionnaireQuestion(parentOrGuardianQualificationsAtAge18,
-        QuestionnaireAnswer(Some(dataFaker.parentsDegree), None, None))
+        QuestionnaireAnswer(Some(dataFaker.parentsDegree), otherDetails = None, unknown = None))
       ),
       Some(QuestionnaireQuestion(highestEarningParentOrGuardianTypeOfWorkAtAge14,
-        QuestionnaireAnswer(dd.parentalEmployment, None, None))),
+        QuestionnaireAnswer(dd.parentalEmployment, otherDetails = None, unknown = None))),
       getEmployedOrSelfEmployed(dd.parentalEmployedOrSelfEmployed),
       getSizeParentsEmployer(dd.parentalEmployment),
       getSuperviseEmployees(dd.parentalEmployment)

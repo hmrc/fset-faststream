@@ -30,6 +30,11 @@ trait DiversityQuestionsText {
   val doYouHaveADegree = "Do you have a degree?"
   val universityName = "What is the name of the university you received your degree from?"
   val categoryOfDegree = "Which category best describes your degree?"
+  val degreeType = "Which of the following best describes your degree?"
+  val postgradDoYouHaveADegree = "Do you have a postgraduate degree?"
+  val postgradUniversityName = "What is the name of the university you received your postgraduate degree from?"
+  val postgradCategoryOfDegree = "Which category best describes your postgraduate degree?"
+  val postgradDegreeType = "Which of the following best describes your postgraduate degree?"
   val lowerSocioEconomicBackground = "Do you consider yourself to come from a lower socio-economic background?"
   val parentOrGuardianQualificationsAtAge18 = "Do you have a parent or guardian that completed a university degree course, " +
     "or qualifications below degree level, by the time you were 18?"

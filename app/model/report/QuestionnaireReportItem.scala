@@ -29,7 +29,12 @@ case class QuestionnaireReportItem(
                                     parentCompanySize: Option[String],
                                     lowerSocioEconomicBackground: Option[String],
                                     socioEconomicScore: String,
-                                    university: Option[String]
+                                    university: Option[String],
+                                    categoryOfDegree: Option[String],
+                                    degreeType: Option[String],
+                                    postgradUniversity: Option[String],
+                                    postgradCategoryOfDegree: Option[String],
+                                    postgradDegreeType: Option[String]
                                   )
 
 object QuestionnaireReportItem {

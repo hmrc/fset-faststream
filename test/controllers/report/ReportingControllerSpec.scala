@@ -348,7 +348,10 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
     val questionnaireReportItem = QuestionnaireReportItem(gender = None, sexualOrientation = None, ethnicity = None,
       isEnglishYourFirstLanguage = None, parentEmploymentStatus = None, parentOccupation = None, parentEmployedOrSelf = None,
-      parentCompanySize = None, lowerSocioEconomicBackground = None, socioEconomicScore = "2.5", university = None)
+      parentCompanySize = None, lowerSocioEconomicBackground = None, socioEconomicScore = "2.5",
+      university = None, categoryOfDegree = None, degreeType = None,
+      postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
+    )
 
     val applicationForNumericSift = ApplicationForNumericTestExtractReport(
       "userId1", "appId1",

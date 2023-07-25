@@ -157,8 +157,8 @@ trait PreviousYearCandidatesDetailsRepository {
 
   val questionnaireDetailsHeader: String = "Gender Identity,Sexual Orientation,Ethnic Group,Is English your 1st language?,Live in UK between 14-18?," +
     "Home postcode at 14,Name of school 14-16,Which type of school was this?,Name of school 16-18,Eligible for free school meals?,University name," +
-    "Category of degree,Lower socio-economic background?,Parent guardian completed Uni?,Parents job at 14,Employee?,Size," +
-    "Supervise employees,SE 1-5,Oxbridge,Russell Group"
+    "Category of degree,Degree type,Postgrad university name,Postgrad category of degree,Postgrad degree type,Lower socio-economic background?," +
+    "Parent guardian completed Uni?,Parents job at 14,Employee?,Size,Supervise employees,SE 1-5,Oxbridge,Russell Group"
 
   val mediaHeader = "How did you hear about us?"
 
@@ -1056,9 +1056,9 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
 
       val csvRecords = docs.map { doc =>
         val questionsDocOpt = subDocRoot("questions")(doc)
-        val universityNameAnswer = getAnswer("What is the name of the university you received your degree from?", questionsDocOpt)
+        val universityNameAnswer = getAnswer(universityName, questionsDocOpt)
 
-        import scala.collection.JavaConverters._
+        import scala.jdk.CollectionConverters._
 
         val allQuestionsAndAnswers = questionsDocOpt.map{ doc =>
           val keys = doc.keySet().asScala.toList
@@ -1082,6 +1082,10 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
           getAnswer(eligibleForFreeSchoolMeals, questionsDocOpt),
           universityNameAnswer,
           getAnswer(categoryOfDegree, questionsDocOpt),
+          getAnswer(degreeType, questionsDocOpt),
+          getAnswer(postgradUniversityName, questionsDocOpt),
+          getAnswer(postgradCategoryOfDegree, questionsDocOpt),
+          getAnswer(postgradDegreeType, questionsDocOpt),
           getAnswer(lowerSocioEconomicBackground, questionsDocOpt),
           getAnswer(parentOrGuardianQualificationsAtAge18, questionsDocOpt),
           getAnswer(highestEarningParentOrGuardianTypeOfWorkAtAge14, questionsDocOpt),

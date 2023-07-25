@@ -16,11 +16,12 @@
 
 package repositories
 
-import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
+import model.persisted.{QuestionnaireAnswer, QuestionnaireQuestion}
 import model.report.QuestionnaireReportItem
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatestplus.mockito.MockitoSugar
+import repositories.application.DiversityQuestionsText
 import services.reporting.SocioEconomicScoreCalculator
 import testkit.MongoRepositorySpec
 
@@ -84,12 +85,18 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
         applicationId1 -> QuestionnaireReportItem(
           gender = Some("Male"), sexualOrientation = Some("Straight"), ethnicity = Some("Black"), isEnglishYourFirstLanguage = Some("Yes"),
           parentEmploymentStatus = Some("Unemployed"), parentOccupation = None, parentEmployedOrSelf = None,
-          parentCompanySize = None, lowerSocioEconomicBackground = None, socioEconomicScore = "SES Score", university = Some("W01-USW")),
+          parentCompanySize = None, lowerSocioEconomicBackground = None, socioEconomicScore = "SES Score",
+          university = Some("W01-USW"), categoryOfDegree = Some("Computing"), degreeType = Some("BSc/MSc/Eng"),
+          postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
+        ),
         applicationId2 -> QuestionnaireReportItem(
           gender = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
           parentEmploymentStatus = Some("Employed"), parentOccupation = Some("Modern professional"),
           parentEmployedOrSelf = Some("Part-time employed"), parentCompanySize = Some("Large (26-500)"),
-          lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SES Score", university = Some("W17-WARR"))
+          lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SES Score",
+          university = Some("W17-WARR"), categoryOfDegree = Some("Computing"), degreeType = Some("BSc/MSc/Eng"),
+          postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
+        )
       )
     }
 
@@ -106,7 +113,10 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
           gender = Some(dontKnowText), sexualOrientation = Some(dontKnowText), ethnicity = Some(dontKnowText),
           isEnglishYourFirstLanguage = Some(dontKnowText), parentEmploymentStatus = Some("Employed"), parentOccupation = Some(dontKnowText),
           parentEmployedOrSelf = Some(dontKnowText), parentCompanySize = Some(dontKnowText),
-          lowerSocioEconomicBackground = Some(dontKnowText), socioEconomicScore = "SES Score", university = Some(dontKnowText))
+          lowerSocioEconomicBackground = Some(dontKnowText), socioEconomicScore = "SES Score",
+          university = Some(dontKnowText), categoryOfDegree = None, degreeType = None,
+          postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
+        )
       )
     }
 
@@ -117,13 +127,15 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       questionnaireRepo.findForOnlineTestPassMarkReport(List(applicationId1)).futureValue
 
       verify(socioEconomicCalculator).calculate(Map(
-        "What is your gender identity?" -> "Male",
-        "What is your sexual orientation?" -> "Straight",
-        "What is your ethnic group?" -> "Black",
-        "Is English your first language?" -> "Yes",
-        "What is the name of the university you received your degree from?" -> "W01-USW",
-        "When you were 14, what kind of work did your highest-earning parent or guardian do?" -> "Unemployed",
-        "Do you consider yourself to come from a lower socio-economic background?" -> "Unknown"
+        genderIdentity -> "Male",
+        sexualOrientation -> "Straight",
+        ethnicGroup -> "Black",
+        englishLanguage -> "Yes",
+        universityName -> "W01-USW",
+        categoryOfDegree -> "Computing",
+        degreeType -> "BSc/MSc/Eng",
+        highestEarningParentOrGuardianTypeOfWorkAtAge14 -> "Unemployed",
+        lowerSocioEconomicBackground -> "Unknown"
       ))
     }
 
@@ -137,17 +149,26 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
         applicationId1 -> QuestionnaireReportItem(
           gender = Some("Male"), sexualOrientation = Some("Straight"), ethnicity = Some("Black"), isEnglishYourFirstLanguage = Some("Yes"),
           parentEmploymentStatus = Some("Unemployed"), parentOccupation = None, parentEmployedOrSelf = None,
-          parentCompanySize = None, lowerSocioEconomicBackground = None, socioEconomicScore = "SES Score", university = Some("W01-USW")),
+          parentCompanySize = None, lowerSocioEconomicBackground = None, socioEconomicScore = "SES Score",
+          university = Some("W01-USW"), categoryOfDegree = Some("Computing"), degreeType = Some("BSc/MSc/Eng"),
+          postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
+        ),
         applicationId2 -> QuestionnaireReportItem(
           gender = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
           parentEmploymentStatus = Some("Employed"), parentOccupation = Some("Modern professional"),
           parentEmployedOrSelf = Some("Part-time employed"), parentCompanySize = Some("Large (26-500)"),
-          lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SES Score", university = Some("W17-WARR")),
+          lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SES Score",
+          university = Some("W17-WARR"), categoryOfDegree = Some("Computing"), degreeType = Some("BSc/MSc/Eng"),
+          postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
+        ),
         applicationId3 -> QuestionnaireReportItem(
           gender = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
           parentEmploymentStatus = None, parentOccupation = None,
           parentEmployedOrSelf = None, parentCompanySize = None,
-          lowerSocioEconomicBackground = None, socioEconomicScore = "", university = None)
+          lowerSocioEconomicBackground = None, socioEconomicScore = "",
+          university = None, categoryOfDegree = None, degreeType = None,
+          postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
+        )
       )
     }
 
@@ -160,18 +181,24 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
         applicationId1 -> QuestionnaireReportItem(
           gender = Some("Male"), sexualOrientation = Some("Straight"), ethnicity = Some("Black"), isEnglishYourFirstLanguage = Some("Yes"),
           parentEmploymentStatus = Some("Unemployed"), parentOccupation = None, parentEmployedOrSelf = None, parentCompanySize = None,
-          lowerSocioEconomicBackground = None, socioEconomicScore = "SES Score", university = Some("W01-USW")
+          lowerSocioEconomicBackground = None, socioEconomicScore = "SES Score",
+          university = Some("W01-USW"), categoryOfDegree = Some("Computing"), degreeType = Some("BSc/MSc/Eng"),
+          postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
         ),
         applicationId2 -> QuestionnaireReportItem(
           gender = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
           parentEmploymentStatus = Some("Employed"), parentOccupation = Some("Modern professional"),
           parentEmployedOrSelf = Some("Part-time employed"), parentCompanySize = Some("Large (26-500)"),
-          lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SES Score", university = Some("W17-WARR")
+          lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SES Score",
+          university = Some("W17-WARR"), categoryOfDegree = Some("Computing"), degreeType = Some("BSc/MSc/Eng"),
+          postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
         ),
         applicationId3 -> QuestionnaireReportItem(
           gender = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
           parentEmploymentStatus = None, parentOccupation = None, parentEmployedOrSelf = None, parentCompanySize = None,
-          lowerSocioEconomicBackground = None, socioEconomicScore = "", university = None
+          lowerSocioEconomicBackground = None, socioEconomicScore = "",
+          university = None, categoryOfDegree = None, degreeType = None,
+          postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
         )
       )
     }
@@ -189,60 +216,56 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
     }
   }
 
-  trait TestFixture {
+  trait TestFixture extends DiversityQuestionsText {
     val applicationId1 = "abc"
     val applicationId2 = "123"
     val applicationId3 = "partiallyCompleteId"
     val submittedQuestionnaire1 = List(
-      QuestionnaireQuestion("What is your gender identity?", QuestionnaireAnswer(Some("Male"), otherDetails = None, unknown = None)),
-      QuestionnaireQuestion("What is your sexual orientation?", QuestionnaireAnswer(Some("Straight"), otherDetails = None, unknown = None)),
-      QuestionnaireQuestion("What is your ethnic group?", QuestionnaireAnswer(Some("Black"), otherDetails = None, unknown = None)),
-      QuestionnaireQuestion("Is English your first language?", QuestionnaireAnswer(Some("Yes"), otherDetails = None, unknown = None)),
-      QuestionnaireQuestion("What is the name of the university you received your degree from?",
-        QuestionnaireAnswer(Some("W01-USW"), otherDetails = None, unknown = None)),
-      QuestionnaireQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
+      QuestionnaireQuestion(genderIdentity, QuestionnaireAnswer(Some("Male"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion(sexualOrientation, QuestionnaireAnswer(Some("Straight"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion(ethnicGroup, QuestionnaireAnswer(Some("Black"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion(englishLanguage, QuestionnaireAnswer(Some("Yes"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion(universityName, QuestionnaireAnswer(Some("W01-USW"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion(categoryOfDegree, QuestionnaireAnswer(Some("Computing"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion(degreeType, QuestionnaireAnswer(Some("BSc/MSc/Eng"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion(highestEarningParentOrGuardianTypeOfWorkAtAge14,
         QuestionnaireAnswer(Some("Unemployed"), otherDetails = None, unknown = None)),
-      QuestionnaireQuestion("Do you consider yourself to come from a lower socio-economic background?",
-        QuestionnaireAnswer(answer = None, otherDetails = None, unknown = None))
+      QuestionnaireQuestion(lowerSocioEconomicBackground, QuestionnaireAnswer(answer = None, otherDetails = None, unknown = None))
     )
     val submittedQuestionnaire2 = List(
-      QuestionnaireQuestion("What is your gender identity?", QuestionnaireAnswer(Some("Female"), otherDetails = None, unknown = None)),
-      QuestionnaireQuestion("What is your sexual orientation?", QuestionnaireAnswer(Some("Lesbian"), otherDetails = None, unknown = None)),
-      QuestionnaireQuestion("What is your ethnic group?", QuestionnaireAnswer(Some("White"), otherDetails = None, unknown = None)),
-      QuestionnaireQuestion("Is English your first language?", QuestionnaireAnswer(Some("Yes"), otherDetails = None, unknown = None)),
-      QuestionnaireQuestion("What is the name of the university you received your degree from?",
-        QuestionnaireAnswer(Some("W17-WARR"), otherDetails = None, unknown = None)),
-      QuestionnaireQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
+      QuestionnaireQuestion(genderIdentity, QuestionnaireAnswer(Some("Female"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion(sexualOrientation, QuestionnaireAnswer(Some("Lesbian"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion(ethnicGroup, QuestionnaireAnswer(Some("White"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion(englishLanguage, QuestionnaireAnswer(Some("Yes"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion(universityName, QuestionnaireAnswer(Some("W17-WARR"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion(categoryOfDegree, QuestionnaireAnswer(Some("Computing"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion(degreeType, QuestionnaireAnswer(Some("BSc/MSc/Eng"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion(highestEarningParentOrGuardianTypeOfWorkAtAge14,
         QuestionnaireAnswer(Some("Modern professional"), otherDetails = None, unknown = None)),
-      QuestionnaireQuestion("Did they work as an employee or were they self-employed?",
-        QuestionnaireAnswer(Some("Part-time employed"), otherDetails = None, unknown = None)),
-      QuestionnaireQuestion("Which size would best describe their place of work?",
-        QuestionnaireAnswer(Some("Large (26-500)"), otherDetails = None, unknown = None)),
-      QuestionnaireQuestion("Do you consider yourself to come from a lower socio-economic background?",
-        QuestionnaireAnswer(Some("No"), otherDetails = None, unknown = None))
+      QuestionnaireQuestion(employeeOrSelfEmployed, QuestionnaireAnswer(Some("Part-time employed"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion(sizeOfPlaceOfWork, QuestionnaireAnswer(Some("Large (26-500)"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion(lowerSocioEconomicBackground, QuestionnaireAnswer(Some("No"), otherDetails = None, unknown = None))
     )
     val unknown = QuestionnaireAnswer(answer = None, otherDetails = None, unknown = Some(true))
     val submittedQuestionnaire3 = List(
-      QuestionnaireQuestion("What is your gender identity?", unknown),
-      QuestionnaireQuestion("What is your sexual orientation?", unknown),
-      QuestionnaireQuestion("What is your ethnic group?", unknown),
-      QuestionnaireQuestion("Is English your first language?", unknown),
-      QuestionnaireQuestion("Did you live in the UK between the ages of 14 and 18?",
-        QuestionnaireAnswer(Some("Yes"), otherDetails = None, unknown = None)),
-      QuestionnaireQuestion("What was your home postcode when you were 14?", unknown),
-      QuestionnaireQuestion("Aged 14 to 16 what was the name of your school?", unknown),
-      QuestionnaireQuestion("What is the name of the university you received your degree from?", unknown),
-      QuestionnaireQuestion("Do you consider yourself to come from a lower socio-economic background?", unknown),
-      QuestionnaireQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
-        unknown),
-      QuestionnaireQuestion("Did they work as an employee or were they self-employed?", unknown),
-      QuestionnaireQuestion("Which size would best describe their place of work?", unknown)
+      QuestionnaireQuestion(genderIdentity, unknown),
+      QuestionnaireQuestion(sexualOrientation, unknown),
+      QuestionnaireQuestion(ethnicGroup, unknown),
+      QuestionnaireQuestion(englishLanguage, unknown),
+      QuestionnaireQuestion(liveInUkAged14to18, QuestionnaireAnswer(Some("Yes"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion(postcodeAtAge14, unknown),
+      QuestionnaireQuestion(schoolNameAged14to16, unknown),
+      QuestionnaireQuestion(universityName, unknown),
+      QuestionnaireQuestion(lowerSocioEconomicBackground, unknown),
+      QuestionnaireQuestion(highestEarningParentOrGuardianTypeOfWorkAtAge14, unknown),
+      QuestionnaireQuestion(employeeOrSelfEmployed, unknown),
+      QuestionnaireQuestion(sizeOfPlaceOfWork, unknown)
     )
     val partiallyCompleteQuestionnaire = List(
-      QuestionnaireQuestion("What is your gender identity?", QuestionnaireAnswer(Some("Female"), otherDetails = None, unknown = None)),
-      QuestionnaireQuestion("What is your sexual orientation?", QuestionnaireAnswer(Some("Lesbian"), otherDetails = None, unknown = None)),
-      QuestionnaireQuestion("What is your ethnic group?", QuestionnaireAnswer(Some("White"), otherDetails = None, unknown = None)),
-      QuestionnaireQuestion("Is English your first language?", QuestionnaireAnswer(Some("Yes"), otherDetails = None, unknown = None))
+      QuestionnaireQuestion(genderIdentity, QuestionnaireAnswer(Some("Female"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion(sexualOrientation, QuestionnaireAnswer(Some("Lesbian"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion(ethnicGroup, QuestionnaireAnswer(Some("White"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion(englishLanguage, QuestionnaireAnswer(Some("Yes"), otherDetails = None, unknown = None))
     )
 
     val socioEconomicCalculator = mock[SocioEconomicScoreCalculator]
