@@ -176,6 +176,9 @@ abstract class DataFaker(schemeRepo: SchemeRepository,
 
   def degreeCategory = Random.randOne(DegreeCategories.list)
 
+  // Do not include the "Other" option as that needs another question to be answered
+  def degreeType = Random.randOne(List("BSc/MSc/Eng", "BA/MA/LLB/MBA","PhD/DPhil/MRes - STEM", "PhD/DPhil/MRes - non-STEM"))
+
   def homePostcode = Random.randOne(List("AB1 2CD", "BC11 4DE", "CD6 2EF", "DE2F 1GH", "I don't know/prefer not to say"))
 
   def yesNo = Random.randOne(List("Yes", "No"))

@@ -21,7 +21,7 @@ import model.persisted.{QuestionnaireAnswer, QuestionnaireQuestion}
 import model.testdata.candidate.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories._
-import repositories.application.GeneralApplicationRepository
+import repositories.application.{DiversityQuestionsText, GeneralApplicationRepository}
 import services.testdata.candidate.{ConstructiveGenerator, InProgressAssistanceDetailsStatusGenerator}
 import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
@@ -39,7 +39,8 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
                                                         appRepository: GeneralApplicationRepository,
                                                         qRepository: QuestionnaireRepository,
                                                         dataFaker: DataFaker
-                                                       )(implicit ec : ExecutionContext) extends ConstructiveGenerator {
+                                                       )(implicit ec : ExecutionContext) extends ConstructiveGenerator
+  with DiversityQuestionsText {
 //  val appRepository: GeneralApplicationRepository
 //  val qRepository: QuestionnaireRepository
 
@@ -47,8 +48,8 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
 
   private def getWhatWasYourHomePostCodeWhenYouWere14 = {
     if (didYouLiveInUkBetween14and18Answer == "Yes") {
-      Some(QuestionnaireQuestion("What was your home postcode when you were 14?",
-        QuestionnaireAnswer(Some(dataFaker.homePostcode), None, None)))
+      Some(QuestionnaireQuestion(postcodeAtAge14,
+        QuestionnaireAnswer(answer = Some(dataFaker.homePostcode), otherDetails = None, unknown = None)))
     } else {
       None
     }
@@ -56,8 +57,8 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
 
   private def getSchoolName14to16Answer = {
     if (didYouLiveInUkBetween14and18Answer == "Yes") {
-      Some(QuestionnaireQuestion("Aged 14 to 16 what was the name of your school?",
-        QuestionnaireAnswer(Some(dataFaker.age14to16School), None, None)))
+      Some(QuestionnaireQuestion(schoolNameAged14to16,
+        QuestionnaireAnswer(answer = Some(dataFaker.age14to16School), otherDetails = None, unknown = None)))
     } else {
       None
     }
@@ -65,8 +66,8 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
 
   private def getSchoolName16to18Answer = {
     if (didYouLiveInUkBetween14and18Answer == "Yes") {
-      Some(QuestionnaireQuestion("Aged 16 to 18 what was the name of your school or college?",
-        QuestionnaireAnswer(Some(dataFaker.age16to18School), None, None)))
+      Some(QuestionnaireQuestion(schoolNameAged16to18,
+        QuestionnaireAnswer(answer = Some(dataFaker.age16to18School), otherDetails = None, unknown = None)))
     } else {
       None
     }
@@ -74,8 +75,8 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
 
   private def getFreeSchoolMealsAnswer = {
     if (didYouLiveInUkBetween14and18Answer == "Yes") {
-      Some(QuestionnaireQuestion("Were you at any time eligible for free school meals?",
-        QuestionnaireAnswer(Some(dataFaker.yesNoPreferNotToSay), None, None)))
+      Some(QuestionnaireQuestion(eligibleForFreeSchoolMeals,
+        QuestionnaireAnswer(answer = Some(dataFaker.yesNoPreferNotToSay), otherDetails = None, unknown = None)))
     } else {
       None
     }
@@ -83,16 +84,16 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
 
   private def getHaveDegreeAnswer(generatorConfig: CreateCandidateData.CreateCandidateData) = {
     if (generatorConfig.isCivilServant) {
-      Some(QuestionnaireQuestion("Do you have a degree?",
-        QuestionnaireAnswer(Some(if (generatorConfig.hasDegree) { "Yes" } else { "No" }), None, None))
+      Some(QuestionnaireQuestion(doYouHaveADegree,
+        QuestionnaireAnswer(answer = Some(if (generatorConfig.hasDegree) { "Yes" } else { "No" }), otherDetails = None, unknown = None))
       )
     } else { None }
   }
 
   private def getUniversityAnswer(generatorConfig: CreateCandidateData.CreateCandidateData) = {
     if (generatorConfig.hasDegree) {
-      Some(QuestionnaireQuestion("What is the name of the university you received your degree from?",
-        QuestionnaireAnswer(Some(dataFaker.university._2), None, None)))
+      Some(QuestionnaireQuestion(universityName,
+        QuestionnaireAnswer(answer = Some(dataFaker.university._2), otherDetails = None, unknown = None)))
     } else {
       None
     }
@@ -100,8 +101,17 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
 
   private def getUniversityDegreeCategoryAnswer(generatorConfig: CreateCandidateData.CreateCandidateData) = {
     if (generatorConfig.hasDegree) {
-      Some(QuestionnaireQuestion("Which category best describes your degree?",
-        QuestionnaireAnswer(Some(dataFaker.degreeCategory._2), None, None)))
+      Some(QuestionnaireQuestion(categoryOfDegree,
+        QuestionnaireAnswer(answer = Some(dataFaker.degreeCategory._2), otherDetails = None, unknown = None)))
+    } else {
+      None
+    }
+  }
+
+  private def getUniversityDegreeTypeAnswer(generatorConfig: CreateCandidateData.CreateCandidateData) = {
+    if (generatorConfig.hasDegree) {
+      Some(QuestionnaireQuestion(degreeType,
+        QuestionnaireAnswer(answer = Some(dataFaker.degreeType), otherDetails = None, unknown = None)))
     } else {
       None
     }
@@ -111,18 +121,18 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
 
   private def getParentsOccupationDetail(parentsOccupation: String) = {
     if (parentsOccupation == "Employed") {
-      Some(QuestionnaireQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
-        QuestionnaireAnswer(Some(dataFaker.parentsOccupationDetails), None, None)))
+      Some(QuestionnaireQuestion(highestEarningParentOrGuardianTypeOfWorkAtAge14,
+        QuestionnaireAnswer(answer = Some(dataFaker.parentsOccupationDetails), otherDetails = None, unknown = None)))
     } else {
-      Some(QuestionnaireQuestion("When you were 14, what kind of work did your highest-earning parent or guardian do?",
-        QuestionnaireAnswer(Some(parentsOccupation), None, None)))
+      Some(QuestionnaireQuestion(highestEarningParentOrGuardianTypeOfWorkAtAge14,
+        QuestionnaireAnswer(answer = Some(parentsOccupation), otherDetails = None, unknown = None)))
     }
   }
 
   private def getEmployeedOrSelfEmployeed(parentsOccupation: String) = {
     if (parentsOccupation == "Employed") {
-      Some(QuestionnaireQuestion("Did they work as an employee or were they self-employed?",
-        QuestionnaireAnswer(Some(dataFaker.employeeOrSelf), None, None)))
+      Some(QuestionnaireQuestion(employeeOrSelfEmployed,
+        QuestionnaireAnswer(answer = Some(dataFaker.employeeOrSelf), otherDetails = None, unknown = None)))
     } else {
       None
     }
@@ -130,8 +140,8 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
 
   private def getSizeParentsEmployeer(parentsOccupation: String) = {
     if (parentsOccupation == "Employed") {
-      Some(QuestionnaireQuestion("Which size would best describe their place of work?",
-        QuestionnaireAnswer(Some(dataFaker.sizeParentsEmployeer), None, None)))
+      Some(QuestionnaireQuestion(sizeOfPlaceOfWork,
+        QuestionnaireAnswer(answer = Some(dataFaker.sizeParentsEmployeer), otherDetails = None, unknown = None)))
     } else {
       None
     }
@@ -139,20 +149,24 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
 
   private def getSuperviseEmployees(parentsOccupation: String) = {
     if (parentsOccupation == "Employed") {
-      Some(QuestionnaireQuestion("Did they supervise employees?",
-        QuestionnaireAnswer(Some(dataFaker.yesNoPreferNotToSay), None, None)))
+      Some(QuestionnaireQuestion(superviseEmployees,
+        QuestionnaireAnswer(answer = Some(dataFaker.yesNoPreferNotToSay), otherDetails = None, unknown = None)))
     } else {
       None
     }
   }
 
   private def getAllQuestionnaireQuestions(parentsOccupation: String, generatorConfig: CreateCandidateData.CreateCandidateData) = List(
-    Some(QuestionnaireQuestion("I understand this won't affect my application", QuestionnaireAnswer(Some(dataFaker.yesNo), None, None))),
-    Some(QuestionnaireQuestion("What is your gender identity?", QuestionnaireAnswer(Some(dataFaker.gender), None, None))),
-    Some(QuestionnaireQuestion("What is your sexual orientation?", QuestionnaireAnswer(Some(dataFaker.sexualOrientation), None, None))),
-    Some(QuestionnaireQuestion("What is your ethnic group?", QuestionnaireAnswer(Some(dataFaker.ethnicGroup), None, None))),
-    Some(QuestionnaireQuestion("Did you live in the UK between the ages of 14 and 18?", QuestionnaireAnswer(
-      Some(didYouLiveInUkBetween14and18Answer), None, None))
+    Some(QuestionnaireQuestion("I understand this won't affect my application",
+      QuestionnaireAnswer(answer = Some(dataFaker.yesNo), otherDetails = None, unknown = None))),
+    Some(QuestionnaireQuestion(genderIdentity,
+      QuestionnaireAnswer(answer = Some(dataFaker.gender), otherDetails = None, unknown = None))),
+    Some(QuestionnaireQuestion(sexualOrientation,
+      QuestionnaireAnswer(answer = Some(dataFaker.sexualOrientation), otherDetails = None, unknown = None))),
+    Some(QuestionnaireQuestion(ethnicGroup,
+      QuestionnaireAnswer(answer = Some(dataFaker.ethnicGroup), otherDetails = None, unknown = None))),
+    Some(QuestionnaireQuestion(liveInUkAged14to18,
+      QuestionnaireAnswer(answer = Some(didYouLiveInUkBetween14and18Answer), otherDetails = None, unknown = None))
     ),
     getWhatWasYourHomePostCodeWhenYouWere14,
     getSchoolName14to16Answer,
@@ -161,12 +175,12 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
     getHaveDegreeAnswer(generatorConfig),
     getUniversityAnswer(generatorConfig),
     getUniversityDegreeCategoryAnswer(generatorConfig),
-    Some(QuestionnaireQuestion("Do you consider yourself to come from a lower socio-economic background?",
-      QuestionnaireAnswer(Some(dataFaker.yesNoPreferNotToSay), None, None))
+    getUniversityDegreeTypeAnswer(generatorConfig),
+    Some(QuestionnaireQuestion(lowerSocioEconomicBackground,
+      QuestionnaireAnswer(Some(dataFaker.yesNoPreferNotToSay), otherDetails = None, unknown = None))
     ),
-    Some(QuestionnaireQuestion("Do you have a parent or guardian that completed a university degree course, or qualifications " +
-      "below degree level, by the time you were 18?",
-      QuestionnaireAnswer(Some(dataFaker.parentsDegree), None, None))
+    Some(QuestionnaireQuestion(parentOrGuardianQualificationsAtAge18,
+      QuestionnaireAnswer(answer = Some(dataFaker.parentsDegree), otherDetails = None, unknown = None))
     ),
     getParentsOccupationDetail(parentsOccupation),
     getEmployeedOrSelfEmployeed(parentsOccupation),
