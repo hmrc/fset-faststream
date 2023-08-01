@@ -52,6 +52,9 @@ PUT         /adjustments/comment/:applicationId                          @contro
 GET         /adjustments/comment/:applicationId                          @controllers.AdjustmentsManagementController.findAdjustmentsComment(applicationId: String)
 DELETE      /adjustments/comment/:applicationId                          @controllers.AdjustmentsManagementController.removeAdjustmentsComment(applicationId: String)
 
+GET         /adjustments/needsSupportAtFsac/:applicationId               @controllers.AdjustmentsManagementController.findNeedsSupportAtFsac(applicationId: String)
+PUT         /adjustments/needsSupportAtFsac/:applicationId               @controllers.AdjustmentsManagementController.updateNeedsSupportAtFsac(applicationId: String)
+
 PUT         /media/create                                                @controllers.MediaController.addMedia()
 
 # Pass mark management start

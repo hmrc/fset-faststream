@@ -111,6 +111,8 @@ object Exceptions {
 
   case class AdjustmentsCommentNotFound(applicationId: String) extends Exception(applicationId)
 
+  case class AdjustmentsNeedsSupportAtFsacNotFound(applicationId: String) extends Exception(applicationId)
+
   case class CannotUpdateAdjustmentsComment(applicationId: String) extends Exception(applicationId)
 
   case class CannotRemoveAdjustmentsComment(applicationId: String) extends Exception(applicationId)

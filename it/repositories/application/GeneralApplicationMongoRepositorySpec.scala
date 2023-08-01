@@ -984,6 +984,38 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
+  "find adjustments needs support at fsac" should {
+    "throw an exception if there is no application" in {
+      val result = repository.findAdjustmentsNeedsSupportAtFsac(AppId).failed.futureValue
+      result mustBe an[ApplicationNotFound]
+    }
+
+    "throw an exception if there is an application but no assistance-details section" in {
+      repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
+      val result = repository.findAdjustmentsNeedsSupportAtFsac(AppId).failed.futureValue
+      result mustBe an[ApplicationNotFound]
+    }
+
+    "throw an exception if there is no application when saving needs support at fsac" in {
+      val needsSupportAtFsac = NeedsSupportAtFsac(needsSupportAtVenue = true, needsSupportAtVenueDescription = Some("Test"))
+      val result = repository.updateAdjustmentsNeedsSupportAtFsac("I-DONT-EXIST", needsSupportAtFsac).failed.futureValue
+      result mustBe a[CannotUpdateRecord]
+    }
+
+    "save and fetch the needs support at fsac" in {
+      val newCandidate = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
+      val needsSupportAtFsac = NeedsSupportAtFsac(needsSupportAtVenue = true, needsSupportAtVenueDescription = Some("Test"))
+      repository.updateAdjustmentsNeedsSupportAtFsac(newCandidate.applicationId, needsSupportAtFsac)
+      val result = repository.findAdjustmentsNeedsSupportAtFsac(newCandidate.applicationId).futureValue
+      result mustBe needsSupportAtFsac
+      // If we now save with needsSupportAtVenue = false, the description should be deleted
+      val needsSupportAtFsac2 = NeedsSupportAtFsac(needsSupportAtVenue = false, needsSupportAtVenueDescription = None)
+      repository.updateAdjustmentsNeedsSupportAtFsac(newCandidate.applicationId, needsSupportAtFsac2)
+      val result2 = repository.findAdjustmentsNeedsSupportAtFsac(newCandidate.applicationId).futureValue
+      result2 mustBe needsSupportAtFsac2
+    }
+  }
+
   "get online test application" should {
     "return None if the application does not exist" in {
       repository.getOnlineTestApplication(AppId).futureValue mustBe None
