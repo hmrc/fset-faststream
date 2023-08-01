@@ -18,7 +18,7 @@ package controllers
 
 import javax.inject.{Inject, Singleton}
 import model.Exceptions._
-import model.AdjustmentsComment
+import model.{AdjustmentsComment, NeedsSupportAtFsac}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.adjustmentsmanagement.AdjustmentsManagementService
@@ -78,6 +78,26 @@ class AdjustmentsManagementController @Inject() (cc: ControllerComponents,
       NoContent
     }.recover {
       case e: CannotRemoveAdjustmentsComment => NotFound(s"cannot remove adjustments comment for application with id: ${e.applicationId}")
+    }
+  }
+
+  def findNeedsSupportAtFsac(applicationId: String): Action[AnyContent] = Action.async {
+    adjustmentsManagementService.findNeedsSupportAtFsac(applicationId).map { needsSupportAtFsac =>
+      Ok(Json.toJson(needsSupportAtFsac))
+    }.recover {
+      case c: AdjustmentsNeedsSupportAtFsacNotFound =>
+        NotFound(s"Cannot find adjustments needs support at FSAC for application with id: ${c.applicationId}")
+      case a: ApplicationNotFound => NotFound(a.id)
+    }
+  }
+
+  def updateNeedsSupportAtFsac(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[NeedsSupportAtFsac] { data =>
+      adjustmentsManagementService.updateNeedsSupportAtFsac(applicationId, data).map { _ =>
+        NoContent
+      }.recover {
+        case e: CannotUpdateRecord => BadRequest(s"Cannot update adjustments needs support at venue for application with id: ${e.applicationId}")
+      }
     }
   }
 }

@@ -55,3 +55,11 @@ case class AdjustmentsComment(
   comment: String
 )
 object AdjustmentsComment { implicit val adjustmentsCommentFormat: OFormat[AdjustmentsComment] = Json.format[AdjustmentsComment] }
+
+case class NeedsSupportAtFsac(
+                               needsSupportAtVenue: Boolean,
+                               needsSupportAtVenueDescription: Option[String] = None
+                             )
+object NeedsSupportAtFsac {
+  implicit val needsSupportAtFsacFormat: OFormat[NeedsSupportAtFsac] = Json.format[NeedsSupportAtFsac]
+}
