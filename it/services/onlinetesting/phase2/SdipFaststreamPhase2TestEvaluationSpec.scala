@@ -10,31 +10,31 @@ class SdipFaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluationSpec {
   "phase2 evaluation process" should {
     "give pass for SdipFaststream when all schemes and sdip are green" in new TestFixture {
       phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
-        List(SchemeEvaluationResult(PolicyStrategyAndGovernmentAdministration, Green.toString),
+        List(SchemeEvaluationResult(GovernmentPolicy, Green.toString),
           SchemeEvaluationResult(GovernmentCommunicationService, Green.toString),
           SchemeEvaluationResult(Sdip, Green.toString)
         ),
         "phase1-version1-res", None)
-      applicationEvaluation("application-1", 80, 80, PolicyStrategyAndGovernmentAdministration,
+      applicationEvaluation("application-1", 80, 80, GovernmentPolicy,
         GovernmentCommunicationService
       )(ApplicationRoute.SdipFaststream) mustResultIn(
         PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED),
-        PolicyStrategyAndGovernmentAdministration -> Green, GovernmentCommunicationService -> Green,
+        GovernmentPolicy -> Green, GovernmentCommunicationService -> Green,
         Sdip -> Green)
     }
 
     "give amber for SdipFaststream when sdip and faststream schemes are amber" in new TestFixture {
       phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
-        List(SchemeEvaluationResult(PolicyStrategyAndGovernmentAdministration, Green.toString),
+        List(SchemeEvaluationResult(GovernmentPolicy, Green.toString),
           SchemeEvaluationResult(GovernmentCommunicationService, Green.toString),
           SchemeEvaluationResult(Sdip, Amber.toString)
         ),
         "phase1-version1-res", None)
-      applicationEvaluation("application-1", 40, 40, PolicyStrategyAndGovernmentAdministration,
+      applicationEvaluation("application-1", 40, 40, GovernmentPolicy,
         GovernmentCommunicationService
       )(ApplicationRoute.SdipFaststream) mustResultIn(
         PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED),
-        PolicyStrategyAndGovernmentAdministration -> Amber, GovernmentCommunicationService -> Amber,
+        GovernmentPolicy -> Amber, GovernmentCommunicationService -> Amber,
         Sdip -> Amber)
     }
 

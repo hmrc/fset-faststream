@@ -98,7 +98,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         DiplomaticAndDevelopment, Finance,
         GovernmentCommunicationService,
         HousesOfParliament, HumanResources, OperationalDelivery,
-        ProjectDelivery, Property, PolicyStrategyAndGovernmentAdministration,
+        ProjectDelivery, Property, GovernmentPolicy,
         Edip, Sdip
       )
       val actual = repo.noSiftEvaluationRequiredSchemeIds
@@ -110,7 +110,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         Seq(
           Commercial, DigitalDataTechnologyAndCyber,
           Finance, OperationalDelivery,
-          HumanResources, Property, PolicyStrategyAndGovernmentAdministration
+          HumanResources, Property, GovernmentPolicy
         )
     }
 

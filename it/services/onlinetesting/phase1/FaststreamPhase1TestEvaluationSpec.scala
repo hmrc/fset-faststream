@@ -31,16 +31,16 @@ class FaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
 
     "result in fail results when all the schemes are red" in new TestFixture {
       applicationEvaluation("application-1", 20, 20, 20,
-        DiplomaticAndDevelopmentEconomics, PolicyStrategyAndGovernmentAdministration) mustResultIn (
+        DiplomaticAndDevelopmentEconomics, GovernmentPolicy) mustResultIn (
         PHASE1_TESTS_FAILED, Some(ProgressStatuses.PHASE1_TESTS_FAILED),
-        DiplomaticAndDevelopmentEconomics -> Red, PolicyStrategyAndGovernmentAdministration -> Red)
+        DiplomaticAndDevelopmentEconomics -> Red, GovernmentPolicy -> Red)
     }
 
     "result in amber when all the schemes are in amber" in new TestFixture {
       applicationEvaluation("application-1", 40, 40, 40,
-        DiplomaticAndDevelopmentEconomics, PolicyStrategyAndGovernmentAdministration) mustResultIn (
+        DiplomaticAndDevelopmentEconomics, GovernmentPolicy) mustResultIn (
         PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
-        DiplomaticAndDevelopmentEconomics -> Amber, PolicyStrategyAndGovernmentAdministration -> Amber)
+        DiplomaticAndDevelopmentEconomics -> Amber, GovernmentPolicy -> Amber)
 
       applicationEvaluation("application-2", 25.015, 25.015, 25.015,
         Finance) mustResultIn (
@@ -64,15 +64,15 @@ class FaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
     "result in pass results on re-evaluation of applicant in amber when passmarks are decreased" in new TestFixture {
       {
         applicationEvaluation("application-1", 40, 40, 40,
-          DiplomaticAndDevelopmentEconomics, PolicyStrategyAndGovernmentAdministration)
+          DiplomaticAndDevelopmentEconomics, GovernmentPolicy)
           mustResultIn (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
-            DiplomaticAndDevelopmentEconomics -> Amber, PolicyStrategyAndGovernmentAdministration -> Amber)
+            DiplomaticAndDevelopmentEconomics -> Amber, GovernmentPolicy -> Amber)
 
         applicationReEvaluationWithOverridingPassmarks(
           (DiplomaticAndDevelopmentEconomics, 30, 30, 30, 30, 30, 30),
-          (PolicyStrategyAndGovernmentAdministration, 30, 30, 30, 30, 30, 30))
+          (GovernmentPolicy, 30, 30, 30, 30, 30, 30))
         mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
-          DiplomaticAndDevelopmentEconomics -> Green, PolicyStrategyAndGovernmentAdministration -> Green)
+          DiplomaticAndDevelopmentEconomics -> Green, GovernmentPolicy -> Green)
       }
 
       {
@@ -89,15 +89,15 @@ class FaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
     "result in fail results on re-evaluation of applicant in amber when fail marks are increased" in new TestFixture {
       {
         applicationEvaluation("application-1", 40, 40, 40,
-          DiplomaticAndDevelopmentEconomics, PolicyStrategyAndGovernmentAdministration)
+          DiplomaticAndDevelopmentEconomics, GovernmentPolicy)
         mustResultIn (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
-          DiplomaticAndDevelopmentEconomics -> Amber, PolicyStrategyAndGovernmentAdministration -> Amber)
+          DiplomaticAndDevelopmentEconomics -> Amber, GovernmentPolicy -> Amber)
 
         applicationReEvaluationWithOverridingPassmarks(
           (DiplomaticAndDevelopmentEconomics, 41, 42, 41, 42, 41, 42),
-          (PolicyStrategyAndGovernmentAdministration, 41, 42, 41, 42, 41, 42)
+          (GovernmentPolicy, 41, 42, 41, 42, 41, 42)
         ) mustResultIn (PHASE1_TESTS_FAILED, Some(ProgressStatuses.PHASE1_TESTS_FAILED),
-          DiplomaticAndDevelopmentEconomics -> Red, PolicyStrategyAndGovernmentAdministration -> Red)
+          DiplomaticAndDevelopmentEconomics -> Red, GovernmentPolicy -> Red)
       }
 
       {
@@ -114,15 +114,15 @@ class FaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
     "leave applicants in amber on re-evaluation when passmarks and failmarks are changed but within the amber range" in new TestFixture {
       {
         applicationEvaluation("application-1", 40, 40, 40,
-          DiplomaticAndDevelopmentEconomics, PolicyStrategyAndGovernmentAdministration)
+          DiplomaticAndDevelopmentEconomics, GovernmentPolicy)
         mustResultIn (PHASE1_TESTS,  Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
-          DiplomaticAndDevelopmentEconomics -> Amber, PolicyStrategyAndGovernmentAdministration -> Amber)
+          DiplomaticAndDevelopmentEconomics -> Amber, GovernmentPolicy -> Amber)
 
         applicationReEvaluationWithOverridingPassmarks(
           (DiplomaticAndDevelopmentEconomics, 38, 42, 38, 42, 38, 42),
-          (PolicyStrategyAndGovernmentAdministration, 38, 42, 38, 42, 38, 42)
+          (GovernmentPolicy, 38, 42, 38, 42, 38, 42)
         ) mustResultIn (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
-          DiplomaticAndDevelopmentEconomics -> Amber, PolicyStrategyAndGovernmentAdministration -> Amber)
+          DiplomaticAndDevelopmentEconomics -> Amber, GovernmentPolicy -> Amber)
       }
 
       {
