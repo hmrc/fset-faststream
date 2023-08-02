@@ -87,6 +87,15 @@
   fsbType: ORAC
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Government-Operational-Research.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/1249/scheme-questions-gors.odt
+# This was previously GeneralistSTEM
+- id: GovernmentPolicy
+  code: GP
+  name: Government Policy
+  civilServantEligible: true
+  degree:
+    required: Degree_22
+    specificRequirement: false
+  siftEvaluationRequired: false
 - id: GovernmentSocialResearchService
   code: GSR
   name: Government Social Research Service
@@ -143,15 +152,6 @@
   fsbType: OPD - Skype interview
   # TODO: the correct link needs to be supplied - for now just use the property guide
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Property.pdf
-# This was previously GeneralistSTEM
-- id: PolicyStrategyAndGovernmentAdministration
-  code: PSGA
-  name: Policy, Strategy and Government Administration
-  civilServantEligible: true
-  degree:
-    required: Degree_22
-    specificRequirement: false
-  siftEvaluationRequired: false
 - id: ProjectDelivery
   code: PDFS
   name: Project Delivery

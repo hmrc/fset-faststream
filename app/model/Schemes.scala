@@ -25,12 +25,12 @@ trait Schemes {
   val GovernmentCommunicationService = SchemeId("GovernmentCommunicationService")
   val GovernmentEconomicsService = SchemeId("GovernmentEconomicsService")
   val GovernmentOperationalResearchService = SchemeId("GovernmentOperationalResearchService")
+  val GovernmentPolicy = SchemeId("GovernmentPolicy")
   val GovernmentSocialResearchService = SchemeId("GovernmentSocialResearchService")
   val GovernmentStatisticalService = SchemeId("GovernmentStatisticalService")
   val HousesOfParliament = SchemeId("HousesOfParliament")
   val HumanResources = SchemeId("HumanResources")
   val OperationalDelivery = SchemeId("OperationalDelivery") // This was previously Generalist
-  val PolicyStrategyAndGovernmentAdministration = SchemeId("PolicyStrategyAndGovernmentAdministration")
   val ProjectDelivery = SchemeId("ProjectDelivery")
   val Property = SchemeId("Property")
   val ScienceAndEngineering = SchemeId("ScienceAndEngineering")

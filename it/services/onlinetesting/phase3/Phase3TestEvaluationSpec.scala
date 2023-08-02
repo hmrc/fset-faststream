@@ -145,18 +145,18 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       {
         phase2PassMarkEvaluation = PassmarkEvaluation("phase2-version1", None,
           List(SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, Green.toString),
-            SchemeEvaluationResult(PolicyStrategyAndGovernmentAdministration, Green.toString)),
+            SchemeEvaluationResult(GovernmentPolicy, Green.toString)),
           "phase2-version1-res", None)
 
         applicationEvaluation("application-1", Some(40), true,
-          DiplomaticAndDevelopmentEconomics, PolicyStrategyAndGovernmentAdministration)
-        mustResultIn(PHASE3_TESTS, DiplomaticAndDevelopmentEconomics -> Amber, PolicyStrategyAndGovernmentAdministration -> Amber)
+          DiplomaticAndDevelopmentEconomics, GovernmentPolicy)
+        mustResultIn(PHASE3_TESTS, DiplomaticAndDevelopmentEconomics -> Amber, GovernmentPolicy -> Amber)
 
         applicationReEvaluationWithSettings(
           (DiplomaticAndDevelopmentEconomics, 40, 40),
-          (PolicyStrategyAndGovernmentAdministration, 40, 40)
+          (GovernmentPolicy, 40, 40)
         ) mustResultIn(PHASE3_TESTS_PASSED, DiplomaticAndDevelopmentEconomics -> Green,
-          PolicyStrategyAndGovernmentAdministration -> Green)
+          GovernmentPolicy -> Green)
       }
     }
 
@@ -199,12 +199,12 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       (GovernmentCommunicationService,            30.0,                   70.0),
       (GovernmentEconomicsService,                30.0,                   70.0),
       (GovernmentOperationalResearchService,      30.0,                   70.0),
+      (GovernmentPolicy,                          30.0,                   70.0),
       (GovernmentSocialResearchService,           30.0,                   70.0),
       (GovernmentStatisticalService,              30.0,                   70.0),
       (HousesOfParliament,                        30.0,                   79.999),
       (HumanResources,                            30.0,                   50.0),
       (OperationalDelivery,                       30.0,                   30.0),
-      (PolicyStrategyAndGovernmentAdministration, 30.0,                   70.0),
       (ProjectDelivery,                           30.0,                   70.0),
       (Property,                                  40.0,                   70.0),
       (ScienceAndEngineering,                     69.00,                  69.00)

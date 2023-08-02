@@ -65,12 +65,12 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       (GovernmentCommunicationService,            30.0,         70.0,         30.0,         70.0,         20.0,         80.0),
       (GovernmentEconomicsService,                30.0,         70.0,         30.0,         70.0,         20.0,         80.0),
       (GovernmentOperationalResearchService,      30.0,         70.0,         30.0,         70.0,         20.0,         80.0),
+      (GovernmentPolicy,                          30.0,         70.0,         30.0,         70.0,         30.0,         70.0),
       (GovernmentSocialResearchService,           30.0,         70.0,         30.0,         70.0,         20.0,         80.0),
       (GovernmentStatisticalService,              30.0,         70.0,         30.0,         70.0,         20.0,         80.0),
       (HousesOfParliament,                        30.0,         79.999,       30.0,         78.08,        20.0,         77.77),
       (HumanResources,                            30.0,         70.0,         30.0,         70.0,         20.0,         80.0),
       (OperationalDelivery,                       30.0,         30.0,         30.0,         30.0,         30.0,         30.0),
-      (PolicyStrategyAndGovernmentAdministration, 30.0,         70.0,         30.0,         70.0,         30.0,         70.0),
       (ProjectDelivery,                           30.0,         70.0,         30.0,         70.0,         20.0,         80.0),
       (Property,                                  40.0,         70.0,         30.0,         70.0,         30.0,         70.0),
       (ScienceAndEngineering,                     69.00,        69.00,        78.99,        78.99,        20.0,         80.0)

@@ -124,19 +124,19 @@ class FaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluationSpec {
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
           List(SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, Green.toString),
-            SchemeEvaluationResult(PolicyStrategyAndGovernmentAdministration, Green.toString)),
+            SchemeEvaluationResult(GovernmentPolicy, Green.toString)),
           "phase1-version1-res", None)
 
         applicationEvaluation("application-1", 40, 40,
-          DiplomaticAndDevelopmentEconomics, PolicyStrategyAndGovernmentAdministration) mustResultIn(
+          DiplomaticAndDevelopmentEconomics, GovernmentPolicy) mustResultIn(
           PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED),
-          DiplomaticAndDevelopmentEconomics -> Amber, PolicyStrategyAndGovernmentAdministration -> Amber)
+          DiplomaticAndDevelopmentEconomics -> Amber, GovernmentPolicy -> Amber)
 
         applicationReEvaluationWithSettings(
           (DiplomaticAndDevelopmentEconomics,         40, 40, 40, 40),
-          (PolicyStrategyAndGovernmentAdministration, 40, 40, 40, 40)
+          (GovernmentPolicy, 40, 40, 40, 40)
         ) mustResultIn(PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED),
-          DiplomaticAndDevelopmentEconomics -> Green, PolicyStrategyAndGovernmentAdministration -> Green)
+          DiplomaticAndDevelopmentEconomics -> Green, GovernmentPolicy -> Green)
       }
     }
 
@@ -161,37 +161,37 @@ class FaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluationSpec {
     "result in failed results on re-evaluation of applicant in amber when failmarks are increased" in new TestFixture {
       phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
         List(SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, Green.toString),
-          SchemeEvaluationResult(PolicyStrategyAndGovernmentAdministration, Green.toString)),
+          SchemeEvaluationResult(GovernmentPolicy, Green.toString)),
         "phase1-version1-res", None)
 
       applicationEvaluation("application-1", 40, 40,
-        DiplomaticAndDevelopmentEconomics, PolicyStrategyAndGovernmentAdministration) mustResultIn(
+        DiplomaticAndDevelopmentEconomics, GovernmentPolicy) mustResultIn(
         PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED),
-        DiplomaticAndDevelopmentEconomics -> Amber, PolicyStrategyAndGovernmentAdministration -> Amber)
+        DiplomaticAndDevelopmentEconomics -> Amber, GovernmentPolicy -> Amber)
 
       applicationReEvaluationWithSettings(
         (DiplomaticAndDevelopmentEconomics,         41, 41, 41, 41),
-        (PolicyStrategyAndGovernmentAdministration, 41, 41, 41, 41)
+        (GovernmentPolicy, 41, 41, 41, 41)
       ) mustResultIn(PHASE2_TESTS_FAILED, Some(ProgressStatuses.PHASE2_TESTS_FAILED),
-        DiplomaticAndDevelopmentEconomics -> Red, PolicyStrategyAndGovernmentAdministration -> Red)
+        DiplomaticAndDevelopmentEconomics -> Red, GovernmentPolicy -> Red)
     }
 
     "leave applicants in amber on re-evaluation when passmarks and failmarks are changed but within the amber range" in new TestFixture {
       phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
         List(SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, Green.toString),
-          SchemeEvaluationResult(PolicyStrategyAndGovernmentAdministration, Green.toString)),
+          SchemeEvaluationResult(GovernmentPolicy, Green.toString)),
         "phase1-version1-res", None)
 
       applicationEvaluation("application-1", 40, 40,
-        DiplomaticAndDevelopmentEconomics, PolicyStrategyAndGovernmentAdministration) mustResultIn(
+        DiplomaticAndDevelopmentEconomics, GovernmentPolicy) mustResultIn(
         PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED),
-        DiplomaticAndDevelopmentEconomics -> Amber, PolicyStrategyAndGovernmentAdministration -> Amber)
+        DiplomaticAndDevelopmentEconomics -> Amber, GovernmentPolicy -> Amber)
 
       applicationReEvaluationWithSettings(
         (DiplomaticAndDevelopmentEconomics,         35, 45, 35, 45),
-        (PolicyStrategyAndGovernmentAdministration, 35, 45, 35, 45)
+        (GovernmentPolicy, 35, 45, 35, 45)
       ) mustResultIn(PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED),
-        DiplomaticAndDevelopmentEconomics -> Amber, PolicyStrategyAndGovernmentAdministration -> Amber)
+        DiplomaticAndDevelopmentEconomics -> Amber, GovernmentPolicy -> Amber)
     }
   }
 }

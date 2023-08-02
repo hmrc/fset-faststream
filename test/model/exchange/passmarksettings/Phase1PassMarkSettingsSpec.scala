@@ -77,7 +77,7 @@ class Phase1PassMarkSettingsSpec extends PlaySpec with Schemes {
           (DiplomaticAndDevelopment, 20.0, 80.0)))),
         newPassMarkSettings = passMarkSettings(List(
           (DiplomaticAndDevelopmentEconomics, 20.0, 80.0),
-          (PolicyStrategyAndGovernmentAdministration, 20.0, 80.0),
+          (GovernmentPolicy, 20.0, 80.0),
           (DiplomaticAndDevelopment, 20.0, 80.0)))
       )
       merged.schemes.map(_.schemeId) mustBe List(
@@ -85,7 +85,7 @@ class Phase1PassMarkSettingsSpec extends PlaySpec with Schemes {
         DigitalDataTechnologyAndCyber,
         DiplomaticAndDevelopment,
         DiplomaticAndDevelopmentEconomics,
-        PolicyStrategyAndGovernmentAdministration
+        GovernmentPolicy
       )
     }
   }
