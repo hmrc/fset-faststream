@@ -19,30 +19,32 @@ package controllers.testdata
 import config.MicroserviceAppConfig
 import connectors.AuthProviderClient
 import factories.UUIDFactory
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.Exceptions.EmailTakenException
 import model._
-import model.command.testdata.CreateAdminRequest.{ AssessorAvailabilityRequest, AssessorRequest, CreateAdminRequest }
+import model.command.testdata.CreateAdminRequest.{AssessorAvailabilityRequest, AssessorRequest, CreateAdminRequest}
 import model.command.testdata.CreateAssessorAllocationRequest.CreateAssessorAllocationRequest
-import model.command.testdata.CreateCandidateRequest.{ CreateCandidateRequest, _ }
+import model.command.testdata.CreateCandidateRequest.{CreateCandidateRequest, _}
 import model.command.testdata.CreateEventRequest
-import model.command.testdata.{ ClearCandidatesRequest, CreateCandidateAllocationRequest }
+import model.command.testdata.{ClearCandidatesRequest, CreateCandidateAllocationRequest}
 import model.exchange.AssessorSkill
 import model.persisted.SchemeEvaluationResult
 import model.persisted.assessor.AssessorStatus
-import model.persisted.eventschedules.{ EventType, Session, SkillType }
+import model.persisted.eventschedules.{EventType, Session, SkillType}
 import model.testdata.CreateAdminData.CreateAdminData
 import model.testdata.CreateAssessorAllocationData
 import model.testdata.CreateCandidateAllocationData
 import model.testdata.CreateEventData
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import org.joda.time.{ LocalDate, LocalTime }
+import org.joda.time.{LocalDate, LocalTime}
 import play.api.Logging
-import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
-import play.api.mvc.{ Action, AnyContent, ControllerComponents, RequestHeader }
+import play.api.libs.json.{JsObject, JsString, JsValue, Json}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, RequestHeader}
 import repositories.events.LocationsWithVenuesRepository
+import services.reporting.SizeOfPlaceOfWork
 import services.testdata._
-import services.testdata.candidate.{ AdminStatusGeneratorFactory, CandidateStatusGeneratorFactory }
+import services.testdata.candidate.{AdminStatusGeneratorFactory, CandidateStatusGeneratorFactory}
 import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -109,7 +111,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
         universityAttended = Some("W01-USW"),
         parentalEmployment = Some("Traditional professional"),
         parentalEmployedOrSelfEmployed = Some("Employed"),
-        parentalCompanySize = Some("Small (1 to 24 employees)")
+        parentalCompanySize = Some(SizeOfPlaceOfWork.Small)
       )),
       assistanceDetails = Some(AssistanceDetailsRequest(
         hasDisability = Some("Yes"),
