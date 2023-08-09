@@ -21,7 +21,7 @@ import model.command.GeneralDetails
 import model.command.GeneralDetailsExamples._
 import model.command.PersonalDetailsExamples.personalDetails
 import model.persisted.PersonalDetails
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.mvc.RequestHeader
@@ -31,7 +31,7 @@ import services.personaldetails.PersonalDetailsService
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class PersonalDetailsControllerSpec extends UnitWithAppSpec {
   val mockCandidateDetailsService = mock[PersonalDetailsService]
@@ -53,7 +53,7 @@ class PersonalDetailsControllerSpec extends UnitWithAppSpec {
       val response = controller.update(UserId, AppId)(Request)
 
       status(response) mustBe CREATED
-      verify(mockAuditService).logEvent(eqTo("PersonalDetailsSaved"))(any[HeaderCarrier], any[RequestHeader])
+      verify(mockAuditService).logEvent(eqTo("PersonalDetailsSaved"))(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     }
 
     "return Bad Request when CannotUpdateContactDetails is thrown" in {
@@ -64,7 +64,7 @@ class PersonalDetailsControllerSpec extends UnitWithAppSpec {
       val response = controller.update(UserId, AppId)(Request)
 
       status(response) mustBe BAD_REQUEST
-      verify(mockAuditService, never).logEvent(eqTo("PersonalDetailsSaved"))(any[HeaderCarrier], any[RequestHeader])
+      verify(mockAuditService, never).logEvent(eqTo("PersonalDetailsSaved"))(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     }
 
     "return Bad Request when CannotUpdateCivilServiceExperienceDetails is thrown" in {
@@ -75,7 +75,7 @@ class PersonalDetailsControllerSpec extends UnitWithAppSpec {
       val response = controller.update(UserId, AppId)(Request)
 
       status(response) mustBe BAD_REQUEST
-      verify(mockAuditService, never).logEvent(eqTo("PersonalDetailsSaved"))(any[HeaderCarrier], any[RequestHeader])
+      verify(mockAuditService, never).logEvent(eqTo("PersonalDetailsSaved"))(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     }
 
     "return Bad Request when CannotUpdateRecord is thrown" in {
@@ -86,7 +86,7 @@ class PersonalDetailsControllerSpec extends UnitWithAppSpec {
       val response = controller.update(UserId, AppId)(Request)
 
       status(response) mustBe BAD_REQUEST
-      verify(mockAuditService, never).logEvent(eqTo("PersonalDetailsSaved"))(any[HeaderCarrier], any[RequestHeader])
+      verify(mockAuditService, never).logEvent(eqTo("PersonalDetailsSaved"))(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     }
   }
 

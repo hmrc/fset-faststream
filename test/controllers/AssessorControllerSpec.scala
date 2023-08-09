@@ -44,7 +44,7 @@ class AssessorControllerSpec extends UnitWithAppSpec {
 
       status(response) mustBe OK
       val logDetails = Map("assessor" -> AssessorExamples.Assessor1.toString)
-      verify(mockAuditService).logEvent(eqTo("AssessorSaved"), eqTo(logDetails))(any(), any())
+      verify(mockAuditService).logEvent(eqTo("AssessorSaved"), eqTo(logDetails))(any(), any(), any())
     }
 
     "return FAILED_DEPENDENCY " +
@@ -56,7 +56,7 @@ class AssessorControllerSpec extends UnitWithAppSpec {
       val response = controller.saveAssessor(AssessorExamples.UserId1)(Request)
 
       status(response) mustBe FAILED_DEPENDENCY
-      verify(mockAuditService, never()).logEvent(any(), any())(any(), any())
+      verify(mockAuditService, never()).logEvent(any(), any())(any(), any(), any())
     }
 
     "return CONFLICT " +
@@ -68,7 +68,7 @@ class AssessorControllerSpec extends UnitWithAppSpec {
       val response = controller.saveAssessor(AssessorExamples.UserId1)(Request)
 
       status(response) mustBe CONFLICT
-      verify(mockAuditService, never()).logEvent(any(), any())(any(), any())
+      verify(mockAuditService, never()).logEvent(any(), any())(any(), any(), any())
     }
   }
 
@@ -139,7 +139,7 @@ class AssessorControllerSpec extends UnitWithAppSpec {
 
       status(response) mustBe CONFLICT
       response.futureValue
-      verify(mockAuditService, never()).logEvent(any(), any())(any(), any())
+      verify(mockAuditService, never()).logEvent(any(), any())(any(), any(), any())
     }
 
     "return NOT_FOUND " +
@@ -151,7 +151,7 @@ class AssessorControllerSpec extends UnitWithAppSpec {
 
       status(response) mustBe NOT_FOUND
       response.futureValue
-      verify(mockAuditService, never()).logEvent(any(), any())(any(), any())
+      verify(mockAuditService, never()).logEvent(any(), any())(any(), any(), any())
     }
 
     "return OK and log AssessorRemoved audit event" +
@@ -165,7 +165,7 @@ class AssessorControllerSpec extends UnitWithAppSpec {
       response.futureValue
       verify(mockAssessorService).remove(eqTo(userId))
       val logDetails = Map("userId" -> userId.toString)
-      verify(mockAuditService).logEvent(eqTo("AssessorRemoved"), eqTo(logDetails))(any(), any())
+      verify(mockAuditService).logEvent(eqTo("AssessorRemoved"), eqTo(logDetails))(any(), any(), any())
     }
   }
 

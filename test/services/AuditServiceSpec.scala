@@ -17,13 +17,17 @@
 package services
 
 import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 import testkit.UnitSpec
-import uk.gov.hmrc.play.audit.model.{ Audit, DataEvent }
+import uk.gov.hmrc.play.audit.model.{Audit, DataEvent}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class AuditServiceSpec extends UnitSpec {
 
@@ -31,7 +35,7 @@ class AuditServiceSpec extends UnitSpec {
     "log event without details" in new TestFixture {
       auditService.logEvent("SomeEvent")
 
-      verify(auditMockResponse, atLeastOnce()).apply(eventCaptor.capture())
+      verify(auditMock, atLeastOnce()).sendDataEvent(eventCaptor.capture())(any[ExecutionContext])
       val actualDataEvent = eventCaptor.getValue
 
       actualDataEvent.auditSource mustBe "appName"
@@ -43,7 +47,7 @@ class AuditServiceSpec extends UnitSpec {
     "log event with details" in new TestFixture {
       auditService.logEvent("SomeEvent", Map("moreInfo" -> "moreDetails"))
 
-      verify(auditMockResponse, atLeastOnce()).apply(eventCaptor.capture())
+      verify(auditMock, atLeastOnce()).sendDataEvent(eventCaptor.capture())(any[ExecutionContext])
       val actualDataEvent = eventCaptor.getValue
 
       actualDataEvent.auditSource mustBe "appName"
@@ -56,7 +60,7 @@ class AuditServiceSpec extends UnitSpec {
     "log event without request" in new TestFixture {
       auditService.logEventNoRequest("SomeEvent", Map("moreInfo" -> "moreDetails"))
 
-      verify(auditMockResponse, atLeastOnce()).apply(eventCaptor.capture())
+      verify(auditMock, atLeastOnce()).sendDataEvent(eventCaptor.capture())(any[ExecutionContext])
       val actualDataEvent = eventCaptor.getValue
 
       actualDataEvent.auditSource mustBe "appName"
@@ -70,13 +74,10 @@ class AuditServiceSpec extends UnitSpec {
   trait TestFixture {
     val auditMock = mock[Audit]
     val auditConnectorMock = mock[AuditConnector]
-    val auditMockResponse = mock[DataEvent => Unit]
     val eventCaptor = ArgumentCaptor.forClass(classOf[DataEvent])
 
     implicit val hc: HeaderCarrier = HeaderCarrier()
     implicit val rh: RequestHeader = FakeRequest("GET", "some/path")
-
-    when(auditMock.sendDataEvent).thenReturn(auditMockResponse)
 
     val auditService = new AuditService("appName", auditConnectorMock) {
       override val auditFacade: Audit = auditMock

@@ -18,29 +18,32 @@ package services
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
+
 import javax.inject.Singleton
 import play.api.mvc.RequestHeader
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.AuditExtensions.auditHeaderCarrier
 import uk.gov.hmrc.play.audit.EventKeys
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.audit.model.{ Audit, DataEvent, EventTypes }
+import uk.gov.hmrc.play.audit.model.{Audit, DataEvent, EventTypes}
+
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class AuditService @Inject() (@Named("appName") val appName: String, auditConnector: AuditConnector) {
   private[services] val auditFacade: Audit = new Audit(appName, auditConnector)
 
-  def logEvent(eventName: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Unit =
+  def logEvent(eventName: String)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Unit =
     auditFacade.sendDataEvent(
       DataEvent(appName, EventTypes.Succeeded, tags = hc.toAuditTags(eventName, rh.path))
     )
 
-  def logEvent(eventName: String, detail: Map[String, String])(implicit hc: HeaderCarrier, rh: RequestHeader): Unit =
+  def logEvent(eventName: String, detail: Map[String, String])(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Unit =
     auditFacade.sendDataEvent(
       DataEvent(appName, EventTypes.Succeeded, tags = hc.toAuditTags(eventName, rh.path), detail = detail)
     )
 
-  def logEventNoRequest(eventName: String, detail: Map[String, String]): Unit =
+  def logEventNoRequest(eventName: String, detail: Map[String, String])(implicit ec: ExecutionContext): Unit =
     auditFacade.sendDataEvent(
       DataEvent(appName, EventTypes.Succeeded, tags = Map(EventKeys.TransactionName -> eventName), detail = detail)
     )

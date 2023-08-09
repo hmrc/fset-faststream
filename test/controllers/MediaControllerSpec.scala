@@ -18,16 +18,18 @@ package controllers
 
 import config.TestFixtureBase
 import model.persisted.Media
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.test.Helpers._
-import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
+import play.api.test.{FakeHeaders, FakeRequest, Helpers}
 import repositories.MediaRepository
 import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.concurrent.ExecutionContext
 
 class MediaControllerSpec extends UnitWithAppSpec {
 
@@ -43,7 +45,7 @@ class MediaControllerSpec extends UnitWithAppSpec {
       ))
 
       status(result) mustBe CREATED
-      verify(mockAuditService).logEvent(eqTo("CampaignReferrerSaved"))(any[HeaderCarrier], any[RequestHeader])
+      verify(mockAuditService).logEvent(eqTo("CampaignReferrerSaved"))(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     }
 
     "return an error on invalid json" in new TestFixture {

@@ -77,7 +77,8 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
 
       status(response) mustBe OK
       verify(mockService).submitExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.writtenExercise), any())(any[ExecutionContext])
-      verify(mockAuditService).logEvent(eqTo(assessmentScoresOneExerciseSubmitted), eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader])
+      verify(mockAuditService).logEvent(eqTo(assessmentScoresOneExerciseSubmitted), eqTo(auditDetails))(
+        any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     }
   }
 
@@ -98,7 +99,8 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
 
       status(response) mustBe OK
       verify(mockService).saveExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.writtenExercise), any())(any[ExecutionContext])
-      verify(mockAuditService).logEvent(eqTo(assessmentScoresOneExerciseSaved), eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader])
+      verify(mockAuditService).logEvent(eqTo(assessmentScoresOneExerciseSaved), eqTo(auditDetails))(
+        any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     }
   }
 
@@ -123,9 +125,9 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
       status(response) mustBe OK
       verify(mockService).submitFinalFeedback(eqTo(appId), any())(any[ExecutionContext])
       verify(mockAuditService).logEvent(eqTo(assessmentScoresOneExerciseSubmitted),
-        eqTo(oneExerciseAuditDetails))(any[HeaderCarrier], any[RequestHeader])
+        eqTo(oneExerciseAuditDetails))(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
       verify(mockAuditService).logEvent(eqTo(assessmentScoresAllExercisesSubmitted),
-        eqTo(allExercisesAuditDetails))(any[HeaderCarrier], any[RequestHeader])
+        eqTo(allExercisesAuditDetails))(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     }
   }
 
@@ -213,7 +215,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
 
       val auditDetails = toResetExercisesAuditDetails(resetExercisesRequest)
       verify(mockAuditService).logEvent(eqTo(assessmentScoresResetLogEvent),
-        eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader])
+        eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     }
 
     "reset analysis exercise only and return OK when analysis is specified" in new TestFixture {
@@ -226,7 +228,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
 
       val auditDetails = toResetExercisesAuditDetails(resetExercisesRequest)
       verify(mockAuditService).logEvent(eqTo(assessmentScoresResetLogEvent),
-        eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader])
+        eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     }
 
     "reset group exercise only and return OK when group is specified" in new TestFixture {
@@ -239,7 +241,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
 
       val auditDetails = toResetExercisesAuditDetails(resetExercisesRequest)
       verify(mockAuditService).logEvent(eqTo(assessmentScoresResetLogEvent),
-        eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader])
+        eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     }
 
     "reset leadership exercise only and return OK when leadership is specified" in new TestFixture {
@@ -252,7 +254,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
 
       val auditDetails = toResetExercisesAuditDetails(resetExercisesRequest)
       verify(mockAuditService).logEvent(eqTo(assessmentScoresResetLogEvent),
-        eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader])
+        eqTo(auditDetails))(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     }
 
     "return INTERNAL_SERVER_ERROR if an exception is thrown" in new TestFixture {
