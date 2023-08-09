@@ -17,6 +17,7 @@
 package services.testdata.faker
 
 import model.Exceptions.DataFakingException
+import services.reporting.SizeOfPlaceOfWork
 
 import scala.language.postfixOps
 
@@ -96,8 +97,9 @@ trait DataFakerRandom {
 
     def parentsOccupation = randOne(List(
       "Unemployed but seeking work",
-      "Unemployed",
+      "Long tern unemployed",
       "Employed",
+      "Retired",
       "Unknown"
     ))
 
@@ -113,9 +115,9 @@ trait DataFakerRandom {
     ))
 
     def sizeParentsEmployer: String = randOne(List(
-      "Small (1 to 24 employees)",
-      "Large (over 24 employees)",
-      "I don't know/prefer not to say"
+      SizeOfPlaceOfWork.Small,
+      SizeOfPlaceOfWork.Large,
+      SizeOfPlaceOfWork.DontKnow
     ))
 
     def firstname(userNumber: Int): String = {

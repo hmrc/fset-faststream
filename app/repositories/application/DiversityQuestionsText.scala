@@ -16,6 +16,7 @@
 
 package repositories.application
 
+//scalastyle:off line.size.limit
 trait DiversityQuestionsText {
   val genderIdentity = "What is your gender identity?"
   val sexualOrientation = "What is your sexual orientation?"
@@ -35,9 +36,8 @@ trait DiversityQuestionsText {
   val postgradUniversityName = "What is the name of the university you received your postgraduate degree from?"
   val postgradCategoryOfDegree = "Which category best describes your postgraduate degree?"
   val postgradDegreeType = "Which of the following best describes your postgraduate degree?"
-  val lowerSocioEconomicBackground = "Do you consider yourself to come from a lower socio-economic background?"
-  val parentOrGuardianQualificationsAtAge18 = "Do you have a parent or guardian that completed a university degree course, " +
-    "or qualifications below degree level, by the time you were 18?"
+  val lowerSocioEconomicBackground = "Compared to people in general, would you describe yourself as coming from a lower socio-economic background?"
+  val parentOrGuardianQualificationsAtAge18 = "What is the highest level of qualification achieved by either of your parent(s) or guardian(s) by the time you were 18?"
   val highestEarningParentOrGuardianTypeOfWorkAtAge14 = "When you were 14, what kind of work did your highest-earning parent or guardian do?"
   val employeeOrSelfEmployed = "Did they work as an employee or were they self-employed?"
   val sizeOfPlaceOfWork = "Which size would best describe their place of work?"

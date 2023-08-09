@@ -18,8 +18,10 @@ package services.reporting
 
 import javax.inject.Singleton
 import model.persisted.QuestionnaireAnswer
+import repositories.application.DiversityQuestionsText
 
 object SocioEconomicCalculator extends SocioEconomicScoreCalculator {
+  // These provide the columns of the matrix
   val NotApplicable = 0
   val EmployersLargeOrganisations = 1
   val EmployersSmallOrganisations = 2
@@ -31,60 +33,76 @@ object SocioEconomicCalculator extends SocioEconomicScoreCalculator {
 }
 
 @Singleton
-class SocioEconomicScoreCalculator extends Calculable {
+class SocioEconomicScoreCalculator extends Calculable with DiversityQuestionsText {
   import SocioEconomicCalculator._
 
-  def calculateAsInt(answers: Map[String, QuestionnaireAnswer]): Int = {
+  override def calculateAsInt(answers: Map[String, QuestionnaireAnswer]): Int = {
     val flattenedAnswers = answers.map { case (question, answer) => question -> answer.answer.getOrElse("") }
 
     val employmentStatusSize = calculateEmploymentStatusSize(flattenedAnswers)
     if (employmentStatusSize != NotApplicable) {
       calculateSocioEconomicScoreAsInt(employmentStatusSize, getTypeOfOccupation(flattenedAnswers))
     } else {
-      0
+      if (flattenedAnswers.isLongTermUnemployed) {
+        5
+      } else {
+        0
+      }
     }
   }
 
-  def calculate(answers: Map[String, String]): String = {
+  override def calculate(answers: Map[String, String]): String = {
     val employmentStatusSize = calculateEmploymentStatusSize(answers)
     if (employmentStatusSize != NotApplicable) {
       calculateSocioEconomicScore(employmentStatusSize, getTypeOfOccupation(answers))
     } else {
-      ""
+      if (answers.isLongTermUnemployed) {
+        "SE-5"
+      } else {
+        ""
+      }
     }
   }
 
+  implicit class Answers(questionnaire: Map[String, String]) {
+    def isLongTermUnemployed = questionnaire.getOrElse(highestEarningParentOrGuardianTypeOfWorkAtAge14, "") == "Long term unemployed"
+  }
+
   case class ParentalOccupationQuestionnaire(
-                                              typeOfWork: String,
-                                              typeOfOccupation: String,
-                                              sizeOfCompany: String,
-                                              isSupervisor: String)
+                                              typeOfWork: String,       // Q2
+                                              typeOfOccupation: String, // Q1
+                                              sizeOfCompany: String,    // Q3
+                                              isSupervisor: String      // Q4
+                                            )
 
   object ParentalOccupationQuestionnaire {
     def apply(questionnaire: Map[String, String]):ParentalOccupationQuestionnaire  = {
       ParentalOccupationQuestionnaire(
-        typeOfWork = questionnaire.getOrElse("Did they work as an employee or were they self-employed?", ""),
-        typeOfOccupation = questionnaire.getOrElse("When you were 14, what kind of work did your highest-earning parent or guardian do?", ""),
-        sizeOfCompany = questionnaire.getOrElse("Which size would best describe their place of work?",""),
-        isSupervisor = questionnaire.getOrElse("Did they supervise employees?", ""))
+        typeOfWork = questionnaire.getOrElse(employeeOrSelfEmployed, ""),
+        typeOfOccupation = questionnaire.getOrElse(highestEarningParentOrGuardianTypeOfWorkAtAge14, ""),
+        sizeOfCompany = questionnaire.getOrElse(sizeOfPlaceOfWork,""),
+        isSupervisor = questionnaire.getOrElse(superviseEmployees, ""))
     }
   }
 
   //scalastyle:off line.size.limit
   private[reporting] def calculateEmploymentStatusSize(answer: Map[String, String]): Int = {
     ParentalOccupationQuestionnaire(answer) match {
-      case ParentalOccupationQuestionnaire("Employee", "Senior managers and administrators", "Small (1 - 24 employees)", _) => ManagersSmallOrganisations
-      case ParentalOccupationQuestionnaire("Employee", "Senior managers and administrators", "Large (over 24 employees)", _) => ManagersLargeOrganisations
-      case ParentalOccupationQuestionnaire("Employee", _, _, "No" | "I don't know/prefer not to say") => OtherEmployees
-      case ParentalOccupationQuestionnaire("Employee", _, _, "Yes") => Supervisors
-      case ParentalOccupationQuestionnaire("Self-employed/freelancer without employees", _, _, _) => SelfEmployedNoEmployees
-      case ParentalOccupationQuestionnaire("Self-employed with employees", _, "Small (1 - 24 employees)", _) => EmployersSmallOrganisations
-      case ParentalOccupationQuestionnaire("Self-employed with employees", _, "Large (over 24 employees)", _) => EmployersLargeOrganisations
-      case _ => NotApplicable
+      case ParentalOccupationQuestionnaire("Employee", "Senior managers and administrators", SizeOfPlaceOfWork.Small, _)  => ManagersSmallOrganisations  // column 5
+      case ParentalOccupationQuestionnaire("Employee", "Senior managers and administrators", SizeOfPlaceOfWork.Large, _)  => ManagersLargeOrganisations  // column 4
+      case ParentalOccupationQuestionnaire("Employee", _, _, "No" | "I don't know/prefer not to say")                     => OtherEmployees              // column 7
+      case ParentalOccupationQuestionnaire("Employee", _, _, "Yes")                                                       => Supervisors                 // column 6
+      case ParentalOccupationQuestionnaire("Self-employed/freelancer without employees", _, _, _)                         => SelfEmployedNoEmployees     // column 3
+      case ParentalOccupationQuestionnaire("Self-employed with employees", _, SizeOfPlaceOfWork.Small, _)                 => EmployersSmallOrganisations // column 2
+      case ParentalOccupationQuestionnaire("Self-employed with employees", _, SizeOfPlaceOfWork.Large, _)                 => EmployersLargeOrganisations // column 1
+      case _                                                                                                              => NotApplicable
     }
   }
   //scalastyle:on line.size.limit
 
+  // These are the values we store for the question:
+  // "When you were 14, what kind of work did your highest-earning parent or guardian do?"
+  // These provide the rows of the matrix
   private[reporting] def getTypeOfOccupation(answers: Map[String, String]): Int = {
     val TypeOfOccupation: Map[String, Int] = Map(
       "Modern professional" -> 1,
@@ -96,7 +114,7 @@ class SocioEconomicScoreCalculator extends Calculable {
       "Middle or junior managers" -> 7,
       "Traditional professional" -> 8
     )
-    TypeOfOccupation(answers("When you were 14, what kind of work did your highest-earning parent or guardian do?"))
+    TypeOfOccupation(answers(highestEarningParentOrGuardianTypeOfWorkAtAge14))
   }
 
   private val socioEconomicScoreMatrix: Array[Array[Int]] = Array(

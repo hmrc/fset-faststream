@@ -27,6 +27,7 @@ import model.persisted.eventschedules.{EventType, Session, _}
 import org.joda.time.{LocalDate, LocalTime}
 import repositories.SchemeRepository
 import repositories.events.LocationsWithVenuesInMemoryYamlRepository
+import services.reporting.SizeOfPlaceOfWork
 
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
@@ -191,7 +192,7 @@ abstract class DataFaker(schemeRepo: SchemeRepository,
     "Self-employed/freelancer without employees",
     "I don't know/prefer not to say"))
 
-  def sizeOfPlaceOfWork = Random.randOne(List("Small (1 - 24 employees)", "Large (over 24 employees)"))
+  def sizeOfPlaceOfWork = Random.randOne(List(SizeOfPlaceOfWork.Small, SizeOfPlaceOfWork.Large))
 
   def parentsDegree = Random.randOne(List(
     "Degree level qualification",
@@ -202,8 +203,9 @@ abstract class DataFaker(schemeRepo: SchemeRepository,
 
   def parentsOccupation = Random.randOne(List(
     "Unemployed but seeking work",
-    "Unemployed",
+    "Long term unemployed",
     "Employed",
+    "Retired",
     "Unknown"
   ))
 
@@ -229,9 +231,9 @@ abstract class DataFaker(schemeRepo: SchemeRepository,
   ))
 
   def sizeParentsEmployeer: String = Random.randOne(List(
-    "Small (1 to 24 employees)",
-    "Large (over 24 employees)",
-    "I don't know/prefer not to say"
+    SizeOfPlaceOfWork.Small,
+    SizeOfPlaceOfWork.Large,
+    SizeOfPlaceOfWork.DontKnow
   ))
 
   def getFirstname(userNumber: Int): String = {
