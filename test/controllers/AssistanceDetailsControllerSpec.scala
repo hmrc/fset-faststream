@@ -20,14 +20,14 @@ import config.TestFixtureBase
 import model.Exceptions.CannotUpdateAssistanceDetails
 import model.command.AssistanceDetailsExchangeExamples
 import model.exchange.AssistanceDetailsExchange
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.mvc._
 import play.api.test.Helpers._
 import services.assistancedetails.AssistanceDetailsService
 import testkit.UnitWithAppSpec
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.HeaderCarrier
 
 class AssistanceDetailsControllerSpec extends UnitWithAppSpec {
@@ -39,7 +39,7 @@ class AssistanceDetailsControllerSpec extends UnitWithAppSpec {
       ).thenReturn(Future.successful(()))
       val result = controller.update(UserId, AppId)(Request)
       status(result) must be(CREATED)
-      verify(mockAuditService).logEvent(eqTo("AssistanceDetailsSaved"))(any[HeaderCarrier], any[RequestHeader])
+      verify(mockAuditService).logEvent(eqTo("AssistanceDetailsSaved"))(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     }
 
     "return BAD_REQUEST when there is a CannotUpdateAssistanceDetails exception" in new TestFixture {
@@ -51,7 +51,7 @@ class AssistanceDetailsControllerSpec extends UnitWithAppSpec {
       when(mockAssistanceDetailsService.update(AppId, UserId, details)).thenReturn(Future.failed(CannotUpdateAssistanceDetails(UserId)))
       val result = controller.update(UserId, AppId)(Request)
       status(result) must be(BAD_REQUEST)
-      verify(mockAuditService, times(0)).logEvent(eqTo("AssistanceDetailsSaved"))(any[HeaderCarrier], any[RequestHeader])
+      verify(mockAuditService, times(0)).logEvent(eqTo("AssistanceDetailsSaved"))(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     }
   }
 

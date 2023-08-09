@@ -17,18 +17,20 @@
 package controllers
 
 import config.TestFixtureBase
-import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import model.persisted.{QuestionnaireAnswer, QuestionnaireQuestion}
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.test.Helpers._
-import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
+import play.api.test.{FakeHeaders, FakeRequest, Helpers}
 import repositories.QuestionnaireRepository
 import repositories.application.GeneralApplicationRepository
 import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.concurrent.ExecutionContext
 
 class QuestionnaireControllerSpec extends UnitWithAppSpec with Results {
 
@@ -57,7 +59,7 @@ class QuestionnaireControllerSpec extends UnitWithAppSpec with Results {
       )
 
       verify(mockAuditService).logEvent(eqTo("QuestionnaireSectionSaved"), eqTo(
-        Map("section" -> "section1")))(any[HeaderCarrier], any[RequestHeader])
+        Map("section" -> "section1")))(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
 
       status(testQuestionnaireController.addSection(appId, "section2")(addQuestionnaireSection(appId, "section2")(
         s"""
@@ -80,7 +82,7 @@ class QuestionnaireControllerSpec extends UnitWithAppSpec with Results {
       )
 
       verify(mockAuditService).logEvent(eqTo("QuestionnaireSectionSaved"), eqTo(
-        Map("section" -> "section2")))(any[HeaderCarrier], any[RequestHeader])
+        Map("section" -> "section2")))(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     }
 
     "return a system error on invalid json" in new TestFixture {

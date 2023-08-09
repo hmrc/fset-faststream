@@ -22,8 +22,8 @@ import sbt._
 object AppDependencies {
 
   val compile = Seq(
-    "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-28"         % "1.1.0",
-    "uk.gov.hmrc"                   %% "bootstrap-backend-play-28"  % "7.12.0",
+    "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-28"         % "1.3.0",
+    "uk.gov.hmrc"                   %% "bootstrap-backend-play-28"  % "7.21.0",
     "com.typesafe.play"             %% "play-json-joda"             % "2.9.2",
     "org.webjars"                   %% "webjars-play"               % "2.7.3",
     "org.webjars"                   %  "bootstrap"                  % "3.1.1",

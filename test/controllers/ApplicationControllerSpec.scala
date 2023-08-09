@@ -72,7 +72,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
       (jsonResponse \ "applicationStatus").as[String] mustBe "CREATED"
       (jsonResponse \ "userId").as[String] mustBe "1234"
 
-      verify(mockAuditService).logEvent(eqTo("ApplicationCreated"))(any[HeaderCarrier], any[RequestHeader])
+      verify(mockAuditService).logEvent(eqTo("ApplicationCreated"))(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     }
 
     "return a system error on invalid json" in new TestFixture {
@@ -155,7 +155,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
         """.stripMargin
       ))
       status(result) mustBe OK
-      verify(mockAuditService).logEvent(eqTo("ApplicationPreviewed"))(any[HeaderCarrier], any[RequestHeader])
+      verify(mockAuditService).logEvent(eqTo("ApplicationPreviewed"))(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     }
   }
 

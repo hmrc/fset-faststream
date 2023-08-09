@@ -186,7 +186,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationProcessComplete", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvited", auditDetails)
-      verify(auditServiceMock, times(4)).logEventNoRequest(any[String], any[Map[String, String]])
+      verify(auditServiceMock, times(4)).logEventNoRequest(any[String], any[Map[String, String]])(any[ExecutionContext])
     }
 
     "Invite to 4 tests and issue one email for non-GIS candidates" in new SuccessfulTestInviteFixture {
@@ -206,7 +206,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationProcessComplete", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvited", auditDetails)
-      verify(auditServiceMock, times(6)).logEventNoRequest(any[String], any[Map[String, String]])
+      verify(auditServiceMock, times(6)).logEventNoRequest(any[String], any[Map[String, String]])(any[ExecutionContext])
     }
 
     "fail if registration fails" in new OnlineTest {
@@ -216,7 +216,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       val result = phase1TestService.registerAndInviteForTestGroup(onlineTestApplication :: Nil)
       result.failed.futureValue mustBe a[ConnectorException]
 
-      verify(auditServiceMock, never()).logEventNoRequest(any[String], any[Map[String, String]])
+      verify(auditServiceMock, never()).logEventNoRequest(any[String], any[Map[String, String]])(any[ExecutionContext])
     }
 
     "fail, audit 'UserRegisteredForOnlineTest' and audit 'OnlineTestInvited' " +
@@ -231,7 +231,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
       verify(auditServiceMock, times(3)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvited", auditDetails)
-      verify(auditServiceMock, times(4)).logEventNoRequest(any[String], any[Map[String, String]])
+      verify(auditServiceMock, times(4)).logEventNoRequest(any[String], any[Map[String, String]])(any[ExecutionContext])
     }
 
     "fail, audit 'UserRegisteredForOnlineTest' and audit 'OnlineTestInvited'" +
@@ -254,7 +254,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
       verify(auditServiceMock, times(3)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvited", auditDetails)
-      verify(auditServiceMock, times(4)).logEventNoRequest(any[String], any[Map[String, String]])
+      verify(auditServiceMock, times(4)).logEventNoRequest(any[String], any[Map[String, String]])(any[ExecutionContext])
     }
 
     "fail, audit 'UserRegisteredForOnlineTest', audit 'UserInvitedToOnlineTest'" +
@@ -272,7 +272,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
         any[HeaderCarrier], any[ExecutionContext])
       verify(auditServiceMock, times(3)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
       verify(auditServiceMock, never()).logEventNoRequest("OnlineTestInvited", auditDetails)
-      verify(auditServiceMock, times(3)).logEventNoRequest(any[String], any[Map[String, String]])
+      verify(auditServiceMock, times(3)).logEventNoRequest(any[String], any[Map[String, String]])(any[ExecutionContext])
     }
 
     "audit 'OnlineTestInvitationProcessComplete' on success" in new OnlineTest {
@@ -297,7 +297,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationProcessComplete", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvited", auditDetails)
-      verify(auditServiceMock, times(6)).logEventNoRequest(any[String], any[Map[String, String]])
+      verify(auditServiceMock, times(6)).logEventNoRequest(any[String], any[Map[String, String]])(any[ExecutionContext])
     }
   }
 

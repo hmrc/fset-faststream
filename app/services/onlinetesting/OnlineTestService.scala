@@ -142,7 +142,7 @@ trait OnlineTestService extends TimeExtension with EventSink with Logging {
   }
 
   @deprecated("use event sink instead", "2016-10-18")
-  protected def audit(event: String, userId: String, emailAddress: Option[String] = None): Unit = {
+  protected def audit(event: String, userId: String, emailAddress: Option[String] = None)(implicit ec: ExecutionContext): Unit = {
     logger.info(s"$event for user $userId")
     auditService.logEventNoRequest(
       event,

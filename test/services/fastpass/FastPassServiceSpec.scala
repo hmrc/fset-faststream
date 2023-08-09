@@ -21,22 +21,19 @@ import model._
 import model.command.PersonalDetailsExamples._
 import model.command.ProgressResponse
 import model.persisted.ContactDetailsExamples.ContactDetailsUK
-import model.persisted.{AssistanceDetails, SchemeEvaluationResult}
+import model.persisted.SchemeEvaluationResult
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito.{atLeast => atLeastTimes, _}
 import play.api.mvc.RequestHeader
 import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
-import repositories.assistancedetails.AssistanceDetailsRepository
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
-import services.adjustmentsmanagement.AdjustmentsManagementService
 import services.personaldetails.PersonalDetailsService
 import services.scheme.SchemePreferencesService
 import services.sift.ApplicationSiftService
 import services.stc.StcEventServiceFixture
-import testkit.MockitoImplicits._
 import testkit.{ExtendedTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
