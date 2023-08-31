@@ -150,7 +150,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
         generateNullScoresForFewQuestions = Some(false)
       )),
       fsbTestGroupData = Some(FsbTestGroupDataRequest(
-        results = Seq(SchemeEvaluationResult("DigitalDataTechnologyAndCyber", "Green"))
+        results = Seq(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, "Green"))
       )),
       adjustmentInformation = Some(AdjustmentsRequest(
         adjustments = Some(List("etrayInvigilated", "videoInvigilated")),
