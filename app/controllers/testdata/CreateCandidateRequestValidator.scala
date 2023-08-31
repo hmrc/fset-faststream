@@ -34,6 +34,8 @@ class CreateCandidateRequestValidator @Inject() (schemeRepository: SchemeReposit
       ValidatorResult(result = false, Some("Request contains incompatible values for Sdip"))
     } else if (!validateEdip(request)) {
       ValidatorResult(result = false, Some("Request contains incompatible values for Edip"))
+    } else if (isSdipFaststream(request)) {
+      ValidatorResult(result = false, Some("The SdipFaststream application route is invalid for the 2023/24 campaign"))
     } else if (!validateFastPass(request)) {
       ValidatorResult(result = false, Some("Request contains incompatible values for Fastpass"))
     } else if (!validateSchemes(request).isValid) {
@@ -96,6 +98,10 @@ class CreateCandidateRequestValidator @Inject() (schemeRepository: SchemeReposit
   def validateEdip(request: CreateCandidateRequest): Boolean = {
     validateSdipOrEdip(request, ApplicationRoute.Edip)
   }
+
+  // The application route is invalid for 23/24 campaign
+  def isSdipFaststream(request: CreateCandidateRequest): Boolean =
+    getApplicationRoute(request).contains(ApplicationRoute.SdipFaststream)
 
   def validateSdipOrEdip(request: CreateCandidateRequest, routeToValidate: ApplicationRoute) = {
     val requestedRoute = getApplicationRoute(request)

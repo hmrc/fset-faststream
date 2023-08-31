@@ -201,7 +201,7 @@
   name: Summer Internship Programme
   civilServantEligible: true
   siftRequirement: FORM
-  siftEvaluationRequired: false
+  siftEvaluationRequired: true
   fsbType: SDIP - Telephone interview
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/SIP-2023-Candidate-Guidance.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/SIP-2023-additional-information-form.odt

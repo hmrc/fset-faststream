@@ -86,7 +86,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
       val expectedSiftableAndEvaluationRequiredSchemes = Seq(
         DiplomaticAndDevelopmentEconomics, GovernmentEconomicsService,
         GovernmentOperationalResearchService, GovernmentSocialResearchService,
-        GovernmentStatisticalService, ScienceAndEngineering
+        GovernmentStatisticalService, ScienceAndEngineering, Sdip
       )
       val siftableSchemes = repo.siftableAndEvaluationRequiredSchemeIds
       siftableSchemes must contain theSameElementsAs(expectedSiftableAndEvaluationRequiredSchemes)
@@ -99,7 +99,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         GovernmentCommunicationService,
         HousesOfParliament, HumanResources, OperationalDelivery,
         ProjectDelivery, Property, GovernmentPolicy,
-        Edip, Sdip
+        Edip
       )
       val actual = repo.noSiftEvaluationRequiredSchemeIds
       actual must contain theSameElementsAs(expected)
