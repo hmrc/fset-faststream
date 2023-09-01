@@ -60,7 +60,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         DiplomaticAndDevelopmentEconomics, GovernmentCommunicationService,
         GovernmentEconomicsService, GovernmentOperationalResearchService,
         GovernmentSocialResearchService, GovernmentStatisticalService,
-        HousesOfParliament, OperationalDelivery, ProjectDelivery,
+        HousesOfParliament, OperationalDelivery, OperationalDeliverySTEM, ProjectDelivery,
         Property, ScienceAndEngineering,
         Edip, Sdip
       )
@@ -97,8 +97,8 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         Commercial, DigitalDataTechnologyAndCyber,
         DiplomaticAndDevelopment, Finance,
         GovernmentCommunicationService,
-        HousesOfParliament, HumanResources, OperationalDelivery,
-        ProjectDelivery, Property, GovernmentPolicy,
+        HousesOfParliament, HumanResources, OperationalDelivery, OperationalDeliverySTEM,
+        ProjectDelivery, Property, GovernmentPolicy, GovernmentPolicySTEM,
         Edip
       )
       val actual = repo.noSiftEvaluationRequiredSchemeIds
@@ -109,8 +109,8 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
       repo.nonSiftableSchemeIds must contain theSameElementsAs
         Seq(
           Commercial, DigitalDataTechnologyAndCyber,
-          Finance, OperationalDelivery,
-          HumanResources, Property, GovernmentPolicy
+          Finance, OperationalDelivery, OperationalDeliverySTEM,
+          HumanResources, Property, GovernmentPolicy, GovernmentPolicySTEM
         )
     }
 
@@ -138,7 +138,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         FsbType("CFS - Skype interview"), FsbType("FCO"), FsbType("GES_DS"),
         FsbType("GCFS FSB"), FsbType("EAC"), FsbType("ORAC"),
         FsbType("SRAC"), FsbType("SAC"), FsbType("HOP FSB"),
-        FsbType("OPD - Skype interview"),
+        FsbType("OPD - Skype interview"), FsbType("OPD - Skype interview"),
         FsbType("PDFS - Skype interview"), FsbType("PRO - Skype interview"),
         FsbType("SEFS FSB"), FsbType("EDIP - Telephone interview"), FsbType("SDIP - Telephone interview")
       )
@@ -159,6 +159,6 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
     when(appConfigMock.schemeConfig).thenReturn(schemeConfig)
 
     val repo = new SchemeYamlRepository()(app, appConfigMock)
-    val expectedNumberOfSchemes = 19
+    val expectedNumberOfSchemes = 21
   }
 }

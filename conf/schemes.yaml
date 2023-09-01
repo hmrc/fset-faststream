@@ -96,6 +96,14 @@
     required: Degree_22
     specificRequirement: false
   siftEvaluationRequired: false
+- id: GovernmentPolicySTEM
+  code: GP_STEM
+  name: Government Policy STEM
+  civilServantEligible: false
+  degree:
+    required: Degree_GP_STEM
+    specificRequirement: false
+  siftEvaluationRequired: false
 - id: GovernmentSocialResearchService
   code: GSR
   name: Government Social Research Service
@@ -147,6 +155,17 @@
   civilServantEligible: true
   degree:
     required: Degree_22
+    specificRequirement: false
+  siftEvaluationRequired: false
+  fsbType: OPD - Skype interview
+  # TODO: the correct link needs to be supplied - for now just use the property guide
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Property.pdf
+- id: OperationalDeliverySTEM
+  code: OPD_STEM
+  name: Operational Delivery STEM
+  civilServantEligible: false
+  degree:
+    required: Degree_OPD_STEM
     specificRequirement: false
   siftEvaluationRequired: false
   fsbType: OPD - Skype interview
