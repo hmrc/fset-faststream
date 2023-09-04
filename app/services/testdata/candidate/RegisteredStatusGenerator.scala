@@ -26,7 +26,7 @@ import model.persisted.eventschedules.SkillType
 import model.testdata.CreateAdminData.AssessorData
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
-import repositories.MediaRepository
+import repositories.{MediaRepository, SchemeRepository}
 import services.testdata.admin.AssessorCreatedStatusGenerator
 import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
@@ -37,6 +37,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class RegisteredStatusGenerator @Inject()(authProviderClient: AuthProviderClient,
                                           medRepository: MediaRepository,
+                                          schemeRepository: SchemeRepository,
                                           assessorGenerator: AssessorCreatedStatusGenerator,
                                           dataFaker: DataFaker)(implicit ec: ExecutionContext) extends BaseGenerator with Schemes {
 
@@ -70,19 +71,20 @@ class RegisteredStatusGenerator @Inject()(authProviderClient: AuthProviderClient
       token <- authProviderClient.getToken(email)
       _ <- authProviderClient.activate(email, token)
     } yield {
-      CreateCandidateResponse(generationId, user.userId.toString, applicationId = None, testAccountId = None, email, firstName, lastName)
+      CreateCandidateResponse(generationId, user.userId, applicationId = None, testAccountId = None, email, firstName, lastName)
     }
 
     val assessorRoles = List(AuthProviderClient.AssessorRole, AuthProviderClient.QacRole)
+
     userFuture.flatMap {
       case user if assessorRoles.intersect(roles).nonEmpty =>
         assessorGenerator.createAssessor(user.userId,
           AssessorData(
-            List(SkillType.ASSESSOR.toString, SkillType.QUALITY_ASSURANCE_COORDINATOR.toString, SkillType.SIFTER.toString),
-            List(Sdip, Commercial),
-            dataFaker.Random.bool,
-            None,
-            AssessorStatus.CREATED)).map {
+            skills = List(SkillType.ASSESSOR.toString, SkillType.QUALITY_ASSURANCE_COORDINATOR.toString, SkillType.SIFTER.toString),
+            sifterSchemes = schemeRepository.siftableAndEvaluationRequiredSchemeIds.toList,
+            civilServant = dataFaker.Random.bool,
+            availability = None,
+            status = AssessorStatus.CREATED)).map {
           assessor => user.copy(assessor = Some(AssessorResponse.apply(assessor)))
         }
       case user => Future.successful(user)
