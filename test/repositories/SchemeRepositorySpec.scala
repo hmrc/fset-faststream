@@ -138,7 +138,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         FsbType("CFS - Skype interview"), FsbType("FCO"), FsbType("GES_DS"),
         FsbType("GCFS FSB"), FsbType("EAC"), FsbType("ORAC"),
         FsbType("SRAC"), FsbType("SAC"), FsbType("HOP FSB"),
-        FsbType("OPD - Skype interview"), FsbType("OPD - Skype interview"),
+        FsbType("OPD - Skype interview"), FsbType("OPD STEM - Skype interview"),
         FsbType("PDFS - Skype interview"), FsbType("PRO - Skype interview"),
         FsbType("SEFS FSB"), FsbType("EDIP - Telephone interview"), FsbType("SDIP - Telephone interview")
       )
