@@ -168,7 +168,7 @@
     required: Degree_OPD_STEM
     specificRequirement: false
   siftEvaluationRequired: false
-  fsbType: OPD - Skype interview
+  fsbType: OPD STEM - Skype interview
   # TODO: the correct link needs to be supplied - for now just use the property guide
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Property.pdf
 - id: ProjectDelivery
