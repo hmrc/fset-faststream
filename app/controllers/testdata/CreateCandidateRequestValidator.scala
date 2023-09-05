@@ -19,13 +19,13 @@ package controllers.testdata
 import javax.inject.{Inject, Singleton}
 import model.ApplicationRoute.ApplicationRoute
 import model.command.testdata.CreateCandidateRequest.CreateCandidateRequest
-import model.{ApplicationRoute, ApplicationStatus, CivilServantAndInternshipType, SchemeId}
+import model.{ApplicationRoute, ApplicationStatus, CivilServantAndInternshipType, SchemeId, Schemes}
 import repositories.SchemeRepository
 
 case class ValidatorResult(result: Boolean, message: Option[String])
 
 @Singleton
-class CreateCandidateRequestValidator @Inject() (schemeRepository: SchemeRepository) {
+class CreateCandidateRequestValidator @Inject() (schemeRepository: SchemeRepository) extends Schemes {
 
   def validate(request: CreateCandidateRequest): ValidatorResult = {
     if (!validateGis(request)) {
@@ -39,19 +39,33 @@ class CreateCandidateRequestValidator @Inject() (schemeRepository: SchemeReposit
     } else if (!validateFastPass(request)) {
       ValidatorResult(result = false, Some("Request contains incompatible values for Fastpass"))
     } else if (!validateSchemes(request).isValid) {
-      ValidatorResult(result = false, Some(s"Request contains invalid scheme name(s): ${validateSchemes(request).invalidSchemes}"))
-    } else {
+      ValidatorResult(result = false, Some(s"Request contains invalid scheme name(s): ${validateSchemes(request).message}"))
+    } else if (!validateStemAndNonStemSchemesBothSelected(request).isValid) {
+      ValidatorResult(
+        result = false, Some(s"Request contains invalid scheme name(s): ${validateStemAndNonStemSchemesBothSelected(request).message}")
+      )
+  } else {
       ValidatorResult(result = true, None)
     }
   }
 
-  case class SchemeValidation(isValid: Boolean, invalidSchemes: String)
+  case class SchemeValidation(isValid: Boolean, message: String)
 
   def validateSchemes(request: CreateCandidateRequest): SchemeValidation = {
     val validSchemes = schemeRepository.schemes.map( _.id ).toSet
     val requestSchemes = request.schemeTypes.map( _.toSet ).getOrElse(Set.empty[SchemeId])
     val result = requestSchemes diff validSchemes
     SchemeValidation(result.isEmpty, result.mkString(","))
+  }
+
+  def validateStemAndNonStemSchemesBothSelected(request: CreateCandidateRequest): SchemeValidation = {
+    val requestSchemes = request.schemeTypes.map( _.toSet ).getOrElse(Set.empty[SchemeId])
+    val governmentPolicyPair = List(GovernmentPolicy, GovernmentPolicySTEM)
+    val operationalDeliveryPair = List(OperationalDelivery, OperationalDeliverySTEM)
+    val isValid = !(governmentPolicyPair.forall(requestSchemes.contains) || operationalDeliveryPair.forall(requestSchemes.contains))
+    SchemeValidation(isValid,
+      s"You cannot choose a STEM and non-STEM scheme together: ${governmentPolicyPair.mkString(",")} or ${operationalDeliveryPair.mkString(",")}"
+    )
   }
 
   def validateFastPass(request: CreateCandidateRequest): Boolean = {
