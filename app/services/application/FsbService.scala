@@ -174,47 +174,33 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
         val newCurrentSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, fsbEvaluation.get ++ Seq(firstResidualInEvaluation))
         logger.debug(s"$logPrefix newCurrentSchemeStatus = $newCurrentSchemeStatus")
 
-        val newFirstPreference = if (canProcessNextScheme(currentSchemeStatus, fsbEvaluation.get)) {
+        val newFirstPreference = if (schemesRemainWithFsbs(newCurrentSchemeStatus)) {
           firstResidualPreference(newCurrentSchemeStatus)
         } else { Option.empty[SchemeEvaluationResult] }
         logger.debug(s"$logPrefix newFirstPreference = $newFirstPreference")
 
         fsbRepo.updateCurrentSchemeStatus(appId, newCurrentSchemeStatus).flatMap { _ =>
-          if (canEvaluateNextWithExistingResults(currentSchemeStatus, newFirstPreference, fsbEvaluation.get)) {
-            passOrFailFsb(appId, fsbEvaluation, newFirstPreference, newCurrentSchemeStatus)
-          } else {
+//          if (canEvaluateNextWithExistingResults(currentSchemeStatus, newFirstPreference, fsbEvaluation.get)) {
+//            passOrFailFsb(appId, fsbEvaluation, newFirstPreference, newCurrentSchemeStatus)
+//          } else {
             maybeMarkAsFailedAll(appId, newFirstPreference).flatMap(_ =>
               maybeNotifyOnFailNeedNewFsb(appId, newCurrentSchemeStatus)
             )
-          }
+//          }
         }
       }
     }
   }
 
-  // scalastyle:off cyclomatic.complexity
-  private def canProcessNextScheme(currentSchemeStatus: Seq[SchemeEvaluationResult], fsbEvaluation: Seq[SchemeEvaluationResult]) = {
-    // If the candidate is only in the running for GES-DS at fsb then do not evaluate further so the split GES and DS
-    // are not evaluated further because at this point the overall GES-DS is a fail so they are not relevant
-    val onlyInTheRunningForGesDsAtFsb = currentSchemeStatus.size == 1 &&
-      currentSchemeStatus.contains(SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, "Green"))
-
-    // If the candidate has GES-DS and DS at fsb but the DS is a fail then stop
-    val inTheRunningForGesDsAndDsAtFsbAndDsFailed = currentSchemeStatus.size == 2 &&
-      currentSchemeStatus.contains(SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, "Green")) &&
-      currentSchemeStatus.contains(SchemeEvaluationResult(DiplomaticAndDevelopment, "Green")) &&
-      fsbEvaluation.contains(SchemeEvaluationResult(DiplomaticAndDevelopment, "Red"))
-
-    // If the candidate has GES-DS and GES at fsb but the GES is a fail then stop
-    val inTheRunningForGesDsAndGesAtFsbAndGesFailed = currentSchemeStatus.size == 2 &&
-      currentSchemeStatus.contains(SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, "Green")) &&
-      currentSchemeStatus.contains(SchemeEvaluationResult(GovernmentEconomicsService, "Green")) &&
-      fsbEvaluation.contains(SchemeEvaluationResult(GovernmentEconomicsService, "Red"))
-
-    if (onlyInTheRunningForGesDsAtFsb || inTheRunningForGesDsAndDsAtFsbAndDsFailed || inTheRunningForGesDsAndGesAtFsbAndGesFailed) {
-      false
-    } else { true }
-  } //scalastyle:on
+  // This should return true if there are still Green schemes that need a FSB
+  private def schemesRemainWithFsbs(newCurrentSchemeStatus: Seq[SchemeEvaluationResult]) = {
+    val greenSchemeIds = newCurrentSchemeStatus.filter(_.result == Green.toString).map(_.schemeId)
+    val schemesWithFsbs = schemeRepo.fsbSchemeIds
+    // Do any remaining green schemes need a FSB?
+    val result = schemesWithFsbs.exists(greenSchemeIds.contains)
+    logger.debug(s"$logPrefix schemesRemainWithFsbs = $result")
+    result
+  }
 
   private def maybeNotifyOnFailNeedNewFsb(appId: String, newCurrentSchemeStatus: Seq[SchemeEvaluationResult])(
     implicit hc: HeaderCarrier): Future[Unit] = {
