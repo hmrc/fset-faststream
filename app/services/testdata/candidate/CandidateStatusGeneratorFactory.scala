@@ -79,16 +79,16 @@ class CandidateStatusGeneratorFactory @Inject() (registeredStatusGenerator: Regi
                                                  phase2TestsFailedStatusGenerator: Phase2TestsFailedStatusGenerator,
                                                  phase2TestsFailedNotifiedStatusGenerator: Phase2TestsFailedNotifiedStatusGenerator,
                                                  // Phase 3
-                                                 phase3TestsInvitedStatusGenerator: Phase3TestsInvitedStatusGenerator,
-                                                 phase3TestsStartedStatusGenerator: Phase3TestsStartedStatusGenerator,
-                                                 phase3TestsExpiredFromStartedStatusGenerator: Phase3TestsExpiredFromStartedStatusGenerator,
-                                                 phase3TestsExpiredFromInvitedStatusGenerator: Phase3TestsExpiredFromInvitedStatusGenerator,
-                                                 phase3TestsCompletedStatusGenerator: Phase3TestsCompletedStatusGenerator,
-                                                 phase3TestsResultsReceivedStatusGenerator: Phase3TestsResultsReceivedStatusGenerator,
-                                                 phase3TestsPassedStatusGenerator: Phase3TestsPassedStatusGenerator,
+//                                                 phase3TestsInvitedStatusGenerator: Phase3TestsInvitedStatusGenerator,
+//                                                 phase3TestsStartedStatusGenerator: Phase3TestsStartedStatusGenerator,
+//                                                 phase3TestsExpiredFromStartedStatusGenerator: Phase3TestsExpiredFromStartedStatusGenerator,
+//                                                 phase3TestsExpiredFromInvitedStatusGenerator: Phase3TestsExpiredFromInvitedStatusGenerator,
+//                                                 phase3TestsCompletedStatusGenerator: Phase3TestsCompletedStatusGenerator,
+//                                                 phase3TestsResultsReceivedStatusGenerator: Phase3TestsResultsReceivedStatusGenerator,
+//                                                 phase3TestsPassedStatusGenerator: Phase3TestsPassedStatusGenerator,
                                                  phase3TestsPassedNotifiedStatusGenerator: Phase3TestsPassedNotifiedStatusGenerator,
-                                                 phase3TestsFailedStatusGenerator: Phase3TestsFailedStatusGenerator,
-                                                 phase3TestsFailedNotifiedStatusGenerator: Phase3TestsFailedNotifiedStatusGenerator,
+//                                                 phase3TestsFailedStatusGenerator: Phase3TestsFailedStatusGenerator,
+//                                                 phase3TestsFailedNotifiedStatusGenerator: Phase3TestsFailedNotifiedStatusGenerator,
                                                  // Sift
                                                  siftEnteredStatusGenerator: SiftEnteredStatusGenerator,
                                                  siftFormsSubmittedStatusGenerator: SiftFormsSubmittedStatusGenerator,
@@ -136,8 +136,8 @@ class CandidateStatusGeneratorFactory @Inject() (registeredStatusGenerator: Regi
         case PHASE1_TESTS_FAILED => phase1TestsFailedStatusGenerator
         case PHASE2_TESTS_PASSED => phase2TestsPassedStatusGenerator
         case PHASE2_TESTS_FAILED => phase2TestsFailedStatusGenerator
-        case PHASE3_TESTS_PASSED => phase3TestsPassedStatusGenerator
-        case PHASE3_TESTS_FAILED => phase3TestsFailedStatusGenerator
+//        case PHASE3_TESTS_PASSED => phase3TestsPassedStatusGenerator
+//        case PHASE3_TESTS_FAILED => phase3TestsFailedStatusGenerator
         case PHASE3_TESTS_PASSED_NOTIFIED => phase3TestsPassedNotifiedStatusGenerator
         case SIFT =>
           siftEnteredStatusGenerator
@@ -182,21 +182,21 @@ class CandidateStatusGeneratorFactory @Inject() (registeredStatusGenerator: Regi
       case (PHASE2_TESTS_FAILED, Some(ProgressStatuses.PHASE2_TESTS_FAILED)) => phase2TestsFailedStatusGenerator
       case (PHASE2_TESTS_FAILED, Some(ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED)) => phase2TestsFailedNotifiedStatusGenerator
 
-      case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_INVITED)) => phase3TestsInvitedStatusGenerator
-      case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_STARTED)) => phase3TestsStartedStatusGenerator
-      case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_EXPIRED)) =>
-        if (phase3StartTime.isDefined) {
-          phase3TestsExpiredFromStartedStatusGenerator
-        } else {
-          phase3TestsExpiredFromInvitedStatusGenerator
-        }
-      case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_COMPLETED)) => phase3TestsCompletedStatusGenerator
-      case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)) => phase3TestsResultsReceivedStatusGenerator
+//      case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_INVITED)) => phase3TestsInvitedStatusGenerator
+//      case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_STARTED)) => phase3TestsStartedStatusGenerator
+//      case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_EXPIRED)) =>
+//        if (phase3StartTime.isDefined) {
+//          phase3TestsExpiredFromStartedStatusGenerator
+//        } else {
+//          phase3TestsExpiredFromInvitedStatusGenerator
+//        }
+//      case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_COMPLETED)) => phase3TestsCompletedStatusGenerator
+//      case (PHASE3_TESTS, Some(ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)) => phase3TestsResultsReceivedStatusGenerator
       // The next two cases are deprecated: PHASE3_TESTS_PASSED, PHASE3_TESTS_FAILED
-      case (PHASE3_TESTS_PASSED, Some(ProgressStatuses.PHASE3_TESTS_PASSED)) => phase3TestsPassedStatusGenerator
+//      case (PHASE3_TESTS_PASSED, Some(ProgressStatuses.PHASE3_TESTS_PASSED)) => phase3TestsPassedStatusGenerator
       case (PHASE3_TESTS_PASSED_NOTIFIED, Some(ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED)) => phase3TestsPassedNotifiedStatusGenerator
-      case (PHASE3_TESTS_FAILED, Some(ProgressStatuses.PHASE3_TESTS_FAILED)) => phase3TestsFailedStatusGenerator
-      case (PHASE3_TESTS_FAILED, Some(ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED)) => phase3TestsFailedNotifiedStatusGenerator
+//      case (PHASE3_TESTS_FAILED, Some(ProgressStatuses.PHASE3_TESTS_FAILED)) => phase3TestsFailedStatusGenerator
+//      case (PHASE3_TESTS_FAILED, Some(ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED)) => phase3TestsFailedNotifiedStatusGenerator
 
       case (SIFT, Some(ProgressStatuses.SIFT_ENTERED)) => siftEnteredStatusGenerator
       case (SIFT, Some(ProgressStatuses.SIFT_READY)) => siftFormsSubmittedStatusGenerator
