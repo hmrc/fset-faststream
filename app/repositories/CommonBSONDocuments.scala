@@ -91,7 +91,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
       }
 
       def questionnaire(root: Document): List[String] = {
-        import scala.collection.JavaConverters._
+        import scala.jdk.CollectionConverters._
         root.get("questionnaire").map { bsonValue =>
           bsonValue.asDocument().keySet().asScala.toList
         }.getOrElse(Nil)

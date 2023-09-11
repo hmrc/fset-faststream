@@ -338,10 +338,14 @@ class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
 
   override def skipPhase3(application: ApplicationForSkippingPhase3): Future[Unit] = {
     val query = Document("applicationId" -> application.applicationId)
-    val update = Document("$set" -> Document(
-      "testGroups.PHASE3.evaluation.result" -> Codecs.toBson(application.currentSchemeStatus),
-      "applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED.toBson
-    ))
+    val update = Document("$set" ->
+      Document(
+        "testGroups.PHASE3.evaluation.result" -> Codecs.toBson(application.currentSchemeStatus),
+        "applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED.toBson,
+      ).++(
+        progressStatusOnlyBSON(ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED)
+      )
+    )
 
     val validator = singleUpdateValidator(application.applicationId, actionDesc = s"Skipping Phase3 for ${application.applicationId}")
     collection.updateOne(query, update).toFuture() map validator
