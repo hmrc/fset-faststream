@@ -25,6 +25,7 @@ import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import model.{ApplicationRoute, ApplicationStatus, EvaluationResults}
 import play.api.{Logger, Logging}
 import play.api.mvc.RequestHeader
+import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
 import services.sift.ApplicationSiftService
 import services.testdata.candidate._
@@ -45,6 +46,7 @@ class SiftEnteredStatusGenerator @Inject() (val previousStatusGenerator: Phase3T
                                             phase3TestsPassedNotifiedStatusGenerator2: Phase3TestsPassedNotifiedStatusGenerator,
                                             candidateStatusGeneratorFactory: Provider[CandidateStatusGeneratorFactory],
                                             appRepo: GeneralApplicationRepository,
+                                            schemeRepo: SchemeRepository,
                                             siftService: ApplicationSiftService
                                            )(implicit ec: ExecutionContext) extends ConstructiveGenerator with Logging {
 //  val appRepo: GeneralApplicationRepository
@@ -74,7 +76,7 @@ class SiftEnteredStatusGenerator @Inject() (val previousStatusGenerator: Phase3T
     )
   }
 
-  private def getSchemesResults(candidateInPreviousStatus: CreateCandidateResponse,
+  private def getSchemeResults(candidateInPreviousStatus: CreateCandidateResponse,
                                 generatorConfig: CreateCandidateData): List[SchemeEvaluationResult] = {
     if (generatorConfig.hasFastPass) {
       generatorConfig.schemeTypes.getOrElse(Nil).map(schemeType => SchemeEvaluationResult(schemeType, "Green"))
@@ -88,37 +90,52 @@ class SiftEnteredStatusGenerator @Inject() (val previousStatusGenerator: Phase3T
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
               (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {
 
-    for {
+    (for {
       (previousApplicationStatus, previousStatusGenerator) <- Future.successful(getPreviousStatusGenerator(generatorConfig))
-      _ <- Future.successful(logger.error(s"previousApplicationStatus=$previousApplicationStatus, " +
-        s"previousStatusGenerator=$previousStatusGenerator."))
+      _ = logger.warn(
+        s"TDG - SiftEnteredStatusGenerator - previousApplicationStatus=$previousApplicationStatus, " +
+          s"previousStatusGenerator=$previousStatusGenerator."
+      )
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- siftService.progressApplicationToSiftStage(Seq(ApplicationForSift(candidateInPreviousStatus.applicationId.get,
-        candidateInPreviousStatus.userId, previousApplicationStatus, getSchemesResults(candidateInPreviousStatus, generatorConfig))))
-      _ <- siftService.saveSiftExpiryDate(candidateInPreviousStatus.applicationId.get)
     } yield {
+      val schemes = getSchemeResults(candidateInPreviousStatus, generatorConfig).map(_.schemeId)
+      val siftableSchemes = schemeRepo.siftableSchemeIds
+      val siftableAndEvaluationRequiredSchemes = schemeRepo.siftableAndEvaluationRequiredSchemeIds
+      val requiresSift = siftableSchemes.exists(schemes.contains) || siftableAndEvaluationRequiredSchemes.exists(schemes.contains)
+      logger.warn(s"TDG - SiftEnteredStatusGenerator - should go via this generator = $requiresSift. Schemes = $schemes")
 
-      val greenSchemes = if (generatorConfig.hasFastPass) {
-        generatorConfig.schemeTypes.map(_.map(schemeType => SchemeEvaluationResult(schemeType.toString(),
-          EvaluationResults.Green.toString)))
-      } else {
-        if (List(ApplicationRoute.Sdip, ApplicationRoute.Edip).contains(generatorConfig.statusData.applicationRoute)) {
-          candidateInPreviousStatus.phase1TestGroup.flatMap(tg =>
-            tg.schemeResult.map(pm =>
-              pm.result.filter(_.result == EvaluationResults.Green.toString)
-            )
-          )
-        } else {
-          candidateInPreviousStatus.phase3TestGroup.flatMap(tg =>
-            tg.schemeResult.map(pm =>
-              pm.result.filter(_.result == EvaluationResults.Green.toString)
-            )
+      if (requiresSift) {
+        for {
+          _ <- siftService.progressApplicationToSiftStage(Seq(ApplicationForSift(candidateInPreviousStatus.applicationId.get,
+            candidateInPreviousStatus.userId, previousApplicationStatus, getSchemeResults(candidateInPreviousStatus, generatorConfig))))
+          _ <- siftService.saveSiftExpiryDate(candidateInPreviousStatus.applicationId.get)
+        } yield {
+
+          val greenSchemes = if (generatorConfig.hasFastPass) {
+            generatorConfig.schemeTypes.map(_.map(schemeType => SchemeEvaluationResult(schemeType.toString(),
+              EvaluationResults.Green.toString)))
+          } else {
+            if (List(ApplicationRoute.Sdip, ApplicationRoute.Edip).contains(generatorConfig.statusData.applicationRoute)) {
+              candidateInPreviousStatus.phase1TestGroup.flatMap(tg =>
+                tg.schemeResult.map(pm =>
+                  pm.result.filter(_.result == EvaluationResults.Green.toString)
+                )
+              )
+            } else {
+              candidateInPreviousStatus.phase3TestGroup.flatMap(tg =>
+                tg.schemeResult.map(pm =>
+                  pm.result.filter(_.result == EvaluationResults.Green.toString)
+                )
+              )
+            }
+          }
+          candidateInPreviousStatus.copy(
+            siftForms = greenSchemes.map(_.map(result => SiftForm(result.schemeId, form = "", siftResult = None)))
           )
         }
+      } else {
+        Future.successful(candidateInPreviousStatus)
       }
-      candidateInPreviousStatus.copy(
-        siftForms = greenSchemes.map(_.map(result => SiftForm(result.schemeId, "", None)))
-      )
-    }
+    }).flatten
   }
 }

@@ -90,7 +90,6 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
   }
 
-
   "Get online test" should {
     "return None if there is no test for the specific user id" in {
       val result = phase3TestRepo.getTestGroup("userId").futureValue

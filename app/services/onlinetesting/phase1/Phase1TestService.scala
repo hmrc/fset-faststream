@@ -403,7 +403,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
         val latestProfile = testProfileOpt.getOrElse(throw new Exception(s"No test profile returned for $appId"))
         if (latestProfile.activeTests.forall(_.testResult.isDefined)) {
           testRepository.updateProgressStatus(appId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).map(_ =>
-            audit(s"ProgressStatusSet${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}", appId))
+            audit(s"Progress status updated to ${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}", appId))
         } else {
           val msg = s"Did not update progress status to ${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED} for $appId - " +
             s"not all active tests have a testResult saved"

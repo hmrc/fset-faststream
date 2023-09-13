@@ -17,11 +17,13 @@
 package services.testdata.candidate.sift
 
 import javax.inject.{Inject, Singleton}
-import model.EvaluationResults
+import model.{EvaluationResults, SchemeId}
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.persisted.SchemeEvaluationResult
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
+import play.api.Logging
 import play.api.mvc.RequestHeader
+import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
 import services.sift.ApplicationSiftService
 import services.testdata.candidate.ConstructiveGenerator
@@ -32,8 +34,19 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class SiftCompleteStatusGenerator @Inject() (val previousStatusGenerator: SiftFormsSubmittedStatusGenerator,
                                              siftService: ApplicationSiftService,
-                                             appRepo: GeneralApplicationRepository
-                                            )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
+                                             appRepo: GeneralApplicationRepository,
+                                             schemeRepo: SchemeRepository,
+                                            )(implicit ec: ExecutionContext) extends ConstructiveGenerator with Logging {
+
+  private def requiresSift(createCandidateData: CreateCandidateData): Boolean = {
+    val schemes = createCandidateData.schemeTypes.getOrElse(List.empty[SchemeId])
+    val siftableSchemes = schemeRepo.siftableSchemeIds
+    val siftableAndEvaluationRequiredSchemes = schemeRepo.siftableAndEvaluationRequiredSchemeIds
+    val result = siftableSchemes.exists(schemes.contains) ||
+      siftableAndEvaluationRequiredSchemes.exists(schemes.contains)
+    logger.warn(s"TDG - SiftCompleteStatusGenerator - should go via this generator = $result. Schemes = $schemes")
+    result
+  }
 
   private def siftSchemes(currentSchemeStats: Seq[SchemeEvaluationResult], appId: String) = Future.traverse(currentSchemeStats) { s =>
     siftService.siftApplicationForScheme(appId, s.copy(result = EvaluationResults.Green.toString))
@@ -41,12 +54,20 @@ class SiftCompleteStatusGenerator @Inject() (val previousStatusGenerator: SiftFo
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
               (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {
-    for {
-      candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      currentSchemeStatus <- appRepo.getCurrentSchemeStatus(candidateInPreviousStatus.applicationId.get)
-      _ <- siftSchemes(currentSchemeStatus, candidateInPreviousStatus.applicationId.get)
-    } yield {
-      candidateInPreviousStatus
+    if (requiresSift(generatorConfig)) {
+      for {
+        candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
+        currentSchemeStatus <- appRepo.getCurrentSchemeStatus(candidateInPreviousStatus.applicationId.get)
+        _ <- siftSchemes(currentSchemeStatus, candidateInPreviousStatus.applicationId.get)
+      } yield {
+        candidateInPreviousStatus
+      }
+    } else {
+      for {
+        candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
+      } yield {
+        candidateInPreviousStatus
+      }
     }
   }
 }

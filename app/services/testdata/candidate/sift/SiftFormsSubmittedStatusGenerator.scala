@@ -22,7 +22,8 @@ import javax.inject.{Inject, Singleton}
 import model.exchange.sift.{GeneralQuestionsAnswers, SchemeSpecificAnswer}
 import model.exchange.testdata.CreateCandidateResponse.{CreateCandidateResponse, TestGroupResponse, TestGroupResponse2}
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import model.{ApplicationRoute, SiftRequirement}
+import model.{ApplicationRoute, SchemeId, SiftRequirement}
+import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories.SchemeRepository
 import services.sift.SiftAnswersService
@@ -37,7 +38,7 @@ class SiftFormsSubmittedStatusGenerator @Inject() (val previousStatusGenerator: 
                                                    siftService: SiftAnswersService,
                                                    schemeRepo: SchemeRepository,
                                                    dataFaker: DataFaker
-                                                  )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
+                                                  )(implicit ec: ExecutionContext) extends ConstructiveGenerator with Logging {
 
   private def generateGeneralAnswers = GeneralQuestionsAnswers(
     multipleNationalities = false,
@@ -102,15 +103,33 @@ class SiftFormsSubmittedStatusGenerator @Inject() (val previousStatusGenerator: 
     }
   }
 
+  private def requiresSift(createCandidateData: CreateCandidateData): Boolean = {
+    val schemes = createCandidateData.schemeTypes.getOrElse(List.empty[SchemeId])
+    val siftableSchemes = schemeRepo.siftableSchemeIds
+    val siftableAndEvaluationRequiredSchemes = schemeRepo.siftableAndEvaluationRequiredSchemeIds
+    val result = siftableSchemes.exists(schemes.contains) ||
+      siftableAndEvaluationRequiredSchemes.exists(schemes.contains)
+    logger.warn(s"TDG - SiftFormsSubmittedStatusGenerator - should go via this generator = $result. Schemes = $schemes")
+    result
+  }
+
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
               (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {
-    for {
-      candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- siftService.addGeneralAnswers(candidateInPreviousStatus.applicationId.get, generateGeneralAnswers)
-      _ <- saveSchemeAnswers(generatorConfig, candidateInPreviousStatus)
-      _ <- siftService.submitAnswers(candidateInPreviousStatus.applicationId.get)
-    } yield {
-      candidateInPreviousStatus
+    if (requiresSift(generatorConfig)) {
+      for {
+        candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
+        _ <- siftService.addGeneralAnswers(candidateInPreviousStatus.applicationId.get, generateGeneralAnswers)
+        _ <- saveSchemeAnswers(generatorConfig, candidateInPreviousStatus)
+        _ <- siftService.submitAnswers(candidateInPreviousStatus.applicationId.get)
+      } yield {
+        candidateInPreviousStatus
+      }
+    } else {
+      for {
+        candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
+      } yield {
+        candidateInPreviousStatus
+      }
     }
   }
 }
