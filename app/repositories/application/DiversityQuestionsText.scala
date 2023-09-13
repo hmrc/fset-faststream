@@ -29,7 +29,7 @@ trait DiversityQuestionsText {
   val schoolNameAged16to18 = "Aged 16 to 18 what was the name of your school or college? (if applicable)"
   val eligibleForFreeSchoolMeals = "Were you at any time eligible for free school meals?"
   val doYouHaveADegree = "Do you have a degree?"
-  val universityName = "What is the name of the university you received your degree from?"
+  val universityName = "What is the name of the university you received your first degree from?"
   val categoryOfDegree = "Which category best describes your degree?"
   val degreeType = "Which of the following best describes your degree?"
   val postgradDoYouHaveADegree = "Do you have a postgraduate degree?"

@@ -432,7 +432,7 @@
                     }
                   }
                 },
-                "What is the name of the university you received your degree from?": {
+                "What is the name of the university you received your first degree from?": {
                   "type": "object",
                   "properties": {
                     "answer": {
