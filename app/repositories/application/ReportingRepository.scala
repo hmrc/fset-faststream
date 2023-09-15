@@ -345,7 +345,7 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2, // 
             BsonDocument("$or" ->
               BsonArray(
                 Document("applicationRoute" -> Document("$in" ->
-                  Seq(ApplicationRoute.Faststream.toString, ApplicationRoute.SdipFaststream.toString))
+                  Seq(ApplicationRoute.Faststream.toString, ApplicationRoute.SdipFaststream.toString, ApplicationRoute.Sdip.toString))
                 ),
                 Document("applicationRoute" -> Document("$exists" -> false))
               )
@@ -353,6 +353,7 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2, // 
             BsonDocument("$or" ->
               BsonArray(
                 Document("assistance-details.needsSupportAtVenue" -> true),
+                Document("assistance-details.needsSupportForPhoneInterview" -> true),
                 Document("assistance-details.guaranteedInterview" -> true)
               )
             )
@@ -385,6 +386,13 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2, // 
 
         val adDocOpt = subDocRoot("assistance-details")(document)
         val gis = adDocOpt.flatMap( doc => Try(doc.get("guaranteedInterview").asBoolean().getValue).map(booleanTranslator).toOption )
+        val needsSupportAtVenue = adDocOpt.flatMap( doc =>
+          Try(doc.get("needsSupportAtVenue").asBoolean().getValue).map(booleanTranslator).toOption
+        )
+        val needsSupportForPhoneInterview = adDocOpt.flatMap( doc =>
+          Try(doc.get("needsSupportForPhoneInterview").asBoolean().getValue).map(booleanTranslator).toOption
+        )
+        val disabilityImpact = adDocOpt.flatMap( doc => Try(doc.get("disabilityImpact").asString().getValue).toOption )
         val disabilityCategories = adDocOpt.flatMap( doc => Try(Codecs.fromBson[List[String]](doc.get("disabilityCategories"))).toOption )
         val otherDisabilityDescription = adDocOpt.flatMap( doc => Try(doc.get("otherDisabilityDescription").asString().getValue).toOption )
 
@@ -398,7 +406,8 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2, // 
 
         AdjustmentReportItem(
           userId, applicationId, firstName, lastName, preferredName, email = None, telephone = None, gis,
-          disabilityCategories, otherDisabilityDescription, latestProgressStatus,
+          needsSupportAtVenue, needsSupportForPhoneInterview,
+          disabilityImpact, disabilityCategories, otherDisabilityDescription, latestProgressStatus,
           needsSupportAtVenueDescription, hasDisability, hasDisabilityDescription, adjustmentsComment
         )
       }
