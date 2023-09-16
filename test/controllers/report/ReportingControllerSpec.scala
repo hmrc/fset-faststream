@@ -425,6 +425,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       List(
         AdjustmentReportItem(userId = "1", applicationId = Some("11"), firstName = Some("John"), lastName = Some("Smith"),
           preferredName = Some("Spiderman"), email = None, telephone = None, gis = Some("Yes"),
+          needsSupportAtVenue = Some("Yes"), needsSupportForPhoneInterview = None, disabilityImpact = Some("No"),
           disabilityCategories = None,
           otherDisabilityDescription = None,
           applicationStatus = Some(ApplicationStatus.SUBMITTED),
@@ -434,6 +435,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
         ),
         AdjustmentReportItem(userId = "2", applicationId = Some("22"), firstName = Some("Jones"), lastName = Some("Batman"),
           preferredName = None,email =  None, telephone = None, gis = None,
+          needsSupportAtVenue = Some("Yes"), needsSupportForPhoneInterview = None, disabilityImpact = Some("No"),
           disabilityCategories = None,
           otherDisabilityDescription = None,
           applicationStatus = Some(ApplicationStatus.PHASE1_TESTS),
@@ -442,6 +444,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
         ),
         AdjustmentReportItem(userId = "3", applicationId = Some("33"), firstName = Some("Kathrine"), lastName = Some("Jones"),
           preferredName = Some("Supergirl"), email = None, telephone = None, gis = None,
+          needsSupportAtVenue = Some("Yes"), needsSupportForPhoneInterview = None, disabilityImpact = Some("No"),
           disabilityCategories = None,
           otherDisabilityDescription = None,
           applicationStatus = Some(ApplicationStatus.PHASE1_TESTS_PASSED),
