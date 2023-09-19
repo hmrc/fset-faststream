@@ -367,6 +367,7 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2, // 
       "applicationStatus" -> true,
       "progress-status" -> true,
       "applicationId" -> true,
+      "applicationRoute" -> true,
       "personal-details.firstName" -> true,
       "personal-details.lastName" -> true,
       "personal-details.preferredName" -> true,
@@ -377,6 +378,7 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2, // 
       _.map { document =>
 
         val applicationId = extractAppIdOpt(document)
+        val applicationRoute = Try(Codecs.fromBson[ApplicationRoute](document.get("applicationRoute").get)).toOption.map(_.toString)
         val userId = extractUserId(document)
 
         val personalDetailsOpt = subDocRoot("personal-details")(document)
@@ -405,8 +407,8 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2, // 
         val adjustmentsComment = extract("adjustmentsComment")(adDocOpt)
 
         AdjustmentReportItem(
-          userId, applicationId, firstName, lastName, preferredName, email = None, telephone = None, gis,
-          needsSupportAtVenue, needsSupportForPhoneInterview,
+          userId, applicationId, applicationRoute, firstName, lastName, preferredName, email = None, telephone = None,
+          gis, needsSupportAtVenue, needsSupportForPhoneInterview,
           disabilityImpact, disabilityCategories, otherDisabilityDescription, latestProgressStatus,
           needsSupportAtVenueDescription, hasDisability, hasDisabilityDescription, adjustmentsComment
         )

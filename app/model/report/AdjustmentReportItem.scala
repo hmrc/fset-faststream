@@ -21,6 +21,7 @@ import play.api.libs.json.Json
 
 final case class AdjustmentReportItem(userId: String,
                                       applicationId: Option[String],
+                                      applicationRoute: Option[String],
                                       firstName: Option[String],
                                       lastName: Option[String],
                                       preferredName: Option[String],
