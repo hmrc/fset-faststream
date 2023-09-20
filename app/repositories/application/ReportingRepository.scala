@@ -402,6 +402,7 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2, // 
         val latestProgressStatus = Some(ProgressStatusesReportLabels.progressStatusNameInReports(candidateProgressStatuses))
 
         val needsSupportAtVenueDescription = extract("needsSupportAtVenueDescription")(adDocOpt)
+        val needsSupportForPhoneInterviewDescription = extract("needsSupportForPhoneInterviewDescription")(adDocOpt)
         val hasDisability = extract("hasDisability")(adDocOpt)
         val hasDisabilityDescription = extract("hasDisabilityDescription")(adDocOpt)
         val adjustmentsComment = extract("adjustmentsComment")(adDocOpt)
@@ -410,7 +411,8 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2, // 
           userId, applicationId, applicationRoute, firstName, lastName, preferredName, email = None, telephone = None,
           gis, needsSupportAtVenue, needsSupportForPhoneInterview,
           disabilityImpact, disabilityCategories, otherDisabilityDescription, latestProgressStatus,
-          needsSupportAtVenueDescription, hasDisability, hasDisabilityDescription, adjustmentsComment
+          needsSupportAtVenueDescription, needsSupportForPhoneInterviewDescription, hasDisability, hasDisabilityDescription,
+          adjustmentsComment
         )
       }
     }

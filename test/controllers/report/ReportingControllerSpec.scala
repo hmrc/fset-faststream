@@ -431,6 +431,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
           otherDisabilityDescription = None,
           applicationStatus = Some(ApplicationStatus.SUBMITTED),
           needsSupportAtVenueDescription = Some("Need help at the venue"),
+          needsSupportForPhoneInterviewDescription = None,
           hasDisability = Some("Yes"), hasDisabilityDescription = Some("A wooden leg"),
           adjustmentsComment = None
         ),
@@ -441,7 +442,9 @@ class ReportingControllerSpec extends UnitWithAppSpec {
           disabilityCategories = None,
           otherDisabilityDescription = None,
           applicationStatus = Some(ApplicationStatus.PHASE1_TESTS),
-          needsSupportAtVenueDescription = Some("Need help at the venue"), hasDisability = None, hasDisabilityDescription = None,
+          needsSupportAtVenueDescription = Some("Need help at the venue"),
+          needsSupportForPhoneInterviewDescription = None,
+          hasDisability = None, hasDisabilityDescription = None,
           adjustmentsComment = None
         ),
         AdjustmentReportItem(userId = "3", applicationId = Some("33"), applicationRoute = Some("Faststream"),
@@ -452,6 +455,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
           otherDisabilityDescription = None,
           applicationStatus = Some(ApplicationStatus.PHASE1_TESTS_PASSED),
           needsSupportAtVenueDescription = None,
+          needsSupportForPhoneInterviewDescription = None,
           hasDisability = Some("Yes"), hasDisabilityDescription = Some("A glass eye"),
           adjustmentsComment = None
         )

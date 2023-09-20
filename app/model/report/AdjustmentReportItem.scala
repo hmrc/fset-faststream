@@ -35,6 +35,7 @@ final case class AdjustmentReportItem(userId: String,
                                       otherDisabilityDescription: Option[String],
                                       applicationStatus: Option[String],
                                       needsSupportAtVenueDescription: Option[String],
+                                      needsSupportForPhoneInterviewDescription: Option[String],
                                       hasDisability: Option[String],
                                       hasDisabilityDescription: Option[String],
                                       adjustmentsComment: Option[String])
