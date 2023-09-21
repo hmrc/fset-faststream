@@ -63,3 +63,12 @@ case class NeedsSupportAtFsac(
 object NeedsSupportAtFsac {
   implicit val needsSupportAtFsacFormat: OFormat[NeedsSupportAtFsac] = Json.format[NeedsSupportAtFsac]
 }
+
+case class NeedsSupportAtFsb(
+                               needsSupportForPhoneInterview: Boolean,
+                               needsSupportForPhoneInterviewDescription: Option[String] = None
+
+                            )
+object NeedsSupportAtFsb {
+  implicit val needsSupportAtFsbFormat: OFormat[NeedsSupportAtFsb] = Json.format[NeedsSupportAtFsb]
+}

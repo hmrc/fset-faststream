@@ -195,8 +195,15 @@ class AdjustmentsManagementService @Inject() (appRepository: GeneralApplicationR
     appRepository.findAdjustmentsNeedsSupportAtFsac(applicationId)
   }
 
-  def updateNeedsSupportAtFsac(applicationId: String, needsSupportAtFsac: NeedsSupportAtFsac)
-                              (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  def updateNeedsSupportAtFsac(applicationId: String, needsSupportAtFsac: NeedsSupportAtFsac): Future[Unit] = {
     appRepository.updateAdjustmentsNeedsSupportAtFsac(applicationId, needsSupportAtFsac)
+  }
+
+  def findNeedsSupportAtFsb(applicationId: String): Future[NeedsSupportAtFsb] = {
+    appRepository.findAdjustmentsNeedsSupportAtFsb(applicationId)
+  }
+
+  def updateNeedsSupportAtFsb(applicationId: String, needsSupportAtFsb: NeedsSupportAtFsb): Future[Unit] = {
+    appRepository.updateAdjustmentsNeedsSupportAtFsb(applicationId, needsSupportAtFsb)
   }
 }

@@ -1016,6 +1016,38 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
   }
 
+  "find adjustments needs support at fsb" should {
+    "throw an exception if there is no application" in {
+      val result = repository.findAdjustmentsNeedsSupportAtFsb(AppId).failed.futureValue
+      result mustBe an[ApplicationNotFound]
+    }
+
+    "throw an exception if there is an application but no assistance-details section" in {
+      repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
+      val result = repository.findAdjustmentsNeedsSupportAtFsb(AppId).failed.futureValue
+      result mustBe an[ApplicationNotFound]
+    }
+
+    "throw an exception if there is no application when saving needs support at fsb" in {
+      val needsSupportAtFsb = NeedsSupportAtFsb(needsSupportForPhoneInterview = true, needsSupportForPhoneInterviewDescription = Some("Test"))
+      val result = repository.updateAdjustmentsNeedsSupportAtFsb("I-DONT-EXIST", needsSupportAtFsb).failed.futureValue
+      result mustBe a[CannotUpdateRecord]
+    }
+
+    "save and fetch the needs support at fsb" in {
+      val newCandidate = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
+      val needsSupportAtFsb = NeedsSupportAtFsb(needsSupportForPhoneInterview = true, needsSupportForPhoneInterviewDescription = Some("Test"))
+      repository.updateAdjustmentsNeedsSupportAtFsb(newCandidate.applicationId, needsSupportAtFsb)
+      val result = repository.findAdjustmentsNeedsSupportAtFsb(newCandidate.applicationId).futureValue
+      result mustBe needsSupportAtFsb
+      // If we now save with needsSupportForPhoneInterview = false, the description should be deleted
+      val needsSupportAtFsb2 = NeedsSupportAtFsb(needsSupportForPhoneInterview = false, needsSupportForPhoneInterviewDescription = None)
+      repository.updateAdjustmentsNeedsSupportAtFsb(newCandidate.applicationId, needsSupportAtFsb2)
+      val result2 = repository.findAdjustmentsNeedsSupportAtFsb(newCandidate.applicationId).futureValue
+      result2 mustBe needsSupportAtFsb2
+    }
+  }
+
   "get online test application" should {
     "return None if the application does not exist" in {
       repository.getOnlineTestApplication(AppId).futureValue mustBe None

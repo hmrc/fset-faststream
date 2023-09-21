@@ -82,6 +82,8 @@ trait GeneralApplicationRepository {
   def removeAdjustmentsComment(applicationId: String): Future[Unit]
   def findAdjustmentsNeedsSupportAtFsac(applicationId: String): Future[NeedsSupportAtFsac]
   def updateAdjustmentsNeedsSupportAtFsac(applicationId: String, needsSupportAtFsac: NeedsSupportAtFsac): Future[Unit]
+  def findAdjustmentsNeedsSupportAtFsb(applicationId: String): Future[NeedsSupportAtFsb]
+  def updateAdjustmentsNeedsSupportAtFsb(applicationId: String, needsSupportAtFsb: NeedsSupportAtFsb): Future[Unit]
   def gisByApplication(applicationId: String): Future[Boolean]
   def updateStatus(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit]
   def updateApplicationStatusOnly(applicationId: String, applicationStatus: ApplicationStatus): Future[Unit]
@@ -876,6 +878,49 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     collection.updateOne(query, updateBSON).toFuture() map validator
   }
 
+  override def findAdjustmentsNeedsSupportAtFsb(applicationId: String): Future[NeedsSupportAtFsb] = {
+    val query = Document("applicationId" -> applicationId)
+    val projection = Projections.include("assistance-details")
+
+    collection.find[Document](query).projection(projection).headOption().map {
+      case Some(document) =>
+        val root = document.get("assistance-details").map(_.asDocument())
+        root match {
+          case Some(doc) =>
+            val needsSupportForPhoneInterview = Try(doc.get("needsSupportForPhoneInterview").asBoolean().getValue).getOrElse(false)
+            val needsSupportForPhoneInterviewDescription = Try(doc.get("needsSupportForPhoneInterviewDescription").asString().getValue).toOption
+            NeedsSupportAtFsb(needsSupportForPhoneInterview, needsSupportForPhoneInterviewDescription)
+          case None => throw AdjustmentsNeedsSupportAtFsbNotFound(applicationId)
+        }
+      case None =>
+        throw ApplicationNotFound(s"No application found when looking for adjustments needs support at phone interview for $applicationId")
+    }
+  }
+
+  override def updateAdjustmentsNeedsSupportAtFsb(applicationId: String, needsSupportAtFsb: NeedsSupportAtFsb): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+
+    val updateBSON = needsSupportAtFsb.needsSupportForPhoneInterview match {
+      case true =>
+        Document("$set" -> Document(
+          "assistance-details.needsSupportForPhoneInterview" -> needsSupportAtFsb.needsSupportForPhoneInterview,
+          "assistance-details.needsSupportForPhoneInterviewDescription" -> needsSupportAtFsb.needsSupportForPhoneInterviewDescription,
+        ))
+      case _ =>
+        Document("$set" -> Document(
+          "assistance-details.needsSupportForPhoneInterview" -> needsSupportAtFsb.needsSupportForPhoneInterview
+        )) ++
+          Document("$unset" -> Document(
+            "assistance-details.needsSupportForPhoneInterviewDescription" -> ""
+          ))
+    }
+
+    val validator = singleUpdateValidator(applicationId,
+      actionDesc = "save adjustments needs support for phone interview",
+      error = CannotUpdateRecord(applicationId))
+
+    collection.updateOne(query, updateBSON).toFuture() map validator
+  }
 
   def gisByApplication(applicationId: String): Future[Boolean] = {
     val query = Document("applicationId" -> applicationId)

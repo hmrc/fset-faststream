@@ -18,7 +18,7 @@ package controllers
 
 import javax.inject.{Inject, Singleton}
 import model.Exceptions._
-import model.{AdjustmentsComment, NeedsSupportAtFsac}
+import model.{AdjustmentsComment, NeedsSupportAtFsac, NeedsSupportAtFsb}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.adjustmentsmanagement.AdjustmentsManagementService
@@ -97,6 +97,27 @@ class AdjustmentsManagementController @Inject() (cc: ControllerComponents,
         NoContent
       }.recover {
         case e: CannotUpdateRecord => BadRequest(s"Cannot update adjustments needs support at venue for application with id: ${e.applicationId}")
+      }
+    }
+  }
+
+  def findNeedsSupportAtFsb(applicationId: String): Action[AnyContent] = Action.async {
+    adjustmentsManagementService.findNeedsSupportAtFsb(applicationId).map { needsSupportAtFsb =>
+      Ok(Json.toJson(needsSupportAtFsb))
+    }.recover {
+      case c: AdjustmentsNeedsSupportAtFsbNotFound =>
+        NotFound(s"Cannot find adjustments needs support for phone interview for application with id: ${c.applicationId}")
+      case a: ApplicationNotFound => NotFound(a.id)
+    }
+  }
+
+  def updateNeedsSupportAtFsb(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[NeedsSupportAtFsb] { data =>
+      adjustmentsManagementService.updateNeedsSupportAtFsb(applicationId, data).map { _ =>
+        NoContent
+      }.recover {
+        case e: CannotUpdateRecord =>
+          BadRequest(s"Cannot update adjustments needs support for phone interview for application with id: ${e.applicationId}")
       }
     }
   }
