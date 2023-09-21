@@ -113,6 +113,8 @@ object Exceptions {
 
   case class AdjustmentsNeedsSupportAtFsacNotFound(applicationId: String) extends Exception(applicationId)
 
+  case class AdjustmentsNeedsSupportAtFsbNotFound(applicationId: String) extends Exception(applicationId)
+
   case class CannotUpdateAdjustmentsComment(applicationId: String) extends Exception(applicationId)
 
   case class CannotRemoveAdjustmentsComment(applicationId: String) extends Exception(applicationId)

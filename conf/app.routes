@@ -54,6 +54,8 @@ DELETE      /adjustments/comment/:applicationId                          @contro
 
 GET         /adjustments/needsSupportAtFsac/:applicationId               @controllers.AdjustmentsManagementController.findNeedsSupportAtFsac(applicationId: String)
 PUT         /adjustments/needsSupportAtFsac/:applicationId               @controllers.AdjustmentsManagementController.updateNeedsSupportAtFsac(applicationId: String)
+GET         /adjustments/needsSupportAtFsb/:applicationId                @controllers.AdjustmentsManagementController.findNeedsSupportAtFsb(applicationId: String)
+PUT         /adjustments/needsSupportAtFsb/:applicationId                @controllers.AdjustmentsManagementController.updateNeedsSupportAtFsb(applicationId: String)
 
 PUT         /media/create                                                @controllers.MediaController.addMedia()
 
