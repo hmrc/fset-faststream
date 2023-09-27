@@ -17,7 +17,7 @@
 package services.testdata.candidate.assessmentcentre
 
 import javax.inject.{Inject, Singleton}
-import model.UniqueIdentifier
+import model.{Schemes, UniqueIdentifier}
 import model.exchange.passmarksettings._
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
@@ -36,7 +36,7 @@ class AssessmentCentrePassedStatusGenerator @Inject() (val previousStatusGenerat
                                                        applicationAssessmentService: AssessmentCentreService,
                                                        passmarkService: AssessmentCentrePassMarkSettingsService,
                                                        schemeRepository: SchemeRepository
-                                                      )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
+                                                      )(implicit ec: ExecutionContext) extends ConstructiveGenerator with Schemes {
 
   val updatedBy = UniqueIdentifier.randomUniqueIdentifier
   val version = UniqueIdentifier.randomUniqueIdentifier
@@ -44,8 +44,10 @@ class AssessmentCentrePassedStatusGenerator @Inject() (val previousStatusGenerat
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
               (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {
 
-    val schemes = schemeRepository.schemes.map(_.id).toList
-    val dummyPassmarks = AssessmentCentrePassMarkSettingsPersistence(
+    // Edip & Sdip do not go through FSAC so exclude them
+    val schemes = schemeRepository.schemes.filterNot(scheme => scheme.id == Sdip || scheme.id == Edip).map(_.id).toList
+
+    val tdgPassmarks = AssessmentCentrePassMarkSettingsPersistence(
       schemes.map(schemeId =>
         AssessmentCentreExercisePassMark(schemeId, AssessmentCentreExercisePassMarkThresholds(
           writtenExercise = PassMarkThreshold(0.2, 0.4),
@@ -62,7 +64,7 @@ class AssessmentCentrePassedStatusGenerator @Inject() (val previousStatusGenerat
     for {
       latestPassMarks <- passmarkService.getLatestPassMarkSettings
       _ <- if (latestPassMarks.isEmpty) {
-        passmarkService.createPassMarkSettings(dummyPassmarks)
+        passmarkService.createPassMarkSettings(tdgPassmarks)
       } else {
         Future.successful(())
       }
