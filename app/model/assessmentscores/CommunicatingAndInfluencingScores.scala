@@ -20,19 +20,21 @@ import play.api.libs.json.Json
 
 case class CommunicatingAndInfluencingScores(
                                               presentsIdeas: Option[Double] = None, // written
-                                              communicatesClearly: Option[Double] = None, // written, team, leadership
-                                              defendsOwnView: Option[Double] = None, // team
+                                              communicatesClearly: Option[Double] = None, // written, team
+                                              negotiatesAndPersuades: Option[Double] = None, // team
                                               contributesEffectively: Option[Double] = None, // team
                                               conveysPurposeAndDirection: Option[Double] = None, // leadership
-                                              defendsProposals: Option[Double] = None // leadership
+                                              defendsOwnView: Option[Double] = None, // leadership
+                                              presentsArguments: Option[Double] = None //leadership
                                             ) {
   override def toString: String =
     s"presentsIdeas=$presentsIdeas," +
     s"communicatesClearly=$communicatesClearly," +
-    s"defendsOwnView=$defendsOwnView," +
+    s"negotiatesAndPersuades=$negotiatesAndPersuades," +
     s"contributesEffectively=$contributesEffectively," +
     s"conveysPurposeAndDirection=$conveysPurposeAndDirection," +
-    s"defendsProposals=$defendsProposals"
+    s"defendsOwnView=$defendsOwnView," +
+    s"presentsArguments=$presentsArguments,"
 }
 
 object CommunicatingAndInfluencingScores {

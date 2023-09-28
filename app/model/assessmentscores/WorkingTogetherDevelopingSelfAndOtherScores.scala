@@ -22,17 +22,17 @@ case class WorkingTogetherDevelopingSelfAndOtherScores(
                                                         formsEffectiveWorkingRelationships: Option[Double] = None, // team
                                                         inclusiveApproach: Option[Double] = None, // team
                                                         encouragesCollaboration: Option[Double] = None, // team
-                                                        encouragesTeamwork: Option[Double] = None, // leadership
-                                                        understandsStakeholderNeeds: Option[Double] = None, // leadership
-                                                        improvesOwnPerformance: Option[Double] = None // leadership
+                                                        establishesRelationships: Option[Double] = None, // leadership
+                                                        seeksInformation: Option[Double] = None, // leadership
+                                                        identifiesGaps: Option[Double] = None // leadership
                                                       ) {
   override def toString: String =
     s"formsEffectiveWorkingRelationships=$formsEffectiveWorkingRelationships," +
     s"inclusiveApproach=$inclusiveApproach," +
     s"encouragesCollaboration=$encouragesCollaboration," +
-    s"encouragesTeamwork=$encouragesTeamwork," +
-    s"understandsStakeholderNeeds=$understandsStakeholderNeeds," +
-    s"improvesOwnPerformance=$improvesOwnPerformance"
+    s"establishesRelationships=$establishesRelationships," +
+    s"seeksInformation=$seeksInformation," +
+    s"identifiesGaps=$identifiesGaps"
 }
 
 object WorkingTogetherDevelopingSelfAndOtherScores {

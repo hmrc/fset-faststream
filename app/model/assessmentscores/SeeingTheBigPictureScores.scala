@@ -21,14 +21,14 @@ import play.api.libs.json.Json
 case class SeeingTheBigPictureScores(
                                       generatesSolutions: Option[Double] = None, // written
                                       practicalIdeas: Option[Double] = None, // written
-                                      adaptsApproach: Option[Double] = None, // leadership
+                                      identifiesBarriers: Option[Double] = None, // leadership
                                       respondsAppropriately: Option[Double] = None, // leadership
                                       alternativeSolutions: Option[Double] = None // leadership
                                     ) {
   override def toString: String =
     s"generatesSolutions=$generatesSolutions," +
     s"practicalIdeas=$practicalIdeas," +
-    s"adaptsApproach=$adaptsApproach," +
+    s"identifiesBarriers=$identifiesBarriers," +
     s"respondsAppropriately=$respondsAppropriately," +
     s"alternativeSolutions=$alternativeSolutions"
 }
