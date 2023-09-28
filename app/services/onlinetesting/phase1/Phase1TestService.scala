@@ -112,7 +112,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
       phase1Opt <- testRepository.getTestGroup(applicationId)
     } yield {
       phase1Opt.map { testProfile =>
-        Phase1TestGroupWithNames(testProfile.expirationDate, testProfile.activeTests.map(_.toExchange))
+        Phase1TestGroupWithNames(applicationId, testProfile.expirationDate, testProfile.activeTests.map(_.toExchange))
       }
     }
   }
@@ -336,6 +336,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
       phase1 <- testRepository.getTestGroupByOrderId(orderId)
     } yield
       Phase1TestGroupWithNames(
+        phase1.applicationId,
         phase1.testGroup.expirationDate,
         phase1.testGroup.tests.map(_.toExchange)
       )

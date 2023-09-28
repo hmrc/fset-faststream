@@ -84,6 +84,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
       phase2Opt <- testRepository.getTestGroup(applicationId)
     } yield phase2Opt.map { phase2 =>
       Phase2TestGroupWithActiveTest(
+        applicationId,
         phase2.expirationDate,
         phase2.activeTests.map(_.toExchange),
         resetAllowed = true
@@ -91,16 +92,16 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
     }
   }
 
-  def getTestGroupByOrderId(orderId: String): Future[Option[Phase2TestGroupWithActiveTest]] = {
+  def getTestGroupByOrderId(orderId: String): Future[Phase2TestGroupWithActiveTest] = {
     for {
-      phase2Opt <- testRepository.getTestGroupByOrderId(orderId)
-    } yield phase2Opt.map { phase2 =>
+      phase2 <- testRepository.getTestProfileByOrderId(orderId)
+    } yield
       Phase2TestGroupWithActiveTest(
-        phase2.expirationDate,
-        phase2.activeTests.map(_.toExchange),
+        phase2.applicationId,
+        phase2.testGroup.expirationDate,
+        phase2.testGroup.activeTests.map(_.toExchange),
         resetAllowed = true
       )
-    }
   }
 
   def verifyAccessCode(email: String, accessCode: String): Future[String] = for {

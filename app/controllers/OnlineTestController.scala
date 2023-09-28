@@ -95,9 +95,11 @@ class OnlineTestController @Inject() (cc: ControllerComponents,
   }
 
   def getPhase2OnlineTestByOrderId(orderId: String) = Action.async {
-    phase2TestService.getTestGroupByOrderId(orderId) map {
-      case Some(phase2TestGroupWithActiveTest) => Ok(Json.toJson(phase2TestGroupWithActiveTest))
-      case None => logger.debug(s"No phase 2 tests found for orderId '$orderId'")
+    phase2TestService.getTestGroupByOrderId(orderId).map { phase2TestGroupWithActiveTest =>
+      Ok(Json.toJson(phase2TestGroupWithActiveTest))
+    }.recover {
+      case _: CannotFindTestByOrderIdException =>
+        logger.debug(s"No phase 2 tests found for orderId '$orderId'")
         NotFound
     }
   }
