@@ -22,7 +22,7 @@ import play.api.libs.json.{Json, OFormat}
 import play.api.libs.json.JodaWrites._
 import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 
-case class Phase1TestGroupWithNames(expirationDate: DateTime, activeTests: Seq[PsiTest])
+case class Phase1TestGroupWithNames(applicationId: String, expirationDate: DateTime, activeTests: Seq[PsiTest])
 
 object Phase1TestGroupWithNames {
   implicit val phase1TestGroupWithNamesFormat = Json.format[Phase1TestGroupWithNames]
