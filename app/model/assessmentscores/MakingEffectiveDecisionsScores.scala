@@ -21,14 +21,14 @@ import play.api.libs.json.Json
 case class MakingEffectiveDecisionsScores(
                                            issuesAndRisks: Option[Double] = None, // written
                                            identifiesMitigation: Option[Double] = None, // written
-                                           isAnalytical: Option[Double] = None, // team
-                                           evaluatesOptions: Option[Double] = None // team
+                                           thoroughlyAnalyses: Option[Double] = None, // team
+                                           identifiesCriticalIssues: Option[Double] = None // team
                                          ) {
   override def toString: String =
     s"issuesAndRisks=$issuesAndRisks," +
     s"identifiesMitigation=$identifiesMitigation," +
-    s"isAnalytical=$isAnalytical," +
-    s"evaluatesOptions=$evaluatesOptions"
+    s"thoroughlyAnalyses=$thoroughlyAnalyses," +
+    s"identifiesCriticalIssues=$identifiesCriticalIssues"
 }
 
 object MakingEffectiveDecisionsScores {
