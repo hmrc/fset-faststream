@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 // This file reads input csv and generates yaml, which can be bulk uploaded into the system to create calendar events
 // Run the file from the location you find it in the fset-faststream repo. All the paths are relative to its current location
 // Use LibreOffice to open the Excel spreadsheet from the business, which contains 2 tabs: newcastle and london
-// Save the newcastle tab as newcastle.csv and the london tab as london.csv
+// File -> Save As... the newcastle tab as newcastle.csv and the london tab as london.csv
 // Use LibreOffice so the correct Unix line endings are generated when saving as csv
 //
 // If you need to debug run as follows for the 2 cities:
@@ -59,7 +59,7 @@ $processingNewcastle = $argc == 3 && strtolower($argv[2]) == "newcastle";
 
 $city = $processingNewcastle ? "newcastle" : "london";
 
-$csvRoot = "../../fs-calendar-events/spreadsheets/2022-2023v1";
+$csvRoot = "../../fs-calendar-events/spreadsheets/2023-2024v1";
 $csvFilename = "{$csvRoot}/{$city}.csv";
 
 $csv = array_map('str_getcsv', file($csvFilename));
@@ -83,7 +83,7 @@ function venueNameToToken($venueName) {
 }
 
 function zeroOrValue($val) {
-    if (trim($val) == '') { return '0'; } else { return trim($val); }
+    if (is_null($val) || trim($val) == '') { return '0'; } else { return trim($val); }
 }
 
 function formatTime($timeStr) {
@@ -290,7 +290,6 @@ foreach ($csv as $line) {
         $sdipAssessors = zeroOrValue($line[$i++]);
         $sracAssessors = zeroOrValue($line[$i++]);
         $oracAssessors = zeroOrValue($line[$i++]);
-        $opdAssessors = zeroOrValue($line[$i++]); //new column 2023/24
 
         $departmentAssessors = zeroOrValue($line[$i++]);
         $chairAssessors = zeroOrValue($line[$i++]);
@@ -304,7 +303,7 @@ foreach ($csv as $line) {
         if (allSkillsZero(array($fsacAssessors, $chairAssessors, $departmentAssessors, $writtenExerciseAssessors, $datAssessors, $fcoAssessors,
             $cfsAssessors, $proAssessors, $eacAssessors, $eacDsAssessors, $sacAssessors, $sacExerciseMarkers, $sacSams, $hopAssessors, $pdfsAssessors,
             $sefsAssessors, $edipAssessors, $sdipAssessors, $sracAssessors, $oracAssessors, $oracExerciseMarkers, $oracQacs, $qacAssessors,
-            $sifterAssessors, $opdAssessors, $sdipQacs, $edipQacs))) {
+            $sifterAssessors, $sdipQacs, $edipQacs))) {
             console("ERROR - line number: $lineCount has no skills specified bulk - upload will not accept this");
         };
 
@@ -320,7 +319,7 @@ foreach ($csv as $line) {
   startTime: $eventStartTime
   endTime: $eventEndTime
   skillRequirements:
-".includeSkillIfNotZero('ASSESSOR', $fsacAssessors).includeSkillIfNotZero('CHAIR', $chairAssessors).includeSkillIfNotZero('DEPARTMENTAL_ASSESSOR', $departmentAssessors).includeSkillIfNotZero('EXERCISE_MARKER', $writtenExerciseAssessors).includeSkillIfNotZero('DAT_ASSESSOR', $datAssessors).includeSkillIfNotZero('FCO_ASSESSOR', $fcoAssessors).includeSkillIfNotZero('CFS_ASSESSOR', $cfsAssessors).includeSkillIfNotZero('PRO_ASSESSOR', $proAssessors).includeSkillIfNotZero('EAC_ASSESSOR', $eacAssessors).includeSkillIfNotZero('EAC_DS_ASSESSOR', $eacDsAssessors).includeSkillIfNotZero('SAC_ASSESSOR', $sacAssessors).includeSkillIfNotZero('SAC_EM_ASSESSOR', $sacExerciseMarkers).includeSkillIfNotZero('SAC_SAM_ASSESSOR', $sacSams).includeSkillIfNotZero('HOP_ASSESSOR', $hopAssessors).includeSkillIfNotZero('PDFS_ASSESSOR', $pdfsAssessors).includeSkillIfNotZero('SEFS_ASSESSOR', $sefsAssessors).includeSkillIfNotZero('EDIP_ASSESSOR', $edipAssessors).includeSkillIfNotZero('EDIP_QAC', $edipQacs).includeSkillIfNotZero('SDIP_ASSESSOR', $sdipAssessors).includeSkillIfNotZero('SDIP_QAC', $sdipQacs).includeSkillIfNotZero('SRAC_ASSESSOR', $sracAssessors).includeSkillIfNotZero('ORAC_ASSESSOR', $oracAssessors).includeSkillIfNotZero('ORAC_EM_ASSESSOR', $oracExerciseMarkers).includeSkillIfNotZero('ORAC_QAC', $oracQacs).includeSkillIfNotZero('QUALITY_ASSURANCE_COORDINATOR', $qacAssessors).includeSkillIfNotZero('SIFTER', $sifterAssessors).includeSkillIfNotZero('OPD_ASSESSOR', $opdAssessors)."  sessions:\n";
+".includeSkillIfNotZero('ASSESSOR', $fsacAssessors).includeSkillIfNotZero('CHAIR', $chairAssessors).includeSkillIfNotZero('DEPARTMENTAL_ASSESSOR', $departmentAssessors).includeSkillIfNotZero('EXERCISE_MARKER', $writtenExerciseAssessors).includeSkillIfNotZero('DAT_ASSESSOR', $datAssessors).includeSkillIfNotZero('FCO_ASSESSOR', $fcoAssessors).includeSkillIfNotZero('CFS_ASSESSOR', $cfsAssessors).includeSkillIfNotZero('PRO_ASSESSOR', $proAssessors).includeSkillIfNotZero('EAC_ASSESSOR', $eacAssessors).includeSkillIfNotZero('EAC_DS_ASSESSOR', $eacDsAssessors).includeSkillIfNotZero('SAC_ASSESSOR', $sacAssessors).includeSkillIfNotZero('SAC_EM_ASSESSOR', $sacExerciseMarkers).includeSkillIfNotZero('SAC_SAM_ASSESSOR', $sacSams).includeSkillIfNotZero('HOP_ASSESSOR', $hopAssessors).includeSkillIfNotZero('PDFS_ASSESSOR', $pdfsAssessors).includeSkillIfNotZero('SEFS_ASSESSOR', $sefsAssessors).includeSkillIfNotZero('EDIP_ASSESSOR', $edipAssessors).includeSkillIfNotZero('EDIP_QAC', $edipQacs).includeSkillIfNotZero('SDIP_ASSESSOR', $sdipAssessors).includeSkillIfNotZero('SDIP_QAC', $sdipQacs).includeSkillIfNotZero('SRAC_ASSESSOR', $sracAssessors).includeSkillIfNotZero('ORAC_ASSESSOR', $oracAssessors).includeSkillIfNotZero('ORAC_EM_ASSESSOR', $oracExerciseMarkers).includeSkillIfNotZero('ORAC_QAC', $oracQacs).includeSkillIfNotZero('QUALITY_ASSURANCE_COORDINATOR', $qacAssessors).includeSkillIfNotZero('SIFTER', $sifterAssessors)."  sessions:\n";
         $sessionCounter = 1;
 
         foreach ($sessions as $session) {
