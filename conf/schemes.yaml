@@ -50,6 +50,9 @@
     required: Degree_21
     specificRequirement: false
   siftEvaluationRequired: false
+  fsbType: FIN FSB
+  # TODO: THIS NEEDS TO BE UPDATED BEFORE FSB INVITATIONS !!!!!
+  schemeGuide: https://www.faststream.gov.uk/media/1233/gcfs-guide.pdf
 #  Currently filtered out in the candidate ui
 - id: GovernmentCommunicationService
   code: GCFS

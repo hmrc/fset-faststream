@@ -39,6 +39,7 @@ object AssessorSkill {
     AssessorSkill(EDIP_QAC, "EDIP QAC"),
     AssessorSkill(EXERCISE_MARKER, "Exercise Marker"),
     AssessorSkill(FCO_ASSESSOR, "FCO Assessor"),
+    AssessorSkill(FIN_ASSESSOR, "FIN Assessor"),
     AssessorSkill(GCFS_ASSESSOR, "GCFS Assessor"),
     AssessorSkill(HOP_ASSESSOR, "HOP Assessor"),
     AssessorSkill(ORAC_ASSESSOR, "ORAC Assessor"),
