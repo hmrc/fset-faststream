@@ -57,7 +57,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
     "return fsb schemes" in new TestFixture {
       val expectedFsbSchemes = Seq(
         Commercial, DiplomaticAndDevelopment,
-        DiplomaticAndDevelopmentEconomics, GovernmentCommunicationService,
+        DiplomaticAndDevelopmentEconomics, Finance, GovernmentCommunicationService,
         GovernmentEconomicsService, GovernmentOperationalResearchService,
         GovernmentSocialResearchService, GovernmentStatisticalService,
         HousesOfParliament, OperationalDelivery, OperationalDeliverySTEM, ProjectDelivery,
@@ -135,7 +135,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
 
     "return fsb types" in new TestFixture {
       val expected = Seq(
-        FsbType("CFS - Skype interview"), FsbType("FCO"), FsbType("GES_DS"),
+        FsbType("CFS - Skype interview"), FsbType("FCO"), FsbType("FIN FSB"), FsbType("GES_DS"),
         FsbType("GCFS FSB"), FsbType("EAC"), FsbType("ORAC"),
         FsbType("SRAC"), FsbType("SAC"), FsbType("HOP FSB"),
         FsbType("OPD - Skype interview"), FsbType("OPD STEM - Skype interview"),
