@@ -48,7 +48,7 @@ class EvaluatePhase3ResultService @Inject() (@Named("Phase3EvaluationRepository"
   val launchpadGWConfig = appConfig.launchpadGatewayConfig
 
   def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase3PassMarkSettingsPersistence): Future[Unit] = {
-    logger.warn(s"Evaluating Phase3 appId=${application.applicationId}")
+    logger.warn(s"Evaluating PHASE3 appId=${application.applicationId}")
 
     val optLaunchpadTest = application.activeLaunchpadTest
     require(optLaunchpadTest.isDefined, "Active launchpad test not found")
@@ -73,10 +73,10 @@ class EvaluatePhase3ResultService @Inject() (@Named("Phase3EvaluationRepository"
 
       getSdipResults(application).flatMap { sdip =>
         if (application.isSdipFaststream) {
-          logger.debug(s"Phase3 appId=${application.applicationId} Sdip faststream application will persist the following Sdip results " +
+          logger.debug(s"PHASE3 appId=${application.applicationId} Sdip faststream application will persist the following Sdip results " +
             s"read from current scheme status: $sdip")
         }
-        savePassMarkEvaluation(application, schemeResults ++ sdip, passmark)
+        savePassMarkEvaluation(application, schemeResults ++ sdip, passmark, phase)
       }
     }
   }

@@ -18,6 +18,7 @@ package scheduler.onlinetesting
 
 import factories.UUIDFactory
 import model.Phase
+import model.Phase.Phase
 import model.exchange.passmarksettings.{PassMarkSettings, PassMarkSettingsPersistence}
 import model.persisted.{ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult}
 import play.api.Logging
@@ -61,7 +62,7 @@ trait EvaluateOnlineTestResultService[T <: PassMarkSettingsPersistence] extends 
 
   def savePassMarkEvaluation(application: ApplicationReadyForEvaluation,
                              schemeResults: List[SchemeEvaluationResult],
-                             passMarkSettings: T)(implicit ec: ExecutionContext): Future[Unit] = {
+                             passMarkSettings: T, phase: Phase)(implicit ec: ExecutionContext): Future[Unit] = {
     if (schemeResults.nonEmpty) {
       evaluationRepository.savePassmarkEvaluation(
         application.applicationId,
@@ -70,7 +71,7 @@ trait EvaluateOnlineTestResultService[T <: PassMarkSettingsPersistence] extends 
         determineApplicationStatus(application.applicationRoute, application.applicationStatus, schemeResults, phase)
       )
     } else {
-      logger.warn(s"AppId=${application.applicationId} has no schemeResults so will not evaluate. " +
+      logger.warn(s"$phase - appId=${application.applicationId} has no schemeResults so will not evaluate. " +
         s"Have all pass marks been set including Edip/Sdip?")
       Future.successful(())
     }

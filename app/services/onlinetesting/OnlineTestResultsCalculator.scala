@@ -16,7 +16,8 @@
 
 package services.onlinetesting
 
-import model.EvaluationResults.{ Amber, Green, Red, Result }
+import model.EvaluationResults.{Amber, Green, Red, Result}
+import model.Phase.Phase
 import model.SchemeId
 import model.exchange.passmarksettings.PassMarkThreshold
 import play.api.Logging
@@ -31,14 +32,14 @@ trait OnlineTestResultsCalculator extends Logging {
     else { Amber }
   }
 
-  def combineTestResults(schemeToEvaluate: SchemeId, results: Result*) = {
+  def combineTestResults(phase: Phase, schemeToEvaluate: SchemeId, results: Result*) = {
     require(results.nonEmpty, "Test results not found")
     val result = results match {
       case _ if results.contains(Red) => Red
       case _ if results.contains(Amber) => Amber
       case _ if results.forall(_ == Green) => Green
     }
-    logger.info(s"Combining results for $schemeToEvaluate: $results = $result")
+    logger.info(s"$phase - combining results for $schemeToEvaluate: $results = $result")
     result
   }
 }
