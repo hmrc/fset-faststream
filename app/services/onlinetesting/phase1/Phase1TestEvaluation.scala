@@ -17,7 +17,7 @@
 package services.onlinetesting.phase1
 
 import model.EvaluationResults.Green
-import model.SchemeId
+import model.{Phase, SchemeId}
 import model.exchange.passmarksettings.Phase1PassMarkSettingsPersistence
 import model.persisted.{PsiTestResult, SchemeEvaluationResult}
 import services.onlinetesting.OnlineTestResultsCalculator
@@ -45,7 +45,7 @@ trait Phase1TestEvaluation extends OnlineTestResultsCalculator {
       val t1Result = evaluateTestResult(schemePassmark.schemeThresholds.test1)(test1Result.tScore)
       val t2Result = test2ResultOpt.map(_.tScore).map(evaluateTestResult(schemePassmark.schemeThresholds.test2)).getOrElse(Green)
       val t3Result = evaluateTestResult(schemePassmark.schemeThresholds.test3)(test3Result.tScore)
-      logger.info(s"Processing scheme $schemeToEvaluate, " +
+      logger.warn(s"PHASE1 - processing scheme $schemeToEvaluate, " +
         s"p1 test1 score = ${test1Result.tScore}, " +
         s"p1 test1 fail = ${schemePassmark.schemeThresholds.test1.failThreshold}, " +
         s"p1 test1 pass = ${schemePassmark.schemeThresholds.test1.passThreshold}, " +
@@ -59,7 +59,7 @@ trait Phase1TestEvaluation extends OnlineTestResultsCalculator {
         s"p1 test3 pass = ${schemePassmark.schemeThresholds.test3.passThreshold}, " +
         s"p1 test3 result = $t3Result"
       )
-      SchemeEvaluationResult(schemeToEvaluate, combineTestResults(schemeToEvaluate, t1Result, t2Result, t3Result).toString)
+      SchemeEvaluationResult(schemeToEvaluate, combineTestResults(Phase.PHASE1, schemeToEvaluate, t1Result, t2Result, t3Result).toString)
     }
   }
 }

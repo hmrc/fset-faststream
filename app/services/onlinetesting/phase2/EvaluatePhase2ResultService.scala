@@ -47,11 +47,11 @@ class EvaluatePhase2ResultService @Inject() (@Named("Phase2EvaluationRepository"
   val gatewayConfig = appConfig.onlineTestsGatewayConfig
 
   def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase2PassMarkSettingsPersistence): Future[Unit] = {
-    logger.warn(s"Evaluating phase2 appId=${application.applicationId}")
+    logger.warn(s"Evaluating PHASE2 appId=${application.applicationId}")
 
     val activeTests = application.activePsiTests
     require(activeTests.nonEmpty && activeTests.length == 2,
-      s"Allowed active number of tests for phase2 is 2 - found ${activeTests.size} for AppId=${application.applicationId}")
+      s"Allowed active number of tests for PHASE2 is 2 - found ${activeTests.size} for AppId=${application.applicationId}")
     require(application.prevPhaseEvaluation.isDefined, "Phase1 results are required before we can evaluate phase2")
 
     val test1ResultOpt = findFirstTest1Test(activeTests).flatMap(_.testResult)
@@ -60,10 +60,10 @@ class EvaluatePhase2ResultService @Inject() (@Named("Phase2EvaluationRepository"
 
     getSdipResults(application).flatMap { sdip =>
       if (application.isSdipFaststream) {
-        logger.debug(s"Phase2 appId=${application.applicationId} Sdip faststream application will persist the following Sdip results " +
+        logger.debug(s"PHASE2 appId=${application.applicationId} Sdip faststream application will persist the following Sdip results " +
           s"read from current scheme status: $sdip")
       }
-      savePassMarkEvaluation(application, schemeResults ++ sdip , passmark)
+      savePassMarkEvaluation(application, schemeResults ++ sdip , passmark, phase)
     }
   }
 

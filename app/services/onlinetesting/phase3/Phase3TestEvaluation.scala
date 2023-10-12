@@ -18,7 +18,7 @@ package services.onlinetesting.phase3
 
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest
 import model.EvaluationResults.Result
-import model.SchemeId
+import model.{Phase, SchemeId}
 import model.exchange.passmarksettings.{Phase3PassMarkSettings, Phase3PassMarkSettingsPersistence}
 import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
 import repositories.onlinetesting.Phase3EvaluationMongoRepository
@@ -45,7 +45,7 @@ trait Phase3TestEvaluation extends OnlineTestResultsCalculator {
         s"video pass = ${schemePassmark.schemeThresholds.videoInterview.passThreshold}, " +
         s"video result = $phase3Result")
       val phase2Result = Result(phase2SchemeEvaluation.result)
-      SchemeEvaluationResult(schemeToEvaluate, combineTestResults(schemeToEvaluate, phase2Result, phase3Result).toString)
+      SchemeEvaluationResult(schemeToEvaluate, combineTestResults(Phase.PHASE3, schemeToEvaluate, phase2Result, phase3Result).toString)
     }
   }
 }

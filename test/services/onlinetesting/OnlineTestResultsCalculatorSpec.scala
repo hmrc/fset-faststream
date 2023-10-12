@@ -17,7 +17,7 @@
 package services.onlinetesting
 
 import model.EvaluationResults.{Amber, Green, Red}
-import model.{SchemeId, Schemes}
+import model.{Phase, SchemeId, Schemes}
 import model.exchange.passmarksettings.PassMarkThreshold
 import testkit.UnitSpec
 
@@ -48,22 +48,22 @@ class OnlineTestResultsCalculatorSpec extends UnitSpec with Schemes {
     val scheme = Commercial
 
     "give correct result" in new OnlineTestResultsCalculator {
-      combineTestResults(scheme, Red) mustBe Red
-      combineTestResults(scheme, Amber) mustBe Amber
-      combineTestResults(scheme, Green) mustBe Green
+      combineTestResults(Phase.PHASE1, scheme, Red) mustBe Red
+      combineTestResults(Phase.PHASE1, scheme, Amber) mustBe Amber
+      combineTestResults(Phase.PHASE1,scheme, Green) mustBe Green
 
-      combineTestResults(scheme, Green, Red) mustBe Red
-      combineTestResults(scheme, Red, Green) mustBe Red
-      combineTestResults(scheme, Red, Red) mustBe Red
+      combineTestResults(Phase.PHASE1, scheme, Green, Red) mustBe Red
+      combineTestResults(Phase.PHASE1, scheme, Red, Green) mustBe Red
+      combineTestResults(Phase.PHASE1, scheme, Red, Red) mustBe Red
 
-      combineTestResults(scheme, Green, Amber) mustBe Amber
-      combineTestResults(scheme, Amber, Green) mustBe Amber
-      combineTestResults(scheme, Amber, Amber) mustBe Amber
+      combineTestResults(Phase.PHASE1, scheme, Green, Amber) mustBe Amber
+      combineTestResults(Phase.PHASE1, scheme, Amber, Green) mustBe Amber
+      combineTestResults(Phase.PHASE1, scheme, Amber, Amber) mustBe Amber
 
-      combineTestResults(scheme, Green, Green) mustBe Green
+      combineTestResults(Phase.PHASE1, scheme, Green, Green) mustBe Green
     }
     "return exception" in new OnlineTestResultsCalculator {
-      an[IllegalArgumentException] must be thrownBy combineTestResults(scheme)
+      an[IllegalArgumentException] must be thrownBy combineTestResults(Phase.PHASE1, scheme)
     }
   }
 }

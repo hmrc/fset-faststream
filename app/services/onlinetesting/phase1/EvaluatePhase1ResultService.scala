@@ -45,10 +45,10 @@ class EvaluatePhase1ResultService @Inject() (@Named("Phase1EvaluationRepository"
 
   def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettingsPersistence): Future[Unit] = {
     if (application.isSdipFaststream && !passmark.schemes.exists(_.schemeId == Sdip)) {
-      logger.warn(s"Evaluating Phase1 Sdip Faststream candidate with no Sdip passmarks set, so skipping - appId=${application.applicationId}")
+      logger.warn(s"Evaluating PHASE1 Sdip Faststream candidate with no Sdip passmarks set, so skipping - appId=${application.applicationId}")
       Future.successful(())
     } else {
-      logger.warn(s"Evaluating Phase1 appId=${application.applicationId}")
+      logger.warn(s"Evaluating PHASE1 appId=${application.applicationId}")
 
       val activeTests = application.activePsiTests
       require(activeTests.nonEmpty && (activeTests.length == 2 || activeTests.length == 3), "Allowed active number of tests is 2 or 3")
@@ -57,7 +57,7 @@ class EvaluatePhase1ResultService @Inject() (@Named("Phase1EvaluationRepository"
       val test2Opt = findFirstTest2Test(activeTests)
       val test3Opt = findFirstTest3Test(activeTests)
 
-      savePassMarkEvaluation(application, getSchemeResults(test1Opt, test2Opt, test3Opt), passmark)
+      savePassMarkEvaluation(application, getSchemeResults(test1Opt, test2Opt, test3Opt), passmark, phase)
     }
   }
 
