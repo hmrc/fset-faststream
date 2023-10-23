@@ -17,7 +17,7 @@
 package controllers
 
 import javax.inject.{Inject, Singleton}
-import model.Exceptions.{NotFoundException, OptimisticLockException, TooManyEntries}
+import model.Exceptions.{CandidateAlreadyAssignedToOtherEventException, NotFoundException, OptimisticLockException, TooManyEntries}
 import model.persisted.CandidateAllocation
 import model.persisted.eventschedules.EventType.EventType
 import model.{command, exchange}
@@ -55,6 +55,10 @@ class CandidateAllocationController @Inject() (cc: ControllerComponents,
           logger.debug(s"Caught OptimisticLockException for eventId=$eventId, sessionId=$sessionId " +
             s"so will return a http $CONFLICT back to client")
           Conflict(e.getMessage)
+        case e: CandidateAlreadyAssignedToOtherEventException =>
+          logger.debug(s"Caught CandidateAlreadyAssignedToOtherEventException for eventId=$eventId, sessionId=$sessionId " +
+            s"so will return a http $NOT_ACCEPTABLE back to client")
+          NotAcceptable(e.getMessage)
         case e =>
           // Log the data we are trying to save as this operation may perform a deletion first and there is no rollback
           val data = candidateAllocations.allocations.map(ca => s"[applicationId=${ca.id},status=${ca.status}]").mkString(",")

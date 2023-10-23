@@ -48,6 +48,7 @@ trait CandidateAllocationRepository {
   def deleteOneAllocation(eventId: String, sessionId: String, applicationId: String, version: String): Future[Unit]
   def updateStructure(): Future[Unit]
   def allAllocationUnconfirmed: Future[Seq[CandidateAllocation]]
+  def findAllConfirmedOrUnconfirmedAllocations(applicationIds: Seq[String], eventIds: Seq[String]): Future[Seq[CandidateAllocation]]
 }
 
 @Singleton
@@ -83,6 +84,14 @@ class CandidateAllocationMongoRepository @Inject() (mongoComponent: MongoCompone
 
   override def findAllAllocations(applicationIds: Seq[String]): Future[Seq[CandidateAllocation]] = {
     collection.find(Document("id" -> Document("$in" -> applicationIds))).toFuture()
+  }
+
+  override def findAllConfirmedOrUnconfirmedAllocations(applicationIds: Seq[String], eventIds: Seq[String]): Future[Seq[CandidateAllocation]] = {
+    collection.find(Document(
+      "id" -> Document("$in" -> applicationIds),
+      "eventId" -> Document("$in" -> eventIds),
+      "status" -> Document("$in" -> Seq(AllocationStatuses.CONFIRMED.toBson, AllocationStatuses.UNCONFIRMED.toBson))
+    )).toFuture()
   }
 
   override def findAllUnconfirmedAllocated(days: Int): Future[Seq[CandidateAllocation]] = {

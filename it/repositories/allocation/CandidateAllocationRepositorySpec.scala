@@ -136,6 +136,13 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
       repository.findAllUnconfirmedAllocated(0).futureValue.size mustBe 1
     }
 
+    "find candidates with confirmed or unconfirmed allocations" in {
+      storeAllocations()
+      repository.findAllConfirmedOrUnconfirmedAllocations(Seq(appId1, appId2, appId3), Seq("eventId1", "eventId2")).futureValue.size mustBe 3
+      repository.findAllConfirmedOrUnconfirmedAllocations(Seq(appId1, appId2), Seq("eventId1")).futureValue.size mustBe 2
+      repository.findAllConfirmedOrUnconfirmedAllocations(Seq(appId3), Seq("eventId2")).futureValue.size mustBe 1
+    }
+
     "updateStructure" should {
       "update the expected fields" in {
         storeAllocations()

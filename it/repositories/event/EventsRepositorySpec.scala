@@ -87,7 +87,9 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
     "filter by skills" in {
       repository.save(EventExamples.EventsNew).futureValue
-      val result = repository.getEvents(None, None, None, List(SkillType.QUALITY_ASSURANCE_COORDINATOR)).futureValue
+      val result = repository.getEvents(
+        eventType = None, venueType = None, location = None, List(SkillType.QUALITY_ASSURANCE_COORDINATOR)
+      ).futureValue
 
       result.size mustBe 1
       result.head.venue mustBe EventExamples.VenueNewcastle
@@ -95,7 +97,9 @@ class EventsRepositorySpec extends MongoRepositorySpec {
 
     "filter by skills and Location" in {
       repository.save(EventExamples.EventsNew).futureValue
-      val result = repository.getEvents(None, None, Some(EventExamples.LocationNewcastle), List(SkillType.ASSESSOR)).futureValue
+      val result = repository.getEvents(
+        eventType = None, venueType = None, Some(EventExamples.LocationNewcastle), List(SkillType.ASSESSOR)
+      ).futureValue
       result.size mustBe 1
 
       result.head.venue mustBe EventExamples.VenueNewcastle
@@ -126,6 +130,12 @@ class EventsRepositorySpec extends MongoRepositorySpec {
       repository.save(EventExamples.EventsNew.filter(_.eventType == EventType.FSAC)).futureValue
       val result = repository.getEvents(Some(EventType.FSB), Some(EventExamples.VenueNewcastle)).futureValue
       result.size mustBe 0
+    }
+
+    "fetch all events of the same type" in {
+      repository.save(EventExamples.EventsNew).futureValue
+      repository.getEvents(EventType.FSAC).futureValue.size mustBe 2
+      repository.getEvents(EventType.FSB).futureValue.size mustBe 3
     }
   }
 

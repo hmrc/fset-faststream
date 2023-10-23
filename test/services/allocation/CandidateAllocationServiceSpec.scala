@@ -20,6 +20,7 @@ import config.{EventsConfig, MicroserviceAppConfig}
 import connectors.ExchangeObjects.Candidate
 import connectors.{AuthProviderClient, OnlineTestEmailClient}
 import model.ApplicationStatus.ApplicationStatus
+import model.Exceptions.CandidateAlreadyAssignedToOtherEventException
 import model._
 import model.command.{CandidateAllocation, CandidateAllocations}
 import model.exchange.candidateevents.CandidateAllocationWithEvent
@@ -45,7 +46,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout{
+class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout {
   "Allocate candidate" must {
     "save allocation if none already exists" in new TestFixture {
       val eventId = "E1"
@@ -56,11 +57,14 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
         Seq(CandidateAllocation(appId, AllocationStatuses.UNCONFIRMED)))
 
       when(mockEventsService.getEvent(eventId)).thenReturnAsync(EventExamples.e1)
+      when(mockEventsService.getEvents(any[EventType])).thenReturnAsync(Nil)
       //here
 //      when(mockCandidateAllocationRepository.activeAllocationsForSession(eventId, sessionId)).thenReturnAsync(Nil)
       when(mockAllocationServiceCommon.getCandidateAllocations(eventId, sessionId)).thenReturnAsync(
         exchange.CandidateAllocations(version = None, allocations = Nil)
       )
+
+      when(mockCandidateAllocationRepository.findAllConfirmedOrUnconfirmedAllocations(any[Seq[String]], any[Seq[String]])).thenReturnAsync(Nil)
 
       when(mockCandidateAllocationRepository.save(any[Seq[model.persisted.CandidateAllocation]])).thenReturnAsync()
       when(mockAppRepo.removeProgressStatuses(any[String], any[List[ProgressStatuses.ProgressStatus]])).thenReturnAsync()
@@ -70,11 +74,65 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
       when(mockAppRepo.find(appId)).thenReturnAsync(Some(newAllocatedCandidate))
       when(mockAuthProviderClient.findByUserIds(any[Seq[String]])(any[HeaderCarrier])).thenReturnAsync(Nil)
 
-
       val result = service.allocateCandidates(candidateAllocations, append = false).futureValue
       result.eventId mustBe eventId
       result.sessionId mustBe sessionId
       result.allocations mustBe Seq(CandidateAllocation(appId, AllocationStatuses.UNCONFIRMED))
+    }
+
+    "fail to save allocation to event with no allocations if candidate has already been allocated to a different event" in new TestFixture {
+      val eventId = "E1"
+      val sessionId = "71bbe093-cfc6-4cec-ad1a-e15ae829d7b0"
+      val appId = "appId1"
+      val version = "v1"
+      val candidateAllocations = CandidateAllocations(version, eventId, sessionId,
+        Seq(CandidateAllocation(appId, AllocationStatuses.UNCONFIRMED)))
+
+      when(mockEventsService.getEvent(eventId)).thenReturnAsync(EventExamples.e1)
+      when(mockEventsService.getEvents(any[EventType])).thenReturnAsync(Seq(EventExamples.e3))
+
+      when(mockAllocationServiceCommon.getCandidateAllocations(eventId, sessionId)).thenReturnAsync(
+        exchange.CandidateAllocations(version = None, allocations = Nil)
+      )
+
+      val existingAllocation = model.persisted.CandidateAllocation(
+        "appId", "eventId", "sessionId", AllocationStatuses.CONFIRMED, "v1",
+        removeReason = None, LocalDate.now(), reminderSent = false)
+
+      when(mockCandidateAllocationRepository.findAllConfirmedOrUnconfirmedAllocations(any[Seq[String]], any[Seq[String]]))
+        .thenReturnAsync(Seq(existingAllocation))
+
+      val result = service.allocateCandidates(candidateAllocations, append = false).failed.futureValue
+      result mustBe a[CandidateAlreadyAssignedToOtherEventException]
+    }
+
+    "fail to save allocation to event with allocations if candidate has already been allocated to a different event" in new TestFixture {
+      val eventId = "E1"
+      val sessionId = "71bbe093-cfc6-4cec-ad1a-e15ae829d7b0"
+      val appId = "appId1"
+      val version = "v1"
+      val candidateAllocations = CandidateAllocations(version, eventId, sessionId,
+        Seq(CandidateAllocation(appId, AllocationStatuses.UNCONFIRMED)))
+
+      when(mockEventsService.getEvent(eventId)).thenReturnAsync(EventExamples.e1)
+      when(mockEventsService.getEvents(any[EventType])).thenReturnAsync(Seq(EventExamples.e3))
+
+      when(mockAllocationServiceCommon.getCandidateAllocations(eventId, sessionId)).thenReturnAsync(
+        exchange.CandidateAllocations(
+          version = Some("v1"),
+          allocations = Seq(model.exchange.CandidateAllocation("appId", AllocationStatuses.CONFIRMED, removeReason = None))
+        )
+      )
+
+      val existingAllocation = model.persisted.CandidateAllocation(
+        "appId", "eventId", "sessionId", AllocationStatuses.CONFIRMED, "v1",
+        removeReason = None, LocalDate.now(), reminderSent = false)
+
+      when(mockCandidateAllocationRepository.findAllConfirmedOrUnconfirmedAllocations(any[Seq[String]], any[Seq[String]]))
+        .thenReturnAsync(Seq(existingAllocation))
+
+      val result = service.allocateCandidates(candidateAllocations, append = false).failed.futureValue
+      result mustBe a[CandidateAlreadyAssignedToOtherEventException]
     }
 
     "exclude candidates who have been offered a job when processing new allocations for the same event" in new TestFixture {
@@ -85,6 +143,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
       val appId2 = "appId2"
 
       when(mockEventsService.getEvent(eventId)).thenReturnAsync(EventExamples.e1)
+      when(mockEventsService.getEvents(any[EventType])).thenReturnAsync(Nil)
 
       val candidate1 = model.persisted.CandidateAllocation(
         id = appId1,
@@ -102,6 +161,8 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
       when(mockAllocationServiceCommon.getCandidateAllocations(eventId, sessionId)).thenReturnAsync(existingAllocations)
       //here
 //      when(mockCandidateAllocationRepository.activeAllocationsForSession(eventId, sessionId)).thenReturnAsync(existingAllocations)
+
+      when(mockCandidateAllocationRepository.findAllConfirmedOrUnconfirmedAllocations(any[Seq[String]], any[Seq[String]])).thenReturnAsync(Nil)
 
       when(mockCandidateAllocationRepository.delete(any[Seq[model.persisted.CandidateAllocation]])).thenReturnAsync()
       when(mockCandidateAllocationRepository.save(any[Seq[model.persisted.CandidateAllocation]])).thenReturnAsync()
@@ -127,6 +188,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
       val appId2 = "appId2"
 
       when(mockEventsService.getEvent(eventId)).thenReturnAsync(EventExamples.e1)
+      when(mockEventsService.getEvents(any[EventType])).thenReturnAsync(Nil)
 
       val candidate1 = model.persisted.CandidateAllocation(
         id = appId1,
@@ -146,6 +208,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
       val existingAllocations = exchange.CandidateAllocations.apply(existingPersistedAllocations)
       when(mockAllocationServiceCommon.getCandidateAllocations(eventId, sessionId)).thenReturnAsync(existingAllocations)
 
+      when(mockCandidateAllocationRepository.findAllConfirmedOrUnconfirmedAllocations(any[Seq[String]], any[Seq[String]])).thenReturnAsync(Nil)
       when(mockCandidateAllocationRepository.delete(any[Seq[model.persisted.CandidateAllocation]])).thenReturnAsync()
       when(mockCandidateAllocationRepository.save(any[Seq[model.persisted.CandidateAllocation]])).thenReturnAsync()
 
@@ -174,6 +237,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
       val appId2 = "appId2"
 
       when(mockEventsService.getEvent(eventId)).thenReturnAsync(EventExamples.e1)
+      when(mockEventsService.getEvents(any[EventType])).thenReturnAsync(Nil)
 
       val candidate1 = model.persisted.CandidateAllocation(
         id = appId1,
@@ -191,6 +255,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
       val existingAllocations = exchange.CandidateAllocations.apply(existingPersistedAllocations)
       when(mockAllocationServiceCommon.getCandidateAllocations(eventId, sessionId)).thenReturnAsync(existingAllocations)
 
+      when(mockCandidateAllocationRepository.findAllConfirmedOrUnconfirmedAllocations(any[Seq[String]], any[Seq[String]])).thenReturnAsync(Nil)
       when(mockCandidateAllocationRepository.delete(any[Seq[model.persisted.CandidateAllocation]])).thenReturnAsync()
       when(mockCandidateAllocationRepository.save(any[Seq[model.persisted.CandidateAllocation]])).thenReturnAsync()
 
