@@ -48,6 +48,7 @@ trait EventsRepository {
   def getEvent(id: String): Future[Event]
   def getEvents(eventType: Option[EventType] = None, venue: Option[Venue] = None,
     location: Option[Location] = None, skills: Seq[SkillType] = Nil, description: Option[String] = None): Future[Seq[Event]]
+  def getEvents(eventType: EventType): Future[Seq[Event]]
   def getEventsById(eventIds: Seq[String], eventType: Option[EventType] = None): Future[Seq[Event]]
   def getEventsManuallyCreatedAfter(dateTime: DateTime): Future[Seq[Event]]
   def updateStructure(): Future[Unit]
@@ -84,7 +85,7 @@ class EventsMongoRepository @Inject() (mongoComponent: MongoComponent, appConfig
   override def getEvent(id: String): Future[Event] = {
     collection.find(Document("id" -> id)).headOption map {
       case Some(event) => event
-      case None => throw EventNotFoundException(s"No event found with appId $id")
+      case None => throw EventNotFoundException(s"No event found with event id $id")
     }
   }
 
@@ -120,6 +121,14 @@ class EventsMongoRepository @Inject() (mongoComponent: MongoComponent, appConfig
       buildLocationFilter(location),
       buildSkillsFilter(skills),
       buildDescriptionFilter(description)
+    ).flatten.fold(Document.empty)(_ ++ _)
+
+    collection.find(query).toFuture()
+  }
+
+  override def getEvents(eventType: EventType): Future[Seq[Event]] = {
+    val query = List(
+      buildEventTypeFilter(Some(eventType))
     ).flatten.fold(Document.empty)(_ ++ _)
 
     collection.find(query).toFuture()

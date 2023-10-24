@@ -22,7 +22,7 @@ import connectors.{AuthProviderClient, OnlineTestEmailClient}
 
 import javax.inject.{Inject, Singleton}
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions.OptimisticLockException
+import model.Exceptions.{CandidateAlreadyAssignedToOtherEventException, OptimisticLockException}
 import model.ProgressStatuses.EventProgressStatuses
 import model._
 import model.command.CandidateAllocation
@@ -134,6 +134,22 @@ class CandidateAllocationService @Inject() (candidateAllocationRepo: CandidateAl
       }
   }
 
+  private def isAlreadyAssignedToAnEvent(eventId: String, newAllocations: command.CandidateAllocations) = {
+    for {
+      event <- eventsService.getEvent(eventId)
+      sameEvents <- eventsService.getEvents(event.eventType)
+
+      // Identify the eventIds of the other events of the same type
+      otherEventIds = sameEvents.filterNot(_.id == eventId).map(_.id)
+      appIdsToAssign = newAllocations.allocations.map(_.id)
+
+      // Have any candidates already been allocated to the same event type?
+      candidatesAlreadyAssigned <- candidateAllocationRepo.findAllConfirmedOrUnconfirmedAllocations(appIdsToAssign, otherEventIds)
+    } yield {
+      candidatesAlreadyAssigned.nonEmpty
+    }
+  }
+
   def allocateCandidates(newAllocations: command.CandidateAllocations,
                          append: Boolean
                         )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[command.CandidateAllocations] = {
@@ -142,24 +158,42 @@ class CandidateAllocationService @Inject() (candidateAllocationRepo: CandidateAl
       getCandidateAllocations(newAllocations.eventId, newAllocations.sessionId).flatMap { existingAllocation =>
         existingAllocation.allocations match {
           case Nil =>
-            val toPersist = persisted.CandidateAllocation.fromCommand(newAllocations)
-            candidateAllocationRepo.save(toPersist).flatMap { _ =>
-              updateStatusInvited(toPersist, event.eventType).flatMap { _ =>
-                Future.sequence(newAllocations.allocations.map(sendCandidateEmail(_, event, UniqueIdentifier(newAllocations.sessionId))))
+            (for {
+              alreadyAssigned <- isAlreadyAssignedToAnEvent(newAllocations.eventId, newAllocations)
+            } yield {
+              if (alreadyAssigned) {
+                throw CandidateAlreadyAssignedToOtherEventException(
+                  s"There are candidate(s) who have already been assigned to another ${event.eventType} event"
+                )
               }
-            }.map { _ =>
-              command.CandidateAllocations(newAllocations.eventId, newAllocations.sessionId, toPersist)
-            }
+              val toPersist = persisted.CandidateAllocation.fromCommand(newAllocations)
+              candidateAllocationRepo.save(toPersist).flatMap { _ =>
+                updateStatusInvited(toPersist, event.eventType).flatMap { _ =>
+                  Future.sequence(newAllocations.allocations.map(sendCandidateEmail(_, event, UniqueIdentifier(newAllocations.sessionId))))
+                }
+              }.map { _ =>
+                command.CandidateAllocations(newAllocations.eventId, newAllocations.sessionId, toPersist)
+              }
+            }).flatten
           case _ =>
-            updateExistingAllocations(existingAllocation, newAllocations, event.eventType, append).flatMap { res =>
-              // Do not send emails to the existing allocations
-              val existingIds = existingAllocation.allocations.map(_.id)
-              Future.sequence(
-                newAllocations.allocations
-                  .filter(alloc => !existingIds.contains(alloc.id))
-                  .map(sendCandidateEmail(_, event, UniqueIdentifier(newAllocations.sessionId)))
-              ).map { _ => res }
-            }
+            (for {
+              alreadyAssigned <- isAlreadyAssignedToAnEvent(newAllocations.eventId, newAllocations)
+            } yield {
+              if (alreadyAssigned) {
+                throw CandidateAlreadyAssignedToOtherEventException(
+                  s"There are candidate(s) who have already been assigned to another ${event.eventType} event"
+                )
+              }
+              updateExistingAllocations(existingAllocation, newAllocations, event.eventType, append).flatMap { res =>
+                // Do not send emails to the existing allocations
+                val existingIds = existingAllocation.allocations.map(_.id)
+                Future.sequence(
+                  newAllocations.allocations
+                    .filter(alloc => !existingIds.contains(alloc.id))
+                    .map(sendCandidateEmail(_, event, UniqueIdentifier(newAllocations.sessionId)))
+                ).map { _ => res }
+              }
+            }).flatten
         }
       }
     }

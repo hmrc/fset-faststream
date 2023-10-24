@@ -17,18 +17,23 @@
 package controllers
 
 import config.TestFixtureBase
-import model.FSACIndicator
-import model.exchange.{ CandidateEligibleForEvent, CandidatesEligibleForEventResponse }
+import model.Exceptions.{CandidateAlreadyAssignedToOtherEventException, OptimisticLockException}
+import model.{AllocationStatuses, FSACIndicator}
+import model.exchange.{CandidateAllocation, CandidateAllocations, CandidateEligibleForEvent, CandidatesEligibleForEventResponse}
 import model.persisted.eventschedules.EventType.EventType
-import model.persisted.eventschedules.{ Event, EventType, Location, Venue }
-import org.joda.time.{ DateTime, LocalDate, LocalTime }
+import model.persisted.eventschedules.{Event, EventType, Location, Venue}
+import org.joda.time.{DateTime, LocalDate, LocalTime}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import play.api.test.Helpers.{ contentAsJson, status, _ }
-import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
+import play.api.mvc.RequestHeader
+import play.api.test.Helpers.{contentAsJson, status, _}
+import play.api.test.{FakeHeaders, FakeRequest, Helpers}
 import services.allocation.CandidateAllocationService
 import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
+import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.concurrent.Future
 
 class CandidateAllocationControllerSpec  extends UnitWithAppSpec {
 
@@ -66,6 +71,34 @@ class CandidateAllocationControllerSpec  extends UnitWithAppSpec {
       (jsonResponse \ "totalCandidates").as[Int] mustBe 1
 
       status(result) mustBe OK
+    }
+  }
+
+  "Allocate candidates" must {
+    "return CONFLICT when there is a OptimisticLockException" in new TestFixture {
+      when(mockCandidateAllocationService.allocateCandidates(any[model.command.CandidateAllocations], any[Boolean])(
+        any[HeaderCarrier], any[RequestHeader]))
+        .thenReturn(Future.failed(OptimisticLockException("Boom")))
+
+      val allocations = CandidateAllocations(version = None,
+        allocations = Seq(CandidateAllocation("appId", AllocationStatuses.CONFIRMED, removeReason = None))
+      )
+      val request = fakeRequest(allocations)
+      val result = controller.allocateCandidates("eventId", "sessionId", append = false)(request)
+      status(result) mustBe CONFLICT
+    }
+
+    "return NOT_ACCEPTABLE when there is a CandidateAlreadyAssignedToOtherEventException" in new TestFixture {
+      when(mockCandidateAllocationService.allocateCandidates(any[model.command.CandidateAllocations], any[Boolean])(
+        any[HeaderCarrier], any[RequestHeader]))
+        .thenReturn(Future.failed(CandidateAlreadyAssignedToOtherEventException("Boom")))
+
+      val allocations = CandidateAllocations(version = None,
+        allocations = Seq(CandidateAllocation("appId", AllocationStatuses.CONFIRMED, removeReason = None))
+      )
+      val request = fakeRequest(allocations)
+      val result = controller.allocateCandidates("eventId", "sessionId", append = false)(request)
+      status(result) mustBe NOT_ACCEPTABLE
     }
   }
 

@@ -43,6 +43,11 @@ object EventExamples {
     attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), createdAt = now,
     skillRequirements = Map(), sessions = List())
 
+  val e3 = Event(id = UniqueIdentifier.randomUniqueIdentifier.toString(), eventType = EventType.FSAC, description = "",
+    location = LocationLondon, venue = VenueLondon, date = LocalDate.now(), capacity = 10, minViableAttendees = 1,
+    attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3),
+    createdAt = now, skillRequirements = Map(), sessions = List())
+
   val e1Session1Id = UniqueIdentifier.randomUniqueIdentifier.toString()
   val session2Id = UniqueIdentifier.randomUniqueIdentifier.toString()
 

@@ -38,7 +38,7 @@ class AssistanceDetailsControllerSpec extends UnitWithAppSpec {
       when(mockAssistanceDetailsService.update(AppId, UserId, AssistanceDetailsExchangeExamples.DisabilityGisAndAdjustments)
       ).thenReturn(Future.successful(()))
       val result = controller.update(UserId, AppId)(Request)
-      status(result) must be(CREATED)
+      status(result) mustBe CREATED
       verify(mockAuditService).logEvent(eqTo("AssistanceDetailsSaved"))(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     }
 
@@ -50,7 +50,7 @@ class AssistanceDetailsControllerSpec extends UnitWithAppSpec {
       val Request = fakeRequest(details)
       when(mockAssistanceDetailsService.update(AppId, UserId, details)).thenReturn(Future.failed(CannotUpdateAssistanceDetails(UserId)))
       val result = controller.update(UserId, AppId)(Request)
-      status(result) must be(BAD_REQUEST)
+      status(result) mustBe BAD_REQUEST
       verify(mockAuditService, times(0)).logEvent(eqTo("AssistanceDetailsSaved"))(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     }
   }
