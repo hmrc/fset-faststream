@@ -77,9 +77,13 @@ class CandidateAllocationMongoRepository @Inject() (mongoComponent: MongoCompone
   }
 
   override def save(allocations: Seq[CandidateAllocation]): Future[Unit] = {
-    delete(allocations, ignoreMissed = true).flatMap { _ =>
-      collection.insertMany(allocations).toFuture()
-    } map ( _ => () )
+    if (allocations.nonEmpty) {
+      delete(allocations, ignoreMissed = true).flatMap { _ =>
+        collection.insertMany(allocations).toFuture()
+      } map (_ => ())
+    } else {
+      Future.successful(())
+    }
   }
 
   override def findAllAllocations(applicationIds: Seq[String]): Future[Seq[CandidateAllocation]] = {
@@ -171,7 +175,11 @@ class CandidateAllocationMongoRepository @Inject() (mongoComponent: MongoCompone
   }
 
   override def delete(allocations: Seq[CandidateAllocation]): Future[Unit] = {
-    delete(allocations, ignoreMissed = false)
+    if (allocations.nonEmpty) {
+      delete(allocations, ignoreMissed = false)
+    } else {
+      Future.successful(())
+    }
   }
 
   override def deleteOneAllocation(eventId: String, sessionId: String, applicationId: String, version: String): Future[Unit] = {
