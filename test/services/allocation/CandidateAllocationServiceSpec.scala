@@ -83,10 +83,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
     "fail to save allocation to event with no allocations if candidate has already been allocated to a different event" in new TestFixture {
       val eventId = "E1"
       val sessionId = "71bbe093-cfc6-4cec-ad1a-e15ae829d7b0"
-      val appId = "appId1"
       val version = "v1"
-      val candidateAllocations = CandidateAllocations(version, eventId, sessionId,
-        Seq(CandidateAllocation(appId, AllocationStatuses.UNCONFIRMED)))
 
       when(mockEventsService.getEvent(eventId)).thenReturnAsync(EventExamples.e1)
       when(mockEventsService.getEvents(any[EventType])).thenReturnAsync(Seq(EventExamples.e3))
@@ -102,6 +99,9 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
       when(mockCandidateAllocationRepository.findAllConfirmedOrUnconfirmedAllocations(any[Seq[String]], any[Seq[String]]))
         .thenReturnAsync(Seq(existingAllocation))
 
+      val candidateAllocations = CandidateAllocations(version, eventId, sessionId,
+        Seq(CandidateAllocation("appId1", AllocationStatuses.UNCONFIRMED)))
+
       val result = service.allocateCandidates(candidateAllocations, append = false).failed.futureValue
       result mustBe a[CandidateAlreadyAssignedToOtherEventException]
     }
@@ -109,10 +109,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
     "fail to save allocation to event with allocations if candidate has already been allocated to a different event" in new TestFixture {
       val eventId = "E1"
       val sessionId = "71bbe093-cfc6-4cec-ad1a-e15ae829d7b0"
-      val appId = "appId1"
       val version = "v1"
-      val candidateAllocations = CandidateAllocations(version, eventId, sessionId,
-        Seq(CandidateAllocation(appId, AllocationStatuses.UNCONFIRMED)))
 
       when(mockEventsService.getEvent(eventId)).thenReturnAsync(EventExamples.e1)
       when(mockEventsService.getEvents(any[EventType])).thenReturnAsync(Seq(EventExamples.e3))
@@ -130,6 +127,9 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
 
       when(mockCandidateAllocationRepository.findAllConfirmedOrUnconfirmedAllocations(any[Seq[String]], any[Seq[String]]))
         .thenReturnAsync(Seq(existingAllocation))
+
+      val candidateAllocations = CandidateAllocations(version, eventId, sessionId,
+        Seq(CandidateAllocation("appId1", AllocationStatuses.UNCONFIRMED)))
 
       val result = service.allocateCandidates(candidateAllocations, append = false).failed.futureValue
       result mustBe a[CandidateAlreadyAssignedToOtherEventException]

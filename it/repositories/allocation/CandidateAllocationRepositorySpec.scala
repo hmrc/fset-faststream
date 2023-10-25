@@ -143,6 +143,14 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
       repository.findAllConfirmedOrUnconfirmedAllocations(Seq(appId3), Seq("eventId2")).futureValue.size mustBe 1
     }
 
+    "handle saving an empty list of allocations" in {
+      repository.save(Nil).futureValue mustBe unit
+    }
+
+    "handle deleting an empty list of allocations" in {
+      repository.delete(Nil).futureValue mustBe unit
+    }
+
     "updateStructure" should {
       "update the expected fields" in {
         storeAllocations()
