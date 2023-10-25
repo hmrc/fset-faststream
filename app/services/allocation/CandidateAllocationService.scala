@@ -146,6 +146,14 @@ class CandidateAllocationService @Inject() (candidateAllocationRepo: CandidateAl
       // Have any candidates already been allocated to the same event type?
       candidatesAlreadyAssigned <- candidateAllocationRepo.findAllConfirmedOrUnconfirmedAllocations(appIdsToAssign, otherEventIds)
     } yield {
+      if (candidatesAlreadyAssigned.nonEmpty) {
+        val data = candidatesAlreadyAssigned.map { caa =>
+          s"applicationId=${caa.id}, eventId=${caa.eventId}, sessionId=${caa.sessionId}, status=${caa.status}"
+        }.mkString(" | ")
+        logger.warn(
+          s"When assigning candidates to event $eventId, the following candidates are already assigned to a different event: $data"
+        )
+      }
       candidatesAlreadyAssigned.nonEmpty
     }
   }
