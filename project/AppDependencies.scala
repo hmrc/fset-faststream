@@ -22,12 +22,9 @@ import sbt._
 object AppDependencies {
 
   val compile = Seq(
-    "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-28"         % "1.3.0",
-    "uk.gov.hmrc"                   %% "bootstrap-backend-play-28"  % "7.21.0",
+    "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-28"         % "1.5.0",
+    "uk.gov.hmrc"                   %% "bootstrap-backend-play-28"  % "7.23.0",
     "com.typesafe.play"             %% "play-json-joda"             % "2.9.2",
-    "org.webjars"                   %% "webjars-play"               % "2.7.3",
-    "org.webjars"                   %  "bootstrap"                  % "3.1.1",
-    "org.webjars"                   %  "jquery"                     % "1.11.0",
     // If you move to 1.5.0 it breaks AssessmentCentreServiceIntSpec ficus deserialization
     "com.iheart"                    %% "ficus"                      % "1.4.7",
 // Removed when we changed scala version 2.12.11 -> 2.12.15
