@@ -40,7 +40,7 @@ lazy val microservice = Project(appName, file("."))
   .settings(
     routesImport += "controllers.Binders._",
     targetJvm := "jvm-1.8",
-    scalaVersion := "2.13.8",
+    scalaVersion := "2.13.12",
     libraryDependencies ++= appDependencies,
 
     Test / parallelExecution := false,

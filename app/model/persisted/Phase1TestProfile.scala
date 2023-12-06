@@ -52,6 +52,22 @@ case class PsiTest(inventoryId: String,
                    testResult: Option[model.persisted.PsiTestResult] = None,
                    invigilatedAccessCode: Option[String] = None
                   ) extends Test {
+  override def toString =
+    s"inventoryId=$inventoryId," +
+      s"orderId=$orderId," +
+      s"usedForResults=$usedForResults," +
+      s"testUrl=$testUrl," +
+      s"testProvider=$testProvider," +
+      s"invitationDate=$invitationDate," +
+      s"completedDateTime=$completedDateTime," +
+      s"resultsReadyToDownload=$resultsReadyToDownload," +
+      s"assessmentId=$assessmentId," +
+      s"reportId=$reportId," +
+      s"normId=$normId," +
+      s"reportLinkURL=$reportLinkURL," +
+      s"reportStatus=$reportStatus," +
+      s"testResult=$testResult," +
+      s"invigilatedAccessCode=$invigilatedAccessCode"
   def isCompleted = completedDateTime.isDefined
   def toExchange = model.exchange.PsiTest(
     inventoryId,
