@@ -15,10 +15,10 @@
  */
 
 import play.sbt.PlayImport.PlayKeys.playDefaultPort
-import play.sbt.routes.RoutesKeys._
-import sbt.Keys._
+import play.sbt.routes.RoutesKeys.*
+import sbt.Keys.*
 import sbt.Tests.{Group, SubProcess}
-import sbt._
+import sbt.*
 import uk.gov.hmrc.DefaultBuildSettings.{addTestReportOption, defaultSettings, scalaSettings, targetJvm}
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
 import uk.gov.hmrc.versioning.SbtGitVersioning.autoImport.majorVersion
@@ -26,16 +26,16 @@ import uk.gov.hmrc.versioning.SbtGitVersioning.autoImport.majorVersion
 val appName = "fset-faststream"
 val appDependencies : Seq[ModuleID] = AppDependencies()
 
-lazy val playSettings : Seq[Setting[_]] = Seq.empty
+lazy val playSettings : Seq[Setting[?]] = Seq.empty
 
 lazy val compileScalastyle = taskKey[Unit]("compileScalastyle")
 
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
   .settings(majorVersion := 1)
-  .settings(playSettings : _*)
-  .settings(scalaSettings: _*)
-  .settings(defaultSettings(): _*)
+  .settings(playSettings *)
+  .settings(scalaSettings *)
+  .settings(defaultSettings() *)
   .settings(playDefaultPort := 8101)
   .settings(
     routesImport += "controllers.Binders._",

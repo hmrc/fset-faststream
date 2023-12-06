@@ -17,7 +17,6 @@
 package testkit
 
 import akka.stream.Materializer
-import com.kenshoo.play.metrics.PlayModule
 import org.scalatest.TestSuite
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -40,7 +39,6 @@ trait WithAppSpec extends GuiceOneAppPerSuite with Results with FutureHelper wit
   val UserId = "UserId"
 
   override implicit lazy val app: Application = new GuiceApplicationBuilder()
-    .disable[PlayModule]
 //    .disable[ReactiveMongoHmrcModule] TODO: mongo fix me
     .build()
 
