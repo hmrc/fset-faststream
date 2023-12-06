@@ -17,7 +17,6 @@
 package testkit
 
 import akka.stream.Materializer
-import com.kenshoo.play.metrics.PlayModule
 import config.MicroserviceAppConfig
 import org.joda.time.DateTime
 import org.joda.time.Seconds._
@@ -52,9 +51,7 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
   val timesApproximatelyEqual: (DateTime, DateTime) => Boolean = (time1: DateTime, time2: DateTime) => secondsBetween(time1, time2)
     .isLessThan(seconds(5))
 
-  implicit final val app: Application = new GuiceApplicationBuilder()
-    .disable[PlayModule]
-    .build()
+  implicit final val app: Application = new GuiceApplicationBuilder().build()
 
   override implicit def patienceConfig = PatienceConfig(timeout = scaled(Span(timeout.toMillis, Millis)))
 

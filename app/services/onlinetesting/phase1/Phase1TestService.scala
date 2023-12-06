@@ -129,7 +129,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
     // The approach to fixing it here is to generate futures that return Try[A] and then all futures will be
     // traversed. Afterward, we look at the results and clear up the mess
     // We space out calls to the test provider because it appears they fail when they are too close together.
-    // After zipWithIndex testNames = ( ("test1", 0), ("test2", 1) , ("test3", 3), ("test4", 3))
+    // After zipWithIndex testNames = ( ("test1", 0), ("test2", 1) , ("test3", 2), ("test4", 3))
 
     val registerCandidate = FutureEx.traverseToTry(testNames.zipWithIndex) {
       case (testName, delayModifier) =>
@@ -236,7 +236,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
       aoa <- registerApplicant(application, testIds)
     } yield {
       if (aoa.status != AssessmentOrderAcknowledgement.acknowledgedStatus) {
-        val msg = s"Received response status of ${aoa.status} when registering candidate " +
+        val msg = s"Received unexpected response status of ${aoa.status} when registering candidate " +
           s"${application.applicationId} to phase1 tests with inventoryId:${testIds.inventoryId}"
         logger.warn(msg)
         throw TestRegistrationException(msg)

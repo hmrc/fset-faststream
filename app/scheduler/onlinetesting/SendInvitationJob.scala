@@ -28,6 +28,8 @@ import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
 import services.onlinetesting.OnlineTestService
 import uk.gov.hmrc.http.HeaderCarrier
+import model.Exceptions.ConnectorException
+import uk.gov.hmrc.http.GatewayTimeoutException
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -63,14 +65,17 @@ trait SendInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[Schedu
   override def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     onlineTestingService.nextApplicationsReadyForOnlineTesting(batchSize).flatMap {
       case Nil =>
-        logger.warn(s"No candidates found to invite to phase $phase")
+        logger.warn(s"No candidates found to invite to phase $phase with batchSize $batchSize")
         Future.successful(())
       case applications =>
         val applicationIds = applications.map( _.applicationId ).mkString(",")
-        logger.warn(s"Inviting the following candidates to phase $phase: $applicationIds")
+        logger.warn(s"Inviting the following candidates to phase $phase: $applicationIds. BatchSize = $batchSize")
         implicit val hc: HeaderCarrier = HeaderCarrier()
         implicit val rh: RequestHeader = EmptyRequestHeader
-        onlineTestingService.registerAndInviteForTestGroup(applications)
+        onlineTestingService.registerAndInviteForTestGroup(applications).recover {
+          case e @ (_: ConnectorException | _: GatewayTimeoutException)  =>
+            logger.error(s"Error occurred inviting candidate ($applicationIds) to $phase: $e")
+        }
     }
   }
 }
