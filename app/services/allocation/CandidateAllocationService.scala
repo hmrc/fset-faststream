@@ -38,6 +38,7 @@ import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
+import repositories.fsb.FsbRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import repositories.{CandidateAllocationMongoRepository, SchemeRepository}
 import services.allocation.CandidateAllocationService.CouldNotFindCandidateWithApplication
@@ -57,6 +58,7 @@ class CandidateAllocationService @Inject() (candidateAllocationRepo: CandidateAl
                                              contactDetailsRepo: ContactDetailsRepository,
                                              personalDetailsRepo: PersonalDetailsRepository,
                                              schemeRepository: SchemeRepository,
+                                             fsbRepo: FsbRepository,
                                              eventsService: EventsService,
                                              allocationServiceCommon: AllocationServiceCommon, // Breaks circular dependencies
                                              val eventService: StcEventService,
@@ -134,7 +136,60 @@ class CandidateAllocationService @Inject() (candidateAllocationRepo: CandidateAl
       }
   }
 
-  private def isAlreadyAssignedToAnEvent(eventId: String, newAllocations: command.CandidateAllocations) = {
+  //scalastyle:off method.length
+  // Protected instead of private so the test class has access
+  protected[allocation] def isAlreadyAssignedToAnEvent(eventId: String,
+                                                       newAllocations: command.CandidateAllocations) = {
+    def isFsbEvent(event: Event) = event.eventType == EventType.FSB
+
+    /**
+      * Verifies if the candidate has been assigned to other fsb events and the candidate has failed them all
+      * @param eventType            the type of event we are dealing with
+      * @param candidateAllocations the other fsb event allocations to which the candidate has been assigned
+      * @return
+      * If this method returns false that means the candidate can be assigned to the new event
+      * If this method returns true that means the candidate cannot be assigned to the new event
+      */
+    def isFsbCandidateWithFailedEvents(eventType: EventType,
+                                       candidateAllocations: Seq[model.persisted.CandidateAllocation]) = {
+      if (eventType == EventType.FSB) {
+        Future.sequence(candidateAllocations.map { allocation =>
+          eventsService.getEvent(allocation.eventId).flatMap { event =>
+            val scheme = schemeRepository.getSchemeForFsb(event.description)
+            // Now we need to find the fsb evaluation for the scheme
+            fsbRepo.findByApplicationId(allocation.id).map { fsbResultsOpt =>
+              fsbResultsOpt.exists { fsbResults =>
+                val schemeEvaluationResultOpt = fsbResults.evaluation.result.find(schemeEvaluationResult =>
+                  schemeEvaluationResult.schemeId == scheme.id)
+                // If the evaluation result is Red then the candidate can be added to the event
+                schemeEvaluationResultOpt.exists(_.result == EvaluationResults.Red.toString)
+              }
+            }
+          }
+          // We want all the same value and that value to be true indicating the result is Red for each FSB event
+        }).map(seqOfBool => seqOfBool.distinct.length == 1 && seqOfBool.distinct.head)
+      } else {
+        Future.successful(false)
+      }
+    }
+
+    /**
+      * Verifies that the candidate has not been assigned to the same fsb event type by another admin
+      *
+      * @param event                the event we are dealing with
+      * @param candidateAllocations the other fsb event allocations to which the candidate has been assigned
+      * @return true indicates the candidate has already been allocated to another event of the same type, otherwise false
+      */
+    def hasFsbCandidateAlreadyBeenAssignedToSameEvent(event: Event, candidateAllocations: Seq[model.persisted.CandidateAllocation]) = {
+      if (event.eventType == EventType.FSB) {
+        Future.sequence(candidateAllocations.map { allocation =>
+          eventsService.getEvent(allocation.eventId).map( _.description )
+        }).map( _.contains( event.description ))
+      } else {
+        Future.successful(false)
+      }
+    }
+
     for {
       event <- eventsService.getEvent(eventId)
       sameEvents <- eventsService.getEvents(event.eventType)
@@ -144,17 +199,31 @@ class CandidateAllocationService @Inject() (candidateAllocationRepo: CandidateAl
       appIdsToAssign = newAllocations.allocations.map(_.id)
 
       // Have any candidates already been allocated to the same event type?
-      candidatesAlreadyAssigned <- candidateAllocationRepo.findAllConfirmedOrUnconfirmedAllocations(appIdsToAssign, otherEventIds)
+      candidatesAlreadyAssignedToSameEvent <- candidateAllocationRepo.findAllConfirmedOrUnconfirmedAllocations(appIdsToAssign, otherEventIds)
+
+      // Only candidates in FSB can be assigned to multiple events so we need to check the candidate failed those events
+      isFsbCandidateWithAllFailedEvents <- isFsbCandidateWithFailedEvents(event.eventType, candidatesAlreadyAssignedToSameEvent)
+      hasFsbCandidateAlreadyBeenAssignedToSameEvent <- hasFsbCandidateAlreadyBeenAssignedToSameEvent(event, candidatesAlreadyAssignedToSameEvent)
+      isFsb = isFsbEvent(event)
     } yield {
-      if (candidatesAlreadyAssigned.nonEmpty) {
-        val data = candidatesAlreadyAssigned.map { caa =>
-          s"applicationId=${caa.id}, eventId=${caa.eventId}, sessionId=${caa.sessionId}, status=${caa.status}"
-        }.mkString(" | ")
-        logger.warn(
-          s"When assigning candidates to event $eventId, the following candidates are already assigned to a different event: $data"
-        )
+      val canBeAssigned = false
+      val cannotBeAssigned = true
+      (candidatesAlreadyAssignedToSameEvent.nonEmpty, isFsb,
+        isFsbCandidateWithAllFailedEvents, hasFsbCandidateAlreadyBeenAssignedToSameEvent) match {
+        case (true, false, _, _) => // FSAC candidate has already been assigned to another FSAC event so cannot be assigned again
+          val data = candidatesAlreadyAssignedToSameEvent.map { caa =>
+            s"applicationId=${caa.id}, eventId=${caa.eventId}, sessionId=${caa.sessionId}, status=${caa.status}"
+          }.mkString(" | ")
+          logger.warn(
+            s"When assigning candidates to event $eventId, the following candidates are already assigned to a different event: $data"
+          )
+          cannotBeAssigned
+        // FSB candidate can be assigned to new event
+        case (true, true, true, _) => canBeAssigned
+        // FSB candidate is already assigned to an event of the same type so cannot be assigned twice
+        case (true, true, _, true) => cannotBeAssigned
+        case _ => canBeAssigned
       }
-      candidatesAlreadyAssigned.nonEmpty
     }
   }
 

@@ -34,6 +34,7 @@ import org.mockito.Mockito.{when, _}
 import org.mockito.stubbing.OngoingStubbing
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
+import repositories.fsb.FsbRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import repositories.{CandidateAllocationMongoRepository, SchemeRepository}
 import services.BaseServiceSpec
@@ -336,12 +337,415 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
     }
   }
 
+  "Checking a candidate is already assigned to an event" must {
+    "prevent a FSAC candidate being assigned to 2 events at the same time" in new TestFixture {
+      // Event 1 - candidate already assigned
+      val fsacEvent1 = Event(
+        id = "eventId1", eventType = EventType.FSAC, description = "", location = Location("London"),
+        venue = Venue("LONDON_FSAC", "London (100 Parliament Street)"),
+        date = LocalDate.now().plusDays(2), capacity = 60, minViableAttendees = 55, attendeeSafetyMargin = 10,
+        startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), createdAt = now,
+        skillRequirements = Map(), sessions = List()
+      )
+
+      // Event 2 - we are now attempting to assign the candidate to this fsac event
+      val fsacEvent2 = Event(
+        id = "eventId2", eventType = EventType.FSAC, description = "", location = Location("London"),
+        venue = Venue("LONDON_FSAC", "London (100 Parliament Street)"),
+        date = LocalDate.now().plusDays(2), capacity = 60, minViableAttendees = 55, attendeeSafetyMargin = 10,
+        startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), createdAt = now,
+        skillRequirements = Map(), sessions = List()
+      )
+
+      // We are trying to assign the candidate to fsacEvent2
+      when(mockEventsService.getEvent(fsacEvent2.id)).thenReturnAsync(fsacEvent2)
+
+      // Candidate has already been assigned to fsacEvent1
+      when(mockEventsService.getEvents(EventType.FSAC)).thenReturnAsync(Seq(fsacEvent1))
+
+      // This returns the events the candidate has already been assigned to
+      when(mockCandidateAllocationRepository.findAllConfirmedOrUnconfirmedAllocations(any[Seq[String]], any[Seq[String]])).thenReturnAsync(
+        Seq(
+          model.persisted.CandidateAllocation(
+            "applicationId",
+            "eventId1",
+            "sessionId1",
+            AllocationStatuses.CONFIRMED,
+            "version",
+            removeReason = None,
+            createdAt = LocalDate.now,
+            reminderSent = false
+          )
+        )
+      )
+
+      val newAllocations = command.CandidateAllocations("version", "eventId2", "sessionId1",
+        allocations = Seq(CandidateAllocation("applicationId", AllocationStatuses.CONFIRMED))
+      )
+
+      // A value of true indicates that the candidate cannot be assigned to the new event
+      service.isAlreadyAssignedToAnEvent("eventId2", newAllocations).futureValue mustBe true
+    }
+
+    "allow a FSB candidate who has failed their first FSB event to be assigned to a second event" in new TestFixture {
+      // Event 1 - candidate already assigned and failed the fsb for ProjectDelivery
+      val projectDeliveryFsbEvent = Event(
+        id = "eventId1", eventType = EventType.FSB, description = "PDFS - Skype interview", location = Location("Virtual"),
+        venue = Venue("VIRTUAL", "Virtual"), date = LocalDate.now().plusDays(2), capacity = 60, minViableAttendees = 55,
+        attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), createdAt = now,
+        skillRequirements = Map(), sessions = List()
+      )
+
+      // Event 2 - we are now attempting to assign the candidate to this fsb event for Property
+      val propertyFsbEvent = Event(
+        id = "eventId2", eventType = EventType.FSB, description = "PRO - Skype interview", location = Location("Virtual"),
+        venue = Venue("VIRTUAL", "Virtual"), date = LocalDate.now().plusDays(2), capacity = 60, minViableAttendees = 55,
+        attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), createdAt = now,
+        skillRequirements = Map(), sessions = List()
+      )
+
+      // We are trying to assign the candidate to "PRO - Skype interview" FSB for Property scheme
+      when(mockEventsService.getEvent(propertyFsbEvent.id)).thenReturnAsync(propertyFsbEvent)
+
+      // Candidate has already been assigned to the PDFS - Skype interview FSB for ProjectDelivery scheme and the candidate failed
+      // called from within isFsbCandidateWithFailedEvents
+      when(mockEventsService.getEvent(eqTo(projectDeliveryFsbEvent.id))).thenReturnAsync(projectDeliveryFsbEvent)
+
+      // Candidate has already been assigned to the PDFS - Skype interview FSB for ProjectDelivery scheme and the candidate failed
+      when(mockEventsService.getEvents(EventType.FSB)).thenReturnAsync(Seq(projectDeliveryFsbEvent))
+
+      // This returns the events the candidate has already been assigned to
+      when(mockCandidateAllocationRepository.findAllConfirmedOrUnconfirmedAllocations(any[Seq[String]], any[Seq[String]])).thenReturnAsync(
+        Seq(
+          model.persisted.CandidateAllocation(
+            "applicationId",
+            "eventId1",
+            "sessionId1",
+            AllocationStatuses.CONFIRMED,
+            "version",
+            removeReason = None,
+            createdAt = LocalDate.now,
+            reminderSent = false
+          )
+        )
+      )
+
+      when(mockSchemeRepository.getSchemeForFsb(projectDeliveryFsbEvent.description)).thenReturn(
+        Scheme(
+          SchemeId("ProjectDelivery"), "PDFS", "Project Delivery",
+          civilServantEligible = true,
+          degree = None,
+          siftRequirement = None,
+          siftEvaluationRequired = false,
+          fsbType = Some(FsbType("PDFS - Skype interview")),
+          schemeGuide = None,
+          schemeQuestion = None
+        )
+      )
+
+      when(mockFsbRepo.findByApplicationId("applicationId")).thenReturnAsync(
+        Some(
+          FsbTestGroup(FsbEvaluation(List(SchemeEvaluationResult(SchemeId("ProjectDelivery"), model.EvaluationResults.Red.toString))))
+        )
+      )
+
+      val newAllocations = command.CandidateAllocations("version", "eventId2", "sessionId1",
+        allocations = Seq(CandidateAllocation("applicationId", AllocationStatuses.CONFIRMED))
+      )
+
+      // A value of false indicates that the candidate can be assigned to the new event
+      service.isAlreadyAssignedToAnEvent("eventId2", newAllocations).futureValue mustBe false
+    }
+
+    "allow a FSB candidate who has failed their first and second FSB events to be assigned to a third event" in new TestFixture {
+      // Event 1 - candidate already assigned and failed the fsb for ProjectDelivery
+      val projectDeliveryFsbEvent = Event(
+        id = "eventId1", eventType = EventType.FSB, description = "PDFS - Skype interview", location = Location("Virtual"),
+        venue = Venue("VIRTUAL", "Virtual"), date = LocalDate.now().plusDays(2), capacity = 60, minViableAttendees = 55,
+        attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), createdAt = now,
+        skillRequirements = Map(), sessions = List()
+      )
+
+      // Event 2 - candidate already assigned and failed the fsb for property as well
+      val propertyFsbEvent = Event(
+        id = "eventId2", eventType = EventType.FSB, description = "PRO - Skype interview", location = Location("Virtual"),
+        venue = Venue("VIRTUAL", "Virtual"), date = LocalDate.now().plusDays(2), capacity = 60, minViableAttendees = 55,
+        attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), createdAt = now,
+        skillRequirements = Map(), sessions = List()
+      )
+
+      // Event 3 - we are now attempting to assign the candidate to the fsb for ScienceAndEngineering
+      val scienceAndEngineeringFsbEvent = Event(
+        id = "eventId3", eventType = EventType.FSB, description = "SEFS FSB", location = Location("Virtual"),
+        venue = Venue("VIRTUAL", "Virtual"), date = LocalDate.now().plusDays(2), capacity = 60, minViableAttendees = 55,
+        attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), createdAt = now,
+        skillRequirements = Map(), sessions = List()
+      )
+
+      // We are trying to assign the candidate to "SEFS FSB" FSB for ScienceAndEngineering scheme
+      when(mockEventsService.getEvent(scienceAndEngineeringFsbEvent.id)).thenReturnAsync(scienceAndEngineeringFsbEvent)
+
+      // Candidate has already been assigned to the PDFS - Skype interview FSB for ProjectDelivery scheme and the candidate failed
+      // called from within isFsbCandidateWithFailedEvents
+      when(mockEventsService.getEvent(eqTo(projectDeliveryFsbEvent.id))).thenReturnAsync(projectDeliveryFsbEvent)
+
+      // Candidate has also already been assigned to the PRO - Skype interview FSB for ProjectDelivery scheme and the candidate failed
+      // called from within isFsbCandidateWithFailedEvents
+      when(mockEventsService.getEvent(eqTo(propertyFsbEvent.id))).thenReturnAsync(propertyFsbEvent)
+
+      // Candidate has already been assigned to the fsb events for ProjectDelivery and Property schemes and the candidate failed both
+      when(mockEventsService.getEvents(EventType.FSB)).thenReturnAsync(Seq(projectDeliveryFsbEvent, propertyFsbEvent))
+
+      // This returns the events the candidate has already been assigned to
+      when(mockCandidateAllocationRepository.findAllConfirmedOrUnconfirmedAllocations(any[Seq[String]], any[Seq[String]])).thenReturnAsync(
+        Seq(
+          model.persisted.CandidateAllocation(
+            "applicationId",
+            "eventId1",
+            "sessionId1",
+            AllocationStatuses.CONFIRMED,
+            "version",
+            removeReason = None,
+            createdAt = LocalDate.now,
+            reminderSent = false
+          ),
+          model.persisted.CandidateAllocation(
+            "applicationId",
+            "eventId2",
+            "sessionId1",
+            AllocationStatuses.CONFIRMED,
+            "version",
+            removeReason = None,
+            createdAt = LocalDate.now,
+            reminderSent = false
+          )
+        )
+      )
+
+      when(mockSchemeRepository.getSchemeForFsb(projectDeliveryFsbEvent.description)).thenReturn(
+        Scheme(
+          SchemeId("ProjectDelivery"), "PDFS", "Project Delivery",
+          civilServantEligible = true,
+          degree = None,
+          siftRequirement = None,
+          siftEvaluationRequired = false,
+          fsbType = Some(FsbType("PDFS - Skype interview")),
+          schemeGuide = None,
+          schemeQuestion = None
+        )
+      )
+
+      when(mockSchemeRepository.getSchemeForFsb(propertyFsbEvent.description)).thenReturn(
+        Scheme(
+          SchemeId("Property"), "PRO", "Property",
+          civilServantEligible = true,
+          degree = None,
+          siftRequirement = None,
+          siftEvaluationRequired = false,
+          fsbType = Some(FsbType("PRO - Skype interview")),
+          schemeGuide = None,
+          schemeQuestion = None
+        )
+      )
+
+      when(mockFsbRepo.findByApplicationId("applicationId")).thenReturnAsync(
+        Some(
+          FsbTestGroup(FsbEvaluation(List(
+            SchemeEvaluationResult(SchemeId("ProjectDelivery"), model.EvaluationResults.Red.toString),
+            SchemeEvaluationResult(SchemeId("Property"), model.EvaluationResults.Red.toString)
+          )))
+        )
+      )
+
+      val newAllocations = command.CandidateAllocations("version", "eventId3", "sessionId1",
+        allocations = Seq(CandidateAllocation("applicationId", AllocationStatuses.CONFIRMED))
+      )
+
+      // A value of false indicates that the candidate can be assigned to the new event
+      service.isAlreadyAssignedToAnEvent("eventId3", newAllocations).futureValue mustBe false
+    }
+
+    "prevent a FSB candidate being assigned to 2 events at the same time" in new TestFixture {
+      // Event 1 - the candidate has already been assigned to this fsb for ProjectDelivery
+      val projectDeliveryFsbEvent1 = Event(
+        id = "eventId1", eventType = EventType.FSB, description = "PDFS - Skype interview", location = Location("Virtual"),
+        venue = Venue("VIRTUAL", "Virtual"), date = LocalDate.now().plusDays(2), capacity = 60, minViableAttendees = 55,
+        attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), createdAt = now,
+        skillRequirements = Map(), sessions = List()
+      )
+
+      // Event 2 - we are now attempting to assign the candidate to a different fsb event also for ProjectDelivery
+      val projectDeliveryFsbEvent2 = Event(
+        id = "eventId2", eventType = EventType.FSB, description = "PDFS - Skype interview", location = Location("Virtual"),
+        venue = Venue("VIRTUAL", "Virtual"), date = LocalDate.now().plusDays(2), capacity = 60, minViableAttendees = 55,
+        attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), createdAt = now,
+        skillRequirements = Map(), sessions = List()
+      )
+
+      // We are trying to assign the candidate to "PRO - Skype interview" FSB for Property scheme
+      when(mockEventsService.getEvent(projectDeliveryFsbEvent2.id)).thenReturnAsync(projectDeliveryFsbEvent2)
+
+      // Candidate has already been assigned to "PRO - Skype interview" FSB for Property scheme by another admin
+      // called from within isFsbCandidateWithFailedEvents
+      when(mockEventsService.getEvent(eqTo(projectDeliveryFsbEvent1.id))).thenReturnAsync(projectDeliveryFsbEvent1)
+
+      // Candidate has already been assigned to "PRO - Skype interview" FSB for Property scheme by another admin
+      when(mockEventsService.getEvents(EventType.FSB)).thenReturnAsync(Seq(projectDeliveryFsbEvent1))
+
+      // This returns the events the candidate has already been assigned to
+      when(mockCandidateAllocationRepository.findAllConfirmedOrUnconfirmedAllocations(any[Seq[String]], any[Seq[String]])).thenReturnAsync(
+        Seq(
+          model.persisted.CandidateAllocation(
+            "applicationId",
+            "eventId1",
+            "sessionId1",
+            AllocationStatuses.CONFIRMED,
+            "version",
+            removeReason = None,
+            createdAt = LocalDate.now,
+            reminderSent = false
+          )
+        )
+      )
+
+      when(mockSchemeRepository.getSchemeForFsb(projectDeliveryFsbEvent1.description)).thenReturn(
+        Scheme(
+          SchemeId("ProjectDelivery"), "PDFS", "Project Delivery",
+          civilServantEligible = true,
+          degree = None,
+          siftRequirement = None,
+          siftEvaluationRequired = false,
+          fsbType = Some(FsbType("PDFS - Skype interview")),
+          schemeGuide = None,
+          schemeQuestion = None
+        )
+      )
+
+      when(mockFsbRepo.findByApplicationId("applicationId")).thenReturnAsync(None)
+
+      val newAllocations = command.CandidateAllocations("version", "eventId2", "sessionId1",
+        allocations = Seq(CandidateAllocation("applicationId", AllocationStatuses.CONFIRMED))
+      )
+
+      // A value of true indicates that the candidate cannot be assigned to the new event
+      service.isAlreadyAssignedToAnEvent("eventId2", newAllocations).futureValue mustBe true
+    }
+
+    "prevent a FSB candidate being assigned to 2 events at the same time after failing other fsbs" in new TestFixture {
+      // Event 1 - candidate already assigned and failed the fsb for ProjectDelivery
+      val projectDeliveryFsbEvent = Event(
+        id = "eventId1", eventType = EventType.FSB, description = "PDFS - Skype interview", location = Location("Virtual"),
+        venue = Venue("VIRTUAL", "Virtual"), date = LocalDate.now().plusDays(2), capacity = 60, minViableAttendees = 55,
+        attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), createdAt = now,
+        skillRequirements = Map(), sessions = List()
+      )
+
+      // Event 2 - candidate has already been assigned to this fsb event for Property by another admin
+      val propertyFsbEvent1 = Event(
+        id = "eventId2", eventType = EventType.FSB, description = "PRO - Skype interview", location = Location("Virtual"),
+        venue = Venue("VIRTUAL", "Virtual"), date = LocalDate.now().plusDays(2), capacity = 60, minViableAttendees = 55,
+        attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), createdAt = now,
+        skillRequirements = Map(), sessions = List()
+      )
+
+      // Event 3 - at the same time we are now attempting to assign the candidate to this fsb event for Property
+      val propertyFsbEvent2 = Event(
+        id = "eventId3", eventType = EventType.FSB, description = "PRO - Skype interview", location = Location("Virtual"),
+        venue = Venue("VIRTUAL", "Virtual"), date = LocalDate.now().plusDays(2), capacity = 60, minViableAttendees = 55,
+        attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), createdAt = now,
+        skillRequirements = Map(), sessions = List()
+      )
+
+      // We are trying to assign the candidate to "PRO - Skype interview" FSB for Property scheme
+      when(mockEventsService.getEvent(propertyFsbEvent2.id)).thenReturnAsync(propertyFsbEvent2)
+
+      // Candidate has already been assigned to the PDFS - Skype interview FSB for ProjectDelivery scheme and the candidate failed
+      // called from within isFsbCandidateWithFailedEvents
+      when(mockEventsService.getEvent(eqTo(projectDeliveryFsbEvent.id))).thenReturnAsync(projectDeliveryFsbEvent)
+      when(mockEventsService.getEvent(eqTo(propertyFsbEvent1.id))).thenReturnAsync(propertyFsbEvent1)
+
+      // Candidate has already been assigned to the PDFS - Skype interview FSB for ProjectDelivery scheme and the candidate failed
+      when(mockEventsService.getEvents(EventType.FSB)).thenReturnAsync(Seq(projectDeliveryFsbEvent, propertyFsbEvent1))
+
+      // This returns the events the candidate has already been assigned to
+      when(mockCandidateAllocationRepository.findAllConfirmedOrUnconfirmedAllocations(any[Seq[String]], any[Seq[String]])).thenReturnAsync(
+        Seq(
+          model.persisted.CandidateAllocation(
+            "applicationId",
+            "eventId1",
+            "sessionId1",
+            AllocationStatuses.CONFIRMED,
+            "version",
+            removeReason = None,
+            createdAt = LocalDate.now,
+            reminderSent = false
+          ),
+          model.persisted.CandidateAllocation(
+            "applicationId",
+            "eventId2",
+            "sessionId1",
+            AllocationStatuses.CONFIRMED,
+            "version",
+            removeReason = None,
+            createdAt = LocalDate.now,
+            reminderSent = false
+          )
+        )
+      )
+
+      when(mockSchemeRepository.getSchemeForFsb(projectDeliveryFsbEvent.description)).thenReturn(
+        Scheme(
+          SchemeId("ProjectDelivery"), "PDFS", "Project Delivery",
+          civilServantEligible = true,
+          degree = None,
+          siftRequirement = None,
+          siftEvaluationRequired = false,
+          fsbType = Some(FsbType("PDFS - Skype interview")),
+          schemeGuide = None,
+          schemeQuestion = None
+        )
+      )
+
+      when(mockSchemeRepository.getSchemeForFsb(propertyFsbEvent1.description)).thenReturn(
+        Scheme(
+          SchemeId("Property"), "PRO", "Property",
+          civilServantEligible = true,
+          degree = None,
+          siftRequirement = None,
+          siftEvaluationRequired = false,
+          fsbType = Some(FsbType("PRO - Skype interview")),
+          schemeGuide = None,
+          schemeQuestion = None
+        )
+      )
+
+      when(mockFsbRepo.findByApplicationId("applicationId")).thenReturnAsync(
+        Some(
+          FsbTestGroup(FsbEvaluation(List(SchemeEvaluationResult(SchemeId("ProjectDelivery"), model.EvaluationResults.Red.toString))))
+        )
+      )
+      when(mockFsbRepo.findByApplicationId("applicationId")).thenReturnAsync(
+        Some(
+          FsbTestGroup(FsbEvaluation(List(SchemeEvaluationResult(SchemeId("ProjectDelivery"), model.EvaluationResults.Red.toString))))
+        )
+      )
+
+      val newAllocations = command.CandidateAllocations("version", "eventId3", "sessionId1",
+        allocations = Seq(CandidateAllocation("applicationId", AllocationStatuses.CONFIRMED))
+      )
+
+      // A value of true indicates that the candidate cannot be assigned to the new event
+      service.isAlreadyAssignedToAnEvent("eventId3", newAllocations).futureValue mustBe true
+    }
+  }
+
   trait TestFixture extends StcEventServiceFixture {
     val mockCandidateAllocationRepository = mock[CandidateAllocationMongoRepository]
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockContactDetailsRepo = mock[ContactDetailsRepository]
     val mockPersonalDetailsRepo = mock[PersonalDetailsRepository]
     val mockSchemeRepository = mock[SchemeRepository]
+    val mockFsbRepo = mock[FsbRepository]
     val mockEventsService = mock[EventsService]
     val mockAllocationServiceCommon = mock[AllocationServiceCommon]
 
@@ -361,6 +765,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
       mockPersonalDetailsRepo,
       mockSchemeRepository,
       //override def schemeRepository: SchemeRepository = SchemeYamlRepository
+      mockFsbRepo,
       mockEventsService,
       mockAllocationServiceCommon,
       mockStcEventService,
