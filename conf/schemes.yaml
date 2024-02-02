@@ -161,8 +161,7 @@
     specificRequirement: false
   siftEvaluationRequired: false
   fsbType: OPD - Skype interview
-  # TODO: the correct link needs to be supplied - for now just use the property guide
-  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Property.pdf
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Operational-Delivery.pdf
 - id: OperationalDeliverySTEM
   code: OPD_STEM
   name: Operational Delivery STEM
@@ -172,8 +171,7 @@
     specificRequirement: false
   siftEvaluationRequired: false
   fsbType: OPD STEM - Skype interview
-  # TODO: the correct link needs to be supplied - for now just use the property guide
-  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Property.pdf
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Operational-Delivery.pdf
 - id: ProjectDelivery
   code: PDFS
   name: Project Delivery
