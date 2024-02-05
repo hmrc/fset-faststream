@@ -21,7 +21,7 @@ import common.FutureEx
 import connectors.OnlineTestEmailClient
 
 import javax.inject.{Inject, Singleton}
-import model.EvaluationResults.{Green, Red}
+import model.EvaluationResults.{Amber, Green, Red}
 import model.ProgressStatuses._
 import model._
 import model.command.ApplicationForProgression
@@ -118,7 +118,7 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
     } else if (r.exists(_.result == Red.toString)) {
       SchemeEvaluationResult(schemeId, Red.toString)
     } else {
-      throw new Exception(s"Unexpected result in FSB scheme $schemeId fsbEvaluation ($r)")
+      throw new Exception(s"Unexpected result in FSB scheme $schemeId fsbEvaluation ($r) - $appId")
     }
   }
 
@@ -143,19 +143,19 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
   }
 
   // scalastyle:off method.length
-  private def passOrFailFsb(appId: String,
-                            fsbEvaluation: Option[Seq[SchemeEvaluationResult]],
-                            firstResidualPreferenceOpt: Option[SchemeEvaluationResult],
-                            currentSchemeStatus: Seq[SchemeEvaluationResult])(implicit hc: HeaderCarrier): Future[Unit] = {
+  protected[application] def passOrFailFsb(appId: String,
+                                           fsbEvaluationOpt: Option[Seq[SchemeEvaluationResult]],
+                                           firstResidualPreferenceOpt: Option[SchemeEvaluationResult],
+                                           currentSchemeStatus: Seq[SchemeEvaluationResult])(implicit hc: HeaderCarrier): Future[Unit] = {
 
-    logger.debug(s"$logPrefix fsbEvaluation = $fsbEvaluation")
+    logger.debug(s"$logPrefix fsbEvaluation = $fsbEvaluationOpt")
     logger.debug(s"$logPrefix firstResidualPreferenceOpt = $firstResidualPreferenceOpt")
     logger.debug(s"$logPrefix currentSchemeStatus = $currentSchemeStatus")
 
-    require(fsbEvaluation.isDefined, s"Evaluation for scheme must be defined to reach this stage, unexpected error for $appId")
+    require(fsbEvaluationOpt.isDefined, s"Evaluation for scheme must be defined to reach this stage, unexpected error for $appId")
     require(firstResidualPreferenceOpt.isDefined, s"First residual preference must be defined to reach this stage, unexpected error for $appId")
 
-    val firstResidualInEvaluation = getResultsForScheme(appId, firstResidualPreferenceOpt.get.schemeId, fsbEvaluation.get)
+    val firstResidualInEvaluation = getResultsForScheme(appId, firstResidualPreferenceOpt.get.schemeId, fsbEvaluationOpt.get)
     logger.debug(s"$logPrefix firstResidualInEvaluation = $firstResidualInEvaluation")
 
     if (firstResidualInEvaluation.result == Green.toString) {
@@ -171,10 +171,10 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
     } else {
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_FAILED).flatMap { _ =>
         logger.debug(s"$logPrefix successfully added $FSB_FAILED for $appId")
-        val newCurrentSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, fsbEvaluation.get ++ Seq(firstResidualInEvaluation))
+        val newCurrentSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, fsbEvaluationOpt.get ++ Seq(firstResidualInEvaluation))
         logger.debug(s"$logPrefix newCurrentSchemeStatus = $newCurrentSchemeStatus")
 
-        val newFirstPreference = if (schemesRemainWithFsbs(newCurrentSchemeStatus)) {
+        val newFirstPreference = if (schemesRemainThatAreNotFailed(newCurrentSchemeStatus)) {
           firstResidualPreference(newCurrentSchemeStatus)
         } else { Option.empty[SchemeEvaluationResult] }
         logger.debug(s"$logPrefix newFirstPreference = $newFirstPreference")
@@ -183,6 +183,7 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
 //          if (canEvaluateNextWithExistingResults(currentSchemeStatus, newFirstPreference, fsbEvaluation.get)) {
 //            passOrFailFsb(appId, fsbEvaluation, newFirstPreference, newCurrentSchemeStatus)
 //          } else {
+            // If there is a new first preference that is G or A then we do not mark all as failed
             maybeMarkAsFailedAll(appId, newFirstPreference).flatMap(_ =>
               maybeNotifyOnFailNeedNewFsb(appId, newCurrentSchemeStatus)
             )
@@ -192,18 +193,19 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
     }
   }
 
-  // This should return true if there are still Green schemes that need a FSB
-  private def schemesRemainWithFsbs(newCurrentSchemeStatus: Seq[SchemeEvaluationResult]) = {
-    val greenSchemeIds = newCurrentSchemeStatus.filter(_.result == Green.toString).map(_.schemeId)
-    val schemesWithFsbs = schemeRepo.fsbSchemeIds
-    // Do any remaining green schemes need a FSB?
-    val result = schemesWithFsbs.exists(greenSchemeIds.contains)
-    logger.debug(s"$logPrefix schemesRemainWithFsbs = $result")
+  private def schemesRemainThatAreNotFailed(newCurrentSchemeStatus: Seq[SchemeEvaluationResult]) = {
+    val notFailedSchemeIds = newCurrentSchemeStatus.filter( schemeEvaluationResult =>
+      schemeEvaluationResult.result == Green.toString || schemeEvaluationResult.result == Amber.toString
+    ).map(_.schemeId)
+    val result = notFailedSchemeIds.nonEmpty
+    logger.debug(s"$logPrefix schemesRemainThatAreNotFailed = $result")
     result
   }
 
   private def maybeNotifyOnFailNeedNewFsb(appId: String, newCurrentSchemeStatus: Seq[SchemeEvaluationResult])(
     implicit hc: HeaderCarrier): Future[Unit] = {
+    logger.debug(s"$logPrefix checking to see if we should send failure email to candidate $appId," +
+      s"newCurrentSchemeStatus=$newCurrentSchemeStatus")
     if (firstResidualPreference(newCurrentSchemeStatus).nonEmpty) {
       for {
         (candidate, contactDetails) <- retrieveCandidateDetails(appId)
@@ -212,6 +214,7 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
         logger.debug(s"$logPrefix successfully sent failure email to candidate $appId")
       }
     } else {
+      logger.debug(s"$logPrefix not going to send failure email to candidate $appId")
       Future.successful(())
     }
   }
@@ -224,13 +227,15 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
   }
 
   private def maybeMarkAsFailedAll(appId: String, newFirstResidualPreference: Option[SchemeEvaluationResult]): Future[Unit] = {
+    logger.debug(s"$logPrefix maybeMarkAsFailedAll - appId=$appId, newFirstResidualPreference=$newFirstResidualPreference")
     if (newFirstResidualPreference.isEmpty) {
       for {
         _ <- applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ALL_FSBS_AND_FSACS_FAILED)
       } yield {
-        logger.debug(s"$logPrefix successfully added $ALL_FSBS_AND_FSACS_FAILED for $appId")
+        logger.debug(s"$logPrefix maybeMarkAsFailedAll - successfully added $ALL_FSBS_AND_FSACS_FAILED for $appId")
       }
     } else {
+      logger.debug(s"$logPrefix maybeMarkAsFailedAll - did not add $ALL_FSBS_AND_FSACS_FAILED for $appId")
       Future.successful(())
     }
   }

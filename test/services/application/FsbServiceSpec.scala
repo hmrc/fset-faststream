@@ -17,7 +17,8 @@
 package services.application
 
 import connectors.OnlineTestEmailClient
-import model.EvaluationResults.{Green, Red}
+import model.EvaluationResults.{Amber, Green, Red}
+import model.ProgressStatuses.{ALL_FSBS_AND_FSACS_FAILED, ELIGIBLE_FOR_JOB_OFFER, FSB_FAILED, FSB_PASSED}
 import model._
 import model.exchange.FsbScoresAndFeedback
 import model.persisted.fsb.ScoresAndFeedback
@@ -495,6 +496,176 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout with Schemes {
       verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(uid.toString(), ProgressStatuses.FSB_FAILED)
       // verify the failure email is sent out
       verify(mockEmailClient).notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any[HeaderCarrier], any[ExecutionContext])
+    }
+  }
+
+  "Pass or fail fsb" must {
+    "not set ALL_FSBS_AND_FSACS_FAILED for a candidate who has failed fsb for 1st preference but is Green " +
+      "for 2nd preference, which has no fsb" in new TestFixture {
+      // Candidate has failed the fsb for ProjectDelivery
+      val fsbEvaluationOpt = Some(Seq(SchemeEvaluationResult(SchemeId("ProjectDelivery"), Red.toString)))
+      // This is the 1st residual preference in the css before the current fsb eval has been applied
+      val firstResidualPreferenceOpt = Some(SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString))
+      // After failing the fsb for ProjectDelivery the candidate is still Green for HumanResources which has no fsb
+      // Note at this stage the css has not been updated to reflect the result of the fsb
+      val currentSchemeStatus = Seq(
+        SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString),
+        SchemeEvaluationResult(SchemeId("HumanResources"), Green.toString)
+      )
+
+      when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_FAILED)).thenReturnAsync()
+
+      val newCurrentSchemeStatus = Seq(
+        SchemeEvaluationResult(SchemeId("ProjectDelivery"), Red.toString),
+        SchemeEvaluationResult(SchemeId("HumanResources"), Green.toString)
+      )
+      when(mockFsbRepo.updateCurrentSchemeStatus(appId, newCurrentSchemeStatus)).thenReturnAsync()
+
+      when(mockApplicationRepo.find(appId)).thenReturnAsync(Some(cand1))
+      when(mockContactDetailsRepo.find(cand1.userId)).thenReturnAsync(cd1)
+      when(mockEmailClient.notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any(), any())).thenReturnAsync()
+
+      service.passOrFailFsb(appId, fsbEvaluationOpt, firstResidualPreferenceOpt, currentSchemeStatus)(hc).futureValue
+      // Verify the FSB_FAILED progress status was added
+      verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(appId, FSB_FAILED)
+      // Verify the code never calls ALL_FSBS_AND_FSACS_FAILED
+      verify(mockApplicationRepo, never()).addProgressStatusAndUpdateAppStatus(appId, ALL_FSBS_AND_FSACS_FAILED)
+      // verify the failure email is sent out
+      verify(mockEmailClient).notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any[HeaderCarrier], any[ExecutionContext])
+    }
+
+    "set the candidate to ELIGIBLE_FOR_JOB_OFFER who has previously failed the fsb for 1st preference " +
+      "and has now passed the fsb for the 2nd preference" in new TestFixture {
+      // Candidate has passed the fsb for Property
+      val fsbEvaluationOpt = Some(Seq(SchemeEvaluationResult(SchemeId("Property"), Green.toString)))
+      // This is the 1st residual preference in the css before the current fsb eval has been applied
+      val firstResidualPreferenceOpt = Some(SchemeEvaluationResult(SchemeId("Property"), Green.toString))
+      // The state of the css is as it was when the candidate failed ProjectDelivery
+      val currentSchemeStatus = Seq(
+        SchemeEvaluationResult(SchemeId("ProjectDelivery"), Red.toString),
+        SchemeEvaluationResult(SchemeId("Property"), Green.toString)
+      )
+
+      when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_PASSED)).thenReturnAsync()
+      when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(appId, ELIGIBLE_FOR_JOB_OFFER)).thenReturnAsync()
+
+      service.passOrFailFsb(appId, fsbEvaluationOpt, firstResidualPreferenceOpt, currentSchemeStatus)(hc).futureValue
+      // Verify the code calls the correct updates
+      verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(appId, FSB_PASSED)
+      verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(appId, ELIGIBLE_FOR_JOB_OFFER)
+    }
+
+    "not set ALL_FSBS_AND_FSACS_FAILED for a candidate who has failed fsb for 1st preference but is Amber " +
+      "for 2nd preference, which has no fsb" in new TestFixture {
+      // Candidate has failed the fsb for ProjectDelivery
+      val fsbEvaluationOpt = Some(Seq(SchemeEvaluationResult(SchemeId("ProjectDelivery"), Red.toString)))
+      // This is the 1st residual preference in the css before the current fsb eval has been applied
+      val firstResidualPreferenceOpt = Some(SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString))
+      // After failing the fsb for ProjectDelivery the candidate is still Green for HumanResources which has no fsb
+      // Note at this stage the css has not been updated to reflect the result of the fsb
+      val currentSchemeStatus = Seq(
+        SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString),
+        SchemeEvaluationResult(SchemeId("HumanResources"), Amber.toString)
+      )
+
+      when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_FAILED)).thenReturnAsync()
+
+      val newCurrentSchemeStatus = Seq(
+        SchemeEvaluationResult(SchemeId("ProjectDelivery"), Red.toString),
+        SchemeEvaluationResult(SchemeId("HumanResources"), Amber.toString)
+      )
+      when(mockFsbRepo.updateCurrentSchemeStatus(appId, newCurrentSchemeStatus)).thenReturnAsync()
+
+      when(mockApplicationRepo.find(appId)).thenReturnAsync(Some(cand1))
+      when(mockContactDetailsRepo.find(cand1.userId)).thenReturnAsync(cd1)
+      when(mockEmailClient.notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any(), any())).thenReturnAsync()
+
+      service.passOrFailFsb(appId, fsbEvaluationOpt, firstResidualPreferenceOpt, currentSchemeStatus)(hc).futureValue
+      // Verify the FSB_FAILED progress status was added
+      verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(appId, FSB_FAILED)
+      // Verify the code never calls ALL_FSBS_AND_FSACS_FAILED
+      verify(mockApplicationRepo, never()).addProgressStatusAndUpdateAppStatus(appId, ALL_FSBS_AND_FSACS_FAILED)
+      // verify the failure email is sent out
+      verify(mockEmailClient).notifyCandidateOnFinalFailure(eqTo(cd1.email), eqTo(cand1.name))(any[HeaderCarrier], any[ExecutionContext])
+    }
+
+    "set ALL_FSBS_AND_FSACS_FAILED for a candidate who has already failed fsb for 1st preference " +
+      "and has now failed the fsb for the 2nd preference" in new TestFixture {
+      // Candidate has now failed the fsb for Property (2nd pref)
+      val fsbEvaluationOpt = Some(Seq(SchemeEvaluationResult(SchemeId("Property"), Red.toString)))
+      // This is the 1st residual preference in the css before the current fsb eval has been applied
+      val firstResidualPreferenceOpt = Some(SchemeEvaluationResult(SchemeId("Property"), Green.toString))
+      // The state of the css is as it was when the candidate failed ProjectDelivery
+      val currentSchemeStatus = Seq(
+        SchemeEvaluationResult(SchemeId("ProjectDelivery"), Red.toString),
+        SchemeEvaluationResult(SchemeId("Property"), Green.toString)
+      )
+
+      when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_FAILED)).thenReturnAsync()
+
+      val newCurrentSchemeStatus = Seq(
+        SchemeEvaluationResult(SchemeId("ProjectDelivery"), Red.toString),
+        SchemeEvaluationResult(SchemeId("Property"), Red.toString)
+      )
+      when(mockFsbRepo.updateCurrentSchemeStatus(appId, newCurrentSchemeStatus)).thenReturnAsync()
+
+      when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(appId, ALL_FSBS_AND_FSACS_FAILED)).thenReturnAsync()
+
+      service.passOrFailFsb(appId, fsbEvaluationOpt, firstResidualPreferenceOpt, currentSchemeStatus)(hc).futureValue
+
+      // Verify the correct progress statuses were added
+      verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(appId, FSB_FAILED)
+      verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(appId, ALL_FSBS_AND_FSACS_FAILED)
+      // verify the failure email is not sent out as the notify-on-final-failure handles this
+      verifyNoInteractions(mockEmailClient)
+    }
+
+    "set ALL_FSBS_AND_FSACS_FAILED for a candidate who has failed fsb for 1st preference and " +
+      "is not in the running for any other schemes" in new TestFixture {
+      // Candidate has failed the fsb for ProjectDelivery
+      val fsbEvaluationOpt = Some(Seq(SchemeEvaluationResult(SchemeId("ProjectDelivery"), Red.toString)))
+      // This is the 1st residual preference in the css before the current fsb eval has been applied
+      val firstResidualPreferenceOpt = Some(SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString))
+      // After failing the fsb for ProjectDelivery the candidate is not in the running for any other schemes
+      val currentSchemeStatus = Seq(
+        SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString)
+      )
+
+      when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_FAILED)).thenReturnAsync()
+
+      val newCurrentSchemeStatus = Seq(
+        SchemeEvaluationResult(SchemeId("ProjectDelivery"), Red.toString)
+      )
+      when(mockFsbRepo.updateCurrentSchemeStatus(appId, newCurrentSchemeStatus)).thenReturnAsync()
+
+      when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(appId, ALL_FSBS_AND_FSACS_FAILED)).thenReturnAsync()
+
+      service.passOrFailFsb(appId, fsbEvaluationOpt, firstResidualPreferenceOpt, currentSchemeStatus)(hc).futureValue
+      // Verify the code calls ALL_FSBS_AND_FSACS_FAILED
+      verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(appId, ALL_FSBS_AND_FSACS_FAILED)
+      // Verify the failure email is not sent out. // If there is no residual 1st pref after the eval then we do not
+      // send an email informing the candidate they have failed in this code. Instead the notify-on-final-failure job
+      // takes care of sending the email once the candidate is in ALL_FSBS_AND_FSACS_FAILED
+      verifyNoInteractions(mockEmailClient)
+    }
+
+    "set ELIGIBLE_FOR_JOB_OFFER for a candidate who has passed the fsb for the only scheme " +
+      "they are still in the running for" in new TestFixture {
+      // Candidate has failed the fsb for ProjectDelivery
+      val fsbEvaluationOpt = Some(Seq(SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString)))
+      // This is the 1st residual preference in the css before the current fsb eval has been applied
+      val firstResidualPreferenceOpt = Some(SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString))
+      val currentSchemeStatus = Seq(
+        SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString)
+      )
+
+      when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_PASSED)).thenReturnAsync()
+      when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(appId, ELIGIBLE_FOR_JOB_OFFER)).thenReturnAsync()
+
+      service.passOrFailFsb(appId, fsbEvaluationOpt, firstResidualPreferenceOpt, currentSchemeStatus)(hc).futureValue
+      // Verify the code calls the correct updates
+      verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(appId, FSB_PASSED)
+      verify(mockApplicationRepo).addProgressStatusAndUpdateAppStatus(appId, ELIGIBLE_FOR_JOB_OFFER)
     }
   }
 
