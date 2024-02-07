@@ -51,8 +51,7 @@
     specificRequirement: false
   siftEvaluationRequired: false
   fsbType: FIN FSB
-  # TODO: THIS NEEDS TO BE UPDATED BEFORE FSB INVITATIONS !!!!!
-  schemeGuide: https://www.faststream.gov.uk/media/1233/gcfs-guide.pdf
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB_Guide_Finance.pdf
 #  Currently filtered out in the candidate ui
 - id: GovernmentCommunicationService
   code: GCFS
