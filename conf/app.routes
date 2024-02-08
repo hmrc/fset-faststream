@@ -43,6 +43,7 @@ GET         /application/:applicationId/sift/results                     @contro
 #GET         /application/:applicationId/assessmentcentre/results         @controllers.ApplicationController.getSchemeResults(applicationId: String)
 
 GET         /application/:applicationId/fsacEvaluationAverages           @controllers.ApplicationController.getFsacEvaluationResultAverages(applicationId: String)
+GET         /application/:applicationId/fsacExerciseAverages             @controllers.ApplicationController.getFsacExerciseResultAverages(applicationId: String)
 POST        /application/:userId/:applicationId/:fsacAssessmentCentre    @controllers.ApplicationController.updateFsacIndicator(userId: String, applicationId: String, fsacAssessmentCentre: String)
 
 GET         /application/markSignupCodeAsUsed                            @controllers.CampaignManagementController.markSignupCodeAsUsed(code: String, applicationId: String)

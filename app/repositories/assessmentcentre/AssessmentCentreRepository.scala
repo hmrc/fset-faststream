@@ -65,6 +65,7 @@ trait AssessmentCentreRepository {
 //  def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation2,
 //                                    currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
   def getFsacEvaluationResultAverages(applicationId: String): Future[Option[CompetencyAverageResult]]
+  def getFsacExerciseResultAverages(applicationId: String): Future[Option[ExerciseAverageResult]]
   def getFsacEvaluatedSchemes(applicationId: String): Future[Option[Seq[SchemeEvaluationResult]]]
   def removeFsacTestGroup(applicationId: String): Future[Unit]
   def removeFsacEvaluation(applicationId: String): Future[Unit]
@@ -292,6 +293,25 @@ class AssessmentCentreMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
           .map(_.asDocument().get("evaluation"))
           .map(_.asDocument().get("competency-average")).map { averagesBson =>
             Codecs.fromBson[CompetencyAverageResult](averagesBson)
+          }
+      case None => None
+    }
+  }
+
+  override def getFsacExerciseResultAverages(applicationId: String): Future[Option[ExerciseAverageResult]] = {
+    val query = Document(
+      "applicationId" -> applicationId,
+      s"testGroups.$fsacKey.evaluation.exercise-average" ->  Document("$exists" -> true)
+    )
+    val projection = Projections.include(s"testGroups.$fsacKey.evaluation.exercise-average")
+
+    collection.find[Document](query).projection(projection).headOption() map {
+      case Some(document) =>
+        document.get("testGroups")
+          .map(_.asDocument().get(fsacKey))
+          .map(_.asDocument().get("evaluation"))
+          .map(_.asDocument().get("exercise-average")).map { averagesBson =>
+            Codecs.fromBson[ExerciseAverageResult](averagesBson)
           }
       case None => None
     }

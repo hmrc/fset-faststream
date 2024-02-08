@@ -273,6 +273,17 @@ class ApplicationController @Inject() (cc: ControllerComponents,
     }
   }
 
+  def getFsacExerciseResultAverages(applicationId: String) = Action.async {
+    for {
+      scoresOpt <- assessmentCentreService.getFsacExerciseResultAverages(applicationId)
+    } yield {
+      scoresOpt match {
+        case Some(averages) => Ok(Json.toJson(averages))
+        case None => NotFound(s"Cannot find fsac exercise averages for applicationId: $applicationId")
+      }
+    }
+  }
+
   def updateFsacIndicator(userId: String, applicationId: String, fsacAssessmentCentre: String) = Action.async {
     personalDetailsService.updateFsacIndicator(applicationId, userId, fsacAssessmentCentre) map { _ =>
       Ok
