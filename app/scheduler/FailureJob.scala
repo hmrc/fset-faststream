@@ -53,6 +53,7 @@ class FsbOverallFailureJob @Inject() (service: FsbService,
   lazy val batchSize = config.conf.batchSize.getOrElse(1)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
+    logger.warn(s"FSB failure job running with a batchSize of $batchSize")
     service.processApplicationsFailedAtFsb(batchSize).map { result =>
       val successfulAppIds = result.successes.map( _.applicationId )
       val failedAppIds = result.failures.map( _.applicationId )

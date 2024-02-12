@@ -40,9 +40,9 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
   val updatedBy = UniqueIdentifier.randomUniqueIdentifier
 
   // The scores awarded to the candidate by assessor/reviewer
-  def analysisExerciseSample(assessorOrReviewer: String) = AssessmentScoresExercise(
+  def writtenExerciseSample(assessorOrReviewer: String) = AssessmentScoresExercise(
     attended = true,
-    makingEffectiveDecisionsAverage = Some(5.0),
+    makingEffectiveDecisionsAverage = Some(4.0),
     communicatingAndInfluencingAverage = Some(4.0),
     seeingTheBigPictureAverage = Some(4.0),
     updatedBy = updatedBy,
@@ -60,9 +60,9 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
     communicatingAndInfluencingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
   )
 
-  def groupExerciseSample(assessorOrReviewer: String) = AssessmentScoresExercise(
+  def teamExerciseSample(assessorOrReviewer: String) = AssessmentScoresExercise(
     attended = true,
-    makingEffectiveDecisionsAverage = Some(5.0),
+    makingEffectiveDecisionsAverage = Some(4.0),
     workingTogetherDevelopingSelfAndOthersAverage = Some(2.0),
     communicatingAndInfluencingAverage = Some(4.0),
     updatedBy = updatedBy,
@@ -112,8 +112,8 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       appId = UniqueIdentifier(candidateInPreviousStatus.applicationId.getOrElse(sys.error("Missed application id for candidate")))
       assessorOrReviewer = "assessor"
-      _ <- assessorAssessmentScoresService.submitExercise(appId, writtenExercise, analysisExerciseSample(assessorOrReviewer))
-      _ <- assessorAssessmentScoresService.submitExercise(appId, teamExercise, groupExerciseSample(assessorOrReviewer))
+      _ <- assessorAssessmentScoresService.submitExercise(appId, writtenExercise, writtenExerciseSample(assessorOrReviewer))
+      _ <- assessorAssessmentScoresService.submitExercise(appId, teamExercise, teamExerciseSample(assessorOrReviewer))
       _ <- assessorAssessmentScoresService.submitExercise(appId, leadershipExercise, leadershipExerciseSample(assessorOrReviewer))
       _ <- assessorAssessmentScoresService.submitFinalFeedback(appId, finalFeedbackSample(assessorOrReviewer))
     } yield {

@@ -66,7 +66,6 @@ class ProgressionToFsbOrOfferService @Inject() (schemeRepository: SchemeReposito
                                       firstResidualOpt: Option[SchemeEvaluationResult])(implicit hc: HeaderCarrier): Future[Unit] = {
 
       firstResidualOpt.map { firstResidual =>
-
         if (firstResidual.result == Green.toString && fsbRequiredSchemeIds.contains(firstResidual.schemeId)) {
           fsbRepo.progressToFsb(application).flatMap { _ =>
             retrieveCandidateDetails(application.applicationId).flatMap { case (candidate, cd) =>

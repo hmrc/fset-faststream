@@ -49,8 +49,8 @@ class AssessmentCentreScoresAcceptedStatusGenerator @Inject() (val previousStatu
       appId = UniqueIdentifier(candidateInPreviousStatus.applicationId.getOrElse(sys.error("Missed application id for candidate")))
       assessorOrReviewer = "reviewer"
       _ <- reviewerAssessmentScoresService.save(AssessmentScoresAllExercises(appId,
-        Some(previousStatusGenerator.analysisExerciseSample(assessorOrReviewer).copy(submittedDate = Some(now))),
-        Some(previousStatusGenerator.groupExerciseSample(assessorOrReviewer).copy(submittedDate = Some(now))),
+        Some(previousStatusGenerator.writtenExerciseSample(assessorOrReviewer).copy(submittedDate = Some(now))),
+        Some(previousStatusGenerator.teamExerciseSample(assessorOrReviewer).copy(submittedDate = Some(now))),
         Some(previousStatusGenerator.leadershipExerciseSample(assessorOrReviewer).copy(submittedDate = Some(now))),
         Some(previousStatusGenerator.finalFeedbackSample(assessorOrReviewer))
       ))
