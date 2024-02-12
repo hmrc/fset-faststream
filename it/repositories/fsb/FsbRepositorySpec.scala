@@ -17,7 +17,7 @@
 package repositories.fsb
 
 import factories.{ITDateTimeFactoryMock, UUIDFactory}
-import model.EvaluationResults.{Amber, Green, Red}
+import model.EvaluationResults.{Amber, Green, Red, Withdrawn}
 import model.Exceptions.{ApplicationNotFound, CannotUpdateRecord}
 import model.command.ApplicationForProgression
 import model.persisted._
@@ -57,7 +57,18 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
   "all failed at fsb" must {
     "select candidates that are all red at FSB" in {
       val evalResults = SchemeEvaluationResult("GovernmentOperationalResearchService", Red.toString) ::
-        SchemeEvaluationResult("Commercial", "Red") :: Nil
+        SchemeEvaluationResult("Commercial", Red.toString) :: Nil
+      insertApplicationAtFsbWithStatus("appId", evalResults, ProgressStatuses.FSB_FAILED)
+
+      whenReady(repository.nextApplicationFailedAtFsb(1)) { result =>
+        result.size mustBe 1
+        result.head mustBe ApplicationForProgression("appId", ApplicationStatus.FSB, evalResults)
+      }
+    }
+
+    "select candidates that are red or withdrawn at FSB" in {
+      val evalResults = SchemeEvaluationResult("GovernmentOperationalResearchService", Red.toString) ::
+        SchemeEvaluationResult("Commercial", Withdrawn.toString) :: Nil
       insertApplicationAtFsbWithStatus("appId", evalResults, ProgressStatuses.FSB_FAILED)
 
       whenReady(repository.nextApplicationFailedAtFsb(1)) { result =>

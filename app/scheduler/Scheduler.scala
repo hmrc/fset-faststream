@@ -71,6 +71,7 @@ class Scheduler @Inject()(
                            notifyOnFinalFailureJob: NotifyOnFinalFailureJobImpl,
                            notifyOnFinalSuccessJob: NotifyOnFinalSuccessJobImpl,
                            evaluateFsbJob: EvaluateFsbJobImpl,
+                           fsbOverallFailureJob: FsbOverallFailureJob,
                            sendPhase1InvitationJobConfig: SendPhase1InvitationJobConfig,
                            sendPhase2InvitationJobConfig: SendPhase2InvitationJobConfig,
                            sendPhase3InvitationJobConfig: SendPhase3InvitationJobConfig,
@@ -112,6 +113,7 @@ class Scheduler @Inject()(
                            notifyOnFinalFailureJobConfig: NotifyOnFinalFailureJobConfig,
                            notifyOnFinalSuccessJobConfig: NotifyOnFinalSuccessJobConfig,
                            evaluateFsbJobConfig: EvaluateFsbJobConfig,
+                           fsbOverallFailureJobConfig: FsbOverallFailureJobConfig,
                            override val applicationLifecycle: ApplicationLifecycle,
                            override val application: Application
                          )
@@ -170,7 +172,8 @@ class Scheduler @Inject()(
       maybeInitScheduler(reminderEventAllocationJobConfig, reminderEventAllocationJob),
       maybeInitScheduler(notifyOnFinalFailureJobConfig, notifyOnFinalFailureJob),
       maybeInitScheduler(notifyOnFinalSuccessJobConfig, notifyOnFinalSuccessJob),
-      maybeInitScheduler(evaluateFsbJobConfig, evaluateFsbJob)
+      maybeInitScheduler(evaluateFsbJobConfig, evaluateFsbJob),
+      maybeInitScheduler(fsbOverallFailureJobConfig, fsbOverallFailureJob)
     ).flatten
   }
 }

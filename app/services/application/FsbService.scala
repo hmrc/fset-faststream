@@ -57,6 +57,8 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
 
   def processApplicationsFailedAtFsb(batchSize: Int): Future[SerialUpdateResult[ApplicationForProgression]] = {
     fsbRepo.nextApplicationFailedAtFsb(batchSize).flatMap { applications =>
+      logger.warn(s"FSB failure job processing appIds: ${applications.map(_.applicationId).mkString(",")} to " +
+        s"${ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED.toString}")
       val updates = FutureEx.traverseSerial(applications) { application =>
         FutureEx.futureToEither(application,
           applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId, ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED)

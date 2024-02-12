@@ -34,7 +34,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 class ProgressionToFsbOrOfferServiceSpec extends ScalaMockUnitSpec {
-//TODO:fix these tests
+
   "progressApplicationsToFsbOrJobOffer" must {
     "Progress candidates to FSB when their first residual preference is green, and requires an FSB" in new TestFixture {
       applicationsToProgressToFsb.map { expectedApplication =>
