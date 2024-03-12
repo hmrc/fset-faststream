@@ -53,7 +53,7 @@ class AssessmentCentrePassedStatusGenerator @Inject() (val previousStatusGenerat
           writtenExercise = PassMarkThreshold(0.2, 0.4),
           teamExercise = PassMarkThreshold(0.2, 0.4),
           leadershipExercise = PassMarkThreshold(0.2, 0.4),
-          overall = PassMarkThreshold(2, 12)
+          overall = PassMarkThreshold(2.0, 10.0)
         ))
       ),
       version.toString(),

@@ -76,6 +76,26 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
         result.head mustBe ApplicationForProgression("appId", ApplicationStatus.FSB, evalResults)
       }
     }
+
+    "not select candidates that are red and green at FSB" in {
+      val evalResults = SchemeEvaluationResult("GovernmentOperationalResearchService", Red.toString) ::
+        SchemeEvaluationResult("Commercial", Green.toString) :: Nil
+      insertApplicationAtFsbWithStatus("appId", evalResults, ProgressStatuses.FSB_FAILED)
+
+      whenReady(repository.nextApplicationFailedAtFsb(1)) { result =>
+        result.size mustBe 0
+      }
+    }
+
+    "not select candidates that are red and amber at FSB" in {
+      val evalResults = SchemeEvaluationResult("GovernmentOperationalResearchService", Red.toString) ::
+        SchemeEvaluationResult("Commercial", Amber.toString) :: Nil
+      insertApplicationAtFsbWithStatus("appId", evalResults, ProgressStatuses.FSB_FAILED)
+
+      whenReady(repository.nextApplicationFailedAtFsb(1)) { result =>
+        result.size mustBe 0
+      }
+    }
   }
 
   "save" must {
