@@ -25,9 +25,6 @@ import model.command._
 import model.persisted._
 import model.report._
 import model.{ApplicationStatus, _}
-import org.joda.time.{DateTime, LocalDate}
-import play.api.Logger
-import org.joda.time.{DateTime, LocalDate}
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.bson.{BsonArray, BsonDocument}
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
@@ -35,9 +32,10 @@ import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import javax.inject.{Inject, Singleton}
 import scala.util.Try
 import repositories._
-import services.TimeZoneService2
+import services.TimeZoneService
 import uk.gov.hmrc.mongo.MongoComponent
 
+import java.time.{LocalDate, OffsetDateTime}
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ReportingRepository {
@@ -66,7 +64,7 @@ trait ReportingRepository {
 
 //scalastyle:off number.of.methods
 @Singleton
-class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2, // TODO: fix this from play upgrade
+class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService,
                                           val dateTimeFactory: DateTimeFactory,
                                           mongo: MongoComponent,
                                           val appConfig: MicroserviceAppConfig
@@ -484,10 +482,10 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2, // 
       "fsac-indicator.assessmentCentre" -> true
     )
 
-    def getDate(doc: Document, status: ProgressStatus): Option[DateTime] = {
-      import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
+    def getDate(doc: Document, status: ProgressStatus): Option[OffsetDateTime] = {
+      import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat
       doc.get("progress-status-timestamp").map{ _.asDocument().get(status.key) }.flatMap {
-        bson => Try(Codecs.fromBson[DateTime](bson)).toOption
+        bson => Try(Codecs.fromBson[OffsetDateTime](bson)).toOption
       }
     }
 
@@ -562,6 +560,7 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2, // 
     }
   }
 
+  //scalastyle:off method.length
   override def candidatesStuckAfterFsacEvaluation: Future[Seq[FsacStuckCandidate]] = {
     val query = Document("$and" -> BsonArray(
       Document(s"applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE.toBson),
@@ -577,7 +576,7 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2, // 
       "progress-status-timestamp" -> true
     )
 
-    collection.find[Document](query).projection(projection).toFuture
+    collection.find[Document](query).projection(projection).toFuture()
       .map(_.map { document =>
         val applicationId = extractAppIdOpt(document).get
         val applicationStatus = extractApplicationStatus(document)
@@ -585,33 +584,36 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService2, // 
         val progressStatusTimeStampDocOpt = subDocRoot("progress-status-timestamp")(document)
 
         // We need this implicit in scope to perform the maxBy below
-        import com.github.nscala_time.time.OrderingImplicits.DateTimeOrdering
+        implicit val dateOrdering: Ordering[OffsetDateTime] = _ compareTo _
 
-        import scala.collection.JavaConverters._
-        import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed for ISODate
+        import scala.jdk.CollectionConverters._
+        import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat // Needed for ISODate
+
         val latestProgressStatusOpt = progressStatusTimeStampDocOpt.flatMap { timestamps =>
           val convertedTimestamps = timestamps.entrySet().asScala.toSet
           val relevantProgressStatuses = convertedTimestamps.filter( _.getKey.startsWith(applicationStatus) )
-          val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element => Codecs.fromBson[DateTime](timestamps.get(element.getKey)))
+          val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element =>
+            Codecs.fromBson[OffsetDateTime](timestamps.get(element.getKey))
+          )
           Try(ProgressStatuses.nameToProgressStatus(latestRelevantProgressStatus.getKey)).toOption
         }
 
         val latestProgressStatusTimestampOpt = latestProgressStatusOpt.flatMap { latestProgressStatus =>
           progressStatusTimeStampDocOpt.map { timestamps =>
-            Codecs.fromBson[DateTime](timestamps.get(latestProgressStatus.toString)).toString
+            Codecs.fromBson[OffsetDateTime](timestamps.get(latestProgressStatus.toString)).toString
           }
         }
 
         val scoresAccepted = Some(ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED)
         val scoresAcceptedTimestamp = progressStatusTimeStampDocOpt.map { timestamps =>
-          Codecs.fromBson[DateTime](timestamps.get(ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED.toString)).toString
+          Codecs.fromBson[OffsetDateTime](timestamps.get(ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED.toString)).toString
         }
 
         FsacStuckCandidate(applicationId, applicationStatus, scoresAccepted, scoresAcceptedTimestamp,
           latestProgressStatusOpt, latestProgressStatusTimestampOpt
         )
       })
-  }
+  } //scalastyle:on
 
   private def toUserApplicationProfile(document: Document) = {
     val applicationId = extractAppIdOpt(document).get

@@ -21,7 +21,6 @@ import model.{Schemes, UniqueIdentifier}
 import model.exchange.passmarksettings._
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import org.joda.time.{DateTime, DateTimeZone}
 import play.api.mvc.RequestHeader
 import repositories.SchemeRepository
 import services.assessmentcentre.AssessmentCentreService
@@ -29,6 +28,7 @@ import services.passmarksettings.AssessmentCentrePassMarkSettingsService
 import services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -57,7 +57,7 @@ class AssessmentCentrePassedStatusGenerator @Inject() (val previousStatusGenerat
         ))
       ),
       version.toString(),
-      DateTime.now(DateTimeZone.UTC),
+      OffsetDateTime.now,
       updatedBy.toString()
     )
 

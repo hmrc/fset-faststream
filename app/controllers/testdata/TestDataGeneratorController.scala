@@ -37,7 +37,6 @@ import model.testdata.CreateAssessorAllocationData
 import model.testdata.CreateCandidateAllocationData
 import model.testdata.CreateEventData
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import org.joda.time.{LocalDate, LocalTime}
 import play.api.Logging
 import play.api.libs.json.{JsObject, JsString, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, RequestHeader}
@@ -49,7 +48,8 @@ import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.Future
+import java.time.{LocalDate, LocalTime}
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class TestDataGeneratorController @Inject() (cc: ControllerComponents,
@@ -64,9 +64,9 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
                                              dataFaker: DataFaker
                                             ) extends BackendController(cc) with Logging with Schemes {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
-  def ping = Action { implicit request =>
+  def ping = Action { implicit _ =>
     Ok("OK")
   }
 
@@ -85,7 +85,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
   }
 
   // scalastyle:off method.length
-  def exampleCreateCandidate = Action { implicit request =>
+  def exampleCreateCandidate = Action { implicit _ =>
     val random = dataFaker.Random
 
     val example = CreateCandidateRequest(
@@ -167,7 +167,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
 
   // scalastyle:on method.length
 
-  def exampleCreateAdmin = Action { implicit request =>
+  def exampleCreateAdmin = Action { implicit _ =>
     val example = CreateAdminRequest(
       emailPrefix = Some("admin_user"),
       firstName = Some("Admin user 1"),
@@ -180,8 +180,8 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
         sifterSchemes = Some(List(GovernmentEconomicsService, ProjectDelivery, Sdip)),
         civilServant = Some(true),
         availability = Some(Set(
-          AssessorAvailabilityRequest("London", LocalDate.now()),
-          AssessorAvailabilityRequest("Newcastle", LocalDate.now())
+          AssessorAvailabilityRequest("London", java.time.LocalDate.now),
+          AssessorAvailabilityRequest("Newcastle", java.time.LocalDate.now)
         )),
         status = AssessorStatus.AVAILABILITIES_SUBMITTED
       ))
@@ -190,7 +190,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
     Ok(Json.toJson(example))
   }
 
-  def exampleCreateEvent = Action { implicit request =>
+  def exampleCreateEvent = Action { implicit _ =>
     val example = CreateEventRequest(
       id = Some(uuidFactory.generateUUID()),
       eventType = Some(EventType.FSAC),
@@ -212,7 +212,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
     Ok(Json.toJson(example))
   }
 
-  def exampleCreateEvents = Action { implicit request =>
+  def exampleCreateEvents = Action { implicit _ =>
     val example1 = CreateEventRequest(
       id = Some(uuidFactory.generateUUID()),
       eventType = Some(EventType.FSAC),
@@ -239,7 +239,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
     Ok(Json.toJson(List(example1, example2)))
   }
 
-  def exampleCreateAssessorAllocations: Action[AnyContent] = Action.async { implicit request =>
+  def exampleCreateAssessorAllocations: Action[AnyContent] = Action.async { implicit _ =>
     val example1 = CreateAssessorAllocationRequest(
       "id2",
       "eventId2",
@@ -255,7 +255,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
     Future.successful(Ok(Json.toJson(List(example1, example2))))
   }
 
-  def exampleCreateCandidateAllocations: Action[AnyContent] = Action.async { implicit request =>
+  def exampleCreateCandidateAllocations: Action[AnyContent] = Action.async { implicit _ =>
     val example1 = CreateCandidateAllocationRequest(
       id = "id1",
       status = Option(AllocationStatuses.UNCONFIRMED),

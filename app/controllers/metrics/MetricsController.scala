@@ -16,7 +16,7 @@
 
 package controllers.metrics
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.ApplicationStatus
 import play.api.libs.json.Json
 import play.api.mvc.ControllerComponents
@@ -24,11 +24,12 @@ import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.collection.immutable.SortedMap
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class MetricsController @Inject() (cc: ControllerComponents, applicationRepo: GeneralApplicationRepository) extends BackendController(cc) {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
   def progressStatusCounts = Action.async {
     for {

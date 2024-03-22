@@ -26,9 +26,9 @@ object ApplicationRoute extends Enumeration {
 
   val Faststream, Edip, Sdip, SdipFaststream = Value
 
-  implicit val applicationRouteFormat = new Format[ApplicationRoute] {
-    def reads(json: JsValue) = JsSuccess(ApplicationRoute.withName(json.as[String]))
-    def writes(myEnum: ApplicationRoute) = JsString(myEnum.toString)
+  implicit val applicationRouteFormat: Format[ApplicationRoute] = new Format[ApplicationRoute] {
+    def reads(json: JsValue): JsSuccess[Value] = JsSuccess(ApplicationRoute.withName(json.as[String]))
+    def writes(myEnum: ApplicationRoute): JsString = JsString(myEnum.toString)
   }
 
   implicit class BsonOps(val applicationRoute: ApplicationRoute) extends AnyVal {

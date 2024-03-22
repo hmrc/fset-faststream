@@ -17,12 +17,13 @@
 package model.persisted.phase3tests
 
 import model.persisted.{PassmarkEvaluation, TestProfile}
-import org.joda.time.DateTime
 import org.mongodb.scala.bson.BsonValue
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.mongo.play.json.Codecs
 
-case class Phase3TestGroup(expirationDate: DateTime,
+import java.time.OffsetDateTime
+
+case class Phase3TestGroup(expirationDate: OffsetDateTime,
                            tests: List[LaunchpadTest],
                            evaluation: Option[PassmarkEvaluation] = None) extends TestProfile[LaunchpadTest] {
   def activeTest = {
@@ -31,12 +32,11 @@ case class Phase3TestGroup(expirationDate: DateTime,
     activeTests.head
   }
   def toExchange = Phase3TestGroupExchange(expirationDate, tests.map(_.toExchange), evaluation)
-
 }
 
 object Phase3TestGroup {
-  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format
-  implicit val phase3TestGroupFormat = Json.format[Phase3TestGroup]
+  import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat // Needed to handle storing ISODate format
+  implicit val phase3TestGroupFormat: OFormat[Phase3TestGroup] = Json.format[Phase3TestGroup]
 
   implicit class BsonOps(val phase3TestGroup: Phase3TestGroup) extends AnyVal {
     def toBson: BsonValue = Codecs.toBson(phase3TestGroup)
@@ -44,12 +44,10 @@ object Phase3TestGroup {
 }
 
 case class Phase3TestGroupExchange(
-                                  expirationDate: DateTime,
+                                  expirationDate: OffsetDateTime,
                                   tests: List[LaunchpadTestExchange],
                                   evaluation: Option[PassmarkEvaluation] = None) extends TestProfile[LaunchpadTestExchange]
 
 object Phase3TestGroupExchange {
-  import play.api.libs.json.JodaWrites._
-  import play.api.libs.json.JodaReads._
-  implicit val phase3TestGroupFormat = Json.format[Phase3TestGroupExchange]
+  implicit val phase3TestGroupFormat: OFormat[Phase3TestGroupExchange] = Json.format[Phase3TestGroupExchange]
 }

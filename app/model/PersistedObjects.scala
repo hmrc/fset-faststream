@@ -17,11 +17,9 @@
 package model
 
 import model.Commands.PhoneNumber
-import org.joda.time.LocalDate
-import model.ApplicationStatus._
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json._
+
+import java.time.LocalDate
 
 @deprecated("fasttrack version. Create one case class in one file. All persisted case classes are in model.persisted package", "July 2016")
 object PersistedObjects {
@@ -43,11 +41,11 @@ object PersistedObjects {
     applicationStatus: String, progressStatuses: ApplicationProgressStatuses)
 
   object Implicits {
-    implicit val addressFormats = Json.format[Address]
-    implicit val personalDetailsWithUserIdFormats = Json.format[PersonalDetailsWithUserId]
-    implicit val allocatedCandidateFormats = Json.format[AllocatedCandidate]
-    implicit val applicationProgressStatusFormats = Json.format[ApplicationProgressStatus]
-    implicit val applicationProgressStatusesFormats = Json.format[ApplicationProgressStatuses]
-    implicit val applicationUserFormats = Json.format[ApplicationUser]
+    implicit val addressFormats: OFormat[Address] = Json.format[Address]
+    implicit val personalDetailsWithUserIdFormats: OFormat[PersonalDetailsWithUserId] = Json.format[PersonalDetailsWithUserId]
+    implicit val allocatedCandidateFormats: OFormat[AllocatedCandidate] = Json.format[AllocatedCandidate]
+    implicit val applicationProgressStatusFormats: OFormat[ApplicationProgressStatus] = Json.format[ApplicationProgressStatus]
+    implicit val applicationProgressStatusesFormats: OFormat[ApplicationProgressStatuses] = Json.format[ApplicationProgressStatuses]
+    implicit val applicationUserFormats: OFormat[ApplicationUser] = Json.format[ApplicationUser]
   }
 }

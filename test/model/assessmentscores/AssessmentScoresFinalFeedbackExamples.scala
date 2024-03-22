@@ -18,9 +18,15 @@ package model.fsacscores
 
 import model.UniqueIdentifier
 import model.assessmentscores.AssessmentScoresFinalFeedback
-import org.joda.time.{ DateTime, DateTimeZone }
+
+import java.time.temporal.ChronoUnit
+import java.time.{OffsetDateTime, ZoneId}
 
 object AssessmentScoresFinalFeedbackExamples {
-  val Example1 = AssessmentScoresFinalFeedback("feedback1", UniqueIdentifier.randomUniqueIdentifier, DateTime.now(DateTimeZone.UTC))
-  val Example2 = AssessmentScoresFinalFeedback("feedback2", UniqueIdentifier.randomUniqueIdentifier, DateTime.now(DateTimeZone.UTC))
+  // Create the date truncated to milliseconds as that is the precision of the date stored in mongo
+  // and the comparison will work when we fetch the date back from the db and check it
+  val Example1 = AssessmentScoresFinalFeedback("feedback1", UniqueIdentifier.randomUniqueIdentifier,
+    OffsetDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.MILLIS))
+  val Example2 = AssessmentScoresFinalFeedback("feedback2", UniqueIdentifier.randomUniqueIdentifier,
+    OffsetDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.MILLIS))
 }

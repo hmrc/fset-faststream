@@ -17,10 +17,10 @@
 package model.sift
 
 import model.persisted.SchemeEvaluationResult
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class FixUserStuckInSiftEntered(applicationId: String, currentSchemeStatus: Seq[SchemeEvaluationResult])
 
 object FixUserStuckInSiftEntered {
-  implicit val fixUserStuckInSiftEnteredFormat = Json.format[FixUserStuckInSiftEntered]
+  implicit val fixUserStuckInSiftEnteredFormat: OFormat[FixUserStuckInSiftEntered] = Json.format[FixUserStuckInSiftEntered]
 }

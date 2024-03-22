@@ -16,10 +16,10 @@
 
 package model.exchange
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class PsiRealTimeResults(tScore: Double, rawScore: Double, reportUrl: Option[String])
 
 object PsiRealTimeResults {
-  implicit val psiRealTimeResultsFormat = Json.format[PsiRealTimeResults]
+  implicit val psiRealTimeResultsFormat: OFormat[PsiRealTimeResults] = Json.format[PsiRealTimeResults]
 }

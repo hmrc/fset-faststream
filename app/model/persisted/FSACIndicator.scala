@@ -16,14 +16,13 @@
 
 package model.persisted
 
-import org.joda.time.LocalDate
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{Format, Json, __}
+import play.api.libs.json.{Format, Json, OFormat, __}
 
 case class FSACIndicator(area: String, assessmentCentre: String, version: String)
 
 object FSACIndicator {
-  implicit val jsonFormat = Json.format[FSACIndicator]
+  implicit val jsonFormat: OFormat[FSACIndicator] = Json.format[FSACIndicator]
 
   // Provide an explicit mongo format here to deal with the sub-document root
   // This data lives in the application collection

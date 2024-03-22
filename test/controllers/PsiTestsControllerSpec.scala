@@ -18,8 +18,7 @@ package controllers
 
 import model.Exceptions.CannotFindTestByOrderIdException
 import model.exchange.PsiRealTimeResults
-import org.joda.time.DateTime
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import play.api.test.Helpers._
@@ -29,6 +28,7 @@ import services.onlinetesting.phase2.Phase2TestService
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.Future
 
 class PsiTestsControllerSpec extends UnitWithAppSpec {
@@ -48,7 +48,7 @@ class PsiTestsControllerSpec extends UnitWithAppSpec {
 
   "start" should {
     "mark the phase1 test as started" in {
-      when(mockPhase1TestService.markAsStarted(eqTo(orderId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
+      when(mockPhase1TestService.markAsStarted(eqTo(orderId), any[OffsetDateTime])(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.successful(()))
 
       val response = controllerUnderTest.start(orderId)(fakeRequest(""))
@@ -56,9 +56,9 @@ class PsiTestsControllerSpec extends UnitWithAppSpec {
     }
 
     "mark the phase2 test as started" in {
-      when(mockPhase1TestService.markAsStarted(eqTo(orderId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
+      when(mockPhase1TestService.markAsStarted(eqTo(orderId), any[OffsetDateTime])(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.failed(CannotFindTestByOrderIdException("")))
-      when(mockPhase2TestService.markAsStarted(eqTo(orderId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
+      when(mockPhase2TestService.markAsStarted(eqTo(orderId), any[OffsetDateTime])(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.successful(()))
 
       val response = controllerUnderTest.start(orderId)(fakeRequest(""))
@@ -66,9 +66,9 @@ class PsiTestsControllerSpec extends UnitWithAppSpec {
     }
 
     "return test not found" in {
-      when(mockPhase1TestService.markAsStarted(eqTo(orderId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
+      when(mockPhase1TestService.markAsStarted(eqTo(orderId), any[OffsetDateTime])(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.failed(CannotFindTestByOrderIdException("")))
-      when(mockPhase2TestService.markAsStarted(eqTo(orderId), any[DateTime])(any[HeaderCarrier], any[RequestHeader])
+      when(mockPhase2TestService.markAsStarted(eqTo(orderId), any[OffsetDateTime])(any[HeaderCarrier], any[RequestHeader])
       ).thenReturn(Future.failed(CannotFindTestByOrderIdException("")))
 
       val response = controllerUnderTest.start(orderId)(fakeRequest(""))

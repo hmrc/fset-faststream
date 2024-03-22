@@ -16,20 +16,20 @@
 
 package model.testdata.candidate
 
-import org.joda.time.{DateTime, DateTimeZone}
+import java.time.{OffsetDateTime, ZoneId}
 
 trait TestDates {
-  def start: Option[DateTime]
+  def start: Option[OffsetDateTime]
 
-  def expiry: Option[DateTime]
+  def expiry: Option[OffsetDateTime]
 
-  def completion: Option[DateTime]
+  def completion: Option[OffsetDateTime]
 
-  def randomDateBeforeNow: DateTime = {
-    DateTime.now(DateTimeZone.UTC).minusHours(scala.util.Random.nextInt(120))
+  def randomDateBeforeNow: OffsetDateTime = {
+    OffsetDateTime.now(ZoneId.of("UTC")).minusHours(scala.util.Random.nextInt(120))
   }
 
-  def randomDateAroundNow: DateTime = {
-    DateTime.now(DateTimeZone.UTC).plusHours(scala.util.Random.nextInt(240)).minusHours(scala.util.Random.nextInt(240))
+  def randomDateAroundNow: OffsetDateTime = {
+    OffsetDateTime.now(ZoneId.of("UTC")).plusHours(scala.util.Random.nextInt(240)).minusHours(scala.util.Random.nextInt(240))
   }
 }

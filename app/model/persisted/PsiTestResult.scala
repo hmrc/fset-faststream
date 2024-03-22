@@ -16,7 +16,7 @@
 
 package model.persisted
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class PsiTestResult(tScore: Double, rawScore: Double, testReportUrl: Option[String])
 
@@ -26,5 +26,5 @@ object PsiTestResult {
     PsiTestResult(tScore = o.tScore, rawScore = o.rawScore, testReportUrl = o.reportUrl)
   }
 
-  implicit def testResultFormat = Json.format[PsiTestResult]
+  implicit def testResultFormat: OFormat[PsiTestResult] = Json.format[PsiTestResult]
 }

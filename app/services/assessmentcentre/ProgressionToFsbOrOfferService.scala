@@ -26,7 +26,6 @@ import model.ProgressStatuses._
 import model._
 import model.command.ApplicationForProgression
 import model.persisted.{FsbSchemeResult, SchemeEvaluationResult}
-import org.joda.time.DateTime
 import play.api.Logging
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -35,6 +34,7 @@ import repositories.{CurrentSchemeStatusHelper, SchemeRepository}
 import services.scheme.SchemePreferencesService
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -87,7 +87,7 @@ class ProgressionToFsbOrOfferService @Inject() (schemeRepository: SchemeReposito
     def maybeArchiveOldFsbStatuses(application: ApplicationForProgression,
                                    latestProgressStatus: ProgressStatus, firstResidualOpt: Option[SchemeEvaluationResult]) = {
 
-      def calculateFsbStatusesToArchive(progressTimestamps: Map[String, DateTime]): List[(ProgressStatus, DateTime)] = {
+      def calculateFsbStatusesToArchive(progressTimestamps: Map[String, OffsetDateTime]): List[(ProgressStatus, OffsetDateTime)] = {
 
         val progressStatusesToArchive = List(FSB_ALLOCATION_CONFIRMED, FSB_ALLOCATION_UNCONFIRMED, FSB_AWAITING_ALLOCATION,
           FSB_FAILED, FSB_FAILED_TO_ATTEND, FSB_PASSED, FSB_RESULT_ENTERED)

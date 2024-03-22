@@ -20,10 +20,9 @@ import model.AllocationStatuses.AllocationStatus
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.SkillType.SkillType
 import model.persisted.eventschedules.Venue
-import org.joda.time.{ LocalDate, LocalTime }
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
+
+import java.time.{LocalDate, LocalTime}
 
 case class AllocationWithEvent(
   assessorId: String,
@@ -38,5 +37,5 @@ case class AllocationWithEvent(
 )
 
 object AllocationWithEvent {
-  implicit val allocationWithEventFormat = Json.format[AllocationWithEvent]
+  implicit val allocationWithEventFormat: OFormat[AllocationWithEvent] = Json.format[AllocationWithEvent]
 }

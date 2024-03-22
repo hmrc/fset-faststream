@@ -28,7 +28,6 @@ import model._
 import model.command.{Phase3ProgressResponse, ProgressResponse}
 import model.persisted.phase3tests.{LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup}
 import model.persisted._
-import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
@@ -45,6 +44,8 @@ import testkit.{ExtendedTimeout, UnitSpec}
 
 import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.HeaderCarrier
+
+import java.time.OffsetDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
@@ -52,7 +53,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
   "Register and Invite an applicant" should {
 
     "send audit events" in new Phase3TestServiceFixture {
-      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId, None).futureValue
+      phase3TestServiceNoTestGroup.registerAndInviteForTestGroup(onlineTestApplication, testInterviewId, phase3TestGroup = None).futureValue
 
       verifyDataStoreEvents(4,
         List("VideoInterviewCandidateRegistered",
@@ -73,7 +74,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       val videoAdjustments = AdjustmentDetail(timeNeeded = Some(10), invigilatedInfo = Some("blah blah"), otherInfo = Some("more blah"))
       val invigilatedApplicant = onlineTestApplication.copy(videoInterviewAdjustments = Some(videoAdjustments))
       phase3TestServiceNoTestGroupForInvigilated.registerAndInviteForTestGroup(invigilatedApplicant, testInterviewId, None).futureValue
-      verify(emailClientMock, times(0)).sendOnlineTestInvitation(any[String], any[String], any[DateTime])(
+      verify(emailClientMock, times(0)).sendOnlineTestInvitation(any[String], any[String], any[OffsetDateTime])(
         any[HeaderCarrier], any[ExecutionContext])
     }
 
@@ -371,7 +372,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       phase3TestServiceWithExpiredTestGroup.extendTestGroupExpiryTime("a", daysToExtend, "A N User").futureValue
 
       val launchpadRequestCaptor = ArgumentCaptor.forClass(classOf[ExtendDeadlineRequest])
-      val repositoryDateCaptor = ArgumentCaptor.forClass(classOf[DateTime])
+      val repositoryDateCaptor = ArgumentCaptor.forClass(classOf[OffsetDateTime])
 
       verify(launchpadGatewayClientMock, times(1)).extendDeadline(launchpadRequestCaptor.capture)
       verify(p3TestRepositoryMock, times(1)).updateGroupExpiryTime(any(), repositoryDateCaptor.capture, any())(any())
@@ -387,7 +388,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       phase3TestServiceWithUnexpiredTestGroup.extendTestGroupExpiryTime("a", daysToExtend, "A N User").futureValue
 
       val launchpadRequestCaptor = ArgumentCaptor.forClass(classOf[ExtendDeadlineRequest])
-      val repositoryDateCaptor = ArgumentCaptor.forClass(classOf[DateTime])
+      val repositoryDateCaptor = ArgumentCaptor.forClass(classOf[OffsetDateTime])
 
       verify(launchpadGatewayClientMock, times(1)).extendDeadline(launchpadRequestCaptor.capture)
       verify(p3TestRepositoryMock, times(1)).updateGroupExpiryTime(any(), repositoryDateCaptor.capture, any())(any())
@@ -425,7 +426,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
       verify(appRepositoryMock, never()).getCurrentSchemeStatus(applicationId)
       verify(appRepositoryMock, never()).updateCurrentSchemeStatus(applicationId, results)
-      verify(siftServiceMock, never()).sendSiftEnteredNotification(eqTo(applicationId), any[DateTime])(any[HeaderCarrier])
+      verify(siftServiceMock, never()).sendSiftEnteredNotification(eqTo(applicationId), any[OffsetDateTime])(any[HeaderCarrier])
       verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, TestExpirationEmailTemplates.phase3ExpirationTemplate)
     }
 
@@ -447,7 +448,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(applicationId, SIFT_ENTERED)
       verify(appRepositoryMock, never()).getCurrentSchemeStatus(applicationId)
       verify(appRepositoryMock, never()).updateCurrentSchemeStatus(applicationId, results)
-      verify(siftServiceMock, never()).sendSiftEnteredNotification(eqTo(applicationId), any[DateTime])(any[HeaderCarrier])
+      verify(siftServiceMock, never()).sendSiftEnteredNotification(eqTo(applicationId), any[OffsetDateTime])(any[HeaderCarrier])
       verify(emailClientMock).sendEmailWithName(emailContactDetails, preferredName, TestExpirationEmailTemplates.phase3ExpirationTemplate)
     }
   }
@@ -510,18 +511,18 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       needsAtVenueAdjustments = false,
       preferredName = testFirstName,
       lastName = testLastName,
-      None,
-      None
+      eTrayAdjustments = None,
+      videoInterviewAdjustments = None
     )
     val onlineTestApplicationWithThirtyThreeTimeAdjustment = onlineTestApplication.copy(
-      videoInterviewAdjustments = Some(AdjustmentDetail(Some(33), None, None))
+      videoInterviewAdjustments = Some(AdjustmentDetail(Some(33), otherInfo = None, invigilatedInfo = None))
     )
 
     val onlineTestApplication2 = onlineTestApplication.copy(applicationId = "appId2", userId = "userId2")
 
     val testInterviewId = 123
-    val testTimeNow = DateTime.parse("2016-10-01T00:00:01Z")
-    val unexpiredTestExpiryTime = DateTime.parse("2016-11-01T00:00:01Z")
+    val testTimeNow = OffsetDateTime.parse("2016-10-01T00:00:01Z")
+    val unexpiredTestExpiryTime = OffsetDateTime.parse("2016-11-01T00:00:01Z")
     val expectedFromNowExpiryTime = testTimeNow.plusDays(5)
     val expectedFromExistingExpiryExpiryTime = unexpiredTestExpiryTime.plusDays(5)
     val testExpiredTime = testTimeNow.minusDays(3)
@@ -558,9 +559,9 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       testInviteId,
       testLaunchpadCandidateId,
       testFaststreamCustomCandidateId,
-      testTimeNow,
-      Some(testTimeNow),
-      None,
+      invitationDate = testTimeNow,
+      startedDateTime = Some(testTimeNow),
+      completedDateTime = None,
       LaunchpadTestCallbacks()
     )
 
@@ -572,9 +573,9 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       testInviteId,
       testLaunchpadCandidateId,
       testFaststreamCustomCandidateId,
-      testTimeNow,
-      Some(testTimeNow),
-      None,
+      invitationDate = testTimeNow,
+      startedDateTime = Some(testTimeNow),
+      completedDateTime = None,
       LaunchpadTestCallbacks()
     )
 
@@ -587,26 +588,20 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
     val phase3TestGroupUnexpiring = Phase3TestGroup(
       unexpiredTestExpiryTime,
-      List(
-        testPhase3Test
-      ),
-      None
+      List(testPhase3Test),
+      evaluation = None
     )
 
     val phase3TestGroupNotCompleted = Phase3TestGroup(
       unexpiredTestExpiryTime,
-      List(
-        testPhase3TestNotCompleted
-      ),
-      None
+      List(testPhase3TestNotCompleted),
+      evaluation = None
     )
 
     val phase3TestGroupCompleted = Phase3TestGroup(
       unexpiredTestExpiryTime,
-      List(
-        testPhase3TestCompleted
-      ),
-      None
+      List(testPhase3TestCompleted),
+      evaluation = None
     )
 
     // Common Mocks
@@ -716,7 +711,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       when(appRepositoryMock.findProgress(any[String])).thenReturn(Future.successful(ProgressResponse("appId")))
 
       // Mark As Started
-      when(p3TestRepositoryMock.updateTestStartTime(any[String], any[DateTime])).thenReturn(Future.successful(()))
+      when(p3TestRepositoryMock.updateTestStartTime(any[String], any[OffsetDateTime])).thenReturn(Future.successful(()))
       when(p3TestRepositoryMock.getTestGroupByToken(testInviteId))
         .thenReturn(Future.successful(Phase3TestGroupWithAppId("appId123", testTestGroup)))
       when(p3TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_STARTED)).thenReturn(Future.successful(()))
@@ -743,7 +738,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       ))
 
       // Mark As Started
-      when(p3TestRepositoryMock.updateTestStartTime(any[String], any[DateTime])).thenReturn(Future.successful(()))
+      when(p3TestRepositoryMock.updateTestStartTime(any[String], any[OffsetDateTime])).thenReturn(Future.successful(()))
       when(p3TestRepositoryMock.getTestGroupByToken(testInviteId))
         .thenReturn(Future.successful(Phase3TestGroupWithAppId("appId123", testTestGroup)))
       when(p3TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_STARTED)).thenReturn(Future.successful(()))
@@ -757,7 +752,7 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
       when(p3TestRepositoryMock.getTestGroupByToken(testInviteId))
         .thenReturn(Future.successful(Phase3TestGroupWithAppId("appId123", testTestGroup)))
       when(p3TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE3_TESTS_COMPLETED)).thenReturn(Future.successful(()))
-      when(p3TestRepositoryMock.updateTestCompletionTime(any[String], any[DateTime])).thenReturn(Future.successful(()))
+      when(p3TestRepositoryMock.updateTestCompletionTime(any[String], any[OffsetDateTime])).thenReturn(Future.successful(()))
     }
 
     private def markAsResultsReceivedMocks = {

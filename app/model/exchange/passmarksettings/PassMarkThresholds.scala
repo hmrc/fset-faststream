@@ -16,7 +16,7 @@
 
 package model.exchange.passmarksettings
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 trait PassMarkThresholds
 
@@ -57,7 +57,7 @@ case class Phase1PassMarkThresholds(
 ) extends PassMarkThresholds with Phase1Thresholds
 
 object Phase1PassMarkThresholds {
-  implicit val phase1PassMarkThresholds = Json.format[Phase1PassMarkThresholds]
+  implicit val phase1PassMarkThresholds: OFormat[Phase1PassMarkThresholds] = Json.format[Phase1PassMarkThresholds]
 }
 
 case class Phase2PassMarkThresholds(
@@ -66,7 +66,7 @@ case class Phase2PassMarkThresholds(
 ) extends PassMarkThresholds with Phase2Thresholds
 
 object Phase2PassMarkThresholds {
-  implicit val phase2PassMarkThresholds = Json.format[Phase2PassMarkThresholds]
+  implicit val phase2PassMarkThresholds: OFormat[Phase2PassMarkThresholds] = Json.format[Phase2PassMarkThresholds]
 }
 
 case class Phase3PassMarkThresholds(
@@ -74,7 +74,7 @@ case class Phase3PassMarkThresholds(
 ) extends PassMarkThresholds with Phase3Thresholds
 
 object Phase3PassMarkThresholds {
-  implicit val phase3PassMarkThresholds = Json.format[Phase3PassMarkThresholds]
+  implicit val phase3PassMarkThresholds: OFormat[Phase3PassMarkThresholds] = Json.format[Phase3PassMarkThresholds]
 }
 
 // These are competency pass marks. The 1st version of the FSAC evaluation used these pass marks
@@ -94,7 +94,7 @@ case class AssessmentCentreCompetencyPassMarkThresholds(
 }
 
 object AssessmentCentreCompetencyPassMarkThresholds {
-  implicit val jsonFormat = Json.format[AssessmentCentreCompetencyPassMarkThresholds]
+  implicit val jsonFormat: OFormat[AssessmentCentreCompetencyPassMarkThresholds] = Json.format[AssessmentCentreCompetencyPassMarkThresholds]
 }
 
 // These are exercise pass marks. The latest version of the FSAC evaluation uses these pass marks
@@ -112,7 +112,7 @@ case class AssessmentCentreExercisePassMarkThresholds(
 }
 
 object AssessmentCentreExercisePassMarkThresholds {
-  implicit val jsonFormat = Json.format[AssessmentCentreExercisePassMarkThresholds]
+  implicit val jsonFormat: OFormat[AssessmentCentreExercisePassMarkThresholds] = Json.format[AssessmentCentreExercisePassMarkThresholds]
 }
 
 

@@ -38,7 +38,7 @@ class SchoolsCSVRepository @Inject() (application: Application) extends SchoolsR
 
     val input = managed(application.environment.resourceAsStream("UK_schools_data_v2.csv").get)
     input.acquireAndGet { inputStream =>
-      val rawData = Source.fromInputStream(inputStream).getLines.map(parseLine).toList
+      val rawData = Source.fromInputStream(inputStream).getLines().map(parseLine).toList
       val headers = rawData.head
       val values = rawData.tail
       val schools = values map { columns =>

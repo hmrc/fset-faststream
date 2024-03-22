@@ -16,13 +16,15 @@
 
 package repositories
 
-import model.{SchemeId, Schemes}
+import model.Schemes
 import model.exchange.passmarksettings._
-import org.joda.time.{DateTime, DateTimeZone}
 import play.api.libs.json.{Format, OFormat}
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import repositories.passmarksettings._
 import testkit.MongoRepositorySpec
+
+import java.time.temporal.ChronoUnit
+import java.time.{OffsetDateTime, ZoneId}
 
 class Phase1PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture with Schemes {
   override type T = Phase1PassMarkSettingsPersistence
@@ -41,7 +43,8 @@ class Phase1PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture wit
   override val collectionName: String = CollectionNames.PHASE1_PASS_MARK_SETTINGS
 
   override def copyNewPassMarkSettings(passMarks: Phase1PassMarkSettingsPersistence, newPassMarks: List[Phase1PassMark],
-                                                newVersion: String, newDate: DateTime, newUser: String): Phase1PassMarkSettingsPersistence = {
+                                       newVersion: String, newDate: OffsetDateTime,
+                                       newUser: String): Phase1PassMarkSettingsPersistence = {
     passMarks.copy(schemes = newPassMarks, newVersion, createdDate.plusDays(1), createdByUser)
   }
 }
@@ -59,7 +62,7 @@ class Phase2PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture wit
   override val collectionName: String = CollectionNames.PHASE2_PASS_MARK_SETTINGS
 
   override def copyNewPassMarkSettings(passMarks: Phase2PassMarkSettingsPersistence, newPassMarks: List[Phase2PassMark],
-                                       newVersion: String, newDate: DateTime, newUser: String): Phase2PassMarkSettingsPersistence = {
+                                       newVersion: String, newDate: OffsetDateTime, newUser: String): Phase2PassMarkSettingsPersistence = {
     passMarks.copy(schemes = newPassMarks, newVersion, createdDate.plusDays(1), createdByUser)
   }
 }
@@ -77,7 +80,7 @@ class Phase3PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture wit
   override val collectionName: String = CollectionNames.PHASE3_PASS_MARK_SETTINGS
 
   override def copyNewPassMarkSettings(passMarks: Phase3PassMarkSettingsPersistence, newPassMarks: List[Phase3PassMark],
-                                       newVersion: String, newDate: DateTime, newUser: String): Phase3PassMarkSettingsPersistence = {
+                                       newVersion: String, newDate: OffsetDateTime, newUser: String): Phase3PassMarkSettingsPersistence = {
     passMarks.copy(schemes = newPassMarks, newVersion, createdDate.plusDays(1), createdByUser)
   }
 }
@@ -105,7 +108,7 @@ class AssessmentCentrePassMarkSettingsRepositorySpec extends PassMarkRepositoryF
   override def copyNewPassMarkSettings(passMarks: AssessmentCentrePassMarkSettingsPersistence,
                                        newPassMarks: List[AssessmentCentreExercisePassMark],
                                        newVersion: String,
-                                       newDate: DateTime,
+                                       newDate: OffsetDateTime,
                                        newUser: String): AssessmentCentrePassMarkSettingsPersistence = {
     passMarks.copy(schemes = newPassMarks, newVersion, createdDate.plusDays(1), createdByUser)
   }
@@ -120,16 +123,17 @@ trait PassMarkRepositoryFixture extends MongoRepositorySpec {
   val newPassMarks: List[U]
   def passMarkSettingsRepo: PassMarkSettingsRepository[T]
 
-  def copyNewPassMarkSettings(passMarks: T, schemes: List[U], newVersion: String, newDate: DateTime, newUser: String): T
+  def copyNewPassMarkSettings(passMarks: T, schemes: List[U], newVersion: String, newDate: OffsetDateTime, newUser: String): T
 
   val collectionName: String
   val version = "version-1"
-  val createdDate = DateTime.now(DateTimeZone.UTC)
+  // Create the date truncated to milliseconds as that is the precision of the date stored in mongo
+  // and the comparison will work when we fetch the date back from the db and check it
+  val createdDate = OffsetDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.MILLIS)
   val createdByUser = "user-1"
 
   "Pass-mark-settings collection" should {
     "create indexes for the repository" in {
-
       val indexes = indexDetails(passMarkSettingsRepo.asInstanceOf[PlayMongoRepository[T]]).futureValue
       indexes must contain theSameElementsAs
         Seq(

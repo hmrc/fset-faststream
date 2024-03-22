@@ -17,12 +17,12 @@
 package model
 
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{Format, Json, __}
+import play.api.libs.json.{Format, Json, OFormat, __}
 
 case class SelectedSchemes(schemes: List[SchemeId], orderAgreed: Boolean, eligible: Boolean)
 
 object SelectedSchemes {
-  implicit val selectedSchemesFormat = Json.format[SelectedSchemes]
+  implicit val selectedSchemesFormat: OFormat[SelectedSchemes] = Json.format[SelectedSchemes]
 
   // Provide an explicit mongo format here to deal with the sub-document root
   val root = "scheme-preferences"

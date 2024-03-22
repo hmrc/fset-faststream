@@ -16,10 +16,10 @@
 
 package model.exchange.passmarksettings
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class PassMarkThreshold(failThreshold: Double, passThreshold: Double)
 
 object PassMarkThreshold {
-  implicit val passMarkThreshold = Json.format[PassMarkThreshold]
+  implicit val passMarkThreshold: OFormat[PassMarkThreshold] = Json.format[PassMarkThreshold]
 }

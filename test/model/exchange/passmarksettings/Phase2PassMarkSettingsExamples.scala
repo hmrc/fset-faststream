@@ -17,14 +17,14 @@
 package model.exchange.passmarksettings
 
 import java.util.UUID
-
 import model.SchemeId
-import org.joda.time.DateTime
+
+import java.time.OffsetDateTime
 
 object Phase2PassMarkSettingsExamples {
-  def passmark(implicit now: DateTime) = Phase2PassMarkSettingsPersistence(List(), "version", now, "userId")
+  def passmark(implicit now: OffsetDateTime) = Phase2PassMarkSettingsPersistence(List(), "version", now, "userId")
 
-  def passMarkSettings(schemes: List[(SchemeId, Double, Double)])(implicit now: DateTime) =
+  def passMarkSettings(schemes: List[(SchemeId, Double, Double)])(implicit now: OffsetDateTime) =
     Phase2PassMarkSettingsPersistence(schemes.map { case (s, fail, pass) => createPhase2PassMark(s, fail, pass) },
       UUID.randomUUID().toString, now, "userId")
 

@@ -23,7 +23,6 @@ import model.command.ApplicationForProgression
 import model.persisted._
 import model.persisted.fsb.ScoresAndFeedback
 import model._
-import org.joda.time.DateTime
 import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
@@ -31,6 +30,8 @@ import repositories.application.GeneralApplicationMongoRepository
 import repositories.{CollectionNames, CommonRepository}
 import testkit.MongoRepositorySpec
 
+import java.time.temporal.ChronoUnit
+import java.time.{Instant, OffsetDateTime, ZoneOffset}
 import scala.util.Try
 
 class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with CommonRepository with Schemes {
@@ -594,12 +595,12 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
         _.flatMap { doc =>
           Try(doc.get("fsb-progress-status-timestamp").asDocument().get(progressStatus).asDateTime().getValue).toOption
         }
-      }.map( _.map (instant => new DateTime(instant)))
+      }.map( _.map (instant => OffsetDateTime.ofInstant(Instant.ofEpochMilli(instant), ZoneOffset.UTC)))
     }
 
     "add data as expected" in {
       val appId = createApplication()
-      val now = DateTime.now
+      val now = OffsetDateTime.now.truncatedTo(ChronoUnit.MILLIS)
       repository.addFsbProgressStatuses(appId, List("test" -> now)).futureValue
       isFsbProgressStatusStored(appId, "test").futureValue mustBe true
       getFsbProgressStatusTimestamp(appId, "test").futureValue mustBe Some(now)

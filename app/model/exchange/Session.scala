@@ -16,10 +16,9 @@
 
 package model.exchange
 
-import org.joda.time.LocalTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.{ Json, OFormat }
+import play.api.libs.json.{Json, OFormat}
+
+import java.time.LocalTime
 
 case class Session(
   id: String,

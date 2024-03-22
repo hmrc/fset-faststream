@@ -21,7 +21,6 @@ import model.AllocationStatuses
 import model.AllocationStatuses.AllocationStatus
 import model.Exceptions.{TooManyEventIdsException, TooManySessionIdsException}
 import model.persisted.CandidateAllocation
-import org.joda.time.LocalDate
 import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Indexes.ascending
@@ -29,6 +28,7 @@ import org.mongodb.scala.model.{IndexModel, IndexOptions}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
+import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 
 trait CandidateAllocationRepository {
@@ -100,7 +100,6 @@ class CandidateAllocationMongoRepository @Inject() (mongoComponent: MongoCompone
 
   override def findAllUnconfirmedAllocated(days: Int): Future[Seq[CandidateAllocation]] = {
     val today = LocalDate.now
-    import play.api.libs.json.JodaWrites._ // This is needed for LocalDate serialization
 
     collection.find(Document(
       "createdAt" -> Document("$lte" -> Codecs.toBson(today.minusDays(days))),
@@ -242,8 +241,6 @@ class CandidateAllocationMongoRepository @Inject() (mongoComponent: MongoCompone
   }
 
   override def updateStructure(): Future[Unit] = {
-    import play.api.libs.json.JodaWrites._ // This is needed for LocalDate serialization
-
     val updateQuery = Document("$set" -> Document("reminderSent" -> true, "createdAt" -> Codecs.toBson(LocalDate.now)))
     collection.updateMany(Document.empty, updateQuery).toFuture().map(_ => ())
   }

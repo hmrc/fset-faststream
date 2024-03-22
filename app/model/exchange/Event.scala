@@ -17,11 +17,10 @@
 package model.exchange
 
 import model.persisted.eventschedules.EventType.EventType
-import model.persisted.eventschedules.{ Location, Venue }
-import org.joda.time.{ LocalDate, LocalTime }
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.{ Json, OFormat }
+import model.persisted.eventschedules.{Location, Venue}
+import play.api.libs.json.{Json, OFormat}
+
+import java.time.{LocalDate, LocalTime}
 
 case class Event(
   id: String,
@@ -42,7 +41,7 @@ object Event {
   implicit val format: OFormat[Event] = Json.format[Event]
 
   def apply(persistedEvent: model.persisted.eventschedules.Event): Event = {
-    new Event(
+    Event(
       id = persistedEvent.id,
       eventType = persistedEvent.eventType,
       description = persistedEvent.description,

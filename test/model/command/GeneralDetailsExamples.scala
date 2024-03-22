@@ -16,16 +16,17 @@
 
 package model.command
 
-import org.joda.time.LocalDate
 import model.AddressExamples._
-import model.{ CivilServiceExperienceDetails, FSACIndicator }
+import model.{CivilServiceExperienceDetails, FSACIndicator}
+
+import java.time.LocalDate
 
 object GeneralDetailsExamples {
-  val CandidateContactDetailsUK = GeneralDetails("John", "Doe", "johnd", "johndoe@test.com", LocalDate.now().minusYears(20),
+  val CandidateContactDetailsUK = GeneralDetails("John", "Doe", "johnd", "johndoe@test.com", LocalDate.now.minusYears(20),
     outsideUk = false, FullAddress, Some("A1 B23"), Some(FSACIndicator("London", "London")), country = None, phone = "1234567890",
     Some(CivilServiceExperienceDetails(applicable = false)), edipCompleted = Some(false), edipYear = None,
     otherInternshipCompleted = Some(false), otherInternshipName = None, otherInternshipYear = None, updateApplicationStatus = Some(true))
-  val CandidateContactDetailsUKSdip = GeneralDetails("John", "Doe", "johnd", "johndoe@test.com", LocalDate.now().minusYears(20),
+  val CandidateContactDetailsUKSdip = GeneralDetails("John", "Doe", "johnd", "johndoe@test.com", LocalDate.now.minusYears(20),
     outsideUk = false, FullAddress, Some("A1 B23"), Some(FSACIndicator("London", "London")), country = None, phone = "1234567890",
     Some(CivilServiceExperienceDetails(applicable = false)), edipCompleted = Some(true), edipYear = Some("2020"),
     otherInternshipCompleted = Some(false), otherInternshipName = None, otherInternshipYear = None, updateApplicationStatus = Some(true))

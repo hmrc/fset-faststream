@@ -17,7 +17,9 @@
 package model.assessmentscores
 
 import model.UniqueIdentifier
-import org.joda.time.{ DateTime, DateTimeZone }
+
+import java.time.temporal.ChronoUnit
+import java.time.{OffsetDateTime, ZoneId}
 
 object AssessmentScoresExerciseExamples {
   val Example1 = getExample(1)
@@ -25,7 +27,9 @@ object AssessmentScoresExerciseExamples {
   val Example3 = getExample(2)
   val Example4 = getExample(2.5)
   val ExampleNoFractions = getExampleNoFractions
-  lazy val dateTimeNow = DateTime.now(DateTimeZone.UTC)
+  // Create the date truncated to milliseconds as that is the precision of the date stored in mongo
+  // and the comparison will work when we fetch the date back from the db and check it
+  lazy val dateTimeNow = OffsetDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.MILLIS)
 
   lazy val updatedBy = UniqueIdentifier.randomUniqueIdentifier
 

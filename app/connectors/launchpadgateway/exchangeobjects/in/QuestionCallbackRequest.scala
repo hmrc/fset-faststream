@@ -16,16 +16,16 @@
 
 package connectors.launchpadgateway.exchangeobjects.in
 
-import org.joda.time.{ DateTime, LocalDate }
-import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format
-import play.api.libs.json.Json
+import java.time.{LocalDate, OffsetDateTime}
+import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat
+import play.api.libs.json.{Json, OFormat}
 
-case class QuestionCallbackRequest(received: DateTime, candidateId: String, customCandidateId: String, interviewId: Int,
+case class QuestionCallbackRequest(received: OffsetDateTime, candidateId: String, customCandidateId: String, interviewId: Int,
   customInterviewId: Option[String], customInviteId: String, deadline: LocalDate,
   questionNumber: String)
 
 object QuestionCallbackRequest {
   // Should match LaunchpadTestsCallback case class
   val key = "question"
-  implicit val questionCallbackFormat = Json.format[QuestionCallbackRequest]
+  implicit val questionCallbackFormat: OFormat[QuestionCallbackRequest] = Json.format[QuestionCallbackRequest]
 }

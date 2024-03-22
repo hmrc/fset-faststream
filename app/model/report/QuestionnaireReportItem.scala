@@ -16,7 +16,7 @@
 
 package model.report
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class QuestionnaireReportItem(
                                     gender: Option[String],
@@ -38,5 +38,5 @@ case class QuestionnaireReportItem(
                                   )
 
 object QuestionnaireReportItem {
-  implicit val questionnaireReportItemFormat = Json.format[QuestionnaireReportItem]
+  implicit val questionnaireReportItemFormat: OFormat[QuestionnaireReportItem] = Json.format[QuestionnaireReportItem]
 }

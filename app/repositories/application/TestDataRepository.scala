@@ -24,7 +24,6 @@ import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.ProgressStatuses.ProgressStatus
 import model.persisted.ContactDetails
-import org.joda.time.{DateTime, LocalDate}
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
@@ -33,6 +32,7 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import repositories._
 
+import java.time.{LocalDate, OffsetDateTime}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Random
 
@@ -166,8 +166,8 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: Exe
       "issue" -> "this candidate has changed the email",
       "progress-status" -> progressStatus(additionalProgressStatuses),
       "progress-status-timestamp" -> Document(
-        "IN_PROGRESS" -> dateTimeToBson(DateTime.now()),
-        "SUBMITTED" -> dateTimeToBson(DateTime.now())
+        "IN_PROGRESS" -> offsetDateTimeToBson(OffsetDateTime.now),
+        "SUBMITTED" -> offsetDateTimeToBson(OffsetDateTime.now)
       )
     ) ++ additionalDoc
     applicationCollection.insertOne(document).toFuture()
@@ -274,7 +274,6 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: Exe
   private def createPersonalDetails(id: Int) = id match {
     case x if x % 5 == 0 => None
     case _ =>
-      import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
       Some(Document(
         "firstName" -> chooseOne[String](firstNames),
         "lastName" -> chooseOne[String](lastNames),

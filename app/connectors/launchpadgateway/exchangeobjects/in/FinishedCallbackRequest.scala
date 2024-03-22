@@ -16,17 +16,16 @@
 
 package connectors.launchpadgateway.exchangeobjects.in
 
-import org.joda.time.{ DateTime, LocalDate }
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits.jotDateTimeFormat // Needed to handle storing ISODate format
-import play.api.libs.json.Json
+import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat
+import play.api.libs.json.{Json, OFormat}
 
-case class FinishedCallbackRequest(received: DateTime, candidateId: String, customCandidateId: String, interviewId: Int,
+import java.time.{LocalDate, OffsetDateTime}
+
+case class FinishedCallbackRequest(received: OffsetDateTime, candidateId: String, customCandidateId: String, interviewId: Int,
   customInterviewId: Option[String], customInviteId: String, deadline: LocalDate)
 
 object FinishedCallbackRequest {
   // Should match LaunchpadTestsCallback case class
   val key = "finished"
-  implicit val finishedCallbackFormat = Json.format[FinishedCallbackRequest]
+  implicit val finishedCallbackFormat: OFormat[FinishedCallbackRequest] = Json.format[FinishedCallbackRequest]
 }

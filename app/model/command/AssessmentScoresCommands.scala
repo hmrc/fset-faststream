@@ -18,12 +18,11 @@ package model.command
 
 import model.UniqueIdentifier
 import model.assessmentscores.{AssessmentScoresAllExercisesExchange, AssessmentScoresExerciseExchange, AssessmentScoresFinalFeedbackExchange}
-import org.joda.time.LocalDate
 import org.mongodb.scala.bson.BsonValue
-import play.api.libs.json.JodaWrites._
-import play.api.libs.json.JodaReads._
 import play.api.libs.json._
 import uk.gov.hmrc.mongo.play.json.Codecs
+
+import java.time.LocalDate
 
 object AssessmentScoresCommands {
 
@@ -42,10 +41,9 @@ object AssessmentScoresCommands {
 
     val writtenExercise, teamExercise, leadershipExercise, finalFeedback = Value
 
-    implicit val assessmentExerciseFormat = new Format[AssessmentScoresSectionType] {
-      def reads(json: JsValue) = JsSuccess(AssessmentScoresSectionType.withName(json.as[String]))
-
-      def writes(scheme: AssessmentScoresSectionType) = JsString(scheme.toString)
+    implicit val assessmentExerciseFormat: Format[AssessmentScoresSectionType] = new Format[AssessmentScoresSectionType] {
+      def reads(json: JsValue): JsSuccess[Value] = JsSuccess(AssessmentScoresSectionType.withName(json.as[String]))
+      def writes(scheme: AssessmentScoresSectionType): JsString = JsString(scheme.toString)
     }
 
     implicit class BsonOps(val sectionType: AssessmentScoresSectionType) extends AnyVal {

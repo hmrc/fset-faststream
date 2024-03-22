@@ -16,13 +16,12 @@
 
 package model
 
-import play.api.libs.json.Json
-import repositories.csv.FSACIndicatorCSVRepository
+import play.api.libs.json.{Json, OFormat}
 
 final case class FSACIndicator(area: String, assessmentCentre: String)
 
 object FSACIndicator {
-  implicit val fsacIndicatorFormat = Json.format[FSACIndicator]
+  implicit val fsacIndicatorFormat: OFormat[FSACIndicator] = Json.format[FSACIndicator]
 
   def apply(indicator: model.persisted.FSACIndicator): FSACIndicator = {
     FSACIndicator(indicator.area, indicator.assessmentCentre)

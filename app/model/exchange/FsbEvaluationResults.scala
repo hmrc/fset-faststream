@@ -17,18 +17,18 @@
 package model.exchange
 
 import model.SchemeId
-import play.api.libs.json.{ Format, Json }
+import play.api.libs.json.{Format, Json, OFormat}
 
 case class ApplicationResult(applicationId: String, result: String)
 
 object ApplicationResult {
-  implicit val format = Json.format[ApplicationResult]
+  implicit val format: OFormat[ApplicationResult] = Json.format[ApplicationResult]
 }
 
 case class FsbEvaluationResults(schemeId: SchemeId, applicationResults: List[ApplicationResult])
 
 object FsbEvaluationResults {
-  implicit val format = Json.format[FsbEvaluationResults]
+  implicit val format: OFormat[FsbEvaluationResults] = Json.format[FsbEvaluationResults]
 }
 
 case class FsbScoresAndFeedback(

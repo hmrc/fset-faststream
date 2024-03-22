@@ -16,7 +16,7 @@
 
 package repositories.application
 
-import akka.stream.scaladsl.Source
+import org.apache.pekko.stream.scaladsl.Source
 import model.Exceptions.ApplicationNotFound
 
 import javax.inject.{Inject, Singleton}

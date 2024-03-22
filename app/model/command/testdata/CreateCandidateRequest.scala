@@ -17,8 +17,8 @@
 package model.command.testdata
 
 import model.ApplicationRoute.ApplicationRoute
+import model.SchemeId
 import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
-import model.{Adjustments, SchemeId}
 import play.api.libs.json.{Json, OFormat}
 
 object CreateCandidateRequest {

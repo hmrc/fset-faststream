@@ -16,11 +16,11 @@
 
 package model.command.testdata
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 
 case class ClearCandidatesRequest(applicationStatus: Option[String])
 
 object ClearCandidatesRequest {
-  implicit val clearCandidatesRequestFormat = Json.format[ClearCandidatesRequest]
+  implicit val clearCandidatesRequestFormat: OFormat[ClearCandidatesRequest] = Json.format[ClearCandidatesRequest]
 }

@@ -17,12 +17,12 @@
 package model.persisted
 
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{Format, Json, __}
+import play.api.libs.json.{Format, Json, OFormat, __}
 
 case class Media(userId: String, media: String, originalUserId: Option[String] = None)
 
 object Media {
-  implicit val mediaFormat = Json.format[Media]
+  implicit val mediaFormat: OFormat[Media] = Json.format[Media]
 
   val mongoFormat: Format[Media] = (
     (__ \ "userId").format[String] and

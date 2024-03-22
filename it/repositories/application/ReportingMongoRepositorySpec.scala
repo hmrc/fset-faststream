@@ -31,7 +31,7 @@ import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
 import repositories.CollectionNames
-import services.GBTimeZoneService2
+import services.GBTimeZoneService
 import services.testdata.faker.DataFaker
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.http.HeaderCarrier
@@ -45,7 +45,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
   val collectionName = CollectionNames.APPLICATION
 
-  def repository = new ReportingMongoRepository(new GBTimeZoneService2, ITDateTimeFactoryMock, mongo, mock[MicroserviceAppConfig])
+  def repository = new ReportingMongoRepository(
+    new GBTimeZoneService, ITDateTimeFactoryMock, mongo, mock[MicroserviceAppConfig])
 
   def applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, appConfig, mongo)
 
@@ -304,8 +305,6 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
   }
 
   private def create(application: UserApplicationProfile) = {
-    import play.api.libs.json.JodaWrites._ // This is needed for LocalDate serialization
-
     val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
 
     applicationCollection.insertOne(

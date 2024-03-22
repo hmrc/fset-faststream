@@ -33,9 +33,8 @@ object EventType extends Enumeration {
 
   val displayText = allOption ++ options
 
-  implicit val EventTypeFormat = new Format[EventType] {
+  implicit val EventTypeFormat: Format[EventType] = new Format[EventType] {
     override def reads(json: JsValue): JsResult[EventType] = JsSuccess(EventType.withName(json.as[String].toUpperCase))
-
     override def writes(eventType: EventType): JsValue = JsString(eventType.toString)
   }
 

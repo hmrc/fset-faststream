@@ -24,11 +24,13 @@ import model.EvaluationResults.Result
 import model._
 import model.exchange.AssessorAvailability
 import model.persisted.eventschedules.{EventType, Session, _}
-import org.joda.time.{LocalDate, LocalTime}
+
+import java.time.{LocalDate, LocalTime}
 import repositories.SchemeRepository
 import repositories.events.LocationsWithVenuesInMemoryYamlRepository
 import services.reporting.SizeOfPlaceOfWork
 
+import java.time.format.DateTimeFormatter
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -276,7 +278,7 @@ abstract class DataFaker(schemeRepo: SchemeRepository,
       if (boolTrue20percent) {
         Some(Set.empty)
       } else {
-        val dates = ( 15 to 25 ).map(i => LocalDate.parse(s"2017-06-$i")).toSet
+        val dates = ( 15 to 25 ).map(i => LocalDate.parse(s"2017-06-$i", DateTimeFormatter.ofPattern("yyyy-MM-dd"))).toSet
         Option(dates.flatMap { date =>
           if (bool) {
             Some(AssessorAvailability(location, date))
@@ -309,7 +311,7 @@ abstract class DataFaker(schemeRepo: SchemeRepository,
 
     def venue(l: Location)(implicit ec: ExecutionContext): Venue = Random.randOne(ExternalSources.venuesByLocation(l.name))
 
-    def date: LocalDate = LocalDate.now().plusDays(Random.number(Option(300)))
+    def date: LocalDate = LocalDate.now.plusDays(Random.number(Option(300)))
 
     def capacity: Int = Random.randOne(List(8, 10, 12, 14, 16, 18))
 
@@ -317,7 +319,7 @@ abstract class DataFaker(schemeRepo: SchemeRepository,
 
     def attendeeSafetyMargin: Int = Random.randOne(List(1, 2, 3))
 
-    def startTime: LocalTime = LocalTime.parse(Random.randOne(List("9:30", "11:00", "13:30", "15:00")))
+    def startTime: LocalTime = LocalTime.parse(Random.randOne(List("09:30", "11:00", "13:30", "15:00")))
 
     def endTime: LocalTime = startTime.plusHours(1)
 

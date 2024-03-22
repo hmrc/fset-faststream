@@ -18,12 +18,12 @@ package model.exchange
 
 import model.SchemeId
 import model.persisted.SchemeEvaluationResult
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class SchemeEvaluationResultWithFailureDetails(schemeId: SchemeId, result: String, failedAt: Option[String])
 
 object SchemeEvaluationResultWithFailureDetails {
-  implicit val format = Json.format[SchemeEvaluationResultWithFailureDetails]
+  implicit val format: OFormat[SchemeEvaluationResultWithFailureDetails] = Json.format[SchemeEvaluationResultWithFailureDetails]
 
   def apply(schemeEvaluation: SchemeEvaluationResult, failedAt: String): SchemeEvaluationResultWithFailureDetails =
     SchemeEvaluationResultWithFailureDetails(schemeEvaluation.schemeId, schemeEvaluation.result, Some(failedAt))

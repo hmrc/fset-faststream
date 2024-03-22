@@ -16,11 +16,11 @@
 
 package model.persisted.fileupload
 
-import org.joda.time.DateTime
+import java.time.OffsetDateTime
 
 case class FileUpload(
   id: String,
   contentType: String,
-  created: DateTime,
+  created: OffsetDateTime,
   fileContents: Array[Byte]
 )

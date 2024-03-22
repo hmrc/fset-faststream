@@ -21,15 +21,13 @@ import config.MicroserviceAppConfig
 import factories.UUIDFactory
 
 import javax.inject.{Inject, Singleton}
-import model.FsbType
 import model.persisted.eventschedules._
 import net.jcazevedo.moultingyaml._
-import net.jcazevedo.moultingyaml.DefaultYamlProtocol._
-import org.joda.time.{DateTime, LocalDate, LocalTime}
-import org.joda.time.format.DateTimeFormat
-import play.api.{Application, Play}
+import play.api.Application
 import resource._
 
+import java.time.format.DateTimeFormatter
+import java.time.{LocalDate, LocalTime, OffsetDateTime, ZoneOffset}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.io.Source
 
@@ -59,21 +57,24 @@ case class SessionConfig(
 
 object EventConfigProtocol extends DefaultYamlProtocol {
   implicit object LocalDateYamlFormat extends YamlFormat[LocalDate] {
-    def write(jodaDate: LocalDate) = YamlDate(jodaDate.toDateTimeAtStartOfDay)
+    // We need to convert from a java time LocalDate to a joda DateTime
+    def write(javaDate: LocalDate) = YamlDate(new org.joda.time.DateTime(javaDate.atStartOfDay().toEpochSecond(ZoneOffset.UTC)))
     def read(value: YamlValue) = value match {
-      case YamlDate(jodaDateTime) => jodaDateTime.toLocalDate
+      case YamlDate(javaDateTime) => LocalDate.of(
+        javaDateTime.toLocalDate.getYear, javaDateTime.toLocalDate.getMonthOfYear, javaDateTime.toLocalDate.getDayOfMonth
+      )
       case unknown => deserializationError("Expected Date as YamlDate, but got " + unknown)
     }
   }
 
   implicit object LocalTimeYamlFormat extends YamlFormat[LocalTime] {
-    def write(jodaTime: LocalTime) = YamlString(jodaTime.toString("HH:mm"))
+    def write(javaTime: LocalTime) = YamlString(DateTimeFormatter.ofPattern("HH:mm").format(javaTime))
     def read(value: YamlValue) = value match {
-      case YamlString(stringValue) => DateTimeFormat.forPattern("HH:mm").parseLocalTime(stringValue)
+      case YamlString(stringValue) => LocalTime.parse(stringValue, DateTimeFormatter.ofPattern("H:m"))
       case YamlNumber(minutesSinceStartOfDay) =>
         val hour = minutesSinceStartOfDay.toInt / 60
         val minute = minutesSinceStartOfDay % 60
-        DateTimeFormat.forPattern("HH:mm").parseLocalTime(s"$hour:$minute")
+        LocalTime.parse(s"$hour:$minute", DateTimeFormatter.ofPattern("H:m"))
       case x => deserializationError("Expected Time as YamlString/YamlNumber, but got " + x)
     }
   }
@@ -126,7 +127,7 @@ class EventsConfigRepositoryImpl @Inject() (application: Application,
         configItem.attendeeSafetyMargin,
         configItem.startTime,
         configItem.endTime,
-        DateTime.now,
+        OffsetDateTime.now,
         configItem.skillRequirements,
         configItem.sessions.map(s => Session(s)),
         wasBulkUploaded = true
@@ -138,3 +139,4 @@ class EventsConfigRepositoryImpl @Inject() (application: Application,
     }
   }
 }
+

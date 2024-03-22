@@ -17,7 +17,7 @@
 package model.exchange.passmarksettings
 
 import model.SchemeId
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 trait PassMark {
   def schemeId: SchemeId
@@ -30,7 +30,7 @@ case class Phase1PassMark(
 ) extends PassMark
 
 object Phase1PassMark {
-  implicit val phase1PassMark = Json.format[Phase1PassMark]
+  implicit val phase1PassMark: OFormat[Phase1PassMark] = Json.format[Phase1PassMark]
 }
 
 case class Phase2PassMark(
@@ -39,7 +39,7 @@ case class Phase2PassMark(
 ) extends PassMark
 
 object Phase2PassMark {
-  implicit val phase2PassMark = Json.format[Phase2PassMark]
+  implicit val phase2PassMark: OFormat[Phase2PassMark] = Json.format[Phase2PassMark]
 }
 
 case class Phase3PassMark(
@@ -48,7 +48,7 @@ case class Phase3PassMark(
 ) extends PassMark
 
 object Phase3PassMark {
-  implicit val phase3PassMark = Json.format[Phase3PassMark]
+  implicit val phase3PassMark: OFormat[Phase3PassMark] = Json.format[Phase3PassMark]
 }
 
 // Competency based FSAC pass marks (no longer used)
@@ -58,7 +58,7 @@ case class AssessmentCentreCompetencyPassMark(
                          ) extends PassMark
 
 object AssessmentCentreCompetencyPassMark {
-  implicit val jsonFormat = Json.format[AssessmentCentreCompetencyPassMark]
+  implicit val jsonFormat: OFormat[AssessmentCentreCompetencyPassMark] = Json.format[AssessmentCentreCompetencyPassMark]
 }
 
 // Exercise based FSAC pass marks (used in the current version of the fsac evaluation)
@@ -68,5 +68,5 @@ case class AssessmentCentreExercisePassMark(
                          ) extends PassMark
 
 object AssessmentCentreExercisePassMark {
-  implicit val jsonFormat = Json.format[AssessmentCentreExercisePassMark]
+  implicit val jsonFormat: OFormat[AssessmentCentreExercisePassMark] = Json.format[AssessmentCentreExercisePassMark]
 }

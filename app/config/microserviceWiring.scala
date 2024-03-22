@@ -16,7 +16,7 @@
 
 package config
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import com.google.inject.ImplementedBy
 import com.google.inject.name.Named
 import com.typesafe.config.Config

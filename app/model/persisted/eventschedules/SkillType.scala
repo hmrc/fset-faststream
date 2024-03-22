@@ -31,8 +31,8 @@ object SkillType extends Enumeration {
 
   implicit def toString(SkillType: SkillType): String = SkillType.toString
 
-  implicit val SkillTypeFormat = new Format[SkillType] {
-    def reads(json: JsValue) = JsSuccess(SkillType.withName(json.as[String].toUpperCase()))
-    def writes(skillType: SkillType) = JsString(skillType.toString)
+  implicit val SkillTypeFormat: Format[SkillType] = new Format[SkillType] {
+    def reads(json: JsValue): JsSuccess[Value] = JsSuccess(SkillType.withName(json.as[String].toUpperCase()))
+    def writes(skillType: SkillType): JsString = JsString(skillType.toString)
   }
 }

@@ -42,14 +42,14 @@ trait CommonBSONDocuments extends BaseBSONReader {
         Document(
           "applicationStatus" -> applicationStatus.toBson,
           s"progress-status.${progressStatus.key}" -> true,
-          s"progress-status-timestamp.${progressStatus.key}" -> dateTimeToBson(dateTimeFactory.nowLocalTimeZone)
+          s"progress-status-timestamp.${progressStatus.key}" -> offsetDateTimeToBson(dateTimeFactory.nowLocalTimeZone)
         )
       // For in progress application status we store application status in progress-status-timestamp
       case _ if applicationStatus == ApplicationStatus.IN_PROGRESS =>
         Document(
           "applicationStatus" -> applicationStatus.toBson,
           s"progress-status.${ApplicationStatus.IN_PROGRESS}" -> true,
-          s"progress-status-timestamp.${ApplicationStatus.IN_PROGRESS}" -> dateTimeToBson(dateTimeFactory.nowLocalTimeZone)
+          s"progress-status-timestamp.${ApplicationStatus.IN_PROGRESS}" -> offsetDateTimeToBson(dateTimeFactory.nowLocalTimeZone)
         )
       case _ =>
         Document("applicationStatus" -> applicationStatus.toBson)
@@ -60,14 +60,14 @@ trait CommonBSONDocuments extends BaseBSONReader {
     Document(
       "applicationStatus" -> Codecs.toBson(progressStatus.applicationStatus),
       s"progress-status.${progressStatus.key}" -> true,
-      s"progress-status-timestamp.${progressStatus.key}" -> dateTimeToBson(dateTimeFactory.nowLocalTimeZone)
+      s"progress-status-timestamp.${progressStatus.key}" -> offsetDateTimeToBson(dateTimeFactory.nowLocalTimeZone)
     )
   }
 
   def progressStatusOnlyBSON(progressStatus: ProgressStatus) = {
     Document(
       s"progress-status.${progressStatus.key}" -> true,
-      s"progress-status-timestamp.${progressStatus.key}" -> dateTimeToBson(dateTimeFactory.nowLocalTimeZone)
+      s"progress-status-timestamp.${progressStatus.key}" -> offsetDateTimeToBson(dateTimeFactory.nowLocalTimeZone)
     )
   }
 

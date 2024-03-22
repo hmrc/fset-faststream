@@ -23,7 +23,7 @@ import repositories._
 import repositories.application._
 import repositories.assessmentcentre.{AssessmentCentreMongoRepository, AssessmentCentreRepository}
 import repositories.assistancedetails.{AssistanceDetailsMongoRepository, AssistanceDetailsRepository}
-import repositories.campaignmanagement.{CampaignManagementAfterDeadlineSignupCodeMongoRepository, CampaignManagementAfterDeadlineSignupCodeRepository}
+import repositories.campaignmanagement._
 import repositories.civilserviceexperiencedetails.{CivilServiceExperienceDetailsMongoRepository, CivilServiceExperienceDetailsRepository}
 import repositories.contactdetails.{ContactDetailsMongoRepository, ContactDetailsRepository}
 import repositories.events._
@@ -62,7 +62,6 @@ class Module(val environment: Environment, val configuration: Configuration) ext
     bind(classOf[EventsRepository]).to(classOf[EventsMongoRepository]).asEagerSingleton()
 
     bind(classOf[LocationsWithVenuesRepository]).to(classOf[LocationsWithVenuesInMemoryYamlRepository]).asEagerSingleton()
-
 
     bind(classOf[MediaRepository]).to(classOf[MediaMongoRepository]).asEagerSingleton()
     bind(classOf[QuestionnaireRepository]).to(classOf[QuestionnaireMongoRepository]).asEagerSingleton()

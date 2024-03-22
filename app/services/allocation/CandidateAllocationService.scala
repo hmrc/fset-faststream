@@ -33,7 +33,8 @@ import model.persisted.eventschedules.{Event, EventType}
 import model.persisted.{ContactDetails, PersonalDetails}
 import model.stc.EmailEvents.{CandidateAllocationConfirmationReminder, CandidateAllocationConfirmationRequest, CandidateAllocationConfirmed}
 import model.stc.StcEventTypes.StcEvents
-import org.joda.time.LocalDate
+
+import java.time.LocalDate
 import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
@@ -46,6 +47,7 @@ import services.events.EventsService
 import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.format.DateTimeFormatter
 import scala.concurrent.{ExecutionContext, Future}
 
 object CandidateAllocationService {
@@ -400,15 +402,17 @@ class CandidateAllocationService @Inject() (candidateAllocationRepo: CandidateAl
                                   isAwaitingReminder: Boolean = false
                                 )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
-    val eventDate = event.date.toString(dateFormat)
+    val eventDate = DateTimeFormatter.ofPattern(dateFormat).format(event.date)
     val localTime = event.sessions.find(_.id == sessionId.toString).map(_.startTime).getOrElse(event.startTime)
-    val eventTime = localTime.toString(if (localTime.toString("mm") == "00") "ha" else "h:mma")
+    val eventTime = DateTimeFormatter.ofPattern(
+      if (DateTimeFormatter.ofPattern("mm").format(localTime) == "00") "ha" else "h:mma"
+    ).format(localTime)
 
     val tenBeforeEventDate = event.date.minusDays(10)
     val deadlineDateTime = if (tenBeforeEventDate.isBefore(LocalDate.now())) {
-      LocalDate.now().plusDays(1).toString(dateFormat)
+      DateTimeFormatter.ofPattern(dateFormat).format(LocalDate.now.plusDays(1))
     } else {
-      tenBeforeEventDate.toString(dateFormat)
+      DateTimeFormatter.ofPattern(dateFormat).format(tenBeforeEventDate)
     }
 
     val eventGuideUrl = eventGuide(event).getOrElse("")
@@ -441,7 +445,7 @@ class CandidateAllocationService @Inject() (candidateAllocationRepo: CandidateAl
       emailClient.sendCandidateUnAllocatedFromEvent(
         contactDetails.email,
         s"${personalDetails.firstName} ${personalDetails.lastName}",
-        event.date.toString("d MMMM YYYY")
+        DateTimeFormatter.ofPattern("d MMMM YYYY").format(event.date)
       )
     }
   }

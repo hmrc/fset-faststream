@@ -17,10 +17,9 @@
 package model.exchange
 
 import model.FSACIndicator
-import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.{ Format, Json }
+import play.api.libs.json.{Format, Json}
+
+import java.time.OffsetDateTime
 
 case class CandidateEligibleForEvent(
   applicationId: String,
@@ -29,7 +28,7 @@ case class CandidateEligibleForEvent(
   needsAdjustment: Boolean,
   fsbScoresAndFeedbackSubmitted: Boolean,
   fsacIndicator: FSACIndicator,
-  dateReady: DateTime)
+  dateReady: OffsetDateTime)
 
 object CandidateEligibleForEvent {
   implicit val CandidateEligibleForEventFormat: Format[CandidateEligibleForEvent] = Json.format[CandidateEligibleForEvent]

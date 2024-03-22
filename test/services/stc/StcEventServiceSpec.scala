@@ -22,14 +22,14 @@ import model.stc._
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import org.scalatest.MustMatchers
+import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.RequestHeader
 import services.stc.handler._
 import testkit.UnitSpec
 import testkit.MockitoImplicits._
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -48,7 +48,7 @@ class StcEventServiceSpec extends UnitSpec with StcEventServiceFixture {
   }
 }
 
-trait StcEventServiceFixture extends MockitoSugar with MustMatchers {
+trait StcEventServiceFixture extends MockitoSugar with Matchers {
 
   val dataStoreEventHandlerMock = mock[DataStoreEventHandler]
   val auditEventHandlerMock = mock[AuditEventHandler]

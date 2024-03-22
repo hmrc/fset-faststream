@@ -17,7 +17,7 @@
 package model.persisted
 
 import org.mongodb.scala.bson.collection.immutable.Document
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 import repositories.subDocRoot
 
 case class ExpiringOnlineTest(
@@ -35,6 +35,6 @@ object ExpiringOnlineTest {
     ExpiringOnlineTest(applicationId, userId, preferredName)
   }
 
-  implicit val expiringOnlineTestFormats = Json.format[ExpiringOnlineTest]
-  implicit val bsonReader = this
+  implicit val expiringOnlineTestFormats: OFormat[ExpiringOnlineTest] = Json.format[ExpiringOnlineTest]
+  implicit val bsonReader: ExpiringOnlineTest.type = this
 }

@@ -150,7 +150,7 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
 }
 
 @Singleton
-class Phase1EvaluationMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory, mongo: MongoComponent)(implicit ec: ExecutionContext)
+class Phase1EvaluationMongoRepository @Inject()(val dateTimeFactory: DateTimeFactory, mongo: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[ApplicationReadyForEvaluation](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongo,
@@ -184,7 +184,7 @@ class Phase1EvaluationMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
 }
 
 @Singleton
-class Phase2EvaluationMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory, mongo: MongoComponent)(implicit ec: ExecutionContext)
+class Phase2EvaluationMongoRepository @Inject()(val dateTimeFactory: DateTimeFactory, mongo: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[ApplicationReadyForEvaluation](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongo,
@@ -278,7 +278,7 @@ class Phase3EvaluationMongoRepository @Inject() (appConfig: MicroserviceAppConfi
           "usedForResults" -> true, "callbacks.reviewed" -> Document("$exists" -> true),
 
           "callbacks.reviewed" -> Document("$elemMatch" -> Document("received" -> Document("$lte" ->
-            dateTimeToBson(dateTimeFactory.nowLocalTimeZone.minusHours(
+            offsetDateTimeToBson(dateTimeFactory.nowLocalTimeZone.minusHours(
               launchpadGatewayConfig.phase3Tests.evaluationWaitTimeAfterResultsReceivedInHours
             ))
           )))

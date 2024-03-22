@@ -16,7 +16,7 @@
 
 package model.report
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class VideoInterviewTestResult(question1: VideoInterviewQuestionTestResult,
                                     question2: VideoInterviewQuestionTestResult,
@@ -45,10 +45,10 @@ case class VideoInterviewQuestionTestResult(capability: Option[Double], engageme
 }
 
 object VideoInterviewQuestionTestResult {
-  implicit val videoInterviewQuestionTestResultFormats = Json.format[VideoInterviewQuestionTestResult]
+  implicit val videoInterviewQuestionTestResultFormats: OFormat[VideoInterviewQuestionTestResult] = Json.format[VideoInterviewQuestionTestResult]
 }
 
 object VideoInterviewTestResult {
   val empty = List(None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
-  implicit val videoInterviewTestResultFormats = Json.format[VideoInterviewTestResult]
+  implicit val videoInterviewTestResultFormats: OFormat[VideoInterviewTestResult] = Json.format[VideoInterviewTestResult]
 }

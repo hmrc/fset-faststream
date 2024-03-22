@@ -35,5 +35,5 @@ case class UpdateAllocationStatusResponse(
 )
 
 object UpdateAllocationStatusResponse {
-  implicit val updateAllocationStatusResponseFormat = Json.format[UpdateAllocationStatusResponse]
+  implicit val updateAllocationStatusResponseFormat: OFormat[UpdateAllocationStatusResponse] = Json.format[UpdateAllocationStatusResponse]
 }

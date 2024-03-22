@@ -23,9 +23,8 @@ object VenueType extends Enumeration {
 
   val ALL_VENUES, LONDON_FSAC, NEWCASTLE_FSAC, LONDON_FSB, VIRTUAL = Value
 
-  implicit val VenueTypeFormat = new Format[VenueType] {
+  implicit val VenueTypeFormat: Format[VenueType] = new Format[VenueType] {
     override def reads(json: JsValue): JsResult[VenueType] = JsSuccess(VenueType.withName(json.as[String].toUpperCase))
-
     override def writes(venueType: VenueType): JsValue = JsString(venueType.toString)
   }
 }

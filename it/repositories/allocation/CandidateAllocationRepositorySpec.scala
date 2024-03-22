@@ -4,9 +4,10 @@ import model.AllocationStatuses
 import model.AllocationStatuses._
 import model.exchange.candidateevents.CandidateRemoveReason
 import model.persisted.CandidateAllocation
-import org.joda.time.LocalDate
-import repositories.{ CandidateAllocationMongoRepository, CollectionNames }
+import repositories.{CandidateAllocationMongoRepository, CollectionNames}
 import testkit.MongoRepositorySpec
+
+import java.time.LocalDate
 
 class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
 

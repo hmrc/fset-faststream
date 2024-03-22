@@ -10,13 +10,15 @@ import model.command.ApplicationForSift
 import model.persisted.sift.{MaybeSiftTestGroupWithAppId, SiftTestGroup}
 import model.persisted.{PassmarkEvaluation, PsiTest, PsiTestResult, SchemeEvaluationResult}
 import model.report.SiftPhaseReportItem
-import org.joda.time.{DateTime, DateTimeZone}
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.prop.TableDrivenPropertyChecks
 import play.api.Logging
 import repositories.{CollectionNames, CommonRepository}
 import testkit.{MockitoSugar, MongoRepositorySpec}
+
+import java.time.temporal.ChronoUnit
+import java.time.{OffsetDateTime, ZoneId}
 
 class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFutures with CommonRepository
   with MockitoSugar with TableDrivenPropertyChecks with Logging {
@@ -194,7 +196,6 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
     "return the expiry date when one is stored" in {
       createSiftEligibleCandidates("appId")
-      val now = DateTime.now().withZone(DateTimeZone.UTC)
       repository.saveSiftExpiryDate("appId", now).futureValue
       val result = repository.findSiftExpiryDate("appId").futureValue
       result mustBe now
@@ -256,7 +257,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
         testUrl = "http://testUrl.com", invitationDate = now)
       repository.insertNumericalTests(appId, List(test)).futureValue
 
-      val startedTime = DateTime.now(DateTimeZone.UTC)
+      val startedTime = now
       repository.updateTestStartTime("orderUuid", startedTime).futureValue
 
       val result = repository.getTestGroupByOrderId("orderUuid").futureValue
@@ -279,7 +280,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
         testUrl = "http://testUrl.com", invitationDate = now)
       repository.insertNumericalTests(appId, List(test)).futureValue
 
-      val completedTime = DateTime.now(DateTimeZone.UTC)
+      val completedTime = now
       repository.updateTestCompletionTime("orderUuid", completedTime).futureValue
 
       val result = repository.getTestGroupByOrderId("orderUuid").futureValue
@@ -298,7 +299,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       createSiftEligibleCandidates(appId)
       repository.saveSiftExpiryDate(appId, now).futureValue
 
-      val newExpiryTime = DateTime.now(DateTimeZone.UTC)
+      val newExpiryTime = OffsetDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.MILLIS)
       repository.updateExpiryTime(appId, newExpiryTime).futureValue
 
       val result = repository.getTestGroup(appId).futureValue
@@ -475,7 +476,8 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     "fetch applications that are eligible for sift expiry" in {
       val appId = "appId1"
       insertApplicationWithSiftEntered(appId, List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)))
-      repository.saveSiftExpiryDate(appId, now.minusMillis(1)).futureValue
+      val nanosInOneMilli = 1000000
+      repository.saveSiftExpiryDate(appId, now.minusNanos(nanosInOneMilli)).futureValue
 
       val result = repository.nextApplicationsForSiftExpiry(1, 0).futureValue
       result.size mustBe 1

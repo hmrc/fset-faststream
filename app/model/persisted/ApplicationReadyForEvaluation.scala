@@ -20,7 +20,7 @@ import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus._
 import model.persisted.phase3tests.LaunchpadTest
 import model.{ApplicationRoute, SelectedSchemes}
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class ApplicationReadyForEvaluation(
   applicationId: String,
@@ -32,10 +32,10 @@ case class ApplicationReadyForEvaluation(
   prevPhaseEvaluation: Option[PassmarkEvaluation],
   preferences: SelectedSchemes
 ) {
-  def nonGis = !isGis
-  def isSdipFaststream = applicationRoute == ApplicationRoute.SdipFaststream
+  def nonGis: Boolean = !isGis
+  def isSdipFaststream: Boolean = applicationRoute == ApplicationRoute.SdipFaststream
 }
 
 object ApplicationReadyForEvaluation {
-  implicit val applicationReadyForEvaluationFormat = Json.format[ApplicationReadyForEvaluation]
+  implicit val applicationReadyForEvaluationFormat: OFormat[ApplicationReadyForEvaluation] = Json.format[ApplicationReadyForEvaluation]
 }

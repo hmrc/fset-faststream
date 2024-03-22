@@ -26,9 +26,9 @@ object CivilServantAndInternshipType extends Enumeration {
 
   val CivilServant, SDIP, EDIP, OtherInternship = Value
 
-  implicit val internshipTypeFormat = new Format[CivilServantAndInternshipType] {
-    def reads(json: JsValue) = JsSuccess(CivilServantAndInternshipType.withName(json.as[String]))
-    def writes(myEnum: CivilServantAndInternshipType) = JsString(myEnum.toString)
+  implicit val internshipTypeFormat: Format[CivilServantAndInternshipType] = new Format[CivilServantAndInternshipType] {
+    def reads(json: JsValue): JsSuccess[Value] = JsSuccess(CivilServantAndInternshipType.withName(json.as[String]))
+    def writes(myEnum: CivilServantAndInternshipType): JsString = JsString(myEnum.toString)
   }
 
   implicit class BsonOps(val internshipType: CivilServantAndInternshipType) extends AnyVal {

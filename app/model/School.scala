@@ -16,7 +16,7 @@
 
 package model
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class School(typeId: String,
                   id: String,
@@ -31,5 +31,5 @@ case class School(typeId: String,
 
 
 object School {
-  implicit val schoolFormat = Json.format[School]
+  implicit val schoolFormat: OFormat[School] = Json.format[School]
 }

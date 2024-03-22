@@ -19,8 +19,8 @@ package repositories.application
 import config.{MicroserviceAppConfig, PsiTestIds}
 import connectors.launchpadgateway.exchangeobjects.in.reviewed._
 import factories.DateTimeFactory
-import akka.stream.Materializer
-import akka.stream.scaladsl.Source
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.stream.scaladsl.Source
 
 import javax.inject.{Inject, Singleton}
 import model.ApplicationRoute.ApplicationRoute
@@ -29,7 +29,6 @@ import model._
 import model.command.{CandidateDetailsReportItem, CsvExtract, WithdrawApplication}
 import model.persisted.fsb.ScoresAndFeedback
 import model.persisted.{FSACIndicator, SchemeEvaluationResult}
-import org.joda.time.DateTime
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.{BsonArray, BsonDocument, BsonRegularExpression}
 import org.mongodb.scala.bson.collection.immutable.Document
@@ -41,6 +40,7 @@ import services.reporting.SocioEconomicCalculator
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.Codecs
 
+import java.time.{OffsetDateTime, ZoneOffset}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
@@ -66,9 +66,9 @@ trait PreviousYearCandidatesDetailsRepository {
     def getBooleanOpt(key: String) = Try(doc.map(_.get(key).asBoolean().getValue.toString)).toOption.flatten
     def getDoubleOpt(key: String) = Try(doc.map(_.get(key).asDouble().getValue.toString)).toOption.flatten
     def getIntOpt(key: String) = Try(doc.map(_.get(key).asInt32().getValue.toString)).toOption.flatten
-    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed for ISODate
+    import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat // Needed for ISODate
     def getDateTimeOpt(key: String) =
-      doc.flatMap ( doc => Try(Codecs.fromBson[DateTime](doc.get(key).asDateTime()).toString).toOption )
+      doc.flatMap ( doc => Try(Codecs.fromBson[OffsetDateTime](doc.get(key).asDateTime()).toString).toOption )
     def getAsBoolean(key: String) = doc.exists(ad => Try(ad.get(key).asBoolean().getValue).getOrElse(false))
     def getAsIntOpt(key: String) = Try(doc.map(_.get(key).asInt32().getValue)).toOption.flatten
   }
@@ -452,9 +452,9 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
   private def lastProgressStatus(doc: Document): Option[String] = {
     val progressStatusTimestamps = subDocRoot("progress-status-timestamp")(doc)
 
-    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed for ISODate
+    import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat // Needed for ISODate
     def timestampFor(progressStatus: ProgressStatuses.ProgressStatus) = {
-      progressStatusTimestamps.flatMap(doc => Try(Codecs.fromBson[DateTime](doc.get(progressStatus.toString).asDateTime())).toOption)// Handle NPE
+      progressStatusTimestamps.flatMap(doc => Try(Codecs.fromBson[OffsetDateTime](doc.get(progressStatus.toString).asDateTime())).toOption)// Handle NPE
     }
 
     val progressStatusesWithTimestamps = List(
@@ -510,8 +510,10 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
       ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER, ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER_NOTIFIED
     ).map( status => status -> timestampFor(status)).filter{ case (_ , dt) => dt.isDefined }
 
-    val default = new DateTime(1970, 1, 1, 0, 0, 0, 0)
-    val sorted = progressStatusesWithTimestamps.sortBy{ case (_, dt) => dt}(Ordering.fromLessThan(_.getOrElse(default) isAfter _.getOrElse(default)))
+    val default = OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC)
+    val sorted = progressStatusesWithTimestamps.sortBy{case (_, dt) => dt}(
+      Ordering.fromLessThan(_.getOrElse(default) isAfter _.getOrElse(default))
+    )
 
     if (sorted.nonEmpty) {
       val (progressStatus, _) = sorted.head
@@ -733,9 +735,9 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     val statusTimestampsOpt = subDocRoot("progress-status-timestamp")(doc)
     val progressStatusOpt = subDocRoot("progress-status")(doc)
 
-    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed for ISODate
     def timestampFor(status: ProgressStatuses.ProgressStatus) = {
-      statusTimestampsOpt.flatMap(doc => Try(Codecs.fromBson[DateTime](doc.get(status.toString).asDateTime())).toOption.map( _.toString ))// Handle NPE
+      import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat // Needed for ISODate
+      statusTimestampsOpt.flatMap(doc => Try(Codecs.fromBson[OffsetDateTime](doc.get(status.toString).asDateTime())).toOption.map( _.toString ))// Handle NPE
     }
 
     val questionnaireStatusesOpt = progressStatusOpt.flatMap( doc => subDocRoot("questionnaire")(doc) )
@@ -748,7 +750,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
 
     List(
       progressStatusOpt.map ( doc => Try( doc.get("personal-details").asBoolean().getValue ).toOption.getOrElse(false).toString ),
-      statusTimestampsOpt.flatMap(doc => Try(Codecs.fromBson[DateTime](doc.get("IN_PROGRESS").asDateTime())).toOption).map(_.toString).orElse(
+      statusTimestampsOpt.flatMap(doc => Try(Codecs.fromBson[OffsetDateTime](doc.get("IN_PROGRESS").asDateTime())).toOption).map(_.toString).orElse(
         progressStatusDatesOpt.map( _.get("in_progress").asString.getValue )
       ),
       progressStatusOpt.map ( doc => Try( doc.get("scheme-preferences").asBoolean().getValue ).toOption.getOrElse(false).toString ),
@@ -1239,7 +1241,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
   }
 
   private def commonFindMediaDetails(query: Document, projection: Bson) = {
-    mediaCollection.find(query).projection(projection).toFuture.map { docs =>
+    mediaCollection.find(query).projection(projection).toFuture().map { docs =>
       val csvRecords = docs.map { doc =>
         val csvRecord = makeRow(
           doc.get("media").map(_.asString().getValue)
@@ -1267,7 +1269,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     val projection = Projections.excludeId()
     val query = Document("applicationId" -> Document("$in" -> applicationIds))
 
-    col.find(query).projection(projection).toFuture.map { docs =>
+    col.find(query).projection(projection).toFuture().map { docs =>
 
       val csvRecords = docs.map { doc =>
         val csvStr = exerciseSections.flatMap { s =>
@@ -1451,8 +1453,8 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
   }
 
   private def extractDateTime(doc: BsonDocument, key: String) = {
-    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed for ISODate
-    Codecs.fromBson[DateTime](doc.get(key).asDateTime())
+    import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat // Needed for ISODate
+    Codecs.fromBson[OffsetDateTime](doc.get(key).asDateTime())
   }
 
   private def onlineTests(doc: Document): Map[String, List[Option[String]]] = {

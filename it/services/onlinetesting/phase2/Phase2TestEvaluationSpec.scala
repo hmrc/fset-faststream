@@ -9,7 +9,6 @@ import model.ProgressStatuses.ProgressStatus
 import model.exchange.passmarksettings._
 import model.persisted.{ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult}
 import model.{ApplicationRoute, _}
-import org.joda.time.DateTime
 import org.mockito.Mockito.when
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
@@ -17,6 +16,7 @@ import org.scalatest.prop._
 import repositories.{CollectionNames, CommonRepository}
 import testkit.MongoRepositorySpec
 
+import java.time.OffsetDateTime
 import scala.concurrent.Future
 
 class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
@@ -134,7 +134,7 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       val phase2PassMarkSettings = Phase2PassMarkSettingsPersistence(
         schemeThresholds,
         "version-1",
-        DateTime.now,
+        OffsetDateTime.now,
         "user-1"
       )
       phase2PassMarkSettingRepo.create(phase2PassMarkSettings).flatMap { _ =>

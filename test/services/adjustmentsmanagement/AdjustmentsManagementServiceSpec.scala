@@ -22,7 +22,6 @@ import model.ProgressStatuses.ProgressStatus
 import model._
 import model.command.ApplicationStatusDetails
 import model.persisted.ContactDetailsExamples._
-import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
 import org.mockito.Mockito._
 import repositories.SchemeRepository

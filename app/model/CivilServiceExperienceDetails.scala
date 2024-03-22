@@ -48,7 +48,7 @@ case class CivilServiceExperienceDetails(
 }
 
 object CivilServiceExperienceDetails {
-  implicit val civilServiceExperienceDetailsFormat = Json.format[CivilServiceExperienceDetails]
+  implicit val civilServiceExperienceDetailsFormat: OFormat[CivilServiceExperienceDetails] = Json.format[CivilServiceExperienceDetails]
 
   // Provide an explicit mongo format here to deal with the sub-document root
   val root = "civil-service-experience-details"

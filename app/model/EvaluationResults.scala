@@ -17,7 +17,7 @@
 package model
 
 import model.persisted.SchemeEvaluationResult
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 object EvaluationResults {
 
@@ -93,7 +93,7 @@ object EvaluationResults {
                                       overallScore: Double
                                     ) {
 
-    override def toString = s"makingEffectiveDecisionsAverage=$makingEffectiveDecisionsAverage," +
+    override def toString: String = s"makingEffectiveDecisionsAverage=$makingEffectiveDecisionsAverage," +
       s"workingTogetherDevelopingSelfAndOthersAverage=$workingTogetherDevelopingSelfAndOthersAverage," +
       s"communicatingAndInfluencingAverage=$communicatingAndInfluencingAverage," +
       s"seeingTheBigPictureAverage=$seeingTheBigPictureAverage," +
@@ -101,7 +101,7 @@ object EvaluationResults {
   }
 
   object CompetencyAverageResult {
-    implicit val competencyAverageResultFormat = Json.format[CompetencyAverageResult]
+    implicit val competencyAverageResultFormat: OFormat[CompetencyAverageResult] = Json.format[CompetencyAverageResult]
   }
 
   case class ExerciseAverageResult(
@@ -110,19 +110,19 @@ object EvaluationResults {
                                     leadershipExerciseAverage: Double,
                                     overallScore: Double) {
 
-    override def toString = s"writtenExerciseAverage=$writtenExerciseAverage," +
+    override def toString: String = s"writtenExerciseAverage=$writtenExerciseAverage," +
       s"teamExerciseAverage=$teamExerciseAverage," +
       s"leadershipExerciseAverage=$leadershipExerciseAverage," +
       s"overallScore=$overallScore"
   }
 
   object ExerciseAverageResult {
-    implicit val exerciseAverageResultFormat = Json.format[ExerciseAverageResult]
+    implicit val exerciseAverageResultFormat: OFormat[ExerciseAverageResult] = Json.format[ExerciseAverageResult]
   }
 
   case class FsacResults(competencyAverageResult: CompetencyAverageResult, exerciseAverageResult: ExerciseAverageResult) {
 
-    override def toString =
+    override def toString: String =
 //      s"makingEffectiveDecisionsAverage=${competencyAverageResult.makingEffectiveDecisionsAverage}," +
 //      s"workingTogetherDevelopingSelfAndOthersAverage=${competencyAverageResult.workingTogetherDevelopingSelfAndOthersAverage}," +
 //      s"communicatingAndInfluencingAverage=${competencyAverageResult.communicatingAndInfluencingAverage}," +

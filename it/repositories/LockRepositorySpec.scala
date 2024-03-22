@@ -16,11 +16,11 @@
 
 package repositories
 
-import org.joda.time.Duration
+import java.time.Duration
 import testkit.MongoRepositorySpec
 
 class LockRepositorySpec extends MongoRepositorySpec {
-  val lockTimeout = new Duration(1000L)
+  val lockTimeout = Duration.ofMillis(1000)
 
   override val collectionName: String = CollectionNames.LOCKS
 
@@ -50,15 +50,15 @@ class LockRepositorySpec extends MongoRepositorySpec {
     }
 
     "be locked when one lock has expired, but another one has been created afterwards" in {
-      repo.lock("lockId", "owner", new Duration(500L)).futureValue
-      Thread.sleep(505L) // Wait for the lock to expire (5 millis longer than the lock duration)
-      repo.lock("lockId", "owner", new Duration(500L)).futureValue
+      repo.lock("lockId", "owner", Duration.ofMillis(500)).futureValue
+      Thread.sleep(505) // Wait for the lock to expire (5 millis longer than the lock duration)
+      repo.lock("lockId", "owner", Duration.ofMillis(500)).futureValue
       val isLocked = repo.isLocked("lockId", "owner").futureValue
       isLocked mustBe true
     }
 
     "is not locked when the lock has expired" in {
-      repo.lock("lockId", "owner", new Duration(500L)).futureValue
+      repo.lock("lockId", "owner", Duration.ofMillis(500)).futureValue
       Thread.sleep(501L)
       val result = repo.isLocked("lockId", "owner").futureValue
       result mustBe false

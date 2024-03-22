@@ -18,7 +18,7 @@ package model.report
 
 import model.ApplicationRoute.ApplicationRoute
 import model.SchemeId
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class CandidateProgressReportItem(userId: String, applicationId: String, progress: Option[String], schemes: List[SchemeId],
                                        disability: Option[String],
@@ -49,5 +49,5 @@ case class CandidateProgressReportItem(userId: String, applicationId: String, pr
 }
 
 object CandidateProgressReportItem {
-  implicit val candidateProgressReportFormat = Json.format[CandidateProgressReportItem]
+  implicit val candidateProgressReportFormat: OFormat[CandidateProgressReportItem] = Json.format[CandidateProgressReportItem]
 }

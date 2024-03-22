@@ -17,14 +17,14 @@
 package repositories.campaignmanagement
 
 import model.persisted.CampaignManagementAfterDeadlineCode
-import org.joda.time.DateTime
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Indexes.{ascending, descending}
 import org.mongodb.scala.model.{IndexModel, IndexOptions}
-import repositories.{CollectionNames, ReactiveRepositoryHelpers}
+import repositories.{CollectionNames, ReactiveRepositoryHelpers, offsetDateTimeToBson}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
+import java.time.{OffsetDateTime, ZoneId}
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -50,10 +50,10 @@ class CampaignManagementAfterDeadlineSignupCodeMongoRepository @Inject() (mongo:
     val query = Document(
       "code" -> code,
       "usedByApplicationId" -> Document("$exists" -> false),
-      "expires" -> Document("$gte" -> DateTime.now.getMillis)
+      "expires" -> Document("$gte" -> offsetDateTimeToBson(OffsetDateTime.now(ZoneId.of("UTC"))))
     )
 
-    collection.find(query).headOption
+    collection.find(query).headOption()
   }
 
   override def markSignupCodeAsUsed(code: String, applicationId: String): Future[Unit] = {
@@ -67,10 +67,10 @@ class CampaignManagementAfterDeadlineSignupCodeMongoRepository @Inject() (mongo:
       Document(
         "$set" -> Document("usedByApplicationId" -> applicationId)
       )
-    ).toFuture map updateValidator
+    ).toFuture() map updateValidator
   }
 
   override def save(code: CampaignManagementAfterDeadlineCode): Future[Unit] = {
-    collection.insertOne(code).toFuture map(_ => ())
+    collection.insertOne(code).toFuture() map(_ => ())
   }
 }

@@ -21,7 +21,6 @@ import model.UniqueIdentifier
 import model.persisted.assessor.{Assessor, AssessorStatus}
 import model.persisted.eventschedules.Location
 import model.persisted.eventschedules.SkillType.SkillType
-import org.joda.time.LocalDate
 import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.{IndexModel, IndexOptions, UpdateOptions}
@@ -29,6 +28,7 @@ import org.mongodb.scala.model.Indexes.ascending
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
+import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 
 trait AssessorRepository {
@@ -83,7 +83,6 @@ class AssessorMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: Exe
   }
 
   def findAvailabilitiesForLocationAndDate(location: Location, date: LocalDate, skills: Seq[SkillType]): Future[Seq[Assessor]] = {
-    import play.api.libs.json.JodaWrites._ // This is needed for LocalDate serialization
     val query = Document("$and" -> BsonArray(
       Document("skills" -> Document("$in" -> Codecs.toBson(skills))),
       Document("availability" ->
@@ -107,7 +106,6 @@ class AssessorMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: Exe
   }
 
   def findUnavailableAssessors(skills: Seq[SkillType], location: Location, date: LocalDate): Future[Seq[Assessor]] = {
-    import play.api.libs.json.JodaWrites._ // This is needed for LocalDate serialization
     val query = Document("$and" -> BsonArray(
       Document("skills" -> Document("$in" -> Codecs.toBson(skills))),
       Document("availability" ->

@@ -48,8 +48,9 @@ object OnlineTestCommands {
   }
 
   object Implicits {
-    implicit val TimeAdjustmentsOnlineTestApplicationFormats = Json.format[TimeAdjustmentsOnlineTestApplication]
-    implicit val ApplicationForOnlineTestingFormats = Json.format[OnlineTestApplication]
-    implicit val OnlineTestReportIdMRAFormats = Json.format[OnlineTestReportAvailability]
+    implicit val TimeAdjustmentsOnlineTestApplicationFormats: OFormat[TimeAdjustmentsOnlineTestApplication] =
+      Json.format[TimeAdjustmentsOnlineTestApplication]
+    implicit val ApplicationForOnlineTestingFormats: OFormat[OnlineTestApplication] = Json.format[OnlineTestApplication]
+    implicit val OnlineTestReportIdMRAFormats: OFormat[OnlineTestReportAvailability] = Json.format[OnlineTestReportAvailability]
   }
 }

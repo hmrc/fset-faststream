@@ -16,7 +16,7 @@
 
 package model
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class Preferences(
   firstLocation: LocationPreference,
@@ -40,5 +40,5 @@ case class Preferences(
 }
 
 object Preferences {
-  implicit val jsonFormat = Json.format[Preferences]
+  implicit val jsonFormat: OFormat[Preferences] = Json.format[Preferences]
 }

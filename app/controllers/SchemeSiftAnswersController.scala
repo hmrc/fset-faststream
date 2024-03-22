@@ -16,15 +16,17 @@
 
 package controllers
 
-import javax.inject.{ Inject, Singleton }
-import model.Exceptions.{ SiftAnswersIncomplete, SiftAnswersSubmitted }
+import javax.inject.{Inject, Singleton}
+import model.Exceptions.{SiftAnswersIncomplete, SiftAnswersSubmitted}
 import model.SchemeId
-import model.exchange.sift.{ GeneralQuestionsAnswers, SchemeSpecificAnswer }
-import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent, ControllerComponents }
+import model.exchange.sift.{GeneralQuestionsAnswers, SchemeSpecificAnswer}
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.AuditService
-import services.sift.{ ApplicationSiftService, SiftAnswersService }
+import services.sift.{ApplicationSiftService, SiftAnswersService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class SchemeSiftAnswersController @Inject() (cc: ControllerComponents,
@@ -33,7 +35,7 @@ class SchemeSiftAnswersController @Inject() (cc: ControllerComponents,
                                              auditService: AuditService
                                             ) extends BackendController(cc) {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
   def addOrUpdateSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId): Action[JsValue] =
     Action.async(parse.json) { implicit request =>

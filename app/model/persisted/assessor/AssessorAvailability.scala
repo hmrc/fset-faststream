@@ -17,10 +17,9 @@
 package model.persisted.assessor
 
 import model.persisted.eventschedules.Location
-import org.joda.time.LocalDate
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
+
+import java.time.LocalDate
 
 case class AssessorAvailability(
   location: Location,
@@ -28,5 +27,5 @@ case class AssessorAvailability(
 )
 
 object AssessorAvailability {
-  implicit val persistedAssessorAvailabilityFormat = Json.format[AssessorAvailability]
+  implicit val persistedAssessorAvailabilityFormat: OFormat[AssessorAvailability] = Json.format[AssessorAvailability]
 }

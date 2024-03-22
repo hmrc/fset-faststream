@@ -1,8 +1,10 @@
 package repositories
 
 import model.AssessorNewEventsJobInfo
-import org.joda.time.DateTime
 import testkit.MongoRepositorySpec
+
+import java.time.OffsetDateTime
+import java.time.temporal.ChronoUnit
 
 class AssessorsEventsSummaryJobsRepositorySpec extends MongoRepositorySpec {
   override val collectionName: String = CollectionNames.ASSESSOR_EVENTS_SUMMARY_JOBS
@@ -11,7 +13,7 @@ class AssessorsEventsSummaryJobsRepositorySpec extends MongoRepositorySpec {
 
   "AssessorsEventsSummaryJobs" should {
     "save only the last run job" in {
-      val now = DateTime.now
+      val now = OffsetDateTime.now.truncatedTo(ChronoUnit.MILLIS)
       val futureTime = now.plusMonths(1)
       val dateTimes = Seq(now, now.plusDays(1), now.plusDays(2), now.plusDays(3), futureTime)
 

@@ -16,14 +16,12 @@
 
 package model.exchange.campaignmanagement
 
-import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.{ Json, OFormat }
+import play.api.libs.json.{Json, OFormat}
 
-case class AfterDeadlineSignupCodeUnused(unused: Boolean, expires: Option[DateTime])
+import java.time.OffsetDateTime
+
+case class AfterDeadlineSignupCodeUnused(unused: Boolean, expires: Option[OffsetDateTime])
 
 object AfterDeadlineSignupCodeUnused {
   implicit val afterDeadlineSignupCodeUnusedFormat: OFormat[AfterDeadlineSignupCodeUnused] = Json.format[AfterDeadlineSignupCodeUnused]
 }
-

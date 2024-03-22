@@ -18,14 +18,15 @@ package model.persisted.phase3
 
 import model.Phase3TestProfileExamples._
 import model.persisted.phase3tests.LaunchpadTestCallbacks
-import org.joda.time.DateTime
 import testkit.UnitSpec
+
+import java.time.OffsetDateTime
 
 class LaunchpadTestCallbacksSpec extends UnitSpec {
 
-  val reviewedCallback1 = buildReviewCallBack(1.5, DateTime.now().minusMinutes(5))
-  val reviewedCallback2 = buildReviewCallBack(1.5, DateTime.now().minusMinutes(4))
-  val reviewedCallback3 = buildReviewCallBack(1.5, DateTime.now().minusMinutes(3))
+  val reviewedCallback1 = buildReviewCallBack(1.5, OffsetDateTime.now.minusMinutes(5))
+  val reviewedCallback2 = buildReviewCallBack(1.5, OffsetDateTime.now.minusMinutes(4))
+  val reviewedCallback3 = buildReviewCallBack(1.5, OffsetDateTime.now.minusMinutes(3))
 
   "getLatestReviewed" should {
     "return None when there are not items in reviewed" in {

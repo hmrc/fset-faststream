@@ -16,18 +16,18 @@
 
 package model.persisted
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class FsbEvaluation(result: List[SchemeEvaluationResult])
 
 object FsbEvaluation {
-  implicit val jsonFormat = Json.format[FsbEvaluation]
+  implicit val jsonFormat: OFormat[FsbEvaluation] = Json.format[FsbEvaluation]
 }
 
 case class FsbTestGroup(evaluation: FsbEvaluation)
 
 object FsbTestGroup {
-  implicit val jsonFormat = Json.format[FsbTestGroup]
+  implicit val jsonFormat: OFormat[FsbTestGroup] = Json.format[FsbTestGroup]
 
   def apply(results: List[SchemeEvaluationResult]): FsbTestGroup = new FsbTestGroup(FsbEvaluation(results))
 }

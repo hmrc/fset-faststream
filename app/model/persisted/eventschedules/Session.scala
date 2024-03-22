@@ -16,13 +16,12 @@
 
 package model.persisted.eventschedules
 
-import model.exchange.{ Session => ExchangeSession }
+import model.exchange.{Session => ExchangeSession}
 import factories.UUIDFactory
-import org.joda.time.LocalTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.{ Json, OFormat }
+import play.api.libs.json.{Json, OFormat}
 import repositories.events.SessionConfig
+
+import java.time.LocalTime
 
 case class Session(
   id: String,
@@ -37,11 +36,11 @@ case class Session(
 case class UpdateSession(id: String, capacity: Int, minViableAttendees: Int, attendeeSafetyMargin: Int)
 
 object UpdateSession {
-  implicit val format = Json.format[UpdateSession]
+  implicit val format: OFormat[UpdateSession] = Json.format[UpdateSession]
 }
 
 object Session {
-  implicit val eventFormat: OFormat[Session] = Json.format[Session]
+  implicit val sessionFormat: OFormat[Session] = Json.format[Session]
 
   def apply(s: SessionConfig): Session = {
     Session(UUIDFactory.generateUUID(), s.description, s.capacity, s.minViableAttendees, s.attendeeSafetyMargin, s.startTime, s.endTime)

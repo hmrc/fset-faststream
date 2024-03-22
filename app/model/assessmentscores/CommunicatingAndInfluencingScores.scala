@@ -16,7 +16,7 @@
 
 package model.assessmentscores
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class CommunicatingAndInfluencingScores(
                                               presentsIdeas: Option[Double] = None, // written
@@ -38,5 +38,5 @@ case class CommunicatingAndInfluencingScores(
 }
 
 object CommunicatingAndInfluencingScores {
-  implicit val leadingAndCommunicatingScoresFormat = Json.format[CommunicatingAndInfluencingScores]
+  implicit val leadingAndCommunicatingScoresFormat: OFormat[CommunicatingAndInfluencingScores] = Json.format[CommunicatingAndInfluencingScores]
 }

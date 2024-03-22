@@ -16,7 +16,7 @@
 
 package scheduler.scheduling
 
-import akka.actor.{Cancellable, Scheduler}
+import org.apache.pekko.actor.{Cancellable, Scheduler}
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Minute, Seconds, Span}
 import org.scalatestplus.play.guice.GuiceOneAppPerTest

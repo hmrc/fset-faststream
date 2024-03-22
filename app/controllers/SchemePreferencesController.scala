@@ -16,19 +16,21 @@
 
 package controllers
 
-import javax.inject.{ Inject, Singleton }
-import model.Exceptions.{ CannotUpdateSchemePreferences, SchemePreferencesNotFound }
+import javax.inject.{Inject, Singleton}
+import model.Exceptions.{CannotUpdateSchemePreferences, SchemePreferencesNotFound}
 import model.SelectedSchemes
-import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent, ControllerComponents }
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.scheme.SchemePreferencesService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class SchemePreferencesController @Inject() (cc: ControllerComponents,
                                              schemePreferencesService: SchemePreferencesService) extends BackendController(cc) {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
   def find(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     schemePreferencesService.find(applicationId) map { sp =>

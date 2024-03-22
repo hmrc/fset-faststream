@@ -16,15 +16,16 @@
 
 package model.persisted
 
-import org.joda.time.DateTime
 import play.api.libs.json._
 
-case class CampaignManagementAfterDeadlineCode(code: String, createdByUserId: String, expires: DateTime,
+import java.time.OffsetDateTime
+
+case class CampaignManagementAfterDeadlineCode(code: String, createdByUserId: String, expires: OffsetDateTime,
   usedByApplicationId: Option[String] = None)
 
 object CampaignManagementAfterDeadlineCode {
 
-  import model.persisted.Play25DateCompatibility.epochMillisDateFormat
+  import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat
 
   implicit val campaignManagementAfterDeadlineCodeFormat: OFormat[CampaignManagementAfterDeadlineCode] =
     Json.format[CampaignManagementAfterDeadlineCode]

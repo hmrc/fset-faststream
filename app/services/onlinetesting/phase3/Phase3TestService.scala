@@ -36,7 +36,6 @@ import model.persisted.phase3tests.{LaunchpadTest, LaunchpadTestCallbacks, Phase
 import model.persisted.{NotificationExpiringOnlineTest, Phase3TestGroupWithAppId}
 import model.stc.StcEventTypes.StcEventType
 import model.stc.{AuditEvents, DataStoreEvents}
-import org.joda.time.{DateTime, LocalDate}
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -48,6 +47,7 @@ import services.sift.ApplicationSiftService
 import services.stc.StcEventService
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
@@ -58,7 +58,7 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
                                    val cdRepository: ContactDetailsRepository,
                                    launchpadGatewayClient: LaunchpadGatewayClient,
                                    val tokenFactory: UUIDFactory,
-                                   val dateTimeFactory: DateTimeFactory,
+                                   override val dateTimeFactory: DateTimeFactory,
                                    @Named("Phase3OnlineTestEmailClient") val emailClient:  OnlineTestEmailClient,
                                    val auditService: AuditService,
                                    val eventService: StcEventService,
@@ -192,7 +192,7 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
     val daysUntilExpiry = gatewayConfig.phase3Tests.timeToExpireInDays
 
     val expirationDate = phase3TestGroup.map { phase3TG =>
-      if (phase3TG.expirationDate.isAfterNow) {
+      if (phase3TG.expirationDate.isAfter(OffsetDateTime.now)) {
         phase3TG.expirationDate
       } else {
         dateTimeFactory.nowLocalTimeZone.plusDays(daysUntilExpiry)
@@ -244,8 +244,8 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
   //scalastyle:off method.length
   private[onlinetesting] def registerAndInviteOrInviteOrResetOrRetakeOrNothing(phase3TestGroup: Option[Phase3TestGroup],
                                                                                application: OnlineTestApplication, emailAddress: String,
-                                                                               interviewId: Int, invitationDate: DateTime,
-                                                                               expirationDate: DateTime
+                                                                               interviewId: Int, invitationDate: OffsetDateTime,
+                                                                               expirationDate: OffsetDateTime
                                                                               )(implicit hc: HeaderCarrier,
                                                                                 rh: RequestHeader): Future[LaunchpadTest] = {
 
@@ -307,7 +307,7 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
   }
   //scalastyle:on method.length
 
-  def markAsStarted(launchpadInviteId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
+  def markAsStarted(launchpadInviteId: String, startedTime: OffsetDateTime = dateTimeFactory.nowLocalTimeZone)
                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     for {
       _ <- testRepository.updateTestStartTime(launchpadInviteId, startedTime)
@@ -458,20 +458,20 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
     launchpadGatewayClient.inviteApplicant(inviteApplicant)
   }
 
-  private def resetApplicant(application: OnlineTestApplication, interviewId: Int, candidateId: String, newDeadLine: LocalDate)
+  private def resetApplicant(application: OnlineTestApplication, interviewId: Int, candidateId: String, newDeadLine: java.time.LocalDate)
                             (implicit hc: HeaderCarrier): Future[ResetApplicantResponse] = {
     val resetApplicant = ResetApplicantRequest(interviewId, candidateId, newDeadLine)
     launchpadGatewayClient.resetApplicant(resetApplicant)
   }
 
-  private def retakeApplicant(application: OnlineTestApplication, interviewId: Int, candidateId: String, newDeadLine: LocalDate)
+  private def retakeApplicant(application: OnlineTestApplication, interviewId: Int, candidateId: String, newDeadLine: java.time.LocalDate)
                              (implicit hc: HeaderCarrier): Future[RetakeApplicantResponse] = {
     val retakeApplicant = RetakeApplicantRequest(interviewId, candidateId, newDeadLine)
     launchpadGatewayClient.retakeApplicant(retakeApplicant)
   }
 
   override def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
-                                      invitationDate: DateTime, expirationDate: DateTime
+                                      invitationDate: OffsetDateTime, expirationDate: OffsetDateTime
                                      )(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit] = {
     val preferredName = application.preferredName
     emailClient.sendOnlineTestInvitation(emailAddress, preferredName, expirationDate).flatMap {
@@ -529,7 +529,7 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
     }
   }
 
-  private def progressStatusesToRemoveWhenExtendTime(extendedExpiryDate: DateTime,
+  private def progressStatusesToRemoveWhenExtendTime(extendedExpiryDate: OffsetDateTime,
                                                      profile: Phase3TestGroup,
                                                      progress: ProgressResponse): Option[List[ProgressStatus]] = {
     val shouldRemoveExpired = progress.phase3ProgressResponse.phase3TestsExpired

@@ -16,32 +16,28 @@
 
 package connectors.launchpadgateway.exchangeobjects.in
 
-import org.joda.time.{ DateTime, LocalDate }
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-//import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits.jotDateTimeFormat // Needed to handle storing ISODate format
-import play.api.libs.json.Json
+import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat
+import play.api.libs.json.{Json, OFormat}
 
-case class FinalCallbackRequest(received: DateTime, candidateId: String, customCandidateId: String, interviewId: Int,
+import java.time.{LocalDate, OffsetDateTime}
+
+case class FinalCallbackRequest(received: OffsetDateTime, candidateId: String, customCandidateId: String, interviewId: Int,
   customInterviewId: Option[String], customInviteId: String, deadline: LocalDate) {
   def toExchange = FinalCallbackRequestExchange(received, candidateId, customCandidateId, interviewId,
                                                 customInterviewId, customInviteId, deadline)
   }
 
 object FinalCallbackRequest {
-  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits.jotDateTimeFormat // Needed to handle storing ISODate format
   // Should match LaunchpadTestsCallback case class
-  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits.jotDateTimeFormat // Needed to handle storing ISODate format
+  import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat // Needed to handle storing ISODate format
   val key = "finalCallback"
-  implicit val finalCallbackRequestFormat = Json.format[FinalCallbackRequest]
+  implicit val finalCallbackRequestFormat: OFormat[FinalCallbackRequest] = Json.format[FinalCallbackRequest]
 }
 
-case class FinalCallbackRequestExchange(received: DateTime, candidateId: String, customCandidateId: String, interviewId: Int,
+case class FinalCallbackRequestExchange(received: OffsetDateTime, candidateId: String, customCandidateId: String, interviewId: Int,
                                 customInterviewId: Option[String], customInviteId: String, deadline: LocalDate)
 
 object FinalCallbackRequestExchange {
-  import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-  import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
   val key = "finalCallback"
-  implicit val finalCallbackRequestFormat = Json.format[FinalCallbackRequestExchange]
+  implicit val finalCallbackRequestFormat: OFormat[FinalCallbackRequestExchange] = Json.format[FinalCallbackRequestExchange]
 }

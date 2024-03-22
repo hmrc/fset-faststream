@@ -16,19 +16,21 @@
 
 package model.persisted
 
-import org.joda.time.DateTime
 import org.mongodb.scala.bson.BsonValue
-import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format
+import repositories.formats.MongoJavatimeFormats.Implicits._ // Needed to handle storing ISODate format
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.mongo.play.json.Codecs
 
-case class Phase2TestGroup(expirationDate: DateTime,
-  tests: List[PsiTest],
-  evaluation: Option[PassmarkEvaluation] = None
+import java.time.OffsetDateTime
+
+case class Phase2TestGroup(
+                            expirationDate: OffsetDateTime,
+                            tests: List[PsiTest],
+                            evaluation: Option[PassmarkEvaluation] = None
 ) extends PsiTestProfile
 
 object Phase2TestGroup {
-  implicit val phase2TestProfileFormat = Json.format[Phase2TestGroup]
+  implicit val phase2TestProfileFormat: OFormat[Phase2TestGroup] = Json.format[Phase2TestGroup]
 
   implicit class BsonOps(val phase2TestGroup: Phase2TestGroup) extends AnyVal {
     def toBson: BsonValue = Codecs.toBson(phase2TestGroup)

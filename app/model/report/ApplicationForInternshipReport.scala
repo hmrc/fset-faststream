@@ -17,7 +17,7 @@
 package model.report
 
 import model.ApplicationRoute.ApplicationRoute
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class ApplicationForInternshipReport(
   applicationRoute: ApplicationRoute,
@@ -32,5 +32,5 @@ case class ApplicationForInternshipReport(
 )
 
 object ApplicationForInternshipReport {
-  implicit val applicationForInternshipReportFormat = Json.format[ApplicationForInternshipReport]
+  implicit val applicationForInternshipReportFormat: OFormat[ApplicationForInternshipReport] = Json.format[ApplicationForInternshipReport]
 }

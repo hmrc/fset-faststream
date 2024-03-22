@@ -42,7 +42,7 @@ trait FinalOutcomeRepository extends CurrentSchemeStatusHelper {
 
 @Singleton
 class FinalOutcomeMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
-                                            mongo: MongoComponent
+                                             mongo: MongoComponent
                                            )(implicit ec: ExecutionContext)
   extends PlayMongoRepository[FsbTestGroup](
     collectionName = CollectionNames.APPLICATION,

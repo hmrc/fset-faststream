@@ -22,7 +22,6 @@ import model.Exceptions.OptimisticLockException
 import model.exchange.AssessorSkill
 import model.persisted.eventschedules._
 import model.{AllocationStatuses, command, persisted}
-import org.joda.time.{DateTime, LocalDate, LocalTime}
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito.{when, _}
 import org.mockito.stubbing.OngoingStubbing
@@ -35,6 +34,7 @@ import testkit.ExtendedTimeout
 import testkit.MockitoImplicits._
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.{LocalDate, LocalTime, OffsetDateTime}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -180,9 +180,9 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout
       mockEmailClient
     )
 
-    protected def mockGetEvent: OngoingStubbing[Future[Event]] = when(mockEventsService.getEvent(any[String]())).thenReturnAsync(new Event(
+    protected def mockGetEvent: OngoingStubbing[Future[Event]] = when(mockEventsService.getEvent(any[String]())).thenReturnAsync(Event(
       "eventId", EventType.FSAC, "Description", Location("London"), Venue("Venue 1", "venue description"),
-      LocalDate.now, 10, 10, 10, LocalTime.now, LocalTime.now, DateTime.now, Map(), Nil
+      LocalDate.now, 10, 10, 10, LocalTime.now, LocalTime.now, OffsetDateTime.now, Map(), Nil
     ))
 
     protected def mockAuthProviderFindByUserIds(userId: String*): Unit = userId.foreach { uid =>

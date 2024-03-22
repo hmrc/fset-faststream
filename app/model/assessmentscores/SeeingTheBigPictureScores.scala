@@ -16,7 +16,7 @@
 
 package model.assessmentscores
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class SeeingTheBigPictureScores(
                                       generatesSolutions: Option[Double] = None, // written
@@ -34,5 +34,5 @@ case class SeeingTheBigPictureScores(
 }
 
 object SeeingTheBigPictureScores {
-  implicit val seeingTheBigPictureScoresFormat = Json.format[SeeingTheBigPictureScores]
+  implicit val seeingTheBigPictureScoresFormat: OFormat[SeeingTheBigPictureScores] = Json.format[SeeingTheBigPictureScores]
 }

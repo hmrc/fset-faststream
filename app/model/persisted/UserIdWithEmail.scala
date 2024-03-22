@@ -18,12 +18,12 @@ package model.persisted
 
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{Format, Json, __}
+import play.api.libs.json.{Format, Json, OFormat, __}
 
 case class UserIdWithEmail(userId: String, email: String)
 
 object UserIdWithEmail {
-  implicit val userIdWithEmailFormat = Json.format[UserIdWithEmail]
+  implicit val userIdWithEmailFormat: OFormat[UserIdWithEmail] = Json.format[UserIdWithEmail]
 
   // Provide an explicit mongo format here to deal with the sub-document root
   val subRoot = "contact-details"

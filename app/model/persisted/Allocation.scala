@@ -19,10 +19,9 @@ package model.persisted
 import factories.UUIDFactory
 import model.AllocationStatuses.AllocationStatus
 import model.persisted.eventschedules.SkillType.SkillType
-import org.joda.time.LocalDate
-import play.api.libs.json.{ Json, OFormat }
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
+import play.api.libs.json.{Json, OFormat}
+
+import java.time.LocalDate
 
 trait Allocation {
   def id: String
@@ -88,7 +87,7 @@ object CandidateAllocation {
         status = allocation.status,
         version = opLockVersion,
         removeReason = None,
-        createdAt = LocalDate.now(),
+        createdAt = LocalDate.now,
         reminderSent = false
       )
     }
@@ -103,7 +102,7 @@ object CandidateAllocation {
         status = a.status,
         version = o.version.getOrElse(UUIDFactory.generateUUID()),
         removeReason = a.removeReason,
-        createdAt = LocalDate.now(),
+        createdAt = LocalDate.now,
         reminderSent = false
       )
     }

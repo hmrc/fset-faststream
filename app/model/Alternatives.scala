@@ -16,10 +16,10 @@
 
 package model
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class Alternatives(location: Boolean, framework: Boolean)
 
 object Alternatives {
-  implicit val jsonFormat = Json.format[Alternatives]
+  implicit val jsonFormat: OFormat[Alternatives] = Json.format[Alternatives]
 }

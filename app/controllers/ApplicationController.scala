@@ -18,14 +18,14 @@ package controllers
 
 import java.nio.file.Files
 import java.io.ByteArrayInputStream
-import akka.stream.scaladsl.StreamConverters
+import org.apache.pekko.stream.scaladsl.StreamConverters
 import connectors.exchange.UserIdResponse
 import controllers.ApplicationController.CandidateNotFound
 
 import javax.inject.{Inject, Singleton}
 import model.Exceptions._
 import model.{CreateApplicationRequest, OverrideSubmissionDeadlineRequest, PreviewRequest, ProgressStatuses}
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsObject, Json, OFormat}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.assessmentcentre.AssessmentCentreService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
@@ -39,7 +39,7 @@ import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAnalysisE
 import services.personaldetails.PersonalDetailsService
 import services.sift.ApplicationSiftService
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 object ApplicationController {
   case class CandidateNotFound(msg: String) extends Exception(msg)
@@ -57,7 +57,7 @@ class ApplicationController @Inject() (cc: ControllerComponents,
                                        personalDetailsService: PersonalDetailsService
                                       ) extends BackendController(cc) {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
   def createApplication = Action.async(parse.json) { implicit request =>
     withJsonBody[CreateApplicationRequest] { applicationRequest =>
@@ -238,12 +238,12 @@ class ApplicationController @Inject() (cc: ControllerComponents,
 
   case class ApplicationStatus(applicationId: String, progressStatus: String)
   object ApplicationStatus {
-    implicit val applicationStatusFormat = play.api.libs.json.Json.format[ApplicationStatus]
+    implicit val applicationStatusFormat: OFormat[ApplicationStatus] = play.api.libs.json.Json.format[ApplicationStatus]
   }
 
   case class ApplicationStatuses(applications: List[ApplicationStatus])
   object ApplicationStatuses {
-    implicit val applicationStatusesFormat = play.api.libs.json.Json.format[ApplicationStatuses]
+    implicit val applicationStatusesFormat: OFormat[ApplicationStatuses] = play.api.libs.json.Json.format[ApplicationStatuses]
   }
 
   def updateStatus() = Action.async(parse.json) { implicit request =>

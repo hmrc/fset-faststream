@@ -16,7 +16,7 @@
 
 package scheduler.scheduling
 
-import akka.actor.Scheduler
+import org.apache.pekko.actor.Scheduler
 import play.api.inject.ApplicationLifecycle
 import play.api.{Application, Logging}
 

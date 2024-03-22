@@ -23,12 +23,12 @@ import javax.inject.{Inject, Named, Singleton}
 import model.ProgressStatuses.{ASSESSMENT_CENTRE_FAILED, FSB_FAILED}
 import model.command.ApplicationForProgression
 import model.{ProgressStatuses, SerialUpdateResult}
-import org.joda.time.DateTime
 import repositories.SchemeRepository
 import repositories.application._
 import repositories.contactdetails.ContactDetailsRepository
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -84,7 +84,7 @@ class FinalOutcomeService @Inject() (contactDetailsRepo: ContactDetailsRepositor
     }.map(SerialUpdateResult.fromEither)
   }
 
-  private def progressToNotified(app: ApplicationForProgression, progressStatuses: List[(String, DateTime)]): Future[Unit] = {
+  private def progressToNotified(app: ApplicationForProgression, progressStatuses: List[(String, OffsetDateTime)]): Future[Unit] = {
     val sorted = progressStatuses.sortBy{ case (_, dt) => dt}(Ordering.fromLessThan(_ isBefore _))
     sorted.last match {
       case (progressStatus, _) if progressStatus == ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN.toString =>

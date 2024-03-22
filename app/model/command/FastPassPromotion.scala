@@ -16,10 +16,10 @@
 
 package model.command
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 final case class FastPassPromotion(triggeredBy: String)
 
 object FastPassPromotion {
-  implicit val fastPassPromotionFormat = Json.format[FastPassPromotion]
+  implicit val fastPassPromotionFormat: OFormat[FastPassPromotion] = Json.format[FastPassPromotion]
 }

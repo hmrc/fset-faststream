@@ -19,7 +19,7 @@ package controllers.testdata
 import javax.inject.{Inject, Singleton}
 import model.ApplicationRoute.ApplicationRoute
 import model.command.testdata.CreateCandidateRequest.CreateCandidateRequest
-import model.{ApplicationRoute, ApplicationStatus, CivilServantAndInternshipType, SchemeId, Schemes}
+import model.{ApplicationRoute, ApplicationStatus, SchemeId, Schemes}
 import repositories.SchemeRepository
 
 case class ValidatorResult(result: Boolean, message: Option[String])

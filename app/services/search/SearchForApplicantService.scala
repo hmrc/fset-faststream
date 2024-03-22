@@ -23,11 +23,11 @@ import model.Exceptions.ContactDetailsNotFound
 import model.exchange.CandidateToRemove
 import model.persisted.ContactDetailsWithId
 import model.{Candidate, SearchCandidate}
-import org.joda.time.LocalDate
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -72,7 +72,7 @@ class SearchForApplicantService @Inject() (appRepository: GeneralApplicationRepo
 
   private def searchByAllNamesOrDobAndFilterPostCode(firstOrPreferredName: Option[String],
                                                      lastName: Option[String],
-                                                     dateOfBirth: Option[LocalDate],
+                                                     dateOfBirth: Option[java.time.LocalDate],
                                                      postCodeOpt: Option[String]
                                                     )(implicit hc: HeaderCarrier): Future[Seq[Candidate]] =
     for {

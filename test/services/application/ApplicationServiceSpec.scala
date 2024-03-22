@@ -25,7 +25,6 @@ import model.command._
 import model.exchange.sift.SiftAnswersStatus
 import model.persisted.{ContactDetails, FsbTestGroup, PassmarkEvaluation, SchemeEvaluationResult}
 import model.stc.AuditEvents
-import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{any, eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
@@ -53,6 +52,7 @@ import testkit.MockitoImplicits._
 import testkit.{ExtendedTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.{OffsetDateTime, ZoneOffset}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -200,7 +200,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
   "Override submission deadline" must {
     "update the submission deadline in the repository" in new TestFixture {
-      val newDeadline = new DateTime(2016, 5, 21, 23, 59, 59)
+      val newDeadline = OffsetDateTime.of(2016, 5, 21, 23, 59, 59, 0, ZoneOffset.UTC)
 
       when(appRepositoryMock.updateSubmissionDeadline(applicationId, newDeadline)).thenReturnAsync()
 

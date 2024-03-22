@@ -19,7 +19,7 @@ package services.assessmentscores
 import com.google.inject.name.Named
 import factories.DateTimeFactory
 import model.Exceptions.CandidateAllocationNotFoundException
-import model.assessmentscores.{AssessmentScoresAllExercises, AssessmentScoresAllExercisesExchange, AssessmentScoresExercise, AssessmentScoresFinalFeedback}
+import model.assessmentscores._
 import model.command.AssessmentScoresCommands.{AssessmentScoresCandidateSummary, AssessmentScoresFindResponse, AssessmentScoresSectionType}
 import model.persisted.eventschedules.Event
 import model.{ProgressStatuses, UniqueIdentifier}
@@ -30,6 +30,7 @@ import repositories.personaldetails.PersonalDetailsRepository
 import repositories.{AssessmentScoresRepository, CandidateAllocationRepository}
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.LocalDate
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -206,7 +207,7 @@ trait AssessmentScoresService {
         personalDetails.firstName,
         personalDetails.lastName,
         event.venue.description,
-        event.date,
+        LocalDate.of(event.date.getYear, event.date.getMonthValue, event.date.getDayOfMonth),
         sessionId),
         assessmentScores.map(_.toExchange))
     }

@@ -16,10 +16,10 @@
 
 package model.command
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class VerifyAccessCode(email: String, accessCode: String)
 
 object VerifyAccessCode {
-  implicit val verifyAccessCodeFormat = Json.format[VerifyAccessCode]
+  implicit val verifyAccessCodeFormat: OFormat[VerifyAccessCode] = Json.format[VerifyAccessCode]
 }

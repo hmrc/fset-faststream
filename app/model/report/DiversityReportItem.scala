@@ -18,7 +18,7 @@ package model.report
 
 import model.ApplicationRoute._
 import model.SchemeId
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 import model.persisted.{ApplicationForDiversityReport, SchemeEvaluationResult}
 
 case class ApplicationForDiversityReportItem(progress: Option[String],
@@ -36,7 +36,8 @@ case class DiversityReportItem(application: ApplicationForDiversityReportItem,
                                media: Option[MediaReportItem])
 
 object ApplicationForDiversityReportItem {
-  implicit val applicationForDiversityReportItemFormat = Json.format[ApplicationForDiversityReportItem]
+  implicit val applicationForDiversityReportItemFormat: OFormat[ApplicationForDiversityReportItem] =
+    Json.format[ApplicationForDiversityReportItem]
 
   def create(a: ApplicationForDiversityReport): ApplicationForDiversityReportItem = {
     ApplicationForDiversityReportItem(progress = a.progress,
@@ -55,5 +56,5 @@ object ApplicationForDiversityReportItem {
 }
 
 object DiversityReportItem {
-  implicit val diversityReportFormat = Json.format[DiversityReportItem]
+  implicit val diversityReportFormat: OFormat[DiversityReportItem] = Json.format[DiversityReportItem]
 }

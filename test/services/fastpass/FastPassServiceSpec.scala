@@ -22,7 +22,6 @@ import model.command.PersonalDetailsExamples._
 import model.command.ProgressResponse
 import model.persisted.ContactDetailsExamples.ContactDetailsUK
 import model.persisted.SchemeEvaluationResult
-import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito.{atLeast => atLeastTimes, _}
 import play.api.mvc.RequestHeader
@@ -37,6 +36,7 @@ import services.stc.StcEventServiceFixture
 import testkit.{ExtendedTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -108,7 +108,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout with Schemes {
       verify(schemesRepositoryMock).siftableSchemeIds
       verify(personalDetailsServiceMock).find(appId, userId)
       verify(cdRepositoryMock).find(userId)
-      verify(applicationSiftServiceMock, never()).sendSiftEnteredNotification(eqTo(appId), any[DateTime])(any[HeaderCarrier])
+      verify(applicationSiftServiceMock, never()).sendSiftEnteredNotification(eqTo(appId), any[OffsetDateTime])(any[HeaderCarrier])
       verify(emailClientMock).sendEmailWithName(
         eqTo(ContactDetailsUK.email), eqTo(completeGeneralDetails.preferredName), eqTo(underTest.acceptedTemplate)) (
         any[HeaderCarrier], any[ExecutionContext])
@@ -119,7 +119,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout with Schemes {
       val schemes = SelectedSchemes(
         List(operationalDelivery, humanResources, digitalDataTechnologyAndCyber), orderAgreed = true, eligible = true)
       when(schemePreferencesServiceMock.find(any[String])).thenReturn(Future.successful(schemes))
-      when(applicationSiftServiceMock.saveSiftExpiryDate(any[String])).thenReturn(Future.successful(DateTime.now))
+      when(applicationSiftServiceMock.saveSiftExpiryDate(any[String])).thenReturn(Future.successful(OffsetDateTime.now))
       when(applicationSiftServiceMock.progressStatusForSiftStage(any[Seq[SchemeId]])).thenReturn(ProgressStatuses.SIFT_ENTERED)
 
       val (_, _) = underTest.processFastPassCandidate(userId, appId, accepted, triggeredBy).futureValue
@@ -258,8 +258,8 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout with Schemes {
     when(schemesRepositoryMock.numericTestSiftRequirementSchemeIds).thenReturn(numericSchemes)
     when(appRepoMock.updateCurrentSchemeStatus(any[String], any[Seq[SchemeEvaluationResult]])).thenReturn(Future.successful(unit))
     when(appRepoMock.findProgress(any[String])).thenReturn(Future.successful(submittedProgressResponse))
-    when(applicationSiftServiceMock.fetchSiftExpiryDate(appId)).thenReturn(Future.successful(DateTime.now))
-    when(applicationSiftServiceMock.sendSiftEnteredNotification(eqTo(appId), any[DateTime])(any[HeaderCarrier]))
+    when(applicationSiftServiceMock.fetchSiftExpiryDate(appId)).thenReturn(Future.successful(OffsetDateTime.now))
+    when(applicationSiftServiceMock.sendSiftEnteredNotification(eqTo(appId), any[OffsetDateTime])(any[HeaderCarrier]))
       .thenReturn(Future.successful(unit))
   }
 }

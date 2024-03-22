@@ -21,12 +21,13 @@ import config.{LaunchpadGatewayConfig, MicroserviceAppConfig, WSHttpT}
 import connectors.BaseConnectorWithWireMockSpec
 import connectors.launchpadgateway.exchangeobjects.out._
 import model.Exceptions.ConnectorException
-import org.joda.time.LocalDate
-import org.joda.time.format.DateTimeFormat
 import org.mockito.Mockito.when
 import play.api.http.Status._
 import play.api.libs.json.Json
 import services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
+
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class VideoInterviewGatewayClientWithWireMockSpec extends BaseConnectorWithWireMockSpec {
 
@@ -97,7 +98,7 @@ class VideoInterviewGatewayClientWithWireMockSpec extends BaseConnectorWithWireM
     val endpoint = "/fset-video-interview-gateway/faststream/reset"
 
     val resetApplicantRequest = ResetApplicantRequest(
-      interviewId = 12345, "candidateId", newDeadline = LocalDate.parse("2000-01-31", DateTimeFormat.forPattern("yyyy-MM-dd"))
+      interviewId = 12345, "candidateId", newDeadline = LocalDate.parse("2000-01-31", DateTimeFormatter.ofPattern("yyyy-MM-dd"))
     )
 
     "handle a response indicating success" in new TestFixture {
@@ -140,7 +141,7 @@ class VideoInterviewGatewayClientWithWireMockSpec extends BaseConnectorWithWireM
     val endpoint = "/fset-video-interview-gateway/faststream/retake"
 
     val retakeApplicantRequest = RetakeApplicantRequest(
-      interviewId = 12345, "candidateId", newDeadline = LocalDate.parse("2000-01-31", DateTimeFormat.forPattern("yyyy-MM-dd"))
+      interviewId = 12345, "candidateId", newDeadline = LocalDate.parse("2000-01-31", DateTimeFormatter.ofPattern("yyyy-MM-dd"))
     )
 
     "handle a response indicating success" in new TestFixture {
@@ -183,7 +184,7 @@ class VideoInterviewGatewayClientWithWireMockSpec extends BaseConnectorWithWireM
     val endpoint = "/fset-video-interview-gateway/faststream/extend"
 
     val extendDeadlineRequest = ExtendDeadlineRequest(
-      interviewId = 12345, "candidateId", newDeadline = LocalDate.parse("2000-01-31", DateTimeFormat.forPattern("yyyy-MM-dd"))
+      interviewId = 12345, "candidateId", newDeadline = LocalDate.parse("2000-01-31", DateTimeFormatter.ofPattern("yyyy-MM-dd"))
     )
 
     "handle a response indicating success" in new TestFixture {

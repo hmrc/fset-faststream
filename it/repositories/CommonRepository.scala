@@ -12,7 +12,6 @@ import model.ProgressStatuses.ProgressStatus
 import model._
 import model.persisted._
 import model.persisted.phase3tests.{LaunchpadTest, Phase3TestGroup}
-import org.joda.time.{DateTime, DateTimeZone}
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.scalatest.concurrent.ScalaFutures
@@ -24,11 +23,13 @@ import repositories.assessmentcentre.AssessmentCentreMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import repositories.fsb.FsbMongoRepository
 import repositories.onlinetesting._
-import repositories.passmarksettings.{ Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository }
+import repositories.passmarksettings.{Phase1PassMarkSettingsMongoRepository, Phase2PassMarkSettingsMongoRepository}
 import repositories.passmarksettings.Phase3PassMarkSettingsMongoRepository
 import repositories.sift.ApplicationSiftMongoRepository
 import testkit.MongoRepositorySpec
 
+import java.time.temporal.ChronoUnit
+import java.time.{OffsetDateTime, ZoneId}
 import scala.concurrent.Future
 
 //scalastyle:off number.of.methods
@@ -82,7 +83,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper with Schemes {
 
   def fsbRepository = new FsbMongoRepository(ITDateTimeFactoryMock, mongo)
 
-  implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
+  implicit val now: OffsetDateTime = OffsetDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.MILLIS)
 
   def selectedSchemes(schemeTypes: List[SchemeId]) = SelectedSchemes(schemeTypes, orderAgreed = true, eligible = true)
 
@@ -96,7 +97,8 @@ trait CommonRepository extends CurrentSchemeStatusHelper with Schemes {
     val phase1Tests = if(isGis) List(test1, test3) else List(test1, test2, test3)
     insertApplication(appId, ApplicationStatus.PHASE1_TESTS, Some(phase1Tests), applicationRoute = Some(applicationRoute))
     ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE1_TESTS, applicationRoute, isGis,
-      Phase1TestProfile(now, phase1Tests).activeTests, None, None, selectedSchemes(schemes.toList)
+      Phase1TestProfile(expirationDate = now, phase1Tests).activeTests, activeLaunchpadTest = None, prevPhaseEvaluation = None,
+      selectedSchemes(schemes.toList)
     )
   }
 

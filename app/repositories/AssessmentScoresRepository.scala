@@ -17,7 +17,7 @@
 package repositories
 
 import factories.UUIDFactory
-import model.Exceptions.{NotFoundException, OptimisticLockException}
+import model.Exceptions.OptimisticLockException
 import model.UniqueIdentifier
 import model.assessmentscores._
 import model.command.AssessmentScoresCommands.AssessmentScoresSectionType

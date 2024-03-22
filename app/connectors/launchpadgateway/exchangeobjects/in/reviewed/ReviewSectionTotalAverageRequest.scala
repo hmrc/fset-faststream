@@ -16,10 +16,10 @@
 
 package connectors.launchpadgateway.exchangeobjects.in.reviewed
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class ReviewSectionTotalAverageRequest(`type`: String, scoreText: String, scoreValue: Double)
 
 object ReviewSectionTotalAverageRequest {
-  implicit val reviewSectionTotalAverageFormat = Json.format[ReviewSectionTotalAverageRequest]
+  implicit val reviewSectionTotalAverageFormat: OFormat[ReviewSectionTotalAverageRequest] = Json.format[ReviewSectionTotalAverageRequest]
 }

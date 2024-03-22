@@ -18,7 +18,8 @@ package model.command
 
 import model.Address
 import model.persisted.PersonalDetails
-import org.joda.time.LocalDate
+
+import java.time.LocalDate
 
 object PersonalDetailsExamples {
 
@@ -27,7 +28,7 @@ object PersonalDetailsExamples {
     civilServiceExperienceDetails = None, edipCompleted = None, edipYear = None, otherInternshipCompleted = None, otherInternshipName = None,
     otherInternshipYear = None, updateApplicationStatus = None)
 
-  val completed = PersonalDetails("firstname", "lastname", "preferedname", dateOfBirth = LocalDate.now(),
+  val completed = PersonalDetails("firstname", "lastname", "preferedname", dateOfBirth = LocalDate.now,
     edipCompleted = Some(false), edipYear = None, otherInternshipCompleted = Some(false), otherInternshipName = None,
     otherInternshipYear = None)
 

@@ -17,10 +17,9 @@
 package model
 
 import model.Commands.PostCode
-import org.joda.time.LocalDate
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.{ Json, OFormat }
+import play.api.libs.json.{Json, OFormat}
+
+import java.time.LocalDate
 
 case class SearchCandidate(firstOrPreferredName: Option[String], lastName: Option[String],
   dateOfBirth: Option[LocalDate], postCode: Option[PostCode])

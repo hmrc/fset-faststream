@@ -30,6 +30,8 @@ import play.api.mvc.{Action, Result}
 import repositories.onlinetesting.Phase3TestRepository.CannotFindTestByLaunchpadId
 import services.onlinetesting.phase3.{Phase3TestCallbackService, Phase3TestService}
 
+import scala.concurrent.ExecutionContext
+
 case class CannotFindTestByLaunchpadInviteId(message: String) extends NotFoundException(message)
 
 @Singleton
@@ -37,7 +39,7 @@ class LaunchpadTestsController @Inject() (cc: ControllerComponents,
                                           phase3TestService: Phase3TestService,
                                           phase3TestCallbackService: Phase3TestCallbackService) extends BackendController(cc) with Logging {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
   def markAsStarted(inviteId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     logger.info(s"Launchpad Assessment with invite ID $inviteId marked as started")

@@ -17,7 +17,7 @@
 package model.persisted
 
 import org.mongodb.scala.bson.BsonValue
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.mongo.play.json.Codecs
 
 case class PassmarkEvaluation(passmarkVersion: String,
@@ -27,7 +27,7 @@ case class PassmarkEvaluation(passmarkVersion: String,
                               previousPhaseResultVersion: Option[String])
 
 object PassmarkEvaluation {
-  implicit val passmarkEvaluationFormat = Json.format[PassmarkEvaluation]
+  implicit val passmarkEvaluationFormat: OFormat[PassmarkEvaluation] = Json.format[PassmarkEvaluation]
 
   implicit class BsonOps(val passmarkEvaluation: PassmarkEvaluation) extends AnyVal {
     def toBson: BsonValue = Codecs.toBson(passmarkEvaluation)

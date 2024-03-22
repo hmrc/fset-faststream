@@ -18,7 +18,7 @@ package model.report
 
 import model.ApplicationRoute.ApplicationRoute
 import model.persisted.ContactDetailsWithId
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class InternshipReportItem(
   applicationRoute: ApplicationRoute,
@@ -47,5 +47,5 @@ case object InternshipReportItem {
     )
   }
 
-  implicit val internshipReportItemFormat = Json.format[InternshipReportItem]
+  implicit val internshipReportItemFormat: OFormat[InternshipReportItem] = Json.format[InternshipReportItem]
 }

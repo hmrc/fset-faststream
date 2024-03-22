@@ -18,11 +18,10 @@ package model
 
 import model.ApplicationRoute.ApplicationRoute
 import model.command.ProgressResponse
-import org.joda.time.DateTime
 import play.api.libs.functional.syntax._
-import play.api.libs.json.JodaWrites._
-import play.api.libs.json.JodaReads._
 import play.api.libs.json.{Format, Json, OFormat, __}
+
+import java.time.OffsetDateTime
 
 case class ApplicationResponse(applicationId: String,
                                applicationStatus: String,
@@ -31,7 +30,7 @@ case class ApplicationResponse(applicationId: String,
                                testAccountId: String,
                                progressResponse: ProgressResponse,
                                civilServiceExperienceDetails: Option[CivilServiceExperienceDetails],
-                               overriddenSubmissionDeadline: Option[DateTime])
+                               overriddenSubmissionDeadline: Option[OffsetDateTime])
 
 object ApplicationResponse {
   implicit val applicationResponseFormat: OFormat[ApplicationResponse] = Json.format[ApplicationResponse]
@@ -44,6 +43,6 @@ object ApplicationResponse {
       (__ \ "testAccountId").format[String] and
       (__ \ "progressResponse").format[ProgressResponse] and
       (__ \ CivilServiceExperienceDetails.root).formatNullable[CivilServiceExperienceDetails] and
-      (__ \ "overriddenSubmissionDeadline").formatNullable[DateTime]
+      (__ \ "overriddenSubmissionDeadline").formatNullable[OffsetDateTime]
     )(ApplicationResponse.apply, unlift(ApplicationResponse.unapply))
 }

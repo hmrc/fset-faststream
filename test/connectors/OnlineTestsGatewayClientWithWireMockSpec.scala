@@ -21,11 +21,12 @@ import config.{MicroserviceAppConfig, OnlineTestsGatewayConfig, WSHttpT}
 import connectors.ExchangeObjects._
 import model.Exceptions.ConnectorException
 import model.OnlineTestCommands.PsiTestResult
-import org.joda.time.LocalDate
-import org.joda.time.format.DateTimeFormat
 import org.mockito.Mockito.when
 import play.api.http.Status._
 import play.api.libs.json.Json
+
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class OnlineTestsGatewayClientWithWireMockSpec extends BaseConnectorWithWireMockSpec {
 
@@ -51,7 +52,7 @@ class OnlineTestsGatewayClientWithWireMockSpec extends BaseConnectorWithWireMock
         "http://host/testLaunchUrl",
         "status",
         "statusDetails",
-        statusDate = LocalDate.parse("2000-01-31", DateTimeFormat.forPattern("yyyy-MM-dd"))
+        statusDate = LocalDate.parse("2000-01-31", DateTimeFormatter.ofPattern("yyyy-MM-dd"))
       )
 
       stubFor(post(urlPathEqualTo(endpoint))
@@ -83,7 +84,7 @@ class OnlineTestsGatewayClientWithWireMockSpec extends BaseConnectorWithWireMock
 
     "handle a response indicating success" in new TestFixture {
       val response = AssessmentCancelAcknowledgementResponse(
-        "status", "details", statusDate = LocalDate.parse("2000-01-31", DateTimeFormat.forPattern("yyyy-MM-dd"))
+        "status", "details", statusDate = LocalDate.parse("2000-01-31", DateTimeFormatter.ofPattern("yyyy-MM-dd"))
       )
 
       stubFor(get(urlPathEqualTo(endpoint))

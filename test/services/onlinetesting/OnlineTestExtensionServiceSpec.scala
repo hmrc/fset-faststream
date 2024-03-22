@@ -20,7 +20,6 @@ import factories.DateTimeFactory
 import model.ProgressStatuses.{PHASE1_TESTS_EXPIRED, PHASE1_TESTS_FIRST_REMINDER, PHASE1_TESTS_SECOND_REMINDER, PHASE1_TESTS_STARTED}
 import model.command.{Phase1ProgressResponse, ProgressResponse}
 import model.persisted.Phase1TestProfile
-import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
@@ -33,6 +32,7 @@ import testkit.MockitoImplicits.{OngoingStubbingExtension, OngoingStubbingExtens
 import testkit.{ShortTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -181,7 +181,7 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
     val noTestProfileFoundError = TestExtensionException("No Phase1TestGroupAvailable for the given application")
     val genericError = new Exception("Dummy error!")
     val mockDateTimeFactory = mock[DateTimeFactory]
-    val Now = DateTime.now()
+    val Now = OffsetDateTime.now
     val OneHourAgo = Now.minusHours(1)
     val InFiveHours = Now.plusHours(5)
     val InTwentyFiveHours = Now.plusHours(25)

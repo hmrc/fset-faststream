@@ -17,14 +17,16 @@
 package model
 
 import java.util.UUID
-
 import connectors.launchpadgateway.exchangeobjects.in.reviewed._
-import model.persisted.phase3tests.{ LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup }
-import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
+import model.persisted.phase3tests.{LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup}
+
+import java.time.{LocalDate, ZoneId}
+
+import java.time.OffsetDateTime
 
 object Phase3TestProfileExamples {
 
-  val Now =  DateTime.now(DateTimeZone.UTC)
+  val Now = OffsetDateTime.now(ZoneId.of("UTC"))
   val DatePlus7Days = Now.plusDays(7)
   val Token = newToken
   val sampleCandidateId = UUID.randomUUID().toString
@@ -47,7 +49,7 @@ object Phase3TestProfileExamples {
   )
 
   val sampleReviewedCallback = (score: Option[Double]) => ReviewedCallbackRequest(
-    DateTime.now(),
+    OffsetDateTime.now(),
     sampleCandidateId,
     sampleCustomCandidateId,
     sampleInterviewId,
@@ -78,7 +80,7 @@ object Phase3TestProfileExamples {
     )
   )
 
-  def buildReviewCallBack(criteriaScore: Double, dateTime: DateTime = DateTime.now()) = ReviewedCallbackRequest(
+  def buildReviewCallBack(criteriaScore: Double, dateTime: OffsetDateTime = OffsetDateTime.now()) = ReviewedCallbackRequest(
     dateTime,
     sampleCandidateId,
     sampleCustomCandidateId,
@@ -119,8 +121,8 @@ object Phase3TestProfileExamples {
   def phase3TestWithResults(videoInterviewScore: Option[Double], hrsBeforeLastReviewed: Int = 0) = {
     val launchPadTestWithResult = launchPadTest.copy(callbacks =
       LaunchpadTestCallbacks(reviewed = List(
-        sampleReviewedCallback(videoInterviewScore).copy(received = DateTime.now().minusHours(hrsBeforeLastReviewed)),
-        sampleReviewedCallback(videoInterviewScore).copy(received = DateTime.now()))))
+        sampleReviewedCallback(videoInterviewScore).copy(received = OffsetDateTime.now.minusHours(hrsBeforeLastReviewed)),
+        sampleReviewedCallback(videoInterviewScore).copy(received = OffsetDateTime.now))))
     Phase3TestGroup(expirationDate = DatePlus7Days, tests = List(launchPadTestWithResult))
   }
 

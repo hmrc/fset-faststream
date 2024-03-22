@@ -21,8 +21,9 @@ import model.assessmentscores.{AssessmentScoresAllExercises, AssessmentScoresExe
 import model.exchange.passmarksettings._
 import model.persisted.SchemeEvaluationResult
 import model.{AssessmentPassMarksSchemesAndScores, Schemes, UniqueIdentifier}
-import org.joda.time.DateTime
 import services.BaseServiceSpec
+
+import java.time.OffsetDateTime
 
 class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec with Schemes {
 
@@ -49,7 +50,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec with Schemes 
           teamExercise = PassMarkThreshold(1.0, 3.0),
           leadershipExercise = PassMarkThreshold(1.0, 3.0),
           overall = PassMarkThreshold(6.0, 8.0)))),
-        version = "v1", createDate = DateTime.now(), "user")
+        version = "v1", createDate = OffsetDateTime.now, "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
         writtenExercise = Some(
@@ -99,7 +100,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec with Schemes 
           teamExercise = PassMarkThreshold(1.0, 3.0),
           leadershipExercise = PassMarkThreshold(1.0, 3.0),
           overall = PassMarkThreshold(6.0, 8.9)))),
-        version = "v1", createDate = DateTime.now(), "user")
+        version = "v1", createDate = OffsetDateTime.now, "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
         writtenExercise = Some(
@@ -149,7 +150,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec with Schemes 
           teamExercise = PassMarkThreshold(1.0, 3.0),
           leadershipExercise = PassMarkThreshold(1.0, 3.0),
           overall = PassMarkThreshold(8.0, 9.3)))),
-        version = "v1", createDate = DateTime.now(), "user")
+        version = "v1", createDate = OffsetDateTime.now, "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
         writtenExercise = Some(
@@ -199,7 +200,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec with Schemes 
           teamExercise = PassMarkThreshold(1.0, 3.0),
           leadershipExercise = PassMarkThreshold(2.1, 3.0),
           overall = PassMarkThreshold(6.0, 7.16)))),
-        version = "v1", createDate = DateTime.now(), "user")
+        version = "v1", createDate = OffsetDateTime.now, "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
         writtenExercise = Some(
@@ -244,7 +245,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec with Schemes 
           teamExercise = PassMarkThreshold(0.0, 0.0),
           leadershipExercise = PassMarkThreshold(0.0, 0.0),
           overall = PassMarkThreshold(0.0, 0.0)))),
-        version = "v1", createDate = DateTime.now(), "user")
+        version = "v1", createDate = OffsetDateTime.now, "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
         writtenExercise = Some(
@@ -300,7 +301,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec with Schemes 
           teamExercise = PassMarkThreshold(1.0, 3.0),
           leadershipExercise = PassMarkThreshold(1.0, 3.0),
           overall = PassMarkThreshold(10.6, 12.0)))),
-        version = "v1", DateTime.now(), "user")
+        version = "v1", OffsetDateTime.now, "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
         writtenExercise = Some(

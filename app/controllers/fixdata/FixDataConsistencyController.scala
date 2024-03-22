@@ -38,7 +38,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 // scalastyle:off number.of.methods file.size.limit
 @Singleton
@@ -56,7 +56,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
                                              schemeRepository: SchemeRepository
                                             ) extends BackendController(cc) with Logging {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
   def undoFullWithdraw(applicationId: String, newApplicationStatus: ApplicationStatus) = Action.async { implicit request =>
     applicationService.undoFullWithdraw(applicationId, newApplicationStatus).map { _ =>
@@ -401,7 +401,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
   }
 
-  def extendSiftCandidate(applicationId: String, extraDays: Int): Action[AnyContent] = Action.async { implicit request =>
+  def extendSiftCandidate(applicationId: String, extraDays: Int): Action[AnyContent] = Action.async { implicit _ =>
       siftService.extendSiftCandidateFailedByMistake(applicationId, extraDays).map { _ =>
         Ok
       }.recover {
@@ -410,7 +410,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
   }
 
   def removeSiftEvaluation(applicationId: String): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async { implicit _ =>
       siftService.removeEvaluation(applicationId).map { _ =>
         Ok(s"Successfully removed evaluation for sift candidate $applicationId")
       } recover {
@@ -419,12 +419,12 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
 
   def setSiftAnswersStatusToDraft(applicationId: String): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async { implicit _ =>
       commonSetSiftAnswersStatus(applicationId, SiftAnswersStatus.DRAFT)
     }
 
   def setSiftAnswersStatusToSubmitted(applicationId: String): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async { implicit _ =>
       commonSetSiftAnswersStatus(applicationId, SiftAnswersStatus.SUBMITTED)
     }
 
@@ -615,7 +615,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
 
   def rollbackToPhase2TestExpiredFromSift(applicationId: String): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async { implicit _ =>
       applicationService.rollbackToPhase2ExpiredFromSift(applicationId).map(_ =>
         Ok(s"Successfully rolled back to phase2 expired $applicationId")
       ).recover {
@@ -624,7 +624,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
 
   def fixPhase3ExpiredCandidate(applicationId: String): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async { implicit _ =>
       applicationService.fixPhase3ExpiredCandidate(applicationId).map(_ =>
         Ok(s"Successfully fixed p3 expired candidate $applicationId")
       ).recover {
@@ -634,7 +634,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
 
   def rollbackToPhase3TestExpiredFromSift(applicationId: String): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async { implicit _ =>
       applicationService.rollbackToPhase3ExpiredFromSift(applicationId).map(_ =>
         Ok(s"Successfully rolled back to phase3 expired $applicationId")
       ).recover {
@@ -643,7 +643,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
 
   def rollbackToPhase1TestsPassedFromSift(applicationId: String): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async { implicit _ =>
       applicationService.rollbackToPhase1TestsPassedFromSift(applicationId).map(_ =>
         Ok(s"Successfully rolled back to phase1 tests passed $applicationId")
       ).recover {
@@ -653,7 +653,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
 
   def enablePhase3ExpiredCandidateToBeEvaluated(applicationId: String): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async { implicit _ =>
       applicationService.enablePhase3ExpiredCandidateToBeEvaluated(applicationId).map(_ =>
         Ok(s"Successfully updated phase3 state so candidate $applicationId can be evaluated ")
       ).recover {
@@ -663,7 +663,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
 
   def removePhase3TestAndSetOtherToActive(removeTestToken: String, markTestAsActiveToken: String): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async { implicit _ =>
       applicationService.removePhase3TestAndSetOtherToActive(removeTestToken, markTestAsActiveToken).map(_ =>
         Ok(s"Successfully removed phase3 test for token $removeTestToken and set other test to active for token $markTestAsActiveToken ")
       ).recover {
@@ -673,7 +673,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
 
   def rollbackToRetakePhase3FromSift(applicationId: String, token: String): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async { implicit _ =>
       applicationService.rollbackToRetakePhase3FromSift(applicationId, token).map(_ =>
         Ok(s"Successfully rolled back candidate $applicationId from sift so can retake video interview")
       ).recover {
@@ -684,7 +684,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
 
   def removePhase1TestEvaluation(applicationId: String): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async { implicit _ =>
       applicationService.removePhase1TestEvaluation(applicationId).map(_ =>
         Ok(s"Successfully removed P1 test evaluation and css for candidate $applicationId")
       ).recover {
@@ -693,7 +693,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
 
   def removePhase2TestEvaluation(applicationId: String): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async { implicit _ =>
       applicationService.removePhase2TestEvaluation(applicationId).map(_ =>
         Ok(s"Successfully removed P2 test evaluation and updated css for candidate $applicationId")
       ).recover {
@@ -702,7 +702,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
 
   def removePhase3TestEvaluation(applicationId: String): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async { implicit _ =>
       applicationService.removePhase3TestEvaluation(applicationId).map(_ =>
         Ok(s"Successfully removed P3 test evaluation and updated css for candidate $applicationId")
       ).recover {
@@ -722,7 +722,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       }
   }
 
-  def removePhase3TestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+  def removePhase3TestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit _ =>
     applicationService.removePhase3TestGroup(applicationId).map { _ =>
       Ok(s"Successfully removed phase 3 test group for $applicationId")
     } recover {
@@ -765,14 +765,14 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
   }
 
-  def removeSiftTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+  def removeSiftTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit _ =>
     applicationService.removeSiftTestGroup(applicationId).map(_ => Ok(s"Successfully removed SIFT test group for $applicationId"))
       .recover {
         case ex: NotFoundException => NotFound(ex.getMessage)
       }
   }
 
-  def removeFsbTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+  def removeFsbTestGroup(applicationId: String): Action[AnyContent] = Action.async { implicit _ =>
     applicationService.removeFsbTestGroup(applicationId).map { _ =>
       Ok(s"Successfully removed FSB test group for $applicationId")
     } recover {
@@ -780,7 +780,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
   }
 
-  def updateApplicationStatus(applicationId: String, newApplicationStatus: ApplicationStatus) = Action.async { implicit request =>
+  def updateApplicationStatus(applicationId: String, newApplicationStatus: ApplicationStatus) = Action.async { implicit _ =>
     applicationService.updateApplicationStatus(applicationId, newApplicationStatus).map { _ =>
       Ok(s"Successfully updated $applicationId application status to $newApplicationStatus")
     } recover {
@@ -789,7 +789,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
   }
 
   def fsacResetFastPassCandidate(applicationId: String): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async { implicit _ =>
       applicationService.fsacResetFastPassCandidate(applicationId).map { _ =>
         Ok(s"Successfully reset fsac fast pass candidate $applicationId. Remember to update the current scheme status")
       } recover {
@@ -798,7 +798,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
 
   def fsacRollbackWithdraw(applicationId: String): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async { implicit _ =>
       applicationService.fsacRollbackWithdraw(applicationId).map { _ =>
         Ok(s"Successfully rolled back withdraw for fsac candidate $applicationId")
       } recover {
@@ -807,7 +807,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
 
   def fsacRemoveEvaluation(applicationId: String): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async { implicit _ =>
       applicationService.fsacRemoveEvaluation(applicationId).map { _ =>
         Ok(s"Successfully removed evaluation for fsac candidate $applicationId")
       } recover {
@@ -816,7 +816,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
 
   def fsacEvaluateCandidate(applicationId: String): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async { implicit _ =>
       assessmentCentreService.nextSpecificCandidateReadyForEvaluation(applicationId).flatMap { candidateResults =>
         if (candidateResults.isEmpty) {
           Future.successful(BadRequest("No candidate found to evaluate at FSAC. Please check the candidate's state in the diagnostic report"))
@@ -840,7 +840,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
 
   def fsacSetAverageScore(applicationId: String, version: String, averageScoreName: String, averageScore: Double): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async { implicit _ =>
       assessmentCentreService.setFsacAverageScore(UniqueIdentifier(applicationId), version, averageScoreName, averageScore).map { ss =>
         Ok(s"Successfully updated applicationId:$applicationId averageScoreName:$averageScoreName in exercise whose version=$version " +
           s"to averageScore:$averageScore")
@@ -854,7 +854,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
 
   def progressCandidateToFsbOrOfferJob(applicationId: String): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async { implicit _ =>
       implicit val hc = HeaderCarrier()
       progressionToFsbOrOfferService.nextApplicationForFsbOrJobOffer(applicationId).flatMap {
         case Nil =>
@@ -870,7 +870,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
 
   def progressCandidateFailedAtFsb(applicationId: String): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async { implicit _ =>
       fsbService.processApplicationFailedAtFsb(applicationId).map { result =>
         val successfulAppIds = result.successes.map( _.applicationId )
         val failedAppIds = result.failures.map( _.applicationId )
@@ -888,8 +888,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
 
   def inviteP2CandidateToMissingTest(applicationId: String): Action[AnyContent] =
-    Action.async { implicit request =>
-      implicit val hc = HeaderCarrier()
+    Action.async { implicit _ =>
       phase2TestService.inviteP2CandidateToMissingTest(applicationId).map { _ =>
         Ok(s"Successfully added missing P2 test for candidate $applicationId")
       }.recover {

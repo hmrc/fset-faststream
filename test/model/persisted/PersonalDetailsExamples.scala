@@ -16,13 +16,14 @@
 
 package model.persisted
 
-import org.joda.time.LocalDate
-import org.scalatest.FunSuite
+//import org.scalatest.FunSuite
 
-object PersonalDetailsExamples extends FunSuite {
-  val JohnDoe = PersonalDetails("John", "Doe", "johnd", dateOfBirth = LocalDate.now().minusYears(20), edipCompleted = Some(false),
+import java.time.LocalDate
+
+object PersonalDetailsExamples { //extends FunSuite {
+  val JohnDoe = PersonalDetails("John", "Doe", "johnd", dateOfBirth = LocalDate.now.minusYears(20), edipCompleted = Some(false),
     edipYear = None, otherInternshipCompleted = Some(false), otherInternshipName = None, otherInternshipYear = None)
-  val SdipJohnDoe = PersonalDetails("John", "Doe", "johnd", dateOfBirth = LocalDate.now().minusYears(20), edipCompleted = Some(true),
+  val SdipJohnDoe = PersonalDetails("John", "Doe", "johnd", dateOfBirth = LocalDate.now.minusYears(20), edipCompleted = Some(true),
     edipYear = Some("2020"), otherInternshipCompleted = Some(false), otherInternshipName = None, otherInternshipYear = None)
 //  val JohnDoe2 = PersonalDetails2("John", "Doe", "johnd", dateOfBirth = LocalDate.now().minusYears(20), edipCompleted = Some(false),
 //    edipYear = None, otherInternshipCompleted = Some(false), otherInternshipName = None, otherInternshipYear = None)

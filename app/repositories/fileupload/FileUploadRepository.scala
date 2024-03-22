@@ -16,21 +16,19 @@
 
 package repositories.fileupload
 
-import java.util.UUID
 import com.google.inject.ImplementedBy
-
-import javax.inject.{Inject, Singleton}
 import model.persisted.fileupload.{FileUpload, FileUploadInfo}
-import org.joda.time.{DateTime, DateTimeZone}
-import org.mongodb.scala.{Observable, ObservableFuture}
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.gridfs.{GridFSBucket, GridFSFile, GridFSUploadOptions}
+import org.mongodb.scala.{Observable, ObservableFuture}
+import repositories.CollectionNames
+import repositories.fileupload.FileUploadRepository.FileUploadNotFoundException
 import uk.gov.hmrc.mongo.MongoComponent
 
 import java.nio.ByteBuffer
-import repositories.CollectionNames
-import repositories.fileupload.FileUploadRepository.FileUploadNotFoundException
-
+import java.time.{OffsetDateTime, ZoneOffset}
+import java.util.UUID
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
@@ -68,14 +66,16 @@ class FileUploadMongoRepository @Inject() (mongoComponent: MongoComponent)(impli
   }
 
   override def retrieve(fileId: String): Future[FileUpload] = {
-    gridFS.find(Document("filename" -> fileId)).headOption.flatMap {
+    gridFS.find(Document("filename" -> fileId)).headOption().flatMap {
       case Some(file) =>
         gridFS.downloadToObservable(file.getObjectId)
           .toFuture()
-          .map(seq => seq.map(bb => bb.array).reduceLeft(_ ++ _))
-          .map(array => {
-            FileUpload(fileId, getContentType(file), new DateTime(file.getUploadDate, DateTimeZone.UTC), array)
-          })
+          .map( seq => seq.map(bb => bb.array).reduceLeft(_ ++ _))
+          .map( array =>
+            FileUpload(
+              fileId, getContentType(file), OffsetDateTime.ofInstant(file.getUploadDate.toInstant, ZoneOffset.UTC), array
+            )
+          )
       case _ => throw FileUploadNotFoundException(s"No file upload found with id $fileId")
     }
   }
@@ -85,7 +85,7 @@ class FileUploadMongoRepository @Inject() (mongoComponent: MongoComponent)(impli
   }
 
   override def retrieveMetaData(fileId: String): Future[Option[FileUploadInfo]] = {
-    gridFS.find(Document("filename" -> fileId)).headOption.map ( _.map ( processFile ) )
+    gridFS.find(Document("filename" -> fileId)).headOption().map ( _.map ( processFile ) )
   }
 
   // Try and get the contentType out of metadata, which is a nullable field
@@ -95,7 +95,7 @@ class FileUploadMongoRepository @Inject() (mongoComponent: MongoComponent)(impli
     FileUploadInfo(
       file.getFilename,
       getContentType(file),
-      new DateTime(file.getUploadDate, DateTimeZone.UTC).toString,
+      OffsetDateTime.ofInstant(file.getUploadDate.toInstant, ZoneOffset.UTC).toString,
       file.getLength
     )
   }

@@ -16,7 +16,7 @@
 
 package model.persisted
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class ApplicationForNotification(
   applicationId: String,
@@ -26,5 +26,5 @@ case class ApplicationForNotification(
 )
 
 object ApplicationForNotification {
-  implicit val applicationForNotificationFormats = Json.format[ApplicationForNotification]
+  implicit val applicationForNotificationFormats: OFormat[ApplicationForNotification] = Json.format[ApplicationForNotification]
 }

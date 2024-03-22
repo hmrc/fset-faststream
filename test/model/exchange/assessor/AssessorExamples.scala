@@ -20,7 +20,8 @@ import model.Schemes
 import model.exchange.{Assessor, AssessorAvailabilities, AssessorAvailability}
 import model.persisted.EventExamples
 import model.persisted.assessor.AssessorStatus
-import org.joda.time.LocalDate
+
+import java.time.LocalDate
 
 object AssessorExamples extends Schemes {
   val UserId1 = "57364"
@@ -36,10 +37,10 @@ object AssessorExamples extends Schemes {
 
 object AssessorAvailabilityExamples {
   val AssessorAvailabilityInBothLondonAndNewcastle = Set(
-    AssessorAvailability(EventExamples.LocationLondon.name, new LocalDate(2017, 10, 10)),
-    AssessorAvailability(EventExamples.LocationLondon.name, new LocalDate(2017, 10, 11)),
-    AssessorAvailability(EventExamples.LocationNewcastle.name, new LocalDate(2017, 5, 10)),
-    AssessorAvailability(EventExamples.LocationNewcastle.name, new LocalDate(2017, 5, 11))
+    AssessorAvailability(EventExamples.LocationLondon.name, LocalDate.of(2017, 10, 10)),
+    AssessorAvailability(EventExamples.LocationLondon.name, LocalDate.of(2017, 10, 11)),
+    AssessorAvailability(EventExamples.LocationNewcastle.name, LocalDate.of(2017, 5, 10)),
+    AssessorAvailability(EventExamples.LocationNewcastle.name, LocalDate.of(2017, 5, 11))
   )
 
   val AssessorAvailabilitiesSum = AssessorAvailabilities(

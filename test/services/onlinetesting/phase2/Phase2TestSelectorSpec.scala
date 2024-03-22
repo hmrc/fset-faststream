@@ -18,8 +18,9 @@ package services.onlinetesting.phase2
 
 import config._
 import model.persisted.PsiTest
-import org.joda.time.DateTime
 import testkit.UnitSpec
+
+import java.time.OffsetDateTime
 
 class Phase2TestSelectorSpec extends UnitSpec {
 
@@ -72,12 +73,13 @@ class Phase2TestSelectorSpec extends UnitSpec {
       normId = "af7aebe6-ac44-4574-a0cf-e9fe9bb78e81"
     )
 
+    val invitationDate = OffsetDateTime.now
     val test1 = PsiTest(
       inventoryId = test1InventoryId,
       orderId = "orderId1",
       usedForResults = true,
       testUrl = "",
-      invitationDate = DateTime.now(),
+      invitationDate = invitationDate,
       assessmentId = "",
       reportId = "",
       normId = ""
@@ -88,7 +90,7 @@ class Phase2TestSelectorSpec extends UnitSpec {
       orderId = "orderId2",
       usedForResults = true,
       testUrl = "",
-      invitationDate = DateTime.now(),
+      invitationDate = invitationDate,
       assessmentId = "",
       reportId = "",
       normId = ""
@@ -99,7 +101,7 @@ class Phase2TestSelectorSpec extends UnitSpec {
       orderId = "orderId3",
       usedForResults = true,
       testUrl = "",
-      invitationDate = DateTime.now(),
+      invitationDate = invitationDate,
       assessmentId = "",
       reportId = "",
       normId = ""

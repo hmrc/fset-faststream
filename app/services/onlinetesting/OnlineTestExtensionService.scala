@@ -24,7 +24,6 @@ import model.command.ProgressResponse
 import model.persisted.Phase1TestProfile
 import model.stc.{AuditEvent, AuditEvents, DataStoreEvents}
 import model.{Phase1FirstReminder, Phase1SecondReminder}
-import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
@@ -33,6 +32,7 @@ import services.onlinetesting.Exceptions.TestExtensionException
 import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -84,18 +84,18 @@ class OnlineTestExtensionService @Inject() (appRepository: GeneralApplicationRep
   }
 }
 
-private final case class Extension(extendedExpiryDate: DateTime, expired: Boolean,
+private final case class Extension(extendedExpiryDate: OffsetDateTime, expired: Boolean,
                                    profile: Phase1TestProfile, progress: ProgressResponse)
 
 object OnlineTestExtensionServiceImpl {
 
   val NoOp: Future[Unit] = Future.successful(())
 
-  def getProgressStatusesToRemove(extendedExpiryDate: DateTime,
+  def getProgressStatusesToRemove(extendedExpiryDate: OffsetDateTime,
                                   profile: Phase1TestProfile,
                                   progress: ProgressResponse): Option[List[ProgressStatus]] = {
 
-    val today = DateTime.now()
+    val today = OffsetDateTime.now
     val progressList = (Set.empty[ProgressStatus]
       ++ cond(progress.phase1ProgressResponse.phase1TestsExpired, PHASE1_TESTS_EXPIRED)
       ++ cond(profile.hasNotStartedYet, PHASE1_TESTS_STARTED)

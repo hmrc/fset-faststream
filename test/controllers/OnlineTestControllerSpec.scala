@@ -27,7 +27,6 @@ import mocks.application.{ DocumentRootInMemoryRepository, OnlineTestInMemoryRep
 import model.Address
 import model.OnlineTestCommands.OnlineTestApplication
 import model.PersistedObjects.ContactDetails
-import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import play.api.libs.json.Json

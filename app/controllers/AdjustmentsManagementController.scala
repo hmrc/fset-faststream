@@ -24,11 +24,13 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.adjustmentsmanagement.AdjustmentsManagementService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import scala.concurrent.ExecutionContext
+
 @Singleton
 class AdjustmentsManagementController @Inject() (cc: ControllerComponents,
                                                  adjustmentsManagementService: AdjustmentsManagementService) extends BackendController(cc) {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
   /*
   def confirmAdjustments(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>

@@ -15,12 +15,13 @@
  */
 
 import model.ApplicationStatus.ApplicationStatus
-import model.{ ApplicationStatus, ProgressStatuses, SchemeId, UniqueIdentifier }
+import model.{ApplicationStatus, ProgressStatuses, SchemeId, UniqueIdentifier}
 import model.EvaluationResults.Result
 import model.ProgressStatuses.ProgressStatus
-import model.persisted.eventschedules.{ EventType, SkillType, VenueType }
-import org.joda.time.LocalDate
-import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter }
+import model.persisted.eventschedules.{EventType, SkillType, VenueType}
+
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import play.api.mvc.{ PathBindable, QueryStringBindable }
 
 import scala.util.{ Failure, Right, Success, Try }
@@ -29,7 +30,7 @@ package object controllers {
 
   object Binders {
 
-    implicit def pathBindableUniqueIdentifier = new PathBindable[UniqueIdentifier] {
+    implicit def pathBindableUniqueIdentifier: PathBindable[UniqueIdentifier] = new PathBindable[UniqueIdentifier] {
       def bind(key: String, value: String): Either[String, UniqueIdentifier] =
         Try { UniqueIdentifier(value) } match {
           case Success(v) => Right(v)
@@ -39,7 +40,8 @@ package object controllers {
       def unbind(key: String, value: UniqueIdentifier) = value.toString()
     }
 
-    implicit def queryBindableUniqueIdentifier(implicit stringBinder: QueryStringBindable[String]) = new QueryStringBindable[UniqueIdentifier] {
+    implicit def queryBindableUniqueIdentifier(implicit stringBinder: QueryStringBindable[String]): QueryStringBindable[UniqueIdentifier] =
+      new QueryStringBindable[UniqueIdentifier] {
       def bind(key: String, params: Map[String, Seq[String]]) =
         for {
           uuid <- stringBinder.bind(key, params)
@@ -57,34 +59,34 @@ package object controllers {
       def unbind(key: String, value: UniqueIdentifier) = stringBinder.unbind(key, value.toString())
     }
 
-    implicit val resultPathBinder = new PathBindable.Parsing[Result](
+    implicit val resultPathBinder: PathBindable.Parsing[Result] = new PathBindable.Parsing[Result](
       parse = (value: String) => Result(value),
       serialize = _.toString,
       error = (m: String, e: Exception) => "Can't parse %s as Result: %s".format(m, e.getMessage)
     )
 
-    implicit val schemeIdPathBinder = new PathBindable.Parsing[SchemeId](
+    implicit val schemeIdPathBinder: PathBindable.Parsing[SchemeId] = new PathBindable.Parsing[SchemeId](
       parse = (value: String) => SchemeId(value),
       serialize = _.value,
       error = (m: String, e: Exception) => "Can't parse %s as SchemeId: %s".format(m, e.getMessage)
     )
 
-    implicit val applicationStatusPathBinder = new PathBindable.Parsing[ApplicationStatus](
+    implicit val applicationStatusPathBinder: PathBindable.Parsing[ApplicationStatus] = new PathBindable.Parsing[ApplicationStatus](
       parse = (value: String) => ApplicationStatus.withName(value),
       serialize = _.toString,
       error = (m: String, e: Exception) => "Can't parse %s as ApplicationStatus: %s".format(m, e.getMessage)
     )
 
-    implicit val progressStatusPathBinder = new PathBindable.Parsing[ProgressStatus](
+    implicit val progressStatusPathBinder: PathBindable.Parsing[ProgressStatus] = new PathBindable.Parsing[ProgressStatus](
       parse = (value: String) => ProgressStatuses.nameToProgressStatus(value),
       serialize = _.toString,
       error = (m: String, e: Exception) => "Can't parse %s as ProgressStatus: %s".format(m, e.getMessage)
     )
 
-    val pathDateFormat: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd")
-    implicit val localDatePathBinder = new PathBindable.Parsing[LocalDate](
+    private val pathDateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    implicit val localDatePathBinder: PathBindable.Parsing[LocalDate] = new PathBindable.Parsing[LocalDate](
       parse = (dateVal: String) => LocalDate.parse(dateVal, pathDateFormat),
-      serialize = _.toString(pathDateFormat),
+      serialize = date => pathDateFormat.format(date),
       error = (m: String, e: Exception) => "Can't parse %s as LocalDate(%s): %s".format(m, pathDateFormat.toString, e.getMessage)
     )
 

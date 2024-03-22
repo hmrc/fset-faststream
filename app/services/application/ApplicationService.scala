@@ -18,8 +18,6 @@ package services.application
 
 import common.FutureEx
 import connectors.ExchangeObjects
-
-import javax.inject.{Inject, Named, Singleton}
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{Green, Red}
 import model.Exceptions._
@@ -28,14 +26,13 @@ import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
 import model.command.AssessmentScoresCommands.AssessmentScoresSectionType._
 import model.command._
 import model.exchange.SchemeEvaluationResultWithFailureDetails
-import model.exchange.passmarksettings.{Phase1PassMarkSettings, Phase1PassMarkSettingsPersistence, Phase2PassMarkSettings, Phase2PassMarkSettingsPersistence, Phase3PassMarkSettings, Phase3PassMarkSettingsPersistence}
+import model.exchange.passmarksettings.{Phase1PassMarkSettingsPersistence, Phase2PassMarkSettingsPersistence, Phase3PassMarkSettingsPersistence}
 import model.exchange.sift.SiftAnswersStatus
 import model.persisted._
 import model.persisted.eventschedules.EventType
 import model.stc.StcEventTypes._
 import model.stc.{AuditEvents, DataStoreEvents, EmailEvents}
-import model.{ProgressStatuses, _}
-import org.joda.time.DateTime
+import model._
 import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories._
@@ -58,6 +55,8 @@ import services.sift.{ApplicationSiftService, SiftAnswersService}
 import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
+import javax.inject.{Inject, Named, Singleton}
 import scala.collection.immutable.ListMap
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
@@ -350,7 +349,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
     FutureEx.traverseSerial(toBeFixed)(fixData).map(_ => ())
   }
 
-  def overrideSubmissionDeadline(applicationId: String, newDeadline: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def overrideSubmissionDeadline(applicationId: String, newDeadline: OffsetDateTime)(implicit hc: HeaderCarrier): Future[Unit] = {
     appRepository.updateSubmissionDeadline(applicationId, newDeadline)
   }
 
@@ -939,7 +938,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
 
   def fixPhase3ExpiredCandidate(applicationId: String): Future[Unit] = {
     for {
-      _ <- phase3TestRepository.updateGroupExpiryTime(applicationId, new DateTime().plusDays(1), phase3TestRepository.phaseName)
+      _ <- phase3TestRepository.updateGroupExpiryTime(applicationId, OffsetDateTime.now.plusDays(1), phase3TestRepository.phaseName)
       _ <- appRepository.removeProgressStatuses(applicationId, List(ProgressStatuses.PHASE3_TESTS_EXPIRED))
       _ <- addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.PHASE3_TESTS_COMPLETED)
       _ <- addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
@@ -973,7 +972,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
       _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.PHASE3_TESTS, statusesToRollback)
       _ <- siftAnswersService.removeAnswers(applicationId)
       _ <- appSiftRepository.removeTestGroup(applicationId)
-      _ <- phase3TestRepository.updateExpiryDate(applicationId, new DateTime().plusDays(7))
+      _ <- phase3TestRepository.updateExpiryDate(applicationId, OffsetDateTime.now.plusDays(7))
       _ <- phase3TestRepository.removeTestGroupEvaluation(applicationId)
       _ <- phase3TestRepository.removeReviewedCallbacks(token)
       evaluationOpt <- phase2TestRepository.findEvaluation(applicationId)
@@ -1043,7 +1042,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
 
   def enablePhase3ExpiredCandidateToBeEvaluated(applicationId: String): Future[Unit] = {
     for {
-      _ <- phase3TestRepository.updateExpiryDate(applicationId, new DateTime().plusDays(1))
+      _ <- phase3TestRepository.updateExpiryDate(applicationId, OffsetDateTime.now.plusDays(1))
       _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
       _ <- appRepository.removeProgressStatuses(applicationId, List(ProgressStatuses.PHASE3_TESTS_EXPIRED))
     } yield ()

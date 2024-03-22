@@ -38,7 +38,7 @@ case class AssessorAllocation(
 }
 
 object AssessorAllocation {
-  implicit val assessorAllocationFormat = Json.format[AssessorAllocation]
+  implicit val assessorAllocationFormat: OFormat[AssessorAllocation] = Json.format[AssessorAllocation]
 
   def fromExchange(o: model.exchange.AssessorAllocation): AssessorAllocation = {
     AssessorAllocation(o.id, o.status, o.allocatedAs)
@@ -58,7 +58,7 @@ case class AssessorAllocations(
 }
 
 object AssessorAllocations {
-  implicit val assessorAllocationsFormat = Json.format[AssessorAllocations]
+  implicit val assessorAllocationsFormat: OFormat[AssessorAllocations] = Json.format[AssessorAllocations]
 
   def apply(eventId: String, assessorAllocations: Seq[model.persisted.AssessorAllocation]): AssessorAllocations = {
     val opLock = assessorAllocations.map(_.version).distinct match {
