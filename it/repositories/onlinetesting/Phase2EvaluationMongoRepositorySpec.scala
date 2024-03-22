@@ -4,12 +4,15 @@ import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
 import model.persisted._
 import model.{ApplicationRoute, ApplicationStatus, ProgressStatuses}
-import org.joda.time.{DateTime, DateTimeZone}
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.scalatestplus.mockito.MockitoSugar
 import repositories.{CollectionNames, CommonRepository}
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.mongo.play.json.Codecs
+
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 
 class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with CommonRepository with MockitoSugar {
 
@@ -220,7 +223,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 }
 
 object Phase2EvaluationMongoRepositorySpec {
-  val now = DateTime.now().withZone(DateTimeZone.UTC)
+  val now = OffsetDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.MILLIS)
   val phase2Test = List(PsiTest(
     inventoryId = "test-inventoryId",
     orderId = "test-orderId",

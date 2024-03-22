@@ -16,17 +16,16 @@
 
 package model.persisted
 
-import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
+
+import java.time.OffsetDateTime
 
 case class AuditEvent(name: String,
-                      created: DateTime,
+                      created: OffsetDateTime,
                       applicationId: Option[String],
                       userId: Option[String],
                       createdBy: Option[String] = None)
 
 object AuditEvent {
-  implicit val auditEventFormat = Json.format[AuditEvent]
+  implicit val auditEventFormat: OFormat[AuditEvent] = Json.format[AuditEvent]
 }

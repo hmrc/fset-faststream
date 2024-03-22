@@ -22,13 +22,13 @@ import javax.inject.{Inject, Singleton}
 import model.command.SetTScoreRequest
 import model.exchange.campaignmanagement.{AfterDeadlineSignupCode, AfterDeadlineSignupCodeUnused}
 import model.persisted._
-import org.joda.time.DateTime
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.campaignmanagement.CampaignManagementAfterDeadlineSignupCodeRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting._
 
+import java.time.{OffsetDateTime, ZoneId}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -55,7 +55,7 @@ class CampaignManagementService @Inject() (afterDeadlineCodeRepository: Campaign
     val newCode = CampaignManagementAfterDeadlineCode(
       uuidFactory.generateUUID(),
       createdByUserId,
-      DateTime.now().plusHours(expiryInHours)
+      OffsetDateTime.now(ZoneId.of("UTC")).plusHours(expiryInHours)
     )
 
     afterDeadlineCodeRepository.save(newCode).map { _ =>

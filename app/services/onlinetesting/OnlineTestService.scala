@@ -17,15 +17,14 @@
 package services.onlinetesting
 
 import connectors.OnlineTestEmailClient
-import factories.{ DateTimeFactory, UUIDFactory }
+import factories.{DateTimeFactory, UUIDFactory}
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model._
 import model.exchange.PsiRealTimeResults
 import model.persisted._
 import model.stc.StcEventTypes._
-import model.stc.{ AuditEvents, DataStoreEvents }
-import org.joda.time.DateTime
+import model.stc.{AuditEvents, DataStoreEvents}
 import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
@@ -36,7 +35,8 @@ import services.sift.ApplicationSiftService
 import services.stc.EventSink
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ ExecutionContext, Future }
+import java.time.OffsetDateTime
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 // This is the guice injected version
@@ -127,7 +127,7 @@ trait OnlineTestService extends TimeExtension with EventSink with Logging {
   }
 
   protected def emailInviteToApplicant(application: OnlineTestApplication, emailAddress: String,
-                                       invitationDate: DateTime, expirationDate: DateTime
+                                       invitationDate: OffsetDateTime, expirationDate: OffsetDateTime
                                       )(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit] = {
     val preferredName = application.preferredName
     emailClient.sendOnlineTestInvitation(emailAddress, preferredName, expirationDate).map { _ =>
@@ -135,7 +135,7 @@ trait OnlineTestService extends TimeExtension with EventSink with Logging {
     }
   }
 
-  protected def calcOnlineTestDates(expiryTimeInDays: Int): (DateTime, DateTime) = {
+  protected def calcOnlineTestDates(expiryTimeInDays: Int): (OffsetDateTime, OffsetDateTime) = {
     val invitationDate = dateTimeFactory.nowLocalTimeZone
     val expirationDate = invitationDate.plusDays(expiryTimeInDays)
     (invitationDate, expirationDate)
@@ -239,7 +239,7 @@ trait OnlineTestService extends TimeExtension with EventSink with Logging {
 trait TimeExtension {
   val dateTimeFactory: DateTimeFactory
 
-  def extendTime(alreadyExpired: Boolean, previousExpirationDate: DateTime): Int => DateTime = { extraDays: Int =>
+  def extendTime(alreadyExpired: Boolean, previousExpirationDate: OffsetDateTime): Int => OffsetDateTime = { extraDays: Int =>
     if (alreadyExpired) {
       dateTimeFactory.nowLocalTimeZone.plusDays(extraDays)
     } else {

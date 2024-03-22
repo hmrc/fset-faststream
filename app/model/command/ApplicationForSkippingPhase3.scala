@@ -17,7 +17,7 @@
 package model.command
 
 import model.persisted.SchemeEvaluationResult
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class ApplicationForSkippingPhase3(
   applicationId: String,
@@ -25,5 +25,5 @@ case class ApplicationForSkippingPhase3(
 )
 
 object ApplicationForSkippingPhase3 {
-  implicit val applicationForSkippingPhase3 = Json.format[ApplicationForSkippingPhase3]
+  implicit val applicationForSkippingPhase3: OFormat[ApplicationForSkippingPhase3] = Json.format[ApplicationForSkippingPhase3]
 }

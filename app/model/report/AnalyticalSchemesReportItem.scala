@@ -17,7 +17,7 @@
 package model.report
 
 import model.persisted.ContactDetailsWithId
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class AnalyticalSchemesReportItem(firstName: Option[String],
                                        lastName: Option[String],
@@ -45,5 +45,5 @@ object AnalyticalSchemesReportItem {
     )
   }
 
-  implicit val analyticalSchemesReportItemFormat = Json.format[AnalyticalSchemesReportItem]
+  implicit val analyticalSchemesReportItemFormat: OFormat[AnalyticalSchemesReportItem] = Json.format[AnalyticalSchemesReportItem]
 }

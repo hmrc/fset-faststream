@@ -16,21 +16,21 @@
 
 package controllers
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.ApplicationValidator
-import model.stc.{ AuditEvents, DataStoreEvents, EmailEvents }
-import play.api.mvc.{ Action, ControllerComponents, RequestHeader }
+import model.stc.{AuditEvents, DataStoreEvents, EmailEvents}
+import play.api.mvc.{Action, ControllerComponents, RequestHeader}
 import repositories.FrameworkRepository.CandidateHighestQualification
 import repositories._
 import repositories.application.GeneralApplicationRepository
 import repositories.assistancedetails.AssistanceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
-import services.stc.{ EventSink, StcEventService }
+import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SubmitApplicationController @Inject() (cc: ControllerComponents,
@@ -43,7 +43,7 @@ class SubmitApplicationController @Inject() (cc: ControllerComponents,
                                              override val eventService: StcEventService
                                             ) extends BackendController(cc) with EventSink {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
   def submitApplication(userId: String, applicationId: String) = Action.async { implicit request =>
     val generalDetailsFuture = pdRepository.find(applicationId)

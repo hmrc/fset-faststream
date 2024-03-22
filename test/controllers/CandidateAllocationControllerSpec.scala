@@ -21,8 +21,7 @@ import model.Exceptions.{CandidateAlreadyAssignedToOtherEventException, Optimist
 import model.{AllocationStatuses, FSACIndicator}
 import model.exchange.{CandidateAllocation, CandidateAllocations, CandidateEligibleForEvent, CandidatesEligibleForEventResponse}
 import model.persisted.eventschedules.EventType.EventType
-import model.persisted.eventschedules.{Event, EventType, Location, Venue}
-import org.joda.time.{DateTime, LocalDate, LocalTime}
+import model.persisted.eventschedules.{EventType, Location, Venue}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import play.api.mvc.RequestHeader
@@ -33,6 +32,7 @@ import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.Future
 
 class CandidateAllocationControllerSpec  extends UnitWithAppSpec {
@@ -59,7 +59,7 @@ class CandidateAllocationControllerSpec  extends UnitWithAppSpec {
     "handle candidates" in new TestFixture {
       val fsacIndicator = FSACIndicator("SouthWest London", "London")
       val candidate = CandidateEligibleForEvent(applicationId = "appId", firstName = "Joe", lastName = "Bloggs",
-        needsAdjustment = true, fsbScoresAndFeedbackSubmitted = false, fsacIndicator = fsacIndicator, dateReady = DateTime.now())
+        needsAdjustment = true, fsbScoresAndFeedbackSubmitted = false, fsacIndicator = fsacIndicator, dateReady = OffsetDateTime.now)
       when(mockCandidateAllocationService.findCandidatesEligibleForEventAllocation(any[String], any[EventType], any[String]))
         .thenReturnAsync(CandidatesEligibleForEventResponse(List(candidate), 1))
 
@@ -106,9 +106,6 @@ class CandidateAllocationControllerSpec  extends UnitWithAppSpec {
     val mockCandidateAllocationService = mock[CandidateAllocationService]
     val MockVenue = Venue("London FSAC", "Bush House")
     val MockLocation = Location("London")
-
-    val MockEvent = new Event("id", EventType.FSAC, "description", MockLocation, MockVenue,
-      LocalDate.now, 32, 10, 5, LocalTime.now, LocalTime.now, DateTime.now, Map.empty, List.empty)
 
     val controller = new CandidateAllocationController(
       stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),

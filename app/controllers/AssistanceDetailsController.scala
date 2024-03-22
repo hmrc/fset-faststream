@@ -25,13 +25,14 @@ import services.assistancedetails.AssistanceDetailsService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class AssistanceDetailsController @Inject() (cc: ControllerComponents,
                                              assistanceDetailsService: AssistanceDetailsService,
                                              auditService: AuditService
                                             ) extends BackendController(cc) {
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
   val AssistanceDetailsSavedEvent = "AssistanceDetailsSaved"
 
   def update(userId: String, applicationId: String) = Action.async(parse.json) { implicit request =>

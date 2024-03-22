@@ -17,7 +17,7 @@
 package model.persisted
 
 import org.mongodb.scala.bson.collection.immutable.Document
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class TestResultNotification(
   applicationId: String,
@@ -34,5 +34,5 @@ object TestResultNotification {
     TestResultNotification(applicationId, userId, preferredName)
   }
 
-  implicit val testResultNotificationFormat = Json.format[TestResultNotification]
+  implicit val testResultNotificationFormat: OFormat[TestResultNotification] = Json.format[TestResultNotification]
 }

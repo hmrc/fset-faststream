@@ -16,7 +16,7 @@
 
 package connectors.launchpadgateway.exchangeobjects.in.reviewed
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class ReviewSectionReviewerRequest(name: String, email: String, comment: Option[String],
   question1: ReviewSectionQuestionRequest,
@@ -29,5 +29,5 @@ case class ReviewSectionReviewerRequest(name: String, email: String, comment: Op
   question8: ReviewSectionQuestionRequest)
 
 object ReviewSectionReviewerRequest {
-  implicit val reviewSectionReviewerFormat = Json.format[ReviewSectionReviewerRequest]
+  implicit val reviewSectionReviewerFormat: OFormat[ReviewSectionReviewerRequest] = Json.format[ReviewSectionReviewerRequest]
 }

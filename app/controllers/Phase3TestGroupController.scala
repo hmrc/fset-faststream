@@ -24,11 +24,13 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.onlinetesting.phase3.Phase3TestService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import scala.concurrent.ExecutionContext
+
 @Singleton
 class Phase3TestGroupController @Inject() (cc: ControllerComponents,
                                            phase3TestService: Phase3TestService) extends BackendController(cc) {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
   def getTestGroup(applicationId: String): Action[AnyContent] = Action.async {
     phase3TestService.getTestGroup(applicationId).map {

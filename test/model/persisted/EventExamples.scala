@@ -20,7 +20,9 @@ import controllers.DayAggregateEvent
 import factories.UUIDFactory
 import model.UniqueIdentifier
 import model.persisted.eventschedules._
-import org.joda.time.{ DateTime, DateTimeZone, LocalDate, LocalTime }
+
+import java.time.temporal.ChronoUnit
+import java.time.{LocalDate, LocalTime, OffsetDateTime, ZoneId}
 
 object EventExamples {
   val VenueAll = Venue("ALL_VENUES", "All venues")
@@ -31,7 +33,7 @@ object EventExamples {
   val LocationLondon = Location("London")
   val LocationNewcastle = Location("Newcastle")
 
-  val now = DateTime.now(DateTimeZone.UTC)
+  val now = OffsetDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.MILLIS)
 
   val e1 = Event(id = UniqueIdentifier.randomUniqueIdentifier.toString(), eventType = EventType.FSAC, description = "",
     location = LocationLondon, venue = VenueLondon, date = LocalDate.now(), capacity = 67, minViableAttendees = 60,
@@ -89,7 +91,7 @@ object EventExamples {
     DayAggregateEvent(LocalDate.now, LocationNewcastle)
   )
 
-  val eventCreatedAt = DateTime.parse("2017-08-01T00:00:01Z")
+  val eventCreatedAt = OffsetDateTime.parse("2017-08-01T00:00:01Z")
   val YamlEvents = List(
     Event("1", EventType.withName("FSAC"), "PDFS FSB", Location("London"), Venue("london fsac", "bush house"),
       LocalDate.parse("2017-04-03"), 36, 12, 2, LocalTime.parse("11:00:00.000"), LocalTime.parse("12:00:00.000"), eventCreatedAt,

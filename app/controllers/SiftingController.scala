@@ -16,21 +16,23 @@
 
 package controllers
 
-import javax.inject.{ Inject, Singleton }
-import model.Exceptions.{ PassMarkEvaluationNotFound, SiftResultsAlreadyExistsException }
+import javax.inject.{Inject, Singleton}
+import model.Exceptions.{PassMarkEvaluationNotFound, SiftResultsAlreadyExistsException}
 import model.exchange.ApplicationSifting
 import model.persisted.SchemeEvaluationResult
-import model.{ EvaluationResults, SchemeId }
-import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent, ControllerComponents }
+import model.{EvaluationResults, SchemeId}
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.sift.ApplicationSiftService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class SiftingController @Inject() (cc: ControllerComponents,
                                    siftService: ApplicationSiftService) extends BackendController(cc) {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
   def findApplicationsReadyForSchemeSifting(schemeId: String): Action[AnyContent] = Action.async { implicit request =>
     siftService.findApplicationsReadyForSchemeSift(SchemeId(schemeId)).map { candidates =>

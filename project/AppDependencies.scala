@@ -21,12 +21,11 @@ import sbt._
 //scalastyle:off line.size.limit
 object AppDependencies {
 
-  val bootstrapVersion = "8.1.0"
+  val bootstrapVersion = "8.5.0"
 
   val compile = Seq(
-    "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-28"         % "1.6.0",
-    "uk.gov.hmrc"                   %% "bootstrap-backend-play-28"  % bootstrapVersion,
-    "com.typesafe.play"             %% "play-json-joda"             % "2.9.4",
+    "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-30"         % "1.8.0",
+    "uk.gov.hmrc"                   %% "bootstrap-backend-play-30"  % bootstrapVersion,
     // If you move to 1.5.0 it breaks AssessmentCentreServiceIntSpec ficus deserialization
     "com.iheart"                    %% "ficus"                      % "1.4.7",
     "org.yaml"                      %  "snakeyaml"                  % "2.0",
@@ -39,12 +38,8 @@ object AppDependencies {
 
   abstract class TestDependencies(scope: String) {
     lazy val test: Seq[ModuleID] = Seq(
-      "uk.gov.hmrc"               %% "bootstrap-test-play-28" % bootstrapVersion  % scope,
-      "org.mockito"               %  "mockito-core"           % "3.0.0"           % scope,
-      // Gives you access to MockitoSugar
-      "org.scalatestplus"         %% "mockito-3-4"            % "3.2.8.0"         % scope,
-      "org.scalatest"             %% "scalatest"              % "3.1.0"           % scope,
-      "org.scalamock"             %% "scalamock"              % "5.1.0"           % scope,
+      "uk.gov.hmrc"               %% "bootstrap-test-play-30" % bootstrapVersion  % scope,
+      "org.scalamock"             %% "scalamock"              % "5.2.0"           % scope
     )
   }
 

@@ -21,7 +21,6 @@ import model.ProgressStatuses.{ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_FAILE
 import model._
 import model.command.ApplicationForProgression
 import model.persisted.{ContactDetails, SchemeEvaluationResult}
-import org.joda.time.DateTime
 import repositories.SchemeRepository
 import repositories.application.{FinalOutcomeRepository, GeneralApplicationRepository}
 import repositories.contactdetails.ContactDetailsRepository
@@ -29,6 +28,7 @@ import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -80,7 +80,7 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec with Schemes {
 
       ( mockApplicationRepo.getProgressStatusTimestamps(_: String) )
         .expects(App1.applicationId)
-        .returningAsync(List((ASSESSMENT_CENTRE_FAILED.toString, DateTime.now)))
+        .returningAsync(List((ASSESSMENT_CENTRE_FAILED.toString, OffsetDateTime.now)))
 
       ( mockFinalOutcomeRepo.progressToFinalFailureNotified _ )
         .expects(App1)
@@ -105,8 +105,8 @@ class FinalOutcomeServiceSpec extends ScalaMockUnitSpec with Schemes {
       ( mockApplicationRepo.getProgressStatusTimestamps(_: String) )
         .expects(App1.applicationId)
         .returningAsync(List(
-          (ASSESSMENT_CENTRE_SCORES_ACCEPTED.toString, DateTime.now().minusMinutes(1)),
-          (ASSESSMENT_CENTRE_FAILED_SDIP_GREEN.toString, DateTime.now())
+          (ASSESSMENT_CENTRE_SCORES_ACCEPTED.toString, OffsetDateTime.now.minusMinutes(1)),
+          (ASSESSMENT_CENTRE_FAILED_SDIP_GREEN.toString, OffsetDateTime.now)
         ))
 
       ( mockFinalOutcomeRepo.progressToAssessmentCentreFailedSdipGreenNotified _ )

@@ -17,8 +17,9 @@
 package model.persisted.phase3tests
 
 import model.persisted.Test
-import org.joda.time.DateTime
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
+
+import java.time.OffsetDateTime
 
 case class LaunchpadTest(interviewId: Int,
                          usedForResults: Boolean,
@@ -27,9 +28,9 @@ case class LaunchpadTest(interviewId: Int,
                          token: String,
                          candidateId: String,
                          customCandidateId: String,
-                         invitationDate: DateTime,
-                         startedDateTime: Option[DateTime],
-                         completedDateTime: Option[DateTime],
+                         invitationDate: OffsetDateTime,
+                         startedDateTime: Option[OffsetDateTime],
+                         completedDateTime: Option[OffsetDateTime],
                          callbacks: LaunchpadTestCallbacks,
                          invigilatedAccessCode: Option[String] = None
                      ) extends Test {
@@ -51,8 +52,8 @@ case class LaunchpadTest(interviewId: Int,
 }
 
 object LaunchpadTest {
-  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format
-  implicit val launchpadTestFormat = Json.format[LaunchpadTest]
+  import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat // Needed to handle storing ISODate format
+  implicit val launchpadTestFormat: OFormat[LaunchpadTest] = Json.format[LaunchpadTest]
 }
 
 case class LaunchpadTestExchange(interviewId: Int,
@@ -62,15 +63,13 @@ case class LaunchpadTestExchange(interviewId: Int,
                                  token: String,
                                  candidateId: String,
                                  customCandidateId: String,
-                                 invitationDate: DateTime,
-                                 startedDateTime: Option[DateTime],
-                                 completedDateTime: Option[DateTime],
+                                 invitationDate: OffsetDateTime,
+                                 startedDateTime: Option[OffsetDateTime],
+                                 completedDateTime: Option[OffsetDateTime],
                                  callbacks: LaunchpadTestCallbacksExchange,
                                  invigilatedAccessCode: Option[String] = None
                                 ) extends Test
 
 object LaunchpadTestExchange {
-  import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-  import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-  implicit val launchpadTestFormat = Json.format[LaunchpadTestExchange]
+  implicit val launchpadTestFormat: OFormat[LaunchpadTestExchange] = Json.format[LaunchpadTestExchange]
 }

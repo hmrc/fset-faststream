@@ -23,12 +23,12 @@ import model.UniqueIdentifier
 import model.assessmentscores._
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import org.joda.time.{DateTime, DateTimeZone}
 import play.api.mvc.RequestHeader
 import services.assessmentscores.AssessmentScoresService
 import services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.{OffsetDateTime, ZoneId}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -101,7 +101,7 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
   )
 
   def finalFeedbackSample(assessorOrReviewer: String) = AssessmentScoresFinalFeedback(
-    "final feedback for " + assessorOrReviewer, updatedBy, DateTime.now(DateTimeZone.UTC)
+    "final feedback for " + assessorOrReviewer, updatedBy, OffsetDateTime.now(ZoneId.of("UTC"))
   )
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)

@@ -16,22 +16,23 @@
 
 package services
 
-import org.joda.time.LocalDateTime
 import testkit.UnitSpec
 
+import java.time.{LocalDateTime, ZoneOffset}
+
 class GBTimeZoneServiceSpec extends UnitSpec {
-  val service = GBTimeZoneService
+  val service = new GBTimeZoneService
 
   "Time Zone Service (GB)" should {
     "advertise 'Europe/London' as its timezone" in {
-      service.timeZone.getID mustBe "Europe/London"
+      service.timeZone.getId mustBe "Europe/London"
     }
 
     "convert UTC time to GB time" in {
       // UTC time which maps onto a British _SUMMER_ time (UTC+1)
-      val input = new LocalDateTime(2016, 3, 27, 1, 30)
+      val input = LocalDateTime.of(2016, 3, 27, 1, 30)
 
-      val expected = new LocalDateTime(2016, 3, 27, 2, 30)
+      val expected = LocalDateTime.of(2016, 3, 27, 2, 30)
       val actual = service.localize(getUtcMillis(input))
 
       actual mustBe expected
@@ -39,9 +40,9 @@ class GBTimeZoneServiceSpec extends UnitSpec {
 
     "make no changes when UTC and GB are equal" in {
       // UTC time which maps onto a British _WINTER_ time (UTC+0)
-      val input = new LocalDateTime(2016, 3, 27, 0, 30)
+      val input = LocalDateTime.of(2016, 3, 27, 0, 30)
 
-      val expected = new LocalDateTime(2016, 3, 27, 0, 30)
+      val expected = LocalDateTime.of(2016, 3, 27, 0, 30)
       val actual = service.localize(getUtcMillis(input))
 
       actual mustBe expected
@@ -49,5 +50,5 @@ class GBTimeZoneServiceSpec extends UnitSpec {
   }
 
   def getUtcMillis(localDateTime: LocalDateTime): Long =
-    localDateTime.toDateTime(org.joda.time.DateTimeZone.UTC).getMillis
+    localDateTime.atOffset(ZoneOffset.UTC).toInstant.toEpochMilli
 }

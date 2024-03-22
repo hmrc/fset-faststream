@@ -19,15 +19,14 @@ package model.exchange
 import model.SchemeId
 import model.command.testdata.CreateAdminRequest.AssessorAvailabilityRequest
 import model.persisted.assessor.AssessorStatus.AssessorStatus
-import org.joda.time.LocalDate
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
+
+import java.time.LocalDate
 
 case class AssessorAvailability(location: String, date: LocalDate)
 
 object AssessorAvailability {
-  implicit val assessorAvailabilityFormat = Json.format[AssessorAvailability]
+  implicit val assessorAvailabilityFormat: OFormat[AssessorAvailability] = Json.format[AssessorAvailability]
 
   def apply(persisted: model.persisted.assessor.AssessorAvailability): AssessorAvailability = {
     AssessorAvailability(persisted.location.name, persisted.date)
@@ -61,7 +60,7 @@ case class Assessor(
 }
 
 object Assessor {
-  implicit val assessorFormat = Json.format[Assessor]
+  implicit val assessorFormat: OFormat[Assessor] = Json.format[Assessor]
 
   def apply(a: model.persisted.assessor.Assessor): Assessor =
     Assessor(a.userId, a.version, a.skills, a.sifterSchemes, a.civilServant, a.status, a.availability.map(AssessorAvailability.apply).toList)
@@ -74,7 +73,7 @@ case class AssessorAvailabilities(
                                  )
 
 object AssessorAvailabilities {
-  implicit val assessorAvailabilityFormat = Json.format[AssessorAvailabilities]
+  implicit val assessorAvailabilityFormat: OFormat[AssessorAvailabilities] = Json.format[AssessorAvailabilities]
 
   def apply(assessor: model.persisted.assessor.Assessor): AssessorAvailabilities =
     AssessorAvailabilities(assessor.userId, assessor.version, assessor.availability.map(a => AssessorAvailability.apply(a)))

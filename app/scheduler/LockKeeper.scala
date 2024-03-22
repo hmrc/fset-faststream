@@ -17,11 +17,11 @@
 package scheduler
 
 import java.util.UUID
-import org.joda.time.Duration
 import uk.gov.hmrc.mongo.MongoComponent
 import repositories._
 
-import scala.concurrent.{ ExecutionContext, Future }
+import java.time.Duration
+import scala.concurrent.{ExecutionContext, Future}
 
 trait LockKeeper {
   val repo: LockRepository
@@ -57,7 +57,7 @@ object LockKeeper {
   def apply(mongoComponent: MongoComponent,
             lockIdToUse: String,
             forceLockReleaseAfterToUse: scala.concurrent.duration.Duration)(implicit ec: ExecutionContext) = new LockKeeper {
-    val forceLockReleaseAfter: Duration = Duration.millis(forceLockReleaseAfterToUse.toMillis)
+    val forceLockReleaseAfter: Duration = Duration.ofMillis(forceLockReleaseAfterToUse.toMillis)
     val serverId = generatedServerId
     val lockId = lockIdToUse
     val repo = new LockMongoRepository(mongoComponent)

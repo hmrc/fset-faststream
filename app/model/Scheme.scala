@@ -42,15 +42,15 @@ case class Degree(
 )
 
 object Degree {
-  implicit val degreeFormat = Json.format[Degree]
+  implicit val degreeFormat: OFormat[Degree] = Json.format[Degree]
 }
 
 object SiftRequirement extends Enumeration {
   val FORM, NUMERIC_TEST = Value
 
-  implicit val applicationStatusFormat = new Format[SiftRequirement.Value] {
-    def reads(json: JsValue) = JsSuccess(SiftRequirement.withName(json.as[String]))
-    def writes(myEnum: SiftRequirement.Value) = JsString(myEnum.toString)
+  implicit val applicationStatusFormat: Format[SiftRequirement.Value] = new Format[SiftRequirement.Value] {
+    def reads(json: JsValue): JsSuccess[Value] = JsSuccess(SiftRequirement.withName(json.as[String]))
+    def writes(myEnum: SiftRequirement.Value): JsString = JsString(myEnum.toString)
   }
 }
 

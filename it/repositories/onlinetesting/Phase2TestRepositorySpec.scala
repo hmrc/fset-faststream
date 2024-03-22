@@ -1,17 +1,19 @@
 package repositories.onlinetesting
 
-import java.util.UUID
 import model.ProgressStatuses._
 import model.persisted._
 import model.{ApplicationStatus, Phase2FirstReminder, Phase2SecondReminder, ProgressStatuses}
-import org.joda.time.{DateTime, DateTimeZone}
 import org.mongodb.scala.bson.collection.immutable.Document
-import repositories.dateTimeToBson
+import repositories.offsetDateTimeToBson
 import testkit.MongoRepositorySpec
+
+import java.time.temporal.ChronoUnit
+import java.time.{OffsetDateTime, ZoneId}
+import java.util.UUID
 
 class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataFixture {
 
-  implicit val Now =  DateTime.now(DateTimeZone.UTC)
+  implicit val Now = OffsetDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.MILLIS)
   val DatePlus7Days = Now.plusDays(7)
   val Token = UUID.randomUUID.toString
 
@@ -216,8 +218,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     "correctly insert a test" in {
       createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "PHASE1_TESTS_PASSED").futureValue
 
-      val now =  DateTime.now(DateTimeZone.UTC)
-      val input = Phase2TestGroup(expirationDate = now, tests = List(model.Phase2TestExamples.fifthPsiTest))
+      val input = Phase2TestGroup(expirationDate = Now, tests = List(model.Phase2TestExamples.fifthPsiTest))
 
       phase2TestRepo.insertOrUpdateTestGroup("appId", input).futureValue
 
@@ -230,15 +231,14 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
   "Updating completion time" must {
     "update test completion time" in {
-      val now =  DateTime.now(DateTimeZone.UTC)
-      val input = Phase2TestGroup(expirationDate = now.plusDays(5), tests = List(model.Phase2TestExamples.fifthPsiTest))
+      val input = Phase2TestGroup(expirationDate = Now.plusDays(5), tests = List(model.Phase2TestExamples.fifthPsiTest))
 
       createApplicationWithAllFields("userId", "appId", "testAccountId","frameworkId",
         "PHASE2_TESTS", phase2TestGroup = Some(input)).futureValue
 
-      phase2TestRepo.updateTestCompletionTime("orderId5", now).futureValue
+      phase2TestRepo.updateTestCompletionTime("orderId5", Now).futureValue
       val result = phase2TestRepo.getTestProfileByOrderId("orderId5").futureValue
-      result.testGroup.tests.head.completedDateTime mustBe Some(now)
+      result.testGroup.tests.head.completedDateTime mustBe Some(Now)
     }
   }
 
@@ -267,7 +267,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   "nextTestForReminder" should {
     "return one result" when {
       "there is an application in PHASE2_TESTS and is about to expire in the next 72 hours" in {
-        val date = DateTime.now().plusHours(Phase2FirstReminder.hoursBeforeReminder - 1).plusMinutes(55)
+        val date = Now.plusHours(Phase2FirstReminder.hoursBeforeReminder - 1).plusMinutes(55)
         val testGroup = Phase2TestGroup(expirationDate = date, tests = List(phase2Test))
         createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase2TestRepo.insertOrUpdateTestGroup(AppId, testGroup).futureValue
@@ -276,13 +276,13 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         notification.get.applicationId mustBe AppId
         notification.get.userId mustBe UserId
         notification.get.preferredName mustBe "Georgy"
-        notification.get.expiryDate.getMillis mustBe date.getMillis
+        notification.get.expiryDate.toInstant.toEpochMilli mustBe date.toInstant.toEpochMilli
         // Because we are far away from the 24h reminder's window
         phase2TestRepo.nextTestForReminder(Phase2SecondReminder).futureValue mustBe None
       }
 
       "there is an application in PHASE2_TESTS and is about to expire in the next 24 hours" in {
-        val date = DateTime.now().plusHours(Phase2SecondReminder.hoursBeforeReminder - 1).plusMinutes(55)
+        val date = Now.plusHours(Phase2SecondReminder.hoursBeforeReminder - 1).plusMinutes(55)
         val testGroup = Phase2TestGroup(expirationDate = date, tests = List(phase2Test))
         createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
         phase2TestRepo.insertOrUpdateTestGroup(AppId, testGroup).futureValue
@@ -291,12 +291,12 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         notification.get.applicationId mustBe AppId
         notification.get.userId mustBe UserId
         notification.get.preferredName mustBe "Georgy"
-        notification.get.expiryDate.getMillis mustBe date.getMillis
+        notification.get.expiryDate.toInstant.toEpochMilli mustBe date.toInstant.toEpochMilli
       }
     }
 
     "return no results" when {
-      val date = DateTime.now().plusHours(22)
+      val date = Now.plusHours(22)
       val testProfile = Phase2TestGroup(expirationDate = date, tests = List(phase2Test))
 
       "there are no applications in PHASE2_TESTS" in {
@@ -310,7 +310,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         createApplicationWithAllFields(UserId, AppId, TestAccountId,"frameworkId", "SUBMITTED").futureValue
         phase2TestRepo.insertOrUpdateTestGroup(
           AppId,
-          Phase2TestGroup(expirationDate = new DateTime().plusHours(30), tests = List(phase2Test))).futureValue
+          Phase2TestGroup(expirationDate = Now.plusHours(30), tests = List(phase2Test))).futureValue
         phase2TestRepo.nextTestForReminder(Phase2SecondReminder).futureValue mustBe None
       }
 
@@ -320,7 +320,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         updateApplication(Document("$set" -> Document(
           "applicationStatus" -> PHASE2_TESTS_EXPIRED.applicationStatus.toBson,
           s"progress-status.$PHASE2_TESTS_EXPIRED" -> true,
-          s"progress-status-timestamp.$PHASE2_TESTS_EXPIRED" -> dateTimeToBson(DateTime.now())
+          s"progress-status-timestamp.$PHASE2_TESTS_EXPIRED" -> offsetDateTimeToBson(Now)
         )), AppId).futureValue
         phase2TestRepo.nextTestForReminder(Phase2SecondReminder).futureValue mustBe None
       }
@@ -331,7 +331,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         updateApplication(Document("$set" -> Document(
           "applicationStatus" -> PHASE2_TESTS_COMPLETED.applicationStatus.toBson,
           s"progress-status.$PHASE2_TESTS_COMPLETED" -> true,
-          s"progress-status-timestamp.$PHASE2_TESTS_COMPLETED" -> dateTimeToBson(DateTime.now())
+          s"progress-status-timestamp.$PHASE2_TESTS_COMPLETED" -> offsetDateTimeToBson(Now)
         )), AppId).futureValue
         phase2TestRepo.nextTestForReminder(Phase2SecondReminder).futureValue mustBe None
       }

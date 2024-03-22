@@ -4,12 +4,14 @@ import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{Amber, Green, Red}
 import model.persisted._
 import model.{ApplicationRoute, ApplicationStatus, ProgressStatuses}
-import org.joda.time.{DateTime, DateTimeZone}
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.scalatestplus.mockito.MockitoSugar
 import uk.gov.hmrc.mongo.play.json.Codecs
 import repositories.{CollectionNames, CommonRepository}
 import testkit.MongoRepositorySpec
+
+import java.time.temporal.ChronoUnit
+import java.time.{OffsetDateTime, ZoneId}
 
 class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with CommonRepository with MockitoSugar {
 
@@ -54,7 +56,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         ApplicationStatus.PHASE1_TESTS,
         ApplicationRoute.Faststream,
         isGis = false,
-        Phase1TestProfile(now, phase1TestsWithResult).activeTests,
+        Phase1TestProfile(expirationDate = now, phase1TestsWithResult).activeTests,
         activeLaunchpadTest = None,
         prevPhaseEvaluation = None,
         selectedSchemes(List(Commercial))
@@ -72,7 +74,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         ApplicationStatus.PHASE1_TESTS,
         ApplicationRoute.Faststream,
         isGis = true,
-        Phase1TestProfile(now, phase1TestsWithResult).activeTests,
+        Phase1TestProfile(expirationDate = now, phase1TestsWithResult).activeTests,
         activeLaunchpadTest = None,
         prevPhaseEvaluation = None,
         selectedSchemes(List(Commercial)))
@@ -271,7 +273,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 }
 
 object Phase1EvaluationMongoRepositorySpec {
-  implicit val now = DateTime.now().withZone(DateTimeZone.UTC)
+  implicit val now = OffsetDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.MILLIS)
   val phase1Tests = List(
     model.Phase1TestExamples.firstPsiTest.copy(testResult = None),
     model.Phase1TestExamples.secondPsiTest.copy(testResult = None),

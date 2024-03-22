@@ -11,7 +11,6 @@ import model.persisted.SchemeEvaluationResult
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import net.ceedubs.ficus.readers.ValueReader
-import org.joda.time.DateTime
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
 import play.api.Logging
@@ -25,6 +24,7 @@ import testkit.MongoRepositorySpec
 import uk.gov.hmrc.mongo.play.json.Codecs
 
 import java.io.File
+import java.time.OffsetDateTime
 import scala.concurrent.Future
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
@@ -70,9 +70,9 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
     }
   }
 
-  implicit val dateTimeReader: ValueReader[DateTime] = new ValueReader[DateTime] {
-    def read(config: Config, path: String): DateTime = config.getValue(path).valueType match {
-      case _ => DateTime.now()
+  implicit val offsetDateTimeReader: ValueReader[OffsetDateTime] = new ValueReader[OffsetDateTime] {
+    def read(config: Config, path: String): OffsetDateTime = config.getValue(path).valueType match {
+      case _ => OffsetDateTime.now
     }
   }
 
@@ -228,7 +228,7 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
   }
 
   private def findApplicationInDb(appId: String): Future[ActualResult] = {
-    import com.github.nscala_time.time.OrderingImplicits.DateTimeOrdering
+//    import com.github.nscala_time.time.OrderingImplicits.DateTimeOrdering
 
     applicationRepo.collection.find[Document](Document("applicationId" -> appId)).headOption() map { docOpt =>
       require(docOpt.isDefined)
@@ -243,8 +243,10 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
         import scala.jdk.CollectionConverters._
         val convertedTimestamps = timestamps.entrySet().asScala.toSet
         val relevantProgressStatuses = convertedTimestamps.filter( _.getKey.startsWith(applicationStatus) )
-        import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._
-        val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element => Codecs.fromBson[DateTime](timestamps.get(element.getKey)))
+        import repositories.formats.MongoJavatimeFormats.Implicits._
+        val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element =>
+          Codecs.fromBson[OffsetDateTime](timestamps.get(element.getKey))
+        )
         Try(ProgressStatuses.nameToProgressStatus(latestRelevantProgressStatus.getKey)).toOption
       }
 

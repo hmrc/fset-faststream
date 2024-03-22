@@ -18,7 +18,7 @@ package model
 
 import model.assessmentscores.AssessmentScoresAllExercises
 import model.exchange.passmarksettings.AssessmentCentrePassMarkSettingsPersistence
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class AssessmentPassMarksSchemesAndScores(
   passmark: AssessmentCentrePassMarkSettingsPersistence,
@@ -26,5 +26,6 @@ case class AssessmentPassMarksSchemesAndScores(
   scores: AssessmentScoresAllExercises)
 
 object  AssessmentPassMarksSchemesAndScores {
-  implicit val assessmentPassmarkPreferencesAndScoresFormat = Json.format[AssessmentPassMarksSchemesAndScores]
+  implicit val assessmentPassmarkPreferencesAndScoresFormat: OFormat[AssessmentPassMarksSchemesAndScores] =
+    Json.format[AssessmentPassMarksSchemesAndScores]
 }

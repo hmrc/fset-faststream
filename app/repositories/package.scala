@@ -20,14 +20,13 @@ import model.CivilServantAndInternshipType.CivilServantAndInternshipType
 import model.OnlineTestCommands.OnlineTestApplication
 import model._
 import model.persisted.SchemeEvaluationResult
-import org.joda.time.DateTime
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.bson.{BsonDocument, BsonValue}
 import play.api.libs.json._
 import uk.gov.hmrc.mongo.play.json.Codecs
 
+import java.time.OffsetDateTime
 import scala.util.Try
-
 import scala.language.postfixOps
 
 package object repositories {
@@ -98,8 +97,8 @@ package object repositories {
     Codecs.fromBson[List[SchemeEvaluationResult]](doc.get("currentSchemeStatus")
       .getOrElse(Codecs.toBson(schemes.getOrElse(List.empty).map(s => new SchemeEvaluationResult(s, EvaluationResults.Green.toString)))))
 
-  def dateTimeToBson(dateTime: DateTime): BsonValue = {
-    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits.jotDateTimeFormat // Needed to handle storing ISODate format
+  def offsetDateTimeToBson(dateTime: OffsetDateTime): BsonValue = {
+    import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat // Needed to handle storing ISODate format
     Codecs.toBson(dateTime)
   }
 

@@ -19,25 +19,25 @@ package controllers
 import factories.UUIDFactory
 import model.exchange.passmarksettings._
 import model.{PassMarkSettingsCreateResponse, Schemes}
-import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.{Format, Json, OFormat}
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest, Helpers}
 import services.AuditService
 import services.passmarksettings.PassMarkSettingsService
 import testkit.UnitWithAppSpec
 
+import java.time.{Instant, OffsetDateTime, ZoneId}
 import scala.concurrent.Future
 
 class Phase1PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpec with Schemes {
   override type T = Phase1PassMarkSettings
   override type U = Phase1PassMark
   override type V = Phase1PassMarkSettingsPersistence
-  override implicit val formatter = Phase1PassMarkSettings.jsonFormat
-  implicit val formatter2 = Phase1PassMarkSettingsPersistence.jsonFormat
+  override implicit val formatter: OFormat[Phase1PassMarkSettings] = Phase1PassMarkSettings.jsonFormat
+  implicit val formatter2: OFormat[Phase1PassMarkSettingsPersistence] = Phase1PassMarkSettingsPersistence.jsonFormat
   override val argumentCaptor = ArgumentCaptor.forClass(classOf[Phase1PassMarkSettingsPersistence])
   val passMarkThresholds = Phase1PassMarkThresholds(defaultSchemeThreshold, defaultSchemeThreshold, defaultSchemeThreshold)
   override val passMarks = List(
@@ -67,7 +67,7 @@ class Phase1PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
     val auditService = mockAuditService
     val uuidFactory = mockUUIDFactory
     def upgradeVersion(passMarkSettings:Phase1PassMarkSettings, newVersionUUID: String) =
-      passMarkSettings.copy(version = uuidFactory.generateUUID(), createDate = DateTime.now())
+      passMarkSettings.copy(version = uuidFactory.generateUUID(), createDate = OffsetDateTime.now)
     val passMarksCreatedEvent = createdEvent
   }
 
@@ -98,8 +98,8 @@ class Phase2PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
   override type T = Phase2PassMarkSettings
   override type U = Phase2PassMark
   override type V = Phase2PassMarkSettingsPersistence
-  override implicit val formatter = Phase2PassMarkSettings.jsonFormat
-  implicit val formatter2 = Phase1PassMarkSettingsPersistence.jsonFormat
+  override implicit val formatter: OFormat[Phase2PassMarkSettings] = Phase2PassMarkSettings.jsonFormat
+  implicit val formatter2: OFormat[Phase1PassMarkSettingsPersistence] = Phase1PassMarkSettingsPersistence.jsonFormat
   override val argumentCaptor = ArgumentCaptor.forClass(classOf[Phase2PassMarkSettingsPersistence])
   override val passMarkThresholds = Phase2PassMarkThresholds(defaultSchemeThreshold, defaultSchemeThreshold)
   override val passMarks = List(
@@ -129,7 +129,7 @@ class Phase2PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
     val auditService = mockAuditService
     val uuidFactory = mockUUIDFactory
     def upgradeVersion(passMarkSettings:Phase2PassMarkSettings, newVersionUUID: String) =
-      passMarkSettings.copy(version = uuidFactory.generateUUID(), createDate = DateTime.now())
+      passMarkSettings.copy(version = uuidFactory.generateUUID(), createDate = OffsetDateTime.now)
     val passMarksCreatedEvent = createdEvent
   }
   override val jsonSchemeThresholds = """
@@ -151,8 +151,8 @@ class Phase3PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
   override type T = Phase3PassMarkSettings
   override type U = Phase3PassMark
   override type V = Phase3PassMarkSettingsPersistence
-  override implicit val formatter = Phase3PassMarkSettings.jsonFormat
-  implicit val formatter2 = Phase3PassMarkSettingsPersistence.jsonFormat
+  override implicit val formatter: OFormat[Phase3PassMarkSettings] = Phase3PassMarkSettings.jsonFormat
+  implicit val formatter2: OFormat[Phase3PassMarkSettingsPersistence] = Phase3PassMarkSettingsPersistence.jsonFormat
   override val argumentCaptor = ArgumentCaptor.forClass(classOf[Phase3PassMarkSettingsPersistence])
   override val passMarkThresholds = Phase3PassMarkThresholds(defaultSchemeThreshold)
   override val passMarks = List(
@@ -182,7 +182,7 @@ class Phase3PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
     val auditService = mockAuditService
     val uuidFactory = mockUUIDFactory
     def upgradeVersion(passMarkSettings:Phase3PassMarkSettings, newVersionUUID: String) =
-      passMarkSettings.copy(version = uuidFactory.generateUUID(), createDate = DateTime.now())
+      passMarkSettings.copy(version = uuidFactory.generateUUID(), createDate = OffsetDateTime.now)
     val passMarksCreatedEvent = createdEvent
   }
   override val jsonSchemeThresholds = """
@@ -200,8 +200,8 @@ class AssessmentCentrePassMarkSettingsControllerSpec extends PassMarkSettingsCon
   type T = AssessmentCentrePassMarkSettings
   type U = AssessmentCentreExercisePassMark
   override type V = AssessmentCentrePassMarkSettingsPersistence
-  implicit val formatter = AssessmentCentrePassMarkSettings.jsonFormat
-  implicit val formatter2 = AssessmentCentrePassMarkSettingsPersistence.jsonFormat
+  implicit val formatter: OFormat[AssessmentCentrePassMarkSettings] = AssessmentCentrePassMarkSettings.jsonFormat
+  implicit val formatter2: OFormat[AssessmentCentrePassMarkSettingsPersistence] = AssessmentCentrePassMarkSettingsPersistence.jsonFormat
   val argumentCaptor = ArgumentCaptor.forClass(classOf[AssessmentCentrePassMarkSettingsPersistence])
   val exerciseSchemeThreshold = PassMarkThreshold(2.0d, 3.0d)
   val overallSchemeThreshold = PassMarkThreshold(2.0d, 9.0d)
@@ -236,7 +236,7 @@ class AssessmentCentrePassMarkSettingsControllerSpec extends PassMarkSettingsCon
     val auditService = mockAuditService
     val uuidFactory = mockUUIDFactory
     def upgradeVersion(passMarkSettings:AssessmentCentrePassMarkSettings, newVersionUUID: String) =
-      passMarkSettings.copy(version = uuidFactory.generateUUID(), createDate = DateTime.now())
+      passMarkSettings.copy(version = uuidFactory.generateUUID(), createDate = OffsetDateTime.now)
     val passMarksCreatedEvent = createdEvent
   }
 
@@ -282,12 +282,10 @@ trait PassMarkSettingsControllerSpec extends UnitWithAppSpec {
   val defaultSchemeThreshold = PassMarkThreshold(20d, 80d)
 
   val mockVersion = "uuid-1"
-  val mockCreateDate = new DateTime(1459504800000L)
+  val mockCreateDate = OffsetDateTime.ofInstant(Instant.ofEpochMilli(1459504800000L), ZoneId.of("UTC"))
   val mockCreatedBy = "TestUser"
 
   val mockUUIDFactory = mock[UUIDFactory]
-  import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-  import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
   val mockJsonFormat = Json.format[Phase1PassMarkSettings]
   val mockAuditService = mock[AuditService]
 
@@ -301,7 +299,7 @@ trait PassMarkSettingsControllerSpec extends UnitWithAppSpec {
 
   def validSettingsCreateRequestJSON = s"""
                                           |{
-                                          |    "createDate": 1459504800000,
+                                          |    "createDate": "2023-12-07T12:00:00.123Z",
                                           |    "createdBy": "TestUser",
                                           |    "version" : "version-0",
                                           |    "schemes": [
@@ -347,7 +345,7 @@ trait PassMarkSettingsControllerSpec extends UnitWithAppSpec {
       when(mockPassMarkSettingsService.createPassMarkSettings(any())(any(), any())).thenReturn(Future.successful(
         PassMarkSettingsCreateResponse(
           "uuid-1",
-          new DateTime()
+          OffsetDateTime.now
         )
       ))
 

@@ -29,7 +29,6 @@ import model.persisted._
 import model.persisted.eventschedules.EventType
 import model.persisted.fsac.{AnalysisExercise, AssessmentCentreTests}
 import model.{ApplicationStatus, _}
-import org.joda.time.LocalDate
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.bson.collection.immutable.Document
@@ -42,6 +41,7 @@ import scheduler.fixer.RequiredFixes.{PassToPhase2, ResetPhase1TestInvitedSubmit
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.mongo.play.json.Codecs
 
+import java.time.LocalDate
 import scala.concurrent.{Await, Future}
 import scala.util.Try
 
@@ -156,7 +156,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       applicationResponse mustBe None
     }
 
-    "Find application status" in {
+    "find application status" in {
       val userId = "fastPassUser"
       val appId = "fastPassApp"
       val testAccountId = "testAccountId"
@@ -167,7 +167,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val applicationStatusDetails = repository.findStatus(appId).futureValue
 
       applicationStatusDetails.status mustBe SUBMITTED.toString
-      applicationStatusDetails.statusDate.get.toLocalDate mustBe LocalDate.now()
+      applicationStatusDetails.statusDate.get.toLocalDate mustBe LocalDate.now
     }
   }
 
@@ -183,7 +183,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       val expectedCandidate = Candidate("userId", Some("appId123"), testAccountId = None,
         email = None, firstName = Some("George"), lastName = Some("Jetson"),
-        preferredName = Some("Georgy"), dateOfBirth = Some(new LocalDate(1986, 5, 1)),
+        preferredName = Some("Georgy"), dateOfBirth = Some(LocalDate.of(1986, 5, 1)),
         address = None, postCode = None, country = None,
         applicationRoute = Some(ApplicationRoute.Faststream),
         applicationStatus = Some(ApplicationStatus.IN_PROGRESS)
@@ -241,7 +241,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       val (dobYear, dobMonth, dobDay) = (dobParts.head, dobParts(1), dobParts(2))
 
       val applicationResponse = repository.findByCriteria(
-        firstOrPreferredNameOpt = None, lastNameOpt = None, dateOfBirthOpt = Some(new LocalDate(dobYear, dobMonth, dobDay))
+        firstOrPreferredNameOpt = None, lastNameOpt = None, dateOfBirthOpt = Some(LocalDate.of(dobYear, dobMonth, dobDay))
       ).futureValue
 
       applicationResponse.size mustBe 1
@@ -1147,10 +1147,11 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "return the timestamps" in {
       testDataRepo.createApplicationWithAllFields("userId", AppId, "testAccountId",
         "FastStream-2016", ApplicationStatus.PHASE1_TESTS).futureValue
-      val result = repository.getProgressStatusTimestamps(AppId).futureValue
-      result.size mustBe 2
-      result.head._1 mustBe "IN_PROGRESS"
-      result(1)._1 mustBe "SUBMITTED"
+      val result = repository.getProgressStatusTimestamps(AppId).futureValue.map {
+        // Drop the time part of the OffsetDateTime so we just compare the dates
+        case (progressStatus, date) => progressStatus -> date.toLocalDate
+      }
+      result mustBe List("IN_PROGRESS" -> LocalDate.now, "SUBMITTED" -> LocalDate.now)
     }
   }
 

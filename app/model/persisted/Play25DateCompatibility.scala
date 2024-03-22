@@ -16,8 +16,7 @@
 
 package model.persisted
 
-import org.joda.time.DateTime
-import play.api.libs.json._
+//TODO: Delete this class
 
 // Provides backward compatibility for Play 2.5 play-json, which stores dates as epoch milliseconds
 // The new play-json-joda lib that we use with Play 2.6 writes dates using ISO8601 by default eg.
@@ -26,9 +25,10 @@ import play.api.libs.json._
 // Old play-json writes in epoch milliseconds eg.
 // "expiryDate": 1564613999395”
 object Play25DateCompatibility {
-
+/*
     implicit val epochMillisDateFormat = new Format[DateTime] {
       override def reads(json: JsValue): JsResult[DateTime] = JodaReads.DefaultJodaDateTimeReads.reads(json)
       override def writes(o: DateTime): JsValue = JodaWrites.JodaDateTimeNumberWrites.writes(o)
     }
+ */
 }

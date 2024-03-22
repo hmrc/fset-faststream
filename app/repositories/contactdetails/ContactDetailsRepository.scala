@@ -141,12 +141,12 @@ class ContactDetailsMongoRepository @Inject() (mongo: MongoComponent, appConfig:
 
   override def findByPostCode(postCode: String): Future[Seq[ContactDetailsWithId]] = {
     val query = Document("contact-details.postCode" -> postCode)
-    contactDetailsWithIdCollection.find(query).toFuture
+    contactDetailsWithIdCollection.find(query).toFuture()
   }
 
   override def findByUserIds(userIds: Seq[String]): Future[Seq[ContactDetailsWithId]] = {
     val query = Document("userId" -> Document("$in" -> userIds))
-    contactDetailsWithIdCollection.find(query).toFuture
+    contactDetailsWithIdCollection.find(query).toFuture()
   }
 
   override def archive(originalUserId: String, userIdToArchiveWith: String): Future[Unit] = {
@@ -158,12 +158,12 @@ class ContactDetailsMongoRepository @Inject() (mongo: MongoComponent, appConfig:
     ))
 
     val validator = singleUpdateValidator(originalUserId, actionDesc = "archiving contact details")
-    collection.updateOne(query, updateWithArchiveUserId).toFuture map validator
+    collection.updateOne(query, updateWithArchiveUserId).toFuture() map validator
   }
 
   override def findEmails: Future[Seq[UserIdWithEmail]] = {
     val query = Document("contact-details" -> Document("$exists" -> true))
-    userIdWithEmailCollection.find(query).toFuture
+    userIdWithEmailCollection.find(query).toFuture()
   }
 
   override def findEmailsForUserIds(userIds: Seq[String]): Future[Seq[UserIdWithEmail]] = {
@@ -171,7 +171,7 @@ class ContactDetailsMongoRepository @Inject() (mongo: MongoComponent, appConfig:
       "contact-details" -> Document("$exists" -> true),
       "userId" -> Document("$in" -> userIds)
     )
-    userIdWithEmailCollection.find(query).toFuture
+    userIdWithEmailCollection.find(query).toFuture()
   }
 
   // Record is created after submitting Page 1 Personal details

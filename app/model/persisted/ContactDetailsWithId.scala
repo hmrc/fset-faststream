@@ -17,10 +17,9 @@
 package model.persisted
 
 import model.Address
-import model.Commands.{ PhoneNumber, PostCode }
-import play.api.libs.json.{ Json, OFormat }
+import model.Commands.{PhoneNumber, PostCode}
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{Format, Json, __}
+import play.api.libs.json.{Format, Json, OFormat, __}
 
 
 case class ContactDetailsWithId(userId: String,

@@ -18,7 +18,7 @@ package model.persisted
 
 import model.exchange.AssistanceDetailsExchange
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{Format, Json, __}
+import play.api.libs.json.{Format, Json, OFormat, __}
 
 case class AssistanceDetails(
                               hasDisability: String,
@@ -43,7 +43,7 @@ case class AssistanceDetails(
 }
 
 object AssistanceDetails {
-  implicit val assistanceDetailsFormat = Json.format[AssistanceDetails]
+  implicit val assistanceDetailsFormat: OFormat[AssistanceDetails] = Json.format[AssistanceDetails]
 
   // Provide an explicit mongo format here to deal with the sub-document root
   // This data lives in the application collection

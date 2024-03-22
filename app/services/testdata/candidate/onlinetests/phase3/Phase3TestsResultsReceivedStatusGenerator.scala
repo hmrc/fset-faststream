@@ -21,7 +21,6 @@ import connectors.launchpadgateway.exchangeobjects.in.reviewed._
 import javax.inject.{Inject, Singleton}
 import model.ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import org.joda.time.{DateTime, LocalDate}
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase3TestRepository
@@ -29,6 +28,7 @@ import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.{LocalDate, OffsetDateTime}
 import scala.concurrent.{ExecutionContext, Future}
 
 //object Phase3TestsResultsReceivedStatusGenerator extends Phase3TestsResultsReceivedStatusGenerator {
@@ -48,9 +48,9 @@ class Phase3TestsResultsReceivedStatusGenerator @Inject() (val previousStatusGen
 
   private def getCallbackData(receivedBeforeInHours: Int, scores: List[Double],
                               generateNullScoresForFewQuestions: Boolean = false): ReviewedCallbackRequest = {
-    ReviewedCallbackRequest(DateTime.now.minusHours(receivedBeforeInHours), "cnd_0f38b92f2e04b87d27ffcdbe4348d5f6",
+    ReviewedCallbackRequest(OffsetDateTime.now.minusHours(receivedBeforeInHours), "cnd_0f38b92f2e04b87d27ffcdbe4348d5f6",
       "FSCND-f9cf395d-df9d-4037-9fbf-9b3aa9d86c16", 46, None, "FSINV-28d52608-95e0-4d3a-93e7-0881cd2bc78b",
-      LocalDate.now().plusDays(3), ReviewSectionRequest(
+      LocalDate.now.plusDays(3), ReviewSectionRequest(
         ReviewSectionTotalAverageRequest("videoInterview", "50%", 50.0), // TODO: 50.0 should be calculated
         ReviewSectionReviewersRequest(
           reviewer1 = getReviewSectionReviewersRequest("John Doe", "johnDoe@localhost", scores.headOption,

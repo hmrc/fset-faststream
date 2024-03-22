@@ -19,13 +19,11 @@ package model
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.Commands.PostCode
-import org.joda.time.LocalDate
 import org.mongodb.scala.bson.collection.immutable.Document
-import play.api.libs.json.JodaWrites._ // This is needed for LocalDate serialization
-import play.api.libs.json.JodaReads._  // This is needed for LocalDate serialization
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.mongo.play.json.Codecs
 
+import java.time.LocalDate
 import scala.util.Try
 
 case class Candidate(userId: String,
@@ -60,11 +58,11 @@ object Candidate {
     val firstName = personalDetailsRootOpt.flatMap(doc => Try(doc.get("firstName").asString().getValue).toOption)
     val lastName = personalDetailsRootOpt.flatMap(doc => Try(doc.get("lastName").asString().getValue).toOption)
     val preferredName = personalDetailsRootOpt.flatMap(doc => Try(doc.get("preferredName").asString().getValue).toOption)
-    val dob = personalDetailsRootOpt.flatMap(doc => Try(new LocalDate(doc.get("dateOfBirth").asString().getValue)).toOption)
+    val dob = personalDetailsRootOpt.flatMap(doc => Try(LocalDate.parse(doc.get("dateOfBirth").asString().getValue)).toOption)
     val applicationRoute = Try(Codecs.fromBson[ApplicationRoute](doc.get("applicationRoute").get)).toOption
     val applicationStatus = Try(Codecs.fromBson[ApplicationStatus](doc.get("applicationStatus").get)).toOption.map(_.toString)
-    Candidate(userId, applicationId, testAccountId, email = None, firstName, lastName, preferredName, dob, address = None,
-      postCode = None, country = None, applicationRoute, applicationStatus)
+    Candidate(userId, applicationId, testAccountId, email = None, firstName, lastName, preferredName, dob,
+      address = None, postCode = None, country = None, applicationRoute, applicationStatus)
   }
 }
 

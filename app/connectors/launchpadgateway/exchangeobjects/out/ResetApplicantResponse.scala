@@ -16,10 +16,10 @@
 
 package connectors.launchpadgateway.exchangeobjects.out
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class ResetApplicantResponse(customInviteId: String, testUrl: String, deadline: String)
 
 object ResetApplicantResponse {
-  implicit val resetApplicantResponseFormat = Json.format[ResetApplicantResponse]
+  implicit val resetApplicantResponseFormat: OFormat[ResetApplicantResponse] = Json.format[ResetApplicantResponse]
 }

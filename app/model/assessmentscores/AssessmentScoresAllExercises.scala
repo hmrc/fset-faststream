@@ -17,7 +17,7 @@
 package model.assessmentscores
 
 import model.UniqueIdentifier
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 import scala.math.BigDecimal.RoundingMode
 
@@ -87,7 +87,7 @@ case class AssessmentScoresAllExercises(
     (list.map(BigDecimal(_)).sum / mandatoryNumberOfElements).setScale(decimalPlaces, RoundingMode.HALF_UP).toDouble
   }
 
-  def toExchange = AssessmentScoresAllExercisesExchange(
+  def toExchange: AssessmentScoresAllExercisesExchange = AssessmentScoresAllExercisesExchange(
     applicationId: UniqueIdentifier,
     writtenExercise.map(_.toExchange),
     teamExercise.map(_.toExchange),
@@ -97,7 +97,7 @@ case class AssessmentScoresAllExercises(
 }
 
 object AssessmentScoresAllExercises {
-  implicit val jsonFormat = Json.format[AssessmentScoresAllExercises]
+  implicit val jsonFormat: OFormat[AssessmentScoresAllExercises] = Json.format[AssessmentScoresAllExercises]
 }
 
 case class AssessmentScoresAllExercisesExchange(
@@ -109,5 +109,5 @@ case class AssessmentScoresAllExercisesExchange(
                                        )
 
 object AssessmentScoresAllExercisesExchange {
-  implicit val jsonFormat = Json.format[AssessmentScoresAllExercisesExchange]
+  implicit val jsonFormat: OFormat[AssessmentScoresAllExercisesExchange] = Json.format[AssessmentScoresAllExercisesExchange]
 }

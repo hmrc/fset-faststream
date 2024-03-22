@@ -16,10 +16,10 @@
 
 package model.exchange
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class SimpleTokenResponse(token: String)
 
 case object SimpleTokenResponse {
-  implicit val simpleTokenResponseFormat = Json.format[SimpleTokenResponse]
+  implicit val simpleTokenResponseFormat: OFormat[SimpleTokenResponse] = Json.format[SimpleTokenResponse]
 }

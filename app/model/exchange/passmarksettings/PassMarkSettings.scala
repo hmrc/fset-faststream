@@ -17,13 +17,15 @@
 package model.exchange.passmarksettings
 
 import model.SchemeId
-import org.joda.time.DateTime
+import play.api.libs.json.OFormat
+
+import java.time.OffsetDateTime
 import play.api.libs.json.Json
 
 trait PassMarkSettings {
   def schemes: List[PassMark]
   def version: String
-  def createDate: DateTime
+  def createDate: OffsetDateTime
   def createdBy: String
   def toPersistence: PassMarkSettingsPersistence
 }
@@ -31,7 +33,7 @@ trait PassMarkSettings {
 trait PassMarkSettingsPersistence {
   def schemes: List[PassMark]
   def version: String
-  def createDate: DateTime
+  def createDate: OffsetDateTime
   def createdBy: String
   def toExchange: PassMarkSettings
 }
@@ -39,30 +41,28 @@ trait PassMarkSettingsPersistence {
 case class Phase1PassMarkSettingsPersistence(
   schemes: List[Phase1PassMark],
   version: String,
-  createDate: DateTime,
+  createDate: OffsetDateTime,
   createdBy: String
 ) extends PassMarkSettingsPersistence {
   override def toExchange = Phase1PassMarkSettings(schemes, version, createDate, createdBy)
 }
 
 object Phase1PassMarkSettingsPersistence {
-  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format in Mongo
-  implicit val jsonFormat = Json.format[Phase1PassMarkSettingsPersistence]
+  import repositories.formats.MongoJavatimeFormats.Implicits._ // Needed to handle storing ISODate format in Mongo
+  implicit val jsonFormat: OFormat[Phase1PassMarkSettingsPersistence] = Json.format[Phase1PassMarkSettingsPersistence]
 }
 
 case class Phase1PassMarkSettings(
   schemes: List[Phase1PassMark],
   version: String,
-  createDate: DateTime,
+  createDate: OffsetDateTime,
   createdBy: String
 ) extends PassMarkSettings {
   override def toPersistence = Phase1PassMarkSettingsPersistence(schemes, version, createDate, createdBy)
 }
 
 object Phase1PassMarkSettings {
-  import play.api.libs.json.JodaWrites._ // This is needed for request/response DateTime serialization
-  import play.api.libs.json.JodaReads._ // This is needed for request/response DateTime serialization
-  implicit val jsonFormat = Json.format[Phase1PassMarkSettings]
+  implicit val jsonFormat: OFormat[Phase1PassMarkSettings] = Json.format[Phase1PassMarkSettings]
 
   def merge(oldPassMarkSettings: Option[Phase1PassMarkSettingsPersistence],
             newPassMarkSettings: Phase1PassMarkSettingsPersistence): Phase1PassMarkSettingsPersistence = {
@@ -96,81 +96,75 @@ object Phase1PassMarkSettings {
 case class Phase2PassMarkSettings(
   schemes: List[Phase2PassMark],
   version: String,
-  createDate: DateTime,
+  createDate: OffsetDateTime,
   createdBy: String
 ) extends PassMarkSettings {
   override def toPersistence = Phase2PassMarkSettingsPersistence(schemes, version, createDate, createdBy)
 }
 
 object Phase2PassMarkSettings {
-  import play.api.libs.json.JodaWrites._ // This is needed for request/response DateTime serialization
-  import play.api.libs.json.JodaReads._ // This is needed for request/response DateTime serialization
-  implicit val jsonFormat = Json.format[Phase2PassMarkSettings]
+  implicit val jsonFormat: OFormat[Phase2PassMarkSettings] = Json.format[Phase2PassMarkSettings]
 }
 
 case class Phase2PassMarkSettingsPersistence(
                                    schemes: List[Phase2PassMark],
                                    version: String,
-                                   createDate: DateTime,
+                                   createDate: OffsetDateTime,
                                    createdBy: String
                                  ) extends PassMarkSettingsPersistence {
   override def toExchange = Phase2PassMarkSettings(schemes, version, createDate, createdBy)
 }
 
 object Phase2PassMarkSettingsPersistence {
-  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format in Mongo
-  implicit val jsonFormat = Json.format[Phase2PassMarkSettingsPersistence]
+  import repositories.formats.MongoJavatimeFormats.Implicits._ // Needed to handle storing ISODate format in Mongo
+  implicit val jsonFormat: OFormat[Phase2PassMarkSettingsPersistence] = Json.format[Phase2PassMarkSettingsPersistence]
 }
 
 case class Phase3PassMarkSettings(
   schemes: List[Phase3PassMark],
   version: String,
-  createDate: DateTime,
+  createDate: OffsetDateTime,
   createdBy: String
 ) extends PassMarkSettings {
   override def toPersistence = Phase3PassMarkSettingsPersistence(schemes, version, createDate, createdBy)
 }
 
 object Phase3PassMarkSettings {
-  import play.api.libs.json.JodaWrites._ // This is needed for request/response DateTime serialization
-  import play.api.libs.json.JodaReads._ // This is needed for request/response DateTime serialization
-  implicit val jsonFormat = Json.format[Phase3PassMarkSettings]
+  implicit val jsonFormat: OFormat[Phase3PassMarkSettings] = Json.format[Phase3PassMarkSettings]
 }
 
 case class Phase3PassMarkSettingsPersistence(
                                               schemes: List[Phase3PassMark],
                                               version: String,
-                                              createDate: DateTime,
+                                              createDate: OffsetDateTime,
                                               createdBy: String
                                             ) extends PassMarkSettingsPersistence {
   override def toExchange = Phase3PassMarkSettings(schemes, version, createDate, createdBy)
 }
 
 object Phase3PassMarkSettingsPersistence {
-  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format in Mongo
-  implicit val jsonFormat = Json.format[Phase3PassMarkSettingsPersistence]
+  import repositories.formats.MongoJavatimeFormats.Implicits._ // Needed to handle storing ISODate format in Mongo
+  implicit val jsonFormat: OFormat[Phase3PassMarkSettingsPersistence] = Json.format[Phase3PassMarkSettingsPersistence]
 }
 
 // This class is now based on exercise pass marks not competency pass marks
 case class AssessmentCentrePassMarkSettings(
                                              schemes: List[AssessmentCentreExercisePassMark],
                                              version: String,
-                                             createDate: DateTime,
+                                             createDate: OffsetDateTime,
                                              createdBy: String
                                  ) extends PassMarkSettings {
   override def toPersistence = AssessmentCentrePassMarkSettingsPersistence(schemes, version, createDate, createdBy)
 }
 
 object AssessmentCentrePassMarkSettings {
-  import play.api.libs.json.JodaWrites._ // This is needed for request/response DateTime serialization
-  import play.api.libs.json.JodaReads._ // This is needed for request/response DateTime serialization
-  implicit val jsonFormat = Json.format[AssessmentCentrePassMarkSettings]
+  implicit val jsonFormat: OFormat[AssessmentCentrePassMarkSettings] = Json.format[AssessmentCentrePassMarkSettings]
 }
 
 case class AssessmentCentrePassMarkSettingsPersistence(
                                               schemes: List[AssessmentCentreExercisePassMark],
                                               version: String,
-                                              createDate: DateTime,
+                                              createDate: OffsetDateTime,
                                               createdBy: String
                                             ) extends PassMarkSettingsPersistence {
   // Only display pass marks for the Commercial scheme to reduce the amount we log
@@ -181,6 +175,6 @@ case class AssessmentCentrePassMarkSettingsPersistence(
 }
 
 object AssessmentCentrePassMarkSettingsPersistence {
-  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format in Mongo
-  implicit val jsonFormat = Json.format[AssessmentCentrePassMarkSettingsPersistence]
+  import repositories.formats.MongoJavatimeFormats.Implicits._ // Needed to handle storing ISODate format in Mongo
+  implicit val jsonFormat: OFormat[AssessmentCentrePassMarkSettingsPersistence] = Json.format[AssessmentCentrePassMarkSettingsPersistence]
 }

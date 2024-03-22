@@ -17,7 +17,7 @@
 package model.exchange
 
 import model.persisted.AssistanceDetails
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class AssistanceDetailsExchange(hasDisability: String,
                                      disabilityImpact: Option[String],
@@ -30,7 +30,7 @@ case class AssistanceDetailsExchange(hasDisability: String,
                                      needsSupportForPhoneInterviewDescription: Option[String])
 
 object AssistanceDetailsExchange {
-  implicit val assistanceDetailsExchangeFormat = Json.format[AssistanceDetailsExchange]
+  implicit val assistanceDetailsExchangeFormat: OFormat[AssistanceDetailsExchange] = Json.format[AssistanceDetailsExchange]
 
   def apply(ad: AssistanceDetails): AssistanceDetailsExchange =
     AssistanceDetailsExchange(ad.hasDisability, ad.disabilityImpact, ad.disabilityCategories,

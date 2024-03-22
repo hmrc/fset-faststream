@@ -1,12 +1,14 @@
 package repositories.stc
 
 import model.persisted.StcEvent
-import org.joda.time.{DateTime, DateTimeZone}
 import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.bson.collection.immutable.Document
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.mongo.play.json.Codecs
+
+import java.time.temporal.ChronoUnit
+import java.time.{OffsetDateTime, ZoneId}
 
 class StcEventMongoRepositorySpec extends MongoRepositorySpec {
 
@@ -25,7 +27,10 @@ class StcEventMongoRepositorySpec extends MongoRepositorySpec {
 
   "Stop the Clock event repository" should {
     "insert new event" in {
-      val event = StcEvent("ExampleEvent", DateTime.now(DateTimeZone.UTC), Some("appId"), Some("userId"))
+      val event = StcEvent("ExampleEvent",
+        OffsetDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.MILLIS),
+        Some("appId"), Some("userId")
+      )
       repository.create(event).futureValue
       val result = getEvent
       result mustBe event

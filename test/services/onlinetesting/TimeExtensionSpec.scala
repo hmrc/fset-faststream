@@ -16,7 +16,7 @@
 
 package services.onlinetesting
 
-import factories.{ DateTimeFactory, DateTimeFactoryMock }
+import factories.{DateTimeFactory, DateTimeFactoryMock}
 import org.mockito.Mockito._
 import testkit.UnitSpec
 

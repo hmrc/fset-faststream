@@ -24,7 +24,6 @@ import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model._
 import model.persisted.{NotificationExpiringOnlineTest, Phase1TestGroupWithUserIds, Phase1TestProfile}
-import org.joda.time.DateTime
 import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
@@ -32,6 +31,7 @@ import repositories.CollectionNames
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
+import java.time.OffsetDateTime
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -44,7 +44,7 @@ trait Phase1TestRepository extends OnlineTestRepository with Phase1TestConcern {
   def insertOrUpdateTestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
   // Caution - for administrative fixes only (dataconsistency)
 //  def removeTestGroup(applicationId: String): Future[Unit]
-  def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit]
+  def updateGroupExpiryTime(applicationId: String, expirationDate: OffsetDateTime): Future[Unit]
   def nextSdipFaststreamCandidateReadyForSdipProgression: Future[Option[Phase1TestGroupWithUserIds]]
 }
 
@@ -138,7 +138,7 @@ class Phase1TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongo: Mon
     }
   }
 
-  override def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit] = {
+  override def updateGroupExpiryTime(applicationId: String, expirationDate: OffsetDateTime): Future[Unit] = {
     updateGroupExpiryTime(applicationId, expirationDate, phaseName)
   }
 

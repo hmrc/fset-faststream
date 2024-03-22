@@ -17,10 +17,9 @@
 package connectors
 
 import model.TestAdjustment
-import org.joda.time.{ DateTime, LocalDate }
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 import play.api.libs.json._
+
+import java.time.{LocalDate, OffsetDateTime}
 
 // scalastyle:off
 object ExchangeObjects {
@@ -79,7 +78,7 @@ object ExchangeObjects {
   )
   object TimeAdjustments { implicit val timeAdjustmentsFormat: OFormat[TimeAdjustments] = Json.format[TimeAdjustments] }
 
-  case class AllocationDetails(location: String, venueDescription: String, attendanceDateTime: DateTime, expirationDate: Option[LocalDate])
+  case class AllocationDetails(location: String, venueDescription: String, attendanceDateTime: OffsetDateTime, expirationDate: Option[LocalDate])
   object AllocationDetails { implicit val allocationDetailsFormat: OFormat[AllocationDetails] = Json.format[AllocationDetails] }
 
   case class AddUserRequest(email: String, password: String, firstName: String, lastName: String, roles: List[String], service: String)
@@ -113,17 +112,16 @@ object ExchangeObjects {
                                             testLaunchUrl: String,
                                             status: String,
                                             statusDetails: String,
-                                            statusDate: LocalDate)
+                                            statusDate: java.time.LocalDate)
 
   object AssessmentOrderAcknowledgement {
     val acknowledgedStatus = "Acknowledged"
     val errorStatus = "Error"
     implicit val assessmentOrderAcknowledgementFormat: Format[AssessmentOrderAcknowledgement] =
       Json.format[AssessmentOrderAcknowledgement]
-
   }
 
-  case class AssessmentCancelAcknowledgementResponse(status: String, details: String, statusDate: LocalDate)
+  case class AssessmentCancelAcknowledgementResponse(status: String, details: String, statusDate: java.time.LocalDate)
   object AssessmentCancelAcknowledgementResponse {
     val completedStatus = "Completed"
     val errorStatus = "Error"
@@ -131,7 +129,7 @@ object ExchangeObjects {
     implicit val assessmentCancelAcknowledgementResponseFormat: OFormat[AssessmentCancelAcknowledgementResponse] =
       Json.format[AssessmentCancelAcknowledgementResponse]
   }
-
+/*
   object Implicits {
 
     implicit val localDateFormat: Format[LocalDate] = new Format[LocalDate] {
@@ -141,4 +139,5 @@ object ExchangeObjects {
       override def writes(o: LocalDate): JsValue = Json.toJson(o.toString)
     }
   }
+ */
 }

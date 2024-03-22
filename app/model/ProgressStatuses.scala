@@ -30,9 +30,9 @@ object ProgressStatuses {
   }
 
   object ProgressStatus {
-    implicit val progressStatusFormat = new Format[ProgressStatus] {
-      def reads(json: JsValue) = JsSuccess(nameToProgressStatus(json.as[String]))
-      def writes(progressStatus: ProgressStatus) = JsString(progressStatus.key)
+    implicit val progressStatusFormat: Format[ProgressStatus] = new Format[ProgressStatus] {
+      def reads(json: JsValue): JsSuccess[ProgressStatus] = JsSuccess(nameToProgressStatus(json.as[String]))
+      def writes(progressStatus: ProgressStatus): JsString = JsString(progressStatus.key)
     }
 
     implicit def progressStatusToString(progressStatus: ProgressStatus): String = progressStatus.getClass.getSimpleName

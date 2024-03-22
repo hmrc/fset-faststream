@@ -31,6 +31,7 @@ import services.events.EventsService
 import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.format.DateTimeFormatter
 import scala.concurrent.{ExecutionContext, Future}
 
 object AssessorAllocationService {
@@ -76,12 +77,12 @@ class AssessorAllocationService @Inject() (assessorAllocationRepo: AssessorAlloc
         emailClient.sendAssessorAllocatedToEvent(
           contactDetailsForUser.email,
           contactDetailsForUser.firstName + " " + contactDetailsForUser.lastName,
-          eventDetails.date.toString("d MMMM YYYY"),
+          DateTimeFormatter.ofPattern("d MMMM YYYY").format(eventDetails.date),
           allocationForUser.allocatedAs.displayText,
           allocationForUser.allocatedAs.name.toString,
           eventDetails.eventType.toString,
           eventDetails.location.name,
-          eventDetails.startTime.toString("h:mma")
+          DateTimeFormatter.ofPattern("h:ma").format(eventDetails.startTime)
         )
       }
     }.map(_ => ())
@@ -93,11 +94,11 @@ class AssessorAllocationService @Inject() (assessorAllocationRepo: AssessorAlloc
         emailClient.sendAssessorEventAllocationChanged(
           contactDetailsForUser.email,
           contactDetailsForUser.firstName + " " + contactDetailsForUser.lastName,
-          eventDetails.date.toString("d MMMM YYYY"),
+          DateTimeFormatter.ofPattern("d MMMM YYYY").format(eventDetails.date),
           allocationForUser.allocatedAs.displayText,
           eventDetails.eventType.toString,
           eventDetails.location.name,
-          eventDetails.startTime.toString("h:ma")
+          DateTimeFormatter.ofPattern("h:ma").format(eventDetails.startTime)
         )
       }
     }.map(_ => ())
@@ -112,7 +113,7 @@ class AssessorAllocationService @Inject() (assessorAllocationRepo: AssessorAlloc
         emailClient.sendAssessorUnAllocatedFromEvent(
           contactDetailsForUser.email,
           contactDetailsForUser.firstName + " " + contactDetailsForUser.lastName,
-          eventDetails.date.toString("d MMMM YYYY")
+          DateTimeFormatter.ofPattern("d MMMM YYYY").format(eventDetails.date)
         )
       }
     }.map(_ => ())

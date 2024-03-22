@@ -16,21 +16,23 @@
 
 package controllers
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.Exceptions._
 import model.command.GeneralDetails
-import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent, ControllerComponents }
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.AuditService
 import services.personaldetails.PersonalDetailsService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class PersonalDetailsController @Inject() (cc: ControllerComponents,
                                            personalDetailsService: PersonalDetailsService,
                                            auditService: AuditService
                                           ) extends BackendController(cc) {
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
   val PersonalDetailsSavedEvent = "PersonalDetailsSaved"
 
   def update(userId: String, applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>

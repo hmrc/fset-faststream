@@ -16,10 +16,10 @@
 
 package model.exchange.campaignmanagement
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class AfterDeadlineSignupCode(code: String)
 
 object AfterDeadlineSignupCode {
-  implicit val afterDeadlineSignupCodeFormat = Json.format[AfterDeadlineSignupCode]
+  implicit val afterDeadlineSignupCodeFormat: OFormat[AfterDeadlineSignupCode] = Json.format[AfterDeadlineSignupCode]
 }

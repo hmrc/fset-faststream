@@ -16,7 +16,7 @@
 
 package model.assessmentscores
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class MakingEffectiveDecisionsScores(
                                            issuesAndRisks: Option[Double] = None, // written
@@ -32,5 +32,5 @@ case class MakingEffectiveDecisionsScores(
 }
 
 object MakingEffectiveDecisionsScores {
-  implicit val makingEffectiveDecisionsScoresFormat = Json.format[MakingEffectiveDecisionsScores]
+  implicit val makingEffectiveDecisionsScoresFormat: OFormat[MakingEffectiveDecisionsScores] = Json.format[MakingEffectiveDecisionsScores]
 }

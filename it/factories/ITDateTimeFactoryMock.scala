@@ -16,9 +16,13 @@
 
 package factories
 
-import org.joda.time.{ DateTime, LocalDate }
+import java.time.temporal.ChronoUnit
+import java.time.{LocalDate, OffsetDateTime, ZoneId}
 
-object ITDateTimeFactoryMock extends  DateTimeFactory {
-  def nowLocalTimeZone: DateTime = DateTime.now()
-  def nowLocalDate: LocalDate = LocalDate.now()
+object ITDateTimeFactoryMock extends DateTimeFactory {
+  // Create the date truncated to milliseconds as that is the precision of the date stored in mongo
+  // and the comparison will work when we fetch the date back from the db and check it
+  def nowLocalTimeZone: OffsetDateTime = OffsetDateTime.now(ZoneId.of("UTC"))truncatedTo(ChronoUnit.MILLIS)
+
+  def nowLocalDate: LocalDate = LocalDate.now
 }

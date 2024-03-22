@@ -16,11 +16,11 @@
 
 package model.exchange
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class PsiTestResultReady(reportId: Int,
                               reportStatus: String)
 
 object PsiTestResultReady {
-  implicit val phase1PsiTestResultReadyFormat = Json.format[PsiTestResultReady]
+  implicit val phase1PsiTestResultReadyFormat: OFormat[PsiTestResultReady] = Json.format[PsiTestResultReady]
 }

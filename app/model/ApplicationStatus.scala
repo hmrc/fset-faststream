@@ -36,9 +36,9 @@ object ApplicationStatus extends Enumeration with ApplicationStatusOnlyForTest {
   val ASSESSMENT_CENTRE, FSB, ELIGIBLE_FOR_JOB_OFFER = Value
   implicit def toString(applicationStatus: ApplicationStatus): String = applicationStatus.toString
 
-  implicit val applicationStatusFormat = new Format[ApplicationStatus] {
-    def reads(json: JsValue) = JsSuccess(ApplicationStatus.withName(json.as[String].toUpperCase()))
-    def writes(myEnum: ApplicationStatus) = JsString(myEnum.toString)
+  implicit val applicationStatusFormat: Format[ApplicationStatus] = new Format[ApplicationStatus] {
+    def reads(json: JsValue): JsSuccess[Value] = JsSuccess(ApplicationStatus.withName(json.as[String].toUpperCase()))
+    def writes(myEnum: ApplicationStatus): JsString = JsString(myEnum.toString)
   }
 
   implicit class BsonOps(val applicationStatus: ApplicationStatus) extends AnyVal {

@@ -16,14 +16,16 @@
 
 package controllers
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.Exceptions.CannotAddMedia
 import model.persisted.Media
 import play.api.libs.json.JsValue
-import play.api.mvc.{ Action, ControllerComponents }
+import play.api.mvc.{Action, ControllerComponents}
 import repositories.MediaRepository
 import services.AuditService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class MediaController @Inject() (cc: ControllerComponents,
@@ -31,7 +33,7 @@ class MediaController @Inject() (cc: ControllerComponents,
                                  auditService: AuditService
                                 ) extends BackendController(cc) {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
   def addMedia(): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[Media] { media =>

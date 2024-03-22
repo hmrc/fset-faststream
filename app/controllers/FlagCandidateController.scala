@@ -16,20 +16,22 @@
 
 package controllers
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.Exceptions.NotFoundException
-import model.FlagCandidateCommands.{ FlagCandidate => RqFlagCandidate }
-import model.FlagCandidatePersistedObject.{ FlagCandidate => DbFlagCandidate }
-import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent, ControllerComponents }
+import model.FlagCandidateCommands.{FlagCandidate => RqFlagCandidate}
+import model.FlagCandidatePersistedObject.{FlagCandidate => DbFlagCandidate}
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import repositories.application.FlagCandidateRepository
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class FlagCandidateController @Inject() (cc: ControllerComponents,
                                          fcRepository: FlagCandidateRepository) extends BackendController(cc) {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
   def find(appId: String): Action[AnyContent] = Action.async {
     fcRepository.tryGetCandidateIssue(appId).map {

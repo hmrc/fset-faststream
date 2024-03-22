@@ -17,7 +17,7 @@
 package model.persisted
 
 import org.mongodb.scala.bson.BsonValue
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.mongo.play.json.Codecs
 
 case class QuestionnaireAnswer(answer: Option[String], otherDetails: Option[String], unknown: Option[Boolean]) {
@@ -26,7 +26,7 @@ case class QuestionnaireAnswer(answer: Option[String], otherDetails: Option[Stri
 
 object QuestionnaireAnswer
 {
-  implicit val answerFormats = Json.format[QuestionnaireAnswer]
+  implicit val answerFormats: OFormat[QuestionnaireAnswer] = Json.format[QuestionnaireAnswer]
 
   implicit class BsonOps(val answer: QuestionnaireAnswer) extends AnyVal {
     def toBson: BsonValue = Codecs.toBson(answer)

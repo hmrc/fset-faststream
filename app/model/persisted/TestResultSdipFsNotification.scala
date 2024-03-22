@@ -18,7 +18,7 @@ package model.persisted
 
 import model.ApplicationStatus.ApplicationStatus
 import org.mongodb.scala.bson.collection.immutable.Document
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.mongo.play.json.Codecs
 
 case class TestResultSdipFsNotification(
@@ -37,5 +37,5 @@ object TestResultSdipFsNotification {
     TestResultSdipFsNotification(applicationId, userId, applicationStatus, preferredName)
   }
 
-  implicit val testResultSdipFsNotificationFormat = Json.format[TestResultSdipFsNotification]
+  implicit val testResultSdipFsNotificationFormat: OFormat[TestResultSdipFsNotification] = Json.format[TestResultSdipFsNotification]
 }

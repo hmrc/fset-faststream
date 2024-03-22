@@ -18,7 +18,8 @@ package model.persisted.assessor
 
 import model.{Schemes, UniqueIdentifier}
 import model.persisted.eventschedules.Location
-import org.joda.time.LocalDate
+
+import java.time.LocalDate
 
 object AssessorExamples extends Schemes {
 
@@ -27,13 +28,13 @@ object AssessorExamples extends Schemes {
   val london = Location("London")
   val newcastle = Location("Newcastle")
 
-  val assessorAvailability = AssessorAvailability(london, new LocalDate(2017, 10, 10))
+  val assessorAvailability = AssessorAvailability(london, LocalDate.of(2017, 10, 10))
 
   val persistedAvailabilities = Set(
-    AssessorAvailability(london, new LocalDate(2017, 10, 10)),
-    AssessorAvailability(london, new LocalDate(2017, 10, 11)),
-    AssessorAvailability(newcastle, new LocalDate(2017, 5, 10)),
-    AssessorAvailability(newcastle, new LocalDate(2017, 5, 11)))
+    AssessorAvailability(london, LocalDate.of(2017, 10, 10)),
+    AssessorAvailability(london, LocalDate.of(2017, 10, 11)),
+    AssessorAvailability(newcastle, LocalDate.of(2017, 5, 10)),
+    AssessorAvailability(newcastle, LocalDate.of(2017, 5, 11)))
 
   val AssessorExisting = Assessor(
     AssessorUserId,
@@ -53,7 +54,7 @@ object AssessorExamples extends Schemes {
 
   val AssessorWithAvailability: Assessor = AssessorExisting.copy(
     skills = List(),
-    availability = Set(AssessorAvailability(london, new LocalDate(2017, 11, 11)))
+    availability = Set(AssessorAvailability(london, LocalDate.of(2017, 11, 11)))
   )
 
   val AssessorWithAvailabilityMerged: Assessor = AssessorWithAvailability.copy(

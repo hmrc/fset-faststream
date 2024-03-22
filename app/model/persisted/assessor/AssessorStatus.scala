@@ -23,9 +23,8 @@ object AssessorStatus extends Enumeration {
 
   val CREATED, AVAILABILITIES_SUBMITTED = Value
 
-  implicit val assessorStatusFormat = new Format[AssessorStatus] {
+  implicit val assessorStatusFormat: Format[AssessorStatus] = new Format[AssessorStatus] {
     override def reads(json: JsValue): JsResult[AssessorStatus] = JsSuccess(AssessorStatus.withName(json.as[String].toUpperCase))
-
     override def writes(eventType: AssessorStatus): JsValue = JsString(eventType.toString)
   }
 }

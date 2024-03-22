@@ -20,7 +20,6 @@ import config.WaitingScheduledJobConfig
 
 import javax.inject.{Inject, Singleton}
 import model.AssessorNewEventsJobInfo
-import org.joda.time.{DateTime, Duration}
 import play.api.Configuration
 import uk.gov.hmrc.mongo.MongoComponent
 import scheduler.clustering.SingleInstanceScheduledJob
@@ -28,7 +27,8 @@ import services.AssessorsEventsSummaryJobsService
 import services.assessor.AssessorService
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ ExecutionContext, Future }
+import java.time.{Duration, OffsetDateTime}
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class NotifyAssessorsOfNewEventsJobImpl @Inject() (val assessorService: AssessorService,
@@ -43,12 +43,12 @@ trait NotifyAssessorsOfNewEventsJob extends SingleInstanceScheduledJob[BasicJobC
   def assessorsEventsSummaryJobsService: AssessorsEventsSummaryJobsService
   val TimeSpan = 24L
 
-  def shouldRun(lastRun: DateTime, now: DateTime, isFirstJob: Boolean): Boolean = {
+  def shouldRun(lastRun: OffsetDateTime, now: OffsetDateTime, isFirstJob: Boolean): Boolean = {
     if(isFirstJob) {
       true
     } else {
-      val duration = new Duration(lastRun, now)
-      duration.getStandardHours >= TimeSpan
+      val duration = Duration.between(lastRun, now)
+      duration.toHours >= TimeSpan
     }
   }
 
@@ -56,7 +56,7 @@ trait NotifyAssessorsOfNewEventsJob extends SingleInstanceScheduledJob[BasicJobC
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     assessorsEventsSummaryJobsService.lastRun.flatMap { lastRunInfoOpt =>
-      val newLastRun = AssessorNewEventsJobInfo(DateTime.now)
+      val newLastRun = AssessorNewEventsJobInfo(OffsetDateTime.now)
       val lastRunInfo = lastRunInfoOpt.getOrElse(newLastRun)
       val isFirstJob = lastRunInfoOpt.isEmpty
       val canRun = shouldRun(lastRunInfo.lastRun, newLastRun.lastRun, isFirstJob)

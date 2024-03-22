@@ -113,5 +113,4 @@ object CandidateAllocations {
     }
     CandidateAllocations(opLock, candidateAllocations.map { a => CandidateAllocation(a.id, a.status, a.removeReason) })
   }
-
 }

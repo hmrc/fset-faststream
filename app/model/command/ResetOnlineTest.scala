@@ -21,7 +21,7 @@ import play.api.libs.json.{ Json, OFormat }
 case class ResetOnlineTest(tests: List[String], actionTriggeredBy: String)
 
 object ResetOnlineTest {
-  implicit val resetOnlineTestFormat = Json.format[ResetOnlineTest]
+  implicit val resetOnlineTestFormat: OFormat[ResetOnlineTest] = Json.format[ResetOnlineTest]
 }
 
 case class ResetOnlineTest2(applicationId: String, orderId: String, actionTriggeredBy: String)

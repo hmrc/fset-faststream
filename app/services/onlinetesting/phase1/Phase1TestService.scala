@@ -16,7 +16,7 @@
 
 package services.onlinetesting.phase1
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import com.google.inject.name.Named
 import common.{FutureEx, Phase1TestConcern}
 import config.{MicroserviceAppConfig, OnlineTestsGatewayConfig, PsiTestIds}
@@ -32,7 +32,6 @@ import model._
 import model.exchange.{Phase1TestGroupWithNames, PsiRealTimeResults}
 import model.persisted.{Phase1TestProfile, PsiTestResult => _, _}
 import model.stc.{AuditEvents, DataStoreEvents}
-import org.joda.time.DateTime
 import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
@@ -45,6 +44,7 @@ import services.sift.ApplicationSiftService
 import services.stc.StcEventService
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -135,7 +135,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
       case (testName, delayModifier) =>
         val testIds = testIdsByName(testName)
         val delay = (delayModifier * onlineTestsGatewayConfig.phase1Tests.testRegistrationDelayInSecs).second
-        akka.pattern.after(delay, actor.scheduler) {
+        org.apache.pekko.pattern.after(delay, actor.scheduler) {
           logger.debug(s"Phase1TestService - about to call registerPsiApplicant with testIds - $testIds")
           registerPsiApplicant(application, testIds, invitationDate)
         }
@@ -230,7 +230,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
   }
 
   private def registerPsiApplicant(application: OnlineTestApplication,
-                                   testIds: PsiTestIds, invitationDate: DateTime)
+                                   testIds: PsiTestIds, invitationDate: OffsetDateTime)
                                   (implicit hc: HeaderCarrier): Future[PsiTest] = {
     for {
       aoa <- registerApplicant(application, testIds)
@@ -366,7 +366,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
       }
     }
 
-  def markAsStarted(orderId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone)
+  def markAsStarted(orderId: String, startedTime: OffsetDateTime = dateTimeFactory.nowLocalTimeZone)
                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     updatePhase1Test(orderId, testRepository.updateTestStartTime(_: String, startedTime)) flatMap { u =>
       //TODO: remove the next line and comment in the following line at end of campaign 2019

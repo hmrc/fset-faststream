@@ -17,14 +17,13 @@
 package model.sift
 
 import model.persisted.SchemeEvaluationResult
-import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
-case class FixStuckUser(applicationId: String, timeEnteredSift: DateTime,
+import java.time.OffsetDateTime
+
+case class FixStuckUser(applicationId: String, timeEnteredSift: OffsetDateTime,
     currentSchemeStatus: Seq[SchemeEvaluationResult], currentSiftEvaluation: Seq[SchemeEvaluationResult])
 
 object FixStuckUser {
-  implicit val fixStuckUserFormat = Json.format[FixStuckUser]
+  implicit val fixStuckUserFormat: OFormat[FixStuckUser] = Json.format[FixStuckUser]
 }

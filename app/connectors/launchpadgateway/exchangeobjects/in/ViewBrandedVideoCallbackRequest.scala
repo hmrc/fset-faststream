@@ -16,15 +16,16 @@
 
 package connectors.launchpadgateway.exchangeobjects.in
 
-import org.joda.time.{ DateTime, LocalDate }
-import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format
-import play.api.libs.json.Json
+import repositories.formats.MongoJavatimeFormats.Implicits._
+import play.api.libs.json.{Json, OFormat}
 
-case class ViewBrandedVideoCallbackRequest(received: DateTime, candidateId: String, customCandidateId: String, interviewId: Int,
+import java.time.{LocalDate, OffsetDateTime}
+
+case class ViewBrandedVideoCallbackRequest(received: OffsetDateTime, candidateId: String, customCandidateId: String, interviewId: Int,
   customInterviewId: Option[String], customInviteId: String, deadline: LocalDate)
 
 object ViewBrandedVideoCallbackRequest {
   // Should match LaunchpadTestsCallback case class
   val key = "viewBrandedVideo"
-  implicit val viewBrandedVideoCallbackRequestFormat = Json.format[ViewBrandedVideoCallbackRequest]
+  implicit val viewBrandedVideoCallbackRequestFormat: OFormat[ViewBrandedVideoCallbackRequest] = Json.format[ViewBrandedVideoCallbackRequest]
 }

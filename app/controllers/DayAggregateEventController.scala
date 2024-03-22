@@ -16,23 +16,23 @@
 
 package controllers
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.persisted.eventschedules.Location
 import model.persisted.eventschedules.SkillType.SkillType
-import org.joda.time.LocalDate
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.{ Json, OFormat }
-import play.api.mvc.{ Action, AnyContent, ControllerComponents }
-import repositories.events.{ EventsRepository, LocationsWithVenuesRepository }
+import play.api.libs.json.{Json, OFormat}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import repositories.events.{EventsRepository, LocationsWithVenuesRepository}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+
+import java.time.LocalDate
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class DayAggregateEventController @Inject() (cc: ControllerComponents,
                                              locationsWithVenuesRepo: LocationsWithVenuesRepository,
                                              eventsRepository: EventsRepository) extends BackendController(cc) {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
   def findBySkillTypes(skills: Seq[SkillType]): Action[AnyContent] = Action.async {
     find(None, skills).map ( dayAggregateEvents => Ok(Json.toJson(dayAggregateEvents)) )

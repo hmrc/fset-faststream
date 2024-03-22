@@ -16,11 +16,9 @@
 
 package model.persisted
 
-import org.mongodb.scala.bson.BsonValue
-import play.api.libs.json.Json
-import uk.gov.hmrc.mongo.play.json.Codecs
+import play.api.libs.json.{Json, OFormat}
 
 case class QuestionnaireQuestion(question: String, answer: QuestionnaireAnswer)
 object QuestionnaireQuestion {
-  implicit val questionFormats = Json.format[QuestionnaireQuestion]
+  implicit val questionFormats: OFormat[QuestionnaireQuestion] = Json.format[QuestionnaireQuestion]
 }

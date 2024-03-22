@@ -20,12 +20,11 @@ import model.EvaluationResults._
 import model.ProgressStatuses._
 import model._
 import model.assessmentscores.AssessmentScoresAllExercises
-import model.command.{ ApplicationForProgression, ApplicationStatusDetails }
+import model.command.{ApplicationForProgression, ApplicationStatusDetails}
 import model.exchange.passmarksettings._
 import model.persisted.SchemeEvaluationResult
-import model.persisted.fsac.{ AnalysisExercise, AssessmentCentreTests }
-import org.joda.time.DateTime
-import play.api.libs.json.Format
+import model.persisted.fsac.{AnalysisExercise, AssessmentCentreTests}
+import play.api.libs.json.{Format, OFormat}
 import repositories.AssessmentScoresRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.AssessmentCentreRepository
@@ -35,6 +34,7 @@ import services.passmarksettings.AssessmentCentrePassMarkSettingsService
 import testkit.ScalaMockImplicits._
 import testkit.ScalaMockUnitSpec
 
+import java.time.OffsetDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -169,7 +169,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec with Schemes {
     }
 
     "return none if there is no passmark settings set" in new TestFixture {
-      implicit val jsonFormat = AssessmentCentrePassMarkSettingsPersistence.jsonFormat
+      implicit val jsonFormat: OFormat[AssessmentCentrePassMarkSettingsPersistence] = AssessmentCentrePassMarkSettingsPersistence.jsonFormat
       (mockAssessmentCentrePassMarkSettingsService.getLatestPassMarkSettings(_: Format[AssessmentCentrePassMarkSettingsPersistence])).expects(*)
         .returning(Future.successful(None))
 
@@ -516,7 +516,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec with Schemes {
         teamExercise = PassMarkThreshold(1.0, 3.0),
         leadershipExercise = PassMarkThreshold(1.0, 3.0),
         overall = PassMarkThreshold(10.0, 15.0)))),
-      "1", DateTime.now(), "user")
+      "1", OffsetDateTime.now, "user")
 
     val competencyAverageResult = CompetencyAverageResult(
       makingEffectiveDecisionsAverage = 4.0,
@@ -535,7 +535,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec with Schemes {
   }
 
   trait ReturnPassMarksFixture extends TestFixture {
-    implicit val jsonFormat = AssessmentCentrePassMarkSettings.jsonFormat
+    implicit val jsonFormat: OFormat[AssessmentCentrePassMarkSettings] = AssessmentCentrePassMarkSettings.jsonFormat
     (mockAssessmentCentrePassMarkSettingsService.getLatestPassMarkSettings(_: Format[AssessmentCentrePassMarkSettingsPersistence])).expects(*)
       .returning(Future.successful(Some(passMarkSettings)))
   }

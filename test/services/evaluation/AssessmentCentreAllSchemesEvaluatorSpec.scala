@@ -20,8 +20,9 @@ import model.EvaluationResults.{Amber, ExerciseAverageResult, Green, Red}
 import model.Schemes
 import model.exchange.passmarksettings._
 import model.persisted.SchemeEvaluationResult
-import org.joda.time.DateTime
 import testkit.UnitSpec
+
+import java.time.OffsetDateTime
 
 class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
 
@@ -47,7 +48,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
             leadershipExercise = PassMarkThreshold(0d, 0d),
             overall = PassMarkThreshold(0d, 0d)
           ))
-        ), version = "v1", createDate = DateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
       )
       val averageScores = exerciseAverageResult(0d, 0d, 0d, 0d)
       val schemes = Seq(Commercial)
@@ -64,7 +65,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
             leadershipExercise = PassMarkThreshold(0d, 1d),
             overall = PassMarkThreshold(0d, 1d)
           ))
-        ), version = "v1", createDate = DateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
       )
       val averageScores = exerciseAverageResult(1d, 1d, 1d, 1d)
       val schemes = Seq(Commercial)
@@ -82,7 +83,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
             leadershipExercise = PassMarkThreshold(0d, 0d),
             overall = PassMarkThreshold(0d, 0d)
           ))
-        ), version = "v1", createDate = DateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
       )
       val averageScores = exerciseAverageResult(1d, 0d, 0d, 0d)
       val schemes = Seq(Commercial)
@@ -100,7 +101,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
             leadershipExercise = PassMarkThreshold(0d, 0d),
             overall = PassMarkThreshold(0d, 0d)
           ))
-        ), version = "v1", createDate = DateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
       )
       val averageScores = exerciseAverageResult(0d, 1d, 0d, 0d)
       val schemes = Seq(Commercial)
@@ -118,7 +119,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
             leadershipExercise = PassMarkThreshold(2d, 2d),
             overall = PassMarkThreshold(0d, 0d)
           ))
-        ), version = "v1", createDate = DateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
       )
       val averageScores = exerciseAverageResult(0d, 0d, 1d, 0d)
       val schemes = Seq(Commercial)
@@ -136,7 +137,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
             leadershipExercise = PassMarkThreshold(2d, 2d),
             overall = PassMarkThreshold(0d, 0d)
           ))
-        ), version = "v1", createDate = DateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
       )
       val averageScores = exerciseAverageResult(0d, 0d, 0d, 1d)
       val schemes = Seq(Commercial)
@@ -154,7 +155,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
             leadershipExercise = PassMarkThreshold(0d, 0d),
             overall = PassMarkThreshold(2d, 2d)
           ))
-        ), version = "v1", createDate = DateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
       )
       val averageScores = exerciseAverageResult(0d, 0d, 0d, 1d)
       val schemes = Seq(Commercial)
@@ -172,7 +173,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
             leadershipExercise = PassMarkThreshold(0d, 0d),
             overall = PassMarkThreshold(0d, 0d)
           ))
-        ), version = "v1", createDate = DateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
       )
       val averageScores = exerciseAverageResult(1d, 0d, 0d, 0d)
       val schemes = Seq(Commercial)
@@ -190,7 +191,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
             leadershipExercise = PassMarkThreshold(0d, 0d),
             overall = PassMarkThreshold(0d, 0d)
           ))
-        ), version = "v1", createDate = DateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
       )
       val averageScores = exerciseAverageResult(0d, 1d, 0d, 0d)
       val schemes = Seq(Commercial)
@@ -208,7 +209,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
             leadershipExercise = PassMarkThreshold(1d, 2d),
             overall = PassMarkThreshold(0d, 0d)
           ))
-        ), version = "v1", createDate = DateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
       )
       val averageScores = exerciseAverageResult(0d, 0d, 1d, 0d)
       val schemes = Seq(Commercial)
@@ -226,7 +227,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
             leadershipExercise = PassMarkThreshold(1d, 2d),
             overall = PassMarkThreshold(0d, 0d)
           ))
-        ), version = "v1", createDate = DateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
       )
       val averageScores = exerciseAverageResult(0d, 0d, 1d, 0d)
       val schemes = Seq(Commercial)
@@ -244,7 +245,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
             leadershipExercise = PassMarkThreshold(0d, 0d),
             overall = PassMarkThreshold(1d, 2d)
           ))
-        ), version = "v1", createDate = DateTime.now(), createdBy = "test"
+        ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
       )
       val averageScores = exerciseAverageResult(0d, 0d, 0d, 1d)
       val schemes = Seq(Commercial)

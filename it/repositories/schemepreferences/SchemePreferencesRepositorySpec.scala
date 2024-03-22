@@ -2,7 +2,7 @@ package repositories.schemepreferences
 
 import factories.ITDateTimeFactoryMock
 import model.ApplicationStatus._
-import model.Exceptions.{ CannotUpdateSchemePreferences, SchemePreferencesNotFound }
+import model.Exceptions.{CannotUpdateSchemePreferences, SchemePreferencesNotFound}
 import model.SelectedSchemesExamples._
 import model.{ApplicationRoute, SchemeId, Schemes}
 import org.mongodb.scala.MongoCollection

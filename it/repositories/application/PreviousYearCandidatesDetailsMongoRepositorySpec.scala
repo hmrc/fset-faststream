@@ -17,7 +17,8 @@ class PreviousYearCandidatesDetailsMongoRepositorySpec extends MongoRepositorySp
 
   lazy val schemeRepository = app.injector.instanceOf(classOf[SchemeRepository])
 
-  lazy val reportRepo = new PreviousYearCandidatesDetailsMongoRepository(ITDateTimeFactoryMock, appConfig, schemeRepository, mongo)
+  lazy val reportRepo = new PreviousYearCandidatesDetailsMongoRepository(
+    ITDateTimeFactoryMock, appConfig, schemeRepository, mongo)
 
   val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
 

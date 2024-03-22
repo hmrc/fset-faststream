@@ -16,7 +16,7 @@
 
 package common
 
-import org.joda.time.LocalDate
+import java.time.LocalDate
 
 object Joda {
   implicit def dateTimeOrdering: Ordering[LocalDate] = Ordering.fromLessThan(_ isBefore _)

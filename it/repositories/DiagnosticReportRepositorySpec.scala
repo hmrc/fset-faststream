@@ -16,7 +16,7 @@
 
 package repositories
 
-import akka.stream.scaladsl.{Keep, Sink}
+import org.apache.pekko.stream.scaladsl.{Keep, Sink}
 import model.Exceptions.ApplicationNotFound
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document

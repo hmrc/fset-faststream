@@ -16,11 +16,10 @@
 
 package model.exchange.testdata
 
-import model.SchemeId
 import model.exchange.AssessorAvailability
 import model.persisted.assessor.AssessorStatus.AssessorStatus
 import model.testdata.CreateAdminData.AssessorData
-import play.api.libs.json.{ Json, OFormat }
+import play.api.libs.json.{Json, OFormat}
 
 object CreateAdminResponse {
 

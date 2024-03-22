@@ -22,7 +22,6 @@ import model.command.ApplicationForSkippingPhase3
 import model.exchange.testdata.CreateCandidateResponse.{CreateCandidateResponse, TestGroupResponse}
 import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase3TestRepository

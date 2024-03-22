@@ -16,7 +16,7 @@
 
 package model.command
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class AssessmentCentre(
   awaitingAllocation: Boolean = false,
@@ -148,12 +148,12 @@ case class ProgressResponse(
 )
 
 object ProgressResponse {
-  implicit val assessmentCentreFormat = Json.format[AssessmentCentre]
-  implicit val fsbFormat = Json.format[Fsb]
-  implicit val eligibleForJobOfferFormat = Json.format[JobOfferProgressResponse]
-  implicit val phase1ProgressResponseFormat = Json.format[Phase1ProgressResponse]
-  implicit val phase2ProgressResponseFormat = Json.format[Phase2ProgressResponse]
-  implicit val phase3ProgressResponseFormat = Json.format[Phase3ProgressResponse]
-  implicit val siftProgressResponse = Json.format[SiftProgressResponse]
-  implicit val progressResponseFormat = Json.format[ProgressResponse]
+  implicit val assessmentCentreFormat: OFormat[AssessmentCentre] = Json.format[AssessmentCentre]
+  implicit val fsbFormat: OFormat[Fsb] = Json.format[Fsb]
+  implicit val eligibleForJobOfferFormat: OFormat[JobOfferProgressResponse] = Json.format[JobOfferProgressResponse]
+  implicit val phase1ProgressResponseFormat: OFormat[Phase1ProgressResponse] = Json.format[Phase1ProgressResponse]
+  implicit val phase2ProgressResponseFormat: OFormat[Phase2ProgressResponse] = Json.format[Phase2ProgressResponse]
+  implicit val phase3ProgressResponseFormat: OFormat[Phase3ProgressResponse] = Json.format[Phase3ProgressResponse]
+  implicit val siftProgressResponse: OFormat[SiftProgressResponse] = Json.format[SiftProgressResponse]
+  implicit val progressResponseFormat: OFormat[ProgressResponse] = Json.format[ProgressResponse]
 }

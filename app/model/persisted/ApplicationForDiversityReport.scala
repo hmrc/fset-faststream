@@ -18,7 +18,7 @@ package model.persisted
 
 import model.ApplicationRoute._
 import model.SchemeId
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class ApplicationForDiversityReport(applicationId: String,
                                          userId: String,
@@ -34,5 +34,5 @@ case class ApplicationForDiversityReport(applicationId: String,
                                          currentSchemeStatus: List[SchemeEvaluationResult]
                                         )
 object ApplicationForDiversityReport {
-  implicit val applicationForDiversityReportFormat = Json.format[ApplicationForDiversityReport]
+  implicit val applicationForDiversityReportFormat: OFormat[ApplicationForDiversityReport] = Json.format[ApplicationForDiversityReport]
 }

@@ -16,12 +16,11 @@
 
 package model
 
-import org.joda.time.DateTime
-import play.api.libs.json.JodaWrites._
-import play.api.libs.json.JodaReads._
 import play.api.libs.json.{Json, OFormat}
 
-case class PassMarkSettingsCreateResponse(passMarkSettingsVersion: String, passMarkSettingsCreateDate: DateTime)
+import java.time.OffsetDateTime
+
+case class PassMarkSettingsCreateResponse(passMarkSettingsVersion: String, passMarkSettingsCreateDate: OffsetDateTime)
 
 object PassMarkSettingsCreateResponse {
   implicit val passMarkSettingsCreateResponseFormat: OFormat[PassMarkSettingsCreateResponse] = Json.format[PassMarkSettingsCreateResponse]

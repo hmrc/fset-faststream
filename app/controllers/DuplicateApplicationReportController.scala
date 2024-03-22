@@ -23,12 +23,13 @@ import services.reporting.{DuplicateApplicationGroup, DuplicateDetectionService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class DuplicateApplicationReportController @Inject() (cc: ControllerComponents,
                                                       duplicateDetectionService: DuplicateDetectionService) extends BackendController(cc) {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
   def findPotentialDuplicates = Action.async {
     duplicateDetectionService.findAll.map { potentialDuplications =>

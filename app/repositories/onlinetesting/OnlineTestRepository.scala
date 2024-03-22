@@ -16,7 +16,7 @@
 
 package repositories.onlinetesting
 
-import factories.DateTimeFactory
+//import factories.DateTimeFactory // //TODO: Ian this needs to be looked at!!!!!!
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.{ApplicationNotFound, CannotFindTestByOrderIdException}
 import model.OnlineTestCommands.OnlineTestApplication
@@ -24,17 +24,16 @@ import model.ProgressStatuses.ProgressStatus
 import model._
 import model.exchange.PsiTestResultReady
 import model.persisted._
-import org.joda.time.DateTime
-import org.mongodb.scala.bson.{BsonArray, BsonDocument, BsonString, BsonValue}
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.bson.{BsonArray, BsonDocument, BsonString, BsonValue}
 import org.mongodb.scala.model.Projections
 import play.api.libs.json.Reads
+import repositories._
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
-import scala.util.Try
-import repositories._
-
+import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 //scalastyle:off number.of.methods
 trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelpers
@@ -43,7 +42,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
 
   val thisApplicationStatus: ApplicationStatus
   val phaseName: String
-  val dateTimeFactory: DateTimeFactory
+//  val dateTimeFactory: DateTimeFactory //TODO: Ian this needs to be looked at!!!!!!
   val expiredTestQuery: Document
   val resetStatuses: List[String]
   implicit val bsonReads: Reads[T]
@@ -59,9 +58,9 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     phaseTestProfileByQuery(query, phase)
   }
 
-  def updateTestStartTime(orderId: String, startedTime: DateTime)(implicit ec: ExecutionContext): Future[Unit] = {
+  def updateTestStartTime(orderId: String, startedTime: OffsetDateTime)(implicit ec: ExecutionContext): Future[Unit] = {
     val update = Document("$set" -> Document(
-      s"testGroups.$phaseName.tests.$$.startedDateTime" -> Some(dateTimeToBson(startedTime))
+      s"testGroups.$phaseName.tests.$$.startedDateTime" -> Some(offsetDateTimeToBson(startedTime))
     ))
     findAndUpdateTest(orderId, update)
   }
@@ -101,7 +100,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
           "$each" -> Codecs.toBson(newTestProfile.tests)
         )),
       "$set" -> Document(
-        s"testGroups.$phaseName.expirationDate" -> dateTimeToBson(newTestProfile.expirationDate)
+        s"testGroups.$phaseName.expirationDate" -> offsetDateTimeToBson(newTestProfile.expirationDate)
       )
     )
 
@@ -124,9 +123,9 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     throw CannotFindTestByOrderIdException(s"Cannot find test group by orderId=$orderId")
   }
 
-  def updateTestCompletionTime(orderId: String, completedTime: DateTime)(implicit ec: ExecutionContext): Future[Unit] = {
+  def updateTestCompletionTime(orderId: String, completedTime: OffsetDateTime)(implicit ec: ExecutionContext): Future[Unit] = {
     val update = Document("$set" -> Document(
-      s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(dateTimeToBson(completedTime))
+      s"testGroups.$phaseName.tests.$$.completedDateTime" -> Some(offsetDateTimeToBson(completedTime))
     ))
 
     findAndUpdatePsiTest(orderId, update, ignoreNotFound = true)
@@ -177,7 +176,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     }
   }
 
-  def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime, phase: String = "PHASE1")(
+  def updateGroupExpiryTime(applicationId: String, expirationDate: OffsetDateTime, phase: String = "PHASE1")(
     implicit ec: ExecutionContext): Future[Unit] = {
     val query = BsonDocument("applicationId" -> applicationId)
 
@@ -185,7 +184,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
       ApplicationNotFound(applicationId))
 
     collection.updateOne(query, BsonDocument("$set" -> BsonDocument(
-      s"testGroups.$phase.expirationDate" -> dateTimeToBson(expirationDate)
+      s"testGroups.$phase.expirationDate" -> offsetDateTimeToBson(expirationDate)
     ))).toFuture() map validator
   }
 
@@ -194,7 +193,8 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
       Document("applicationStatus" -> thisApplicationStatus.toBson),
       Document(s"testGroups.${expiryTest.phase}.expirationDate" ->
         Document("$lte" ->
-          dateTimeToBson(dateTimeFactory.nowLocalTimeZone.minusSeconds(expiryTest.gracePeriodInSecs)) // Serialises to UTC.
+          // Serialises to UTC.
+          offsetDateTimeToBson(dateTimeFactory.nowLocalTimeZone.minusSeconds(expiryTest.gracePeriodInSecs))
         )
       ),
       expiredTestQuery
@@ -209,7 +209,8 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     val query = Document("$and" -> BsonArray(
       Document("applicationStatus" -> thisApplicationStatus.toBson),
       Document(s"testGroups.${reminder.phase}.expirationDate" ->
-        Document( "$lte" -> dateTimeToBson(dateTimeFactory.nowLocalTimeZone.plusHours(reminder.hoursBeforeReminder))) // Serialises to UTC.
+        // Serialises to UTC.
+        Document( "$lte" -> offsetDateTimeToBson(dateTimeFactory.nowLocalTimeZone.plusHours(reminder.hoursBeforeReminder)))
       ),
       progressStatusQuery
     ))

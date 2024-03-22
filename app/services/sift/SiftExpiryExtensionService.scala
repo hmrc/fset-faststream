@@ -17,18 +17,17 @@
 package services.sift
 
 import factories.DateTimeFactory
-
-import javax.inject.{Inject, Singleton}
 import model.ProgressStatuses._
 import model.command.ProgressResponse
 import model.stc.{AuditEvent, AuditEvents, DataStoreEvents}
-import org.joda.time.DateTime
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.sift.ApplicationSiftRepository
 import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -85,7 +84,7 @@ class SiftExpiryExtensionService @Inject() (appRepository: GeneralApplicationRep
 
 case class SiftExtensionException(message: String) extends Exception(message)
 
-private final case class Extension(extendedExpiryDate: DateTime, expired: Boolean, progress: ProgressResponse)
+private final case class Extension(extendedExpiryDate: OffsetDateTime, expired: Boolean, progress: ProgressResponse)
 
 object SiftExpiryExtensionServiceImpl {
 

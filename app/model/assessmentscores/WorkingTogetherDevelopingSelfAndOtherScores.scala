@@ -16,7 +16,7 @@
 
 package model.assessmentscores
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class WorkingTogetherDevelopingSelfAndOtherScores(
                                                         formsEffectiveWorkingRelationships: Option[Double] = None, // team
@@ -36,6 +36,6 @@ case class WorkingTogetherDevelopingSelfAndOtherScores(
 }
 
 object WorkingTogetherDevelopingSelfAndOtherScores {
-  implicit val buildingProductiveRelationshipsScoresFormat =
+  implicit val buildingProductiveRelationshipsScoresFormat: OFormat[WorkingTogetherDevelopingSelfAndOtherScores] =
     Json.format[WorkingTogetherDevelopingSelfAndOtherScores]
 }

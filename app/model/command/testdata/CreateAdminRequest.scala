@@ -20,10 +20,9 @@ import model.SchemeId
 import model.exchange.AssessorAvailability
 import model.persisted.assessor.AssessorStatus
 import model.persisted.assessor.AssessorStatus.AssessorStatus
-import org.joda.time.LocalDate
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.{ Json, OFormat }
+import play.api.libs.json.{Json, OFormat}
+
+import java.time.LocalDate
 
 object CreateAdminRequest {
 
@@ -55,5 +54,4 @@ object CreateAdminRequest {
       AssessorAvailabilityRequest(exchange.location, exchange.date)
     }
   }
-
 }

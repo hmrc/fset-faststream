@@ -16,7 +16,7 @@
 
 package model.persisted
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 import repositories.CombinedCivilServiceExperienceDetails
 
 case class CivilServiceExperienceDetailsForDiversityReport(
@@ -31,7 +31,8 @@ case class CivilServiceExperienceDetailsForDiversityReport(
                                                             fastPassCertificate: Option[String])
 
 object CivilServiceExperienceDetailsForDiversityReport {
-  implicit val civilServiceExperienceDetailsForDiversityReportFormat = Json.format[CivilServiceExperienceDetailsForDiversityReport]
+  implicit val civilServiceExperienceDetailsForDiversityReportFormat: OFormat[CivilServiceExperienceDetailsForDiversityReport] =
+    Json.format[CivilServiceExperienceDetailsForDiversityReport]
 
   def apply(csed: CombinedCivilServiceExperienceDetails) :CivilServiceExperienceDetailsForDiversityReport = {
     CivilServiceExperienceDetailsForDiversityReport(

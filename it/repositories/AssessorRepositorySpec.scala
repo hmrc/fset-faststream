@@ -4,9 +4,10 @@ import factories.UUIDFactory
 import model.persisted.EventExamples
 import model.persisted.assessor.{Assessor, AssessorAvailability, AssessorStatus}
 import model.persisted.eventschedules.{Location, SkillType}
-import model.{SchemeId, Schemes, UniqueIdentifier}
-import org.joda.time.LocalDate
+import model.{Schemes, UniqueIdentifier}
 import testkit.MongoRepositorySpec
+
+import java.time.LocalDate
 
 class AssessorRepositorySpec extends MongoRepositorySpec with Schemes {
 
@@ -19,8 +20,8 @@ class AssessorRepositorySpec extends MongoRepositorySpec with Schemes {
     skills = List(SkillType.ASSESSOR.toString, SkillType.QUALITY_ASSURANCE_COORDINATOR.toString),
     sifterSchemes = List(Sdip), civilServant = true,
     availability = Set(
-      AssessorAvailability(EventExamples.LocationLondon, new LocalDate(2017, 9, 11)),
-      AssessorAvailability(EventExamples.LocationNewcastle, new LocalDate(2017, 9, 12))
+      AssessorAvailability(EventExamples.LocationLondon, LocalDate.of(2017, 9, 11)),
+      AssessorAvailability(EventExamples.LocationNewcastle, LocalDate.of(2017, 9, 12))
     ),
     status = AssessorStatus.AVAILABILITIES_SUBMITTED
   )
@@ -76,9 +77,9 @@ class AssessorRepositorySpec extends MongoRepositorySpec with Schemes {
 
       val updated = AssessorWithAvailabilities.copy(
         availability = Set(
-          AssessorAvailability(EventExamples.LocationLondon, new LocalDate(2017, 9, 11)),
-          AssessorAvailability(EventExamples.LocationLondon, new LocalDate(2017, 10, 11)),
-          AssessorAvailability(EventExamples.LocationNewcastle, new LocalDate(2017, 9, 12)))
+          AssessorAvailability(EventExamples.LocationLondon, LocalDate.of(2017, 9, 11)),
+          AssessorAvailability(EventExamples.LocationLondon, LocalDate.of(2017, 10, 11)),
+          AssessorAvailability(EventExamples.LocationNewcastle, LocalDate.of(2017, 9, 12)))
       )
       repository.save(updated).futureValue
 
@@ -103,10 +104,10 @@ class AssessorRepositorySpec extends MongoRepositorySpec with Schemes {
       val skills = List(SkillType.EXERCISE_MARKER)
 
       val availabilities = Set(
-        AssessorAvailability(london, new LocalDate(2017, 8, 10)),
-        AssessorAvailability(london, new LocalDate(2017, 8, 11)),
-        AssessorAvailability(newcastle, new LocalDate(2017, 9, 10)),
-        AssessorAvailability(newcastle, new LocalDate(2017, 10, 11))
+        AssessorAvailability(london, LocalDate.of(2017, 8, 10)),
+        AssessorAvailability(london, LocalDate.of(2017, 8, 11)),
+        AssessorAvailability(newcastle, LocalDate.of(2017, 9, 10)),
+        AssessorAvailability(newcastle, LocalDate.of(2017, 10, 11))
       )
 
       def assessor = Assessor(UUIDFactory.generateUUID(), None, skills.map(_.toString), Nil, civilServant = true,
@@ -124,7 +125,7 @@ class AssessorRepositorySpec extends MongoRepositorySpec with Schemes {
         repository.save(assessor).futureValue mustBe unit
       }
 
-      val eventDate = new LocalDate(2017, 8, 10)
+      val eventDate = LocalDate.of(2017, 8, 10)
       val eventSkills = List(SkillType.ASSESSOR, SkillType.QUALITY_ASSURANCE_COORDINATOR)
       val result = repository.findUnavailableAssessors(eventSkills, london, eventDate).futureValue
       result.size mustBe 2
@@ -139,7 +140,7 @@ class AssessorRepositorySpec extends MongoRepositorySpec with Schemes {
 
     "find availabilities for location and date" in {
       repository.save(AssessorWithAvailabilities).futureValue
-      val date = new LocalDate(2017, 9, 11)
+      val date = LocalDate.of(2017, 9, 11)
       val result = repository.findAvailabilitiesForLocationAndDate(Location("London"), date, Seq(SkillType.ASSESSOR)).futureValue
       result mustBe Seq(AssessorWithAvailabilities)
     }

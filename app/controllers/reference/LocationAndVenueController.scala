@@ -16,17 +16,19 @@
 
 package controllers.reference
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent, ControllerComponents }
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import repositories.events.LocationsWithVenuesRepository
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class LocationAndVenueController @Inject() (cc: ControllerComponents,
                                             locationsAndVenuesRepository: LocationsWithVenuesRepository) extends BackendController(cc) {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
   def locationsWithVenues: Action[AnyContent] = Action.async { implicit request =>
     locationsAndVenuesRepository.locationsWithVenuesList.map(x => Ok(Json.toJson(x)))

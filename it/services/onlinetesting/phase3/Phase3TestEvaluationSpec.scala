@@ -8,11 +8,12 @@ import model.Exceptions.PassMarkEvaluationNotFound
 import model.exchange.passmarksettings._
 import model.persisted.{ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult}
 import model.{ApplicationStatus, SchemeId, Schemes}
-import org.joda.time.DateTime
 import org.mockito.Mockito.when
 import org.scalatest.prop._
 import repositories.{CollectionNames, CommonRepository}
 import testkit.MongoRepositorySpec
+
+import java.time.OffsetDateTime
 
 class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
   with TableDrivenPropertyChecks {
@@ -262,7 +263,7 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       val phase3PassMarkSettings = Phase3PassMarkSettingsPersistence(
         schemeThresholds,
         "version-1",
-        DateTime.now,
+        OffsetDateTime.now,
         "user-1"
       )
       phase3PassMarkSettingRepo.create(phase3PassMarkSettings).futureValue

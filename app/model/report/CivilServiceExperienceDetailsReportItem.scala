@@ -17,7 +17,7 @@
 package model.report
 
 import model.persisted.CivilServiceExperienceDetailsForDiversityReport
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class CivilServiceExperienceDetailsReportItem(
                                                     isCivilServant: Option[String],
@@ -32,7 +32,8 @@ case class CivilServiceExperienceDetailsReportItem(
                                                   )
 
 object CivilServiceExperienceDetailsReportItem {
-  implicit val civilServiceExperienceDetailsReportItemFormat = Json.format[CivilServiceExperienceDetailsReportItem]
+  implicit val civilServiceExperienceDetailsReportItemFormat: OFormat[CivilServiceExperienceDetailsReportItem] =
+    Json.format[CivilServiceExperienceDetailsReportItem]
 
   def apply(civilServiceExperience: CivilServiceExperienceDetailsForDiversityReport): CivilServiceExperienceDetailsReportItem = {
     CivilServiceExperienceDetailsReportItem(

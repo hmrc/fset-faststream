@@ -25,7 +25,6 @@ import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model.persisted._
 import model.{ApplicationStatus, ReminderNotice}
-import org.joda.time.DateTime
 import org.mongodb.scala.bson.{BsonArray, BsonDocument}
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
@@ -33,6 +32,7 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import repositories.{CollectionNames, subDocRoot}
 
+import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
 
 trait Phase2TestRepository extends OnlineTestRepository with Phase2TestConcern {
@@ -45,13 +45,13 @@ trait Phase2TestRepository extends OnlineTestRepository with Phase2TestConcern {
   def insertOrUpdateTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup): Future[Unit]
   def upsertTestGroupEvaluation(applicationId: String, passmarkEvaluation: PassmarkEvaluation): Future[Unit]
   def saveTestGroup(applicationId: String, phase2TestProfile: Phase2TestGroup): Future[Unit]
-  def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit]
+  def updateGroupExpiryTime(applicationId: String, expirationDate: OffsetDateTime): Future[Unit]
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
   def applicationReadyForOnlineTesting(applicationId: String): Future[Option[OnlineTestApplication]]
 }
 
 @Singleton
-class Phase2TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
+class Phase2TestMongoRepository @Inject()(dateTime: DateTimeFactory, mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
   extends PlayMongoRepository[Phase2TestGroup](
     collectionName = CollectionNames.APPLICATION,
     mongoComponent = mongoComponent,
@@ -138,7 +138,7 @@ class Phase2TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
     }
   }
 
-  override def updateGroupExpiryTime(applicationId: String, expirationDate: DateTime): Future[Unit] = {
+  override def updateGroupExpiryTime(applicationId: String, expirationDate: OffsetDateTime): Future[Unit] = {
     updateGroupExpiryTime(applicationId, expirationDate, phaseName)
   }
 

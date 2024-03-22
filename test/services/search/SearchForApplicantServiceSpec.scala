@@ -18,8 +18,7 @@ package services.search
 
 import connectors.AuthProviderClient
 import model.persisted.ContactDetailsWithId
-import model.{ Address, Candidate, SearchCandidate }
-import org.joda.time.LocalDate
+import model.{Address, Candidate, SearchCandidate}
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import repositories.application.GeneralApplicationRepository
@@ -28,6 +27,7 @@ import services.BaseServiceSpec
 import testkit.ShortTimeout
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -71,13 +71,15 @@ class SearchForApplicantServiceSpec extends BaseServiceSpec with ShortTimeout {
     "search by date of birth only" in new TestFixture {
       when(appRepositoryMock.findByCriteria(any[Option[String]], any[Option[String]],
         any[Option[LocalDate]], any[List[String]])
-      ).thenReturn(Future.successful(List(Candidate("123", None, None, None, Some("Leia"), Some("Amadala"), None,
-        Some(new LocalDate("1990-11-25")), None, None, None, None, None))))
+      ).thenReturn(Future.successful(List(Candidate(userId = "123", applicationId = None, testAccountId = None, email = None,
+        Some("Leia"), Some("Amadala"), preferredName = None, Some(LocalDate.parse("1990-11-25")),
+        address = None, postCode = None, country = None, applicationRoute = None, applicationStatus = None)))
+      )
 
       val actual = searchForApplicantService.findByCriteria(SearchCandidate(firstOrPreferredName = None,
-        lastName = None, dateOfBirth = Some(new LocalDate("1990-11-25")), postCode = None)).futureValue
+        lastName = None, dateOfBirth = Some(java.time.LocalDate.parse("1990-11-25")), postCode = None)).futureValue
 
-      val expectedWithDateOfBirth = expected.copy(dateOfBirth = Some(new LocalDate("1990-11-25")))
+      val expectedWithDateOfBirth = expected.copy(dateOfBirth = Some(LocalDate.parse("1990-11-25")))
       actual mustBe List(expectedWithDateOfBirth)
     }
 

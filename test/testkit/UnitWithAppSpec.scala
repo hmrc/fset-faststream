@@ -16,7 +16,7 @@
 
 package testkit
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import org.scalatest.TestSuite
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite

@@ -16,12 +16,11 @@
 
 package model.persisted
 
-import org.joda.time.LocalDate
 import play.api.libs.functional.syntax._
-import play.api.libs.json.JodaReads.DefaultJodaLocalDateReads
-import play.api.libs.json.JodaWrites.DefaultJodaLocalDateWrites
+
+import java.time.LocalDate
 import play.api.libs.json.Reads._
-import play.api.libs.json.{Format, Json, __}
+import play.api.libs.json.{Format, Json, OFormat, __}
 
 case class PersonalDetails(firstName: String,
                            lastName: String,
@@ -36,7 +35,7 @@ case class PersonalDetails(firstName: String,
 
 object PersonalDetails {
 
-  implicit val personalDetailsFormat = Json.format[PersonalDetails]
+  implicit val personalDetailsFormat: OFormat[PersonalDetails] = Json.format[PersonalDetails]
 
   // Provide an explicit mongo format here to deal with the sub-document root
   // This data lives in the application collection

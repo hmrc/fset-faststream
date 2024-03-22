@@ -17,8 +17,9 @@
 package model.assessmentscores
 
 import model.UniqueIdentifier
-import org.joda.time.DateTime
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
+
+import java.time.OffsetDateTime
 
 case class AssessmentScoresExercise(
                                      attended: Boolean,
@@ -40,8 +41,8 @@ case class AssessmentScoresExercise(
                                      workingTogetherDevelopingSelfAndOthersFeedback: Option[String] = None,
 
                                      updatedBy: UniqueIdentifier,
-                                     savedDate: Option[DateTime] = None,
-                                     submittedDate: Option[DateTime] = None,
+                                     savedDate: Option[OffsetDateTime] = None,
+                                     submittedDate: Option[OffsetDateTime] = None,
                                      version: Option[String] = None
 ) extends AssessmentScoresSection {
   def isSubmitted = submittedDate.isDefined
@@ -89,8 +90,8 @@ case class AssessmentScoresExercise(
 }
 
 object AssessmentScoresExercise {
-  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format in Mongo
-  implicit val jsonFormat = Json.format[AssessmentScoresExercise]
+  import repositories.formats.MongoJavatimeFormats.Implicits._ // Needed to handle storing ISODate format in Mongo
+  implicit val jsonFormat: OFormat[AssessmentScoresExercise] = Json.format[AssessmentScoresExercise]
 }
 
 case class AssessmentScoresExerciseExchange(
@@ -113,8 +114,8 @@ case class AssessmentScoresExerciseExchange(
                                      workingTogetherDevelopingSelfAndOthersFeedback: Option[String] = None,
 
                                      updatedBy: UniqueIdentifier,
-                                     savedDate: Option[DateTime] = None,
-                                     submittedDate: Option[DateTime] = None,
+                                     savedDate: Option[OffsetDateTime] = None,
+                                     submittedDate: Option[OffsetDateTime] = None,
                                      version: Option[String] = None
                                    ) extends AssessmentScoresSection {
   def toPersistence =
@@ -158,7 +159,5 @@ case class AssessmentScoresExerciseExchange(
 }
 
 object AssessmentScoresExerciseExchange {
-  import play.api.libs.json.JodaWrites._ // This is needed for request/response DateTime serialization
-  import play.api.libs.json.JodaReads._ // This is needed for request/response DateTime serialization
-  implicit val jsonFormat = Json.format[AssessmentScoresExerciseExchange]
+  implicit val jsonFormat: OFormat[AssessmentScoresExerciseExchange] = Json.format[AssessmentScoresExerciseExchange]
 }

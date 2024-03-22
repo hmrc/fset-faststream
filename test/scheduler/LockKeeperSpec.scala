@@ -16,14 +16,14 @@
 
 package scheduler
 
-import org.joda.time.Duration
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import repositories.LockRepository
 import testkit.UnitSpec
 
+import java.time.Duration
 import scala.concurrent.duration._
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 class LockKeeperSpec extends UnitSpec {
@@ -35,7 +35,7 @@ class LockKeeperSpec extends UnitSpec {
     val repo: LockRepository = lockRepositoryMock
     val lockId = "lockId"
     val serverId = "serverId"
-    val forceLockReleaseAfter = Duration.millis(1000L)
+    val forceLockReleaseAfter = Duration.ofMillis(1000)
     val greedyLockingEnabled = true
   }
 

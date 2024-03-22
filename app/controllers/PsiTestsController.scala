@@ -16,16 +16,18 @@
 
 package controllers
 
-import javax.inject.{ Inject, Singleton }
-import model.Exceptions.{ CannotFindApplicationByOrderIdException, CannotFindTestByOrderIdException }
+import javax.inject.{Inject, Singleton}
+import model.Exceptions.{CannotFindApplicationByOrderIdException, CannotFindTestByOrderIdException}
 import model.exchange.PsiRealTimeResults
 import play.api.Logging
-import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent, ControllerComponents, Result }
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.NumericalTestService
 import services.onlinetesting.phase1.Phase1TestService
 import services.onlinetesting.phase2.Phase2TestService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class PsiTestsController @Inject() (cc: ControllerComponents,
@@ -33,7 +35,7 @@ class PsiTestsController @Inject() (cc: ControllerComponents,
                                     phase2TestService: Phase2TestService,
                                     numericalTestService: NumericalTestService) extends BackendController(cc) with Logging {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
   def start(orderId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     logger.info(s"Psi assessment started orderId=$orderId")

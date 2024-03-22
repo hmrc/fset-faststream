@@ -17,13 +17,14 @@
 package model.assessmentscores
 
 import model.UniqueIdentifier
-import org.joda.time.DateTime
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
+
+import java.time.OffsetDateTime
 
 case class AssessmentScoresFinalFeedback(
   feedback: String,
   updatedBy: UniqueIdentifier,
-  acceptedDate: DateTime,
+  acceptedDate: OffsetDateTime,
   version: Option[String] = None
 ) extends AssessmentScoresSection {
 
@@ -36,14 +37,14 @@ case class AssessmentScoresFinalFeedback(
 }
 
 object AssessmentScoresFinalFeedback {
-  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed to handle storing ISODate format in Mongo
-  implicit val jsonFormat = Json.format[AssessmentScoresFinalFeedback]
+  import repositories.formats.MongoJavatimeFormats.Implicits._ // Needed to handle storing ISODate format in Mongo
+  implicit val jsonFormat: OFormat[AssessmentScoresFinalFeedback] = Json.format[AssessmentScoresFinalFeedback]
 }
 
 case class AssessmentScoresFinalFeedbackExchange(
   feedback: String,
   updatedBy: UniqueIdentifier,
-  acceptedDate: DateTime,
+  acceptedDate: OffsetDateTime,
   version: Option[String] = None
 ) extends AssessmentScoresSection {
 
@@ -56,7 +57,5 @@ case class AssessmentScoresFinalFeedbackExchange(
 }
 
 object AssessmentScoresFinalFeedbackExchange {
-  import play.api.libs.json.JodaWrites._ // This is needed for request/response DateTime serialization
-  import play.api.libs.json.JodaReads._ // This is needed for request/response DateTime serialization
-  implicit val jsonFormat = Json.format[AssessmentScoresFinalFeedbackExchange]
+  implicit val jsonFormat: OFormat[AssessmentScoresFinalFeedbackExchange] = Json.format[AssessmentScoresFinalFeedbackExchange]
 }

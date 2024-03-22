@@ -23,7 +23,6 @@ import model.UniqueIdentifier
 import model.assessmentscores._
 import model.command.AssessmentScoresCommands._
 import model.fsacscores.AssessmentScoresFinalFeedbackExamples
-import org.joda.time.DateTimeZone
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.libs.json.Json
@@ -63,7 +62,8 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
   "submit exercise" should {
     "save exercise, send AssessmentScoresOneExerciseSubmitted audit event and return OK" in new TestFixture {
       val exerciseScores = AssessmentScoresExerciseExamples.Example1.copy(
-        submittedDate = AssessmentScoresExerciseExamples.Example1.submittedDate.map(_.withZone(DateTimeZone.forOffsetHours(1))))
+//        submittedDate = AssessmentScoresExerciseExamples.Example1.submittedDate.map(_.withZone(DateTimeZone.forOffsetHours(1))))
+        submittedDate = AssessmentScoresExerciseExamples.Example1.submittedDate.map(_.plusHours(1)))
       val request = fakeRequest(AssessmentScoresSubmitExerciseRequest(appId, writtenExercise, exerciseScores.toExchange))
 
       when(mockService.submitExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.writtenExercise),
@@ -85,7 +85,8 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
   "save exercise" should {
     "save exercise, send AssessmentScoresOneExerciseSaved audit event and return OK" in new TestFixture {
       val exerciseScores = AssessmentScoresExerciseExamples.Example1.copy(
-        submittedDate = AssessmentScoresExerciseExamples.Example1.submittedDate.map(_.withZone(DateTimeZone.forOffsetHours(1))))
+//        submittedDate = AssessmentScoresExerciseExamples.Example1.submittedDate.map(_.withZone(DateTimeZone.forOffsetHours(1))))
+        submittedDate = AssessmentScoresExerciseExamples.Example1.submittedDate.map(_.plusHours(1)))
       val request = fakeRequest(AssessmentScoresSubmitExerciseRequest(appId, writtenExercise, exerciseScores.toExchange))
 
       when(mockService.saveExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.writtenExercise),
@@ -108,7 +109,8 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
     "save final feedback, send AssessmentScoresOneExerciseSubmitted and AssessmentScoresAllExercisesSubmitted" +
       " audit events and return OK" in new TestFixture {
       val finalFeedback = AssessmentScoresFinalFeedbackExamples.Example1.copy(
-             acceptedDate = AssessmentScoresFinalFeedbackExamples.Example1.acceptedDate.withZone(DateTimeZone.forOffsetHours(1)))
+//             acceptedDate = AssessmentScoresFinalFeedbackExamples.Example1.acceptedDate.withZone(DateTimeZone.forOffsetHours(1)))
+             acceptedDate = AssessmentScoresFinalFeedbackExamples.Example1.acceptedDate.plusHours(1))
       val request = fakeRequest(AssessmentScoresFinalFeedbackSubmitRequest(appId, finalFeedback.toExchange))
 
       when(mockService.submitFinalFeedback(eqTo(appId), any())(any[ExecutionContext])).thenReturn(Future.successful(()))

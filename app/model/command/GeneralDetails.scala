@@ -16,13 +16,12 @@
 
 package model.command
 
-import model.{ Address, CivilServiceExperienceDetails, FSACIndicator }
-import model.Commands.{ PhoneNumber, PostCode }
-import model.persisted.{ ContactDetails, PersonalDetails }
-import org.joda.time.LocalDate
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.Json
+import model.{Address, CivilServiceExperienceDetails, FSACIndicator}
+import model.Commands.{PhoneNumber, PostCode}
+import model.persisted.{ContactDetails, PersonalDetails}
+import play.api.libs.json.{Json, OFormat}
+
+import java.time.LocalDate
 
 case class GeneralDetails(firstName: String,
                           lastName: String,
@@ -44,7 +43,7 @@ case class GeneralDetails(firstName: String,
                           updateApplicationStatus: Option[Boolean] = None)
 
 object GeneralDetails {
-  implicit val generalDetailsFormat = Json.format[GeneralDetails]
+  implicit val generalDetailsFormat: OFormat[GeneralDetails] = Json.format[GeneralDetails]
 
   def apply(pd: PersonalDetails, cd: ContactDetails, fsacIndicator: FSACIndicator,
             civilServiceExperienceDetails: Option[CivilServiceExperienceDetails]): GeneralDetails = {

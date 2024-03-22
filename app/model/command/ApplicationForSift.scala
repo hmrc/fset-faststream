@@ -18,7 +18,7 @@ package model.command
 
 import model.ApplicationStatus.ApplicationStatus
 import model.persisted.SchemeEvaluationResult
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class ApplicationForSift(
   applicationId: String,
@@ -28,5 +28,5 @@ case class ApplicationForSift(
 )
 
 object ApplicationForSift {
-  implicit val applicationForSiftFormat = Json.format[ApplicationForSift]
+  implicit val applicationForSiftFormat: OFormat[ApplicationForSift] = Json.format[ApplicationForSift]
 }

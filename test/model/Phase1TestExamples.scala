@@ -16,14 +16,15 @@
 
 package model
 
-import model.persisted.{ PsiTest, PsiTestResult }
-import org.joda.time.DateTime
+import model.persisted.{PsiTest, PsiTestResult}
+
+import java.time.OffsetDateTime
 
 object Phase1TestExamples {
 
-  val psiTestResult = PsiTestResult(tScore = 12.5, rawScore = 5.5, None)
+  val psiTestResult = PsiTestResult(tScore = 12.5, rawScore = 5.5, testReportUrl = None)
 
-  def firstPsiTest(implicit now: DateTime) =
+  def firstPsiTest(implicit now: OffsetDateTime) =
     PsiTest(
       inventoryId = "inventoryId1",
       orderId = "orderId1",
@@ -36,7 +37,7 @@ object Phase1TestExamples {
       testResult = Some(psiTestResult)
     )
 
-  def secondPsiTest(implicit now: DateTime) = firstPsiTest.copy(inventoryId = "inventoryId2", orderId = "orderId2")
+  def secondPsiTest(implicit now: OffsetDateTime) = firstPsiTest.copy(inventoryId = "inventoryId2", orderId = "orderId2")
 
-  def thirdPsiTest(implicit now: DateTime) = firstPsiTest.copy(inventoryId = "inventoryId3", orderId = "orderId3")
+  def thirdPsiTest(implicit now: OffsetDateTime) = firstPsiTest.copy(inventoryId = "inventoryId3", orderId = "orderId3")
 }

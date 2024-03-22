@@ -24,7 +24,6 @@ import model.UniqueIdentifier
 import model.assessmentscores._
 import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
 import model.fsacscores.AssessmentScoresFinalFeedbackExamples
-import org.joda.time.DateTimeZone
 import org.mockito.Mockito.when
 import repositories.application.PreviousYearCandidatesDetailsMongoRepository
 import testkit.MongoRepositorySpec
@@ -210,7 +209,8 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
       repository.saveFinalFeedback(ApplicationId, FinalFeedbackToSave, Some(NewVersion)).futureValue
 
       val result = repository.find(ApplicationId).futureValue
-      val FinalFeedbackExpected = FinalFeedback.copy(acceptedDate = LocalTime.withZone(DateTimeZone.UTC), version = Some(NewVersion))
+//      val FinalFeedbackExpected = FinalFeedback.copy(acceptedDate = LocalTime.withZone(DateTimeZone.UTC), version = Some(NewVersion))
+      val FinalFeedbackExpected = FinalFeedback.copy(acceptedDate = LocalTime, version = Some(NewVersion))
       val ExpectedScores = AssessmentScoresAllExercises(
         ApplicationId, writtenExercise = None, teamExercise = None, leadershipExercise = None, Some(FinalFeedbackExpected)
       )
@@ -307,7 +307,8 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
         // Only applicable for a reviewer
         val result = repository.findAccepted(ApplicationId).futureValue
 
-        val FinalFeedbackExpected = FinalFeedback.copy(acceptedDate = LocalTime.withZone(DateTimeZone.UTC), version = Some(NewVersion))
+//        val FinalFeedbackExpected = FinalFeedback.copy(acceptedDate = LocalTime.withZone(DateTimeZone.UTC), version = Some(NewVersion))
+        val FinalFeedbackExpected = FinalFeedback.copy(acceptedDate = LocalTime, version = Some(NewVersion))
         val ExpectedScores = AssessmentScoresAllExercises(
           ApplicationId, writtenExercise = None, teamExercise = None, leadershipExercise = None, finalFeedback = Some(FinalFeedbackExpected)
         )
@@ -364,6 +365,8 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     val FinalFeedback = AssessmentScoresFinalFeedbackExamples.Example1
     val FinalFeedback2 = AssessmentScoresFinalFeedbackExamples.Example2
 
+//    val LocalTime = ITDateTimeFactoryMock.nowLocalTimeZone //TODO: delete me
+//    val LocalDate = ITDateTimeFactoryMock.nowLocalDate // TODO: delete me
     val LocalTime = ITDateTimeFactoryMock.nowLocalTimeZone
     val LocalDate = ITDateTimeFactoryMock.nowLocalDate
     val OldVersion = UUIDFactory.generateUUID()

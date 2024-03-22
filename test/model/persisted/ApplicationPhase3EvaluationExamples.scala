@@ -17,15 +17,16 @@
 package persisted
 
 import model.persisted.ApplicationReadyForEvaluation
-import model.{ ApplicationStatus, SelectedSchemesExamples, _ }
-import org.joda.time.DateTime
+import model.{ApplicationStatus, SelectedSchemesExamples, _}
+
+import java.time.OffsetDateTime
 
 object ApplicationPhase3EvaluationExamples {
-  def faststreamPsiApplication(implicit now: DateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE3_TESTS,
+  def faststreamPsiApplication(implicit now: OffsetDateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE3_TESTS,
     ApplicationRoute.Faststream, isGis = false, activePsiTests = Phase2TestProfileExamples.profile.activeTests,
     activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
 
-  def sdipFaststreamPsiApplication(implicit now: DateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE3_TESTS,
+  def sdipFaststreamPsiApplication(implicit now: OffsetDateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE3_TESTS,
     ApplicationRoute.SdipFaststream, isGis = false, activePsiTests = Phase2TestProfileExamples.profile.activeTests,
     activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
 }

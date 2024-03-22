@@ -16,11 +16,12 @@
 
 package services
 
-import model.persisted.{ AssistanceDetailsExamples, PersonalDetails }
-import model.{ ApplicationValidator, LocationPreference, Preferences }
-import org.joda.time.LocalDate
-import repositories.FrameworkRepository.{ CandidateHighestQualification, Framework, Location, Region }
+import model.persisted.{AssistanceDetailsExamples, PersonalDetails}
+import model.{ApplicationValidator, LocationPreference, Preferences}
+import repositories.FrameworkRepository.{CandidateHighestQualification, Framework, Location, Region}
 import testkit.UnitSpec
+
+import java.time.LocalDate
 
 class ApplicationValidatorSpec extends UnitSpec {
 
@@ -80,7 +81,7 @@ class ApplicationValidatorSpec extends UnitSpec {
 }
 
 object ApplicationValidatorSpec {
-  def personalDetails = PersonalDetails("firstName", "lastName", "preferredName", new LocalDate(), edipCompleted = Some(false),
+  def personalDetails = PersonalDetails("firstName", "lastName", "preferredName", LocalDate.now, edipCompleted = Some(false),
     edipYear = None, otherInternshipCompleted = Some(false), otherInternshipName = None, otherInternshipYear = None)
 
   def assistanceDetails = AssistanceDetailsExamples.DisabilityGisAndAdjustments

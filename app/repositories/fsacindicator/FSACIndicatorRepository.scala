@@ -67,6 +67,6 @@ class FSACIndicatorMongoRepository @Inject() (mongo: MongoComponent)(implicit ec
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating fsac indicator",
       CannotUpdateFSACIndicator(userId))
 
-    collection.updateOne(query, update).toFuture map validator
+    collection.updateOne(query, update).toFuture() map validator
   }
 }

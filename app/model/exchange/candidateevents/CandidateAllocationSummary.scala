@@ -18,10 +18,9 @@ package model.exchange.candidateevents
 
 import model.AllocationStatuses
 import model.persisted.eventschedules.EventType.EventType
-import org.joda.time.LocalDate
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
+
+import java.time.LocalDate
 
 case class CandidateAllocationSummary(
   eventType: EventType,
@@ -31,5 +30,5 @@ case class CandidateAllocationSummary(
   removeReason: Option[CandidateRemoveReason])
 
 object CandidateAllocationSummary {
-  implicit val allocationEventSummaryFormat = Json.format[CandidateAllocationSummary]
+  implicit val allocationEventSummaryFormat: OFormat[CandidateAllocationSummary] = Json.format[CandidateAllocationSummary]
 }

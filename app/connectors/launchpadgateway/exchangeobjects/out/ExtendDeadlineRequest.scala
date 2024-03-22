@@ -16,13 +16,12 @@
 
 package connectors.launchpadgateway.exchangeobjects.out
 
-import org.joda.time.LocalDate
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
+
+import java.time.LocalDate
 
 case class ExtendDeadlineRequest(interviewId: Int, candidateId: String, newDeadline: LocalDate)
 
 object ExtendDeadlineRequest {
-  implicit val extendDeadlineRequestFormat = Json.format[ExtendDeadlineRequest]
+  implicit val extendDeadlineRequestFormat: OFormat[ExtendDeadlineRequest] = Json.format[ExtendDeadlineRequest]
 }

@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package model.persisted.eventschedules
+package  model.persisted.eventschedules
 
+import model.exchange.{Event => ExchangeEvent}
 import model.persisted.eventschedules.EventType.EventType
-import org.joda.time.{ DateTime, LocalDate, LocalTime }
 import play.api.libs.json._
-import model.exchange.{ Event => ExchangeEvent }
+
+import java.time.{LocalDate, LocalTime, OffsetDateTime}
 
 case class Event(
   id: String,
@@ -33,17 +34,15 @@ case class Event(
   attendeeSafetyMargin: Int,
   startTime: LocalTime,
   endTime: LocalTime,
-  createdAt: DateTime,
+  createdAt: OffsetDateTime,
   skillRequirements: Map[String, Int],
   sessions: List[Session],
   wasBulkUploaded: Boolean = false
 )
 
 object Event {
-  import play.api.libs.json.JodaWrites._ // This is needed for LocalDate and LocalTime serialization
-  import play.api.libs.json.JodaReads._  // This is needed for LocalDate and LocalTime serialization
   // Needed to handle storing DateTime in ISODate format in Mongo
-  import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits.jotDateTimeFormat
+  import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat
   implicit val eventFormat: OFormat[Event] = Json.format[Event]
 
   implicit def eventsToDistinctT(events: Seq[Event]) = new {
@@ -74,7 +73,7 @@ object Event {
       attendeeSafetyMargin = exchangeEvent.attendeeSafetyMargin,
       startTime = exchangeEvent.startTime,
       endTime = exchangeEvent.endTime,
-      createdAt = DateTime.now(),
+      createdAt = OffsetDateTime.now,
       skillRequirements = exchangeEvent.skillRequirements,
       sessions = exchangeEvent.sessions.map(Session.apply)
     )
@@ -88,5 +87,5 @@ case class UpdateEvent(id: String, skillRequirements: Map[String, Int], sessions
 }
 
 object UpdateEvent {
-  implicit val format = Json.format[UpdateEvent]
+  implicit val format: OFormat[UpdateEvent] = Json.format[UpdateEvent]
 }

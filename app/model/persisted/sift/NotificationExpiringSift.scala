@@ -16,17 +16,18 @@
 
 package model.persisted.sift
 
-import org.joda.time.DateTime
 import org.mongodb.scala.bson.collection.immutable.Document
-import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed for ISODate
-import play.api.libs.json.Json
+import repositories.formats.MongoJavatimeFormats.Implicits._
+import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.mongo.play.json.Codecs
+
+import java.time.OffsetDateTime
 
 case class NotificationExpiringSift(
   applicationId: String,
   userId: String,
   preferredName: String,
-  expiryDate: DateTime
+  expiryDate: OffsetDateTime
 )
 
 object NotificationExpiringSift {
@@ -38,9 +39,9 @@ object NotificationExpiringSift {
     val preferredName = personalDetailsRoot.get("preferredName").asString().getValue
     val testGroupsRoot = doc.get("testGroups").map(_.asDocument()).get
     val PHASERoot = testGroupsRoot.get(phase).asDocument()
-    val expiryDate = Codecs.fromBson[DateTime](PHASERoot.get("expirationDate").asDateTime())
+    val expiryDate = Codecs.fromBson[OffsetDateTime](PHASERoot.get("expirationDate").asDateTime())
     NotificationExpiringSift(applicationId, userId, preferredName, expiryDate)
   }
 
-  implicit val notificationExpiringSiftFormat = Json.format[NotificationExpiringSift]
+  implicit val notificationExpiringSiftFormat: OFormat[NotificationExpiringSift] = Json.format[NotificationExpiringSift]
 }

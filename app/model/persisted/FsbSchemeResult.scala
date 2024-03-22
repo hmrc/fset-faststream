@@ -17,7 +17,7 @@
 package model.persisted
 
 import org.mongodb.scala.bson.collection.immutable.Document
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.mongo.play.json.Codecs
 
 import scala.util.Try
@@ -25,7 +25,7 @@ import scala.util.Try
 case class FsbSchemeResult(applicationId: String, results: List[SchemeEvaluationResult])
 
 object FsbSchemeResult {
-  implicit val jsonFormat = Json.format[FsbSchemeResult]
+  implicit val jsonFormat: OFormat[FsbSchemeResult] = Json.format[FsbSchemeResult]
 
   def fromBson(doc: Document): Option[FsbSchemeResult] = {
     val applicationId = doc.get("applicationId").get.asString().getValue

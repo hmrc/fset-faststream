@@ -19,7 +19,8 @@ package config
 import javax.inject.{Inject, Singleton}
 import model.persisted.eventschedules.{Location, Venue}
 import net.ceedubs.ficus.Ficus._
-import play.api.{ Configuration, Environment }
+import net.ceedubs.ficus.readers.{Generated, ValueReader}
+import play.api.{Configuration, Environment}
 
 //scalastyle:off number.of.types
 
@@ -54,7 +55,7 @@ case class ScheduledJobConfig(
 ) extends ScheduledJobConfigurable
 
 object ScheduledJobConfig {
-  implicit lazy val reader =
+  implicit lazy val reader: Generated[ValueReader[ScheduledJobConfig]] =
     net.ceedubs.ficus.readers.ArbitraryTypeReader.arbitraryTypeValueReader[ScheduledJobConfig]
 }
 
@@ -68,7 +69,7 @@ case class WaitingScheduledJobConfig(
 ) extends ScheduledJobConfigurable
 
 object WaitingScheduledJobConfig {
-  implicit lazy val reader =
+  implicit lazy val reader: Generated[ValueReader[WaitingScheduledJobConfig]] =
     net.ceedubs.ficus.readers.ArbitraryTypeReader.arbitraryTypeValueReader[WaitingScheduledJobConfig]
 }
 

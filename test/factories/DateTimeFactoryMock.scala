@@ -16,9 +16,9 @@
 
 package factories
 
-import org.joda.time.{ DateTime, LocalDate }
+import java.time.{LocalDate, OffsetDateTime, ZoneId}
 
 object DateTimeFactoryMock extends DateTimeFactory {
-  val nowLocalTimeZone: DateTime = DateTime.now()
-  val nowLocalDate: LocalDate = LocalDate.now()
+  val nowLocalTimeZone: OffsetDateTime = OffsetDateTime.now(ZoneId.of("UTC"))
+  val nowLocalDate: LocalDate = LocalDate.now
 }

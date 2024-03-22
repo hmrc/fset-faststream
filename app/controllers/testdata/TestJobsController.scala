@@ -16,8 +16,8 @@
 
 package controllers.testdata
 
-import javax.inject.{ Inject, Singleton }
-import play.api.mvc.{ Action, AnyContent, ControllerComponents }
+import javax.inject.{Inject, Singleton}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import scheduler._
 import scheduler.assessment.EvaluateAssessmentCentreJobImpl
 import scheduler.fsb.EvaluateFsbJobImpl
@@ -25,7 +25,7 @@ import scheduler.onlinetesting._
 import scheduler.sift._
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class TestJobsController @Inject() (cc:ControllerComponents,
@@ -60,9 +60,9 @@ class TestJobsController @Inject() (cc:ControllerComponents,
                                     fixSdipFsP3SkippedCandidatesJob: FixSdipFsP3SkippedCandidatesJobImpl
                                    ) extends BackendController(cc) {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
-  def testInvitationJob(phase: String): Action[AnyContent] = Action.async { implicit request =>
+  def testInvitationJob(phase: String): Action[AnyContent] = Action.async { implicit _ =>
     phase.toUpperCase match {
       case "PHASE1" => sendPhase1InvitationJob.tryExecute().map(_ => Ok(s"$phase test invitation job started"))
       case "PHASE2" => sendPhase2InvitationJob.tryExecute().map(_ => Ok(s"$phase test invitation job started"))
@@ -72,7 +72,7 @@ class TestJobsController @Inject() (cc:ControllerComponents,
     }
   }
 
-  def expireOnlineTestJob(phase: String): Action[AnyContent] = Action.async { implicit request =>
+  def expireOnlineTestJob(phase: String): Action[AnyContent] = Action.async { implicit _ =>
     phase.toUpperCase match {
       case "PHASE1" => expirePhase1TestJob.tryExecute().map(_ => Ok(s"$phase expiry job started"))
       case "PHASE2" => expirePhase2TestJob.tryExecute().map(_ => Ok(s"$phase expiry job started"))
@@ -81,133 +81,133 @@ class TestJobsController @Inject() (cc:ControllerComponents,
     }
   }
 
-  def evaluatePhase1OnlineTestsCandidate: Action[AnyContent] = Action.async { implicit request =>
+  def evaluatePhase1OnlineTestsCandidate: Action[AnyContent] = Action.async { implicit _ =>
     evaluatePhase1ResultJob.tryExecute().map { _ =>
       Ok("Evaluate phase 1 result job started")
     }
   }
 
-  def evaluatePhase2EtrayCandidate: Action[AnyContent] = Action.async { implicit request =>
+  def evaluatePhase2EtrayCandidate: Action[AnyContent] = Action.async { implicit _ =>
     evaluatePhase2ResultJob.tryExecute().map { _ =>
       Ok("Evaluate phase 2 result job started")
     }
   }
 
-  def evaluatePhase3VideoInterviewCandidate: Action[AnyContent] = Action.async { implicit request =>
+  def evaluatePhase3VideoInterviewCandidate: Action[AnyContent] = Action.async { implicit _ =>
     evaluatePhase3ResultJob.tryExecute().map { _ =>
       Ok("Evaluate phase 3 result job started")
     }
   }
 
-  def processSkipPhase3Job: Action[AnyContent] = Action.async { implicit request =>
+  def processSkipPhase3Job: Action[AnyContent] = Action.async { implicit _ =>
     skipPhase3Job.tryExecute().map { _ =>
       Ok("Skip phase 3 job started")
     }
   }
 
-  def processFixSdipFsP3SkippedCandidatesJob: Action[AnyContent] = Action.async { implicit request =>
+  def processFixSdipFsP3SkippedCandidatesJob: Action[AnyContent] = Action.async { implicit _ =>
     fixSdipFsP3SkippedCandidatesJob.tryExecute().map { _ =>
       Ok("Fix SdipFaststream P3 skipped candidates job started")
     }
   }
 
-  def processSuccessPhase1TestJob: Action[AnyContent] = Action.async { implicit request =>
+  def processSuccessPhase1TestJob: Action[AnyContent] = Action.async { implicit _ =>
     successPhase1TestJob.tryExecute().map { _ =>
       Ok("Success phase 1 test job started")
     }
   }
 
-  def processSuccessPhase3TestJob: Action[AnyContent] = Action.async { implicit request =>
+  def processSuccessPhase3TestJob: Action[AnyContent] = Action.async { implicit _ =>
     successPhase3TestJob.tryExecute().map { _ =>
       Ok("Success phase 3 test job started")
     }
   }
 
-  def processSuccessPhase3SdipTestJob: Action[AnyContent] = Action.async { implicit request =>
+  def processSuccessPhase3SdipTestJob: Action[AnyContent] = Action.async { implicit _ =>
     successPhase3SdipFsTestJob.tryExecute().map { _ =>
       Ok("Success phase 3 sdip test job started")
     }
   }
 
-  def progressCandidatesToSift: Action[AnyContent] = Action.async { implicit request =>
+  def progressCandidatesToSift: Action[AnyContent] = Action.async { implicit _ =>
     progressToSiftJob.tryExecute().map { _ =>
       Ok("Progress to sift result job started")
     }
   }
 
-  def firstSiftReminder: Action[AnyContent] = Action.async { implicit request =>
+  def firstSiftReminder: Action[AnyContent] = Action.async { implicit _ =>
     firstSiftReminderJob.tryExecute().map { _ =>
       Ok("First sift reminder job started")
     }
   }
 
-  def secondSiftReminder: Action[AnyContent] = Action.async { implicit request =>
+  def secondSiftReminder: Action[AnyContent] = Action.async { implicit _ =>
     secondSiftReminderJob.tryExecute().map { _ =>
       Ok("Second sift reminder job started")
     }
   }
 
-  def processSiftNumericalResultsReceived: Action[AnyContent] = Action.async { implicit request =>
+  def processSiftNumericalResultsReceived: Action[AnyContent] = Action.async { implicit _ =>
     processSiftNumericalResultsReceivedJob.tryExecute().map { _ =>
       Ok("Process sift numerical results received job started")
     }
   }
 
-  def processExpiredAtSift: Action[AnyContent] = Action.async { implicit request =>
+  def processExpiredAtSift: Action[AnyContent] = Action.async { implicit _ =>
     siftExpiryJob.tryExecute().map { _ =>
       Ok("Sift expiry job started")
     }
   }
 
-  def processFailedAtSift: Action[AnyContent] = Action.async { implicit request =>
+  def processFailedAtSift: Action[AnyContent] = Action.async { implicit _ =>
     siftFailureJob.tryExecute().map { _ =>
       Ok("Process failed applications at sift job started")
     }
   }
 
-  def progressCandidatesToAssessmentCentre: Action[AnyContent] = Action.async { implicit request =>
+  def progressCandidatesToAssessmentCentre: Action[AnyContent] = Action.async { implicit _ =>
     progressToAssessmentCentreJob.tryExecute().map { _ =>
       Ok("Progress to assessment centre result job started")
     }
   }
 
-  def progressCandidatesToFsbOrOfferJob: Action[AnyContent] = Action.async { implicit request =>
+  def progressCandidatesToFsbOrOfferJob: Action[AnyContent] = Action.async { implicit _ =>
     progressToFsbOrOfferJob.tryExecute().map { _ =>
       Ok("Progress to fsb or offer job started")
     }
   }
 
-  def evaluateAssessmentCentreCandidate: Action[AnyContent] = Action.async { implicit request =>
+  def evaluateAssessmentCentreCandidate: Action[AnyContent] = Action.async { implicit _ =>
     evaluateAssessmentCentreJob.tryExecute().map { _ =>
       Ok("Evaluate assessment centre job started")
     }
   }
 
-  def notifyAssessorsOfNewEvents: Action[AnyContent] = Action.async { implicit request =>
+  def notifyAssessorsOfNewEvents: Action[AnyContent] = Action.async { implicit _ =>
     notifyAssessorsOfNewEventsJob.tryExecute().map { _ =>
       Ok("Notify assessors of newly created events started")
     }
   }
 
-  def allFailedAtFsb: Action[AnyContent] = Action.async { implicit request =>
+  def allFailedAtFsb: Action[AnyContent] = Action.async { implicit _ =>
     fsbOverallFailureJob.tryExecute().map { _ =>
       Ok("FSB overall failure job started")
     }
   }
 
-  def evaluateFsbResults = Action.async { implicit request =>
+  def evaluateFsbResults = Action.async { implicit _ =>
     evaluateFsbJob.tryExecute().map { _ =>
       Ok("Evaluate FSB Results Job started")
     }
   }
 
-  def notifyOnFinalFailure: Action[AnyContent] = Action.async { implicit request =>
+  def notifyOnFinalFailure: Action[AnyContent] = Action.async { implicit _ =>
     notifyOnFinalFailureJob.tryExecute().map { _ =>
       Ok("Notify on final failure job started")
     }
   }
 
-  def notifyOnFinalSuccess: Action[AnyContent] = Action.async { implicit request =>
+  def notifyOnFinalSuccess: Action[AnyContent] = Action.async { implicit _ =>
     notifyOnFinalSuccessJob.tryExecute().map { _ =>
       Ok("Notify on final success job started")
     }

@@ -16,12 +16,12 @@
 
 package model.exchange.sift
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class SchemeSpecificAnswer(rawText: String)
 
 object SchemeSpecificAnswer {
-  implicit val schemeSpecificAnswerFormat = Json.format[SchemeSpecificAnswer]
+  implicit val schemeSpecificAnswerFormat: OFormat[SchemeSpecificAnswer] = Json.format[SchemeSpecificAnswer]
 
   def apply(a: model.persisted.sift.SchemeSpecificAnswer): SchemeSpecificAnswer = {
     SchemeSpecificAnswer(

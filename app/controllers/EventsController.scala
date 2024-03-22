@@ -31,6 +31,8 @@ import services.allocation.AssessorAllocationService
 import services.events.EventsService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import scala.concurrent.ExecutionContext
+
 @Singleton
 class EventsController @Inject() (cc: ControllerComponents,
                                   eventsService: EventsService,
@@ -39,7 +41,7 @@ class EventsController @Inject() (cc: ControllerComponents,
                                   applicationRepository: GeneralApplicationRepository
                                  ) extends BackendController(cc) with Logging {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
   def saveAssessmentEvents(): Action[AnyContent] = Action.async {
     eventsService.saveAssessmentEvents().map(_ => Created("Events saved"))

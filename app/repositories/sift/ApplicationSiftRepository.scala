@@ -30,7 +30,6 @@ import model.persisted._
 import model.persisted.sift._
 import model.report.SiftPhaseReportItem
 import model.sift.{FixStuckUser, FixUserStuckInSiftEntered}
-import org.joda.time.DateTime
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
@@ -38,12 +37,10 @@ import org.mongodb.scala.model.Projections
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}
 import repositories.application.GeneralApplicationRepoBSONReader
-import repositories.{dateTimeToBson, getAppId, subDocRoot}
+import repositories._
 
 import scala.util.Try
-import repositories.{CollectionNames, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers}
-import repositories.SchemeRepository
-
+import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
 
 // scalastyle:off number.of.methods file.size.limit
@@ -66,8 +63,8 @@ trait ApplicationSiftRepository {
   def siftApplicationForScheme(applicationId: String, result: SchemeEvaluationResult, settableFields: Seq[Document] = Nil ): Future[Unit]
   //TODO: mongo no usages
 //  def update(applicationId: String, predicate: BSONDocument, update: BSONDocument, action: String): Future[Unit]
-  def saveSiftExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit]
-  def findSiftExpiryDate(applicationId: String): Future[DateTime]
+  def saveSiftExpiryDate(applicationId: String, expiryDate: OffsetDateTime): Future[Unit]
+  def findSiftExpiryDate(applicationId: String): Future[OffsetDateTime]
   def isSiftExpired(applicationId: String): Future[Boolean]
   def removeTestGroup(applicationId: String): Future[Unit]
   //TODO: mongo no usages (commented out code)
@@ -80,11 +77,11 @@ trait ApplicationSiftRepository {
   def nextApplicationForSecondSiftReminder(timeInHours: Int): Future[Option[NotificationExpiringSift]]
   def getTestGroup(applicationId: String): Future[Option[SiftTestGroup]]
   def getTestGroupByOrderId(orderId: String): Future[MaybeSiftTestGroupWithAppId]
-  def updateExpiryTime(applicationId: String, expiryDateTime: DateTime): Future[Unit]
-  def updateTestStartTime(orderId: String, startedTime: DateTime): Future[Unit]
+  def updateExpiryTime(applicationId: String, expiryDateTime: OffsetDateTime): Future[Unit]
+  def updateTestStartTime(orderId: String, startedTime: OffsetDateTime): Future[Unit]
   def getApplicationIdForOrderId(orderId: String): Future[String]
   def insertNumericalTests(applicationId: String, tests: List[PsiTest]): Future[Unit]
-  def updateTestCompletionTime(orderId: String, completedTime: DateTime): Future[Unit]
+  def updateTestCompletionTime(orderId: String, completedTime: OffsetDateTime): Future[Unit]
   def insertPsiTestResult(appId: String, psiTest: PsiTest, testResult: PsiTestResult): Future[Unit]
   def nextApplicationWithResultsReceived: Future[Option[String]]
   def getNotificationExpiringSift(applicationId: String): Future[Option[NotificationExpiringSift]]
@@ -131,7 +128,7 @@ class ApplicationSiftMongoRepository @Inject() (
     ApplicationForSift(applicationId, userId, appStatus, currentSchemeStatus)
   }
 
-  override def updateTestStartTime(orderId: String, startedTime: DateTime): Future[Unit] = {
+  override def updateTestStartTime(orderId: String, startedTime: OffsetDateTime): Future[Unit] = {
     val filter = Document(
       s"testGroups.$phaseName.tests" -> Document(
         "$elemMatch" -> Document("orderId" -> orderId)
@@ -139,7 +136,7 @@ class ApplicationSiftMongoRepository @Inject() (
     )
 
     val update = Document("$set" -> Document(
-      s"testGroups.$phaseName.tests.$$.startedDateTime" -> dateTimeToBson(startedTime)
+      s"testGroups.$phaseName.tests.$$.startedDateTime" -> offsetDateTimeToBson(startedTime)
     ))
 
     val validator = singleUpdateValidator(orderId, actionDesc = s"updating test group start time in $phaseName",
@@ -243,7 +240,7 @@ class ApplicationSiftMongoRepository @Inject() (
       Document(s"progress-status.${ProgressStatuses.SIFT_FIRST_REMINDER}" -> Document("$exists" -> false)),
 
       Document(s"testGroups.$phaseName.expirationDate" ->
-        Document( "$lte" -> dateTimeToBson(dateTime.nowLocalTimeZone.plusHours(timeInHours))) // Serialises to UTC.
+        Document( "$lte" -> offsetDateTimeToBson(dateTime.nowLocalTimeZone.plusHours(timeInHours))) // Serialises to UTC.
       )
     ))
 
@@ -260,7 +257,7 @@ class ApplicationSiftMongoRepository @Inject() (
       Document(s"progress-status.${ProgressStatuses.SIFT_SECOND_REMINDER}" -> Document("$exists" -> false)),
 
       Document(s"testGroups.$phaseName.expirationDate" ->
-        Document( "$lte" -> dateTimeToBson(dateTime.nowLocalTimeZone.plusHours(timeInHours))) // Serialises to UTC.
+        Document( "$lte" -> offsetDateTimeToBson(dateTime.nowLocalTimeZone.plusHours(timeInHours))) // Serialises to UTC.
       )
     ))
 
@@ -281,7 +278,7 @@ class ApplicationSiftMongoRepository @Inject() (
       Document(s"progress-status.${ProgressStatuses.SIFT_READY}" -> Document("$exists" -> false)),
       Document(s"progress-status.${ProgressStatuses.SIFT_EXPIRED}" -> Document("$exists" -> false)),
       Document(s"testGroups.$phaseName.expirationDate" ->
-        Document("$lte" -> dateTimeToBson(dateTime.nowLocalTimeZone.minusSeconds(gracePeriodInSecs)))
+        Document("$lte" -> offsetDateTimeToBson(dateTime.nowLocalTimeZone.minusSeconds(gracePeriodInSecs)))
       )
     ))
 
@@ -443,9 +440,9 @@ class ApplicationSiftMongoRepository @Inject() (
     collection.update(ordered = false).one(predicate, update) map validator
   }*/
 
-  override def saveSiftExpiryDate(applicationId: String, expiryDate: DateTime): Future[Unit] = {
+  override def saveSiftExpiryDate(applicationId: String, expiryDate: OffsetDateTime): Future[Unit] = {
     val query = Document("applicationId" -> applicationId)
-    val update = Document("$set" -> Document(s"testGroups.$phaseName.expirationDate" -> dateTimeToBson(expiryDate)))
+    val update = Document("$set" -> Document(s"testGroups.$phaseName.expirationDate" -> offsetDateTimeToBson(expiryDate)))
 
     val validator = singleUpdateValidator(applicationId,
       actionDesc = s"inserting expiry date during $phaseName", ApplicationNotFound(applicationId))
@@ -453,11 +450,11 @@ class ApplicationSiftMongoRepository @Inject() (
     collection.updateOne(query, update).toFuture() map validator
   }
 
-  override def findSiftExpiryDate(applicationId: String): Future[DateTime] = {
+  override def findSiftExpiryDate(applicationId: String): Future[OffsetDateTime] = {
     val query = Document("applicationId" -> applicationId)
     val projection = Document(s"testGroups.$phaseName.expirationDate" -> true)
 
-    import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits.jotDateTimeFormat // Needed for ISODate
+    import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat // Needed for ISODate
     val error = ApplicationNotFound(s"Cannot find sift expiry date for application $applicationId")
 
     collection.find[Document](query).projection(projection).headOption() map {
@@ -466,7 +463,7 @@ class ApplicationSiftMongoRepository @Inject() (
           testGroups <- subDocRoot("testGroups")(doc)
           phaseBson <- subDocRoot(phaseName)(testGroups)
         } yield {
-          Codecs.fromBson[DateTime](phaseBson.get("expirationDate").asDateTime())
+          Codecs.fromBson[OffsetDateTime](phaseBson.get("expirationDate").asDateTime())
         }).getOrElse( throw error )
       case _ => throw error
     }
@@ -507,11 +504,11 @@ class ApplicationSiftMongoRepository @Inject() (
         // TODO: mongo the original impl looks wrong to me as it is trying to get DateTime info from ProgressStatus
         // TODO: which doesn't contain that data. Leave it for now as it is a fix endpoint and may be redundant
         val progressStatuses = subDocRoot("progress-status")(doc)
-        import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats.Implicits._ // Needed for ISODate
+        import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat // Needed for ISODate
         val firstSiftTime = progressStatuses.flatMap { obj =>
-          Try(Codecs.fromBson[DateTime](obj.get(ProgressStatuses.SIFT_ENTERED.toString).asDateTime())).toOption
-          .orElse(Try(Codecs.fromBson[DateTime](obj.get(ProgressStatuses.SIFT_READY.toString).asDateTime())).toOption)
-        }.getOrElse(DateTime.now())
+          Try(Codecs.fromBson[OffsetDateTime](obj.get(ProgressStatuses.SIFT_ENTERED.toString).asDateTime())).toOption
+          .orElse(Try(Codecs.fromBson[OffsetDateTime](obj.get(ProgressStatuses.SIFT_READY.toString).asDateTime())).toOption)
+        }.getOrElse(OffsetDateTime.now)
 
         val css = doc.get("currentSchemeStatus").map { bsonValue =>
           Codecs.fromBson[List[SchemeEvaluationResult]](bsonValue)
@@ -629,7 +626,7 @@ class ApplicationSiftMongoRepository @Inject() (
   private def getTestGroupWithAppIdByQuery(query: Document): Future[MaybeSiftTestGroupWithAppId] = {
     val projection = Projections.include("applicationId", s"testGroups.$phaseName")
 
-    val ex = CannotFindTestByOrderIdException(s"Cannot find test group for query: ${query.toJson}}")
+    val ex = CannotFindTestByOrderIdException(s"Cannot find test group for query: ${query.toJson()}}")
     collection.find[Document](query).projection(projection).headOption() map {
       case Some(doc) =>
         val appId = doc.get("applicationId").get.asString().getValue
@@ -640,14 +637,14 @@ class ApplicationSiftMongoRepository @Inject() (
     }
   }
 
-  override def updateExpiryTime(applicationId: String, expiryDateTime: DateTime): Future[Unit] = {
+  override def updateExpiryTime(applicationId: String, expiryDateTime: OffsetDateTime): Future[Unit] = {
     val query = Document("applicationId" -> applicationId)
 
     val validator = singleUpdateValidator(applicationId, actionDesc = s"updating test group expiration date in $phaseName",
       ApplicationNotFound(applicationId))
 
     collection.updateOne(query, Document("$set" -> Document(
-      s"testGroups.$phaseName.expirationDate" -> dateTimeToBson(expiryDateTime)
+      s"testGroups.$phaseName.expirationDate" -> offsetDateTimeToBson(expiryDateTime)
     ))).toFuture() map validator
   }
 
@@ -677,9 +674,9 @@ class ApplicationSiftMongoRepository @Inject() (
     collection.updateOne(query, update).toFuture() map validator
   }
 
-  override def updateTestCompletionTime(orderId: String, completedTime: DateTime): Future[Unit] = {
+  override def updateTestCompletionTime(orderId: String, completedTime: OffsetDateTime): Future[Unit] = {
     val update = Document(
-      "$set" -> Document(s"testGroups.$phaseName.tests.$$.completedDateTime" -> dateTimeToBson(completedTime))
+      "$set" -> Document(s"testGroups.$phaseName.tests.$$.completedDateTime" -> offsetDateTimeToBson(completedTime))
     )
     findAndUpdateTest(orderId, update, ignoreNotFound = false, s"updating test completion time by orderId in $phaseName tests")
   }

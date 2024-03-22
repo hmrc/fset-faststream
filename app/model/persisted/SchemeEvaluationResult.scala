@@ -18,13 +18,13 @@ package model.persisted
 
 import model.SchemeId
 import org.mongodb.scala.bson.BsonValue
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.mongo.play.json.Codecs
 
 case class SchemeEvaluationResult(schemeId: SchemeId, result: String)
 
 object SchemeEvaluationResult {
-  implicit val format = Json.format[SchemeEvaluationResult]
+  implicit val format: OFormat[SchemeEvaluationResult] = Json.format[SchemeEvaluationResult]
 
   def apply(schemeId: String, result: String) = new SchemeEvaluationResult(SchemeId(schemeId), result)
 

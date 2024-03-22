@@ -1,12 +1,12 @@
 package model.report
 
-import java.util.UUID
-
 import factories.ITDateTimeFactoryMock
-import model.{ ApplicationRoute, ProgressStatuses }
+import model.{ApplicationRoute, ProgressStatuses}
 import repositories.CollectionNames
 import repositories.application.GeneralApplicationMongoRepository
 import testkit.MongoRepositorySpec
+
+import java.util.UUID
 
 class ProgressStatusesMongoReportLabelsSpec extends MongoRepositorySpec {
   val collectionName: String = CollectionNames.APPLICATION

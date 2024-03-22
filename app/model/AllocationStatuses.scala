@@ -25,9 +25,9 @@ object AllocationStatuses extends Enumeration {
 
   val UNCONFIRMED, CONFIRMED, DECLINED, REMOVED = Value
 
-  implicit val applicationStatusFormat = new Format[AllocationStatus] {
-    def reads(json: JsValue) = JsSuccess(AllocationStatuses.withName(json.as[String].toUpperCase()))
-    def writes(myEnum: AllocationStatus) = JsString(myEnum.toString)
+  implicit val applicationStatusFormat: Format[AllocationStatus] = new Format[AllocationStatus] {
+    def reads(json: JsValue): JsSuccess[Value] = JsSuccess(AllocationStatuses.withName(json.as[String].toUpperCase()))
+    def writes(myEnum: AllocationStatus): JsString = JsString(myEnum.toString)
   }
 
   implicit class BsonOps(val applicationStatus: AllocationStatus) extends AnyVal {

@@ -16,7 +16,7 @@
 
 package model.report
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class ApplicationForAnalyticalSchemesReport(userId: String,
                                                  firstName: Option[String],
@@ -30,5 +30,6 @@ case class ApplicationForAnalyticalSchemesReport(userId: String,
                                                 )
 
 object ApplicationForAnalyticalSchemesReport {
-  implicit val applicationForAnalyticalSchemesReportFormat = Json.format[ApplicationForAnalyticalSchemesReport]
+  implicit val applicationForAnalyticalSchemesReportFormat: OFormat[ApplicationForAnalyticalSchemesReport] =
+    Json.format[ApplicationForAnalyticalSchemesReport]
 }

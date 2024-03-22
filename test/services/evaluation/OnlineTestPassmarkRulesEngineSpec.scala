@@ -19,7 +19,6 @@ package services.evaluation
 import model.EvaluationResults._
 import model.OnlineTestCommands._
 import model.Scheme
-import org.joda.time.DateTime
 
 /* TODO: in faststream
 class OnlineTestPassmarkRulesEngineSpec extends UnitSpec {

@@ -16,11 +16,10 @@
 
 package controllers
 
-import akka.stream.scaladsl.Source
+import org.apache.pekko.stream.scaladsl.Source
 import com.google.inject.name.Named
-import common.Joda._
 import connectors.AuthProviderClient
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 
 import javax.inject.{Inject, Singleton}
 import model.ApplicationRoute.{ApplicationRoute, Edip, Faststream, Sdip, SdipFaststream}
@@ -46,7 +45,7 @@ import repositories._
 import services.evaluation.AssessmentScoreCalculator
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 // scalastyle:off number.of.methods file.size.limit
 @Singleton
@@ -69,7 +68,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
                                      personalDetailsRepository: PersonalDetailsRepository
 )(implicit mat: Materializer) extends BackendController(cc) with Logging {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
   def fsacScores(): Action[AnyContent] = Action.async {
     def removeFeedback(assessmentScoresExercise: AssessmentScoresExerciseExchange) =

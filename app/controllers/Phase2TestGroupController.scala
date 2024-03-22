@@ -16,17 +16,19 @@
 
 package controllers
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import play.api.libs.json.JsValue
-import play.api.mvc.{ Action, ControllerComponents }
+import play.api.mvc.{Action, ControllerComponents}
 import services.onlinetesting.phase2.Phase2TestService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class Phase2TestGroupController @Inject() (cc: ControllerComponents,
                                            phase2TestService: Phase2TestService) extends BackendController(cc) {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
   def extend(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[OnlineTestExtension] { extension =>

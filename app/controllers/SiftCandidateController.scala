@@ -16,13 +16,15 @@
 
 package controllers
 
-import javax.inject.{ Inject, Singleton }
-import model.Exceptions.{ CannotFindApplicationByOrderIdException, CannotFindTestByOrderIdException }
+import javax.inject.{Inject, Singleton}
+import model.Exceptions.{CannotFindApplicationByOrderIdException, CannotFindTestByOrderIdException}
 import play.api.Logging
-import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, ControllerComponents }
-import services.sift.{ ApplicationSiftService, SiftExpiryExtensionService }
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.{Action, ControllerComponents}
+import services.sift.{ApplicationSiftService, SiftExpiryExtensionService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class SiftCandidateController @Inject() (cc: ControllerComponents,
@@ -30,7 +32,7 @@ class SiftCandidateController @Inject() (cc: ControllerComponents,
                                          applicationSiftService: ApplicationSiftService
                                         ) extends BackendController(cc) with Logging {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
   def extend(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[SiftExtension] { extension =>

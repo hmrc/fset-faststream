@@ -16,21 +16,22 @@
 
 package controllers
 
-import connectors.exchange.{ AssessorAllocationRequest, FindAssessorsByIdsRequest }
-import javax.inject.{ Inject, Singleton }
+import connectors.exchange.{AssessorAllocationRequest, FindAssessorsByIdsRequest}
+
+import javax.inject.{Inject, Singleton}
 import model.AllocationStatuses.AllocationStatus
 import model.Exceptions._
 import model.exchange._
 import model.persisted.eventschedules.SkillType.SkillType
-import model.{ AllocationStatuses, UniqueIdentifier }
-import org.joda.time.LocalDate
-import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent, ControllerComponents }
+import model.{AllocationStatuses, UniqueIdentifier}
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.AuditService
 import services.assessor.AssessorService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.Future
+import java.time.LocalDate
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AssessorController @Inject() (cc: ControllerComponents,
@@ -38,7 +39,7 @@ class AssessorController @Inject() (cc: ControllerComponents,
                                     auditService: AuditService
                                    ) extends BackendController(cc) {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
   def saveAssessor(userId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[Assessor] { assessor =>
@@ -92,9 +93,8 @@ class AssessorController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def findAvailableAssessorsForLocationAndDate(locationName: String, date: LocalDate,
-    skills: Seq[SkillType]
-  ): Action[AnyContent] = Action.async {
+  def findAvailableAssessorsForLocationAndDate(locationName: String, date: LocalDate, skills: Seq[SkillType]
+                                              ): Action[AnyContent] = Action.async {
     assessorService.findAvailabilitiesForLocationAndDate(locationName, date, skills).map { a => Ok(Json.toJson(a)) }
   }
 

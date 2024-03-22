@@ -18,10 +18,11 @@ package model.stc
 
 import model.stc.StcEventTypes.StcEventType
 import model.persisted.StcEvent
-import org.joda.time.DateTime
+
+import java.time.OffsetDateTime
 
 sealed trait DataStoreEvent extends StcEventType {
-  final val eventCreated: DateTime = DateTime.now()
+  final val eventCreated: OffsetDateTime = OffsetDateTime.now
   lazy val applicationId: Option[String] = None
   lazy val userId: Option[String] = None
   lazy val createdBy: Option[String] = None

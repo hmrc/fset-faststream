@@ -23,12 +23,12 @@ import model.UniqueIdentifier
 import model.assessmentscores.AssessmentScoresAllExercises
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import org.joda.time.{DateTime, DateTimeZone}
 import play.api.mvc.RequestHeader
 import services.assessmentscores.AssessmentScoresService
 import services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.{OffsetDateTime, ZoneId}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -39,7 +39,7 @@ class AssessmentCentreScoresAcceptedStatusGenerator @Inject() (val previousStatu
 
   val updatedBy = UniqueIdentifier.randomUniqueIdentifier
 
-  private val now = DateTime.now(DateTimeZone.UTC)
+  private val now = OffsetDateTime.now(ZoneId.of("UTC"))
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
               (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {

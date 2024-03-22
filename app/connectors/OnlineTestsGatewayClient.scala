@@ -38,7 +38,7 @@ trait OnlineTestsGatewayClient extends Logging {
 
   // Blank out header carriers for calls to LPG. Passing on someone's true-client-ip header will cause them to be reassessed
   // for whitelisting in the LPG as well (even though they've gone from front -> back -> LPG), which leads to undesirable behaviour.
-  implicit def blankedHeaderCarrier = HeaderCarrier()
+  implicit def blankedHeaderCarrier: HeaderCarrier = HeaderCarrier()
 
   def psiRegisterApplicant(request: RegisterCandidateRequest)(implicit ec: ExecutionContext): Future[AssessmentOrderAcknowledgement] = {
     logger.debug(s"$root psi registerApplicant POST request, body=${Json.toJson(request).toString}")

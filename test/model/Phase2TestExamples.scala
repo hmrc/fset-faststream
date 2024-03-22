@@ -17,10 +17,11 @@
 package model
 
 import model.Phase1TestExamples.firstPsiTest
-import org.joda.time.DateTime
+
+import java.time.OffsetDateTime
 
 object Phase2TestExamples {
-  def fifthPsiTest(implicit now: DateTime) = firstPsiTest.copy(inventoryId = "inventoryId5", orderId = "orderId5")
+  def fifthPsiTest(implicit now: OffsetDateTime) = firstPsiTest.copy(inventoryId = "inventoryId5", orderId = "orderId5")
 
-  def sixthPsiTest(implicit now: DateTime) = firstPsiTest.copy(inventoryId = "inventoryId6", orderId = "orderId6")
+  def sixthPsiTest(implicit now: OffsetDateTime) = firstPsiTest.copy(inventoryId = "inventoryId6", orderId = "orderId6")
 }

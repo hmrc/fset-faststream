@@ -16,16 +16,15 @@
 
 package model.exchange
 
-import model.persisted.{PsiTest, Test}
-import org.joda.time.DateTime
+import model.persisted.Test
 import play.api.libs.json.{Json, OFormat}
-import play.api.libs.json.JodaWrites._
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
 
-case class Phase1TestGroupWithNames(applicationId: String, expirationDate: DateTime, activeTests: Seq[PsiTest])
+import java.time.OffsetDateTime // This is needed for DateTime serialization
+
+case class Phase1TestGroupWithNames(applicationId: String, expirationDate: OffsetDateTime, activeTests: Seq[PsiTest])
 
 object Phase1TestGroupWithNames {
-  implicit val phase1TestGroupWithNamesFormat = Json.format[Phase1TestGroupWithNames]
+  implicit val phase1TestGroupWithNamesFormat: OFormat[Phase1TestGroupWithNames] = Json.format[Phase1TestGroupWithNames]
 }
 
 case class PsiTest(inventoryId: String,
@@ -33,9 +32,9 @@ case class PsiTest(inventoryId: String,
                    usedForResults: Boolean,
                    testUrl: String,
                    testProvider: String = "psi",
-                   invitationDate: DateTime,
-                   startedDateTime: Option[DateTime] = None,
-                   completedDateTime: Option[DateTime] = None,
+                   invitationDate: OffsetDateTime,
+                   startedDateTime: Option[OffsetDateTime] = None,
+                   completedDateTime: Option[OffsetDateTime] = None,
                    resultsReadyToDownload: Boolean = false,
                    assessmentId: String,
                    reportId: String,

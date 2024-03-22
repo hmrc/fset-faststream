@@ -53,7 +53,7 @@ class AssistanceDetailsMongoRepository @Inject() (mongo: MongoComponent)(implici
     val validator = singleUpdateValidator(applicationId, actionDesc = "updating assistance details",
       CannotUpdateAssistanceDetails(userId))
 
-    collection.updateOne(query, updateBSON).toFuture map validator
+    collection.updateOne(query, updateBSON).toFuture() map validator
   }
 
   override def find(applicationId: String): Future[AssistanceDetails] = {

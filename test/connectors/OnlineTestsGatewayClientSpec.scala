@@ -20,7 +20,6 @@ import config.{MicroserviceAppConfig, OnlineTestsGatewayConfig, WSHttpT}
 import connectors.ExchangeObjects._
 import model.Exceptions.ConnectorException
 import model.OnlineTestCommands.PsiTestResult
-import org.joda.time.LocalDate
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import play.api.libs.json._
@@ -28,6 +27,7 @@ import play.api.test.Helpers._
 import testkit.{ShortTimeout, UnitSpec}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
 
+import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 

@@ -18,7 +18,8 @@ package model.persisted
 
 import model.ApplicationRoute.ApplicationRoute
 import model.command.ProgressResponse
-import org.joda.time.LocalDate
+
+import java.time.LocalDate
 
 case class UserApplicationProfile(userId: String,
                                   progress: ProgressResponse,

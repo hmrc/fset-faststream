@@ -17,23 +17,22 @@
 package model.exchange
 
 import model.UniqueIdentifier
-import model.persisted.eventschedules.{ Event => PersistedEvent }
+import model.persisted.eventschedules.{Event => PersistedEvent}
 import model.persisted.eventschedules.SkillType.SkillType
-import org.joda.time.LocalDate
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
+
+import java.time.LocalDate
 
 case class CandidateAllocationPerSession(sessionId: UniqueIdentifier, confirmed: Int)
 
 object CandidateAllocationPerSession {
-  implicit val format = Json.format[CandidateAllocationPerSession]
+  implicit val format: OFormat[CandidateAllocationPerSession] = Json.format[CandidateAllocationPerSession]
 }
 
 case class EventAssessorAllocationsSummaryPerSkill(skillType: SkillType, allocated: Int, confirmed: Int)
 
 object EventAssessorAllocationsSummaryPerSkill {
-  implicit val format = Json.format[EventAssessorAllocationsSummaryPerSkill]
+  implicit val format: OFormat[EventAssessorAllocationsSummaryPerSkill] = Json.format[EventAssessorAllocationsSummaryPerSkill]
 }
 
 case class EventWithAllocationsSummary(
@@ -44,5 +43,5 @@ case class EventWithAllocationsSummary(
 )
 
 object EventWithAllocationsSummary {
-  implicit val format = Json.format[EventWithAllocationsSummary]
+  implicit val format: OFormat[EventWithAllocationsSummary] = Json.format[EventWithAllocationsSummary]
 }

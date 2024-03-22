@@ -16,9 +16,8 @@
 
 package model.report
 
-import model.ReportWithPersonalDetails
-import model.persisted.{ ApplicationForNumericTestExtractReport, ContactDetails, ContactDetailsWithId }
-import play.api.libs.json.{ Json, OFormat }
+import model.persisted.{ApplicationForNumericTestExtractReport, ContactDetailsWithId}
+import play.api.libs.json.{Json, OFormat}
 
 case class NumericTestExtractReportItem(
   application: ApplicationForNumericTestExtractReport,

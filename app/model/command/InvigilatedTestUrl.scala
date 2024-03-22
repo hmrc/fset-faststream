@@ -16,10 +16,10 @@
 
 package model.command
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class InvigilatedTestUrl(url: String)
 
 object InvigilatedTestUrl {
-  implicit val invigilatedTestUrlFormat = Json.format[InvigilatedTestUrl]
+  implicit val invigilatedTestUrlFormat: OFormat[InvigilatedTestUrl] = Json.format[InvigilatedTestUrl]
 }

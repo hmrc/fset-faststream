@@ -19,12 +19,12 @@ package model.persisted
 import model.Address
 import model.Commands.{PhoneNumber, PostCode}
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{Format, Json, __}
+import play.api.libs.json.{Format, Json, OFormat, __}
 
 case class ContactDetailsUserId(userId: String)
 
 object ContactDetailsUserId {
-  implicit val mongoFormat = Json.format[ContactDetailsUserId]
+  implicit val mongoFormat: OFormat[ContactDetailsUserId] = Json.format[ContactDetailsUserId]
 }
 
 case class ContactDetailsUserIdPostcode(userId: String, postcode: PostCode)
@@ -46,7 +46,7 @@ case class ContactDetails(outsideUk: Boolean,
                           phone: PhoneNumber)
 
 object ContactDetails {
-  implicit val contactDetailsFormat = Json.format[ContactDetails]
+  implicit val contactDetailsFormat: OFormat[ContactDetails] = Json.format[ContactDetails]
 
   // Provide an explicit mongo format here to deal with the sub-document root
   val root = "contact-details"

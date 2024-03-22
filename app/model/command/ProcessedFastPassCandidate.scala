@@ -16,10 +16,10 @@
 
 package model.command
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 final case class ProcessedFastPassCandidate(firstName: String, lastName: String)
 
 object ProcessedFastPassCandidate {
-  implicit val processedFastPassCandidateFormat = Json.format[ProcessedFastPassCandidate]
+  implicit val processedFastPassCandidateFormat: OFormat[ProcessedFastPassCandidate] = Json.format[ProcessedFastPassCandidate]
 }

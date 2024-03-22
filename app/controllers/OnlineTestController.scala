@@ -16,23 +16,23 @@
 
 package controllers
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 import model.ApplicationStatus._
-import model.Exceptions.{ CannotFindTestByOrderIdException, ExpiredTestForTokenException }
+import model.Exceptions.{CannotFindTestByOrderIdException, ExpiredTestForTokenException}
 import model.OnlineTestCommands.OnlineTestApplication
-import model.command.{ InvigilatedTestUrl, ResetOnlineTest, ResetOnlineTest2, VerifyAccessCode }
+import model.command.{InvigilatedTestUrl, ResetOnlineTest, ResetOnlineTest2, VerifyAccessCode}
 import play.api.Logging
-import play.api.libs.json.{ JsValue, Json, OFormat }
+import play.api.libs.json.{JsValue, Json, OFormat}
 import play.api.mvc._
 import repositories.application.GeneralApplicationRepository
-import services.onlinetesting.Exceptions.{ CannotResetPhase2Tests, ResetLimitExceededException }
+import services.onlinetesting.Exceptions.{CannotResetPhase2Tests, ResetLimitExceededException}
 import services.onlinetesting.phase1.Phase1TestService
 import services.onlinetesting.phase2.Phase2TestService
 import services.onlinetesting.phase3.Phase3TestService
 import services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 case class OnlineTestStatus(status: String)
 
@@ -66,7 +66,7 @@ class OnlineTestController @Inject() (cc: ControllerComponents,
                                       phase3TestService: Phase3TestService
                                      ) extends BackendController(cc) with Logging {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
   def getPhase1OnlineTest(applicationId: String) = Action.async {
     phase1TestService.getTestGroup(applicationId) map {

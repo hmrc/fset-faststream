@@ -16,10 +16,10 @@
 
 package model.report
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class MediaReportItem(media: String)
 
 object MediaReportItem {
-  implicit val mediaFormat = Json.format[MediaReportItem]
+  implicit val mediaFormat: OFormat[MediaReportItem] = Json.format[MediaReportItem]
 }

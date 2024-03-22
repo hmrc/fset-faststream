@@ -18,10 +18,9 @@ package model.command.testdata
 
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.Session
-import org.joda.time.{ LocalDate, LocalTime }
-import play.api.libs.json.JodaWrites._ // This is needed for DateTime serialization
-import play.api.libs.json.JodaReads._ // This is needed for DateTime serialization
-import play.api.libs.json.{ Json, OFormat }
+import play.api.libs.json.{Json, OFormat}
+
+import java.time.{LocalDate, LocalTime}
 
 case class CreateEventRequest(id: Option[String],
   eventType: Option[EventType],
@@ -36,6 +35,21 @@ case class CreateEventRequest(id: Option[String],
   endTime: Option[LocalTime],
   skillRequirements: Option[Map[String, Int]],
   sessions: Option[List[Session]]) extends CreateTestDataRequest {
+
+  override def toString =
+    s"id=$id," +
+      s"eventType=$eventType," +
+      s"description=$description," +
+      s"location=$location," +
+      s"venue=$venue," +
+      s"date=$date," +
+      s"capacity=$capacity," +
+      s"minViableAttendees=$minViableAttendees," +
+      s"attendeeSafetyMargin=$attendeeSafetyMargin," +
+      s"startTime=$startTime," +
+      s"endTime=$endTime," +
+      s"skillRequirements=$skillRequirements," +
+      s"sessions=$sessions"
 }
 
 object CreateEventRequest {

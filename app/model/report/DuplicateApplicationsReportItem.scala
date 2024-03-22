@@ -16,6 +16,8 @@
 
 package model.report
 
+import play.api.libs.json.{Json, OFormat}
+
 case class DuplicateApplicationsReportItem(firstName: String,
                                            lastName: String,
                                            email: String,
@@ -25,5 +27,6 @@ case class DuplicateApplicationsReportItem(firstName: String,
                                            applicationRoute: String)
 
 object DuplicateApplicationsReportItem {
-  implicit val duplicateApplicationsReportItemFormat = play.api.libs.json.Json.format[DuplicateApplicationsReportItem]
+  implicit val duplicateApplicationsReportItemFormat: OFormat[DuplicateApplicationsReportItem] =
+    Json.format[DuplicateApplicationsReportItem]
 }

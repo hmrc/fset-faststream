@@ -16,22 +16,22 @@
 
 package scheduler.onlinetesting
 
-import model.exchange.passmarksettings.{Phase1PassMarkSettings, Phase1PassMarkSettingsExamples, Phase1PassMarkSettingsPersistence}
+import model.exchange.passmarksettings.{Phase1PassMarkSettingsExamples, Phase1PassMarkSettingsPersistence}
 import model.persisted.ApplicationReadyForEvaluation
 import model._
-import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import play.api.libs.json.Format
 import uk.gov.hmrc.mongo.MongoComponent
 import testkit.UnitWithAppSpec
 
+import java.time.{OffsetDateTime, ZoneId}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.concurrent.{ExecutionContext, Future}
 
 class EvaluatePhase1ResultJobSpec extends UnitWithAppSpec {
-  implicit val now: DateTime = DateTime.now().withZone(DateTimeZone.UTC)
+  implicit val now: OffsetDateTime = OffsetDateTime.now(ZoneId.of("UTC"))
 
   "Scheduler execution" should {
     "evaluate applications ready for evaluation" in new TestFixture {

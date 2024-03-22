@@ -19,7 +19,6 @@ package controllers
 import java.util.UUID
 import connectors.launchpadgateway.exchangeobjects.in._
 import connectors.launchpadgateway.exchangeobjects.in.reviewed._
-import org.joda.time.{DateTime, DateTimeZone, LocalDate}
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
@@ -29,6 +28,8 @@ import services.onlinetesting.phase3.{Phase3TestCallbackService, Phase3TestServi
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.temporal.ChronoUnit
+import java.time.{LocalDate, OffsetDateTime, ZoneId}
 import scala.concurrent.Future
 
 class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
@@ -64,8 +65,10 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
       mockPhase3TestCallbackService
     )
 
+    val now = OffsetDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.MILLIS)
+
     val sampleSetupProcessCallback = SetupProcessCallbackRequest(
-      DateTime.now(DateTimeZone.UTC),
+      now,
       sampleCandidateId,
       sampleCustomCandidateId,
       sampleInterviewId,
@@ -75,7 +78,7 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
     )
 
     val sampleViewPracticeQuestionCallback = ViewPracticeQuestionCallbackRequest(
-      DateTime.now(DateTimeZone.UTC),
+      now,
       sampleCandidateId,
       sampleCustomCandidateId,
       sampleInterviewId,
@@ -85,7 +88,7 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
     )
 
     val sampleQuestionCallback = QuestionCallbackRequest(
-      DateTime.now(DateTimeZone.UTC),
+      now,
       sampleCandidateId,
       sampleCustomCandidateId,
       sampleInterviewId,
@@ -96,7 +99,7 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
     )
 
     val sampleFinalCallback = FinalCallbackRequest(
-      DateTime.now(DateTimeZone.UTC),
+      now,
       sampleCandidateId,
       sampleCustomCandidateId,
       sampleInterviewId,
@@ -106,7 +109,7 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
     )
 
     val sampleFinishedCallback = FinishedCallbackRequest(
-      DateTime.now(DateTimeZone.UTC),
+      now,
       sampleCandidateId,
       sampleCustomCandidateId,
       sampleInterviewId,
@@ -124,7 +127,7 @@ class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
     }
 
     val sampleReviewedCallback = ReviewedCallbackRequest(
-      DateTime.now(DateTimeZone.UTC),
+      now,
       sampleCandidateId,
       sampleCustomCandidateId,
       sampleInterviewId,

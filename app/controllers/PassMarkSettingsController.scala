@@ -20,12 +20,14 @@ import factories.UUIDFactory
 
 import javax.inject.{Inject, Singleton}
 import model.exchange.passmarksettings.{PassMarkSettingsPersistence, _}
-import org.joda.time.DateTime
-import play.api.libs.json.{ Format, Json }
+import play.api.libs.json.{Format, Json}
 import play.api.mvc.ControllerComponents
 import services.AuditService
 import services.passmarksettings._
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+
+import java.time.OffsetDateTime
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class Phase1PassMarkSettingsController @Inject() (val cc: ControllerComponents,
@@ -37,7 +39,7 @@ class Phase1PassMarkSettingsController @Inject() (val cc: ControllerComponents,
 
   val passMarksCreatedEvent = "Phase1PassMarkSettingsCreated"
   def upgradeVersion(passMarkSettings:Phase1PassMarkSettings, newVersionUUID: String) =
-    passMarkSettings.copy(version = newVersionUUID, createDate = DateTime.now)
+    passMarkSettings.copy(version = newVersionUUID, createDate = OffsetDateTime.now)
 }
 
 @Singleton
@@ -50,7 +52,7 @@ class Phase2PassMarkSettingsController @Inject() (val cc: ControllerComponents,
 
   val passMarksCreatedEvent = "Phase2PassMarkSettingsCreated"
   def upgradeVersion(passMarkSettings:Phase2PassMarkSettings, newVersionUUID: String) =
-    passMarkSettings.copy(version = newVersionUUID, createDate = DateTime.now)
+    passMarkSettings.copy(version = newVersionUUID, createDate = OffsetDateTime.now)
 }
 
 @Singleton
@@ -63,7 +65,7 @@ class Phase3PassMarkSettingsController @Inject() (val cc: ControllerComponents,
 
   val passMarksCreatedEvent = "Phase3PassMarkSettingsCreated"
   def upgradeVersion(passMarkSettings:Phase3PassMarkSettings, newVersionUUID: String) =
-    passMarkSettings.copy(version = newVersionUUID, createDate = DateTime.now)
+    passMarkSettings.copy(version = newVersionUUID, createDate = OffsetDateTime.now)
 }
 
 @Singleton
@@ -76,13 +78,13 @@ class AssessmentCentrePassMarkSettingsController @Inject() (val cc: ControllerCo
 
   val passMarksCreatedEvent = "AssessmentCentrePassMarkSettingsCreated"
   def upgradeVersion(passMarkSettings: AssessmentCentrePassMarkSettings, newVersionUUID: String) =
-    passMarkSettings.copy(version = newVersionUUID, createDate = DateTime.now)
+    passMarkSettings.copy(version = newVersionUUID, createDate = OffsetDateTime.now)
 }
 
 abstract class PassMarkSettingsController[T <: PassMarkSettings, U <: PassMarkSettingsPersistence] @Inject() (cc: ControllerComponents)
 (implicit manifest: Manifest[T], exchangeJsonFormat: Format[T], persistentJsonFormat: Format[U]) extends BackendController(cc) {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
   val passMarkService: PassMarkSettingsService[U]
   val auditService: AuditService
   val uuidFactory: UUIDFactory
@@ -112,8 +114,8 @@ abstract class PassMarkSettingsController[T <: PassMarkSettings, U <: PassMarkSe
     for {
       latestVersionOpt <- passMarkService.getLatestPassMarkSettings
     } yield {
-      latestVersionOpt.map {
-        passMarkSettings => Ok(Json.toJson(passMarkSettings.toExchange.asInstanceOf[T]))
+      latestVersionOpt.map { passMarkSettings =>
+        Ok(Json.toJson(passMarkSettings.toExchange.asInstanceOf[T]))
       } getOrElse {
         NotFound("Pass mark settings not found")
       }

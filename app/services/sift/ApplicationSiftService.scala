@@ -31,7 +31,6 @@ import model.exchange.sift.{SiftState, SiftTestGroupWithActiveTest}
 import model.persisted.SchemeEvaluationResult
 import model.persisted.sift.NotificationExpiringSift
 import model.sift.{FixStuckUser, FixUserStuckInSiftEntered, SiftReminderNotice}
-import org.joda.time.DateTime
 import org.mongodb.scala.bson.collection.immutable.Document
 import play.api.Logging
 import repositories.application.GeneralApplicationRepository
@@ -42,6 +41,7 @@ import services.allocation.CandidateAllocationService.CouldNotFindCandidateWithA
 import services.onlinetesting.Exceptions.NoActiveTestException
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
@@ -113,12 +113,12 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     updates.map(SerialUpdateResult.fromEither)
   }
 
-  def saveSiftExpiryDate(applicationId: String): Future[DateTime] = {
+  def saveSiftExpiryDate(applicationId: String): Future[OffsetDateTime] = {
     val expiryDate = dateTimeFactory.nowLocalTimeZone.plusDays(SiftExpiryWindowInDays)
     applicationSiftRepo.saveSiftExpiryDate(applicationId, expiryDate).map(_ => expiryDate)
   }
 
-  def fetchSiftExpiryDate(applicationId: String): Future[DateTime] = {
+  def fetchSiftExpiryDate(applicationId: String): Future[OffsetDateTime] = {
     applicationSiftRepo.findSiftExpiryDate(applicationId)
   }
 
@@ -206,7 +206,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     }
   }
 
-  def markTestAsStarted(orderId: String, startedTime: DateTime = dateTimeFactory.nowLocalTimeZone): Future[Unit] = {
+  def markTestAsStarted(orderId: String, startedTime: OffsetDateTime = dateTimeFactory.nowLocalTimeZone): Future[Unit] = {
     for {
       _ <- applicationSiftRepo.updateTestStartTime(orderId, startedTime)
       appId <- applicationSiftRepo.getApplicationIdForOrderId(orderId)
@@ -235,7 +235,7 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     case s if s.result != Withdrawn.toString && s.result != Red.toString => s.schemeId
   }
 
-  def sendSiftEnteredNotification(applicationId: String, siftExpiry: DateTime)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def sendSiftEnteredNotification(applicationId: String, siftExpiry: OffsetDateTime)(implicit hc: HeaderCarrier): Future[Unit] = {
     applicationRepo.find(applicationId).flatMap {
       case Some(candidate) => contactDetailsRepo.find(candidate.userId).flatMap { contactDetails =>
         emailClient.notifyCandidateSiftEnteredAdditionalQuestions(

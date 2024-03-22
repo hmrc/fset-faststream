@@ -16,18 +16,18 @@
 
 package controllers
 
-import javax.inject.{ Inject, Singleton }
-import model.Exceptions.{ ApplicationNotFound, ContactDetailsNotFound, PersonalDetailsNotFound }
-import model.{ ApplicationRoute, Candidate, SearchCandidate }
-import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, AnyContent, ControllerComponents }
+import javax.inject.{Inject, Singleton}
+import model.Exceptions.{ApplicationNotFound, ContactDetailsNotFound, PersonalDetailsNotFound}
+import model.{ApplicationRoute, Candidate, SearchCandidate}
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import services.search.SearchForApplicantService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SearchForApplicantsController @Inject() (cc: ControllerComponents,
@@ -37,7 +37,7 @@ class SearchForApplicantsController @Inject() (cc: ControllerComponents,
                                                searchForApplicantService: SearchForApplicantService
                                               ) extends BackendController(cc) {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
   val MAX_RESULTS = 25
 
   def findById(userId: String, frameworkId: String): Action[AnyContent] = Action.async { implicit request =>

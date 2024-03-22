@@ -56,7 +56,7 @@ class DayAggregateEventsControllerSpec extends UnitWithAppSpec {
     }
 
     "return EMPTY list when nothing found" in new TestFixture {
-      when(mockEventsRepo.getEvents(None, None, None, MySkills))
+      when(mockEventsRepo.getEvents(eventType = None, venue = None, location = None, MySkills))
         .thenReturn(Future.successful(List.empty[Event]))
       val res = controller.findBySkillTypes(MySkills)(FakeRequest())
       status(res) mustBe OK

@@ -27,7 +27,6 @@ import model._
 import model.command.ApplicationForProgression
 import model.persisted.fsb.ScoresAndFeedback
 import model.persisted.{FsbSchemeResult, FsbTestGroup, SchemeEvaluationResult}
-import org.joda.time.DateTime
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.bson.{BsonArray, BsonDocument}
 import org.mongodb.scala.model.Projections
@@ -38,6 +37,7 @@ import scala.util.Try
 import repositories._
 import repositories.assessmentcentre.AssessmentCentreRepository
 
+import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
 
 trait FsbRepository {
@@ -51,7 +51,7 @@ trait FsbRepository {
   def findScoresAndFeedback(applicationIds: Seq[String]): Future[Map[String, Option[ScoresAndFeedback]]]
   def saveScoresAndFeedback(applicationId: String, scoresAndFeedback: ScoresAndFeedback): Future[Unit]
   def updateResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
-  def addFsbProgressStatuses(applicationId: String, progressStatuses: List[(String, DateTime)]): Future[Unit]
+  def addFsbProgressStatuses(applicationId: String, progressStatuses: List[(String, OffsetDateTime)]): Future[Unit]
   def updateCurrentSchemeStatus(applicationId: String, newCurrentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
   def findByApplicationId(applicationId: String): Future[Option[FsbTestGroup]]
   def findByApplicationIds(applicationIds: Seq[String], schemeId: Option[SchemeId]): Future[List[FsbSchemeResult]]
@@ -106,7 +106,7 @@ class FsbMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
       "applicationId" -> applicationId
     ) ++ commonFailedAtFsbPredicate
 
-    collection.find[Document](predicate).headOption.map {
+    collection.find[Document](predicate).headOption().map {
       case Some(doc) => List(applicationForFsacBsonReads(doc))
       case _ => Nil
     }
@@ -219,7 +219,7 @@ class FsbMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
 
     collection.updateOne(query, Document("$set" ->
       applicationStatusBSON(FSB_AWAITING_ALLOCATION)
-    )).toFuture map validator
+    )).toFuture() map validator
   }
 
   override def progressToJobOffer(application: ApplicationForProgression): Future[Unit] = {
@@ -316,8 +316,8 @@ class FsbMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
     val validator = singleUpdateValidator(applicationId, s"Fixing FSB results for ${result.schemeId}", ApplicationNotFound(applicationId))
 
     for {
-      _ <- collection.updateOne(removePredicate, removeDoc).toFuture map validator
-      _ <- collection.updateOne(setPredicate, setDoc).toFuture map validator
+      _ <- collection.updateOne(removePredicate, removeDoc).toFuture() map validator
+      _ <- collection.updateOne(setPredicate, setDoc).toFuture() map validator
     } yield ()
   }
 
@@ -326,10 +326,10 @@ class FsbMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
     val update = Document("$set" -> Document("currentSchemeStatus" -> Codecs.toBson(newCurrentSchemeStatus)))
     val validator = singleUpdateValidator(applicationId, actionDesc = s"Updating current scheme status")
 
-    collection.updateOne(query, update).toFuture map validator
+    collection.updateOne(query, update).toFuture() map validator
   }
 
-  override def addFsbProgressStatuses(applicationId: String, progressStatuses: List[(String, DateTime)]): Future[Unit] = {
+  override def addFsbProgressStatuses(applicationId: String, progressStatuses: List[(String, OffsetDateTime)]): Future[Unit] = {
     require(progressStatuses.nonEmpty, "Progress statuses to add must be specified")
 
     val query = Document("applicationId" -> applicationId)
@@ -337,7 +337,7 @@ class FsbMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
     val updateSubDoc = progressStatuses.map { case (progressStatus, progressStatusTimestamp) =>
       Document(
         s"fsb-progress-status.$progressStatus" -> true,
-        s"fsb-progress-status-timestamp.$progressStatus" -> dateTimeToBson(progressStatusTimestamp)
+        s"fsb-progress-status-timestamp.$progressStatus" -> offsetDateTimeToBson(progressStatusTimestamp)
       )
     }.reduce(_ ++ _)
 

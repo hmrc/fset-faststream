@@ -18,7 +18,7 @@ package model.command
 
 import model.SchemeId
 import org.mongodb.scala.bson.BsonValue
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.{Format, Json, OFormat}
 import uk.gov.hmrc.mongo.play.json.Codecs
 
 import scala.language.implicitConversions
@@ -49,5 +49,5 @@ case class WithdrawScheme(
 ) extends WithdrawRequest
 
 object WithdrawScheme {
-  implicit val withdrawSchemeFormat = Json.format[WithdrawScheme]
+  implicit val withdrawSchemeFormat: OFormat[WithdrawScheme] = Json.format[WithdrawScheme]
 }

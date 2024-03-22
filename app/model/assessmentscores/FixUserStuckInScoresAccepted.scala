@@ -17,10 +17,10 @@
 package model.assessmentscores
 
 import model.persisted.SchemeEvaluationResult
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class FixUserStuckInScoresAccepted(applicationId: String, schemeEvaluation: Seq[SchemeEvaluationResult])
 
 object FixUserStuckInScoresAccepted {
-  implicit val fixUserStuckInScoresAcceptedFormat = Json.format[FixUserStuckInScoresAccepted]
+  implicit val fixUserStuckInScoresAcceptedFormat: OFormat[FixUserStuckInScoresAccepted] = Json.format[FixUserStuckInScoresAccepted]
 }

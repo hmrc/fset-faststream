@@ -16,19 +16,21 @@
 
 package controllers
 
-import javax.inject.{ Inject, Singleton }
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, ControllerComponents }
+import play.api.mvc.ControllerComponents
 import services.schools.SchoolsService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class SchoolsController @Inject() (cc: ControllerComponents,
                                    schoolsService: SchoolsService) extends BackendController(cc) {
 
-  implicit val ec = cc.executionContext
+  implicit val ec: ExecutionContext = cc.executionContext
 
-  def getSchools(term: String) = Action.async { implicit request =>
+  def getSchools(term: String) = Action.async { implicit _ =>
     schoolsService.getSchools(term).map { schools =>
       Ok(Json.toJson(schools))
     }

@@ -30,13 +30,14 @@ import model.persisted.assessor.{Assessor, AssessorStatus}
 import model.persisted.eventschedules.SkillType.SkillType
 import model.persisted.eventschedules.{Event, Location, SkillType}
 import model.{SerialUpdateResult, UniqueIdentifier, exchange, persisted}
-import org.joda.time.{DateTime, LocalDate}
 import play.api.Logging
 import repositories.events.LocationsWithVenuesRepository
 import repositories.{AssessorAllocationRepository, AssessorRepository}
 import services.events.EventsService
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.format.DateTimeFormatter
+import java.time.{LocalDate, OffsetDateTime}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -98,7 +99,7 @@ class AssessorService @Inject() (assessorRepository: AssessorRepository,
   }
 
   private def hasFutureAssessorAllocations(userId: String, skills: Set[String]): Future[Boolean] = {
-    val today = LocalDate.now()
+    val today = LocalDate.now
 
     def filterOnlyFutureAssessorAllocations(assessorAllocations: Seq[AssessorAllocation]) = {
       def addIsFutureEvent(assessorAllocations: Seq[AssessorAllocation]) = {
@@ -251,7 +252,7 @@ class AssessorService @Inject() (assessorRepository: AssessorRepository,
     assessorRepository.findUnavailableAssessors(skills, location, date)
   }
 
-  private[assessor] def assessorToEventsMappingSince(eventsSince: DateTime): Future[Map[Assessor, Seq[Event]]] = {
+  private[assessor] def assessorToEventsMappingSince(eventsSince: OffsetDateTime): Future[Map[Assessor, Seq[Event]]] = {
     val newlyCreatedEvents = eventsService.getEventsCreatedAfter(eventsSince)
     val assessorToEventsTableFut: Future[Seq[(Assessor, Event)]] = newlyCreatedEvents.flatMap { events =>
       val mapping = events.map { event =>
@@ -268,7 +269,7 @@ class AssessorService @Inject() (assessorRepository: AssessorRepository,
     assessorEventsMapping
   }
 
-  def notifyAssessorsOfNewEvents(lastNotificationDate: DateTime)(implicit hc: HeaderCarrier): Future[Seq[Unit]] = {
+  def notifyAssessorsOfNewEvents(lastNotificationDate: OffsetDateTime)(implicit hc: HeaderCarrier): Future[Seq[Unit]] = {
     logger.info(s"Notifying assessors of new events created since $lastNotificationDate")
     val assessorEventsMapping: Future[Map[Assessor, Seq[Event]]] = assessorToEventsMappingSince(lastNotificationDate)
     assessorEventsMapping.flatMap { assessorToEvent =>
@@ -293,9 +294,9 @@ class AssessorService @Inject() (assessorRepository: AssessorRepository,
         event.eventType match {
           // FSACs are virtual in 20/21 campaign even though the location remains London or Newcastle
           case model.persisted.eventschedules.EventType.FSAC =>
-            s"${event.date.toString("EEEE, dd MMMM YYYY")} (${event.eventType} - Virtual)"
+            s"${DateTimeFormatter.ofPattern("EEEE, dd MMMM YYYY").format(event.date)} (${event.eventType} - Virtual)"
           case _ =>
-            s"${event.date.toString("EEEE, dd MMMM YYYY")} (${event.eventType} - ${event.location.name})"
+            s"${DateTimeFormatter.ofPattern("EEEE, dd MMMM YYYY").format(event.date)} (${event.eventType} - ${event.location.name})"
         }
       }.mkString("\n")
       eventsStr
@@ -306,9 +307,9 @@ class AssessorService @Inject() (assessorRepository: AssessorRepository,
         event.eventType match {
           // FSACs are virtual in 20/21 campaign even though the location remains London or Newcastle
           case model.persisted.eventschedules.EventType.FSAC =>
-            s"<li>${event.date.toString("EEEE, dd MMMM YYYY")} (${event.eventType} - Virtual)</li>"
+            s"<li>${DateTimeFormatter.ofPattern("EEEE, dd MMMM YYYY").format(event.date)} (${event.eventType} - Virtual)</li>"
           case _ =>
-            s"<li>${event.date.toString("EEEE, dd MMMM YYYY")} (${event.eventType} - ${event.location.name})</li>"
+            s"<li>${DateTimeFormatter.ofPattern("EEEE, dd MMMM YYYY").format(event.date)} (${event.eventType} - ${event.location.name})</li>"
         }
       }.mkString("")
       val body =

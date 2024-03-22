@@ -16,10 +16,8 @@
 
 package testkit
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import config.MicroserviceAppConfig
-import org.joda.time.DateTime
-import org.joda.time.Seconds._
 import org.mongodb.scala.Document
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
@@ -31,6 +29,8 @@ import repositories.CollectionNames
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
+import java.time.OffsetDateTime
+import java.time.temporal.ChronoUnit
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.postfixOps
@@ -48,8 +48,8 @@ abstract class MongoRepositorySpec extends PlaySpec with MockitoSugar with Insid
 
   val FrameworkId = "FrameworkId"
 
-  val timesApproximatelyEqual: (DateTime, DateTime) => Boolean = (time1: DateTime, time2: DateTime) => secondsBetween(time1, time2)
-    .isLessThan(seconds(5))
+  val timesApproximatelyEqual: (OffsetDateTime, OffsetDateTime) => Boolean = (time1: OffsetDateTime, time2: OffsetDateTime) =>
+    ChronoUnit.SECONDS.between(time1, time2) < 5
 
   implicit final val app: Application = new GuiceApplicationBuilder().build()
 
