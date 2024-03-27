@@ -38,6 +38,10 @@ class FailedSdipFsTestJob @Inject() (val service: Phase1TestService,
   override val notificationType = FailedSdipFsTestType
 }
 
+// Sdip Faststream was removed as an option for the 2023/24 campaign so we can turn off this job
+// If we need to turn it back on in the future consider adding an index on applicationRoute in
+// GeneralApplicationMongoRepository so the mongo query can use that to perform an IXSCAN instead
+// of a collection scan (COLLSCAN)
 trait NotificationSdipFsTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
 
   val service: OnlineTestService
