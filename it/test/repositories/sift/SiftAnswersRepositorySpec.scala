@@ -30,6 +30,16 @@ class SiftAnswersRepositorySpec extends MongoRepositorySpec with ScalaFutures wi
   def repository: SiftAnswersMongoRepository = siftAnswersRepository
 
   "sift answers repository" should {
+
+    "create indexes" in {
+      val indexes = indexDetails(repository).futureValue
+      indexes must contain theSameElementsAs
+        Seq(
+          IndexDetails(name = "_id_", keys = Seq(("_id", "Ascending")), unique = false),
+          IndexDetails(name = "applicationId_1", keys = Seq(("applicationId", "Ascending")), unique = true)
+        )
+    }
+
     "handle no answers saved" in {
       repository.findSiftAnswersStatus(AppId).futureValue mustBe None
       repository.findSchemeSpecificAnswer(AppId, Commercial).futureValue mustBe None
