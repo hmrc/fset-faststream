@@ -83,6 +83,8 @@ trait CommonRepository extends CurrentSchemeStatusHelper with Schemes {
 
   def fsbRepository = new FsbMongoRepository(ITDateTimeFactoryMock, mongo)
 
+  // Create the date truncated to milliseconds as that is the precision of the date stored in mongo
+  // and the comparison will work when we fetch the date back from the db and check it
   implicit val now: OffsetDateTime = OffsetDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.MILLIS)
 
   def selectedSchemes(schemeTypes: List[SchemeId]) = SelectedSchemes(schemeTypes, orderAgreed = true, eligible = true)
