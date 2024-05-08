@@ -24,7 +24,7 @@ object AppDependencies {
   val bootstrapVersion = "8.5.0"
 
   val compile = Seq(
-    "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-30"         % "1.8.0",
+    "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-30"         % "1.9.0",
     "uk.gov.hmrc"                   %% "bootstrap-backend-play-30"  % bootstrapVersion,
     // If you move to 1.5.0 it breaks AssessmentCentreServiceIntSpec ficus deserialization
     "com.iheart"                    %% "ficus"                      % "1.4.7",
