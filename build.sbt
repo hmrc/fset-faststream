@@ -17,9 +17,9 @@
 import play.sbt.PlayImport.PlayKeys.playDefaultPort
 import play.sbt.routes.RoutesKeys.*
 import sbt.Keys.*
-import sbt.Tests.{Group, SubProcess}
 import sbt.*
-import uk.gov.hmrc.DefaultBuildSettings.{addTestReportOption, defaultSettings, scalaSettings, targetJvm}
+import uk.gov.hmrc.DefaultBuildSettings
+import uk.gov.hmrc.DefaultBuildSettings.{defaultSettings, scalaSettings, targetJvm}
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
 import uk.gov.hmrc.versioning.SbtGitVersioning.autoImport.majorVersion
 
@@ -30,9 +30,11 @@ lazy val playSettings : Seq[Setting[?]] = Seq.empty
 
 lazy val compileScalastyle = taskKey[Unit]("compileScalastyle")
 
+ThisBuild / scalaVersion := "2.13.12"
+ThisBuild / majorVersion := 1
+
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
-  .settings(majorVersion := 1)
   .settings(playSettings *)
   .settings(scalaSettings *)
   .settings(defaultSettings() *)
@@ -40,7 +42,6 @@ lazy val microservice = Project(appName, file("."))
   .settings(
     routesImport += "controllers.Binders._",
     targetJvm := "jvm-1.8",
-    scalaVersion := "2.13.12",
     libraryDependencies ++= appDependencies,
 
     Test / parallelExecution := false,
@@ -50,14 +51,13 @@ lazy val microservice = Project(appName, file("."))
     // Currently don't enable warning in value discard in tests until ScalaTest 3
     Compile / compile / scalacOptions += "-Ywarn-value-discard",
     Compile / compile / scalacOptions += "-Xlint:-missing-interpolator,_",
-    Compile / compile / scalacOptions += "-Ywarn-unused")
+    Compile / compile / scalacOptions += "-Ywarn-unused"
+  )
   // Even though log4j does not appear in the dependency graph, sbt still downloads it into the Coursier cache
   // when we compile. It is version log4j-1.2.17.jar, which contains the security vulnerabilities so as a workaround
   // we exclude any log4j library here
   .settings(excludeDependencies += "log4j" % "log4j")
   .settings(Compile / doc / sources := Seq.empty)
-  .configs(IntegrationTest)
-  .settings(inConfig(IntegrationTest)(Defaults.itSettings))
   // Disable Scalastyle & Scalariform temporarily, as it is currently intermittently failing when building
   //    .settings(scalariformSettings: _*)
   //    .settings(ScalariformKeys.preferences := ScalariformKeys.preferences.value
@@ -76,24 +76,10 @@ lazy val microservice = Project(appName, file("."))
   //    (compile in Compile) := ((compile in Compile) dependsOn compileScalastyle).value
   //  )
 
-  .settings(
-    IntegrationTest / Keys.fork := false,
-    IntegrationTest / unmanagedSourceDirectories := (IntegrationTest / baseDirectory)(base => Seq(
-      base / "it", base / "test/model", base / "test/testkit"
-    )).value,
-    addTestReportOption(IntegrationTest, "int-test-reports"),
-    IntegrationTest / testGrouping := oneForkedJvmPerTest((IntegrationTest / definedTests).value),
-    IntegrationTest / parallelExecution := false)
   .settings(resolvers ++= Seq(Resolver.jcenterRepo))
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
 
-def oneForkedJvmPerTest(tests: Seq[TestDefinition]) =
-  tests map {
-    test => Group(test.name, Seq(test), SubProcess(ForkOptions().withRunJVMOptions(
-      Vector("-Dtest.name=" + test.name,
-        "-Dmongodb.uri=mongodb://localhost:27017/test-fset-faststream?rm.nbChannelsPerNode=2&writeConcernJ=false",
-        "-Dmongodb.failoverStrategy.retries=10",
-        "-Dmongodb.failoverStrategy.delay.function=fibonacci",
-        "-Dmongodb.failoverStrategy.delay.factor=1")
-    )))
-  }
+lazy val it = (project in file("it"))
+  .enablePlugins(PlayScala)
+  .dependsOn(microservice % "test->test") // the "test->test" allows reusing test code and test dependencies
+  .settings(DefaultBuildSettings.itSettings(true))

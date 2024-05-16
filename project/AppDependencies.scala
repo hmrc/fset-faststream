@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import play.sbt.PlayImport._
-import sbt.Keys.scalaBinaryVersion
-import sbt._
+import play.sbt.PlayImport.*
+import sbt.*
 
 //scalastyle:off line.size.limit
 object AppDependencies {
@@ -44,7 +43,6 @@ object AppDependencies {
   }
 
   object Test extends TestDependencies("test")
-  object IntegrationTest extends TestDependencies("it")
 
-  def apply(): Seq[ModuleID] = compile ++ Test.test ++ IntegrationTest.test
+  def apply(): Seq[ModuleID] = compile ++ Test.test
 }
