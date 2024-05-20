@@ -65,9 +65,7 @@ abstract class AssessmentScoresMongoRepository @Inject() (collectionName: String
                             exercisesScores: AssessmentScoresExercise,
                             newVersion: Option[String] = Some(uuidFactory.generateUUID())): Future[Unit] = {
 
-    // We need to set legacyNumbers = true otherwise the numeric data gets stored as Int32 instead of Double
-    // eg Some(4.0) is stored as 4 not 4.0
-    val bsonSection = Codecs.toBson(exercisesScores.copy(version = newVersion), legacyNumbers = true)
+    val bsonSection = Codecs.toBson(exercisesScores.copy(version = newVersion))
     saveExerciseOrFinalFeedback(applicationId, section, bsonSection, exercisesScores.version)
   }
 
@@ -142,9 +140,7 @@ abstract class AssessmentScoresMongoRepository @Inject() (collectionName: String
   override def save(allExercisesScores: AssessmentScoresAllExercises): Future[Unit] = {
     val applicationId = allExercisesScores.applicationId.toString()
     val query = Document("applicationId" -> applicationId)
-    // We need to set legacyNumbers = true otherwise the numeric data gets stored as Int32 instead of Double
-    // eg Some(4.0) is stored as 4 not 4.0
-    val updateBSON = Document("$set" -> Codecs.toBson(allExercisesScores, legacyNumbers = true))
+    val updateBSON = Document("$set" -> Codecs.toBson(allExercisesScores))
     val validator = singleUpsertValidator(applicationId, actionDesc = "saving assessment scores")
     collection.updateOne(query, updateBSON, UpdateOptions().upsert(insertIfNoRecordFound)).toFuture() map validator
   }

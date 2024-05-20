@@ -142,8 +142,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
       )
     )
     val update = Document("$set" -> Document(
-      // Turn on legacyNumbers to force Doubles with no fraction part to be stored as Doubles and not Int32
-      s"testGroups.$phaseName.tests.$$.testResult" -> Codecs.toBson(testResult, legacyNumbers = true)
+      s"testGroups.$phaseName.tests.$$.testResult" -> Codecs.toBson(testResult)
     ))
 
     val validator = singleUpdateValidator(appId, actionDesc = s"inserting $phaseName test result")

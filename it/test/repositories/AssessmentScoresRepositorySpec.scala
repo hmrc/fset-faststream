@@ -74,8 +74,9 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     }
 
     // This tests that Double values with no fraction part like 2.0 are not stored in Mongo as Int32 by HMRC Codecs.toBson
-    // but as Doubles and are being read back correctly as Doubles
-    // This verifies that legacyNumbers = true is set otherwise the numeric data gets stored as Int32 instead of Double
+    // but as Doubles and are being read back correctly as Doubles. For this to work previously, we had to specify
+    // legacyNumbers = true but this is no longer needed
+    // This verifies that it still works as expected otherwise the numeric data gets stored as Int32 instead of Double
     // eg Some(2.0) is stored as 2 not 2.0
     // Note that the Codec seems to read from Mongo Int32 and successfully deserialize into a Double in the case class which
     // is why we have this test here. It is only when you read from Mongo not using the Codec that the problem occurs, which
