@@ -150,8 +150,7 @@ class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
     ))
 
     val update = Document("$push" ->
-      // Turn on legacyNumbers to force Doubles with no fraction part to be stored as Doubles and not Int32
-      Document(s"testGroups.$phaseName.tests.$$.callbacks.$callbacksKey" -> Codecs.toBson(callback, legacyNumbers = true))
+      Document(s"testGroups.$phaseName.tests.$$.callbacks.$callbacksKey" -> Codecs.toBson(callback))
     )
 
     val validator = singleUpdateValidator(token, actionDesc = "appending phase 3 callback")

@@ -20,7 +20,7 @@ import sbt.*
 //scalastyle:off line.size.limit
 object AppDependencies {
 
-  val bootstrapVersion = "8.5.0"
+  val bootstrapVersion = "8.6.0"
 
   val compile = Seq(
     "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-30"         % "1.9.0",
