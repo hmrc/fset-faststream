@@ -42,7 +42,7 @@ class AdminCreatedStatusGenerator @Inject() (authProviderClient: AuthProviderCli
     }
   }
 
-  def createUser(generationId: Int, data: CreateAdminData)
+  private def createUser(generationId: Int, data: CreateAdminData)
                 (implicit hc: HeaderCarrier): Future[CreateAdminResponse] = {
     val roles = data.roles.map(authProviderClient.getRole)
     for {

@@ -93,7 +93,7 @@ class AuthProviderClient @Inject() (http: WSHttpT, config: MicroserviceAppConfig
   }
 
   def removeAllUsers()(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.GET[HttpResponse](s"$url/test-commands/remove-all?service=$ServiceName").map { response =>
+    http.GET[HttpResponse](s"$url/test-only/test-commands/remove-all?service=$ServiceName").map { response =>
       if (response.status == OK) {
         ()
       } else {
@@ -102,9 +102,9 @@ class AuthProviderClient @Inject() (http: WSHttpT, config: MicroserviceAppConfig
     }
   }
 
-  //TODO: looks like this is only used by test data generator. Investigate.
+  // This is only used by test data generator. It is called and we create user accounts and admin accounts
   def getToken(email: String)(implicit hc: HeaderCarrier): Future[String] = {
-    http.GET[HttpResponse](s"$url/auth-code/$ServiceName/$email").map { response =>
+    http.GET[HttpResponse](s"$url/test-only/auth-code/$ServiceName/$email").map { response =>
       if (response.status == OK) {
         response.body
       } else {
