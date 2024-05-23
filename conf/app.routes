@@ -96,6 +96,9 @@ GET         /report/fsac-scores                                          @contro
 
 # Streamed reports start
 GET         /report/fs-presubmitted-candidates-details-stream/previous-year  @controllers.ReportingController.streamPreviousYearFaststreamPresubmittedCandidatesDetailsReport()
+
+GET         /report/fs-p1-candidates-details-stream/previous-year            @controllers.ReportingController.streamPreviousYearFaststreamP1CandidatesDetailsReport()
+
 # Do not run this report on a full dataset. It has been split into 2 below as it exceeds the 60 second platform timeout
 GET         /report/fs-p1-not-failed-candidates-details-stream/previous-year        @controllers.ReportingController.streamPreviousYearFaststreamP1NotFailedCandidatesDetailsReport()
 GET         /report/fs-p1-not-failed-candidates-details-part1-stream/previous-year  @controllers.ReportingController.streamPreviousYearFaststreamP1NotFailedCandidatesDetailsPart1Report()
@@ -114,6 +117,7 @@ GET         /report/fs-p2-candidates-details-stream/previous-year           @con
 GET         /report/fs-p3-candidates-details-part1-stream/previous-year     @controllers.ReportingController.streamPreviousYearFaststreamP3CandidatesDetailsPart1Report()
 GET         /report/fs-p3-candidates-details-part2-stream/previous-year     @controllers.ReportingController.streamPreviousYearFaststreamP3CandidatesDetailsPart2Report()
 
+GET         /report/fs-sift-fsac-fsb-candidates-details-stream/previous-year @controllers.ReportingController.streamPreviousYearFaststreamSiftFsacFsbCandidatesDetailsReport()
 GET         /report/fs-sift-candidates-details-stream/previous-year         @controllers.ReportingController.streamPreviousYearFaststreamSIFTCandidatesDetailsReport()
 GET         /report/fs-fsac-candidates-details-stream/previous-year         @controllers.ReportingController.streamPreviousYearFaststreamFSACCandidatesDetailsReport()
 GET         /report/fs-fsb-candidates-details-stream/previous-year          @controllers.ReportingController.streamPreviousYearFaststreamFSBCandidatesDetailsReport()
