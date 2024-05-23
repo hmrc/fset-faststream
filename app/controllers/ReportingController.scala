@@ -150,6 +150,16 @@ class ReportingController @Inject() (cc: ControllerComponents,
     )
   }
 
+  def streamPreviousYearFaststreamP1CandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      Seq(
+        ApplicationStatus.PHASE1_TESTS, ApplicationStatus.PHASE1_TESTS_PASSED,
+        ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED, ApplicationStatus.PHASE1_TESTS_FAILED
+      )
+    )
+  }
+
   def streamPreviousYearFaststreamP2P3CandidatesDetailsReport: Action[AnyContent] = {
     streamPreviousYearCandidatesDetailsReport(
       Seq(Faststream),
@@ -200,6 +210,13 @@ class ReportingController @Inject() (cc: ControllerComponents,
     )
   }
 
+  def streamPreviousYearFaststreamSiftFsacFsbCandidatesDetailsReport: Action[AnyContent] = {
+    streamPreviousYearCandidatesDetailsReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.SIFT, ApplicationStatus.FAILED_AT_SIFT, ApplicationStatus.ASSESSMENT_CENTRE, ApplicationStatus.FSB)
+    )
+  }
+
   def streamPreviousYearFaststreamSIFTCandidatesDetailsReport: Action[AnyContent] = {
     streamPreviousYearCandidatesDetailsReport(
       Seq(Faststream),
@@ -220,20 +237,6 @@ class ReportingController @Inject() (cc: ControllerComponents,
       Seq(ApplicationStatus.FSB)
     )
   }
-  /*
-  def streamPreviousYearFaststreamP1FailedCandidatesDetailsReport: Action[AnyContent] = {
-    streamPreviousYearCandidatesDetailsReport(
-      Seq(Faststream),
-      (c: Candidate) => c.applicationStatus.get == ApplicationStatus.PHASE1_TESTS_FAILED.toString
-    )
-  }
-
-  def streamPreviousYearFaststreamP1NotFailedCandidatesDetailsReport: Action[AnyContent] = {
-    streamPreviousYearCandidatesDetailsReport(
-      Seq(Faststream),
-      (c: Candidate) => c.applicationStatus.get != ApplicationStatus.PHASE1_TESTS_FAILED.toString
-    )
-  }*/
 
   def streamPreviousYearFaststreamP1NotFailedCandidatesDetailsReport: Action[AnyContent] = {
     streamPreviousYearCandidatesDetailsReport(
