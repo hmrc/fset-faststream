@@ -128,6 +128,7 @@ class AssessmentCentreMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
 
   private val commonProgressStatusStateForEvaluation = Document(
     "$and" -> BsonArray(
+      Document("applicationStatus" -> Document("$in" -> Codecs.toBson(List(ApplicationStatus.ASSESSMENT_CENTRE, ApplicationStatus.FSB)))),
       Document(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED}" -> true),
       Document(s"progress-status.${ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED}" -> Document("$exists" -> false)),
       Document(s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_FAILED}" -> Document("$exists" -> false)),

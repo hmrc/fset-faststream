@@ -25,7 +25,8 @@ import model.persisted.sift.SiftAnswersStatus.SiftAnswersStatus
 import model.persisted.sift.{GeneralQuestionsAnswers, SchemeSpecificAnswer, SiftAnswers, SiftAnswersStatus}
 import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
-import org.mongodb.scala.model.UpdateOptions
+import org.mongodb.scala.model.Indexes.ascending
+import org.mongodb.scala.model.{IndexModel, IndexOptions, UpdateOptions}
 import repositories.insertIfNoRecordFound
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import repositories.{BaseBSONReader, CollectionNames, ReactiveRepositoryHelpers}
@@ -52,7 +53,9 @@ class SiftAnswersMongoRepository @Inject() (mongoComponent: MongoComponent)(impl
     collectionName = CollectionNames.SIFT_ANSWERS,
     mongoComponent = mongoComponent,
     domainFormat = SiftAnswers.siftAnswersFormat,
-    indexes = Nil
+    indexes = Seq(
+      IndexModel(ascending("applicationId"), IndexOptions().unique(true))
+    )
   ) with SiftAnswersRepository with ReactiveRepositoryHelpers with BaseBSONReader {
 
   override def addSchemeSpecificAnswer(applicationId: String, schemeId: SchemeId, answer: SchemeSpecificAnswer): Future[Unit] = {
