@@ -26,7 +26,7 @@
     required: Degree_22
     specificRequirement: true
   siftRequirement: FORM
-  siftEvaluationRequired: false
+  siftEvaluationRequired: true
   fsbType: FCO
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB_Guide_Diplomatic.pdf
   schemeQuestion: https://www.faststream.gov.uk/media/scheme-questions-ges-dds.odt
