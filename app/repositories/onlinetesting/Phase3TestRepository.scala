@@ -22,7 +22,7 @@ import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.{ApplicationNotFound, NotFoundException, TokenNotFound}
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
-import model.command.ApplicationForSkippingPhase3
+import model.command.ApplicationForSkippingPhases
 import model.persisted.phase3tests.Phase3TestGroup
 import model.persisted.{NotificationExpiringOnlineTest, PassmarkEvaluation, Phase3TestGroupWithAppId, SchemeEvaluationResult}
 import model.{ApplicationRoute, ApplicationStatus, EvaluationResults, ProgressStatuses, ReminderNotice}
@@ -63,10 +63,10 @@ trait Phase3TestRepository extends OnlineTestRepository with Phase3TestConcern {
   def updateExpiryDate(applicationId: String, expiryDate: OffsetDateTime): Future[Unit]
   def updateResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
   def addResult(applicationId: String, result: SchemeEvaluationResult): Future[Unit]
-  def nextApplicationsReadyToSkipPhase3(batchSize: Int): Future[Seq[ApplicationForSkippingPhase3]]
-  def skipPhase3(application: ApplicationForSkippingPhase3): Future[Unit]
-  def nextApplicationsReadyToFixSdipFsP3SkippedCandidates(batchSize: Int): Future[Seq[ApplicationForSkippingPhase3]]
-  def fixSdipFsP3SkippedCandidates(application: ApplicationForSkippingPhase3): Future[Unit]
+  def nextApplicationsReadyToSkipPhase3(batchSize: Int): Future[Seq[ApplicationForSkippingPhases]]
+  def skipPhase3(application: ApplicationForSkippingPhases): Future[Unit]
+  def nextApplicationsReadyToFixSdipFsP3SkippedCandidates(batchSize: Int): Future[Seq[ApplicationForSkippingPhases]]
+  def fixSdipFsP3SkippedCandidates(application: ApplicationForSkippingPhases): Future[Unit]
 }
 
 @Singleton
@@ -314,14 +314,14 @@ class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
 
   // Additional collection configured to work with the appropriate domainFormat and automatically register the
   // codec to work with BSON serialization
-  val applicationForSkippingCollection: MongoCollection[ApplicationForSkippingPhase3] =
+  val applicationForSkippingCollection: MongoCollection[ApplicationForSkippingPhases] =
   CollectionFactory.collection(
     collectionName = CollectionNames.APPLICATION,
     db = mongoComponent.database,
-    domainFormat = ApplicationForSkippingPhase3.applicationForSkippingPhase3
+    domainFormat = ApplicationForSkippingPhases.applicationForSkippingPhases
   )
 
-  override def nextApplicationsReadyToSkipPhase3(batchSize: Int): Future[Seq[ApplicationForSkippingPhase3]] = {
+  override def nextApplicationsReadyToSkipPhase3(batchSize: Int): Future[Seq[ApplicationForSkippingPhases]] = {
     // Applications that we need to move to a state where they have passed phase3:
     // They need to be in PHASE2_TESTS_PASSED
     // They must have at least one P2 scheme evaluated to Green
@@ -333,10 +333,10 @@ class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
         Document("$not" -> Document("$elemMatch" -> Document("result" -> EvaluationResults.Amber.toString))))
       )
     )
-    selectRandom[ApplicationForSkippingPhase3](applicationForSkippingCollection, query, batchSize)
+    selectRandom[ApplicationForSkippingPhases](applicationForSkippingCollection, query, batchSize)
   }
 
-  override def skipPhase3(application: ApplicationForSkippingPhase3): Future[Unit] = {
+  override def skipPhase3(application: ApplicationForSkippingPhases): Future[Unit] = {
     val query = Document("applicationId" -> application.applicationId)
     val update = Document("$set" ->
       Document(
@@ -351,7 +351,7 @@ class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
     collection.updateOne(query, update).toFuture() map validator
   }
 
-  override def nextApplicationsReadyToFixSdipFsP3SkippedCandidates(batchSize: Int): Future[Seq[ApplicationForSkippingPhase3]] = {
+  override def nextApplicationsReadyToFixSdipFsP3SkippedCandidates(batchSize: Int): Future[Seq[ApplicationForSkippingPhases]] = {
     val query = Document("$and" -> BsonArray(
       Document("applicationRoute" -> ApplicationRoute.SdipFaststream.toBson),
       Document("applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED.toBson),
@@ -361,10 +361,10 @@ class Phase3TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongoCompo
         Document("$not" -> Document("$elemMatch" -> Document("result" -> EvaluationResults.Amber.toString)))
       )
     ))
-    selectRandom[ApplicationForSkippingPhase3](applicationForSkippingCollection, query, batchSize)
+    selectRandom[ApplicationForSkippingPhases](applicationForSkippingCollection, query, batchSize)
   }
 
-  override def fixSdipFsP3SkippedCandidates(application: ApplicationForSkippingPhase3): Future[Unit] = {
+  override def fixSdipFsP3SkippedCandidates(application: ApplicationForSkippingPhases): Future[Unit] = {
     val query = Document("applicationId" -> application.applicationId)
     val update = Document("$set" -> progressStatusOnlyBSON(ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED))
 

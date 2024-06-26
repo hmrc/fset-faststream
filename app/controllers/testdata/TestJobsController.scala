@@ -56,6 +56,7 @@ class TestJobsController @Inject() (cc:ControllerComponents,
                                     evaluateFsbJob: EvaluateFsbJobImpl,
                                     notifyOnFinalFailureJob: NotifyOnFinalFailureJobImpl,
                                     notifyOnFinalSuccessJob: NotifyOnFinalSuccessJobImpl,
+                                    skipPhasesJob: SkipPhasesJobImpl,
                                     skipPhase3Job: SkipPhase3JobImpl,
                                     fixSdipFsP3SkippedCandidatesJob: FixSdipFsP3SkippedCandidatesJobImpl
                                    ) extends BackendController(cc) {
@@ -96,6 +97,12 @@ class TestJobsController @Inject() (cc:ControllerComponents,
   def evaluatePhase3VideoInterviewCandidate: Action[AnyContent] = Action.async { implicit _ =>
     evaluatePhase3ResultJob.tryExecute().map { _ =>
       Ok("Evaluate phase 3 result job started")
+    }
+  }
+
+  def processSkipPhasesJob: Action[AnyContent] = Action.async { implicit _ =>
+    skipPhasesJob.tryExecute().map { _ =>
+      Ok("Skip phases job started")
     }
   }
 

@@ -30,7 +30,7 @@ import model.Exceptions._
 import model.OnlineTestCommands._
 import model.ProgressStatuses._
 import model._
-import model.command.{Phase3ProgressResponse, ProgressResponse}
+import model.command.{ApplicationForSkippingPhases, Phase3ProgressResponse, ProgressResponse}
 import model.exchange.{Phase2TestGroupWithActiveTest, PsiRealTimeResults, PsiTestResultReady}
 import model.persisted._
 import model.stc.StcEventTypes.StcEventType
@@ -691,6 +691,18 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
     val baseEtrayTestDurationInMinutes = 80
     (application.eTrayAdjustments.flatMap { etrayAdjustments => etrayAdjustments.timeNeeded }.getOrElse(0)
       * baseEtrayTestDurationInMinutes / 100) + baseEtrayTestDurationInMinutes
+  }
+
+  def nextApplicationsReadyToSkipPhases(maxBatchSize: Int): Future[Seq[ApplicationForSkippingPhases]] = {
+    testRepository.nextApplicationsReadyToSkipPhases(maxBatchSize)
+  }
+
+  def progressApplicationsToSkipPhases(applications: Seq[ApplicationForSkippingPhases])
+  : Future[SerialUpdateResult[ApplicationForSkippingPhases]] = {
+    val updates = FutureEx.traverseSerial(applications) { application =>
+      FutureEx.futureToEither(application, testRepository.skipPhases(application))
+    }
+    updates.map(SerialUpdateResult.fromEither)
   }
 }
 

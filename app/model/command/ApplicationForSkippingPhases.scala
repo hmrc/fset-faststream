@@ -19,11 +19,12 @@ package model.command
 import model.persisted.SchemeEvaluationResult
 import play.api.libs.json.{Json, OFormat}
 
-case class ApplicationForSkippingPhase3(
+// Used to skip Phase2 and Phase3 tests
+case class ApplicationForSkippingPhases(
   applicationId: String,
   currentSchemeStatus: Seq[SchemeEvaluationResult]
 )
 
-object ApplicationForSkippingPhase3 {
-  implicit val applicationForSkippingPhase3: OFormat[ApplicationForSkippingPhase3] = Json.format[ApplicationForSkippingPhase3]
+object ApplicationForSkippingPhases {
+  implicit val applicationForSkippingPhases: OFormat[ApplicationForSkippingPhases] = Json.format[ApplicationForSkippingPhases]
 }

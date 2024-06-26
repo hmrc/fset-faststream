@@ -23,13 +23,15 @@ import javax.inject.{Inject, Singleton}
 import model.ApplicationStatus.ApplicationStatus
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
+import model.command.ApplicationForSkippingPhases
 import model.persisted._
-import model.{ApplicationStatus, ReminderNotice}
+import model.{ApplicationStatus, EvaluationResults, ProgressStatuses, ReminderNotice}
+import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.{BsonArray, BsonDocument}
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
+import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}
 import repositories.{CollectionNames, subDocRoot}
 
 import java.time.OffsetDateTime
@@ -48,6 +50,8 @@ trait Phase2TestRepository extends OnlineTestRepository with Phase2TestConcern {
   def updateGroupExpiryTime(applicationId: String, expirationDate: OffsetDateTime): Future[Unit]
   def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]]
   def applicationReadyForOnlineTesting(applicationId: String): Future[Option[OnlineTestApplication]]
+  def nextApplicationsReadyToSkipPhases(batchSize: Int): Future[Seq[ApplicationForSkippingPhases]]
+  def skipPhases(application: ApplicationForSkippingPhases): Future[Unit]
 }
 
 @Singleton
@@ -172,5 +176,45 @@ class Phase2TestMongoRepository @Inject()(dateTime: DateTimeFactory, mongoCompon
     ))
 
     nextTestForReminder(reminder, progressStatusQuery)
+  }
+
+  // Additional collection configured to work with the appropriate domainFormat and automatically register the
+  // codec to work with BSON serialization
+  val applicationForSkippingCollection: MongoCollection[ApplicationForSkippingPhases] =
+  CollectionFactory.collection(
+    collectionName = CollectionNames.APPLICATION,
+    db = mongoComponent.database,
+    domainFormat = ApplicationForSkippingPhases.applicationForSkippingPhases
+  )
+
+  override def nextApplicationsReadyToSkipPhases(batchSize: Int): Future[Seq[ApplicationForSkippingPhases]] = {
+    // Applications that we need to move to a state where they have skipped phase2 and passed phase3:
+    // They need to be in PHASE1_TESTS_PASSED_NOTIFIED
+    // They must have at least one P2 scheme evaluated to Green
+    // And no Amber banded schemes because all schemes must in a terminal evaluation state (Greens or Reds)
+    val query = Document("$and" -> BsonArray(
+      Document("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED.toBson),
+      Document(s"testGroups.PHASE1.evaluation.result" -> Document("$elemMatch" -> Document("result" -> EvaluationResults.Green.toString))),
+      Document(s"testGroups.PHASE1.evaluation.result" ->
+        Document("$not" -> Document("$elemMatch" -> Document("result" -> EvaluationResults.Amber.toString))))
+    )
+    )
+    selectRandom[ApplicationForSkippingPhases](applicationForSkippingCollection, query, batchSize)
+  }
+
+  // Put the candidates in the same state as they would be in if they had passed phase3
+  override def skipPhases(application: ApplicationForSkippingPhases): Future[Unit] = {
+    val query = Document("applicationId" -> application.applicationId)
+    val update = Document("$set" ->
+      Document(
+        "testGroups.PHASE3.evaluation.result" -> Codecs.toBson(application.currentSchemeStatus),
+        "applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED.toBson,
+      ).++(
+        progressStatusOnlyBSON(ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED)
+      )
+    )
+
+    val validator = singleUpdateValidator(application.applicationId, actionDesc = s"Skipping phases for ${application.applicationId}")
+    collection.updateOne(query, update).toFuture() map validator
   }
 }
