@@ -189,11 +189,11 @@ class Phase2TestMongoRepository @Inject()(dateTime: DateTimeFactory, mongoCompon
 
   override def nextApplicationsReadyToSkipPhases(batchSize: Int): Future[Seq[ApplicationForSkippingPhases]] = {
     // Applications that we need to move to a state where they have skipped phase2 and passed phase3:
-    // They need to be in PHASE1_TESTS_PASSED_NOTIFIED
+    // They need to be in PHASE1_TESTS_PASSED
     // They must have at least one P2 scheme evaluated to Green
     // And no Amber banded schemes because all schemes must in a terminal evaluation state (Greens or Reds)
     val query = Document("$and" -> BsonArray(
-      Document("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED.toBson),
+      Document("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED.toBson),
       Document(s"testGroups.PHASE1.evaluation.result" -> Document("$elemMatch" -> Document("result" -> EvaluationResults.Green.toString))),
       Document(s"testGroups.PHASE1.evaluation.result" ->
         Document("$not" -> Document("$elemMatch" -> Document("result" -> EvaluationResults.Amber.toString))))

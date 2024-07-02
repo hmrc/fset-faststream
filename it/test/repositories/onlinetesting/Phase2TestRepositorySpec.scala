@@ -98,8 +98,8 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         )
       )
 
-      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED.toString,
-        additionalProgressStatuses = List((PHASE1_TESTS_PASSED_NOTIFIED, true)),
+      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", ApplicationStatus.PHASE1_TESTS_PASSED.toString,
+        additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true)),
         phase1TestProfile = Some(p1),
         currentSchemeStatus = Some(Seq(
           SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
@@ -134,8 +134,8 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         )
       )
 
-      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED.toString,
-        additionalProgressStatuses = List((PHASE1_TESTS_PASSED_NOTIFIED, true)),
+      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", ApplicationStatus.PHASE1_TESTS_PASSED.toString,
+        additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true)),
         phase1TestProfile = Some(p1),
         currentSchemeStatus = Some(Seq(
           SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
@@ -169,8 +169,8 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         )
       )
 
-      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED.toString,
-        additionalProgressStatuses = List((PHASE1_TESTS_PASSED_NOTIFIED, true)),
+      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", ApplicationStatus.PHASE1_TESTS_PASSED.toString,
+        additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true)),
         phase1TestProfile = Some(p1),
         currentSchemeStatus = Some(Seq(
           SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
