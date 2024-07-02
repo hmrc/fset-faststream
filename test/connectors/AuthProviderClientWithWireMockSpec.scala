@@ -22,10 +22,12 @@ import connectors.AuthProviderClient.{TokenEmailPairInvalidException, TokenExpir
 import connectors.ExchangeObjects.{Candidate, UserAuthInfo}
 import model.Exceptions.ConnectorException
 import model.exchange.SimpleTokenResponse
-import play.api.http.Status.{BAD_REQUEST, GONE, NOT_FOUND, OK, REQUEST_ENTITY_TOO_LARGE}
+import play.api.http.Status._
 import play.api.libs.json.Json
+// Added ShortTimeout as these tests sometimes fail on Jenkins with the default 150ms timeout defined in the default PatienceConfig
+import testkit.ShortTimeout
 
-class AuthProviderClientWithWireMockSpec extends BaseConnectorWithWireMockSpec {
+class AuthProviderClientWithWireMockSpec extends BaseConnectorWithWireMockSpec with ShortTimeout {
 
   val serviceName = "testServiceName"
 

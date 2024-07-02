@@ -82,5 +82,8 @@ lazy val microservice = Project(appName, file("."))
 lazy val it = (project in file("it"))
   .enablePlugins(PlayScala)
   .dependsOn(microservice % "test->test") // the "test->test" allows reusing test code and test dependencies
+  .settings(
+      Test / javaOptions += "-Dconfig.resource=application.it.conf"
+  )
   .settings(DefaultBuildSettings.itSettings(true))
   .settings(DefaultBuildSettings.addTestReportOption(Test, "int-test-reports"))

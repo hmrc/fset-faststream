@@ -18,7 +18,7 @@ package services.testdata.candidate.onlinetests
 
 import javax.inject.{Inject, Singleton}
 import model.ProgressStatuses.{PHASE1_TESTS_PASSED_NOTIFIED, PHASE3_TESTS_PASSED_NOTIFIED, ProgressStatus}
-import model.command.ApplicationForSkippingPhase3
+import model.command.ApplicationForSkippingPhases
 import model.exchange.testdata.CreateCandidateResponse.{CreateCandidateResponse, TestGroupResponse}
 import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
@@ -50,7 +50,7 @@ class Phase3TestsPassedNotifiedStatusGenerator @Inject() (val previousStatusGene
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
       css <- appRepository.getCurrentSchemeStatus(candidate.applicationId.get)
-      _ <- phase3TestRepository.skipPhase3(ApplicationForSkippingPhase3(candidate.applicationId.get, css))
+      _ <- phase3TestRepository.skipPhase3(ApplicationForSkippingPhases(candidate.applicationId.get, css))
     } yield {
       updateGenerationResponse(candidate, css)
     }

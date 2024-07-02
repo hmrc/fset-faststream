@@ -37,6 +37,7 @@ GET     /candidate-application/test-only/expire-online-tests/:phase             
 GET     /candidate-application/test-only/evaluate-phase1-candidate                            @controllers.testdata.TestJobsController.evaluatePhase1OnlineTestsCandidate
 GET     /candidate-application/test-only/evaluate-phase2-candidate                            @controllers.testdata.TestJobsController.evaluatePhase2EtrayCandidate
 GET     /candidate-application/test-only/evaluate-phase3-candidate                            @controllers.testdata.TestJobsController.evaluatePhase3VideoInterviewCandidate
+GET     /candidate-application/test-only/skip-phases                                          @controllers.testdata.TestJobsController.processSkipPhasesJob
 GET     /candidate-application/test-only/skip-phase3                                          @controllers.testdata.TestJobsController.processSkipPhase3Job
 GET     /candidate-application/test-only/fix-sdipfs-phase3-skipped-candidates                 @controllers.testdata.TestJobsController.processFixSdipFsP3SkippedCandidatesJob
 GET     /candidate-application/test-only/process-phase1-success                               @controllers.testdata.TestJobsController.processSuccessPhase1TestJob

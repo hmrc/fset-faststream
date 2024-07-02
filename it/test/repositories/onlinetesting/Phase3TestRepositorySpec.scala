@@ -19,7 +19,7 @@ package repositories.onlinetesting
 import connectors.launchpadgateway.exchangeobjects.in.{SetupProcessCallbackRequest, ViewPracticeQuestionCallbackRequest}
 import model.ProgressStatuses._
 import model._
-import model.command.ApplicationForSkippingPhase3
+import model.command.ApplicationForSkippingPhases
 import model.persisted.phase3tests.{LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup}
 import model.persisted.{PassmarkEvaluation, Phase2TestGroup, SchemeEvaluationResult}
 import org.mongodb.scala.bson.collection.immutable.Document
@@ -212,7 +212,7 @@ class Phase3TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         ))
       ).futureValue
 
-      val application = ApplicationForSkippingPhase3("appId",
+      val application = ApplicationForSkippingPhases("appId",
         currentSchemeStatus = Seq(
           SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
           SchemeEvaluationResult(Commercial, EvaluationResults.Red.toString)

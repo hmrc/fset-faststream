@@ -30,7 +30,7 @@ import model.Exceptions.NotFoundException
 import model.OnlineTestCommands._
 import model.ProgressStatuses._
 import model._
-import model.command.{ApplicationForSkippingPhase3, ProgressResponse}
+import model.command.{ApplicationForSkippingPhases, ProgressResponse}
 import model.exchange.{Phase3TestGroupWithActiveTest, PsiRealTimeResults}
 import model.persisted.phase3tests.{LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup}
 import model.persisted.{NotificationExpiringOnlineTest, Phase3TestGroupWithAppId}
@@ -69,24 +69,24 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
 
   val gatewayConfig = appConfig.launchpadGatewayConfig
 
-  def nextApplicationsReadyToSkipPhase3(maxBatchSize: Int): Future[Seq[ApplicationForSkippingPhase3]] = {
+  def nextApplicationsReadyToSkipPhase3(maxBatchSize: Int): Future[Seq[ApplicationForSkippingPhases]] = {
     testRepository.nextApplicationsReadyToSkipPhase3(maxBatchSize)
   }
 
-  def progressApplicationsToSkipPhase3(applications: Seq[ApplicationForSkippingPhase3])
-  : Future[SerialUpdateResult[ApplicationForSkippingPhase3]] = {
+  def progressApplicationsToSkipPhase3(applications: Seq[ApplicationForSkippingPhases])
+  : Future[SerialUpdateResult[ApplicationForSkippingPhases]] = {
     val updates = FutureEx.traverseSerial(applications) { application =>
       FutureEx.futureToEither(application, testRepository.skipPhase3(application))
     }
     updates.map(SerialUpdateResult.fromEither)
   }
 
-  def nextApplicationsReadyToFixSdipFsP3SkippedCandidates(maxBatchSize: Int): Future[Seq[ApplicationForSkippingPhase3]] = {
+  def nextApplicationsReadyToFixSdipFsP3SkippedCandidates(maxBatchSize: Int): Future[Seq[ApplicationForSkippingPhases]] = {
     testRepository.nextApplicationsReadyToFixSdipFsP3SkippedCandidates(maxBatchSize)
   }
 
-  def fixSdipFsP3SkippedCandidates(applications: Seq[ApplicationForSkippingPhase3])
-  : Future[SerialUpdateResult[ApplicationForSkippingPhase3]] = {
+  def fixSdipFsP3SkippedCandidates(applications: Seq[ApplicationForSkippingPhases])
+  : Future[SerialUpdateResult[ApplicationForSkippingPhases]] = {
     val updates = FutureEx.traverseSerial(applications) { application =>
       FutureEx.futureToEither(application, testRepository.fixSdipFsP3SkippedCandidates(application))
     }

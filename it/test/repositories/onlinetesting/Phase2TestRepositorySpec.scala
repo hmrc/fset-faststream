@@ -17,11 +17,14 @@
 package repositories.onlinetesting
 
 import model.ProgressStatuses._
+import model.command.ApplicationForSkippingPhases
 import model.persisted._
-import model.{ApplicationStatus, Phase2FirstReminder, Phase2SecondReminder, ProgressStatuses}
+import model.{ApplicationStatus, EvaluationResults, Phase2FirstReminder, Phase2SecondReminder, ProgressStatuses}
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.Projections
 import repositories.offsetDateTimeToBson
 import testkit.MongoRepositorySpec
+import uk.gov.hmrc.mongo.play.json.Codecs
 
 import java.time.temporal.ChronoUnit
 import java.time.{OffsetDateTime, ZoneId}
@@ -70,6 +73,145 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       phase2TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
       val result = phase2TestRepo.getTestGroup("appId").futureValue
       result mustBe Some(TestProfile)
+    }
+  }
+
+  "Skip phases" should {
+    "fetch an application which can skip phases if there is at least a single Green scheme and no Amber schemes at P1" in {
+      val p1 = Phase1TestProfile(
+        expirationDate = Now, tests = List(
+          model.Phase1TestExamples.firstPsiTest(Now),
+          model.Phase1TestExamples.secondPsiTest(Now),
+          model.Phase1TestExamples.thirdPsiTest(Now)
+        ),
+        evaluation = Some(
+          PassmarkEvaluation(
+            passmarkVersion = "previousVersion",
+            previousPhasePassMarkVersion = None,
+            result = List(
+              SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
+              SchemeEvaluationResult(Commercial, EvaluationResults.Red.toString)
+            ),
+            resultVersion = "version1",
+            previousPhaseResultVersion = None
+          )
+        )
+      )
+
+      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED.toString,
+        additionalProgressStatuses = List((PHASE1_TESTS_PASSED_NOTIFIED, true)),
+        phase1TestProfile = Some(p1),
+        currentSchemeStatus = Some(Seq(
+          SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
+          SchemeEvaluationResult(Commercial, EvaluationResults.Red.toString)
+        ))
+      ).futureValue
+
+      val results = phase2TestRepo.nextApplicationsReadyToSkipPhases(1).futureValue
+
+      results.length mustBe 1
+      results.head.applicationId mustBe "appId"
+    }
+
+    "do not fetch an application who can skip phases if there is a single Amber scheme at P1" in {
+      val p1 = Phase1TestProfile(
+        expirationDate = Now, tests = List(
+          model.Phase1TestExamples.firstPsiTest(Now),
+          model.Phase1TestExamples.secondPsiTest(Now),
+          model.Phase1TestExamples.firstPsiTest(Now)
+        ),
+        evaluation = Some(
+          PassmarkEvaluation(
+            passmarkVersion = "previousVersion",
+            previousPhasePassMarkVersion = None,
+            result = List(
+              SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
+              SchemeEvaluationResult(Commercial, EvaluationResults.Amber.toString)
+            ),
+            resultVersion = "version1",
+            previousPhaseResultVersion = None
+          )
+        )
+      )
+
+      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED.toString,
+        additionalProgressStatuses = List((PHASE1_TESTS_PASSED_NOTIFIED, true)),
+        phase1TestProfile = Some(p1),
+        currentSchemeStatus = Some(Seq(
+          SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
+          SchemeEvaluationResult(Commercial, EvaluationResults.Amber.toString)
+        ))
+      ).futureValue
+
+      val results = phase2TestRepo.nextApplicationsReadyToSkipPhases(1).futureValue
+
+      results.length mustBe 0
+    }
+
+    "process an application so they skip to the end of phase 3" in {
+      val p1 = Phase1TestProfile(
+        expirationDate = Now, tests = List(
+          model.Phase1TestExamples.firstPsiTest(Now),
+          model.Phase1TestExamples.secondPsiTest(Now),
+          model.Phase1TestExamples.thirdPsiTest(Now)
+        ),
+        evaluation = Some(
+          PassmarkEvaluation(
+            passmarkVersion = "previousVersion",
+            previousPhasePassMarkVersion = None,
+            result = List(
+              SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
+              SchemeEvaluationResult(Commercial, EvaluationResults.Red.toString)
+            ),
+            resultVersion = "version1",
+            previousPhaseResultVersion = None
+          )
+        )
+      )
+
+      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED.toString,
+        additionalProgressStatuses = List((PHASE1_TESTS_PASSED_NOTIFIED, true)),
+        phase1TestProfile = Some(p1),
+        currentSchemeStatus = Some(Seq(
+          SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
+          SchemeEvaluationResult(Commercial, EvaluationResults.Red.toString)
+        ))
+      ).futureValue
+
+      val application = ApplicationForSkippingPhases("appId",
+        currentSchemeStatus = Seq(
+          SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
+          SchemeEvaluationResult(Commercial, EvaluationResults.Red.toString)
+        )
+      )
+      phase2TestRepo.skipPhases(application).futureValue
+      val status = helperRepo.findStatus(application.applicationId).futureValue
+      status.status mustBe ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED.toString
+      fetchPhase3Evaluation(application.applicationId).futureValue mustBe
+        Seq(
+          SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
+          SchemeEvaluationResult(Commercial, EvaluationResults.Red.toString)
+        )
+    }
+  }
+
+  private def fetchPhase3Evaluation(applicationId: String) = {
+    val query = Document(
+      "applicationId" -> applicationId,
+      "testGroups.PHASE3.evaluation.result" -> Document("$exists" -> true)
+    )
+    val projection = Projections.include(s"testGroups.PHASE3.evaluation.result", "applicationId")
+
+    applicationCollection.find[Document](query).projection(projection).headOption() map { docList =>
+      docList.flatMap { doc =>
+        doc.get("testGroups")
+          .map(_.asDocument().get("PHASE3"))
+          .map(_.asDocument().get("evaluation"))
+          .map(_.asDocument().get("result")).map { bson =>
+          val evaluation = Codecs.fromBson[Seq[SchemeEvaluationResult]](bson)
+          evaluation
+        }
+      }.getOrElse(Nil)
     }
   }
 

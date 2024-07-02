@@ -23,30 +23,30 @@ import scheduler.clustering.SingleInstanceScheduledJob
 import javax.inject.Inject
 import play.api.{Configuration, Logging}
 import scheduler.BasicJobConfig
-import services.onlinetesting.phase3.Phase3TestService
+import services.onlinetesting.phase2.Phase2TestService
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class SkipPhase3JobImpl @Inject() (val phase3TestService: Phase3TestService,
+class SkipPhasesJobImpl @Inject() (val phase2TestService: Phase2TestService,
                                    val mongoComponent: MongoComponent,
-                                   val config: SkipPhase3JobConfig
-                                  ) extends SkipPhase3Job {
+                                   val config: SkipPhasesJobConfig
+                                  ) extends SkipPhasesJob {
 }
 
-trait SkipPhase3Job extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {
-  val phase3TestService: Phase3TestService
+trait SkipPhasesJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {
+  val phase2TestService: Phase2TestService
 
   val batchSize: Int = config.conf.batchSize.getOrElse(10)
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
-    phase3TestService.nextApplicationsReadyToSkipPhase3(batchSize).flatMap {
+    phase2TestService.nextApplicationsReadyToSkipPhases(batchSize).flatMap {
       case Nil =>
         // Warn level so we see it in the prod logs
-        logger.warn(s"Skip phase3 job complete - batchSize = $batchSize, no candidates found")
+        logger.warn(s"Skip phases job complete - batchSize = $batchSize, no candidates found")
         Future.successful(())
-      case applications => phase3TestService.progressApplicationsToSkipPhase3(applications).map { result =>
+      case applications => phase2TestService.progressApplicationsToSkipPhases(applications).map { result =>
         logger.warn(
-          s"Skip phase3 job complete - batchSize = $batchSize, ${result.successes.size} updated " +
+          s"Skip phases job complete - batchSize = $batchSize, ${result.successes.size} updated " +
             s"appIds: ${result.successes.map(_.applicationId).mkString(",")} and ${result.failures.size} failed to update " +
             s"appIds: ${result.failures.map(_.applicationId).mkString(",")}"
         )
@@ -55,8 +55,8 @@ trait SkipPhase3Job extends SingleInstanceScheduledJob[BasicJobConfig[WaitingSch
   }
 }
 
-class SkipPhase3JobConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
+class SkipPhasesJobConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
   config = config,
-  configPrefix = "scheduling.online-testing.skip-phase3-job",
-  name = "SkipPhase3Job"
+  configPrefix = "scheduling.online-testing.skip-phases-job",
+  name = "SkipPhasesJob"
 )
