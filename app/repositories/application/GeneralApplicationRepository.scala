@@ -55,8 +55,7 @@ import scala.util.Try
 
 // scalastyle:off number.of.methods
 trait GeneralApplicationRepository {
-  def create(userId: String, frameworkId: String, applicationRoute: ApplicationRoute,
-             sdipDiversityOpt: Option[Boolean] = None): Future[ApplicationResponse]
+  def create(userId: String, frameworkId: String, applicationRoute: ApplicationRoute): Future[ApplicationResponse]
   def find(applicationId: String): Future[Option[Candidate]]
   def findAllFileInfo: Future[Seq[CandidateFileInfo]]
   def find(applicationIds: Seq[String]): Future[List[Candidate]]
@@ -178,14 +177,9 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       }
   }
 
-  override def create(userId: String, frameworkId: String, route: ApplicationRoute,
-                      sdipDiversityOpt: Option[Boolean] = None): Future[ApplicationResponse] = {
+  override def create(userId: String, frameworkId: String, route: ApplicationRoute): Future[ApplicationResponse] = {
     val applicationId = UUID.randomUUID().toString
     val testAccountId = UUID.randomUUID().toString
-
-    // Only try and store the sdipDiversity value if we have a value otherwise null will be persisted
-    val sdipDiversityDoc = sdipDiversityOpt.map { sdipDiversity => Document("sdipDiversity" -> sdipDiversity) }
-      .getOrElse(Document.empty)
 
     val applicationBSON = Document(
       "applicationId" -> applicationId,
@@ -194,7 +188,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       "frameworkId" -> frameworkId,
       "applicationStatus" -> CREATED.toBson,
       "applicationRoute" -> route.toBson
-    ) ++ sdipDiversityDoc
+    )
 
     applicationCollection.insertOne(applicationBSON).toFuture() flatMap { _ =>
       findProgress(applicationId).map { p =>

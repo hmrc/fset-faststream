@@ -217,7 +217,6 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     val userId = extractUserId(doc)
     val applicationId = extractAppId(doc)
     val applicationRoute = extractApplicationRoute(doc)
-    val sdipDiversity = Try(doc.get("sdipDiversity").map(_.asBoolean().getValue)).toOption.flatten
     val schemes = extractSchemes(doc)
 
     val adDoc = subDocRoot("assistance-details")(doc)
@@ -233,7 +232,6 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       applicationId,
       ProgressStatusesReportLabels.progressStatusNameInReports(progress),
       applicationRoute,
-      sdipDiversity,
       schemes.getOrElse(Nil),
       disability,
       gis,

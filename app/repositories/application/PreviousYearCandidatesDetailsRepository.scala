@@ -128,7 +128,7 @@ trait PreviousYearCandidatesDetailsRepository {
     "GIS,Extra support f2f,What adjustments will you need,Extra support phone interview,What adjustments will you need," +
     "Additional comments,"
 
-  def applicationDetailsHeader(numOfSchemes: Int) = "applicationId,userId,testAccountId,Framework ID,Application Status,Route,SdipDiversity,First name,Last name," +
+  def applicationDetailsHeader(numOfSchemes: Int) = "applicationId,userId,testAccountId,Framework ID,Application Status,Route,First name,Last name," +
     "Preferred Name,Date of Birth,Are you eligible,Terms and Conditions," +
     "Civil servant,EDIP,EDIP year,SDIP,SDIP year,Other internship,Other internship name,Other internship year,Fast Pass No," +
     "Scheme preferences,Scheme names,Are you happy with order,Are you eligible," +
@@ -394,7 +394,6 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
             List(doc.get("frameworkId").map(_.asString().getValue)) :::
             List(doc.get("applicationStatus").map(_.asString().getValue)) :::
             List(doc.get("applicationRoute").map(_.asString().getValue)) :::
-            List(if (Try(doc.get("sdipDiversity").map(_.asBoolean().getValue)).getOrElse(Some(false)).getOrElse(false)) Y else N) :::
             personalDetails(doc, isAnalystReport = false) :::
             List(progressResponseReachedYesNo(progressResponse.personalDetails)) :::
             List(progressResponseReachedYesNo(progressResponse.personalDetails)) :::

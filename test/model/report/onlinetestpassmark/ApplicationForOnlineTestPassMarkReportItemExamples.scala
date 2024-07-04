@@ -41,7 +41,6 @@ object ApplicationForOnlineTestPassMarkReportItemExamples extends Schemes {
       "appId",
       "phase1_tests_results_received",
       ApplicationRoute.Faststream,
-      sdipDiversity = None,
       List(Commercial, DigitalDataTechnologyAndCyber),
       disability = None,
       gis = None,

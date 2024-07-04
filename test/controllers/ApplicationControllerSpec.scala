@@ -53,7 +53,7 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
 
   "Create Application" must {
     "create an application" in new TestFixture {
-      when(mockApplicationRepository.create(any(), any(), any(), any())).thenReturnAsync(
+      when(mockApplicationRepository.create(any(), any(), any())).thenReturnAsync(
         ApplicationResponse("a1234", "CREATED", ApplicationRoute.Faststream, "1234", "testAccountId",
         ProgressResponse("a1234"), civilServiceExperienceDetails = None, overriddenSubmissionDeadline = None)
       )
