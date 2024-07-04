@@ -19,8 +19,7 @@ package model
 import model.ApplicationRoute.ApplicationRoute
 import play.api.libs.json.{ Format, Json }
 
-case class CreateApplicationRequest(userId: String, applicationRoute: ApplicationRoute,
-                                    frameworkId: String, sdipDiversity: Option[Boolean] = None)
+case class CreateApplicationRequest(userId: String, applicationRoute: ApplicationRoute, frameworkId: String)
 
 object CreateApplicationRequest {
   implicit val createApplicationRequestFormat: Format[CreateApplicationRequest] = Json.format[CreateApplicationRequest]

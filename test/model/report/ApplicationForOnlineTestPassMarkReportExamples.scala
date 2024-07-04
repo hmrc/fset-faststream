@@ -43,7 +43,6 @@ object ApplicationForOnlineTestPassMarkReportExamples extends Schemes {
       UUIDFactory.generateUUID(),
       "phase1_tests_results_received",
       ApplicationRoute.Faststream,
-      sdipDiversity = None,
       List(Commercial, DigitalDataTechnologyAndCyber),
       disability = None,
       gis = None,

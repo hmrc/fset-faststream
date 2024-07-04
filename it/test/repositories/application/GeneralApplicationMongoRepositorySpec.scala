@@ -84,11 +84,6 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     }
 
     "create candidate" should {
-      "create and fetch an sdip diversity candidate" in {
-        val newCandidate = repository.create("userId", "frameworkId", ApplicationRoute.Faststream, sdipDiversityOpt = Some(true)).futureValue
-        isSdipDiversity(newCandidate.applicationId).futureValue mustBe Some(true)
-      }
-
       "create and fetch a non sdip diversity candidate" in {
         val newCandidate = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
         isSdipDiversity(newCandidate.applicationId).futureValue mustBe None
