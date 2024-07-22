@@ -201,6 +201,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
         applicationId,
         personalDetails = getProgress(ProgressStatuses.PERSONAL_DETAILS.key),
         schemePreferences = getProgress(ProgressStatuses.SCHEME_PREFERENCES.key),
+        locationPreferences = getProgress(ProgressStatuses.LOCATION_PREFERENCES.key),
         assistanceDetails = getProgress(ProgressStatuses.ASSISTANCE_DETAILS.key),
         preview = getProgress(ProgressStatuses.PREVIEW.key),
         questionnaire = questionnaire(root),
