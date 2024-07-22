@@ -29,6 +29,7 @@ import repositories.contactdetails.{ContactDetailsMongoRepository, ContactDetail
 import repositories.events._
 import repositories.fsacindicator.{FSACIndicatorMongoRepository, FSACIndicatorRepository}
 import repositories.fsb.{FsbMongoRepository, FsbRepository}
+import repositories.locationpreferences.{LocationPreferencesMongoRepository, LocationPreferencesRepository}
 import repositories.onlinetesting._
 import repositories.personaldetails.{PersonalDetailsMongoRepository, PersonalDetailsRepository}
 import repositories.schemepreferences.{SchemePreferencesMongoRepository, SchemePreferencesRepository}
@@ -81,6 +82,7 @@ class Module(val environment: Environment, val configuration: Configuration) ext
     bind(classOf[FSACIndicatorRepository]).to(classOf[FSACIndicatorMongoRepository]).asEagerSingleton()
 
     bind(classOf[SchemePreferencesRepository]).to(classOf[SchemePreferencesMongoRepository]).asEagerSingleton()
+    bind(classOf[LocationPreferencesRepository]).to(classOf[LocationPreferencesMongoRepository]).asEagerSingleton()
 
     bind(classOf[AssistanceDetailsRepository]).to(classOf[AssistanceDetailsMongoRepository]).asEagerSingleton()
     bind(classOf[FrameworkPreferenceRepository]).to(classOf[FrameworkPreferenceMongoRepository]).asEagerSingleton()

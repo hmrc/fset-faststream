@@ -40,6 +40,8 @@ object Exceptions {
 
   case class CannotUpdateSchemePreferences(applicationId: String) extends Exception(applicationId)
 
+  case class CannotUpdateLocationPreferences(applicationId: String) extends Exception(applicationId)
+
   case class CannotUpdateAssistanceDetails(userId: String) extends Exception(userId)
 
   case class CannotUpdatePreview(applicationId: String) extends Exception(applicationId)
@@ -60,6 +62,8 @@ object Exceptions {
   case class ContactDetailsNotFoundForEmail() extends Exception
 
   case class SchemePreferencesNotFound(applicationId: String) extends Exception(applicationId)
+
+  case class LocationPreferencesNotFound(applicationId: String) extends Exception(applicationId)
 
   case class PassMarkEvaluationNotFound(applicationId: String) extends Exception(applicationId)
 

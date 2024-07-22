@@ -44,7 +44,7 @@ class SchemePreferencesMongoRepository @Inject() (mongo: MongoComponent)(implici
 
   private val SchemePreferencesDocumentKey = "scheme-preferences"
 
-  def find(applicationId: String): Future[SelectedSchemes] = {
+  override def find(applicationId: String): Future[SelectedSchemes] = {
     val query = Filters.and(Filters.equal("applicationId", applicationId), Filters.exists(SchemePreferencesDocumentKey))
     val projection = Projections.include(SchemePreferencesDocumentKey)
 
@@ -54,7 +54,7 @@ class SchemePreferencesMongoRepository @Inject() (mongo: MongoComponent)(implici
     }
   }
 
-  def save(applicationId: String, schemePreference: SelectedSchemes): Future[Unit] = {
+  override def save(applicationId: String, schemePreference: SelectedSchemes): Future[Unit] = {
     val query = Document("applicationId" -> applicationId)
     val update = Document("$set" -> Document(
       SchemePreferencesDocumentKey -> Codecs.toBson(schemePreference),
@@ -67,7 +67,7 @@ class SchemePreferencesMongoRepository @Inject() (mongo: MongoComponent)(implici
     collection.updateOne(query, update).toFuture() map validator
   }
 
-  def add(applicationId: String, newScheme: SchemeId): Future[Unit] = {
+  override def add(applicationId: String, newScheme: SchemeId): Future[Unit] = {
     val query = Document("applicationId" -> applicationId)
     val update = Document(
       "$addToSet" -> Document(

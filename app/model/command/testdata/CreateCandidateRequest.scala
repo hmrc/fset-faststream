@@ -17,7 +17,7 @@
 package model.command.testdata
 
 import model.ApplicationRoute.ApplicationRoute
-import model.SchemeId
+import model.{LocationId, SchemeId}
 import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
 import play.api.libs.json.{Json, OFormat}
 
@@ -172,6 +172,7 @@ object CreateCandidateRequest {
                                      diversityDetails: Option[DiversityDetailsRequest],
                                      assistanceDetails: Option[AssistanceDetailsRequest],
                                      schemeTypes: Option[List[SchemeId]],
+                                     locationPreferences: Option[List[LocationId]],
                                      isCivilServant: Option[Boolean],
                                      civilServantAndInternshipTypes: Option[List[String]],
                                      hasFastPass: Option[Boolean],
@@ -201,6 +202,7 @@ object CreateCandidateRequest {
         assistanceDetails = None,
         personalData = None,
         schemeTypes = None,
+        locationPreferences = None,
         isCivilServant = None,
         civilServantAndInternshipTypes = None,
         hasFastPass = None,

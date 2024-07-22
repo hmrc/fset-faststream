@@ -19,13 +19,13 @@ package controllers.testdata
 import javax.inject.{Inject, Singleton}
 import model.ApplicationRoute.ApplicationRoute
 import model.command.testdata.CreateCandidateRequest.CreateCandidateRequest
-import model.{ApplicationRoute, ApplicationStatus, SchemeId, Schemes}
-import repositories.SchemeRepository
+import model.{ApplicationRoute, ApplicationStatus, LocationId, SchemeId, Schemes}
+import repositories.{LocationRepository, SchemeRepository}
 
 case class ValidatorResult(result: Boolean, message: Option[String])
 
 @Singleton
-class CreateCandidateRequestValidator @Inject() (schemeRepository: SchemeRepository) extends Schemes {
+class CreateCandidateRequestValidator @Inject() (schemeRepository: SchemeRepository, locationRepository: LocationRepository) extends Schemes {
 
   def validate(request: CreateCandidateRequest): ValidatorResult = {
     if (!validateGis(request)) {
@@ -40,6 +40,8 @@ class CreateCandidateRequestValidator @Inject() (schemeRepository: SchemeReposit
       ValidatorResult(result = false, Some("Request contains incompatible values for Fastpass"))
     } else if (!validateSchemes(request).isValid) {
       ValidatorResult(result = false, Some(s"Request contains invalid scheme name(s): ${validateSchemes(request).message}"))
+    } else if (!validateLocations(request).isValid) {
+      ValidatorResult(result = false, Some(s"Request contains invalid location(s): ${validateLocations(request).message}"))
     } else if (!validateStemAndNonStemSchemesBothSelected(request).isValid) {
       ValidatorResult(
         result = false, Some(s"Request contains invalid scheme name(s): ${validateStemAndNonStemSchemesBothSelected(request).message}")
@@ -56,6 +58,14 @@ class CreateCandidateRequestValidator @Inject() (schemeRepository: SchemeReposit
     val requestSchemes = request.schemeTypes.map( _.toSet ).getOrElse(Set.empty[SchemeId])
     val result = requestSchemes diff validSchemes
     SchemeValidation(result.isEmpty, result.mkString(","))
+  }
+
+  case class LocationValidation(isValid: Boolean, message: String)
+  def validateLocations(request: CreateCandidateRequest): LocationValidation = {
+    val validLocations = locationRepository.locations.map( _.id ).toSet
+    val requestLocations = request.locationPreferences.map( _.toSet ).getOrElse(Set.empty[LocationId])
+    val result = requestLocations diff validLocations
+    LocationValidation(result.isEmpty, result.mkString(","))
   }
 
   def validateStemAndNonStemSchemesBothSelected(request: CreateCandidateRequest): SchemeValidation = {

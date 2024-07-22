@@ -29,7 +29,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 // scalastyle:off method.length
 @Singleton
-class InProgressAssistanceDetailsStatusGenerator @Inject() (val previousStatusGenerator: InProgressSchemePreferencesStatusGenerator,
+class InProgressAssistanceDetailsStatusGenerator @Inject() (val previousStatusGenerator: InProgressLocationPreferencesStatusGenerator,
                                                             adRepository: AssistanceDetailsRepository,
                                                             adjustmentsManagementService: AdjustmentsManagementService
                                                            )(implicit ec: ExecutionContext) extends ConstructiveGenerator {

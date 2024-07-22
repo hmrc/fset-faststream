@@ -47,6 +47,9 @@ object ProgressStatuses {
   case object SCHEME_PREFERENCES extends ProgressStatus(ApplicationStatus.IN_PROGRESS) {
     override def key = "scheme-preferences"}
 
+  case object LOCATION_PREFERENCES extends ProgressStatus(ApplicationStatus.IN_PROGRESS) {
+    override def key = "location-preferences"}
+
   case object ASSISTANCE_DETAILS extends ProgressStatus(ApplicationStatus.IN_PROGRESS) {
     override def key = "assistance-details"}
 

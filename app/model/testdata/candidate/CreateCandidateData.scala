@@ -175,6 +175,7 @@ object CreateCandidateData extends DataFakerRandom {
     assistanceDetails: AssistanceDetails = AssistanceDetails(),
     psiUrl: String,
     schemeTypes: Option[List[SchemeId]] = None,
+    locationPreferences: Option[List[LocationId]] = None,
     isCivilServant: Boolean = false,
     hasFastPass: Boolean = false,
     civilServantAndInternshipTypes: List[CivilServantAndInternshipType] = Nil,

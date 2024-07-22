@@ -11,6 +11,9 @@ POST        /fast-pass-evaluation/:userId/:applicationId                 @contro
 GET         /scheme-preferences/:applicationId                           @controllers.SchemePreferencesController.find(applicationId: String)
 PUT         /scheme-preferences/:applicationId                           @controllers.SchemePreferencesController.update(applicationId: String)
 
+GET         /location-preferences/:applicationId                         @controllers.LocationPreferencesController.find(applicationId: String)
+PUT         /location-preferences/:applicationId                         @controllers.LocationPreferencesController.update(applicationId: String)
+
 PUT         /assistance-details/:userId/:applicationId                   @controllers.AssistanceDetailsController.update(userId: String, applicationId: String)
 GET         /assistance-details/:userId/:applicationId                   @controllers.AssistanceDetailsController.find(userId: String, applicationId: String)
 
@@ -400,6 +403,8 @@ GET         /reference/locations                                         @contro
 GET         /reference/locations-with-venues                             @controllers.reference.LocationAndVenueController.locationsWithVenues
 
 GET         /reference/fsac/assessment-centres                           @controllers.reference.FsacIndicatorController.getAssessmentCentres
+
+GET         /reference/sdip/locations                                    @controllers.reference.SdipLocationsController.locations
 
 GET         /campaign-reset/listCollections                              @controllers.CampaignManagementController.listCollections
 GET         /campaign-reset/removeCollection                             @controllers.CampaignManagementController.removeCollection(name: String)

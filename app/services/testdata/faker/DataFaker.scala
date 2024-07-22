@@ -26,7 +26,7 @@ import model.exchange.AssessorAvailability
 import model.persisted.eventschedules.{EventType, Session, _}
 
 import java.time.{LocalDate, LocalTime}
-import repositories.SchemeRepository
+import repositories.{LocationRepository, SchemeRepository}
 import repositories.events.LocationsWithVenuesInMemoryYamlRepository
 import services.reporting.SizeOfPlaceOfWork
 
@@ -37,12 +37,14 @@ import scala.language.postfixOps
 
 @Singleton
 class DataFakerImpl @Inject () (schemeRepository: SchemeRepository,
+                                locationRepo: LocationRepository,
                                 locationsWithVenuesRepo: LocationsWithVenuesInMemoryYamlRepository) extends
-  DataFaker(schemeRepository, locationsWithVenuesRepo)
+  DataFaker(schemeRepository, locationRepo, locationsWithVenuesRepo)
 
 //scalastyle:off number.of.methods
 @ImplementedBy(classOf[DataFakerImpl])
 abstract class DataFaker(schemeRepo: SchemeRepository,
+                         locationRepo: LocationRepository,
                          locationsWithVenuesRepo: LocationsWithVenuesInMemoryYamlRepository) extends DataFakerRandom with Schemes {
 
   object ExchangeObjects {
@@ -126,6 +128,10 @@ abstract class DataFaker(schemeRepo: SchemeRepository,
   private def randNumberOfSchemes = Random.randOne(List(2, 3, 4))
 
   def schemeTypes = Random.randList(schemeRepo.schemes.toList, randNumberOfSchemes)
+
+  private def randNumberOfLocations = Random.randOne(List(2, 3, 4))
+
+  def locationPreferences = Random.randList(locationRepo.locations.toList, randNumberOfLocations)
 
   def gender = Random.randOne(List(
     "Male",

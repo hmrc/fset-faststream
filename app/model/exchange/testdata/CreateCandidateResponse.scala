@@ -18,9 +18,9 @@ package model.exchange.testdata
 
 import model.command.GeneralDetails
 import model.exchange.testdata.CreateAdminResponse.AssessorResponse
-import model.persisted.{ AssistanceDetails, _ }
-import model.{ Adjustments, SchemeId, SelectedSchemes }
-import play.api.libs.json.{ Json, OFormat }
+import model.persisted.{AssistanceDetails, _}
+import model.{Adjustments, SchemeId, SelectedLocations, SelectedSchemes}
+import play.api.libs.json.{Json, OFormat}
 
 object CreateCandidateResponse {
 
@@ -42,6 +42,7 @@ object CreateCandidateResponse {
     fsbTestGroup: Option[FsbTestGroupResponse] = None,
     siftForms: Option[Seq[SiftForm]] = None,
     schemePreferences: Option[SelectedSchemes] = None,
+    locationPreferences: Option[SelectedLocations] = None,
     accessCode: Option[String] = None,
     adjustmentInformation: Option[Adjustments] = None,
     assessor: Option[AssessorResponse] = None

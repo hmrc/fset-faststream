@@ -28,6 +28,7 @@ trait ProgressStatusesReportLabels {
   private def statusMaps(progress: ProgressResponse) = Seq(
     (progress.personalDetails, 10, PersonalDetailsCompletedProgress),
     (progress.schemePreferences, 20, SchemePreferencesCompletedProgress),
+    (progress.locationPreferences, 25, LocationPreferencesCompletedProgress),
     (progress.assistanceDetails, 30, AssistanceDetailsCompletedProgress),
     (progress.questionnaire.contains("start_questionnaire"), 40, StartDiversityQuestionnaireProgress),
     (progress.questionnaire.contains("diversity_questionnaire"), 50, DiversityQuestionsCompletedProgress),
@@ -160,6 +161,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val RegisteredProgress = "registered"
   val PersonalDetailsCompletedProgress = "personal_details_completed"
   val SchemePreferencesCompletedProgress = "scheme_preferences_completed"
+  val LocationPreferencesCompletedProgress = "location_preferences_completed"
   val AssistanceDetailsCompletedProgress = "assistance_details_completed"
   val PreviewCompletedProgress = "preview_completed"
   val StartDiversityQuestionnaireProgress = "start_diversity_questionnaire"
