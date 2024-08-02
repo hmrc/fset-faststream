@@ -155,7 +155,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
   trait TestFixture extends Schemes {
     val appConfigMock = mock[MicroserviceAppConfig]
 
-    val schemeConfig = SchemeConfig(yamlFilePath = "schemes.yaml")
+    val schemeConfig = SchemeConfig(yamlFilePath = "schemes.yaml", candidateFrontendUrl = "aHR0cDovL2xvY2FsaG9zdDo5Mjg0")
     when(appConfigMock.schemeConfig).thenReturn(schemeConfig)
 
     val repo = new SchemeYamlRepository()(app, appConfigMock)

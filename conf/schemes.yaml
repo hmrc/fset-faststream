@@ -17,7 +17,7 @@
     specificRequirement: false
   siftEvaluationRequired: false
   schemeGuide: https://www.faststream.gov.uk/media/1230/dat-guide.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1261/scheme-questions-ddat.rtf
+  schemeQuestion: /fset-fast-stream/media/1261/scheme-questions-ddat.rtf
 - id: DiplomaticAndDevelopment
   code: DS
   name: Diplomatic and Development
@@ -29,7 +29,7 @@
   siftEvaluationRequired: false
   fsbType: FCO
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB_Guide_Diplomatic.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/scheme-questions-ges-dds.odt
+  schemeQuestion: /fset-fast-stream/media/scheme-questions-ges-dds.odt
 - id: DiplomaticAndDevelopmentEconomics
   code: GES-DS
   name: Diplomatic and Development Economics
@@ -41,7 +41,7 @@
   siftEvaluationRequired: true
   fsbType: GES_DS
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB_Guide_Economic_Service.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/scheme-questions-ges-ddes.odt
+  schemeQuestion: /fset-fast-stream/media/scheme-questions-ges-ddes.odt
 - id: Finance
   code: FIFS
   name: Finance
@@ -64,7 +64,7 @@
   siftEvaluationRequired: false
   fsbType: GCFS FSB
   schemeGuide: https://www.faststream.gov.uk/media/1233/gcfs-guide.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1247/scheme-questions-gcfs.rtf
+  schemeQuestion: /fset-fast-stream/media/1247/scheme-questions-gcfs.rtf
 - id: GovernmentEconomicsService
   code: GES
   name: Government Economics Service
@@ -76,7 +76,7 @@
   siftEvaluationRequired: true
   fsbType: EAC
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB_Guide_Economic_Service.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1248/scheme-questions-ges.odt
+  schemeQuestion: /fset-fast-stream/media/1248/scheme-questions-ges.odt
 - id: GovernmentOperationalResearchService
   code: GORS
   name: Government Operational Research Service
@@ -88,7 +88,7 @@
   siftEvaluationRequired: true
   fsbType: ORAC
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Government-Operational-Research.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1249/scheme-questions-gors.odt
+  schemeQuestion: /fset-fast-stream/media/1249/scheme-questions-gors.odt
 # This was previously GeneralistSTEM
 - id: GovernmentPolicy
   code: GP
@@ -117,7 +117,7 @@
   siftEvaluationRequired: true
   fsbType: SRAC
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Social-Research.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1262/GSR-FS-scheme-questions-gsr.odt
+  schemeQuestion: /fset-fast-stream/media/1262/GSR-FS-scheme-questions-gsr.odt
 - id: GovernmentStatisticalService
   code: GSS
   name: Government Statistical Service
@@ -129,7 +129,7 @@
   siftEvaluationRequired: true
   fsbType: SAC
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Government-Statistical-Service.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1250/scheme-questions-gss.odt
+  schemeQuestion: /fset-fast-stream/media/1250/scheme-questions-gss.odt
 - id: HousesOfParliament
   code: HOP
   name: Houses Of Parliament
@@ -141,7 +141,7 @@
   siftEvaluationRequired: false
   fsbType: HOP FSB
   schemeGuide: https://www.faststream.gov.uk/media/1235/hop_fsb-guide.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1251/scheme-questions-hop-2021.odt
+  schemeQuestion: /fset-fast-stream/media/1251/scheme-questions-hop-2021.odt
 - id: HumanResources
   code: HRFS
   name: Human Resources
@@ -182,7 +182,7 @@
   siftEvaluationRequired: false
   fsbType: PDFS - Skype interview
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Project-Delivery.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1252/scheme-questions-pdfs-2021.odt
+  schemeQuestion: /fset-fast-stream/media/1252/scheme-questions-pdfs-2021.odt
 - id: Property
   code: PRO
   name: Property
@@ -193,7 +193,7 @@
   siftEvaluationRequired: false
   fsbType: PRO - Skype interview
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Property.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/Property-Additional-Information-Form.odt
+  schemeQuestion: /fset-fast-stream/media/Property-Additional-Information-Form.odt
 - id: ScienceAndEngineering
   code: SEFS
   name: Science and Engineering
@@ -205,7 +205,7 @@
   siftEvaluationRequired: true
   fsbType: SEFS FSB
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Science-and-Engineering.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1315/scheme-questions-sefs.odt
+  schemeQuestion: /fset-fast-stream/media/1315/scheme-questions-sefs.odt
 - id: Edip
   code: EDIP
   name: Early Diversity Internship Programme
@@ -214,7 +214,7 @@
   siftEvaluationRequired: false
   fsbType: EDIP - Telephone interview
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/EDIP-2023-Candidate-Guidance.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/1245/Early-Diversity-Internship-Programme-additional-information-form-2021-pw.odt
+  schemeQuestion: /fset-fast-stream/media/1245/Early-Diversity-Internship-Programme-additional-information-form-2021-pw.odt
 - id: Sdip
   code: SDIP
   name: Summer Internship Programme
@@ -223,4 +223,4 @@
   siftEvaluationRequired: false
   fsbType: SDIP - Telephone interview
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/SIP-2023-Candidate-Guidance.pdf
-  schemeQuestion: https://www.faststream.gov.uk/media/SIP-2023-additional-information-form.odt
+  schemeQuestion: /fset-fast-stream/media/SIP-2023-additional-information-form.odt

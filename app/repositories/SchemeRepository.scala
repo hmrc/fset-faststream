@@ -27,7 +27,7 @@ import resource._
 import javax.inject.{Inject, Singleton}
 import scala.io.Source
 
-object SchemeConfigProtocol extends DefaultYamlProtocol {
+case class SchemeConfigProtocol(urlPrefix: String) extends DefaultYamlProtocol {
   implicit object SiftRequirementFormat extends YamlFormat[SiftRequirement.Value] {
     def read(value: YamlValue): SiftRequirement.Value = value match {
       case YamlString(siftReq) => SiftRequirement.withName(siftReq.toUpperCase.replaceAll("\\s|-", "_"))
@@ -42,8 +42,9 @@ object SchemeConfigProtocol extends DefaultYamlProtocol {
     id: String, code: String, name: String, civilServantEligible: Boolean, degree: Option[Degree],
     siftRequirement: Option[SiftRequirement.Value], evaluationRequired: Boolean,
     fsbType: Option[String], schemeGuide: Option[String], schemeQuestion: Option[String]
-  ) => Scheme(SchemeId(id),code,name, civilServantEligible, degree, siftRequirement, evaluationRequired,
-    fsbType.map(t => FsbType(t)), schemeGuide, schemeQuestion))
+  ) => Scheme(SchemeId(id), code, name, civilServantEligible, degree, siftRequirement, evaluationRequired,
+    fsbType.map(t => FsbType(t)), schemeGuide, schemeQuestion.map( url => s"$urlPrefix$url" ))
+  )
 }
 
 @ImplementedBy(classOf[SchemeYamlRepository])
@@ -81,7 +82,8 @@ class SchemeYamlRepository @Inject() (implicit application: Application, appConf
   }
 
   override lazy val schemes: Seq[Scheme] = {
-    import SchemeConfigProtocol._
+    val schemeConfigProtocol = SchemeConfigProtocol(appConfig.schemeConfig.candidateFrontendUrl)
+    import schemeConfigProtocol._
     rawConfig.parseYaml.convertTo[List[Scheme]]
   }
 
