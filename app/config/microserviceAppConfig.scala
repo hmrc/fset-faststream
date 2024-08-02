@@ -22,11 +22,20 @@ import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.{Generated, ValueReader}
 import play.api.{Configuration, Environment}
 
+import java.util.Base64
+
 //scalastyle:off number.of.types
 
 case class FrameworksConfig(yamlFilePath: String)
 
-case class SchemeConfig(yamlFilePath: String)
+case class SchemeConfig(yamlFilePath: String, candidateFrontendUrl: String)
+
+object SchemeConfig {
+  def apply(yamlFilePath: String, candidateFrontendUrl: String) = {
+    val base64DecodedUrl = new String(Base64.getDecoder.decode(candidateFrontendUrl), "UTF-8")
+    new SchemeConfig(yamlFilePath, base64DecodedUrl)
+  }
+}
 
 case class EventsConfig(scheduleFilePath: String, fsacGuideUrl: String, daysBeforeInvitationReminder: Int, maxNumberOfCandidates: Int)
 
