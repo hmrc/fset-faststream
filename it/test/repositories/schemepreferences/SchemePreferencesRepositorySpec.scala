@@ -43,18 +43,18 @@ class SchemePreferencesRepositorySpec extends MongoRepositorySpec with Schemes {
         _ <- insert(Document("applicationId" -> AppId, "userId" -> UserId, "testAccountId" -> TestAccountId,
           "applicationStatus" -> Codecs.toBson(CREATED), "frameworkId" -> FrameworkId,
           "applicationRoute" -> Codecs.toBson(ApplicationRoute.Faststream)))
-        _ <- repository.save(AppId, TwoSchemes)
+        _ <- repository.save(AppId, twoSchemes)
         appResponse <- applicationRepository.findByUserId(UserId, FrameworkId)
         schemes <- repository.find(AppId)
       } yield (schemes, appResponse)).futureValue
 
-      persistedSchemes mustBe TwoSchemes
+      persistedSchemes mustBe twoSchemes
       application.progressResponse.schemePreferences mustBe true
     }
 
     "return an exception when application does not exist" in {
       val exception = (for {
-        _ <- repository.save(AppId, TwoSchemes)
+        _ <- repository.save(AppId, twoSchemes)
         schemes <- repository.find(AppId)
       } yield schemes).failed.futureValue
 
@@ -97,7 +97,7 @@ class SchemePreferencesRepositorySpec extends MongoRepositorySpec with Schemes {
   private def createTwoSchemes(): List[SchemeId] = {
     insert(Document("applicationId" -> AppId, "userId" -> UserId,
       "applicationStatus" -> Codecs.toBson(CREATED), "frameworkId" -> FrameworkId)).futureValue
-    repository.save(AppId, TwoSchemes).futureValue
-    TwoSchemes.schemes
+    repository.save(AppId, twoSchemes).futureValue
+    twoSchemes.schemes
   }
 }

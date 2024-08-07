@@ -23,6 +23,7 @@ import model.exchange.passmarksettings.Phase1PassMarkSettingsPersistence
 import model.persisted.{ApplicationReadyForEvaluation, PsiTest}
 import model.{Phase, Schemes}
 import play.api.Logging
+import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.OnlineTestEvaluationRepository
 import repositories.passmarksettings.Phase1PassMarkSettingsMongoRepository
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
@@ -33,6 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class EvaluatePhase1ResultService @Inject() (@Named("Phase1EvaluationRepository") val evaluationRepository: OnlineTestEvaluationRepository,
+                                             val applicationRepo: GeneralApplicationRepository,
                                              val passMarkSettingsRepo: Phase1PassMarkSettingsMongoRepository,
                                              appConfig: MicroserviceAppConfig,
                                              val uuidFactory: UUIDFactory
@@ -43,7 +45,7 @@ class EvaluatePhase1ResultService @Inject() (@Named("Phase1EvaluationRepository"
   val phase = Phase.PHASE1
   val gatewayConfig = appConfig.onlineTestsGatewayConfig
 
-  def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettingsPersistence): Future[Unit] = {
+  override def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettingsPersistence): Future[Unit] = {
     if (application.isSdipFaststream && !passmark.schemes.exists(_.schemeId == Sdip)) {
       logger.warn(s"Evaluating PHASE1 Sdip Faststream candidate with no Sdip passmarks set, so skipping - appId=${application.applicationId}")
       Future.successful(())
@@ -52,7 +54,6 @@ class EvaluatePhase1ResultService @Inject() (@Named("Phase1EvaluationRepository"
 
       val activeTests = application.activePsiTests
       require(activeTests.nonEmpty && (activeTests.length == 2 || activeTests.length == 3), "Allowed active number of tests is 2 or 3")
-      // TODO: change to list of tests?
       val test1Opt = findFirstTest1Test(activeTests)
       val test2Opt = findFirstTest2Test(activeTests)
       val test3Opt = findFirstTest3Test(activeTests)
@@ -66,10 +67,10 @@ class EvaluatePhase1ResultService @Inject() (@Named("Phase1EvaluationRepository"
                               (implicit application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettingsPersistence) =
     (test1Opt, test2Opt, test3Opt) match {
       case (Some(test1), None, Some(test3)) if application.isGis && test1.testResult.isDefined && test3.testResult.isDefined =>
-        evaluateForGis(getSchemesToEvaluate(application), test1.testResult.get, test3.testResult.get, passmark)
+        evaluateForGis(application.applicationId, getSchemesToEvaluate(application), test1.testResult.get, test3.testResult.get, passmark)
       case (Some(test1), Some(test2), Some(test3)) if application.nonGis &&
         test1.testResult.isDefined && test2.testResult.isDefined && test3.testResult.isDefined =>
-        evaluateForNonGis(getSchemesToEvaluate(application),
+        evaluateForNonGis(application.applicationId, getSchemesToEvaluate(application),
           test1.testResult.get, test2.testResult.get, test3.testResult.get, passmark)
       case _ =>
         val testCount = List(test1Opt, test2Opt, test3Opt).count(test => test.isDefined && test.get.testResult.isDefined)
@@ -84,6 +85,18 @@ class EvaluatePhase1ResultService @Inject() (@Named("Phase1EvaluationRepository"
     }
   //scalastyle:on
 
-  private def getSchemesToEvaluate(implicit application: ApplicationReadyForEvaluation) =
-    application.preferences.schemes
+  private def getSchemesToEvaluate(implicit application: ApplicationReadyForEvaluation) = {
+    val withdrawnSchemes = application.currentSchemeStatus.filter(schemeEvaluationResult =>
+      schemeEvaluationResult.result == model.EvaluationResults.Withdrawn.toString
+    ).map(_.schemeId)
+
+    if (withdrawnSchemes.nonEmpty) {
+      logger.warn(s"PHASE1 - evaluation appId ${application.applicationId} " +
+        s"not evaluating the following Withdrawn schemes: ${withdrawnSchemes.mkString(",")}")
+    }
+
+    application.currentSchemeStatus.filterNot(schemeEvaluationResult =>
+      schemeEvaluationResult.result == model.EvaluationResults.Withdrawn.toString
+    ).map(_.schemeId)
+  }
 }

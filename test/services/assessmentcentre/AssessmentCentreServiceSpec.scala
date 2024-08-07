@@ -475,11 +475,11 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec with Schemes {
     )
 
     val scoresAcceptedApplicationStatusDetails = ApplicationStatusDetails(
-      ApplicationStatus.ASSESSMENT_CENTRE.toString,
+      ApplicationStatus.ASSESSMENT_CENTRE,
       ApplicationRoute.Faststream,
       Some(ASSESSMENT_CENTRE_SCORES_ACCEPTED),
-      None,
-      None
+      statusDate = None,
+      overrideSubmissionDeadline = None
     )
 
     val sdipFaststreamScoresAcceptedApplicationStatusDetails = scoresAcceptedApplicationStatusDetails.copy(

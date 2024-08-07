@@ -61,6 +61,7 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
     new EvaluatePhase1ResultService(
       phase1EvaluationRepo,
+      applicationRepository,
       phase1PassMarkSettingRepo,
       mockAppConfig,
       UUIDFactory

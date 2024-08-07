@@ -31,16 +31,16 @@ class SchemePreferencesServiceSpec extends BaseServiceSpec {
 
   "find preferences" should {
     "return selected preferences" in {
-      when(mockSchemePreferencesRepository.find(AppId)).thenReturn(Future.successful(TwoSchemes))
+      when(mockSchemePreferencesRepository.find(AppId)).thenReturn(Future.successful(twoSchemes))
       val selectedSchemes = service.find(AppId).futureValue
-      selectedSchemes mustBe TwoSchemes
+      selectedSchemes mustBe twoSchemes
     }
   }
 
   "update preferences" should {
     "save the preferences" in {
-      when(mockSchemePreferencesRepository.save(AppId, TwoSchemes)).thenReturn(Future.successful(()))
-      val response = service.update(AppId, TwoSchemes)
+      when(mockSchemePreferencesRepository.save(AppId, twoSchemes)).thenReturn(Future.successful(()))
+      val response = service.update(AppId, twoSchemes)
       assertNoExceptions(response)
     }
   }

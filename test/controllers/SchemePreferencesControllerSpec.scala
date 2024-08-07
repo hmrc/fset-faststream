@@ -36,12 +36,12 @@ class SchemePreferencesControllerSpec extends UnitWithAppSpec {
 
   "find preferences" should {
     "return scheme preferences" in {
-      when(mockSchemePreferencesService.find(AppId)).thenReturn(Future.successful(TwoSchemes))
+      when(mockSchemePreferencesService.find(AppId)).thenReturn(Future.successful(twoSchemes))
 
       val response = controller.find(AppId)(fakeRequest)
 
       val selectedSchemes = contentAsJson(response).as[SelectedSchemes]
-      selectedSchemes mustBe TwoSchemes
+      selectedSchemes mustBe twoSchemes
     }
 
     "return not found when selected schemes do not exist" in {
@@ -53,16 +53,16 @@ class SchemePreferencesControllerSpec extends UnitWithAppSpec {
   }
 
   "update preferences" should {
-    val Request = fakeRequest(TwoSchemes)
+    val Request = fakeRequest(twoSchemes)
 
     "create a new scheme preferences" in {
-      when(mockSchemePreferencesService.update(AppId, TwoSchemes)).thenReturn(emptyFuture)
+      when(mockSchemePreferencesService.update(AppId, twoSchemes)).thenReturn(emptyFuture)
       val response = controller.update(AppId)(Request)
       status(response) mustBe OK
     }
 
     "return bad request when update fails" in {
-      when(mockSchemePreferencesService.update(AppId, TwoSchemes)).thenReturn(Future.failed(CannotUpdateSchemePreferences(AppId)))
+      when(mockSchemePreferencesService.update(AppId, twoSchemes)).thenReturn(Future.failed(CannotUpdateSchemePreferences(AppId)))
       val response = controller.update(AppId)(Request)
       status(response) mustBe BAD_REQUEST
     }

@@ -161,7 +161,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       val applicationStatusDetails = repository.findStatus(appId).futureValue
 
-      applicationStatusDetails.status mustBe SUBMITTED.toString
+      applicationStatusDetails.status mustBe SUBMITTED
       applicationStatusDetails.statusDate.get.toLocalDate mustBe LocalDate.now
     }
   }

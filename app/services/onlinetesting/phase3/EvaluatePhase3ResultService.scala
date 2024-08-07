@@ -37,7 +37,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class EvaluatePhase3ResultService @Inject() (@Named("Phase3EvaluationRepository") val evaluationRepository: OnlineTestEvaluationRepository,
                                              val passMarkSettingsRepo: Phase3PassMarkSettingsMongoRepository,
-                                             val generalAppRepository: GeneralApplicationRepository,
+                                             val applicationRepo: GeneralApplicationRepository,
                                              appConfig: MicroserviceAppConfig,
                                              val uuidFactory: UUIDFactory
                                             )(implicit ec: ExecutionContext)
@@ -47,7 +47,7 @@ class EvaluatePhase3ResultService @Inject() (@Named("Phase3EvaluationRepository"
   val phase = Phase.PHASE3
   val launchpadGWConfig = appConfig.launchpadGatewayConfig
 
-  def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase3PassMarkSettingsPersistence): Future[Unit] = {
+  override def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase3PassMarkSettingsPersistence): Future[Unit] = {
     logger.warn(s"Evaluating PHASE3 appId=${application.applicationId}")
 
     val optLaunchpadTest = application.activeLaunchpadTest
@@ -65,7 +65,7 @@ class EvaluatePhase3ResultService @Inject() (@Named("Phase3EvaluationRepository"
     } else {
       val schemeResults = (optLatestReviewed, application.prevPhaseEvaluation) match {
         case (Some(launchpadReview), Some(prevPhaseEvaluation)) =>
-          evaluate(application.preferences.schemes, launchpadReview, prevPhaseEvaluation.result, passmark)
+          evaluate(application.applicationId, application.preferences.schemes, launchpadReview, prevPhaseEvaluation.result, passmark)
 
         case _ => throw new IllegalStateException(s"Illegal number of phase3 active tests with results " +
           s"for this application: ${application.applicationId}")

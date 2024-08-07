@@ -62,6 +62,7 @@ trait SchemeRepository {
   def nonSiftableSchemeIds: Seq[SchemeId]
   def numericTestSiftRequirementSchemeIds: Seq[SchemeId]
   def formMustBeFilledInSchemeIds: Seq[SchemeId]
+  def schemeRequiresFsb(id: SchemeId): Boolean
   def getFsbTypes: Seq[FsbType]
   def isValidSchemeId(schemeId: SchemeId): Boolean
 
@@ -120,6 +121,8 @@ class SchemeYamlRepository @Inject() (implicit application: Application, appConf
   override def formMustBeFilledInSchemeIds: Seq[SchemeId] = schemes.collect {
     case s if s.siftRequirement.contains(SiftRequirement.FORM) => s.id
   }
+
+  override def schemeRequiresFsb(id: SchemeId): Boolean = getSchemeForId(id).exists(_.fsbType.isDefined)
 
   override def getFsbTypes: Seq[FsbType] = schemes.flatMap(_.fsbType)
 

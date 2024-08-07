@@ -163,7 +163,7 @@ class AdjustmentsManagementServiceSpec extends BaseServiceSpec with ExtendedTime
     val digitalDataTechnologyAndCyber = DigitalDataTechnologyAndCyber // sift form, no evaluation
 
     val applicationStatusDetails = ApplicationStatusDetails(
-      status = ApplicationStatus.SUBMITTED.toString,
+      status = ApplicationStatus.SUBMITTED,
       applicationRoute = ApplicationRoute.Faststream,
       latestProgressStatus = None,
       overrideSubmissionDeadline = None)

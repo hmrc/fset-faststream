@@ -16,6 +16,7 @@
 
 package model.persisted
 
+import model.EvaluationResults.Green
 import model.{ApplicationStatus, Phase1TestProfileExamples, SelectedSchemesExamples, _}
 
 import java.time.OffsetDateTime
@@ -23,9 +24,19 @@ import java.time.OffsetDateTime
 object ApplicationPhase2EvaluationExamples {
   def faststreamApplication(implicit now: OffsetDateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE2_TESTS,
     ApplicationRoute.Faststream, isGis = false, activePsiTests = Phase2TestProfileExamples.profile.activeTests,
-    activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
+    activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.twoSchemes,
+    List(
+      SchemeEvaluationResult(SelectedSchemesExamples.scheme1, Green.toString),
+      SchemeEvaluationResult(SelectedSchemesExamples.scheme2, Green.toString)
+    )
+  )
 
   def sdipFaststreamApplication(implicit now: OffsetDateTime) = ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE2_TESTS,
     ApplicationRoute.SdipFaststream, isGis = false, activePsiTests = Phase2TestProfileExamples.profile.activeTests,
-    activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
+    activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.twoSchemes,
+    List(
+      SchemeEvaluationResult(SelectedSchemesExamples.scheme1, Green.toString),
+      SchemeEvaluationResult(SelectedSchemesExamples.scheme2, Green.toString)
+    )
+  )
 }

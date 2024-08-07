@@ -21,6 +21,7 @@ import config._
 import factories.ITDateTimeFactoryMock
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
+import model.EvaluationResults.Green
 import model.Phase1TestExamples._
 import model.Phase2TestProfileExamples._
 import model.Phase3TestProfileExamples._
@@ -114,7 +115,8 @@ trait CommonRepository extends CurrentSchemeStatusHelper with Schemes {
     insertApplication(appId, ApplicationStatus.PHASE1_TESTS, Some(phase1Tests), applicationRoute = Some(applicationRoute))
     ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE1_TESTS, applicationRoute, isGis,
       Phase1TestProfile(expirationDate = now, phase1Tests).activeTests, activeLaunchpadTest = None, prevPhaseEvaluation = None,
-      selectedSchemes(schemes.toList)
+      selectedSchemes(schemes.toList),
+      schemes.map( scheme => SchemeEvaluationResult(scheme, Green.toString) ).toList
     )
   }
 
@@ -131,7 +133,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper with Schemes {
 
     insertApplication(appId, ApplicationStatus.PHASE1_TESTS, Some(phase1Tests), applicationRoute = Some(appRoute))
 
-    phase1EvaluationRepo.savePassmarkEvaluation(appId, phase1PassMarkEvaluation, None).futureValue
+    phase1EvaluationRepo.savePassmarkEvaluation(appId, phase1PassMarkEvaluation, newProgressStatus = None, css = results).futureValue
 
     updateApplicationStatus(appId, ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED)
   }
@@ -149,9 +151,13 @@ trait CommonRepository extends CurrentSchemeStatusHelper with Schemes {
     val phase1Tests = List(p1Test1, p1Test2, p1Test3)
     val phase2Tests = List(p2Test1, p2Test2)
     insertApplication(appId, ApplicationStatus.PHASE2_TESTS, Some(phase1Tests), Some(phase2Tests))
-    phase1EvaluationRepo.savePassmarkEvaluation(appId, phase1PassMarkEvaluation, None).futureValue
+    phase1EvaluationRepo.savePassmarkEvaluation(
+      appId, phase1PassMarkEvaluation, newProgressStatus = None, css = phase1PassMarkEvaluation.result
+    ).futureValue
     ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE2_TESTS, applicationRoute, isGis = false,
-      List(p2Test1, p2Test2), None, Some(phase1PassMarkEvaluation), selectedSchemes(schemes.toList))
+      List(p2Test1, p2Test2), None, Some(phase1PassMarkEvaluation), selectedSchemes(schemes.toList),
+      schemes.map( scheme => SchemeEvaluationResult(scheme, Green.toString) ).toList
+    )
   }
 
   def insertApplicationWithPhase3TestResults(appId: String, videoInterviewScore: Option[Double],
@@ -160,9 +166,13 @@ trait CommonRepository extends CurrentSchemeStatusHelper with Schemes {
                                             )(schemes: SchemeId*): ApplicationReadyForEvaluation = {
     val launchPadTests = phase3TestWithResults(videoInterviewScore).activeTests
     insertApplication(appId, ApplicationStatus.PHASE3_TESTS, None, None, Some(launchPadTests))
-    phase2EvaluationRepo.savePassmarkEvaluation(appId, phase2PassMarkEvaluation, None).futureValue
+    phase2EvaluationRepo.savePassmarkEvaluation(
+      appId, phase2PassMarkEvaluation, newProgressStatus = None, css = phase2PassMarkEvaluation.result
+    ).futureValue
     ApplicationReadyForEvaluation(appId, ApplicationStatus.PHASE3_TESTS, applicationRoute, isGis = false,
-      Nil, launchPadTests.headOption, Some(phase2PassMarkEvaluation), selectedSchemes(schemes.toList))
+      Nil, launchPadTests.headOption, Some(phase2PassMarkEvaluation), selectedSchemes(schemes.toList),
+      phase2PassMarkEvaluation.result
+    )
   }
 
   def insertApplicationWithPhase3TestNotifiedResults(appId: String, results: List[SchemeEvaluationResult],
@@ -179,14 +189,14 @@ trait CommonRepository extends CurrentSchemeStatusHelper with Schemes {
       applicationRoute = Some(applicationRoute), schemes = schemes
     )
 
-    phase3EvaluationRepo.savePassmarkEvaluation(appId, phase3PassMarkEvaluation, None).futureValue
+    phase3EvaluationRepo.savePassmarkEvaluation(appId, phase3PassMarkEvaluation, newProgressStatus = None, css = results).futureValue
 
     updateApplicationStatus(appId, ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED)
   }
 
   def insertApplicationWithSiftEntered(appId: String, results: Seq[SchemeEvaluationResult],
-                                        applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
-                                       ): Unit = {
+                                       applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
+                                      ): Unit = {
     insertApplicationWithPhase3TestNotifiedResults(appId, results.toList, applicationRoute = applicationRoute).futureValue
     applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_ENTERED).futureValue
   }
@@ -216,6 +226,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper with Schemes {
   def insertApplication(appId: String, applicationStatus: ApplicationStatus, phase1Tests: Option[List[PsiTest]] = None,
                          phase2Tests: Option[List[PsiTest]] = None, phase3Tests: Option[List[LaunchpadTest]] = None,
                          isGis: Boolean = false, schemes: List[SchemeId] = List(Commercial),
+                         currentSchemeStatus: List[SchemeEvaluationResult] = List(SchemeEvaluationResult(Commercial, Green.toString)),
                          phase1Evaluation: Option[PassmarkEvaluation] = None,
                          phase2Evaluation: Option[PassmarkEvaluation] = None,
                          additionalProgressStatuses: List[(ProgressStatus, Boolean)] = List.empty,
@@ -247,6 +258,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper with Schemes {
     assistanceDetailsRepository.update(appId, appId, ad).futureValue
 
     schemePreferencesRepository.save(appId, selectedSchemes(schemes)).futureValue
+    applicationRepository.updateCurrentSchemeStatus(appId, currentSchemeStatus).futureValue
     insertPhase1Tests(appId, phase1Tests, phase1Evaluation)
     insertPhase2Tests(appId, phase2Tests, phase2Evaluation)
     phase3Tests.foreach { t =>

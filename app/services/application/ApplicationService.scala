@@ -171,7 +171,8 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
       calculateCurrentSchemeStatus(current, SchemeEvaluationResult(withdrawRequest.schemeId, EvaluationResults.Withdrawn.toString) :: Nil)
     }
 
-    def maybeProgressToFSAC(schemeStatus: Seq[SchemeEvaluationResult], latestProgressStatus: Option[ProgressStatus],
+    def maybeProgressToFSAC(applicationStatus: ApplicationStatus, schemeStatus: Seq[SchemeEvaluationResult],
+                            latestProgressStatus: Option[ProgressStatus],
                             siftAnswersStatus: Option[SiftAnswersStatus.Value]) = {
       val greenSchemes = schemeStatus.collect { case s if s.result == Green.toString => s.schemeId }.toSet
 
@@ -182,7 +183,8 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
       val onlyNoSiftEvaluationRequiredSchemesWithFormFilled = siftAnswersStatus.contains(SiftAnswersStatus.SUBMITTED) &&
         (greenSchemes subsetOf schemesRepo.noSiftEvaluationRequiredSchemeIds.toSet)
 
-      val shouldProgressToFSAC = onlyNonSiftableSchemesLeft || onlyNoSiftEvaluationRequiredSchemesWithFormFilled &&
+      val shouldProgressToFSAC = applicationStatus == ApplicationStatus.SIFT &&
+        (onlyNonSiftableSchemesLeft || onlyNoSiftEvaluationRequiredSchemesWithFormFilled) &&
         !latestProgressStatus.contains(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
 
       // sdip faststream candidate who is awaiting allocation to an assessment centre or is in sift completed (not yet picked
@@ -242,21 +244,41 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
         appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_READY).map { _ => }
       } else {
         logger.info(s"Candidate $applicationId withdrawing scheme will not be moved to ${ProgressStatuses.SIFT_READY}")
-        Future.successful(()) }
+        Future.successful(())
+      }
+    }
+
+    // Move the candidate to ELIGIBLE_FOR_JOB_OFFER if the candidate is in FSB and after the scheme has been withdrawn
+    // the next residual preference does not need a FSB
+    def maybeOfferJob(schemeStatus: Seq[SchemeEvaluationResult],
+                      applicationStatus: ApplicationStatus,
+                     ) = {
+      val firstGreenSchemeNeedsFsb = schemeStatus.collectFirst { case s if s.result == Green.toString => s.schemeId }
+        .exists(schemeId => schemesRepo.schemeRequiresFsb(schemeId))
+
+      val shouldProgressCandidate = applicationStatus == ApplicationStatus.FSB && !firstGreenSchemeNeedsFsb
+      if (shouldProgressCandidate) {
+        logger.info(s"Candidate $applicationId withdrawing scheme will be moved to ${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER}")
+        appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER).map { _ => }
+      } else {
+        logger.info(s"Candidate $applicationId withdrawing scheme will not be moved to ${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER}")
+        Future.successful(())
+      }
     }
 
     for {
       currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)
       latestSchemeStatus = buildLatestSchemeStatus(currentSchemeStatus, withdrawRequest)
-      appStatuses <- appRepository.findStatus(applicationId)
+      appStatusDetails <- appRepository.findStatus(applicationId)
       _ <- appRepository.withdrawScheme(applicationId, withdrawRequest, latestSchemeStatus)
 
       siftAnswersStatus <- siftAnswersService.findSiftAnswersStatus(applicationId)
-      _ <- maybeProgressToFSAC(latestSchemeStatus, appStatuses.latestProgressStatus, siftAnswersStatus)
+      _ <- maybeProgressToFSAC(appStatusDetails.status, latestSchemeStatus, appStatusDetails.latestProgressStatus, siftAnswersStatus)
 
       progressResponse <- appRepository.findProgress(applicationId)
-      _ <- maybeProgressToSiftReady(latestSchemeStatus, progressResponse,
-        ApplicationStatus.withName(appStatuses.status), siftAnswersStatus)
+      _ <- maybeProgressToSiftReady(latestSchemeStatus, progressResponse, appStatusDetails.status, siftAnswersStatus)
+
+      _ <- maybeOfferJob(latestSchemeStatus, appStatusDetails.status)
     } yield {
       DataStoreEvents.SchemeWithdrawn(applicationId, withdrawRequest.withdrawer) ::
         AuditEvents.SchemeWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::

@@ -153,6 +153,8 @@ object Exceptions {
 
   case class SchemeNotFoundException(message: String) extends Exception(message)
 
+  case class SchemeWithdrawnException(message: String) extends Exception(message)
+
   case class LastSchemeWithdrawException(m: String) extends Exception(m)
 
   case class LastRunInfoNotFound(m: String) extends Exception(m)

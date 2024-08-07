@@ -16,6 +16,9 @@
 
 package services.testdata.candidate
 
+import model.EvaluationResults.Green
+import model.persisted.SchemeEvaluationResult
+
 import javax.inject.{Inject, Singleton}
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
@@ -33,6 +36,10 @@ class SubmittedStatusGenerator @Inject() (val previousStatusGenerator: InProgres
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- appRepository.submit(candidateInPreviousStatus.applicationId.get)
+      _ = candidateInPreviousStatus.schemePreferences.map { selectedSchemes =>
+        val css = selectedSchemes.schemes.map (scheme => SchemeEvaluationResult(scheme.schemeId, Green.toString))
+        appRepository.updateCurrentSchemeStatus(candidateInPreviousStatus.applicationId.get, css)
+      }
     } yield {
       candidateInPreviousStatus
     }

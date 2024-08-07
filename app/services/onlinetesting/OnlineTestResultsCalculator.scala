@@ -32,14 +32,14 @@ trait OnlineTestResultsCalculator extends Logging {
     else { Amber }
   }
 
-  def combineTestResults(phase: Phase, schemeToEvaluate: SchemeId, results: Result*) = {
+  def combineTestResults(applicationId: String, phase: Phase, schemeToEvaluate: SchemeId, results: Result*) = {
     require(results.nonEmpty, "Test results not found")
     val result = results match {
       case _ if results.contains(Red) => Red
       case _ if results.contains(Amber) => Amber
       case _ if results.forall(_ == Green) => Green
     }
-    logger.info(s"$phase - combining results for $schemeToEvaluate: $results = $result")
+    logger.info(s"$phase - appId $applicationId combining results for $schemeToEvaluate: $results = $result")
     result
   }
 }

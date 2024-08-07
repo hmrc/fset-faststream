@@ -38,7 +38,7 @@ class Phase1TestsPassedNotifiedStatusGenerator @Inject() (val previousStatusGene
 }
 
 @Singleton
-class Phase3TestsPassedNotifiedStatusGenerator @Inject() (val previousStatusGenerator: Phase2TestsPassedStatusGenerator,
+class Phase3TestsPassedNotifiedStatusGenerator @Inject() (val previousStatusGenerator: Phase1TestsPassedStatusGenerator,
                                                           val appRepository: GeneralApplicationRepository,
                                                           val phase3TestRepository: Phase3TestRepository
                                                          )(implicit ec: ExecutionContext) extends ConstructiveGenerator {

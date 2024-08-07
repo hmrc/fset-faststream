@@ -16,6 +16,7 @@
 
 package model.persisted
 
+import model.EvaluationResults.Green
 import model.{ApplicationRoute, ApplicationStatus, Phase1TestProfileExamples, SelectedSchemesExamples}
 
 import java.time.OffsetDateTime
@@ -25,15 +26,30 @@ object ApplicationPhase1EvaluationExamples {
   def faststreamApplication(implicit now: OffsetDateTime) =
     ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS,
       ApplicationRoute.Faststream, isGis = false, activePsiTests = Phase1TestProfileExamples.psiProfile.activeTests,
-      activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
+      activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.twoSchemes,
+      List(
+        SchemeEvaluationResult(SelectedSchemesExamples.scheme1, Green.toString),
+        SchemeEvaluationResult(SelectedSchemesExamples.scheme2, Green.toString)
+      )
+    )
 
   def edipApplication(implicit now: OffsetDateTime) =
     ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS,
       ApplicationRoute.Edip, isGis = false, activePsiTests = Phase1TestProfileExamples.psiProfile.activeTests,
-      activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
+      activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.edipScheme,
+      List(
+        SchemeEvaluationResult(SelectedSchemesExamples.Edip, Green.toString),
+      )
+    )
 
   def sdipFaststreamApplication(implicit now: OffsetDateTime) =
     ApplicationReadyForEvaluation("app1", ApplicationStatus.PHASE1_TESTS,
       ApplicationRoute.SdipFaststream, isGis = false, activePsiTests = Phase1TestProfileExamples.psiProfile.activeTests,
-      activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.TwoSchemes)
+      activeLaunchpadTest = None, prevPhaseEvaluation = None, SelectedSchemesExamples.sdipFsSchemes,
+      List(
+        SchemeEvaluationResult(SelectedSchemesExamples.scheme1, Green.toString),
+        SchemeEvaluationResult(SelectedSchemesExamples.scheme2, Green.toString),
+        SchemeEvaluationResult(SelectedSchemesExamples.Sdip, Green.toString)
+      )
+    )
 }

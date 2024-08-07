@@ -67,9 +67,10 @@ class EvaluatePhase2ResultServiceSpec extends BaseServiceSpec with Schemes {
       val applicationIdCaptor = ArgumentCaptor.forClass(classOf[String])
       val passmarkEvaluationCaptor = ArgumentCaptor.forClass(classOf[PassmarkEvaluation])
       val progressStatusCaptor = ArgumentCaptor.forClass(classOf[Option[ProgressStatus]])
+      val cssCaptor = ArgumentCaptor.forClass(classOf[Seq[SchemeEvaluationResult]])
 
       verify(mockPhase2EvaluationRepository).savePassmarkEvaluation(applicationIdCaptor.capture, passmarkEvaluationCaptor.capture,
-        progressStatusCaptor.capture)(any[ExecutionContext])
+        progressStatusCaptor.capture, cssCaptor.capture)(any[ExecutionContext])
 
       applicationIdCaptor.getValue.toString mustBe appId
       val expected = List(SchemeEvaluationResult(
@@ -78,6 +79,10 @@ class EvaluatePhase2ResultServiceSpec extends BaseServiceSpec with Schemes {
       )
       passmarkEvaluationCaptor.getValue.result mustBe expected
       progressStatusCaptor.getValue mustBe None
+      cssCaptor.getValue mustBe Seq(
+        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Amber.toString),
+        SchemeEvaluationResult(Commercial, Amber.toString)
+      )
     }
 
     "include sdip evaluation read from current scheme status when saving evaluation for sdip faststream candidate" in new TestFixture {
@@ -92,9 +97,10 @@ class EvaluatePhase2ResultServiceSpec extends BaseServiceSpec with Schemes {
       val applicationIdCaptor = ArgumentCaptor.forClass(classOf[String])
       val passmarkEvaluationCaptor = ArgumentCaptor.forClass(classOf[PassmarkEvaluation])
       val progressStatusCaptor = ArgumentCaptor.forClass(classOf[Option[ProgressStatus]])
+      val cssCaptor = ArgumentCaptor.forClass(classOf[Seq[SchemeEvaluationResult]])
 
       verify(mockPhase2EvaluationRepository).savePassmarkEvaluation(applicationIdCaptor.capture, passmarkEvaluationCaptor.capture,
-        progressStatusCaptor.capture)(any[ExecutionContext])
+        progressStatusCaptor.capture, cssCaptor.capture)(any[ExecutionContext])
 
       applicationIdCaptor.getValue.toString mustBe appId
       val expected = List(SchemeEvaluationResult(
@@ -104,6 +110,11 @@ class EvaluatePhase2ResultServiceSpec extends BaseServiceSpec with Schemes {
       )
       passmarkEvaluationCaptor.getValue.result mustBe expected
       progressStatusCaptor.getValue mustBe None
+      cssCaptor.getValue must contain theSameElementsAs Seq(
+        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Amber.toString),
+        SchemeEvaluationResult(Commercial, Amber.toString),
+        SchemeEvaluationResult(Sdip, Amber.toString)
+      )
     }
   }
 
@@ -117,7 +128,8 @@ class EvaluatePhase2ResultServiceSpec extends BaseServiceSpec with Schemes {
     val mockPhase2EvaluationRepository = mock[OnlineTestEvaluationRepository]
     val mockPhase2PassMarkSettingsRepository = mock[Phase2PassMarkSettingsMongoRepository]
 
-    when(mockPhase2EvaluationRepository.savePassmarkEvaluation(eqTo(appId), any[PassmarkEvaluation], any[Option[ProgressStatus]])(
+    when(mockPhase2EvaluationRepository.savePassmarkEvaluation(
+      eqTo(appId), any[PassmarkEvaluation], any[Option[ProgressStatus]], any[Seq[SchemeEvaluationResult]])(
       any[ExecutionContext]))
       .thenReturn(Future.successful(()))
 

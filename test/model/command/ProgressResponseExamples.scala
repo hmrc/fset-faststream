@@ -35,6 +35,9 @@ object ProgressResponseExamples {
   val InPreview: ProgressResponse = InQuestionnaire.copy(preview = true)
   val InSubmit: ProgressResponse = InPreview.copy(submitted = true)
 
+  val Phase1TestsInvitedProgressResponse = Phase1ProgressResponse(phase1TestsInvited = true)
+  val InPhase1TestsInvited: ProgressResponse = InPreview.copy(phase1ProgressResponse = Phase1TestsInvitedProgressResponse)
+
   val SiftEnteredProgressResponse = SiftProgressResponse(siftEntered = true)
   val InSiftEntered: ProgressResponse = InPreview.copy(siftProgressResponse = SiftEnteredProgressResponse)
 
@@ -71,4 +74,7 @@ object ProgressResponseExamples {
   )
   val InSiftFormsCompleteNumericTestPendingProgress: ProgressResponse =
     InPreview.copy(siftProgressResponse = SiftFormsCompleteNumericTestPendingProgress)
+
+  val FsbAllocationConfirmedProgress = Fsb(allocationConfirmed = true)
+  val InFsbAllocationConfirmed: ProgressResponse = InPreview.copy(fsb = FsbAllocationConfirmedProgress)
 }

@@ -112,7 +112,7 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
   }
 
   // Find existing evaluation data: 1. assessment centre pass marks, 2. the schemes to evaluate and 3. the scores awarded by the reviewer
-  def tryToFindEvaluationData(appId: UniqueIdentifier,
+  private def tryToFindEvaluationData(appId: UniqueIdentifier,
                               passmark: AssessmentCentrePassMarkSettingsPersistence): Future[Option[AssessmentPassMarksSchemesAndScores]] = {
 
     def filterSchemesToEvaluate(schemeList: Seq[SchemeEvaluationResult]) = {
