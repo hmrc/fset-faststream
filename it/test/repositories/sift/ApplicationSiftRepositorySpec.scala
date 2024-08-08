@@ -721,8 +721,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     SchemeEvaluationResult(Commercial, Green.toString),
     SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, Green.toString),
     SchemeEvaluationResult(OperationalDelivery, Red.toString)
-  )
-  ) = {
+  )) = {
 
     val phase2Test = List(model.persisted.PsiTest(inventoryId = "inventoryId",
                                                   orderId = "orderId",
@@ -750,7 +749,8 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
 
     val phase3Evaluation = PassmarkEvaluation("phase3_version1", Some("phase2_version1"), resultToSave,
       "phase3_version1-res", Some("phase2_version1-res"))
-    phase3EvaluationRepo.savePassmarkEvaluation(appAndUserId, phase3Evaluation, Some(PHASE3_TESTS_PASSED)).futureValue
+    val css = resultToSave
+    phase3EvaluationRepo.savePassmarkEvaluation(appAndUserId, phase3Evaluation, Some(PHASE3_TESTS_PASSED), css).futureValue
     applicationRepository.addProgressStatusAndUpdateAppStatus(appAndUserId, ProgressStatuses.SIFT_READY).futureValue
   }
 

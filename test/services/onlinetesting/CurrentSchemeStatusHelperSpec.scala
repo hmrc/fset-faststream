@@ -16,7 +16,7 @@
 
 package services.onlinetesting
 
-import model.EvaluationResults.Amber
+import model.EvaluationResults.{Amber, Green}
 import model.persisted.{ApplicationReadyForEvaluation, SchemeEvaluationResult}
 import model.{ApplicationRoute, ApplicationStatus, Schemes, SelectedSchemes}
 import org.mockito.ArgumentMatchers._
@@ -52,7 +52,7 @@ class CurrentSchemeStatusHelperSpec extends UnitSpec with Schemes {
     val mockAppRepo = mock[GeneralApplicationRepository]
 
     val helper = new CurrentSchemeStatusHelper {
-      override val generalAppRepository: GeneralApplicationRepository = mockAppRepo
+      override val applicationRepo: GeneralApplicationRepository = mockAppRepo
     }
 
     val application = ApplicationReadyForEvaluation(
@@ -63,6 +63,10 @@ class CurrentSchemeStatusHelperSpec extends UnitSpec with Schemes {
       activePsiTests = Nil,
       activeLaunchpadTest = None,
       prevPhaseEvaluation = None,
-      preferences = SelectedSchemes(List(Commercial), orderAgreed = true, eligible = true))
+      preferences = SelectedSchemes(List(Commercial), orderAgreed = true, eligible = true),
+      currentSchemeStatus = List(
+        SchemeEvaluationResult(Commercial, Green.toString)
+      )
+    )
   }
 }

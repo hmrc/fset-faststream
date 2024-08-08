@@ -18,7 +18,7 @@ package controllers
 
 import javax.inject.{Inject, Singleton}
 import model.EvaluationResults
-import model.Exceptions.{AlreadyEvaluatedForSchemeException, SchemeNotFoundException}
+import model.Exceptions.{AlreadyEvaluatedForSchemeException, SchemeNotFoundException, SchemeWithdrawnException}
 import model.exchange.{FsbEvaluationResults, FsbScoresAndFeedback}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -46,6 +46,7 @@ class FsbTestGroupController @Inject() (cc: ControllerComponents,
       fsbService.saveResults(recordedResults.schemeId, greenRedResults).map { _ => Ok }.recover {
         case ex: AlreadyEvaluatedForSchemeException => BadRequest(ex.message)
         case ex: SchemeNotFoundException => UnprocessableEntity(ex.message)
+        case ex: SchemeWithdrawnException => PreconditionFailed(ex.getMessage)
       }
     }
   }

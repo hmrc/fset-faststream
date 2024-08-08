@@ -186,7 +186,7 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       )
       phase2TestRepo.skipPhases(application).futureValue
       val status = helperRepo.findStatus(application.applicationId).futureValue
-      status.status mustBe ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED.toString
+      status.status mustBe ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED
       fetchPhase3Evaluation(application.applicationId).futureValue mustBe
         Seq(
           SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),

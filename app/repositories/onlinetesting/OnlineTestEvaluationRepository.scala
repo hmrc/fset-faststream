@@ -70,7 +70,8 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
   }
 
   def savePassmarkEvaluation(applicationId: String, evaluation: PassmarkEvaluation,
-                             newProgressStatus: Option[ProgressStatus])(implicit ec: ExecutionContext): Future[Unit] = {
+                             newProgressStatus: Option[ProgressStatus],
+                             css: Seq[SchemeEvaluationResult])(implicit ec: ExecutionContext): Future[Unit] = {
     // Warn level so we see it in prod logs
     logger.warn(s"applicationId = $applicationId - now saving progressStatus as $newProgressStatus")
 
@@ -82,7 +83,7 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
     val fieldsToSet =
       Document(s"testGroups.$phase.evaluation" -> evaluation.toBson) ++
       newProgressStatus.map(applicationStatusBSON).getOrElse(Document.empty) ++
-      currentSchemeStatusBSON(evaluation.result)
+      currentSchemeStatusBSON(css)
     val update = Document("$set" -> fieldsToSet)
 
     val validator = singleUpdateValidator(applicationId, actionDesc = s"saving passmark evaluation during $phase evaluation")
@@ -111,7 +112,7 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
     }
   }
 
-  def applicationEvaluationBuilder(activePsiTests: List[PsiTest],
+  private[onlinetesting] def applicationEvaluationBuilder(activePsiTests: List[PsiTest],
                                    activeLaunchPadTest: Option[LaunchpadTest],
                                    prevPhaseEvaluation: Option[PassmarkEvaluation])(doc: Document) = {
 
@@ -121,9 +122,10 @@ trait OnlineTestEvaluationRepository extends CommonBSONDocuments with ReactiveRe
     val isGis = Try(doc.get("assistance-details").exists(_.asDocument().getBoolean("guaranteedInterview").getValue)).getOrElse(false)
     val schemePreferencesBsonValue = doc.get("scheme-preferences").map(_.asDocument())
     val preferences = schemePreferencesBsonValue.map( bson => Codecs.fromBson[SelectedSchemes](bson) ).get
+    val css = doc.get("currentSchemeStatus").map { bsonValue => Codecs.fromBson[List[SchemeEvaluationResult]](bsonValue) }.getOrElse(Nil)
 
     ApplicationReadyForEvaluation(applicationId, applicationStatus, applicationRoute, isGis, activePsiTests,
-      activeLaunchPadTest, prevPhaseEvaluation, preferences)
+      activeLaunchPadTest, prevPhaseEvaluation, preferences, css)
   }
 
   private[onlinetesting] def passMarkEvaluationReader(passMarkPhase: String,
@@ -282,7 +284,6 @@ class Phase3EvaluationMongoRepository @Inject() (appConfig: MicroserviceAppConfi
               launchpadGatewayConfig.phase3Tests.evaluationWaitTimeAfterResultsReceivedInHours
             ))
           )))
-
         ))
       ),
 

@@ -24,7 +24,7 @@ import services.onlinetesting.OnlineTestResultsCalculator
 
 trait Phase2TestEvaluation extends OnlineTestResultsCalculator {
 
-  def evaluate(schemes: List[SchemeId], test1Result: PsiTestResult, test2Result: PsiTestResult,
+  def evaluate(applicationId: String, schemes: List[SchemeId], test1Result: PsiTestResult, test2Result: PsiTestResult,
                phase1SchemesEvaluation: List[SchemeEvaluationResult],
                passmark: Phase2PassMarkSettingsPersistence): List[SchemeEvaluationResult] = {
     for {
@@ -47,7 +47,8 @@ trait Phase2TestEvaluation extends OnlineTestResultsCalculator {
         s"p2 test2 result = $p2Test2Result")
 
       SchemeEvaluationResult(
-        schemeToEvaluate, combineTestResults(Phase.PHASE2, schemeToEvaluate, phase1Result, p2Test1Result, p2Test2Result).toString
+        schemeToEvaluate,
+        combineTestResults(applicationId, Phase.PHASE2, schemeToEvaluate, phase1Result, p2Test1Result, p2Test2Result).toString
       )
     }
   }

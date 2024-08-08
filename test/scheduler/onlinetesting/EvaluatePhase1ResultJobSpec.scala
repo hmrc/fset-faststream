@@ -16,8 +16,9 @@
 
 package scheduler.onlinetesting
 
+import model.EvaluationResults.Green
 import model.exchange.passmarksettings.{Phase1PassMarkSettingsExamples, Phase1PassMarkSettingsPersistence}
-import model.persisted.ApplicationReadyForEvaluation
+import model.persisted.{ApplicationReadyForEvaluation, SchemeEvaluationResult}
 import model._
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
@@ -67,15 +68,19 @@ class EvaluatePhase1ResultJobSpec extends UnitWithAppSpec {
   trait TestFixture {
     val mockEvaluateService = mock[EvaluateOnlineTestResultService[Phase1PassMarkSettingsPersistence]]
     val profile = Phase1TestProfileExamples.psiProfile
-    val schemes = SelectedSchemesExamples.TwoSchemes
+    val schemes = SelectedSchemesExamples.twoSchemes
+    val css = List(
+      SchemeEvaluationResult(SelectedSchemesExamples.scheme1, Green.toString),
+      SchemeEvaluationResult(SelectedSchemesExamples.scheme2, Green.toString)
+    )
     val passmark = Phase1PassMarkSettingsExamples.passmark
 
     val apps = (1 to 10 map { id =>
       ApplicationReadyForEvaluation(s"app$id", ApplicationStatus.PHASE1_TESTS, ApplicationRoute.Faststream, isGis = false,
-        profile.activeTests, None, None, schemes)
+        profile.activeTests, None, None, schemes, css)
     }) ++ (1 to 10 map { id =>
       ApplicationReadyForEvaluation(s"edipAppId$id", ApplicationStatus.PHASE1_TESTS, ApplicationRoute.Edip, isGis = false,
-        profile.activeTests, None, None, schemes)
+        profile.activeTests, None, None, schemes, css)
     })
 
     apps.foreach { app =>

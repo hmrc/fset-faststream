@@ -16,8 +16,11 @@
 
 package controllers
 
+import model.EvaluationResults.Green
+import model.persisted.SchemeEvaluationResult
+
 import javax.inject.{Inject, Singleton}
-import model.ApplicationValidator
+import model.{ApplicationValidator, SelectedSchemes}
 import model.stc.{AuditEvents, DataStoreEvents, EmailEvents}
 import play.api.mvc.{Action, ControllerComponents, RequestHeader}
 import repositories.FrameworkRepository.CandidateHighestQualification
@@ -26,6 +29,7 @@ import repositories.application.GeneralApplicationRepository
 import repositories.assistancedetails.AssistanceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.personaldetails.PersonalDetailsRepository
+import repositories.schemepreferences.SchemePreferencesRepository
 import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -37,6 +41,7 @@ class SubmitApplicationController @Inject() (cc: ControllerComponents,
                                              pdRepository: PersonalDetailsRepository,
                                              adRepository: AssistanceDetailsRepository,
                                              cdRepository: ContactDetailsRepository,
+                                             spRepository: SchemePreferencesRepository,
                                              frameworkPrefRepository: FrameworkPreferenceRepository,
                                              frameworkRegionsRepository: FrameworkRepository,
                                              appRepository: GeneralApplicationRepository,
@@ -49,17 +54,20 @@ class SubmitApplicationController @Inject() (cc: ControllerComponents,
     val generalDetailsFuture = pdRepository.find(applicationId)
     val assistanceDetailsFuture = adRepository.find(applicationId)
     val contactDetailsFuture = cdRepository.find(userId)
+    val schemePreferencesFuture = spRepository.find(applicationId)
     val schemesLocationsFuture = frameworkPrefRepository.tryGetPreferences(applicationId)
 
     val result = for {
       gd <- generalDetailsFuture
       ad <- assistanceDetailsFuture
       cd <- contactDetailsFuture
+      sp <- schemePreferencesFuture
       sl <- schemesLocationsFuture
       availableRegions <- frameworkRegionsRepository.getFrameworksByRegionFilteredByQualification(CandidateHighestQualification.from(gd))
     } yield {
       if (ApplicationValidator(gd, ad, sl, availableRegions).validate) {
-        submit(applicationId, cd.email, gd.preferredName).map(_ => Ok)
+        submit(applicationId, cd.email, gd.preferredName).flatMap( _ =>
+          createCurrentSchemeStatus(applicationId, sp).map(_ => Ok))
       } else {
         Future.successful(BadRequest)
       }
@@ -78,4 +86,13 @@ class SubmitApplicationController @Inject() (cc: ControllerComponents,
       Nil
     }
   }
+
+  private def createCurrentSchemeStatus(applicationId: String, selectedSchemes: SelectedSchemes) =
+    for {
+      _ <- appRepository.updateCurrentSchemeStatus(
+        applicationId,
+        // Create a default css with all the schemes set to Green
+        selectedSchemes.schemes.map(scheme => SchemeEvaluationResult(scheme.schemeId, Green.toString))
+      )
+    } yield ()
 }

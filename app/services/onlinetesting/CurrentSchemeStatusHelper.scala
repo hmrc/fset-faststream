@@ -24,12 +24,12 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait CurrentSchemeStatusHelper extends Schemes {
 
-  val generalAppRepository: GeneralApplicationRepository
+  val applicationRepo: GeneralApplicationRepository
 
   def getSdipResults(application: ApplicationReadyForEvaluation)(implicit ec: ExecutionContext): Future[List[SchemeEvaluationResult]] =
     if (application.isSdipFaststream) {
       for {
-        currentSchemeStatus <- generalAppRepository.getCurrentSchemeStatus(application.applicationId)
+        currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(application.applicationId)
       } yield {
         currentSchemeStatus.find(_.schemeId == Sdip).toList
       }

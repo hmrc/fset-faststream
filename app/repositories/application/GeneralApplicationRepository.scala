@@ -454,7 +454,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
   override def withdraw(applicationId: String, reason: WithdrawApplication): Future[Unit] = {
     val query = Document("applicationId" -> applicationId)
-    val applicationBSON = Document("$set" -> (Document("withdraw" -> reason.toBson) ++ applicationStatusBSON(WITHDRAWN)))
+    val applicationBSON = Document("$set" -> (Document("withdraw.application" -> reason.toBson) ++ applicationStatusBSON(WITHDRAWN)))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "withdrawing application")
     collection.updateOne(query, applicationBSON).toFuture() map validator
@@ -462,7 +462,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
   override def removeWithdrawReason(applicationId: String): Future[Unit] = {
     val query = Document("applicationId" -> applicationId)
-    val update = Document("$unset" -> Document("withdraw" -> ""))
+    val update = Document("$unset" -> Document("withdraw.application" -> ""))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "removing withdrawal reason")
 

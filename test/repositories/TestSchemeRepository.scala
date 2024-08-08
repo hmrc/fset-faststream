@@ -33,6 +33,7 @@ class TestSchemeRepository extends SchemeRepository {
   override def nonSiftableSchemeIds: Seq[SchemeId] = ???
   override def numericTestSiftRequirementSchemeIds: Seq[SchemeId] = ???
   override def formMustBeFilledInSchemeIds: Seq[SchemeId] = ???
+  override def schemeRequiresFsb(id: SchemeId): Boolean = false
   override def getFsbTypes: Seq[FsbType] = ???
   override def isValidSchemeId(schemeId: SchemeId) = ???
 }

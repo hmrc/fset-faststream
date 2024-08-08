@@ -136,7 +136,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
         appStatus <- applicationRepo.findStatus(app.applicationId)
       } yield appStatus).futureValue
 
-      applicationStatus.status mustBe SUBMITTED.toString
+      applicationStatus.status mustBe SUBMITTED
       timesApproximatelyEqual(applicationStatus.statusDate.get, OffsetDateTime.now) mustBe true
     }
 
@@ -164,7 +164,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
         appStatus <- applicationRepo.findStatus(app.applicationId)
       } yield appStatus).futureValue
 
-      applicationStatus.status mustBe WITHDRAWN.toString
+      applicationStatus.status mustBe WITHDRAWN
       timesApproximatelyEqual(applicationStatus.statusDate.get, OffsetDateTime.now) mustBe true
     }
   }
@@ -172,7 +172,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
   def hasWithdrawSection(applicationId: String) = {
     val query = Document(
       "applicationId" -> applicationId,
-      "withdraw" -> Document("$exists" -> true)
+      "withdraw.application" -> Document("$exists" -> true)
     )
     applicationCollection.find[BsonDocument](query)
       .projection(Projections.include("withdraw")).headOption().map { doc => doc.isDefined }
@@ -192,7 +192,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       } yield app.applicationId -> appStatus).futureValue
 
       hasWithdrawSection(appId).futureValue mustBe true
-      applicationStatus.status mustBe WITHDRAWN.toString
+      applicationStatus.status mustBe WITHDRAWN
       applicationRepo.removeWithdrawReason(appId).futureValue
       hasWithdrawSection(appId).futureValue mustBe false
     }

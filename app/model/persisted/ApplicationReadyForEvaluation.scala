@@ -30,7 +30,8 @@ case class ApplicationReadyForEvaluation(
   activePsiTests: List[PsiTest],
   activeLaunchpadTest: Option[LaunchpadTest],
   prevPhaseEvaluation: Option[PassmarkEvaluation],
-  preferences: SelectedSchemes
+  preferences: SelectedSchemes,
+  currentSchemeStatus: List[SchemeEvaluationResult]
 ) {
   def nonGis: Boolean = !isGis
   def isSdipFaststream: Boolean = applicationRoute == ApplicationRoute.SdipFaststream

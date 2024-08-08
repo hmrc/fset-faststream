@@ -16,10 +16,10 @@
 
 package repositories.onlinetesting
 
-import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.{Amber, Green, Red}
+import model.ApplicationStatus.{ApplicationStatus, WITHDRAWN}
+import model.EvaluationResults.{Amber, Green, Red, Withdrawn}
 import model.persisted._
-import model.{ApplicationRoute, ApplicationStatus, ProgressStatuses}
+import model.{ApplicationRoute, ApplicationStatus, ProgressStatuses, SelectedSchemesExamples}
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.scalatestplus.mockito.MockitoSugar
 import uk.gov.hmrc.mongo.play.json.Codecs
@@ -75,7 +75,8 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         Phase1TestProfile(expirationDate = now, phase1TestsWithResult).activeTests,
         activeLaunchpadTest = None,
         prevPhaseEvaluation = None,
-        selectedSchemes(List(Commercial))
+        selectedSchemes(List(Commercial)),
+        List(SchemeEvaluationResult(Commercial, Green.toString))
       )
     }
 
@@ -93,7 +94,9 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         Phase1TestProfile(expirationDate = now, phase1TestsWithResult).activeTests,
         activeLaunchpadTest = None,
         prevPhaseEvaluation = None,
-        selectedSchemes(List(Commercial)))
+        selectedSchemes(List(Commercial)),
+        List(SchemeEvaluationResult(Commercial, Green.toString))
+      )
     }
 
     "return nothing when PHASE1_TESTS have expired" in {
@@ -125,12 +128,13 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
   "save passmark evaluation" should {
     val resultToSave = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
+    val css = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
 
     "save result and update the status" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
 
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ProgressStatuses.PHASE1_TESTS_PASSED)).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ProgressStatuses.PHASE1_TESTS_PASSED), css).futureValue
 
       val resultWithAppStatus = getOnePhase1Profile("app1")
 
@@ -145,7 +149,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     "return nothing when candidate has been already evaluated" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None, css).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
       val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
@@ -155,7 +159,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     "return the candidate in PHASE1_TESTS if the passmark has changed" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None, css).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
       val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version2", batchSize = 1).futureValue
@@ -164,11 +168,12 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
     "not return the SdipFaststream candidate in PHASE2_TESTS if the sdip is not evaluated for phase1" ignore {
       val resultToSave = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
+      val css = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
 
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
         applicationRoute = Some(ApplicationRoute.SdipFaststream))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None, css).futureValue
       applicationRepository.addProgressStatusAndUpdateAppStatus("app1", ProgressStatuses.PHASE2_TESTS_INVITED).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
@@ -194,7 +199,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val evaluation = PassmarkEvaluation("version1", previousPhasePassMarkVersion = None, resultToSave, "version1-res",
         previousPhaseResultVersion = None)
 
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None, css).futureValue
       applicationRepository.addProgressStatusAndUpdateAppStatus("app1", ProgressStatuses.PHASE2_TESTS_INVITED).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
@@ -211,7 +216,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val evaluation = PassmarkEvaluation("version1", previousPhasePassMarkVersion = None, resultToSave, "version1-res",
         previousPhaseResultVersion = None)
 
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None, css).futureValue
       applicationRepository.addProgressStatusAndUpdateAppStatus("app1", ProgressStatuses.PHASE2_TESTS_INVITED).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
@@ -227,7 +232,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         SchemeEvaluationResult(Sdip, Amber.toString))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
 
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None, css).futureValue
       applicationRepository.addProgressStatusAndUpdateAppStatus("app1", ProgressStatuses.PHASE2_TESTS_INVITED).futureValue
       getOnePhase1Profile("app1") mustBe defined
 
@@ -242,8 +247,9 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         applicationRoute = Some(ApplicationRoute.SdipFaststream))
 
       val resultToSave = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
+      val css = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None, css).futureValue
 
       val sdipResult = SchemeEvaluationResult(Sdip, Green.toString)
 
@@ -262,8 +268,9 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         applicationRoute = Some(ApplicationRoute.SdipFaststream))
 
       val resultToSave = List(SchemeEvaluationResult(Sdip, Amber.toString))
+      val css = List(SchemeEvaluationResult(Sdip, Withdrawn.toString))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
-      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None, css).futureValue
 
       val sdipResult = SchemeEvaluationResult(Sdip, Red.toString)
 

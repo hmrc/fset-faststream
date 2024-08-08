@@ -19,10 +19,11 @@ package connectors
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration._
-import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach }
+import org.scalatest.time.{Millis, Span}
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.{ Application, Configuration, Environment }
+import play.api.{Application, Configuration, Environment}
 
 trait BaseConnectorWithWireMockSpec extends BaseSpec with BeforeAndAfterEach with BeforeAndAfterAll with GuiceOneServerPerSuite {
 
@@ -51,6 +52,8 @@ trait BaseConnectorWithWireMockSpec extends BaseSpec with BeforeAndAfterEach wit
   override def beforeEach(): Unit = {
     WireMock.reset()
   }
+
+  override implicit def patienceConfig = PatienceConfig(timeout = scaled(Span(5000, Millis)))
 
   trait BaseConnectorTestFixture {
     val mockConfiguration = mock[Configuration]

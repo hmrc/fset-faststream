@@ -21,11 +21,12 @@ import common.FutureEx
 import connectors.OnlineTestEmailClient
 
 import javax.inject.{Inject, Singleton}
-import model.EvaluationResults.{Amber, Green, Red}
+import model.EvaluationResults.{Amber, Green, Red, Withdrawn}
 import model.ProgressStatuses._
 import model._
 import model.command.ApplicationForProgression
 import model.exchange.{ApplicationResult, FsbScoresAndFeedback}
+import model.Exceptions.SchemeWithdrawnException
 import model.persisted.fsb.ScoresAndFeedback
 import model.persisted.{FsbSchemeResult, SchemeEvaluationResult}
 import play.api.Logging
@@ -248,8 +249,14 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
     )
   }
 
-  def saveResult(schemeId: SchemeId, applicationResult: ApplicationResult): Future[Unit] = {
-    saveResult(applicationResult.applicationId, SchemeEvaluationResult(schemeId, applicationResult.result))
+  private def saveResult(schemeId: SchemeId, applicationResult: ApplicationResult): Future[Unit] = {
+    for {
+      css <- applicationRepo.getCurrentSchemeStatus(applicationResult.applicationId)
+      _ = if (css.find(_.schemeId == schemeId).exists(_.result == Withdrawn.toString)) {
+        throw SchemeWithdrawnException(s"Scheme $schemeId has been withdrawn so cannot save FSB result for ${applicationResult.applicationId}")
+      }
+      _ <- saveResult(applicationResult.applicationId, SchemeEvaluationResult(schemeId, applicationResult.result))
+    } yield ()
   }
 
   def saveResult(applicationId: String, schemeEvaluationResult: SchemeEvaluationResult): Future[Unit] = {

@@ -410,10 +410,11 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       phase1TestRepo.insertOrUpdateTestGroup(appId, testProfile).futureValue
 
       val resultToSave = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
+      val css = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
       val evaluation =
         PassmarkEvaluation("version1", previousPhasePassMarkVersion = None, resultToSave, "version1-res", previousPhaseResultVersion = None)
 
-      phase1EvaluationRepo.savePassmarkEvaluation(appId, evaluation, Some(ProgressStatuses.PHASE1_TESTS_PASSED)).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation(appId, evaluation, Some(ProgressStatuses.PHASE1_TESTS_PASSED), css).futureValue
 
       phase1TestRepo.findEvaluation(appId).futureValue mustBe Some(Seq(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString)))
 
@@ -433,7 +434,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       app.progressResponse.phase1ProgressResponse.phase1TestsStarted mustBe true
 
       val appStatusDetails = helperRepo.findStatus(app.applicationId).futureValue
-      appStatusDetails.status mustBe ApplicationStatus.PHASE1_TESTS.toString
+      appStatusDetails.status mustBe ApplicationStatus.PHASE1_TESTS
     }
 
     "update progress status should not update if the Application Status is different from that which is being set" in {
@@ -472,10 +473,11 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       phase1TestRepo.insertOrUpdateTestGroup("appId", Phase1TestProfile(now, phase1TestsWithResult)).futureValue
 
       val resultToSave = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Red.toString))
+      val css = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Red.toString))
       val evaluation =
         PassmarkEvaluation("version1", previousPhasePassMarkVersion = None, resultToSave, "version1-res", previousPhaseResultVersion = None)
 
-      phase1EvaluationRepo.savePassmarkEvaluation("appId", evaluation, Some(ProgressStatuses.PHASE1_TESTS_FAILED)).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation("appId", evaluation, Some(ProgressStatuses.PHASE1_TESTS_FAILED), css).futureValue
 
       phase1TestRepo.resetTestProfileProgresses("appId", List(
         ProgressStatuses.PHASE1_TESTS_INVITED,
@@ -508,7 +510,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       app.progressResponse.phase1ProgressResponse.phase1TestsStarted mustBe true
 
       val appStatusDetails = helperRepo.findStatus(app.applicationId).futureValue
-      appStatusDetails.status mustBe ApplicationStatus.PHASE1_TESTS.toString
+      appStatusDetails.status mustBe ApplicationStatus.PHASE1_TESTS
     }
 
     "throw an exception if the applicationStatus is incorrect" in {
@@ -597,10 +599,11 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       phase1TestRepo.insertOrUpdateTestGroup(appId, testProfile).futureValue
 
       val resultToSave = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
+      val css = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
       val evaluation =
         PassmarkEvaluation("version1", previousPhasePassMarkVersion = None, resultToSave, "version1-res", previousPhaseResultVersion = None)
 
-      phase1EvaluationRepo.savePassmarkEvaluation(appId, evaluation, Some(ProgressStatuses.PHASE1_TESTS_PASSED)).futureValue
+      phase1EvaluationRepo.savePassmarkEvaluation(appId, evaluation, Some(ProgressStatuses.PHASE1_TESTS_PASSED), css).futureValue
 
       phase1TestRepo.findEvaluation(appId).futureValue mustBe Some(Seq(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString)))
 

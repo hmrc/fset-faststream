@@ -44,7 +44,8 @@ trait TestsPassedStatusGenerator extends ConstructiveGenerator {
               (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {
     previousStatusGenerator.generate(generationId, generatorConfig).flatMap { candidateResponse =>
       val evaluation = passmarkEvaluation(generatorConfig, candidateResponse)
-      evaluationRepository.savePassmarkEvaluation(candidateResponse.applicationId.getOrElse(""), evaluation, Some(passedStatus)).map { _ =>
+      val css = evaluation.result
+      evaluationRepository.savePassmarkEvaluation(candidateResponse.applicationId.getOrElse(""), evaluation, Some(passedStatus), css).map { _ =>
         updateGenerationResponse(candidateResponse, evaluation)
       }
     }

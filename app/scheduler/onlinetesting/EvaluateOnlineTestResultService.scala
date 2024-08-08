@@ -19,20 +19,25 @@ package scheduler.onlinetesting
 import factories.UUIDFactory
 import model.Phase
 import model.Phase.Phase
-import model.exchange.passmarksettings.{PassMarkSettings, PassMarkSettingsPersistence}
+import model.exchange.passmarksettings.PassMarkSettingsPersistence
 import model.persisted.{ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult}
 import play.api.Logging
 import play.api.libs.json.Format
+import repositories.CurrentSchemeStatusHelper
+import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.OnlineTestEvaluationRepository
 import services.onlinetesting.ApplicationStatusCalculator
 import services.passmarksettings.PassMarkSettingsService
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait EvaluateOnlineTestResultService[T <: PassMarkSettingsPersistence] extends ApplicationStatusCalculator with Logging {
+trait EvaluateOnlineTestResultService[T <: PassMarkSettingsPersistence] extends ApplicationStatusCalculator
+  with CurrentSchemeStatusHelper with Logging {
   this: PassMarkSettingsService[T] =>
 
   val evaluationRepository: OnlineTestEvaluationRepository
+
+  val applicationRepo: GeneralApplicationRepository
 
   val phase: Phase.Phase
 
@@ -60,16 +65,32 @@ trait EvaluateOnlineTestResultService[T <: PassMarkSettingsPersistence] extends 
     }
   }
 
+  private def calculateCurrentSchemeStatus(applicationId: String,
+                                           evaluationResults: Seq[SchemeEvaluationResult])(
+    implicit ec: ExecutionContext): Future[Seq[SchemeEvaluationResult]] = {
+    for {
+      currentSchemeStatus <- applicationRepo.getCurrentSchemeStatus(applicationId)
+    } yield {
+      val newSchemeStatus = calculateCurrentSchemeStatus(currentSchemeStatus, evaluationResults)
+      logger.warn(s"After evaluation newSchemeStatus = $newSchemeStatus for applicationId: $applicationId")
+      newSchemeStatus
+    }
+  }
+
   def savePassMarkEvaluation(application: ApplicationReadyForEvaluation,
                              schemeResults: List[SchemeEvaluationResult],
                              passMarkSettings: T, phase: Phase)(implicit ec: ExecutionContext): Future[Unit] = {
     if (schemeResults.nonEmpty) {
-      evaluationRepository.savePassmarkEvaluation(
-        application.applicationId,
-        PassmarkEvaluation(passMarkSettings.version, application.prevPhaseEvaluation.map(_.passmarkVersion),
-          schemeResults, uuidFactory.generateUUID().toString, application.prevPhaseEvaluation.map(_.resultVersion)),
-        determineApplicationStatus(application.applicationRoute, application.applicationStatus, schemeResults, phase)
-      )
+      for {
+        newCss <- calculateCurrentSchemeStatus(application.applicationId, schemeResults)
+        _ <- evaluationRepository.savePassmarkEvaluation(
+          application.applicationId,
+          PassmarkEvaluation(passMarkSettings.version, application.prevPhaseEvaluation.map(_.passmarkVersion),
+            schemeResults, uuidFactory.generateUUID().toString, application.prevPhaseEvaluation.map(_.resultVersion)),
+          determineApplicationStatus(application.applicationRoute, application.applicationStatus, schemeResults, phase),
+          newCss
+        )
+      } yield ()
     } else {
       logger.warn(s"$phase - appId=${application.applicationId} has no schemeResults so will not evaluate. " +
         s"Have all pass marks been set including Edip/Sdip?")

@@ -28,7 +28,7 @@ import services.onlinetesting.OnlineTestResultsCalculator
 
 trait Phase3TestEvaluation extends OnlineTestResultsCalculator {
 
-  def evaluate(schemes: List[SchemeId], launchpadTestResult: ReviewedCallbackRequest,
+  def evaluate(applicationId: String, schemes: List[SchemeId], launchpadTestResult: ReviewedCallbackRequest,
                phase2SchemesEvaluation: List[SchemeEvaluationResult],
                passmark: Phase3PassMarkSettingsPersistence): List[SchemeEvaluationResult] = {
 
@@ -45,7 +45,10 @@ trait Phase3TestEvaluation extends OnlineTestResultsCalculator {
         s"video pass = ${schemePassmark.schemeThresholds.videoInterview.passThreshold}, " +
         s"video result = $phase3Result")
       val phase2Result = Result(phase2SchemeEvaluation.result)
-      SchemeEvaluationResult(schemeToEvaluate, combineTestResults(Phase.PHASE3, schemeToEvaluate, phase2Result, phase3Result).toString)
+      SchemeEvaluationResult(
+        schemeToEvaluate,
+        combineTestResults(applicationId, Phase.PHASE3, schemeToEvaluate, phase2Result, phase3Result).toString
+      )
     }
   }
 }

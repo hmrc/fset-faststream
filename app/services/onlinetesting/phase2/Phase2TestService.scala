@@ -306,7 +306,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
     logger.warn(s"Candidate $applicationId - the full set of inventoryIds=${allInventoryIds.mkString(",")}")
     for {
       status <- appRepository.findStatus(applicationId)
-      _ = if (ApplicationStatus.PHASE2_TESTS.toString != status.status) {
+      _ = if (ApplicationStatus.PHASE2_TESTS != status.status) {
         throw new Exception(s"Candidate $applicationId application status is ${status.status}. Expecting ${ApplicationStatus.PHASE2_TESTS}")
       }
       phase2TestGroupOpt <- testRepository.getTestGroup(applicationId)

@@ -36,7 +36,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class EvaluatePhase2ResultService @Inject() (@Named("Phase2EvaluationRepository") val evaluationRepository: OnlineTestEvaluationRepository,
                                              val passMarkSettingsRepo: Phase2PassMarkSettingsMongoRepository,
-                                             val generalAppRepository: GeneralApplicationRepository,
+                                             val applicationRepo: GeneralApplicationRepository,
                                              appConfig: MicroserviceAppConfig,
                                              val uuidFactory: UUIDFactory
                                             )(implicit ec: ExecutionContext)
@@ -46,7 +46,7 @@ class EvaluatePhase2ResultService @Inject() (@Named("Phase2EvaluationRepository"
   val phase = Phase.PHASE2
   val gatewayConfig = appConfig.onlineTestsGatewayConfig
 
-  def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase2PassMarkSettingsPersistence): Future[Unit] = {
+  override def evaluate(implicit application: ApplicationReadyForEvaluation, passmark: Phase2PassMarkSettingsPersistence): Future[Unit] = {
     logger.warn(s"Evaluating PHASE2 appId=${application.applicationId}")
 
     val activeTests = application.activePsiTests
@@ -71,7 +71,7 @@ class EvaluatePhase2ResultService @Inject() (@Named("Phase2EvaluationRepository"
                               (implicit application: ApplicationReadyForEvaluation, passmark: Phase2PassMarkSettingsPersistence) = {
     val schemeResults = (test1ResultOpt, test2ResultOpt, application.prevPhaseEvaluation) match {
       case (Some(test1Result), Some(test2Result), Some(prevPhaseEvaluation)) =>
-        evaluate(application.preferences.schemes, test1Result, test2Result, prevPhaseEvaluation.result, passmark)
+        evaluate(application.applicationId, application.preferences.schemes, test1Result, test2Result, prevPhaseEvaluation.result, passmark)
       case _ => throw new IllegalStateException(s"Illegal number of phase2 active tests with results " +
         s"for this application: ${application.applicationId} - expecting a result for each of the 2 tests and the " +
         s"previous phase evaluation. Test1Result defined=${test1ResultOpt.isDefined}, test2Result defined=${test2ResultOpt.isDefined}, " +

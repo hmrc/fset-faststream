@@ -48,6 +48,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
   "next Application Ready For Evaluation" should {
     val resultToSave = List(SchemeEvaluationResult(Commercial, Green.toString))
+    val css = List(SchemeEvaluationResult(Commercial, Green.toString))
 
     "return nothing if application does not have PHASE2_TESTS" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1Tests))
@@ -72,7 +73,8 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         activePsiTests = Phase2TestGroup(now, phase2TestWithResult).activeTests,
         activeLaunchpadTest = None,
         prevPhaseEvaluation = Some(phase1Evaluation),
-        selectedSchemes(List(Commercial))
+        selectedSchemes(List(Commercial)),
+        List(SchemeEvaluationResult(Commercial, Green.toString))
       )
     }
 
@@ -93,7 +95,8 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         activePsiTests = Phase2TestGroup(now, phase2TestWithResult).activeTests,
         activeLaunchpadTest = None,
         prevPhaseEvaluation = Some(phase1Evaluation),
-        selectedSchemes(List(Commercial))
+        selectedSchemes(List(Commercial)),
+        List(SchemeEvaluationResult(Commercial, Green.toString))
       )
     }
 
@@ -107,7 +110,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val phase2Evaluation = PassmarkEvaluation(
         "phase2_version1", Some("phase1_version1"), resultToSave, "phase1-version1-res", previousPhaseResultVersion = None
       )
-      phase2EvaluationRepo.savePassmarkEvaluation("app1", phase2Evaluation, newProgressStatus = None).futureValue
+      phase2EvaluationRepo.savePassmarkEvaluation("app1", phase2Evaluation, newProgressStatus = None, css).futureValue
 
       val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("phase2_version1", batchSize = 1).futureValue
       result mustBe empty
@@ -136,7 +139,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val phase2Evaluation = PassmarkEvaluation(
         "phase2_version1", Some("phase1_version1"), resultToSave, "phase2-version1-res", previousPhaseResultVersion = None
       )
-      phase2EvaluationRepo.savePassmarkEvaluation("app1", phase2Evaluation, newProgressStatus = None).futureValue
+      phase2EvaluationRepo.savePassmarkEvaluation("app1", phase2Evaluation, newProgressStatus = None, css).futureValue
 
       val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("phase2_version2", batchSize = 1).futureValue
       result.head mustBe ApplicationReadyForEvaluation(
@@ -147,7 +150,8 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         Phase2TestGroup(now, phase2TestWithResult).activeTests,
         activeLaunchpadTest = None,
         Some(phase1Evaluation),
-        selectedSchemes(List(Commercial))
+        selectedSchemes(List(Commercial)),
+        List(SchemeEvaluationResult(Commercial, Green.toString))
       )
     }
 
@@ -161,7 +165,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val phase2Evaluation = PassmarkEvaluation(
         "phase2_version1", Some("phase1_version1"), resultToSave, "phase2-version1-res", previousPhaseResultVersion = None
       )
-      phase2EvaluationRepo.savePassmarkEvaluation("app1", phase2Evaluation, newProgressStatus = None).futureValue
+      phase2EvaluationRepo.savePassmarkEvaluation("app1", phase2Evaluation, newProgressStatus = None, css).futureValue
 
       val result = phase2EvaluationRepo.nextApplicationsReadyForEvaluation("phase2_version1", batchSize = 1).futureValue
       result.head mustBe ApplicationReadyForEvaluation(
@@ -172,7 +176,9 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         Phase2TestGroup(now, phase2TestWithResult).activeTests,
         activeLaunchpadTest = None,
         prevPhaseEvaluation = Some(phase1Evaluation),
-        selectedSchemes(List(Commercial)))
+        selectedSchemes(List(Commercial)),
+        List(SchemeEvaluationResult(Commercial, Green.toString))
+      )
     }
 
     "limit number of next applications to the batch size limit" in {
@@ -204,6 +210,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
   "save passmark evaluation" should {
     val resultToSave = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
+    val css = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
 
     "save result and update the status" in {
       insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult), Some(phase2TestWithResult))
@@ -211,7 +218,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         "version1", previousPhasePassMarkVersion = None, resultToSave, "version1-res", previousPhaseResultVersion = None
       )
 
-      phase2EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ProgressStatuses.PHASE2_TESTS_PASSED)).futureValue
+      phase2EvaluationRepo.savePassmarkEvaluation("app1", evaluation, Some(ProgressStatuses.PHASE2_TESTS_PASSED), css).futureValue
 
       val resultWithAppStatus = getOnePhase2Profile("app1")
       resultWithAppStatus mustBe defined

@@ -828,7 +828,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
       when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream,
-          Some(ProgressStatuses.SIFT_ENTERED), None, None))
+          Some(ProgressStatuses.SIFT_ENTERED), statusDate = None, overrideSubmissionDeadline = None))
 
       val withdraw = WithdrawScheme(DigitalDataTechnologyAndCyber, "reason", "Candidate")
 
@@ -842,6 +842,40 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
           eqTo(ProgressStatuses.SIFT_READY))
+    }
+
+    "not progress candidate out of PHASE1_TESTS who is in PHASE1_TESTS_INVITED and has withdrawn from all form based schemes and is only " +
+      "in the running for schemes that require no sift" in  new TestFixture {
+      when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
+
+      when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(None) // No form saved
+      when(appRepositoryMock.findProgress(any[String])).thenReturnAsync(ProgressResponseExamples.InPhase1TestsInvited)
+
+      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
+        SchemeEvaluationResult(OperationalDelivery, "Green"),          // numeric test, evaluation required
+        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, "Green") // form to be filled in, no evaluation required
+      ))
+      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
+      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
+          any[Seq[SchemeEvaluationResult]]
+      )).thenReturnAsync()
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
+      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+        ApplicationStatusDetails(ApplicationStatus.PHASE1_TESTS, ApplicationRoute.Faststream,
+          Some(ProgressStatuses.SIFT_ENTERED), statusDate = None, overrideSubmissionDeadline = None))
+
+      val withdraw = WithdrawScheme(DigitalDataTechnologyAndCyber, "reason", "Candidate")
+
+      underTest.withdraw(applicationId, withdraw).futureValue
+
+      verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw), any[Seq[SchemeEvaluationResult]])
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+          eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+          eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
     }
 
     "not progress candidate to SIFT_READY who is in SIFT_ENTERED and has withdrawn from a form based scheme but is still in the running " +
@@ -921,6 +955,66 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       whenReady(underTest.withdraw(applicationId, withdraw).failed) { r =>
         r mustBe a[SiftExpiredException]
       }
+    }
+
+    "withdraw from a scheme at FSB and be offered a job if the next scheme does not need a FSB" in new TestFixture {
+      when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
+
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString), // Needs a FSB
+        SchemeEvaluationResult(OperationalDelivery, Green.toString)       // No FSB
+      ))
+
+      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
+      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
+
+      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+        ApplicationStatusDetails(ApplicationStatus.FSB, ApplicationRoute.Faststream, Some(ProgressStatuses.FSB_ALLOCATION_CONFIRMED),
+          statusDate = None, overrideSubmissionDeadline = None
+        )
+      )
+
+      when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(None) // No form saved
+      when(appRepositoryMock.findProgress(any[String])).thenReturnAsync(ProgressResponseExamples.InFsbAllocationConfirmed)
+      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme], any[Seq[SchemeEvaluationResult]])).thenReturnAsync()
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
+
+      val withdraw = WithdrawScheme(DiplomaticAndDevelopment, "reason", "Candidate")
+
+      underTest.withdraw(applicationId, withdraw).futureValue
+      verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw), any[Seq[SchemeEvaluationResult]])
+      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId), eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
+    }
+
+    "withdraw from a scheme at FSB and not be offered a job if the next scheme also needs a FSB" in new TestFixture {
+      when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
+
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString), // Needs a FSB
+        SchemeEvaluationResult(HousesOfParliament, Green.toString)        // Needs a FSB
+      ))
+
+      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
+      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
+
+      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+        ApplicationStatusDetails(ApplicationStatus.FSB, ApplicationRoute.Faststream, Some(ProgressStatuses.FSB_ALLOCATION_CONFIRMED),
+          statusDate = None, overrideSubmissionDeadline = None
+        )
+      )
+
+      when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(None) // No form saved
+      when(appRepositoryMock.findProgress(any[String])).thenReturnAsync(ProgressResponseExamples.InFsbAllocationConfirmed)
+      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme], any[Seq[SchemeEvaluationResult]])).thenReturnAsync()
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
+
+      val withdraw = WithdrawScheme(DiplomaticAndDevelopment, "reason", "Candidate")
+
+      underTest.withdraw(applicationId, withdraw).futureValue
+      verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw), any[Seq[SchemeEvaluationResult]])
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(
+        eqTo(applicationId), eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER)
+      )
     }
   }
 
@@ -1144,6 +1238,15 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       override lazy val numericTestSiftRequirementSchemeIds = Seq(Commercial, Finance)
       override lazy val formMustBeFilledInSchemeIds = Seq(DigitalDataTechnologyAndCyber, GovernmentEconomicsService)
       override lazy val siftableAndEvaluationRequiredSchemeIds = Seq(Commercial, GovernmentEconomicsService)
+
+      override def schemeRequiresFsb(id: SchemeId) = id match {
+        // Only needed for the fsb specific scheme withdrawal tests
+        case DiplomaticAndDevelopment => true
+        case OperationalDelivery => false
+        case HousesOfParliament => true
+        // All other tests
+        case _ => false
+      }
     }
 
     val underTest = new ApplicationService(
@@ -1184,15 +1287,19 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
     val frameworkId = ""
 
     val candidate1 = Candidate(userId = "user123", applicationId = Some("appId234"), testAccountId = None, email = Some("test1@localhost"),
-      None, None, None, None, None, None, None, None, None)
+      firstName = None, lastName = None, preferredName = None, dateOfBirth = None, address = None, postCode = None, country = None,
+      applicationRoute = None, applicationStatus = None
+    )
 
-    val cd1 = ContactDetails(outsideUk = false, Address("line1"), None, None, "email@email.com", "123":PhoneNumber)
+    val cd1 = ContactDetails(outsideUk = false, Address("line1"), postCode = None, country = None, "email@email.com", "123":PhoneNumber)
 
     val candidate2 = Candidate(userId = "user456", applicationId = Some("appId4567"), testAccountId = None, email = Some("test2@localhost"),
       None, None, None, None, None, None, None, None, None)
 
     val candidate3 = Candidate(userId = "user569", applicationId = Some("appId84512"), testAccountId = None, email = Some("test3@localhost"),
-      None, None, None, None, None, None, None, None, None)
+      firstName = None, lastName = None, preferredName = None, dateOfBirth = None, address = None, postCode = None, country = None,
+      applicationRoute = None, applicationStatus = None
+    )
 
     val generalException = new RuntimeException("something went wrong")
     val failure = Future.failed(generalException)

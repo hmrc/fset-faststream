@@ -45,25 +45,26 @@ class OnlineTestResultsCalculatorSpec extends UnitSpec with Schemes {
   }
 
   "combine test results" should {
+    val appId = "appId"
     val scheme = Commercial
 
     "give correct result" in new OnlineTestResultsCalculator {
-      combineTestResults(Phase.PHASE1, scheme, Red) mustBe Red
-      combineTestResults(Phase.PHASE1, scheme, Amber) mustBe Amber
-      combineTestResults(Phase.PHASE1,scheme, Green) mustBe Green
+      combineTestResults(appId, Phase.PHASE1, scheme, Red) mustBe Red
+      combineTestResults(appId, Phase.PHASE1, scheme, Amber) mustBe Amber
+      combineTestResults(appId, Phase.PHASE1, scheme, Green) mustBe Green
 
-      combineTestResults(Phase.PHASE1, scheme, Green, Red) mustBe Red
-      combineTestResults(Phase.PHASE1, scheme, Red, Green) mustBe Red
-      combineTestResults(Phase.PHASE1, scheme, Red, Red) mustBe Red
+      combineTestResults(appId, Phase.PHASE1, scheme, Green, Red) mustBe Red
+      combineTestResults(appId, Phase.PHASE1, scheme, Red, Green) mustBe Red
+      combineTestResults(appId, Phase.PHASE1, scheme, Red, Red) mustBe Red
 
-      combineTestResults(Phase.PHASE1, scheme, Green, Amber) mustBe Amber
-      combineTestResults(Phase.PHASE1, scheme, Amber, Green) mustBe Amber
-      combineTestResults(Phase.PHASE1, scheme, Amber, Amber) mustBe Amber
+      combineTestResults(appId, Phase.PHASE1, scheme, Green, Amber) mustBe Amber
+      combineTestResults(appId, Phase.PHASE1, scheme, Amber, Green) mustBe Amber
+      combineTestResults(appId, Phase.PHASE1, scheme, Amber, Amber) mustBe Amber
 
-      combineTestResults(Phase.PHASE1, scheme, Green, Green) mustBe Green
+      combineTestResults(appId, Phase.PHASE1, scheme, Green, Green) mustBe Green
     }
     "return exception" in new OnlineTestResultsCalculator {
-      an[IllegalArgumentException] must be thrownBy combineTestResults(Phase.PHASE1, scheme)
+      an[IllegalArgumentException] must be thrownBy combineTestResults(appId, Phase.PHASE1, scheme)
     }
   }
 }

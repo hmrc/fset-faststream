@@ -218,7 +218,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout with Schemes {
     val contactDetailsResponse = Future.successful(ContactDetailsUK)
     val error = new RuntimeException("Something bad happened")
     val serviceError = Future.failed(error)
-    val selectedSchemes = SelectedSchemesExamples.TwoSchemes
+    val selectedSchemes = SelectedSchemesExamples.twoSchemes
 
     val underTest = new FastPassService(
       appRepoMock,
