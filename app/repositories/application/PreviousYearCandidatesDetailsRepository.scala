@@ -173,15 +173,15 @@ trait PreviousYearCandidatesDetailsRepository {
   val dataAnalystSiftAnswersHeader: String = "Nationality,Undergrad degree name,Classification,Graduation year"
 
   val assessmentScoresNumericFields = Seq(
-    "writtenExercise" -> "makingEffectiveDecisionsAverage,communicatingAndInfluencingAverage,seeingTheBigPictureAverage",
-    "leadershipExercise" -> "workingTogetherDevelopingSelfAndOthersAverage,communicatingAndInfluencingAverage,seeingTheBigPictureAverage",
-    "teamExercise" -> "makingEffectiveDecisionsAverage,communicatingAndInfluencingAverage,workingTogetherDevelopingSelfAndOthersAverage"
+    "exercise1" -> "overallAverage",
+    "exercise2" -> "overallAverage",
+    "exercise3" -> "overallAverage"
   )
 
   val assessmentScoresFeedbackFields = Seq(
-    "writtenExercise" -> "makingEffectiveDecisionsFeedback,communicatingAndInfluencingFeedback,seeingTheBigPictureFeedback",
-    "leadershipExercise" -> "workingTogetherDevelopingSelfAndOthersFeedback,communicatingAndInfluencingFeedback,seeingTheBigPictureFeedback",
-    "teamExercise" -> "makingEffectiveDecisionsFeedback,communicatingAndInfluencingFeedback,workingTogetherDevelopingSelfAndOthersFeedback"
+    "exercise1" -> "makingEffectiveDecisionsFeedback,communicatingAndInfluencingFeedback,seeingTheBigPictureFeedback",
+    "exercise2" -> "makingEffectiveDecisionsFeedback,communicatingAndInfluencingFeedback,workingTogetherDevelopingSelfAndOthersFeedback",
+    "exercise3" -> "workingTogetherDevelopingSelfAndOthersFeedback,communicatingAndInfluencingFeedback,seeingTheBigPictureFeedback"
   )
 
   val assessmentScoresNumericFieldsMap: Map[String, String] = assessmentScoresNumericFields.toMap

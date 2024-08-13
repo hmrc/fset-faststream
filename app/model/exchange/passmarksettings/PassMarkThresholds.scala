@@ -44,9 +44,9 @@ trait AssessmentCentreCompetencyThresholds {
 }
 
 trait AssessmentCentreExerciseThresholds {
-  def writtenExercise: PassMarkThreshold
-  def teamExercise: PassMarkThreshold
-  def leadershipExercise: PassMarkThreshold
+  def exercise1: PassMarkThreshold
+  def exercise2: PassMarkThreshold
+  def exercise3: PassMarkThreshold
   def overall: PassMarkThreshold
 }
 
@@ -99,15 +99,15 @@ object AssessmentCentreCompetencyPassMarkThresholds {
 
 // These are exercise pass marks. The latest version of the FSAC evaluation uses these pass marks
 case class AssessmentCentreExercisePassMarkThresholds(
-                                    override val writtenExercise: PassMarkThreshold,
-                                    override val teamExercise: PassMarkThreshold,
-                                    override val leadershipExercise: PassMarkThreshold,
-                                    override val overall: PassMarkThreshold
+                                                       override val exercise1: PassMarkThreshold,
+                                                       override val exercise2: PassMarkThreshold,
+                                                       override val exercise3: PassMarkThreshold,
+                                                       override val overall: PassMarkThreshold
                                    ) extends PassMarkThresholds with AssessmentCentreExerciseThresholds {
   override def toString =
-    s"writtenExercise=$writtenExercise," +
-    s"teamExercise=$teamExercise," +
-    s"leadershipExercise=$leadershipExercise," +
+    s"exercise1=$exercise1," +
+    s"exercise2=$exercise2," +
+    s"exercise3=$exercise3," +
     s"overall=$overall"
 }
 

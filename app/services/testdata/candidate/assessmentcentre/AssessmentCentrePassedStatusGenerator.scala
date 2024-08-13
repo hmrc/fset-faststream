@@ -50,9 +50,9 @@ class AssessmentCentrePassedStatusGenerator @Inject() (val previousStatusGenerat
     val tdgPassmarks = AssessmentCentrePassMarkSettingsPersistence(
       schemes.map(schemeId =>
         AssessmentCentreExercisePassMark(schemeId, AssessmentCentreExercisePassMarkThresholds(
-          writtenExercise = PassMarkThreshold(0.2, 0.4),
-          teamExercise = PassMarkThreshold(0.2, 0.4),
-          leadershipExercise = PassMarkThreshold(0.2, 0.4),
+          exercise1 = PassMarkThreshold(0.2, 0.4),
+          exercise2 = PassMarkThreshold(0.2, 0.4),
+          exercise3 = PassMarkThreshold(0.2, 0.4),
           overall = PassMarkThreshold(2.0, 10.0)
         ))
       ),

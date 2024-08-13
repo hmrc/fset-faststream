@@ -212,8 +212,7 @@ class AssessmentCentreMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
               UniqueIdentifier(applicationId),
               passmarkVersion = evaluationBson.asDocument().get("passmarkVersion").asString().getValue,
               evaluationResult = AssessmentEvaluationResult(
-                FsacResults( //TODO: can we improve this????
-                  Codecs.fromBson[CompetencyAverageResult](evaluationBson.asDocument().get("competency-average")),
+                FsacResults(
                   Codecs.fromBson[ExerciseAverageResult](evaluationBson.asDocument().get("exercise-average")),
                 ),
                 Codecs.fromBson[Seq[SchemeEvaluationResult]](evaluationBson.asDocument().get("schemes-evaluation"))
@@ -235,8 +234,6 @@ class AssessmentCentreMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
       (
         Document("testGroups.FSAC.evaluation" -> Document("passmarkVersion" -> evaluation.passmarkVersion)
         .++(
-          Document("competency-average" -> Codecs.toBson(evaluation.evaluationResult.fsacResults.competencyAverageResult))
-        ).++(
           Document("exercise-average" -> Codecs.toBson(evaluation.evaluationResult.fsacResults.exerciseAverageResult))
         ).++(
           Document("schemes-evaluation" -> Codecs.toBson(evaluation.evaluationResult.schemesEvaluation))
@@ -280,6 +277,7 @@ class AssessmentCentreMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
     }
   }
 
+  // TODO: this can be deleted
   override def getFsacEvaluationResultAverages(applicationId: String): Future[Option[CompetencyAverageResult]] = {
     val query = Document(
       "applicationId" -> applicationId,

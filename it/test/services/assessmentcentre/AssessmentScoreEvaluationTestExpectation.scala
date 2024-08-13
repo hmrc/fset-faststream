@@ -25,55 +25,40 @@ case class AssessmentScoreEvaluationTestExpectation(
                                                      applicationStatus: Option[ApplicationStatus],
                                                      progressStatus: Option[ProgressStatuses.ProgressStatus],
                                                      passmarkVersion: Option[String],
-                                                     makingEffectiveDecisionsAverage: Option[Double],
-                                                     workingTogetherDevelopingSelfAndOthersAverage: Option[Double],
-                                                     communicatingAndInfluencingAverage: Option[Double],
-                                                     seeingTheBigPictureAverage: Option[Double],
-                                                     overallScore: Option[Double],
-                                                     writtenExerciseAverage: Option[Double],
-                                                     teamExerciseAverage: Option[Double],
-                                                     leadershipExerciseAverage: Option[Double],
+                                                     exercise1Average: Option[Double],
+                                                     exercise2Average: Option[Double],
+                                                     exercise3Average: Option[Double],
                                                      exerciseOverallScore: Option[Double],
                                                      schemesEvaluation: Option[String]
 ) {
 
-  def competencyAverage: Option[CompetencyAverageResult] = {
-    val allResults = List(makingEffectiveDecisionsAverage, workingTogetherDevelopingSelfAndOthersAverage,
-      communicatingAndInfluencingAverage, seeingTheBigPictureAverage, overallScore)
+  override def toString =
+    s"applicationStatus=$applicationStatus," +
+      s"progressStatus=$progressStatus," +
+      s"passmarkVersion=$passmarkVersion," +
+      s"exercise1Average=$exercise1Average," +
+      s"exercise2Average=$exercise2Average," +
+      s"exercise3Average=$exercise3Average," +
+      s"exerciseOverallScore=$exerciseOverallScore," +
+      s"schemesEvaluation=$schemesEvaluation"
 
-    val data = s"makingEffectiveDecisionsAverage=$makingEffectiveDecisionsAverage, " +
-      s"workingTogetherDevelopingSelfAndOthersAverage=$workingTogetherDevelopingSelfAndOthersAverage, " +
-      s"communicatingAndInfluencingAverage=$communicatingAndInfluencingAverage, " +
-      s"seeingTheBigPictureAverage=$seeingTheBigPictureAverage, " +
-      s"overallScore=$overallScore"
-    require(allResults.forall(_.isDefined) || allResults.forall(_.isEmpty), s"all competencies or none of them must be defined - $data")
-
-    if (allResults.forall(_.isDefined)) {
-      Some(CompetencyAverageResult(
-        makingEffectiveDecisionsAverage.get,
-        workingTogetherDevelopingSelfAndOthersAverage.get,
-        communicatingAndInfluencingAverage.get,
-        seeingTheBigPictureAverage.get,
-        overallScore.get))
-    } else {
-      None
-    }
-  }
   def exerciseAverage: Option[ExerciseAverageResult] = {
-    val allResults = List(writtenExerciseAverage, teamExerciseAverage, leadershipExerciseAverage, exerciseOverallScore)
+    val allResults = List(
+      exercise1Average, exercise2Average, exercise3Average, exerciseOverallScore
+    )
 
-    val data = s"writtenExerciseAverage=$writtenExerciseAverage, " +
-      s"teamExerciseAverage=$teamExerciseAverage, " +
-      s"leadershipExerciseAverage=$leadershipExerciseAverage, " +
+    val data = s"writtenExerciseAverage=$exercise1Average, " +
+      s"stakeholderCommunicationExerciseAverage=$exercise2Average, " +
+      s"personalDevelopmentConversationAverage=$exercise3Average, " +
       s"exerciseOverallScore=$exerciseOverallScore"
 
-    require(allResults.forall(_.isDefined) || allResults.forall(_.isEmpty), s"all competencies or none of them must be defined - $data")
+    require(allResults.forall(_.isDefined) || allResults.forall(_.isEmpty), s"All exercise averages or none of them must be defined - $data")
 
     if (allResults.forall(_.isDefined)) {
       Some(ExerciseAverageResult(
-        writtenExerciseAverage.get,
-        teamExerciseAverage.get,
-        leadershipExerciseAverage.get,
+        exercise1Average.get,
+        exercise2Average.get,
+        exercise3Average.get,
         exerciseOverallScore.get))
     } else {
       None

@@ -146,10 +146,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
           appId,
           "passMarkVersion",
           AssessmentEvaluationResult(
-            FsacResults(
-              CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
-              ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)
-            ),
+            FsacResults(ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)),
             Seq(SchemeEvaluationResult("GovernmentCommunicationService", Green.toString))
           )
         ),
@@ -214,10 +211,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
           UniqueIdentifier(guid),
           "passMarkVersion1",
           AssessmentEvaluationResult(
-            FsacResults(
-              CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
-              ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)
-            ),
+            FsacResults(ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)),
             Seq(SchemeEvaluationResult("Commercial", Green.toString))
           )
         ),
@@ -254,10 +248,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
           UniqueIdentifier(guid),
           "passMarkVersion1",
           AssessmentEvaluationResult(
-            FsacResults(
-              CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
-              ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)
-            ),
+            FsacResults(ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)),
             Seq(SchemeEvaluationResult("Commercial", Green.toString))
           )
         ),
@@ -279,24 +270,21 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
         additionalProgressStatuses = List(ASSESSMENT_CENTRE_SCORES_ACCEPTED -> true)
       )
 
-      val competencyAverageResult = CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0)
+      val exerciseAverageResult = ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)
 
       assessmentCentreRepository.saveAssessmentScoreEvaluation(
         AssessmentPassMarkEvaluation(
           UniqueIdentifier(guid),
           "passMarkVersion1",
           AssessmentEvaluationResult(
-            FsacResults(
-              competencyAverageResult,
-              ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)
-            ),
+            FsacResults(exerciseAverageResult),
             Seq(SchemeEvaluationResult("Commercial", Green.toString))
           )
         ),
         Seq(SchemeEvaluationResult("Commercial", Green.toString))
       ).futureValue
 
-      assessmentCentreRepository.getFsacEvaluationResultAverages(guid).futureValue mustBe Some(competencyAverageResult)
+      assessmentCentreRepository.getFsacExerciseResultAverages(guid).futureValue mustBe Some(exerciseAverageResult)
     }
 
     "handle candidate who has not been evaluated" in new TestFixture {
@@ -318,7 +306,6 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
         additionalProgressStatuses = List(ASSESSMENT_CENTRE_SCORES_ACCEPTED -> true)
       )
 
-      val competencyAverageResult = CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0)
       val exerciseAverageResult = ExerciseAverageResult(1.0, 2.0, 3.0, 6.0)
 
       assessmentCentreRepository.saveAssessmentScoreEvaluation(
@@ -326,10 +313,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
           UniqueIdentifier(guid),
           "passMarkVersion1",
           AssessmentEvaluationResult(
-            FsacResults(
-              competencyAverageResult,
-              exerciseAverageResult,
-            ),
+            FsacResults(exerciseAverageResult),
             Seq(SchemeEvaluationResult("Commercial", Green.toString))
           )
         ),
@@ -368,10 +352,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
           UniqueIdentifier(guid),
           "passMarkVersion1",
           AssessmentEvaluationResult(
-            FsacResults(
-              CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
-              ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)
-            ),
+            FsacResults(ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)),
             schemeEvaluationResult
           )
         ),
@@ -397,10 +378,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
           UniqueIdentifier(guid),
           "passMarkVersion1",
           AssessmentEvaluationResult(
-            FsacResults(
-              CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
-              ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)
-            ),
+            FsacResults(ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)),
             Seq(SchemeEvaluationResult("Commercial", Green.toString))
           )
         ),
@@ -432,10 +410,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
           UniqueIdentifier(guid),
           "passMarkVersion1",
           AssessmentEvaluationResult(
-            FsacResults(
-              CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
-              ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)
-            ),
+            FsacResults(ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)),
             Seq(SchemeEvaluationResult("Commercial", Green.toString))
           )
         ),
@@ -465,10 +440,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
           UniqueIdentifier(guid),
           "passMarkVersion1",
           AssessmentEvaluationResult(
-            FsacResults(
-              CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
-              ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)
-            ),
+            FsacResults(ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)),
             Seq(
               SchemeEvaluationResult("Commercial", Green.toString),
               SchemeEvaluationResult("OperationalDelivery", Red.toString)
@@ -499,10 +471,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
           UniqueIdentifier(guid),
           "passMarkVersion1",
           AssessmentEvaluationResult(
-            FsacResults(
-              CompetencyAverageResult(1.0, 2.0, 3.0, 4.0, 5.0),
-              ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)
-            ),
+            FsacResults(ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)),
             Seq(
               SchemeEvaluationResult("Commercial", Green.toString),
               SchemeEvaluationResult("OperationalDelivery", Amber.toString)

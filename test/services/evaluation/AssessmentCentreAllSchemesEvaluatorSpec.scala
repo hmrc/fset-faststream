@@ -32,9 +32,9 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
 
   def exerciseAverageResult(e1Avg: Double, e2Avg: Double, e3Avg: Double, overallAvg: Double) =
     ExerciseAverageResult(
-      writtenExerciseAverage = e1Avg,
-      teamExerciseAverage = e2Avg,
-      leadershipExerciseAverage = e3Avg,
+      exercise1Average = e1Avg,
+      exercise2Average = e2Avg,
+      exercise3Average = e3Avg,
       overallScore = overallAvg
     )
 
@@ -43,9 +43,9 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
       val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
-            writtenExercise = PassMarkThreshold(0d, 0d),
-            teamExercise = PassMarkThreshold(0d, 0d),
-            leadershipExercise = PassMarkThreshold(0d, 0d),
+            exercise1 = PassMarkThreshold(0d, 0d),
+            exercise2 = PassMarkThreshold(0d, 0d),
+            exercise3 = PassMarkThreshold(0d, 0d),
             overall = PassMarkThreshold(0d, 0d)
           ))
         ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
@@ -60,9 +60,9 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
       val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
-            writtenExercise = PassMarkThreshold(0d, 1d),
-            teamExercise = PassMarkThreshold(0d, 1d),
-            leadershipExercise = PassMarkThreshold(0d, 1d),
+            exercise1 = PassMarkThreshold(0d, 1d),
+            exercise2 = PassMarkThreshold(0d, 1d),
+            exercise3 = PassMarkThreshold(0d, 1d),
             overall = PassMarkThreshold(0d, 1d)
           ))
         ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
@@ -78,9 +78,9 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
       val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
-            writtenExercise = PassMarkThreshold(2d, 2d),
-            teamExercise = PassMarkThreshold(0d, 0d),
-            leadershipExercise = PassMarkThreshold(0d, 0d),
+            exercise1 = PassMarkThreshold(2d, 2d),
+            exercise2 = PassMarkThreshold(0d, 0d),
+            exercise3 = PassMarkThreshold(0d, 0d),
             overall = PassMarkThreshold(0d, 0d)
           ))
         ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
@@ -96,9 +96,9 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
       val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
-            writtenExercise = PassMarkThreshold(0d, 0d),
-            teamExercise = PassMarkThreshold(2d, 2d),
-            leadershipExercise = PassMarkThreshold(0d, 0d),
+            exercise1 = PassMarkThreshold(0d, 0d),
+            exercise2 = PassMarkThreshold(2d, 2d),
+            exercise3 = PassMarkThreshold(0d, 0d),
             overall = PassMarkThreshold(0d, 0d)
           ))
         ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
@@ -114,9 +114,9 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
       val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
-            writtenExercise = PassMarkThreshold(0d, 0d),
-            teamExercise = PassMarkThreshold(0d, 0d),
-            leadershipExercise = PassMarkThreshold(2d, 2d),
+            exercise1 = PassMarkThreshold(0d, 0d),
+            exercise2 = PassMarkThreshold(0d, 0d),
+            exercise3 = PassMarkThreshold(2d, 2d),
             overall = PassMarkThreshold(0d, 0d)
           ))
         ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
@@ -132,9 +132,9 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
       val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
-            writtenExercise = PassMarkThreshold(0d, 0d),
-            teamExercise = PassMarkThreshold(0d, 0d),
-            leadershipExercise = PassMarkThreshold(2d, 2d),
+            exercise1 = PassMarkThreshold(0d, 0d),
+            exercise2 = PassMarkThreshold(0d, 0d),
+            exercise3 = PassMarkThreshold(2d, 2d),
             overall = PassMarkThreshold(0d, 0d)
           ))
         ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
@@ -150,9 +150,9 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
       val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
-            writtenExercise = PassMarkThreshold(0d, 0d),
-            teamExercise = PassMarkThreshold(0d, 0d),
-            leadershipExercise = PassMarkThreshold(0d, 0d),
+            exercise1 = PassMarkThreshold(0d, 0d),
+            exercise2 = PassMarkThreshold(0d, 0d),
+            exercise3 = PassMarkThreshold(0d, 0d),
             overall = PassMarkThreshold(2d, 2d)
           ))
         ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
@@ -168,9 +168,9 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
       val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
-            writtenExercise = PassMarkThreshold(1d, 2d),
-            teamExercise = PassMarkThreshold(0d, 0d),
-            leadershipExercise = PassMarkThreshold(0d, 0d),
+            exercise1 = PassMarkThreshold(1d, 2d),
+            exercise2 = PassMarkThreshold(0d, 0d),
+            exercise3 = PassMarkThreshold(0d, 0d),
             overall = PassMarkThreshold(0d, 0d)
           ))
         ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
@@ -186,9 +186,9 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
       val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
-            writtenExercise = PassMarkThreshold(0d, 0d),
-            teamExercise = PassMarkThreshold(1d, 2d),
-            leadershipExercise = PassMarkThreshold(0d, 0d),
+            exercise1 = PassMarkThreshold(0d, 0d),
+            exercise2 = PassMarkThreshold(1d, 2d),
+            exercise3 = PassMarkThreshold(0d, 0d),
             overall = PassMarkThreshold(0d, 0d)
           ))
         ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
@@ -204,9 +204,9 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
       val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
-            writtenExercise = PassMarkThreshold(0d, 0d),
-            teamExercise = PassMarkThreshold(0d, 0d),
-            leadershipExercise = PassMarkThreshold(1d, 2d),
+            exercise1 = PassMarkThreshold(0d, 0d),
+            exercise2 = PassMarkThreshold(0d, 0d),
+            exercise3 = PassMarkThreshold(1d, 2d),
             overall = PassMarkThreshold(0d, 0d)
           ))
         ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
@@ -222,9 +222,9 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
       val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
-            writtenExercise = PassMarkThreshold(0d, 0d),
-            teamExercise = PassMarkThreshold(0d, 0d),
-            leadershipExercise = PassMarkThreshold(1d, 2d),
+            exercise1 = PassMarkThreshold(0d, 0d),
+            exercise2 = PassMarkThreshold(0d, 0d),
+            exercise3 = PassMarkThreshold(1d, 2d),
             overall = PassMarkThreshold(0d, 0d)
           ))
         ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
@@ -240,9 +240,9 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
       val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
-            writtenExercise = PassMarkThreshold(0d, 0d),
-            teamExercise = PassMarkThreshold(0d, 0d),
-            leadershipExercise = PassMarkThreshold(0d, 0d),
+            exercise1 = PassMarkThreshold(0d, 0d),
+            exercise2 = PassMarkThreshold(0d, 0d),
+            exercise3 = PassMarkThreshold(0d, 0d),
             overall = PassMarkThreshold(1d, 2d)
           ))
         ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"

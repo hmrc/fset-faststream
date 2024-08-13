@@ -24,30 +24,12 @@ object AssessmentScoreCalculator extends AssessmentScoreCalculator
 
 trait AssessmentScoreCalculator {
 
-  def calculateCompetencyAverages(scores: AssessmentScoresAllExercises): CompetencyAverageResult = {
-    val overallScores = List(
-      scores.makingEffectiveDecisionsAvg,
-      scores.workingTogetherDevelopingSelfAndOthersAvg,
-      scores.communicatingAndInfluencingAvg,
-      scores.seeingTheBigPictureAvg
-    ).map{ avg =>
-      val bd = BigDecimal.apply(avg)
-      bd.setScale(2, BigDecimal.RoundingMode.HALF_UP)
-    }.sum
-
-    CompetencyAverageResult(
-      scores.makingEffectiveDecisionsAvg,
-      scores.workingTogetherDevelopingSelfAndOthersAvg,
-      scores.communicatingAndInfluencingAvg,
-      scores.seeingTheBigPictureAvg,
-      overallScores.toDouble)
-  }
-
-  def calculateExerciseAverages(scores: AssessmentScoresAllExercises, appId: String): ExerciseAverageResult = {
-    val overallScores = List(
-      scores.writtenExerciseAvg(appId),
-      scores.teamExerciseAvg(appId),
-      scores.leadershipExerciseAvg(appId)
+  def fetchExerciseAverages(scores: AssessmentScoresAllExercises, appId: String): ExerciseAverageResult = {
+    // The overall score is the individual exercise averages summed
+    val overallScore = List(
+      scores.exercise1OverallAvg(appId),
+      scores.exercise2OverallAvg(appId),
+      scores.exercise3OverallAvg(appId)
     ).map{ avg =>
       val bd = BigDecimal.apply(avg)
       val decimalPlaces = 4
@@ -55,9 +37,9 @@ trait AssessmentScoreCalculator {
     }.sum
 
     ExerciseAverageResult(
-      scores.writtenExerciseAvg(appId),
-      scores.teamExerciseAvg(appId),
-      scores.leadershipExerciseAvg(appId),
-      overallScores.toDouble)
+      scores.exercise1OverallAvg(appId),
+      scores.exercise2OverallAvg(appId),
+      scores.exercise3OverallAvg(appId),
+      overallScore.toDouble)
   }
 }

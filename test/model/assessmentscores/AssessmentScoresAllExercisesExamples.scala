@@ -27,37 +27,37 @@ object AssessmentScoresAllExercisesExamples {
   val AppId5 = UniqueIdentifier.randomUniqueIdentifier
   val AppId6 = UniqueIdentifier.randomUniqueIdentifier
 
-  val AssessorOnlyAnalysisExercise = AssessmentScoresAllExercises(
+  val AssessorOnlyExercise1 = AssessmentScoresAllExercises(
     AppId1,
     Some(AssessmentScoresExerciseExamples.Example1),
-    teamExercise = None,
-    leadershipExercise = None
+    exercise2 = None,
+    exercise3 = None
   )
 
-  val AssessorOnlyGroupExercise = AssessmentScoresAllExercises(
+  val AssessorOnlyExercise2 = AssessmentScoresAllExercises(
     AppId2,
-    writtenExercise = None,
+    exercise1 = None,
     Some(AssessmentScoresExerciseExamples.Example2),
-    leadershipExercise = None
+    exercise3 = None
   )
 
-  val AssessorOnlyLeadershipExercise = AssessmentScoresAllExercises(
+  val AssessorOnlyExercise3 = AssessmentScoresAllExercises(
     AppId3,
-    writtenExercise = None,
-    teamExercise = None,
+    exercise1 = None,
+    exercise2 = None,
     Some(AssessmentScoresExerciseExamples.Example3)
   )
 
-  val AssessorOnlyLeadershipExerciseNoFractions = AssessmentScoresAllExercises(
+  val AssessorOnlyExercise3NoFractions = AssessmentScoresAllExercises(
     AppId3,
-    writtenExercise = None,
-    teamExercise = None,
+    exercise1 = None,
+    exercise2 = None,
     Some(AssessmentScoresExerciseExamples.ExampleNoFractions)
   )
 
-  val AssessorAllButAnalysisExercise = AssessmentScoresAllExercises(
+  val AssessorAllButExercise1 = AssessmentScoresAllExercises(
     AppId4,
-    writtenExercise = None,
+    exercise1 = None,
     Some(AssessmentScoresExerciseExamples.Example2),
     Some(AssessmentScoresExerciseExamples.Example3),
     Some(AssessmentScoresFinalFeedbackExamples.Example1)
@@ -65,9 +65,9 @@ object AssessmentScoresAllExercisesExamples {
 
   val NoExercises = AssessmentScoresAllExercises(
     AppId5,
-    writtenExercise = None,
-    teamExercise = None,
-    leadershipExercise = None,
+    exercise1 = None,
+    exercise2 = None,
+    exercise3 = None,
     finalFeedback = None
   )
 

@@ -502,36 +502,29 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec with Schemes {
 
     val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(List(
       AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
-        writtenExercise = PassMarkThreshold(1.0, 3.0),
-        teamExercise = PassMarkThreshold(1.0, 3.0),
-        leadershipExercise = PassMarkThreshold(1.0, 3.0),
+        exercise1 = PassMarkThreshold(1.0, 3.0),
+        exercise2 = PassMarkThreshold(1.0, 3.0),
+        exercise3 = PassMarkThreshold(1.0, 3.0),
         overall = PassMarkThreshold(10.0, 15.0))),
       AssessmentCentreExercisePassMark(DigitalDataTechnologyAndCyber, AssessmentCentreExercisePassMarkThresholds(
-        writtenExercise = PassMarkThreshold(1.0, 3.0),
-        teamExercise = PassMarkThreshold(1.0, 3.0),
-        leadershipExercise = PassMarkThreshold(1.0, 3.0),
+        exercise1 = PassMarkThreshold(1.0, 3.0),
+        exercise2 = PassMarkThreshold(1.0, 3.0),
+        exercise3 = PassMarkThreshold(1.0, 3.0),
         overall = PassMarkThreshold(10.0, 15.0))),
       AssessmentCentreExercisePassMark(DiplomaticAndDevelopment, AssessmentCentreExercisePassMarkThresholds(
-        writtenExercise = PassMarkThreshold(1.0, 3.0),
-        teamExercise = PassMarkThreshold(1.0, 3.0),
-        leadershipExercise = PassMarkThreshold(1.0, 3.0),
+        exercise1 = PassMarkThreshold(1.0, 3.0),
+        exercise2 = PassMarkThreshold(1.0, 3.0),
+        exercise3 = PassMarkThreshold(1.0, 3.0),
         overall = PassMarkThreshold(10.0, 15.0)))),
       "1", OffsetDateTime.now, "user")
 
-    val competencyAverageResult = CompetencyAverageResult(
-      makingEffectiveDecisionsAverage = 4.0,
-      workingTogetherDevelopingSelfAndOthersAverage = 4.0,
-      communicatingAndInfluencingAverage = 4.0,
-      seeingTheBigPictureAverage = 4.0,
-      overallScore = 16.0
-    )
     val exerciseAverageResult = ExerciseAverageResult(
-      writtenExerciseAverage = 4.0,
-      teamExerciseAverage = 4.0,
-      leadershipExerciseAverage = 4.0,
+      exercise1Average = 4.0,
+      exercise2Average = 4.0,
+      exercise3Average = 4.0,
       overallScore = 12.0
     )
-    val fsacResults = FsacResults(competencyAverageResult, exerciseAverageResult)
+    val fsacResults = FsacResults(exerciseAverageResult)
   }
 
   trait ReturnPassMarksFixture extends TestFixture {

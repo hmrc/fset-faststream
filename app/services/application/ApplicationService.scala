@@ -847,7 +847,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
         siftEvaluation
       }
     }
-    val exercisesToRemove = List(writtenExercise.toString, teamExercise.toString, leadershipExercise.toString)
+    val exercisesToRemove = List(exercise1.toString, exercise2.toString, exercise3.toString)
     val reviewerExercisesToRemove = exercisesToRemove :+ finalFeedback.toString
 
     for {
@@ -876,7 +876,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
 
     for {
       _ <- fsacRepo.removeFsacTestGroup(applicationId)
-      exercisesToRemove = List(writtenExercise.toString, teamExercise.toString, leadershipExercise.toString, finalFeedback.toString)
+      exercisesToRemove = List(exercise1.toString, exercise2.toString, exercise3.toString, finalFeedback.toString)
       _ <- assessorAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
       _ <- reviewerAssessmentScoresRepository.resetExercise(UniqueIdentifier(applicationId), exercisesToRemove)
       _ <- rollbackAppAndProgressStatus(applicationId, ApplicationStatus.ASSESSMENT_CENTRE, statuses)

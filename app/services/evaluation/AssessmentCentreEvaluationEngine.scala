@@ -34,12 +34,10 @@ class AssessmentCentreEvaluationEngineImpl extends AssessmentCentreEvaluationEng
   def evaluate(candidateScores: AssessmentPassMarksSchemesAndScores): AssessmentEvaluationResult = {
     val appId = candidateScores.scores.applicationId
 
-    val competencyAverages = calculateCompetencyAverages(candidateScores.scores)
-    //    logger.debug(s"CompetencyAverages = $competencyAverages - applicationId = ${appId.toString}")
-    val exerciseAverages = calculateExerciseAverages(candidateScores.scores, appId.toString)
+    val exerciseAverages = fetchExerciseAverages(candidateScores.scores, appId.toString)
     logger.debug(s"ExerciseAverages = $exerciseAverages - applicationId = ${appId.toString}")
 
     val evaluationResult = evaluateSchemes(appId.toString(), candidateScores.passmark, exerciseAverages, candidateScores.schemes)
-    AssessmentEvaluationResult(FsacResults(competencyAverages, exerciseAverages), evaluationResult)
+    AssessmentEvaluationResult(FsacResults(exerciseAverages), evaluationResult)
   }
 }

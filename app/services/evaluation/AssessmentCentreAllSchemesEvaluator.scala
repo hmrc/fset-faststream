@@ -53,25 +53,23 @@ trait AssessmentCentreAllSchemesEvaluator extends Logging {
    */
 
   def evaluateSchemes(appId: String,
-                       passmark: AssessmentCentrePassMarkSettingsPersistence,
-                       competencyAverages: ExerciseAverageResult,
-                       schemes: Seq[SchemeId]): Seq[SchemeEvaluationResult] = {
+                      passmark: AssessmentCentrePassMarkSettingsPersistence,
+                      exerciseAverages: ExerciseAverageResult,
+                      schemes: Seq[SchemeId]): Seq[SchemeEvaluationResult] = {
     schemes.map { scheme =>
       val assessmentCentrePassMark = passmark.schemes.find { _.schemeId == scheme }
         .getOrElse(throw new IllegalStateException(s"Did not find assessment centre pass marks for scheme = $scheme, " +
           s"applicationId = $appId"))
-      val writtenExerciseResult = evaluateScore(appId, "writtenExercise", competencyAverages.writtenExerciseAverage,
-        assessmentCentrePassMark.schemeThresholds.writtenExercise)
-      val teamExerciseResult = evaluateScore(appId, "teamExercise",
-        competencyAverages.teamExerciseAverage,
-        assessmentCentrePassMark.schemeThresholds.teamExercise)
-      val leadershipExerciseResult = evaluateScore(appId, "leadershipExercise",
-        competencyAverages.leadershipExerciseAverage,
-        assessmentCentrePassMark.schemeThresholds.leadershipExercise)
-      val overallResult = evaluateScore(appId, "overall", competencyAverages.overallScore, assessmentCentrePassMark.schemeThresholds.overall)
+      val exercise1Result = evaluateScore(appId, "exercise1", exerciseAverages.exercise1Average,
+        assessmentCentrePassMark.schemeThresholds.exercise1)
+      val exercise2Result = evaluateScore(appId, "exercise2", exerciseAverages.exercise2Average,
+        assessmentCentrePassMark.schemeThresholds.exercise2)
+      val exercise3Result = evaluateScore(appId, "exercise3", exerciseAverages.exercise3Average,
+        assessmentCentrePassMark.schemeThresholds.exercise3)
+      val overallResult = evaluateScore(appId, "overall", exerciseAverages.overallScore, assessmentCentrePassMark.schemeThresholds.overall)
 
-      SchemeEvaluationResult(scheme, combineTestResults(appId, scheme, writtenExerciseResult,
-        teamExerciseResult, leadershipExerciseResult, overallResult).toString)
+      SchemeEvaluationResult(scheme, combineTestResults(appId, scheme, exercise1Result,
+        exercise2Result, exercise3Result, overallResult).toString)
     }
   }
 

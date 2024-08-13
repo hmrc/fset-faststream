@@ -40,11 +40,9 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
   val updatedBy = UniqueIdentifier.randomUniqueIdentifier
 
   // The scores awarded to the candidate by assessor/reviewer
-  def writtenExerciseSample(assessorOrReviewer: String) = AssessmentScoresExercise(
+  def exercise1Sample(assessorOrReviewer: String) = AssessmentScoresExercise(
     attended = true,
-    makingEffectiveDecisionsAverage = Some(4.0),
-    communicatingAndInfluencingAverage = Some(4.0),
-    seeingTheBigPictureAverage = Some(4.0),
+    overallAverage = Some(4.0),
     updatedBy = updatedBy,
     seeingTheBigPictureScores = Some(SeeingTheBigPictureScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
@@ -60,11 +58,9 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
     communicatingAndInfluencingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
   )
 
-  def teamExerciseSample(assessorOrReviewer: String) = AssessmentScoresExercise(
+  def exercise2Sample(assessorOrReviewer: String) = AssessmentScoresExercise(
     attended = true,
-    makingEffectiveDecisionsAverage = Some(4.0),
-    workingTogetherDevelopingSelfAndOthersAverage = Some(2.0),
-    communicatingAndInfluencingAverage = Some(4.0),
+    overallAverage = Some(4.0),
     updatedBy = updatedBy,
     makingEffectiveDecisionsScores = Some(MakingEffectiveDecisionsScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0)
@@ -80,11 +76,9 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
     communicatingAndInfluencingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
   )
 
-  def leadershipExerciseSample(assessorOrReviewer: String) = AssessmentScoresExercise(
+  def exercise3Sample(assessorOrReviewer: String) = AssessmentScoresExercise(
     attended = true,
-    workingTogetherDevelopingSelfAndOthersAverage = Some(4.0),
-    communicatingAndInfluencingAverage = Some(4.0),
-    seeingTheBigPictureAverage = Some(4.0),
+    overallAverage = Some(4.0),
     updatedBy = updatedBy,
     workingTogetherDevelopingSelfAndOthersScores = Some(WorkingTogetherDevelopingSelfAndOtherScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
@@ -112,9 +106,13 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       appId = UniqueIdentifier(candidateInPreviousStatus.applicationId.getOrElse(sys.error("Missed application id for candidate")))
       assessorOrReviewer = "assessor"
-      _ <- assessorAssessmentScoresService.submitExercise(appId, writtenExercise, writtenExerciseSample(assessorOrReviewer))
-      _ <- assessorAssessmentScoresService.submitExercise(appId, teamExercise, teamExerciseSample(assessorOrReviewer))
-      _ <- assessorAssessmentScoresService.submitExercise(appId, leadershipExercise, leadershipExerciseSample(assessorOrReviewer))
+      _ <- assessorAssessmentScoresService.submitExercise(appId, exercise1, exercise1Sample(assessorOrReviewer))
+      _ <- assessorAssessmentScoresService.submitExercise(
+        appId, exercise2, exercise2Sample(assessorOrReviewer)
+      )
+      _ <- assessorAssessmentScoresService.submitExercise(
+        appId, exercise3, exercise3Sample(assessorOrReviewer)
+      )
       _ <- assessorAssessmentScoresService.submitFinalFeedback(appId, finalFeedbackSample(assessorOrReviewer))
     } yield {
       candidateInPreviousStatus

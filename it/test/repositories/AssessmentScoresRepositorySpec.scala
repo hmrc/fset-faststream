@@ -64,8 +64,8 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
       val ScoresRead = repository.find(ApplicationId).futureValue
 
       val ScoresModified =
-        Scores.copy(leadershipExercise = Scores.leadershipExercise.map(
-          _.copy(communicatingAndInfluencingAverage = Some(3.7192))))
+        Scores.copy(exercise3 = Scores.exercise3.map(
+          _.copy(overallAverage = Some(3.7192))))
       repository.save(ScoresModified).futureValue
       val ScoresModifiedRead = repository.find(ApplicationId).futureValue
 
@@ -91,7 +91,8 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
         case CollectionNames.REVIEWER_ASSESSMENT_SCORES => reportRepo.findReviewerAssessmentScores(Seq(ApplicationId.toString)).futureValue
       }
       csvExtract.records.size mustBe 1
-      val dataElement = csvExtract.elementAt(ApplicationId.toString, 12)
+
+      val dataElement = csvExtract.elementAt(ApplicationId.toString, 17)
       dataElement mustBe Some("\"2.0\"")
     }
   }
@@ -101,13 +102,13 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
       "when assessment scores do not exist" in new TestFixture  {
       val ExerciseScoresToSave = ExerciseScores.copy(version = None, submittedDate = None)
 
-      repository.saveExercise(ApplicationId, AssessmentScoresSectionType.leadershipExercise, ExerciseScoresToSave,
+      repository.saveExercise(ApplicationId, AssessmentScoresSectionType.exercise3, ExerciseScoresToSave,
         Some(NewVersion)).futureValue
 
       val result = repository.find(ApplicationId).futureValue
       val ExerciseScoresExpected = ExerciseScores.copy(submittedDate = None, version = Some(NewVersion))
       val ExpectedScores = AssessmentScoresAllExercises(
-        ApplicationId, writtenExercise = None, teamExercise = None, Some(ExerciseScoresExpected), finalFeedback = None
+        ApplicationId, exercise1 = None, exercise2 = None, Some(ExerciseScoresExpected), finalFeedback = None
       )
       result mustBe Some(ExpectedScores)
     }
@@ -117,13 +118,13 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     "successfully read the scores from mongo as double values after saving" in new TestFixture  {
       val ExerciseScoresToSave = ExerciseScoresNoFractions.copy(version = None, submittedDate = None)
 
-      repository.saveExercise(ApplicationId, AssessmentScoresSectionType.leadershipExercise, ExerciseScoresToSave,
+      repository.saveExercise(ApplicationId, AssessmentScoresSectionType.exercise3, ExerciseScoresToSave,
         Some(NewVersion)).futureValue
 
       val result = repository.find(ApplicationId).futureValue
       val ExerciseScoresExpected = ExerciseScoresNoFractions.copy(submittedDate = None, version = Some(NewVersion))
       val ExpectedScores = AssessmentScoresAllExercises(
-        ApplicationId, writtenExercise = None, teamExercise = None, Some(ExerciseScoresExpected), finalFeedback = None
+        ApplicationId, exercise1 = None, exercise2 = None, Some(ExerciseScoresExpected), finalFeedback = None
       )
       result mustBe Some(ExpectedScores)
 
@@ -132,24 +133,25 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
         case CollectionNames.REVIEWER_ASSESSMENT_SCORES => reportRepo.findReviewerAssessmentScores(Seq(ApplicationId.toString)).futureValue
       }
       csvExtract.records.size mustBe 1
-      val dataElement = csvExtract.elementAt(ApplicationId.toString, 13)
+
+      val dataElement = csvExtract.elementAt(ApplicationId.toString, 17)
       dataElement mustBe Some("\"2.0\"")
     }
 
     "update existing assessment scores with analysis exercise" +
       "when assessment scores contains leadership exercise" in new TestFixture {
       val ExerciseScoresToSave = ExerciseScores.copy(version = None, submittedDate = None)
-      repository.saveExercise(ApplicationId, AssessmentScoresSectionType.leadershipExercise, ExerciseScoresToSave,
+      repository.saveExercise(ApplicationId, AssessmentScoresSectionType.exercise3, ExerciseScoresToSave,
         Some(NewVersion)).futureValue
 
       val ExerciseScoresToSave2 = ExerciseScores2.copy(version = None, submittedDate = None)
-      repository.saveExercise(ApplicationId, AssessmentScoresSectionType.writtenExercise, ExerciseScoresToSave2,
+      repository.saveExercise(ApplicationId, AssessmentScoresSectionType.exercise1, ExerciseScoresToSave2,
         Some(NewVersion2)).futureValue
 
       val result = repository.find(ApplicationId).futureValue
       val ExerciseScoresExpected = ExerciseScores.copy(submittedDate = None, version = Some(NewVersion))
       val ExerciseScores2Expected = ExerciseScores2.copy(submittedDate = None, version = Some(NewVersion2))
-      val ExpectedScores = AssessmentScoresAllExercises(ApplicationId, Some(ExerciseScores2Expected), teamExercise = None,
+      val ExpectedScores = AssessmentScoresAllExercises(ApplicationId, Some(ExerciseScores2Expected), exercise2 = None,
         Some(ExerciseScoresExpected), finalFeedback = None)
       result mustBe Some(ExpectedScores)
     }
@@ -157,11 +159,11 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     "update analysis exercise in existing assessment scores " +
       "when assessment scores with analysis exercise was saved before by same user" in new TestFixture {
       val ExerciseScoresToSave = ExerciseScores.copy(version = None, submittedDate = None, updatedBy = UpdatedBy)
-      repository.saveExercise(ApplicationId, AssessmentScoresSectionType.writtenExercise, ExerciseScoresToSave,
+      repository.saveExercise(ApplicationId, AssessmentScoresSectionType.exercise1, ExerciseScoresToSave,
         Some(NewVersion)).futureValue
 
       val ExerciseScoresToSave2 = ExerciseScores2.copy(version = Some(NewVersion), submittedDate = None, updatedBy = UpdatedBy)
-        repository.saveExercise(ApplicationId, AssessmentScoresSectionType.writtenExercise, ExerciseScoresToSave2,
+        repository.saveExercise(ApplicationId, AssessmentScoresSectionType.exercise1, ExerciseScoresToSave2,
           Some(NewVersion2)).futureValue
 
       val result = repository.find(ApplicationId).futureValue
@@ -174,31 +176,31 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     "throw OptimisticLockException " +
       "when the exercise to be updated was updated before by another user" in new TestFixture {
       val ExerciseScoresToSave = ExerciseScores.copy(version = None, submittedDate = None, updatedBy = UpdatedBy)
-      repository.saveExercise(ApplicationId, AssessmentScoresSectionType.writtenExercise, ExerciseScoresToSave,
+      repository.saveExercise(ApplicationId, AssessmentScoresSectionType.exercise1, ExerciseScoresToSave,
         Some(NewVersion)).futureValue
 
       val ExerciseScoresToSave2 = ExerciseScores2.copy(version = None, submittedDate = None, updatedBy = UpdatedBy2)
 
-      val result = repository.saveExercise(ApplicationId, AssessmentScoresSectionType.writtenExercise, ExerciseScoresToSave2,
+      val result = repository.saveExercise(ApplicationId, AssessmentScoresSectionType.exercise1, ExerciseScoresToSave2,
           Some(NewVersion2)).failed.futureValue
       result mustBe a[model.Exceptions.OptimisticLockException]
       result.getMessage mustBe
-        s"You are trying to update a version of [writtenExercise] for application id [$ApplicationId] that has been updated already"
+        s"You are trying to update a version of [exercise1] for application id [$ApplicationId] that has been updated already"
     }
 
     "throw CannotUpdateRecord " +
       "when the exercise to be updated is an old version of the existing one" in new TestFixture {
       val ExerciseScoresToSave = ExerciseScores.copy(version = None, submittedDate = None, updatedBy = UpdatedBy)
-      repository.saveExercise(ApplicationId, AssessmentScoresSectionType.writtenExercise, ExerciseScoresToSave,
+      repository.saveExercise(ApplicationId, AssessmentScoresSectionType.exercise1, ExerciseScoresToSave,
         Some(NewVersion)).futureValue
 
       val ExerciseScoresToSave2 = ExerciseScores2.copy(version = Some(OldVersion), submittedDate = None, updatedBy = UpdatedBy)
 
-      val result = repository.saveExercise(ApplicationId, AssessmentScoresSectionType.writtenExercise, ExerciseScoresToSave2,
+      val result = repository.saveExercise(ApplicationId, AssessmentScoresSectionType.exercise1, ExerciseScoresToSave2,
           Some(NewVersion2)).failed.futureValue
       result mustBe a[model.Exceptions.CannotUpdateRecord]
       result.getMessage mustBe
-        s"Failed to update document for Id $ApplicationId whilst performing operation saving assessment score for writtenExercise"
+        s"Failed to update document for Id $ApplicationId whilst performing operation saving assessment score for exercise1"
     }
   }
 
@@ -213,7 +215,7 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
 //      val FinalFeedbackExpected = FinalFeedback.copy(acceptedDate = LocalTime.withZone(DateTimeZone.UTC), version = Some(NewVersion))
       val FinalFeedbackExpected = FinalFeedback.copy(acceptedDate = LocalTime, version = Some(NewVersion))
       val ExpectedScores = AssessmentScoresAllExercises(
-        ApplicationId, writtenExercise = None, teamExercise = None, leadershipExercise = None, Some(FinalFeedbackExpected)
+        ApplicationId, exercise1 = None, exercise2 = None, exercise3 = None, Some(FinalFeedbackExpected)
       )
       result mustBe Some(ExpectedScores)
     }
@@ -311,7 +313,8 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
 //        val FinalFeedbackExpected = FinalFeedback.copy(acceptedDate = LocalTime.withZone(DateTimeZone.UTC), version = Some(NewVersion))
         val FinalFeedbackExpected = FinalFeedback.copy(acceptedDate = LocalTime, version = Some(NewVersion))
         val ExpectedScores = AssessmentScoresAllExercises(
-          ApplicationId, writtenExercise = None, teamExercise = None, leadershipExercise = None, finalFeedback = Some(FinalFeedbackExpected)
+          ApplicationId, exercise1 = None, exercise2 = None,
+          exercise3 = None, finalFeedback = Some(FinalFeedbackExpected)
         )
         result mustBe Some(ExpectedScores)
       }
@@ -341,9 +344,9 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
       resultBeforeReset mustBe Some(Scores3)
 
       val exercisesToRemove = List(
-        AssessmentScoresSectionType.writtenExercise.toString,
-        AssessmentScoresSectionType.teamExercise.toString,
-        AssessmentScoresSectionType.leadershipExercise.toString,
+        AssessmentScoresSectionType.exercise1.toString,
+        AssessmentScoresSectionType.exercise2.toString,
+        AssessmentScoresSectionType.exercise3.toString,
         AssessmentScoresSectionType.finalFeedback.toString
       )
       repository.resetExercise(ApplicationId, exercisesToRemove).futureValue
@@ -356,9 +359,10 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
   trait TestFixture {
     val ApplicationId = UniqueIdentifier(UUID.fromString(UUIDFactory.generateUUID()))
     val ApplicationId2 = UniqueIdentifier(UUID.fromString(UUIDFactory.generateUUID()))
-    val Scores = AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise.copy(applicationId = ApplicationId)
-    val ScoresNoFractions = AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExerciseNoFractions.copy(applicationId = ApplicationId)
-    val Scores2 = AssessmentScoresAllExercisesExamples.AssessorOnlyGroupExercise.copy(applicationId = ApplicationId2)
+    val Scores = AssessmentScoresAllExercisesExamples.AssessorOnlyExercise3.copy(applicationId = ApplicationId)
+    val ScoresNoFractions = AssessmentScoresAllExercisesExamples.AssessorOnlyExercise3NoFractions
+      .copy(applicationId = ApplicationId)
+    val Scores2 = AssessmentScoresAllExercisesExamples.AssessorOnlyExercise2.copy(applicationId = ApplicationId2)
     val Scores3 = AssessmentScoresAllExercisesExamples.AllExercises.copy(applicationId = ApplicationId)
     val ExerciseScores = AssessmentScoresExerciseExamples.Example3
     val ExerciseScoresNoFractions = AssessmentScoresExerciseExamples.ExampleNoFractions
@@ -366,8 +370,6 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
     val FinalFeedback = AssessmentScoresFinalFeedbackExamples.Example1
     val FinalFeedback2 = AssessmentScoresFinalFeedbackExamples.Example2
 
-//    val LocalTime = ITDateTimeFactoryMock.nowLocalTimeZone //TODO: delete me
-//    val LocalDate = ITDateTimeFactoryMock.nowLocalDate // TODO: delete me
     val LocalTime = ITDateTimeFactoryMock.nowLocalTimeZone
     val LocalDate = ITDateTimeFactoryMock.nowLocalDate
     val OldVersion = UUIDFactory.generateUUID()
