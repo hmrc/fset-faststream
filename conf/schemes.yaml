@@ -52,7 +52,7 @@
   siftEvaluationRequired: false
   fsbType: FIN FSB
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB_Guide_Finance.pdf
-#  Currently filtered out in the candidate ui
+#  DO NOT USE - currently filtered out in the candidate ui
 - id: GovernmentCommunicationService
   code: GCFS
   name: Government Communication Service

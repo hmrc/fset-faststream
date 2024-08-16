@@ -41,6 +41,7 @@ class TestJobsController @Inject() (cc:ControllerComponents,
                                     evaluatePhase3ResultJob: EvaluatePhase3ResultJob,
                                     successPhase1TestJob: SuccessPhase1TestJob,
                                     successPhase3TestJob: SuccessPhase3TestJob,
+                                    failedPhase1TestJob: FailedPhase1TestJob,
                                     successPhase3SdipFsTestJob: SuccessPhase3SdipFsTestJob,
                                     progressToSiftJob: ProgressToSiftJobImpl,
                                     firstSiftReminderJob: FirstSiftReminderJobImpl,
@@ -121,6 +122,12 @@ class TestJobsController @Inject() (cc:ControllerComponents,
   def processSuccessPhase1TestJob: Action[AnyContent] = Action.async { implicit _ =>
     successPhase1TestJob.tryExecute().map { _ =>
       Ok("Success phase 1 test job started")
+    }
+  }
+
+  def processFailedPhase1TestJob: Action[AnyContent] = Action.async { implicit _ =>
+    failedPhase1TestJob.tryExecute().map { _ =>
+      Ok("Failed phase 1 test job started")
     }
   }
 
