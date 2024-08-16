@@ -63,12 +63,13 @@ trait OnlineTestService extends TimeExtension with EventSink with Logging {
                                            (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit]
   def processNextTestForNotification(notificationType: NotificationTestType, phase: String, operation: String)
                                     (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit] = {
+    logger.warn(s"Looking for candidates who have $operation tests in $phase and will move them to ${notificationType.notificationProgress}")
     appRepository.findTestForNotification(notificationType).flatMap {
       case Some(test) =>
-        logger.warn(s"Candidate found to notify they successfully $operation tests in $phase - appId=${test.applicationId}")
-        processTestForNotification(test, notificationType)
+        logger.warn(s"Candidate found to notify they $operation tests in $phase - appId=${test.applicationId}")
+        processTestForNotification(test, notificationType, phase)
       case None =>
-        logger.warn(s"No candidate found to notify they successfully $operation tests in $phase")
+        logger.warn(s"No candidate found to notify they $operation tests in $phase")
         Future.successful(())
     }
   }
@@ -100,13 +101,13 @@ trait OnlineTestService extends TimeExtension with EventSink with Logging {
       case None => Future.successful(())
     }
 
-  protected def processTestForNotification(toNotify: TestResultNotification, `type`: NotificationTestType)
+  protected def processTestForNotification(toNotify: TestResultNotification, `type`: NotificationTestType, phase: String)
                                           (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit] = {
     for {
       emailAddress <- candidateEmailAddress(toNotify.userId)
       _ <- commitProgressStatus(toNotify.applicationId, `type`.notificationProgress)
       _ <- emailCandidate(toNotify.applicationId, toNotify.preferredName, emailAddress, `type`.template, `type`.notificationProgress)
-    } yield ()
+    } yield logger.warn(s"Successfully updated $phase candidate ${toNotify.applicationId} to ${`type`.notificationProgress}")
   }
 
   protected def processTestForSdipFsNotification(toNotify: TestResultSdipFsNotification, `type`: NotificationTestTypeSdipFs)
