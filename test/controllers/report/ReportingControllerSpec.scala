@@ -423,7 +423,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
 
     val SuccessfulAdjustmentReportResponse = Future.successful(
       List(
-        AdjustmentReportItem(userId = "1", applicationId = Some("11"), applicationRoute = Some("Faststream"),
+        AdjustmentReportItem(userId = "1", applicationId = Some("11"), applicationRoute = Some(ApplicationRoute.Faststream.toString),
           firstName = Some("John"), lastName = Some("Smith"),
           preferredName = Some("Spiderman"), email = None, telephone = None, gis = Some("Yes"),
           needsSupportAtVenue = Some("Yes"), needsSupportForPhoneInterview = None, disabilityImpact = Some("No"),
@@ -435,7 +435,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
           hasDisability = Some("Yes"), hasDisabilityDescription = Some("A wooden leg"),
           adjustmentsComment = None
         ),
-        AdjustmentReportItem(userId = "2", applicationId = Some("22"), applicationRoute = Some("Faststream"),
+        AdjustmentReportItem(userId = "2", applicationId = Some("22"), applicationRoute = Some(ApplicationRoute.Faststream.toString),
           firstName = Some("Jones"), lastName = Some("Batman"),
           preferredName = None,email =  None, telephone = None, gis = None,
           needsSupportAtVenue = Some("Yes"), needsSupportForPhoneInterview = None, disabilityImpact = Some("No"),
@@ -447,7 +447,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
           hasDisability = None, hasDisabilityDescription = None,
           adjustmentsComment = None
         ),
-        AdjustmentReportItem(userId = "3", applicationId = Some("33"), applicationRoute = Some("Faststream"),
+        AdjustmentReportItem(userId = "3", applicationId = Some("33"), applicationRoute = Some(ApplicationRoute.Faststream.toString),
           firstName = Some("Kathrine"), lastName = Some("Jones"),
           preferredName = Some("Supergirl"), email = None, telephone = None, gis = None,
           needsSupportAtVenue = Some("Yes"), needsSupportForPhoneInterview = None, disabilityImpact = Some("No"),

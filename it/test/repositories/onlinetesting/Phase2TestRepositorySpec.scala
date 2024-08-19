@@ -19,7 +19,7 @@ package repositories.onlinetesting
 import model.ProgressStatuses._
 import model.command.ApplicationForSkippingPhases
 import model.persisted._
-import model.{ApplicationStatus, EvaluationResults, Phase2FirstReminder, Phase2SecondReminder, ProgressStatuses}
+import model.{ApplicationRoute, ApplicationStatus, EvaluationResults, Phase2FirstReminder, Phase2SecondReminder, ProgressStatuses}
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
 import repositories.offsetDateTimeToBson
@@ -140,6 +140,40 @@ class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         currentSchemeStatus = Some(Seq(
           SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
           SchemeEvaluationResult(Commercial, EvaluationResults.Amber.toString)
+        ))
+      ).futureValue
+
+      val results = phase2TestRepo.nextApplicationsReadyToSkipPhases(1).futureValue
+
+      results.length mustBe 0
+    }
+
+    "do not fetch an application who can skip phases if it is an Sdip application" in {
+      val p1 = Phase1TestProfile(
+        expirationDate = Now, tests = List(
+          model.Phase1TestExamples.firstPsiTest(Now),
+          model.Phase1TestExamples.secondPsiTest(Now),
+          model.Phase1TestExamples.firstPsiTest(Now)
+        ),
+        evaluation = Some(
+          PassmarkEvaluation(
+            passmarkVersion = "previousVersion",
+            previousPhasePassMarkVersion = None,
+            result = List(
+              SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString)
+            ),
+            resultVersion = "version1",
+            previousPhaseResultVersion = None
+          )
+        )
+      )
+
+      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", ApplicationStatus.PHASE1_TESTS_PASSED.toString,
+        additionalProgressStatuses = List((PHASE1_TESTS_PASSED, true)),
+        phase1TestProfile = Some(p1),
+        applicationRoute = ApplicationRoute.Sdip.toString,
+        currentSchemeStatus = Some(Seq(
+          SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString)
         ))
       ).futureValue
 

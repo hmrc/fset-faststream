@@ -18,7 +18,7 @@ package repositories.onlinetesting
 
 import factories.ITDateTimeFactoryMock
 import model.ProgressStatuses.ProgressStatus
-import model.Schemes
+import model.{ApplicationRoute, Schemes}
 import model.persisted.phase3tests.Phase3TestGroup
 import model.persisted.{Phase1TestProfile, Phase2TestGroup, SchemeEvaluationResult}
 import org.mongodb.scala.MongoCollection
@@ -153,7 +153,7 @@ trait ApplicationDataFixture extends Schemes {
                                      phase2TestGroup: Option[Phase2TestGroup] = None,
                                      phase3TestGroup: Option[Phase3TestGroup] = None,
                                      typeOfEtrayOnlineAdjustments: List[String] = List("etrayTimeExtension", "etrayOther"),
-                                     applicationRoute: String = "Faststream",
+                                     applicationRoute: String = ApplicationRoute.Faststream.toString,
                                      currentSchemeStatus: Option[Seq[SchemeEvaluationResult]] = None
                                     ) = {
 

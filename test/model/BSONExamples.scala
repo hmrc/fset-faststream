@@ -85,7 +85,7 @@ object BSONExamples {
       "userId" -> "459b5e72-e004-48ff-9f00-adbddf59d9c4",
       "frameworkId" -> "FastStream-2016",
       "applicationStatus" -> "SUBMITTED",
-      "applicationRoute" -> "Faststream",
+      "applicationRoute" -> ApplicationRoute.Faststream.toString,
       "progress-status" -> BsonDocument(
         "personal-details" -> true,
         "IN_PROGRESS" -> true,
