@@ -25,7 +25,7 @@ import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses._
 import model.command.ApplicationForSkippingPhases
 import model.persisted._
-import model.{ApplicationStatus, EvaluationResults, ProgressStatuses, ReminderNotice}
+import model.{ApplicationRoute, ApplicationStatus, EvaluationResults, ProgressStatuses, ReminderNotice}
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.{BsonArray, BsonDocument}
 import org.mongodb.scala.bson.collection.immutable.Document
@@ -188,17 +188,17 @@ class Phase2TestMongoRepository @Inject()(dateTime: DateTimeFactory, mongoCompon
   )
 
   override def nextApplicationsReadyToSkipPhases(batchSize: Int): Future[Seq[ApplicationForSkippingPhases]] = {
-    // Applications that we need to move to a state where they have skipped phase2 and passed phase3:
+    // Faststream only (not Sdip) applications that we need to move to a state where they have skipped phase2 and passed phase3:
     // They need to be in PHASE1_TESTS_PASSED
     // They must have at least one P2 scheme evaluated to Green
     // And no Amber banded schemes because all schemes must in a terminal evaluation state (Greens or Reds)
     val query = Document("$and" -> BsonArray(
+      Document("applicationRoute" -> ApplicationRoute.Faststream.toBson),
       Document("applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED.toBson),
       Document(s"testGroups.PHASE1.evaluation.result" -> Document("$elemMatch" -> Document("result" -> EvaluationResults.Green.toString))),
       Document(s"testGroups.PHASE1.evaluation.result" ->
         Document("$not" -> Document("$elemMatch" -> Document("result" -> EvaluationResults.Amber.toString))))
-    )
-    )
+    ))
     selectRandom[ApplicationForSkippingPhases](applicationForSkippingCollection, query, batchSize)
   }
 

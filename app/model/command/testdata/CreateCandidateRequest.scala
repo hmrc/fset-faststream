@@ -17,7 +17,7 @@
 package model.command.testdata
 
 import model.ApplicationRoute.ApplicationRoute
-import model.{LocationId, SchemeId}
+import model.{ApplicationRoute, LocationId, SchemeId}
 import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
 import play.api.libs.json.{Json, OFormat}
 
@@ -135,7 +135,7 @@ object CreateCandidateRequest {
     applicationStatus: String = "registered",
     previousApplicationStatus: Option[String] = None,
     progressStatus: Option[String] = Some("registered"),
-    applicationRoute: Option[String] = Some("Faststream")
+    applicationRoute: Option[String] = Some(ApplicationRoute.Faststream.toString)
   )
 
   object StatusDataRequest {
