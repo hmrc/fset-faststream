@@ -24,8 +24,9 @@ import java.time.OffsetDateTime
 case class AssessmentScoresExercise(
                                      attended: Boolean,
 
-                                     seeingTheBigPictureScores: Option[SeeingTheBigPictureScores] = None,
-                                     seeingTheBigPictureFeedback: Option[String] = None,
+                                     // was seeingTheBigPictureScores
+                                     relatesScores: Option[RelatesScores] = None,
+                                     relatesFeedback: Option[String] = None,
 
                                      // was makingEffectiveDecisions
                                      thinksScores: Option[ThinksScores] = None,
@@ -48,8 +49,8 @@ case class AssessmentScoresExercise(
 
   override def toString: String = {
     s"attended:$attended," +
-    s"seeingTheBigPictureScores:$seeingTheBigPictureScores," +
-    s"seeingTheBigPictureFeedback:$seeingTheBigPictureFeedback," +
+    s"relatesScores:$relatesScores," +
+    s"relatesFeedback:$relatesFeedback," +
     s"thinksScores:$thinksScores," +
     s"thinksFeedback:$thinksFeedback," +
     s"communicatingAndInfluencingScores:$communicatingAndInfluencingScores," +
@@ -66,8 +67,8 @@ case class AssessmentScoresExercise(
   def toExchange =
     AssessmentScoresExerciseExchange(
       attended,
-      seeingTheBigPictureScores,
-      seeingTheBigPictureFeedback,
+      relatesScores,
+      relatesFeedback,
       thinksScores,
       thinksFeedback,
       communicatingAndInfluencingScores,
@@ -91,8 +92,9 @@ object AssessmentScoresExercise {
 case class AssessmentScoresExerciseExchange(
                                              attended: Boolean,
 
-                                             seeingTheBigPictureScores: Option[SeeingTheBigPictureScores] = None,
-                                             seeingTheBigPictureFeedback: Option[String] = None,
+                                             // was seeingTheBigPicture
+                                             relatesScores: Option[RelatesScores] = None,
+                                             relatesFeedback: Option[String] = None,
 
                                              // was makingEffectiveDecisions
                                              thinksScores: Option[ThinksScores] = None,
@@ -115,8 +117,8 @@ case class AssessmentScoresExerciseExchange(
   def toPersistence =
     AssessmentScoresExercise(
       attended,
-      seeingTheBigPictureScores,
-      seeingTheBigPictureFeedback,
+      relatesScores,
+      relatesFeedback,
       thinksScores,
       thinksFeedback,
       communicatingAndInfluencingScores,
@@ -131,8 +133,8 @@ case class AssessmentScoresExerciseExchange(
     )
 
   override def toString: String = s"attended=$attended," +
-    s"seeingTheBigPictureScores=$seeingTheBigPictureScores," +
-    s"seeingTheBigPictureFeedback=$seeingTheBigPictureFeedback," +
+    s"relatesScores=$relatesScores," +
+    s"relatesFeedback=$relatesFeedback," +
     s"thinksScores=$thinksScores," +
     s"thinksFeedback=$thinksFeedback," +
     s"communicatingAndInfluencingScores=$communicatingAndInfluencingScores," +

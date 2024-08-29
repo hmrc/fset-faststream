@@ -74,7 +74,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
       result mustBe Seq(SchemeEvaluationResult(Commercial, Green.toString))
     }
 
-    "evaluate to Red when seeingTheBigPicture is Red and the others are Green" in {
+    "evaluate to Red when exercise 1 is Red and the others are Green" in {
       val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
@@ -164,7 +164,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
       result mustBe Seq(SchemeEvaluationResult(Commercial, Red.toString))
     }
 
-    "evaluate to Amber when seeingTheBigPicture is Amber and the others are Green" in {
+    "evaluate to Amber when exercise 1 is Amber and the others are Green" in {
       val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(

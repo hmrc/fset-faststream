@@ -42,7 +42,7 @@ object AssessmentScoresExerciseExamples {
 
     AssessmentScoresExercise(
       attended = true,
-      Some(SeeingTheBigPictureScores(strategicScore, strategicScore, strategicScore, strategicScore, strategicScore)),
+      Some(RelatesScores(strategicScore, strategicScore, strategicScore, strategicScore, strategicScore)),
       Some("feedback1"),
       Some(ThinksScores(analysisScore, analysisScore, analysisScore, analysisScore)),
       Some("feedback2"),
@@ -69,7 +69,7 @@ object AssessmentScoresExerciseExamples {
 
     AssessmentScoresExercise(
       attended = true,
-      Some(SeeingTheBigPictureScores(strategicScore, strategicScore, strategicScore, strategicScore, strategicScore)),
+      Some(RelatesScores(strategicScore, strategicScore, strategicScore, strategicScore, strategicScore)),
       Some("feedback1"),
       Some(ThinksScores(analysisScore, analysisScore, analysisScore, analysisScore)),
       Some("feedback2"),

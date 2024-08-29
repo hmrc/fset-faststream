@@ -44,7 +44,7 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
     attended = true,
     overallAverage = Some(4.0),
     updatedBy = updatedBy,
-    seeingTheBigPictureScores = Some(SeeingTheBigPictureScores(
+    relatesScores = Some(RelatesScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     thinksScores = Some(ThinksScores(
@@ -53,7 +53,7 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
     communicatingAndInfluencingScores = Some(CommunicatingAndInfluencingScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    seeingTheBigPictureFeedback = Some("Strategic approach feedback " + assessorOrReviewer),
+    relatesFeedback = Some("Strategic approach feedback " + assessorOrReviewer),
     thinksFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
     communicatingAndInfluencingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
   )
@@ -86,12 +86,12 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
     communicatingAndInfluencingScores = Some(CommunicatingAndInfluencingScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    seeingTheBigPictureScores = Some(SeeingTheBigPictureScores(
+    relatesScores = Some(RelatesScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     adaptsFeedback = Some("Building Productive feedback " + assessorOrReviewer),
     communicatingAndInfluencingFeedback = Some("Leading and communicating feedback " + assessorOrReviewer),
-    seeingTheBigPictureFeedback = Some("Strategic approach feedback " + assessorOrReviewer)
+    relatesFeedback = Some("Strategic approach feedback " + assessorOrReviewer)
   )
 
   def finalFeedbackSample(assessorOrReviewer: String) = AssessmentScoresFinalFeedback(

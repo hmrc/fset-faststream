@@ -18,21 +18,22 @@ package model.assessmentscores
 
 import play.api.libs.json.{Json, OFormat}
 
-case class SeeingTheBigPictureScores(
-                                      generatesSolutions: Option[Double] = None, // written
-                                      practicalIdeas: Option[Double] = None, // written
-                                      identifiesBarriers: Option[Double] = None, // leadership
-                                      respondsAppropriately: Option[Double] = None, // leadership
-                                      alternativeSolutions: Option[Double] = None // leadership
-                                    ) {
+// Used to be SeeingTheBigPictureScores
+case class RelatesScores(
+                          generatesSolutions: Option[Double] = None, // exercise 1
+                          practicalIdeas: Option[Double] = None, // exercise 1
+                          identifiesBarriers: Option[Double] = None, // exercise 3
+                          respondsAppropriately: Option[Double] = None, // exercise 3
+                          alternativeSolutions: Option[Double] = None // exercise 3
+                        ) {
   override def toString: String =
     s"generatesSolutions=$generatesSolutions," +
-    s"practicalIdeas=$practicalIdeas," +
-    s"identifiesBarriers=$identifiesBarriers," +
-    s"respondsAppropriately=$respondsAppropriately," +
-    s"alternativeSolutions=$alternativeSolutions"
+      s"practicalIdeas=$practicalIdeas," +
+      s"identifiesBarriers=$identifiesBarriers," +
+      s"respondsAppropriately=$respondsAppropriately," +
+      s"alternativeSolutions=$alternativeSolutions"
 }
 
-object SeeingTheBigPictureScores {
-  implicit val seeingTheBigPictureScoresFormat: OFormat[SeeingTheBigPictureScores] = Json.format[SeeingTheBigPictureScores]
+object RelatesScores {
+  implicit val relatesScoresFormat: OFormat[RelatesScores] = Json.format[RelatesScores]
 }
