@@ -16,7 +16,7 @@
 
 package repositories.assessmentcentre
 
-import model.EvaluationResults.{Amber, AssessmentEvaluationResult, CompetencyAverageResult, ExerciseAverageResult, FsacResults, Green, Red}
+import model.EvaluationResults.{Amber, AssessmentEvaluationResult, ExerciseAverageResult, FsacResults, Green, Red}
 import model.Exceptions.NotFoundException
 import model.ProgressStatuses.{ASSESSMENT_CENTRE_AWAITING_ALLOCATION, ASSESSMENT_CENTRE_SCORES_ACCEPTED}
 import model.assessmentscores.FixUserStuckInScoresAccepted
@@ -260,42 +260,6 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
     }
   }
 
-  "getFsacEvaluationResultAverages" must {
-    "handle no eligible candidates" in new TestFixture {
-      assessmentCentreRepository.getFsacEvaluationResultAverages("appId").futureValue mustBe None
-    }
-
-    "handle candidate who has already been evaluated" in new TestFixture {
-      insertApplication(guid, ApplicationStatus.ASSESSMENT_CENTRE,
-        additionalProgressStatuses = List(ASSESSMENT_CENTRE_SCORES_ACCEPTED -> true)
-      )
-
-      val exerciseAverageResult = ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)
-
-      assessmentCentreRepository.saveAssessmentScoreEvaluation(
-        AssessmentPassMarkEvaluation(
-          UniqueIdentifier(guid),
-          "passMarkVersion1",
-          AssessmentEvaluationResult(
-            FsacResults(exerciseAverageResult),
-            Seq(SchemeEvaluationResult("Commercial", Green.toString))
-          )
-        ),
-        Seq(SchemeEvaluationResult("Commercial", Green.toString))
-      ).futureValue
-
-      assessmentCentreRepository.getFsacExerciseResultAverages(guid).futureValue mustBe Some(exerciseAverageResult)
-    }
-
-    "handle candidate who has not been evaluated" in new TestFixture {
-      insertApplication(guid, ApplicationStatus.ASSESSMENT_CENTRE,
-        additionalProgressStatuses = List(ASSESSMENT_CENTRE_SCORES_ACCEPTED -> true)
-      )
-
-      assessmentCentreRepository.getFsacEvaluationResultAverages(guid).futureValue mustBe None
-    }
-  }
-
   "getFsacExerciseResultAverages" must {
     "handle no eligible candidates" in new TestFixture {
       assessmentCentreRepository.getFsacExerciseResultAverages("appId").futureValue mustBe None
@@ -389,7 +353,6 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
       assessmentCentreRepository.removeFsacEvaluation(guid).futureValue
       // Verify that all methods that fetch data handle the data being absent
       assessmentCentreRepository.getAssessmentScoreEvaluation(guid).futureValue mustBe empty
-      assessmentCentreRepository.getFsacEvaluationResultAverages(guid).futureValue mustBe empty
       assessmentCentreRepository.getFsacEvaluatedSchemes(guid).futureValue mustBe empty
       assessmentCentreRepository.getTests(guid).futureValue mustBe AssessmentCentreTests()
     }
@@ -421,7 +384,6 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
       assessmentCentreRepository.removeFsacTestGroup(guid).futureValue
       // Verify that all methods that fetch data handle the data being absent
       assessmentCentreRepository.getAssessmentScoreEvaluation(guid).futureValue mustBe empty
-      assessmentCentreRepository.getFsacEvaluationResultAverages(guid).futureValue mustBe empty
       assessmentCentreRepository.getFsacEvaluatedSchemes(guid).futureValue mustBe empty
       assessmentCentreRepository.getTests(guid).futureValue mustBe AssessmentCentreTests()
     }

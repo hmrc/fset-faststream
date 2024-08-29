@@ -19,7 +19,7 @@ package services.assessmentcentre
 import com.typesafe.config.{Config, ConfigFactory}
 import factories.ITDateTimeFactoryMock
 import model.ApplicationStatus._
-import model.EvaluationResults.{CompetencyAverageResult, ExerciseAverageResult}
+import model.EvaluationResults.ExerciseAverageResult
 import model._
 import model.assessmentscores._
 import model.exchange.passmarksettings.{AssessmentCentrePassMarkSettings, AssessmentCentrePassMarkSettingsPersistence}

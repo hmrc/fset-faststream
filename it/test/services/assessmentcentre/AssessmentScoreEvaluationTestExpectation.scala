@@ -17,7 +17,7 @@
 package services.assessmentcentre
 
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.{CompetencyAverageResult, ExerciseAverageResult}
+import model.EvaluationResults.ExerciseAverageResult
 import model.persisted.SchemeEvaluationResult
 import model.{ProgressStatuses, SchemeId}
 

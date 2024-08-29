@@ -85,26 +85,6 @@ object EvaluationResults {
     val Pass, Fail = Value
   }
 
-  // TODO: delete this class
-  case class CompetencyAverageResult(
-                                      makingEffectiveDecisionsAverage: Double,
-                                      workingTogetherDevelopingSelfAndOthersAverage: Double,
-                                      communicatingAndInfluencingAverage: Double,
-                                      seeingTheBigPictureAverage: Double,
-                                      overallScore: Double
-                                    ) {
-
-    override def toString: String = s"makingEffectiveDecisionsAverage=$makingEffectiveDecisionsAverage," +
-      s"workingTogetherDevelopingSelfAndOthersAverage=$workingTogetherDevelopingSelfAndOthersAverage," +
-      s"communicatingAndInfluencingAverage=$communicatingAndInfluencingAverage," +
-      s"seeingTheBigPictureAverage=$seeingTheBigPictureAverage," +
-      s"overallScore=$overallScore"
-  }
-
-  object CompetencyAverageResult {
-    implicit val competencyAverageResultFormat: OFormat[CompetencyAverageResult] = Json.format[CompetencyAverageResult]
-  }
-
   case class ExerciseAverageResult(
                                     exercise1Average: Double,
                                     exercise2Average: Double,

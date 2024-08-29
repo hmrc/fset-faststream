@@ -45,17 +45,17 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
     overallAverage = Some(4.0),
     updatedBy = updatedBy,
     relatesScores = Some(RelatesScores(
-      Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
+      Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     thinksScores = Some(ThinksScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    communicatingAndInfluencingScores = Some(CommunicatingAndInfluencingScores(
+    strivesScores = Some(StrivesScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     relatesFeedback = Some("Strategic approach feedback " + assessorOrReviewer),
     thinksFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
-    communicatingAndInfluencingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
+    strivesFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
   )
 
   def exercise2Sample(assessorOrReviewer: String) = AssessmentScoresExercise(
@@ -68,12 +68,12 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
     adaptsScores = Some(AdaptsScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    communicatingAndInfluencingScores = Some(CommunicatingAndInfluencingScores(
+    strivesScores = Some(StrivesScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     thinksFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
     adaptsFeedback = Some("Building Productive feedback" + assessorOrReviewer),
-    communicatingAndInfluencingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
+    strivesFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
   )
 
   def exercise3Sample(assessorOrReviewer: String) = AssessmentScoresExercise(
@@ -83,14 +83,14 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
     adaptsScores = Some(AdaptsScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    communicatingAndInfluencingScores = Some(CommunicatingAndInfluencingScores(
+    strivesScores = Some(StrivesScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     relatesScores = Some(RelatesScores(
-      Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
+      Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     adaptsFeedback = Some("Building Productive feedback " + assessorOrReviewer),
-    communicatingAndInfluencingFeedback = Some("Leading and communicating feedback " + assessorOrReviewer),
+    strivesFeedback = Some("Leading and communicating feedback " + assessorOrReviewer),
     relatesFeedback = Some("Strategic approach feedback " + assessorOrReviewer)
   )
 

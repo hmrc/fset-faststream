@@ -18,25 +18,24 @@ package model.assessmentscores
 
 import play.api.libs.json.{Json, OFormat}
 
-case class CommunicatingAndInfluencingScores(
-                                              presentsIdeas: Option[Double] = None, // written
-                                              communicatesClearly: Option[Double] = None, // written, team
-                                              negotiatesAndPersuades: Option[Double] = None, // team
-                                              contributesEffectively: Option[Double] = None, // team
-                                              conveysPurposeAndDirection: Option[Double] = None, // leadership
-                                              defendsOwnView: Option[Double] = None, // leadership
-                                              presentsArguments: Option[Double] = None //leadership
-                                            ) {
+// Used to be CommunicatingAndInfluencingScores
+case class StrivesScores(
+                          b21alignsWithGoals: Option[Double] = None, // exercise 1
+                          b22tacklesRootCause: Option[Double] = None, // exercise 1
+                          b8strivesToSucceed: Option[Double] = None, // exercise 2
+                          b9goalOriented: Option[Double] = None, // exercise 2
+                          b15motivation: Option[Double] = None, // exercise 3
+                          b16conduct: Option[Double] = None // exercise 3
+                        ) {
   override def toString: String =
-    s"presentsIdeas=$presentsIdeas," +
-    s"communicatesClearly=$communicatesClearly," +
-    s"negotiatesAndPersuades=$negotiatesAndPersuades," +
-    s"contributesEffectively=$contributesEffectively," +
-    s"conveysPurposeAndDirection=$conveysPurposeAndDirection," +
-    s"defendsOwnView=$defendsOwnView," +
-    s"presentsArguments=$presentsArguments,"
+    s"b21aignsWithGoals=$b21alignsWithGoals," +
+      s"b22tacklesRootCause=$b22tacklesRootCause," +
+      s"communicatesClearly=$b8strivesToSucceed," +
+      s"negotiatesAndPersuades=$b9goalOriented," +
+      s"b15motivation=$b15motivation," +
+      s"b16conduct=$b16conduct"
 }
 
-object CommunicatingAndInfluencingScores {
-  implicit val leadingAndCommunicatingScoresFormat: OFormat[CommunicatingAndInfluencingScores] = Json.format[CommunicatingAndInfluencingScores]
+object StrivesScores {
+  implicit val strivesScoresFormat: OFormat[StrivesScores] = Json.format[StrivesScores]
 }

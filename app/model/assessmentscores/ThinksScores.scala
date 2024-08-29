@@ -20,16 +20,16 @@ import play.api.libs.json.{Json, OFormat}
 
 // Used to be MakingEffectiveDecisionsScores
 case class ThinksScores(
-                         issuesAndRisks: Option[Double] = None, // exercise 1
-                         identifiesMitigation: Option[Double] = None, // exercise 1
-                         thoroughlyAnalyses: Option[Double] = None, // exercise 2
-                         identifiesCriticalIssues: Option[Double] = None // exercise 2
+                         b17thinksAnalytically: Option[Double] = None, // exercise 1
+                         b18widerContext: Option[Double] = None, // exercise 1
+                         b1widerContext: Option[Double] = None, // exercise 2
+                         b2patternsAndInterrelationships: Option[Double] = None // exercise 2
                        ) {
   override def toString: String =
-    s"issuesAndRisks=$issuesAndRisks," +
-      s"identifiesMitigation=$identifiesMitigation," +
-      s"thoroughlyAnalyses=$thoroughlyAnalyses," +
-      s"identifiesCriticalIssues=$identifiesCriticalIssues"
+    s"b17thinksAnalytically=$b17thinksAnalytically," +
+      s"b18widerContext=$b18widerContext," +
+      s"b1widerContext=$b1widerContext," +
+      s"b2patternsAndInterrelationships=$b2patternsAndInterrelationships"
 }
 
 object ThinksScores {

@@ -20,18 +20,18 @@ import play.api.libs.json.{Json, OFormat}
 
 // Used to be SeeingTheBigPictureScores
 case class RelatesScores(
-                          generatesSolutions: Option[Double] = None, // exercise 1
-                          practicalIdeas: Option[Double] = None, // exercise 1
-                          identifiesBarriers: Option[Double] = None, // exercise 3
-                          respondsAppropriately: Option[Double] = None, // exercise 3
-                          alternativeSolutions: Option[Double] = None // exercise 3
+                          b19communicatesEffectively: Option[Double] = None, // exercise 1
+                          b20influencesOthers: Option[Double] = None, // exercise 1
+                          b3selfAware: Option[Double] = None, // exercise 2
+                          b4communicatesEffectively: Option[Double] = None, // exercise 2
+                          b10selfAwareAndManages: Option[Double] = None, // exercise 3
+                          b11communicatesEffectively: Option[Double] = None // exercise 3
                         ) {
   override def toString: String =
-    s"generatesSolutions=$generatesSolutions," +
-      s"practicalIdeas=$practicalIdeas," +
-      s"identifiesBarriers=$identifiesBarriers," +
-      s"respondsAppropriately=$respondsAppropriately," +
-      s"alternativeSolutions=$alternativeSolutions"
+    s"b19communicatesEffectively=$b19communicatesEffectively," +
+      s"b20influencesOthers=$b20influencesOthers," +
+      s"b10selfAwareAndManages=$b10selfAwareAndManages," +
+      s"b11communicatesEffectively=$b11communicatesEffectively"
 }
 
 object RelatesScores {

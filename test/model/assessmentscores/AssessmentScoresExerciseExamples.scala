@@ -42,11 +42,11 @@ object AssessmentScoresExerciseExamples {
 
     AssessmentScoresExercise(
       attended = true,
-      Some(RelatesScores(strategicScore, strategicScore, strategicScore, strategicScore, strategicScore)),
+      Some(RelatesScores(strategicScore, strategicScore, strategicScore, strategicScore)),
       Some("feedback1"),
       Some(ThinksScores(analysisScore, analysisScore, analysisScore, analysisScore)),
       Some("feedback2"),
-      Some(CommunicatingAndInfluencingScores(leadingScore, leadingScore, leadingScore, leadingScore, leadingScore)),
+      Some(StrivesScores(leadingScore, leadingScore, leadingScore, leadingScore, leadingScore)),
       Some("feedback3"),
       Some(AdaptsScores(buildingScore, buildingScore, buildingScore,
         buildingScore, buildingScore, buildingScore)),
@@ -69,11 +69,11 @@ object AssessmentScoresExerciseExamples {
 
     AssessmentScoresExercise(
       attended = true,
-      Some(RelatesScores(strategicScore, strategicScore, strategicScore, strategicScore, strategicScore)),
+      Some(RelatesScores(strategicScore, strategicScore, strategicScore, strategicScore)),
       Some("feedback1"),
       Some(ThinksScores(analysisScore, analysisScore, analysisScore, analysisScore)),
       Some("feedback2"),
-      Some(CommunicatingAndInfluencingScores(leadingScore, leadingScore, leadingScore, leadingScore, leadingScore)),
+      Some(StrivesScores(leadingScore, leadingScore, leadingScore, leadingScore, leadingScore)),
       Some("feedback3"),
       Some(AdaptsScores(buildingScore, buildingScore, buildingScore,
         buildingScore, buildingScore, buildingScore)),

@@ -20,7 +20,7 @@ import com.google.inject.name.Named
 import common.FutureEx
 
 import javax.inject.{Inject, Singleton}
-import model.EvaluationResults.{AssessmentEvaluationResult, CompetencyAverageResult, ExerciseAverageResult, Green}
+import model.EvaluationResults.{AssessmentEvaluationResult, ExerciseAverageResult, Green}
 import model.Exceptions.NoResultsReturned
 import model.ProgressStatuses._
 import model._
@@ -338,14 +338,6 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
         assessmentCentreRepo.updateTests(applicationId, tests.copy(analysisExercise = Some(AnalysisExercise(fileId))))
       } else { throw CandidateAlreadyHasAnAnalysisExerciseException(s"App Id: $applicationId, File Id: $fileId") }
     } yield ()
-  }
-
-  def getFsacEvaluationResultAverages(applicationId: String): Future[Option[CompetencyAverageResult]] = {
-    for {
-      averagesOpt <- assessmentCentreRepo.getFsacEvaluationResultAverages(applicationId)
-    } yield {
-      averagesOpt
-    }
   }
 
   def getFsacExerciseResultAverages(applicationId: String): Future[Option[ExerciseAverageResult]] = {

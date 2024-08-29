@@ -39,7 +39,7 @@ trait Phase3Thresholds {
 trait AssessmentCentreCompetencyThresholds {
   def relates: PassMarkThreshold
   def thinks: PassMarkThreshold
-  def communicatingAndInfluencing: PassMarkThreshold
+  def strives: PassMarkThreshold
   def adapts: PassMarkThreshold
   def overall: PassMarkThreshold
 }
@@ -83,14 +83,14 @@ object Phase3PassMarkThresholds {
 case class AssessmentCentreCompetencyPassMarkThresholds(
                                                          override val relates: PassMarkThreshold,
                                                          override val thinks: PassMarkThreshold,
-                                                         override val communicatingAndInfluencing: PassMarkThreshold,
+                                                         override val strives: PassMarkThreshold,
                                                          override val adapts: PassMarkThreshold,
                                                          override val overall: PassMarkThreshold
                                    ) extends PassMarkThresholds with AssessmentCentreCompetencyThresholds {
   override def toString =
     s"relates=$relates," +
     s"thinks=$thinks," +
-    s"communicatingAndInfluencing=$communicatingAndInfluencing," +
+    s"strives=$strives," +
     s"adapts=$adapts," +
     s"overall=$overall"
 }

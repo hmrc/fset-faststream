@@ -73,7 +73,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
   def fsacScores(): Action[AnyContent] = Action.async {
     def removeFeedback(assessmentScoresExercise: AssessmentScoresExerciseExchange) =
       assessmentScoresExercise.copy(relatesFeedback = None, thinksFeedback = None,
-        communicatingAndInfluencingFeedback = None, adaptsFeedback = None)
+        strivesFeedback = None, adaptsFeedback = None)
 
     val reports = for {
       fsacResults <- assessmentScoresRepository.findAll

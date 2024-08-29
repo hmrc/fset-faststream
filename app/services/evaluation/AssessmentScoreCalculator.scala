@@ -16,8 +16,7 @@
 
 package services.evaluation
 
-import model.EvaluationResults.{CompetencyAverageResult, ExerciseAverageResult}
-import model.UniqueIdentifier
+import model.EvaluationResults.ExerciseAverageResult
 import model.assessmentscores.AssessmentScoresAllExercises
 
 object AssessmentScoreCalculator extends AssessmentScoreCalculator

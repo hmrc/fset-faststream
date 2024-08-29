@@ -32,8 +32,9 @@ case class AssessmentScoresExercise(
                                      thinksScores: Option[ThinksScores] = None,
                                      thinksFeedback: Option[String] = None,
 
-                                     communicatingAndInfluencingScores: Option[CommunicatingAndInfluencingScores] = None,
-                                     communicatingAndInfluencingFeedback: Option[String] = None,
+                                     // was communicatingAndInfluencing
+                                     strivesScores: Option[StrivesScores] = None,
+                                     strivesFeedback: Option[String] = None,
 
                                      // was workingTogetherDevelopingSelfAndOthers
                                      adaptsScores: Option[AdaptsScores] = None,
@@ -53,8 +54,8 @@ case class AssessmentScoresExercise(
     s"relatesFeedback:$relatesFeedback," +
     s"thinksScores:$thinksScores," +
     s"thinksFeedback:$thinksFeedback," +
-    s"communicatingAndInfluencingScores:$communicatingAndInfluencingScores," +
-    s"communicatingAndInfluencingFeedback:$communicatingAndInfluencingFeedback," +
+    s"strivesScores:$strivesScores," +
+    s"strivesFeedback:$strivesFeedback," +
     s"adaptsScores:$adaptsScores," +
     s"adaptsFeedback:$adaptsFeedback," +
     s"updatedBy:$updatedBy," +
@@ -71,8 +72,8 @@ case class AssessmentScoresExercise(
       relatesFeedback,
       thinksScores,
       thinksFeedback,
-      communicatingAndInfluencingScores,
-      communicatingAndInfluencingFeedback,
+      strivesScores,
+      strivesFeedback,
       adaptsScores,
       adaptsFeedback,
       updatedBy,
@@ -100,8 +101,9 @@ case class AssessmentScoresExerciseExchange(
                                              thinksScores: Option[ThinksScores] = None,
                                              thinksFeedback: Option[String] = None,
 
-                                             communicatingAndInfluencingScores: Option[CommunicatingAndInfluencingScores] = None,
-                                             communicatingAndInfluencingFeedback: Option[String] = None,
+                                             // was communicatingAndInfluencing
+                                             strivesScores: Option[StrivesScores] = None,
+                                             strivesFeedback: Option[String] = None,
 
                                              // was workingTogetherDevelopingSelfAndOthers
                                              adaptsScores: Option[AdaptsScores] =None,
@@ -121,8 +123,8 @@ case class AssessmentScoresExerciseExchange(
       relatesFeedback,
       thinksScores,
       thinksFeedback,
-      communicatingAndInfluencingScores,
-      communicatingAndInfluencingFeedback,
+      strivesScores,
+      strivesFeedback,
       adaptsScores,
       adaptsFeedback,
       updatedBy,
@@ -137,8 +139,8 @@ case class AssessmentScoresExerciseExchange(
     s"relatesFeedback=$relatesFeedback," +
     s"thinksScores=$thinksScores," +
     s"thinksFeedback=$thinksFeedback," +
-    s"communicatingAndInfluencingScores=$communicatingAndInfluencingScores," +
-    s"communicatingAndInfluencingFeedback=$communicatingAndInfluencingFeedback," +
+    s"strivesScores=$strivesScores," +
+    s"strivesFeedback=$strivesFeedback," +
     s"adaptsScores=$adaptsScores," +
     s"adaptsFeedback=$adaptsFeedback," +
     s"updatedBy=$updatedBy," +

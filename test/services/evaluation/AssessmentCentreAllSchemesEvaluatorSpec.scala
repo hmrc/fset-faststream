@@ -110,7 +110,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
       result mustBe Seq(SchemeEvaluationResult(Commercial, Red.toString))
     }
 
-    "evaluate to Red when communicatingAndInfluencing is Red and the others are Green" in {
+    "evaluate to Red when exercise 3 is Red and the others are Green at the pass threshold" in {
       val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
@@ -128,7 +128,7 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
       result mustBe Seq(SchemeEvaluationResult(Commercial, Red.toString))
     }
 
-    "evaluate to Red when exercise 3 is Red and the others are Green" in {
+    "evaluate to Red when exercise 3 is Red and the others are Green and overall is above the pass threshold" in {
       val passMarks = AssessmentCentrePassMarkSettingsPersistence(
         schemes = List(
           AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
@@ -194,24 +194,6 @@ class AssessmentCentreAllSchemesEvaluatorSpec extends UnitSpec with Schemes {
         ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
       )
       val averageScores = exerciseAverageResult(0d, 1d, 0d, 0d)
-      val schemes = Seq(Commercial)
-
-      val result = EvaluatorUnderTest.evaluateSchemes(appId, passMarks, averageScores, schemes)
-      result mustBe Seq(SchemeEvaluationResult(Commercial, Amber.toString))
-    }
-
-    "evaluate to Amber when communicatingAndInfluencing is Amber and the others are Green" in {
-      val passMarks = AssessmentCentrePassMarkSettingsPersistence(
-        schemes = List(
-          AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
-            exercise1 = PassMarkThreshold(0d, 0d),
-            exercise2 = PassMarkThreshold(0d, 0d),
-            exercise3 = PassMarkThreshold(1d, 2d),
-            overall = PassMarkThreshold(0d, 0d)
-          ))
-        ), version = "v1", createDate = OffsetDateTime.now, createdBy = "test"
-      )
-      val averageScores = exerciseAverageResult(0d, 0d, 1d, 0d)
       val schemes = Seq(Commercial)
 
       val result = EvaluatorUnderTest.evaluateSchemes(appId, passMarks, averageScores, schemes)

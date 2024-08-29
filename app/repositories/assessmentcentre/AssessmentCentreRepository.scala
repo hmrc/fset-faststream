@@ -18,7 +18,7 @@ package repositories.assessmentcentre
 
 import factories.DateTimeFactory
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.{Amber, AssessmentEvaluationResult, CompetencyAverageResult, ExerciseAverageResult, FsacResults}
+import model.EvaluationResults.{Amber, AssessmentEvaluationResult, ExerciseAverageResult, FsacResults}
 import model.Exceptions.NotFoundException
 import model.ProgressStatuses.{ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED}
 import model._
@@ -64,7 +64,6 @@ trait AssessmentCentreRepository {
                                     currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
 //  def saveAssessmentScoreEvaluation(evaluation: model.AssessmentPassMarkEvaluation2,
 //                                    currentSchemeStatus: Seq[SchemeEvaluationResult]): Future[Unit]
-  def getFsacEvaluationResultAverages(applicationId: String): Future[Option[CompetencyAverageResult]]
   def getFsacExerciseResultAverages(applicationId: String): Future[Option[ExerciseAverageResult]]
   def getFsacEvaluatedSchemes(applicationId: String): Future[Option[Seq[SchemeEvaluationResult]]]
   def removeFsacTestGroup(applicationId: String): Future[Unit]
@@ -274,26 +273,6 @@ class AssessmentCentreMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
           Codecs.fromBson[AssessmentCentreTests](testsBson)
         }.getOrElse(AssessmentCentreTests())
       case _ => AssessmentCentreTests()
-    }
-  }
-
-  // TODO: this can be deleted
-  override def getFsacEvaluationResultAverages(applicationId: String): Future[Option[CompetencyAverageResult]] = {
-    val query = Document(
-      "applicationId" -> applicationId,
-      s"testGroups.$fsacKey.evaluation.competency-average" ->  Document("$exists" -> true)
-    )
-    val projection = Projections.include(s"testGroups.$fsacKey.evaluation.competency-average")
-
-    collection.find[Document](query).projection(projection).headOption() map {
-      case Some(document) =>
-        document.get("testGroups")
-          .map(_.asDocument().get(fsacKey))
-          .map(_.asDocument().get("evaluation"))
-          .map(_.asDocument().get("competency-average")).map { averagesBson =>
-            Codecs.fromBson[CompetencyAverageResult](averagesBson)
-          }
-      case None => None
     }
   }
 

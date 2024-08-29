@@ -20,20 +20,20 @@ import play.api.libs.json.{Json, OFormat}
 
 // Used to be WorkingTogetherDevelopingSelfAndOtherScores
 case class AdaptsScores(
-                         formsEffectiveWorkingRelationships: Option[Double] = None, // exercise 2
-                         inclusiveApproach: Option[Double] = None, // exercise 2
-                         encouragesCollaboration: Option[Double] = None, // exercise 2
-                         establishesRelationships: Option[Double] = None, // exercise 3
-                         seeksInformation: Option[Double] = None, // exercise 3
-                         identifiesGaps: Option[Double] = None // exercise 3
+                         b5novelApproaches: Option[Double] = None, // exercise 2
+                         b6openToChange: Option[Double] = None, // exercise 2
+                         b7learningAgility: Option[Double] = None, // exercise 2
+                         b12consolidatesLearning: Option[Double] = None, // exercise 3
+                         b13learningAtPace: Option[Double] = None, // exercise 3
+                         b14respondsFlexibily: Option[Double] = None // exercise 3
                        ) {
   override def toString: String =
-    s"formsEffectiveWorkingRelationships=$formsEffectiveWorkingRelationships," +
-      s"inclusiveApproach=$inclusiveApproach," +
-      s"encouragesCollaboration=$encouragesCollaboration," +
-      s"establishesRelationships=$establishesRelationships," +
-      s"seeksInformation=$seeksInformation," +
-      s"identifiesGaps=$identifiesGaps"
+    s"b5novelApproaches=$b5novelApproaches," +
+      s"b6openToChange=$b6openToChange," +
+      s"b7learningAgility=$b7learningAgility," +
+      s"b12consolidatesLearning=$b12consolidatesLearning," +
+      s"b13learningAtPace=$b13learningAtPace," +
+      s"b14respondsFlexibily=$b14respondsFlexibily"
 }
 
 object AdaptsScores {

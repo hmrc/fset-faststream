@@ -261,17 +261,6 @@ class ApplicationController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def getFsacEvaluationResultAverages(applicationId: String) = Action.async {
-    for {
-      averagesOpt <- assessmentCentreService.getFsacEvaluationResultAverages(applicationId)
-    } yield {
-      averagesOpt match {
-        case Some(averages) => Ok(Json.toJson(averages))
-        case None => NotFound(s"Cannot find evaluation averages for applicationId: $applicationId")
-      }
-    }
-  }
-
   def getFsacExerciseResultAverages(applicationId: String) = Action.async {
     for {
       scoresOpt <- assessmentCentreService.getFsacExerciseResultAverages(applicationId)
