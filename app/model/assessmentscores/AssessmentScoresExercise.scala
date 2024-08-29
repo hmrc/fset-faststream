@@ -33,8 +33,9 @@ case class AssessmentScoresExercise(
                                      communicatingAndInfluencingScores: Option[CommunicatingAndInfluencingScores] = None,
                                      communicatingAndInfluencingFeedback: Option[String] = None,
 
-                                     workingTogetherDevelopingSelfAndOthersScores: Option[WorkingTogetherDevelopingSelfAndOtherScores] = None,
-                                     workingTogetherDevelopingSelfAndOthersFeedback: Option[String] = None,
+                                     // was workingTogetherDevelopingSelfAndOthers
+                                     adaptsScores: Option[AdaptsScores] = None,
+                                     adaptsFeedback: Option[String] = None,
 
                                      updatedBy: UniqueIdentifier,
                                      savedDate: Option[OffsetDateTime] = None,
@@ -52,8 +53,8 @@ case class AssessmentScoresExercise(
     s"makingEffectiveDecisionsFeedback:$makingEffectiveDecisionsFeedback," +
     s"communicatingAndInfluencingScores:$communicatingAndInfluencingScores," +
     s"communicatingAndInfluencingFeedback:$communicatingAndInfluencingFeedback," +
-    s"workingTogetherDevelopingSelfAndOthersScores:$workingTogetherDevelopingSelfAndOthersScores," +
-    s"workingTogetherDevelopingSelfAndOthersFeedback:$workingTogetherDevelopingSelfAndOthersFeedback," +
+    s"adaptsScores:$adaptsScores," +
+    s"adaptsFeedback:$adaptsFeedback," +
     s"updatedBy:$updatedBy," +
     s"savedDate:$savedDate," +
     s"submittedDate:$submittedDate," +
@@ -70,8 +71,8 @@ case class AssessmentScoresExercise(
       makingEffectiveDecisionsFeedback,
       communicatingAndInfluencingScores,
       communicatingAndInfluencingFeedback,
-      workingTogetherDevelopingSelfAndOthersScores,
-      workingTogetherDevelopingSelfAndOthersFeedback,
+      adaptsScores,
+      adaptsFeedback,
       updatedBy,
       savedDate,
       submittedDate,
@@ -98,8 +99,9 @@ case class AssessmentScoresExerciseExchange(
                                              communicatingAndInfluencingScores: Option[CommunicatingAndInfluencingScores] = None,
                                              communicatingAndInfluencingFeedback: Option[String] = None,
 
-                                             workingTogetherDevelopingSelfAndOthersScores: Option[WorkingTogetherDevelopingSelfAndOtherScores] =None,
-                                             workingTogetherDevelopingSelfAndOthersFeedback: Option[String] = None,
+                                             // was workingTogetherDevelopingSelfAndOthers
+                                             adaptsScores: Option[AdaptsScores] =None,
+                                             adaptsFeedback: Option[String] = None,
 
                                              updatedBy: UniqueIdentifier,
                                              savedDate: Option[OffsetDateTime] = None,
@@ -117,8 +119,8 @@ case class AssessmentScoresExerciseExchange(
       makingEffectiveDecisionsFeedback,
       communicatingAndInfluencingScores,
       communicatingAndInfluencingFeedback,
-      workingTogetherDevelopingSelfAndOthersScores,
-      workingTogetherDevelopingSelfAndOthersFeedback,
+      adaptsScores,
+      adaptsFeedback,
       updatedBy,
       savedDate,
       submittedDate,
@@ -133,8 +135,8 @@ case class AssessmentScoresExerciseExchange(
     s"makingEffectiveDecisionsFeedback=$makingEffectiveDecisionsFeedback," +
     s"communicatingAndInfluencingScores=$communicatingAndInfluencingScores," +
     s"communicatingAndInfluencingFeedback=$communicatingAndInfluencingFeedback," +
-    s"workingTogetherDevelopingSelfAndOthersScores=$workingTogetherDevelopingSelfAndOthersScores," +
-    s"workingTogetherDevelopingSelfAndOthersFeedback=$workingTogetherDevelopingSelfAndOthersFeedback," +
+    s"adaptsScores=$adaptsScores," +
+    s"adaptsFeedback=$adaptsFeedback," +
     s"updatedBy=$updatedBy," +
     s"savedDate=$savedDate," +
     s"submittedDate=$submittedDate," +

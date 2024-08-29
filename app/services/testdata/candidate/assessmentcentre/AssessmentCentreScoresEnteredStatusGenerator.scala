@@ -65,14 +65,14 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
     makingEffectiveDecisionsScores = Some(MakingEffectiveDecisionsScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    workingTogetherDevelopingSelfAndOthersScores = Some(WorkingTogetherDevelopingSelfAndOtherScores(
+    adaptsScores = Some(AdaptsScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     communicatingAndInfluencingScores = Some(CommunicatingAndInfluencingScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     makingEffectiveDecisionsFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
-    workingTogetherDevelopingSelfAndOthersFeedback = Some("Building Productive feedback" + assessorOrReviewer),
+    adaptsFeedback = Some("Building Productive feedback" + assessorOrReviewer),
     communicatingAndInfluencingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
   )
 
@@ -80,7 +80,7 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
     attended = true,
     overallAverage = Some(4.0),
     updatedBy = updatedBy,
-    workingTogetherDevelopingSelfAndOthersScores = Some(WorkingTogetherDevelopingSelfAndOtherScores(
+    adaptsScores = Some(AdaptsScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     communicatingAndInfluencingScores = Some(CommunicatingAndInfluencingScores(
@@ -89,7 +89,7 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
     seeingTheBigPictureScores = Some(SeeingTheBigPictureScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    workingTogetherDevelopingSelfAndOthersFeedback = Some("Building Productive feedback " + assessorOrReviewer),
+    adaptsFeedback = Some("Building Productive feedback " + assessorOrReviewer),
     communicatingAndInfluencingFeedback = Some("Leading and communicating feedback " + assessorOrReviewer),
     seeingTheBigPictureFeedback = Some("Strategic approach feedback " + assessorOrReviewer)
   )

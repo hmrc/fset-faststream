@@ -39,7 +39,7 @@ trait AssessmentCentreCompetencyThresholds {
   def seeingTheBigPicture: PassMarkThreshold
   def makingEffectiveDecisions: PassMarkThreshold
   def communicatingAndInfluencing: PassMarkThreshold
-  def workingTogetherDevelopingSelfAndOthers: PassMarkThreshold
+  def adapts: PassMarkThreshold
   def overall: PassMarkThreshold
 }
 
@@ -79,17 +79,17 @@ object Phase3PassMarkThresholds {
 
 // These are competency pass marks. The 1st version of the FSAC evaluation used these pass marks
 case class AssessmentCentreCompetencyPassMarkThresholds(
-                                    override val seeingTheBigPicture: PassMarkThreshold,
-                                    override val makingEffectiveDecisions: PassMarkThreshold,
-                                    override val communicatingAndInfluencing: PassMarkThreshold,
-                                    override val workingTogetherDevelopingSelfAndOthers: PassMarkThreshold,
-                                    override val overall: PassMarkThreshold
+                                                         override val seeingTheBigPicture: PassMarkThreshold,
+                                                         override val makingEffectiveDecisions: PassMarkThreshold,
+                                                         override val communicatingAndInfluencing: PassMarkThreshold,
+                                                         override val adapts: PassMarkThreshold,
+                                                         override val overall: PassMarkThreshold
                                    ) extends PassMarkThresholds with AssessmentCentreCompetencyThresholds {
   override def toString =
     s"seeingTheBigPicture=$seeingTheBigPicture," +
     s"makingEffectiveDecisions=$makingEffectiveDecisions," +
     s"communicatingAndInfluencing=$communicatingAndInfluencing," +
-    s"workingTogetherDevelopingSelfAndOthers=$workingTogetherDevelopingSelfAndOthers," +
+    s"workingTogetherDevelopingSelfAndOthers=$adapts," +
     s"overall=$overall"
 }
 

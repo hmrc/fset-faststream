@@ -18,24 +18,25 @@ package model.assessmentscores
 
 import play.api.libs.json.{Json, OFormat}
 
-case class WorkingTogetherDevelopingSelfAndOtherScores(
-                                                        formsEffectiveWorkingRelationships: Option[Double] = None, // team
-                                                        inclusiveApproach: Option[Double] = None, // team
-                                                        encouragesCollaboration: Option[Double] = None, // team
-                                                        establishesRelationships: Option[Double] = None, // leadership
-                                                        seeksInformation: Option[Double] = None, // leadership
-                                                        identifiesGaps: Option[Double] = None // leadership
-                                                      ) {
+// Used to be WorkingTogetherDevelopingSelfAndOtherScores
+case class AdaptsScores(
+                         formsEffectiveWorkingRelationships: Option[Double] = None, // exercise 2
+                         inclusiveApproach: Option[Double] = None, // exercise 2
+                         encouragesCollaboration: Option[Double] = None, // exercise 2
+                         establishesRelationships: Option[Double] = None, // exercise 3
+                         seeksInformation: Option[Double] = None, // exercise 3
+                         identifiesGaps: Option[Double] = None // exercise 3
+                       ) {
   override def toString: String =
     s"formsEffectiveWorkingRelationships=$formsEffectiveWorkingRelationships," +
-    s"inclusiveApproach=$inclusiveApproach," +
-    s"encouragesCollaboration=$encouragesCollaboration," +
-    s"establishesRelationships=$establishesRelationships," +
-    s"seeksInformation=$seeksInformation," +
-    s"identifiesGaps=$identifiesGaps"
+      s"inclusiveApproach=$inclusiveApproach," +
+      s"encouragesCollaboration=$encouragesCollaboration," +
+      s"establishesRelationships=$establishesRelationships," +
+      s"seeksInformation=$seeksInformation," +
+      s"identifiesGaps=$identifiesGaps"
 }
 
-object WorkingTogetherDevelopingSelfAndOtherScores {
-  implicit val buildingProductiveRelationshipsScoresFormat: OFormat[WorkingTogetherDevelopingSelfAndOtherScores] =
-    Json.format[WorkingTogetherDevelopingSelfAndOtherScores]
+object AdaptsScores {
+  implicit val adaptsScoresFormat: OFormat[AdaptsScores] =
+    Json.format[AdaptsScores]
 }
