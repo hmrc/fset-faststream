@@ -72,7 +72,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
 
   def fsacScores(): Action[AnyContent] = Action.async {
     def removeFeedback(assessmentScoresExercise: AssessmentScoresExerciseExchange) =
-      assessmentScoresExercise.copy(seeingTheBigPictureFeedback = None, makingEffectiveDecisionsFeedback = None,
+      assessmentScoresExercise.copy(seeingTheBigPictureFeedback = None, thinksFeedback = None,
         communicatingAndInfluencingFeedback = None, adaptsFeedback = None)
 
     val reports = for {

@@ -35,9 +35,10 @@ trait Phase3Thresholds {
   def videoInterview: PassMarkThreshold
 }
 
+// TODO: we can delete this class
 trait AssessmentCentreCompetencyThresholds {
   def seeingTheBigPicture: PassMarkThreshold
-  def makingEffectiveDecisions: PassMarkThreshold
+  def thinks: PassMarkThreshold
   def communicatingAndInfluencing: PassMarkThreshold
   def adapts: PassMarkThreshold
   def overall: PassMarkThreshold
@@ -77,19 +78,20 @@ object Phase3PassMarkThresholds {
   implicit val phase3PassMarkThresholds: OFormat[Phase3PassMarkThresholds] = Json.format[Phase3PassMarkThresholds]
 }
 
+// TODO: we can delete this class
 // These are competency pass marks. The 1st version of the FSAC evaluation used these pass marks
 case class AssessmentCentreCompetencyPassMarkThresholds(
                                                          override val seeingTheBigPicture: PassMarkThreshold,
-                                                         override val makingEffectiveDecisions: PassMarkThreshold,
+                                                         override val thinks: PassMarkThreshold,
                                                          override val communicatingAndInfluencing: PassMarkThreshold,
                                                          override val adapts: PassMarkThreshold,
                                                          override val overall: PassMarkThreshold
                                    ) extends PassMarkThresholds with AssessmentCentreCompetencyThresholds {
   override def toString =
     s"seeingTheBigPicture=$seeingTheBigPicture," +
-    s"makingEffectiveDecisions=$makingEffectiveDecisions," +
+    s"thinks=$thinks," +
     s"communicatingAndInfluencing=$communicatingAndInfluencing," +
-    s"workingTogetherDevelopingSelfAndOthers=$adapts," +
+    s"adapts=$adapts," +
     s"overall=$overall"
 }
 

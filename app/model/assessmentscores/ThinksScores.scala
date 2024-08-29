@@ -18,19 +18,20 @@ package model.assessmentscores
 
 import play.api.libs.json.{Json, OFormat}
 
-case class MakingEffectiveDecisionsScores(
-                                           issuesAndRisks: Option[Double] = None, // written
-                                           identifiesMitigation: Option[Double] = None, // written
-                                           thoroughlyAnalyses: Option[Double] = None, // team
-                                           identifiesCriticalIssues: Option[Double] = None // team
-                                         ) {
+// Used to be MakingEffectiveDecisionsScores
+case class ThinksScores(
+                         issuesAndRisks: Option[Double] = None, // exercise 1
+                         identifiesMitigation: Option[Double] = None, // exercise 1
+                         thoroughlyAnalyses: Option[Double] = None, // exercise 2
+                         identifiesCriticalIssues: Option[Double] = None // exercise 2
+                       ) {
   override def toString: String =
     s"issuesAndRisks=$issuesAndRisks," +
-    s"identifiesMitigation=$identifiesMitigation," +
-    s"thoroughlyAnalyses=$thoroughlyAnalyses," +
-    s"identifiesCriticalIssues=$identifiesCriticalIssues"
+      s"identifiesMitigation=$identifiesMitigation," +
+      s"thoroughlyAnalyses=$thoroughlyAnalyses," +
+      s"identifiesCriticalIssues=$identifiesCriticalIssues"
 }
 
-object MakingEffectiveDecisionsScores {
-  implicit val makingEffectiveDecisionsScoresFormat: OFormat[MakingEffectiveDecisionsScores] = Json.format[MakingEffectiveDecisionsScores]
+object ThinksScores {
+  implicit val thinksScoresFormat: OFormat[ThinksScores] = Json.format[ThinksScores]
 }

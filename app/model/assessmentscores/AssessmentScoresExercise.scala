@@ -27,8 +27,9 @@ case class AssessmentScoresExercise(
                                      seeingTheBigPictureScores: Option[SeeingTheBigPictureScores] = None,
                                      seeingTheBigPictureFeedback: Option[String] = None,
 
-                                     makingEffectiveDecisionsScores: Option[MakingEffectiveDecisionsScores] = None,
-                                     makingEffectiveDecisionsFeedback: Option[String] = None,
+                                     // was makingEffectiveDecisions
+                                     thinksScores: Option[ThinksScores] = None,
+                                     thinksFeedback: Option[String] = None,
 
                                      communicatingAndInfluencingScores: Option[CommunicatingAndInfluencingScores] = None,
                                      communicatingAndInfluencingFeedback: Option[String] = None,
@@ -49,8 +50,8 @@ case class AssessmentScoresExercise(
     s"attended:$attended," +
     s"seeingTheBigPictureScores:$seeingTheBigPictureScores," +
     s"seeingTheBigPictureFeedback:$seeingTheBigPictureFeedback," +
-    s"makingEffectiveDecisionsScores:$makingEffectiveDecisionsScores," +
-    s"makingEffectiveDecisionsFeedback:$makingEffectiveDecisionsFeedback," +
+    s"thinksScores:$thinksScores," +
+    s"thinksFeedback:$thinksFeedback," +
     s"communicatingAndInfluencingScores:$communicatingAndInfluencingScores," +
     s"communicatingAndInfluencingFeedback:$communicatingAndInfluencingFeedback," +
     s"adaptsScores:$adaptsScores," +
@@ -67,8 +68,8 @@ case class AssessmentScoresExercise(
       attended,
       seeingTheBigPictureScores,
       seeingTheBigPictureFeedback,
-      makingEffectiveDecisionsScores,
-      makingEffectiveDecisionsFeedback,
+      thinksScores,
+      thinksFeedback,
       communicatingAndInfluencingScores,
       communicatingAndInfluencingFeedback,
       adaptsScores,
@@ -93,8 +94,9 @@ case class AssessmentScoresExerciseExchange(
                                              seeingTheBigPictureScores: Option[SeeingTheBigPictureScores] = None,
                                              seeingTheBigPictureFeedback: Option[String] = None,
 
-                                             makingEffectiveDecisionsScores: Option[MakingEffectiveDecisionsScores] = None,
-                                             makingEffectiveDecisionsFeedback: Option[String] = None,
+                                             // was makingEffectiveDecisions
+                                             thinksScores: Option[ThinksScores] = None,
+                                             thinksFeedback: Option[String] = None,
 
                                              communicatingAndInfluencingScores: Option[CommunicatingAndInfluencingScores] = None,
                                              communicatingAndInfluencingFeedback: Option[String] = None,
@@ -115,8 +117,8 @@ case class AssessmentScoresExerciseExchange(
       attended,
       seeingTheBigPictureScores,
       seeingTheBigPictureFeedback,
-      makingEffectiveDecisionsScores,
-      makingEffectiveDecisionsFeedback,
+      thinksScores,
+      thinksFeedback,
       communicatingAndInfluencingScores,
       communicatingAndInfluencingFeedback,
       adaptsScores,
@@ -131,8 +133,8 @@ case class AssessmentScoresExerciseExchange(
   override def toString: String = s"attended=$attended," +
     s"seeingTheBigPictureScores=$seeingTheBigPictureScores," +
     s"seeingTheBigPictureFeedback=$seeingTheBigPictureFeedback," +
-    s"makingEffectiveDecisionsScores=$makingEffectiveDecisionsScores," +
-    s"makingEffectiveDecisionsFeedback=$makingEffectiveDecisionsFeedback," +
+    s"thinksScores=$thinksScores," +
+    s"thinksFeedback=$thinksFeedback," +
     s"communicatingAndInfluencingScores=$communicatingAndInfluencingScores," +
     s"communicatingAndInfluencingFeedback=$communicatingAndInfluencingFeedback," +
     s"adaptsScores=$adaptsScores," +
