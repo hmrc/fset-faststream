@@ -46,36 +46,30 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec with Schemes 
 
       val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(List(
         AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
-          writtenExercise = PassMarkThreshold(2.5, 3.0),
-          teamExercise = PassMarkThreshold(1.0, 3.0),
-          leadershipExercise = PassMarkThreshold(1.0, 3.0),
+          exercise1 = PassMarkThreshold(2.5, 3.0),
+          exercise2 = PassMarkThreshold(1.0, 3.0),
+          exercise3 = PassMarkThreshold(1.0, 3.0),
           overall = PassMarkThreshold(6.0, 8.0)))),
         version = "v1", createDate = OffsetDateTime.now, "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
-        writtenExercise = Some(
+        exercise1 = Some(
           AssessmentScoresExercise(
             attended = true,
-            seeingTheBigPictureAverage = Some(0.99),
-            makingEffectiveDecisionsAverage = Some(3.1),
-            communicatingAndInfluencingAverage = Some(3.1),
-            updatedBy = updatedBy
+            updatedBy = updatedBy,
+            overallAverage = Some(2.3967)
           )),
-        teamExercise = Some(
+        exercise2 = Some(
           AssessmentScoresExercise(
             attended = true,
-            makingEffectiveDecisionsAverage = Some(3.1),
-            communicatingAndInfluencingAverage = Some(3.1),
-            workingTogetherDevelopingSelfAndOthersAverage = Some(3.1),
-            updatedBy = updatedBy
+            updatedBy = updatedBy,
+            overallAverage = Some(3.1)
           )),
-        leadershipExercise = Some(
+        exercise3 = Some(
           AssessmentScoresExercise(
             attended = true,
-            seeingTheBigPictureAverage = Some(3.1),
-            communicatingAndInfluencingAverage = Some(3.1),
-            workingTogetherDevelopingSelfAndOthersAverage = Some(3.1),
-            updatedBy = updatedBy
+            updatedBy = updatedBy,
+            overallAverage = Some(3.1)
           ))
       )
 
@@ -90,42 +84,36 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec with Schemes 
     // f    p   f    p   f    p   f    p
     // 1.0  3.0 1.0  3.0 1.0  3.0 6.0  8.0
     //  2.7333   3.1      3.1      8.9333
-    //   R        G        G          G
+    //   A        G        G          G
     "evaluate to Amber with a single Amber and the others Green" in {
       val schemes = List(Commercial)
 
       val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(List(
         AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
-          writtenExercise = PassMarkThreshold(1.0, 3.0),
-          teamExercise = PassMarkThreshold(1.0, 3.0),
-          leadershipExercise = PassMarkThreshold(1.0, 3.0),
+          exercise1 = PassMarkThreshold(1.0, 3.0),
+          exercise2 = PassMarkThreshold(1.0, 3.0),
+          exercise3 = PassMarkThreshold(1.0, 3.0),
           overall = PassMarkThreshold(6.0, 8.9)))),
         version = "v1", createDate = OffsetDateTime.now, "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
-        writtenExercise = Some(
+        exercise1 = Some(
           AssessmentScoresExercise(
             attended = true,
-            seeingTheBigPictureAverage = Some(2.0),
-            makingEffectiveDecisionsAverage = Some(3.1),
-            communicatingAndInfluencingAverage = Some(3.1),
-            updatedBy = updatedBy
+            updatedBy = updatedBy,
+            overallAverage = Some(2.7333)
           )),
-        teamExercise = Some(
+        exercise2 = Some(
           AssessmentScoresExercise(
             attended = true,
-            makingEffectiveDecisionsAverage = Some(3.1),
-            communicatingAndInfluencingAverage = Some(3.1),
-            workingTogetherDevelopingSelfAndOthersAverage = Some(3.1),
-            updatedBy = updatedBy
+            updatedBy = updatedBy,
+            overallAverage = Some(3.1)
           )),
-        leadershipExercise = Some(
+        exercise3 = Some(
           AssessmentScoresExercise(
             attended = true,
-            seeingTheBigPictureAverage = Some(3.1),
-            communicatingAndInfluencingAverage = Some(3.1),
-            workingTogetherDevelopingSelfAndOthersAverage = Some(3.1),
-            updatedBy = updatedBy
+            updatedBy = updatedBy,
+            overallAverage = Some(3.1)
           ))
       )
 
@@ -146,36 +134,30 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec with Schemes 
 
       val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(List(
         AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
-          writtenExercise = PassMarkThreshold(1.0, 3.0),
-          teamExercise = PassMarkThreshold(1.0, 3.0),
-          leadershipExercise = PassMarkThreshold(1.0, 3.0),
+          exercise1 = PassMarkThreshold(1.0, 3.0),
+          exercise2 = PassMarkThreshold(1.0, 3.0),
+          exercise3 = PassMarkThreshold(1.0, 3.0),
           overall = PassMarkThreshold(8.0, 9.3)))),
         version = "v1", createDate = OffsetDateTime.now, "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
-        writtenExercise = Some(
+        exercise1 = Some(
           AssessmentScoresExercise(
             attended = true,
-            seeingTheBigPictureAverage = Some(3.1),
-            makingEffectiveDecisionsAverage = Some(3.1),
-            communicatingAndInfluencingAverage = Some(3.1),
-            updatedBy = updatedBy
+            updatedBy = updatedBy,
+            overallAverage = Some(3.1)
           )),
-        teamExercise = Some(
+        exercise2 = Some(
           AssessmentScoresExercise(
             attended = true,
-            makingEffectiveDecisionsAverage = Some(3.1),
-            communicatingAndInfluencingAverage = Some(3.1),
-            workingTogetherDevelopingSelfAndOthersAverage = Some(3.1),
-            updatedBy = updatedBy
+            updatedBy = updatedBy,
+            overallAverage = Some(3.1)
           )),
-        leadershipExercise = Some(
+        exercise3 = Some(
           AssessmentScoresExercise(
             attended = true,
-            seeingTheBigPictureAverage = Some(3.1),
-            communicatingAndInfluencingAverage = Some(3.1),
-            workingTogetherDevelopingSelfAndOthersAverage = Some(3.1),
-            updatedBy = updatedBy
+            updatedBy = updatedBy,
+            overallAverage = Some(3.1)
           ))
       )
 
@@ -190,42 +172,36 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec with Schemes 
     // f    p   f    p   f    p   f    p
     // 1.0  3.0 1.0  3.0 2.1  3.0 6.0  7.1
     //  2.03     3.1      2.03     7.16
-    //   A        G        G          G
+    //   A        G        R          G
     "evaluate to Red with a mix of Amber, Green, Red" in {
       val schemes = List(Commercial)
 
       val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(List(
         AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
-          writtenExercise = PassMarkThreshold(1.0, 3.0),
-          teamExercise = PassMarkThreshold(1.0, 3.0),
-          leadershipExercise = PassMarkThreshold(2.1, 3.0),
+          exercise1 = PassMarkThreshold(1.0, 3.0),
+          exercise2 = PassMarkThreshold(1.0, 3.0),
+          exercise3 = PassMarkThreshold(2.1, 3.0),
           overall = PassMarkThreshold(6.0, 7.16)))),
         version = "v1", createDate = OffsetDateTime.now, "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
-        writtenExercise = Some(
+        exercise1 = Some(
           AssessmentScoresExercise(
             attended = true,
-            seeingTheBigPictureAverage = Some(2.0),
-            makingEffectiveDecisionsAverage = Some(3.1),
-            communicatingAndInfluencingAverage = Some(0.99),
-            updatedBy = updatedBy
+            updatedBy = updatedBy,
+            overallAverage = Some(2.03)
           )),
-        teamExercise = Some(
+        exercise2 = Some(
           AssessmentScoresExercise(
             attended = true,
-            makingEffectiveDecisionsAverage = Some(3.1),
-            communicatingAndInfluencingAverage = Some(3.1),
-            workingTogetherDevelopingSelfAndOthersAverage = Some(3.1),
-            updatedBy = updatedBy
+            updatedBy = updatedBy,
+            overallAverage = Some(3.1)
           )),
-        leadershipExercise = Some(
+        exercise3 = Some(
           AssessmentScoresExercise(
             attended = true,
-            seeingTheBigPictureAverage = Some(2.0),
-            communicatingAndInfluencingAverage = Some(0.99),
-            workingTogetherDevelopingSelfAndOthersAverage = Some(3.1),
-            updatedBy = updatedBy
+            updatedBy = updatedBy,
+            overallAverage = Some(2.03)
           ))
       )
 
@@ -233,7 +209,6 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec with Schemes 
       val result = evaluationEngine.evaluate(candidateScore)
       result.schemesEvaluation mustBe List(SchemeEvaluationResult(Commercial, Red.toString))
     }
-
     // scheme | e1 | e2 | e3 | overall | expected result
     // s1     | G  | G  | G  | G       | G
     "evaluate to Green when zero pass marks are specified" in {
@@ -241,36 +216,30 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec with Schemes 
 
       val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(List(
         AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
-          writtenExercise = PassMarkThreshold(0.0, 0.0),
-          teamExercise = PassMarkThreshold(0.0, 0.0),
-          leadershipExercise = PassMarkThreshold(0.0, 0.0),
+          exercise1 = PassMarkThreshold(0.0, 0.0),
+          exercise2 = PassMarkThreshold(0.0, 0.0),
+          exercise3 = PassMarkThreshold(0.0, 0.0),
           overall = PassMarkThreshold(0.0, 0.0)))),
         version = "v1", createDate = OffsetDateTime.now, "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
-        writtenExercise = Some(
+        exercise1 = Some(
           AssessmentScoresExercise(
             attended = true,
-            seeingTheBigPictureAverage = Some(1.0),
-            makingEffectiveDecisionsAverage = Some(1.0),
-            communicatingAndInfluencingAverage = Some(1.0),
-            updatedBy = updatedBy
+            updatedBy = updatedBy,
+            overallAverage = Some(1.0)
           )),
-        teamExercise = Some(
+        exercise2 = Some(
           AssessmentScoresExercise(
             attended = true,
-            makingEffectiveDecisionsAverage = Some(1.0),
-            communicatingAndInfluencingAverage = Some(1.0),
-            workingTogetherDevelopingSelfAndOthersAverage = Some(1.0),
-            updatedBy = updatedBy
+            updatedBy = updatedBy,
+            overallAverage = Some(1.0)
           )),
-        leadershipExercise = Some(
+        exercise3 = Some(
           AssessmentScoresExercise(
             attended = true,
-            seeingTheBigPictureAverage = Some(1.0),
-            communicatingAndInfluencingAverage = Some(1.0),
-            workingTogetherDevelopingSelfAndOthersAverage = Some(1.0),
-            updatedBy = updatedBy
+            updatedBy = updatedBy,
+            overallAverage = Some(1.0)
           ))
       )
 
@@ -287,38 +256,32 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec with Schemes 
       // The pass marks which the evaluation engine uses to work out if each scheme has passed/failed
       val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(List(
         AssessmentCentreExercisePassMark(Commercial, AssessmentCentreExercisePassMarkThresholds(
-          writtenExercise = PassMarkThreshold(1.0, 3.4),
-          teamExercise = PassMarkThreshold(1.0, 3.0),
-          leadershipExercise = PassMarkThreshold(1.0, 3.0),
+          exercise1 = PassMarkThreshold(1.0, 3.4),
+          exercise2 = PassMarkThreshold(1.0, 3.0),
+          exercise3 = PassMarkThreshold(1.0, 3.0),
           overall = PassMarkThreshold(10.0, 11.0))),
         AssessmentCentreExercisePassMark(DigitalDataTechnologyAndCyber, AssessmentCentreExercisePassMarkThresholds(
-          writtenExercise = PassMarkThreshold(1.0, 3.4),
-          teamExercise = PassMarkThreshold(1.0, 3.0),
-          leadershipExercise = PassMarkThreshold(1.0, 3.0),
+          exercise1 = PassMarkThreshold(1.0, 3.4),
+          exercise2 = PassMarkThreshold(1.0, 3.0),
+          exercise3 = PassMarkThreshold(1.0, 3.0),
           overall = PassMarkThreshold(10.0, 11.0))),
         AssessmentCentreExercisePassMark(DiplomaticAndDevelopment, AssessmentCentreExercisePassMarkThresholds(
-          writtenExercise = PassMarkThreshold(1.0, 3.4),
-          teamExercise = PassMarkThreshold(1.0, 3.0),
-          leadershipExercise = PassMarkThreshold(1.0, 3.0),
+          exercise1 = PassMarkThreshold(1.0, 3.4),
+          exercise2 = PassMarkThreshold(1.0, 3.0),
+          exercise3 = PassMarkThreshold(1.0, 3.0),
           overall = PassMarkThreshold(10.6, 12.0)))),
         version = "v1", OffsetDateTime.now, "user")
 
       val candidateScores = AssessmentScoresAllExercises(applicationId,
-        writtenExercise = Some(
-          AssessmentScoresExercise(makingEffectiveDecisionsAverage = Some(2.5), communicatingAndInfluencingAverage = Some(3.5),
-            seeingTheBigPictureAverage = Some(4.0), updatedBy = updatedBy, attended = true
-            // Avg = (2.5 + 3.5 + 4.0) / 3 = 10 / 3 = 3.3333
-          )),
-        teamExercise = Some(
-          AssessmentScoresExercise(makingEffectiveDecisionsAverage = Some(3.0), workingTogetherDevelopingSelfAndOthersAverage = Some(4.5),
-            communicatingAndInfluencingAverage = Some(3.5), updatedBy = updatedBy, attended = true
-            // Avg = (3.0 + 4.5 + 3.5) / 3 = 11 / 3 = 3.6667
-          )),
-        leadershipExercise = Some(
-          AssessmentScoresExercise(workingTogetherDevelopingSelfAndOthersAverage = Some(3.0), communicatingAndInfluencingAverage = Some(3.5),
-            seeingTheBigPictureAverage = Some(4.0), updatedBy = updatedBy, attended = true
-            // (Avg = 3.0 + 3.5 + 4.0) / 3 = 10.5 / 3 = 3.5
-          ))
+        exercise1 = Some(
+          AssessmentScoresExercise(updatedBy = updatedBy, attended = true, overallAverage = Some(3.3333))
+        ),
+        exercise2 = Some(
+          AssessmentScoresExercise(updatedBy = updatedBy, attended = true, overallAverage = Some(3.6667))
+        ),
+        exercise3 = Some(
+          AssessmentScoresExercise(updatedBy = updatedBy, attended = true, overallAverage = Some(3.5))
+        )
       )
 
       // List of schemes for which the candidate will be evaluated
@@ -332,20 +295,12 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec with Schemes 
         SchemeEvaluationResult(DiplomaticAndDevelopment, Red.toString)
       )
 
-      val expectedCompetencyAverage = CompetencyAverageResult(
-        makingEffectiveDecisionsAverage = 2.75,
-        workingTogetherDevelopingSelfAndOthersAverage = 3.75,
-        communicatingAndInfluencingAverage = 3.5,
-        seeingTheBigPictureAverage = 4.0,
-        overallScore = 14.0
-      )
       val expectedExerciseAverage = ExerciseAverageResult(
-        writtenExerciseAverage = 3.3333,
-        teamExerciseAverage = 3.6667,
-        leadershipExerciseAverage = 3.5,
+        exercise1Average = 3.3333,
+        exercise2Average = 3.6667,
+        exercise3Average = 3.5,
         overallScore = 10.5
       )
-      result.fsacResults.competencyAverageResult mustBe expectedCompetencyAverage
       result.fsacResults.exerciseAverageResult mustBe expectedExerciseAverage
     }
   }

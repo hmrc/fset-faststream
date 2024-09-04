@@ -24,67 +24,62 @@ import java.time.OffsetDateTime
 case class AssessmentScoresExercise(
                                      attended: Boolean,
 
-                                     seeingTheBigPictureScores: Option[SeeingTheBigPictureScores] = None,
-                                     seeingTheBigPictureAverage: Option[Double] = None,
-                                     seeingTheBigPictureFeedback: Option[String] = None,
+                                     // was seeingTheBigPictureScores
+                                     relatesScores: Option[RelatesScores] = None,
+                                     relatesFeedback: Option[String] = None,
 
-                                     makingEffectiveDecisionsScores: Option[MakingEffectiveDecisionsScores] = None,
-                                     makingEffectiveDecisionsAverage: Option[Double] = None,
-                                     makingEffectiveDecisionsFeedback: Option[String] = None,
+                                     // was makingEffectiveDecisions
+                                     thinksScores: Option[ThinksScores] = None,
+                                     thinksFeedback: Option[String] = None,
 
-                                     communicatingAndInfluencingScores: Option[CommunicatingAndInfluencingScores] = None,
-                                     communicatingAndInfluencingAverage: Option[Double] = None,
-                                     communicatingAndInfluencingFeedback: Option[String] = None,
+                                     // was communicatingAndInfluencing
+                                     strivesScores: Option[StrivesScores] = None,
+                                     strivesFeedback: Option[String] = None,
 
-                                     workingTogetherDevelopingSelfAndOthersScores: Option[WorkingTogetherDevelopingSelfAndOtherScores] = None,
-                                     workingTogetherDevelopingSelfAndOthersAverage: Option[Double] = None,
-                                     workingTogetherDevelopingSelfAndOthersFeedback: Option[String] = None,
+                                     // was workingTogetherDevelopingSelfAndOthers
+                                     adaptsScores: Option[AdaptsScores] = None,
+                                     adaptsFeedback: Option[String] = None,
 
                                      updatedBy: UniqueIdentifier,
                                      savedDate: Option[OffsetDateTime] = None,
                                      submittedDate: Option[OffsetDateTime] = None,
+                                     overallAverage: Option[Double] = None,
                                      version: Option[String] = None
 ) extends AssessmentScoresSection {
   def isSubmitted = submittedDate.isDefined
 
   override def toString: String = {
     s"attended:$attended," +
-    s"seeingTheBigPictureScores:$seeingTheBigPictureScores," +
-    s"seeingTheBigPictureAverage:$seeingTheBigPictureAverage," +
-    s"seeingTheBigPictureFeedback:$seeingTheBigPictureFeedback," +
-    s"makingEffectiveDecisionsScores:$makingEffectiveDecisionsScores," +
-    s"makingEffectiveDecisionsAverage:$makingEffectiveDecisionsAverage," +
-    s"makingEffectiveDecisionsFeedback:$makingEffectiveDecisionsFeedback," +
-    s"communicatingAndInfluencingScores:$communicatingAndInfluencingScores," +
-    s"communicatingAndInfluencingAverage:$communicatingAndInfluencingAverage," +
-    s"communicatingAndInfluencingFeedback:$communicatingAndInfluencingFeedback," +
-    s"workingTogetherDevelopingSelfAndOthersScores:$workingTogetherDevelopingSelfAndOthersScores," +
-    s"workingTogetherDevelopingSelfAndOthersAverage:$workingTogetherDevelopingSelfAndOthersAverage," +
-    s"workingTogetherDevelopingSelfAndOthersFeedback:$workingTogetherDevelopingSelfAndOthersFeedback," +
+    s"relatesScores:$relatesScores," +
+    s"relatesFeedback:$relatesFeedback," +
+    s"thinksScores:$thinksScores," +
+    s"thinksFeedback:$thinksFeedback," +
+    s"strivesScores:$strivesScores," +
+    s"strivesFeedback:$strivesFeedback," +
+    s"adaptsScores:$adaptsScores," +
+    s"adaptsFeedback:$adaptsFeedback," +
     s"updatedBy:$updatedBy," +
     s"savedDate:$savedDate," +
     s"submittedDate:$submittedDate," +
+    s"overallAverage:$overallAverage," +
     s"version:$version"
   }
 
   def toExchange =
     AssessmentScoresExerciseExchange(
       attended,
-      seeingTheBigPictureScores,
-      seeingTheBigPictureAverage,
-      seeingTheBigPictureFeedback,
-      makingEffectiveDecisionsScores,
-      makingEffectiveDecisionsAverage,
-      makingEffectiveDecisionsFeedback,
-      communicatingAndInfluencingScores,
-      communicatingAndInfluencingAverage,
-      communicatingAndInfluencingFeedback,
-      workingTogetherDevelopingSelfAndOthersScores,
-      workingTogetherDevelopingSelfAndOthersAverage,
-      workingTogetherDevelopingSelfAndOthersFeedback,
+      relatesScores,
+      relatesFeedback,
+      thinksScores,
+      thinksFeedback,
+      strivesScores,
+      strivesFeedback,
+      adaptsScores,
+      adaptsFeedback,
       updatedBy,
       savedDate,
       submittedDate,
+      overallAverage,
       version
     )
 }
@@ -94,67 +89,64 @@ object AssessmentScoresExercise {
   implicit val jsonFormat: OFormat[AssessmentScoresExercise] = Json.format[AssessmentScoresExercise]
 }
 
+//scalastyle:off line.size.limit
 case class AssessmentScoresExerciseExchange(
-                                     attended: Boolean,
+                                             attended: Boolean,
 
-                                     seeingTheBigPictureScores: Option[SeeingTheBigPictureScores] = None,
-                                     seeingTheBigPictureAverage: Option[Double] = None,
-                                     seeingTheBigPictureFeedback: Option[String] = None,
+                                             // was seeingTheBigPicture
+                                             relatesScores: Option[RelatesScores] = None,
+                                             relatesFeedback: Option[String] = None,
 
-                                     makingEffectiveDecisionsScores: Option[MakingEffectiveDecisionsScores] = None,
-                                     makingEffectiveDecisionsAverage: Option[Double] = None,
-                                     makingEffectiveDecisionsFeedback: Option[String] = None,
+                                             // was makingEffectiveDecisions
+                                             thinksScores: Option[ThinksScores] = None,
+                                             thinksFeedback: Option[String] = None,
 
-                                     communicatingAndInfluencingScores: Option[CommunicatingAndInfluencingScores] = None,
-                                     communicatingAndInfluencingAverage: Option[Double] = None,
-                                     communicatingAndInfluencingFeedback: Option[String] = None,
+                                             // was communicatingAndInfluencing
+                                             strivesScores: Option[StrivesScores] = None,
+                                             strivesFeedback: Option[String] = None,
 
-                                     workingTogetherDevelopingSelfAndOthersScores: Option[WorkingTogetherDevelopingSelfAndOtherScores] = None,
-                                     workingTogetherDevelopingSelfAndOthersAverage: Option[Double] = None,
-                                     workingTogetherDevelopingSelfAndOthersFeedback: Option[String] = None,
+                                             // was workingTogetherDevelopingSelfAndOthers
+                                             adaptsScores: Option[AdaptsScores] =None,
+                                             adaptsFeedback: Option[String] = None,
 
-                                     updatedBy: UniqueIdentifier,
-                                     savedDate: Option[OffsetDateTime] = None,
-                                     submittedDate: Option[OffsetDateTime] = None,
-                                     version: Option[String] = None
+                                             updatedBy: UniqueIdentifier,
+                                             savedDate: Option[OffsetDateTime] = None,
+                                             submittedDate: Option[OffsetDateTime] = None,
+                                             overallAverage: Option[Double] = None,
+                                             version: Option[String] = None
                                    ) extends AssessmentScoresSection {
+  //scalastyle:on
   def toPersistence =
     AssessmentScoresExercise(
       attended,
-      seeingTheBigPictureScores,
-      seeingTheBigPictureAverage,
-      seeingTheBigPictureFeedback,
-      makingEffectiveDecisionsScores,
-      makingEffectiveDecisionsAverage,
-      makingEffectiveDecisionsFeedback,
-      communicatingAndInfluencingScores,
-      communicatingAndInfluencingAverage,
-      communicatingAndInfluencingFeedback,
-      workingTogetherDevelopingSelfAndOthersScores,
-      workingTogetherDevelopingSelfAndOthersAverage,
-      workingTogetherDevelopingSelfAndOthersFeedback,
+      relatesScores,
+      relatesFeedback,
+      thinksScores,
+      thinksFeedback,
+      strivesScores,
+      strivesFeedback,
+      adaptsScores,
+      adaptsFeedback,
       updatedBy,
       savedDate,
       submittedDate,
+      overallAverage,
       version
     )
 
   override def toString: String = s"attended=$attended," +
-    s"seeingTheBigPictureScores=$seeingTheBigPictureScores," +
-    s"seeingTheBigPictureAverage=$seeingTheBigPictureAverage," +
-    s"seeingTheBigPictureFeedback=$seeingTheBigPictureFeedback," +
-    s"makingEffectiveDecisionsScores=$makingEffectiveDecisionsScores," +
-    s"makingEffectiveDecisionsAverage=$makingEffectiveDecisionsAverage," +
-    s"makingEffectiveDecisionsFeedback=$makingEffectiveDecisionsFeedback," +
-    s"communicatingAndInfluencingScores=$communicatingAndInfluencingScores," +
-    s"communicatingAndInfluencingAverage=$communicatingAndInfluencingAverage," +
-    s"communicatingAndInfluencingFeedback=$communicatingAndInfluencingFeedback," +
-    s"workingTogetherDevelopingSelfAndOthersScores=$workingTogetherDevelopingSelfAndOthersScores," +
-    s"workingTogetherDevelopingSelfAndOthersAverage=$workingTogetherDevelopingSelfAndOthersAverage," +
-    s"workingTogetherDevelopingSelfAndOthersFeedback=$workingTogetherDevelopingSelfAndOthersFeedback," +
+    s"relatesScores=$relatesScores," +
+    s"relatesFeedback=$relatesFeedback," +
+    s"thinksScores=$thinksScores," +
+    s"thinksFeedback=$thinksFeedback," +
+    s"strivesScores=$strivesScores," +
+    s"strivesFeedback=$strivesFeedback," +
+    s"adaptsScores=$adaptsScores," +
+    s"adaptsFeedback=$adaptsFeedback," +
     s"updatedBy=$updatedBy," +
     s"savedDate=$savedDate," +
     s"submittedDate=$submittedDate," +
+    s"overallAverage=$overallAverage," +
     s"version=$version"
 }
 

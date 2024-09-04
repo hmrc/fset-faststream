@@ -85,34 +85,15 @@ object EvaluationResults {
     val Pass, Fail = Value
   }
 
-  case class CompetencyAverageResult(
-                                      makingEffectiveDecisionsAverage: Double,
-                                      workingTogetherDevelopingSelfAndOthersAverage: Double,
-                                      communicatingAndInfluencingAverage: Double,
-                                      seeingTheBigPictureAverage: Double,
-                                      overallScore: Double
-                                    ) {
-
-    override def toString: String = s"makingEffectiveDecisionsAverage=$makingEffectiveDecisionsAverage," +
-      s"workingTogetherDevelopingSelfAndOthersAverage=$workingTogetherDevelopingSelfAndOthersAverage," +
-      s"communicatingAndInfluencingAverage=$communicatingAndInfluencingAverage," +
-      s"seeingTheBigPictureAverage=$seeingTheBigPictureAverage," +
-      s"overallScore=$overallScore"
-  }
-
-  object CompetencyAverageResult {
-    implicit val competencyAverageResultFormat: OFormat[CompetencyAverageResult] = Json.format[CompetencyAverageResult]
-  }
-
   case class ExerciseAverageResult(
-                                    writtenExerciseAverage: Double,
-                                    teamExerciseAverage: Double,
-                                    leadershipExerciseAverage: Double,
+                                    exercise1Average: Double,
+                                    exercise2Average: Double,
+                                    exercise3Average: Double,
                                     overallScore: Double) {
 
-    override def toString: String = s"writtenExerciseAverage=$writtenExerciseAverage," +
-      s"teamExerciseAverage=$teamExerciseAverage," +
-      s"leadershipExerciseAverage=$leadershipExerciseAverage," +
+    override def toString: String = s"exercise1Average=$exercise1Average," +
+      s"exercise2Average=$exercise2Average," +
+      s"exercise3Average=$exercise3Average," +
       s"overallScore=$overallScore"
   }
 
@@ -120,17 +101,12 @@ object EvaluationResults {
     implicit val exerciseAverageResultFormat: OFormat[ExerciseAverageResult] = Json.format[ExerciseAverageResult]
   }
 
-  case class FsacResults(competencyAverageResult: CompetencyAverageResult, exerciseAverageResult: ExerciseAverageResult) {
+  case class FsacResults(exerciseAverageResult: ExerciseAverageResult) {
 
     override def toString: String =
-//      s"makingEffectiveDecisionsAverage=${competencyAverageResult.makingEffectiveDecisionsAverage}," +
-//      s"workingTogetherDevelopingSelfAndOthersAverage=${competencyAverageResult.workingTogetherDevelopingSelfAndOthersAverage}," +
-//      s"communicatingAndInfluencingAverage=${competencyAverageResult.communicatingAndInfluencingAverage}," +
-//      s"seeingTheBigPictureAverage=${competencyAverageResult.seeingTheBigPictureAverage}," +
-//      s"overallScore=${competencyAverageResult.overallScore}," +
-      s"writtenExerciseAverage=${exerciseAverageResult.writtenExerciseAverage}," +
-      s"teamExerciseAverage=${exerciseAverageResult.teamExerciseAverage}," +
-      s"leadershipExerciseAverage=${exerciseAverageResult.leadershipExerciseAverage}," +
+      s"exercise1Average=${exerciseAverageResult.exercise1Average}," +
+      s"exercise2Average=${exerciseAverageResult.exercise2Average}," +
+      s"exercise3Average=${exerciseAverageResult.exercise3Average}," +
       s"overallScore=${exerciseAverageResult.overallScore}"
   }
 

@@ -39,7 +39,7 @@ object AssessmentScoresCommands {
   object AssessmentScoresSectionType extends Enumeration {
     type AssessmentScoresSectionType = Value
 
-    val writtenExercise, teamExercise, leadershipExercise, finalFeedback = Value
+    val exercise1, exercise2, exercise3, finalFeedback = Value
 
     implicit val assessmentExerciseFormat: Format[AssessmentScoresSectionType] = new Format[AssessmentScoresSectionType] {
       def reads(json: JsValue): JsSuccess[Value] = JsSuccess(AssessmentScoresSectionType.withName(json.as[String]))
@@ -50,7 +50,9 @@ object AssessmentScoresCommands {
       def toBson: BsonValue = Codecs.toBson(sectionType)
     }
 
-    def asListOfStrings = List(writtenExercise.toString, teamExercise.toString, leadershipExercise.toString, finalFeedback.toString)
+    def asListOfStrings = List(
+      exercise1.toString, exercise2.toString, exercise3.toString, finalFeedback.toString
+    )
   }
 
   case class AssessmentScoresSubmitExerciseRequest(
@@ -81,9 +83,9 @@ object AssessmentScoresCommands {
 
   case class ResetExercisesRequest(
                                     applicationId: UniqueIdentifier,
-                                    written: Boolean,
-                                    team: Boolean,
-                                    leadership: Boolean,
+                                    exercise1: Boolean,
+                                    exercise2: Boolean,
+                                    exercise3: Boolean,
                                     finalFeedback: Boolean
   )
   object ResetExercisesRequest {

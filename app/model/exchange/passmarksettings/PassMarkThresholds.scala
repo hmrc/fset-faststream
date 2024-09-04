@@ -35,18 +35,19 @@ trait Phase3Thresholds {
   def videoInterview: PassMarkThreshold
 }
 
+// TODO: we can delete this class
 trait AssessmentCentreCompetencyThresholds {
-  def seeingTheBigPicture: PassMarkThreshold
-  def makingEffectiveDecisions: PassMarkThreshold
-  def communicatingAndInfluencing: PassMarkThreshold
-  def workingTogetherDevelopingSelfAndOthers: PassMarkThreshold
+  def relates: PassMarkThreshold
+  def thinks: PassMarkThreshold
+  def strives: PassMarkThreshold
+  def adapts: PassMarkThreshold
   def overall: PassMarkThreshold
 }
 
 trait AssessmentCentreExerciseThresholds {
-  def writtenExercise: PassMarkThreshold
-  def teamExercise: PassMarkThreshold
-  def leadershipExercise: PassMarkThreshold
+  def exercise1: PassMarkThreshold
+  def exercise2: PassMarkThreshold
+  def exercise3: PassMarkThreshold
   def overall: PassMarkThreshold
 }
 
@@ -77,19 +78,20 @@ object Phase3PassMarkThresholds {
   implicit val phase3PassMarkThresholds: OFormat[Phase3PassMarkThresholds] = Json.format[Phase3PassMarkThresholds]
 }
 
+// TODO: we can delete this class
 // These are competency pass marks. The 1st version of the FSAC evaluation used these pass marks
 case class AssessmentCentreCompetencyPassMarkThresholds(
-                                    override val seeingTheBigPicture: PassMarkThreshold,
-                                    override val makingEffectiveDecisions: PassMarkThreshold,
-                                    override val communicatingAndInfluencing: PassMarkThreshold,
-                                    override val workingTogetherDevelopingSelfAndOthers: PassMarkThreshold,
-                                    override val overall: PassMarkThreshold
+                                                         override val relates: PassMarkThreshold,
+                                                         override val thinks: PassMarkThreshold,
+                                                         override val strives: PassMarkThreshold,
+                                                         override val adapts: PassMarkThreshold,
+                                                         override val overall: PassMarkThreshold
                                    ) extends PassMarkThresholds with AssessmentCentreCompetencyThresholds {
   override def toString =
-    s"seeingTheBigPicture=$seeingTheBigPicture," +
-    s"makingEffectiveDecisions=$makingEffectiveDecisions," +
-    s"communicatingAndInfluencing=$communicatingAndInfluencing," +
-    s"workingTogetherDevelopingSelfAndOthers=$workingTogetherDevelopingSelfAndOthers," +
+    s"relates=$relates," +
+    s"thinks=$thinks," +
+    s"strives=$strives," +
+    s"adapts=$adapts," +
     s"overall=$overall"
 }
 
@@ -99,15 +101,15 @@ object AssessmentCentreCompetencyPassMarkThresholds {
 
 // These are exercise pass marks. The latest version of the FSAC evaluation uses these pass marks
 case class AssessmentCentreExercisePassMarkThresholds(
-                                    override val writtenExercise: PassMarkThreshold,
-                                    override val teamExercise: PassMarkThreshold,
-                                    override val leadershipExercise: PassMarkThreshold,
-                                    override val overall: PassMarkThreshold
+                                                       override val exercise1: PassMarkThreshold,
+                                                       override val exercise2: PassMarkThreshold,
+                                                       override val exercise3: PassMarkThreshold,
+                                                       override val overall: PassMarkThreshold
                                    ) extends PassMarkThresholds with AssessmentCentreExerciseThresholds {
   override def toString =
-    s"writtenExercise=$writtenExercise," +
-    s"teamExercise=$teamExercise," +
-    s"leadershipExercise=$leadershipExercise," +
+    s"exercise1=$exercise1," +
+    s"exercise2=$exercise2," +
+    s"exercise3=$exercise3," +
     s"overall=$overall"
 }
 

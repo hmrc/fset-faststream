@@ -24,74 +24,41 @@ import scala.math.BigDecimal.RoundingMode
 // finalFeedback should be None in case of Reviewer Assessment scores
 case class AssessmentScoresAllExercises(
                                          applicationId: UniqueIdentifier,
-                                         writtenExercise: Option[AssessmentScoresExercise] = None,
-                                         teamExercise: Option[AssessmentScoresExercise] = None,
-                                         leadershipExercise: Option[AssessmentScoresExercise] = None,
+                                         exercise1: Option[AssessmentScoresExercise] = None,
+                                         exercise2: Option[AssessmentScoresExercise] = None,
+                                         exercise3: Option[AssessmentScoresExercise] = None,
                                          finalFeedback: Option[AssessmentScoresFinalFeedback] = None
                                        ) {
 
-  def seeingTheBigPictureAvg: Double = {
-    average(List(writtenExercise, leadershipExercise).flatMap(_.flatMap(_.seeingTheBigPictureAverage)), 2)
-  }
-
-  def workingTogetherDevelopingSelfAndOthersAvg: Double = {
-    average(List(teamExercise, leadershipExercise).flatMap(_.flatMap(_.workingTogetherDevelopingSelfAndOthersAverage)), 2)
-  }
-
-  def makingEffectiveDecisionsAvg: Double = {
-    average(List(writtenExercise, teamExercise).flatMap(_.flatMap(_.makingEffectiveDecisionsAverage)), 2)
-  }
-
-  def communicatingAndInfluencingAvg: Double = {
-    average(List(writtenExercise, teamExercise, leadershipExercise).flatMap(_.flatMap(_.communicatingAndInfluencingAverage)), 3)
-  }
-
-  def writtenExerciseAvg(appId: String): Double = {
-    writtenExercise.flatMap( ex =>
+  def exercise1OverallAvg(appId: String): Double = {
+    exercise1.flatMap(ex =>
       for {
-        a1 <- ex.seeingTheBigPictureAverage
-        a2 <- ex.makingEffectiveDecisionsAverage
-        a3 <- ex.communicatingAndInfluencingAverage
-      } yield {
-        average(List(a1, a2, a3), 3)
-      }
-    ).getOrElse(throw new Exception(s"Error generating fsac written exercise average for appId: $appId"))
+        average <- ex.overallAverage
+      } yield average
+    ).getOrElse(throw new Exception(s"Error fetching fsac exercise1 overall average for appId: $appId"))
   }
 
-  def teamExerciseAvg(appId: String): Double = {
-    teamExercise.flatMap( ex =>
+  def exercise2OverallAvg(appId: String): Double = {
+    exercise2.flatMap(ex =>
       for {
-        a1 <- ex.makingEffectiveDecisionsAverage
-        a2 <- ex.workingTogetherDevelopingSelfAndOthersAverage
-        a3 <- ex.communicatingAndInfluencingAverage
-      } yield {
-        average(List(a1, a2, a3), 3)
-      }
-    ).getOrElse(throw new Exception(s"Error generating fsac team exercise average for appId: $appId"))
+        average <- ex.overallAverage
+      } yield average
+    ).getOrElse(throw new Exception(s"Error fetching fsac exercise2 overall average for appId: $appId"))
   }
 
-  def leadershipExerciseAvg(appId: String): Double = {
-    leadershipExercise.flatMap( ex =>
+  def exercise3OverallAvg(appId: String): Double = {
+    exercise3.flatMap(ex =>
       for {
-        a1 <- ex.seeingTheBigPictureAverage
-        a2 <- ex.workingTogetherDevelopingSelfAndOthersAverage
-        a3 <- ex.communicatingAndInfluencingAverage
-      } yield {
-        average(List(a1, a2, a3), 3)
-      }
-    ).getOrElse(throw new Exception(s"Error generating fsac leadership exercise average for appId: $appId"))
-  }
-
-  private def average(list: List[Double], mandatoryNumberOfElements: Int): Double = {
-    val decimalPlaces = 4
-    (list.map(BigDecimal(_)).sum / mandatoryNumberOfElements).setScale(decimalPlaces, RoundingMode.HALF_UP).toDouble
+        average <- ex.overallAverage
+      } yield average
+    ).getOrElse(throw new Exception(s"Error fetching fsac exercise3 overall average for appId: $appId"))
   }
 
   def toExchange: AssessmentScoresAllExercisesExchange = AssessmentScoresAllExercisesExchange(
     applicationId: UniqueIdentifier,
-    writtenExercise.map(_.toExchange),
-    teamExercise.map(_.toExchange),
-    leadershipExercise.map(_.toExchange),
+    exercise1.map(_.toExchange),
+    exercise2.map(_.toExchange),
+    exercise3.map(_.toExchange),
     finalFeedback.map(_.toExchange)
   )
 }
@@ -101,11 +68,11 @@ object AssessmentScoresAllExercises {
 }
 
 case class AssessmentScoresAllExercisesExchange(
-                                         applicationId: UniqueIdentifier,
-                                         writtenExercise: Option[AssessmentScoresExerciseExchange] = None,
-                                         teamExercise: Option[AssessmentScoresExerciseExchange] = None,
-                                         leadershipExercise: Option[AssessmentScoresExerciseExchange] = None,
-                                         finalFeedback: Option[AssessmentScoresFinalFeedbackExchange] = None
+                                                 applicationId: UniqueIdentifier,
+                                                 exercise1: Option[AssessmentScoresExerciseExchange] = None,
+                                                 exercise2: Option[AssessmentScoresExerciseExchange] = None,
+                                                 exercise3: Option[AssessmentScoresExerciseExchange] = None,
+                                                 finalFeedback: Option[AssessmentScoresFinalFeedbackExchange] = None
                                        )
 
 object AssessmentScoresAllExercisesExchange {

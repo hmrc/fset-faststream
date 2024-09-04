@@ -64,19 +64,19 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
       val exerciseScores = AssessmentScoresExerciseExamples.Example1.copy(
 //        submittedDate = AssessmentScoresExerciseExamples.Example1.submittedDate.map(_.withZone(DateTimeZone.forOffsetHours(1))))
         submittedDate = AssessmentScoresExerciseExamples.Example1.submittedDate.map(_.plusHours(1)))
-      val request = fakeRequest(AssessmentScoresSubmitExerciseRequest(appId, writtenExercise, exerciseScores.toExchange))
+      val request = fakeRequest(AssessmentScoresSubmitExerciseRequest(appId, exercise1, exerciseScores.toExchange))
 
-      when(mockService.submitExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.writtenExercise),
+      when(mockService.submitExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.exercise1),
         any())(any[ExecutionContext])).thenReturn(Future.successful(()))
       val auditDetails = Map(
         "applicationId" -> appId.toString(),
-        "exercise" -> AssessmentScoresSectionType.writtenExercise.toString,
+        "exercise" -> AssessmentScoresSectionType.exercise1.toString,
         userIdForAudit -> exerciseScores.updatedBy.toString())
 
       val response = controller.submitExercise()(request)
 
       status(response) mustBe OK
-      verify(mockService).submitExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.writtenExercise), any())(any[ExecutionContext])
+      verify(mockService).submitExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.exercise1), any())(any[ExecutionContext])
       verify(mockAuditService).logEvent(eqTo(assessmentScoresOneExerciseSubmitted), eqTo(auditDetails))(
         any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     }
@@ -87,19 +87,19 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
       val exerciseScores = AssessmentScoresExerciseExamples.Example1.copy(
 //        submittedDate = AssessmentScoresExerciseExamples.Example1.submittedDate.map(_.withZone(DateTimeZone.forOffsetHours(1))))
         submittedDate = AssessmentScoresExerciseExamples.Example1.submittedDate.map(_.plusHours(1)))
-      val request = fakeRequest(AssessmentScoresSubmitExerciseRequest(appId, writtenExercise, exerciseScores.toExchange))
+      val request = fakeRequest(AssessmentScoresSubmitExerciseRequest(appId, exercise1, exerciseScores.toExchange))
 
-      when(mockService.saveExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.writtenExercise),
+      when(mockService.saveExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.exercise1),
         any())(any[ExecutionContext])).thenReturn(Future.successful(()))
       val auditDetails = Map(
         "applicationId" -> appId.toString(),
-        "exercise" -> AssessmentScoresSectionType.writtenExercise.toString,
+        "exercise" -> AssessmentScoresSectionType.exercise1.toString,
         userIdForAudit -> exerciseScores.updatedBy.toString())
 
       val response = controller.saveExercise()(request)
 
       status(response) mustBe OK
-      verify(mockService).saveExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.writtenExercise), any())(any[ExecutionContext])
+      verify(mockService).saveExercise(eqTo(appId), eqTo(AssessmentScoresSectionType.exercise1), any())(any[ExecutionContext])
       verify(mockAuditService).logEvent(eqTo(assessmentScoresOneExerciseSaved), eqTo(auditDetails))(
         any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
     }
@@ -138,7 +138,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
       val expectedResponse = AssessmentScoresFindResponse(
         AssessmentScoresCandidateSummary(appId, "firstName", "lastName", "venue",
           DateTimeFactoryMock.nowLocalDate, UniqueIdentifier.randomUniqueIdentifier),
-        Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise.toExchange))
+        Some(AssessmentScoresAllExercisesExamples.AssessorOnlyExercise3.toExchange))
       when(mockService.findAssessmentScoresWithCandidateSummaryByApplicationId(appId)).thenReturn(
         Future.successful(expectedResponse))
 
@@ -161,7 +161,7 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
       val expectedResponse = List(AssessmentScoresFindResponse(
         AssessmentScoresCandidateSummary(appId, "firstName", "lastName", "venue",
           DateTimeFactoryMock.nowLocalDate, sessionId),
-        Some(AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise.toExchange)))
+        Some(AssessmentScoresAllExercisesExamples.AssessorOnlyExercise3.toExchange)))
       when(mockService.findAssessmentScoresWithCandidateSummaryByEventId(eventId)).thenReturn(
         Future.successful(expectedResponse))
 
@@ -201,16 +201,19 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
     def toResetExercisesAuditDetails(resetExercisesRequest: ResetExercisesRequest) =
       Map(
         "applicationId" -> resetExercisesRequest.applicationId.toString,
-        "resetWrittenExercise" -> resetExercisesRequest.written.toString,
-        "resetTeamExercise" -> resetExercisesRequest.team.toString,
-        "resetLeadershipExercise" -> resetExercisesRequest.leadership.toString,
+        "resetExercise1" -> resetExercisesRequest.exercise1.toString,
+        "resetExercise2" -> resetExercisesRequest.exercise2.toString,
+        "resetExercise3" -> resetExercisesRequest.exercise3.toString,
         "resetFinalFeedback" -> resetExercisesRequest.finalFeedback.toString
       )
 
     "reset all exercises and return OK when all are specified" in new TestFixture {
-      when(mockAssessmentScoresRepository.resetExercise(appId, List(writtenExercise, teamExercise, leadershipExercise, finalFeedbackExercise)))
-        .thenReturnAsync()
-      val resetExercisesRequest = ResetExercisesRequest(appId, written = true, team = true, leadership = true, finalFeedback = true)
+      when(mockAssessmentScoresRepository.resetExercise(
+        appId, List(exercise1, exercise2, exercise3, finalFeedbackExercise))
+      ).thenReturnAsync()
+      val resetExercisesRequest = ResetExercisesRequest(
+        appId, exercise1 = true, exercise2 = true, exercise3 = true, finalFeedback = true
+      )
       val request = fakeRequest(resetExercisesRequest)
       val response = controller.resetExercises(appId)(request)
       status(response) mustBe OK
@@ -221,9 +224,11 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
     }
 
     "reset analysis exercise only and return OK when analysis is specified" in new TestFixture {
-      when(mockAssessmentScoresRepository.resetExercise(appId, List(writtenExercise)))
+      when(mockAssessmentScoresRepository.resetExercise(appId, List(exercise1)))
         .thenReturnAsync()
-      val resetExercisesRequest = ResetExercisesRequest(appId, written = true, team = false, leadership = false, finalFeedback = false)
+      val resetExercisesRequest = ResetExercisesRequest(
+        appId, exercise1 = true, exercise2 = false, exercise3 = false, finalFeedback = false
+      )
       val request = fakeRequest(resetExercisesRequest)
       val response = controller.resetExercises(appId)(request)
       status(response) mustBe OK
@@ -234,9 +239,11 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
     }
 
     "reset group exercise only and return OK when group is specified" in new TestFixture {
-      when(mockAssessmentScoresRepository.resetExercise(appId, List(teamExercise)))
+      when(mockAssessmentScoresRepository.resetExercise(appId, List(exercise2)))
         .thenReturnAsync()
-      val resetExercisesRequest = ResetExercisesRequest(appId, written = false, team = true, leadership = false, finalFeedback = false)
+      val resetExercisesRequest = ResetExercisesRequest(
+        appId, exercise1 = false, exercise2 = true, exercise3 = false, finalFeedback = false
+      )
       val request = fakeRequest(resetExercisesRequest)
       val response = controller.resetExercises(appId)(request)
       status(response) mustBe OK
@@ -247,9 +254,11 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
     }
 
     "reset leadership exercise only and return OK when leadership is specified" in new TestFixture {
-      when(mockAssessmentScoresRepository.resetExercise(appId, List(leadershipExercise)))
+      when(mockAssessmentScoresRepository.resetExercise(appId, List(exercise3)))
         .thenReturnAsync()
-      val resetExercisesRequest = ResetExercisesRequest(appId, written = false, team = false, leadership = true, finalFeedback = false)
+      val resetExercisesRequest = ResetExercisesRequest(
+        appId, exercise1 = false, exercise2 = false, exercise3 = true, finalFeedback = false
+      )
       val request = fakeRequest(resetExercisesRequest)
       val response = controller.resetExercises(appId)(request)
       status(response) mustBe OK
@@ -260,9 +269,11 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
     }
 
     "return INTERNAL_SERVER_ERROR if an exception is thrown" in new TestFixture {
-      when(mockAssessmentScoresRepository.resetExercise(appId, List(writtenExercise)))
+      when(mockAssessmentScoresRepository.resetExercise(appId, List(exercise1)))
         .thenReturn(Future.failed(new Exception("BOOM")))
-      val resetExercisesRequest = ResetExercisesRequest(appId, written = true, team = false, leadership = false, finalFeedback = false)
+      val resetExercisesRequest = ResetExercisesRequest(
+        appId, exercise1 = true, exercise2 = false, exercise3 = false, finalFeedback = false
+      )
       val request = fakeRequest(resetExercisesRequest)
       val response = controller.resetExercises(appId)(request)
       status(response) mustBe INTERNAL_SERVER_ERROR
@@ -273,12 +284,12 @@ trait AssessmentScoresControllerSpec extends UnitWithAppSpec {
     val mockService = mock[AssessmentScoresService]
     val mockAssessmentScoresRepository = mock[AssessmentScoresRepository]
 
-    val appId = AssessmentScoresAllExercisesExamples.AssessorOnlyLeadershipExercise.applicationId
+    val appId = AssessmentScoresAllExercisesExamples.AssessorOnlyExercise3.applicationId
     val sessionId = UniqueIdentifier.randomUniqueIdentifier
     val eventId = UniqueIdentifier.randomUniqueIdentifier
-    val writtenExercise = "writtenExercise"
-    val teamExercise = "teamExercise"
-    val leadershipExercise = "leadershipExercise"
+    val exercise1 = "exercise1"
+    val exercise2 = "exercise2"
+    val exercise3 = "exercise3"
     val finalFeedbackExercise = "finalFeedback"
     val assessmentScoresResetLogEvent = "AssessmentScoresReset"
     val stubCC = stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer))

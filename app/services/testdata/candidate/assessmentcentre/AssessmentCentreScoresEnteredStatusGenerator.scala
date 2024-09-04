@@ -40,64 +40,58 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
   val updatedBy = UniqueIdentifier.randomUniqueIdentifier
 
   // The scores awarded to the candidate by assessor/reviewer
-  def writtenExerciseSample(assessorOrReviewer: String) = AssessmentScoresExercise(
+  def exercise1Sample(assessorOrReviewer: String) = AssessmentScoresExercise(
     attended = true,
-    makingEffectiveDecisionsAverage = Some(4.0),
-    communicatingAndInfluencingAverage = Some(4.0),
-    seeingTheBigPictureAverage = Some(4.0),
+    overallAverage = Some(4.0),
     updatedBy = updatedBy,
-    seeingTheBigPictureScores = Some(SeeingTheBigPictureScores(
-      Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
-    )),
-    makingEffectiveDecisionsScores = Some(MakingEffectiveDecisionsScores(
+    relatesScores = Some(RelatesScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    communicatingAndInfluencingScores = Some(CommunicatingAndInfluencingScores(
-      Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
-    )),
-    seeingTheBigPictureFeedback = Some("Strategic approach feedback " + assessorOrReviewer),
-    makingEffectiveDecisionsFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
-    communicatingAndInfluencingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
-  )
-
-  def teamExerciseSample(assessorOrReviewer: String) = AssessmentScoresExercise(
-    attended = true,
-    makingEffectiveDecisionsAverage = Some(4.0),
-    workingTogetherDevelopingSelfAndOthersAverage = Some(2.0),
-    communicatingAndInfluencingAverage = Some(4.0),
-    updatedBy = updatedBy,
-    makingEffectiveDecisionsScores = Some(MakingEffectiveDecisionsScores(
+    thinksScores = Some(ThinksScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    workingTogetherDevelopingSelfAndOthersScores = Some(WorkingTogetherDevelopingSelfAndOtherScores(
+    strivesScores = Some(StrivesScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    communicatingAndInfluencingScores = Some(CommunicatingAndInfluencingScores(
-      Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
-    )),
-    makingEffectiveDecisionsFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
-    workingTogetherDevelopingSelfAndOthersFeedback = Some("Building Productive feedback" + assessorOrReviewer),
-    communicatingAndInfluencingFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
+    relatesFeedback = Some("Strategic approach feedback " + assessorOrReviewer),
+    thinksFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
+    strivesFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
   )
 
-  def leadershipExerciseSample(assessorOrReviewer: String) = AssessmentScoresExercise(
+  def exercise2Sample(assessorOrReviewer: String) = AssessmentScoresExercise(
     attended = true,
-    workingTogetherDevelopingSelfAndOthersAverage = Some(4.0),
-    communicatingAndInfluencingAverage = Some(4.0),
-    seeingTheBigPictureAverage = Some(4.0),
+    overallAverage = Some(4.0),
     updatedBy = updatedBy,
-    workingTogetherDevelopingSelfAndOthersScores = Some(WorkingTogetherDevelopingSelfAndOtherScores(
+    thinksScores = Some(ThinksScores(
+      Some(1.0), Some(1.0), Some(1.0), Some(1.0)
+    )),
+    adaptsScores = Some(AdaptsScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    communicatingAndInfluencingScores = Some(CommunicatingAndInfluencingScores(
+    strivesScores = Some(StrivesScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    seeingTheBigPictureScores = Some(SeeingTheBigPictureScores(
+    thinksFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
+    adaptsFeedback = Some("Building Productive feedback" + assessorOrReviewer),
+    strivesFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
+  )
+
+  def exercise3Sample(assessorOrReviewer: String) = AssessmentScoresExercise(
+    attended = true,
+    overallAverage = Some(4.0),
+    updatedBy = updatedBy,
+    adaptsScores = Some(AdaptsScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
-    workingTogetherDevelopingSelfAndOthersFeedback = Some("Building Productive feedback " + assessorOrReviewer),
-    communicatingAndInfluencingFeedback = Some("Leading and communicating feedback " + assessorOrReviewer),
-    seeingTheBigPictureFeedback = Some("Strategic approach feedback " + assessorOrReviewer)
+    strivesScores = Some(StrivesScores(
+      Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
+    )),
+    relatesScores = Some(RelatesScores(
+      Some(1.0), Some(1.0), Some(1.0), Some(1.0)
+    )),
+    adaptsFeedback = Some("Building Productive feedback " + assessorOrReviewer),
+    strivesFeedback = Some("Leading and communicating feedback " + assessorOrReviewer),
+    relatesFeedback = Some("Strategic approach feedback " + assessorOrReviewer)
   )
 
   def finalFeedbackSample(assessorOrReviewer: String) = AssessmentScoresFinalFeedback(
@@ -112,9 +106,13 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       appId = UniqueIdentifier(candidateInPreviousStatus.applicationId.getOrElse(sys.error("Missed application id for candidate")))
       assessorOrReviewer = "assessor"
-      _ <- assessorAssessmentScoresService.submitExercise(appId, writtenExercise, writtenExerciseSample(assessorOrReviewer))
-      _ <- assessorAssessmentScoresService.submitExercise(appId, teamExercise, teamExerciseSample(assessorOrReviewer))
-      _ <- assessorAssessmentScoresService.submitExercise(appId, leadershipExercise, leadershipExerciseSample(assessorOrReviewer))
+      _ <- assessorAssessmentScoresService.submitExercise(appId, exercise1, exercise1Sample(assessorOrReviewer))
+      _ <- assessorAssessmentScoresService.submitExercise(
+        appId, exercise2, exercise2Sample(assessorOrReviewer)
+      )
+      _ <- assessorAssessmentScoresService.submitExercise(
+        appId, exercise3, exercise3Sample(assessorOrReviewer)
+      )
       _ <- assessorAssessmentScoresService.submitFinalFeedback(appId, finalFeedbackSample(assessorOrReviewer))
     } yield {
       candidateInPreviousStatus

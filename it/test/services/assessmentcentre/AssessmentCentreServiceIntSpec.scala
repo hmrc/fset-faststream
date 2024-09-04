@@ -19,7 +19,7 @@ package services.assessmentcentre
 import com.typesafe.config.{Config, ConfigFactory}
 import factories.ITDateTimeFactoryMock
 import model.ApplicationStatus._
-import model.EvaluationResults.{CompetencyAverageResult, ExerciseAverageResult}
+import model.EvaluationResults.ExerciseAverageResult
 import model._
 import model.assessmentscores._
 import model.exchange.passmarksettings.{AssessmentCentrePassMarkSettings, AssessmentCentrePassMarkSettingsPersistence}
@@ -65,7 +65,7 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
   val collectionName = CollectionNames.APPLICATION
   // Use this when debugging so the test framework only runs one test scenario. The tests will still be loaded, however
   val DebugRunTestNameOnly: Option[String] = None
-  //    val DebugRunTestNameOnly: Option[String] = Some("multipleSchemesSuite_Mix_Scenario1")
+//      val DebugRunTestNameOnly: Option[String] = Some("multipleSchemesSuite_Mix_Scenario1")
   // Use this when debugging so the test framework only runs tests which contain the specified test suite name in their path
   // the tests will still be loaded, however
   val DebugRunTestSuitePathPatternOnly: Option[String] = None
@@ -272,12 +272,11 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
         .map(_.asDocument())
 
       val passmarkVersionOpt = evaluationDocOpt.map(_.get("passmarkVersion").asString().getValue)
-      val competencyAverageOpt = evaluationDocOpt.map(bson => Codecs.fromBson[CompetencyAverageResult](bson.get("competency-average")))
       val exerciseAverageOpt = evaluationDocOpt.map(bson => Codecs.fromBson[ExerciseAverageResult](bson.get("exercise-average")))
       val schemesEvaluationOpt = evaluationDocOpt.map(bson => Codecs.fromBson[Seq[SchemeEvaluationResult]](bson.get("schemes-evaluation")))
 
       ActualResult(
-        applicationStatusOpt, latestProgressStatusOpt, passmarkVersionOpt, competencyAverageOpt, exerciseAverageOpt, schemesEvaluationOpt
+        applicationStatusOpt, latestProgressStatusOpt, passmarkVersionOpt, exerciseAverageOpt, schemesEvaluationOpt
       )
     }
   }
@@ -327,20 +326,6 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
     }
     logger.info(s"$prefix schemesEvaluation passed")
 
-    performCheck("competencyAverages"){
-      logger.info(s"$prefix comparing actual ${actual.competencyAverageResult} equals expected ${expected.competencyAverage}")
-      actual.competencyAverageResult mustBe expected.competencyAverage
-    }
-
-    logger.info(s"$prefix competencyAverage overallScore check")
-    withClue(s"$message competencyAverage overallScore") {
-      expected.overallScore.foreach { overallScore =>
-        logger.info(s"$prefix comparing actual ${actual.competencyAverageResult.get.overallScore} equals expected ${expected.overallScore}")
-        actual.competencyAverageResult.get.overallScore mustBe overallScore
-      }
-    }
-    logger.info(s"$prefix competencyAverage overallScore passed")
-
     performCheck("exerciseAverages"){
       logger.info(s"$prefix comparing actual ${actual.exerciseAverageResult} equals expected ${expected.exerciseAverage}")
       actual.exerciseAverageResult mustBe expected.exerciseAverage
@@ -381,7 +366,6 @@ object AssessmentCentreServiceIntSpec {
                            applicationStatus: Option[ApplicationStatus],
                            progressStatus: Option[ProgressStatuses.ProgressStatus],
                            passmarkVersion: Option[String],
-                           competencyAverageResult: Option[CompetencyAverageResult],
                            exerciseAverageResult: Option[ExerciseAverageResult],
                            schemesEvaluation: Option[Seq[SchemeEvaluationResult]]
                          )

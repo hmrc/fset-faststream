@@ -46,9 +46,9 @@ trait AssessmentScoresService {
 
   def save(scores: AssessmentScoresAllExercises)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit] = {
     val scoresWithSubmittedDate = scores.copy(
-      writtenExercise = scores.writtenExercise.map(_.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))),
-      teamExercise = scores.teamExercise.map(_.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))),
-      leadershipExercise = scores.leadershipExercise.map(_.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))),
+      exercise1 = scores.exercise1.map(_.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))),
+      exercise2 = scores.exercise2.map(_.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))),
+      exercise3 = scores.exercise3.map(_.copy(submittedDate = Some(dateTimeFactory.nowLocalTimeZone))),
       finalFeedback = scores.finalFeedback.map(_.copy(acceptedDate = dateTimeFactory.nowLocalTimeZone))
     )
     for {
@@ -77,12 +77,12 @@ trait AssessmentScoresService {
     def updateAllExercisesWithExercise(oldAllExercisesScores: AssessmentScoresAllExercises,
                                        newExerciseScoresWithSubmittedDate: AssessmentScoresExercise) = {
       assessmentExerciseType match {
-        case AssessmentScoresSectionType.writtenExercise =>
-          oldAllExercisesScores.copy(writtenExercise = Some(newExerciseScoresWithSubmittedDate))
-        case AssessmentScoresSectionType.teamExercise =>
-          oldAllExercisesScores.copy(teamExercise = Some(newExerciseScoresWithSubmittedDate))
-        case AssessmentScoresSectionType.leadershipExercise =>
-          oldAllExercisesScores.copy(leadershipExercise = Some(newExerciseScoresWithSubmittedDate))
+        case AssessmentScoresSectionType.`exercise1` =>
+          oldAllExercisesScores.copy(exercise1 = Some(newExerciseScoresWithSubmittedDate))
+        case AssessmentScoresSectionType.`exercise2` =>
+          oldAllExercisesScores.copy(exercise2 = Some(newExerciseScoresWithSubmittedDate))
+        case AssessmentScoresSectionType.`exercise3` =>
+          oldAllExercisesScores.copy(exercise3 = Some(newExerciseScoresWithSubmittedDate))
       }
     }
 
@@ -104,7 +104,9 @@ trait AssessmentScoresService {
     def findScoresAndVerify(applicationId: UniqueIdentifier) = {
       assessmentScoresRepository.find(applicationId).map { scoresOpt =>
         require(scoresOpt.exists { scores =>
-          scores.writtenExercise.isDefined && scores.teamExercise.isDefined && scores.leadershipExercise.isDefined
+          scores.exercise1.isDefined &&
+            scores.exercise2.isDefined &&
+            scores.exercise3.isDefined
         })
         scoresOpt
       }
@@ -115,14 +117,14 @@ trait AssessmentScoresService {
       val newFinalFeedbackWithSubmittedDate = newFinalFeedback.copy(acceptedDate = newSubmittedDate)
 
       val oldAllExercisesScores = oldAllExercisesScoresMaybe.getOrElse(AssessmentScoresAllExercises(applicationId))
-      val oldWrittenExerciseWithSubmittedDate = oldAllExercisesScores.writtenExercise.map(_.copy(submittedDate = Some(newSubmittedDate)))
-      val oldTeamExerciseWithSubmittedDate = oldAllExercisesScores.teamExercise.map(_.copy(submittedDate = Some(newSubmittedDate)))
-      val oldLeadershipExerciseWithSubmittedDate = oldAllExercisesScores.leadershipExercise.map(_.copy(submittedDate = Some(newSubmittedDate)))
+      val oldExercise1WithSubmittedDate = oldAllExercisesScores.exercise1.map(_.copy(submittedDate = Some(newSubmittedDate)))
+      val oldExercise2WithSubmittedDate = oldAllExercisesScores.exercise2.map(_.copy(submittedDate = Some(newSubmittedDate)))
+      val oldExercise3WithSubmittedDate = oldAllExercisesScores.exercise3.map(_.copy(submittedDate = Some(newSubmittedDate)))
 
       oldAllExercisesScores.copy(
-        writtenExercise = oldWrittenExerciseWithSubmittedDate,
-        teamExercise = oldTeamExerciseWithSubmittedDate,
-        leadershipExercise = oldLeadershipExerciseWithSubmittedDate,
+        exercise1 = oldExercise1WithSubmittedDate,
+        exercise2 = oldExercise2WithSubmittedDate,
+        exercise3 = oldExercise3WithSubmittedDate,
         finalFeedback = Some(newFinalFeedbackWithSubmittedDate))
     }
 
@@ -218,9 +220,9 @@ abstract class AssessorAssessmentScoresService extends AssessmentScoresService {
   override val statusToUpdateTheApplicationTo = ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED
 
   override def shouldUpdateStatus(allExercisesScores: AssessmentScoresAllExercises): Boolean = {
-    allExercisesScores.writtenExercise.exists(_.isSubmitted) &&
-      allExercisesScores.teamExercise.exists(_.isSubmitted) &&
-      allExercisesScores.leadershipExercise.exists(_.isSubmitted)
+    allExercisesScores.exercise1.exists(_.isSubmitted) &&
+      allExercisesScores.exercise2.exists(_.isSubmitted) &&
+      allExercisesScores.exercise3.exists(_.isSubmitted)
   }
 }
 
@@ -245,9 +247,9 @@ abstract class ReviewerAssessmentScoresService extends AssessmentScoresService {
   override val statusToUpdateTheApplicationTo = ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED
 
   override def shouldUpdateStatus(allExercisesScores: AssessmentScoresAllExercises): Boolean = {
-    allExercisesScores.writtenExercise.exists(_.isSubmitted) &&
-      allExercisesScores.teamExercise.exists(_.isSubmitted) &&
-      allExercisesScores.leadershipExercise.exists(_.isSubmitted) &&
+    allExercisesScores.exercise1.exists(_.isSubmitted) &&
+      allExercisesScores.exercise2.exists(_.isSubmitted) &&
+      allExercisesScores.exercise3.exists(_.isSubmitted) &&
       allExercisesScores.finalFeedback.isDefined
   }
 }

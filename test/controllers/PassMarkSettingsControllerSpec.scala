@@ -242,15 +242,15 @@ class AssessmentCentrePassMarkSettingsControllerSpec extends PassMarkSettingsCon
 
   override val jsonSchemeThresholds = """
                                | "schemeThresholds": {
-                               |   "writtenExercise": {
+                               |   "exercise1": {
                                |     "failThreshold": 2.0,
                                |     "passThreshold": 3.0
                                |   },
-                               |   "teamExercise": {
+                               |   "exercise2": {
                                |     "failThreshold": 2.0,
                                |     "passThreshold": 3.0
                                |   },
-                               |   "leadershipExercise": {
+                               |   "exercise3": {
                                |     "failThreshold": 2.0,
                                |     "passThreshold": 3.0
                                |   },

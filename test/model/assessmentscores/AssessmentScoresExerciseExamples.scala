@@ -42,22 +42,19 @@ object AssessmentScoresExerciseExamples {
 
     AssessmentScoresExercise(
       attended = true,
-      Some(SeeingTheBigPictureScores(strategicScore, strategicScore, strategicScore, strategicScore, strategicScore)),
-      averageScore,
+      Some(RelatesScores(strategicScore, strategicScore, strategicScore, strategicScore)),
       Some("feedback1"),
-      Some(MakingEffectiveDecisionsScores(analysisScore, analysisScore, analysisScore, analysisScore)),
-      averageScore,
+      Some(ThinksScores(analysisScore, analysisScore, analysisScore, analysisScore)),
       Some("feedback2"),
-      Some(CommunicatingAndInfluencingScores(leadingScore, leadingScore, leadingScore, leadingScore, leadingScore)),
-      averageScore,
+      Some(StrivesScores(leadingScore, leadingScore, leadingScore, leadingScore, leadingScore)),
       Some("feedback3"),
-      Some(WorkingTogetherDevelopingSelfAndOtherScores(buildingScore, buildingScore, buildingScore,
+      Some(AdaptsScores(buildingScore, buildingScore, buildingScore,
         buildingScore, buildingScore, buildingScore)),
-      averageScore,
       Some("feedback4"),
       updatedBy,
       Some(dateTimeNow),
       Some(dateTimeNow),
+      averageScore,
       Some(UniqueIdentifier.randomUniqueIdentifier.toString())
     )
   }
@@ -72,22 +69,19 @@ object AssessmentScoresExerciseExamples {
 
     AssessmentScoresExercise(
       attended = true,
-      Some(SeeingTheBigPictureScores(strategicScore, strategicScore, strategicScore, strategicScore, strategicScore)),
-      averageScore,
+      Some(RelatesScores(strategicScore, strategicScore, strategicScore, strategicScore)),
       Some("feedback1"),
-      Some(MakingEffectiveDecisionsScores(analysisScore, analysisScore, analysisScore, analysisScore)),
-      averageScore,
+      Some(ThinksScores(analysisScore, analysisScore, analysisScore, analysisScore)),
       Some("feedback2"),
-      Some(CommunicatingAndInfluencingScores(leadingScore, leadingScore, leadingScore, leadingScore, leadingScore)),
-      averageScore,
+      Some(StrivesScores(leadingScore, leadingScore, leadingScore, leadingScore, leadingScore)),
       Some("feedback3"),
-      Some(WorkingTogetherDevelopingSelfAndOtherScores(buildingScore, buildingScore, buildingScore,
+      Some(AdaptsScores(buildingScore, buildingScore, buildingScore,
         buildingScore, buildingScore, buildingScore)),
-      averageScore,
       Some("feedback4"),
       updatedBy,
       Some(dateTimeNow),
       Some(dateTimeNow),
+      averageScore,
       Some(UniqueIdentifier.randomUniqueIdentifier.toString())
     )
   }
