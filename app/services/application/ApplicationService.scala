@@ -19,7 +19,7 @@ package services.application
 import common.FutureEx
 import connectors.ExchangeObjects
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.{Green, Red}
+import model.EvaluationResults.{Green, Red, Withdrawn}
 import model.Exceptions._
 import model.ProgressStatuses._
 import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
@@ -249,14 +249,21 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
     }
 
     // Move the candidate to ELIGIBLE_FOR_JOB_OFFER if the candidate is in FSB and after the scheme has been withdrawn
-    // the next residual preference does not need a FSB
+    // The candidate will be offered a job if the next scheme preference is green and does not need a FSB
     def maybeOfferJob(schemeStatus: Seq[SchemeEvaluationResult],
                       applicationStatus: ApplicationStatus,
                      ) = {
-      val firstGreenSchemeNeedsFsb = schemeStatus.collectFirst { case s if s.result == Green.toString => s.schemeId }
-        .exists(schemeId => schemesRepo.schemeRequiresFsb(schemeId))
+      val amberOrGreenPreferences = schemeStatus.zipWithIndex.filterNot { case (result, _) =>
+        result.result == Red.toString || result.result == Withdrawn.toString
+      }
 
-      val shouldProgressCandidate = applicationStatus == ApplicationStatus.FSB && !firstGreenSchemeNeedsFsb
+      // Is eligible for job offer if the 1st residual preference is green and does not need a fsb
+      val firstResidualPreferenceIsEligibleForJobOffer = (amberOrGreenPreferences match {
+        case Nil => None
+        case list => Some(list.minBy { case (_, index) => index }._1)
+      }).exists( ser => ser.result == Green.toString && !schemesRepo.schemeRequiresFsb(ser.schemeId))
+
+      val shouldProgressCandidate = applicationStatus == ApplicationStatus.FSB && firstResidualPreferenceIsEligibleForJobOffer
       if (shouldProgressCandidate) {
         logger.info(s"Candidate $applicationId withdrawing scheme will be moved to ${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER}")
         appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER).map { _ => }
