@@ -26,13 +26,27 @@ object SdipLocation {
   implicit val sdipLocationFormatter: OFormat[SdipLocation] = Json.format[SdipLocation]
 
   val Locations = List(
-    SdipLocation(LocationId("location1"), "Location 1"),
-    SdipLocation(LocationId("location2"), "Location 2"),
-    SdipLocation(LocationId("location3"), "Location 3"),
-    SdipLocation(LocationId("location4"), "Location 4"),
-    SdipLocation(LocationId("location5"), "Location 5"),
-    SdipLocation(LocationId("location6"), "Location 6"),
-    SdipLocation(LocationId("location7"), "Location 7"),
-    SdipLocation(LocationId("location8"), "Location 8"),
+    SdipLocation(LocationId("Belfast"), "Belfast"),
+    SdipLocation(LocationId("Birmingham"), "Birmingham"),
+    SdipLocation(LocationId("Blackpool"), "Blackpool"),
+    SdipLocation(LocationId("Bristol"), "Bristol"),
+    SdipLocation(LocationId("Cardiff"), "Cardiff"),
+    SdipLocation(LocationId("Coventry"), "Coventry"),
+    SdipLocation(LocationId("Darlington"), "Darlington"),
+    SdipLocation(LocationId("Edinburgh"), "Edinburgh"),
+    SdipLocation(LocationId("Exeter"), "Exeter"),
+    SdipLocation(LocationId("Glasgow"), "Glasgow"),
+    SdipLocation(LocationId("Leeds"), "Leeds"),
+    SdipLocation(LocationId("Liverpool"), "Liverpool"),
+    SdipLocation(LocationId("London"), "London"),
+    SdipLocation(LocationId("Manchester"), "Manchester"),
+    SdipLocation(LocationId("Newcastle"), "Newcastle"),
+    SdipLocation(LocationId("Newport"), "Newport"),
+    SdipLocation(LocationId("Nottingham"), "Nottingham"),
+    SdipLocation(LocationId("Reading"), "Reading"),
+    SdipLocation(LocationId("Sheffield"), "Sheffield"),
+    SdipLocation(LocationId("Titchfield"), "Titchfield"),
+    SdipLocation(LocationId("Wolverhampton"), "Wolverhampton"),
+    SdipLocation(LocationId("York"), "York")
   )
 }

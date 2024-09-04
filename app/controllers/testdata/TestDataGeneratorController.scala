@@ -121,7 +121,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
         assessmentCentreAdjustmentsDescription = Some(dataFaker.assessmentCentreAdjustmentDescription)
       )),
       schemeTypes = Some(List(Commercial, DigitalDataTechnologyAndCyber)),
-      locationPreferences = Some(List(LocationId("location1"), LocationId("location2"))),
+      locationPreferences = Some(List(LocationId("London"), LocationId("Manchester"))),
       isCivilServant = Some(random.bool),
       civilServantAndInternshipTypes = None,
       hasFastPass = Some(false),
