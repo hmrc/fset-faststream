@@ -248,9 +248,9 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
       }
     }
 
-    // Move the candidate to ELIGIBLE_FOR_JOB_OFFER if the candidate is in FSB and after the scheme has been withdrawn
-    // The candidate will be offered a job if the next scheme preference is green and does not need a FSB
-    def maybeOfferJob(schemeStatus: Seq[SchemeEvaluationResult],
+    // Move the candidate to ELIGIBLE_FOR_JOB_OFFER if the candidate is in FSAC or FSB and after the scheme has been withdrawn
+    // the candidate will be offered a job if the next scheme preference is green and does not need a FSB
+    def maybeOfferJobForFsacOrFsbCandidate(schemeStatus: Seq[SchemeEvaluationResult],
                       applicationStatus: ApplicationStatus,
                      ) = {
       val amberOrGreenPreferences = schemeStatus.zipWithIndex.filterNot { case (result, _) =>
@@ -263,7 +263,9 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
         case list => Some(list.minBy { case (_, index) => index }._1)
       }).exists( ser => ser.result == Green.toString && !schemesRepo.schemeRequiresFsb(ser.schemeId))
 
-      val shouldProgressCandidate = applicationStatus == ApplicationStatus.FSB && firstResidualPreferenceIsEligibleForJobOffer
+      val shouldProgressCandidate =
+        (applicationStatus == ApplicationStatus.ASSESSMENT_CENTRE || applicationStatus == ApplicationStatus.FSB) &&
+          firstResidualPreferenceIsEligibleForJobOffer
       if (shouldProgressCandidate) {
         logger.info(s"Candidate $applicationId withdrawing scheme will be moved to ${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER}")
         appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER).map { _ => }
@@ -285,7 +287,7 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
       progressResponse <- appRepository.findProgress(applicationId)
       _ <- maybeProgressToSiftReady(latestSchemeStatus, progressResponse, appStatusDetails.status, siftAnswersStatus)
 
-      _ <- maybeOfferJob(latestSchemeStatus, appStatusDetails.status)
+      _ <- maybeOfferJobForFsacOrFsbCandidate(latestSchemeStatus, appStatusDetails.status)
     } yield {
       DataStoreEvents.SchemeWithdrawn(applicationId, withdrawRequest.withdrawer) ::
         AuditEvents.SchemeWithdrawn(Map("applicationId" -> applicationId, "withdrawRequest" -> withdrawRequest.toString)) ::
