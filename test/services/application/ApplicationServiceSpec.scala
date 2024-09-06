@@ -986,6 +986,36 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId), eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
     }
 
+    "withdraw from a scheme at FSAC and be offered a job if the next scheme is Green and does not need a FSB" in new TestFixture {
+      when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
+
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Amber.toString), // This is why we remain at FSAC
+        SchemeEvaluationResult(OperationalDelivery, Green.toString)       // No FSB
+      ))
+
+      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
+      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
+
+      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+        ApplicationStatusDetails(
+          ApplicationStatus.ASSESSMENT_CENTRE, ApplicationRoute.Faststream, Some(ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED),
+          statusDate = None, overrideSubmissionDeadline = None
+        )
+      )
+
+      when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(None) // No form saved
+      when(appRepositoryMock.findProgress(any[String])).thenReturnAsync(ProgressResponseExamples.InFsbAllocationConfirmed)
+      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme], any[Seq[SchemeEvaluationResult]])).thenReturnAsync()
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
+
+      val withdraw = WithdrawScheme(DiplomaticAndDevelopment, "reason", "Candidate")
+
+      underTest.withdraw(applicationId, withdraw).futureValue
+      verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw), any[Seq[SchemeEvaluationResult]])
+      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId), eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
+    }
+
     "withdraw from a scheme at FSB and not be offered a job if the next scheme is Green and also needs a FSB" in new TestFixture {
       when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
 
