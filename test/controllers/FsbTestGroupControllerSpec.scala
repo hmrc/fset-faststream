@@ -16,15 +16,19 @@
 
 package controllers
 
+import model.Exceptions.{AlreadyEvaluatedForSchemeException, SchemeNotFoundException, SchemeWithdrawnException}
 import model.Schemes
 import model.exchange.{ApplicationResult, FsbEvaluationResults}
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
+import play.api.http.Status.PRECONDITION_FAILED
 import play.api.test.Helpers._
 import services.application.FsbService
 import services.events.EventsService
 import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
+
+import scala.concurrent.Future
 
 class FsbTestGroupControllerSpec extends UnitWithAppSpec with Schemes {
 
@@ -47,6 +51,45 @@ class FsbTestGroupControllerSpec extends UnitWithAppSpec with Schemes {
       when(mockFsbTestGroupService.saveResults(eqTo(fsbEvaluationResults.schemeId), any[List[ApplicationResult]])).thenReturnAsync(List.empty)
       val response = controller.savePerScheme()(fakeRequest(fsbEvaluationResults))
       status(response) mustBe OK
+    }
+
+    "return BadRequest when a scheme has already been evaluated" in {
+      val applicationResults = List(
+        ApplicationResult("applicationId1", "Pass"),
+        ApplicationResult("applicationId2", "Pass")
+      )
+      val fsbEvaluationResults = FsbEvaluationResults(DiplomaticAndDevelopment, applicationResults)
+      when(mockFsbTestGroupService.saveResults(eqTo(fsbEvaluationResults.schemeId), any[List[ApplicationResult]])).thenReturn(Future.failed(
+        AlreadyEvaluatedForSchemeException("Boom")
+      ))
+      val response = controller.savePerScheme()(fakeRequest(fsbEvaluationResults))
+      status(response) mustBe BAD_REQUEST
+    }
+
+    "return PreconditionFailed when a scheme or the application has been withdrawn" in {
+      val applicationResults = List(
+        ApplicationResult("applicationId1", "Pass"),
+        ApplicationResult("applicationId2", "Pass")
+      )
+      val fsbEvaluationResults = FsbEvaluationResults(DiplomaticAndDevelopment, applicationResults)
+      when(mockFsbTestGroupService.saveResults(eqTo(fsbEvaluationResults.schemeId), any[List[ApplicationResult]])).thenReturn(Future.failed(
+        SchemeWithdrawnException("Boom")
+      ))
+      val response = controller.savePerScheme()(fakeRequest(fsbEvaluationResults))
+      status(response) mustBe PRECONDITION_FAILED
+    }
+
+    "return UnprocessableEntity when the scheme is not found" in {
+      val applicationResults = List(
+        ApplicationResult("applicationId1", "Pass"),
+        ApplicationResult("applicationId2", "Pass")
+      )
+      val fsbEvaluationResults = FsbEvaluationResults(DiplomaticAndDevelopment, applicationResults)
+      when(mockFsbTestGroupService.saveResults(eqTo(fsbEvaluationResults.schemeId), any[List[ApplicationResult]])).thenReturn(Future.failed(
+        SchemeNotFoundException("Boom")
+      ))
+      val response = controller.savePerScheme()(fakeRequest(fsbEvaluationResults))
+      status(response) mustBe UNPROCESSABLE_ENTITY
     }
   }
 

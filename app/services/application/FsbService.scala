@@ -245,14 +245,19 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
 
   def saveResults(schemeId: SchemeId, applicationResults: List[ApplicationResult]): Future[List[Unit]] = {
     Future.sequence(
-      applicationResults.map(applicationResult => saveResult(schemeId, applicationResult))
+      applicationResults.map( applicationResult =>
+        for {
+          status <- applicationRepo.findStatus(applicationResult.applicationId)
+          _ <- saveResult(schemeId, applicationResult, status.status == ApplicationStatus.WITHDRAWN)
+        } yield ()
+      )
     )
   }
 
-  private def saveResult(schemeId: SchemeId, applicationResult: ApplicationResult): Future[Unit] = {
+  private def saveResult(schemeId: SchemeId, applicationResult: ApplicationResult, isAppWithdrawn: Boolean): Future[Unit] = {
     for {
       css <- applicationRepo.getCurrentSchemeStatus(applicationResult.applicationId)
-      _ = if (css.find(_.schemeId == schemeId).exists(_.result == Withdrawn.toString)) {
+      _ = if (isAppWithdrawn || css.find(_.schemeId == schemeId).exists(_.result == Withdrawn.toString)) {
         throw SchemeWithdrawnException(s"Scheme $schemeId has been withdrawn so cannot save FSB result for ${applicationResult.applicationId}")
       }
       _ <- saveResult(applicationResult.applicationId, SchemeEvaluationResult(schemeId, applicationResult.result))

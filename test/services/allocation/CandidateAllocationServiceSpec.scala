@@ -432,7 +432,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
 
       when(mockSchemeRepository.getSchemeForFsb(projectDeliveryFsbEvent.description)).thenReturn(
         Scheme(
-          SchemeId("ProjectDelivery"), "PDFS", "Project Delivery",
+          ProjectDelivery, "PDFS", "Project Delivery",
           civilServantEligible = true,
           degree = None,
           siftRequirement = None,
@@ -445,7 +445,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
 
       when(mockFsbRepo.findByApplicationId("applicationId")).thenReturnAsync(
         Some(
-          FsbTestGroup(FsbEvaluation(List(SchemeEvaluationResult(SchemeId("ProjectDelivery"), model.EvaluationResults.Red.toString))))
+          FsbTestGroup(FsbEvaluation(List(SchemeEvaluationResult(ProjectDelivery, model.EvaluationResults.Red.toString))))
         )
       )
 
@@ -524,7 +524,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
 
       when(mockSchemeRepository.getSchemeForFsb(projectDeliveryFsbEvent.description)).thenReturn(
         Scheme(
-          SchemeId("ProjectDelivery"), "PDFS", "Project Delivery",
+          ProjectDelivery, "PDFS", "Project Delivery",
           civilServantEligible = true,
           degree = None,
           siftRequirement = None,
@@ -537,7 +537,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
 
       when(mockSchemeRepository.getSchemeForFsb(propertyFsbEvent.description)).thenReturn(
         Scheme(
-          SchemeId("Property"), "PRO", "Property",
+          Property, "PRO", "Property",
           civilServantEligible = true,
           degree = None,
           siftRequirement = None,
@@ -551,8 +551,8 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
       when(mockFsbRepo.findByApplicationId("applicationId")).thenReturnAsync(
         Some(
           FsbTestGroup(FsbEvaluation(List(
-            SchemeEvaluationResult(SchemeId("ProjectDelivery"), model.EvaluationResults.Red.toString),
-            SchemeEvaluationResult(SchemeId("Property"), model.EvaluationResults.Red.toString)
+            SchemeEvaluationResult(ProjectDelivery, model.EvaluationResults.Red.toString),
+            SchemeEvaluationResult(Property, model.EvaluationResults.Red.toString)
           )))
         )
       )
@@ -610,7 +610,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
 
       when(mockSchemeRepository.getSchemeForFsb(projectDeliveryFsbEvent1.description)).thenReturn(
         Scheme(
-          SchemeId("ProjectDelivery"), "PDFS", "Project Delivery",
+          ProjectDelivery, "PDFS", "Project Delivery",
           civilServantEligible = true,
           degree = None,
           siftRequirement = None,
@@ -695,7 +695,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
 
       when(mockSchemeRepository.getSchemeForFsb(projectDeliveryFsbEvent.description)).thenReturn(
         Scheme(
-          SchemeId("ProjectDelivery"), "PDFS", "Project Delivery",
+          ProjectDelivery, "PDFS", "Project Delivery",
           civilServantEligible = true,
           degree = None,
           siftRequirement = None,
@@ -708,7 +708,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
 
       when(mockSchemeRepository.getSchemeForFsb(propertyFsbEvent1.description)).thenReturn(
         Scheme(
-          SchemeId("Property"), "PRO", "Property",
+          Property, "PRO", "Property",
           civilServantEligible = true,
           degree = None,
           siftRequirement = None,
@@ -721,12 +721,12 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
 
       when(mockFsbRepo.findByApplicationId("applicationId")).thenReturnAsync(
         Some(
-          FsbTestGroup(FsbEvaluation(List(SchemeEvaluationResult(SchemeId("ProjectDelivery"), model.EvaluationResults.Red.toString))))
+          FsbTestGroup(FsbEvaluation(List(SchemeEvaluationResult(ProjectDelivery, model.EvaluationResults.Red.toString))))
         )
       )
       when(mockFsbRepo.findByApplicationId("applicationId")).thenReturnAsync(
         Some(
-          FsbTestGroup(FsbEvaluation(List(SchemeEvaluationResult(SchemeId("ProjectDelivery"), model.EvaluationResults.Red.toString))))
+          FsbTestGroup(FsbEvaluation(List(SchemeEvaluationResult(ProjectDelivery, model.EvaluationResults.Red.toString))))
         )
       )
 
@@ -739,7 +739,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
     }
   }
 
-  trait TestFixture extends StcEventServiceFixture {
+  trait TestFixture extends StcEventServiceFixture with Schemes {
     val mockCandidateAllocationRepository = mock[CandidateAllocationMongoRepository]
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockContactDetailsRepo = mock[ContactDetailsRepository]

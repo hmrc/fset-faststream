@@ -17,10 +17,12 @@
 package services.application
 
 import connectors.OnlineTestEmailClient
-import model.EvaluationResults.{Amber, Green, Red}
+import model.EvaluationResults.{Amber, Green, Red, Withdrawn}
+import model.Exceptions.SchemeWithdrawnException
 import model.ProgressStatuses.{ALL_FSBS_AND_FSACS_FAILED, ELIGIBLE_FOR_JOB_OFFER, FSB_FAILED, FSB_PASSED}
 import model._
-import model.exchange.FsbScoresAndFeedback
+import model.command.ApplicationStatusDetails
+import model.exchange.{ApplicationResult, FsbScoresAndFeedback}
 import model.persisted.fsb.ScoresAndFeedback
 import model.persisted.{ContactDetails, FsbTestGroup, SchemeEvaluationResult}
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
@@ -34,7 +36,7 @@ import testkit.MockitoImplicits._
 import testkit.{ExtendedTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -503,21 +505,21 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout with Schemes {
     "not set ALL_FSBS_AND_FSACS_FAILED for a candidate who has failed fsb for 1st preference but is Green " +
       "for 2nd preference, which has no fsb" in new TestFixture {
       // Candidate has failed the fsb for ProjectDelivery
-      val fsbEvaluationOpt = Some(Seq(SchemeEvaluationResult(SchemeId("ProjectDelivery"), Red.toString)))
+      val fsbEvaluationOpt = Some(Seq(SchemeEvaluationResult(ProjectDelivery, Red.toString)))
       // This is the 1st residual preference in the css before the current fsb eval has been applied
-      val firstResidualPreferenceOpt = Some(SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString))
+      val firstResidualPreferenceOpt = Some(SchemeEvaluationResult(ProjectDelivery, Green.toString))
       // After failing the fsb for ProjectDelivery the candidate is still Green for HumanResources which has no fsb
       // Note at this stage the css has not been updated to reflect the result of the fsb
       val currentSchemeStatus = Seq(
-        SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString),
-        SchemeEvaluationResult(SchemeId("HumanResources"), Green.toString)
+        SchemeEvaluationResult(ProjectDelivery, Green.toString),
+        SchemeEvaluationResult(HumanResources, Green.toString)
       )
 
       when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_FAILED)).thenReturnAsync()
 
       val newCurrentSchemeStatus = Seq(
-        SchemeEvaluationResult(SchemeId("ProjectDelivery"), Red.toString),
-        SchemeEvaluationResult(SchemeId("HumanResources"), Green.toString)
+        SchemeEvaluationResult(ProjectDelivery, Red.toString),
+        SchemeEvaluationResult(HumanResources, Green.toString)
       )
       when(mockFsbRepo.updateCurrentSchemeStatus(appId, newCurrentSchemeStatus)).thenReturnAsync()
 
@@ -537,13 +539,13 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout with Schemes {
     "set the candidate to ELIGIBLE_FOR_JOB_OFFER who has previously failed the fsb for 1st preference " +
       "and has now passed the fsb for the 2nd preference" in new TestFixture {
       // Candidate has passed the fsb for Property
-      val fsbEvaluationOpt = Some(Seq(SchemeEvaluationResult(SchemeId("Property"), Green.toString)))
+      val fsbEvaluationOpt = Some(Seq(SchemeEvaluationResult(Property, Green.toString)))
       // This is the 1st residual preference in the css before the current fsb eval has been applied
-      val firstResidualPreferenceOpt = Some(SchemeEvaluationResult(SchemeId("Property"), Green.toString))
+      val firstResidualPreferenceOpt = Some(SchemeEvaluationResult(Property, Green.toString))
       // The state of the css is as it was when the candidate failed ProjectDelivery
       val currentSchemeStatus = Seq(
-        SchemeEvaluationResult(SchemeId("ProjectDelivery"), Red.toString),
-        SchemeEvaluationResult(SchemeId("Property"), Green.toString)
+        SchemeEvaluationResult(ProjectDelivery, Red.toString),
+        SchemeEvaluationResult(Property, Green.toString)
       )
 
       when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_PASSED)).thenReturnAsync()
@@ -558,21 +560,21 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout with Schemes {
     "not set ALL_FSBS_AND_FSACS_FAILED for a candidate who has failed fsb for 1st preference but is Amber " +
       "for 2nd preference, which has no fsb" in new TestFixture {
       // Candidate has failed the fsb for ProjectDelivery
-      val fsbEvaluationOpt = Some(Seq(SchemeEvaluationResult(SchemeId("ProjectDelivery"), Red.toString)))
+      val fsbEvaluationOpt = Some(Seq(SchemeEvaluationResult(ProjectDelivery, Red.toString)))
       // This is the 1st residual preference in the css before the current fsb eval has been applied
-      val firstResidualPreferenceOpt = Some(SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString))
+      val firstResidualPreferenceOpt = Some(SchemeEvaluationResult(ProjectDelivery, Green.toString))
       // After failing the fsb for ProjectDelivery the candidate is still Green for HumanResources which has no fsb
       // Note at this stage the css has not been updated to reflect the result of the fsb
       val currentSchemeStatus = Seq(
-        SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString),
-        SchemeEvaluationResult(SchemeId("HumanResources"), Amber.toString)
+        SchemeEvaluationResult(ProjectDelivery, Green.toString),
+        SchemeEvaluationResult(HumanResources, Amber.toString)
       )
 
       when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_FAILED)).thenReturnAsync()
 
       val newCurrentSchemeStatus = Seq(
-        SchemeEvaluationResult(SchemeId("ProjectDelivery"), Red.toString),
-        SchemeEvaluationResult(SchemeId("HumanResources"), Amber.toString)
+        SchemeEvaluationResult(ProjectDelivery, Red.toString),
+        SchemeEvaluationResult(HumanResources, Amber.toString)
       )
       when(mockFsbRepo.updateCurrentSchemeStatus(appId, newCurrentSchemeStatus)).thenReturnAsync()
 
@@ -592,20 +594,20 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout with Schemes {
     "set ALL_FSBS_AND_FSACS_FAILED for a candidate who has already failed fsb for 1st preference " +
       "and has now failed the fsb for the 2nd preference" in new TestFixture {
       // Candidate has now failed the fsb for Property (2nd pref)
-      val fsbEvaluationOpt = Some(Seq(SchemeEvaluationResult(SchemeId("Property"), Red.toString)))
+      val fsbEvaluationOpt = Some(Seq(SchemeEvaluationResult(Property, Red.toString)))
       // This is the 1st residual preference in the css before the current fsb eval has been applied
-      val firstResidualPreferenceOpt = Some(SchemeEvaluationResult(SchemeId("Property"), Green.toString))
+      val firstResidualPreferenceOpt = Some(SchemeEvaluationResult(Property, Green.toString))
       // The state of the css is as it was when the candidate failed ProjectDelivery
       val currentSchemeStatus = Seq(
-        SchemeEvaluationResult(SchemeId("ProjectDelivery"), Red.toString),
-        SchemeEvaluationResult(SchemeId("Property"), Green.toString)
+        SchemeEvaluationResult(ProjectDelivery, Red.toString),
+        SchemeEvaluationResult(Property, Green.toString)
       )
 
       when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_FAILED)).thenReturnAsync()
 
       val newCurrentSchemeStatus = Seq(
-        SchemeEvaluationResult(SchemeId("ProjectDelivery"), Red.toString),
-        SchemeEvaluationResult(SchemeId("Property"), Red.toString)
+        SchemeEvaluationResult(ProjectDelivery, Red.toString),
+        SchemeEvaluationResult(Property, Red.toString)
       )
       when(mockFsbRepo.updateCurrentSchemeStatus(appId, newCurrentSchemeStatus)).thenReturnAsync()
 
@@ -623,18 +625,18 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout with Schemes {
     "set ALL_FSBS_AND_FSACS_FAILED for a candidate who has failed fsb for 1st preference and " +
       "is not in the running for any other schemes" in new TestFixture {
       // Candidate has failed the fsb for ProjectDelivery
-      val fsbEvaluationOpt = Some(Seq(SchemeEvaluationResult(SchemeId("ProjectDelivery"), Red.toString)))
+      val fsbEvaluationOpt = Some(Seq(SchemeEvaluationResult(ProjectDelivery, Red.toString)))
       // This is the 1st residual preference in the css before the current fsb eval has been applied
-      val firstResidualPreferenceOpt = Some(SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString))
+      val firstResidualPreferenceOpt = Some(SchemeEvaluationResult(ProjectDelivery, Green.toString))
       // After failing the fsb for ProjectDelivery the candidate is not in the running for any other schemes
       val currentSchemeStatus = Seq(
-        SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString)
+        SchemeEvaluationResult(ProjectDelivery, Green.toString)
       )
 
       when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_FAILED)).thenReturnAsync()
 
       val newCurrentSchemeStatus = Seq(
-        SchemeEvaluationResult(SchemeId("ProjectDelivery"), Red.toString)
+        SchemeEvaluationResult(ProjectDelivery, Red.toString)
       )
       when(mockFsbRepo.updateCurrentSchemeStatus(appId, newCurrentSchemeStatus)).thenReturnAsync()
 
@@ -652,11 +654,11 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout with Schemes {
     "set ELIGIBLE_FOR_JOB_OFFER for a candidate who has passed the fsb for the only scheme " +
       "they are still in the running for" in new TestFixture {
       // Candidate has failed the fsb for ProjectDelivery
-      val fsbEvaluationOpt = Some(Seq(SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString)))
+      val fsbEvaluationOpt = Some(Seq(SchemeEvaluationResult(ProjectDelivery, Green.toString)))
       // This is the 1st residual preference in the css before the current fsb eval has been applied
-      val firstResidualPreferenceOpt = Some(SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString))
+      val firstResidualPreferenceOpt = Some(SchemeEvaluationResult(ProjectDelivery, Green.toString))
       val currentSchemeStatus = Seq(
-        SchemeEvaluationResult(SchemeId("ProjectDelivery"), Green.toString)
+        SchemeEvaluationResult(ProjectDelivery, Green.toString)
       )
 
       when(mockApplicationRepo.addProgressStatusAndUpdateAppStatus(appId, FSB_PASSED)).thenReturnAsync()
@@ -669,7 +671,7 @@ class FsbServiceSpec extends UnitSpec with ExtendedTimeout with Schemes {
     }
   }
 
-  trait TestFixture {
+  trait TestFixture extends Schemes {
 
     val hc = HeaderCarrier()
     val uid = UniqueIdentifier.randomUniqueIdentifier
