@@ -16,7 +16,7 @@
 
 package model.exchange.passmarksettings
 
-import model.SchemeId
+import model.{SchemeId, Schemes}
 import play.api.libs.json.OFormat
 
 import java.time.OffsetDateTime
@@ -166,9 +166,9 @@ case class AssessmentCentrePassMarkSettingsPersistence(
                                               version: String,
                                               createDate: OffsetDateTime,
                                               createdBy: String
-                                            ) extends PassMarkSettingsPersistence {
+                                            ) extends PassMarkSettingsPersistence with Schemes {
   // Only display pass marks for the Commercial scheme to reduce the amount we log
-  def abbreviated = s"schemes=${schemes.filter(s => s.schemeId == SchemeId("Commercial"))},<<truncated>>" +
+  def abbreviated = s"schemes=${schemes.filter(s => s.schemeId == Commercial)},<<truncated>>" +
     s"version=$version,createDate=$createDate,createdBy=$createdBy"
 
   override def toExchange = AssessmentCentrePassMarkSettings(schemes, version, createDate, createdBy)
