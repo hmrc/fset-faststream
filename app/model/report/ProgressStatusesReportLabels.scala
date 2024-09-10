@@ -123,6 +123,7 @@ trait ProgressStatusesReportLabels {
     (progress.fsb.resultEntered, 640, FsbResultEntered),
     (progress.fsb.passed, 650, FsbPassed),
     (progress.fsb.failed, 660, FsbFailed),
+    (progress.fsb.fsacReevaluationJobOffer, 665, FsbFsacReevaluationJobOffer),
     (progress.fsb.allFailed, 670, FsbAllFailed),
     (progress.fsb.allFailedNotified, 680, FsbAllFailedNotified),
 
@@ -235,6 +236,7 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val FsbResultEntered = "fsb_result_entered"
   val FsbPassed = FSB_PASSED.toString.toLowerCase()
   val FsbFailed = FSB_FAILED.toString.toLowerCase()
+  val FsbFsacReevaluationJobOffer = FSAC_REEVALUATION_JOB_OFFER.toString.toLowerCase()
   val FsbAllFailed = ALL_FSBS_AND_FSACS_FAILED.toString.toLowerCase()
   val FsbAllFailedNotified = ALL_FSBS_AND_FSACS_FAILED_NOTIFIED.toString.toLowerCase()
 

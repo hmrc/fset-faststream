@@ -41,6 +41,7 @@ case class Fsb(
                 resultEntered: Boolean = false,
                 passed: Boolean = false,
                 failed: Boolean = false,
+                fsacReevaluationJobOffer: Boolean = false,
                 allFailed: Boolean = false,
                 allFailedNotified: Boolean = false
 )

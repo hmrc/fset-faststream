@@ -218,6 +218,7 @@ object ProgressStatuses {
   case object FSB_RESULT_ENTERED extends ProgressStatus(ApplicationStatus.FSB)
   case object FSB_PASSED extends ProgressStatus(ApplicationStatus.FSB)
   case object FSB_FAILED extends ProgressStatus(ApplicationStatus.FSB)
+  case object FSAC_REEVALUATION_JOB_OFFER extends ProgressStatus(ApplicationStatus.FSB)
   case object ALL_FSBS_AND_FSACS_FAILED extends ProgressStatus(ApplicationStatus.FSB)
   case object ALL_FSBS_AND_FSACS_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.FSB)
 

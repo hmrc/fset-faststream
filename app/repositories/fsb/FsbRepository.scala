@@ -126,6 +126,14 @@ class FsbMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
         "applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE.toBson,
         s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_PASSED}" -> true
       ),
+      // Candidates whose 1st residual pref was Green at FSAC so moved to FSB where either the 1st pref was withdrawn
+      // or failed and then FSAC pass marks changed and the 2nd pref Amber became Green and this scheme does not need
+      // a FSB so should result in job offer
+      Document(
+        "applicationStatus" -> ApplicationStatus.FSB.toBson,
+        s"progress-status.${ProgressStatuses.FSAC_REEVALUATION_JOB_OFFER}" -> true,
+        s"progress-status.${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER}" -> Document("$exists" -> false)
+      ),
       Document(
         "applicationStatus" -> ApplicationStatus.FSB.toBson,
         s"progress-status.${ProgressStatuses.FSB_FAILED}" -> true,

@@ -193,6 +193,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
         getProgress(ProgressStatuses.FSB_RESULT_ENTERED.key),
         getProgress(ProgressStatuses.FSB_PASSED.key),
         getProgress(ProgressStatuses.FSB_FAILED.key),
+        getProgress(ProgressStatuses.FSAC_REEVALUATION_JOB_OFFER.key),
         getProgress(ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED.key),
         getProgress(ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED_NOTIFIED.key)
       )
