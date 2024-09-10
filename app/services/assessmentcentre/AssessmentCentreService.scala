@@ -18,6 +18,7 @@ package services.assessmentcentre
 
 import com.google.inject.name.Named
 import common.FutureEx
+import model.ApplicationStatus.ApplicationStatus
 
 import javax.inject.{Inject, Singleton}
 import model.EvaluationResults.{AssessmentEvaluationResult, ExerciseAverageResult, Green}
@@ -33,7 +34,7 @@ import model.persisted.fsac.{AnalysisExercise, AssessmentCentreTests}
 import play.api.Logging
 import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.AssessmentCentreRepository
-import repositories.{AssessmentScoresRepository, CurrentSchemeStatusHelper}
+import repositories.{AssessmentScoresRepository, CurrentSchemeStatusHelper, SchemeRepository}
 import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAnalysisExerciseException
 import services.evaluation.AssessmentCentreEvaluationEngine
 import services.passmarksettings.AssessmentCentrePassMarkSettingsService
@@ -51,6 +52,7 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
                                          assessmentCentreRepo: AssessmentCentreRepository,
                                          passmarkService: AssessmentCentrePassMarkSettingsService,
                                          @Named("ReviewerAssessmentScoresRepo") assessmentScoresRepo: AssessmentScoresRepository,
+                                         schemeRepo: SchemeRepository,
                                          evaluationEngine: AssessmentCentreEvaluationEngine
                                         )(implicit ec: ExecutionContext) extends CurrentSchemeStatusHelper with Logging {
 
@@ -235,12 +237,15 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
     val evaluation = AssessmentPassMarkEvaluation(applicationId, assessmentPassMarksSchemesAndScores.passmark.version, evaluationResult)
     for {
       currentSchemeStatus <- calculateCurrentSchemeStatus(applicationId, evaluationResult.schemesEvaluation)
+      // The existing scheme evaluation from the db
       evaluatedSchemes <- assessmentCentreRepo.getFsacEvaluatedSchemes(applicationId.toString())
       mergedEvaluation = mergeSchemes(evaluationResult.schemesEvaluation, evaluatedSchemes, evaluation)
       _ <- assessmentCentreRepo.saveAssessmentScoreEvaluation(mergedEvaluation, currentSchemeStatus)
       applicationStatus <- applicationRepo.findStatus(applicationId.toString())
-      _ <- maybeMoveCandidateToPassedOrFailed(applicationId, applicationStatus.latestProgressStatus, currentSchemeStatus,
-        applicationStatus.applicationRoute == ApplicationRoute.SdipFaststream)
+      _ <- maybeMoveCandidateToPassedOrFailed(
+        applicationId, applicationStatus.status, applicationStatus.latestProgressStatus, currentSchemeStatus,
+        applicationStatus.applicationRoute == ApplicationRoute.SdipFaststream
+      )
     } yield {
       logger.warn(s"$logPrefix written to DB... applicationId = ${assessmentPassMarksSchemesAndScores.scores.applicationId}")
     }
@@ -272,6 +277,7 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
   }
 
   private def maybeMoveCandidateToPassedOrFailed(applicationId: UniqueIdentifier,
+                                                 applicationStatus: ApplicationStatus,
                                                  latestProgressStatusOpt: Option[ProgressStatus],
                                                  results: Seq[SchemeEvaluationResult],
                                                  isSdipFaststream: Boolean): Future[Unit] = {
@@ -300,10 +306,21 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
             Future.successful(())
         }
       } else {
-        // Don't move anyone not in a SCORES_ACCEPTED status
-        logger.warn(s"$logPrefix $applicationId - this was a reevaluation, candidate is not in SCORES_ACCEPTED, candidate status has " +
-          s"not been changed")
-        Future.successful(())
+        // Don't move anyone whose latest progress status is not ASSESSMENT_CENTRE_SCORES_ACCEPTED status
+        logger.warn(s"$logPrefix $applicationId - this was a reevaluation, candidate's latest progress status is not " +
+          "ASSESSMENT_CENTRE_SCORES_ACCEPTED so candidate status has not been changed")
+        // Check here if the candidate is a fsb candidate and see if after evaluation the 1st residual pref is green and does not need a fsb,
+        // in which case tag the candidate to be offered a job
+        val isFsbCandidate = applicationStatus == ApplicationStatus.FSB
+        val firstResidualPref = firstResidualPreference(results)
+        val firstResidualPrefResultsInJobOffer =
+          isFsbCandidate && firstResidualPref.exists( frp => frp.result == Green.toString && !schemeRepo.schemeRequiresFsb(frp.schemeId) )
+        if (firstResidualPrefResultsInJobOffer) {
+          logger.warn(s"$logPrefix $applicationId - fsb candidate who was amber banded at fsac will now be offered a job")
+          applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), FSAC_REEVALUATION_JOB_OFFER)
+        } else {
+          Future.successful(())
+        }
       }
     }.getOrElse {
       logger.warn(s"$logPrefix $applicationId - no progress status, candidate status has not been changed")
