@@ -131,7 +131,7 @@ class FsbMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
       // a FSB so should result in job offer
       Document(
         "applicationStatus" -> ApplicationStatus.FSB.toBson,
-        s"progress-status.${ProgressStatuses.FSAC_REEVALUATION_JOB_OFFER}" -> true,
+        s"progress-status.${ProgressStatuses.FSB_FSAC_REEVALUATION_JOB_OFFER}" -> true,
         s"progress-status.${ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER}" -> Document("$exists" -> false)
       ),
       Document(
