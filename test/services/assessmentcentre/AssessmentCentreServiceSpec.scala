@@ -502,7 +502,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec with Schemes {
         .returning(false)
 
       (mockAppRepo.addProgressStatusAndUpdateAppStatus _)
-        .expects(applicationId.toString(), ProgressStatuses.FSAC_REEVALUATION_JOB_OFFER)
+        .expects(applicationId.toString(), ProgressStatuses.FSB_FSAC_REEVALUATION_JOB_OFFER)
         .returningAsync
 
       val assessmentData = AssessmentPassMarksSchemesAndScores(

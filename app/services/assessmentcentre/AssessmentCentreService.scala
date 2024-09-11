@@ -317,7 +317,7 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
           isFsbCandidate && firstResidualPref.exists( frp => frp.result == Green.toString && !schemeRepo.schemeRequiresFsb(frp.schemeId) )
         if (firstResidualPrefResultsInJobOffer) {
           logger.warn(s"$logPrefix $applicationId - fsb candidate who was amber banded at fsac will now be offered a job")
-          applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), FSAC_REEVALUATION_JOB_OFFER)
+          applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), FSB_FSAC_REEVALUATION_JOB_OFFER)
         } else {
           Future.successful(())
         }

@@ -390,7 +390,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
 
     "return fsb candidate who has been re-evaluated at fsac and should be offered a job for 1st residual preference" in {
       val appId = createApplication()
-      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FSAC_REEVALUATION_JOB_OFFER).futureValue
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FSB_FSAC_REEVALUATION_JOB_OFFER).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
         Seq(SchemeEvaluationResult(Commercial, Withdrawn.toString), SchemeEvaluationResult(GovernmentPolicy, Green.toString))).futureValue
       repository.nextApplicationForFsbOrJobOfferProgression(10)
@@ -408,7 +408,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
 
     "not return fsb candidate who had been re-evaluated at fsac if they have already been offered a job" in {
       val appId = createApplication()
-      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FSAC_REEVALUATION_JOB_OFFER).futureValue
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.FSB_FSAC_REEVALUATION_JOB_OFFER).futureValue
       applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
         Seq(SchemeEvaluationResult(Commercial, Withdrawn.toString), SchemeEvaluationResult(GovernmentPolicy, Green.toString))).futureValue
