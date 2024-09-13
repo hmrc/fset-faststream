@@ -18,6 +18,7 @@ package model
 
 trait Schemes {
   val Commercial = SchemeId("Commercial")
+  val CyberSecurity = SchemeId("CyberSecurity")
   val DigitalDataTechnologyAndCyber = SchemeId("DigitalDataTechnologyAndCyber")
   val DiplomaticAndDevelopment = SchemeId("DiplomaticAndDevelopment")
   val DiplomaticAndDevelopmentEconomics = SchemeId("DiplomaticAndDevelopmentEconomics")
@@ -26,15 +27,14 @@ trait Schemes {
   val GovernmentEconomicsService = SchemeId("GovernmentEconomicsService")
   val GovernmentOperationalResearchService = SchemeId("GovernmentOperationalResearchService")
   val GovernmentPolicy = SchemeId("GovernmentPolicy")
-  val GovernmentPolicySTEM = SchemeId("GovernmentPolicySTEM")
   val GovernmentSocialResearchService = SchemeId("GovernmentSocialResearchService")
   val GovernmentStatisticalService = SchemeId("GovernmentStatisticalService")
   val HousesOfParliament = SchemeId("HousesOfParliament")
   val HumanResources = SchemeId("HumanResources")
   val OperationalDelivery = SchemeId("OperationalDelivery") // This was previously Generalist
-  val OperationalDeliverySTEM = SchemeId("OperationalDeliverySTEM")
   val ProjectDelivery = SchemeId("ProjectDelivery")
   val Property = SchemeId("Property")
+  val RiskManagement = SchemeId("RiskManagement")
   val ScienceAndEngineering = SchemeId("ScienceAndEngineering")
   val Edip = SchemeId("Edip")
   val Sdip = SchemeId("Sdip")

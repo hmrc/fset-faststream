@@ -8,6 +8,16 @@
   siftEvaluationRequired: false
   fsbType: CFS - Skype interview
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/Candidate_Guide_Commercial_Final_Selection_Board.pdf
+- id: CyberSecurity
+  code: CYB
+  name: Cyber Security
+  civilServantEligible: true
+  degree:
+    required: Degree_22
+    specificRequirement: false
+  siftEvaluationRequired: false
+  fsbType: CYB - Skype interview
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/Candidate_Guide_Commercial_Final_Selection_Board.pdf
 - id: DigitalDataTechnologyAndCyber
   code: DDTAC
   name: Digital, Data, Technology & Cyber
@@ -89,21 +99,12 @@
   fsbType: ORAC
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Government-Operational-Research.pdf
   schemeQuestion: /fset-fast-stream/media/1249/scheme-questions-gors.odt
-# This was previously GeneralistSTEM
 - id: GovernmentPolicy
   code: GP
   name: Government Policy
   civilServantEligible: true
   degree:
     required: Degree_22
-    specificRequirement: false
-  siftEvaluationRequired: false
-- id: GovernmentPolicySTEM
-  code: GP_STEM
-  name: Government Policy STEM
-  civilServantEligible: false
-  degree:
-    required: Degree_GP_STEM
     specificRequirement: false
   siftEvaluationRequired: false
 - id: GovernmentSocialResearchService
@@ -161,16 +162,6 @@
   siftEvaluationRequired: false
   fsbType: OPD - Skype interview
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Operational-Delivery.pdf
-- id: OperationalDeliverySTEM
-  code: OPD_STEM
-  name: Operational Delivery STEM
-  civilServantEligible: false
-  degree:
-    required: Degree_OPD_STEM
-    specificRequirement: false
-  siftEvaluationRequired: false
-  fsbType: OPD STEM - Skype interview
-  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Operational-Delivery.pdf
 - id: ProjectDelivery
   code: PDFS
   name: Project Delivery
@@ -194,6 +185,16 @@
   fsbType: PRO - Skype interview
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Property.pdf
   schemeQuestion: /fset-fast-stream/media/Property-Additional-Information-Form.odt
+- id: RiskManagement
+  code: RMT
+  name: Risk Management
+  civilServantEligible: true
+  degree:
+    required: Degree_22
+    specificRequirement: false
+  siftEvaluationRequired: false
+  fsbType: RMT - Skype interview
+  schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Property.pdf
 - id: ScienceAndEngineering
   code: SEFS
   name: Science and Engineering

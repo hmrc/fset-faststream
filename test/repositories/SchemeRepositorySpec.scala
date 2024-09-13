@@ -56,12 +56,12 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
 
     "return fsb schemes" in new TestFixture {
       val expectedFsbSchemes = Seq(
-        Commercial, DiplomaticAndDevelopment,
+        Commercial, CyberSecurity, DiplomaticAndDevelopment,
         DiplomaticAndDevelopmentEconomics, Finance, GovernmentCommunicationService,
         GovernmentEconomicsService, GovernmentOperationalResearchService,
         GovernmentSocialResearchService, GovernmentStatisticalService,
-        HousesOfParliament, OperationalDelivery, OperationalDeliverySTEM, ProjectDelivery,
-        Property, ScienceAndEngineering,
+        HousesOfParliament, OperationalDelivery, ProjectDelivery,
+        Property, RiskManagement, ScienceAndEngineering,
         Edip, Sdip
       )
       val fsbSchemes = repo.fsbSchemeIds
@@ -94,11 +94,11 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
 
     "return no sift evaluation required scheme ids" in new TestFixture {
       val expected = Seq(
-        Commercial, DigitalDataTechnologyAndCyber,
+        Commercial, CyberSecurity, DigitalDataTechnologyAndCyber,
         DiplomaticAndDevelopment, Finance,
-        GovernmentCommunicationService,
-        HousesOfParliament, HumanResources, OperationalDelivery, OperationalDeliverySTEM,
-        ProjectDelivery, Property, GovernmentPolicy, GovernmentPolicySTEM,
+        GovernmentCommunicationService, GovernmentPolicy,
+        HousesOfParliament, HumanResources, OperationalDelivery,
+        ProjectDelivery, Property, RiskManagement,
         Edip, Sdip
       )
       val actual = repo.noSiftEvaluationRequiredSchemeIds
@@ -108,9 +108,9 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
     "return non siftable schemes" in new TestFixture {
       repo.nonSiftableSchemeIds must contain theSameElementsAs
         Seq(
-          Commercial, DigitalDataTechnologyAndCyber,
-          Finance, OperationalDelivery, OperationalDeliverySTEM,
-          HumanResources, Property, GovernmentPolicy, GovernmentPolicySTEM
+          Commercial, CyberSecurity, DigitalDataTechnologyAndCyber,
+          Finance, GovernmentPolicy, HumanResources,
+          OperationalDelivery, Property, RiskManagement
         )
     }
 
@@ -135,10 +135,12 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
 
     "return fsb types" in new TestFixture {
       val expected = Seq(
-        FsbType("CFS - Skype interview"), FsbType("FCO"), FsbType("FIN FSB"), FsbType("GES_DS"),
+        FsbType("CFS - Skype interview"), FsbType("CYB - Skype interview"),
+        FsbType("FCO"), FsbType("FIN FSB"), FsbType("GES_DS"),
         FsbType("GCFS FSB"), FsbType("EAC"), FsbType("ORAC"),
+        FsbType("RMT - Skype interview"),
         FsbType("SRAC"), FsbType("SAC"), FsbType("HOP FSB"),
-        FsbType("OPD - Skype interview"), FsbType("OPD STEM - Skype interview"),
+        FsbType("OPD - Skype interview"),
         FsbType("PDFS - Skype interview"), FsbType("PRO - Skype interview"),
         FsbType("SEFS FSB"), FsbType("EDIP - Telephone interview"), FsbType("SDIP - Telephone interview")
       )
