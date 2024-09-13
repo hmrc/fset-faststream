@@ -61,7 +61,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec with Schemes {
             siftRequirement = Some(SiftRequirement.NUMERIC_TEST), siftEvaluationRequired = true, fsbType = None,
             schemeGuide = None, schemeQuestion = None
           ),
-          Scheme(id = "DigitalDataTechnologyAndCyber", code = "DDTaC", name = "Digital, Data, Technology & Cyber Fast Stream",
+          Scheme(id = "Digital", code = "DDTaC", name = "Digital",
             civilServantEligible = false, degree = None, siftRequirement = Some(SiftRequirement.FORM), siftEvaluationRequired = false,
             fsbType = None, schemeGuide = None, schemeQuestion = None
           ),
@@ -145,7 +145,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec with Schemes {
         ApplicationForSift("appId1", "userId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString))),
         ApplicationForSift("appId2", "userId2", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-          List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Green.toString))),
+          List(SchemeEvaluationResult(Digital, EvaluationResults.Green.toString))),
         ApplicationForSift("appId3", "userId3", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
             List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)))
       )
@@ -307,7 +307,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec with Schemes {
         SchemeEvaluationResult(Commercial, EvaluationResults.Withdrawn.toString),
         SchemeEvaluationResult(GovernmentSocialResearchService, EvaluationResults.Red.toString),
         SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString),
-        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Green.toString)
+        SchemeEvaluationResult(Digital, EvaluationResults.Green.toString)
       ))
 
       override lazy val schemeSiftResult = SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString)
@@ -315,7 +315,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec with Schemes {
         currentSchemeUpdateBson(SchemeEvaluationResult(Commercial, EvaluationResults.Withdrawn.toString) ::
           SchemeEvaluationResult(GovernmentSocialResearchService, EvaluationResults.Red.toString) ::
           schemeSiftResult ::
-          SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Green.toString) :: Nil: _*),
+          SchemeEvaluationResult(Digital, EvaluationResults.Green.toString) :: Nil: _*),
         progressStatusUpdateBson(ProgressStatuses.SIFT_COMPLETED)
       )
       (mockApplicationSiftRepo.siftApplicationForScheme _).expects(appId, schemeSiftResult, expectedUpdateBson).returningAsync
@@ -345,7 +345,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec with Schemes {
       (mockApplicationSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Nil)
 
       val currentStatus = Seq(
-        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Green.toString),
+        SchemeEvaluationResult(Digital, EvaluationResults.Green.toString),
         SchemeEvaluationResult(HousesOfParliament, EvaluationResults.Green.toString),
         SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)
       )
@@ -367,7 +367,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec with Schemes {
       (mockApplicationSiftRepo.getSiftEvaluations _).expects(appId).returningAsync(Nil)
 
       val currentStatus = Seq(
-        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Green.toString),
+        SchemeEvaluationResult(Digital, EvaluationResults.Green.toString),
         SchemeEvaluationResult(HousesOfParliament, EvaluationResults.Green.toString),
         SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
         SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)
@@ -499,7 +499,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec with Schemes {
   "findUsersInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes" must {
     "return candidates if the candidates still have numeric test schemes and have withdrawn from all form schemes" in new TestFixture {
       val oneCandidate = FixUserStuckInSiftEntered("app1", Seq(
-        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Withdrawn.toString),
+        SchemeEvaluationResult(Digital, EvaluationResults.Withdrawn.toString),
         SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)
       ))
 
@@ -511,7 +511,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec with Schemes {
     "return no candidates if the candidates have no green numeric test schemes" in new TestFixture {
       (mockApplicationSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(
         FixUserStuckInSiftEntered("app1", Seq(
-          SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Withdrawn.toString),
+          SchemeEvaluationResult(Digital, EvaluationResults.Withdrawn.toString),
           SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
           SchemeEvaluationResult(Commercial, EvaluationResults.Red.toString)
         ))
@@ -523,7 +523,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec with Schemes {
     "return no candidates if the candidates have no withdrawn schemes" in new TestFixture {
       (mockApplicationSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(
         FixUserStuckInSiftEntered("app1", Seq(
-          SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Red.toString),
+          SchemeEvaluationResult(Digital, EvaluationResults.Red.toString),
           SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
           SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)
         ))

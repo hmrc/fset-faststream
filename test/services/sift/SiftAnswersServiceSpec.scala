@@ -35,7 +35,7 @@ class SiftAnswersServiceSpec extends ScalaMockUnitWithAppSpec with Schemes {
   val CommercialScheme = Scheme(Commercial, "CFS", "Commercial", civilServantEligible = true,
     degree = None, siftEvaluationRequired = true, siftRequirement = Some(SiftRequirement.NUMERIC_TEST),
     fsbType = None, schemeGuide = None, schemeQuestion = None)
-  val DDTaCScheme = Scheme(DigitalDataTechnologyAndCyber, "DDTaC", "Digital, Data, Technology & Cyber",
+  val DDTaCScheme = Scheme(Digital, "DDTaC", "Digital, Data, Technology & Cyber",
     civilServantEligible = false, degree = None, siftEvaluationRequired = true, siftRequirement = Some(SiftRequirement.FORM),
     fsbType = None, schemeGuide = None, schemeQuestion = None)
   val HoPScheme = Scheme(HousesOfParliament, "HoP", "Houses of Parliament", civilServantEligible = false,

@@ -25,9 +25,9 @@ class FaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
   "phase1 evaluation process" should {
     "result in pass results when all schemes are green" in new TestFixture {
         applicationEvaluation("application-1", 80, 80, 80,
-          Commercial, DigitalDataTechnologyAndCyber) mustResultIn (
+          Commercial, Digital) mustResultIn (
           PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
-          Commercial -> Green, DigitalDataTechnologyAndCyber -> Green)
+          Commercial -> Green, Digital -> Green)
 
         applicationEvaluation("application-2", 79.999, 78.08, 77.77,
           HousesOfParliament) mustResultIn (
@@ -40,9 +40,9 @@ class FaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
 
     "result in pass results when at-least one scheme is green" in new TestFixture {
       applicationEvaluation("application-1", 20.002, 20.06, 20.0,
-        Commercial, DigitalDataTechnologyAndCyber) mustResultIn (
+        Commercial, Digital) mustResultIn (
         PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
-        Commercial -> Red, DigitalDataTechnologyAndCyber -> Green)
+        Commercial -> Red, Digital -> Green)
     }
 
     "result in fail results when all the schemes are red" in new TestFixture {
@@ -72,9 +72,9 @@ class FaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
 
     "result in pass results for gis candidates" in new TestFixture {
       gisApplicationEvaluation("application-1", 25, 25,
-        Commercial, DigitalDataTechnologyAndCyber) mustResultIn (
+        Commercial, Digital) mustResultIn (
         PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
-        Commercial -> Amber, DigitalDataTechnologyAndCyber -> Green)
+        Commercial -> Amber, Digital -> Green)
     }
 
     "result in pass results on re-evaluation of applicant in amber when passmarks are decreased" in new TestFixture {

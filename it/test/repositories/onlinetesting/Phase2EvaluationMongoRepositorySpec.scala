@@ -209,8 +209,8 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   }
 
   "save passmark evaluation" should {
-    val resultToSave = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
-    val css = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
+    val resultToSave = List(SchemeEvaluationResult(Digital, Green.toString))
+    val css = List(SchemeEvaluationResult(Digital, Green.toString))
 
     "save result and update the status" in {
       insertApplication("app1", ApplicationStatus.PHASE2_TESTS, Some(phase1TestsWithResult), Some(phase2TestWithResult))
@@ -227,7 +227,7 @@ class Phase2EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       appStatus mustBe ApplicationStatus.PHASE2_TESTS_PASSED
 
       result.evaluation mustBe Some(PassmarkEvaluation("version1", previousPhasePassMarkVersion = None,
-        List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString)),
+        List(SchemeEvaluationResult(Digital, Green.toString)),
         "version1-res", previousPhaseResultVersion = None
       ))
     }

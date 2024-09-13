@@ -160,7 +160,7 @@ class AdjustmentsManagementServiceSpec extends BaseServiceSpec with ExtendedTime
     val finance = Finance // sift numeric scheme, evaluation required
     val operationalDelivery = OperationalDelivery // no sift requirement
     val humanResources = HumanResources // no sift requirement
-    val digitalDataTechnologyAndCyber = DigitalDataTechnologyAndCyber // sift form, no evaluation
+    val digital = Digital // sift form, no evaluation
 
     val applicationStatusDetails = ApplicationStatusDetails(
       status = ApplicationStatus.SUBMITTED,
@@ -172,7 +172,7 @@ class AdjustmentsManagementServiceSpec extends BaseServiceSpec with ExtendedTime
     when(mockAppRepository.find(AppId)).thenReturnAsync(Some(minCandidate(UserId)))
 //    when(mockAppRepository.findAdjustments(AppId)).thenReturnAsync(None)
 //    when(mockAppRepository.confirmAdjustments(any[String], any[Adjustments])).thenReturnAsync()
-//    when(mockSchemeRepository.siftableSchemeIds).thenReturn(Seq(commercial, finance, digitalDataTechnologyAndCyber))
+//    when(mockSchemeRepository.siftableSchemeIds).thenReturn(Seq(commercial, finance, digital))
 //    when(mockSchemeRepository.numericTestSiftRequirementSchemeIds).thenReturn(Seq(commercial, finance))
 
     val service = new AdjustmentsManagementService(

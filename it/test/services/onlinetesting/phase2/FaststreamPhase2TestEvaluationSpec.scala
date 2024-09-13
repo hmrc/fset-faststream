@@ -28,11 +28,11 @@ class FaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluationSpec {
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
           List(SchemeEvaluationResult(Commercial, Green.toString),
-            SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString)),
+            SchemeEvaluationResult(Digital, Green.toString)),
           "phase1-version1-res", None)
-        applicationEvaluation("application-1", 80, 80, Commercial, DigitalDataTechnologyAndCyber) mustResultIn(
+        applicationEvaluation("application-1", 80, 80, Commercial, Digital) mustResultIn(
           PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED),
-          Commercial -> Green, DigitalDataTechnologyAndCyber -> Green)
+          Commercial -> Green, Digital -> Green)
       }
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
@@ -54,11 +54,11 @@ class FaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluationSpec {
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
           List(SchemeEvaluationResult(Commercial, Red.toString),
-            SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString)),
+            SchemeEvaluationResult(Digital, Green.toString)),
           "phase1-version1-res", None)
-        applicationEvaluation("application-1", 80, 80, Commercial, DigitalDataTechnologyAndCyber) mustResultIn(
+        applicationEvaluation("application-1", 80, 80, Commercial, Digital) mustResultIn(
           PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED),
-          Commercial -> Red, DigitalDataTechnologyAndCyber -> Green)
+          Commercial -> Red, Digital -> Green)
       }
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
@@ -103,11 +103,11 @@ class FaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluationSpec {
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
           List(SchemeEvaluationResult(Commercial, Green.toString),
-            SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString)),
+            SchemeEvaluationResult(Digital, Green.toString)),
           "phase1-version1-res", None)
-        applicationEvaluation("application-2", 20, 20, Commercial, DigitalDataTechnologyAndCyber) mustResultIn(
+        applicationEvaluation("application-2", 20, 20, Commercial, Digital) mustResultIn(
           PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED),
-          Commercial -> Amber, DigitalDataTechnologyAndCyber -> Red)
+          Commercial -> Amber, Digital -> Red)
       }
       {
         phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,

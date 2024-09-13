@@ -18,9 +18,9 @@
   siftEvaluationRequired: false
   fsbType: CYB - Skype interview
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/Candidate_Guide_Commercial_Final_Selection_Board.pdf
-- id: DigitalDataTechnologyAndCyber
+- id: Digital
   code: DDTAC
-  name: Digital, Data, Technology & Cyber
+  name: Digital
   civilServantEligible: true
   degree:
     required: Degree_22

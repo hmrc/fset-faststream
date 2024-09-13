@@ -96,7 +96,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout with Scheme
     val mockSchemeRepository = mock[SchemeRepository]
     when(mockSchemeRepository.schemes).thenReturn(
       Seq(
-        Scheme("DigitalDataTechnologyAndCyber", "DDTaC", "Digital, Data, Technology & Cyber", civilServantEligible = false,
+        Scheme("Digital", "DDTaC", "Digital", civilServantEligible = false,
           degree = None, Some(SiftRequirement.FORM), siftEvaluationRequired = false, fsbType = None, schemeGuide = None,
           schemeQuestion = None
         ),
@@ -240,7 +240,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout with Scheme
       when(mockSiftRepo.nextApplicationWithResultsReceived).thenReturnAsync(Some(appId))
       when(mockAppRepo.findProgress(eqTo(appId))).thenReturnAsync(ProgressResponseExamples.InSiftFormsCompleteNumericTestPendingProgress)
 
-      val currentSchemeStatus = Seq(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
+      val currentSchemeStatus = Seq(SchemeEvaluationResult(Digital, Green.toString))
       when(mockAppRepo.getCurrentSchemeStatus(eqTo(appId))).thenReturnAsync(currentSchemeStatus)
 
       val result = service.nextApplicationWithResultsReceived.futureValue
@@ -252,7 +252,7 @@ class NumericalTestServiceSpec extends UnitSpec with ExtendedTimeout with Scheme
       when(mockSiftRepo.nextApplicationWithResultsReceived).thenReturnAsync(Some(appId))
       when(mockAppRepo.findProgress(eqTo(appId))).thenReturnAsync(ProgressResponseExamples.InSiftEntered)
 
-      val currentSchemeStatus = Seq(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
+      val currentSchemeStatus = Seq(SchemeEvaluationResult(Digital, Green.toString))
       when(mockAppRepo.getCurrentSchemeStatus(eqTo(appId))).thenReturnAsync(currentSchemeStatus)
 
       val result = service.nextApplicationWithResultsReceived.futureValue

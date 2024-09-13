@@ -127,8 +127,8 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
   }
 
   "save passmark evaluation" should {
-    val resultToSave = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
-    val css = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
+    val resultToSave = List(SchemeEvaluationResult(Digital, Green.toString))
+    val css = List(SchemeEvaluationResult(Digital, Green.toString))
 
     "save result and update the status" in {
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult))
@@ -142,7 +142,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val (appStatus, result) = resultWithAppStatus.get
       appStatus mustBe ApplicationStatus.PHASE1_TESTS_PASSED
       result.evaluation mustBe Some(PassmarkEvaluation("version1", previousPhasePassMarkVersion = None, List(
-        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString)
+        SchemeEvaluationResult(Digital, Green.toString)
       ), "version1-res", previousPhaseResultVersion = None))
     }
 
@@ -167,8 +167,8 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     }
 
     "not return the SdipFaststream candidate in PHASE2_TESTS if the sdip is not evaluated for phase1" ignore {
-      val resultToSave = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
-      val css = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
+      val resultToSave = List(SchemeEvaluationResult(Digital, Green.toString))
+      val css = List(SchemeEvaluationResult(Digital, Green.toString))
 
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
         applicationRoute = Some(ApplicationRoute.SdipFaststream))
@@ -194,7 +194,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
         applicationRoute = Some(ApplicationRoute.SdipFaststream))
 
-      val resultToSave = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString),
+      val resultToSave = List(SchemeEvaluationResult(Digital, Green.toString),
         SchemeEvaluationResult(Sdip, Green.toString))
       val evaluation = PassmarkEvaluation("version1", previousPhasePassMarkVersion = None, resultToSave, "version1-res",
         previousPhaseResultVersion = None)
@@ -211,7 +211,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
         applicationRoute = Some(ApplicationRoute.SdipFaststream))
 
-      val resultToSave = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Red.toString),
+      val resultToSave = List(SchemeEvaluationResult(Digital, Red.toString),
         SchemeEvaluationResult(Sdip, Red.toString))
       val evaluation = PassmarkEvaluation("version1", previousPhasePassMarkVersion = None, resultToSave, "version1-res",
         previousPhaseResultVersion = None)
@@ -228,7 +228,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
         applicationRoute = Some(ApplicationRoute.SdipFaststream))
 
-      val resultToSave = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString),
+      val resultToSave = List(SchemeEvaluationResult(Digital, Green.toString),
         SchemeEvaluationResult(Sdip, Amber.toString))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
 
@@ -246,8 +246,8 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult),
         applicationRoute = Some(ApplicationRoute.SdipFaststream))
 
-      val resultToSave = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
-      val css = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
+      val resultToSave = List(SchemeEvaluationResult(Digital, Green.toString))
+      val css = List(SchemeEvaluationResult(Digital, Green.toString))
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
       phase1EvaluationRepo.savePassmarkEvaluation("app1", evaluation, newProgressStatus = None, css).futureValue
 
@@ -258,7 +258,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
       val passmarkEvaluation = phase1EvaluationRepo.getPassMarkEvaluation("app1").futureValue
 
       passmarkEvaluation.result must contain theSameElementsAs List(
-        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString),
+        SchemeEvaluationResult(Digital, Green.toString),
         SchemeEvaluationResult(Sdip, Green.toString)
       )
     }

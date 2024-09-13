@@ -698,29 +698,29 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "return an empty item when all schemes are red" in {
       createUnAllocatedFSBApplications(1,
         List(
-          SchemeEvaluationResult("HumanResources", Red.toString),
-          SchemeEvaluationResult("DigitalDataTechnologyAndCyber", Red.toString)
+          SchemeEvaluationResult(HumanResources, Red.toString),
+          SchemeEvaluationResult(Digital, Red.toString)
         )).futureValue
-      findFsbCandidatesCall(DigitalDataTechnologyAndCyber).candidates mustBe empty
+      findFsbCandidatesCall(Digital).candidates mustBe empty
     }
 
     "return an empty item when there are no FSB eligible candidates for first residual preference" in {
       createUnAllocatedFSBApplications(1,
         List(
-          SchemeEvaluationResult("HumanResources", Green.toString),
-          SchemeEvaluationResult("DigitalDataTechnologyAndCyber", Green.toString)
+          SchemeEvaluationResult(HumanResources, Green.toString),
+          SchemeEvaluationResult(Digital, Green.toString)
         )).futureValue
-      findFsbCandidatesCall(DigitalDataTechnologyAndCyber).candidates mustBe empty
+      findFsbCandidatesCall(Digital).candidates mustBe empty
     }
 
     "return an item when there are FSB eligible candidates" in {
       createUnAllocatedFSBApplications(1,
         List(
-          SchemeEvaluationResult("HumanResources", Red.toString),
-          SchemeEvaluationResult("DigitalDataTechnologyAndCyber", Green.toString)
+          SchemeEvaluationResult(HumanResources, Red.toString),
+          SchemeEvaluationResult(Digital, Green.toString)
         )).futureValue
 
-      findFsbCandidatesCall(DigitalDataTechnologyAndCyber).candidates must have size 1
+      findFsbCandidatesCall(Digital).candidates must have size 1
     }
   }
 
@@ -776,7 +776,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "return css when the candidate has one" in {
       val newCandidate = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
 
-      val css = Seq(SchemeEvaluationResult("Commercial", Green.toString))
+      val css = Seq(SchemeEvaluationResult(Commercial, Green.toString))
       repository.updateCurrentSchemeStatus(newCandidate.applicationId, css).futureValue
 
       val result = repository.getCurrentSchemeStatus(newCandidate.applicationId).futureValue
@@ -793,7 +793,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "remove the css" in {
       val newCandidate = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
 
-      val css = Seq(SchemeEvaluationResult("Commercial", Green.toString))
+      val css = Seq(SchemeEvaluationResult(Commercial, Green.toString))
       repository.updateCurrentSchemeStatus(newCandidate.applicationId, css).futureValue
 
       val result = repository.getCurrentSchemeStatus(newCandidate.applicationId).futureValue
@@ -817,7 +817,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     "add the withdraw section to the application" in {
       val newCandidate = repository.create("userId", "frameworkId", ApplicationRoute.Faststream).futureValue
 
-      val css = Seq(SchemeEvaluationResult("Commercial", Green.toString), SchemeEvaluationResult("OperationalDelivery", Green.toString))
+      val css = Seq(SchemeEvaluationResult(Commercial, Green.toString), SchemeEvaluationResult(OperationalDelivery, Green.toString))
       repository.updateCurrentSchemeStatus(newCandidate.applicationId, css).futureValue
 
       val result = repository.getCurrentSchemeStatus(newCandidate.applicationId).futureValue
