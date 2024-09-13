@@ -42,11 +42,7 @@ class CreateCandidateRequestValidator @Inject() (schemeRepository: SchemeReposit
       ValidatorResult(result = false, Some(s"Request contains invalid scheme name(s): ${validateSchemes(request).message}"))
     } else if (!validateLocations(request).isValid) {
       ValidatorResult(result = false, Some(s"Request contains invalid location(s): ${validateLocations(request).message}"))
-    } else if (!validateStemAndNonStemSchemesBothSelected(request).isValid) {
-      ValidatorResult(
-        result = false, Some(s"Request contains invalid scheme name(s): ${validateStemAndNonStemSchemesBothSelected(request).message}")
-      )
-  } else {
+    } else {
       ValidatorResult(result = true, None)
     }
   }
@@ -66,16 +62,6 @@ class CreateCandidateRequestValidator @Inject() (schemeRepository: SchemeReposit
     val requestLocations = request.locationPreferences.map( _.toSet ).getOrElse(Set.empty[LocationId])
     val result = requestLocations diff validLocations
     LocationValidation(result.isEmpty, result.mkString(","))
-  }
-
-  def validateStemAndNonStemSchemesBothSelected(request: CreateCandidateRequest): SchemeValidation = {
-    val requestSchemes = request.schemeTypes.map( _.toSet ).getOrElse(Set.empty[SchemeId])
-    val governmentPolicyPair = List(GovernmentPolicy, GovernmentPolicySTEM)
-    val operationalDeliveryPair = List(OperationalDelivery, OperationalDeliverySTEM)
-    val isValid = !(governmentPolicyPair.forall(requestSchemes.contains) || operationalDeliveryPair.forall(requestSchemes.contains))
-    SchemeValidation(isValid,
-      s"You cannot choose a STEM and non-STEM scheme together: ${governmentPolicyPair.mkString(",")} or ${operationalDeliveryPair.mkString(",")}"
-    )
   }
 
   def validateFastPass(request: CreateCandidateRequest): Boolean = {
