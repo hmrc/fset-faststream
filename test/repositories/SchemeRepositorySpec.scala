@@ -76,7 +76,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         GovernmentSocialResearchService, GovernmentStatisticalService,
         HousesOfParliament, ProjectDelivery,
         ScienceAndEngineering,
-        Edip, Sdip
+        Edip
       )
       val siftableSchemes = repo.siftableSchemeIds
       siftableSchemes must contain theSameElementsAs(expectedSiftableSchemes)
@@ -110,7 +110,8 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         Seq(
           Commercial, CyberSecurity, Digital,
           Finance, GovernmentPolicy, HumanResources,
-          OperationalDelivery, Property, RiskManagement
+          OperationalDelivery, Property, RiskManagement,
+          Sdip
         )
     }
 
@@ -127,7 +128,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         GovernmentStatisticalService,
         HousesOfParliament, ProjectDelivery,
         ScienceAndEngineering,
-        Edip, Sdip
+        Edip
       )
       val formMustBeFilledInSiftSchemes = repo.formMustBeFilledInSchemeIds
       formMustBeFilledInSiftSchemes must contain theSameElementsAs(expectedFormMustBeFilledInSiftableSchemes)
