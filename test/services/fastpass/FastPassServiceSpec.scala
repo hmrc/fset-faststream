@@ -117,7 +117,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout with Schemes {
 
     "promote candidates with siftable schemes to SIFT_ENTERED" in new TestFixtureWithMockResponses {
       val schemes = SelectedSchemes(
-        List(operationalDelivery, humanResources, digitalDataTechnologyAndCyber), orderAgreed = true, eligible = true)
+        List(operationalDelivery, humanResources, digital), orderAgreed = true, eligible = true)
       when(schemePreferencesServiceMock.find(any[String])).thenReturn(Future.successful(schemes))
       when(applicationSiftServiceMock.saveSiftExpiryDate(any[String])).thenReturn(Future.successful(OffsetDateTime.now))
       when(applicationSiftServiceMock.progressStatusForSiftStage(any[Seq[SchemeId]])).thenReturn(ProgressStatuses.SIFT_ENTERED)
@@ -206,7 +206,7 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout with Schemes {
     val finance = Finance // sift numeric scheme, evaluation required
     val operationalDelivery = OperationalDelivery // no sift requirement
     val humanResources = HumanResources // no sift requirement
-    val digitalDataTechnologyAndCyber = DigitalDataTechnologyAndCyber // sift form, no evaluation
+    val digital = Digital // sift form, no evaluation
 
     val accepted = true
     val rejected = false

@@ -71,7 +71,7 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     val phase2PassMarkSettingsTable = Table[SchemeId, Double, Double, Double, Double](
       ("Scheme Name",                           "Test1 Fail", "Test1 Pass", "Test2 Fail", "Test2 Pass"),
       (Commercial,                                20.0,         80.0,         20.0,         80.0),
-      (DigitalDataTechnologyAndCyber,             20.001,       20.001,       20.001,       20.001),
+      (Digital,             20.001,       20.001,       20.001,       20.001),
       (DiplomaticAndDevelopment,                  20.01,        20.02,        20.01,        20.02),
       (DiplomaticAndDevelopmentEconomics,         30.0,         70.0,         30.0,         70.0),
       (Finance,                                   25.01,        25.02,        25.01,        25.02),

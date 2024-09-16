@@ -102,7 +102,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
       passmarkEvaluationCaptor.getValue.resultVersion must not be ""
       progressStatusCaptor.getValue mustBe Some(ProgressStatuses.PHASE1_TESTS_PASSED)
       cssCaptor.getValue mustBe Seq(
-        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString)
+        SchemeEvaluationResult(Digital, Green.toString)
       )
     }
 
@@ -125,7 +125,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
       passmarkEvaluationCaptor.getValue.resultVersion must not be ""
       progressStatusCaptor.getValue mustBe None
       cssCaptor.getValue mustBe Seq(
-        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString)
+        SchemeEvaluationResult(Digital, Green.toString)
       )
     }
 
@@ -148,7 +148,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
       passmarkEvaluationCaptor.getValue.resultVersion must not be ""
       progressStatusCaptor.getValue mustBe None
       cssCaptor.getValue mustBe Seq(
-        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString)
+        SchemeEvaluationResult(Digital, Green.toString)
       )
     }
   }
@@ -160,7 +160,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
       edipSkipEvaluationService.evaluate(application, PassmarkSettings).futureValue
 
       verify(mockPhase1EvaluationRepository, never()).savePassmarkEvaluation(AppId, ExpectedPassmarkEvaluation,
-        Some(ProgressStatuses.PHASE1_TESTS_PASSED), Seq(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString)))
+        Some(ProgressStatuses.PHASE1_TESTS_PASSED), Seq(SchemeEvaluationResult(Digital, Green.toString)))
     }
   }
 
@@ -168,7 +168,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
     val PassmarkSettings = Phase1PassMarkSettingsExamples.passmark
     val AppId = ApplicationPhase1EvaluationExamples.faststreamApplication.applicationId
     val PassmarkVersion = PassmarkSettings.version
-    val EvaluateForNonGis = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
+    val EvaluateForNonGis = List(SchemeEvaluationResult(Digital, Green.toString))
     val ExpectedPassmarkEvaluation = PassmarkEvaluation(PassmarkVersion, None, EvaluateForNonGis, "", None)
 
 //    val mockPhase1EvaluationRepository = mock[Phase1EvaluationMongoRepository]
@@ -186,7 +186,7 @@ class EvaluatePhase1ResultServiceSpec extends BaseServiceSpec {
       .thenReturn(Future.successful(()))
 
     when(mockApplicationRepository.getCurrentSchemeStatus(eqTo(AppId)))
-      .thenReturn(Future.successful(Seq(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))))
+      .thenReturn(Future.successful(Seq(SchemeEvaluationResult(Digital, Green.toString))))
 
     val oneTest = List(firstPsiTest)
     val twoTests = oneTest :+ secondPsiTest

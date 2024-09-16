@@ -76,7 +76,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         GovernmentSocialResearchService, GovernmentStatisticalService,
         HousesOfParliament, ProjectDelivery,
         ScienceAndEngineering,
-        Edip, Sdip
+        Edip
       )
       val siftableSchemes = repo.siftableSchemeIds
       siftableSchemes must contain theSameElementsAs(expectedSiftableSchemes)
@@ -94,7 +94,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
 
     "return no sift evaluation required scheme ids" in new TestFixture {
       val expected = Seq(
-        Commercial, CyberSecurity, DigitalDataTechnologyAndCyber,
+        Commercial, CyberSecurity, Digital,
         DiplomaticAndDevelopment, Finance,
         GovernmentCommunicationService, GovernmentPolicy,
         HousesOfParliament, HumanResources, OperationalDelivery,
@@ -108,9 +108,10 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
     "return non siftable schemes" in new TestFixture {
       repo.nonSiftableSchemeIds must contain theSameElementsAs
         Seq(
-          Commercial, CyberSecurity, DigitalDataTechnologyAndCyber,
+          Commercial, CyberSecurity, Digital,
           Finance, GovernmentPolicy, HumanResources,
-          OperationalDelivery, Property, RiskManagement
+          OperationalDelivery, Property, RiskManagement,
+          Sdip
         )
     }
 
@@ -127,7 +128,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         GovernmentStatisticalService,
         HousesOfParliament, ProjectDelivery,
         ScienceAndEngineering,
-        Edip, Sdip
+        Edip
       )
       val formMustBeFilledInSiftSchemes = repo.formMustBeFilledInSchemeIds
       formMustBeFilledInSiftSchemes must contain theSameElementsAs(expectedFormMustBeFilledInSiftableSchemes)

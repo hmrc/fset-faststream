@@ -19,7 +19,7 @@ package model
 trait Schemes {
   val Commercial = SchemeId("Commercial")
   val CyberSecurity = SchemeId("CyberSecurity")
-  val DigitalDataTechnologyAndCyber = SchemeId("DigitalDataTechnologyAndCyber")
+  val Digital = SchemeId("Digital")
   val DiplomaticAndDevelopment = SchemeId("DiplomaticAndDevelopment")
   val DiplomaticAndDevelopmentEconomics = SchemeId("DiplomaticAndDevelopmentEconomics")
   val Finance = SchemeId("Finance")

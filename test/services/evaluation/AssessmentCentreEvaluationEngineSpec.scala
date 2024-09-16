@@ -260,7 +260,7 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec with Schemes 
           exercise2 = PassMarkThreshold(1.0, 3.0),
           exercise3 = PassMarkThreshold(1.0, 3.0),
           overall = PassMarkThreshold(10.0, 11.0))),
-        AssessmentCentreExercisePassMark(DigitalDataTechnologyAndCyber, AssessmentCentreExercisePassMarkThresholds(
+        AssessmentCentreExercisePassMark(Digital, AssessmentCentreExercisePassMarkThresholds(
           exercise1 = PassMarkThreshold(1.0, 3.4),
           exercise2 = PassMarkThreshold(1.0, 3.0),
           exercise3 = PassMarkThreshold(1.0, 3.0),
@@ -285,13 +285,13 @@ class AssessmentCentreEvaluationEngineSpec extends BaseServiceSpec with Schemes 
       )
 
       // List of schemes for which the candidate will be evaluated
-      val candidateSchemes = List(Commercial, DigitalDataTechnologyAndCyber, DiplomaticAndDevelopment)
+      val candidateSchemes = List(Commercial, Digital, DiplomaticAndDevelopment)
       val candidateScore = AssessmentPassMarksSchemesAndScores(passMarkSettings, candidateSchemes, candidateScores)
 
       val result = evaluationEngine.evaluate(candidateScore)
       result.schemesEvaluation mustBe List(
         SchemeEvaluationResult(Commercial, Amber.toString),
-        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Amber.toString),
+        SchemeEvaluationResult(Digital, Amber.toString),
         SchemeEvaluationResult(DiplomaticAndDevelopment, Red.toString)
       )
 

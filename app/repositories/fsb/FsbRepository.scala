@@ -114,13 +114,6 @@ class FsbMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
 
   //scalastyle:off method.length
   override def nextApplicationForFsbOrJobOfferProgression(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
-    val xdipQuery = (route: ApplicationRoute) => Document(
-      "applicationRoute" -> route.toBson,
-      "applicationStatus" -> ApplicationStatus.SIFT.toBson,
-      s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> true,
-      "currentSchemeStatus" -> Document("$elemMatch" -> Document("result" -> Green.toString))
-    )
-
     val query = Document("$or" -> BsonArray(
       Document(
         "applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE.toBson,
@@ -171,8 +164,17 @@ class FsbMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
           )
         ))),
       )),
-      xdipQuery(ApplicationRoute.Sdip),
-      xdipQuery(ApplicationRoute.Edip)
+      Document(
+        "applicationRoute" -> ApplicationRoute.Edip.toBson,
+        "applicationStatus" -> ApplicationStatus.SIFT.toBson,
+        s"progress-status.${ProgressStatuses.SIFT_COMPLETED}" -> true,
+        "currentSchemeStatus" -> Document("$elemMatch" -> Document("result" -> Green.toString))
+      ),
+      Document(
+        "applicationRoute" -> ApplicationRoute.Sdip.toBson,
+        "applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED.toBson,
+        "currentSchemeStatus" -> Document("$elemMatch" -> Document("result" -> Green.toString))
+      )
     ))
 
     selectRandom[ApplicationForProgression](query, batchSize)(doc => AssessmentCentreRepository.applicationForFsacBsonReads(doc), ec)

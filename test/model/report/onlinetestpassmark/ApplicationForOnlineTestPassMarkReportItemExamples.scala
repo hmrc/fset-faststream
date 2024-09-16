@@ -41,13 +41,13 @@ object ApplicationForOnlineTestPassMarkReportItemExamples extends Schemes {
       "appId",
       "phase1_tests_results_received",
       ApplicationRoute.Faststream,
-      List(Commercial, DigitalDataTechnologyAndCyber),
+      List(Commercial, Digital),
       disability = None,
       gis = None,
       assessmentCentreAdjustments = None,
       testsResult,
       List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString),
-        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Green.toString)))
+        SchemeEvaluationResult(Digital, EvaluationResults.Green.toString)))
 
   def rnd(prefix: String) = s"$prefix-${Random.nextInt(100)}"
 }

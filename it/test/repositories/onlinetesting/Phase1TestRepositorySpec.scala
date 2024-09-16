@@ -130,7 +130,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
   "Next SdipFasttream test ready for SDIP progression" should {
     "return an SdipFaststream application that already has SDIP scores evaluated to Green/Red" in {
-      val resultToSave = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString),
+      val resultToSave = List(SchemeEvaluationResult(Digital, Green.toString),
         SchemeEvaluationResult(Sdip, Green.toString)
       )
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
@@ -147,7 +147,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "do not return an SdipFaststream application that has SDIP scores evaluated to Ambers" in {
-      val resultToSave = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString),
+      val resultToSave = List(SchemeEvaluationResult(Digital, Green.toString),
         SchemeEvaluationResult(Sdip, Amber.toString)
       )
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
@@ -409,14 +409,14 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       createApplicationWithAllFields("userId", appId, "testAccountId", appStatus = ApplicationStatus.PHASE1_TESTS).futureValue
       phase1TestRepo.insertOrUpdateTestGroup(appId, testProfile).futureValue
 
-      val resultToSave = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
-      val css = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
+      val resultToSave = List(SchemeEvaluationResult(Digital, Green.toString))
+      val css = List(SchemeEvaluationResult(Digital, Green.toString))
       val evaluation =
         PassmarkEvaluation("version1", previousPhasePassMarkVersion = None, resultToSave, "version1-res", previousPhaseResultVersion = None)
 
       phase1EvaluationRepo.savePassmarkEvaluation(appId, evaluation, Some(ProgressStatuses.PHASE1_TESTS_PASSED), css).futureValue
 
-      phase1TestRepo.findEvaluation(appId).futureValue mustBe Some(Seq(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString)))
+      phase1TestRepo.findEvaluation(appId).futureValue mustBe Some(Seq(SchemeEvaluationResult(Digital, Green.toString)))
 
       phase1TestRepo.removeTestGroupEvaluation(appId).futureValue
 
@@ -472,8 +472,8 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
           ProgressStatuses.PHASE1_TESTS_FAILED -> true)).futureValue
       phase1TestRepo.insertOrUpdateTestGroup("appId", Phase1TestProfile(now, phase1TestsWithResult)).futureValue
 
-      val resultToSave = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Red.toString))
-      val css = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Red.toString))
+      val resultToSave = List(SchemeEvaluationResult(Digital, Red.toString))
+      val css = List(SchemeEvaluationResult(Digital, Red.toString))
       val evaluation =
         PassmarkEvaluation("version1", previousPhasePassMarkVersion = None, resultToSave, "version1-res", previousPhaseResultVersion = None)
 
@@ -598,24 +598,24 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       createApplicationWithAllFields("userId", appId, "testAccountId", appStatus = ApplicationStatus.PHASE1_TESTS).futureValue
       phase1TestRepo.insertOrUpdateTestGroup(appId, testProfile).futureValue
 
-      val resultToSave = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
-      val css = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString))
+      val resultToSave = List(SchemeEvaluationResult(Digital, Green.toString))
+      val css = List(SchemeEvaluationResult(Digital, Green.toString))
       val evaluation =
         PassmarkEvaluation("version1", previousPhasePassMarkVersion = None, resultToSave, "version1-res", previousPhaseResultVersion = None)
 
       phase1EvaluationRepo.savePassmarkEvaluation(appId, evaluation, Some(ProgressStatuses.PHASE1_TESTS_PASSED), css).futureValue
 
-      phase1TestRepo.findEvaluation(appId).futureValue mustBe Some(Seq(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString)))
+      phase1TestRepo.findEvaluation(appId).futureValue mustBe Some(Seq(SchemeEvaluationResult(Digital, Green.toString)))
 
       val newEvaluation = PassmarkEvaluation(passmarkVersion = "version2",
         previousPhasePassMarkVersion = Some("version1"),
-        result = List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Red.toString)),
+        result = List(SchemeEvaluationResult(Digital, Red.toString)),
         resultVersion = "version2-res",
         previousPhaseResultVersion = Some("version1-res")
       )
 
       phase1TestRepo.upsertTestGroupEvaluationResult(appId, newEvaluation).futureValue
-      phase1TestRepo.findEvaluation(appId).futureValue mustBe Some(Seq(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Red.toString)))
+      phase1TestRepo.findEvaluation(appId).futureValue mustBe Some(Seq(SchemeEvaluationResult(Digital, Red.toString)))
     }
   }
 

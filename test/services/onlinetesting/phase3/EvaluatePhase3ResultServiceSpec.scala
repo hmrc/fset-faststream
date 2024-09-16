@@ -71,13 +71,13 @@ class EvaluatePhase3ResultServiceSpec extends BaseServiceSpec with Schemes {
 
       applicationIdCaptor.getValue.toString mustBe appId
       val expected = List(SchemeEvaluationResult(
-        DigitalDataTechnologyAndCyber, Green.toString),
+        Digital, Green.toString),
         SchemeEvaluationResult(Commercial, Green.toString)
       )
       passmarkEvaluationCaptor.getValue.result mustBe expected
       progressStatusCaptor.getValue mustBe None
       cssCaptor.getValue mustBe Seq(
-        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString),
+        SchemeEvaluationResult(Digital, Green.toString),
         SchemeEvaluationResult(Commercial, Green.toString)
       )
     }
@@ -102,14 +102,14 @@ class EvaluatePhase3ResultServiceSpec extends BaseServiceSpec with Schemes {
 
       applicationIdCaptor.getValue.toString mustBe appId
       val expectedEvaluation = List(SchemeEvaluationResult(
-        DigitalDataTechnologyAndCyber, Green.toString),
+        Digital, Green.toString),
         SchemeEvaluationResult(Commercial, Green.toString),
         SchemeEvaluationResult(Sdip, Green.toString)
       )
       passmarkEvaluationCaptor.getValue.result mustBe expectedEvaluation
       progressStatusCaptor.getValue mustBe None
       cssCaptor.getValue must contain theSameElementsAs Seq(
-        SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString),
+        SchemeEvaluationResult(Digital, Green.toString),
         SchemeEvaluationResult(Commercial, Green.toString),
         SchemeEvaluationResult(Sdip, Green.toString)
       )
@@ -120,7 +120,7 @@ class EvaluatePhase3ResultServiceSpec extends BaseServiceSpec with Schemes {
     val appId = ApplicationPhase1EvaluationExamples.faststreamApplication.applicationId
     val passmarkSettings = Phase3PassMarkSettingsExamples.passMarkSettings(List(
       (Commercial,                    10.0, 20.0),
-      (DigitalDataTechnologyAndCyber, 10.0, 20.0)
+      (Digital, 10.0, 20.0)
     ))
 
     val mockPhase3EvaluationRepository = mock[OnlineTestEvaluationRepository]
@@ -139,7 +139,7 @@ class EvaluatePhase3ResultServiceSpec extends BaseServiceSpec with Schemes {
         passmarkVersion = "v2",
         previousPhasePassMarkVersion = Some("v1"),
         result = List(SchemeEvaluationResult(Commercial, Green.toString),
-          SchemeEvaluationResult(DigitalDataTechnologyAndCyber, Green.toString)),
+          SchemeEvaluationResult(Digital, Green.toString)),
         resultVersion = "res-v2",
         previousPhaseResultVersion = Some("res-v1"))
     )

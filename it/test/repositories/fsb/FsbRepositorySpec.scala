@@ -340,7 +340,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
 
     "return sdip only sift completed sdip green candidate" in {
       val appId = createApplication(Some(ApplicationRoute.Sdip))
-      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_COMPLETED).futureValue
+      applicationRepo.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED).futureValue
       applicationRepo.updateCurrentSchemeStatus(appId,
         Seq(SchemeEvaluationResult(Sdip, Green.toString))
       ).futureValue
@@ -348,7 +348,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
         .futureValue mustBe Seq(
         ApplicationForProgression(
           appId,
-          ApplicationStatus.SIFT,
+          ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
           currentSchemeStatus = Seq(SchemeEvaluationResult(Sdip, Green.toString))
         )
       )

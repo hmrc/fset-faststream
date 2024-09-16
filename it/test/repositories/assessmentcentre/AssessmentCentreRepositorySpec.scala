@@ -56,7 +56,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
         List(SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Red.toString))).futureValue
 
       insertApplicationWithPhase3TestNotifiedResults("appId7",
-        List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Green.toString))).futureValue
+        List(SchemeEvaluationResult(Digital, EvaluationResults.Green.toString))).futureValue
 
       whenReady(assessmentCentreRepository.nextApplicationForAssessmentCentre(10)) { appsForAc =>
         appsForAc must contain theSameElementsAs Seq(
@@ -65,7 +65,7 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
           ApplicationForProgression("appId4", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
             List(SchemeEvaluationResult(Property, EvaluationResults.Green.toString))),
           ApplicationForProgression("appId7", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
-            List(SchemeEvaluationResult(DigitalDataTechnologyAndCyber, EvaluationResults.Green.toString)))
+            List(SchemeEvaluationResult(Digital, EvaluationResults.Green.toString)))
         )
         appsForAc.length mustBe 3
       }

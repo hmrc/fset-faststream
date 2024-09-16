@@ -75,7 +75,7 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     val phase1PassMarkSettingsTable = Table[SchemeId, Double, Double, Double, Double, Double, Double](
       ("Scheme Name",                           "Test1 Fail", "Test1 Pass", "Test2 Fail", "Test2 Pass", "Test3 Fail", "Test3 Pass"),
       (Commercial,                                20.0,         80.0,         30.0,         70.0,         20.0,         70.0),
-      (DigitalDataTechnologyAndCyber,             20.001,       20.001,       20.01,        20.05,        19.0,         20.0),
+      (Digital,             20.001,       20.001,       20.01,        20.05,        19.0,         20.0),
       (DiplomaticAndDevelopment,                  20.01,        20.02,        20.01,        20.02,        20.0,         80.0),
       (DiplomaticAndDevelopmentEconomics,         30.0,         70.0,         30.0,         70.0,         30.0,         70.0),
       (Finance,                                   25.01,        25.02,        25.01,        25.02,        25.01,        25.02),

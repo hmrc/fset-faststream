@@ -18,9 +18,9 @@
   siftEvaluationRequired: false
   fsbType: CYB - Skype interview
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/Candidate_Guide_Commercial_Final_Selection_Board.pdf
-- id: DigitalDataTechnologyAndCyber
+- id: Digital
   code: DDTAC
-  name: Digital, Data, Technology & Cyber
+  name: Digital
   civilServantEligible: true
   degree:
     required: Degree_22
@@ -220,8 +220,6 @@
   code: SDIP
   name: Summer Internship Programme
   civilServantEligible: true
-  siftRequirement: FORM
   siftEvaluationRequired: false
   fsbType: SDIP - Telephone interview
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/SIP-2023-Candidate-Guidance.pdf
-  schemeQuestion: /fset-fast-stream/media/SIP-2023-additional-information-form.odt
