@@ -79,6 +79,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       insertApplicationWithPhase1TestNotifiedResults("appId6",
         List(SchemeEvaluationResult(Edip, EvaluationResults.Green.toString)), appRoute = ApplicationRoute.Edip).futureValue
 
+      // The Sdip application should not be selected for campaign 2024/25 as it no longer goes via Sift
       insertApplicationWithPhase1TestNotifiedResults("appId7",
         List(SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString)), appRoute = ApplicationRoute.Sdip).futureValue
 
@@ -94,6 +95,7 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
         applicationRoute = ApplicationRoute.SdipFaststream
       ).futureValue */
 
+      // The Sdip application should not be selected for campaign 2024/25 as it no longer goes via Sift
       val appsForSift = repository.nextApplicationsForSiftStage(10).futureValue
       appsForSift must contain theSameElementsAs List(
         ApplicationForSift("appId1", "appId1", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
@@ -104,15 +106,13 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
           List(SchemeEvaluationResult(DiplomaticAndDevelopment, EvaluationResults.Green.toString))),
         ApplicationForSift("appId6", "appId6", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(Edip, EvaluationResults.Green.toString))),
-        ApplicationForSift("appId7", "appId7", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED,
-          List(SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString)))
         /* FSET-1803 - temporarily disabled
         ApplicationForSift("appId8", "appId8", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
         List(SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString),
           SchemeEvaluationResult(DiplomaticAndDevelopment, EvaluationResults.Red.toString)))*/
       )
 
-      appsForSift.size mustBe 5
+      appsForSift.size mustBe 4
     }
 
     "return no results when there are only applications that aren't in Passed_Notified which apply for sift " +
