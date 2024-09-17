@@ -172,7 +172,7 @@ class FsbMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
       ),
       Document(
         "applicationRoute" -> ApplicationRoute.Sdip.toBson,
-        "applicationStatus" -> ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED.toBson,
+        "applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED.toBson,
         "currentSchemeStatus" -> Document("$elemMatch" -> Document("result" -> Green.toString))
       )
     ))
