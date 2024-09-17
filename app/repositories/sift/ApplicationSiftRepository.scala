@@ -206,8 +206,8 @@ class ApplicationSiftMongoRepository @Inject() (
           "result" -> EvaluationResults.Green.toString)
       ))))
 
-    val xdipQuery = (route: ApplicationRoute) => Document(
-      "applicationRoute" -> route.toBson,
+    val edipQuery = () => Document(
+      "applicationRoute" -> ApplicationRoute.Edip.toBson,
       "applicationStatus" -> ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED.toBson
     )
 
@@ -215,15 +215,13 @@ class ApplicationSiftMongoRepository @Inject() (
       if (appConfig.disableSdipFaststreamForSift) { // FSET-1803. Disable sdipfaststream in sift temporarily
         Document("$or" -> BsonArray(
           fsQuery(),
-          xdipQuery(ApplicationRoute.Edip),
-          xdipQuery(ApplicationRoute.Sdip)
+          edipQuery()
         ))
       } else {
         Document("$or" -> BsonArray(
           fsQuery(),
           sdipFsQuery(),
-          xdipQuery(ApplicationRoute.Edip),
-          xdipQuery(ApplicationRoute.Sdip)
+          edipQuery()
         ))
       }
 
