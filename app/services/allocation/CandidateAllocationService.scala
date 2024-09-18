@@ -19,8 +19,6 @@ package services.allocation
 import com.google.inject.name.Named
 import config.MicroserviceAppConfig
 import connectors.{AuthProviderClient, OnlineTestEmailClient}
-
-import javax.inject.{Inject, Singleton}
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.{CandidateAlreadyAssignedToOtherEventException, OptimisticLockException}
 import model.ProgressStatuses.EventProgressStatuses
@@ -33,21 +31,21 @@ import model.persisted.eventschedules.{Event, EventType}
 import model.persisted.{ContactDetails, PersonalDetails}
 import model.stc.EmailEvents.{CandidateAllocationConfirmationReminder, CandidateAllocationConfirmationRequest, CandidateAllocationConfirmed}
 import model.stc.StcEventTypes.StcEvents
-
-import java.time.LocalDate
 import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.FsbRepository
 import repositories.personaldetails.PersonalDetailsRepository
-import repositories.{CandidateAllocationMongoRepository, SchemeRepository}
+import repositories.{CandidateAllocationMongoRepository, CurrentSchemeStatusHelper, SchemeRepository}
 import services.allocation.CandidateAllocationService.CouldNotFindCandidateWithApplication
 import services.events.EventsService
 import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 object CandidateAllocationService {
@@ -55,19 +53,19 @@ object CandidateAllocationService {
 }
 
 @Singleton
-class CandidateAllocationService @Inject() (candidateAllocationRepo: CandidateAllocationMongoRepository,
-                                             applicationRepo: GeneralApplicationRepository,
-                                             contactDetailsRepo: ContactDetailsRepository,
-                                             personalDetailsRepo: PersonalDetailsRepository,
-                                             schemeRepository: SchemeRepository,
-                                             fsbRepo: FsbRepository,
-                                             eventsService: EventsService,
-                                             allocationServiceCommon: AllocationServiceCommon, // Breaks circular dependencies
-                                             val eventService: StcEventService,
-                                             @Named("CSREmailClient") emailClient: OnlineTestEmailClient, //TODO:fix change type
-                                             authProviderClient: AuthProviderClient,
-                                             appConfig: MicroserviceAppConfig
-                                            )(implicit ec: ExecutionContext) extends EventSink with Logging {
+class CandidateAllocationService @Inject()(candidateAllocationRepo: CandidateAllocationMongoRepository,
+                                           applicationRepo: GeneralApplicationRepository,
+                                           contactDetailsRepo: ContactDetailsRepository,
+                                           personalDetailsRepo: PersonalDetailsRepository,
+                                           schemeRepository: SchemeRepository,
+                                           fsbRepo: FsbRepository,
+                                           eventsService: EventsService,
+                                           allocationServiceCommon: AllocationServiceCommon, // Breaks circular dependencies
+                                           val eventService: StcEventService,
+                                           @Named("CSREmailClient") emailClient: OnlineTestEmailClient, //TODO:fix change type
+                                           authProviderClient: AuthProviderClient,
+                                           appConfig: MicroserviceAppConfig
+                                          )(implicit ec: ExecutionContext) extends EventSink with Logging with CurrentSchemeStatusHelper {
 
   private val dateFormat = "dd MMMM YYYY"
   private val eventsConfig = appConfig.eventsConfig
@@ -118,12 +116,12 @@ class CandidateAllocationService @Inject() (candidateAllocationRepo: CandidateAl
 
   private def processCandidateAllocation(allocation: model.persisted.CandidateAllocation,
                                          eligibleForReallocation: Boolean, eventType: EventType)(implicit hc: HeaderCarrier) = {
-    ( allocation.removeReason.flatMap { rr => CandidateRemoveReason.find(rr).map(_.failApp) } match {
+    (allocation.removeReason.flatMap { rr => CandidateRemoveReason.find(rr).map(_.failApp) } match {
       case Some(true) => applicationRepo.setFailedToAttendAssessmentStatus(allocation.id, eventType)
       case _ if eligibleForReallocation => applicationRepo.resetApplicationAllocationStatus(allocation.id, eventType)
       // Do nothing in this scenario
       case _ => Future.successful(())
-    } ).flatMap { _ =>
+    }).flatMap { _ =>
       notifyCandidateUnallocated(allocation.eventId, model.command.CandidateAllocation.fromPersisted(allocation))
     }
   }
@@ -146,6 +144,7 @@ class CandidateAllocationService @Inject() (candidateAllocationRepo: CandidateAl
 
     /**
       * Verifies if the candidate has been assigned to other fsb events and the candidate has failed them all
+      *
       * @param eventType            the type of event we are dealing with
       * @param candidateAllocations the other fsb event allocations to which the candidate has been assigned
       * @return
@@ -185,8 +184,8 @@ class CandidateAllocationService @Inject() (candidateAllocationRepo: CandidateAl
     def hasFsbCandidateAlreadyBeenAssignedToSameEvent(event: Event, candidateAllocations: Seq[model.persisted.CandidateAllocation]) = {
       if (event.eventType == EventType.FSB) {
         Future.sequence(candidateAllocations.map { allocation =>
-          eventsService.getEvent(allocation.eventId).map( _.description )
-        }).map( _.contains( event.description ))
+          eventsService.getEvent(allocation.eventId).map(_.description)
+        }).map(_.contains(event.description))
       } else {
         Future.successful(false)
       }
@@ -279,12 +278,46 @@ class CandidateAllocationService @Inject() (candidateAllocationRepo: CandidateAl
   }
 
   def findCandidatesEligibleForEventAllocation(assessmentCentreLocation: String, eventType: EventType, eventDescription: String) = {
-    val schemeId = eventType match {
-      case EventType.FSAC => None
-      case EventType.FSB => Some(schemeRepository.getSchemeForFsb(eventDescription).id)
-    }
+    eventType match {
+      case EventType.FSAC =>
+        applicationRepo.findCandidatesEligibleForEventAllocation(List(assessmentCentreLocation), eventType, schemeId = None)
 
-    applicationRepo.findCandidatesEligibleForEventAllocation(List(assessmentCentreLocation), eventType, schemeId)
+      case EventType.FSB =>
+        val schemeForFsb = schemeRepository.getSchemeForFsb(eventDescription).id
+
+        def filterCandidate(applicationId: String): Future[Boolean] = {
+          applicationRepo.getCurrentSchemeStatus(applicationId).map { css =>
+            // This actually looks for Amber or Green but we are only processing candidates whose fsb scheme is Green so it is ok
+            val firstResidualPref = firstResidualPreference(css)
+            logger.debug(s"findCandidatesEligibleForEventAllocation - assessmentCentreLocation=$assessmentCentreLocation")
+            logger.debug(s"findCandidatesEligibleForEventAllocation - eventType=$eventType")
+            logger.debug(s"findCandidatesEligibleForEventAllocation - eventDescription=$eventDescription")
+            logger.debug(s"findCandidatesEligibleForEventAllocation - applicationId=$applicationId")
+            logger.debug(s"findCandidatesEligibleForEventAllocation - firstResidualPref=$firstResidualPref")
+            logger.debug(s"findCandidatesEligibleForEventAllocation - schemeForFsb=$schemeForFsb")
+            val include = firstResidualPref.exists(ser => ser.schemeId == schemeForFsb)
+            logger.debug(s"findCandidatesEligibleForEventAllocation - should include this candidate = $include")
+            include
+          }
+        }
+
+        for {
+          // Note that to appear in the potentialCandidates list, the scheme associated with the fsb must be Green in the css
+          // so if it is Amber the candidate will not appear in the list
+          potentialCandidates <- applicationRepo.findCandidatesEligibleForEventAllocation(
+            List(assessmentCentreLocation), eventType, schemeId = Some(schemeForFsb)
+          )
+          _ = logger.debug(s"findCandidatesEligibleForEventAllocation - found these potential candidates: ${potentialCandidates.candidates}")
+          filtered <- Future.traverse(potentialCandidates.candidates) { candidate =>
+            filterCandidate(candidate.applicationId).map { shouldInclude =>
+              candidate -> shouldInclude
+            }
+          }
+          validCandidates = filtered.collect { case (c, true) => c }
+        } yield {
+          CandidatesEligibleForEventResponse(validCandidates, validCandidates.size)
+        }
+    }
   }
 
   def findAllocatedApplications(appIds: List[String]): Future[CandidatesEligibleForEventResponse] = {
