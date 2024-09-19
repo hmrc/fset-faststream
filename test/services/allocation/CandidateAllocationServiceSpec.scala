@@ -20,6 +20,7 @@ import config.{EventsConfig, MicroserviceAppConfig}
 import connectors.ExchangeObjects.Candidate
 import connectors.{AuthProviderClient, OnlineTestEmailClient}
 import model.ApplicationStatus.ApplicationStatus
+import model.EvaluationResults.{Amber, Green, Withdrawn}
 import model.Exceptions.CandidateAlreadyAssignedToOtherEventException
 import model._
 import model.command.{CandidateAllocation, CandidateAllocations}
@@ -48,6 +49,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout {
+
   "Allocate candidate" must {
     "save allocation if none already exists" in new TestFixture {
       val eventId = "E1"
@@ -293,7 +295,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
     }
   }
 
-  "find eligible candidates" must {
+  "find eligible candidates for FSAC" must {
     "return all candidates except no-shows" in new TestFixture {
       private val fsacIndicator = model.FSACIndicator("","")
       private val c1 = CandidateEligibleForEvent("app1", "", "", needsAdjustment = true, fsbScoresAndFeedbackSubmitted = false,
@@ -309,6 +311,169 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
       when(mockAppRepo.findCandidatesEligibleForEventAllocation(List(loc), eventType, scheme)).thenReturnAsync(res)
 
       service.findCandidatesEligibleForEventAllocation(loc, eventType, desc).futureValue mustBe res
+    }
+  }
+
+  "find eligible candidates for FSB" must {
+
+    "return all candidates whose 1st residual preference requires the FSB" in new TestFixture {
+      val fsacIndicator = model.FSACIndicator("","")
+      val c1 = CandidateEligibleForEvent("app1", "", "", needsAdjustment = true, fsbScoresAndFeedbackSubmitted = false,
+        fsacIndicator, OffsetDateTime.now)
+      val c2 = CandidateEligibleForEvent("app2", "", "", needsAdjustment = true, fsbScoresAndFeedbackSubmitted = false,
+        fsacIndicator, OffsetDateTime.now)
+      val loc = "Virtual"
+      val eventType = EventType.FSB
+      val desc = "PRO - Skype interview"
+      val scheme = Some(Property)
+
+      when(mockSchemeRepository.getSchemeForFsb(desc)).thenReturn(
+        Scheme(
+          Property, "PRO", desc,
+          civilServantEligible = false,
+          degree = None,
+          siftRequirement = None,
+          siftEvaluationRequired = false,
+          fsbType = Some(FsbType(desc)),
+          schemeGuide = None,
+          schemeQuestion = None
+        )
+      )
+
+      // Candidates will only appear in the list if they are Green for the scheme that is associated with the FSB
+      when(mockAppRepo.getCurrentSchemeStatus("app1")).thenReturnAsync(
+        Seq(
+          SchemeEvaluationResult(Commercial, Withdrawn.toString),
+          SchemeEvaluationResult(Property, Green.toString)
+        )
+      )
+
+      when(mockAppRepo.getCurrentSchemeStatus("app2")).thenReturnAsync(
+        Seq(
+          SchemeEvaluationResult(Commercial, Withdrawn.toString),
+          SchemeEvaluationResult(Property, Green.toString)
+        )
+      )
+
+      val res = CandidatesEligibleForEventResponse(List(c1, c2), 2)
+      when(mockAppRepo.findCandidatesEligibleForEventAllocation(List(loc), eventType, scheme)).thenReturnAsync(res)
+
+      service.findCandidatesEligibleForEventAllocation(loc, eventType, desc).futureValue mustBe res
+    }
+
+    "not include candidates whose 1st residual preference does not need the FSB" in new TestFixture {
+      val fsacIndicator = model.FSACIndicator("", "")
+      val c1 = CandidateEligibleForEvent("app1", "", "", needsAdjustment = true, fsbScoresAndFeedbackSubmitted = false,
+        fsacIndicator, OffsetDateTime.now)
+      val c2 = CandidateEligibleForEvent("app2", "", "", needsAdjustment = true, fsbScoresAndFeedbackSubmitted = false,
+        fsacIndicator, OffsetDateTime.now)
+      val loc = "Virtual"
+      val eventType = EventType.FSB
+      val desc = "PRO - Skype interview"
+      val scheme = Some(Property)
+
+      when(mockSchemeRepository.getSchemeForFsb(desc)).thenReturn(
+        Scheme(
+          Property, "PRO", desc,
+          civilServantEligible = false,
+          degree = None,
+          siftRequirement = None,
+          siftEvaluationRequired = false,
+          fsbType = Some(FsbType(desc)),
+          schemeGuide = None,
+          schemeQuestion = None
+        )
+      )
+
+      // This candidate should not be included because 1st residual preference is GovernmentPolicy
+      when(mockAppRepo.getCurrentSchemeStatus("app1")).thenReturnAsync(
+        Seq(
+          SchemeEvaluationResult(Commercial, Withdrawn.toString),
+          SchemeEvaluationResult(GovernmentPolicy, Amber.toString),
+          SchemeEvaluationResult(Property, Green.toString)
+        )
+      )
+
+      when(mockAppRepo.getCurrentSchemeStatus("app2")).thenReturnAsync(
+        Seq(
+          SchemeEvaluationResult(Commercial, Withdrawn.toString),
+          SchemeEvaluationResult(Property, Green.toString)
+        )
+      )
+
+      when(mockAppRepo.findCandidatesEligibleForEventAllocation(List(loc), eventType, scheme)).thenReturnAsync(
+        CandidatesEligibleForEventResponse(List(c1, c2), 2)
+      )
+
+      service.findCandidatesEligibleForEventAllocation(loc, eventType, desc).futureValue mustBe
+        CandidatesEligibleForEventResponse(List(c2), 1)
+    }
+
+    "not include candidates whose 1st residual preference is for a different FSB" in new TestFixture {
+      val fsacIndicator = model.FSACIndicator("", "")
+      val c1 = CandidateEligibleForEvent("app1", "", "", needsAdjustment = true, fsbScoresAndFeedbackSubmitted = false,
+        fsacIndicator, OffsetDateTime.now)
+      val loc = "Virtual"
+      val eventType = EventType.FSB
+      val desc = "PRO - Skype interview"
+      val scheme = Some(Property)
+
+      when(mockSchemeRepository.getSchemeForFsb(desc)).thenReturn(
+        Scheme(
+          Property, "PRO", desc,
+          civilServantEligible = false,
+          degree = None,
+          siftRequirement = None,
+          siftEvaluationRequired = false,
+          fsbType = Some(FsbType(desc)),
+          schemeGuide = None,
+          schemeQuestion = None
+        )
+      )
+
+      // This candidate should not be included because 1st residual preference is CyberSecurity
+      when(mockAppRepo.getCurrentSchemeStatus("app1")).thenReturnAsync(
+        Seq(
+          SchemeEvaluationResult(Commercial, Withdrawn.toString),
+          SchemeEvaluationResult(CyberSecurity, Green.toString),
+          SchemeEvaluationResult(Property, Green.toString)
+        )
+      )
+
+      when(mockAppRepo.findCandidatesEligibleForEventAllocation(List(loc), eventType, scheme)).thenReturnAsync(
+        CandidatesEligibleForEventResponse(List(c1), 1)
+      )
+
+      service.findCandidatesEligibleForEventAllocation(loc, eventType, desc).futureValue mustBe
+        CandidatesEligibleForEventResponse(Nil, 0)
+    }
+
+    "not include candidates whose 1st residual preference does need the FSB but the scheme is Amber" in new TestFixture {
+      val loc = "Virtual"
+      val eventType = EventType.FSB
+      val desc = "PRO - Skype interview"
+      val scheme = Some(Property)
+
+      when(mockSchemeRepository.getSchemeForFsb(desc)).thenReturn(
+        Scheme(
+          Property, "PRO", desc,
+          civilServantEligible = false,
+          degree = None,
+          siftRequirement = None,
+          siftEvaluationRequired = false,
+          fsbType = Some(FsbType(desc)),
+          schemeGuide = None,
+          schemeQuestion = None
+        )
+      )
+
+      // In this scenario the property scheme is Amber so is not returned from the db
+      when(mockAppRepo.findCandidatesEligibleForEventAllocation(List(loc), eventType, scheme)).thenReturnAsync(
+        CandidatesEligibleForEventResponse(Nil, 0)
+      )
+
+      service.findCandidatesEligibleForEventAllocation(loc, eventType, desc).futureValue mustBe
+        CandidatesEligibleForEventResponse(Nil, 0)
     }
   }
 
