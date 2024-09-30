@@ -37,6 +37,13 @@ object ProgressResponseExamples {
 
   val Phase1TestsInvitedProgressResponse = Phase1ProgressResponse(phase1TestsInvited = true)
   val InPhase1TestsInvited: ProgressResponse = InPreview.copy(phase1ProgressResponse = Phase1TestsInvitedProgressResponse)
+  val Phase1TestsPassedProgressResponse = Phase1ProgressResponse(
+    phase1TestsInvited = true,
+    phase1TestsStarted = true,
+    phase1TestsCompleted = true,
+    phase1TestsPassed = true
+  )
+  val InPhase1TestsPassed: ProgressResponse = InPreview.copy(phase1ProgressResponse = Phase1TestsPassedProgressResponse)
 
   val SiftEnteredProgressResponse = SiftProgressResponse(siftEntered = true)
   val InSiftEntered: ProgressResponse = InPreview.copy(siftProgressResponse = SiftEnteredProgressResponse)
