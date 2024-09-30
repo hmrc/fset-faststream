@@ -176,14 +176,13 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
                             siftAnswersStatus: Option[SiftAnswersStatus.Value]) = {
       val greenSchemes = schemeStatus.collect { case s if s.result == Green.toString => s.schemeId }.toSet
 
-      // we only have generalist or human resources
       val onlyNonSiftableSchemesLeft = greenSchemes subsetOf schemesRepo.nonSiftableSchemeIds.toSet
 
       // only schemes with no evaluation requirement and form filled in. This set of schemes all require you to fill in a form
       val onlyNoSiftEvaluationRequiredSchemesWithFormFilled = siftAnswersStatus.contains(SiftAnswersStatus.SUBMITTED) &&
         (greenSchemes subsetOf schemesRepo.noSiftEvaluationRequiredSchemeIds.toSet)
 
-      val shouldProgressToFSAC = applicationStatus == ApplicationStatus.SIFT &&
+      val shouldProgressToFSAC = (applicationStatus == ApplicationStatus.PHASE1_TESTS_PASSED || applicationStatus == ApplicationStatus.SIFT) &&
         (onlyNonSiftableSchemesLeft || onlyNoSiftEvaluationRequiredSchemesWithFormFilled) &&
         !latestProgressStatus.contains(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
 
