@@ -78,6 +78,7 @@ object AuditEvents {
   case class ExpiredSiftExtended(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
   case class NonExpiredSiftExtended(mapDetails: Map[String, String]) extends AuditEventNoRequest(mapDetails)
 
+  case class AutoProgressedToSift(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)
   case class AutoProgressedToFSAC(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)
   case class AutoProgressedToFSB(mapDetails: Map[String, String]) extends AuditEvent(mapDetails)
 }

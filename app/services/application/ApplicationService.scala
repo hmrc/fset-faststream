@@ -19,7 +19,7 @@ package services.application
 import common.FutureEx
 import connectors.ExchangeObjects
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.{Green, Red, Withdrawn}
+import model.EvaluationResults.{Amber, Green, Red, Withdrawn}
 import model.Exceptions._
 import model.ProgressStatuses._
 import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
@@ -171,12 +171,45 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
       calculateCurrentSchemeStatus(current, SchemeEvaluationResult(withdrawRequest.schemeId, EvaluationResults.Withdrawn.toString) :: Nil)
     }
 
+    def maybeProgressToSiftEntered(applicationStatus: ApplicationStatus, schemeStatus: Seq[SchemeEvaluationResult]) = {
+      val amberSchemes = schemeStatus.collect { case s if s.result == Amber.toString => s.schemeId }.toSet
+      val greenSchemes = schemeStatus.collect { case s if s.result == Green.toString => s.schemeId }.toSet
+
+      val onlySchemesRequiringSiftFormLeft = amberSchemes.isEmpty && greenSchemes.nonEmpty &&
+        (greenSchemes subsetOf schemesRepo.siftableSchemeIds.toSet)
+
+      val shouldProgressToSift = applicationStatus == ApplicationStatus.PHASE1_TESTS_PASSED && onlySchemesRequiringSiftFormLeft
+
+      val prefix = "[withdraw - maybeProgressToSiftEntered]"
+      logger.debug(s"$prefix")
+      logger.debug(s"$prefix schemeStatus=$schemeStatus")
+      logger.debug(s"$prefix amberSchemes=$amberSchemes")
+      logger.debug(s"$prefix greenSchemes=$greenSchemes")
+      logger.debug(s"$prefix onlySchemesRequiringSiftFormLeft=$onlySchemesRequiringSiftFormLeft")
+      logger.debug(s"$prefix shouldProgressToSift=$shouldProgressToSift")
+
+      if (shouldProgressToSift) {
+        appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SIFT_ENTERED).map { _ =>
+          logger.info(s"Candidate $applicationId withdrawing scheme will be moved to ${ProgressStatuses.SIFT_ENTERED}")
+          AuditEvents.AutoProgressedToSift(
+            Map("applicationId" -> applicationId, "reason" -> "after withdraw, candidate only has sift schemes")
+          ) :: Nil
+        }
+      } else {
+        logger.info(s"Candidate $applicationId withdrawing scheme will not be moved to " +
+          s"${ProgressStatuses.SIFT_ENTERED}")
+        Future.successful(())
+      }
+    }
+
     def maybeProgressToFSAC(applicationStatus: ApplicationStatus, schemeStatus: Seq[SchemeEvaluationResult],
                             latestProgressStatus: Option[ProgressStatus],
                             siftAnswersStatus: Option[SiftAnswersStatus.Value]) = {
+      val amberSchemes = schemeStatus.collect { case s if s.result == Amber.toString => s.schemeId }.toSet
       val greenSchemes = schemeStatus.collect { case s if s.result == Green.toString => s.schemeId }.toSet
 
-      val onlyNonSiftableSchemesLeft = greenSchemes subsetOf schemesRepo.nonSiftableSchemeIds.toSet
+      val onlyNonSiftableSchemesLeft = amberSchemes.isEmpty && greenSchemes.nonEmpty &&
+        (greenSchemes subsetOf schemesRepo.nonSiftableSchemeIds.toSet)
 
       // only schemes with no evaluation requirement and form filled in. This set of schemes all require you to fill in a form
       val onlyNoSiftEvaluationRequiredSchemesWithFormFilled = siftAnswersStatus.contains(SiftAnswersStatus.SUBMITTED) &&
@@ -185,6 +218,15 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
       val shouldProgressToFSAC = (applicationStatus == ApplicationStatus.PHASE1_TESTS_PASSED || applicationStatus == ApplicationStatus.SIFT) &&
         (onlyNonSiftableSchemesLeft || onlyNoSiftEvaluationRequiredSchemesWithFormFilled) &&
         !latestProgressStatus.contains(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION)
+
+      val prefix = "[withdraw - maybeProgressToFSAC]"
+      logger.debug(s"$prefix")
+      logger.debug(s"$prefix schemeStatus=$schemeStatus")
+      logger.debug(s"$prefix amberSchemes=$amberSchemes")
+      logger.debug(s"$prefix greenSchemes=$greenSchemes")
+      logger.debug(s"$prefix onlyNonSiftableSchemesLeft=$onlyNonSiftableSchemesLeft")
+      logger.debug(s"$prefix onlyNoSiftEvaluationRequiredSchemesWithFormFilled=$onlyNoSiftEvaluationRequiredSchemesWithFormFilled")
+      logger.debug(s"$prefix shouldProgressToFSAC=$shouldProgressToFSAC")
 
       // sdip faststream candidate who is awaiting allocation to an assessment centre or is in sift completed (not yet picked
       // up by the assessment centre invite job) and has withdrawn from all fast stream schemes (or been sifted out) and only has sdip left
@@ -279,6 +321,8 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
       latestSchemeStatus = buildLatestSchemeStatus(currentSchemeStatus, withdrawRequest)
       appStatusDetails <- appRepository.findStatus(applicationId)
       _ <- appRepository.withdrawScheme(applicationId, withdrawRequest, latestSchemeStatus)
+
+      _ <- maybeProgressToSiftEntered(appStatusDetails.status, latestSchemeStatus)
 
       siftAnswersStatus <- siftAnswersService.findSiftAnswersStatus(applicationId)
       _ <- maybeProgressToFSAC(appStatusDetails.status, latestSchemeStatus, appStatusDetails.latestProgressStatus, siftAnswersStatus)

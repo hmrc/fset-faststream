@@ -102,8 +102,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       val faststreamApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Faststream,
         userId, testAccountId, ProgressResponse(applicationId), None, None)
       val passmarkEvaluation = PassmarkEvaluation("", None,
-        List(SchemeEvaluationResult(Commercial, "Green"),
-          SchemeEvaluationResult(GovernmentOperationalResearchService, "Red")),
+        List(SchemeEvaluationResult(Commercial, Green.toString),
+          SchemeEvaluationResult(GovernmentOperationalResearchService, Red.toString)),
         "", None)
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(faststreamApplication))
@@ -131,7 +131,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
     "retrieve passed schemes for Edip application" in new TestFixture {
       val edipApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Edip, userId, testAccountId,
         ProgressResponse(applicationId), None, None)
-      val passmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(Edip, "Green")), "", None)
+      val passmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(Edip, Green.toString)), "", None)
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(edipApplication))
       when(evalPhase1ResultMock.getPassmarkEvaluation(eqTo(applicationId))(any[ExecutionContext]))
@@ -145,7 +145,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
     "retrieve passed schemes for Sdip application" in new TestFixture {
       val sdipApplication = ApplicationResponse(applicationId, "", ApplicationRoute.Sdip, userId, testAccountId,
         ProgressResponse(applicationId), None, None)
-      val passmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(Sdip, "Green")), "", None)
+      val passmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(Sdip, Green.toString)), "", None)
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(sdipApplication))
       when(evalPhase1ResultMock.getPassmarkEvaluation(eqTo(applicationId))(any[ExecutionContext]))
@@ -160,13 +160,13 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       val application = ApplicationResponse(applicationId, "", ApplicationRoute.SdipFaststream, userId, testAccountId,
         ProgressResponse(applicationId), None, None
       )
-      val phase1PassmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(Sdip, "Green"),
-        SchemeEvaluationResult(Finance, "Green")), "", None)
+      val phase1PassmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(Sdip, Green.toString),
+        SchemeEvaluationResult(Finance, Green.toString)), "", None)
 
       val phase3PassmarkEvaluation = PassmarkEvaluation("", None,
-        List(SchemeEvaluationResult(Commercial, "Green"),
-          SchemeEvaluationResult(GovernmentOperationalResearchService, "Red"),
-          SchemeEvaluationResult(Finance, "Red")
+        List(SchemeEvaluationResult(Commercial, Green.toString),
+          SchemeEvaluationResult(GovernmentOperationalResearchService, Red.toString),
+          SchemeEvaluationResult(Finance, Red.toString)
         ), "", None)
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(application))
@@ -184,7 +184,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       val application = ApplicationResponse(applicationId, "", ApplicationRoute.SdipFaststream, userId, testAccountId,
         ProgressResponse(applicationId), None, None
       )
-      val phase1PassmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(Sdip, "Green")), "", None)
+      val phase1PassmarkEvaluation = PassmarkEvaluation("", None, List(SchemeEvaluationResult(Sdip, Green.toString)), "", None)
 
       when(appRepositoryMock.findByUserId(eqTo(userId), eqTo(frameworkId))).thenReturn(Future.successful(application))
       when(evalPhase3ResultMock.getPassmarkEvaluation(eqTo(applicationId))(any[ExecutionContext]))
@@ -216,7 +216,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(Commercial, "Green")
+        SchemeEvaluationResult(Commercial, Green.toString)
       ))
       when(appRepositoryMock.withdraw(any[String], any[WithdrawApplication])).thenReturnAsync()
       when(candidateAllocationServiceMock.allocationsForApplication(any[String])(any[HeaderCarrier])).thenReturnAsync(Nil)
@@ -259,10 +259,13 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
         any[Seq[SchemeEvaluationResult]]
       )
       verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
-        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
-
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
     }
 
     "withdraw from a scheme and progress to FSAC when a siftable scheme is left (not sdip) which requires a form to be filled in " +
@@ -274,8 +277,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(Commercial, "Green"),          // numeric test, evaluation required
-        SchemeEvaluationResult(DiplomaticAndDevelopment, "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(Commercial, Green.toString),          // numeric test, evaluation required
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString) // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -296,8 +299,12 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
 
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
     }
 
     "not progress the candidate to FSAC after withdrawing from a scheme after filling in the forms and a single numeric scheme is left " +
@@ -309,8 +316,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(Commercial, "Green"),          // numeric test, evaluation required
-        SchemeEvaluationResult(DiplomaticAndDevelopment, "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(Commercial, Green.toString),          // numeric test, evaluation required
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString) // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -328,8 +335,15 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw),
         any[Seq[SchemeEvaluationResult]]
       )
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
     }
 
     "leave the candidate in FSAC if the candidate is awaiting allocation and withdraws from a scheme when a siftable scheme is left " +
@@ -341,8 +355,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(Commercial, "Green"),          // numeric test, evaluation required
-        SchemeEvaluationResult(DiplomaticAndDevelopment, "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(Commercial, Green.toString),          // numeric test, evaluation required
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString) // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -361,11 +375,15 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw),
         any[Seq[SchemeEvaluationResult]]
       )
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
 
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
     }
 
     "progress to FSAC allocation if only non-evaluation schemes are left and we have not filled in forms" in new TestFixture {
@@ -376,8 +394,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(DiplomaticAndDevelopment, "Green"), // form to be filled in, no evaluation required
-        SchemeEvaluationResult(OperationalDelivery, "Green")            // no evaluation required
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString), // form to be filled in, no evaluation required
+        SchemeEvaluationResult(OperationalDelivery, Green.toString)            // no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -397,8 +415,12 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
 
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
     }
 
     "progress to FSAC allocation if only non-evaluation schemes are left and we have filled in forms" in new TestFixture {
@@ -409,8 +431,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(DiplomaticAndDevelopment, "Green"), // form to be filled in, no evaluation required
-        SchemeEvaluationResult(OperationalDelivery, "Green")            // no evaluation required
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString), // form to be filled in, no evaluation required
+        SchemeEvaluationResult(OperationalDelivery, Green.toString)            // no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -429,8 +451,13 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       )
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
     }
 
     "not progress to FSAC allocation if I have one scheme which requires a form to be filled in but I have not completed the form " +
@@ -443,8 +470,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
         // GovernmentEconomicsService - Form to be filled in, evaluation required (will stop us moving to FSAC)
-        SchemeEvaluationResult(GovernmentEconomicsService, "Green"),   // form to be filled in, evaluation required
-        SchemeEvaluationResult(DiplomaticAndDevelopment, "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(GovernmentEconomicsService, Green.toString),   // form to be filled in, evaluation required
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString) // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -461,11 +488,15 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw),
         any[Seq[SchemeEvaluationResult]]
       )
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
 
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
     }
 
     "progress to FSAC allocation if I have one scheme which requires a form to be filled in but no evaluation is needed and I have submitted " +
@@ -477,8 +508,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(DiplomaticAndDevelopment, "Green"), // form to be filled in, no evaluation required
-        SchemeEvaluationResult(Commercial, "Green")            // numeric test, evaluation required
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString), // form to be filled in, no evaluation required
+        SchemeEvaluationResult(Commercial, Green.toString)            // numeric test, evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -497,8 +528,13 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       )
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
     }
 
     "progress to FSAC allocation if I am an sdip faststream candidate with the two non-sift schemes and I have not completed the " +
@@ -510,9 +546,9 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(Sdip, "Green"),           // form to be filled in, evaluation required
-        SchemeEvaluationResult(OperationalDelivery, "Green"),     // no sift requirement, no evaluation required
-        SchemeEvaluationResult(HumanResources, "Green")  // no sift requirement, no evaluation required
+        SchemeEvaluationResult(Sdip, Green.toString),           // form to be filled in, evaluation required
+        SchemeEvaluationResult(OperationalDelivery, Green.toString),     // no sift requirement, no evaluation required
+        SchemeEvaluationResult(HumanResources, Green.toString)  // no sift requirement, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -531,8 +567,13 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       )
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
     }
 
     "progress to FSAC allocation if I am a sdip faststream candidate with 1 other scheme which requires a form to be filled in " +
@@ -544,8 +585,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(Sdip, "Green"),                // form to be filled in, evaluation required
-        SchemeEvaluationResult(DiplomaticAndDevelopment, "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(Sdip, Green.toString),                // form to be filled in, evaluation required
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString) // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -564,8 +605,13 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       )
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
       verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
     }
 
     //Sdip scheme should never go to assessment centre
@@ -579,8 +625,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(Sdip, "Green"),      // form to be filled in, evaluation required
-        SchemeEvaluationResult(Commercial, "Green") // numeric test, evaluation required
+        SchemeEvaluationResult(Sdip, Green.toString),      // form to be filled in, evaluation required
+        SchemeEvaluationResult(Commercial, Green.toString) // numeric test, evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -597,10 +643,15 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw),
         any[Seq[SchemeEvaluationResult]]
       )
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
     }
 
     "progress sdip faststream candidate to fsb awaiting allocation who is awaiting allocation to an assessment centre after withdrawing from " +
@@ -612,8 +663,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(Sdip, "Green"),                // form to be filled in, evaluation required
-        SchemeEvaluationResult(DiplomaticAndDevelopment, "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(Sdip, Green.toString),                // form to be filled in, evaluation required
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString) // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -633,8 +684,15 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       )
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.FSB_AWAITING_ALLOCATION))
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
     }
 
     "progress sdip faststream candidate to fsb awaiting allocation who has been sifted in for sdip but has not yet been invited to an " +
@@ -646,9 +704,9 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(Sdip, "Green"),                // form to be filled in, evaluation required
-        SchemeEvaluationResult(Commercial, "Red"),            // numeric test, evaluation required (already been sifted with a fail)
-        SchemeEvaluationResult(DiplomaticAndDevelopment, "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(Sdip, Green.toString),                // form to be filled in, evaluation required
+        SchemeEvaluationResult(Commercial, Red.toString),            // numeric test, evaluation required (already been sifted with a fail)
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString) // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -668,8 +726,15 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       )
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.FSB_AWAITING_ALLOCATION))
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
     }
 
     "not progress sdip faststream candidate out of sift who has been sifted in for all schemes that require a sift but who also has" +
@@ -683,9 +748,9 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(Sdip, "Green"),                // form to be filled in, evaluation required (sifted with a pass)
-        SchemeEvaluationResult(Commercial, "Green"),          // numeric test, evaluation required (sifted with a pass)
-        SchemeEvaluationResult(DiplomaticAndDevelopment, "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(Sdip, Green.toString),                // form to be filled in, evaluation required (sifted with a pass)
+        SchemeEvaluationResult(Commercial, Green.toString),          // numeric test, evaluation required (sifted with a pass)
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString) // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -703,7 +768,41 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw),
         any[Seq[SchemeEvaluationResult]]
       )
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])
+    }
+
+    "progress candidate to Sift who is in PHASE1_TESTS_PASSED but still has an amber banded scheme and now withdraws from " +
+      "the amber scheme so now is only in the running for a scheme that requires a sift form" in new TestFixture {
+      when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
+
+      when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(None) // No form saved
+      when(appRepositoryMock.findProgress(any[String])).thenReturnAsync(ProgressResponseExamples.InPhase1TestsPassed)
+
+      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString), // sift form needed
+        SchemeEvaluationResult(RiskManagement, Amber.toString) // no sift needed
+      ))
+      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
+      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme], any[Seq[SchemeEvaluationResult]])).thenReturnAsync()
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
+      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+        ApplicationStatusDetails(ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationRoute.Faststream,
+          Some(ProgressStatuses.PHASE1_TESTS_PASSED), statusDate = None, overrideSubmissionDeadline = None))
+
+      val withdraw = WithdrawScheme(RiskManagement, "reason", "Candidate")
+
+      underTest.withdraw(applicationId, withdraw).futureValue
+
+      verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw), any[Seq[SchemeEvaluationResult]])
+      verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
     }
 
     "progress candidate to SIFT_READY who is in SIFT_ENTERED and has withdrawn from all form based schemes but is still in the running for " +
@@ -715,9 +814,9 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(OperationalDelivery, "Green"),          // nothing required
-        SchemeEvaluationResult(Commercial, "Green"),          // numeric test, evaluation required
-        SchemeEvaluationResult(DiplomaticAndDevelopment, "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(OperationalDelivery, Green.toString),          // nothing required
+        SchemeEvaluationResult(Commercial, Green.toString),          // numeric test, evaluation required
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString) // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -737,6 +836,13 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       )
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.SIFT_READY))
+
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
     }
 
     "progress candidate to SIFT_READY who is in SIFT_ENTERED and has withdrawn from all form based schemes but is still in the running for " +
@@ -748,8 +854,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(Commercial, "Green"),                   // numeric test, evaluation required
-        SchemeEvaluationResult(DiplomaticAndDevelopment, "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(Commercial, Green.toString),                   // numeric test, evaluation required
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString) // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -770,8 +876,12 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.SIFT_READY))
 
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
     }
 
     "progress candidate to SIFT_READY who has completed a numeric test and submitted forms, which need no evaluation, withdraws from " +
@@ -783,8 +893,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(Commercial, "Green"),                // numeric test, evaluation required
-        SchemeEvaluationResult(GovernmentEconomicsService, "Green") // form to be filled in, evaluation required
+        SchemeEvaluationResult(Commercial, Green.toString),                // numeric test, evaluation required
+        SchemeEvaluationResult(GovernmentEconomicsService, Green.toString) // form to be filled in, evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -805,8 +915,12 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.SIFT_READY))
 
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
     }
 
     "progress candidate to FSAC allocation who is in SIFT_ENTERED and has withdrawn from all form based schemes and is only " +
@@ -818,8 +932,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(OperationalDelivery, "Green"),          // numeric test, evaluation required
-        SchemeEvaluationResult(DiplomaticAndDevelopment, "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(OperationalDelivery, Green.toString),          // numeric test, evaluation required
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString) // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -840,8 +954,12 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
 
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
           eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
     }
 
     "not progress candidate out of PHASE1_TESTS who is in PHASE1_TESTS_INVITED and has withdrawn from all form based schemes and is only " +
@@ -853,8 +971,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(OperationalDelivery, "Green"),          // numeric test, evaluation required
-        SchemeEvaluationResult(DiplomaticAndDevelopment, "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(OperationalDelivery, Green.toString),          // numeric test, evaluation required
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString) // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -870,12 +988,158 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       underTest.withdraw(applicationId, withdraw).futureValue
 
       verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw), any[Seq[SchemeEvaluationResult]])
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
-        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
           eqTo(ProgressStatuses.SIFT_READY))
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
           eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
+    }
+
+    "not progress candidate who is in PHASE1_TESTS_PASSED but still has an amber banded scheme and now withdraws from " +
+      "the green 1st preference, which put them in PHASE1_TESTS_PASSED" in new TestFixture {
+      when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
+
+      when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(None) // No form saved
+      when(appRepositoryMock.findProgress(any[String])).thenReturnAsync(ProgressResponseExamples.InPhase1TestsPassed)
+
+      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString), // sift form needed
+        SchemeEvaluationResult(RiskManagement, Amber.toString) // no sift needed
+      ))
+      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
+      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme], any[Seq[SchemeEvaluationResult]])).thenReturnAsync()
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
+      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+        ApplicationStatusDetails(ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationRoute.Faststream,
+          Some(ProgressStatuses.PHASE1_TESTS_PASSED), statusDate = None, overrideSubmissionDeadline = None))
+
+      val withdraw = WithdrawScheme(DiplomaticAndDevelopment, "reason", "Candidate")
+
+      underTest.withdraw(applicationId, withdraw).futureValue
+
+      verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw), any[Seq[SchemeEvaluationResult]])
+
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
+    }
+
+    "not progress candidate who is in PHASE1_TESTS_PASSED but still has 2 amber banded scheme and now withdraws from " +
+      "the green 1st preference, which put them in PHASE1_TESTS_PASSED" in new TestFixture {
+      when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
+
+      when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(None) // No form saved
+      when(appRepositoryMock.findProgress(any[String])).thenReturnAsync(ProgressResponseExamples.InPhase1TestsPassed)
+
+      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString), // sift form needed
+        SchemeEvaluationResult(HumanResources, Amber.toString), // no sift needed
+        SchemeEvaluationResult(RiskManagement, Amber.toString) // no sift needed
+      ))
+      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
+      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme], any[Seq[SchemeEvaluationResult]])).thenReturnAsync()
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
+      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+        ApplicationStatusDetails(ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationRoute.Faststream,
+          Some(ProgressStatuses.PHASE1_TESTS_PASSED), statusDate = None, overrideSubmissionDeadline = None))
+
+      val withdraw = WithdrawScheme(DiplomaticAndDevelopment, "reason", "Candidate")
+
+      underTest.withdraw(applicationId, withdraw).futureValue
+
+      verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw), any[Seq[SchemeEvaluationResult]])
+
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
+    }
+
+    "not progress candidate to SIFT who is in PHASE1_TESTS_PASSED and after withdrawing the 1st pref, which put them into PHASE1_TESTS_PASSED " +
+      "is left with an Amber scheme and a Green scheme" in new TestFixture {
+      when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
+
+      when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(None) // No form saved
+      when(appRepositoryMock.findProgress(any[String])).thenReturnAsync(ProgressResponseExamples.InPhase1TestsPassed)
+
+      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString), // sift form needed
+        SchemeEvaluationResult(HumanResources, Amber.toString), // no sift needed
+        SchemeEvaluationResult(GovernmentEconomicsService, Green.toString) // sift form and eval needed
+      ))
+      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
+      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme], any[Seq[SchemeEvaluationResult]])).thenReturnAsync()
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
+      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+        ApplicationStatusDetails(ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationRoute.Faststream,
+          Some(ProgressStatuses.PHASE1_TESTS_PASSED), statusDate = None, overrideSubmissionDeadline = None))
+
+      val withdraw = WithdrawScheme(DiplomaticAndDevelopment, "reason", "Candidate")
+
+      underTest.withdraw(applicationId, withdraw).futureValue
+
+      verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw), any[Seq[SchemeEvaluationResult]])
+
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
+    }
+
+    "not progress candidate to FSAC who is in PHASE1_TESTS_PASSED and after withdrawing the 1st pref, which put them into PHASE1_TESTS_PASSED " +
+      "is left with an Amber scheme and a Green scheme" in new TestFixture {
+      when(siftServiceMock.isSiftExpired(any[String])).thenReturnAsync(false)
+
+      when(siftAnswersServiceMock.findSiftAnswersStatus(any[String])).thenReturnAsync(None) // No form saved
+      when(appRepositoryMock.findProgress(any[String])).thenReturnAsync(ProgressResponseExamples.InPhase1TestsPassed)
+
+      when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString), // sift form needed
+        SchemeEvaluationResult(HumanResources, Amber.toString), // no sift needed
+        SchemeEvaluationResult(OperationalDelivery, Green.toString) // no sift needed
+      ))
+      when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
+      when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme], any[Seq[SchemeEvaluationResult]])).thenReturnAsync()
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
+      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+        ApplicationStatusDetails(ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationRoute.Faststream,
+          Some(ProgressStatuses.PHASE1_TESTS_PASSED), statusDate = None, overrideSubmissionDeadline = None))
+
+      val withdraw = WithdrawScheme(DiplomaticAndDevelopment, "reason", "Candidate")
+
+      underTest.withdraw(applicationId, withdraw).futureValue
+
+      verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw), any[Seq[SchemeEvaluationResult]])
+
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
     }
 
     "progress candidate to FSAC who is in PHASE1_TESTS_PASSED but still has an amber banded scheme and now withdraws from " +
@@ -887,8 +1151,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(Digital, "Green"), // no sift needed
-        SchemeEvaluationResult(RiskManagement, "Amber") // no sift needed
+        SchemeEvaluationResult(Digital, Green.toString), // no sift needed
+        SchemeEvaluationResult(RiskManagement, Amber.toString) // no sift needed
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme], any[Seq[SchemeEvaluationResult]])).thenReturnAsync()
@@ -904,10 +1168,13 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw), any[Seq[SchemeEvaluationResult]])
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
-          eqTo(ProgressStatuses.SIFT_READY))
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
-          eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
+
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
     }
 
     "not progress candidate to SIFT_READY who is in SIFT_ENTERED and has withdrawn from a form based scheme but is still in the running " +
@@ -919,10 +1186,10 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(OperationalDelivery, "Green"),          // nothing required
-        SchemeEvaluationResult(GovernmentEconomicsService, "Green"),   // form to be filled in, evaluation required
-        SchemeEvaluationResult(Commercial, "Green"),                   // numeric test, evaluation required
-        SchemeEvaluationResult(DiplomaticAndDevelopment, "Green") // form to be filled in, no evaluation required
+        SchemeEvaluationResult(OperationalDelivery, Green.toString),          // nothing required
+        SchemeEvaluationResult(GovernmentEconomicsService, Green.toString),   // form to be filled in, evaluation required
+        SchemeEvaluationResult(Commercial, Green.toString),                   // numeric test, evaluation required
+        SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString) // form to be filled in, no evaluation required
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -940,8 +1207,14 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw),
         any[Seq[SchemeEvaluationResult]]
       )
-      verify(appRepositoryMock, never()).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
         eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
     }
 
     "throw an exception when withdrawing from the last scheme" in new TestFixture {
@@ -952,7 +1225,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(Commercial, "Green")
+        SchemeEvaluationResult(Commercial, Green.toString)
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -974,8 +1247,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
-        SchemeEvaluationResult(Commercial, "Green"),
-        SchemeEvaluationResult(GovernmentEconomicsService, "Green")
+        SchemeEvaluationResult(Commercial, Green.toString),
+        SchemeEvaluationResult(GovernmentEconomicsService, Green.toString)
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
@@ -1045,7 +1318,15 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       underTest.withdraw(applicationId, withdraw).futureValue
       verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw), any[Seq[SchemeEvaluationResult]])
+
       verify(appRepositoryMock).addProgressStatusAndUpdateAppStatus(eqTo(applicationId), eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
+
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
     }
 
     "withdraw from a scheme at FSB and not be offered a job if the next scheme is Green and also needs a FSB" in new TestFixture {
@@ -1074,9 +1355,15 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
       underTest.withdraw(applicationId, withdraw).futureValue
       verify(appRepositoryMock).withdrawScheme(eqTo(applicationId), eqTo(withdraw), any[Seq[SchemeEvaluationResult]])
+
       verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(
-        eqTo(applicationId), eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER)
-      )
+        eqTo(applicationId), eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
     }
 
     "withdraw from a scheme at FSB and not be offered a job if the next scheme is Amber" in new TestFixture {
@@ -1108,6 +1395,13 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(
         eqTo(applicationId), eqTo(ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER)
       )
+
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_ENTERED))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.SIFT_READY))
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(eqTo(applicationId),
+        eqTo(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION))
     }
   }
 
@@ -1320,9 +1614,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
     val assistanceDetailsRepoMock = mock[AssistanceDetailsRepository]
 
     val schemeRepoMock = new TestSchemeRepository {
-      override lazy val siftableSchemeIds = Seq(
-        Commercial, GovernmentEconomicsService
-      )
+      override lazy val siftableSchemeIds = Seq(Commercial, DiplomaticAndDevelopment, GovernmentEconomicsService)
       override lazy val noSiftEvaluationRequiredSchemeIds = Seq(DiplomaticAndDevelopment, Edip, OperationalDelivery,
         GovernmentCommunicationService, HousesOfParliament, HumanResources, ProjectDelivery,
         ScienceAndEngineering
