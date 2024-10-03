@@ -75,7 +75,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         GovernmentEconomicsService, GovernmentOperationalResearchService,
         GovernmentSocialResearchService, GovernmentStatisticalService,
         HousesOfParliament, ProjectDelivery,
-        ScienceAndEngineering,
+        RiskManagement, ScienceAndEngineering,
         Edip
       )
       val siftableSchemes = repo.siftableSchemeIds
@@ -110,7 +110,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         Seq(
           Commercial, CyberSecurity, Digital,
           Finance, GovernmentPolicy, HumanResources,
-          OperationalDelivery, Property, RiskManagement,
+          OperationalDelivery, Property,
           Sdip
         )
     }
@@ -127,7 +127,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         GovernmentOperationalResearchService, GovernmentSocialResearchService,
         GovernmentStatisticalService,
         HousesOfParliament, ProjectDelivery,
-        ScienceAndEngineering,
+        RiskManagement, ScienceAndEngineering,
         Edip
       )
       val formMustBeFilledInSiftSchemes = repo.formMustBeFilledInSchemeIds
