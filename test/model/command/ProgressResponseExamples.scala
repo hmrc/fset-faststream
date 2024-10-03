@@ -82,6 +82,17 @@ object ProgressResponseExamples {
   val InSiftFormsCompleteNumericTestPendingProgress: ProgressResponse =
     InPreview.copy(siftProgressResponse = SiftFormsCompleteNumericTestPendingProgress)
 
+  val AssessmentCentrePassed = AssessmentCentre(
+    allocationConfirmed = true,
+    scoresEntered = true,
+    scoresAccepted = true,
+    passed = true
+  )
+
+  val InFsacScoresEntered: ProgressResponse =
+    InPreview.copy(assessmentCentre = AssessmentCentrePassed.copy(scoresAccepted = false, passed = false))
+
   val FsbAllocationConfirmedProgress = Fsb(allocationConfirmed = true)
-  val InFsbAllocationConfirmed: ProgressResponse = InPreview.copy(fsb = FsbAllocationConfirmedProgress)
+  val InFsbAllocationConfirmed: ProgressResponse =
+    InPreview.copy(assessmentCentre = AssessmentCentrePassed, fsb = FsbAllocationConfirmedProgress)
 }
