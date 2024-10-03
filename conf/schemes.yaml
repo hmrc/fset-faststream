@@ -27,7 +27,6 @@
     specificRequirement: false
   siftEvaluationRequired: false
   schemeGuide: https://www.faststream.gov.uk/media/1230/dat-guide.pdf
-  schemeQuestion: /fset-fast-stream/media/1261/scheme-questions-ddat.rtf
 - id: DiplomaticAndDevelopment
   code: DS
   name: Diplomatic and Development
@@ -39,7 +38,7 @@
   siftEvaluationRequired: false
   fsbType: FCO
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB_Guide_Diplomatic.pdf
-  schemeQuestion: /fset-fast-stream/media/scheme-questions-ges-dds.odt
+  schemeQuestion: /fset-fast-stream/media/scheme-questions/scheme-questions-ds.odt
 - id: DiplomaticAndDevelopmentEconomics
   code: GES-DS
   name: Diplomatic and Development Economics
@@ -51,7 +50,7 @@
   siftEvaluationRequired: true
   fsbType: GES_DS
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB_Guide_Economic_Service.pdf
-  schemeQuestion: /fset-fast-stream/media/scheme-questions-ges-ddes.odt
+  schemeQuestion: /fset-fast-stream/media/scheme-questions/scheme-questions-ges-ds.odt
 - id: Finance
   code: FIFS
   name: Finance
@@ -86,7 +85,7 @@
   siftEvaluationRequired: true
   fsbType: EAC
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB_Guide_Economic_Service.pdf
-  schemeQuestion: /fset-fast-stream/media/1248/scheme-questions-ges.odt
+  schemeQuestion: /fset-fast-stream/media/scheme-questions/scheme-questions-ges.odt
 - id: GovernmentOperationalResearchService
   code: GORS
   name: Government Operational Research Service
@@ -98,7 +97,7 @@
   siftEvaluationRequired: true
   fsbType: ORAC
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Government-Operational-Research.pdf
-  schemeQuestion: /fset-fast-stream/media/1249/scheme-questions-gors.odt
+  schemeQuestion: /fset-fast-stream/media/scheme-questions/scheme-questions-gors.odt
 - id: GovernmentPolicy
   code: GP
   name: Government Policy
@@ -130,7 +129,7 @@
   siftEvaluationRequired: true
   fsbType: SAC
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Government-Statistical-Service.pdf
-  schemeQuestion: /fset-fast-stream/media/1250/scheme-questions-gss.odt
+  schemeQuestion: /fset-fast-stream/media/scheme-questions/scheme-questions-gss.odt
 - id: HousesOfParliament
   code: HOP
   name: Houses Of Parliament
@@ -142,7 +141,7 @@
   siftEvaluationRequired: false
   fsbType: HOP FSB
   schemeGuide: https://www.faststream.gov.uk/media/1235/hop_fsb-guide.pdf
-  schemeQuestion: /fset-fast-stream/media/1251/scheme-questions-hop-2021.odt
+  schemeQuestion: /fset-fast-stream/media/scheme-questions/scheme-questions-hop.odt
 - id: HumanResources
   code: HRFS
   name: Human Resources
@@ -173,7 +172,7 @@
   siftEvaluationRequired: false
   fsbType: PDFS - Skype interview
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Project-Delivery.pdf
-  schemeQuestion: /fset-fast-stream/media/1252/scheme-questions-pdfs-2021.odt
+  schemeQuestion: /fset-fast-stream/media/scheme-questions/scheme-questions-pdfs.odt
 - id: Property
   code: PRO
   name: Property
@@ -184,7 +183,6 @@
   siftEvaluationRequired: false
   fsbType: PRO - Skype interview
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Property.pdf
-  schemeQuestion: /fset-fast-stream/media/Property-Additional-Information-Form.odt
 - id: RiskManagement
   code: RMT
   name: Risk Management
@@ -192,9 +190,11 @@
   degree:
     required: Degree_22
     specificRequirement: false
+  siftRequirement: FORM
   siftEvaluationRequired: false
   fsbType: RMT - Skype interview
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Property.pdf
+  schemeQuestion: /fset-fast-stream/media/scheme-questions/scheme-questions-rmt.odt
 - id: ScienceAndEngineering
   code: SEFS
   name: Science and Engineering
@@ -206,7 +206,7 @@
   siftEvaluationRequired: true
   fsbType: SEFS FSB
   schemeGuide: https://www.faststream.gov.uk/media/fsb-guides/FSB-Guide_Science-and-Engineering.pdf
-  schemeQuestion: /fset-fast-stream/media/1315/scheme-questions-sefs.odt
+  schemeQuestion: /fset-fast-stream/media/scheme-questions/scheme-questions-sefs.odt
 - id: Edip
   code: EDIP
   name: Early Diversity Internship Programme
