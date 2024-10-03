@@ -7,7 +7,9 @@ error_reporting(E_ALL);
 // Run the file from the location you find it in the fset-faststream repo. All the paths are relative to its current location
 // Use LibreOffice to open the Excel spreadsheet from the business, which contains 2 tabs: newcastle and london
 // File -> Save As... the newcastle tab as newcastle.csv and the london tab as london.csv
-// Use LibreOffice so the correct Unix line endings are generated when saving as csv
+// Use LibreOffice when doing this so the correct Unix line endings are generated when saving as csv
+//
+// Point $csvRoot in the file below to the directory that contains the csv files
 //
 // If you need to debug run as follows for the 2 cities:
 //
@@ -59,7 +61,7 @@ $processingNewcastle = $argc == 3 && strtolower($argv[2]) == "newcastle";
 
 $city = $processingNewcastle ? "newcastle" : "london";
 
-$csvRoot = "../../fs-calendar-events/spreadsheets/2023-2024v1";
+$csvRoot = "../../fs-calendar-events/spreadsheets/2024-2025v1";
 $csvFilename = "{$csvRoot}/{$city}.csv";
 
 $csv = array_map('str_getcsv', file($csvFilename));
