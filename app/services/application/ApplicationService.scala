@@ -175,17 +175,17 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
       val amberSchemes = schemeStatus.collect { case s if s.result == Amber.toString => s.schemeId }.toSet
       val greenSchemes = schemeStatus.collect { case s if s.result == Green.toString => s.schemeId }.toSet
 
-      val onlySchemesRequiringSiftFormLeft = amberSchemes.isEmpty && greenSchemes.nonEmpty &&
-        (greenSchemes subsetOf schemesRepo.siftableSchemeIds.toSet)
+      val schemesRequiringSiftForm = amberSchemes.isEmpty && greenSchemes.nonEmpty &&
+        greenSchemes.intersect(schemesRepo.siftableSchemeIds.toSet).nonEmpty
 
-      val shouldProgressToSift = applicationStatus == ApplicationStatus.PHASE1_TESTS_PASSED && onlySchemesRequiringSiftFormLeft
+      val shouldProgressToSift = applicationStatus == ApplicationStatus.PHASE1_TESTS_PASSED && schemesRequiringSiftForm
 
       val prefix = "[withdraw - maybeProgressToSiftEntered]"
       logger.debug(s"$prefix")
       logger.debug(s"$prefix schemeStatus=$schemeStatus")
       logger.debug(s"$prefix amberSchemes=$amberSchemes")
       logger.debug(s"$prefix greenSchemes=$greenSchemes")
-      logger.debug(s"$prefix onlySchemesRequiringSiftFormLeft=$onlySchemesRequiringSiftFormLeft")
+      logger.debug(s"$prefix schemesRequiringSiftForm=$schemesRequiringSiftForm")
       logger.debug(s"$prefix shouldProgressToSift=$shouldProgressToSift")
 
       if (shouldProgressToSift) {

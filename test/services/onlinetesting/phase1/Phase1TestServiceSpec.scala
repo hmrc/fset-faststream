@@ -22,6 +22,7 @@ import connectors.ExchangeObjects._
 import connectors.{OnlineTestEmailClient, OnlineTestsGatewayClient}
 import factories.{DateTimeFactory, UUIDFactory}
 import model.Commands.PostCode
+import model.EvaluationResults.{Green, Red}
 import model.Exceptions._
 import model.OnlineTestCommands._
 import model.Phase1TestExamples._
@@ -483,6 +484,9 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       when(onlineTestsGatewayClientMock.psiRegisterApplicant(any[RegisterCandidateRequest])(any[ExecutionContext]))
         .thenReturnAsync(aoa)
 
+      when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(SchemeEvaluationResult(HumanResources, Red.toString)))
+      when(appRepositoryMock.updateCurrentSchemeStatus(any[String], any[Seq[SchemeEvaluationResult]])).thenReturnAsync()
+
       val result = phase1TestService.resetTest(onlineTestApplication, phase1Test.orderId, "")
 
       result.futureValue mustBe unit
@@ -491,6 +495,7 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       verify(emailClientMock, times(1))
         .sendOnlineTestInvitation(eqTo(emailContactDetails), eqTo(preferredName), eqTo(expirationDate))(
           any[HeaderCarrier], any[ExecutionContext])
+      verify(appRepositoryMock).updateCurrentSchemeStatus(any[String], eqTo(Seq(SchemeEvaluationResult(HumanResources, Green.toString))))
 
       verify(auditServiceMock, times(0)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
       verify(auditServiceMock, times(1)).logEventNoRequest("UserRegisteredForOnlineTest", auditDetails)
