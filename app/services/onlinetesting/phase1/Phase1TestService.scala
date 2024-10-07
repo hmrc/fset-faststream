@@ -23,6 +23,7 @@ import config.{MicroserviceAppConfig, OnlineTestsGatewayConfig, PsiTestIds}
 import connectors.ExchangeObjects._
 import connectors.{OnlineTestEmailClient, OnlineTestsGatewayClient}
 import factories.{DateTimeFactory, UUIDFactory}
+import model.EvaluationResults.Green
 
 import javax.inject.{Inject, Singleton}
 import model.Exceptions._
@@ -216,12 +217,22 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
       _ <- markAsInvited(application)(Phase1TestProfile(expirationDate, updatedTests))
       emailAddress <- candidateEmailAddress(application.userId)
       _ <- emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
+
+      _ <- resetCssToGreen(application.applicationId)
     } yield {
       List(
         AuditEvents.Phase1TestsReset(Map("userId" -> application.userId, "orderId" -> orderIdToReset)),
         DataStoreEvents.OnlineExerciseReset(application.applicationId, actionTriggeredBy)
       )
     }
+  }
+
+  private def resetCssToGreen(applicationId: String): Future[Unit] = {
+    for {
+      css <- appRepository.getCurrentSchemeStatus(applicationId)
+      updatedCss = css.map(ser => SchemeEvaluationResult(ser.schemeId, Green.toString))
+      _ <- appRepository.updateCurrentSchemeStatus(applicationId, updatedCss)
+    } yield ()
   }
 
   private def insertTest(ls: List[PsiTest], i: Int, value: PsiTest): List[PsiTest] = {

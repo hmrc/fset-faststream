@@ -781,7 +781,8 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(appRepositoryMock.getCurrentSchemeStatus(any[String])).thenReturnAsync(Seq(
         SchemeEvaluationResult(DiplomaticAndDevelopment, Green.toString), // sift form needed
-        SchemeEvaluationResult(RiskManagement, Amber.toString) // no sift needed
+        SchemeEvaluationResult(RiskManagement, Amber.toString), // no sift needed
+        SchemeEvaluationResult(OperationalDelivery, Green.toString) // no sift needed
       ))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme], any[Seq[SchemeEvaluationResult]])).thenReturnAsync()
