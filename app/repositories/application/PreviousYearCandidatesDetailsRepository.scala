@@ -25,6 +25,7 @@ import org.apache.pekko.stream.scaladsl.Source
 import javax.inject.{Inject, Singleton}
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
+import model.EvaluationResults.Withdrawn
 import model._
 import model.command.{CandidateDetailsReportItem, CsvExtract, WithdrawApplication}
 import model.persisted.fsb.ScoresAndFeedback
@@ -45,7 +46,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 //scalastyle:off
-trait PreviousYearCandidatesDetailsRepository {
+trait PreviousYearCandidatesDetailsRepository extends Schemes {
 
   val allSchemes: List[String]
   val siftAnswersHeader: String
@@ -73,7 +74,8 @@ trait PreviousYearCandidatesDetailsRepository {
     def getAsIntOpt(key: String) = Try(doc.map(_.get(key).asInt32().getValue)).toOption.flatten
   }
 
-  private val appTestStatuses = "personal-details,IN_PROGRESS,scheme-preferences,assistance-details,start_questionnaire,diversity_questionnaire,education_questionnaire,occupation_questionnaire,preview,SUBMITTED,FAST_PASS_ACCEPTED,PHASE1_TESTS_INVITED,PHASE1_TESTS_FIRST_REMINDER,PHASE1_TESTS_SECOND_REMINDER,PHASE1_TESTS_STARTED,PHASE1_TESTS_COMPLETED,PHASE1_TESTS_EXPIRED,PHASE1_TESTS_RESULTS_READY," +
+  private val appTestStatuses = "personal-details,IN_PROGRESS,scheme-preferences,location-preferences,assistance-details,start_questionnaire,diversity_questionnaire,education_questionnaire,occupation_questionnaire,preview,SUBMITTED,FAST_PASS_ACCEPTED," +
+    "PHASE1_TESTS_INVITED,PHASE1_TESTS_FIRST_REMINDER,PHASE1_TESTS_SECOND_REMINDER,PHASE1_TESTS_STARTED,PHASE1_TESTS_COMPLETED,PHASE1_TESTS_EXPIRED,PHASE1_TESTS_RESULTS_READY," +
     "PHASE1_TESTS_RESULTS_RECEIVED,PHASE1_TESTS_PASSED,PHASE1_TESTS_PASSED_NOTIFIED,PHASE1_TESTS_FAILED,PHASE1_TESTS_FAILED_NOTIFIED,PHASE1_TESTS_FAILED_SDIP_AMBER,PHASE1_TESTS_FAILED_SDIP_GREEN," +
     "PHASE2_TESTS_INVITED,PHASE2_TESTS_FIRST_REMINDER," +
     "PHASE2_TESTS_SECOND_REMINDER,PHASE2_TESTS_STARTED,PHASE2_TESTS_COMPLETED,PHASE2_TESTS_EXPIRED,PHASE2_TESTS_RESULTS_READY," +
@@ -87,19 +89,18 @@ trait PreviousYearCandidatesDetailsRepository {
     "ASSESSMENT_CENTRE_SCORES_ENTERED,ASSESSMENT_CENTRE_SCORES_ACCEPTED,ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION,ASSESSMENT_CENTRE_PASSED,ASSESSMENT_CENTRE_FAILED," +
     "ASSESSMENT_CENTRE_FAILED_NOTIFIED,ASSESSMENT_CENTRE_FAILED_SDIP_GREEN,ASSESSMENT_CENTRE_FAILED_SDIP_GREEN_NOTIFIED," +
     "FSB_AWAITING_ALLOCATION,FSB_ALLOCATION_UNCONFIRMED,FSB_ALLOCATION_CONFIRMED,FSB_FAILED_TO_ATTEND," +
-    "FSB_RESULT_ENTERED,FSB_PASSED,FSB_FAILED,ALL_FSBS_AND_FSACS_FAILED,ALL_FSBS_AND_FSACS_FAILED_NOTIFIED," +
+    "FSB_RESULT_ENTERED,FSB_PASSED,FSB_FAILED,FSB_FSAC_REEVALUATION_JOB_OFFER,ALL_FSBS_AND_FSACS_FAILED,ALL_FSBS_AND_FSACS_FAILED_NOTIFIED," +
     "ELIGIBLE_FOR_JOB_OFFER,ELIGIBLE_FOR_JOB_OFFER_NOTIFIED,WITHDRAWN,"
 
-  val fsacCompetencyHeaders = "FSAC passedMinimumCompetencyLevel," +
-    "makingEffectiveDecisionsAverage,workingTogetherDevelopingSelfAndOthersAverage,communicatingAndInfluencingAverage," +
-    "seeingTheBigPictureAverage,overallScore,"
+  val fsacCompetencyHeaders =
+    "Written advice exercise,Stakeholder communication exercise,Personal development conversation,overallScore,"
 
   private def appTestResults(numOfSchemes: Int) = {
     val otherEvaluationColumns = "result," * (numOfSchemes - 2) + "result"
-    val evaluationColumns = List("PHASE 1", "PHASE 2", "PHASE 3", "SIFT", "FSAC", "FSB").map { s =>
+    val evaluationColumns = List("PHASE 1", "SIFT", "FSAC", "FSB").map { s =>
       s"$s result,$otherEvaluationColumns"
     }.mkString(",")
-    val otherCssColumns = "result," * numOfSchemes + "result"
+    val otherCssColumns = "result," * (numOfSchemes - 2) + "result"
     val currentSchemeStatusColumns = List("Current Scheme Status").map { s =>
       s"$s result,$otherCssColumns"
     }.mkString(",")
@@ -125,10 +126,10 @@ trait PreviousYearCandidatesDetailsRepository {
 
   val assistanceDetailsHeaders = "Do you have a disability,Disability impact," +
     disabilityCategoriesHeaders +
-    "GIS,Extra support f2f,What adjustments will you need,Extra support phone interview,What adjustments will you need," +
+    "Extra support f2f,What adjustments will you need,Extra support phone interview,What adjustments will you need," +
     "Additional comments,"
 
-  def applicationDetailsHeader(numOfSchemes: Int) = "applicationId,userId,testAccountId,Framework ID,Application Status,Route,First name,Last name," +
+  def applicationDetailsHeader(numOfSchemes: Int) = "applicationId,userId,testAccountId,Application Status,Route,First name,Last name," +
     "Preferred Name,Date of Birth,Are you eligible,Terms and Conditions," +
     "Civil servant,EDIP,EDIP year,SDIP,SDIP year,Other internship,Other internship name,Other internship year,Fast Pass No," +
     "Scheme preferences,Scheme names,Are you happy with order,Are you eligible," +
@@ -137,19 +138,14 @@ trait PreviousYearCandidatesDetailsRepository {
     testTitles("Phase1 test1") +
     testTitles("Phase1 test2") +
     testTitles("Phase1 test3") +
-    testTitles("Phase2 test1") +
-    testTitles("Phase2 test2") +
-    // Phase 3 test columns
-    "PHASE_3 interviewId,token,candidateId,customCandidateId,comment,PHASE_3 last reviewed callback,Q1 Capability,Q1 Engagement,Q2 Capability,Q2 Engagement,Q3 Capability," +
-    "Q3 Engagement,Q4 Capability,Q4 Engagement,Q5 Capability,Q5 Engagement,Q6 Capability,Q6 Engagement,Q7 Capability," +
-    "Q7 Engagement,Q8 Capability,Q8 Engagement,Overall total," +
-    testTitles("Sift") +
     "Fsb overall score,Fsb feedback," +
     appTestStatuses +
+    "Final Progress Status prior to withdrawal," +
     fsacCompetencyHeaders +
     appTestResults(numOfSchemes) +
-    ",Candidate or admin withdrawal?,Tell us why you're withdrawing,More information about your withdrawal,Admin comment," +
-    "FSAC Indicator area,FSAC Indicator Assessment Centre,FSAC Indicator version"
+    ",Candidate or admin withdrawal?,Tell us why you're withdrawing,More information about your withdrawal," +
+    "Withdrawn scheme 1,Withdrawn scheme 2,Withdrawn scheme 3," +
+    "Admin comment,FSAC Indicator area,FSAC Indicator Assessment Centre,FSAC Indicator version"
 
   val contactDetailsHeader = "Email,Address line1,Address line2,Address line3,Address line4,Postcode,Outside UK,Country,Phone"
 
@@ -259,14 +255,10 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
   private val Y = Some("Yes")
   private val N = Some("No")
 
-  // When dealing with the currentSchemeStatus, it is possible for a candidate, who is evaluated at fsb to get 2 additional schemes
-  // added to the css if they are have a DiplomaticAndDevelopmentEconomics fsb. If this is the case, GovernmentEconomicsService
-  // and DiplomaticAndDevelopment will be added to the css. This is why we add 2 to the numOfSchemes to handle a max number of
-  // 7 scheme result columns: 5 for a SdipFaststream candidate + 2 to handle if the candidate has DiplomaticAndDevelopmentEconomics
-  // as one of the schemes
-  private val fsbAdditionalSchemesForEacDs = 2
-
-  override val allSchemes: List[String] = schemeRepository.schemes.map(_.id.value).toList
+  override val allSchemes: List[String] = {
+    val redundantSchemes = Set(GovernmentCommunicationService, Edip)
+    schemeRepository.schemes.filterNot( scheme => redundantSchemes.contains(scheme.id) ).map(_.id.value).toList
+  }
 
   override val siftAnswersHeader: String = "Sift Answers status,multipleNationalities,secondNationality,nationality," +
     "undergrad degree name,classification,graduationYear,moduleDetails," +
@@ -374,8 +366,28 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
 
         val onlineTestResults = onlineTests(doc)
 
-        // Get withdrawer
-        val withdrawalInfoOpt = Try(Codecs.fromBson[WithdrawApplication](doc.get("withdraw").get)).toOption
+        // Get application withdraw info
+        val withdrawDocOpt = subDocRoot("withdraw")(doc)
+        val withdrawalInfoOpt = withdrawDocOpt.flatMap(doc => subDocRoot("application")(doc)).map { applicationWithdrawDoc =>
+          Codecs.fromBson[WithdrawApplication](applicationWithdrawDoc)
+        }
+
+        // Get scheme withdraw info
+        def getWithdrawnSchemes(doc: Document) =
+          doc.get("currentSchemeStatus").map { bsonValue =>
+            Codecs.fromBson[List[SchemeEvaluationResult]](bsonValue)
+          }.getOrElse(Nil).filter( _.result == Withdrawn.toString ).map(_.schemeId.value)
+        val withdrawnSchemes = getWithdrawnSchemes(doc)
+
+        // Max of 3 schemes here. If there are fewer schemes then we pad the missing elements
+        val schemeWithdrawalInfoOpt = withdrawDocOpt.flatMap(doc => subDocRoot("schemes")(doc)).map { schemesWithdrawDoc =>
+          withdrawnSchemes.map { schemeName =>
+            val reason = Try(schemesWithdrawDoc.get(schemeName).asString().getValue).getOrElse("")
+            s"$schemeName:$reason"
+          }
+        }
+        val maxWithdrawnSchemes = 3
+        val schemeWithdrawalInfo = padResults(schemeWithdrawalInfoOpt, maxWithdrawnSchemes)
 
         def maybePrefixWithdrawer(withdrawerOpt: Option[String]): Option[String] = withdrawerOpt.map { withdrawer =>
           if (withdrawer.nonEmpty && withdrawer != "Candidate") {
@@ -391,7 +403,6 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
           List(extractAppIdOpt(doc)) :::
             List(doc.get("userId").map(_.asString().getValue)) :::
             List(doc.get("testAccountId").map(_.asString().getValue)) :::
-            List(doc.get("frameworkId").map(_.asString().getValue)) :::
             List(doc.get("applicationStatus").map(_.asString().getValue)) :::
             List(doc.get("applicationRoute").map(_.asString().getValue)) :::
             personalDetails(doc, isAnalystReport = false) :::
@@ -407,19 +418,19 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
             onlineTestResults(Tests.Phase1Test1.toString) :::
             onlineTestResults(Tests.Phase1Test2.toString) :::
             onlineTestResults(Tests.Phase1Test3.toString) :::
-            onlineTestResults(Tests.Phase2Test1.toString) :::
-            onlineTestResults(Tests.Phase2Test2.toString) :::
-            videoInterview(doc) :::
-            onlineTestResults(Tests.SiftTest.toString) :::
             fsbScoresAndFeedback(doc) :::
             progressStatusTimestamps(doc) :::
+            List(lastProgressStatusPriorToWithdrawal(doc)) :::
+
             fsacCompetency(doc) :::
             testEvaluations(doc, numOfSchemes) :::
 
-            currentSchemeStatus(doc, numOfSchemes + fsbAdditionalSchemesForEacDs) :::
+            currentSchemeStatus(doc, numOfSchemes) :::
             List(maybePrefixWithdrawer(withdrawalInfoOpt.map(_.withdrawer))) :::
             List(withdrawalInfoOpt.map(_.reason)) :::
             List(withdrawalInfoOpt.map(_.otherReason.getOrElse(""))) :::
+            schemeWithdrawalInfo :::
+
             List(doc.get("issue").map(_.asString().getValue)) :::
             List(fsacIndicatorOpt.map(_.area)) :::
             List(fsacIndicatorOpt.map(_.assessmentCentre)) :::
@@ -706,7 +717,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
             progressStatusTimestamps(doc) :::
             List(lastProgressStatusPriorToWithdrawal(doc)) :::
             testEvaluations(doc, numOfSchemes) :::
-            currentSchemeStatus(doc, numOfSchemes + fsbAdditionalSchemesForEacDs) :::
+            currentSchemeStatus(doc, numOfSchemes) :::
             List(fsacIndicatorOpt.map(_.area)) :::
             List(fsacIndicatorOpt.map(_.assessmentCentre))
             : _*
@@ -753,6 +764,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
         progressStatusDatesOpt.map( _.get("in_progress").asString.getValue )
       ),
       progressStatusOpt.map ( doc => Try( doc.get("scheme-preferences").asBoolean().getValue ).toOption.getOrElse(false).toString ),
+      progressStatusOpt.map ( doc => Try( doc.get("location-preferences").asBoolean().getValue ).toOption.getOrElse(false).toString ),
       progressStatusOpt.map ( doc => Try( doc.get("assistance-details").asBoolean().getValue ).toOption.getOrElse(false).toString ),
       questionnaireStatus("start_questionnaire"),
       questionnaireStatus("diversity_questionnaire"),
@@ -846,6 +858,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
         ProgressStatuses.FSB_RESULT_ENTERED,
         ProgressStatuses.FSB_PASSED,
         ProgressStatuses.FSB_FAILED,
+        ProgressStatuses.FSB_FSAC_REEVALUATION_JOB_OFFER,
         ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED,
         ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED_NOTIFIED
       ).map(timestampFor) ++
@@ -1408,7 +1421,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
   private def testEvaluations(doc: Document, numOfSchemes: Int): List[Option[String]] = {
     val testGroupsOpt = subDocRoot("testGroups")(doc)
 
-    List("PHASE1", "PHASE2", "PHASE3", "SIFT_PHASE", "FSAC", "FSB").flatMap { sectionName => {
+    List("PHASE1", "SIFT_PHASE", "FSAC", "FSB").flatMap { sectionName => {
       val testSectionOpt = testGroupsOpt.flatMap( section => subDocRoot(sectionName)(section) )
       val testsEvaluationOpt = testSectionOpt.flatMap ( evaluation => subDocRoot("evaluation")(evaluation) )
 
@@ -1440,15 +1453,13 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     val testSectionOpt = testGroupsOpt.flatMap( testGroups => subDocRoot("FSAC")(testGroups) )
     val testsEvaluationOpt = testSectionOpt.flatMap( evaluation => subDocRoot("evaluation")(evaluation) )
 
-    val passedMin = testsEvaluationOpt.getBooleanOpt("passedMinimumCompetencyLevel")
-    val competencyAvgOpt = testsEvaluationOpt.flatMap( evaluation => subDocRoot("competency-average")(evaluation))
-    passedMin :: List(
-      "makingEffectiveDecisionsAverage",
-      "workingTogetherDevelopingSelfAndOthersAverage",
-      "communicatingAndInfluencingAverage",
-      "seeingTheBigPictureAverage",
+    val exerciseAvgOpt = testsEvaluationOpt.flatMap( evaluation => subDocRoot("exercise-average")(evaluation))
+    List(
+      "exercise1Average",
+      "exercise2Average",
+      "exercise3Average",
       "overallScore"
-    ).map(key => competencyAvgOpt.getDoubleOpt(key) )
+    ).map(key => exerciseAvgOpt.getDoubleOpt(key) )
   }
 
   private def extractDateTime(doc: BsonDocument, key: String) = {
@@ -1630,7 +1641,6 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     ) ++ markedDisabilityCategories ++
       List(
         assistanceDetailsOpt.getStringOpt("otherDisabilityDescription"),
-        if (assistanceDetailsOpt.getAsBoolean("guaranteedInterview")) Y else N,
         if (assistanceDetailsOpt.getAsBoolean("needsSupportAtVenue")) Y else N,
         assistanceDetailsOpt.getStringOpt("needsSupportAtVenueDescription"),
         if (assistanceDetailsOpt.getAsBoolean("needsSupportForPhoneInterview")) Y else N,

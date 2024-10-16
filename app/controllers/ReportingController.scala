@@ -525,8 +525,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
     }
   }
 
-  // +1 to handle SdipFastStream candidates who automatically get the Sdip schemes in addition to the 4 selectable schemes
-  private def maxSchemes = schemeRepo.maxNumberOfSelectableSchemes + 1
+  private def maxSchemes = schemeRepo.maxNumberOfSelectableSchemes
 
   //====
   // Pt1 Includes data from the following collections: application, contact-details and media

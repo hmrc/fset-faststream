@@ -35,7 +35,7 @@ case class WithdrawApplication(
 ) extends WithdrawRequest
 
 object WithdrawApplication {
-  implicit val withdrawApplicationFormats: Format[WithdrawApplication] = Json.format[WithdrawApplication]
+  implicit val withdrawApplicationFormat: Format[WithdrawApplication] = Json.format[WithdrawApplication]
 
   implicit class BsonOps(val withdrawApplication: WithdrawApplication) extends AnyVal {
     def toBson: BsonValue = Codecs.toBson(withdrawApplication)
