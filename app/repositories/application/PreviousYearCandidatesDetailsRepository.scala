@@ -95,6 +95,10 @@ trait PreviousYearCandidatesDetailsRepository extends Schemes {
   val fsacCompetencyHeaders =
     "Written advice exercise,Stakeholder communication exercise,Personal development conversation,overallScore,"
 
+  val withdrawInfoHeaders =
+    "Candidate or admin withdrawal?,Tell us why you're withdrawing,More information about your withdrawal," +
+      "Withdrawn scheme 1,Withdrawn scheme 2,Withdrawn scheme 3,"
+
   private def appTestResults(numOfSchemes: Int) = {
     val otherEvaluationColumns = "result," * (numOfSchemes - 2) + "result"
     val evaluationColumns = List("PHASE 1", "SIFT", "FSAC", "FSB").map { s =>
@@ -119,7 +123,8 @@ trait PreviousYearCandidatesDetailsRepository extends Schemes {
       appTestStatuses +
       "Final Progress Status prior to withdrawal," +
       appTestResults(numOfSchemes) +
-      ",FSAC Indicator area,FSAC Indicator Assessment Centre"
+      "," + withdrawInfoHeaders +
+      "FSAC Indicator area,FSAC Indicator Assessment Centre"
 
   def testTitles(testName: String) = s"$testName inventoryId,orderId,normId,reportId,assessmentId,testUrl,invitationDate,startedDateTime," +
     s"completedDateTime,tScore,rawScore,testReportUrl,"
@@ -143,8 +148,7 @@ trait PreviousYearCandidatesDetailsRepository extends Schemes {
     "Final Progress Status prior to withdrawal," +
     fsacCompetencyHeaders +
     appTestResults(numOfSchemes) +
-    ",Candidate or admin withdrawal?,Tell us why you're withdrawing,More information about your withdrawal," +
-    "Withdrawn scheme 1,Withdrawn scheme 2,Withdrawn scheme 3," +
+    "," + withdrawInfoHeaders +
     "Admin comment,FSAC Indicator area,FSAC Indicator Assessment Centre,FSAC Indicator version"
 
   val contactDetailsHeader = "Email,Address line1,Address line2,Address line3,Address line4,Postcode,Outside UK,Country,Phone"
@@ -366,37 +370,6 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
 
         val onlineTestResults = onlineTests(doc)
 
-        // Get application withdraw info
-        val withdrawDocOpt = subDocRoot("withdraw")(doc)
-        val withdrawalInfoOpt = withdrawDocOpt.flatMap(doc => subDocRoot("application")(doc)).map { applicationWithdrawDoc =>
-          Codecs.fromBson[WithdrawApplication](applicationWithdrawDoc)
-        }
-
-        // Get scheme withdraw info
-        def getWithdrawnSchemes(doc: Document) =
-          doc.get("currentSchemeStatus").map { bsonValue =>
-            Codecs.fromBson[List[SchemeEvaluationResult]](bsonValue)
-          }.getOrElse(Nil).filter( _.result == Withdrawn.toString ).map(_.schemeId.value)
-        val withdrawnSchemes = getWithdrawnSchemes(doc)
-
-        // Max of 3 schemes here. If there are fewer schemes then we pad the missing elements
-        val schemeWithdrawalInfoOpt = withdrawDocOpt.flatMap(doc => subDocRoot("schemes")(doc)).map { schemesWithdrawDoc =>
-          withdrawnSchemes.map { schemeName =>
-            val reason = Try(schemesWithdrawDoc.get(schemeName).asString().getValue).getOrElse("")
-            s"$schemeName:$reason"
-          }
-        }
-        val maxWithdrawnSchemes = 3
-        val schemeWithdrawalInfo = padResults(schemeWithdrawalInfoOpt, maxWithdrawnSchemes)
-
-        def maybePrefixWithdrawer(withdrawerOpt: Option[String]): Option[String] = withdrawerOpt.map { withdrawer =>
-          if (withdrawer.nonEmpty && withdrawer != "Candidate") {
-            "Admin (User ID: " + withdrawer + ")"
-          } else {
-            withdrawer
-          }
-        }
-
         val fsacIndicatorOpt = Try(Codecs.fromBson[FSACIndicator](doc.get("fsac-indicator").get)).toOption
 
         val csvContent = makeRow(
@@ -426,10 +399,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
             testEvaluations(doc, numOfSchemes) :::
 
             currentSchemeStatus(doc, numOfSchemes) :::
-            List(maybePrefixWithdrawer(withdrawalInfoOpt.map(_.withdrawer))) :::
-            List(withdrawalInfoOpt.map(_.reason)) :::
-            List(withdrawalInfoOpt.map(_.otherReason.getOrElse(""))) :::
-            schemeWithdrawalInfo :::
+            getWithdrawInfo(doc) :::
 
             List(doc.get("issue").map(_.asString().getValue)) :::
             List(fsacIndicatorOpt.map(_.area)) :::
@@ -694,6 +664,45 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     isSdipFaststream && sdipPresent && sdipNotFailed && fsSchemesPresentAndAllFailed
   }
 
+  private def getWithdrawInfo(doc: Document) = {
+    val withdrawDocOpt = subDocRoot("withdraw")(doc)
+
+    // Get application withdraw info
+    val withdrawalInfoOpt = withdrawDocOpt.flatMap(doc => subDocRoot("application")(doc)).map { applicationWithdrawDoc =>
+      Codecs.fromBson[WithdrawApplication](applicationWithdrawDoc)
+    }
+
+    def getWithdrawnSchemes(doc: Document) =
+      doc.get("currentSchemeStatus").map { bsonValue =>
+        Codecs.fromBson[List[SchemeEvaluationResult]](bsonValue)
+      }.getOrElse(Nil).filter(_.result == Withdrawn.toString).map(_.schemeId.value)
+    val withdrawnSchemes = getWithdrawnSchemes(doc)
+
+    // Get scheme withdraw info
+    val schemeWithdrawalInfoOpt = withdrawDocOpt.flatMap(doc => subDocRoot("schemes")(doc)).map { schemesWithdrawDoc =>
+      withdrawnSchemes.map { schemeName =>
+        val reason = Try(schemesWithdrawDoc.get(schemeName).asString().getValue).getOrElse("")
+        s"$schemeName:$reason"
+      }
+    }
+    // Max of 3 schemes here. If there are fewer schemes then we pad the missing elements
+    val maxWithdrawnSchemes = 3
+    val schemeWithdrawalInfo = padResults(schemeWithdrawalInfoOpt, maxWithdrawnSchemes)
+
+    def maybePrefixWithdrawer(withdrawerOpt: Option[String]): Option[String] = withdrawerOpt.map { withdrawer =>
+      if (withdrawer.nonEmpty && withdrawer != "Candidate") {
+        "Admin (User ID: " + withdrawer + ")"
+      } else {
+        withdrawer
+      }
+    }
+
+    List(maybePrefixWithdrawer(withdrawalInfoOpt.map(_.withdrawer))) :::
+      List(withdrawalInfoOpt.map(_.reason)) :::
+      List(withdrawalInfoOpt.map(_.otherReason.getOrElse(""))) :::
+      schemeWithdrawalInfo
+  }
+
   private def commonDataAnalystApplicationDetailsStream(numOfSchemes: Int, query: Document)(implicit mat: Materializer): Source[CandidateDetailsReportItem, _] = {
 
     def processDocument(doc: Document): CandidateDetailsReportItem = {
@@ -716,8 +725,11 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
             disabilityDetails(doc) :::
             progressStatusTimestamps(doc) :::
             List(lastProgressStatusPriorToWithdrawal(doc)) :::
+
             testEvaluations(doc, numOfSchemes) :::
             currentSchemeStatus(doc, numOfSchemes) :::
+            getWithdrawInfo(doc) :::
+
             List(fsacIndicatorOpt.map(_.area)) :::
             List(fsacIndicatorOpt.map(_.assessmentCentre))
             : _*
