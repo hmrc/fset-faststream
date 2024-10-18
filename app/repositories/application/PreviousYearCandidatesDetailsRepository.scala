@@ -114,10 +114,15 @@ trait PreviousYearCandidatesDetailsRepository extends Schemes {
   val disabilityCategoriesHeaders = "Learning difference,Social/communication conditions,Long-term illness,Mental health condition," +
   "Physical impairment,Deaf,Blind,Development condition,No known impairment,Condition not listed,Prefer not to say,Other,Other description,"
 
+  val sdipLocationsAndInterestsHeaders = "SDIP location1,location2,location3,location4," +
+    "SDIP interests - Commercial,Cyber,Digital and Data,Diplomacy and IR,Economics,Finance,Governance,Operational Delivery,People," +
+    "Policy Development,Project Management,Science and Engineering,Statistics and Research,"
+
   def dataAnalystApplicationDetailsHeader(numOfSchemes: Int) =
     "ApplicationId,Date of Birth,Application status,Route,All FS schemes failed SDIP not failed," +
       "Civil servant,EDIP,EDIP year,SDIP,SDIP year,Other internship,Other internship name,Other internship year,Fast Pass No," +
       "Scheme preferences," +
+      sdipLocationsAndInterestsHeaders +
       "Do you have a disability,Disability impact," +
       disabilityCategoriesHeaders +
       appTestStatuses +
@@ -138,6 +143,7 @@ trait PreviousYearCandidatesDetailsRepository extends Schemes {
     "Preferred Name,Date of Birth,Are you eligible,Terms and Conditions," +
     "Civil servant,EDIP,EDIP year,SDIP,SDIP year,Other internship,Other internship name,Other internship year,Fast Pass No," +
     "Scheme preferences,Scheme names,Are you happy with order,Are you eligible," +
+    sdipLocationsAndInterestsHeaders +
     assistanceDetailsHeaders +
     "I understand this wont affect application," +
     testTitles("Phase1 test1") +
@@ -386,6 +392,9 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
             List(schemesYesNoAsString) ::: //Scheme names
             List(progressResponseReachedYesNo(progressResponse.schemePreferences)) ::: //Are you happy with order
             List(progressResponseReachedYesNo(progressResponse.schemePreferences)) ::: //Are you eligible
+
+            sdipLocationPreferencesAndInterests(doc) :::
+
             assistanceDetails(doc) :::
             List(progressResponseReachedYesNo(progressResponse.questionnaire.nonEmpty)) ::: //I understand this wont affect application
             onlineTestResults(Tests.Phase1Test1.toString) :::
@@ -722,6 +731,9 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
             List(Some(isSdipFsWithFsFailedAndSdipNotFailed(doc).toString)) :::
             repositories.getCivilServiceExperienceDetails(extractApplicationRoute(doc), doc).toList :::
             List(schemePrefsAsString) :::
+
+            sdipLocationPreferencesAndInterests(doc) :::
+
             disabilityDetails(doc) :::
             progressStatusTimestamps(doc) :::
             List(lastProgressStatusPriorToWithdrawal(doc)) :::
@@ -1455,9 +1467,9 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     padResults(evalResultsMap, numOfSchemes)
   }
 
-  private def padResults(evalResultsMap: Option[List[String]], numOfSchemes: Int) = {
-    val schemeResults = evalResultsMap.getOrElse(Nil)
-    schemeResults.map(Option(_)) ::: (1 to (numOfSchemes - schemeResults.size)).toList.map(_ => Some(""))
+  private def padResults(elementsList: Option[List[String]], numOfElements: Int) = {
+    val elements = elementsList.getOrElse(Nil)
+    elements.map(Option(_)) ::: (1 to (numOfElements - elements.size)).toList.map(_ => Some(""))
   }
 
   private def fsacCompetency(doc: Document): List[Option[String]] = {
@@ -1659,6 +1671,48 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
         assistanceDetailsOpt.getStringOpt("needsSupportForPhoneInterviewDescription"),
         assistanceDetailsOpt.getStringOpt("adjustmentsComment")
       )
+  }
+
+  private def markSdipInterests(interests: List[String]) = {
+    val sdipInterestsList = List(
+      "Commercial",
+      "Cyber",
+      "Digital and Data",
+      "Diplomacy and International Relations",
+      "Economics",
+      "Finance",
+      "Governance",
+      "Operational Delivery",
+      "People",
+      "Policy Development",
+      "Project Management",
+      "Science and Engineering",
+      "Statistics and Research"
+    )
+    sdipInterestsList.map(interest => if (interests.contains(interest)) Y else N)
+  }
+
+  private def sdipLocationPreferencesAndInterests(doc: Document): List[Option[String]] = {
+    val locationPreferencesOpt = subDocRoot("location-preferences")(doc)
+
+    import scala.jdk.CollectionConverters._
+
+    val locationPreferences = locationPreferencesOpt.map { ad =>
+      if (ad.containsKey("locations"))
+        ad.get("locations").asArray().getValues.asScala.toList.map(_.asString().getValue)
+      else Nil
+    }
+    val maxLocationPreferences = 4
+    val paddedLocations = padResults(locationPreferences, maxLocationPreferences)
+
+    val markedInterests = markSdipInterests(
+      locationPreferencesOpt.map { ad =>
+        if (ad.containsKey("interests"))
+          ad.get("interests").asArray().getValues.asScala.toList.map(_.asString().getValue)
+        else Nil
+      }.getOrElse(Nil)
+    )
+    paddedLocations ++ markedInterests
   }
 
   private def disabilityDetails(doc: Document): List[Option[String]] = {
