@@ -33,5 +33,10 @@ case class ThinksScores(
 }
 
 object ThinksScores {
+  private val prefix = "thinks"
+  def exercise1Headers: List[String] = List(s"$prefix-b17thinksAnalytically", s"$prefix-b18widerContext")
+
+  def exercise2Headers: List[String] = List(s"$prefix-b1widerContext", s"$prefix-b2patternsAndInterrelationships")
+
   implicit val thinksScoresFormat: OFormat[ThinksScores] = Json.format[ThinksScores]
 }

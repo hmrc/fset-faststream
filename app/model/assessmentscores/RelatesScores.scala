@@ -30,10 +30,19 @@ case class RelatesScores(
   override def toString: String =
     s"b19communicatesEffectively=$b19communicatesEffectively," +
       s"b20influencesOthers=$b20influencesOthers," +
+      s"b3selfAware=$b3selfAware," +
+      s"b4communicatesEffectively=$b4communicatesEffectively," +
       s"b10selfAwareAndManages=$b10selfAwareAndManages," +
       s"b11communicatesEffectively=$b11communicatesEffectively"
 }
 
 object RelatesScores {
+  private val prefix = "relates"
+  def exercise1Headers: List[String] = List(s"$prefix-b19communicatesEffectively", s"$prefix-b20influencesOthers")
+
+  def exercise2Headers: List[String] = List(s"$prefix-b3selfAware", s"$prefix-b4communicatesEffectively")
+
+  def exercise3Headers: List[String] = List(s"$prefix-b10selfAwareAndManages", s"$prefix-b11communicatesEffectively")
+
   implicit val relatesScoresFormat: OFormat[RelatesScores] = Json.format[RelatesScores]
 }

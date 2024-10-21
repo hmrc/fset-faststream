@@ -27,6 +27,7 @@ import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Withdrawn
 import model._
+import model.assessmentscores.{AdaptsScores, RelatesScores, StrivesScores, ThinksScores}
 import model.command.{CandidateDetailsReportItem, CsvExtract, WithdrawApplication}
 import model.persisted.fsb.ScoresAndFeedback
 import model.persisted.{FSACIndicator, SchemeEvaluationResult}
@@ -178,26 +179,46 @@ trait PreviousYearCandidatesDetailsRepository extends Schemes {
 
   val dataAnalystSiftAnswersHeader: String = "Nationality,Undergrad degree name,Classification,Graduation year"
 
-  val assessmentScoresNumericFields = Seq(
+  val assessmentScoresExerciseAverageFields = Seq(
     "exercise1" -> "overallAverage",
     "exercise2" -> "overallAverage",
     "exercise3" -> "overallAverage"
   )
 
   val assessmentScoresFeedbackFields = Seq(
-    "exercise1" -> "makingEffectiveDecisionsFeedback,communicatingAndInfluencingFeedback,seeingTheBigPictureFeedback",
-    "exercise2" -> "makingEffectiveDecisionsFeedback,communicatingAndInfluencingFeedback,workingTogetherDevelopingSelfAndOthersFeedback",
-    "exercise3" -> "workingTogetherDevelopingSelfAndOthersFeedback,communicatingAndInfluencingFeedback,seeingTheBigPictureFeedback"
+    "exercise1" -> "relatesFeedback,thinksFeedback,strivesFeedback",
+    "exercise2" -> "relatesFeedback,thinksFeedback,strivesFeedback,adaptsFeedback",
+    "exercise3" -> "relatesFeedback,strivesFeedback,adaptsFeedback"
   )
 
-  val assessmentScoresNumericFieldsMap: Map[String, String] = assessmentScoresNumericFields.toMap
+  val assessmentScoresExerciseAverageFieldsMap: Map[String, String] = assessmentScoresExerciseAverageFields.toMap
 
   val assessmentScoresFeedbackFieldsMap: Map[String, String] = assessmentScoresFeedbackFields.toMap
 
-  def assessmentScoresHeaders(assessor: String): String = {
-    assessmentScoresNumericFields.map(_._1).map { exercise =>
-      s"$assessor $exercise attended,updatedBy,submittedDate,${assessmentScoresNumericFieldsMap(exercise)},${assessmentScoresFeedbackFieldsMap(exercise)}"
-    }.mkString(",") + s",$assessor Final feedback,updatedBy,acceptedDate"
+  val fsacBarScoresHeadersMap = Map(
+    "exercise1" ->
+      (RelatesScores.exercise1Headers ++
+        ThinksScores.exercise1Headers ++
+        StrivesScores.exercise1Headers
+        ).mkString(","),
+    "exercise2" ->
+      (RelatesScores.exercise2Headers ++
+      ThinksScores.exercise2Headers ++
+      StrivesScores.exercise2Headers ++
+      AdaptsScores.exercise2Headers
+        ).mkString(","),
+    "exercise3" ->
+      (RelatesScores.exercise3Headers ++
+        StrivesScores.exercise3Headers ++
+        AdaptsScores.exercise3Headers
+        ).mkString(",")
+  )
+
+def assessmentScoresHeaders(assessor: String): String = {
+    assessmentScoresExerciseAverageFields.map(_._1).map { exercise =>
+      s"$assessor $exercise - attended,updatedBy,submittedDate,${assessmentScoresExerciseAverageFieldsMap(exercise)},${assessmentScoresFeedbackFieldsMap(exercise)}," +
+        s"${fsacBarScoresHeadersMap(exercise)}"
+    }.mkString(",") + ",updatedBy,acceptedDate"
   }
 
   // TODO: remove this method
@@ -404,7 +425,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
             progressStatusTimestamps(doc) :::
             List(lastProgressStatusPriorToWithdrawal(doc)) :::
 
-            fsacCompetency(doc) :::
+            fsacExerciseAverages(doc) :::
             testEvaluations(doc, numOfSchemes) :::
 
             currentSchemeStatus(doc, numOfSchemes) :::
@@ -1301,31 +1322,78 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     findAssessmentScores("Reviewer", reviewerAssessmentScoresCollection, applicationIds)
 
   private def findAssessmentScores(name: String, col: MongoCollection[Document], applicationIds: Seq[String]): Future[CsvExtract[String]] = {
-    val exerciseSections = assessmentScoresNumericFields.map(_._1)
+    val exerciseNames = assessmentScoresExerciseAverageFields.map(_._1)
     val projection = Projections.excludeId()
     val query = Document("applicationId" -> Document("$in" -> applicationIds))
 
     col.find(query).projection(projection).toFuture().map { docs =>
 
       val csvRecords = docs.map { doc =>
-        val csvStr = exerciseSections.flatMap { s =>
-          val sectionOpt = subDocRoot(s)(doc)
+        val csvStr = exerciseNames.flatMap { exerciseName =>
+          val exerciseOpt = subDocRoot(exerciseName)(doc)
+
+          val relatesScoresOpt = exerciseOpt.flatMap(doc => subDocRoot("relatesScores")(doc)).map { doc =>
+            Codecs.fromBson[RelatesScores](doc)
+          }
+          val thinksScoresOpt = exerciseOpt.flatMap(doc => subDocRoot("thinksScores")(doc)).map { doc =>
+            Codecs.fromBson[ThinksScores](doc)
+          }
+          val strivesScoresOpt = exerciseOpt.flatMap(doc => subDocRoot("strivesScores")(doc)).map { doc =>
+            Codecs.fromBson[StrivesScores](doc)
+          }
+          val adaptsScoresOpt = exerciseOpt.flatMap(doc => subDocRoot("adaptsScores")(doc)).map { doc =>
+            Codecs.fromBson[AdaptsScores](doc)
+          }
+
+          val fsacScores = exerciseName match {
+            case "exercise1" =>
+              List(
+                relatesScoresOpt.flatMap(_.b19communicatesEffectively),
+                relatesScoresOpt.flatMap(_.b20influencesOthers),
+                thinksScoresOpt.flatMap(_.b17thinksAnalytically),
+                thinksScoresOpt.flatMap(_.b18widerContext),
+                strivesScoresOpt.flatMap(_.b21alignsWithGoals),
+                strivesScoresOpt.flatMap(_.b22tacklesRootCause)
+              )
+            case "exercise2" =>
+              List(
+                relatesScoresOpt.flatMap(_.b3selfAware),
+                relatesScoresOpt.flatMap(_.b4communicatesEffectively),
+                thinksScoresOpt.flatMap(_.b1widerContext),
+                thinksScoresOpt.flatMap(_.b2patternsAndInterrelationships),
+                strivesScoresOpt.flatMap(_.b8strivesToSucceed),
+                strivesScoresOpt.flatMap(_.b9goalOriented),
+                adaptsScoresOpt.flatMap(_.b5novelApproaches),
+                adaptsScoresOpt.flatMap(_.b6openToChange),
+                adaptsScoresOpt.flatMap(_.b7learningAgility)
+              )
+            case "exercise3" =>
+              List(
+                relatesScoresOpt.flatMap(_.b10selfAwareAndManages),
+                relatesScoresOpt.flatMap(_.b11communicatesEffectively),
+                strivesScoresOpt.flatMap(_.b15motivation),
+                strivesScoresOpt.flatMap(_.b16conduct),
+                adaptsScoresOpt.flatMap(_.b12consolidatesLearning),
+                adaptsScoresOpt.flatMap(_.b13learningAtPace),
+                adaptsScoresOpt.flatMap(_.b14respondsFlexibily)
+              )
+          }
 
           List(
-            sectionOpt.getBooleanOpt("attended"),
-            sectionOpt.getStringOpt("updatedBy"),
-            sectionOpt.getDateTimeOpt("submittedDate")
+            exerciseOpt.getBooleanOpt("attended"),
+            exerciseOpt.getStringOpt("updatedBy"),
+            exerciseOpt.getDateTimeOpt("submittedDate")
           ) ++
-            assessmentScoresNumericFieldsMap(s).split(",").map { field =>
-              sectionOpt.getDoubleOpt(field)
+            assessmentScoresExerciseAverageFieldsMap(exerciseName).split(",").map { field =>
+              exerciseOpt.getDoubleOpt(field)
             } ++
-            assessmentScoresFeedbackFieldsMap(s).split(",").map { field =>
-              sectionOpt.getStringOpt(field)
-            }
+            assessmentScoresFeedbackFieldsMap(exerciseName).split(",").map { field =>
+              exerciseOpt.getStringOpt(field)
+            } ++
+            fsacScores.map(_.map(_.toString))
         } ++ {
           val sectionOpt = subDocRoot("finalFeedback")(doc)
           List(
-            sectionOpt.getStringOpt("feedback"),
             sectionOpt.getStringOpt("updatedBy"),
             sectionOpt.getDateTimeOpt("acceptedDate")
           )
@@ -1472,7 +1540,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     elements.map(Option(_)) ::: (1 to (numOfElements - elements.size)).toList.map(_ => Some(""))
   }
 
-  private def fsacCompetency(doc: Document): List[Option[String]] = {
+  private def fsacExerciseAverages(doc: Document): List[Option[String]] = {
     val testGroupsOpt = subDocRoot("testGroups")(doc)
     val testSectionOpt = testGroupsOpt.flatMap( testGroups => subDocRoot("FSAC")(testGroups) )
     val testsEvaluationOpt = testSectionOpt.flatMap( evaluation => subDocRoot("evaluation")(evaluation) )

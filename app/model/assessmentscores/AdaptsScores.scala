@@ -37,6 +37,11 @@ case class AdaptsScores(
 }
 
 object AdaptsScores {
+  private val prefix = "adapts"
+  def exercise2Headers: List[String] = List(s"$prefix-b5novelApproaches", s"$prefix-b6openToChange", s"$prefix-b7learningAgility")
+
+  def exercise3Headers: List[String] = List(s"$prefix-b12consolidatesLearning", s"$prefix-b13learningAtPace", s"$prefix-b14respondsFlexibily")
+
   implicit val adaptsScoresFormat: OFormat[AdaptsScores] =
     Json.format[AdaptsScores]
 }

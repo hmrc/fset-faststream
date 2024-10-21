@@ -92,7 +92,7 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
       }
       csvExtract.records.size mustBe 1
 
-      val dataElement = csvExtract.elementAt(ApplicationId.toString, 17)
+      val dataElement = csvExtract.elementAt(ApplicationId.toString, 33)
       dataElement mustBe Some("\"2.0\"")
     }
   }
@@ -134,7 +134,7 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
       }
       csvExtract.records.size mustBe 1
 
-      val dataElement = csvExtract.elementAt(ApplicationId.toString, 17)
+      val dataElement = csvExtract.elementAt(ApplicationId.toString, 33)
       dataElement mustBe Some("\"2.0\"")
     }
 
