@@ -16,16 +16,16 @@
 
 package scheduler.onlinetesting
 
-import model.Phase1FirstReminder
+import model.{Phase, Phase1FirstReminder}
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import uk.gov.hmrc.mongo.MongoComponent
 import services.onlinetesting.OnlineTestService
-import testkit.{ ShortTimeout, UnitWithAppSpec }
+import testkit.{ShortTimeout, UnitWithAppSpec}
 
-import scala.concurrent.duration.{ Duration, FiniteDuration }
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.HeaderCarrier
 
 /*
@@ -43,6 +43,7 @@ class ReminderExpiringTestJobSpec  extends UnitWithAppSpec with ShortTimeout {
     override val lockId = "1"
     override val forceLockReleaseAfter: Duration = mock[Duration]
     override val reminderNotice = Phase1FirstReminder
+    override val phase = Phase.PHASE1
     override implicit val ec: ExecutionContext = mock[ExecutionContext]
     override val name = "test"
     override val initialDelay: FiniteDuration = mock[FiniteDuration]

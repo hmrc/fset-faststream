@@ -17,10 +17,11 @@
 package scheduler.onlinetesting
 
 import config.ScheduledJobConfig
+import model.Phase.Phase
 
 import javax.inject.{Inject, Singleton}
 import model._
-import play.api.Configuration
+import play.api.{Configuration, Logging}
 import play.api.mvc.RequestHeader
 import uk.gov.hmrc.mongo.MongoComponent
 import scheduler.BasicJobConfig
@@ -31,7 +32,7 @@ import services.onlinetesting.phase2.Phase2TestService
 import services.onlinetesting.phase3.Phase3TestService
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SecondPhase1ReminderExpiringTestJob @Inject() (val service: Phase1TestService,
@@ -39,6 +40,7 @@ class SecondPhase1ReminderExpiringTestJob @Inject() (val service: Phase1TestServ
                                                      val config: SecondPhase1ReminderExpiringTestJobConfig
                                                     ) extends SecondReminderExpiringTestJob {
   override val reminderNotice: ReminderNotice = Phase1SecondReminder
+  override val phase = Phase.PHASE1
 }
 
 @Singleton
@@ -47,6 +49,7 @@ class SecondPhase2ReminderExpiringTestJob @Inject() (val service: Phase2TestServ
                                                      val config: SecondPhase2ReminderExpiringTestJobConfig
                                                     )  extends SecondReminderExpiringTestJob {
   override val reminderNotice: ReminderNotice = Phase2SecondReminder
+  override val phase = Phase.PHASE2
 }
 
 @Singleton
@@ -55,15 +58,18 @@ class SecondPhase3ReminderExpiringTestJob @Inject() (val service: Phase3TestServ
                                                      val config: SecondPhase3ReminderExpiringTestJobConfig
                                                     ) extends SecondReminderExpiringTestJob {
   override val reminderNotice: ReminderNotice = Phase3SecondReminder
+  override val phase = Phase.PHASE3
 }
 
-trait SecondReminderExpiringTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] {
+trait SecondReminderExpiringTestJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobConfig]] with Logging {
   val service: OnlineTestService
   val reminderNotice: ReminderNotice
+  val phase: Phase
 
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val rh: RequestHeader = EmptyRequestHeader
     implicit val hc: HeaderCarrier = HeaderCarrier()
+    logger.debug(s"Running second reminder expiring test job for $phase")
     service.processNextTestForReminder(reminderNotice)
   }
 }

@@ -33,6 +33,8 @@ GET     /candidate-application/test-only/test-data-generator/example-candidate-a
 
 # Trigger Jobs manually
 GET     /candidate-application/test-only/online-test-invitation/:phase                        @controllers.testdata.TestJobsController.testInvitationJob(phase: String)
+GET     /candidate-application/test-only/first-phase1-reminder                                @controllers.testdata.TestJobsController.firstPhase1ReminderExpiringTest
+GET     /candidate-application/test-only/second-phase1-reminder                               @controllers.testdata.TestJobsController.secondPhase1ReminderExpiringTest
 GET     /candidate-application/test-only/expire-online-tests/:phase                           @controllers.testdata.TestJobsController.expireOnlineTestJob(phase: String)
 GET     /candidate-application/test-only/evaluate-phase1-candidate                            @controllers.testdata.TestJobsController.evaluatePhase1OnlineTestsCandidate
 GET     /candidate-application/test-only/evaluate-phase2-candidate                            @controllers.testdata.TestJobsController.evaluatePhase2EtrayCandidate
