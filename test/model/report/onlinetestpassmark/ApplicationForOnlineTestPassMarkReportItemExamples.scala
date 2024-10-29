@@ -19,7 +19,7 @@ package model.report.onlinetestpassmark
 import model.OnlineTestCommands.PsiTestResult
 import model.persisted.SchemeEvaluationResult
 import model.{ApplicationRoute, EvaluationResults, Schemes}
-import model.report.{ApplicationForOnlineTestPassMarkReportItem, TestResultsForOnlineTestPassMarkReportItem}
+import model.report.{ApplicationForOnlineTestPassMarkReportItem, TestEvaluationResultsForOnlineTestPassMarkReportItem, TestResultsForOnlineTestPassMarkReportItem}
 
 import scala.util.Random
 
@@ -41,13 +41,26 @@ object ApplicationForOnlineTestPassMarkReportItemExamples extends Schemes {
       "appId",
       "phase1_tests_results_received",
       ApplicationRoute.Faststream,
-      List(Commercial, Digital),
+      schemes = List(Commercial, Digital),
       disability = None,
       gis = None,
       assessmentCentreAdjustments = None,
       testsResult,
-      List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString),
-        SchemeEvaluationResult(Digital, EvaluationResults.Green.toString)))
+      evaluationResults = TestEvaluationResultsForOnlineTestPassMarkReportItem(
+        phase1 = Seq(
+          Some(s"${Commercial.value}: ${EvaluationResults.Green.toString}"), Some(s"${Digital.value}: ${EvaluationResults.Green.toString}")),
+        sift = Seq(
+          Some(s"${Commercial.value}: ${EvaluationResults.Green.toString}"), Some(s"${Digital.value}: ${EvaluationResults.Green.toString}")),
+        fsac = Seq(
+          Some(s"${Commercial.value}: ${EvaluationResults.Green.toString}"), Some(s"${Digital.value}: ${EvaluationResults.Green.toString}")),
+        fsb = Seq(
+          Some(s"${Commercial.value}: ${EvaluationResults.Green.toString}"), Some(s"${Digital.value}: ${EvaluationResults.Green.toString}"))
+      ),
+      currentSchemeStatus = List(
+        SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString),
+        SchemeEvaluationResult(Digital, EvaluationResults.Green.toString)
+      )
+    )
 
   def rnd(prefix: String) = s"$prefix-${Random.nextInt(100)}"
 }

@@ -19,8 +19,10 @@ package model.report
 import play.api.libs.json.{Json, OFormat}
 
 case class OnlineTestPassMarkReportItem(
-                           application: ApplicationForOnlineTestPassMarkReportItem,
-                           questionnaire: QuestionnaireReportItem)
+                                         application: ApplicationForOnlineTestPassMarkReportItem,
+                                         questionnaire: QuestionnaireReportItem,
+                                         email: String
+                                       )
 
 object OnlineTestPassMarkReportItem {
   implicit val onlineTestPassMarkReportFormat: OFormat[OnlineTestPassMarkReportItem] = Json.format[OnlineTestPassMarkReportItem]

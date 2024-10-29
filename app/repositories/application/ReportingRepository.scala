@@ -293,10 +293,7 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService,
       "applicationRoute" -> true,
       "scheme-preferences.schemes" -> true,
       "assistance-details" -> true,
-      "testGroups.PHASE1" -> true,
-      "testGroups.PHASE2" -> true,
-      "testGroups.PHASE3.tests.callbacks.reviewed" -> true,
-      "testGroups.SIFT_PHASE" -> true,
+      "testGroups" -> true,
       "progress-status" -> true,
       "currentSchemeStatus" -> true
     )

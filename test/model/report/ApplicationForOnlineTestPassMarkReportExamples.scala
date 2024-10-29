@@ -49,7 +49,18 @@ object ApplicationForOnlineTestPassMarkReportExamples extends Schemes {
       assessmentCentreAdjustments = None,
       testsResult,
       List(SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString),
-        SchemeEvaluationResult(Digital, EvaluationResults.Green.toString)))
+        SchemeEvaluationResult(Digital, EvaluationResults.Green.toString)),
+      TestEvaluationResultsForOnlineTestPassMarkReportItem(
+        phase1 = Seq(
+          Some(s"${Commercial.value}: ${EvaluationResults.Green.toString}"), Some(s"${Digital.value}: ${EvaluationResults.Green.toString}")),
+        sift = Seq(
+          Some(s"${Commercial.value}: ${EvaluationResults.Green.toString}"), Some(s"${Digital.value}: ${EvaluationResults.Green.toString}")),
+        fsac = Seq(
+          Some(s"${Commercial.value}: ${EvaluationResults.Green.toString}"), Some(s"${Digital.value}: ${EvaluationResults.Green.toString}")),
+        fsb = Seq(
+          Some(s"${Commercial.value}: ${EvaluationResults.Green.toString}"), Some(s"${Digital.value}: ${EvaluationResults.Green.toString}"))
+      )
+    )
 
   def rnd(prefix: String) = s"$prefix-${Random.nextInt(100)}"
 }
