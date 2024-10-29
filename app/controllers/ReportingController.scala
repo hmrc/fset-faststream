@@ -1202,20 +1202,22 @@ class ReportingController @Inject() (cc: ControllerComponents,
       appIds = applications.map(_.applicationId)
       questionnaires <- questionnaireRepository.findForOnlineTestPassMarkReport(appIds)
       fsbScoresAndFeedback <- fsbRepository.findScoresAndFeedback(appIds)
+      emails <- contactDetailsRepository.findEmailsForUserIds(applications.map(_.userId))
     } yield {
       for {
         application <- applications
         appId = UniqueIdentifier(application.applicationId)
-        //TODO: fix this
         fsac = fsacResults.find(_.applicationId == appId)
-        overallFsacScoreOpt = None// fsac.map(res => AssessmentScoreCalculator.calculateCompetencyAverages(res).overallScore)
+        overallFsacScoreOpt = fsac.map(res => AssessmentScoreCalculator.fetchExerciseAverages(res, appId.toString).overallScore)
         sift = siftResults.find(_.applicationId == application.applicationId)
         q <- questionnaires.get(application.applicationId)
         fsb <- fsbScoresAndFeedback.get(application.applicationId)
-      } yield
+        emailOpt = emails.find(_.userId == application.userId)
+      } yield {
         OnlineTestPassMarkReportItem(
-          ApplicationForOnlineTestPassMarkReportItem(application, fsac, overallFsacScoreOpt, sift, fsb), q
+          ApplicationForOnlineTestPassMarkReportItem(application, fsac, overallFsacScoreOpt, sift, fsb), q, emailOpt.map(_.email).getOrElse("")
         )
+      }
     }
   }
 
@@ -1232,13 +1234,13 @@ class ReportingController @Inject() (cc: ControllerComponents,
   }
 
   def onlineTestPassMarkReportFsNotPhase1Failed(frameworkId: String): Action[AnyContent] = Action.async {
-    val reports = (for {
+    val reportItems = (for {
       applications <- reportingRepository.onlineTestPassMarkReportFsNotPhase1Failed
     } yield {
       onlineTestPassMarkReportCommon(applications)
     }).flatMap(identity)
 
-    reports.map { list =>
+    reportItems.map { list =>
       Ok(Json.toJson(list))
     }
   }

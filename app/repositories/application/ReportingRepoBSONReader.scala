@@ -227,6 +227,8 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
     val progress: ProgressResponse = toProgressResponse(applicationId)(doc)
 
+    val evaluationResults = toTestEvaluationResultsForOnlineTestPassMarkReportItem(doc)
+
     ApplicationForOnlineTestPassMarkReport(
       userId,
       applicationId,
@@ -237,7 +239,9 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       gis,
       assessmentCentreAdjustments,
       toTestResultsForOnlineTestPassMarkReportItem(doc, applicationId),
-      curSchemeStatus)
+      curSchemeStatus,
+      evaluationResults
+    )
   }
 
   private[application] def toApplicationForNumericTestExtractReport(doc: Document) = {
@@ -317,6 +321,46 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       videoInterviewResults,
       siftTestResults,
       fsac = None, overallFsacScore = None, sift = None, fsb = None)
+  }
+
+  private[application] def toTestEvaluationResultsForOnlineTestPassMarkReportItem(appDoc: Document) = {
+
+    def getSchemeResults(results: List[BsonDocument]) = results.map {
+      result =>
+        Try(result.get("schemeId").asString().getValue).getOrElse("") + ": " +
+          Try(result.get("result").asString().getValue).getOrElse("")
+    }
+
+    def padResults(elementsList: Option[List[String]], numOfElements: Int) = {
+      val elements = elementsList.getOrElse(Nil)
+      elements.map(Option(_)) ::: (1 to (numOfElements - elements.size)).toList.map(_ => Some(""))
+    }
+
+    val testGroupsOpt = subDocRoot("testGroups")(appDoc)
+
+    val data = List("PHASE1", "SIFT_PHASE", "FSAC", "FSB").foldLeft(Map.empty[String, List[Option[String]]]) {
+      case (map, phaseName) =>
+        val testSectionOpt = testGroupsOpt.flatMap(section => subDocRoot(phaseName)(section))
+        val testsEvaluationOpt = testSectionOpt.flatMap(evaluation => subDocRoot("evaluation")(evaluation))
+
+        import scala.jdk.CollectionConverters._
+        // Handle NPE
+        val testEvalResults = testsEvaluationOpt.flatMap(eval => Try(eval.get("result").asArray().getValues.asScala.toList.map(_.asDocument())).toOption
+          .orElse(testsEvaluationOpt.map(eval => eval.get("schemes-evaluation").asArray().getValues.asScala.toList.map(_.asDocument()))))
+
+
+        val evalResults = testEvalResults.map(getSchemeResults)
+        val paddedResults = padResults(evalResults, numOfElements = 4)
+
+        map.updated(phaseName, paddedResults)
+    }
+
+    TestEvaluationResultsForOnlineTestPassMarkReportItem(
+      phase1 = data.getOrElse("PHASE1", padResults(None, numOfElements = 4)),
+      sift = data.getOrElse("SIFT_PHASE", padResults(None, numOfElements = 4)),
+      fsac = data.getOrElse("FSAC", padResults(None, numOfElements = 4)),
+      fsb = data.getOrElse("FSB", padResults(None, numOfElements = 4))
+    )
   }
 
   // Just declaring that implementations needs to provide a MicroserviceAppConfig impl

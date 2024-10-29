@@ -18,8 +18,8 @@ package model.persisted
 
 import model.ApplicationRoute._
 import model.SchemeId
-import model.report.TestResultsForOnlineTestPassMarkReportItem
-import play.api.libs.json.{ Json, OFormat }
+import model.report.{TestEvaluationResultsForOnlineTestPassMarkReportItem, TestResultsForOnlineTestPassMarkReportItem}
+import play.api.libs.json.{Json, OFormat}
 
 case class ApplicationForOnlineTestPassMarkReport(userId: String,
                                                   applicationId: String,
@@ -30,7 +30,9 @@ case class ApplicationForOnlineTestPassMarkReport(userId: String,
                                                   gis: Option[Boolean],
                                                   assessmentCentreAdjustments: Option[String],
                                                   testResults: TestResultsForOnlineTestPassMarkReportItem,
-                                                  currentSchemeStatus: List[SchemeEvaluationResult])
+                                                  currentSchemeStatus: List[SchemeEvaluationResult],
+                                                  evaluationsResults: TestEvaluationResultsForOnlineTestPassMarkReportItem
+                                                 )
 
 object ApplicationForOnlineTestPassMarkReport {
   implicit val applicationForOnlineTestReportFormat: OFormat[ApplicationForOnlineTestPassMarkReport] =

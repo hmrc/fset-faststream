@@ -32,6 +32,7 @@ case class ApplicationForOnlineTestPassMarkReportItem(
                                                        gis: Option[Boolean],
                                                        assessmentCentreAdjustments: Option[String],
                                                        testResults: TestResultsForOnlineTestPassMarkReportItem,
+                                                       evaluationResults: TestEvaluationResultsForOnlineTestPassMarkReportItem,
                                                        currentSchemeStatus: List[SchemeEvaluationResult])
 
 object ApplicationForOnlineTestPassMarkReportItem {
@@ -55,6 +56,7 @@ object ApplicationForOnlineTestPassMarkReportItem {
       testResults = a.testResults.copy(
         fsac = fsacResults.map(_.toExchange), overallFsacScore = overallScoreOpt, sift = siftResults, fsb = fsbScoresAndFeedback
       ),
+      a.evaluationsResults,
       currentSchemeStatus = a.currentSchemeStatus
     )
   }

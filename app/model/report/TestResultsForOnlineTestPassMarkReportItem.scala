@@ -35,3 +35,21 @@ object TestResultsForOnlineTestPassMarkReportItem {
   implicit val testResultsForOnlineTestPassMarkReportItemFormat: OFormat[TestResultsForOnlineTestPassMarkReportItem] =
     Json.format[TestResultsForOnlineTestPassMarkReportItem]
 }
+
+case class TestEvaluationResultsForOnlineTestPassMarkReportItem(phase1: Seq[Option[String]],
+                                                                sift: Seq[Option[String]],
+                                                                fsac: Seq[Option[String]],
+                                                                fsb: Seq[Option[String]]
+                                                               ) {
+  override def toString: String =
+    s"phase1=$phase1," +
+    s"sift=$sift," +
+    s"fsac=$fsac," +
+    s"fsb=$fsb"
+}
+
+object TestEvaluationResultsForOnlineTestPassMarkReportItem {
+  implicit val optionStringFormat: Format[Option[String]] = Format.optionWithNull[String]
+  implicit val format: OFormat[TestEvaluationResultsForOnlineTestPassMarkReportItem] =
+    Json.format[TestEvaluationResultsForOnlineTestPassMarkReportItem]
+}
